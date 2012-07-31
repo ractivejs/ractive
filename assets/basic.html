@@ -1,0 +1,9 @@
+<h2>{{ title | uppercase }}</h2>
+{{{ triple }}}
+This is a text node with no mustaches.
+
+Here comes a section:
+
+{{# section }}<p>The section is visible</p><p>Top level: {{ toplevel }}</p><p>Nested: {{ nested }}</p>{{/ section }}
+
+{{# a }}{{ one }}<br/>{{# b }}{{ one }}{{ two }}{{ one }}<br/>{{# c }}{{ one }}{{ two }}{{ three }}{{ two }}{{ one }}<br/>{{/ c }}{{ one }}{{ two }}{{ one }}<br/>{{/ b }}{{ one }}<br/>{{/ a }}<p>End of nested sections</p>
