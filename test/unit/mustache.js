@@ -2,25 +2,29 @@ var sets, startTests;
 
 sets = [ 'comments', 'delimiters', 'interpolation', 'inverted', 'partials', 'sections' ];
 
-sets = [ 'interpolation' ];
+var trim = function ( str ) {
+	return str.replace( /^\s*/, '' ).replace( /\s*$/, '' );
+};
 
 startTests = function ( set, data ) {
 	
 	module( set );
 
 	_.each( data.tests, function ( t ) {
-		var viewModel, binding, result;
+		var viewModel, binding, result, pattern;
 
 		binding = new Binding({
 			el: 'qunit-fixture',
 			template: t.template,
-			viewModel: ( t.data )
+			viewModel: ( t.data ),
+			preserveWhitespace: true
 		});
 
-		result = binding.el.innerHTML;
+		pattern = /<a class="binding-anchor"><\/a>/g;
+		result = binding.el.innerHTML.replace( pattern, '' );
 				
 		test( t.name, function () {
-			equal( result, t.expected, t.desc + '\n' + t.template + '\n' );
+			equal( trim( result ), trim( t.expected ), t.desc + '\n' + t.template + '\n' );
 		});
 	});
 };

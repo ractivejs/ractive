@@ -78,6 +78,10 @@ var ViewModel = (function ( _ ) {
 		get: function ( address ) {
 			var keys, result;
 
+			if ( !address ) {
+				return '';
+			}
+
 			keys = address.split( '.' );
 
 			result = this.data;
@@ -85,7 +89,7 @@ var ViewModel = (function ( _ ) {
 				result = result[ keys.shift() ];
 
 				if ( result === undefined ) {
-					return undefined;
+					return '';
 				}
 			}
 
@@ -137,8 +141,8 @@ var ViewModel = (function ( _ ) {
 			};
 		},
 
-		publish: function ( keypath, value ) {
-			var self = this, subscriptionsGroupedByLevel = this.subscriptions[ keypath ] || [], i, j, level, subscription;
+		publish: function ( address, value ) {
+			var self = this, subscriptionsGroupedByLevel = this.subscriptions[ address ] || [], i, j, level, subscription;
 
 			for ( i=0; i<subscriptionsGroupedByLevel.length; i+=1 ) {
 				level = subscriptionsGroupedByLevel[i];
@@ -147,8 +151,8 @@ var ViewModel = (function ( _ ) {
 					for ( j=0; j<level.length; j+=1 ) {
 						subscription = level[j];
 
-						if ( keypath !== subscription.originalKeypath ) {
-							value = self.get( subscription.originalKeypath );
+						if ( address !== subscription.originalAddress ) {
+							value = self.get( subscription.originalAddress );
 						}
 						subscription.callback( value );
 					}
@@ -156,37 +160,41 @@ var ViewModel = (function ( _ ) {
 			}
 		},
 
-		subscribe: function ( keypath, level, callback ) {
+		subscribe: function ( address, level, callback ) {
 			
-			var self = this, originalKeypath = keypath, subscriptionRefs = [], subscribe;
+			var self = this, originalAddress = address, subscriptionRefs = [], subscribe;
 
-			subscribe = function ( keypath ) {
+			if ( !address ) {
+				return undefined;
+			}
+
+			subscribe = function ( address ) {
 				var subscriptions, subscription;
 
-				subscriptions = self.subscriptions[ keypath ] = self.subscriptions[ keypath ] || [];
+				subscriptions = self.subscriptions[ address ] = self.subscriptions[ address ] || [];
 				subscriptions = subscriptions[ level ] = subscriptions[ level ] || [];
 
 				subscription = {
 					callback: callback,
-					originalKeypath: originalKeypath
+					originalAddress: originalAddress
 				};
 
 				subscriptions[ subscriptions.length ] = subscription;
 				subscriptionRefs[ subscriptionRefs.length ] = {
-					keypath: keypath,
+					address: address,
 					level: level,
 					subscription: subscription
 				};
 			};
 
-			while ( keypath.lastIndexOf( '.' ) !== -1 ) {
-				subscribe( keypath );
+			while ( address.lastIndexOf( '.' ) !== -1 ) {
+				subscribe( address );
 
-				// remove the last item in the keypath, so that viewModel.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
-				keypath = keypath.substr( 0, keypath.lastIndexOf( '.' ) );
+				// remove the last item in the address, so that viewModel.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
+				address = address.substr( 0, address.lastIndexOf( '.' ) );
 			}
 
-			subscribe( keypath );
+			subscribe( address );
 
 			return subscriptionRefs;
 		},
@@ -194,7 +202,7 @@ var ViewModel = (function ( _ ) {
 		unsubscribe: function ( subscriptionRef ) {
 			var levels, subscriptions, index;
 
-			levels = this.subscriptions[ subscriptionRef.keypath ];
+			levels = this.subscriptions[ subscriptionRef.address ];
 			if ( !levels ) {
 				// nothing to unsubscribe
 				return;
@@ -222,7 +230,7 @@ var ViewModel = (function ( _ ) {
 			}
 
 			if ( levels.length === 0 ) {
-				delete this.subscriptions[ subscriptionRef.keypath ];
+				delete this.subscriptions[ subscriptionRef.address ];
 			}
 		},
 

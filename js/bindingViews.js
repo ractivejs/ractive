@@ -72,8 +72,6 @@ var bindingViews = (function ( _ ) {
 
 		this.views = [];
 
-		console.log( 'rendering list ', this );
-
 		_.each( list.items, function ( item, i ) {
 			if ( item.render ) {
 				self.views[i] = item.render( parentNode, contextStack, anchor );
@@ -156,7 +154,7 @@ var bindingViews = (function ( _ ) {
 			}
 
 			// if section is inverted, only check for truthiness/falsiness
-			if ( this.inverted ) {
+			if ( this.section.inverted ) {
 				if ( value && !emptyArray ) {
 					if ( this.rendered ) {
 						this.unrender();

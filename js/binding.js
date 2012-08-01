@@ -9,10 +9,6 @@ var Binding = (function ( _, ViewModel, models ) {
 
 		formulaSplitter,
 
-		comment,
-		lineComment,
-		mustache,
-
 		SECTION,
 		INTERPOLATOR,
 		TRIPLE,
@@ -32,7 +28,8 @@ var Binding = (function ( _, ViewModel, models ) {
 		warn;
 
 	
-
+	
+	
 
 	/* =================== */
 	//  Utility functions  //
@@ -207,6 +204,8 @@ var Binding = (function ( _, ViewModel, models ) {
 
 			this.compiled = this.compile();
 
+			// empty container and render
+			this.el.innerHTML = '';
 			this.render();
 		},
 
@@ -229,6 +228,9 @@ var Binding = (function ( _, ViewModel, models ) {
 		},
 
 		render: function () {
+			if ( this.view ) {
+				this.view.unrender();
+			}
 			this.view = this.compiled.render( this.el );
 		},
 
@@ -248,7 +250,15 @@ var Binding = (function ( _, ViewModel, models ) {
 		},
 
 		_stripComments: function () {
-			// TODO handle multiline comments
+			var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
+				lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g;
+
+			// remove line comments
+			this.template = this.template.replace( lineComment, function ( matched, startChar, endChar, start, complete ) {
+				return startChar;
+			});
+
+			// remove inline comments
 			this.template = this.template.replace( comment, '' );
 		},
 
