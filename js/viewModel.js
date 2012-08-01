@@ -21,21 +21,24 @@ var ViewModel = (function ( _ ) {
 	};
 
 	ViewModel.prototype = {
-		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, numUnresolved, numResolved, unresolved, resolved, index, address;
+		set: function ( address, value ) {
+			var k, keys, key, obj, i, numUnresolved, numResolved, unresolved, resolved, index, address, previous;
 
 			// allow multiple values to be set in one go
-			if ( typeof keypath === 'object' ) {
-				for ( k in keypath ) {
-					if ( keypath.hasOwnProperty( k ) ) {
-						this.set( k, keypath[k] );
+			if ( typeof address === 'object' ) {
+				for ( k in address ) {
+					if ( address.hasOwnProperty( k ) ) {
+						this.set( k, address[k] );
 					}
 				}
 			}
 
 			else {
+				// find previous value
+				previous = this.get( address );
+
 				// split key path into keys
-				keys = keypath.split( '.' );
+				keys = address.split( '.' );
 
 				obj = this.data;
 				while ( keys.length > 1 ) {
@@ -46,7 +49,13 @@ var ViewModel = (function ( _ ) {
 				key = keys[0];
 
 				obj[ key ] = value;
-				this.publish( keypath, value );
+
+				if ( !_.isEqual( previous, value ) ) {
+					this.publish( address, value );
+				} else {
+					console.log( 'nothing changed' );
+				};
+				
 			}
 
 			// see if we can resolve any of the unresolved addresses (if such there be)

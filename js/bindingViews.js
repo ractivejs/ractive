@@ -143,11 +143,6 @@ var bindingViews = (function ( _ ) {
 		update: function ( value ) {
 			var emptyArray, i;
 
-			// if value hasn't changed, don't do anything
-			if ( _.isEqual( this.value, value ) ) {
-				return;
-			}
-
 			// treat empty arrays as false values
 			if ( _.isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
@@ -218,8 +213,6 @@ var bindingViews = (function ( _ ) {
 					// otherwise render if value is truthy, unrender if falsy
 
 			}
-			
-			this.value = value;
 		}
 	};
 
