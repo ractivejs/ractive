@@ -1,7 +1,7 @@
 /*jslint white: true, nomen: true */
 /*global document, _, bindingViews */
 
-var bindingModels = (function ( _, views ) {
+var bindingModels = (function ( _, views, evaluators ) {
 
 	'use strict';
 
@@ -231,6 +231,10 @@ var bindingModels = (function ( _, views ) {
 			return new views.List( this, parentNode, contextStack, anchor );
 		},
 
+		getEvaluator: function ( parent ) {
+			return new evaluators.List( this, parent );
+		},
+
 		add: function ( item ) {
 			this.items[ this.items.length ] = item;
 		},
@@ -344,12 +348,17 @@ var bindingModels = (function ( _, views ) {
 	models.Section.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
 			return new views.Section( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent ) {
+			return new evaluators.Section( this, parent );
 		}
 	};
 
 	models.Text = function ( text, parent ) {
 		this.text = text;
 
+		// TODO these are no longer self-adding, so non whitespace preserving empties need to be handled another way
 		if ( /^\s+$/.test( text ) || text === '' ) {
 			if ( !parent.binding.preserveWhitespace ) {
 				return; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
@@ -360,12 +369,17 @@ var bindingModels = (function ( _, views ) {
 	models.Text.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
 			return new views.Text( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent ) {
+			return new evaluators.Text( this, parent );
 		}
 	};
 
 	models.Interpolator = function ( mustache, parent ) {
 		this.keypath = mustache.keypath;
 		this.formatters = mustache.formatters;
+		this.parent = parent;
 		this.binding = parent.binding;
 		this.level = parent.level + 1;
 	};
@@ -373,6 +387,10 @@ var bindingModels = (function ( _, views ) {
 	models.Interpolator.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
 			return new views.Interpolator( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent ) {
+			return new evaluators.Interpolator( this, parent );
 		}
 	};
 
@@ -386,6 +404,10 @@ var bindingModels = (function ( _, views ) {
 	models.Triple.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
 			return new views.Triple( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent ) {
+			return new evaluators.Interpolator( this, parent ); // Triples are the same as Interpolators in this context
 		}
 	};
 
@@ -396,6 +418,9 @@ var bindingModels = (function ( _, views ) {
 		this.level = parent.level + 1;
 
 
+		this.getAttributes( original );
+
+
 		if ( original.childNodes.length ) {
 			this.children = new models.List( expandNodes( original.childNodes ), this );
 		}
@@ -404,9 +429,43 @@ var bindingModels = (function ( _, views ) {
 	models.Element.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
 			return new views.Element( this, parentNode, contextStack, anchor );
+		},
+
+		getAttributes: function ( original ) {
+			var i, numAttributes, attribute;
+
+			this.attributes = [];
+
+			numAttributes = original.attributes.length;
+			for ( i=0; i<numAttributes; i+=1 ) {
+				attribute = original.attributes[i];
+				this.attributes[i] = new models.Attribute( attribute.name, attribute.value, this.binding );
+			}
+		}
+	};
+
+	models.Attribute = function ( name, value, binding ) {
+		var components = expandText( value );
+
+		this.name = name;
+		if ( !findMustache( value ) ) {
+			this.value = value;
+			return;
+		}
+
+		this.isDynamic = true;
+		this.list = new models.List( components, {
+			binding: binding,
+			level: 0
+		});
+	};
+
+	models.Attribute.prototype = {
+		render: function ( node, contextStack ) {
+			return new views.Attribute( this, node, contextStack );
 		}
 	};
 
 
 	return models;
-}( _, bindingViews ));
+}( _, bindingViews, bindingEvaluators ));

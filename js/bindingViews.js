@@ -315,15 +315,32 @@ var bindingViews = (function ( _ ) {
 			formattedHtml,
 			binding = element.binding,
 			viewModel = binding.viewModel,
+			i,
+			numAttributes,
+			numItems,
+			attributeModel,
+			item,
 			nodes;
 
+		// create the DOM node
 		this.node = document.createElement( element.type );
+		
+		// set attributes
+		this.attributes = [];
+		numAttributes = element.attributes.length;
+		for ( i=0; i<numAttributes; i+=1 ) {
+			attributeModel = element.attributes[i];
+			this.attributes[i] = attributeModel.render( this.node, contextStack );
+		}
 
+		// append children
 		if ( element.children ) {
 			this.children = [];
-			_.each( element.children.items, function ( item, i ) {
-				self.children[i] = item.render( self.node, contextStack );
-			});
+			numItems = element.children.items.length;
+			for ( i=0; i<numItems; i+=1 ) {
+				item = element.children.items[i];
+				this.children[i] = item.render( this.node, contextStack );
+			}
 		}
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
@@ -334,6 +351,56 @@ var bindingViews = (function ( _ ) {
 		unrender: function () {
 			// TODO unsubscribes
 			remove( this.node );
+		}
+	};
+
+	views.Attribute = function ( attributeModel, node, contextStack ) {
+		
+		var i, numItems, item;
+
+		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
+		if ( !attributeModel.isDynamic ) {
+			node.setAttribute( attributeModel.name, attributeModel.value );
+			return;
+		}
+
+		// otherwise we need to do some work
+		this.attributeModel = attributeModel;
+		this.node = node;
+		this.name = attributeModel.name;
+
+		this.binding = attributeModel.binding;
+		this.viewModel = attributeModel.viewModel;
+
+		this.views = [];
+
+		numItems = attributeModel.list.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			item = attributeModel.list.items[i];
+			this.views[i] = item.getEvaluator( this, contextStack );
+		}
+
+		// update...
+		this.update();
+
+		// and watch for changes TODO
+	};
+
+	views.Attribute.prototype = {
+		update: function () {
+			this.node.setAttribute( this.name, this.toString() );
+		},
+
+		toString: function () {
+			var string = '', i, numViews, view;
+
+			numViews = this.views.length;
+			for ( i=0; i<numViews; i+=1 ) {
+				view = this.views[i];
+				string += view.toString();
+			}
+
+			return string;
 		}
 	};
 

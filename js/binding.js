@@ -219,7 +219,7 @@ var Binding = (function ( _, ViewModel, models ) {
 			nodes = getNodeArrayFromHtml( this.template );
 
 			rootList = new models.getListFromNodes( nodes, {
-				contextStack: [],
+				/*contextStack: [],*/
 				binding: this,
 				level: 0
 			});
