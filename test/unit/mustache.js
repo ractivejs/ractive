@@ -11,17 +11,17 @@ startTests = function ( set, data ) {
 	module( set );
 
 	_.each( data.tests, function ( t ) {
-		var viewModel, binding, result, pattern;
+		var data, anglebars, result, pattern;
 
-		binding = new Binding({
+		anglebars = new Anglebars({
 			el: 'qunit-fixture',
 			template: t.template,
-			viewModel: ( t.data ),
+			data: ( t.data ),
 			preserveWhitespace: true
 		});
 
-		pattern = /<a class="binding-anchor"><\/a>/g;
-		result = binding.el.innerHTML.replace( pattern, '' );
+		pattern = /<a class="anglebars-anchor"><\/a>/g;
+		result = anglebars.el.innerHTML.replace( pattern, '' );
 				
 		test( t.name, function () {
 			equal( trim( result ), trim( t.expected ), t.desc + '\n' + t.template + '\n' );

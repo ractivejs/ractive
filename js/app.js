@@ -1,9 +1,9 @@
 /*jslint white: true */
-/*global jQuery, Markdown, Binding */
+/*global jQuery, Markdown, Anglebars */
 
-var binding, viewModel;
+var anglebars, data;
 
-;(function ( $, Binding, Markdown ) {
+;(function ( $, Anglebars, Markdown ) {
 
 	'use strict';
 
@@ -14,17 +14,12 @@ var binding, viewModel;
 		$.ajax({
 			url: 'assets/basic.html',
 			success: function ( template ) {
-				binding = new Binding({
-					el: 'bindingContainer',
-					viewModel: {
+				anglebars = new Anglebars({
+					el: 'anglebars',
+					data: {
 						title: 'Lorem Ipsum',
 						subtitle: 'placeholder subtitle',
 						description: "Bobbar eeh. Ah'll gi' thee a thick ear where's tha bin soft lad face like a slapped arse. Ee by gum t'foot o' our stairs.\n\nTell thi summat for nowt tha knows any rooad will 'e 'eckerslike bloomin' 'eck gerritetten. Ee by gum. Where there's muck there's brass dahn t'coil oil nobbut a lad. What's that when it's at ooam soft southern pansy. Shurrup where's tha bin.",
-						list: [
-							{ letter: 'a', number: 1 },
-							{ letter: 'b', number: 2 },
-							{ letter: 'c', number: 3 }
-						],
 						person: {
 							firstname: 'Brian',
 							lastname: 'Blessed',
@@ -45,7 +40,12 @@ var binding, viewModel;
 						},
 						c: {
 							three: 3
-						}
+						},
+						list: [
+							{ text: 'The quick brown fox...' },
+							{ text: '...jumped over...' },
+							{ text: '...the lazy dog' }
+						]
 					},
 					template: template,
 					formatters: {
@@ -58,11 +58,11 @@ var binding, viewModel;
 					}
 				});
 
-				viewModel = binding.viewModel;
+				data = anglebars.data;
 			}
 		});
 	});
 
 
 
-}( jQuery, Binding, Markdown ));
+}( jQuery, Anglebars, Markdown ));

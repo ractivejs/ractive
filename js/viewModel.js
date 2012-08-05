@@ -1,11 +1,11 @@
 /*jslint white: true, nomen: true */
-/*global _ */
+/*global Anglebars, _ */
 
-var ViewModel = (function ( _ ) {
+(function ( Anglebars, _ ) {
 
 	'use strict';
 
-	var ViewModel = function ( o ) {
+	Anglebars.ViewModel = function ( o ) {
 		var key;
 
 		this.data = {};
@@ -20,9 +20,9 @@ var ViewModel = (function ( _ ) {
 		this.subscriptions = {};
 	};
 
-	ViewModel.prototype = {
+	Anglebars.ViewModel.prototype = {
 		set: function ( address, value ) {
-			var k, keys, key, obj, i, numUnresolved, numResolved, unresolved, resolved, index, address, previous;
+			var k, keys, key, obj, i, numUnresolved, numResolved, unresolved, resolved, index, previous;
 
 			// allow multiple values to be set in one go
 			if ( typeof address === 'object' ) {
@@ -250,6 +250,4 @@ var ViewModel = (function ( _ ) {
 		}
 	};
 
-	return ViewModel;
-
-}( _ ));
+}( Anglebars, _ ));
