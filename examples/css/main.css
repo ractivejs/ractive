@@ -1,0 +1,69 @@
+body {
+	font-family: 'Helvetica Neue', 'Arial';
+	font-size: 16px;
+	color: #333;
+}
+
+p {
+	margin: 0 0 1em 0;
+}
+
+a {
+	text-decoration: none;
+	color: rgb(50,150,255);;
+}
+
+a span {
+	font-size: 0.6em;
+	position: relative;
+	bottom: 0.1em;
+}
+
+.back {
+	display: block;
+	border-bottom: 1px solid #eee;
+	padding: 0.5em;
+	margin: 0 0 1em 0;
+}
+
+script {
+	display: block;
+	overflow-x: scroll;
+	white-space: pre;
+	font-family: 'Courier New';
+}
+
+.main {
+	padding: 0 1em;
+}
+
+.notes {
+	border-bottom: 1px solid #eee;
+	padding: 0.5em 1em;
+	margin: 0 0 1em 0;
+}
+
+.notes code {
+	display: block;
+	background-color: rgba(0,0,0,0.02);
+	border-radius: 0.5em;
+	padding: 0.5em;
+	margin: 0 0 1em 0;
+}
+
+.input, .output {
+	box-sizing: border-box;
+	width: 50%;
+	float: left;
+}
+
+.input {
+	padding-right: 20px;
+	background-color: rgba(0,0,0,0.02);
+	border-radius: 0.5em;
+	padding: 0 1em 0 1em;
+}
+
+.output {
+	padding-left: 1em;
+}

@@ -1,0 +1,52 @@
+<h2>The title is: {{title | uppercase}} ({{ subtitle }})</h2>
+<p style="color: {{ color }};">{{{ description | markdown }}}</p>
+
+<p><strong>Insane nested contexts:</strong></p>
+{{# a }}
+{{one}}
+{{# b }}
+{{one}}{{two}}{{one}}
+{{# c }}
+{{one}}{{two}}{{three}}{{two}}{{one}}
+{{/ c }}
+{{one}}{{two}}{{one}}
+{{/ b }}
+{{one}}
+{{/ a }}
+
+{{! comment }}
+
+{{# list.length }}
+<strong>Here is some data, woo!</strong>
+<ul>
+	{{# list }}
+	<li><strong>{{ letter }}</strong>: {{ number }}</li>
+	{{/ list }}
+</ul>
+{{/ list.length }}
+
+{{^ list }}
+<p><strong>No data to show :(</strong></p>
+{{/ list }}
+
+{{# section }}
+<strong>Here is another section</strong>
+{{/ section }}
+
+<p>Name: {{ person.firstname }} {{ person.lastname }}</p>
+<p>Age: {{ person.age }}</p>
+
+<input value='{{ person.age }}'/>
+
+<p>A comment is in the {{!comment}}middle of this {{! amazing }}sentence.{{! and here is one at the end. epic }}</p>
+
+<p style='white-space: pre;'>
+	There are standalone comments below this line.
+	{{!comment}}
+	{{!comment}}
+	{{!comment}}
+	{{!comment}}
+	The entire line should be removed, so that this immediately follows the line above.
+</p>
+
+Text outside any elements or mustaches should just render as is.
