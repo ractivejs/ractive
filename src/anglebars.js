@@ -72,7 +72,6 @@ var Anglebars = (function ( _ ) {
 			var nodes, rootList;
 
 			// remove all comments
-			// TODO handle multiline comments
 			this.template = utils.stripComments( this.template );
 
 			nodes = utils.getNodeArrayFromHtml( this.template );
@@ -101,7 +100,7 @@ var Anglebars = (function ( _ ) {
 			this.data.get.apply( this.data, arguments );
 		},
 
-		_format: function ( value, formatters ) {
+		format: function ( value, formatters ) {
 			var i, numFormatters, formatterName;
 
 			numFormatters = formatters.length;

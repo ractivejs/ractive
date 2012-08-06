@@ -25,10 +25,10 @@
 <body>
 	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
 	
-	<div class='notes'>
+	<!-- <div class='notes'>
 		<p>Tip: In the console, do:</p>
 		<code>anglebars.set('helloworld', 'Greetings, my good fellow!')</code>
-	</div>
+	</div> -->
 
 	<div class='main'>
 		<div class='input'>
@@ -38,9 +38,14 @@ var anglebars;
 $(function () {
   anglebars = new Anglebars({
     el: 'anglebars',
-    template: '<p>{{helloworld}}</p>',
+    template: '<p>The following text will appear in capitals:</p><p><strong>{{sometext | uppercase}}</strong></p>',
     data: {
-      helloworld: 'Hello world!'
+      sometext: 'hawkmen, dive!'
+    },
+    formatters: {
+    	uppercase: function ( input ) {
+    		return input.toUpperCase();
+    	}
     }
   });
 });

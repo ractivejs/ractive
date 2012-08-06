@@ -73,12 +73,12 @@
 			var value, formatted, self = this;
 
 			value = this.data.get( this.address );
-			formatted = this.anglebars._format( value, this.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
+			formatted = this.anglebars.format( value, this.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
 
 			this.stringified = formatted;
 
 			this.subscriptionRefs = this.data.subscribe( this.address, this.model.level, function ( value ) {
-				var formatted = self.anglebars._format( value, self.model.formatters );
+				var formatted = self.anglebars.format( value, self.model.formatters );
 				self.stringified = formatted;
 				self.bubble();
 			});
@@ -115,12 +115,12 @@
 			var value, formatted, self = this;
 
 			value = this.data.get( this.address );
-			formatted = this.anglebars._format( value, this.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
+			formatted = this.anglebars.format( value, this.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
 
 			this.update( formatted );
 
 			this.subscriptionRefs = this.data.subscribe( this.address, this.model.level, function ( value ) {
-				var formatted = self.anglebars._format( value, self.model.formatters );
+				var formatted = self.anglebars.format( value, self.model.formatters );
 				self.update( formatted );
 				self.bubble();
 			});

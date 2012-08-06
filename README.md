@@ -4,6 +4,7 @@ the bastard lovechild of [Angular.js](http://angularjs.org/) and [handlebars](ht
 -------------------------------------------------------------------------------------------------------
 
 
+
 [Angular.js](http://angularjs.org/) is awesome. If you haven't tried it yet, you definitely should. There's something rather magical about watching pages updating with new data, or respond to user input, without you telling them to. But it's 76kb minified - for many simple apps, it's overkill.
 
 At the other end of the spectrum are templating engines like [Handlebars](http://handlebarsjs.com/) or [Hogan](http://twitter.github.com/hogan.js/) or other variations on the [Mustache](http://mustache.github.com/) theme. These are simple to use and understand, but they're often not well suited to complex dynamic views, because a change in the model necessitates a complete re-render - which is expensive and a nuisance when it comes to event handling.

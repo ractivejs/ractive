@@ -62,13 +62,13 @@
 
 		data.getAddress( this, section.keypath, contextStack, function ( address ) {
 			unformatted = data.get( address );
-			formatted = anglebars._format( unformatted, section.formatters );
+			formatted = anglebars.format( unformatted, section.formatters );
 
 			this.update( formatted );
 
 			// subscribe to changes
 			this.subscriptionRefs = data.subscribe( address, section.level, function ( value ) {
-				var formatted = anglebars._format( value, section.formatters );
+				var formatted = anglebars.format( value, section.formatters );
 				self.update( formatted );
 			});
 		});
@@ -181,12 +181,12 @@
 
 		data.getAddress( this, interpolator.keypath, contextStack, function ( address ) {
 			value = data.get( address );
-			formatted = anglebars._format( value, interpolator.formatters );
+			formatted = anglebars.format( value, interpolator.formatters );
 
 			this.update( formatted );
 
 			this.subscriptionRefs = data.subscribe( address, interpolator.level, function ( value ) {
-				var formatted = anglebars._format( value, interpolator.formatters );
+				var formatted = anglebars.format( value, interpolator.formatters );
 				self.update( formatted );
 			});
 		});
@@ -231,12 +231,12 @@
 		data.getAddress( this, triple.keypath, contextStack, function ( address ) {
 			// subscribe to data changes
 			this.subscriptionRefs = data.subscribe( address, triple.level, function ( value ) {
-				var formatted = anglebars._format( value, triple.formatters );
+				var formatted = anglebars.format( value, triple.formatters );
 				self.update( formatted );
 			});
 
 			unformatted = data.get( address );
-			formattedHtml = anglebars._format( unformatted, triple.formatters );
+			formattedHtml = anglebars.format( unformatted, triple.formatters );
 
 			this.update( formattedHtml );
 		});
