@@ -52,35 +52,15 @@
 
 				if ( !_.isEqual( previous, value ) ) {
 					this.publish( address, value );
-				} else {
-					console.log( 'nothing changed' );
-				};
-				
-			}
-
-			// see if we can resolve any of the unresolved addresses (if such there be)
-			numUnresolved = this.pendingResolution.length;
-			resolved = [];
-			for ( i=0; i<numUnresolved; i+=1 ) {
-				unresolved = this.pendingResolution[i];
-				console.log( 'attempting to resolve ', unresolved.item.keypath, unresolved.item.contextStack );
-				address = this.getAddress( unresolved.item.keypath, unresolved.item.contextStack );
-
-				if ( address ) {
-					unresolved.item.address = address;
-					unresolved.callback.call( unresolved.item, this.get( address ) );
-
-					console.log( 'successfully resolved:', address, this.get( address ) );
-
-					resolved[ resolved.length ] = unresolved;
 				}
 			}
 
-			// remove any resolved addresses from the register
-			numResolved = resolved.length;
-			for ( i=0; i<numResolved; i+=1 ) {
-				index = this.pendingResolution.indexOf( resolved[i] );
-				this.pendingResolution.splice( index, 1 );
+			// see if we can resolve any of the unresolved addresses (if such there be)
+			i = this.pendingResolution.length;
+
+			while ( i-- ) { // work backwards, so we don't go in circles
+				unresolved = this.pendingResolution.splice( i, 1 )[0];
+				this.getAddress( unresolved.item, unresolved.item.keypath, unresolved.item.contextStack, unresolved.callback );
 			}
 		},
 
@@ -105,11 +85,11 @@
 			return result;
 		},
 
-		getAddress: function ( keypath, contextStack ) {
+		getAddress: function ( item, keypath, contextStack, callback ) {
 
 			// TODO refactor this, it's fugly
 
-			var keys, keysClone, innerMost, result, contextStackClone;
+			var keys, keysClone, innerMost, result, contextStackClone, address;
 
 			contextStack = ( contextStack ? contextStack.concat() : [] );
 			contextStackClone = contextStack.concat();
@@ -130,7 +110,10 @@
 				}
 
 				if ( result !== undefined ) {
-					return keysClone.join( '.' );
+					address = keysClone.join( '.' );
+					item.address = address;
+					callback.call( item, address );
+					break;
 				}
 
 				if ( contextStack.length ) {
@@ -140,7 +123,10 @@
 				}
 			}
 
-			console.warn( 'Failed to resolve address from ', keypath, contextStackClone );
+			// if we didn't figure out the address, add this to the unresolved list
+			if ( result === undefined ) {
+				this.registerUnresolvedAddress( item, callback );
+			}
 		},
 
 		registerUnresolvedAddress: function ( item, onResolve ) {
@@ -148,6 +134,12 @@
 				item: item,
 				callback: onResolve
 			};
+		},
+
+		cancelAddressResolution: function ( item ) {
+			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
+				return pending.item !== item;
+			});
 		},
 
 		publish: function ( address, value ) {

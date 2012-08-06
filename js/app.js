@@ -42,9 +42,9 @@ var anglebars, data;
 							three: 3
 						},
 						list: [
-							{ text: 'The quick brown fox...' },
-							{ text: '...jumped over...' },
-							{ text: '...the lazy dog' }
+							{ text: 'The quick brown fox...', licolor: 'red' },
+							{ text: '...jumped over...', licolor: 'green' },
+							{ text: '...the lazy dog', licolor: 'blue' }
 						]
 					},
 					template: template,
@@ -59,6 +59,8 @@ var anglebars, data;
 				});
 
 				data = anglebars.data;
+
+				data.set('title', 'Lorem Ipsum')
 			}
 		});
 	});

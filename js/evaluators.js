@@ -5,35 +5,32 @@
 
 	'use strict';
 
-	Anglebars.evaluators = {};
+	var evaluators = Anglebars.evaluators;
 
-	Anglebars.evaluators.List = function ( list, parent ) {
+	evaluators.List = function ( list, parent, contextStack ) {
 		var self = this;
 
 		this.evaluators = [];
-
+		
 		_.each( list.items, function ( item, i ) {
 			if ( item.getEvaluator ) {
-				self.evaluators[i] = item.getEvaluator( this );
+				self.evaluators[i] = item.getEvaluator( this, contextStack );
 			}
 		});
+
+		this.stringified = this.evaluators.join('');
 	};
 
-	Anglebars.evaluators.List.prototype = {
-		evaluate: function ( contextStack ) {
-			var self = this;
-
-			this.stringified = '';
-			_.each( this.evaluators, function ( evaluator ) {
-				self.stringified += evaluator.evaluate( contextStack );
-			});
-
-			return this.stringified;
+	evaluators.List.prototype = {
+		bubble: function () {
+			this.stringified = this.evaluators.join('');
+			this.parent.bubble();
 		},
 
-		nudge: function () {
-			this.evaluate();
-			this.parent.nudge();
+		teardown: function () {
+			_.each( this.evaluators, function ( evaluator ) {
+				evaluator.teardown();
+			});
 		},
 
 		toString: function () {
@@ -41,35 +38,27 @@
 		}
 	};
 
-	Anglebars.evaluators.Text = function ( text, parent ) {
+	evaluators.Text = function ( text, parent, contextStack ) {
 		this.stringified = text.text;
 	};
 
-	Anglebars.evaluators.Text.prototype = {
+	evaluators.Text.prototype = {
 		toString: function () {
 			return this.stringified;
 		}
 	};
 
-	Anglebars.evaluators.Interpolator = function ( interpolator, parent ) {
+	evaluators.Interpolator = function ( interpolator, parent, contextStack ) {
+		var self = this, value, formatted;
+
 		this.interpolator = interpolator;
+		this.keypath = interpolator.keypath;
+		this.contextStack = contextStack;
 		this.anglebars = interpolator.anglebars,
 		this.data = this.anglebars.data;
 		this.parent = parent;
-	};
 
-	Anglebars.evaluators.Interpolator.prototype = {
-		nudge: function () {
-			this.parent.nudge();
-		},
-
-		evaluate: function ( contextStack ) {
-			var self = this, value, formatted;
-
-			contextStack = ( contextStack ? contextStack.concat() : [] );
-		
-			this.address = this.data.getAddress( this.interpolator.keypath, contextStack );
-
+		this.data.getAddress( this, this.interpolator.keypath, contextStack, function ( address ) {
 			value = this.data.get( this.address );
 			formatted = this.anglebars._format( value, this.interpolator.formatters );
 
@@ -78,20 +67,32 @@
 			this.subscriptionRefs = this.data.subscribe( this.address, this.interpolator.level, function ( value ) {
 				var formatted = self.anglebars._format( value, self.interpolator.formatters );
 				self.stringified = formatted;
-				self.nudge();
+				self.bubble();
 			});
+		});
+	};
 
-			return this.stringified;
+	evaluators.Interpolator.prototype = {
+		bubble: function () {
+			this.parent.bubble();
+		},
+
+		teardown: function () {
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
+			}
 		},
 
 		toString: function () {
-			return this.stringified || this.evaluate();
+			return this.stringified;
 		}
 	};
 
-	Anglebars.evaluators.Triple = Anglebars.evaluators.Interpolator; // same same
+	evaluators.Triple = evaluators.Interpolator; // same same
 
-	Anglebars.evaluators.Section = function ( section, parent ) {
+	evaluators.Section = function ( section, parent, contextStack ) {
 
 	};
 	

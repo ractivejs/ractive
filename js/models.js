@@ -5,219 +5,15 @@
 
 	'use strict';
 
-	var insertBefore,
-		insertAfter,
-		remove,
-		nodeListToArray,
-		expandNodes,
-		expandText,
-		comment,
-		lineComment,
-		mustache,
-		formulaSplitter,
-		attributeListToArray,
-		findMustache,
-		findMatch,
-		SECTION,
-		INTERPOLATOR,
-		TRIPLE,
-		PARTIAL;
+	var models = Anglebars.models,
+		views = Anglebars.views,
+		evaluators = Anglebars.evaluators,
+		utils = Anglebars.utils;
 
 
 
-	insertBefore = function ( referenceNode, newNode ) {
-		if ( !referenceNode ) {
-			throw new Error( 'Can\'t insert before a non-existent node' );
-		}
 
-		return referenceNode.parentNode.insertBefore( newNode, referenceNode );
-	};
-
-	insertAfter = function ( referenceNode, newNode ) {
-		if ( !referenceNode ) {
-			throw new Error( 'Can\'t insert before a non-existent node' );
-		}
-
-		return referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
-	};
-
-	remove = function ( node ) {
-		if ( node.parentNode ) {
-			node.parentNode.removeChild( node );
-		}
-	};
-
-	nodeListToArray = function ( nodes ) {
-		var i, numNodes = nodes.length, result = [];
-
-		for ( i=0; i<numNodes; i+=1 ) {
-			result[i] = nodes[i];
-		}
-
-		return result;
-	};
-
-	attributeListToArray = function ( attributes ) {
-		var i, numAttributes = attributes.length, result = [];
-
-		for ( i=0; i<numAttributes; i+=1 ) {
-			result[i] = {
-				name: attributes[i].name,
-				value: attributes[i].value
-			};
-		}
-
-		return result;
-	};
-
-	findMustache = function ( text, startIndex ) {
-
-		var match, split;
-
-		match = findMatch( text, mustache, startIndex );
-
-		if ( match ) {
-
-			match.formula = match[5];
-			split = match.formula.split( formulaSplitter );
-			match.keypath = split.shift();
-			match.formatters = split;
-			
-			
-			// figure out what type of mustache we're dealing with
-			if ( match[2] ) {
-				// mustache is a section
-				match.type = SECTION;
-				match.inverted = ( match[2] === '^' ? true : false );
-				match.closing = ( match[2] === '/' ? true : false );
-			}
-
-			else if ( match[3] ) {
-				match.type = PARTIAL;
-			}
-
-			else if ( match[1] ) {
-				// left side is a triple - check right side is as well
-				if ( !match[6] ) {
-					return false;
-				}
-
-				match.type = TRIPLE;
-			}
-
-			else {
-				match.type = INTERPOLATOR;
-			}
-
-			match.isMustache = true;
-			return match;
-		}
-
-		// if no mustache found, report failure
-		return false;
-	};
-
-	findMatch = function ( text, pattern, startIndex ) {
-
-		var match;
-
-		// reset lastIndex
-		if ( pattern.global ) {
-			pattern.lastIndex = startIndex || 0;
-		} else {
-			console.warn( 'findMatch() will work incorrectly if supplied a non-global regex' );
-		}
-
-		match = pattern.exec( text );
-
-		if ( match ) {
-			match.end = pattern.lastIndex;
-			match.start = ( match.end - match[0].length );
-			return match;
-		}
-	};
-
-	expandNodes = function ( nodes ) {
-		var i, numNodes, node, result = [];
-
-		numNodes = nodes.length;
-		for ( i=0; i<numNodes; i+=1 ) {
-			node = nodes[i];
-
-			if ( node.nodeType !== 3 ) {
-				result[ result.length ] = {
-					type: 'element',
-					original: node
-				};
-			}
-
-			else {
-				result = result.concat( expandText( node.textContent ) );
-			}
-		}
-
-		return result;
-	};
-
-	expandText = function ( text ) {
-		var result, mustache;
-
-		// see if there's a mustache involved here
-		mustache = findMustache( text );
-
-		// if not, groovy - no work to do
-		if ( !mustache ) {
-			return {
-				type: 'text',
-				text: text
-			};
-		}
-
-		result = [];
-
-		// otherwise, see if there is any text before the node
-		if ( mustache.start > 0 ) {
-			result[ result.length ] = {
-				type: 'text',
-				text: text.substr( 0, mustache.start )
-			};
-		}
-
-		// add the mustache
-		result[ result.length ] = {
-			type: 'mustache',
-			mustache: mustache
-		};
-
-		if ( mustache.end < text.length ) {
-			result = result.concat( expandText( text.substring( mustache.end ) ) );
-		}
-
-		return result;
-	};
-
-
-	formulaSplitter = ' | ';
-
-	comment = /\{\{!\s*([\s\S]+?)\s*\}\}/g;
-	lineComment = /^\s*\{\{!\s*([\s\S]+?)\s*\}\}\s*$/g;
-	mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
-
-
-	SECTION = 'section';
-	INTERPOLATOR = 'interpolator';
-	TRIPLE = 'triple';
-	PARTIAL = 'partial';
-
-
-
-	Anglebars.models = {};
-
-	Anglebars.models.getListFromNodes = function ( nodes, parent ) {
-		return new Anglebars.models.List( expandNodes( nodes ), parent );
-	};
-
-	Anglebars.models.List = function ( expandedNodes, parent ) {
+	models.List = function ( expandedNodes, parent ) {
 		this.expanded = expandedNodes;
 		this.parent = parent;
 		this.level = parent.level + 1;
@@ -227,13 +23,13 @@
 		this.compile();
 	};
 
-	Anglebars.models.List.prototype = {
+	models.List.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
-			return new Anglebars.views.List( this, parentNode, contextStack, anchor );
+			return new views.List( this, parentNode, contextStack, anchor );
 		},
 
-		getEvaluator: function ( parent ) {
-			return new Anglebars.evaluators.List( this, parent );
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.List( this, parent, contextStack );
 		},
 
 		add: function ( item ) {
@@ -251,6 +47,9 @@
 			while ( next < this.expanded.length ) {
 				next = this.createItem( next );
 			}
+
+			// we don't need the expanded nodes any more
+			delete this.expanded;
 		},
 
 		createItem: function ( i ) {
@@ -260,17 +59,17 @@
 
 			switch ( start.type ) {
 				case 'text':
-					this.add( new Anglebars.models.Text( start.text, this ) );
+					this.add( new models.Text( start.text, this ) );
 					return i+1;
 
 				case 'element':
-					this.add( new Anglebars.models.Element( start.original, this ) );
+					this.add( new models.Element( start.original, this ) );
 					return i+1;
 
 				case 'mustache':
 					
 					switch ( start.mustache.type ) {
-						case SECTION:
+						case 'section':
 
 							i += 1;
 							sliceStart = i; // first item in section
@@ -304,19 +103,19 @@
 								throw new Error( 'Illegal section "' + keypath + '"' );
 							}
 
-							this.add( new Anglebars.models.Section( start.mustache, this.expanded.slice( sliceStart, sliceEnd ), this ) );
+							this.add( new models.Section( start.mustache, this.expanded.slice( sliceStart, sliceEnd ), this ) );
 							return i;
 
 
-						case TRIPLE:
+						case 'triple':
 
-							this.add( new Anglebars.models.Triple( start.mustache, this ) );
+							this.add( new models.Triple( start.mustache, this ) );
 							return i+1;
 
 
-						case INTERPOLATOR:
+						case 'interpolator':
 
-							this.add( new Anglebars.models.Interpolator( start.mustache, this ) );
+							this.add( new models.Interpolator( start.mustache, this ) );
 							return i+1;
 
 						default:
@@ -333,7 +132,7 @@
 		}
 	};
 
-	Anglebars.models.Section = function ( mustache, expandedNodes, parent ) {
+	models.Section = function ( mustache, expandedNodes, parent ) {
 
 		this.keypath = mustache.keypath;
 		this.formatters = mustache.formatters;
@@ -343,20 +142,20 @@
 
 		this.inverted = mustache.inverted;
 
-		this.list = new Anglebars.models.List( expandedNodes, this );
+		this.list = new models.List( expandedNodes, this );
 	};
 
-	Anglebars.models.Section.prototype = {
+	models.Section.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
-			return new Anglebars.views.Section( this, parentNode, contextStack, anchor );
+			return new views.Section( this, parentNode, contextStack, anchor );
 		},
 
-		getEvaluator: function ( parent ) {
-			return new Anglebars.evaluators.Section( this, parent );
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Section( this, parent, contextStack );
 		}
 	};
 
-	Anglebars.models.Text = function ( text, parent ) {
+	models.Text = function ( text, parent ) {
 		this.text = text;
 
 		// TODO these are no longer self-adding, so non whitespace preserving empties need to be handled another way
@@ -367,17 +166,17 @@
 		}
 	};
 
-	Anglebars.models.Text.prototype = {
+	models.Text.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
-			return new Anglebars.views.Text( this, parentNode, contextStack, anchor );
+			return new views.Text( this, parentNode, contextStack, anchor );
 		},
 
-		getEvaluator: function ( parent ) {
-			return new Anglebars.evaluators.Text( this, parent );
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Text( this, parent, contextStack );
 		}
 	};
 
-	Anglebars.models.Interpolator = function ( mustache, parent ) {
+	models.Interpolator = function ( mustache, parent ) {
 		this.keypath = mustache.keypath;
 		this.formatters = mustache.formatters;
 		this.parent = parent;
@@ -385,34 +184,34 @@
 		this.level = parent.level + 1;
 	};
 
-	Anglebars.models.Interpolator.prototype = {
+	models.Interpolator.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
-			return new Anglebars.views.Interpolator( this, parentNode, contextStack, anchor );
+			return new views.Interpolator( this, parentNode, contextStack, anchor );
 		},
 
-		getEvaluator: function ( parent ) {
-			return new Anglebars.evaluators.Interpolator( this, parent );
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Interpolator( this, parent, contextStack );
 		}
 	};
 
-	Anglebars.models.Triple = function ( mustache, parent ) {
+	models.Triple = function ( mustache, parent ) {
 		this.keypath = mustache.keypath;
 		this.formatters = mustache.formatters;
 		this.anglebars = parent.anglebars;
 		this.level = parent.level + 1;
 	};
 
-	Anglebars.models.Triple.prototype = {
+	models.Triple.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
-			return new Anglebars.views.Triple( this, parentNode, contextStack, anchor );
+			return new views.Triple( this, parentNode, contextStack, anchor );
 		},
 
-		getEvaluator: function ( parent ) {
-			return new Anglebars.evaluators.Interpolator( this, parent ); // Triples are the same as Interpolators in this context
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Interpolator( this, parent, contextStack ); // Triples are the same as Interpolators in this context
 		}
 	};
 
-	Anglebars.models.Element = function ( original, parent ) {
+	models.Element = function ( original, parent ) {
 		this.type = original.tagName;
 		this.parent = parent;
 		this.anglebars = parent.anglebars;
@@ -423,13 +222,13 @@
 
 
 		if ( original.childNodes.length ) {
-			this.children = new Anglebars.models.List( expandNodes( original.childNodes ), this );
+			this.children = new models.List( utils.expandNodes( original.childNodes ), this );
 		}
 	};
 
-	Anglebars.models.Element.prototype = {
+	models.Element.prototype = {
 		render: function ( parentNode, contextStack, anchor ) {
-			return new Anglebars.views.Element( this, parentNode, contextStack, anchor );
+			return new views.Element( this, parentNode, contextStack, anchor );
 		},
 
 		getAttributes: function ( original ) {
@@ -440,30 +239,30 @@
 			numAttributes = original.attributes.length;
 			for ( i=0; i<numAttributes; i+=1 ) {
 				attribute = original.attributes[i];
-				this.attributes[i] = new Anglebars.models.Attribute( attribute.name, attribute.value, this.anglebars );
+				this.attributes[i] = new models.Attribute( attribute.name, attribute.value, this.anglebars );
 			}
 		}
 	};
 
-	Anglebars.models.Attribute = function ( name, value, anglebars ) {
-		var components = expandText( value );
+	models.Attribute = function ( name, value, anglebars ) {
+		var components = utils.expandText( value );
 
 		this.name = name;
-		if ( !findMustache( value ) ) {
+		if ( !utils.findMustache( value ) ) {
 			this.value = value;
 			return;
 		}
 
 		this.isDynamic = true;
-		this.list = new Anglebars.models.List( components, {
+		this.list = new models.List( components, {
 			anglebars: anglebars,
 			level: 0
 		});
 	};
 
-	Anglebars.models.Attribute.prototype = {
+	models.Attribute.prototype = {
 		render: function ( node, contextStack ) {
-			return new Anglebars.views.Attribute( this, node, contextStack );
+			return new views.Attribute( this, node, contextStack );
 		}
 	};
 

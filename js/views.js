@@ -6,102 +6,43 @@
 	
 	'use strict';
 
-	var insertBefore,
-		insertAfter,
-		remove,
-		getNodeArrayFromHtml,
-		createAnchor,
-		attributeListToArray;
+	var views = Anglebars.views,
+		utils = Anglebars.utils;
 
-	insertBefore = function ( referenceNode, newNode ) {
-		if ( !referenceNode ) {
-			throw new Error( 'Can\'t insert before a non-existent node' );
-		}
-
-		return referenceNode.parentNode.insertBefore( newNode, referenceNode );
-	};
-
-	insertAfter = function ( referenceNode, newNode ) {
-		if ( !referenceNode ) {
-			throw new Error( 'Can\'t insert before a non-existent node' );
-		}
-
-		return referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
-	};
-
-	remove = function ( node ) {
-		if ( node.parentNode ) {
-			node.parentNode.removeChild( node );
-		}
-	};
-
-	getNodeArrayFromHtml = function ( innerHTML ) {
-
-		var parser, temp, i, numNodes, nodes = [];
-
-		// test for DOMParser support
-		// TODO
-
-		temp = document.createElement( 'div' );
-		temp.innerHTML = innerHTML;
-
-		// create array from node list, as node lists have some undesirable properties
-		numNodes = temp.childNodes.length;
-		for ( i=0; i<numNodes; i+=1 ) {
-			nodes[i] = temp.childNodes[i];
-		}
-
-		return nodes;
-	};
-
-	createAnchor = function () {
-		var anchor = document.createElement( 'a' );
-		anchor.setAttribute( 'class', 'anglebars-anchor' );
-
-		return anchor;
-	};
-
-	
-
-	
-
-
-	Anglebars.views = {};
-
-	Anglebars.views.List = function ( list, parentNode, contextStack, anchor ) {
+	views.List = function ( list, parentNode, contextStack, anchor ) {
 		var self = this;
 
-		this.views = [];
+		this.items = [];
 
 		_.each( list.items, function ( item, i ) {
-			if ( item.render ) {
-				self.views[i] = item.render( parentNode, contextStack, anchor );
-			}
+			self.items[i] = item.render( parentNode, contextStack, anchor );
 		});
 	};
 
-	Anglebars.views.List.prototype = {
+	views.List.prototype = {
 		unrender: function () {
 			// TODO unsubscribes
-			_.each( this.views, function ( view ) {
-				view.unrender();
+			_.each( this.items, function ( item ) {
+				item.unrender();
 			});
+
+			delete this.items; // garbage collector, ATTACK!
 		}
 	};
 
-	Anglebars.views.Text = function ( textItem, parentNode, contextStack, anchor ) {
+	views.Text = function ( textItem, parentNode, contextStack, anchor ) {
 		this.node = document.createTextNode( textItem.text );
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		parentNode.insertBefore( this.node, anchor );
 	};
 
-	Anglebars.views.Text.prototype = {
+	views.Text.prototype = {
 		unrender: function () {
-			remove( this.node );
+			utils.remove( this.node );
 		}
 	};
 
-	Anglebars.views.Section = function ( section, parentNode, contextStack, anchor ) {
+	views.Section = function ( section, parentNode, contextStack, anchor ) {
 		var self = this,
 			unformatted,
 			formatted,
@@ -110,34 +51,40 @@
 
 		this.section = section;
 		this.contextStack = contextStack || [];
-		this.address = data.getAddress( section.keypath, contextStack );
+		this.data = data;
 		this.views = [];
 		
 		this.parentNode = parentNode;
-		this.anchor = createAnchor();
+		this.anchor = utils.createAnchor();
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		parentNode.insertBefore( this.anchor, anchor );
 
-		unformatted = data.get( this.address );
-		formatted = anglebars._format( unformatted, section.formatters );
+		data.getAddress( this, section.keypath, contextStack, function ( address ) {
+			unformatted = data.get( address );
+			formatted = anglebars._format( unformatted, section.formatters );
 
-		this.update( formatted );
+			this.update( formatted );
 
-		// subscribe to changes
-		this.subscriptionRefs = data.subscribe( this.address, section.level, function ( value ) {
-			var formatted = anglebars._format( value, section.formatters );
-			self.update( formatted );
+			// subscribe to changes
+			this.subscriptionRefs = data.subscribe( address, section.level, function ( value ) {
+				var formatted = anglebars._format( value, section.formatters );
+				self.update( formatted );
+			});
 		});
-
-		
 	};
 
-	Anglebars.views.Section.prototype = {
+	views.Section.prototype = {
 		unrender: function () {
 			// TODO unsubscribe
 			while ( this.views.length ) {
 				this.views.shift().unrender();
+			}
+
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
 			}
 		},
 
@@ -217,7 +164,7 @@
 		}
 	};
 
-	Anglebars.views.Interpolator = function ( interpolator, parentNode, contextStack, anchor ) {
+	views.Interpolator = function ( interpolator, parentNode, contextStack, anchor ) {
 		var self = this,
 			value,
 			formatted,
@@ -226,27 +173,38 @@
 
 		contextStack = ( contextStack ? contextStack.concat() : [] );
 		
-		this.address = data.getAddress( interpolator.keypath, contextStack );
-		this.node = document.createTextNode();
+		
+		this.node = document.createTextNode( '' );
+		this.data = data;
+		this.keypath = interpolator.keypath;
+		this.contextStack = contextStack;
 
-		value = data.get( this.address );
-		formatted = anglebars._format( value, interpolator.formatters );
+		data.getAddress( this, interpolator.keypath, contextStack, function ( address ) {
+			value = data.get( address );
+			formatted = anglebars._format( value, interpolator.formatters );
 
-		this.update( formatted );
+			this.update( formatted );
 
-		this.subscriptionRefs = data.subscribe( this.address, interpolator.level, function ( value ) {
-			var formatted = anglebars._format( value, interpolator.formatters );
-			self.update( formatted );
+			this.subscriptionRefs = data.subscribe( address, interpolator.level, function ( value ) {
+				var formatted = anglebars._format( value, interpolator.formatters );
+				self.update( formatted );
+			});
 		});
+		
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		parentNode.insertBefore( this.node, anchor );
 	};
 
-	Anglebars.views.Interpolator.prototype = {
+	views.Interpolator.prototype = {
 		unrender: function () {
-			remove( this.node );
-			// todo unsubscribe from viewmodel
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
+			}
+
+			utils.remove( this.node );
 		},
 
 		update: function ( value ) {
@@ -254,7 +212,7 @@
 		}
 	};
 
-	Anglebars.views.Triple = function ( triple, parentNode, contextStack, anchor ) {
+	views.Triple = function ( triple, parentNode, contextStack, anchor ) {
 		var self = this,
 			unformatted,
 			formattedHtml,
@@ -263,31 +221,40 @@
 			nodes;
 
 		this.nodes = [];
+		this.data = data;
 
-		this.anchor = createAnchor();
-
-		this.address = data.getAddress( triple.keypath, contextStack );
-
-		// subscribe to data changes
-		this.subscriptionRefs = data.subscribe( this.address, triple.level, function ( value ) {
-			var formatted = anglebars._format( value, triple.formatters );
-			self.update( formatted );
-		});
-
-		unformatted = data.get( this.address );
-		formattedHtml = anglebars._format( unformatted, triple.formatters );
+		this.anchor = utils.createAnchor();
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		parentNode.insertBefore( this.anchor, anchor );
 
-		this.update( formattedHtml );
+		data.getAddress( this, triple.keypath, contextStack, function ( address ) {
+			// subscribe to data changes
+			this.subscriptionRefs = data.subscribe( address, triple.level, function ( value ) {
+				var formatted = anglebars._format( value, triple.formatters );
+				self.update( formatted );
+			});
+
+			unformatted = data.get( address );
+			formattedHtml = anglebars._format( unformatted, triple.formatters );
+
+			this.update( formattedHtml );
+		});
 	};
 
-	Anglebars.views.Triple.prototype = {
+	views.Triple.prototype = {
 		unrender: function () {
 			// TODO unsubscribes
-			_.each( this.nodes, remove );
-			remove( this.anchor );
+			_.each( this.nodes, utils.remove );
+
+
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
+			}
+
+			utils.remove( this.anchor );
 		},
 
 		update: function ( value ) {
@@ -298,18 +265,18 @@
 			}
 
 			// remove existing nodes
-			_.each( this.nodes, remove );
+			_.each( this.nodes, utils.remove );
 
 			// get new nodes
-			this.nodes = getNodeArrayFromHtml( value );
+			this.nodes = utils.getNodeArrayFromHtml( value );
 
 			_.each( this.nodes, function ( node ) {
-				insertBefore( self.anchor, node );
+				utils.insertBefore( self.anchor, node );
 			});
 		}
 	};
 
-	Anglebars.views.Element = function ( element, parentNode, contextStack, anchor ) {
+	views.Element = function ( element, parentNode, contextStack, anchor ) {
 
 		var self = this,
 			unformatted,
@@ -322,6 +289,9 @@
 			attributeModel,
 			item,
 			nodes;
+
+		// stuff we'll need later
+		this.data = data;
 
 		// create the DOM node
 		this.node = document.createElement( element.type );
@@ -348,14 +318,16 @@
 		parentNode.insertBefore( this.node, anchor );
 	};
 
-	Anglebars.views.Element.prototype = {
+	views.Element.prototype = {
 		unrender: function () {
-			// TODO unsubscribes
-			remove( this.node );
+			_.each( this.attributes, function ( attributeView ) {
+				attributeView.teardown();
+			});
+			utils.remove( this.node );
 		}
 	};
 
-	Anglebars.views.Attribute = function ( attributeModel, node, contextStack ) {
+	views.Attribute = function ( attributeModel, node, contextStack ) {
 		
 		var i, numItems, item;
 
@@ -371,14 +343,14 @@
 		this.name = attributeModel.name;
 
 		this.anglebars = attributeModel.anglebars;
-		this.viewModel = attributeModel.viewModel;
+		this.data = attributeModel.data;
 
-		this.views = [];
+		this.evaluators = [];
 
 		numItems = attributeModel.list.items.length;
 		for ( i=0; i<numItems; i+=1 ) {
 			item = attributeModel.list.items[i];
-			this.views[i] = item.getEvaluator( this, contextStack );
+			this.evaluators[i] = item.getEvaluator( this, contextStack );
 		}
 
 		// update...
@@ -387,18 +359,30 @@
 		// and watch for changes TODO
 	};
 
-	Anglebars.views.Attribute.prototype = {
+	views.Attribute.prototype = {
+		teardown: function () {
+			_.each( this.evaluators, function ( evaluator ) {
+				if ( evaluator.teardown ) {
+					evaluator.teardown();
+				}
+			});
+		},
+
+		bubble: function () {
+			this.update();
+		},
+
 		update: function () {
 			this.node.setAttribute( this.name, this.toString() );
 		},
 
 		toString: function () {
-			var string = '', i, numViews, view;
+			var string = '', i, numEvaluators, evaluator;
 
-			numViews = this.views.length;
-			for ( i=0; i<numViews; i+=1 ) {
-				view = this.views[i];
-				string += view.toString();
+			numEvaluators = this.evaluators.length;
+			for ( i=0; i<numEvaluators; i+=1 ) {
+				evaluator = this.evaluators[i];
+				string += evaluator.toString();
 			}
 
 			return string;

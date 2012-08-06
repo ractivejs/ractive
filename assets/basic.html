@@ -10,9 +10,11 @@ Here comes a section:
 This is a list:
 <ul>
 	{{# list }}
-	<li>{{ text }}</li>
+	<li style='color: {{ licolor }};'>{{ text }}</li>
 	{{/ list }}
 </ul>
 {{/ list.length }}
 
 {{# a }}{{ one }}<br/>{{# b }}{{ one }}{{ two }}{{ one }}<br/>{{# c }}{{ one }}{{ two }}{{ three }}{{ two }}{{ one }}<br/>{{/ c }}{{ one }}{{ two }}{{ one }}<br/>{{/ b }}{{ one }}<br/>{{/ a }}<p>End of nested sections</p>
+
+<p>There should be nothing here until you resolve it: {{ unresolved }}</p>
