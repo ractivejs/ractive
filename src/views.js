@@ -20,10 +20,10 @@
 	};
 
 	views.List.prototype = {
-		unrender: function () {
+		teardown: function () {
 			// TODO unsubscribes
 			_.each( this.items, function ( item ) {
-				item.unrender();
+				item.teardown();
 			});
 
 			delete this.items; // garbage collector, ATTACK!
@@ -37,7 +37,7 @@
 	};
 
 	views.Text.prototype = {
-		unrender: function () {
+		teardown: function () {
 			utils.remove( this.node );
 		}
 	};
@@ -75,21 +75,28 @@
 	};
 
 	views.Section.prototype = {
-		unrender: function () {
-			// TODO unsubscribe
-			while ( this.views.length ) {
-				this.views.shift().unrender();
-			}
+		teardown: function () {
+			this.unrender();
 
 			if ( !this.subscriptionRefs ) {
 				this.data.cancelAddressResolution( this );
 			} else {
 				this.data.unsubscribeAll( this.subscriptionRefs );
 			}
+
+			utils.remove( this.anchor );
+		},
+
+		unrender: function () {
+			// TODO unsubscribe
+			while ( this.views.length ) {
+				this.views.shift().teardown();
+			}
 		},
 
 		update: function ( value ) {
 			var emptyArray, i;
+			console.log( 'updating:', value );
 
 			// treat empty arrays as false values
 			if ( _.isArray( value ) && value.length === 0 ) {
@@ -122,13 +129,19 @@
 			switch ( typeof value ) {
 				case 'object':
 
+				console.log( 'is an object. empty? ', emptyArray );
+
 					if ( this.rendered ) {
 						this.unrender();
 						this.rendered = false;
 					}
 
 					// if value is an array of hashes, iterate through
-					if ( _.isArray( value ) && !emptyArray ) {
+					if ( _.isArray( value ) ) {
+						if ( emptyArray ) {
+							return;
+						}
+						
 						for ( i=0; i<value.length; i+=1 ) {
 							this.views[i] = this.section.list.render( this.parentNode, this.contextStack.concat( this.address + '.' + i ), this.anchor );
 						}
@@ -146,6 +159,7 @@
 
 					if ( value && !emptyArray ) {
 						if ( !this.rendered ) {
+							console.log( 'should see this first' );
 							this.views[0] = this.section.list.render( this.parentNode, this.contextStack, this.anchor );
 							this.rendered = true;
 						}
@@ -153,6 +167,7 @@
 
 					else {
 						if ( this.rendered ) {
+							console.log( 'should see this next' );
 							this.unrender();
 							this.rendered = false;
 						}
@@ -197,7 +212,7 @@
 	};
 
 	views.Interpolator.prototype = {
-		unrender: function () {
+		teardown: function () {
 			if ( !this.subscriptionRefs ) {
 				this.data.cancelAddressResolution( this );
 			} else {
@@ -243,7 +258,7 @@
 	};
 
 	views.Triple.prototype = {
-		unrender: function () {
+		teardown: function () {
 			// TODO unsubscribes
 			_.each( this.nodes, utils.remove );
 
@@ -319,7 +334,7 @@
 	};
 
 	views.Element.prototype = {
-		unrender: function () {
+		teardown: function () {
 			_.each( this.attributes, function ( attributeView ) {
 				attributeView.teardown();
 			});

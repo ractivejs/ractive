@@ -30,7 +30,7 @@ script {
 	display: block;
 	overflow-x: scroll;
 	white-space: pre;
-	font-family: 'Courier New';
+	font-family: monospace;
 }
 
 .main {
@@ -49,6 +49,7 @@ script {
 	border-radius: 0.5em;
 	padding: 0.5em;
 	margin: 0 0 1em 0;
+	white-space: pre;
 }
 
 .input, .output {
@@ -66,4 +67,12 @@ script {
 
 .output {
 	padding-left: 1em;
+}
+
+#template {
+	display: none;
+}
+
+.template {
+	white-space: pre;
 }

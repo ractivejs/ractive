@@ -3,8 +3,9 @@
 <head>
 	<meta charset='utf-8'>
 	<link rel='stylesheet' href='../css/main.css'>
+	<link rel='stylesheet' href='attributes.css'>
 
-	<title>Hello world | Anglebars examples</title>
+	<title>Attributes | Anglebars examples</title>
 
 	<!-- Dependencies -->
 	<script src='../lib/jquery-1.7.2.min.js'></script>
@@ -26,8 +27,8 @@
 	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
 	
 	<div class='notes'>
-		<p>Tip: In the console, do:</p>
-		<code>anglebars.set('helloworld', 'Greetings, my good fellow!')</code>
+		<p>As well as text, you can make attributes dynamic. Try this:</p>
+		<code>anglebars.set({<br/>  bgcolor:'yellow',<br/>  color:'red',<br/>  fontSize:24,<br/>  adjective:'awesome'<br/>})</code>
 	</div>
 
 	<div class='main'>
@@ -38,9 +39,12 @@ var anglebars;
 $(function () {
   anglebars = new Anglebars({
     el: 'anglebars',
-    template: '<p>{{helloworld}}</p>',
+    template: '<div style="background-color: {{bgcolor}}; color: {{color}}; font-size: {{fontSize}}px">Any attribute can be made {{adjective}}</div>',
     data: {
-      helloworld: 'Hello world!'
+      bgcolor: 'black',
+      color: 'white',
+      fontSize: 16,
+      adjective: 'dynamic'
     }
   });
 });

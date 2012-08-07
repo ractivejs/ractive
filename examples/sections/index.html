@@ -4,7 +4,7 @@
 	<meta charset='utf-8'>
 	<link rel='stylesheet' href='../css/main.css'>
 
-	<title>Hello world | Anglebars examples</title>
+	<title>Sections | Anglebars examples</title>
 
 	<!-- Dependencies -->
 	<script src='../lib/jquery-1.7.2.min.js'></script>
@@ -26,8 +26,10 @@
 	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
 	
 	<div class='notes'>
-		<p>Tip: In the console, do:</p>
-		<code>anglebars.set('helloworld', 'Greetings, my good fellow!')</code>
+		<p>A section looks like this:</p>
+		<code>{{#section}}section content goes here, and can include anything{{/section}}</code>
+		<p>The contents will be shown or hidden depending on the value of <em>section</em> &ndash; if it isn't falsy, it will render (empty arrays are considered falsy in this context). Try this:</p>
+		<code>anglebars.set('trueorfalse', false)</code>
 	</div>
 
 	<div class='main'>
@@ -38,9 +40,9 @@ var anglebars;
 $(function () {
   anglebars = new Anglebars({
     el: 'anglebars',
-    template: '<p>{{helloworld}}</p>',
+    template: $('#template').html(),
     data: {
-      helloworld: 'Hello world!'
+      trueorfalse: true
     }
   });
 });
@@ -50,6 +52,11 @@ $(function () {
 		<div class='output'>
 			<div id='anglebars'></div>
 		</div>
-	</div>	
+	</div>
+
+<script type='text/template' id='template'>
+<h2>Sections</h2>
+{{#trueorfalse}}<div>Shown when <em>trueorfalse</em> is true</div>{{/trueorfalse}}
+</script>
 </body>
 </html>
