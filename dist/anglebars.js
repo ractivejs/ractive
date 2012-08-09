@@ -1,27 +1,1538 @@
-var h=!0,i=!1,k,l;k=function(a){this.ia(a)};k.aa={};k.e={};k.j={};k.L={};l=k.L;
-k.prototype={ia:function(a){var b,a=a||{};this.T=l.Y(a.T);this.K=(b=l.Y(a.K))?b.innerHTML:a.K;a.data&&(this.data=a.data instanceof k.S?a.data:new k.S(a.data));this.c=a.c;this.la=a.la;this.da=this.compile();this.T.innerHTML="";this.g()},compile:function(){var a;this.K=l.na(this.K);a=l.Z(this.K);return new k.aa.m(l.W(a),{a:this,d:0})},g:function(){this.b&&this.b.o();this.b=this.da.g(this.T)},get:function(){this.data.apply(this.data,arguments)},q:function(a,b){var c,d,e;d=b.length;for(c=0;c<d;c+=1)e=
-b[c],this.c[e]&&(a=this.c[e](a));return a}};var m=_,o=k.j,p=k.L;p.$=function(a,b,c){a.w=b;a.f=b.f;a.c=b.c;a.a=b.a;a.data=b.a.data;a.parent=c};o.m=function(a,b,c){var d=this;this.j=[];m.v(a.k,function(a,b){a.r&&(d.j[b]=a.r(d,c))});this.A=this.j.join("")};o.m.prototype={u:function(){this.A=this.j.join("");this.parent.u()},B:function(){m.v(this.j,function(a){a.B()})},toString:function(){return this.A}};o.t=function(a){this.A=a.text};o.t.prototype={toString:function(){return this.A}};
-o.p=function(a,b,c){p.$(this,a,b);this.data.I(this,this.f,c,function(){var a,b=this;a=this.data.get(this.n);this.A=this.a.q(a,this.c);this.l=this.data.J(this.n,this.w.d,function(a){a=b.a.q(a,b.w.c);b.A=a;b.u()})})};o.p.prototype={u:function(){this.parent.u()},B:function(){this.l?this.data.R(this.l):this.data.M(this)},toString:function(){return this.A}};o.C=o.p;
-o.s=function(a,b,c){p.$(this,a,b);this.i=c;this.e=[];this.data.I(this,this.f,c,function(){var a,b=this;a=this.data.get(this.n);a=this.a.q(a,this.c);this.update(a);this.l=this.data.J(this.n,this.w.d,function(a){a=b.a.q(a,b.w.c);b.update(a);b.u()})})};
-o.s.prototype={u:function(){this.parent.u()},B:function(){},update:function(a){var b;console.log("updating ",this," with value ",a);m.isArray(a)&&0===a.length&&(b=h);if(this.w.N)a&&!b?this.b&&(this.e=[],this.b=i):this.b||(this.e[0]=this.w.list.r(this,this.i),this.b=h);else switch(typeof a){case "object":this.b&&(this.e=[],this.b=i);if(m.isArray(a)&&!b)for(b=0;b<a.length;b+=1)this.e[b]=this.w.list.r(this,this.i.concat(this.n+"."+b));else this.e[0]=this.F.list.g(this.parentNode,this.i.concat(this.n),
-this.anchor);this.b=h;break;default:a&&!b?this.b||(this.e[0]=this.w.list.r(this,this.i),this.b=h):this.b&&(this.e=[],this.b=i)}},toString:function(){return this.e.join("")}};var q=k.aa,r=k.e,s=k.j,t=k.L;q.m=function(a,b){this.D=a;this.parent=b;this.d=b.d+1;this.a=b.a;this.i=b.i;this.compile()};
-q.m.prototype={g:function(a,b,c){return new r.m(this,a,b,c)},r:function(a,b){return new s.m(this,a,b)},add:function(a){this.k[this.k.length]=a},compile:function(){var a;this.k=[];for(a=0;a<this.D.length;)a=this.ea(a);delete this.D},ea:function(a){var b,c,d,e,g,f;b=this.D[a];switch(b.type){case "text":return this.add(new q.t(b.text,this)),a+1;case "element":return this.add(new q.H(b.ka,this)),a+1;case "mustache":switch(b.z.type){case "section":c=a+=1;f=b.z.f;for(e=1;a<this.D.length&&!d;)g=this.D[a],
-"mustache"===g.type&&("section"===g.z.type&&g.z.f===f)&&(g.z.ca?(e-=1)||(d=a):e+=1),a+=1;if(!d)throw Error('Illegal section "'+f+'"');this.add(new q.s(b.z,this.D.slice(c,d),this));return a;case "triple":return this.add(new q.C(b.z,this)),a+1;case "interpolator":return this.add(new q.p(b.z,this)),a+1;default:return console.warn("errr..."),a+1}default:console.warn("errr...")}}};q.s=function(a,b,c){this.f=a.f;this.c=a.c;this.parent=c;this.d=c.d+1;this.a=c.a;this.N=a.N;this.list=new q.m(b,this)};
-q.s.prototype={g:function(a,b,c){return new r.s(this,a,b,c)},r:function(a,b){return new s.s(this,a,b)}};q.t=function(a){this.text=a};q.t.prototype={g:function(a,b,c){return new r.t(this,a,b,c)},r:function(a,b){return new s.t(this,a,b)}};q.p=function(a,b){this.f=a.f;this.c=a.c;this.parent=b;this.a=b.a;this.d=b.d+1};q.p.prototype={g:function(a,b,c){return new r.p(this,a,b,c)},r:function(a,b){return new s.p(this,a,b)}};q.C=function(a,b){this.f=a.f;this.c=a.c;this.a=b.a;this.d=b.d+1};
-q.C.prototype={g:function(a,b,c){return new r.C(this,a,b,c)},r:function(a,b){return new s.p(this,a,b)}};q.H=function(a,b){this.type=a.tagName;this.parent=b;this.a=b.a;this.d=b.d+1;this.ha(a);a.childNodes.length&&(this.children=new q.m(t.W(a.childNodes),this))};q.H.prototype={g:function(a,b,c){return new r.H(this,a,b,c)},ha:function(a){var b,c,d;this.attributes=[];c=a.attributes.length;for(b=0;b<c;b+=1)d=a.attributes[b],this.attributes[b]=new q.G(d.name,d.value,this.a)}};
-q.G=function(a,b,c){var d=t.U(b);this.name=a;t.X(b)?(this.ja=h,this.list=new q.m(d,{a:c,d:0})):this.value=b};q.G.prototype={g:function(a,b){return new r.G(this,a,b)}};var u=document,v=k.L;
-_.extend(v,{insertBefore:function(a,b){if(!a)throw Error("Can't insert before a non-existent node");return a.parentNode.insertBefore(b,a)},sa:function(a,b){if(!a)throw Error("Can't insert before a non-existent node");return a.parentNode.insertBefore(b,a.nextSibling)},remove:function(a){a.parentNode&&a.parentNode.removeChild(a)},trim:function(a){return a.replace(/^\s+/,"").replace(/\s+$/,"")},Z:function(a){var b,c,d=[];b=u.createElement("div");b.innerHTML=a;c=b.childNodes.length;for(a=0;a<c;a+=1)d[a]=
-b.childNodes[a];return d},Y:function(a){var b;if(a)if("string"===typeof a){if(b=u.getElementById(a),!b&&u.querySelector)try{b=u.querySelector(a)}catch(c){}}else a[0]&&a[0].nodeType&&(b=a[0].innerHTML);return b},na:function(a){a=a.replace(/(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,function(a,c){return c});return a=a.replace(/\{\{!\s*[\s\S]+?\s*\}\}/g,"")},V:function(){var a=u.createElement("a");a.setAttribute("class","anglebars-anchor");return a},ua:function(a){var b,c=a.length,d=[];for(b=
-0;b<c;b+=1)d[b]=a[b];return d},qa:function(a){var b,c=a.length,d=[];for(b=0;b<c;b+=1)d[b]={name:a[b].name,value:a[b].value};return d},X:function(a,b){var c,d;if(c=v.fa(a,/(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g,b)){c.ga=c[5];d=c.ga.split(" | ");c.f=d.shift();c.c=d;if(c[2])c.type="section",c.N="^"===c[2]?h:i,c.ca="/"===c[2]?h:i;else if(c[3])c.type="partial";else if(c[1]){if(!c[6])return i;c.type="triple"}else c.type="interpolator";c.ta=h;return c}return i},fa:function(a,b,c){if(b.global)b.lastIndex=
-c||0;else throw Error("You must pass findMatch() a regex with the global flag set");if(a=b.exec(a))return a.end=b.lastIndex,a.start=a.end-a[0].length,a},W:function(a){var b,c,d,e=[];c=a.length;for(b=0;b<c;b+=1)d=a[b],3!==d.nodeType?e[e.length]={type:"element",ka:d}:e=e.concat(v.U(d.textContent));return e},U:function(a){var b,c;c=v.X(a);if(!c)return{type:"text",text:a};b=[];0<c.start&&(b[b.length]={type:"text",text:a.substr(0,c.start)});b[b.length]={type:"mustache",z:c};c.end<a.length&&(b=b.concat(v.U(a.substring(c.end))));
-return b}});k.S=function(a){var b;this.data={};for(b in a)a.hasOwnProperty(b)&&(this.data[b]=a[b]);this.P=[];this.Q={}};
-k.S.prototype={get:function(a){var b;if(!a)return"";a=a.split(".");for(b=this.data;a.length;)if(b=b[a.shift()],void 0===b)return"";return b},I:function(a,b,c,d){for(var e,g,f,c=c?c.concat():[];c;){e=(f=c.length?c[c.length-1]:null)?f.split(".").concat(b.split(".")):b.split(".");g=e.concat();for(f=this.data;e.length&&!(f=f[e.shift()],void 0===f););if(void 0!==f){b=g.join(".");a.n=b;d.call(a,b);break}c.length?c.pop():c=i}void 0===f&&this.ma(a,d)},ma:function(a,b){this.P[this.P.length]={item:a,ba:b}},
-M:function(a){this.P=this.P.filter(function(b){return b.item!==a})},J:function(a,b,c){var d=this,e=a,g=[],f;if(a){for(f=function(a){var f,z;f=d.Q[a]=d.Q[a]||[];f=f[b]=f[b]||[];z={ba:c,va:e};f[f.length]=z;g[g.length]={n:a,d:b,oa:z}};-1!==a.lastIndexOf(".");)f(a),a=a.substr(0,a.lastIndexOf("."));f(a);return g}},pa:function(a){var b,c,d;if(b=this.Q[a.n])if(c=b[a.d])d=c.indexOf(a.oa),-1!==d&&(c.splice(d,1),0===c.length&&delete b[a.d],0===b.length&&delete this.Q[a.n])},R:function(a){for(;a.length;)this.pa(a.shift())}};
-var w=_,x=k.e,y=k.L;x.m=function(a,b,c,d){var e=this;this.k=[];w.v(a.k,function(a,f){e.k[f]=a.g(b,c,d)})};x.m.prototype={o:function(){w.v(this.k,function(a){a.o()});delete this.k}};x.t=function(a,b,c,d){this.h=document.createTextNode(a.text);b.insertBefore(this.h,d)};x.t.prototype={o:function(){y.remove(this.h)}};
-x.s=function(a,b,c,d){var e=this,g,f,n=a.a,j=n.data;this.F=a;this.i=c||[];this.data=j;this.e=[];this.parentNode=b;this.anchor=y.V();b.insertBefore(this.anchor,d);j.I(this,a.f,c,function(b){g=j.get(b);f=n.q(g,a.c);this.update(f);this.l=j.J(b,a.d,function(b){b=n.q(b,a.c);e.update(b)})})};
-x.s.prototype={o:function(){for(;this.e.length;)this.e.shift().o();this.l?this.data.R(this.l):this.data.M(this)},update:function(a){var b;w.isArray(a)&&0===a.length&&(b=h);if(this.F.N)a&&!b?this.b&&(this.o(),this.b=i):this.b||(this.e[0]=this.F.list.g(this.parentNode,this.i,this.anchor),this.b=h);else switch(typeof a){case "object":this.b&&(this.o(),this.b=i);if(w.isArray(a)&&!b)for(b=0;b<a.length;b+=1)this.e[b]=this.F.list.g(this.parentNode,this.i.concat(this.n+"."+b),this.anchor);else this.e[0]=
-this.F.list.g(this.parentNode,this.i.concat(this.n),this.anchor);this.b=h;break;default:a&&!b?this.b||(this.e[0]=this.F.list.g(this.parentNode,this.i,this.anchor),this.b=h):this.b&&(this.o(),this.b=i)}}};x.p=function(a,b,c,d){var e=this,g,f,n=a.a,j=n.data,c=c?c.concat():[];this.h=document.createTextNode("");this.data=j;this.f=a.f;this.i=c;j.I(this,a.f,c,function(b){g=j.get(b);f=n.q(g,a.c);this.update(f);this.l=j.J(b,a.d,function(b){b=n.q(b,a.c);e.update(b)})});b.insertBefore(this.h,d)};
-x.p.prototype={o:function(){this.l?this.data.R(this.l):this.data.M(this);y.remove(this.h)},update:function(a){this.h.textContent=a}};x.C=function(a,b,c,d){var e=this,g,f,n=a.a,j=n.data;this.O=[];this.data=j;this.anchor=y.V();b.insertBefore(this.anchor,d);j.I(this,a.f,c,function(b){this.l=j.J(b,a.d,function(b){b=n.q(b,a.c);e.update(b)});g=j.get(b);f=n.q(g,a.c);this.update(f)})};
-x.C.prototype={o:function(){w.v(this.O,y.remove);this.l?this.data.R(this.l):this.data.M(this);y.remove(this.anchor)},update:function(a){var b=this;w.isEqual(this.value,a)||(w.v(this.O,y.remove),this.O=y.Z(a),w.v(this.O,function(a){y.insertBefore(b.anchor,a)}))}};
-x.H=function(a,b,c,d){var e,g,f;this.data=a.a.data;this.h=document.createElement(a.type);this.attributes=[];g=a.attributes.length;for(e=0;e<g;e+=1)f=a.attributes[e],this.attributes[e]=f.g(this.h,c);if(a.children){this.children=[];g=a.children.k.length;for(e=0;e<g;e+=1)f=a.children.k[e],this.children[e]=f.g(this.h,c)}b.insertBefore(this.h,d)};x.H.prototype={o:function(){w.v(this.attributes,function(a){a.B()});y.remove(this.h)}};
-x.G=function(a,b,c){var d,e;if(a.ja){this.ra=a;this.h=b;this.name=a.name;this.a=a.a;this.data=a.data;this.j=[];d=a.list.k.length;for(b=0;b<d;b+=1)e=a.list.k[b],this.j[b]=e.r(this,c);this.update()}else b.setAttribute(a.name,a.value)};x.G.prototype={B:function(){w.v(this.j,function(a){a.B&&a.B()})},u:function(){this.update()},update:function(){this.h.setAttribute(this.name,this.toString())},toString:function(){var a="",b,c,d;c=this.j.length;for(b=0;b<c;b+=1)d=this.j[b],a+=d.toString();return a}};
+/*jslint white: true, nomen: true */
+/*global _, document */
+
+// ANGLEBARS v0.0.1
+// ================
+//
+// by @rich_harris
+// Released under the WTFPL (http://sam.zoy.org/wtfpl/)
+//
+// More info at http://rich-harris.github.com/Anglebars/
+
+var Anglebars = (function ( global, _ ) {
+
+	'use strict';
+
+	var Anglebars,
+		models,
+		views,
+		evaluators,
+		utils,
+		formulaSplitter;
+	
+
+	Anglebars = function ( o ) {
+		this.initialize( o );
+	};
+
+	models = Anglebars.models = {};
+	views = Anglebars.views = {};
+	evaluators = Anglebars.evaluators = {};
+	utils = Anglebars.utils = {};
+
+	Anglebars.prototype = {
+		initialize: function ( o ) {
+			
+			var templateEl;
+
+			o = o || {};
+
+			// get container
+			this.el = utils.getEl( o.el );
+
+			// get template
+			templateEl = utils.getEl( o.template );
+			if ( templateEl ) {
+				this.template = templateEl.innerHTML;
+			} else {
+				this.template = o.template;
+			}
+
+			// get viewModel
+			if ( o.data ) {
+				if ( o.data instanceof Anglebars.ViewModel ) {
+					this.data = o.data;
+				} else {
+					this.data = new Anglebars.ViewModel( o.data );
+				}
+			}
+
+			// get formatters
+			this.formatters = o.formatters;
+
+			// get misc options
+			this.preserveWhitespace = o.preserveWhitespace;
+
+			this.compiled = this.compile();
+
+			// empty container and render
+			this.el.innerHTML = '';
+			this.render();
+		},
+
+		compile: function () {
+			var nodes, rootList;
+
+			// remove all comments
+			this.template = utils.stripComments( this.template );
+
+			nodes = utils.getNodeArrayFromHtml( this.template );
+
+			rootList = new Anglebars.models.List( utils.expandNodes( nodes ), {
+				anglebars: this,
+				level: 0
+			});
+
+			return rootList;
+		},
+
+		render: function () {
+			if ( this.rendered ) {
+				this.rendered.unrender();
+			}
+			this.rendered = this.compiled.render( this.el );
+		},
+
+		// shortcuts
+		set: function () {
+			return this.data.set.apply( this.data, arguments );
+		},
+
+		get: function () {
+			return this.data.get.apply( this.data, arguments );
+		},
+
+		update: function () {
+			return this.data.update.apply( this.data, arguments );
+		},
+
+		format: function ( value, formatters ) {
+			var i, numFormatters, formatterName;
+
+			numFormatters = formatters.length;
+			for ( i=0; i<numFormatters; i+=1 ) {
+				formatterName = formatters[i];
+
+				if ( this.formatters[ formatterName ] ) {
+					value = this.formatters[ formatterName ]( value );
+				}
+			}
+
+			return value;
+		}
+	};
+
+
+
+
+
+
+	Anglebars.ViewModel = function ( o ) {
+		var key;
+
+		this.data = {};
+
+		for ( key in o ) {
+			if ( o.hasOwnProperty( key ) ) {
+				this.data[ key ] = o[ key ];
+			}
+		}
+
+		this.pendingResolution = [];
+		this.subscriptions = {};
+	};
+
+	Anglebars.ViewModel.prototype = {
+		set: function ( address, value ) {
+			var k, keys, key, obj, i, numUnresolved, numResolved, unresolved, resolved, index, previous;
+
+			// allow multiple values to be set in one go
+			if ( typeof address === 'object' ) {
+				for ( k in address ) {
+					if ( address.hasOwnProperty( k ) ) {
+						this.set( k, address[k] );
+					}
+				}
+			}
+
+			else {
+				// find previous value
+				previous = this.get( address );
+
+				// split key path into keys
+				keys = address.split( '.' );
+
+				obj = this.data;
+				while ( keys.length > 1 ) {
+					key = keys.shift();
+					obj = obj[ key ] || {};
+				}
+
+				key = keys[0];
+
+				obj[ key ] = value;
+
+				if ( !_.isEqual( previous, value ) ) {
+					this.publish( address, value );
+				}
+			}
+
+			// see if we can resolve any of the unresolved addresses (if such there be)
+			i = this.pendingResolution.length;
+
+			while ( i-- ) { // work backwards, so we don't go in circles
+				unresolved = this.pendingResolution.splice( i, 1 )[0];
+				this.getAddress( unresolved.item, unresolved.item.keypath, unresolved.item.contextStack, unresolved.callback );
+			}
+		},
+
+		get: function ( address ) {
+			var keys, result;
+
+			if ( !address ) {
+				return '';
+			}
+
+			keys = address.split( '.' );
+
+			result = this.data;
+			while ( keys.length ) {
+				result = result[ keys.shift() ];
+
+				if ( result === undefined ) {
+					return '';
+				}
+			}
+
+			if ( _.isArray( result ) && !result.isAnglebarsArray ) {
+				this.makeAnglebarsArray( result, address );
+			}
+
+			return result;
+		},
+
+		update: function ( address ) {
+			var value = this.get( address );
+			this.publish( address, value );
+		},
+
+		getAddress: function ( item, keypath, contextStack, callback ) {
+
+			// TODO refactor this, it's fugly
+
+			var keys, keysClone, innerMost, result, contextStackClone, address;
+
+			contextStack = ( contextStack ? contextStack.concat() : [] );
+			contextStackClone = contextStack.concat();
+
+			while ( contextStack ) {
+
+				innerMost = ( contextStack.length ? contextStack[ contextStack.length - 1 ] : null );
+				keys = ( innerMost ? innerMost.split( '.' ).concat( keypath.split( '.' ) ) : keypath.split( '.' ) );
+				keysClone = keys.concat();
+
+				result = this.data;
+				while ( keys.length ) {
+					result = result[ keys.shift() ];
+				
+					if ( result === undefined ) {
+						break;
+					}
+				}
+
+				if ( result !== undefined ) {
+					address = keysClone.join( '.' );
+					item.address = address;
+					callback.call( item, address );
+					break;
+				}
+
+				if ( contextStack.length ) {
+					contextStack.pop();
+				} else {
+					contextStack = false;
+				}
+			}
+
+			// if we didn't figure out the address, add this to the unresolved list
+			if ( result === undefined ) {
+				this.registerUnresolvedAddress( item, callback );
+			}
+		},
+
+		registerUnresolvedAddress: function ( item, onResolve ) {
+			this.pendingResolution[ this.pendingResolution.length ] = {
+				item: item,
+				callback: onResolve
+			};
+		},
+
+		cancelAddressResolution: function ( item ) {
+			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
+				return pending.item !== item;
+			});
+		},
+
+		publish: function ( address, value ) {
+			var self = this, subscriptionsGroupedByLevel = this.subscriptions[ address ] || [], i, j, level, subscription;
+
+			for ( i=0; i<subscriptionsGroupedByLevel.length; i+=1 ) {
+				level = subscriptionsGroupedByLevel[i];
+
+				if ( level ) {
+					for ( j=0; j<level.length; j+=1 ) {
+						subscription = level[j];
+
+						if ( address !== subscription.originalAddress ) {
+							value = self.get( subscription.originalAddress );
+						}
+						subscription.callback( value );
+					}
+				}
+			}
+		},
+
+		subscribe: function ( address, level, callback ) {
+			
+			var self = this, originalAddress = address, subscriptionRefs = [], subscribe;
+
+			if ( !address ) {
+				return undefined;
+			}
+
+			subscribe = function ( address ) {
+				var subscriptions, subscription;
+
+				subscriptions = self.subscriptions[ address ] = self.subscriptions[ address ] || [];
+				subscriptions = subscriptions[ level ] = subscriptions[ level ] || [];
+
+				subscription = {
+					callback: callback,
+					originalAddress: originalAddress
+				};
+
+				subscriptions[ subscriptions.length ] = subscription;
+				subscriptionRefs[ subscriptionRefs.length ] = {
+					address: address,
+					level: level,
+					subscription: subscription
+				};
+			};
+
+			while ( address.lastIndexOf( '.' ) !== -1 ) {
+				subscribe( address );
+
+				// remove the last item in the address, so that viewModel.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
+				address = address.substr( 0, address.lastIndexOf( '.' ) );
+			}
+
+			subscribe( address );
+
+			return subscriptionRefs;
+		},
+
+		unsubscribe: function ( subscriptionRef ) {
+			var levels, subscriptions, index;
+
+			levels = this.subscriptions[ subscriptionRef.address ];
+			if ( !levels ) {
+				// nothing to unsubscribe
+				return;
+			}
+
+			subscriptions = levels[ subscriptionRef.level ];
+			if ( !subscriptions ) {
+				// nothing to unsubscribe
+				return;
+			}
+
+			index = subscriptions.indexOf( subscriptionRef.subscription );
+
+			if ( index === -1 ) {
+				// nothing to unsubscribe
+				return;
+			}
+
+			// remove the subscription from the list...
+			subscriptions.splice( index, 1 );
+
+			// ...then tidy up if necessary
+			if ( subscriptions.length === 0 ) {
+				delete levels[ subscriptionRef.level ];
+			}
+
+			if ( levels.length === 0 ) {
+				delete this.subscriptions[ subscriptionRef.address ];
+			}
+		},
+
+		unsubscribeAll: function ( subscriptionRefs ) {
+			while ( subscriptionRefs.length ) {
+				this.unsubscribe( subscriptionRefs.shift() );
+			}
+		},
+
+		makeAnglebarsArray: function ( array, address ) {
+			var arrayProto = Array.prototype, vm = this, update;
+
+			update = function ( method, args ) {
+				vm.update( address );
+			};
+
+			_.each( [ 'push', 'pop', 'shift', 'unshift', 'reverse', 'sort', 'splice' ], function ( method ) {
+				array[ method ] = function () {
+					var result = arrayProto[ method ].apply( array, arguments );
+					update();
+					return result;
+				};
+			});
+
+			array.isAnglebarsArray = true;
+		}
+	};
+
+
+
+
+
+
+	models.List = function ( expandedNodes, parent ) {
+		this.expanded = expandedNodes;
+		this.parent = parent;
+		this.level = parent.level + 1;
+		this.anglebars = parent.anglebars;
+		this.contextStack = parent.contextStack;
+
+		this.compile();
+	};
+
+	models.List.prototype = {
+		render: function ( parentNode, contextStack, anchor ) {
+			return new views.List( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.List( this, parent, contextStack );
+		},
+
+		add: function ( item ) {
+			this.items[ this.items.length ] = item;
+		},
+
+		compile: function () {
+			var next;
+
+			// create empty children array
+			this.items = [];
+
+			// walk through the list of child nodes, building sections as we go
+			next = 0;
+			while ( next < this.expanded.length ) {
+				next = this.createItem( next );
+			}
+
+			// we don't need the expanded nodes any more
+			delete this.expanded;
+		},
+
+		createItem: function ( i ) {
+			var mustache, item, text, element, start, sliceStart, sliceEnd, nesting, bit, keypath;
+
+			start = this.expanded[i];
+
+			switch ( start.type ) {
+				case 'text':
+					this.add( new models.Text( start.text, this ) );
+					return i+1;
+
+				case 'element':
+					this.add( new models.Element( start.original, this ) );
+					return i+1;
+
+				case 'mustache':
+					
+					switch ( start.mustache.type ) {
+						case 'section':
+
+							i += 1;
+							sliceStart = i; // first item in section
+							keypath = start.mustache.keypath;
+							nesting = 1;
+
+							// find end
+							while ( ( i < this.expanded.length ) && !sliceEnd ) {
+								
+								bit = this.expanded[i];
+
+								if ( bit.type === 'mustache' ) {
+									if ( bit.mustache.type === 'section' && bit.mustache.keypath === keypath ) {
+										if ( !bit.mustache.closing ) {
+											nesting += 1;
+										}
+
+										else {
+											nesting -= 1;
+											if ( !nesting ) {
+												sliceEnd = i;
+											}
+										}
+									}
+								}
+
+								i += 1;
+							}
+
+							if ( !sliceEnd ) {
+								throw new Error( 'Illegal section "' + keypath + '"' );
+							}
+
+							this.add( new models.Section( start.mustache, this.expanded.slice( sliceStart, sliceEnd ), this ) );
+							return i;
+
+
+						case 'triple':
+
+							this.add( new models.Triple( start.mustache, this ) );
+							return i+1;
+
+
+						case 'interpolator':
+
+							this.add( new models.Interpolator( start.mustache, this ) );
+							return i+1;
+
+						default:
+
+							console.warn( 'errr...' );
+							return i+1;
+					}
+					break;
+
+				default:
+					console.warn( 'errr...' );
+					break;
+			}
+		}
+	};
+
+	models.Section = function ( mustache, expandedNodes, parent ) {
+
+		this.keypath = mustache.keypath;
+		this.formatters = mustache.formatters;
+		this.parent = parent;
+		this.level = parent.level + 1;
+		this.anglebars = parent.anglebars;
+
+		this.inverted = mustache.inverted;
+
+		this.list = new models.List( expandedNodes, this );
+	};
+
+	models.Section.prototype = {
+		render: function ( parentNode, contextStack, anchor ) {
+			return new views.Section( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Section( this, parent, contextStack );
+		}
+	};
+
+	models.Text = function ( text, parent ) {
+		this.text = text;
+
+		// TODO these are no longer self-adding, so non whitespace preserving empties need to be handled another way
+		if ( /^\s+$/.test( text ) || text === '' ) {
+			if ( !parent.anglebars.preserveWhitespace ) {
+				return; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
+			}
+		}
+	};
+
+	models.Text.prototype = {
+		render: function ( parentNode, contextStack, anchor ) {
+			return new views.Text( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Text( this, parent, contextStack );
+		}
+	};
+
+	models.Interpolator = function ( mustache, parent ) {
+		this.keypath = mustache.keypath;
+		this.formatters = mustache.formatters;
+		this.parent = parent;
+		this.anglebars = parent.anglebars;
+		this.level = parent.level + 1;
+	};
+
+	models.Interpolator.prototype = {
+		render: function ( parentNode, contextStack, anchor ) {
+			return new views.Interpolator( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Interpolator( this, parent, contextStack );
+		}
+	};
+
+	models.Triple = function ( mustache, parent ) {
+		this.keypath = mustache.keypath;
+		this.formatters = mustache.formatters;
+		this.anglebars = parent.anglebars;
+		this.level = parent.level + 1;
+	};
+
+	models.Triple.prototype = {
+		render: function ( parentNode, contextStack, anchor ) {
+			return new views.Triple( this, parentNode, contextStack, anchor );
+		},
+
+		getEvaluator: function ( parent, contextStack ) {
+			return new evaluators.Interpolator( this, parent, contextStack ); // Triples are the same as Interpolators in this context
+		}
+	};
+
+	models.Element = function ( original, parent ) {
+		this.type = original.tagName;
+		this.parent = parent;
+		this.anglebars = parent.anglebars;
+		this.level = parent.level + 1;
+
+
+		this.getAttributes( original );
+
+
+		if ( original.childNodes.length ) {
+			this.children = new models.List( utils.expandNodes( original.childNodes ), this );
+		}
+	};
+
+	models.Element.prototype = {
+		render: function ( parentNode, contextStack, anchor ) {
+			return new views.Element( this, parentNode, contextStack, anchor );
+		},
+
+		getAttributes: function ( original ) {
+			var i, numAttributes, attribute;
+
+			this.attributes = [];
+
+			numAttributes = original.attributes.length;
+			for ( i=0; i<numAttributes; i+=1 ) {
+				attribute = original.attributes[i];
+				this.attributes[i] = new models.Attribute( attribute.name, attribute.value, this.anglebars, this.level );
+			}
+		}
+	};
+
+	models.Attribute = function ( name, value, anglebars, level ) {
+		var components = utils.expandText( value );
+
+		this.name = name;
+		if ( !utils.findMustache( value ) ) {
+			this.value = value;
+			return;
+		}
+
+		this.isDynamic = true;
+		this.list = new models.List( components, {
+			anglebars: anglebars,
+			level: level + 1
+		});
+	};
+
+	models.Attribute.prototype = {
+		render: function ( node, contextStack ) {
+			return new views.Attribute( this, node, contextStack );
+		}
+	};
+
+
+
+
+
+	var views = Anglebars.views,
+		utils = Anglebars.utils;
+
+	views.List = function ( list, parentNode, contextStack, anchor ) {
+		var self = this;
+
+		this.items = [];
+
+		_.each( list.items, function ( item, i ) {
+			self.items[i] = item.render( parentNode, contextStack, anchor );
+		});
+	};
+
+	views.List.prototype = {
+		teardown: function () {
+			// TODO unsubscribes
+			_.each( this.items, function ( item ) {
+				item.teardown();
+			});
+
+			delete this.items; // garbage collector, ATTACK!
+		}
+	};
+
+	views.Text = function ( textItem, parentNode, contextStack, anchor ) {
+		this.node = document.createTextNode( textItem.text );
+		// append this.node, either at end of parent element or in front of the anchor (if defined)
+		parentNode.insertBefore( this.node, anchor );
+	};
+
+	views.Text.prototype = {
+		teardown: function () {
+			utils.remove( this.node );
+		}
+	};
+
+	views.Section = function ( section, parentNode, contextStack, anchor ) {
+		var self = this,
+			unformatted,
+			formatted,
+			anglebars = section.anglebars,
+			data = anglebars.data;
+
+		this.section = section;
+		this.anglebars = section.anglebars;
+		this.formatters = section.formatters;
+		this.contextStack = contextStack || [];
+		this.data = data;
+		this.views = [];
+		
+		this.parentNode = parentNode;
+		this.anchor = utils.createAnchor();
+
+		// append this.node, either at end of parent element or in front of the anchor (if defined)
+		parentNode.insertBefore( this.anchor, anchor );
+
+		data.getAddress( this, section.keypath, contextStack, function ( address ) {
+			unformatted = data.get( address );
+			formatted = anglebars.format( unformatted, section.formatters );
+
+			this.update( formatted );
+
+			// subscribe to changes
+			this.subscriptionRefs = data.subscribe( address, section.level, function ( value ) {
+				var formatted = anglebars.format( value, section.formatters );
+				self.update( formatted );
+			});
+		});
+	};
+
+	views.Section.prototype = {
+		teardown: function () {
+			this.unrender();
+
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
+			}
+
+			utils.remove( this.anchor );
+		},
+
+		unrender: function () {
+			// TODO unsubscribe
+			while ( this.views.length ) {
+				this.views.shift().teardown();
+			}
+		},
+
+		update: function ( value ) {
+			var emptyArray, i, viewsToTeardown;
+
+			// treat empty arrays as false values
+			if ( _.isArray( value ) && value.length === 0 ) {
+				emptyArray = true;
+			}
+
+			// if section is inverted, only check for truthiness/falsiness
+			if ( this.section.inverted ) {
+				if ( value && !emptyArray ) {
+					if ( this.rendered ) {
+						this.unrender();
+						this.rendered = false;
+						return;
+					}
+				}
+
+				else {
+					if ( !this.rendered ) {
+						this.views[0] = this.section.list.render( this.parentNode, this.contextStack, this.anchor );
+						this.rendered = true;
+						return;
+					}
+				}
+
+				return;
+			}
+
+			// otherwise we need to work out what sort of section we're dealing with
+			switch ( typeof value ) {
+				case 'object':
+
+					if ( this.rendered ) {
+						this.unrender();
+						this.rendered = false;
+					}
+
+					// if value is an array of hashes, iterate through
+					if ( _.isArray( value ) ) {
+						if ( emptyArray ) {
+							return;
+						}
+
+						for ( i=0; i<value.length; i+=1 ) {
+							this.views[i] = this.section.list.render( this.parentNode, this.contextStack.concat( this.address + '.' + i ), this.anchor );
+						}
+					}
+
+					// if value is a hash, add it to the context stack and update children
+					else {
+						this.views[0] = this.section.list.render( this.parentNode, this.contextStack.concat( this.address ), this.anchor );
+					}
+
+					this.rendered = true;
+					break;
+
+				default:
+
+					if ( value && !emptyArray ) {
+						if ( !this.rendered ) {
+							this.views[0] = this.section.list.render( this.parentNode, this.contextStack, this.anchor );
+							this.rendered = true;
+						}
+					}
+
+					else {
+						if ( this.rendered ) {
+							this.unrender();
+							this.rendered = false;
+						}
+					}
+
+					// otherwise render if value is truthy, unrender if falsy
+
+			}
+		}
+	};
+
+	views.Interpolator = function ( interpolator, parentNode, contextStack, anchor ) {
+		var self = this,
+			value,
+			formatted,
+			anglebars = interpolator.anglebars,
+			data = anglebars.data;
+
+		contextStack = ( contextStack ? contextStack.concat() : [] );
+		
+		
+		this.node = document.createTextNode( '' );
+		this.data = data;
+		this.keypath = interpolator.keypath;
+		this.contextStack = contextStack;
+
+		data.getAddress( this, interpolator.keypath, contextStack, function ( address ) {
+			value = data.get( address );
+			formatted = anglebars.format( value, interpolator.formatters );
+
+			this.update( formatted );
+
+			this.subscriptionRefs = data.subscribe( address, interpolator.level, function ( value ) {
+				var formatted = anglebars.format( value, interpolator.formatters );
+				self.update( formatted );
+			});
+		});
+		
+
+		// append this.node, either at end of parent element or in front of the anchor (if defined)
+		parentNode.insertBefore( this.node, anchor );
+	};
+
+	views.Interpolator.prototype = {
+		teardown: function () {
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
+			}
+
+			utils.remove( this.node );
+		},
+
+		update: function ( value ) {
+			this.node.textContent = value;
+		}
+	};
+
+	views.Triple = function ( triple, parentNode, contextStack, anchor ) {
+		var self = this,
+			unformatted,
+			formattedHtml,
+			anglebars = triple.anglebars,
+			data = anglebars.data,
+			nodes;
+
+		this.nodes = [];
+		this.data = data;
+
+		this.anchor = utils.createAnchor();
+
+		// append this.node, either at end of parent element or in front of the anchor (if defined)
+		parentNode.insertBefore( this.anchor, anchor );
+
+		data.getAddress( this, triple.keypath, contextStack, function ( address ) {
+			// subscribe to data changes
+			this.subscriptionRefs = data.subscribe( address, triple.level, function ( value ) {
+				var formatted = anglebars.format( value, triple.formatters );
+				self.update( formatted );
+			});
+
+			unformatted = data.get( address );
+			formattedHtml = anglebars.format( unformatted, triple.formatters );
+
+			this.update( formattedHtml );
+		});
+	};
+
+	views.Triple.prototype = {
+		teardown: function () {
+			// TODO unsubscribes
+			_.each( this.nodes, utils.remove );
+
+
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
+			}
+
+			utils.remove( this.anchor );
+		},
+
+		update: function ( value ) {
+			var self = this;
+
+			if ( _.isEqual( this.value, value ) ) {
+				return;
+			}
+
+			// remove existing nodes
+			_.each( this.nodes, utils.remove );
+
+			// get new nodes
+			this.nodes = utils.getNodeArrayFromHtml( value );
+
+			_.each( this.nodes, function ( node ) {
+				utils.insertBefore( self.anchor, node );
+			});
+		}
+	};
+
+	views.Element = function ( elementModel, parentNode, contextStack, anchor ) {
+
+		var self = this,
+			unformatted,
+			formattedHtml,
+			anglebars = elementModel.anglebars,
+			data = anglebars.data,
+			i,
+			numAttributes,
+			numItems,
+			attributeModel,
+			item,
+			nodes;
+
+		// stuff we'll need later
+		this.data = data;
+
+		// create the DOM node
+		this.node = document.createElement( elementModel.type );
+		
+		// set attributes
+		this.attributes = [];
+		numAttributes = elementModel.attributes.length;
+		for ( i=0; i<numAttributes; i+=1 ) {
+			attributeModel = elementModel.attributes[i];
+			this.attributes[i] = attributeModel.render( this.node, contextStack );
+		}
+
+		// append children
+		if ( elementModel.children ) {
+			this.children = [];
+			numItems = elementModel.children.items.length;
+			for ( i=0; i<numItems; i+=1 ) {
+				item = elementModel.children.items[i];
+				this.children[i] = item.render( this.node, contextStack );
+			}
+		}
+
+		// two-way data binding
+		if ( elementModel.type === 'INPUT' ) {
+			this.setupChangeHandlers();
+		}
+
+		// append this.node, either at end of parent element or in front of the anchor (if defined)
+		parentNode.insertBefore( this.node, anchor );
+	};
+
+	views.Element.prototype = {
+		teardown: function () {
+			_.each( this.attributes, function ( attributeView ) {
+				attributeView.teardown();
+			});
+			utils.remove( this.node );
+		},
+
+		setupChangeHandlers: function () {
+			var address = this.node.getAttribute( 'data-bind' ), data = this.data, inputType;
+
+			inputType = this.node.getAttribute( 'type' ) || 'text';
+
+			this.changeListener = this.node.addEventListener( 'change', function () {
+				data.set( address, this.value );
+			});
+
+			this.changeListener = this.node.addEventListener( 'keyup', function () {
+				data.set( address, this.value );
+			});
+		}
+	};
+
+	views.Attribute = function ( attributeModel, node, contextStack ) {
+		
+		var i, numItems, item;
+
+		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
+		if ( !attributeModel.isDynamic ) {
+			node.setAttribute( attributeModel.name, attributeModel.value );
+			return;
+		}
+
+		// otherwise we need to do some work
+		this.attributeModel = attributeModel;
+		this.node = node;
+		this.name = attributeModel.name;
+
+		this.anglebars = attributeModel.anglebars;
+		this.data = attributeModel.data;
+
+		this.evaluators = [];
+
+		numItems = attributeModel.list.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			item = attributeModel.list.items[i];
+			this.evaluators[i] = item.getEvaluator( this, contextStack );
+		}
+
+		// update...
+		this.update();
+
+		// and watch for changes TODO
+	};
+
+	views.Attribute.prototype = {
+		teardown: function () {
+			_.each( this.evaluators, function ( evaluator ) {
+				if ( evaluator.teardown ) {
+					evaluator.teardown();
+				}
+			});
+		},
+
+		bubble: function () {
+			this.update();
+		},
+
+		update: function () {
+			this.node.setAttribute( this.name, this.toString() );
+		},
+
+		toString: function () {
+			var string = '', i, numEvaluators, evaluator;
+
+			numEvaluators = this.evaluators.length;
+			for ( i=0; i<numEvaluators; i+=1 ) {
+				evaluator = this.evaluators[i];
+				string += evaluator.toString();
+			}
+
+			return string;
+		}
+	};
+
+
+
+
+
+	_.extend( utils, {
+		// replacement for the dumbass DOM equivalent
+		insertBefore: function ( referenceNode, newNode ) {
+			if ( !referenceNode ) {
+				throw new Error( 'Can\'t insert before a non-existent node' );
+			}
+
+			return referenceNode.parentNode.insertBefore( newNode, referenceNode );
+		},
+
+		insertAfter: function ( referenceNode, newNode ) {
+			if ( !referenceNode ) {
+				throw new Error( 'Can\'t insert before a non-existent node' );
+			}
+
+			return referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
+		},
+
+		remove: function ( node ) {
+			if ( node.parentNode ) {
+				node.parentNode.removeChild( node );
+			}
+		},
+
+		trim: function ( text ) {
+			var trimmed = text.replace( /^\s+/, '' ).replace( /\s+$/, '' );
+			return trimmed;
+		},
+
+		getNodeArrayFromHtml: function ( innerHTML ) {
+
+			var parser, temp, i, numNodes, nodes = [];
+
+			// test for DOMParser support
+			// TODO
+
+			temp = document.createElement( 'div' );
+			temp.innerHTML = innerHTML;
+
+			// create array from node list, as node lists have some undesirable properties
+			numNodes = temp.childNodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				nodes[i] = temp.childNodes[i];
+			}
+
+			return nodes;
+		},
+
+		getEl: function ( input ) {
+			var output;
+
+			if ( input ) {
+				// string
+				if ( typeof input === 'string' ) {
+					// see if it's a DOM node
+					output = document.getElementById( input );
+
+					if ( !output && document.querySelector ) {
+						try {
+							output = document.querySelector( input );
+						} catch ( error ) {
+							// somebody do something!
+						}
+					}
+				}
+
+				// jQuery (or equivalent) object
+				else if ( input[0] && input[0].nodeType ) {
+					output = input[0].innerHTML;
+				}
+			}
+
+			return output;
+		},
+
+		stripComments: function ( input ) {
+			var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
+				lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,
+				output;
+
+			// remove line comments
+			output = input.replace( lineComment, function ( matched, startChar, endChar, start, complete ) {
+				return startChar;
+			});
+
+			// remove inline comments
+			output = output.replace( comment, '' );
+
+			return output;
+		},
+
+		createAnchor: function () {
+			var anchor = document.createElement( 'a' );
+			anchor.setAttribute( 'class', 'anglebars-anchor' );
+
+			return anchor;
+		},
+
+		nodeListToArray: function ( nodes ) {
+			var i, numNodes = nodes.length, result = [];
+
+			for ( i=0; i<numNodes; i+=1 ) {
+				result[i] = nodes[i];
+			}
+
+			return result;
+		},
+
+		attributeListToArray: function ( attributes ) {
+			var i, numAttributes = attributes.length, result = [];
+
+			for ( i=0; i<numAttributes; i+=1 ) {
+				result[i] = {
+					name: attributes[i].name,
+					value: attributes[i].value
+				};
+			}
+
+			return result;
+		},
+
+		findMustache: function ( text, startIndex ) {
+
+			var match, split, mustache, formulaSplitter;
+
+			mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
+			formulaSplitter = ' | ';
+
+			match = utils.findMatch( text, mustache, startIndex );
+
+			if ( match ) {
+
+				match.formula = match[5];
+				split = match.formula.split( formulaSplitter );
+				match.keypath = split.shift();
+				match.formatters = split;
+				
+				
+				// figure out what type of mustache we're dealing with
+				if ( match[2] ) {
+					// mustache is a section
+					match.type = 'section';
+					match.inverted = ( match[2] === '^' ? true : false );
+					match.closing = ( match[2] === '/' ? true : false );
+				}
+
+				else if ( match[3] ) {
+					match.type = 'partial';
+				}
+
+				else if ( match[1] ) {
+					// left side is a triple - check right side is as well
+					if ( !match[6] ) {
+						return false;
+					}
+
+					match.type = 'triple';
+				}
+
+				else {
+					match.type = 'interpolator';
+				}
+
+				match.isMustache = true;
+				return match;
+			}
+
+			// if no mustache found, report failure
+			return false;
+		},
+
+		findMatch: function ( text, pattern, startIndex ) {
+
+			var match;
+
+			// reset lastIndex
+			if ( pattern.global ) {
+				pattern.lastIndex = startIndex || 0;
+			} else {
+				throw new Error( 'You must pass findMatch() a regex with the global flag set' );
+			}
+
+			match = pattern.exec( text );
+
+			if ( match ) {
+				match.end = pattern.lastIndex;
+				match.start = ( match.end - match[0].length );
+				return match;
+			}
+		},
+
+		expandNodes: function ( nodes ) {
+			var i, numNodes, node, result = [];
+
+			numNodes = nodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				node = nodes[i];
+
+				if ( node.nodeType !== 3 ) {
+					result[ result.length ] = {
+						type: 'element',
+						original: node
+					};
+				}
+
+				else {
+					result = result.concat( utils.expandText( node.textContent ) );
+				}
+			}
+
+			return result;
+		},
+
+		expandText: function ( text ) {
+			var result, mustache;
+
+			// see if there's a mustache involved here
+			mustache = utils.findMustache( text );
+
+			// if not, groovy - no work to do
+			if ( !mustache ) {
+				return {
+					type: 'text',
+					text: text
+				};
+			}
+
+			result = [];
+
+			// otherwise, see if there is any text before the node
+			if ( mustache.start > 0 ) {
+				result[ result.length ] = {
+					type: 'text',
+					text: text.substr( 0, mustache.start )
+				};
+			}
+
+			// add the mustache
+			result[ result.length ] = {
+				type: 'mustache',
+				mustache: mustache
+			};
+
+			if ( mustache.end < text.length ) {
+				result = result.concat( utils.expandText( text.substring( mustache.end ) ) );
+			}
+
+			return result;
+		}
+	});
+
+
+
+
+
+
+	utils.inherit = function ( item, model, parent ) {
+		item.model = model;
+		item.keypath = model.keypath;
+		item.formatters = model.formatters;
+		item.anglebars = model.anglebars;
+		item.data = model.anglebars.data;
+
+		item.parent = parent;
+		
+	};
+
+	evaluators.List = function ( list, parent, contextStack ) {
+		var self = this;
+
+		this.evaluators = [];
+		
+		_.each( list.items, function ( model, i ) {
+			if ( model.getEvaluator ) {
+				self.evaluators[i] = model.getEvaluator( self, contextStack );
+			}
+		});
+
+		this.stringified = this.evaluators.join('');
+	};
+
+	evaluators.List.prototype = {
+		bubble: function () {
+			this.stringified = this.evaluators.join('');
+			this.parent.bubble();
+		},
+
+		teardown: function () {
+			_.each( this.evaluators, function ( evaluator ) {
+				evaluator.teardown();
+			});
+		},
+
+		toString: function () {
+			return this.stringified;
+		}
+	};
+
+	evaluators.Text = function ( text, parent, contextStack ) {
+		this.stringified = text.text;
+	};
+
+	evaluators.Text.prototype = {
+		toString: function () {
+			return this.stringified;
+		}
+	};
+
+	evaluators.Interpolator = function ( interpolator, parent, contextStack ) {
+		// this.interpolator = interpolator;
+		// this.keypath = interpolator.keypath;
+		// this.anglebars = interpolator.anglebars,
+		// this.data = this.anglebars.data;
+		// this.parent = parent;
+
+		utils.inherit( this, interpolator, parent );
+
+		this.data.getAddress( this, this.keypath, contextStack, function ( address ) {
+			var value, formatted, self = this;
+
+			value = this.data.get( this.address );
+			formatted = this.anglebars.format( value, this.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
+
+			this.stringified = formatted;
+
+			this.subscriptionRefs = this.data.subscribe( this.address, this.model.level, function ( value ) {
+				var formatted = self.anglebars.format( value, self.model.formatters );
+				self.stringified = formatted;
+				self.bubble();
+			});
+		});
+	};
+
+	evaluators.Interpolator.prototype = {
+		bubble: function () {
+			this.parent.bubble();
+		},
+
+		teardown: function () {
+			if ( !this.subscriptionRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unsubscribeAll( this.subscriptionRefs );
+			}
+		},
+
+		toString: function () {
+			return this.stringified;
+		}
+	};
+
+	evaluators.Triple = evaluators.Interpolator; // same same
+
+	evaluators.Section = function ( section, parent, contextStack ) {
+		utils.inherit( this, section, parent );
+		this.contextStack = contextStack;
+
+		this.views = [];
+
+		this.data.getAddress( this, this.keypath, contextStack, function ( address ) {
+			var value, formatted, self = this;
+
+			value = this.data.get( this.address );
+			formatted = this.anglebars.format( value, this.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
+
+			this.update( formatted );
+
+			this.subscriptionRefs = this.data.subscribe( this.address, this.model.level, function ( value ) {
+				var formatted = self.anglebars.format( value, self.model.formatters );
+				self.update( formatted );
+				self.bubble();
+			});
+		});
+	};
+
+	evaluators.Section.prototype = {
+		bubble: function () {
+			this.parent.bubble();
+		},
+
+		teardown: function () {
+
+		},
+
+		update: function ( value ) {
+			var emptyArray, i;
+
+			console.log( 'updating ', this, ' with value ', value );
+
+			// treat empty arrays as false values
+			if ( _.isArray( value ) && value.length === 0 ) {
+				emptyArray = true;
+			}
+
+			// if section is inverted, only check for truthiness/falsiness
+			if ( this.model.inverted ) {
+				if ( value && !emptyArray ) {
+					if ( this.rendered ) {
+						this.views = [];
+						this.rendered = false;
+						return;
+					}
+				}
+
+				else {
+					if ( !this.rendered ) {
+						this.views[0] = this.model.list.getEvaluator( this, this.contextStack );
+						this.rendered = true;
+						return;
+					}
+				}
+
+				return;
+			}
+
+
+			// otherwise we need to work out what sort of section we're dealing with
+			switch ( typeof value ) {
+				case 'object':
+
+					if ( this.rendered ) {
+						this.views = [];
+						this.rendered = false;
+					}
+
+					// if value is an array of hashes, iterate through
+					if ( _.isArray( value ) && !emptyArray ) {
+						for ( i=0; i<value.length; i+=1 ) {
+							this.views[i] = this.model.list.getEvaluator( this, this.contextStack.concat( this.address + '.' + i ) );
+						}
+					}
+
+					// if value is a hash, add it to the context stack and update children
+					else {
+						this.views[0] = this.section.list.render( this.parentNode, this.contextStack.concat( this.address ), this.anchor );
+					}
+
+					this.rendered = true;
+					break;
+
+				default:
+
+					if ( value && !emptyArray ) {
+						if ( !this.rendered ) {
+							this.views[0] = this.model.list.getEvaluator( this, this.contextStack );
+							this.rendered = true;
+						}
+					}
+
+					else {
+						if ( this.rendered ) {
+							this.views = [];
+							this.rendered = false;
+						}
+					}
+			}
+		},
+
+		toString: function () {
+			return this.views.join( '' );
+		}
+	};
+
+	return Anglebars;
+	
+}( this, _ ));
