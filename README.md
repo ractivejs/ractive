@@ -50,7 +50,7 @@ As of version 0.0.1, Anglebars supports most of the mustache specification, exce
     <p>No scores yet!</p>
     {{/scores}}
 
-Take a look at the examples to see more of what can be done, including two-way data binding and other voodoo.
+Take a look at the [examples](http://rich-harris.github.com/Anglebars/examples/) to see more of what can be done, including two-way data binding and other voodoo.
 
 One feature that's not in the mustache spec is formatters. This is an idea (and not the only one) pinched from the excellent [knockout.js](http://knockoutjs.com/):
 
