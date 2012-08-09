@@ -3,6 +3,7 @@
 <head>
 	<meta charset='utf-8'>
 	<link rel='stylesheet' href='../css/main.css'>
+	<link rel='stylesheet' href='../css/responsive.css'>
 
 	<title>Hello world | Anglebars examples</title>
 
@@ -26,30 +27,31 @@
 	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
 	
 	<div class='notes'>
-		<p>Tip: In the console, do:</p>
-		<code>anglebars.set('helloworld', 'Greetings, my good fellow!')</code>
+		<p>A normal mustache <strong>interpolator</strong> looks like this:</p>
+		<code>{{helloworld}}</code>
+		<p>Text can be changed by calling the <em>.set()</em> method. This doesn't re-render the entire template, just the bits that need to change. Try doing the following:</p>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>anglebars.set('helloworld', 'Greetings, my good fellow!');</textarea>
+		</div>
 	</div>
 
 	<div class='main'>
-		<div class='input'>
-			<script>
-var anglebars;
 
-$(function () {
-  anglebars = new Anglebars({
-    el: 'anglebars',
-    template: '<p>{{helloworld}}</p>',
-    data: {
-      helloworld: 'Hello world!'
-    }
-  });
-});
-			</script>
+		<div id='input'>
+			<script type='text/template' id='template'><p>{{helloworld}}</p></script>
+
+			<div id='script'>var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    helloworld: 'Hello world!'
+  }
+});</div>
 		</div>
 
-		<div class='output'>
-			<div id='anglebars'></div>
-		</div>
-	</div>	
+		<div id='output'></div>
+	</div>
+
 </body>
 </html>

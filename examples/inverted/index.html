@@ -5,7 +5,7 @@
 	<link rel='stylesheet' href='../css/main.css'>
 	<link rel='stylesheet' href='../css/responsive.css'>
 
-	<title>Formatters | Anglebars examples</title>
+	<title>Sections | Anglebars examples</title>
 
 	<!-- Dependencies -->
 	<script src='../lib/jquery-1.7.2.min.js'></script>
@@ -27,29 +27,25 @@
 	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
 	
 	<div class='notes'>
-		<p>Values can be <strong>formatted</strong> before rendering, using functions passed in on initialization:</p>
+		<p>An <strong>inverted section</strong> looks like this:</p>
+		<code>{{^section}}inverted section content goes here{{/section}}</code>
+		<p>The contents will be shown or hidden depending on the value of <em>section</em> &ndash; if it <em>is</em> falsy, it will render (empty arrays are considered falsy in this context). Try this:</p>
 		<div id='consoleExpander'>
 			<div id='consoleMirror'></div>
-			<textarea id='console'>anglebars.set('sometext', 'hawkmen, dive!');</textarea>
+			<textarea id='console'>anglebars.set('trueorfalse', false);</textarea>
 		</div>
 	</div>
 
 	<div class='main'>
 
 		<div id='input'>
-			<script type='text/template' id='template'><p>The following text will appear in capitals:</p>
-<p><strong>{{sometext | uppercase}}</strong></p></script>
+			<script type='text/template' id='template'>{{^trueorfalse}}<div>Shown when <em>trueorfalse</em> is false</div>{{/trueorfalse}}</script>
 
 			<div id='script'>var anglebars = new Anglebars({
   el: 'output',
   template: $('#template').html(),
   data: {
-    sometext: 'capitals'
-  },
-  formatters: {
-    uppercase: function ( input ) {
-      return input.toUpperCase();
-    }
+    trueorfalse: true
   }
 });</div>
 		</div>

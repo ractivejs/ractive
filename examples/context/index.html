@@ -5,7 +5,9 @@
 	<link rel='stylesheet' href='../css/main.css'>
 	<link rel='stylesheet' href='../css/responsive.css'>
 
-	<title>Formatters | Anglebars examples</title>
+	<link rel='stylesheet' href='context.css'>
+
+	<title>Context | Anglebars examples</title>
 
 	<!-- Dependencies -->
 	<script src='../lib/jquery-1.7.2.min.js'></script>
@@ -27,28 +29,37 @@
 	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
 	
 	<div class='notes'>
-		<p>Values can be <strong>formatted</strong> before rendering, using functions passed in on initialization:</p>
+		<p>Sections can provide <strong>context</strong>:</p>
 		<div id='consoleExpander'>
 			<div id='consoleMirror'></div>
-			<textarea id='console'>anglebars.set('sometext', 'hawkmen, dive!');</textarea>
+			<textarea id='console'>anglebars.set('character',{
+  firstname: 'Ace',
+  lastname: 'Rimmer',
+  mugshot: 'ace.jpg',
+  quote: 'Smoke me a kipper, I\'ll be back for breakfast.'
+});</textarea>
 		</div>
 	</div>
 
 	<div class='main'>
 
 		<div id='input'>
-			<script type='text/template' id='template'><p>The following text will appear in capitals:</p>
-<p><strong>{{sometext | uppercase}}</strong></p></script>
+			<script type='text/template' id='template'>{{#character}}
+<img src="{{mugshot}}"/>
+<p><strong>{{firstname}} {{lastname}}</strong></p>
+<p>"{{quote}}"</p>
+{{/character}}
+<br style="clear:both;"/></script>
 
 			<div id='script'>var anglebars = new Anglebars({
   el: 'output',
   template: $('#template').html(),
   data: {
-    sometext: 'capitals'
-  },
-  formatters: {
-    uppercase: function ( input ) {
-      return input.toUpperCase();
+    character: {
+      firstname: 'Arnold',
+      lastname: 'Rimmer',
+      mugshot: 'arnold.jpg',
+      quote: 'Boarding this vessel is an act of war. Ergo we surrender.'
     }
   }
 });</div>

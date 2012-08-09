@@ -3,6 +3,7 @@
 <head>
 	<meta charset='utf-8'>
 	<link rel='stylesheet' href='../css/main.css'>
+	<link rel='stylesheet' href='../css/responsive.css'>
 
 	<title>Triples | Anglebars examples</title>
 
@@ -27,29 +28,32 @@
 	
 	<div class='notes'>
 		<p>Anything in a {{{triple}}}, as opposed to a regular {{mustache}}, gets converted to HTML. Try this:</p>
-		<code>anglebars.set('mustache', '&lt;iframe src="http://google.co.uk"/&gt;')</code>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>anglebars.set('mustache', '&lt;a href="http://bit.ly/QOyWC1"&gt;' +
+'&lt;img src="http://bit.ly/NkOKHB"/&gt;&lt;/a&gt;')</textarea>
+		</div>
 	</div>
 
 	<div class='main'>
-		<div class='input'>
-			<script>
-var anglebars;
 
-$(function () {
-  anglebars = new Anglebars({
-    el: 'anglebars',
-    template: '<p>This is a normal mustache:</p><p>{{mustache}}</p><p>And this is a triple mustache:</p><p>{{{mustache}}}</p>',
-    data: {
-      mustache: '<strong>Spot the difference?</strong>'
-    }
-  });
-});
-			</script>
+		<div id='input'>
+			<script type='text/template' id='template'><p>This is a normal mustache:</p>
+<p>{{mustache}}</p>
+<p>And this is a triple mustache:</p>
+<p>{{{mustache}}}</p></script>
+
+			<div id='script'>var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    mustache: '<strong>Spot the difference?</strong>'
+  }
+});</div>
 		</div>
 
-		<div class='output'>
-			<div id='anglebars'></div>
-		</div>
-	</div>	
+		<div id='output'></div>
+	</div>
+
 </body>
 </html>

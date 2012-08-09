@@ -3,6 +3,8 @@
 <head>
 	<meta charset='utf-8'>
 	<link rel='stylesheet' href='../css/main.css'>
+	<link rel='stylesheet' href='../css/responsive.css'>
+
 	<link rel='stylesheet' href='attributes.css'>
 
 	<title>Attributes | Anglebars examples</title>
@@ -27,33 +29,37 @@
 	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
 	
 	<div class='notes'>
-		<p>As well as text, you can make attributes dynamic. Try this:</p>
-		<code>anglebars.set({<br/>  bgcolor:'yellow',<br/>  color:'red',<br/>  fontSize:24,<br/>  adjective:'awesome'<br/>})</code>
+		<p>As well as text, you can make element <strong>attributes</strong> dynamic. Try this:</p>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>anglebars.set({
+  bgcolor:'yellow',
+  color:'red',
+  fontSize:24,
+  adjective:'awesome'
+});</textarea>
+		</div>
 	</div>
 
 	<div class='main'>
-		<div class='input'>
-			<script>
-var anglebars;
 
-$(function () {
-  anglebars = new Anglebars({
-    el: 'anglebars',
-    template: '<div style="background-color: {{bgcolor}}; color: {{color}}; font-size: {{fontSize}}px">Any attribute can be made {{adjective}}</div>',
-    data: {
-      bgcolor: 'black',
-      color: 'white',
-      fontSize: 16,
-      adjective: 'dynamic'
-    }
-  });
-});
-			</script>
+		<div id='input'>
+			<script type='text/template' id='template'><div style="background-color: {{bgcolor}}; color: {{color}}; font-size: {{fontSize}}px">Any attribute can be made {{adjective}}</div></script>
+
+			<div id='script'>var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    bgcolor: 'black',
+    color: 'white',
+    fontSize: 16,
+    adjective: 'dynamic'
+  }
+});</div>
 		</div>
 
-		<div class='output'>
-			<div id='anglebars'></div>
-		</div>
-	</div>	
+		<div id='output'></div>
+	</div>
+
 </body>
 </html>

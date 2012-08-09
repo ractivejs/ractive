@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<link rel='stylesheet' href='../css/main.css'>
+	<link rel='stylesheet' href='../css/responsive.css'>
+
+	<title>Nesting | Anglebars examples</title>
+
+	<!-- Dependencies -->
+	<script src='../lib/jquery-1.7.2.min.js'></script>
+	<script src='../../lib/underscore.js'></script>
+
+	<!-- Component source -->
+	<script src='../../src/anglebars.js'></script>
+	<script src='../../src/viewModel.js'></script>
+	<script src='../../src/evaluators.js'></script>
+	<script src='../../src/views.js'></script>
+	<script src='../../src/models.js'></script>
+	<script src='../../src/utils.js'></script>
+	
+	<script src='../examples.js'></script>
+</head>
+
+
+<body>
+	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
+	
+	<div class='notes'>
+		<p>Sections can be <strong>nested</strong> to arbitrary levels, and Anglebars will figure out what you're referring to. It is thus possible, though not recommended, to recreate the plot of <em>Inception</em> using mustaches. Note that we can still find the value of <em>kick</em> when the current context is the final <em>dream</em>:</p>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>anglebars.set({
+  'reality.dream.dreamer': 'Dileep Rao',
+  'reality.dream.dream.dreamer': 'Joseph Gordon-Levitt',
+  'reality.dream.dream.dream.dreamer': 'Tom Hardy',
+  'reality.dream.dream.dream.dream.dreamer': 'Leonardo DiCaprio'
+});</textarea>
+		</div>
+	</div>
+
+	<div class='main'>
+
+		<div id='input'>
+			<script type='text/template' id='template'><p>The plot of <em>Inception</em>:</p>
+{{#reality}}
+<ul>
+  <li>Level {{level}}: {{setting}}</li>
+  {{#dream}}
+    <li>Level {{level}}: {{setting}} ({{dreamer}}'s dream)</li>
+    {{#dream}}
+      <li>Level {{level}}: {{setting}} ({{dreamer}}'s dream)</li>
+      {{#dream}}
+        <li>Level {{level}}: {{setting}} ({{dreamer}}'s dream)</li>
+        {{#dream}}
+          <li>Level {{level}}: {{setting}} ({{dreamer}}'s dream)</li>
+          <li><strong>{{kick}}</strong></li>
+        {{/dream}}
+      {{/dream}}
+    {{/dream}}
+  {{/dream}}
+</ul>
+{{/reality}}</script>
+
+			<div id='script'>var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    reality: {
+      kick: 'However deeply nested we are, we can still get back to the top',
+      level: 'one',
+      setting: 'The Airplane',
+      dream: {
+        level: 'two',
+        setting: 'The City',
+        dreamer: 'Yusuf',
+        dream: {
+          level: 'three',
+          setting: 'The Hotel',
+          dreamer: 'Arthur',
+          dream: {
+            level: 'four',
+            setting: 'The Snow Fortress',
+            dreamer: 'Eames',
+            dream: {
+              level: 'five',
+              setting: 'Limbo',
+              dreamer: 'Cobb'
+            }
+          }
+        }
+      }
+    }
+  }
+});</div>
+		</div>
+
+		<div id='output'></div>
+	</div>
+
+</body>
+</html>
