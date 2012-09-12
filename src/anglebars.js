@@ -1,20 +1,8 @@
-/*jslint white: true, nomen: true */
-/*global _, document */
-
-var Anglebars = (function ( _ ) {
+var Anglebars = (function () {
 
 	'use strict';
 
-	var Anglebars,
-
-		formulaSplitter,
-
-		SECTION,
-		INTERPOLATOR,
-		TRIPLE,
-		PARTIAL,
-
-		utils;
+	var Anglebars, utils;
 	
 
 	Anglebars = function ( o ) {
@@ -46,12 +34,12 @@ var Anglebars = (function ( _ ) {
 				this.template = o.template;
 			}
 
-			// get viewModel
+			// get data
 			if ( o.data ) {
-				if ( o.data instanceof Anglebars.ViewModel ) {
+				if ( o.data instanceof Anglebars.Data ) {
 					this.data = o.data;
 				} else {
-					this.data = new Anglebars.ViewModel( o.data );
+					this.data = new Anglebars.Data( o.data );
 				}
 			}
 
@@ -60,6 +48,7 @@ var Anglebars = (function ( _ ) {
 
 			// get misc options
 			this.preserveWhitespace = o.preserveWhitespace;
+			this.replaceSrcAttributes = ( o.replaceSrcAttributes === undefined ? true : o.replaceSrcAttributes );
 
 			this.compiled = this.compile();
 
@@ -74,7 +63,7 @@ var Anglebars = (function ( _ ) {
 			// remove all comments
 			this.template = utils.stripComments( this.template );
 
-			nodes = utils.getNodeArrayFromHtml( this.template );
+			nodes = utils.getNodeArrayFromHtml( this.template, this.replaceSrcAttributes );
 
 			rootList = new Anglebars.models.List( utils.expandNodes( nodes ), {
 				anglebars: this,
@@ -118,4 +107,5 @@ var Anglebars = (function ( _ ) {
 
 	return Anglebars;
 
-}( _ ));
+}());
+

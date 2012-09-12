@@ -1,0 +1,13 @@
+{
+	"name": "Anglebars",
+	"version": "0.0.1",
+	"homepage": "http://rich-harris.github.com/Anglebars/",
+	"author": {
+		"name": "Rich Harris"
+	},
+	"licenses": [
+		{
+			"type": "WTFPL"
+		}
+	]
+}

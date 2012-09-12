@@ -1,34 +1,24 @@
-/*jslint white: true, nomen: true */
-/*global _, document */
+/*! Anglebars - v0.0.1 - 2012-09-12
+* http://rich-harris.github.com/Anglebars/
+* Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
-// ANGLEBARS v0.0.1
-// ================
-//
-// by @rich_harris
-// Released under the WTFPL (http://sam.zoy.org/wtfpl/)
-//
-// More info at http://rich-harris.github.com/Anglebars/
-
-var Anglebars = (function ( global, _ ) {
+var Anglebars = (function () {
 
 	'use strict';
 
-	var Anglebars,
-		models,
-		views,
-		evaluators,
-		utils,
-		formulaSplitter;
+	var Anglebars, utils;
 	
 
 	Anglebars = function ( o ) {
 		this.initialize( o );
 	};
 
-	models = Anglebars.models = {};
-	views = Anglebars.views = {};
-	evaluators = Anglebars.evaluators = {};
-	utils = Anglebars.utils = {};
+	Anglebars.models = {};
+	Anglebars.views = {};
+	Anglebars.evaluators = {};
+	Anglebars.utils = {};
+
+	utils = Anglebars.utils;
 
 	Anglebars.prototype = {
 		initialize: function ( o ) {
@@ -48,12 +38,12 @@ var Anglebars = (function ( global, _ ) {
 				this.template = o.template;
 			}
 
-			// get viewModel
+			// get data
 			if ( o.data ) {
-				if ( o.data instanceof Anglebars.ViewModel ) {
+				if ( o.data instanceof Anglebars.Data ) {
 					this.data = o.data;
 				} else {
-					this.data = new Anglebars.ViewModel( o.data );
+					this.data = new Anglebars.Data( o.data );
 				}
 			}
 
@@ -62,6 +52,7 @@ var Anglebars = (function ( global, _ ) {
 
 			// get misc options
 			this.preserveWhitespace = o.preserveWhitespace;
+			this.replaceSrcAttributes = ( o.replaceSrcAttributes === undefined ? true : o.replaceSrcAttributes );
 
 			this.compiled = this.compile();
 
@@ -76,7 +67,7 @@ var Anglebars = (function ( global, _ ) {
 			// remove all comments
 			this.template = utils.stripComments( this.template );
 
-			nodes = utils.getNodeArrayFromHtml( this.template );
+			nodes = utils.getNodeArrayFromHtml( this.template, this.replaceSrcAttributes );
 
 			rootList = new Anglebars.models.List( utils.expandNodes( nodes ), {
 				anglebars: this,
@@ -95,15 +86,11 @@ var Anglebars = (function ( global, _ ) {
 
 		// shortcuts
 		set: function () {
-			return this.data.set.apply( this.data, arguments );
+			this.data.set.apply( this.data, arguments );
 		},
 
 		get: function () {
-			return this.data.get.apply( this.data, arguments );
-		},
-
-		update: function () {
-			return this.data.update.apply( this.data, arguments );
+			this.data.get.apply( this.data, arguments );
 		},
 
 		format: function ( value, formatters ) {
@@ -122,12 +109,16 @@ var Anglebars = (function ( global, _ ) {
 		}
 	};
 
+	return Anglebars;
+
+}());
 
 
+(function ( Anglebars ) {
 
+	'use strict';
 
-
-	Anglebars.ViewModel = function ( o ) {
+	Anglebars.Data = function ( o ) {
 		var key;
 
 		this.data = {};
@@ -142,7 +133,7 @@ var Anglebars = (function ( global, _ ) {
 		this.subscriptions = {};
 	};
 
-	Anglebars.ViewModel.prototype = {
+	Anglebars.Data.prototype = {
 		set: function ( address, value ) {
 			var k, keys, key, obj, i, numUnresolved, numResolved, unresolved, resolved, index, previous;
 
@@ -204,16 +195,7 @@ var Anglebars = (function ( global, _ ) {
 				}
 			}
 
-			if ( _.isArray( result ) && !result.isAnglebarsArray ) {
-				this.makeAnglebarsArray( result, address );
-			}
-
 			return result;
-		},
-
-		update: function ( address ) {
-			var value = this.get( address );
-			this.publish( address, value );
 		},
 
 		getAddress: function ( item, keypath, contextStack, callback ) {
@@ -322,7 +304,7 @@ var Anglebars = (function ( global, _ ) {
 			while ( address.lastIndexOf( '.' ) !== -1 ) {
 				subscribe( address );
 
-				// remove the last item in the address, so that viewModel.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
+				// remove the last item in the address, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
 				address = address.substr( 0, address.lastIndexOf( '.' ) );
 			}
 
@@ -370,28 +352,20 @@ var Anglebars = (function ( global, _ ) {
 			while ( subscriptionRefs.length ) {
 				this.unsubscribe( subscriptionRefs.shift() );
 			}
-		},
-
-		makeAnglebarsArray: function ( array, address ) {
-			var arrayProto = Array.prototype, vm = this, update;
-
-			update = function ( method, args ) {
-				vm.update( address );
-			};
-
-			_.each( [ 'push', 'pop', 'shift', 'unshift', 'reverse', 'sort', 'splice' ], function ( method ) {
-				array[ method ] = function () {
-					var result = arrayProto[ method ].apply( array, arguments );
-					update();
-					return result;
-				};
-			});
-
-			array.isAnglebarsArray = true;
 		}
 	};
 
+}( Anglebars, _ ));
 
+
+(function ( Anglebars ) {
+
+	'use strict';
+
+	var models = Anglebars.models,
+		views = Anglebars.views,
+		evaluators = Anglebars.evaluators,
+		utils = Anglebars.utils;
 
 
 
@@ -622,15 +596,15 @@ var Anglebars = (function ( global, _ ) {
 			numAttributes = original.attributes.length;
 			for ( i=0; i<numAttributes; i+=1 ) {
 				attribute = original.attributes[i];
-				this.attributes[i] = new models.Attribute( attribute.name, attribute.value, this.anglebars, this.level );
+				this.attributes[i] = new models.Attribute( attribute.name, attribute.value, this.anglebars );
 			}
 		}
 	};
 
-	models.Attribute = function ( name, value, anglebars, level ) {
+	models.Attribute = function ( name, value, anglebars ) {
 		var components = utils.expandText( value );
 
-		this.name = name;
+		this.name = ( name === 'data-anglebars-src' ? 'src' : name );
 		if ( !utils.findMustache( value ) ) {
 			this.value = value;
 			return;
@@ -639,7 +613,7 @@ var Anglebars = (function ( global, _ ) {
 		this.isDynamic = true;
 		this.list = new models.List( components, {
 			anglebars: anglebars,
-			level: level + 1
+			level: 0
 		});
 	};
 
@@ -649,9 +623,12 @@ var Anglebars = (function ( global, _ ) {
 		}
 	};
 
+}( Anglebars ));
 
 
-
+(function ( Anglebars, _ ) {
+	
+	'use strict';
 
 	var views = Anglebars.views,
 		utils = Anglebars.utils;
@@ -680,7 +657,7 @@ var Anglebars = (function ( global, _ ) {
 	views.Text = function ( textItem, parentNode, contextStack, anchor ) {
 		this.node = document.createTextNode( textItem.text );
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor );
+		parentNode.insertBefore( this.node, anchor || null );
 	};
 
 	views.Text.prototype = {
@@ -697,8 +674,6 @@ var Anglebars = (function ( global, _ ) {
 			data = anglebars.data;
 
 		this.section = section;
-		this.anglebars = section.anglebars;
-		this.formatters = section.formatters;
 		this.contextStack = contextStack || [];
 		this.data = data;
 		this.views = [];
@@ -707,7 +682,7 @@ var Anglebars = (function ( global, _ ) {
 		this.anchor = utils.createAnchor();
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.anchor, anchor );
+		parentNode.insertBefore( this.anchor, anchor || null );
 
 		data.getAddress( this, section.keypath, contextStack, function ( address ) {
 			unformatted = data.get( address );
@@ -744,7 +719,8 @@ var Anglebars = (function ( global, _ ) {
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, viewsToTeardown;
+			var emptyArray, i;
+			console.log( 'updating:', value );
 
 			// treat empty arrays as false values
 			if ( _.isArray( value ) && value.length === 0 ) {
@@ -772,9 +748,12 @@ var Anglebars = (function ( global, _ ) {
 				return;
 			}
 
+
 			// otherwise we need to work out what sort of section we're dealing with
 			switch ( typeof value ) {
 				case 'object':
+
+				console.log( 'is an object. empty? ', emptyArray );
 
 					if ( this.rendered ) {
 						this.unrender();
@@ -786,7 +765,7 @@ var Anglebars = (function ( global, _ ) {
 						if ( emptyArray ) {
 							return;
 						}
-
+						
 						for ( i=0; i<value.length; i+=1 ) {
 							this.views[i] = this.section.list.render( this.parentNode, this.contextStack.concat( this.address + '.' + i ), this.anchor );
 						}
@@ -804,6 +783,7 @@ var Anglebars = (function ( global, _ ) {
 
 					if ( value && !emptyArray ) {
 						if ( !this.rendered ) {
+							console.log( 'should see this first' );
 							this.views[0] = this.section.list.render( this.parentNode, this.contextStack, this.anchor );
 							this.rendered = true;
 						}
@@ -811,6 +791,7 @@ var Anglebars = (function ( global, _ ) {
 
 					else {
 						if ( this.rendered ) {
+							console.log( 'should see this next' );
 							this.unrender();
 							this.rendered = false;
 						}
@@ -851,7 +832,7 @@ var Anglebars = (function ( global, _ ) {
 		
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor );
+		parentNode.insertBefore( this.node, anchor || null );
 	};
 
 	views.Interpolator.prototype = {
@@ -866,7 +847,7 @@ var Anglebars = (function ( global, _ ) {
 		},
 
 		update: function ( value ) {
-			this.node.textContent = value;
+			utils.setText( this.node, value );
 		}
 	};
 
@@ -874,7 +855,7 @@ var Anglebars = (function ( global, _ ) {
 		var self = this,
 			unformatted,
 			formattedHtml,
-			anglebars = triple.anglebars,
+			anglebars = this.anglebars = triple.anglebars,
 			data = anglebars.data,
 			nodes;
 
@@ -884,7 +865,7 @@ var Anglebars = (function ( global, _ ) {
 		this.anchor = utils.createAnchor();
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.anchor, anchor );
+		parentNode.insertBefore( this.anchor, anchor || null );
 
 		data.getAddress( this, triple.keypath, contextStack, function ( address ) {
 			// subscribe to data changes
@@ -926,7 +907,7 @@ var Anglebars = (function ( global, _ ) {
 			_.each( this.nodes, utils.remove );
 
 			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( value );
+			this.nodes = utils.getNodeArrayFromHtml( value, this.anglebars.replaceSrcAttributes );
 
 			_.each( this.nodes, function ( node ) {
 				utils.insertBefore( self.anchor, node );
@@ -934,12 +915,12 @@ var Anglebars = (function ( global, _ ) {
 		}
 	};
 
-	views.Element = function ( elementModel, parentNode, contextStack, anchor ) {
+	views.Element = function ( element, parentNode, contextStack, anchor ) {
 
 		var self = this,
 			unformatted,
 			formattedHtml,
-			anglebars = elementModel.anglebars,
+			anglebars = element.anglebars,
 			data = anglebars.data,
 			i,
 			numAttributes,
@@ -952,33 +933,28 @@ var Anglebars = (function ( global, _ ) {
 		this.data = data;
 
 		// create the DOM node
-		this.node = document.createElement( elementModel.type );
+		this.node = document.createElement( element.type );
 		
 		// set attributes
 		this.attributes = [];
-		numAttributes = elementModel.attributes.length;
+		numAttributes = element.attributes.length;
 		for ( i=0; i<numAttributes; i+=1 ) {
-			attributeModel = elementModel.attributes[i];
+			attributeModel = element.attributes[i];
 			this.attributes[i] = attributeModel.render( this.node, contextStack );
 		}
 
 		// append children
-		if ( elementModel.children ) {
+		if ( element.children ) {
 			this.children = [];
-			numItems = elementModel.children.items.length;
+			numItems = element.children.items.length;
 			for ( i=0; i<numItems; i+=1 ) {
-				item = elementModel.children.items[i];
+				item = element.children.items[i];
 				this.children[i] = item.render( this.node, contextStack );
 			}
 		}
 
-		// two-way data binding
-		if ( elementModel.type === 'INPUT' ) {
-			this.setupChangeHandlers();
-		}
-
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor );
+		parentNode.insertBefore( this.node, anchor || null );
 	};
 
 	views.Element.prototype = {
@@ -987,20 +963,6 @@ var Anglebars = (function ( global, _ ) {
 				attributeView.teardown();
 			});
 			utils.remove( this.node );
-		},
-
-		setupChangeHandlers: function () {
-			var address = this.node.getAttribute( 'data-bind' ), data = this.data, inputType;
-
-			inputType = this.node.getAttribute( 'type' ) || 'text';
-
-			this.changeListener = this.node.addEventListener( 'change', function () {
-				data.set( address, this.value );
-			});
-
-			this.changeListener = this.node.addEventListener( 'keyup', function () {
-				data.set( address, this.value );
-			});
 		}
 	};
 
@@ -1066,265 +1028,15 @@ var Anglebars = (function ( global, _ ) {
 		}
 	};
 
+}( Anglebars, _ ));
 
 
+(function ( Anglebars ) {
 
+	'use strict';
 
-	_.extend( utils, {
-		// replacement for the dumbass DOM equivalent
-		insertBefore: function ( referenceNode, newNode ) {
-			if ( !referenceNode ) {
-				throw new Error( 'Can\'t insert before a non-existent node' );
-			}
-
-			return referenceNode.parentNode.insertBefore( newNode, referenceNode );
-		},
-
-		insertAfter: function ( referenceNode, newNode ) {
-			if ( !referenceNode ) {
-				throw new Error( 'Can\'t insert before a non-existent node' );
-			}
-
-			return referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
-		},
-
-		remove: function ( node ) {
-			if ( node.parentNode ) {
-				node.parentNode.removeChild( node );
-			}
-		},
-
-		trim: function ( text ) {
-			var trimmed = text.replace( /^\s+/, '' ).replace( /\s+$/, '' );
-			return trimmed;
-		},
-
-		getNodeArrayFromHtml: function ( innerHTML ) {
-
-			var parser, temp, i, numNodes, nodes = [];
-
-			// test for DOMParser support
-			// TODO
-
-			temp = document.createElement( 'div' );
-			temp.innerHTML = innerHTML;
-
-			// create array from node list, as node lists have some undesirable properties
-			numNodes = temp.childNodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				nodes[i] = temp.childNodes[i];
-			}
-
-			return nodes;
-		},
-
-		getEl: function ( input ) {
-			var output;
-
-			if ( input ) {
-				// string
-				if ( typeof input === 'string' ) {
-					// see if it's a DOM node
-					output = document.getElementById( input );
-
-					if ( !output && document.querySelector ) {
-						try {
-							output = document.querySelector( input );
-						} catch ( error ) {
-							// somebody do something!
-						}
-					}
-				}
-
-				// jQuery (or equivalent) object
-				else if ( input[0] && input[0].nodeType ) {
-					output = input[0].innerHTML;
-				}
-			}
-
-			return output;
-		},
-
-		stripComments: function ( input ) {
-			var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
-				lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,
-				output;
-
-			// remove line comments
-			output = input.replace( lineComment, function ( matched, startChar, endChar, start, complete ) {
-				return startChar;
-			});
-
-			// remove inline comments
-			output = output.replace( comment, '' );
-
-			return output;
-		},
-
-		createAnchor: function () {
-			var anchor = document.createElement( 'a' );
-			anchor.setAttribute( 'class', 'anglebars-anchor' );
-
-			return anchor;
-		},
-
-		nodeListToArray: function ( nodes ) {
-			var i, numNodes = nodes.length, result = [];
-
-			for ( i=0; i<numNodes; i+=1 ) {
-				result[i] = nodes[i];
-			}
-
-			return result;
-		},
-
-		attributeListToArray: function ( attributes ) {
-			var i, numAttributes = attributes.length, result = [];
-
-			for ( i=0; i<numAttributes; i+=1 ) {
-				result[i] = {
-					name: attributes[i].name,
-					value: attributes[i].value
-				};
-			}
-
-			return result;
-		},
-
-		findMustache: function ( text, startIndex ) {
-
-			var match, split, mustache, formulaSplitter;
-
-			mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
-			formulaSplitter = ' | ';
-
-			match = utils.findMatch( text, mustache, startIndex );
-
-			if ( match ) {
-
-				match.formula = match[5];
-				split = match.formula.split( formulaSplitter );
-				match.keypath = split.shift();
-				match.formatters = split;
-				
-				
-				// figure out what type of mustache we're dealing with
-				if ( match[2] ) {
-					// mustache is a section
-					match.type = 'section';
-					match.inverted = ( match[2] === '^' ? true : false );
-					match.closing = ( match[2] === '/' ? true : false );
-				}
-
-				else if ( match[3] ) {
-					match.type = 'partial';
-				}
-
-				else if ( match[1] ) {
-					// left side is a triple - check right side is as well
-					if ( !match[6] ) {
-						return false;
-					}
-
-					match.type = 'triple';
-				}
-
-				else {
-					match.type = 'interpolator';
-				}
-
-				match.isMustache = true;
-				return match;
-			}
-
-			// if no mustache found, report failure
-			return false;
-		},
-
-		findMatch: function ( text, pattern, startIndex ) {
-
-			var match;
-
-			// reset lastIndex
-			if ( pattern.global ) {
-				pattern.lastIndex = startIndex || 0;
-			} else {
-				throw new Error( 'You must pass findMatch() a regex with the global flag set' );
-			}
-
-			match = pattern.exec( text );
-
-			if ( match ) {
-				match.end = pattern.lastIndex;
-				match.start = ( match.end - match[0].length );
-				return match;
-			}
-		},
-
-		expandNodes: function ( nodes ) {
-			var i, numNodes, node, result = [];
-
-			numNodes = nodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				node = nodes[i];
-
-				if ( node.nodeType !== 3 ) {
-					result[ result.length ] = {
-						type: 'element',
-						original: node
-					};
-				}
-
-				else {
-					result = result.concat( utils.expandText( node.textContent ) );
-				}
-			}
-
-			return result;
-		},
-
-		expandText: function ( text ) {
-			var result, mustache;
-
-			// see if there's a mustache involved here
-			mustache = utils.findMustache( text );
-
-			// if not, groovy - no work to do
-			if ( !mustache ) {
-				return {
-					type: 'text',
-					text: text
-				};
-			}
-
-			result = [];
-
-			// otherwise, see if there is any text before the node
-			if ( mustache.start > 0 ) {
-				result[ result.length ] = {
-					type: 'text',
-					text: text.substr( 0, mustache.start )
-				};
-			}
-
-			// add the mustache
-			result[ result.length ] = {
-				type: 'mustache',
-				mustache: mustache
-			};
-
-			if ( mustache.end < text.length ) {
-				result = result.concat( utils.expandText( text.substring( mustache.end ) ) );
-			}
-
-			return result;
-		}
-	});
-
-
-
-
-
+	var evaluators = Anglebars.evaluators,
+		utils = Anglebars.utils;
 
 	utils.inherit = function ( item, model, parent ) {
 		item.model = model;
@@ -1338,15 +1050,17 @@ var Anglebars = (function ( global, _ ) {
 	};
 
 	evaluators.List = function ( list, parent, contextStack ) {
-		var self = this;
+		var self = this, numItems, model, i;
 
 		this.evaluators = [];
 		
-		_.each( list.items, function ( model, i ) {
+		numItems = list.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			model = list.items[i];
 			if ( model.getEvaluator ) {
 				self.evaluators[i] = model.getEvaluator( self, contextStack );
 			}
-		});
+		}
 
 		this.stringified = this.evaluators.join('');
 	};
@@ -1358,9 +1072,12 @@ var Anglebars = (function ( global, _ ) {
 		},
 
 		teardown: function () {
-			_.each( this.evaluators, function ( evaluator ) {
-				evaluator.teardown();
-			});
+			var numEvaluators, i;
+
+			numEvaluators = this.evaluators.length;
+			for ( i=0; i<numEvaluators; i+=1 ) {
+				this.evaluators[i].teardown();
+			}
 		},
 
 		toString: function () {
@@ -1379,12 +1096,6 @@ var Anglebars = (function ( global, _ ) {
 	};
 
 	evaluators.Interpolator = function ( interpolator, parent, contextStack ) {
-		// this.interpolator = interpolator;
-		// this.keypath = interpolator.keypath;
-		// this.anglebars = interpolator.anglebars,
-		// this.data = this.anglebars.data;
-		// this.parent = parent;
-
 		utils.inherit( this, interpolator, parent );
 
 		this.data.getAddress( this, this.keypath, contextStack, function ( address ) {
@@ -1456,8 +1167,6 @@ var Anglebars = (function ( global, _ ) {
 
 		update: function ( value ) {
 			var emptyArray, i;
-
-			console.log( 'updating ', this, ' with value ', value );
 
 			// treat empty arrays as false values
 			if ( _.isArray( value ) && value.length === 0 ) {
@@ -1532,7 +1241,285 @@ var Anglebars = (function ( global, _ ) {
 			return this.views.join( '' );
 		}
 	};
-
-	return Anglebars;
 	
-}( this, _ ));
+}( Anglebars, _ ));
+
+
+(function ( Anglebars, document ) {
+	
+	'use strict';
+
+	var utils = Anglebars.utils;
+
+	// replacement for the dumbass DOM equivalent
+	utils.insertBefore = function ( referenceNode, newNode ) {
+		if ( !referenceNode ) {
+			throw new Error( 'Can\'t insert before a non-existent node' );
+		}
+
+		return referenceNode.parentNode.insertBefore( newNode, referenceNode );
+	};
+
+	utils.insertAfter = function ( referenceNode, newNode ) {
+		if ( !referenceNode ) {
+			throw new Error( 'Can\'t insert before a non-existent node' );
+		}
+
+		return referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
+	};
+
+	utils.remove = function ( node ) {
+		if ( node.parentNode ) {
+			node.parentNode.removeChild( node );
+		}
+	};
+
+	utils.trim = function ( text ) {
+		var trimmed = text.replace( /^\s+/, '' ).replace( /\s+$/, '' );
+		return trimmed;
+	};
+
+	utils.getNodeArrayFromHtml = function ( innerHTML, replaceSrcAttributes ) {
+
+		var parser, doc, temp, i, numNodes, nodes = [];
+
+		// replace src attribute with data-anglebars-src
+		if ( replaceSrcAttributes ) {
+			innerHTML = innerHTML.replace( /(<[^>]+\s)(src=)/g, '$1data-anglebars-src=' );
+		}
+
+		if ( document.implementation && document.implementation.createDocument ) {
+			doc = document.implementation.createDocument("http://www.w3.org/1999/xhtml", "html", null);
+			temp = document.createElementNS("http://www.w3.org/1999/xhtml", "body");
+		} else {
+			// IE. ugh
+			temp = document.createElement( 'div' );
+		}
+		
+		temp.innerHTML = innerHTML;
+
+
+		// create array from node list, as node lists have some undesirable properties
+		numNodes = temp.childNodes.length;
+		for ( i=0; i<numNodes; i+=1 ) {
+			nodes[i] = temp.childNodes[i];
+		}
+
+		return nodes;
+	};
+
+	utils.getEl = function ( input ) {
+		var output;
+
+		if ( input ) {
+			// string
+			if ( typeof input === 'string' ) {
+				// see if it's a DOM node
+				output = document.getElementById( input );
+
+				if ( !output && document.querySelector ) {
+					try {
+						output = document.querySelector( input );
+					} catch ( error ) {
+						// somebody do something!
+					}
+				}
+			}
+
+			// jQuery (or equivalent) object
+			else if ( input[0] && input[0].nodeType ) {
+				output = input[0].innerHTML;
+			}
+		}
+
+		return output;
+	};
+
+	utils.stripComments = function ( input ) {
+		var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
+			lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,
+			output;
+
+		// remove line comments
+		output = input.replace( lineComment, function ( matched, startChar, endChar, start, complete ) {
+			return startChar;
+		});
+
+		// remove inline comments
+		output = output.replace( comment, '' );
+
+		return output;
+	};
+
+	utils.createAnchor = function () {
+		var anchor = document.createElement( 'a' );
+		anchor.setAttribute( 'class', 'anglebars-anchor' );
+
+		return anchor;
+	};
+
+	utils.nodeListToArray = function ( nodes ) {
+		var i, numNodes = nodes.length, result = [];
+
+		for ( i=0; i<numNodes; i+=1 ) {
+			result[i] = nodes[i];
+		}
+
+		return result;
+	};
+
+	utils.attributeListToArray = function ( attributes ) {
+		var i, numAttributes = attributes.length, result = [];
+
+		for ( i=0; i<numAttributes; i+=1 ) {
+			result[i] = {
+				name: attributes[i].name,
+				value: attributes[i].value
+			};
+		}
+
+		return result;
+	};
+
+	utils.findMustache = function ( text, startIndex ) {
+
+		var match, split, mustache, formulaSplitter;
+
+		mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
+		formulaSplitter = ' | ';
+
+		match = utils.findMatch( text, mustache, startIndex );
+
+		if ( match ) {
+
+			match.formula = match[5];
+			split = match.formula.split( formulaSplitter );
+			match.keypath = split.shift();
+			match.formatters = split;
+			
+			
+			// figure out what type of mustache we're dealing with
+			if ( match[2] ) {
+				// mustache is a section
+				match.type = 'section';
+				match.inverted = ( match[2] === '^' ? true : false );
+				match.closing = ( match[2] === '/' ? true : false );
+			}
+
+			else if ( match[3] ) {
+				match.type = 'partial';
+			}
+
+			else if ( match[1] ) {
+				// left side is a triple - check right side is as well
+				if ( !match[6] ) {
+					return false;
+				}
+
+				match.type = 'triple';
+			}
+
+			else {
+				match.type = 'interpolator';
+			}
+
+			match.isMustache = true;
+			return match;
+		}
+
+		// if no mustache found, report failure
+		return false;
+	};
+
+	utils.findMatch = function ( text, pattern, startIndex ) {
+
+		var match;
+
+		// reset lastIndex
+		if ( pattern.global ) {
+			pattern.lastIndex = startIndex || 0;
+		} else {
+			throw new Error( 'You must pass findMatch() a regex with the global flag set' );
+		}
+
+		match = pattern.exec( text );
+
+		if ( match ) {
+			match.end = pattern.lastIndex;
+			match.start = ( match.end - match[0].length );
+			return match;
+		}
+	};
+
+	utils.expandNodes = function ( nodes ) {
+		var i, numNodes, node, result = [];
+
+		numNodes = nodes.length;
+		for ( i=0; i<numNodes; i+=1 ) {
+			node = nodes[i];
+
+			if ( node.nodeType !== 3 ) {
+				result[ result.length ] = {
+					type: 'element',
+					original: node
+				};
+			}
+
+			else {
+				result = result.concat( utils.expandText( node.textContent || node.innerText ) );
+			}
+		}
+
+		return result;
+	};
+
+	utils.expandText = function ( text ) {
+		var result, mustache;
+
+		// see if there's a mustache involved here
+		mustache = utils.findMustache( text );
+
+		// if not, groovy - no work to do
+		if ( !mustache ) {
+			return {
+				type: 'text',
+				text: text
+			};
+		}
+
+		result = [];
+
+		// otherwise, see if there is any text before the node
+		if ( mustache.start > 0 ) {
+			result[ result.length ] = {
+				type: 'text',
+				text: text.substr( 0, mustache.start )
+			};
+		}
+
+		// add the mustache
+		result[ result.length ] = {
+			type: 'mustache',
+			mustache: mustache
+		};
+
+		if ( mustache.end < text.length ) {
+			result = result.concat( utils.expandText( text.substring( mustache.end ) ) );
+		}
+
+		return result;
+	};
+
+	utils.setText = function ( textNode, text ) {
+		
+		if ( textNode.textContent !== undefined ) { // standards-compliant browsers
+			textNode.textContent = text;
+		}
+
+		else { // redmond troglodytes
+			textNode.innerText = text;
+		}
+	};
+
+}( Anglebars, document ));
+

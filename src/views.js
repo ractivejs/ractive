@@ -1,7 +1,3 @@
-/*jslint white: true, nomen: true */
-/*global Anglebars, _, document */
-
-
 (function ( Anglebars, _ ) {
 	
 	'use strict';
@@ -33,7 +29,7 @@
 	views.Text = function ( textItem, parentNode, contextStack, anchor ) {
 		this.node = document.createTextNode( textItem.text );
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor );
+		parentNode.insertBefore( this.node, anchor || null );
 	};
 
 	views.Text.prototype = {
@@ -58,7 +54,7 @@
 		this.anchor = utils.createAnchor();
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.anchor, anchor );
+		parentNode.insertBefore( this.anchor, anchor || null );
 
 		data.getAddress( this, section.keypath, contextStack, function ( address ) {
 			unformatted = data.get( address );
@@ -208,7 +204,7 @@
 		
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor );
+		parentNode.insertBefore( this.node, anchor || null );
 	};
 
 	views.Interpolator.prototype = {
@@ -223,7 +219,7 @@
 		},
 
 		update: function ( value ) {
-			this.node.textContent = value;
+			utils.setText( this.node, value );
 		}
 	};
 
@@ -231,7 +227,7 @@
 		var self = this,
 			unformatted,
 			formattedHtml,
-			anglebars = triple.anglebars,
+			anglebars = this.anglebars = triple.anglebars,
 			data = anglebars.data,
 			nodes;
 
@@ -241,7 +237,7 @@
 		this.anchor = utils.createAnchor();
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.anchor, anchor );
+		parentNode.insertBefore( this.anchor, anchor || null );
 
 		data.getAddress( this, triple.keypath, contextStack, function ( address ) {
 			// subscribe to data changes
@@ -283,7 +279,7 @@
 			_.each( this.nodes, utils.remove );
 
 			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( value );
+			this.nodes = utils.getNodeArrayFromHtml( value, this.anglebars.replaceSrcAttributes );
 
 			_.each( this.nodes, function ( node ) {
 				utils.insertBefore( self.anchor, node );
@@ -330,7 +326,7 @@
 		}
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor );
+		parentNode.insertBefore( this.node, anchor || null );
 	};
 
 	views.Element.prototype = {
@@ -405,3 +401,4 @@
 	};
 
 }( Anglebars, _ ));
+

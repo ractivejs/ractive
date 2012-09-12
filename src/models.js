@@ -1,7 +1,4 @@
-/*jslint white: true, nomen: true */
-/*global Anglebars, document, _ */
-
-(function ( Anglebars, _ ) {
+(function ( Anglebars ) {
 
 	'use strict';
 
@@ -247,7 +244,7 @@
 	models.Attribute = function ( name, value, anglebars ) {
 		var components = utils.expandText( value );
 
-		this.name = name;
+		this.name = ( name === 'data-anglebars-src' ? 'src' : name );
 		if ( !utils.findMustache( value ) ) {
 			this.value = value;
 			return;
@@ -266,4 +263,5 @@
 		}
 	};
 
-}( Anglebars, _ ));
+}( Anglebars ));
+

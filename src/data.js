@@ -1,11 +1,8 @@
-/*jslint white: true, nomen: true */
-/*global Anglebars, _ */
-
-(function ( Anglebars, _ ) {
+(function ( Anglebars ) {
 
 	'use strict';
 
-	Anglebars.ViewModel = function ( o ) {
+	Anglebars.Data = function ( o ) {
 		var key;
 
 		this.data = {};
@@ -20,7 +17,7 @@
 		this.subscriptions = {};
 	};
 
-	Anglebars.ViewModel.prototype = {
+	Anglebars.Data.prototype = {
 		set: function ( address, value ) {
 			var k, keys, key, obj, i, numUnresolved, numResolved, unresolved, resolved, index, previous;
 
@@ -191,7 +188,7 @@
 			while ( address.lastIndexOf( '.' ) !== -1 ) {
 				subscribe( address );
 
-				// remove the last item in the address, so that viewModel.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
+				// remove the last item in the address, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
 				address = address.substr( 0, address.lastIndexOf( '.' ) );
 			}
 
@@ -243,3 +240,4 @@
 	};
 
 }( Anglebars, _ ));
+

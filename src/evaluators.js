@@ -1,7 +1,4 @@
-/*jslint white: true */
-/*global Anglebars, _ */
-
-(function ( Anglebars, _ ) {
+(function ( Anglebars ) {
 
 	'use strict';
 
@@ -20,15 +17,17 @@
 	};
 
 	evaluators.List = function ( list, parent, contextStack ) {
-		var self = this;
+		var self = this, numItems, model, i;
 
 		this.evaluators = [];
 		
-		_.each( list.items, function ( model, i ) {
+		numItems = list.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			model = list.items[i];
 			if ( model.getEvaluator ) {
 				self.evaluators[i] = model.getEvaluator( self, contextStack );
 			}
-		});
+		}
 
 		this.stringified = this.evaluators.join('');
 	};
@@ -40,9 +39,12 @@
 		},
 
 		teardown: function () {
-			_.each( this.evaluators, function ( evaluator ) {
-				evaluator.teardown();
-			});
+			var numEvaluators, i;
+
+			numEvaluators = this.evaluators.length;
+			for ( i=0; i<numEvaluators; i+=1 ) {
+				this.evaluators[i].teardown();
+			}
 		},
 
 		toString: function () {
@@ -61,12 +63,6 @@
 	};
 
 	evaluators.Interpolator = function ( interpolator, parent, contextStack ) {
-		// this.interpolator = interpolator;
-		// this.keypath = interpolator.keypath;
-		// this.anglebars = interpolator.anglebars,
-		// this.data = this.anglebars.data;
-		// this.parent = parent;
-
 		utils.inherit( this, interpolator, parent );
 
 		this.data.getAddress( this, this.keypath, contextStack, function ( address ) {
@@ -138,8 +134,6 @@
 
 		update: function ( value ) {
 			var emptyArray, i;
-
-			console.log( 'updating ', this, ' with value ', value );
 
 			// treat empty arrays as false values
 			if ( _.isArray( value ) && value.length === 0 ) {
@@ -216,3 +210,4 @@
 	};
 	
 }( Anglebars, _ ));
+
