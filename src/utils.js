@@ -4,7 +4,8 @@
 
 	var utils = Anglebars.utils;
 
-	// replacement for the dumbass DOM equivalent
+
+	// replacement for the dumbass DOM equivalents
 	utils.insertBefore = function ( referenceNode, newNode ) {
 		if ( !referenceNode ) {
 			throw new Error( 'Can\'t insert before a non-existent node' );
@@ -27,11 +28,15 @@
 		}
 	};
 
+
+	// strip whitespace from the start and end of strings
 	utils.trim = function ( text ) {
 		var trimmed = text.replace( /^\s+/, '' ).replace( /\s+$/, '' );
 		return trimmed;
 	};
 
+
+	// convert HTML to an array of DOM nodes
 	utils.getNodeArrayFromHtml = function ( innerHTML, replaceSrcAttributes ) {
 
 		var parser, doc, temp, i, numNodes, nodes = [];
@@ -61,6 +66,8 @@
 		return nodes;
 	};
 
+
+	// find a target element from an id string, a CSS selector (if document.querySelector is supported), a DOM node, or a jQuery collection (or equivalent)
 	utils.getEl = function ( input ) {
 		var output;
 
@@ -88,6 +95,8 @@
 		return output;
 	};
 
+
+	// strip mustache comments (which look like {{!this}}, i.e. mustache with an exclamation mark) from a string
 	utils.stripComments = function ( input ) {
 		var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
 			lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,
@@ -104,6 +113,8 @@
 		return output;
 	};
 
+
+	// create an anglebars anchor
 	utils.createAnchor = function () {
 		var anchor = document.createElement( 'a' );
 		anchor.setAttribute( 'class', 'anglebars-anchor' );
@@ -111,6 +122,8 @@
 		return anchor;
 	};
 
+
+	// convert a node list to an array (iterating through a node list directly often has... undesirable results)
 	utils.nodeListToArray = function ( nodes ) {
 		var i, numNodes = nodes.length, result = [];
 
@@ -121,6 +134,8 @@
 		return result;
 	};
 
+
+	// convert an attribute list to an array
 	utils.attributeListToArray = function ( attributes ) {
 		var i, numAttributes = attributes.length, result = [];
 
@@ -134,6 +149,8 @@
 		return result;
 	};
 
+
+	// find the first mustache in a string, and store some information about it. Returns an array with some additional properties
 	utils.findMustache = function ( text, startIndex ) {
 
 		var match, split, mustache, formulaSplitter;
@@ -184,6 +201,8 @@
 		return false;
 	};
 
+
+	// find the first match of a pattern within a string. Returns an array with start and end properties indicating where the match was found within the string
 	utils.findMatch = function ( text, pattern, startIndex ) {
 
 		var match;
@@ -204,6 +223,8 @@
 		}
 	};
 
+
+	
 	utils.expandNodes = function ( nodes ) {
 		var i, numNodes, node, result = [];
 
@@ -219,7 +240,7 @@
 			}
 
 			else {
-				result = result.concat( utils.expandText( node.textContent || node.innerText ) );
+				result = result.concat( utils.expandText( node.data ) );
 			}
 		}
 
@@ -264,13 +285,13 @@
 	};
 
 	utils.setText = function ( textNode, text ) {
-		
+
 		if ( textNode.textContent !== undefined ) { // standards-compliant browsers
 			textNode.textContent = text;
 		}
 
 		else { // redmond troglodytes
-			textNode.innerText = text;
+			textNode.data = text;
 		}
 	};
 

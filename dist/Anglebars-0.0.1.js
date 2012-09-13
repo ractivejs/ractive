@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-09-12
+/*! Anglebars - v0.0.1 - 2012-09-13
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -783,7 +783,6 @@ var Anglebars = (function () {
 
 					if ( value && !emptyArray ) {
 						if ( !this.rendered ) {
-							console.log( 'should see this first' );
 							this.views[0] = this.section.list.render( this.parentNode, this.contextStack, this.anchor );
 							this.rendered = true;
 						}
@@ -791,7 +790,6 @@ var Anglebars = (function () {
 
 					else {
 						if ( this.rendered ) {
-							console.log( 'should see this next' );
 							this.unrender();
 							this.rendered = false;
 						}
@@ -847,7 +845,7 @@ var Anglebars = (function () {
 		},
 
 		update: function ( value ) {
-			utils.setText( this.node, value );
+			this.node.data = value;
 		}
 	};
 
@@ -1251,7 +1249,8 @@ var Anglebars = (function () {
 
 	var utils = Anglebars.utils;
 
-	// replacement for the dumbass DOM equivalent
+
+	// replacement for the dumbass DOM equivalents
 	utils.insertBefore = function ( referenceNode, newNode ) {
 		if ( !referenceNode ) {
 			throw new Error( 'Can\'t insert before a non-existent node' );
@@ -1274,11 +1273,15 @@ var Anglebars = (function () {
 		}
 	};
 
+
+	// strip whitespace from the start and end of strings
 	utils.trim = function ( text ) {
 		var trimmed = text.replace( /^\s+/, '' ).replace( /\s+$/, '' );
 		return trimmed;
 	};
 
+
+	// convert HTML to an array of DOM nodes
 	utils.getNodeArrayFromHtml = function ( innerHTML, replaceSrcAttributes ) {
 
 		var parser, doc, temp, i, numNodes, nodes = [];
@@ -1308,6 +1311,8 @@ var Anglebars = (function () {
 		return nodes;
 	};
 
+
+	// find a target element from an id string, a CSS selector (if document.querySelector is supported), a DOM node, or a jQuery collection (or equivalent)
 	utils.getEl = function ( input ) {
 		var output;
 
@@ -1335,6 +1340,8 @@ var Anglebars = (function () {
 		return output;
 	};
 
+
+	// strip mustache comments (which look like {{!this}}, i.e. mustache with an exclamation mark) from a string
 	utils.stripComments = function ( input ) {
 		var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
 			lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,
@@ -1351,6 +1358,8 @@ var Anglebars = (function () {
 		return output;
 	};
 
+
+	// create an anglebars anchor
 	utils.createAnchor = function () {
 		var anchor = document.createElement( 'a' );
 		anchor.setAttribute( 'class', 'anglebars-anchor' );
@@ -1358,6 +1367,8 @@ var Anglebars = (function () {
 		return anchor;
 	};
 
+
+	// convert a node list to an array (iterating through a node list directly often has... undesirable results)
 	utils.nodeListToArray = function ( nodes ) {
 		var i, numNodes = nodes.length, result = [];
 
@@ -1368,6 +1379,8 @@ var Anglebars = (function () {
 		return result;
 	};
 
+
+	// convert an attribute list to an array
 	utils.attributeListToArray = function ( attributes ) {
 		var i, numAttributes = attributes.length, result = [];
 
@@ -1381,6 +1394,8 @@ var Anglebars = (function () {
 		return result;
 	};
 
+
+	// find the first mustache in a string, and store some information about it. Returns an array with some additional properties
 	utils.findMustache = function ( text, startIndex ) {
 
 		var match, split, mustache, formulaSplitter;
@@ -1431,6 +1446,8 @@ var Anglebars = (function () {
 		return false;
 	};
 
+
+	// find the first match of a pattern within a string. Returns an array with start and end properties indicating where the match was found within the string
 	utils.findMatch = function ( text, pattern, startIndex ) {
 
 		var match;
@@ -1451,6 +1468,8 @@ var Anglebars = (function () {
 		}
 	};
 
+
+	
 	utils.expandNodes = function ( nodes ) {
 		var i, numNodes, node, result = [];
 
@@ -1466,7 +1485,7 @@ var Anglebars = (function () {
 			}
 
 			else {
-				result = result.concat( utils.expandText( node.textContent || node.innerText ) );
+				result = result.concat( utils.expandText( node.data ) );
 			}
 		}
 
@@ -1511,13 +1530,13 @@ var Anglebars = (function () {
 	};
 
 	utils.setText = function ( textNode, text ) {
-		
+
 		if ( textNode.textContent !== undefined ) { // standards-compliant browsers
 			textNode.textContent = text;
 		}
 
 		else { // redmond troglodytes
-			textNode.innerText = text;
+			textNode.data = text;
 		}
 	};
 

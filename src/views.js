@@ -155,7 +155,6 @@
 
 					if ( value && !emptyArray ) {
 						if ( !this.rendered ) {
-							console.log( 'should see this first' );
 							this.views[0] = this.section.list.render( this.parentNode, this.contextStack, this.anchor );
 							this.rendered = true;
 						}
@@ -163,7 +162,6 @@
 
 					else {
 						if ( this.rendered ) {
-							console.log( 'should see this next' );
 							this.unrender();
 							this.rendered = false;
 						}
@@ -219,7 +217,7 @@
 		},
 
 		update: function ( value ) {
-			utils.setText( this.node, value );
+			this.node.data = value;
 		}
 	};
 

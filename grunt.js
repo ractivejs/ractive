@@ -46,11 +46,12 @@ module.exports = function(grunt) {
         boss: true,
         eqnull: true,
         browser: true,
-        white: true,
-        nomen: true
+        nomen: false,
+        white: false
       },
       globals: {
-        
+        '_': true,
+        console: true
       }
     },
     uglify: {}
