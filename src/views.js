@@ -382,7 +382,8 @@
 		},
 
 		update: function () {
-			this.node.setAttribute( this.name, this.toString() );
+			this.value = this.toString();
+			this.node.setAttribute( this.name, this.value );
 		},
 
 		toString: function () {
