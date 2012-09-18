@@ -277,7 +277,7 @@
 			_.each( this.nodes, utils.remove );
 
 			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( value, this.anglebars.replaceSrcAttributes );
+			this.nodes = utils.getNodeArrayFromHtml( value, false );
 
 			_.each( this.nodes, function ( node ) {
 				utils.insertBefore( self.anchor, node );
