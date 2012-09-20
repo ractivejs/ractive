@@ -92,8 +92,7 @@
 
 		update: function ( value ) {
 			var emptyArray, i;
-			console.log( 'updating:', value );
-
+			
 			// treat empty arrays as false values
 			if ( _.isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
@@ -124,8 +123,6 @@
 			// otherwise we need to work out what sort of section we're dealing with
 			switch ( typeof value ) {
 				case 'object':
-
-				console.log( 'is an object. empty? ', emptyArray );
 
 					if ( this.rendered ) {
 						this.unrender();

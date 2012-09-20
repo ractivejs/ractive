@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-09-13
+/*! Anglebars - v0.0.1 - 2012-09-20
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -604,7 +604,7 @@ var Anglebars = (function () {
 	models.Attribute = function ( name, value, anglebars ) {
 		var components = utils.expandText( value );
 
-		this.name = ( name === 'data-anglebars-src' ? 'src' : name );
+		this.name = name.replace( 'data-anglebars-', '' );
 		if ( !utils.findMustache( value ) ) {
 			this.value = value;
 			return;
@@ -720,8 +720,7 @@ var Anglebars = (function () {
 
 		update: function ( value ) {
 			var emptyArray, i;
-			console.log( 'updating:', value );
-
+			
 			// treat empty arrays as false values
 			if ( _.isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
@@ -752,8 +751,6 @@ var Anglebars = (function () {
 			// otherwise we need to work out what sort of section we're dealing with
 			switch ( typeof value ) {
 				case 'object':
-
-				console.log( 'is an object. empty? ', emptyArray );
 
 					if ( this.rendered ) {
 						this.unrender();
@@ -905,7 +902,7 @@ var Anglebars = (function () {
 			_.each( this.nodes, utils.remove );
 
 			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( value, this.anglebars.replaceSrcAttributes );
+			this.nodes = utils.getNodeArrayFromHtml( value, false );
 
 			_.each( this.nodes, function ( node ) {
 				utils.insertBefore( self.anchor, node );
@@ -1010,7 +1007,8 @@ var Anglebars = (function () {
 		},
 
 		update: function () {
-			this.node.setAttribute( this.name, this.toString() );
+			this.value = this.toString();
+			this.node.setAttribute( this.name, this.value );
 		},
 
 		toString: function () {
@@ -1282,13 +1280,20 @@ var Anglebars = (function () {
 
 
 	// convert HTML to an array of DOM nodes
-	utils.getNodeArrayFromHtml = function ( innerHTML, replaceSrcAttributes ) {
+	utils.getNodeArrayFromHtml = function ( html, replaceSrcAttributes ) {
 
-		var parser, doc, temp, i, numNodes, nodes = [];
+		var parser, doc, temp, i, numNodes, nodes = [], attrs, pattern;
 
 		// replace src attribute with data-anglebars-src
 		if ( replaceSrcAttributes ) {
-			innerHTML = innerHTML.replace( /(<[^>]+\s)(src=)/g, '$1data-anglebars-src=' );
+			attrs = [ 'src', 'poster' ];
+
+			console.log( html );
+			for ( i=0; i<attrs.length; i+=1 ) {
+				pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
+				html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
+			}
+			console.log( html );
 		}
 
 		if ( document.implementation && document.implementation.createDocument ) {
@@ -1299,7 +1304,7 @@ var Anglebars = (function () {
 			temp = document.createElement( 'div' );
 		}
 		
-		temp.innerHTML = innerHTML;
+		temp.innerHTML = html;
 
 
 		// create array from node list, as node lists have some undesirable properties

@@ -244,7 +244,7 @@
 	models.Attribute = function ( name, value, anglebars ) {
 		var components = utils.expandText( value );
 
-		this.name = ( name === 'data-anglebars-src' ? 'src' : name );
+		this.name = name.replace( 'data-anglebars-', '' );
 		if ( !utils.findMustache( value ) ) {
 			this.value = value;
 			return;

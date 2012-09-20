@@ -37,13 +37,20 @@
 
 
 	// convert HTML to an array of DOM nodes
-	utils.getNodeArrayFromHtml = function ( innerHTML, replaceSrcAttributes ) {
+	utils.getNodeArrayFromHtml = function ( html, replaceSrcAttributes ) {
 
-		var parser, doc, temp, i, numNodes, nodes = [];
+		var parser, doc, temp, i, numNodes, nodes = [], attrs, pattern;
 
 		// replace src attribute with data-anglebars-src
 		if ( replaceSrcAttributes ) {
-			innerHTML = innerHTML.replace( /(<[^>]+\s)(src=)/g, '$1data-anglebars-src=' );
+			attrs = [ 'src', 'poster' ];
+
+			console.log( html );
+			for ( i=0; i<attrs.length; i+=1 ) {
+				pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
+				html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
+			}
+			console.log( html );
 		}
 
 		if ( document.implementation && document.implementation.createDocument ) {
@@ -54,7 +61,7 @@
 			temp = document.createElement( 'div' );
 		}
 		
-		temp.innerHTML = innerHTML;
+		temp.innerHTML = html;
 
 
 		// create array from node list, as node lists have some undesirable properties
