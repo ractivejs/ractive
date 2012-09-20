@@ -45,12 +45,10 @@
 		if ( replaceSrcAttributes ) {
 			attrs = [ 'src', 'poster' ];
 
-			console.log( html );
 			for ( i=0; i<attrs.length; i+=1 ) {
 				pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
 				html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
 			}
-			console.log( html );
 		}
 
 		if ( document.implementation && document.implementation.createDocument ) {
