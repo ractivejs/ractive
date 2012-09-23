@@ -1,4 +1,4 @@
-(function ( Anglebars, _ ) {
+(function ( Anglebars ) {
 	
 	'use strict';
 
@@ -6,21 +6,26 @@
 		utils = Anglebars.utils;
 
 	views.List = function ( list, parentNode, contextStack, anchor ) {
-		var self = this;
+		var self = this, numItems, i;
 
 		this.items = [];
 
-		_.each( list.items, function ( item, i ) {
-			self.items[i] = item.render( parentNode, contextStack, anchor );
-		});
+		numItems = list.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			this.items[i] = list.items[i].render( parentNode, contextStack, anchor );
+		}
 	};
 
 	views.List.prototype = {
 		teardown: function () {
+			
+			var i, numItems;
+
 			// TODO unsubscribes
-			_.each( this.items, function ( item ) {
-				item.teardown();
-			});
+			numItems = this.items.length;
+			for ( i=0; i<numItems; i+=1 ) {
+				this.items[i].teardown();
+			}
 
 			delete this.items; // garbage collector, ATTACK!
 		}
@@ -94,7 +99,7 @@
 			var emptyArray, i;
 			
 			// treat empty arrays as false values
-			if ( _.isArray( value ) && value.length === 0 ) {
+			if ( utils.isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -130,7 +135,7 @@
 					}
 
 					// if value is an array of hashes, iterate through
-					if ( _.isArray( value ) ) {
+					if ( utils.isArray( value ) ) {
 						if ( emptyArray ) {
 							return;
 						}
@@ -250,8 +255,14 @@
 
 	views.Triple.prototype = {
 		teardown: function () {
+			
+			var i, numNodes;
+			
 			// TODO unsubscribes
-			_.each( this.nodes, utils.remove );
+			numNodes = this.nodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				utils.remove( this.nodes[i] );
+			}
 
 
 			if ( !this.subscriptionRefs ) {
@@ -264,21 +275,25 @@
 		},
 
 		update: function ( value ) {
-			var self = this;
+			var numNodes, i;
 
-			if ( _.isEqual( this.value, value ) ) {
+			if ( utils.isEqual( this.value, value ) ) {
 				return;
 			}
 
 			// remove existing nodes
-			_.each( this.nodes, utils.remove );
+			numNodes = this.nodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				utils.remove( this.nodes[i] );
+			}
 
 			// get new nodes
 			this.nodes = utils.getNodeArrayFromHtml( value, false );
 
-			_.each( this.nodes, function ( node ) {
-				utils.insertBefore( self.anchor, node );
-			});
+			numNodes = this.nodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				utils.insertBefore( this.anchor, this.nodes[i] );
+			}
 		}
 	};
 
@@ -326,9 +341,14 @@
 
 	views.Element.prototype = {
 		teardown: function () {
-			_.each( this.attributes, function ( attributeView ) {
-				attributeView.teardown();
-			});
+			
+			var numAttrs, i;
+
+			numAttrs = this.attributes.length;
+			for ( i=0; i<numAttrs; i+=1 ) {
+				this.attributes[i].teardown();
+			}
+
 			utils.remove( this.node );
 		}
 	};
@@ -367,11 +387,16 @@
 
 	views.Attribute.prototype = {
 		teardown: function () {
-			_.each( this.evaluators, function ( evaluator ) {
+			var numEvaluators, i, evaluator;
+
+			numEvaluators = this.evaluators.length;
+			for ( i=0; i<numEvaluators; i+=1 ) {
+				evaluator = this.evaluators[i];
+
 				if ( evaluator.teardown ) {
-					evaluator.teardown();
+					evaluator.teardown(); // TODO all evaluators should have a teardown method
 				}
-			});
+			}
 		},
 
 		bubble: function () {
@@ -396,5 +421,5 @@
 		}
 	};
 
-}( Anglebars, _ ));
+}( Anglebars ));
 

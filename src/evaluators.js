@@ -209,5 +209,5 @@
 		}
 	};
 	
-}( Anglebars, _ ));
+}( Anglebars ));
 

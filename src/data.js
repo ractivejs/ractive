@@ -2,6 +2,8 @@
 
 	'use strict';
 
+	var utils = Anglebars.utils;
+
 	Anglebars.Data = function ( o ) {
 		var key;
 
@@ -47,7 +49,7 @@
 
 				obj[ key ] = value;
 
-				if ( !_.isEqual( previous, value ) ) {
+				if ( !utils.isEqual( previous, value ) ) {
 					this.publish( address, value );
 				}
 			}
@@ -239,5 +241,5 @@
 		}
 	};
 
-}( Anglebars, _ ));
+}( Anglebars ));
 

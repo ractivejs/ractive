@@ -50,7 +50,6 @@ module.exports = function(grunt) {
         white: false
       },
       globals: {
-        '_': true,
         console: true
       }
     },

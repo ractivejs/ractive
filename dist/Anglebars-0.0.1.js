@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-09-20
+/*! Anglebars - v0.0.1 - 2012-09-23
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -118,6 +118,8 @@ var Anglebars = (function () {
 
 	'use strict';
 
+	var utils = Anglebars.utils;
+
 	Anglebars.Data = function ( o ) {
 		var key;
 
@@ -163,7 +165,7 @@ var Anglebars = (function () {
 
 				obj[ key ] = value;
 
-				if ( !_.isEqual( previous, value ) ) {
+				if ( !utils.isEqual( previous, value ) ) {
 					this.publish( address, value );
 				}
 			}
@@ -355,7 +357,7 @@ var Anglebars = (function () {
 		}
 	};
 
-}( Anglebars, _ ));
+}( Anglebars ));
 
 
 (function ( Anglebars ) {
@@ -626,7 +628,7 @@ var Anglebars = (function () {
 }( Anglebars ));
 
 
-(function ( Anglebars, _ ) {
+(function ( Anglebars ) {
 	
 	'use strict';
 
@@ -634,21 +636,26 @@ var Anglebars = (function () {
 		utils = Anglebars.utils;
 
 	views.List = function ( list, parentNode, contextStack, anchor ) {
-		var self = this;
+		var self = this, numItems, i;
 
 		this.items = [];
 
-		_.each( list.items, function ( item, i ) {
-			self.items[i] = item.render( parentNode, contextStack, anchor );
-		});
+		numItems = list.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			this.items[i] = list.items[i].render( parentNode, contextStack, anchor );
+		}
 	};
 
 	views.List.prototype = {
 		teardown: function () {
+			
+			var i, numItems;
+
 			// TODO unsubscribes
-			_.each( this.items, function ( item ) {
-				item.teardown();
-			});
+			numItems = this.items.length;
+			for ( i=0; i<numItems; i+=1 ) {
+				this.items[i].teardown();
+			}
 
 			delete this.items; // garbage collector, ATTACK!
 		}
@@ -722,7 +729,7 @@ var Anglebars = (function () {
 			var emptyArray, i;
 			
 			// treat empty arrays as false values
-			if ( _.isArray( value ) && value.length === 0 ) {
+			if ( utils.isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -758,7 +765,7 @@ var Anglebars = (function () {
 					}
 
 					// if value is an array of hashes, iterate through
-					if ( _.isArray( value ) ) {
+					if ( utils.isArray( value ) ) {
 						if ( emptyArray ) {
 							return;
 						}
@@ -878,8 +885,14 @@ var Anglebars = (function () {
 
 	views.Triple.prototype = {
 		teardown: function () {
+			
+			var i, numNodes;
+			
 			// TODO unsubscribes
-			_.each( this.nodes, utils.remove );
+			numNodes = this.nodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				utils.remove( this.nodes[i] );
+			}
 
 
 			if ( !this.subscriptionRefs ) {
@@ -892,21 +905,25 @@ var Anglebars = (function () {
 		},
 
 		update: function ( value ) {
-			var self = this;
+			var numNodes, i;
 
-			if ( _.isEqual( this.value, value ) ) {
+			if ( utils.isEqual( this.value, value ) ) {
 				return;
 			}
 
 			// remove existing nodes
-			_.each( this.nodes, utils.remove );
+			numNodes = this.nodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				utils.remove( this.nodes[i] );
+			}
 
 			// get new nodes
 			this.nodes = utils.getNodeArrayFromHtml( value, false );
 
-			_.each( this.nodes, function ( node ) {
-				utils.insertBefore( self.anchor, node );
-			});
+			numNodes = this.nodes.length;
+			for ( i=0; i<numNodes; i+=1 ) {
+				utils.insertBefore( this.anchor, this.nodes[i] );
+			}
 		}
 	};
 
@@ -954,9 +971,14 @@ var Anglebars = (function () {
 
 	views.Element.prototype = {
 		teardown: function () {
-			_.each( this.attributes, function ( attributeView ) {
-				attributeView.teardown();
-			});
+			
+			var numAttrs, i;
+
+			numAttrs = this.attributes.length;
+			for ( i=0; i<numAttrs; i+=1 ) {
+				this.attributes[i].teardown();
+			}
+
 			utils.remove( this.node );
 		}
 	};
@@ -995,11 +1017,16 @@ var Anglebars = (function () {
 
 	views.Attribute.prototype = {
 		teardown: function () {
-			_.each( this.evaluators, function ( evaluator ) {
+			var numEvaluators, i, evaluator;
+
+			numEvaluators = this.evaluators.length;
+			for ( i=0; i<numEvaluators; i+=1 ) {
+				evaluator = this.evaluators[i];
+
 				if ( evaluator.teardown ) {
-					evaluator.teardown();
+					evaluator.teardown(); // TODO all evaluators should have a teardown method
 				}
-			});
+			}
 		},
 
 		bubble: function () {
@@ -1024,7 +1051,7 @@ var Anglebars = (function () {
 		}
 	};
 
-}( Anglebars, _ ));
+}( Anglebars ));
 
 
 (function ( Anglebars ) {
@@ -1238,7 +1265,7 @@ var Anglebars = (function () {
 		}
 	};
 	
-}( Anglebars, _ ));
+}( Anglebars ));
 
 
 (function ( Anglebars, document ) {
@@ -1288,12 +1315,10 @@ var Anglebars = (function () {
 		if ( replaceSrcAttributes ) {
 			attrs = [ 'src', 'poster' ];
 
-			console.log( html );
 			for ( i=0; i<attrs.length; i+=1 ) {
 				pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
 				html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
 			}
-			console.log( html );
 		}
 
 		if ( document.implementation && document.implementation.createDocument ) {
@@ -1544,6 +1569,121 @@ var Anglebars = (function () {
 			textNode.data = text;
 		}
 	};
+
+	// borrowed wholesale from underscore... TODO write a Anglebars-optimised version
+	utils.isEqual = function ( a, b ) {
+		var eq = function ( a, b, stack ) {
+			// Identical objects are equal. `0 === -0`, but they aren't identical.
+			// See the Harmony `egal` proposal: http://wiki.ecmascript.org/doku.php?id=harmony:egal.
+			if (a === b) return a !== 0 || 1 / a == 1 / b;
+			
+			// A strict comparison is necessary because `null == undefined`.
+			if (a == null || b == null) return a === b;
+			
+			// Unwrap any wrapped objects.
+			if (a._chain) a = a._wrapped;
+			if (b._chain) b = b._wrapped;
+			
+			// Invoke a custom `isEqual` method if one is provided.
+			if (a.isEqual && _.isFunction(a.isEqual)) return a.isEqual(b);
+			if (b.isEqual && _.isFunction(b.isEqual)) return b.isEqual(a);
+			
+			// Compare `[[Class]]` names.
+			var className = toString.call(a);
+			if (className != toString.call(b)) return false;
+			
+			switch (className) {
+				// Strings, numbers, dates, and booleans are compared by value.
+				case '[object String]':
+					// Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+					// equivalent to `new String("5")`.
+					return a == String(b);
+				
+				case '[object Number]':
+					// `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
+					// other numeric values.
+					return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+				
+				case '[object Date]':
+				case '[object Boolean]':
+					// Coerce dates and booleans to numeric primitive values. Dates are compared by their
+					// millisecond representations. Note that invalid dates with millisecond representations
+					// of `NaN` are not equivalent.
+					return +a == +b;
+				// RegExps are compared by their source patterns and flags.
+				case '[object RegExp]':
+					return a.source == b.source &&
+						a.global == b.global &&
+						a.multiline == b.multiline &&
+						a.ignoreCase == b.ignoreCase;
+			}
+
+			if (typeof a != 'object' || typeof b != 'object') return false;
+			
+			// Assume equality for cyclic structures. The algorithm for detecting cyclic
+			// structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+			var length = stack.length;
+			
+			while (length--) {
+				// Linear search. Performance is inversely proportional to the number of
+				// unique nested structures.
+				if (stack[length] == a) return true;
+			}
+			
+			// Add the first object to the stack of traversed objects.
+			stack.push(a);
+
+			var size = 0, result = true;
+			// Recursively compare objects and arrays.
+			
+			if (className == '[object Array]') {
+				// Compare array lengths to determine if a deep comparison is necessary.
+				size = a.length;
+				result = size == b.length;
+				if (result) {
+					// Deep compare the contents, ignoring non-numeric properties.
+					while (size--) {
+					// Ensure commutative equality for sparse arrays.
+						if (!(result = size in a == size in b && eq(a[size], b[size], stack))) break;
+					}
+				}
+			} else {
+				// Objects with different constructors are not equivalent.
+				if ('constructor' in a != 'constructor' in b || a.constructor != b.constructor) return false;
+				
+				// Deep compare objects.
+				for (var key in a) {
+					if (_.has(a, key)) {
+						// Count the expected number of properties.
+						size++;
+						// Deep compare each member.
+						if (!(result = _.has(b, key) && eq(a[key], b[key], stack))) break;
+					}
+				}
+
+				// Ensure that both objects contain the same number of properties.
+				if (result) {
+					for (key in b) {
+						if (_.has(b, key) && !(size--)) break;
+					}
+					result = !size;
+				}
+			}
+
+			// Remove the first object from the stack of traversed objects.
+			stack.pop();
+			return result;
+		};
+
+		return eq( a, b, [] );
+	};
+
+	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+	utils.isArray = function ( obj ) {
+		return Object.prototype.toString.call( obj ) === '[object Array]';
+	};
+
+
 
 }( Anglebars, document ));
 
