@@ -20,13 +20,13 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: ['<banner:meta.banner>', 'src/anglebars.js', 'src/data.js', 'src/models.js', 'src/views.js', 'src/evaluators.js', 'src/utils.js'],
-        dest: 'dist/<%= pkg.name %>-<%= pkg.version %>.js'
+        dest: 'build/<%= pkg.name %>.js'
       }
     },
     min: {
       dist: {
         src: ['<banner:meta.banner>', '<config:concat.dist.dest>'],
-        dest: 'dist/<%= pkg.name %>.min.js'
+        dest: 'build/<%= pkg.name %>.min.js'
       }
     },
     watch: {
