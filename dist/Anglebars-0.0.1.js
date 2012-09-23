@@ -1520,14 +1520,14 @@ var Anglebars = (function () {
 		for ( i=0; i<numNodes; i+=1 ) {
 			node = nodes[i];
 
-			if ( node.nodeType !== 3 ) {
+			if ( node.nodeType === 1 ) {
 				result[ result.length ] = {
 					type: 'element',
 					original: node
 				};
 			}
 
-			else {
+			else if ( node.nodeType === 3 ) {
 				result = result.concat( utils.expandText( node.data ) );
 			}
 		}
