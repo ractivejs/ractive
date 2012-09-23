@@ -2,7 +2,8 @@
 	
 	'use strict';
 
-	var utils = Anglebars.utils;
+	var utils = Anglebars.utils,
+		whitespace = /^\s+$/;
 
 
 	// replacement for the dumbass DOM equivalents
@@ -230,7 +231,7 @@
 
 
 	
-	utils.expandNodes = function ( nodes ) {
+	utils.getStubsFromNodes = function ( nodes ) {
 		var i, numNodes, node, result = [];
 
 		numNodes = nodes.length;
@@ -411,6 +412,173 @@
 	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 	utils.isArray = function ( obj ) {
 		return Object.prototype.toString.call( obj ) === '[object Array]';
+	};
+
+	utils.compileStubs = function ( stubs, level, preserveWhitespace ) {
+		var compiled, next, processIntermediary;
+
+		compiled = [];
+
+		
+		processIntermediary = function ( i ) {
+			var mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, keypath;
+
+			stub = stubs[i];
+
+			switch ( stub.type ) {
+				case 'text':
+					if ( !preserveWhitespace ) {
+						if ( whitespace.test( stub.text ) || stub.text === '' ) {
+							return i+1; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
+						}
+					}
+
+					compiled[ compiled.length ] = stub;
+					return i+1;
+
+				case 'element':
+					compiled[ compiled.length ] = utils.processElementStub( stub, level );
+					return i+1;
+
+				case 'mustache':
+
+					keypath = stub.mustache.keypath;
+					
+					switch ( stub.mustache.type ) {
+						case 'section':
+
+							i += 1;
+							sliceStart = i; // first item in section
+							nesting = 1;
+
+							// find end
+							while ( ( i < stubs.length ) && !sliceEnd ) {
+								
+								bit = stubs[i];
+
+								if ( bit.type === 'mustache' ) {
+									if ( bit.mustache.type === 'section' && bit.mustache.keypath === keypath ) {
+										if ( !bit.mustache.closing ) {
+											nesting += 1;
+										}
+
+										else {
+											nesting -= 1;
+											if ( !nesting ) {
+												sliceEnd = i;
+											}
+										}
+									}
+								}
+
+								i += 1;
+							}
+
+							if ( !sliceEnd ) {
+								throw new Error( 'Illegal section "' + keypath + '"' );
+							}
+
+							compiled[ compiled.length ] = {
+								type: 'section',
+								keypath: keypath,
+								formatters: stub.mustache.formatters,
+								inverted: stub.mustache.inverted,
+								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1 ),
+								level: level
+							};
+							return i;
+
+
+						case 'triple':
+							compiled[ compiled.length ] = {
+								type: 'triple',
+								keypath: stub.mustache.keypath,
+								formatters: stub.mustache.formatters,
+								level: level
+							};
+							return i+1;
+
+
+						case 'interpolator':
+							compiled[ compiled.length ] = {
+								type: 'interpolator',
+								keypath: stub.mustache.keypath,
+								formatters: stub.mustache.formatters,
+								level: level
+							};
+							return i+1;
+
+						default:
+							throw new Error( 'Error compiling template' );
+					}
+					break;
+
+				default:
+					throw new Error( 'Error compiling template' );
+			}
+		};
+
+		next = 0;
+		while ( next < stubs.length ) {
+			next = processIntermediary( next );
+		}
+
+		return compiled;
+	};
+
+	utils.processElementStub = function ( stub, level ) {
+		var proxy, attributes, numAttributes, attribute, i, node;
+
+		node = stub.original;
+
+		proxy = {
+			type: 'element',
+			tag: node.tagName,
+			children: utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), level + 1 ),
+			level: level
+		};
+
+		// attributes
+		attributes = [];
+		
+		numAttributes = node.attributes.length;
+		for ( i=0; i<numAttributes; i+=1 ) {
+			attribute = node.attributes[i];
+
+			if ( attribute.name === 'xmlns' ) {
+				proxy.namespace = attribute.value;
+			} else {
+				attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value );
+			}
+		}
+
+		proxy.attributes = attributes;
+
+		return proxy;
+	};
+
+	utils.processAttribute = function ( name, value, level ) {
+		var attribute, components;
+
+		components = utils.expandText( value );
+
+		attribute = {
+			name: name.replace( 'data-anglebars-', '' )
+		};
+
+		// no mustaches in this attribute - no extra work to be done
+		if ( !utils.findMustache( value ) ) {
+			attribute.value = value;
+			return attribute;
+		}
+
+
+		// mustaches present - attribute is dynamic
+		attribute.isDynamic = true;
+		attribute.components = utils.compileStubs( components, 0 );
+
+
+		return attribute;
 	};
 
 

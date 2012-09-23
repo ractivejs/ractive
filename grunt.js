@@ -19,7 +19,7 @@ module.exports = function(grunt) {
     },
     concat: {
       dist: {
-        src: ['<banner:meta.banner>', 'src/anglebars.js', 'src/data.js', 'src/models.js', 'src/views.js', 'src/evaluators.js', 'src/utils.js'],
+        src: ['<banner:meta.banner>', 'src/anglebars.js', 'src/data.js', 'src/static.js', 'src/views/*.js', 'src/substrings/*.js', 'src/utils.js'],
         dest: 'build/<%= pkg.name %>.js'
       }
     },
@@ -31,7 +31,7 @@ module.exports = function(grunt) {
     },
     watch: {
       files: '<config:lint.files>',
-      tasks: 'lint qunit'
+      tasks: 'concat'
     },
     jshint: {
       options: {

@@ -9,9 +9,9 @@ var Anglebars = (function () {
 		this.initialize( o );
 	};
 
-	Anglebars.models = {};
 	Anglebars.views = {};
-	Anglebars.evaluators = {};
+	Anglebars.substrings = {};
+	
 	Anglebars.utils = {};
 
 	utils = Anglebars.utils;
@@ -50,34 +50,21 @@ var Anglebars = (function () {
 			this.preserveWhitespace = o.preserveWhitespace;
 			this.replaceSrcAttributes = ( o.replaceSrcAttributes === undefined ? true : o.replaceSrcAttributes );
 
-			this.compiled = this.compile();
+			this.compiled = Anglebars.compileTemplate( this.template, this.preserveWhitespace, this.replaceSrcAttributes );
 
 			// empty container and render
 			this.el.innerHTML = '';
 			this.render();
 		},
 
-		compile: function () {
-			var nodes, rootList;
+		render: function ( el ) {
+			el = ( el ? utils.getEl( el ) : this.el );
 
-			// remove all comments
-			this.template = utils.stripComments( this.template );
-
-			nodes = utils.getNodeArrayFromHtml( this.template, this.replaceSrcAttributes );
-
-			rootList = new Anglebars.models.List( utils.expandNodes( nodes ), {
-				anglebars: this,
-				level: 0
-			});
-
-			return rootList;
-		},
-
-		render: function () {
-			if ( this.rendered ) {
-				this.rendered.unrender();
+			if ( !el ) {
+				throw new Error( 'You must specify a DOM element to render to' );
 			}
-			this.rendered = this.compiled.render( this.el );
+
+			this.rendered = Anglebars.render( this, el );
 		},
 
 		// shortcuts
