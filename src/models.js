@@ -17,6 +17,8 @@
 		this.anglebars = parent.anglebars;
 		this.contextStack = parent.contextStack;
 
+		this.namespace = parent.namespace; // SVG etc
+
 		this.compile();
 	};
 
@@ -214,6 +216,7 @@
 		this.anglebars = parent.anglebars;
 		this.level = parent.level + 1;
 
+		this.namespace = parent.namespace;
 
 		this.getAttributes( original );
 
@@ -236,7 +239,12 @@
 			numAttributes = original.attributes.length;
 			for ( i=0; i<numAttributes; i+=1 ) {
 				attribute = original.attributes[i];
-				this.attributes[i] = new models.Attribute( attribute.name, attribute.value, this.anglebars );
+
+				if ( attribute.name === 'xmlns' ) {
+					this.namespace = attribute.value;
+				} else {
+					this.attributes[ this.attributes.length ] = new models.Attribute( attribute.name, attribute.value, this.anglebars );
+				}
 			}
 		}
 	};

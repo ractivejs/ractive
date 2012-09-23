@@ -379,6 +379,8 @@ var Anglebars = (function () {
 		this.anglebars = parent.anglebars;
 		this.contextStack = parent.contextStack;
 
+		this.namespace = parent.namespace; // SVG etc
+
 		this.compile();
 	};
 
@@ -576,6 +578,7 @@ var Anglebars = (function () {
 		this.anglebars = parent.anglebars;
 		this.level = parent.level + 1;
 
+		this.namespace = parent.namespace;
 
 		this.getAttributes( original );
 
@@ -598,7 +601,12 @@ var Anglebars = (function () {
 			numAttributes = original.attributes.length;
 			for ( i=0; i<numAttributes; i+=1 ) {
 				attribute = original.attributes[i];
-				this.attributes[i] = new models.Attribute( attribute.name, attribute.value, this.anglebars );
+
+				if ( attribute.name === 'xmlns' ) {
+					this.namespace = attribute.value;
+				} else {
+					this.attributes[ this.attributes.length ] = new models.Attribute( attribute.name, attribute.value, this.anglebars );
+				}
 			}
 		}
 	};
@@ -927,12 +935,12 @@ var Anglebars = (function () {
 		}
 	};
 
-	views.Element = function ( element, parentNode, contextStack, anchor ) {
+	views.Element = function ( elementModel, parentNode, contextStack, anchor ) {
 
 		var self = this,
 			unformatted,
 			formattedHtml,
-			anglebars = element.anglebars,
+			anglebars = elementModel.anglebars,
 			data = anglebars.data,
 			i,
 			numAttributes,
@@ -945,22 +953,27 @@ var Anglebars = (function () {
 		this.data = data;
 
 		// create the DOM node
-		this.node = document.createElement( element.type );
+		if ( elementModel.namespace ) {
+			this.node = document.createElementNS( elementModel.namespace, elementModel.type );
+		} else {
+			this.node = document.createElement( elementModel.type );
+		}
+		
 		
 		// set attributes
 		this.attributes = [];
-		numAttributes = element.attributes.length;
+		numAttributes = elementModel.attributes.length;
 		for ( i=0; i<numAttributes; i+=1 ) {
-			attributeModel = element.attributes[i];
+			attributeModel = elementModel.attributes[i];
 			this.attributes[i] = attributeModel.render( this.node, contextStack );
 		}
 
 		// append children
-		if ( element.children ) {
+		if ( elementModel.children ) {
 			this.children = [];
-			numItems = element.children.items.length;
+			numItems = elementModel.children.items.length;
 			for ( i=0; i<numItems; i+=1 ) {
-				item = element.children.items[i];
+				item = elementModel.children.items[i];
 				this.children[i] = item.render( this.node, contextStack );
 			}
 		}
