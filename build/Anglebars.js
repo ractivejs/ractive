@@ -618,7 +618,6 @@ var Anglebars = (function () {
 
 			this.subscriptionRefs = data.subscribe( address, model.level, function ( value ) {
 				var formatted = anglebars.format( value, model.formatters );
-				console.log( 'Interpolator:', address, value );
 				self.update( formatted );
 			});
 		});
@@ -666,8 +665,6 @@ var Anglebars = (function () {
 		this.parentNode = parentNode;
 		this.anchor = utils.createAnchor();
 
-		console.log( this );
-
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		parentNode.insertBefore( this.anchor, anchor || null );
 
@@ -675,14 +672,11 @@ var Anglebars = (function () {
 			unformatted = data.get( address );
 			formatted = anglebars.format( unformatted, model.formatters );
 
-			console.log( model.keypath, 'resolves to', address );
-
 			this.update( formatted );
 
 			// subscribe to changes
 			this.subscriptionRefs = data.subscribe( address, model.level, function ( value ) {
 				var formatted = anglebars.format( value, model.formatters );
-				console.log( 'Section:', address, value );
 				self.update( formatted );
 			});
 		});
