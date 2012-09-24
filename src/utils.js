@@ -414,7 +414,7 @@
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	};
 
-	utils.compileStubs = function ( stubs, level, preserveWhitespace ) {
+	utils.compileStubs = function ( stubs, level, namespace, preserveWhitespace ) {
 		var compiled, next, processIntermediary;
 
 		compiled = [];
@@ -437,7 +437,7 @@
 					return i+1;
 
 				case 'element':
-					compiled[ compiled.length ] = utils.processElementStub( stub, level );
+					compiled[ compiled.length ] = utils.processElementStub( stub, level, namespace );
 					return i+1;
 
 				case 'mustache':
@@ -483,7 +483,7 @@
 								keypath: keypath,
 								formatters: stub.mustache.formatters,
 								inverted: stub.mustache.inverted,
-								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1 ),
+								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1, namespace, preserveWhitespace ),
 								level: level
 							};
 							return i;
@@ -526,7 +526,7 @@
 		return compiled;
 	};
 
-	utils.processElementStub = function ( stub, level ) {
+	utils.processElementStub = function ( stub, level, namespace ) {
 		var proxy, attributes, numAttributes, attribute, i, node;
 
 		node = stub.original;
@@ -534,9 +534,13 @@
 		proxy = {
 			type: 'element',
 			tag: node.tagName,
-			children: utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), level + 1 ),
 			level: level
 		};
+
+		// inherit namespace from parent, if applicable
+		if ( namespace ) {
+			proxy.namespace = namespace;
+		}
 
 		// attributes
 		attributes = [];
@@ -553,6 +557,9 @@
 		}
 
 		proxy.attributes = attributes;
+
+		// get children
+		proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), level + 1, proxy.namespace );
 
 		return proxy;
 	};
@@ -575,7 +582,7 @@
 
 		// mustaches present - attribute is dynamic
 		attribute.isDynamic = true;
-		attribute.components = utils.compileStubs( components, 0 );
+		attribute.components = utils.compileStubs( components, 0, null );
 
 
 		return attribute;

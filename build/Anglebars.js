@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-09-23
+/*! Anglebars - v0.0.1 - 2012-09-24
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -390,13 +390,13 @@ var Anglebars = (function () {
 
 
 }( Anglebars ));
-(function ( views ) {
+(function ( views, substrings ) {
 	
 	'use strict';
 
 	views.Attribute = function ( model, anglebars, node, contextStack, anchor ) {
 		
-		var i, numItems, item;
+		var i, numComponents, component;
 
 		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
 		if ( !model.isDynamic ) {
@@ -405,19 +405,17 @@ var Anglebars = (function () {
 		}
 
 		// otherwise we need to do some work
-		this.model = model;
 		this.node = node;
 		this.name = model.name;
 
-		this.anglebars = anglebars;
-		this.data = model.data;
+		this.data = anglebars.data;
 
-		this.evaluators = [];
+		this.substrings = [];
 
-		numItems = model.list.items.length;
-		for ( i=0; i<numItems; i+=1 ) {
-			item = model.list.items[i];
-			this.evaluators[i] = item.getEvaluator( this, contextStack );
+		numComponents = model.components.length;
+		for ( i=0; i<numComponents; i+=1 ) {
+			component = model.components[i];
+			this.substrings[i] = substrings.create( component, anglebars, this, contextStack );
 		}
 
 		// update...
@@ -428,14 +426,14 @@ var Anglebars = (function () {
 
 	views.Attribute.prototype = {
 		teardown: function () {
-			var numEvaluators, i, evaluator;
+			var numSubstrings, i, substring;
 
-			numEvaluators = this.evaluators.length;
-			for ( i=0; i<numEvaluators; i+=1 ) {
-				evaluator = this.evaluators[i];
+			numSubstrings = this.substrings.length;
+			for ( i=0; i<numSubstrings; i+=1 ) {
+				substring = this.substrings[i];
 
-				if ( evaluator.teardown ) {
-					evaluator.teardown(); // TODO all evaluators should have a teardown method
+				if ( substring.teardown ) {
+					substring.teardown(); // TODO should all substrings have a teardown method?
 				}
 			}
 		},
@@ -450,19 +448,19 @@ var Anglebars = (function () {
 		},
 
 		toString: function () {
-			var string = '', i, numEvaluators, evaluator;
+			var string = '', i, numSubstrings, substring;
 
-			numEvaluators = this.evaluators.length;
-			for ( i=0; i<numEvaluators; i+=1 ) {
-				evaluator = this.evaluators[i];
-				string += evaluator.toString();
+			numSubstrings = this.substrings.length;
+			for ( i=0; i<numSubstrings; i+=1 ) {
+				substring = this.substrings[i];
+				string += substring.toString();
 			}
 
 			return string;
 		}
 	};
 
-}( Anglebars.views ));
+}( Anglebars.views, Anglebars.substrings ));
 (function ( views, utils, doc ) {
 
 	'use strict';
@@ -561,7 +559,6 @@ var Anglebars = (function () {
 
 		arrayLength = array.length;
 		for ( i=0; i<arrayLength; i+=1 ) {
-			console.log( array[i].type );
 			this.items[ this.items.length ] = views.create( array[i], anglebars, parentNode, contextStack, anchor );
 		}
 	};
@@ -945,13 +942,13 @@ var Anglebars = (function () {
 		anglebars.data.getAddress( this, model.keypath, contextStack, function ( address ) {
 			var value, formatted, self = this;
 
-			value = this.data.get( this.address );
-			formatted = anglebars.format( value, this.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
+			value = this.data.get( address );
+			formatted = anglebars.format( value, model.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
 
 			this.stringified = formatted;
 
-			this.subscriptionRefs = this.data.subscribe( this.address, this.model.level, function ( value ) {
-				var formatted = self.anglebars.format( value, self.model.formatters );
+			this.subscriptionRefs = this.data.subscribe( address, model.level, function ( value ) {
+				var formatted = self.anglebars.format( value, model.formatters );
 				self.stringified = formatted;
 				self.bubble();
 			});
@@ -1528,7 +1525,7 @@ var Anglebars = (function () {
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	};
 
-	utils.compileStubs = function ( stubs, level, preserveWhitespace ) {
+	utils.compileStubs = function ( stubs, level, namespace, preserveWhitespace ) {
 		var compiled, next, processIntermediary;
 
 		compiled = [];
@@ -1551,7 +1548,7 @@ var Anglebars = (function () {
 					return i+1;
 
 				case 'element':
-					compiled[ compiled.length ] = utils.processElementStub( stub, level );
+					compiled[ compiled.length ] = utils.processElementStub( stub, level, namespace );
 					return i+1;
 
 				case 'mustache':
@@ -1597,7 +1594,7 @@ var Anglebars = (function () {
 								keypath: keypath,
 								formatters: stub.mustache.formatters,
 								inverted: stub.mustache.inverted,
-								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1 ),
+								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1, namespace, preserveWhitespace ),
 								level: level
 							};
 							return i;
@@ -1640,7 +1637,7 @@ var Anglebars = (function () {
 		return compiled;
 	};
 
-	utils.processElementStub = function ( stub, level ) {
+	utils.processElementStub = function ( stub, level, namespace ) {
 		var proxy, attributes, numAttributes, attribute, i, node;
 
 		node = stub.original;
@@ -1648,9 +1645,13 @@ var Anglebars = (function () {
 		proxy = {
 			type: 'element',
 			tag: node.tagName,
-			children: utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), level + 1 ),
 			level: level
 		};
+
+		// inherit namespace from parent, if applicable
+		if ( namespace ) {
+			proxy.namespace = namespace;
+		}
 
 		// attributes
 		attributes = [];
@@ -1667,6 +1668,9 @@ var Anglebars = (function () {
 		}
 
 		proxy.attributes = attributes;
+
+		// get children
+		proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), level + 1, proxy.namespace );
 
 		return proxy;
 	};
@@ -1689,7 +1693,7 @@ var Anglebars = (function () {
 
 		// mustaches present - attribute is dynamic
 		attribute.isDynamic = true;
-		attribute.components = utils.compileStubs( components, 0 );
+		attribute.components = utils.compileStubs( components, 0, null );
 
 
 		return attribute;
