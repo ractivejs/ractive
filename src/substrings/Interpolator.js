@@ -4,6 +4,7 @@
 
 	substrings.Interpolator = function ( model, anglebars, parent, contextStack ) {
 
+		this.parent = parent;
 		this.data = anglebars.data;
 		
 		anglebars.data.getAddress( this, model.keypath, contextStack, function ( address ) {
@@ -15,7 +16,7 @@
 			this.stringified = formatted;
 
 			this.subscriptionRefs = this.data.subscribe( address, model.level, function ( value ) {
-				var formatted = self.anglebars.format( value, model.formatters );
+				var formatted = anglebars.format( value, model.formatters );
 				self.stringified = formatted;
 				self.bubble();
 			});

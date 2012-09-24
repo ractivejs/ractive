@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<link rel='stylesheet' href='../../css/main.css'>
+	<link rel='stylesheet' href='../css/examples.css'>
+	<link href='http://fonts.googleapis.com/css?family=Voltaire' rel='stylesheet' type='text/css'>
+
+	<title>Triples | Anglebars examples</title>
+
+	<script src='../lib/jquery-1.7.2.min.js'></script>
+	<script src='../../lib/Anglebars.js'></script>
+	
+	<script src='../examples.js'></script>
+</head>
+
+
+<body>
+	<div class='top'>
+		<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
+		<a href='../../' class='logo'>Anglebars.js</a>
+	</div>
+	
+	<div class='notes'>
+		<h2>Triples</h2>
+		<p>Anything in a {{{triple}}}, as opposed to a regular {{mustache}}, gets converted to HTML. Try this:</p>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>anglebars.set('mustache', '&lt;a href="http://bit.ly/QOyWC1"&gt;' +
+'&lt;img src="http://bit.ly/NkOKHB"/&gt;&lt;/a&gt;')</textarea>
+		</div>
+	</div>
+
+	<div class='main'>
+
+		<div id='output'></div>
+
+		<div id='input'>
+			<script type='text/template' id='template' class='code'><p>This is a normal mustache:</p>
+<p>{{mustache}}</p>
+<p>And this is a triple mustache:</p>
+<p>{{{mustache}}}</p></script>
+
+			<div id='script' class='code'>var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    mustache: '<strong>Spot the difference?</strong>'
+  }
+});</div>
+		</div>
+	</div>
+
+</body>
+</html>

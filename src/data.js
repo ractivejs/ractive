@@ -84,6 +84,11 @@
 			return result;
 		},
 
+		update: function ( address ) {
+			var value = this.get( address );
+			this.publish( address, value );
+		},
+
 		getAddress: function ( item, keypath, contextStack, callback ) {
 
 			// TODO refactor this, it's fugly

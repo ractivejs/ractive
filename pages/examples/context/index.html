@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<link rel='stylesheet' href='../../css/main.css'>
+	<link rel='stylesheet' href='../css/examples.css'>
+	<link href='http://fonts.googleapis.com/css?family=Voltaire' rel='stylesheet' type='text/css'>
+
+	<link rel='stylesheet' href='context.css'>
+
+	<title>Context | Anglebars examples</title>
+
+	<script src='../lib/jquery-1.7.2.min.js'></script>
+	<script src='../../lib/Anglebars.js'></script>
+	
+	<script src='../examples.js'></script>
+</head>
+
+
+<body>
+	<div class='top'>
+		<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
+		<a href='../../' class='logo'>Anglebars.js</a>
+	</div>
+	
+	<div class='notes'>
+		<h2>Sections as context</h2>
+		<p>Sections can provide <strong>context</strong>:</p>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>anglebars.set('character',{
+  firstname: 'Ace',
+  lastname: 'Rimmer',
+  mugshot: 'ace.jpg',
+  quote: 'Smoke me a kipper, I\'ll be back for breakfast.'
+});</textarea>
+		</div>
+	</div>
+
+	<div class='main'>
+
+		<div id='output'></div>
+
+		<div id='input'>
+			<script type='text/template' id='template' class='code'>{{#character}}
+<img src="{{mugshot}}"/>
+<p><strong>{{firstname}} {{lastname}}</strong></p>
+<p>"{{quote}}"</p>
+{{/character}}
+<br style="clear:both;"/></script>
+
+			<div id='script' class='code'>var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    character: {
+      firstname: 'Arnold',
+      lastname: 'Rimmer',
+      mugshot: 'arnold.jpg',
+      quote: 'Boarding this vessel is an act of war. Ergo we surrender.'
+    }
+  }
+});</div>
+		</div>
+	</div>
+
+</body>
+</html>

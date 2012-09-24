@@ -24,6 +24,7 @@
 
 			this.subscriptionRefs = data.subscribe( address, model.level, function ( value ) {
 				var formatted = anglebars.format( value, model.formatters );
+				console.log( 'Interpolator:', address, value );
 				self.update( formatted );
 			});
 		});

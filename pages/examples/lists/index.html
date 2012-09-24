@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<link rel='stylesheet' href='../../css/main.css'>
+	<link rel='stylesheet' href='../css/examples.css'>
+	<link href='http://fonts.googleapis.com/css?family=Voltaire' rel='stylesheet' type='text/css'>
+
+	<link rel='stylesheet' href='lists.css'>
+
+	<title>Sections | Anglebars examples</title>
+
+	<script src='../lib/jquery-1.7.2.min.js'></script>
+	<script src='../../lib/Anglebars.js'></script>
+	
+	<script src='../examples.js'></script>
+</head>
+
+
+<body>
+	<div class='top'>
+		<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
+		<a href='../../' class='logo'>Anglebars.js</a>
+	</div>
+	
+	<div class='notes'>
+		<h2>Sections as lists</h2>
+		<p>If the value of a section's mustache is an <strong>array</strong>, the section will be repeated once for each item in the array, with said item as context.</p>
+		<p>You can modify the array using the familiar <em>pop</em>, <em>push</em>, <em>unshift</em>, <em>shift</em>, <em>splice</em>, <em>sort</em> and <em>reverse</em> methods, and the view will update accordingly. Either of these will work in the example below:</p>
+		<code>anglebars.get('primeMinisters').push(jimHacker);</code>
+		<code>list.push(jimHacker);</code>
+		<p>If you modify the contents of an array using <em>anglebars.set()</em>, the view will update as usual. Of course, sometimes the contents will change as a consequence of something else. In these situations you can manually trigger an update with <em>anglebars.update()</em>. In the example below, once we've added Jim Hacker, we need to correct Margaret Thatcher's historical record &ndash; these two snippets will achieve the same thing:</p>
+		<code>anglebars.set('primeMinisters.4.to', 1986);</code>
+		<code>list[4].to = 1986;<br/>anglebars.update('primeMinisters');</code>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>var jimHacker = {
+  firstname: 'Jim',
+  lastname: 'Hacker',
+  from: 1986,
+  to: 1990,
+  party: 'Unknown'
+};
+list.push(jimHacker);
+list[4].to = 1986;
+anglebars.update('primeMinisters');</textarea>
+		</div>
+	</div>
+
+	<div class='main'>
+
+		<div id='output'></div>
+
+		<div id='input'>
+			<script type='text/template' id='template' class='code'><p>Prime Ministers of the United Kingdom:</p>
+<ul>
+{{#primeMinisters}}<li class="{{party}}">{{firstname}} {{lastname}} ({{from}} &ndash; {{to}})</li>{{/primeMinisters}}
+</ul></script>
+
+			<div id='script' class='code'>var list = [
+  { firstname: 'Harold', lastname: 'Wilson', from: 1964, to: 1970, party: 'Labour' },
+  { firstname: 'Edward', lastname: 'Heath', from: 1970, to: 1974, party: 'Conservative' },
+  { firstname: 'Harold', lastname: 'Wilson', from: 1974, to: 1976, party: 'Labour' }  ,
+  { firstname: 'James', lastname: 'Callaghan', from: 1976, to: 1979, party: 'Labour' },
+  { firstname: 'Margaret', lastname: 'Thatcher', from: 1979, to: 1990, party: 'Conservative' }
+]
+
+var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    primeMinisters: list
+  }
+});</div>
+		</div>
+	</div>
+
+</body>
+</html>

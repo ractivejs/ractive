@@ -70,10 +70,16 @@ var Anglebars = (function () {
 		// shortcuts
 		set: function () {
 			this.data.set.apply( this.data, arguments );
+			return this;
 		},
 
 		get: function () {
-			this.data.get.apply( this.data, arguments );
+			return this.data.get.apply( this.data, arguments );
+		},
+
+		update: function () {
+			this.data.update.apply( this.data, arguments );
+			return this;
 		},
 
 		format: function ( value, formatters ) {

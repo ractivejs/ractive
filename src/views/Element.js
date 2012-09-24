@@ -27,7 +27,7 @@
 		numAttributes = model.attributes.length;
 		for ( i=0; i<numAttributes; i+=1 ) {
 			attributeModel = model.attributes[i];
-			this.attributes[i] = new views.Attribute( attributeModel, anglebars, this.node, contextStack, anchor );
+			this.attributes[i] = new views.Attribute( attributeModel, anglebars, this.node, contextStack );
 		}
 
 		// append children
@@ -36,7 +36,7 @@
 			numItems = model.children.length;
 			for ( i=0; i<numItems; i+=1 ) {
 				item = model.children[i];
-				this.children[i] = views.create( item, anglebars, this.node, contextStack, anchor );
+				this.children[i] = views.create( item, anglebars, this.node, contextStack );
 			}
 		}
 
