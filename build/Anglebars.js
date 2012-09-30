@@ -1432,6 +1432,8 @@ var Anglebars = (function () {
 
 	// borrowed wholesale from underscore... TODO include license? write an Anglebars-optimised version?
 	utils.isEqual = function ( a, b ) {
+		var toString = Object.prototype.toString;
+
 		var eq = function ( a, b, stack ) {
 			
 			// Identical objects are equal. `0 === -0`, but they aren't identical.

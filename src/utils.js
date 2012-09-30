@@ -303,7 +303,10 @@
 
 	// borrowed wholesale from underscore... TODO include license? write an Anglebars-optimised version?
 	utils.isEqual = function ( a, b ) {
+		
 		var eq = function ( a, b, stack ) {
+
+			var toString = Object.prototype.toString;
 			
 			// Identical objects are equal. `0 === -0`, but they aren't identical.
 			// See the Harmony `egal` proposal: http://wiki.ecmascript.org/doku.php?id=harmony:egal.

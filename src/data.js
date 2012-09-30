@@ -141,9 +141,23 @@
 		},
 
 		cancelAddressResolution: function ( item ) {
-			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
-				return pending.item !== item;
-			});
+			if ( this.pendingResolution.filter ) { // non-shit browsers
+				this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
+					return pending.item !== item;
+				});
+			}
+
+			else { // IE (you utter, utter piece of shit)
+				var i, filtered = [];
+
+				for ( i=0; i<this.pendingResolution.length; i+=1 ) {
+					if ( this.pendingResolution[i].item !== item ) {
+						filtered[ filtered.length ] = this.pendingResolution[i];
+					}
+				}
+
+				this.pendingResolution = filtered;
+			}
 		},
 
 		publish: function ( address, value ) {

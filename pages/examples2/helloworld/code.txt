@@ -1,0 +1,7 @@
+var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    helloworld: 'Hello world!'
+  }
+});
