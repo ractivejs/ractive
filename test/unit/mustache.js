@@ -10,7 +10,7 @@ startTests = function ( set, data ) {
 	
 	module( set );
 
-	_.each( data.tests, function ( t ) {
+	data.tests.forEach( function ( t ) {
 		var data, anglebars, result, pattern;
 
 		anglebars = new Anglebars({
@@ -29,7 +29,7 @@ startTests = function ( set, data ) {
 	});
 };
 
-_.each( sets, function ( set ) {
+sets.forEach( function ( set ) {
 	$.ajax({
 		url: 'samples/mustache-spec/' + set + '.json',
 		success: function ( data ) {

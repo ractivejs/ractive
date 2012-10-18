@@ -12,6 +12,7 @@
 			item;
 
 		// stuff we'll need later
+		this.model = model;
 		this.data = data;
 
 		// create the DOM node

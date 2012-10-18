@@ -6,23 +6,7 @@
 		whitespace = /^\s+$/;
 
 
-	// replacement for the dumbass DOM equivalents
-	utils.insertBefore = function ( referenceNode, newNode ) {
-		if ( !referenceNode ) {
-			throw new Error( 'Can\'t insert before a non-existent node' );
-		}
-
-		return referenceNode.parentNode.insertBefore( newNode, referenceNode );
-	};
-
-	utils.insertAfter = function ( referenceNode, newNode ) {
-		if ( !referenceNode ) {
-			throw new Error( 'Can\'t insert before a non-existent node' );
-		}
-
-		return referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
-	};
-
+	// Remove node from DOM if it exists
 	utils.remove = function ( node ) {
 		if ( node.parentNode ) {
 			node.parentNode.removeChild( node );
@@ -30,7 +14,7 @@
 	};
 
 
-	// strip whitespace from the start and end of strings
+	// Strip whitespace from the start and end of strings
 	utils.trim = function ( text ) {
 		var trimmed = text.replace( /^\s+/, '' ).replace( /\s+$/, '' );
 		return trimmed;
@@ -73,32 +57,74 @@
 	};
 
 
-	// find a target element from an id string, a CSS selector (if document.querySelector is supported), a DOM node, or a jQuery collection (or equivalent)
+	// Returns the specified DOM node
 	utils.getEl = function ( input ) {
 		var output;
 
-		if ( input ) {
-			// string
-			if ( typeof input === 'string' ) {
-				// see if it's a DOM node
-				output = document.getElementById( input );
+		if ( !input ) {
+			throw new Error( 'No container element specified' );
+		}
 
-				if ( !output && document.querySelector ) {
-					try {
-						output = document.querySelector( input );
-					} catch ( error ) {
-						// somebody do something!
-					}
-				}
-			}
+		// We already have a DOM node - no work to do
+		if ( input instanceof HTMLElement ) {
+			return input;
+		}
 
-			// jQuery (or equivalent) object
-			else if ( input[0] && input[0].nodeType ) {
-				output = input[0].innerHTML;
+		// Get node from string
+		if ( typeof input === 'string' ) {
+			output = document.getElementById( input );
+
+			if ( output instanceof HTMLElement ) {
+				return output;
 			}
 		}
 
-		return output;
+		throw new Error( 'Could not find container element' );
+	};
+
+
+	// Split partialKeypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
+	utils.splitKeypath = function ( keypath ) {
+		var firstPass, secondPass = [], numKeys, key, i, startIndex, pattern, match;
+
+		// Start by splitting on periods
+		firstPass = keypath.split( '.' );
+
+		// Then see if any keys use array notation instead of dot notation
+		for ( i=0; i<firstPass.length; i+=1 ) {
+			secondPass = secondPass.concat( utils.parseArrayNotation( firstPass[i] ) );
+		}
+
+		return secondPass;
+	};
+
+	// Split key with array notation ('baz[0]') into identifier and array pointer(s) (['baz', 0])
+	utils.parseArrayNotation = function ( key ) {
+		var index, arrayPointers, pattern, match, result;
+
+		index = key.indexOf( '[' );
+
+		if ( index === -1 ) {
+			return key;
+		}
+
+		result = [ key.substr( 0, index ) ];
+		arrayPointers = key.substring( index );
+
+		pattern = /\[([0-9]+)\]/;
+
+		while ( arrayPointers.length ) {
+			match = pattern.exec( arrayPointers );
+
+			if ( !match ) {
+				return result;
+			}
+
+			result[ result.length ] = +match[1];
+			arrayPointers = arrayPointers.substring( match[0].length );
+		}
+
+		return result;
 	};
 
 
@@ -159,10 +185,11 @@
 	// find the first mustache in a string, and store some information about it. Returns an array with some additional properties
 	utils.findMustache = function ( text, startIndex ) {
 
-		var match, split, mustache, formulaSplitter;
+		var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatterName, formatterArgs, formatter, fn, args;
 
 		mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
 		formulaSplitter = ' | ';
+		formatterPattern = /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/;
 
 		match = utils.findMatch( text, mustache, startIndex );
 
@@ -170,8 +197,32 @@
 
 			match.formula = match[5];
 			split = match.formula.split( formulaSplitter );
-			match.keypath = split.shift();
-			match.formatters = split;
+			match.partialKeypath = split.shift();
+			
+			// extract formatters
+			//if ( split.length ) {
+				match.formatters = [];
+			//}
+
+			for ( i=0; i<split.length; i+=1 ) {
+				formatterNameAndArgs = formatterPattern.exec( split[i] );
+				if ( formatterNameAndArgs ) {
+					formatter = {
+						name: formatterNameAndArgs[1]
+					};
+
+					if ( formatterNameAndArgs[2] ) {
+						try {
+							formatter.args = JSON.parse( formatterNameAndArgs[2] );
+						} catch ( err ) {
+							throw new Error( 'Illegal arguments for formatter \'' + formatter.name + '\': ' + formatterNameAndArgs[2] + ' (JSON.parse() failed)' );
+						}
+					}
+
+					match.formatters.push( formatter );
+				}
+			}
+			// match.formatters = split;
 			
 			
 			// figure out what type of mustache we're dealing with
@@ -417,7 +468,7 @@
 
 		
 		processIntermediary = function ( i ) {
-			var mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, keypath;
+			var mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath;
 
 			stub = stubs[i];
 
@@ -438,7 +489,7 @@
 
 				case 'mustache':
 
-					keypath = stub.mustache.keypath;
+					partialKeypath = stub.mustache.partialKeypath;
 					
 					switch ( stub.mustache.type ) {
 						case 'section':
@@ -453,7 +504,7 @@
 								bit = stubs[i];
 
 								if ( bit.type === 'mustache' ) {
-									if ( bit.mustache.type === 'section' && bit.mustache.keypath === keypath ) {
+									if ( bit.mustache.type === 'section' && bit.mustache.partialKeypath === partialKeypath ) {
 										if ( !bit.mustache.closing ) {
 											nesting += 1;
 										}
@@ -471,12 +522,12 @@
 							}
 
 							if ( !sliceEnd ) {
-								throw new Error( 'Illegal section "' + keypath + '"' );
+								throw new Error( 'Illegal section "' + partialKeypath + '"' );
 							}
 
 							compiled[ compiled.length ] = {
 								type: 'section',
-								keypath: keypath,
+								partialKeypath: partialKeypath,
 								formatters: stub.mustache.formatters,
 								inverted: stub.mustache.inverted,
 								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1, namespace, preserveWhitespace ),
@@ -488,7 +539,7 @@
 						case 'triple':
 							compiled[ compiled.length ] = {
 								type: 'triple',
-								keypath: stub.mustache.keypath,
+								partialKeypath: stub.mustache.partialKeypath,
 								formatters: stub.mustache.formatters,
 								level: level
 							};
@@ -498,7 +549,7 @@
 						case 'interpolator':
 							compiled[ compiled.length ] = {
 								type: 'interpolator',
-								keypath: stub.mustache.keypath,
+								partialKeypath: stub.mustache.partialKeypath,
 								formatters: stub.mustache.formatters,
 								level: level
 							};

@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	views.Section = function ( model, anglebars, parentNode, contextStack, anchor ) {
+	/*views.Section = function ( model, anglebars, parentNode, contextStack, anchor ) {
 		var self = this,
 			unformatted,
 			formatted,
@@ -20,21 +20,28 @@
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		parentNode.insertBefore( this.anchor, anchor || null );
 
-		data.getAddress( this, model.keypath, contextStack, function ( address ) {
-			unformatted = data.get( address );
-			formatted = anglebars.format( unformatted, model.formatters );
+		data.getKeypath( this, model.partialKeypath, contextStack, function ( keypath ) {
+			unformatted = data.get( keypath );
+			formatted = anglebars._format( unformatted, model.formatters );
 
 			this.update( formatted );
 
 			// subscribe to changes
-			this.subscriptionRefs = data.subscribe( address, model.level, function ( value ) {
-				var formatted = anglebars.format( value, model.formatters );
+			this.subscriptionRefs = data.subscribe( keypath, model.level, function ( value ) {
+				var formatted = anglebars._format( value, model.formatters );
 				self.update( formatted );
 			});
 		});
-	};
+	};*/
 
-	views.Section.prototype = {
+	views.Section = Anglebars.view({
+		initialize: function () {
+			this.views = [];
+
+			this.sectionAnchor = utils.createAnchor();
+			this.parentNode.insertBefore( this.sectionAnchor, this.anchor );
+		},
+
 		teardown: function () {
 			this.unrender();
 
@@ -74,7 +81,7 @@
 
 				else {
 					if ( !this.rendered ) {
-						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.anchor );
+						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
 						//this.views[0] = this.model.list.render( this.parentNode, this.contextStack, this.anchor );
 						this.rendered = true;
 						return;
@@ -101,15 +108,15 @@
 						}
 						
 						for ( i=0; i<value.length; i+=1 ) {
-							this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.address + '.' + i ), this.anchor );
-							// this.views[i] = this.model.list.render( this.parentNode, this.contextStack.concat( this.address + '.' + i ), this.anchor );
+							this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
+							// this.views[i] = this.model.list.render( this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.anchor );
 						}
 					}
 
 					// if value is a hash, add it to the context stack and update children
 					else {
-						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.address ), this.anchor );
-						// this.views[0] = this.model.list.render( this.parentNode, this.contextStack.concat( this.address ), this.anchor );
+						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
+						// this.views[0] = this.model.list.render( this.parentNode, this.contextStack.concat( this.keypath ), this.anchor );
 					}
 
 					this.rendered = true;
@@ -119,7 +126,7 @@
 
 					if ( value && !emptyArray ) {
 						if ( !this.rendered ) {
-							this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.anchor );
+							this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
 							// this.views[0] = this.model.list.render( this.parentNode, this.contextStack, this.anchor );
 							this.rendered = true;
 						}
@@ -136,7 +143,7 @@
 
 			}
 		}
-	};
+	});
 
 }( Anglebars.views, Anglebars.utils ));
 

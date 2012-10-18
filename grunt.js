@@ -19,7 +19,7 @@ module.exports = function(grunt) {
     },
     concat: {
       dist: {
-        src: ['<banner:meta.banner>', 'src/anglebars.js', 'src/data.js', 'src/static.js', 'src/views/*.js', 'src/substrings/*.js', 'src/utils.js'],
+        src: ['<banner:meta.banner>', 'src/anglebars.js', 'src/static.js', 'src/datamodel.js', 'src/view.js', 'src/views/*.js', 'src/substring.js', 'src/substrings/*.js', 'src/utils.js'],
         dest: 'build/<%= pkg.name %>.js'
       }
     },

@@ -1,0 +1,566 @@
+{
+    "project": {
+        "name": "Anglebars",
+        "description": "Anglebars: data-binding done right",
+        "version": "0.0.1",
+        "url": "http://rich-harris.github.com/Anglebars/"
+    },
+    "files": {
+        "src/views/Attribute.js": {
+            "name": "src/views/Attribute.js",
+            "modules": {
+                "views": 1
+            },
+            "classes": {
+                "views.Attribute": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "src/anglebars.js": {
+            "name": "src/anglebars.js",
+            "modules": {
+                "Anglebars": 1
+            },
+            "classes": {
+                "Anglebars": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "src/static.js": {
+            "name": "src/static.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "test/vendor/jslitmus.js": {
+            "name": "test/vendor/jslitmus.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "test/vendor/qunit.js": {
+            "name": "test/vendor/qunit.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Anglebars": {
+            "name": "Anglebars",
+            "submodules": {
+                "views": 1
+            },
+            "classes": {
+                "views.Attribute": 1,
+                "Anglebars": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "main",
+            "file": "src/anglebars.js",
+            "line": 14,
+            "description": "Provides the base Anglebars class",
+            "itemtype": "main"
+        },
+        "views": {
+            "name": "views",
+            "submodules": {},
+            "classes": {
+                "views.Attribute": 1
+            },
+            "fors": {},
+            "is_submodule": 1,
+            "namespaces": {},
+            "module": "Anglebars",
+            "namespace": "",
+            "file": "src/views/Attribute.js",
+            "line": 11,
+            "tag": "main",
+            "itemtype": "main"
+        }
+    },
+    "classes": {
+        "views.Attribute": {
+            "name": "views.Attribute",
+            "shortname": "views.Attribute",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Anglebars",
+            "submodule": "views",
+            "namespace": "",
+            "file": "src/views/Attribute.js",
+            "line": 11,
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "model",
+                    "description": ""
+                },
+                {
+                    "name": "anglebars",
+                    "description": ""
+                },
+                {
+                    "name": "parentNode",
+                    "description": ""
+                },
+                {
+                    "name": "contextStack",
+                    "description": ""
+                },
+                {
+                    "name": "anchor",
+                    "description": ""
+                }
+            ]
+        },
+        "Anglebars": {
+            "name": "Anglebars",
+            "shortname": "Anglebars",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Anglebars",
+            "namespace": "",
+            "file": "src/anglebars.js",
+            "line": 14,
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "Initialization options:\\n\\nel: Optional. A string, HTMLElement or jQuery (or equivalent) object to render to",
+                    "type": "Object"
+                }
+            ]
+        }
+    },
+    "classitems": [
+        {
+            "file": "src/static.js",
+            "line": 11,
+            "description": "Compiles a template string to an object, ready to be rendered",
+            "itemtype": "method",
+            "name": "compileTemplate",
+            "static": 1,
+            "params": [
+                {
+                    "name": "template",
+                    "description": "The template to compile. Must be valid HTML",
+                    "type": "String"
+                },
+                {
+                    "name": "preserveWhitespace=false",
+                    "description": "Whether to preserve whitespace between nodes.\n        Usually this whitespace is ignored by the browser, so can be omitted from the\n        compiled template",
+                    "type": "Boolean"
+                },
+                {
+                    "name": "replaceSrcAttributes=true",
+                    "description": "Whether to replace src attributes in the template\n        with data-anglebars-src to prevent the browser requesting non-existent resources\n        during compilation. Does not affect the output",
+                    "type": "Boolean"
+                }
+            ],
+            "return": {
+                "description": "The compiled template",
+                "type": "Object"
+            },
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 26,
+            "description": "A smattering of methods that are needed to implement the JSLitmus testbed.",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 30,
+            "description": "Enhanced version of escape()",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 41,
+            "description": "Get an element by ID.",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 48,
+            "description": "Null function",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 53,
+            "description": "Set the status shown in the UI",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 61,
+            "description": "Convert a number to an abbreviated string like, \"15K\" or \"10M\"",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 80,
+            "description": "Copy properties from src to dst",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 87,
+            "description": "Like Array.join(), but for the key-value pairs in an object",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 97,
+            "description": "Array#indexOf isn't supported in IE, so we use this as a cross-browser solution",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 107,
+            "description": "Test manages a single test (created with\nJSLitmus.test())",
+            "access": "private",
+            "tagname": "",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 124,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 130,
+            "description": "Run calibration tests.  Returns true if calibrations are not yet\ncomplete (in which case calling code should run the tests yet again).\nonCalibrated - Callback to invoke when calibrations have finished",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 152,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 154,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 156,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 159,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 162,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 165,
+            "description": "Reset test state",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 175,
+            "description": "Run the test (in a timeout). We use a timeout to make sure the browser\nhas a chance to finish rendering any UI changes we've made, like\nupdating the status message.",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 188,
+            "description": "The nuts and bolts code that actually runs a test",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 251,
+            "description": "Get the number of operations per second for this test.",
+            "params": [
+                {
+                    "name": "normalize",
+                    "description": "if true, iteration loop overhead taken into account"
+                }
+            ],
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 271,
+            "description": "Get a friendly string describing the test",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 389,
+            "description": "The public API for creating and running tests",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 393,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 395,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 398,
+            "description": "The parsed query parameters the current page URL.  This is provided as a\nconvenience for test functions - it's not used by JSLitmus proper",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 404,
+            "description": "Initialize",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 438,
+            "description": "Set up the UI",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 452,
+            "description": "(Re)render all the test results",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 461,
+            "description": "(Re)render the chart graphics",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 474,
+            "description": "(Re)render the results for a specific test",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 521,
+            "description": "Create a new test",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 543,
+            "description": "Add all tests to the run queue",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 554,
+            "description": "Remove all tests from the run queue.  The current test has to finish on\nit's own though",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 565,
+            "description": "Run the next test in the run queue",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 584,
+            "description": "Add a test to the run queue",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/jslitmus.js",
+            "line": 594,
+            "description": "Generate a Google Chart URL that shows the data for all tests",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 1,
+            "description": "QUnit v1.9.0 - A JavaScript Unit Testing Framework\n\nhttp://docs.jquery.com/QUnit\n\nCopyright (c) 2012 John Resig, Jörn Zaefferer\nDual licensed under the MIT (MIT-LICENSE.txt)\nor GPL (GPL-LICENSE.txt) licenses.",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 404,
+            "description": "Asserts rough true-ish result.",
+            "name": "",
+            "itemtype": "method",
+            "example": [
+                " ok( \"asdfasdf\".length > 5, \"There must be at least 5 chars\" );"
+            ],
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 439,
+            "description": "Assert that the first two arguments are equal, with an optional message.\nPrints out both actual and expected values.",
+            "name": "",
+            "itemtype": "method",
+            "example": [
+                " equal( format( \"Received {0} bytes.\", 2), \"Received 2 bytes.\", \"format() replaces {0} with next argument\" );"
+            ],
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 450,
+            "name": "",
+            "itemtype": "method",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 458,
+            "name": "",
+            "itemtype": "method",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 466,
+            "name": "",
+            "itemtype": "method",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 474,
+            "name": "",
+            "itemtype": "method",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 482,
+            "name": "",
+            "itemtype": "method",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 530,
+            "deprecate": "since 1.8.0\nKept assertion helpers in root for backwards compatibility",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 536,
+            "deprecated": true,
+            "deprecationMessage": "since 1.9.0\nKept global \"raises()\" for backwards compatibility",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 542,
+            "deprecated": true,
+            "deprecationMessage": "since 1.0.0, replaced with error pushes since 1.3.0\nKept to avoid TypeErrors for undefined methods.",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 562,
+            "description": "Config object: Maintain internal state\nLater exposed as QUnit.config\n`config` initialized at top of scope",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 879,
+            "deprecated": true,
+            "deprecationMessage": ": Created for backwards compatibility with test runner that set the hook function\ninto QUnit.{hook}, instead of invoking it and passing the hook function.\nQUnit.constructor is set to the empty F() above so that we can add to it's prototype here.\nDoing this allows us to tell if the following methods have been overwritten on the actual\nQUnit object.",
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 1119,
+            "class": "",
+            "module": "Anglebars"
+        },
+        {
+            "file": "test/vendor/qunit.js",
+            "line": 1527,
+            "description": "jsDump Copyright (c) 2008 Ariel Flesler - aflesler(at)gmail(dot)com |\nhttp://flesler.blogspot.com Licensed under BSD\n(http://www.opensource.org/licenses/bsd-license.php) Date: 5/15/2008",
+            "projectdescription": "Advanced and extensible data dumping for Javascript.",
+            "version": "1.0.0",
+            "author": "Ariel Flesler",
+            "link": "{http://flesler.blogspot.com/2008/05/jsdump-pretty-dump-of-any-javascript.html}",
+            "class": "",
+            "module": "Anglebars"
+        }
+    ]
+}

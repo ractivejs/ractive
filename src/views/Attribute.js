@@ -2,21 +2,19 @@
 	
 	'use strict';
 
-	views.Attribute = function ( model, anglebars, node, contextStack, anchor ) {
+	views.Attribute = function ( model, anglebars, parentNode, contextStack, anchor ) {
 		
 		var i, numComponents, component;
 
 		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
 		if ( !model.isDynamic ) {
-			node.setAttribute( model.name, model.value );
+			parentNode.setAttribute( model.name, model.value );
 			return;
 		}
 
 		// otherwise we need to do some work
-		this.node = node;
+		this.parentNode = parentNode;
 		this.name = model.name;
-
-		this.data = anglebars.data;
 
 		this.substrings = [];
 
@@ -26,10 +24,8 @@
 			this.substrings[i] = substrings.create( component, anglebars, this, contextStack );
 		}
 
-		// update...
+		// manually trigger first update
 		this.update();
-
-		// and watch for changes TODO
 	};
 
 	views.Attribute.prototype = {
@@ -52,7 +48,7 @@
 
 		update: function () {
 			this.value = this.toString();
-			this.node.setAttribute( this.name, this.value );
+			this.parentNode.setAttribute( this.name, this.value );
 		},
 
 		toString: function () {

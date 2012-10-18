@@ -1,47 +1,30 @@
-(function ( substrings, utils ) {
+Anglebars.substrings.Interpolator = Anglebars.substring({
+	initialize: function () {
 
-	'use strict';
+	},
 
-	substrings.Interpolator = function ( model, anglebars, parent, contextStack ) {
+	update: function ( value ) {
+		this.value = value;
+		this.parent.bubble();
+	},
 
-		this.parent = parent;
-		this.data = anglebars.data;
-		
-		anglebars.data.getAddress( this, model.keypath, contextStack, function ( address ) {
-			var value, formatted, self = this;
+	bubble: function () {
+		this.parent.bubble();
+	},
 
-			value = this.data.get( address );
-			formatted = anglebars.format( value, model.formatters ); // TODO is it worth storing refs to keypath and formatters on the evaluator?
-
-			this.stringified = formatted;
-
-			this.subscriptionRefs = this.data.subscribe( address, model.level, function ( value ) {
-				var formatted = anglebars.format( value, model.formatters );
-				self.stringified = formatted;
-				self.bubble();
-			});
-		});
-	};
-
-	substrings.Interpolator.prototype = {
-		bubble: function () {
-			this.parent.bubble();
-		},
-
-		teardown: function () {
-			if ( !this.subscriptionRefs ) {
-				this.data.cancelAddressResolution( this );
-			} else {
-				this.data.unsubscribeAll( this.subscriptionRefs );
-			}
-		},
-
-		toString: function () {
-			return this.stringified;
+	teardown: function () {
+		if ( !this.subscriptionRefs ) {
+			this.data.cancelAddressResolution( this );
+		} else {
+			this.data.unsubscribeAll( this.subscriptionRefs );
 		}
-	};
+	},
 
-	substrings.Triple = substrings.Interpolator; // same same
+	toString: function () {
+		return this.value;
+	}
+});
 
+// Triples are the same as Interpolators in this context
+Anglebars.substrings.Triple = Anglebars.substrings.Interpolator;
 
-}( Anglebars.substrings, Anglebars.utils ));

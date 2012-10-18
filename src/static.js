@@ -1,43 +1,19 @@
-(function ( A ) {
+// Static method to compile a template string
+Anglebars.compile = function ( template, options ) {
+	var nodes, stubs, compiled = [], utils = Anglebars.utils;
+
+	// Remove any comment mustaches
+	template = utils.stripComments( template );
+
+	// Parse the template
+	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );
 	
-	'use strict';
+	// Get an array of 'stubs' from the resulting DOM nodes
+	stubs = utils.getStubsFromNodes( nodes );
 
-	var utils = A.utils, views = A.views;
+	// Compile the stubs
+	compiled = utils.compileStubs( stubs, 0, null, options.preserveWhitespace );
 
-	A.compileTemplate = function ( template, preserveWhitespace, replaceSrcAttributes ) {
+	return compiled;
+};
 
-		var nodes, stubs, compiled = [];
-
-		// first, remove any comment mustaches
-		template = utils.stripComments( template );
-
-		// then, parse the template
-		nodes = utils.getNodeArrayFromHtml( template, replaceSrcAttributes );
-		
-		// then, get an array of 'stubs' from the resulting DOM nodes
-		stubs = utils.getStubsFromNodes( nodes );
-
-		// finally, compile the stubs
-		compiled = utils.compileStubs( stubs, 0 );
-
-		return compiled;
-	};
-
-
-	A.render = function ( anglebars, el ) {
-
-		var rendered;
-
-		if ( !anglebars.compiled ) {
-			throw new Error( 'No compiled template' );
-		}
-
-		rendered = new views.Fragment( anglebars.compiled, anglebars, el );
-
-		return rendered;
-
-	};
-
-
-
-}( Anglebars ));

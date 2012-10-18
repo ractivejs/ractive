@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	views.Interpolator = function ( model, anglebars, parentNode, contextStack, anchor ) {
+	/*views.Interpolator = function ( model, anglebars, parentNode, contextStack, anchor ) {
 		var self = this,
 			value,
 			formatted,
@@ -13,17 +13,17 @@
 		
 		this.node = doc.createTextNode( '' );
 		this.data = data;
-		this.keypath = model.keypath;
+		this.model = model;
 		this.contextStack = contextStack;
 
-		data.getAddress( this, model.keypath, contextStack, function ( address ) {
-			value = data.get( address );
-			formatted = anglebars.format( value, model.formatters );
+		data.getKeypath( this, model.partialKeypath, contextStack, function ( keypath ) {
+			value = data.get( keypath );
+			formatted = anglebars._format( value, model.formatters );
 
 			this.update( formatted );
 
-			this.subscriptionRefs = data.subscribe( address, model.level, function ( value ) {
-				var formatted = anglebars.format( value, model.formatters );
+			this.subscriptionRefs = data.subscribe( keypath, model.level, function ( value ) {
+				var formatted = anglebars._format( value, model.formatters );
 				self.update( formatted );
 			});
 		});
@@ -47,7 +47,29 @@
 		update: function ( value ) {
 			this.node.data = value;
 		}
-	};
+	};*/
+
+
+	views.Interpolator = Anglebars.view({
+		initialize: function () {
+			this.node = doc.createTextNode( '' );
+			this.parentNode.insertBefore( this.node, this.anchor || null );
+		},
+
+		teardown: function () {
+			if ( !this.observerRefs ) {
+				this.data.cancelAddressResolution( this );
+			} else {
+				this.data.unobserveAll( this.observerRefs );
+			}
+
+			utils.remove( this.node );
+		},
+
+		update: function ( value ) {
+			this.node.data = value;
+		}
+	});
 
 }( Anglebars.views, Anglebars.utils, document ));
 
