@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-10-18
+/*! Anglebars - v0.0.1 - 2012-10-19
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -451,73 +451,67 @@ Anglebars.view = function ( proto ) {
 
 	return AnglebarsView;
 };
-(function ( views, substrings ) {
+Anglebars.views.Attribute = function ( model, anglebars, parentNode, contextStack, anchor ) {
 	
-	'use strict';
+	var i, numComponents, component;
 
-	views.Attribute = function ( model, anglebars, parentNode, contextStack, anchor ) {
-		
-		var i, numComponents, component;
+	// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
+	if ( !model.isDynamic ) {
+		parentNode.setAttribute( model.name, model.value );
+		return;
+	}
 
-		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
-		if ( !model.isDynamic ) {
-			parentNode.setAttribute( model.name, model.value );
-			return;
+	// otherwise we need to do some work
+	this.parentNode = parentNode;
+	this.name = model.name;
+
+	this.substrings = [];
+
+	numComponents = model.components.length;
+	for ( i=0; i<numComponents; i+=1 ) {
+		component = model.components[i];
+		this.substrings[i] = Anglebars.substrings.create( component, anglebars, this, contextStack );
+	}
+
+	// manually trigger first update
+	this.update();
+};
+
+Anglebars.views.Attribute.prototype = {
+	teardown: function () {
+		var numSubstrings, i, substring;
+
+		numSubstrings = this.substrings.length;
+		for ( i=0; i<numSubstrings; i+=1 ) {
+			substring = this.substrings[i];
+
+			if ( substring.teardown ) {
+				substring.teardown(); // TODO should all substrings have a teardown method?
+			}
 		}
+	},
 
-		// otherwise we need to do some work
-		this.parentNode = parentNode;
-		this.name = model.name;
-
-		this.substrings = [];
-
-		numComponents = model.components.length;
-		for ( i=0; i<numComponents; i+=1 ) {
-			component = model.components[i];
-			this.substrings[i] = substrings.create( component, anglebars, this, contextStack );
-		}
-
-		// manually trigger first update
+	bubble: function () {
 		this.update();
-	};
+	},
 
-	views.Attribute.prototype = {
-		teardown: function () {
-			var numSubstrings, i, substring;
+	update: function () {
+		this.value = this.toString();
+		this.parentNode.setAttribute( this.name, this.value );
+	},
 
-			numSubstrings = this.substrings.length;
-			for ( i=0; i<numSubstrings; i+=1 ) {
-				substring = this.substrings[i];
+	toString: function () {
+		var string = '', i, numSubstrings, substring;
 
-				if ( substring.teardown ) {
-					substring.teardown(); // TODO should all substrings have a teardown method?
-				}
-			}
-		},
-
-		bubble: function () {
-			this.update();
-		},
-
-		update: function () {
-			this.value = this.toString();
-			this.parentNode.setAttribute( this.name, this.value );
-		},
-
-		toString: function () {
-			var string = '', i, numSubstrings, substring;
-
-			numSubstrings = this.substrings.length;
-			for ( i=0; i<numSubstrings; i+=1 ) {
-				substring = this.substrings[i];
-				string += substring.toString();
-			}
-
-			return string;
+		numSubstrings = this.substrings.length;
+		for ( i=0; i<numSubstrings; i+=1 ) {
+			substring = this.substrings[i];
+			string += substring.toString();
 		}
-	};
 
-}( Anglebars.views, Anglebars.substrings ));
+		return string;
+	}
+};
 Anglebars.views.create = function ( model, anglebars, parentNode, contextStack, anchor ) {
 	var views = Anglebars.views;
 
@@ -538,435 +532,302 @@ Anglebars.views.create = function ( model, anglebars, parentNode, contextStack, 
 			return new views.Section( model, anglebars, parentNode, contextStack, anchor );
 	}
 };
-(function ( views, utils, doc ) {
+Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack, anchor ) {
 
-	'use strict';
+	var data = anglebars.data,
+		i,
+		numAttributes,
+		numItems,
+		attributeModel,
+		item;
 
-	views.Element = function ( model, anglebars, parentNode, contextStack, anchor ) {
+	// stuff we'll need later
+	this.model = model;
+	this.data = data;
 
-		var data = anglebars.data,
-			i,
-			numAttributes,
-			numItems,
-			attributeModel,
-			item;
-
-		// stuff we'll need later
-		this.model = model;
-		this.data = data;
-
-		// create the DOM node
-		if ( model.namespace ) {
-			this.node = doc.createElementNS( model.namespace, model.tag );
-		} else {
-			this.node = doc.createElement( model.tag );
-		}
-		
-		
-		// set attributes
-		this.attributes = [];
-		numAttributes = model.attributes.length;
-		for ( i=0; i<numAttributes; i+=1 ) {
-			attributeModel = model.attributes[i];
-			this.attributes[i] = new views.Attribute( attributeModel, anglebars, this.node, contextStack );
-		}
-
-		// append children
-		if ( model.children ) {
-			this.children = [];
-			numItems = model.children.length;
-			for ( i=0; i<numItems; i+=1 ) {
-				item = model.children[i];
-				this.children[i] = views.create( item, anglebars, this.node, contextStack );
-			}
-		}
-
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor || null );
-	};
-
-	views.Element.prototype = {
-		teardown: function () {
-			
-			var numAttrs, i;
-
-			numAttrs = this.attributes.length;
-			for ( i=0; i<numAttrs; i+=1 ) {
-				this.attributes[i].teardown();
-			}
-
-			utils.remove( this.node );
-		}
-	};
-
-}( Anglebars.views, Anglebars.utils, document ));
-
-
-(function ( views ) {
+	// create the DOM node
+	if ( model.namespace ) {
+		this.node = document.createElementNS( model.namespace, model.tag );
+	} else {
+		this.node = document.createElement( model.tag );
+	}
 	
-	'use strict';
+	
+	// set attributes
+	this.attributes = [];
+	numAttributes = model.attributes.length;
+	for ( i=0; i<numAttributes; i+=1 ) {
+		attributeModel = model.attributes[i];
+		this.attributes[i] = new Anglebars.views.Attribute( attributeModel, anglebars, this.node, contextStack );
+	}
 
-	views.Fragment = function ( models, anglebars, parentNode, contextStack, anchor ) {
-
-		var numModels, i;
-
-		this.items = [];
-
-		numModels = models.length;
-		for ( i=0; i<numModels; i+=1 ) {
-			this.items[ this.items.length ] = views.create( models[i], anglebars, parentNode, contextStack, anchor );
+	// append children
+	if ( model.children ) {
+		this.children = [];
+		numItems = model.children.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			item = model.children[i];
+			this.children[i] = Anglebars.views.create( item, anglebars, this.node, contextStack );
 		}
-	};
+	}
 
-	views.Fragment.prototype = {
-		teardown: function () {
-			
-			var i, numItems;
+	// append this.node, either at end of parent element or in front of the anchor (if defined)
+	parentNode.insertBefore( this.node, anchor || null );
+};
 
-			// TODO unsubscribes
-			numItems = this.items.length;
-			for ( i=0; i<numItems; i+=1 ) {
-				this.items[i].teardown();
-			}
-
-			delete this.items; // garbage collector, ATTACK!
-		}
-	};
-
-}( Anglebars.views ));
-(function ( views, utils, doc ) {
-
-	'use strict';
-
-	/*views.Interpolator = function ( model, anglebars, parentNode, contextStack, anchor ) {
-		var self = this,
-			value,
-			formatted,
-			data = anglebars.data;
-
-		contextStack = ( contextStack ? contextStack.concat() : [] );
+Anglebars.views.Element.prototype = {
+	teardown: function () {
 		
-		
-		this.node = doc.createTextNode( '' );
-		this.data = data;
-		this.model = model;
-		this.contextStack = contextStack;
+		var numAttrs, i;
 
-		data.getKeypath( this, model.partialKeypath, contextStack, function ( keypath ) {
-			value = data.get( keypath );
-			formatted = anglebars._format( value, model.formatters );
-
-			this.update( formatted );
-
-			this.subscriptionRefs = data.subscribe( keypath, model.level, function ( value ) {
-				var formatted = anglebars._format( value, model.formatters );
-				self.update( formatted );
-			});
-		});
-		
-
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor || null );
-	};
-
-	views.Interpolator.prototype = {
-		teardown: function () {
-			if ( !this.subscriptionRefs ) {
-				this.data.cancelAddressResolution( this );
-			} else {
-				this.data.unsubscribeAll( this.subscriptionRefs );
-			}
-
-			utils.remove( this.node );
-		},
-
-		update: function ( value ) {
-			this.node.data = value;
+		numAttrs = this.attributes.length;
+		for ( i=0; i<numAttrs; i+=1 ) {
+			this.attributes[i].teardown();
 		}
-	};*/
 
+		Anglebars.utils.remove( this.node );
+	}
+};
 
-	views.Interpolator = Anglebars.view({
-		initialize: function () {
-			this.node = doc.createTextNode( '' );
-			this.parentNode.insertBefore( this.node, this.anchor || null );
-		},
+Anglebars.views.Fragment = function ( models, anglebars, parentNode, contextStack, anchor ) {
 
-		teardown: function () {
-			if ( !this.observerRefs ) {
-				this.data.cancelAddressResolution( this );
-			} else {
-				this.data.unobserveAll( this.observerRefs );
-			}
+	var numModels, i;
 
-			utils.remove( this.node );
-		},
+	this.items = [];
 
-		update: function ( value ) {
-			this.node.data = value;
+	numModels = models.length;
+	for ( i=0; i<numModels; i+=1 ) {
+		this.items[ this.items.length ] = Anglebars.views.create( models[i], anglebars, parentNode, contextStack, anchor );
+	}
+};
+
+Anglebars.views.Fragment.prototype = {
+	teardown: function () {
+		
+		var i, numItems;
+
+		// TODO unsubscribes
+		numItems = this.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			this.items[i].teardown();
 		}
-	});
 
-}( Anglebars.views, Anglebars.utils, document ));
+		delete this.items;
+	}
+};
+Anglebars.views.Interpolator = Anglebars.view({
+	initialize: function () {
+		this.node = document.createTextNode( '' );
+		this.parentNode.insertBefore( this.node, this.anchor || null );
+	},
 
+	teardown: function () {
+		if ( !this.observerRefs ) {
+			this.data.cancelAddressResolution( this );
+		} else {
+			this.data.unobserveAll( this.observerRefs );
+		}
 
-(function ( views, utils ) {
+		Anglebars.utils.remove( this.node );
+	},
 
-	'use strict';
-
-	/*views.Section = function ( model, anglebars, parentNode, contextStack, anchor ) {
-		var self = this,
-			unformatted,
-			formatted,
-			data = anglebars.data;
-
-		this.model = model;
-		this.contextStack = contextStack || [];
-		this.anglebars = anglebars;
-		this.data = data;
+	update: function ( value ) {
+		this.node.data = value;
+	}
+});
+Anglebars.views.Section = Anglebars.view({
+	initialize: function () {
 		this.views = [];
+		this.length = 0; // number of times this section is rendered
+
+		this.sectionAnchor = Anglebars.utils.createAnchor();
+		this.parentNode.insertBefore( this.sectionAnchor, this.anchor );
+	},
+
+	teardown: function () {
+		this.unrender();
+
+		if ( !this.observerRefs ) {
+			this.data.cancelAddressResolution( this );
+		} else {
+			this.data.unobserveAll( this.observerRefs );
+		}
+
+		Anglebars.utils.remove( this.anchor );
+	},
+
+	unrender: function () {
+		// TODO unsubscribe
+		while ( this.views.length ) {
+			this.views.shift().teardown();
+		}
+	},
+
+	update: function ( value ) {
+		var emptyArray, i, views = Anglebars.views, viewsToRemove;
 		
-		this.parentNode = parentNode;
-		this.anchor = utils.createAnchor();
+		// treat empty arrays as false values
+		if ( Anglebars.utils.isArray( value ) && value.length === 0 ) {
+			emptyArray = true;
+		}
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.anchor, anchor || null );
 
-		data.getKeypath( this, model.partialKeypath, contextStack, function ( keypath ) {
-			unformatted = data.get( keypath );
-			formatted = anglebars._format( unformatted, model.formatters );
-
-			this.update( formatted );
-
-			// subscribe to changes
-			this.subscriptionRefs = data.subscribe( keypath, model.level, function ( value ) {
-				var formatted = anglebars._format( value, model.formatters );
-				self.update( formatted );
-			});
-		});
-	};*/
-
-	views.Section = Anglebars.view({
-		initialize: function () {
-			this.views = [];
-
-			this.sectionAnchor = utils.createAnchor();
-			this.parentNode.insertBefore( this.sectionAnchor, this.anchor );
-		},
-
-		teardown: function () {
-			this.unrender();
-
-			if ( !this.subscriptionRefs ) {
-				this.data.cancelAddressResolution( this );
-			} else {
-				this.data.unsubscribeAll( this.subscriptionRefs );
+		// if section is inverted, only check for truthiness/falsiness
+		if ( this.model.inverted ) {
+			if ( value && !emptyArray ) {
+				if ( this.length ) {
+					this.unrender();
+					this.length = 0;
+					return;
+				}
 			}
 
-			utils.remove( this.anchor );
-		},
-
-		unrender: function () {
-			// TODO unsubscribe
-			while ( this.views.length ) {
-				this.views.shift().teardown();
-			}
-		},
-
-		update: function ( value ) {
-			var emptyArray, i;
-			
-			// treat empty arrays as false values
-			if ( utils.isArray( value ) && value.length === 0 ) {
-				emptyArray = true;
+			else {
+				if ( !this.length ) {
+					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
+					this.length = 1;
+					return;
+				}
 			}
 
-			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inverted ) {
+			return;
+		}
+
+
+		// otherwise we need to work out what sort of section we're dealing with
+		switch ( typeof value ) {
+			case 'object':
+
+				// if value is an array, iterate through
+				if ( Anglebars.utils.isArray( value ) ) {
+
+					// if the array is shorter than it was previously, remove items
+					if ( value.length < this.length ) {
+						viewsToRemove = this.views.splice( value.length, this.length - value.length );
+
+						while ( viewsToRemove.length ) {
+							viewsToRemove.shift().teardown();
+						}
+					}
+
+					// otherwise...
+					else {
+
+						// first, update existing views
+						for ( i=0; i<this.length; i+=1 ) {
+							this.anglebars.data.update( this.keypath + '.' + i );
+						}
+
+						if ( value.length > this.length ) {
+						
+							// then add any new ones
+							for ( i=this.length; i<value.length; i+=1 ) {
+								this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
+							}
+						}
+					}
+
+					this.length = value.length;
+				}
+
+				// if value is a hash...
+				else {
+					// ...then if it isn't rendered, render it, adding this.keypath to the context stack
+					// (if it is already rendered, then any children dependent on the context stack
+					// will update themselves without any prompting)
+					if ( !this.length ) {
+						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
+						this.length = 1;
+					}
+				}
+
+				this.rendered = true;
+				break;
+
+			default:
+
 				if ( value && !emptyArray ) {
-					if ( this.rendered ) {
-						this.unrender();
-						this.rendered = false;
-						return;
+					if ( !this.length ) {
+						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
+						this.length = 1;
 					}
 				}
 
 				else {
-					if ( !this.rendered ) {
-						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
-						//this.views[0] = this.model.list.render( this.parentNode, this.contextStack, this.anchor );
-						this.rendered = true;
-						return;
+					if ( this.length ) {
+						this.unrender();
+						this.length = 0;
 					}
 				}
 
-				return;
-			}
+				// otherwise render if value is truthy, unrender if falsy
 
-
-			// otherwise we need to work out what sort of section we're dealing with
-			switch ( typeof value ) {
-				case 'object':
-
-					if ( this.rendered ) {
-						this.unrender();
-						this.rendered = false;
-					}
-
-					// if value is an array of hashes, iterate through
-					if ( utils.isArray( value ) ) {
-						if ( emptyArray ) {
-							return;
-						}
-						
-						for ( i=0; i<value.length; i+=1 ) {
-							this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
-							// this.views[i] = this.model.list.render( this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.anchor );
-						}
-					}
-
-					// if value is a hash, add it to the context stack and update children
-					else {
-						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
-						// this.views[0] = this.model.list.render( this.parentNode, this.contextStack.concat( this.keypath ), this.anchor );
-					}
-
-					this.rendered = true;
-					break;
-
-				default:
-
-					if ( value && !emptyArray ) {
-						if ( !this.rendered ) {
-							this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
-							// this.views[0] = this.model.list.render( this.parentNode, this.contextStack, this.anchor );
-							this.rendered = true;
-						}
-					}
-
-					else {
-						if ( this.rendered ) {
-							this.unrender();
-							this.rendered = false;
-						}
-					}
-
-					// otherwise render if value is truthy, unrender if falsy
-
-			}
 		}
-	});
+	}
+});
 
-}( Anglebars.views, Anglebars.utils ));
+Anglebars.views.Text = function ( model, parentNode, anchor ) {
+	this.node = document.createTextNode( model.text );
 
+	// append this.node, either at end of parent element or in front of the anchor (if defined)
+	parentNode.insertBefore( this.node, anchor || null );
+};
 
-(function ( views, utils, doc ) {
-
-	'use strict';
-
-	views.Text = function ( model, parentNode, anchor ) {
-		this.node = doc.createTextNode( model.text );
-
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.node, anchor || null );
-	};
-
-	views.Text.prototype = {
-		teardown: function () {
-			utils.remove( this.node );
-		}
-	};
-
-}( Anglebars.views, Anglebars.utils, document ));
-
-
-(function ( views, utils ) {
-
-	'use strict';
-
-	/*views.Triple = function ( model, anglebars, parentNode, contextStack, anchor ) {
-		var self = this,
-			unformatted,
-			formattedHtml,
-			data = anglebars.data;
-
+Anglebars.views.Text.prototype = {
+	teardown: function () {
+		Anglebars.utils.remove( this.node );
+	}
+};
+Anglebars.views.Triple = Anglebars.view({
+	initialize: function () {
 		this.nodes = [];
-		this.data = data;
-		this.model = model;
-		this.anglebars = anglebars;
 
-		this.anchor = utils.createAnchor();
+		this.tripleAnchor = Anglebars.utils.createAnchor();
+		this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );
+	},
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		parentNode.insertBefore( this.anchor, anchor || null );
-
-		data.getKeypath( this, model.partialKeypath, contextStack, function ( keypath ) {
-			// subscribe to data changes
-			this.subscriptionRefs = data.subscribe( keypath, model.level, function ( value ) {
-				var formatted = anglebars._format( value, model.formatters );
-				self.update( formatted );
-			});
-
-			unformatted = data.get( keypath );
-			formattedHtml = anglebars._format( unformatted, model.formatters );
-
-			this.update( formattedHtml );
-		});
-	};*/
-
-	views.Triple = Anglebars.view({
-		initialize: function () {
-			this.nodes = [];
-
-			this.tripleAnchor = utils.createAnchor();
-			this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );
-		},
-
-		teardown: function () {
-			
-			var i, numNodes;
-			
-			// TODO unsubscribes
-			numNodes = this.nodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				utils.remove( this.nodes[i] );
-			}
-
-
-			if ( !this.subscriptionRefs ) {
-				this.data.cancelAddressResolution( this );
-			} else {
-				this.data.unsubscribeAll( this.subscriptionRefs );
-			}
-
-			utils.remove( this.anchor );
-		},
-
-		update: function ( value ) {
-			var numNodes, i;
-
-			if ( utils.isEqual( this.value, value ) ) {
-				return;
-			}
-
-			// remove existing nodes
-			numNodes = this.nodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				utils.remove( this.nodes[i] );
-			}
-
-			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( value, false );
-
-			numNodes = this.nodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				this.parentNode.insertBefore( this.nodes[i], this.tripleAnchor );
-			}
+	teardown: function () {
+		
+		var i, numNodes;
+		
+		// TODO unsubscribes
+		numNodes = this.nodes.length;
+		for ( i=0; i<numNodes; i+=1 ) {
+			Anglebars.utils.remove( this.nodes[i] );
 		}
-	});
 
-}( Anglebars.views, Anglebars.utils ));
 
+		if ( !this.observerRefs ) {
+			this.data.cancelAddressResolution( this );
+		} else {
+			this.data.unobserveAll( this.observerRefs );
+		}
+
+		Anglebars.utils.remove( this.anchor );
+	},
+
+	update: function ( value ) {
+		var numNodes, i, utils = Anglebars.utils;
+
+		if ( utils.isEqual( this.value, value ) ) {
+			return;
+		}
+
+		// remove existing nodes
+		numNodes = this.nodes.length;
+		for ( i=0; i<numNodes; i+=1 ) {
+			utils.remove( this.nodes[i] );
+		}
+
+		// get new nodes
+		this.nodes = utils.getNodeArrayFromHtml( value, false );
+
+		numNodes = this.nodes.length;
+		for ( i=0; i<numNodes; i+=1 ) {
+			this.parentNode.insertBefore( this.nodes[i], this.tripleAnchor );
+		}
+	}
+});
 
 Anglebars.substring = function ( proto ) {
 	var AnglebarsSubstring;
@@ -1012,32 +873,31 @@ Anglebars.substrings.create = function ( model, anglebars, parent, contextStack 
 			return new substrings.Section( model, anglebars, parent, contextStack );
 	}
 };
-Anglebars.substrings.Fragment = function ( model, anglebars, parent, contextStack ) {
+Anglebars.substrings.Fragment = function ( models, anglebars, parent, contextStack ) {
 	var numItems, substring, i;
 
-	this.substrings = [];
+	this.items = [];
 	
-	numItems = model.items.length;
+	numItems = models.length;
 	for ( i=0; i<numItems; i+=1 ) {
-		substring = substrings.create( model.items[i], anglebars, this, contextStack );
-		this.substrings[i] = substring;
+		this.items[ this.items.length ] = Anglebars.substrings.create( models[i], anglebars, this, contextStack );
 	}
 
-	this.value = this.substrings.join('');
+	this.value = this.items.join('');
 };
 
 Anglebars.substrings.Fragment.prototype = {
 	bubble: function () {
-		this.value = this.substrings.join( '' );
+		this.value = this.items.join( '' );
 		this.parent.bubble();
 	},
 
 	teardown: function () {
-		var numSubstrings, i;
+		var numItems, i;
 
-		numSubstrings = this.substrings.length;
-		for ( i=0; i<numSubstrings; i+=1 ) {
-			this.substrings[i].teardown();
+		numItems = this.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			this.items[i].teardown();
 		}
 	},
 
@@ -1083,13 +943,13 @@ Anglebars.substrings.Section = Anglebars.substring({
 		this.substrings = [];
 	},
 
+	teardown: function () {
+		// TODO
+	},
+
 	bubble: function () {
 		this.value = this.substrings.join( '' );
 		this.parent.bubble();
-	},
-
-	teardown: function () {
-		// TODO
 	},
 
 	update: function ( value ) {
@@ -1105,6 +965,7 @@ Anglebars.substrings.Section = Anglebars.substring({
 			if ( value && !emptyArray ) {
 				
 				// if section is true, but was previously false, unrender
+				// TODO proper teardown
 				if ( this.rendered ) {
 					this.substrings = [];
 					this.rendered = false;
@@ -1117,12 +978,7 @@ Anglebars.substrings.Section = Anglebars.substring({
 				// if section is false, but was previously true, render
 				if ( !this.rendered ) {
 
-					this.substrings[0] = [];
-					
-					// create substrings for all children
-					for ( i=0; i<this.model.children.length; i+=1 ) {
-						this.substrings[0][i] = Anglebars.substrings.create( this.model.children[i], this.anglebars, this, this.contextStack );
-					}
+					this.substrings[0] = new Anglebars.substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack );
 					this.rendered = true;
 					return;
 				}
@@ -1132,7 +988,13 @@ Anglebars.substrings.Section = Anglebars.substring({
 		}
 
 
-		// otherwise we need to work out what sort of section we're dealing with
+		// Otherwise we need to work out what sort of section we're dealing with.
+		//
+		// If it's an object, it could be an array (i.e. multiple iterations) or
+		// a hash (i.e. context changes).
+		//
+		// If not, it's just a straight truthy/falsy check
+
 		if( typeof value === 'object' ) {
 			
 			// clear everything so we can rebuild it. TODO find a less destructive way
@@ -1144,22 +1006,13 @@ Anglebars.substrings.Section = Anglebars.substring({
 			// if value is an array of hashes, iterate through
 			if ( Anglebars.utils.isArray( value ) && !emptyArray ) {
 				for ( i=0; i<value.length; i+=1 ) {
-					this.substrings[i] = [];
-
-					for ( j=0; j<this.model.children.length; j+=1 ) {
-						this.substrings[i][j] = Anglebars.substrings.create( this.model.children[j], this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
-					}
+					this.substrings[i] = new Anglebars.substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
 				}
 			}
 
 			// if value is a hash, add it to the context stack and update children
 			else {
-				this.substrings[0] = [];
-
-				// create substrings for all children
-				for ( i=0; i<this.model.children.length; i+=1 ) {
-					this.substrings[0][i] = Anglebars.substrings.create( this.model.children[i], this.anglebars, this, this.contextStack.concat( this.keypath ) );
-				}
+				this.substrings[0] = new Anglebars.substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath ) );
 			}
 
 			this.rendered = true;
@@ -1169,18 +1022,14 @@ Anglebars.substrings.Section = Anglebars.substring({
 
 			if ( value && !emptyArray ) {
 				if ( !this.rendered ) {
-
-					this.substrings[0] = [];
-
-					for ( i=0; i<this.model.children.length; i+=1 ) {
-						this.substrings[0][i] = Anglebars.substrings.create( this.model.children[i], this.anglebars, this, this.contextStack );
-					}
+					this.substrings[0] = new Anglebars.substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack );
 					this.rendered = true;
 				}
 			}
 
 			else {
 				if ( this.rendered ) {
+					// TODO proper teardown
 					this.substrings = [];
 					this.rendered = false;
 				}

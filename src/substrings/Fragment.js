@@ -1,29 +1,28 @@
-Anglebars.substrings.Fragment = function ( model, anglebars, parent, contextStack ) {
+Anglebars.substrings.Fragment = function ( models, anglebars, parent, contextStack ) {
 	var numItems, substring, i;
 
-	this.substrings = [];
+	this.items = [];
 	
-	numItems = model.items.length;
+	numItems = models.length;
 	for ( i=0; i<numItems; i+=1 ) {
-		substring = substrings.create( model.items[i], anglebars, this, contextStack );
-		this.substrings[i] = substring;
+		this.items[ this.items.length ] = Anglebars.substrings.create( models[i], anglebars, this, contextStack );
 	}
 
-	this.value = this.substrings.join('');
+	this.value = this.items.join('');
 };
 
 Anglebars.substrings.Fragment.prototype = {
 	bubble: function () {
-		this.value = this.substrings.join( '' );
+		this.value = this.items.join( '' );
 		this.parent.bubble();
 	},
 
 	teardown: function () {
-		var numSubstrings, i;
+		var numItems, i;
 
-		numSubstrings = this.substrings.length;
-		for ( i=0; i<numSubstrings; i+=1 ) {
-			this.substrings[i].teardown();
+		numItems = this.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			this.items[i].teardown();
 		}
 	},
 

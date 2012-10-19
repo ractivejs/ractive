@@ -1,32 +1,26 @@
-(function ( views ) {
-	
-	'use strict';
+Anglebars.views.Fragment = function ( models, anglebars, parentNode, contextStack, anchor ) {
 
-	views.Fragment = function ( models, anglebars, parentNode, contextStack, anchor ) {
+	var numModels, i;
 
-		var numModels, i;
+	this.items = [];
 
-		this.items = [];
+	numModels = models.length;
+	for ( i=0; i<numModels; i+=1 ) {
+		this.items[ this.items.length ] = Anglebars.views.create( models[i], anglebars, parentNode, contextStack, anchor );
+	}
+};
 
-		numModels = models.length;
-		for ( i=0; i<numModels; i+=1 ) {
-			this.items[ this.items.length ] = views.create( models[i], anglebars, parentNode, contextStack, anchor );
+Anglebars.views.Fragment.prototype = {
+	teardown: function () {
+		
+		var i, numItems;
+
+		// TODO unsubscribes
+		numItems = this.items.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			this.items[i].teardown();
 		}
-	};
 
-	views.Fragment.prototype = {
-		teardown: function () {
-			
-			var i, numItems;
-
-			// TODO unsubscribes
-			numItems = this.items.length;
-			for ( i=0; i<numItems; i+=1 ) {
-				this.items[i].teardown();
-			}
-
-			delete this.items; // garbage collector, ATTACK!
-		}
-	};
-
-}( Anglebars.views ));
+		delete this.items;
+	}
+};
