@@ -35,7 +35,7 @@ var Anglebars = function ( options ) {
 	// `data` **object | Anglebars.ViewModel** *optional*  
 	// An object or an `Anglebars.ViewModel` instance containing the data with
 	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
-	// instance allows separate Anglebars instances to share a single data model
+	// instance allows separate Anglebars instances to share a single view model
 	this.viewmodel = ( options.data instanceof Anglebars.ViewModel ? options.data : new Anglebars.ViewModel( options.data ) );
 	
 	// `formatters` **object** *optional*  
@@ -93,18 +93,18 @@ Anglebars.prototype = {
 		this.rendered = new Anglebars.views.Fragment( this.compiled, this, el );
 	},
 
-	// Shortcuts to data model `set`, `get` and `update` methods
+	// Proxies for viewmodel `set`, `get` and `update` methods
 	set: function () {
-		this.data.set.apply( this.data, arguments );
+		this.viewmodel.set.apply( this.viewmodel, arguments );
 		return this;
 	},
 
 	get: function () {
-		return this.data.get.apply( this.data, arguments );
+		return this.viewmodel.get.apply( this.viewmodel, arguments );
 	},
 
 	update: function () {
-		this.data.update.apply( this.data, arguments );
+		this.viewmodel.update.apply( this.viewmodel, arguments );
 		return this;
 	},
 

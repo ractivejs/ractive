@@ -1,6 +1,6 @@
 var anglebars = new Anglebars({
   el: 'output',
-  template: $('#template').html(),
+  template: $('#template').text(),
   data: {
     reality: {
       kick: 'However deeply nested we are, we can still get back to the top',

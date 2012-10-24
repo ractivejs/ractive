@@ -13,10 +13,10 @@ Anglebars.substrings.Interpolator = Anglebars.substring({
 	},
 
 	teardown: function () {
-		if ( !this.subscriptionRefs ) {
+		if ( !this.observerRefs ) {
 			this.viewmodel.cancelAddressResolution( this );
 		} else {
-			this.viewmodel.unsubscribeAll( this.subscriptionRefs );
+			this.viewmodel.unobserveAll( this.observerRefs );
 		}
 	},
 

@@ -1,6 +1,6 @@
 Anglebars.views.Attribute = function ( model, anglebars, parentNode, contextStack, anchor ) {
 	
-	var i, numComponents, component;
+	var i, numComponents;
 
 	// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
 	if ( !model.isDynamic ) {
@@ -16,8 +16,7 @@ Anglebars.views.Attribute = function ( model, anglebars, parentNode, contextStac
 
 	numComponents = model.components.length;
 	for ( i=0; i<numComponents; i+=1 ) {
-		component = model.components[i];
-		this.substrings[i] = Anglebars.substrings.create( component, anglebars, this, contextStack );
+		this.substrings[i] = Anglebars.substrings.create( model.components[i], anglebars, this, contextStack );
 	}
 
 	// manually trigger first update
@@ -33,7 +32,7 @@ Anglebars.views.Attribute.prototype = {
 			substring = this.substrings[i];
 
 			if ( substring.teardown ) {
-				substring.teardown(); // TODO should all substrings have a teardown method?
+				substring.teardown();
 			}
 		}
 	},

@@ -58,72 +58,75 @@ Anglebars.views.Section = Anglebars.view({
 
 
 		// otherwise we need to work out what sort of section we're dealing with
-		switch ( typeof value ) {
-			case 'object':
+		if ( typeof value === 'object' ) {
+			
 
-				// if value is an array, iterate through
-				if ( Anglebars.utils.isArray( value ) ) {
+			// if value is an array, iterate through
+			if ( Anglebars.utils.isArray( value ) ) {
 
-					// if the array is shorter than it was previously, remove items
-					if ( value.length < this.length ) {
-						viewsToRemove = this.views.splice( value.length, this.length - value.length );
+				// if the array is shorter than it was previously, remove items
+				if ( value.length < this.length ) {
+					viewsToRemove = this.views.splice( value.length, this.length - value.length );
 
-						while ( viewsToRemove.length ) {
-							viewsToRemove.shift().teardown();
-						}
+					while ( viewsToRemove.length ) {
+						viewsToRemove.shift().teardown();
 					}
-
-					// otherwise...
-					else {
-
-						// first, update existing views
-						for ( i=0; i<this.length; i+=1 ) {
-							this.viewmodel.update( this.keypath + '.' + i );
-						}
-
-						if ( value.length > this.length ) {
-						
-							// then add any new ones
-							for ( i=this.length; i<value.length; i+=1 ) {
-								this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
-							}
-						}
-					}
-
-					this.length = value.length;
 				}
 
-				// if value is a hash...
+				// otherwise...
 				else {
-					// ...then if it isn't rendered, render it, adding this.keypath to the context stack
-					// (if it is already rendered, then any children dependent on the context stack
-					// will update themselves without any prompting)
-					if ( !this.length ) {
-						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
-						this.length = 1;
+
+					// first, update existing views
+					for ( i=0; i<this.length; i+=1 ) {
+						this.viewmodel.update( this.keypath + '.' + i );
+					}
+
+					if ( value.length > this.length ) {
+					
+						// then add any new ones
+						for ( i=this.length; i<value.length; i+=1 ) {
+							this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
+						}
 					}
 				}
 
-				this.rendered = true;
-				break;
+				this.length = value.length;
+			}
 
-			default:
-
-				if ( value && !emptyArray ) {
-					if ( !this.length ) {
-						this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
-						this.length = 1;
-					}
+			// if value is a hash...
+			else {
+				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
+				// (if it is already rendered, then any children dependent on the context stack
+				// will update themselves without any prompting)
+				if ( !this.length ) {
+					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
+					this.length = 1;
 				}
+			}
 
-				else {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-					}
+			this.rendered = true;
+				
+
+		}
+
+		// otherwise render if value is truthy, unrender if falsy
+		else {
+
+			if ( value && !emptyArray ) {
+				if ( !this.length ) {
+					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
+					this.length = 1;
 				}
+			}
 
-				// otherwise render if value is truthy, unrender if falsy
+			else {
+				if ( this.length ) {
+					this.unrender();
+					this.length = 0;
+				}
+			}
+
+			
 
 		}
 	}
