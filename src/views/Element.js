@@ -5,7 +5,8 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 		numAttributes,
 		numItems,
 		attributeModel,
-		item;
+		item,
+		binding;
 
 	// stuff we'll need later
 	this.model = model;
@@ -27,13 +28,17 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 
 		// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
 		if ( attributeModel.name === 'data-bind' && ( model.tag === 'INPUT' || model.tag === 'TEXTAREA' ) ) {
-			this.bind( attributeModel.value, anglebars.lazy );
+			binding = attributeModel.value;
 		}
 
 		// otherwise proceed as normal
 		else {
 			this.attributes[i] = new Anglebars.views.Attribute( attributeModel, anglebars, this.node, contextStack );
 		}
+	}
+
+	if ( binding ) {
+		this.bind( binding, anglebars.lazy );
 	}
 
 	// append children
@@ -57,7 +62,17 @@ Anglebars.views.Element.prototype = {
 
 		setValue = function () {
 			var value = node.value;
-			data.set( keypath, ( isNaN( value ) ? value : +value ) );
+			
+			// special cases
+			if ( value === '0' ) {
+				value = 0;
+			}
+
+			else if ( value !== '' ) {
+				value = +value || value;
+			}
+
+			data.set( keypath, value );
 		};
 
 		// set initial value
