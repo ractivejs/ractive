@@ -17,7 +17,7 @@ Anglebars.substring = function ( proto ) {
 			value = this.data.get( this.keypath );
 			this.update( this.anglebars._format( value, this.formatters ) );
 
-			this.observerRefs = this.data.observe( this.keypath, this.model.level, function ( value ) {
+			this.observerRefs = this.data.observe( this.keypath, this.model.priority, function ( value ) {
 				self.update( self.anglebars._format( value, self.model.formatters ) );
 			});
 		});

@@ -155,14 +155,14 @@ Anglebars.DataModel.prototype = {
 	},
 
 	publish: function ( keypath, value ) {
-		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, level, observer;
+		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer;
 
 		for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
-			level = observersGroupedByLevel[i];
+			priority = observersGroupedByLevel[i];
 
-			if ( level ) {
-				for ( j=0; j<level.length; j+=1 ) {
-					observer = level[j];
+			if ( priority ) {
+				for ( j=0; j<priority.length; j+=1 ) {
+					observer = priority[j];
 
 					if ( keypath !== observer.originalAddress ) {
 						value = self.get( observer.originalAddress );
@@ -173,7 +173,7 @@ Anglebars.DataModel.prototype = {
 		}
 	},
 
-	observe: function ( keypath, level, callback ) {
+	observe: function ( keypath, priority, callback ) {
 		
 		var self = this, originalAddress = keypath, observerRefs = [], observe;
 
@@ -185,7 +185,7 @@ Anglebars.DataModel.prototype = {
 			var observers, observer;
 
 			observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
-			observers = observers[ level ] = observers[ level ] || [];
+			observers = observers[ priority ] = observers[ priority ] || [];
 
 			observer = {
 				callback: callback,
@@ -195,7 +195,7 @@ Anglebars.DataModel.prototype = {
 			observers[ observers.length ] = observer;
 			observerRefs[ observerRefs.length ] = {
 				keypath: keypath,
-				level: level,
+				priority: priority,
 				observer: observer
 			};
 		};
@@ -213,15 +213,15 @@ Anglebars.DataModel.prototype = {
 	},
 
 	unobserve: function ( observerRef ) {
-		var levels, observers, index;
+		var s, observers, index;
 
-		levels = this.observers[ observerRef.keypath ];
-		if ( !levels ) {
+		priorities = this.observers[ observerRef.keypath ];
+		if ( !priorities ) {
 			// nothing to unobserve
 			return;
 		}
 
-		observers = levels[ observerRef.level ];
+		observers = priorities[ observerRef.priority ];
 		if ( !observers ) {
 			// nothing to unobserve
 			return;
@@ -239,10 +239,10 @@ Anglebars.DataModel.prototype = {
 
 		// ...then tidy up if necessary
 		if ( observers.length === 0 ) {
-			delete levels[ observerRef.level ];
+			delete priorities[ observerRef.priority ];
 		}
 
-		if ( levels.length === 0 ) {
+		if ( priorities.length === 0 ) {
 			delete this.observers[ observerRef.keypath ];
 		}
 	},

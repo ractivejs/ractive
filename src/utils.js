@@ -3,7 +3,7 @@
 	'use strict';
 
 	var utils = Anglebars.utils,
-		whitespace = /^\s+$/;
+		whitespace = /^\s*\n\r?\s*$/;
 
 
 	// Remove node from DOM if it exists
@@ -461,7 +461,7 @@
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	};
 
-	utils.compileStubs = function ( stubs, level, namespace, preserveWhitespace ) {
+	utils.compileStubs = function ( stubs, priority, namespace, preserveWhitespace ) {
 		var compiled, next, processIntermediary;
 
 		compiled = [];
@@ -484,7 +484,7 @@
 					return i+1;
 
 				case 'element':
-					compiled[ compiled.length ] = utils.processElementStub( stub, level, namespace );
+					compiled[ compiled.length ] = utils.processElementStub( stub, priority, namespace );
 					return i+1;
 
 				case 'mustache':
@@ -530,8 +530,8 @@
 								partialKeypath: partialKeypath,
 								formatters: stub.mustache.formatters,
 								inverted: stub.mustache.inverted,
-								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1, namespace, preserveWhitespace ),
-								level: level
+								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, namespace, preserveWhitespace ),
+								priority: priority
 							};
 							return i;
 
@@ -541,7 +541,7 @@
 								type: 'triple',
 								partialKeypath: stub.mustache.partialKeypath,
 								formatters: stub.mustache.formatters,
-								level: level
+								priority: priority
 							};
 							return i+1;
 
@@ -551,7 +551,7 @@
 								type: 'interpolator',
 								partialKeypath: stub.mustache.partialKeypath,
 								formatters: stub.mustache.formatters,
-								level: level
+								priority: priority
 							};
 							return i+1;
 
@@ -573,7 +573,7 @@
 		return compiled;
 	};
 
-	utils.processElementStub = function ( stub, level, namespace ) {
+	utils.processElementStub = function ( stub, priority, namespace ) {
 		var proxy, attributes, numAttributes, attribute, i, node;
 
 		node = stub.original;
@@ -581,7 +581,7 @@
 		proxy = {
 			type: 'element',
 			tag: node.tagName,
-			level: level
+			priority: priority
 		};
 
 		// inherit namespace from parent, if applicable
@@ -599,19 +599,19 @@
 			if ( attribute.name === 'xmlns' ) {
 				proxy.namespace = attribute.value;
 			} else {
-				attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value, level + 1 );
+				attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value, priority + 1 );
 			}
 		}
 
 		proxy.attributes = attributes;
 
 		// get children
-		proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), level + 1, proxy.namespace );
+		proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), priority + 1, proxy.namespace );
 
 		return proxy;
 	};
 
-	utils.processAttribute = function ( name, value, level ) {
+	utils.processAttribute = function ( name, value, priority ) {
 		var attribute, components;
 
 		components = utils.expandText( value );
@@ -629,8 +629,8 @@
 
 		// mustaches present - attribute is dynamic
 		attribute.isDynamic = true;
-		attribute.level = level;
-		attribute.components = utils.compileStubs( components, level, null );
+		attribute.priority = priority;
+		attribute.components = utils.compileStubs( components, priority, null );
 
 
 		return attribute;

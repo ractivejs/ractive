@@ -20,7 +20,7 @@ Anglebars.view = function ( proto ) {
 
 			this.update( formatted );
 
-			this.observerRefs = this.data.observe( this.keypath, this.model.level, function ( value ) {
+			this.observerRefs = this.data.observe( this.keypath, this.model.priority, function ( value ) {
 				var formatted = self.anglebars._format( value, self.model.formatters );
 				self.update( formatted );
 				
