@@ -258,7 +258,12 @@ Anglebars.DataModel.prototype = {
 
 			result = this.data;
 			while ( keys.length ) {
-				result = result[ keys.shift() ];
+				try {
+					result = result[ keys.shift() ];
+				} catch ( err ) {
+					result = undefined;
+					break;
+				}
 			
 				if ( result === undefined ) {
 					break;
@@ -313,14 +318,14 @@ Anglebars.DataModel.prototype = {
 	},
 
 	publish: function ( keypath, value ) {
-		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, level, observer;
+		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer;
 
 		for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
-			level = observersGroupedByLevel[i];
+			priority = observersGroupedByLevel[i];
 
-			if ( level ) {
-				for ( j=0; j<level.length; j+=1 ) {
-					observer = level[j];
+			if ( priority ) {
+				for ( j=0; j<priority.length; j+=1 ) {
+					observer = priority[j];
 
 					if ( keypath !== observer.originalAddress ) {
 						value = self.get( observer.originalAddress );
@@ -331,7 +336,7 @@ Anglebars.DataModel.prototype = {
 		}
 	},
 
-	observe: function ( keypath, level, callback ) {
+	observe: function ( keypath, priority, callback ) {
 		
 		var self = this, originalAddress = keypath, observerRefs = [], observe;
 
@@ -343,7 +348,7 @@ Anglebars.DataModel.prototype = {
 			var observers, observer;
 
 			observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
-			observers = observers[ level ] = observers[ level ] || [];
+			observers = observers[ priority ] = observers[ priority ] || [];
 
 			observer = {
 				callback: callback,
@@ -353,7 +358,7 @@ Anglebars.DataModel.prototype = {
 			observers[ observers.length ] = observer;
 			observerRefs[ observerRefs.length ] = {
 				keypath: keypath,
-				level: level,
+				priority: priority,
 				observer: observer
 			};
 		};
@@ -371,15 +376,15 @@ Anglebars.DataModel.prototype = {
 	},
 
 	unobserve: function ( observerRef ) {
-		var levels, observers, index;
+		var s, observers, index;
 
-		levels = this.observers[ observerRef.keypath ];
-		if ( !levels ) {
+		priorities = this.observers[ observerRef.keypath ];
+		if ( !priorities ) {
 			// nothing to unobserve
 			return;
 		}
 
-		observers = levels[ observerRef.level ];
+		observers = priorities[ observerRef.priority ];
 		if ( !observers ) {
 			// nothing to unobserve
 			return;
@@ -397,10 +402,10 @@ Anglebars.DataModel.prototype = {
 
 		// ...then tidy up if necessary
 		if ( observers.length === 0 ) {
-			delete levels[ observerRef.level ];
+			delete priorities[ observerRef.priority ];
 		}
 
-		if ( levels.length === 0 ) {
+		if ( priorities.length === 0 ) {
 			delete this.observers[ observerRef.keypath ];
 		}
 	},
@@ -436,7 +441,7 @@ Anglebars.view = function ( proto ) {
 
 			this.update( formatted );
 
-			this.observerRefs = this.data.observe( this.keypath, this.model.level, function ( value ) {
+			this.observerRefs = this.data.observe( this.keypath, this.model.priority, function ( value ) {
 				var formatted = self.anglebars._format( value, self.model.formatters );
 				self.update( formatted );
 				
@@ -539,7 +544,8 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 		numAttributes,
 		numItems,
 		attributeModel,
-		item;
+		item,
+		binding;
 
 	// stuff we'll need later
 	this.model = model;
@@ -561,13 +567,17 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 
 		// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
 		if ( attributeModel.name === 'data-bind' && ( model.tag === 'INPUT' || model.tag === 'TEXTAREA' ) ) {
-			this.bind( attributeModel.value, anglebars.lazy );
+			binding = attributeModel.value;
 		}
 
 		// otherwise proceed as normal
 		else {
 			this.attributes[i] = new Anglebars.views.Attribute( attributeModel, anglebars, this.node, contextStack );
 		}
+	}
+
+	if ( binding ) {
+		this.bind( binding, anglebars.lazy );
 	}
 
 	// append children
@@ -591,7 +601,17 @@ Anglebars.views.Element.prototype = {
 
 		setValue = function () {
 			var value = node.value;
-			data.set( keypath, ( isNaN( value ) ? value : +value ) );
+			
+			// special cases
+			if ( value === '0' ) {
+				value = 0;
+			}
+
+			else if ( value !== '' ) {
+				value = +value || value;
+			}
+
+			data.set( keypath, value );
 		};
 
 		// set initial value
@@ -877,7 +897,7 @@ Anglebars.substring = function ( proto ) {
 			value = this.data.get( this.keypath );
 			this.update( this.anglebars._format( value, this.formatters ) );
 
-			this.observerRefs = this.data.observe( this.keypath, this.model.level, function ( value ) {
+			this.observerRefs = this.data.observe( this.keypath, this.model.priority, function ( value ) {
 				self.update( self.anglebars._format( value, self.model.formatters ) );
 			});
 		});
@@ -1090,7 +1110,7 @@ Anglebars.substrings.Text.prototype = {
 	'use strict';
 
 	var utils = Anglebars.utils,
-		whitespace = /^\s+$/;
+		whitespace = /^\s*\n\r?\s*$/;
 
 
 	// Remove node from DOM if it exists
@@ -1548,7 +1568,7 @@ Anglebars.substrings.Text.prototype = {
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	};
 
-	utils.compileStubs = function ( stubs, level, namespace, preserveWhitespace ) {
+	utils.compileStubs = function ( stubs, priority, namespace, preserveWhitespace ) {
 		var compiled, next, processIntermediary;
 
 		compiled = [];
@@ -1571,7 +1591,7 @@ Anglebars.substrings.Text.prototype = {
 					return i+1;
 
 				case 'element':
-					compiled[ compiled.length ] = utils.processElementStub( stub, level, namespace );
+					compiled[ compiled.length ] = utils.processElementStub( stub, priority, namespace );
 					return i+1;
 
 				case 'mustache':
@@ -1617,8 +1637,8 @@ Anglebars.substrings.Text.prototype = {
 								partialKeypath: partialKeypath,
 								formatters: stub.mustache.formatters,
 								inverted: stub.mustache.inverted,
-								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), level + 1, namespace, preserveWhitespace ),
-								level: level
+								children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, namespace, preserveWhitespace ),
+								priority: priority
 							};
 							return i;
 
@@ -1628,7 +1648,7 @@ Anglebars.substrings.Text.prototype = {
 								type: 'triple',
 								partialKeypath: stub.mustache.partialKeypath,
 								formatters: stub.mustache.formatters,
-								level: level
+								priority: priority
 							};
 							return i+1;
 
@@ -1638,7 +1658,7 @@ Anglebars.substrings.Text.prototype = {
 								type: 'interpolator',
 								partialKeypath: stub.mustache.partialKeypath,
 								formatters: stub.mustache.formatters,
-								level: level
+								priority: priority
 							};
 							return i+1;
 
@@ -1660,7 +1680,7 @@ Anglebars.substrings.Text.prototype = {
 		return compiled;
 	};
 
-	utils.processElementStub = function ( stub, level, namespace ) {
+	utils.processElementStub = function ( stub, priority, namespace ) {
 		var proxy, attributes, numAttributes, attribute, i, node;
 
 		node = stub.original;
@@ -1668,7 +1688,7 @@ Anglebars.substrings.Text.prototype = {
 		proxy = {
 			type: 'element',
 			tag: node.tagName,
-			level: level
+			priority: priority
 		};
 
 		// inherit namespace from parent, if applicable
@@ -1686,19 +1706,19 @@ Anglebars.substrings.Text.prototype = {
 			if ( attribute.name === 'xmlns' ) {
 				proxy.namespace = attribute.value;
 			} else {
-				attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value, level + 1 );
+				attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value, priority + 1 );
 			}
 		}
 
 		proxy.attributes = attributes;
 
 		// get children
-		proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), level + 1, proxy.namespace );
+		proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), priority + 1, proxy.namespace );
 
 		return proxy;
 	};
 
-	utils.processAttribute = function ( name, value, level ) {
+	utils.processAttribute = function ( name, value, priority ) {
 		var attribute, components;
 
 		components = utils.expandText( value );
@@ -1716,8 +1736,8 @@ Anglebars.substrings.Text.prototype = {
 
 		// mustaches present - attribute is dynamic
 		attribute.isDynamic = true;
-		attribute.level = level;
-		attribute.components = utils.compileStubs( components, level, null );
+		attribute.priority = priority;
+		attribute.components = utils.compileStubs( components, priority, null );
 
 
 		return attribute;

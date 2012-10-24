@@ -11,9 +11,9 @@ Anglebars.views.Section = Anglebars.view({
 		this.unrender();
 
 		if ( !this.observerRefs ) {
-			this.data.cancelAddressResolution( this );
+			this.viewmodel.cancelAddressResolution( this );
 		} else {
-			this.data.unobserveAll( this.observerRefs );
+			this.viewmodel.unobserveAll( this.observerRefs );
 		}
 
 		Anglebars.utils.remove( this.anchor );
@@ -78,7 +78,7 @@ Anglebars.views.Section = Anglebars.view({
 
 						// first, update existing views
 						for ( i=0; i<this.length; i+=1 ) {
-							this.anglebars.data.update( this.keypath + '.' + i );
+							this.viewmodel.update( this.keypath + '.' + i );
 						}
 
 						if ( value.length > this.length ) {

@@ -1,5 +1,5 @@
-// DataModel constructor
-Anglebars.DataModel = function ( data ) {
+// ViewModel constructor
+Anglebars.ViewModel = function ( data ) {
 	// Store data.
 	this.data = data || {};
 
@@ -10,7 +10,7 @@ Anglebars.DataModel = function ( data ) {
 	this.observers = {};
 };
 
-Anglebars.DataModel.prototype = {
+Anglebars.ViewModel.prototype = {
 	
 	// Update the data model and notify observers
 	set: function ( keypath, value ) {

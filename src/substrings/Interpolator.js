@@ -14,9 +14,9 @@ Anglebars.substrings.Interpolator = Anglebars.substring({
 
 	teardown: function () {
 		if ( !this.subscriptionRefs ) {
-			this.data.cancelAddressResolution( this );
+			this.viewmodel.cancelAddressResolution( this );
 		} else {
-			this.data.unsubscribeAll( this.subscriptionRefs );
+			this.viewmodel.unsubscribeAll( this.subscriptionRefs );
 		}
 	},
 

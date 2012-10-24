@@ -32,11 +32,11 @@ var Anglebars = function ( options ) {
 		this.template = options.template;
 	}
 
-	// `data` **object | Anglebars.DataModel** *optional*  
-	// An object or an `Anglebars.DataModel` instance containing the data with
-	// which to populate the template. Passing in an existing `Anglebars.DataModel`
+	// `data` **object | Anglebars.ViewModel** *optional*  
+	// An object or an `Anglebars.ViewModel` instance containing the data with
+	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
 	// instance allows separate Anglebars instances to share a single data model
-	this.data = ( options.data instanceof Anglebars.DataModel ? options.data : new Anglebars.DataModel( options.data ) );
+	this.viewmodel = ( options.data instanceof Anglebars.ViewModel ? options.data : new Anglebars.ViewModel( options.data ) );
 	
 	// `formatters` **object** *optional*  
 	// An object containing mustache formatter functions

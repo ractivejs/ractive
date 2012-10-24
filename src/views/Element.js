@@ -1,7 +1,6 @@
 Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack, anchor ) {
 
-	var data = anglebars.data,
-		i,
+	var i,
 		numAttributes,
 		numItems,
 		attributeModel,
@@ -10,7 +9,7 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 
 	// stuff we'll need later
 	this.model = model;
-	this.data = data;
+	this.viewmodel = anglebars.viewmodel;
 
 	// create the DOM node
 	if ( model.namespace ) {
@@ -58,7 +57,7 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 Anglebars.views.Element.prototype = {
 	bind: function ( keypath, lazy ) {
 		
-		var data = this.data, node = this.node, value, setValue;
+		var viewmodel = this.viewmodel, node = this.node, value, setValue;
 
 		setValue = function () {
 			var value = node.value;
@@ -72,7 +71,7 @@ Anglebars.views.Element.prototype = {
 				value = +value || value;
 			}
 
-			data.set( keypath, value );
+			viewmodel.set( keypath, value );
 		};
 
 		// set initial value

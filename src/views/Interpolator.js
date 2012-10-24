@@ -6,9 +6,9 @@ Anglebars.views.Interpolator = Anglebars.view({
 
 	teardown: function () {
 		if ( !this.observerRefs ) {
-			this.data.cancelAddressResolution( this );
+			this.viewmodel.cancelAddressResolution( this );
 		} else {
-			this.data.unobserveAll( this.observerRefs );
+			this.viewmodel.unobserveAll( this.observerRefs );
 		}
 
 		Anglebars.utils.remove( this.node );

@@ -18,9 +18,9 @@ Anglebars.views.Triple = Anglebars.view({
 
 
 		if ( !this.observerRefs ) {
-			this.data.cancelAddressResolution( this );
+			this.viewmodel.cancelAddressResolution( this );
 		} else {
-			this.data.unobserveAll( this.observerRefs );
+			this.viewmodel.unobserveAll( this.observerRefs );
 		}
 
 		Anglebars.utils.remove( this.anchor );
