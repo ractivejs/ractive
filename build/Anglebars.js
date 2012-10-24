@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-10-19
+/*! Anglebars - v0.0.1 - 2012-10-24
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -551,14 +551,23 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 	} else {
 		this.node = document.createElement( model.tag );
 	}
-	
+
 	
 	// set attributes
 	this.attributes = [];
 	numAttributes = model.attributes.length;
 	for ( i=0; i<numAttributes; i+=1 ) {
 		attributeModel = model.attributes[i];
-		this.attributes[i] = new Anglebars.views.Attribute( attributeModel, anglebars, this.node, contextStack );
+
+		// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
+		if ( attributeModel.name === 'data-bind' && ( model.tag === 'INPUT' || model.tag === 'TEXTAREA' ) ) {
+			this.bind( attributeModel.value, anglebars.lazy );
+		}
+
+		// otherwise proceed as normal
+		else {
+			this.attributes[i] = new Anglebars.views.Attribute( attributeModel, anglebars, this.node, contextStack );
+		}
 	}
 
 	// append children
@@ -576,6 +585,26 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 };
 
 Anglebars.views.Element.prototype = {
+	bind: function ( keypath, lazy ) {
+		
+		var data = this.data, node = this.node, value, setValue;
+
+		setValue = function () {
+			var value = node.value;
+			data.set( keypath, ( isNaN( value ) ? value : +value ) );
+		};
+
+		// set initial value
+		setValue();
+
+		// TODO support shite browsers like IE and Opera
+		node.addEventListener( 'change', setValue );
+
+		if ( !lazy ) {
+			node.addEventListener( 'keyup', setValue );
+		}
+	},
+
 	teardown: function () {
 		
 		var numAttrs, i;

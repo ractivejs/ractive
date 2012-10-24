@@ -1,1 +1,0 @@
-anglebars.set('helloworld', 'Greetings, my good fellow!');
