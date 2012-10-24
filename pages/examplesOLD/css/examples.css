@@ -1,0 +1,133 @@
+body {
+	min-width: 480px;
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+.top .back {
+	padding: 0.5em;
+	margin: 0 0 1em 0;
+	float: left;
+}
+
+.top .logo {
+	font-family: 'Voltaire', 'Arial';
+	font-weight: normal;
+	color: black;
+	height: 34px;
+	padding: 5px 35px 5px 5px;
+	background: url(../../assets/logosmall.png) no-repeat right 0;
+	float: right;
+}
+
+.top {
+	height: 40px;
+}
+
+p {
+	margin: 0 0 1em 0;
+}
+
+#output {
+	background-color: rgb(250,250,250);
+	display: block;
+	padding: 0.5em;
+	margin: 0 0 1em 0;
+}
+
+.code {
+	white-space: pre;
+	font-family: monospace;
+	font-size: 14px;
+	background-color: rgb(249,252,246);
+	display: block;
+	padding: 0.5em;
+	overflow-x: auto;
+	margin: 0 0 1em 0;
+}
+
+#output:before {
+	content: 'result';
+}
+
+#output img {
+	max-width: 100%;
+}
+
+#template:before, #script:before, #output:before {
+	display: block;
+	border-bottom: 1px solid rgb(240,240,240);
+	padding-bottom: 0.5em;
+	font-family: 'Voltaire', 'Arial';
+	font-weight: bold;
+	border-radius: 0.5em;
+	margin-bottom: 1em;
+}
+
+#template:before {
+	content: 'template';
+}
+
+#script:before {
+	content: 'script';
+}
+
+.notes {
+	border-bottom: 1px solid #eee;
+	margin: 0 0 1em 0;
+}
+
+#consoleExpander {
+	position: relative;
+	width: 100%;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	padding: 0.2em;
+	font-family: monospace;
+	font-size: 14px;
+	margin: 0 0 1em 0;
+}
+
+#consoleMirror {
+	white-space: pre;
+	overflow-x: scroll;
+	line-height: 1.2em;
+	font-size: 14px;
+}
+
+#consoleMirror:after {
+	content: 'Enter to run, Shift-Enter for newline';
+	position: absolute;
+	right: 0;
+	bottom: -1.3em;
+	z-index: 2;
+	font-size: 0.7em;
+	font-family: 'Helvetica Neue', 'Arial';
+	color: #999;
+}
+
+textarea {
+	position: absolute;
+	top: 0;
+	left: 0;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	border: 1px solid #eee;
+	background-color: rgb(253,253,253);
+	border-radius: 2px;
+	width: 100%;
+	height: 100%;
+	font-family: monospace;
+	padding: 0.2em;
+	font-size: 14px;
+	margin: 0 0 1em 0;
+	box-shadow: inset 1px 1px 4px rgba(0,0,0,0.1);
+	line-height: 1.2em;
+}
+
+.exampleIndex {
+	text-align: center;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}

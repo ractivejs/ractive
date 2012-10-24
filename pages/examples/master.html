@@ -1,0 +1,32 @@
+<div class='top'>
+	<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
+
+	<a href='../../' class='logo'>Anglebars.js</a>
+</div>
+
+<select id='example-select' value='{{selectedExample.slug}}'>
+	{{#examples}}
+	<option value={{slug}}>{{title}}</option>
+	{{/examples}}
+</select>
+
+{{#selectedExample}}
+<div class='notes'>
+	<h2>{{title}}</h2>
+	{{{notes}}}
+	<div id='consoleExpander'>
+		<div id='consoleMirror'></div>
+		<textarea id='console'>{{example}}</textarea>
+	</div>
+</div>
+
+<div class='main'>
+
+	<div id='output'></div>
+
+	<div id='input'>
+		<div id='template' class='code'>{{template}}</div>
+		<div id='script' class='code'>{{setup}}</div>
+	</div>
+</div>
+{{/selectedExample}}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<link rel='stylesheet' href='../../css/main.css'>
+	<link rel='stylesheet' href='../css/examples.css'>
+	<link href='http://fonts.googleapis.com/css?family=Voltaire' rel='stylesheet' type='text/css'>
+
+	<title>Interpolators (Hello World) | Anglebars examples</title>
+
+	<script src='../lib/jquery-1.7.2.min.js'></script>
+	<script src='../../lib/Anglebars.js'></script>
+	
+	<script src='../examples.js'></script>
+</head>
+
+
+<body>
+	<div class='top'>
+		<a class='back' href='../'><span>&#9664;</span> Back to examples</a>
+		<a href='../../' class='logo'>Anglebars.js</a>
+	</div>
+	
+	<div class='notes'>
+		<h2>Interpolators (Hello World)</h2>
+		<p>A normal mustache <strong>interpolator</strong> looks like this:</p>
+		<code>{{helloworld}}</code>
+		<p>Text can be changed by calling the <em>.set()</em> method. This doesn't re-render the entire template, just the bits that need to change. Try doing the following:</p>
+		<div id='consoleExpander'>
+			<div id='consoleMirror'></div>
+			<textarea id='console'>anglebars.set('helloworld', 'Greetings, my good fellow!');</textarea>
+		</div>
+	</div>
+
+	<div class='main'>
+
+		<div id='output'></div>
+
+		<div id='input'>
+			<script type='text/template' id='template' class='code'><p>{{helloworld}}</p></script>
+
+			<div id='script' class='code'>var anglebars = new Anglebars({
+  el: 'output',
+  template: $('#template').html(),
+  data: {
+    helloworld: 'Hello world!'
+  }
+});</div>
+		</div>
+
+		
+	</div>
+
+</body>
+</html>

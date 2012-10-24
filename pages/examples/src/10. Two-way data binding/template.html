@@ -1,0 +1,18 @@
+<p style="font-size: {{fontSize}}px; opacity: {{opacity | percent}}">Hello {{#user}}{{firstname}} {{lastname}}{{/user}}!</p>
+<label>
+  Your first name:
+  <input data-bind="user.firstname" value="new"/>
+</label>
+<label>
+  Your last name:
+  <input data-bind="user.lastname" value="user"/>
+</label>
+<label>
+  Font size:
+  <input type="number" data-bind="fontSize" value="16"/>
+</label>
+<label>
+  Opacity (%):
+  <input type="range" data-bind="opacity" value="100"/>
+</label>
+<br style='clear:both;'/>

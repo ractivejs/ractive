@@ -1,0 +1,12 @@
+@media (min-width: 640px) {
+	#input, #output {
+		box-sizing: border-box;
+		-moz-box-sizing: border-box;
+		width: 48%;
+		float: left;
+	}
+
+	#input {
+		margin-right: 4%;
+	}
+}

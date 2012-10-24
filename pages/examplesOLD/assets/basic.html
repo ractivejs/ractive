@@ -1,0 +1,26 @@
+<div style='font-size: {{ fontSize }}px;'>
+	<h2 id='heading' style='color: blue;'>{{ title | uppercase }}</h2>
+	{{{ triple | markdown }}}
+	This is a text node with no mustaches.
+
+	Here comes a section:
+
+	{{# section }}<p style='color: {{ color }};'>The section is visible</p><p>Top level: {{ toplevel }}</p><p>Nested: {{ nested }}</p>{{/ section }}
+
+	{{# list.length }}
+	This is a list:
+	<ul>
+		{{# list }}
+		<li style='color: {{ licolor }};'>{{ text }}</li>
+		{{/ list }}
+	</ul>
+	{{/ list.length }}
+
+	<div style='{{# hidden }}display: none;{{/ hidden }}'>
+		<p>This section should be hidden, unless data.hidden is set false</p>
+	</div>
+
+	{{# a }}{{ one }}<br/>{{# b }}{{ one }}{{ two }}{{ one }}<br/>{{# c }}{{ one }}{{ two }}{{ three }}{{ two }}{{ one }}<br/>{{/ c }}{{ one }}{{ two }}{{ one }}<br/>{{/ b }}{{ one }}<br/>{{/ a }}<p>End of nested sections</p>
+
+	<p>There should be nothing here until you resolve it: {{ unresolved }}</p>
+</div>
