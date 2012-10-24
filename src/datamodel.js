@@ -100,7 +100,12 @@ Anglebars.DataModel.prototype = {
 
 			result = this.data;
 			while ( keys.length ) {
-				result = result[ keys.shift() ];
+				try {
+					result = result[ keys.shift() ];
+				} catch ( err ) {
+					result = undefined;
+					break;
+				}
 			
 				if ( result === undefined ) {
 					break;
