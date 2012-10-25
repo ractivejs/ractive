@@ -1,6 +1,7 @@
 Anglebars.substrings.Fragment = function ( models, anglebars, parent, contextStack ) {
-	var numItems, substring, i;
+	var numItems, i;
 
+	this.parent = parent;
 	this.items = [];
 	
 	numItems = models.length;

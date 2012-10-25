@@ -15,7 +15,6 @@ Anglebars.views.Fragment.prototype = {
 		
 		var i, numItems;
 
-		// TODO unsubscribes
 		numItems = this.items.length;
 		for ( i=0; i<numItems; i+=1 ) {
 			this.items[i].teardown();

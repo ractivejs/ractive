@@ -15,7 +15,6 @@ Anglebars.substrings.Section = Anglebars.substring({
 	},
 
 	unrender: function () {
-		// TODO unsubscribe
 		while ( this.substrings.length ) {
 			this.substrings.shift().teardown();
 		}

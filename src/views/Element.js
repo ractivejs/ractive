@@ -57,7 +57,7 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 Anglebars.views.Element.prototype = {
 	bind: function ( keypath, lazy ) {
 		
-		var viewmodel = this.viewmodel, node = this.node, value, setValue;
+		var viewmodel = this.viewmodel, node = this.node, setValue;
 
 		setValue = function () {
 			var value = node.value;

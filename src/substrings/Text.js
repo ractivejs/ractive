@@ -5,6 +5,8 @@ Anglebars.substrings.Text = function ( model ) {
 Anglebars.substrings.Text.prototype = {
 	toString: function () {
 		return this.text;
-	}
+	},
+
+	teardown: function () {} // no-op
 };
 

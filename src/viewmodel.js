@@ -218,7 +218,7 @@ Anglebars.ViewModel.prototype = {
 	},
 
 	unobserve: function ( observerRef ) {
-		var s, observers, index;
+		var priorities, observers, index;
 
 		priorities = this.observers[ observerRef.keypath ];
 		if ( !priorities ) {

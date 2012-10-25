@@ -1,7 +1,3 @@
-// Anglebars v0.0.1
-// WTFPL license
-
-
 
 // Create our global variable, which serves as both constructor function and namespace
 var Anglebars = function ( options ) {

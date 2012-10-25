@@ -8,15 +8,12 @@ Anglebars.views.Triple = Anglebars.view({
 
 	teardown: function () {
 		
-		var i, numNodes;
-		
-		// TODO unsubscribes
-		numNodes = this.nodes.length;
-		for ( i=0; i<numNodes; i+=1 ) {
-			Anglebars.utils.remove( this.nodes[i] );
+		// remove child nodes from DOM
+		while ( this.nodes.length ) {
+			Anglebars.utils.remove( this.nodes.shift() );
 		}
 
-
+		// kill observer(s)
 		if ( !this.observerRefs ) {
 			this.viewmodel.cancelAddressResolution( this );
 		} else {

@@ -20,7 +20,6 @@ Anglebars.views.Section = Anglebars.view({
 	},
 
 	unrender: function () {
-		// TODO unsubscribe
 		while ( this.views.length ) {
 			this.views.shift().teardown();
 		}

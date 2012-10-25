@@ -1,4 +1,4 @@
-Anglebars.views.Attribute = function ( model, anglebars, parentNode, contextStack, anchor ) {
+Anglebars.views.Attribute = function ( model, anglebars, parentNode, contextStack ) {
 	
 	var i, numComponents;
 
