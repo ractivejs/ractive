@@ -89,6 +89,11 @@ Anglebars.prototype = {
 		this.rendered = new Anglebars.views.Fragment( this.compiled, this, el );
 	},
 
+	teardown: function () {
+		this.rendered.teardown();
+		this.el.innerHTML = '';
+	},
+
 	// Proxies for viewmodel `set`, `get` and `update` methods
 	set: function () {
 		this.viewmodel.set.apply( this.viewmodel, arguments );
