@@ -27,6 +27,11 @@ Anglebars.views.Attribute.prototype = {
 	teardown: function () {
 		var numSubstrings, i, substring;
 
+		// ignore non-dynamic attributes
+		if ( !this.substrings ) {
+			return;
+		}
+
 		numSubstrings = this.substrings.length;
 		for ( i=0; i<numSubstrings; i+=1 ) {
 			substring = this.substrings[i];
