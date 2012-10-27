@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-10-25
+/*! Anglebars - v0.0.1 - 2012-10-26
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -98,6 +98,11 @@ Anglebars.prototype = {
 		}
 
 		this.rendered = new Anglebars.views.Fragment( this.compiled, this, el );
+	},
+
+	teardown: function () {
+		this.rendered.teardown();
+		this.el.innerHTML = '';
 	},
 
 	// Proxies for viewmodel `set`, `get` and `update` methods
@@ -489,6 +494,11 @@ Anglebars.views.Attribute = function ( model, anglebars, parentNode, contextStac
 Anglebars.views.Attribute.prototype = {
 	teardown: function () {
 		var numSubstrings, i, substring;
+
+		// ignore non-dynamic attributes
+		if ( !this.substrings ) {
+			return;
+		}
 
 		numSubstrings = this.substrings.length;
 		for ( i=0; i<numSubstrings; i+=1 ) {
@@ -1212,7 +1222,7 @@ Anglebars.utils = {
 		}
 
 		// We already have a DOM node - no work to do
-		if ( input instanceof HTMLElement ) {
+		if ( input.nodeName ) {
 			return input;
 		}
 
@@ -1220,7 +1230,7 @@ Anglebars.utils = {
 		if ( typeof input === 'string' ) {
 			output = document.getElementById( input );
 
-			if ( output instanceof HTMLElement ) {
+			if ( output.nodeName ) {
 				return output;
 			}
 		}

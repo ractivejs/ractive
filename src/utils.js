@@ -56,7 +56,7 @@ Anglebars.utils = {
 		}
 
 		// We already have a DOM node - no work to do
-		if ( input instanceof HTMLElement ) {
+		if ( input.tagName ) {
 			return input;
 		}
 
@@ -64,7 +64,7 @@ Anglebars.utils = {
 		if ( typeof input === 'string' ) {
 			output = document.getElementById( input );
 
-			if ( output instanceof HTMLElement ) {
+			if ( output.tagName ) {
 				return output;
 			}
 		}
