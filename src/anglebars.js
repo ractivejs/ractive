@@ -52,6 +52,11 @@ var Anglebars = function ( options ) {
 	// Defaults to `true`
 	this.replaceSrcAttributes = ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes );
 
+	// `namespace` **string** *optional*
+	// What namespace to treat as the parent namespace when compiling. This will
+	// be guessed from the container element, but can be overridden
+	this.namespace = ( options.namespace ? options.namespace : ( this.el && this.el.namespaceURI !== 'http://www.w3.org/1999/xhtml' ? this.el.namespaceURI : null ) );
+
 
 
 	// Initialization
@@ -61,7 +66,8 @@ var Anglebars = function ( options ) {
 	if ( !this.compiled && this.template ) {
 		this.compiled = Anglebars.compile( this.template, {
 			preserveWhitespace: this.preserveWhitespace,
-			replaceSrcAttributes: this.replaceSrcAttributes
+			replaceSrcAttributes: this.replaceSrcAttributes,
+			namespace: this.namespace
 		});
 	}
 

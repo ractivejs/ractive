@@ -12,7 +12,7 @@ Anglebars.compile = function ( template, options ) {
 	stubs = utils.getStubsFromNodes( nodes );
 
 	// Compile the stubs
-	compiled = utils.compileStubs( stubs, 0, null, options.preserveWhitespace );
+	compiled = utils.compileStubs( stubs, 0, options.namespace, options.preserveWhitespace );
 
 	return compiled;
 };

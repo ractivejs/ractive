@@ -195,7 +195,7 @@
 			"file": "build/Anglebars.js",
 			"settings":
 			{
-				"buffer_size": 44699,
+				"buffer_size": 44671,
 				"line_ending": "Unix"
 			}
 		},
@@ -235,7 +235,7 @@
 			"file": "src/utils.js",
 			"settings":
 			{
-				"buffer_size": 16191,
+				"buffer_size": 16161,
 				"line_ending": "Unix"
 			}
 		},
@@ -1219,7 +1219,7 @@
 					"file": "build/Anglebars.js",
 					"settings":
 					{
-						"buffer_size": 44699,
+						"buffer_size": 44671,
 						"regions":
 						{
 						},
@@ -1795,15 +1795,15 @@
 					"file": "src/utils.js",
 					"settings":
 					{
-						"buffer_size": 16191,
+						"buffer_size": 16161,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11926,
-								11932
+								1527,
+								1527
 							]
 						],
 						"settings":
@@ -1900,7 +1900,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 7065.0,
+						"translation.y": 497.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
