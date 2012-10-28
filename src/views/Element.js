@@ -13,7 +13,7 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 
 	// create the DOM node
 	if ( model.namespace ) {
-		this.node = document.createElementNS( model.namespace, model.tag.toLowerCase() );
+		this.node = document.createElementNS( model.namespace, model.tag );
 	} else {
 		this.node = document.createElement( model.tag );
 	}

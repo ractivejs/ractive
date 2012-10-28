@@ -589,7 +589,7 @@ Anglebars.utils = {
 
 		proxy = {
 			type: 'element',
-			tag: node.tagName,
+			tag: node.localName,
 			priority: priority
 		};
 

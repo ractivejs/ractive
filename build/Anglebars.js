@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-10-27
+/*! Anglebars - v0.0.1 - 2012-10-28
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -572,7 +572,7 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 
 	// create the DOM node
 	if ( model.namespace ) {
-		this.node = document.createElementNS( model.namespace, model.tag.toLowerCase() );
+		this.node = document.createElementNS( model.namespace, model.tag );
 	} else {
 		this.node = document.createElement( model.tag );
 	}
@@ -1761,7 +1761,7 @@ Anglebars.utils = {
 
 		proxy = {
 			type: 'element',
-			tag: node.tagName,
+			tag: node.localName,
 			priority: priority
 		};
 

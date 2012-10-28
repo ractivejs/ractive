@@ -211,7 +211,7 @@
 			"file": "src/anglebars.js",
 			"settings":
 			{
-				"buffer_size": 3996,
+				"buffer_size": 4372,
 				"line_ending": "Unix"
 			}
 		},
@@ -232,14 +232,6 @@
 			}
 		},
 		{
-			"file": "src/utils.js",
-			"settings":
-			{
-				"buffer_size": 16161,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "src/views/Attribute.js",
 			"settings":
 			{
@@ -251,7 +243,7 @@
 			"file": "src/views/Element.js",
 			"settings":
 			{
-				"buffer_size": 2270,
+				"buffer_size": 2284,
 				"line_ending": "Unix"
 			}
 		},
@@ -261,6 +253,23 @@
 			{
 				"buffer_size": 697,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/static.js",
+			"settings":
+			{
+				"buffer_size": 635,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/haggis/dev/repos/Monkey-Panic/assets/gfx/test.svg",
+			"settings":
+			{
+				"buffer_size": 514,
+				"line_ending": "Unix",
+				"name": "<svg version=\"1.1\" xmlns:xlink=\"http://www.w3.org/"
 			}
 		}
 	],
@@ -292,10 +301,10 @@
 	},
 	"file_history":
 	[
+		"/Users/haggis/dev/repos/Anglebars/src/utils.js",
 		"/Users/haggis/dev/repos/Anglebars/src/views/Fragment.js",
 		"/Users/haggis/dev/repos/Anglebars/pages/examples/examples.css",
 		"/Users/haggis/dev/repos/Anglebars/pages/examples/src/9. Context nesting/setup.js",
-		"/Users/haggis/dev/repos/Anglebars/src/utils.js",
 		"/Users/haggis/dev/repos/Anglebars/pages/examples/src/7. Sections (as context)/setup.js",
 		"/Users/haggis/dev/repos/Anglebars/pages/examples/src/7. Sections (as context)/example.js",
 		"/Users/haggis/dev/repos/Anglebars/pages/examples/src/7. Sections (as context)/template.html",
@@ -637,7 +646,7 @@
 	"groups":
 	[
 		{
-			"selected": 10,
+			"selected": 11,
 			"sheets":
 			[
 				{
@@ -1450,15 +1459,15 @@
 					"file": "src/anglebars.js",
 					"settings":
 					{
-						"buffer_size": 3996,
+						"buffer_size": 4372,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3033,
-								3033
+								2504,
+								2504
 							]
 						],
 						"settings":
@@ -1555,7 +1564,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 771.0,
+						"translation.y": 869.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1792,121 +1801,6 @@
 				},
 				{
 					"buffer": 10,
-					"file": "src/utils.js",
-					"settings":
-					{
-						"buffer_size": 16161,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1527,
-								1527
-							]
-						],
-						"settings":
-						{
-							"annotations":
-							[
-								"TODO",
-								"README",
-								"FIXME"
-							],
-							"csslint_options":
-							{
-								"adjoining-classes": "warning",
-								"box-model": true,
-								"box-sizing": "warning",
-								"compatible-vendor-prefixes": "warning",
-								"display-property-grouping": true,
-								"duplicate-background-images": "warning",
-								"duplicate-properties": true,
-								"empty-rules": true,
-								"errors": true,
-								"fallback-colors": "warning",
-								"floats": "warning",
-								"font-faces": "warning",
-								"font-sizes": "warning",
-								"gradients": "warning",
-								"ids": "warning",
-								"import": "warning",
-								"important": "warning",
-								"known-properties": true,
-								"outline-none": "warning",
-								"overqualified-elements": "warning",
-								"qualified-headings": "warning",
-								"regex-selectors": "warning",
-								"rules-count": "warning",
-								"shorthand": "warning",
-								"star-property-hack": "warning",
-								"text-indent": "warning",
-								"underscore-property-hack": "warning",
-								"unique-headings": "warning",
-								"universal-selector": "warning",
-								"vendor-prefix": true,
-								"zero-units": "warning"
-							},
-							"gjslint_ignore":
-							[
-								110.0
-							],
-							"gjslint_options":
-							[
-							],
-							"javascript_linter": "jshint",
-							"jshint_options":
-							{
-								"browser": true,
-								"evil": true,
-								"regexdash": true,
-								"sub": true,
-								"trailing": true,
-								"wsh": true
-							},
-							"pep8": true,
-							"pep8_ignore":
-							[
-								"E501"
-							],
-							"perl_linter": "perlcritic",
-							"pyflakes_ignore":
-							[
-							],
-							"pyflakes_ignore_import_*": true,
-							"sublimelinter": true,
-							"sublimelinter_delay": 2.0,
-							"sublimelinter_disable":
-							[
-							],
-							"sublimelinter_executable_map":
-							{
-							},
-							"sublimelinter_fill_outlines": false,
-							"sublimelinter_gutter_marks": false,
-							"sublimelinter_mark_style": "outline",
-							"sublimelinter_notes": false,
-							"sublimelinter_objj_check_ascii": false,
-							"sublimelinter_popup_errors_on_save": false,
-							"sublimelinter_syntax_map":
-							{
-								"C++": "c",
-								"Python Django": "python",
-								"Ruby on Rails": "ruby"
-							},
-							"sublimelinter_wrap_find": true,
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 497.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 11,
 					"file": "src/views/Attribute.js",
 					"settings":
 					{
@@ -2021,19 +1915,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 12,
+					"buffer": 11,
 					"file": "src/views/Element.js",
 					"settings":
 					{
-						"buffer_size": 2270,
+						"buffer_size": 2284,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1612,
-								1612
+								386,
+								386
 							]
 						],
 						"settings":
@@ -2130,13 +2024,13 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 675.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 13,
+					"buffer": 12,
 					"file": "src/substrings/Fragment.js",
 					"settings":
 					{
@@ -2243,6 +2137,148 @@
 							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "src/static.js",
+					"settings":
+					{
+						"buffer_size": 635,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								160,
+								160
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"star-property-hack": "warning",
+								"text-indent": "warning",
+								"underscore-property-hack": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "/Users/haggis/dev/repos/Monkey-Panic/assets/gfx/test.svg",
+					"settings":
+					{
+						"buffer_size": 514,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								508,
+								508
+							]
+						],
+						"settings":
+						{
+							"auto_name": "<svg version=\"1.1\" xmlns:xlink=\"http://www.w3.org/",
+							"syntax": "Packages/XML/XML.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
