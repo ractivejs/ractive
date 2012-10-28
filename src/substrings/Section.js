@@ -29,7 +29,7 @@ Anglebars.substrings.Section = Anglebars.substring({
 		var emptyArray, i, substrings = Anglebars.substrings, substringsToRemove;
 
 		// treat empty arrays as false values
-		if ( _.isArray( value ) && value.length === 0 ) {
+		if ( Anglebars.utils.isArray( value ) && value.length === 0 ) {
 			emptyArray = true;
 		}
 
