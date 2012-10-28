@@ -28,7 +28,7 @@ Anglebars.substrings.Fragment.prototype = {
 	},
 
 	toString: function () {
-		return this.value;
+		return this.value || '';
 	}
 };
 

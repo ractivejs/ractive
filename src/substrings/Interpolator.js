@@ -21,7 +21,7 @@ Anglebars.substrings.Interpolator = Anglebars.substring({
 	},
 
 	toString: function () {
-		return this.value;
+		return this.value || '';
 	}
 });
 

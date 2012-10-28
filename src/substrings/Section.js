@@ -18,6 +18,7 @@ Anglebars.substrings.Section = Anglebars.substring({
 		while ( this.substrings.length ) {
 			this.substrings.shift().teardown();
 		}
+		this.length = 0;
 	},
 
 	bubble: function () {
@@ -39,7 +40,6 @@ Anglebars.substrings.Section = Anglebars.substring({
 				if ( this.length ) {
 					this.unrender();
 					this.length = 0;
-					return;
 				}
 			}
 
@@ -47,9 +47,11 @@ Anglebars.substrings.Section = Anglebars.substring({
 				if ( !this.length ) {
 					this.substrings[0] = new substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack );
 					this.length = 1;
-					return;
 				}
 			}
+
+			this.value = this.substrings.join( '' );
+			this.parent.bubble();
 
 			return;
 		}
@@ -102,23 +104,6 @@ Anglebars.substrings.Section = Anglebars.substring({
 					this.length = 1;
 				}
 			}
-
-			this.rendered = true;
-
-			
-			/*// if value is an array of hashes, iterate through
-			if ( Anglebars.utils.isArray( value ) ) {
-				for ( i=0; i<value.length; i+=1 ) {
-					this.substrings[i] = new Anglebars.substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
-				}
-			}
-
-			// if value is a hash, add it to the context stack and update children
-			else {
-				this.substrings[0] = new Anglebars.substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath ) );
-			}
-
-			this.rendered = true;*/
 		}
 
 		// otherwise render if value is truthy, unrender if falsy
@@ -144,6 +129,7 @@ Anglebars.substrings.Section = Anglebars.substring({
 	},
 
 	toString: function () {
-		return this.value;
+		console.log( 'stringifying', this, ': ', this.value );
+		return this.value || '';
 	}
 });
