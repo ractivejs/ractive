@@ -129,7 +129,6 @@ Anglebars.substrings.Section = Anglebars.substring({
 	},
 
 	toString: function () {
-		console.log( 'stringifying', this, ': ', this.value );
 		return this.value || '';
 	}
 });
