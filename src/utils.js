@@ -120,9 +120,13 @@ Anglebars.utils = {
 
 	// strip mustache comments (which look like {{!this}}, i.e. mustache with an exclamation mark) from a string
 	stripComments: function ( input ) {
-		var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
-			lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,
-			output;
+		var open, close, comment, lineComment, output;
+
+		open = this.escape( Anglebars.delimiters[0] );
+		close = this.escape( Anglebars.delimiters[1] );
+
+		comment = new RegExp( open + '!\\s*[\\s\\S]+?\\s*' + close, 'g' );
+		lineComment = new RegExp( '(^|\\n|\\r\\n)\\s*' + open + '!\\s*[\\s\\S]+?\\s*' + close + '\\s*($|\\n|\\r\\n)', 'g' );
 
 		// remove line comments
 		output = input.replace( lineComment, function ( matched, startChar ) {
@@ -172,70 +176,143 @@ Anglebars.utils = {
 	},
 
 
-	// find the first mustache in a string, and store some information about it. Returns an array with some additional properties
+	// CAUTION! HERE BE REGEXES
+	escape: function ( str ) {
+		var theSpecials = /[\[\]\(\)\{\}\^\$\*\+\?\.]/g;
+
+		str = str.replace( theSpecials, '\\$&' );
+		return str.replace( /\\/g, '\\' );
+	},
+
+	compileMustachePattern: function () {
+		Anglebars.patterns.mustache = new RegExp( '' +
+
+		// opening delimiters - triple (1) or regular (2)
+		'(?:(' + this.escape( Anglebars.tripleDelimiters[0] ) + ')|(' + this.escape( Anglebars.delimiters[0] ) + '))' +
+
+		// EITHER:
+		'(?:(?:' +
+
+			// delimiter change (3/6) - the new opening (4) and closing (5) delimiters
+			'(=)([^\\s]+)\\s+([^\\s]+)(=)' +
+
+			// closing delimiters - triple (7) or regular (8)
+			'(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + ')' +
+
+		// OR:
+		')|(?:' +
+
+			// sections (9): opening normal, opening inverted, closing
+			'(#|\\^|\\/)?' +
+
+			// partials (10)
+			'(\\>)?' +
+
+			// unescaper (11) (not sure what relevance this has...?)
+			'(&)?' +
+
+			
+
+			// optional whitespace
+			'\\s*' +
+
+			// mustache formula (12)
+			'([\\s\\S]+?)' +
+
+			// more optional whitespace
+			'\\s*' +
+
+			// closing delimiters - triple (13) or regular (14)
+			'(?:(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + '))' +
+
+		'))', 'g' );
+	},
+
+
+	// find the first mustache in a string, and store some information about it. Returns an array
+	// - the result of regex.exec() - with some additional properties
 	findMustache: function ( text, startIndex ) {
 
-		var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatter;
+		var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
 
-		mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
+		// mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
+		mustache = Anglebars.patterns.mustache;
 		formulaSplitter = ' | ';
-		formatterPattern = /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/;
+		// formatterPattern = /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/;
+		formatterPattern = Anglebars.patterns.formatter;
 
 		match = Anglebars.utils.findMatch( text, mustache, startIndex );
 
 		if ( match ) {
 
-			match.formula = match[5];
-			split = match.formula.split( formulaSplitter );
-			match.partialKeypath = split.shift();
-			
-			// extract formatters
-			match.formatters = [];
+			// first, see if we're dealing with a delimiter change
+			if ( match[3] && match[6] ) {
+				match.newDelimiters = [ match[4], match[5] ];
 
-			for ( i=0; i<split.length; i+=1 ) {
-				formatterNameAndArgs = formatterPattern.exec( split[i] );
-				if ( formatterNameAndArgs ) {
-					formatter = {
-						name: formatterNameAndArgs[1]
-					};
+				console.log( match );
 
-					if ( formatterNameAndArgs[2] ) {
-						try {
-							formatter.args = JSON.parse( formatterNameAndArgs[2] );
-						} catch ( err ) {
-							throw new Error( 'Illegal arguments for formatter \'' + formatter.name + '\': ' + formatterNameAndArgs[2] + ' (JSON.parse() failed)' );
-						}
-					}
-
-					match.formatters.push( formatter );
+				// triple or regular?
+				if ( match[1] && match[7] ) {
+					match.type = 'tripleDelimiterChange';
+				} else {
+					match.type = 'delimiterChange';
 				}
-			}
-			
-			
-			// figure out what type of mustache we're dealing with
-			if ( match[2] ) {
-				// mustache is a section
-				match.type = 'section';
-				match.inverted = ( match[2] === '^' ? true : false );
-				match.closing = ( match[2] === '/' ? true : false );
-			}
-
-			else if ( match[3] ) {
-				match.type = 'partial';
-			}
-
-			else if ( match[1] ) {
-				// left side is a triple - check right side is as well
-				if ( !match[6] ) {
-					return false;
-				}
-
-				match.type = 'triple';
 			}
 
 			else {
-				match.type = 'interpolator';
+				match.formula = match[12];
+				split = match.formula.split( formulaSplitter );
+				match.partialKeypath = split.shift();
+				
+				// extract formatters
+				match.formatters = [];
+
+				for ( i=0; i<split.length; i+=1 ) {
+					formatterNameAndArgs = formatterPattern.exec( split[i] );
+					if ( formatterNameAndArgs ) {
+						formatter = {
+							name: formatterNameAndArgs[1]
+						};
+
+						if ( formatterNameAndArgs[2] ) {
+							try {
+								formatter.args = JSON.parse( formatterNameAndArgs[2] );
+							} catch ( err ) {
+								throw new Error( 'Illegal arguments for formatter \'' + formatter.name + '\': ' + formatterNameAndArgs[2] + ' (JSON.parse() failed)' );
+							}
+						}
+
+						match.formatters.push( formatter );
+					}
+				}
+				
+				
+				// figure out what type of mustache we're dealing with
+				if ( match[9] ) {
+					// mustache is a section
+					match.type = 'section';
+					match.inverted = ( match[9] === '^' ? true : false );
+					match.closing = ( match[9] === '/' ? true : false );
+				}
+
+				else if ( match[10] ) {
+					match.type = 'partial';
+				}
+
+				else if ( match[1] ) {
+					// left side is a triple - check right side is as well
+					if ( !match[13] ) {
+						return false;
+					}
+
+					match.type = 'triple';
+				}
+
+				else {
+					match.type = 'interpolator';
+				}
 			}
+			
 
 			match.isMustache = true;
 			return match;
@@ -466,6 +543,10 @@ Anglebars.utils = {
 	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 	isArray: function ( obj ) {
 		return Object.prototype.toString.call( obj ) === '[object Array]';
+	},
+
+	isObject: function ( obj ) {
+		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 	},
 
 	compileStubs: function ( stubs, priority, namespace, preserveWhitespace ) {
