@@ -1,6 +1,11 @@
 // Static method to compile a template string
 Anglebars.compile = function ( template, options ) {
-	var nodes, stubs, compiled = [], utils = Anglebars.utils;
+	var nodes, stubs, compiled = [], delimiters, tripleDelimiters, utils = Anglebars.utils;
+
+	Anglebars.delimiters = options.delimiters || [ '{{', '}}' ];
+	Anglebars.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+
+	Anglebars.utils.compileMustachePattern();
 
 	// Remove any comment mustaches
 	template = utils.stripComments( template );
@@ -17,3 +22,6 @@ Anglebars.compile = function ( template, options ) {
 	return compiled;
 };
 
+Anglebars.patterns = {
+	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/
+};
