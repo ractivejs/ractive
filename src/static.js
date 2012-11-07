@@ -2,6 +2,8 @@
 Anglebars.compile = function ( template, options ) {
 	var nodes, stubs, compiled = [], delimiters, tripleDelimiters, utils = Anglebars.utils;
 
+	options = options || {};
+
 	Anglebars.delimiters = options.delimiters || [ '{{', '}}' ];
 	Anglebars.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
