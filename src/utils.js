@@ -197,7 +197,7 @@ Anglebars.utils = {
 			'(=)([^\\s]+)\\s+([^\\s]+)(=)' +
 
 			// closing delimiters - triple (7) or regular (8)
-			'(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + ')' +
+			'(?:(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + '))' +
 
 		// OR:
 		')|(?:' +
@@ -247,16 +247,18 @@ Anglebars.utils = {
 
 			// first, see if we're dealing with a delimiter change
 			if ( match[3] && match[6] ) {
-				match.newDelimiters = [ match[4], match[5] ];
-
-				console.log( match );
+				match.type = 'delimiterChange';
 
 				// triple or regular?
 				if ( match[1] && match[7] ) {
-					match.type = 'tripleDelimiterChange';
+					// triple delimiter change
+					Anglebars.tripleDelimiters = [ match[4], match[5] ];
 				} else {
-					match.type = 'delimiterChange';
+					// triple delimiter change
+					Anglebars.delimiters = [ match[4], match[5] ];
 				}
+
+				Anglebars.utils.compileMustachePattern();
 			}
 
 			else {
@@ -313,6 +315,7 @@ Anglebars.utils = {
 				}
 			}
 			
+			console.log( match );
 
 			match.isMustache = true;
 			return match;
@@ -347,7 +350,7 @@ Anglebars.utils = {
 
 	
 	getStubsFromNodes: function ( nodes ) {
-		var i, numNodes, node, result = [];
+		var i, numNodes, node, result = [], stubs;
 
 		numNodes = nodes.length;
 		for ( i=0; i<numNodes; i+=1 ) {
@@ -361,7 +364,10 @@ Anglebars.utils = {
 			}
 
 			else if ( node.nodeType === 3 ) {
-				result = result.concat( Anglebars.utils.expandText( node.data ) );
+				stubs = Anglebars.utils.expandText( node.data );
+				if ( stubs ) {
+					result = result.concat( stubs );
+				}
 			}
 		}
 
@@ -369,20 +375,36 @@ Anglebars.utils = {
 	},
 
 	expandText: function ( text ) {
-		var result, mustache;
+		var result = [], mustache, start, stubs;
 
 		// see if there's a mustache involved here
 		mustache = Anglebars.utils.findMustache( text );
 
-		// if not, groovy - no work to do
-		if ( !mustache ) {
-			return {
-				type: 'text',
-				text: text
-			};
+		// delimiter changes are a special (and bloody awkward...) case
+		while ( mustache.type === 'delimiterChange' ) {
+			
+			if ( mustache.start > 0 ) {
+				result[ result.length ] = {
+					type: 'text',
+					text: text.substr( 0, mustache.start )
+				};
+			}
+
+			text = text.substring( mustache.end );
+			mustache = Anglebars.utils.findMustache( text );
 		}
 
-		result = [];
+		// if no mustaches, groovy - no work to do
+		if ( !mustache ) {
+			if ( text ) {
+				return result.concat({
+					type: 'text',
+					text: text
+				});
+			}
+
+			return ( result.length ? result : false );
+		}
 
 		// otherwise, see if there is any text before the node
 		if ( mustache.start > 0 ) {
@@ -399,7 +421,10 @@ Anglebars.utils = {
 		};
 
 		if ( mustache.end < text.length ) {
-			result = result.concat( Anglebars.utils.expandText( text.substring( mustache.end ) ) );
+			stubs = Anglebars.utils.expandText( text.substring( mustache.end ) );
+			if ( stubs ) {
+				result = result.concat( stubs );
+			}
 		}
 
 		return result;
@@ -702,16 +727,16 @@ Anglebars.utils = {
 	},
 
 	processAttribute: function ( name, value, priority ) {
-		var attribute, components, utils = Anglebars.utils;
+		var attribute, stubs, utils = Anglebars.utils;
 
-		components = utils.expandText( value );
+		stubs = utils.expandText( value );
 
 		attribute = {
 			name: name.replace( 'data-anglebars-', '' )
 		};
 
 		// no mustaches in this attribute - no extra work to be done
-		if ( !utils.findMustache( value ) ) {
+		if ( !utils.findMustache( value ) || !stubs ) {
 			attribute.value = value;
 			return attribute;
 		}
@@ -720,7 +745,7 @@ Anglebars.utils = {
 		// mustaches present - attribute is dynamic
 		attribute.isDynamic = true;
 		attribute.priority = priority;
-		attribute.components = utils.compileStubs( components, priority, null );
+		attribute.components = utils.compileStubs( stubs, priority, null );
 
 
 		return attribute;
