@@ -194,7 +194,7 @@ Anglebars.utils = {
 		'(?:(?:' +
 
 			// delimiter change (3/6) - the new opening (4) and closing (5) delimiters
-			'(=)([^\\s]+)\\s+([^\\s]+)(=)' +
+			'(=)\\s*([^\\s]+)\\s+([^\\s]+)\\s*(=)' +
 
 			// closing delimiters - triple (7) or regular (8)
 			'(?:(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + '))' +
@@ -314,8 +314,6 @@ Anglebars.utils = {
 					match.type = 'interpolator';
 				}
 			}
-			
-			console.log( match );
 
 			match.isMustache = true;
 			return match;
