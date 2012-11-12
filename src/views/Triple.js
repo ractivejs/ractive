@@ -26,9 +26,11 @@ Anglebars.views.Triple = Anglebars.view({
 	update: function ( value ) {
 		var numNodes, i, utils = Anglebars.utils;
 
-		if ( utils.isEqual( this.value, value ) ) {
-			return;
-		}
+		// TODO... not sure what's going on here? this.value isn't being set to value,
+		// and equality check should already have taken place. Commenting out for now
+		// if ( utils.isEqual( this.value, value ) ) {
+		// 	return;
+		// }
 
 		// remove existing nodes
 		numNodes = this.nodes.length;
