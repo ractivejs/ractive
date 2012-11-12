@@ -96,6 +96,12 @@ Anglebars.ViewModel.prototype = {
 		contextStack = ( contextStack ? contextStack.concat() : [] );
 		contextStackClone = contextStack.concat();
 
+		// implicit iterators - i.e. {{.}} - are a special case
+		if ( partialKeypath === '.' ) {
+			item.keypath = ( contextStack[ contextStack.length - 1 ] );
+			callback.call( item, item.keypath );
+		}
+
 		while ( contextStack ) {
 
 			innerMost = ( contextStack.length ? contextStack[ contextStack.length - 1 ] : null );
