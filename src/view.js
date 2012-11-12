@@ -18,19 +18,23 @@ Anglebars.view = function ( proto ) {
 			var value, formatted, self = this;
 
 			value = this.viewmodel.get( keypath );
-			formatted = this.anglebars._format( value, formatters );
-
-			this.update( formatted );
+			this.update( this.anglebars._format( value, formatters ) );
 
 			this.observerRefs = this.viewmodel.observe( keypath, this.model.priority, function ( value ) {
-				var formatted = self.anglebars._format( value, formatters );
-				self.update( formatted );
+				self.update( self.anglebars._format( value, formatters ) );
 				
 				if ( self.bubble ) {
 					self.bubble();
 				}
 			});
 		});
+
+		// if the last callback didn't run immediately (ie viewmodel.getKeypath didn't succeed)
+		// we have a failed lookup. For inverted sections, we need to trigger this.update() so
+		// the contents are rendered
+		if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+			this.update( false );
+		}
 	};
 
 	AnglebarsView.prototype = proto;
