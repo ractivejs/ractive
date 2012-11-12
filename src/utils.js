@@ -243,8 +243,6 @@ Anglebars.utils = {
 
 		if ( match ) {
 
-			console.log( match );
-
 			// first, see if we're dealing with a delimiter change
 			if ( match[3] && match[6] ) {
 				match.type = 'delimiterChange';
@@ -314,6 +312,8 @@ Anglebars.utils = {
 					match.type = 'interpolator';
 				}
 			}
+			
+			console.log( match );
 
 			match.isMustache = true;
 			return match;
