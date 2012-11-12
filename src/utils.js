@@ -178,7 +178,7 @@ Anglebars.utils = {
 
 	// CAUTION! HERE BE REGEXES
 	escape: function ( str ) {
-		var theSpecials = /[\[\]\(\)\{\}\^\$\*\+\?\.]/g;
+		var theSpecials = /[\[\]\(\)\{\}\^\$\*\+\?\.\|]/g;
 
 		str = str.replace( theSpecials, '\\$&' );
 		return str.replace( /\\/g, '\\' );
@@ -235,15 +235,15 @@ Anglebars.utils = {
 
 		var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
 
-		// mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
 		mustache = Anglebars.patterns.mustache;
 		formulaSplitter = ' | ';
-		// formatterPattern = /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/;
 		formatterPattern = Anglebars.patterns.formatter;
 
 		match = Anglebars.utils.findMatch( text, mustache, startIndex );
 
 		if ( match ) {
+
+			console.log( match );
 
 			// first, see if we're dealing with a delimiter change
 			if ( match[3] && match[6] ) {
