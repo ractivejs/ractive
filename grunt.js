@@ -14,7 +14,7 @@ module.exports = function(grunt) {
         '/*jslint eqeq: true, plusplus: true */\n' +
         '/*global document, HTMLElement */\n' +
         '\n' +
-        '"use strict";\n\n'
+        '\'use strict\';\n\n'
     },
     lint: {
       files: ['grunt.js', 'src/**/*.js'] // TODO add tests

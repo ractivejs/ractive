@@ -1,11 +1,11 @@
-/*! Anglebars - v0.0.1 - 2012-11-14
+/*! Anglebars - v0.1.0 - 2012-11-14
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
 /*jslint eqeq: true, plusplus: true */
 /*global document, HTMLElement */
 
-"use strict";
+'use strict';
 
 
 
