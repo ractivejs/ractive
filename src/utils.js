@@ -690,12 +690,13 @@ Anglebars.utils = {
 							return i+1;
 
 						default:
-							throw new Error( 'Error compiling template' );
+							if ( console && console.error ) { console.error( 'Bad mustache: ', stub.mustache ); }
+							throw new Error( 'Error compiling template: Illegal mustache (' + stub.mustache[0] + ')' );
 					}
 					break;
 
 				default:
-					throw new Error( 'Error compiling template' );
+					throw new Error( 'Error compiling template. Something *very weird* has happened' );
 			}
 		};
 
