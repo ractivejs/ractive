@@ -19,7 +19,9 @@ Anglebars.utils = {
 	// convert HTML to an array of DOM nodes
 	getNodeArrayFromHtml: function ( html, replaceSrcAttributes ) {
 
-		var temp, i, numNodes, nodes = [], attrs, pattern;
+		var temp, i, numNodes, nodes = [], attrs, tags, pattern;
+
+		html = '' + html; // coerce non-string values to string (i.e. in triples)
 
 		// TODO work out the most efficient way to do this
 
@@ -30,6 +32,21 @@ Anglebars.utils = {
 			for ( i=0; i<attrs.length; i+=1 ) {
 				pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
 				html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
+			}
+		}
+
+		// replace table tags with <div data-anglebars-elementname='table'></div> -
+		// this is because the way browsers parse table HTML is F**CKING MENTAL
+		var replaceFunkyTags = true;
+		if ( replaceFunkyTags ) {
+			tags = [ 'table', 'thead', 'tbody', 'tr', 'th', 'td' ];
+
+			for ( i=0; i<tags.length; i+=1 ) {
+				pattern = new RegExp( '<(' + tags[i] + ')(\\s|>)', 'gi' );
+				html = html.replace( pattern, '<div data-anglebars-elementname="$1"$2' );
+
+				pattern = new RegExp( '<\\/' + tags[i] + '>', 'gi' );
+				html = html.replace( pattern, '</div>' );
 			}
 		}
 
@@ -144,6 +161,7 @@ Anglebars.utils = {
 	createAnchor: function () {
 		var anchor = document.createElement( 'a' );
 		anchor.setAttribute( 'class', 'anglebars-anchor' );
+		anchor.style.display = 'none';
 
 		return anchor;
 	},
@@ -312,8 +330,6 @@ Anglebars.utils = {
 					match.type = 'interpolator';
 				}
 			}
-			
-			console.log( match );
 
 			match.isMustache = true;
 			return match;
@@ -373,7 +389,7 @@ Anglebars.utils = {
 	},
 
 	expandText: function ( text ) {
-		var result = [], mustache, start, stubs;
+		var result = [], mustache, start, ws, pre, post, standalone, stubs;
 
 		// see if there's a mustache involved here
 		mustache = Anglebars.utils.findMustache( text );
@@ -405,10 +421,15 @@ Anglebars.utils = {
 		}
 
 		// otherwise, see if there is any text before the node
+		standalone = true;
+		ws = /\s*\n\s*$/;
+
 		if ( mustache.start > 0 ) {
+			pre = text.substr( 0, mustache.start );
+
 			result[ result.length ] = {
 				type: 'text',
-				text: text.substr( 0, mustache.start )
+				text: pre
 			};
 		}
 
@@ -420,6 +441,7 @@ Anglebars.utils = {
 
 		if ( mustache.end < text.length ) {
 			stubs = Anglebars.utils.expandText( text.substring( mustache.end ) );
+
 			if ( stubs ) {
 				result = result.concat( stubs );
 			}
@@ -573,12 +595,11 @@ Anglebars.utils = {
 	},
 
 	compileStubs: function ( stubs, priority, namespace, preserveWhitespace ) {
-		var compiled, next, processIntermediary;
+		var compiled, next, processStub;
 
 		compiled = [];
 
-		
-		processIntermediary = function ( i ) {
+		processStub = function ( i ) {
 			var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath;
 
 			whitespace = /^\s*\n\r?\s*$/;
@@ -680,7 +701,7 @@ Anglebars.utils = {
 
 		next = 0;
 		while ( next < stubs.length ) {
-			next = processIntermediary( next );
+			next = processStub( next );
 		}
 
 		return compiled;
@@ -693,7 +714,7 @@ Anglebars.utils = {
 
 		proxy = {
 			type: 'element',
-			tag: node.localName,
+			tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName,
 			priority: priority
 		};
 
@@ -708,6 +729,10 @@ Anglebars.utils = {
 		numAttributes = node.attributes.length;
 		for ( i=0; i<numAttributes; i+=1 ) {
 			attribute = node.attributes[i];
+
+			if ( attributes.name === 'data-anglebars-elementname' ) {
+				continue;
+			}
 
 			if ( attribute.name === 'xmlns' ) {
 				proxy.namespace = attribute.value;

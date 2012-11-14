@@ -1,7 +1,7 @@
 var sets, startTests, testNum = 0;
 
 sets = [ 'comments', 'delimiters', 'interpolation', 'inverted', 'partials', 'sections' ];
-//sets = [ 'inverted' ];
+//sets = [ 'delimiters' ];
 
 
 var trim = function ( str ) {
@@ -26,7 +26,7 @@ startTests = function ( set, data ) {
 			preserveWhitespace: true
 		});
 
-		pattern = /<a class="anglebars-anchor"><\/a>/g;
+		pattern = /<a class="anglebars-anchor" style="display: none;"><\/a>/g;
 		result = anglebars.el.innerHTML.replace( pattern, '' );
 				
 		test( t.name, function () {

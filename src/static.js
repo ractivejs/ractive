@@ -14,7 +14,7 @@ Anglebars.compile = function ( template, options ) {
 
 	// Parse the template
 	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );
-	
+
 	// Get an array of 'stubs' from the resulting DOM nodes
 	stubs = utils.getStubsFromNodes( nodes );
 

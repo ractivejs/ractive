@@ -1,4 +1,4 @@
-/*! Anglebars - v0.0.1 - 2012-10-28
+/*! Anglebars - v0.0.1 - 2012-11-14
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -152,14 +152,21 @@ Anglebars.utils = {};
 
 // Static method to compile a template string
 Anglebars.compile = function ( template, options ) {
-	var nodes, stubs, compiled = [], utils = Anglebars.utils;
+	var nodes, stubs, compiled = [], delimiters, tripleDelimiters, utils = Anglebars.utils;
+
+	options = options || {};
+
+	Anglebars.delimiters = options.delimiters || [ '{{', '}}' ];
+	Anglebars.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+
+	Anglebars.utils.compileMustachePattern();
 
 	// Remove any comment mustaches
 	template = utils.stripComments( template );
 
 	// Parse the template
 	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );
-	
+
 	// Get an array of 'stubs' from the resulting DOM nodes
 	stubs = utils.getStubsFromNodes( nodes );
 
@@ -169,7 +176,9 @@ Anglebars.compile = function ( template, options ) {
 	return compiled;
 };
 
-
+Anglebars.patterns = {
+	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/
+};
 // ViewModel constructor
 Anglebars.ViewModel = function ( data ) {
 	// Store data.
@@ -240,8 +249,12 @@ Anglebars.ViewModel.prototype = {
 
 		result = this.data;
 		while ( keys.length ) {
-			result = result[ keys.shift() ];
-
+			try {
+				result = result[ keys.shift() ];
+			} catch ( err ) {
+				return '';
+			}
+			
 			if ( result === undefined ) {
 				return '';
 			}
@@ -263,6 +276,12 @@ Anglebars.ViewModel.prototype = {
 
 		contextStack = ( contextStack ? contextStack.concat() : [] );
 		contextStackClone = contextStack.concat();
+
+		// implicit iterators - i.e. {{.}} - are a special case
+		if ( partialKeypath === '.' ) {
+			item.keypath = ( contextStack[ contextStack.length - 1 ] );
+			callback.call( item, item.keypath );
+		}
 
 		while ( contextStack ) {
 
@@ -453,19 +472,23 @@ Anglebars.view = function ( proto ) {
 			var value, formatted, self = this;
 
 			value = this.viewmodel.get( keypath );
-			formatted = this.anglebars._format( value, formatters );
-
-			this.update( formatted );
+			this.update( this.anglebars._format( value, formatters ) );
 
 			this.observerRefs = this.viewmodel.observe( keypath, this.model.priority, function ( value ) {
-				var formatted = self.anglebars._format( value, formatters );
-				self.update( formatted );
+				self.update( self.anglebars._format( value, formatters ) );
 				
 				if ( self.bubble ) {
 					self.bubble();
 				}
 			});
 		});
+
+		// if the last callback didn't run immediately (ie viewmodel.getKeypath didn't succeed)
+		// we have a failed lookup. For inverted sections, we need to trigger this.update() so
+		// the contents are rendered
+		if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+			this.update( false );
+		}
 	};
 
 	AnglebarsView.prototype = proto;
@@ -761,56 +784,50 @@ Anglebars.views.Section = Anglebars.view({
 
 
 		// otherwise we need to work out what sort of section we're dealing with
-		if ( typeof value === 'object' ) {
-			
+		
+		// if value is an array, iterate through
+		if ( Anglebars.utils.isArray( value ) ) {
 
-			// if value is an array, iterate through
-			if ( Anglebars.utils.isArray( value ) ) {
+			// if the array is shorter than it was previously, remove items
+			if ( value.length < this.length ) {
+				viewsToRemove = this.views.splice( value.length, this.length - value.length );
 
-				// if the array is shorter than it was previously, remove items
-				if ( value.length < this.length ) {
-					viewsToRemove = this.views.splice( value.length, this.length - value.length );
-
-					while ( viewsToRemove.length ) {
-						viewsToRemove.shift().teardown();
-					}
+				while ( viewsToRemove.length ) {
+					viewsToRemove.shift().teardown();
 				}
-
-				// otherwise...
-				else {
-
-					// first, update existing views
-					for ( i=0; i<this.length; i+=1 ) {
-						this.viewmodel.update( this.keypath + '.' + i );
-					}
-
-					if ( value.length > this.length ) {
-					
-						// then add any new ones
-						for ( i=this.length; i<value.length; i+=1 ) {
-							this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
-						}
-					}
-				}
-
-				this.length = value.length;
 			}
 
-			// if value is a hash...
+			// otherwise...
 			else {
-				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
-				// (if it is already rendered, then any children dependent on the context stack
-				// will update themselves without any prompting)
-				if ( !this.length ) {
-					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
-					this.length = 1;
+
+				// first, update existing views
+				for ( i=0; i<this.length; i+=1 ) {
+					this.viewmodel.update( this.keypath + '.' + i );
+				}
+
+				if ( value.length > this.length ) {
+				
+					// then add any new ones
+					for ( i=this.length; i<value.length; i+=1 ) {
+						this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
+					}
 				}
 			}
 
-			this.rendered = true;
-				
-
+			this.length = value.length;
 		}
+
+		// if value is a hash...
+		else if ( Anglebars.utils.isObject( value ) ) {
+			// ...then if it isn't rendered, render it, adding this.keypath to the context stack
+			// (if it is already rendered, then any children dependent on the context stack
+			// will update themselves without any prompting)
+			if ( !this.length ) {
+				this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
+				this.length = 1;
+			}
+		}
+
 
 		// otherwise render if value is truthy, unrender if falsy
 		else {
@@ -875,9 +892,11 @@ Anglebars.views.Triple = Anglebars.view({
 	update: function ( value ) {
 		var numNodes, i, utils = Anglebars.utils;
 
-		if ( utils.isEqual( this.value, value ) ) {
-			return;
-		}
+		// TODO... not sure what's going on here? this.value isn't being set to value,
+		// and equality check should already have taken place. Commenting out for now
+		// if ( utils.isEqual( this.value, value ) ) {
+		// 	return;
+		// }
 
 		// remove existing nodes
 		numNodes = this.nodes.length;
@@ -1138,7 +1157,6 @@ Anglebars.substrings.Section = Anglebars.substring({
 	},
 
 	toString: function () {
-		console.log( 'stringifying', this, ': ', this.value );
 		return this.value || '';
 	}
 });
@@ -1177,7 +1195,9 @@ Anglebars.utils = {
 	// convert HTML to an array of DOM nodes
 	getNodeArrayFromHtml: function ( html, replaceSrcAttributes ) {
 
-		var temp, i, numNodes, nodes = [], attrs, pattern;
+		var temp, i, numNodes, nodes = [], attrs, tags, pattern;
+
+		html = '' + html; // coerce non-string values to string (i.e. in triples)
 
 		// TODO work out the most efficient way to do this
 
@@ -1188,6 +1208,21 @@ Anglebars.utils = {
 			for ( i=0; i<attrs.length; i+=1 ) {
 				pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
 				html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
+			}
+		}
+
+		// replace table tags with <div data-anglebars-elementname='table'></div> -
+		// this is because the way browsers parse table HTML is F**CKING MENTAL
+		var replaceFunkyTags = true;
+		if ( replaceFunkyTags ) {
+			tags = [ 'table', 'thead', 'tbody', 'tr', 'th', 'td' ];
+
+			for ( i=0; i<tags.length; i+=1 ) {
+				pattern = new RegExp( '<(' + tags[i] + ')(\\s|>)', 'gi' );
+				html = html.replace( pattern, '<div data-anglebars-elementname="$1"$2' );
+
+				pattern = new RegExp( '<\\/' + tags[i] + '>', 'gi' );
+				html = html.replace( pattern, '</div>' );
 			}
 		}
 
@@ -1278,9 +1313,13 @@ Anglebars.utils = {
 
 	// strip mustache comments (which look like {{!this}}, i.e. mustache with an exclamation mark) from a string
 	stripComments: function ( input ) {
-		var comment = /\{\{!\s*[\s\S]+?\s*\}\}/g,
-			lineComment = /(^|\n|\r\n)\s*\{\{!\s*[\s\S]+?\s*\}\}\s*($|\n|\r\n)/g,
-			output;
+		var open, close, comment, lineComment, output;
+
+		open = this.escape( Anglebars.delimiters[0] );
+		close = this.escape( Anglebars.delimiters[1] );
+
+		comment = new RegExp( open + '!\\s*[\\s\\S]+?\\s*' + close, 'g' );
+		lineComment = new RegExp( '(^|\\n|\\r\\n)\\s*' + open + '!\\s*[\\s\\S]+?\\s*' + close + '\\s*($|\\n|\\r\\n)', 'g' );
 
 		// remove line comments
 		output = input.replace( lineComment, function ( matched, startChar ) {
@@ -1298,6 +1337,7 @@ Anglebars.utils = {
 	createAnchor: function () {
 		var anchor = document.createElement( 'a' );
 		anchor.setAttribute( 'class', 'anglebars-anchor' );
+		anchor.style.display = 'none';
 
 		return anchor;
 	},
@@ -1330,69 +1370,141 @@ Anglebars.utils = {
 	},
 
 
-	// find the first mustache in a string, and store some information about it. Returns an array with some additional properties
+	// CAUTION! HERE BE REGEXES
+	escape: function ( str ) {
+		var theSpecials = /[\[\]\(\)\{\}\^\$\*\+\?\.\|]/g;
+
+		str = str.replace( theSpecials, '\\$&' );
+		return str.replace( /\\/g, '\\' );
+	},
+
+	compileMustachePattern: function () {
+		Anglebars.patterns.mustache = new RegExp( '' +
+
+		// opening delimiters - triple (1) or regular (2)
+		'(?:(' + this.escape( Anglebars.tripleDelimiters[0] ) + ')|(' + this.escape( Anglebars.delimiters[0] ) + '))' +
+
+		// EITHER:
+		'(?:(?:' +
+
+			// delimiter change (3/6) - the new opening (4) and closing (5) delimiters
+			'(=)\\s*([^\\s]+)\\s+([^\\s]+)\\s*(=)' +
+
+			// closing delimiters - triple (7) or regular (8)
+			'(?:(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + '))' +
+
+		// OR:
+		')|(?:' +
+
+			// sections (9): opening normal, opening inverted, closing
+			'(#|\\^|\\/)?' +
+
+			// partials (10)
+			'(\\>)?' +
+
+			// unescaper (11) (not sure what relevance this has...?)
+			'(&)?' +
+
+			
+
+			// optional whitespace
+			'\\s*' +
+
+			// mustache formula (12)
+			'([\\s\\S]+?)' +
+
+			// more optional whitespace
+			'\\s*' +
+
+			// closing delimiters - triple (13) or regular (14)
+			'(?:(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + '))' +
+
+		'))', 'g' );
+	},
+
+
+	// find the first mustache in a string, and store some information about it. Returns an array
+	// - the result of regex.exec() - with some additional properties
 	findMustache: function ( text, startIndex ) {
 
-		var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatter;
+		var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
 
-		mustache = /(\{)?\{\{(#|\^|\/)?(\>)?(&)?\s*([\s\S]+?)\s*\}\}(\})?/g;
+		mustache = Anglebars.patterns.mustache;
 		formulaSplitter = ' | ';
-		formatterPattern = /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/;
+		formatterPattern = Anglebars.patterns.formatter;
 
 		match = Anglebars.utils.findMatch( text, mustache, startIndex );
 
 		if ( match ) {
 
-			match.formula = match[5];
-			split = match.formula.split( formulaSplitter );
-			match.partialKeypath = split.shift();
-			
-			// extract formatters
-			match.formatters = [];
+			// first, see if we're dealing with a delimiter change
+			if ( match[3] && match[6] ) {
+				match.type = 'delimiterChange';
 
-			for ( i=0; i<split.length; i+=1 ) {
-				formatterNameAndArgs = formatterPattern.exec( split[i] );
-				if ( formatterNameAndArgs ) {
-					formatter = {
-						name: formatterNameAndArgs[1]
-					};
-
-					if ( formatterNameAndArgs[2] ) {
-						try {
-							formatter.args = JSON.parse( formatterNameAndArgs[2] );
-						} catch ( err ) {
-							throw new Error( 'Illegal arguments for formatter \'' + formatter.name + '\': ' + formatterNameAndArgs[2] + ' (JSON.parse() failed)' );
-						}
-					}
-
-					match.formatters.push( formatter );
-				}
-			}
-			
-			
-			// figure out what type of mustache we're dealing with
-			if ( match[2] ) {
-				// mustache is a section
-				match.type = 'section';
-				match.inverted = ( match[2] === '^' ? true : false );
-				match.closing = ( match[2] === '/' ? true : false );
-			}
-
-			else if ( match[3] ) {
-				match.type = 'partial';
-			}
-
-			else if ( match[1] ) {
-				// left side is a triple - check right side is as well
-				if ( !match[6] ) {
-					return false;
+				// triple or regular?
+				if ( match[1] && match[7] ) {
+					// triple delimiter change
+					Anglebars.tripleDelimiters = [ match[4], match[5] ];
+				} else {
+					// triple delimiter change
+					Anglebars.delimiters = [ match[4], match[5] ];
 				}
 
-				match.type = 'triple';
+				Anglebars.utils.compileMustachePattern();
 			}
 
 			else {
-				match.type = 'interpolator';
+				match.formula = match[12];
+				split = match.formula.split( formulaSplitter );
+				match.partialKeypath = split.shift();
+				
+				// extract formatters
+				match.formatters = [];
+
+				for ( i=0; i<split.length; i+=1 ) {
+					formatterNameAndArgs = formatterPattern.exec( split[i] );
+					if ( formatterNameAndArgs ) {
+						formatter = {
+							name: formatterNameAndArgs[1]
+						};
+
+						if ( formatterNameAndArgs[2] ) {
+							try {
+								formatter.args = JSON.parse( formatterNameAndArgs[2] );
+							} catch ( err ) {
+								throw new Error( 'Illegal arguments for formatter \'' + formatter.name + '\': ' + formatterNameAndArgs[2] + ' (JSON.parse() failed)' );
+							}
+						}
+
+						match.formatters.push( formatter );
+					}
+				}
+				
+				
+				// figure out what type of mustache we're dealing with
+				if ( match[9] ) {
+					// mustache is a section
+					match.type = 'section';
+					match.inverted = ( match[9] === '^' ? true : false );
+					match.closing = ( match[9] === '/' ? true : false );
+				}
+
+				else if ( match[10] ) {
+					match.type = 'partial';
+				}
+
+				else if ( match[1] ) {
+					// left side is a triple - check right side is as well
+					if ( !match[13] ) {
+						return false;
+					}
+
+					match.type = 'triple';
+				}
+
+				else {
+					match.type = 'interpolator';
+				}
 			}
 
 			match.isMustache = true;
@@ -1428,7 +1540,7 @@ Anglebars.utils = {
 
 	
 	getStubsFromNodes: function ( nodes ) {
-		var i, numNodes, node, result = [];
+		var i, numNodes, node, result = [], stubs;
 
 		numNodes = nodes.length;
 		for ( i=0; i<numNodes; i+=1 ) {
@@ -1442,7 +1554,10 @@ Anglebars.utils = {
 			}
 
 			else if ( node.nodeType === 3 ) {
-				result = result.concat( Anglebars.utils.expandText( node.data ) );
+				stubs = Anglebars.utils.expandText( node.data );
+				if ( stubs ) {
+					result = result.concat( stubs );
+				}
 			}
 		}
 
@@ -1450,26 +1565,47 @@ Anglebars.utils = {
 	},
 
 	expandText: function ( text ) {
-		var result, mustache;
+		var result = [], mustache, start, ws, pre, post, standalone, stubs;
 
 		// see if there's a mustache involved here
 		mustache = Anglebars.utils.findMustache( text );
 
-		// if not, groovy - no work to do
-		if ( !mustache ) {
-			return {
-				type: 'text',
-				text: text
-			};
+		// delimiter changes are a special (and bloody awkward...) case
+		while ( mustache.type === 'delimiterChange' ) {
+			
+			if ( mustache.start > 0 ) {
+				result[ result.length ] = {
+					type: 'text',
+					text: text.substr( 0, mustache.start )
+				};
+			}
+
+			text = text.substring( mustache.end );
+			mustache = Anglebars.utils.findMustache( text );
 		}
 
-		result = [];
+		// if no mustaches, groovy - no work to do
+		if ( !mustache ) {
+			if ( text ) {
+				return result.concat({
+					type: 'text',
+					text: text
+				});
+			}
+
+			return ( result.length ? result : false );
+		}
 
 		// otherwise, see if there is any text before the node
+		standalone = true;
+		ws = /\s*\n\s*$/;
+
 		if ( mustache.start > 0 ) {
+			pre = text.substr( 0, mustache.start );
+
 			result[ result.length ] = {
 				type: 'text',
-				text: text.substr( 0, mustache.start )
+				text: pre
 			};
 		}
 
@@ -1480,7 +1616,11 @@ Anglebars.utils = {
 		};
 
 		if ( mustache.end < text.length ) {
-			result = result.concat( Anglebars.utils.expandText( text.substring( mustache.end ) ) );
+			stubs = Anglebars.utils.expandText( text.substring( mustache.end ) );
+
+			if ( stubs ) {
+				result = result.concat( stubs );
+			}
 		}
 
 		return result;
@@ -1626,13 +1766,16 @@ Anglebars.utils = {
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	},
 
+	isObject: function ( obj ) {
+		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	},
+
 	compileStubs: function ( stubs, priority, namespace, preserveWhitespace ) {
-		var compiled, next, processIntermediary;
+		var compiled, next, processStub;
 
 		compiled = [];
 
-		
-		processIntermediary = function ( i ) {
+		processStub = function ( i ) {
 			var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath;
 
 			whitespace = /^\s*\n\r?\s*$/;
@@ -1734,7 +1877,7 @@ Anglebars.utils = {
 
 		next = 0;
 		while ( next < stubs.length ) {
-			next = processIntermediary( next );
+			next = processStub( next );
 		}
 
 		return compiled;
@@ -1747,7 +1890,7 @@ Anglebars.utils = {
 
 		proxy = {
 			type: 'element',
-			tag: node.localName,
+			tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName,
 			priority: priority
 		};
 
@@ -1762,6 +1905,10 @@ Anglebars.utils = {
 		numAttributes = node.attributes.length;
 		for ( i=0; i<numAttributes; i+=1 ) {
 			attribute = node.attributes[i];
+
+			if ( attributes.name === 'data-anglebars-elementname' ) {
+				continue;
+			}
 
 			if ( attribute.name === 'xmlns' ) {
 				proxy.namespace = attribute.value;
@@ -1779,16 +1926,16 @@ Anglebars.utils = {
 	},
 
 	processAttribute: function ( name, value, priority ) {
-		var attribute, components, utils = Anglebars.utils;
+		var attribute, stubs, utils = Anglebars.utils;
 
-		components = utils.expandText( value );
+		stubs = utils.expandText( value );
 
 		attribute = {
 			name: name.replace( 'data-anglebars-', '' )
 		};
 
 		// no mustaches in this attribute - no extra work to be done
-		if ( !utils.findMustache( value ) ) {
+		if ( !utils.findMustache( value ) || !stubs ) {
 			attribute.value = value;
 			return attribute;
 		}
@@ -1797,7 +1944,7 @@ Anglebars.utils = {
 		// mustaches present - attribute is dynamic
 		attribute.isDynamic = true;
 		attribute.priority = priority;
-		attribute.components = utils.compileStubs( components, priority, null );
+		attribute.components = utils.compileStubs( stubs, priority, null );
 
 
 		return attribute;
