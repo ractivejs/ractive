@@ -14,7 +14,9 @@ module.exports = function(grunt) {
         '/*jslint eqeq: true, plusplus: true */\n' +
         '/*global document, HTMLElement */\n' +
         '\n' +
-        '\'use strict\';\n\n'
+        '\'use strict\';\n\n',
+      amd_start: 'define([], function() { ',
+      amd_end: ' return Anglebars; \n})'
     },
     lint: {
       files: ['grunt.js', 'src/**/*.js'] // TODO add tests
@@ -26,6 +28,10 @@ module.exports = function(grunt) {
       dist: {
         src: ['<banner:meta.banner>', 'src/anglebars.js', 'src/static.js', 'src/viewmodel.js', 'src/view.js', 'src/views/*.js', 'src/substring.js', 'src/substrings/*.js', 'src/utils.js'],
         dest: 'build/<%= pkg.name %>.js'
+      },
+      amd : {
+        src: ['<banner:meta.amd_start>', 'build/<%= pkg.name %>.js', '<banner:meta.amd_end>'],
+        dest:'build/<%= pkg.name %>.amd.js'
       }
     },
     min: {
