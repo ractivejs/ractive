@@ -144,8 +144,3 @@ Anglebars.prototype = {
 		return value;
 	}
 };
-
-// Namespaces for submodules and utility functions
-Anglebars.views = {};
-Anglebars.substrings = {};
-Anglebars.utils = {};

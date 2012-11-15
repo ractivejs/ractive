@@ -34,3 +34,27 @@ Anglebars.patterns = {
 	standalonePost: /^[ \t]*(\r)?\n/,
 	standalonePreStrip: /[ \t]+$/
 };
+
+
+// Namespaces for submodules, with create helpers
+Anglebars.views = {
+	create: function ( options ) {
+		var type = options.model.type;
+		
+		// get constructor name by capitalising model type
+		type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
+
+		return new Anglebars.views[ type ]( options );
+	}
+};
+
+Anglebars.substrings = {
+	create: function ( options ) {
+		var type = options.model.type;
+		
+		// get constructor name by capitalising model type
+		type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
+
+		return new Anglebars.substrings[ type ]( options );
+	}
+};
