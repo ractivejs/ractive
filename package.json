@@ -1,6 +1,7 @@
 {
 	"name": "Anglebars",
 	"version": "0.1.0",
+    "description" : "the bastard lovechild of Angular.js and handlebars",
 	"homepage": "http://rich-harris.github.com/Anglebars/",
 	"author": {
 		"name": "Rich Harris"
@@ -9,5 +10,12 @@
 		{
 			"type": "WTFPL"
 		}
-	]
+	],
+    "jam" : {
+        "main" : "build/Anglebars.amd.js",
+        "include" : [
+            "build/Anglebars.amd.js",
+            "README.md"
+        ]
+    }
 }
