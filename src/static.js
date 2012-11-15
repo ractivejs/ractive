@@ -9,11 +9,8 @@ Anglebars.compile = function ( template, options ) {
 
 	Anglebars.utils.compileMustachePattern();
 
-	// Remove any comment mustaches
-	template = utils.stripComments( template );
-
-	// Collapse any standalone mustaches
-	template = utils.collapseStandalones( template );
+	// Collapse any standalone mustaches and remove templates
+	template = utils.preProcess( template );
 	
 	// Parse the template
 	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );

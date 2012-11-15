@@ -161,11 +161,8 @@ Anglebars.compile = function ( template, options ) {
 
 	Anglebars.utils.compileMustachePattern();
 
-	// Remove any comment mustaches
-	template = utils.stripComments( template );
-
-	// Collapse any standalone mustaches
-	template = utils.collapseStandalones( template );
+	// Collapse any standalone mustaches and remove templates
+	template = utils.preProcess( template );
 	
 	// Parse the template
 	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );
@@ -1408,26 +1405,30 @@ Anglebars.utils = {
 			// unescaper (11) (not sure what relevance this has...?)
 			'(&)?' +
 
+			// comment (12)
+			'(!)?' +
+
 			
 
 			// optional whitespace
 			'\\s*' +
 
-			// mustache formula (12)
+			// mustache formula (13)
 			'([\\s\\S]+?)' +
 
 			// more optional whitespace
 			'\\s*' +
 
-			// closing delimiters - triple (13) or regular (14)
+			// closing delimiters - triple (14) or regular (15)
 			'(?:(' + this.escape( Anglebars.tripleDelimiters[1] ) + ')|(' + this.escape( Anglebars.delimiters[1] ) + '))' +
 
 		'))', 'g' );
 	},
 
 
-	collapseStandalones: function ( str ) {
-		var result = '', remaining = str, firstMustache, pre, post, preTest, postTest, typeTest, delimiters, tripleDelimiters, recompile;
+	// collapse standalones (i.e. mustaches that sit on a line by themselves) and remove comments
+	preProcess: function ( str ) {
+		var result = '', remaining = str, mustache, pre, post, preTest, postTest, typeTest, delimiters, tripleDelimiters, recompile;
 
 		// make a note of current delimiters, we may need to reset them in a minute
 		delimiters = Anglebars.delimiters.concat();
@@ -1439,29 +1440,39 @@ Anglebars.utils = {
 		typeTest = /section|comment|delimiterChange/;
 
 		while ( remaining.length ) {
+			mustache = Anglebars.utils.findMustache( remaining );
 
-			firstMustache = Anglebars.utils.findMustache( remaining );
-
-			if ( !firstMustache ) {
+			// if there are no more mustaches, add the remaining text and be done
+			if ( !mustache ) {
 				result += remaining;
 				break;
 			}
 
-			if ( typeTest.test( firstMustache.type ) ) {
-				pre = remaining.substr( 0, firstMustache.start );
-				post = remaining.substring( firstMustache.end );
+			// if we've got a section, comment, or delimiter change mustache...
+			if ( typeTest.test( mustache.type ) ) {
+				pre = remaining.substr( 0, mustache.start ); // before the mustache
+				post = remaining.substring( mustache.end );  // after the mustache
 
+				// if there is newline + (whitespace)? immediately before the mustache, and
+				// (whitespace)? + newline immediately after, remove one of them
 				if ( preTest.test( pre ) && postTest.test( post ) ) {
 					pre = pre.replace( /(?:\r)?\n\s*$/, '' );
 				}
 
 				result += pre;
-				result += firstMustache[0];
+				
+				// strip comments
+				if ( mustache.type !== 'comment' ) {
+					result += mustache[0];
+				}
 
 				remaining = post;
-			} else {
-				result += remaining.substr( 0, firstMustache.end );
-				remaining = remaining.substring( firstMustache.end );
+			}
+
+			// otherwise carry on as normal
+			else {
+				result += remaining.substr( 0, mustache.end );
+				remaining = remaining.substring( mustache.end );
 			}
 		}
 
@@ -1516,7 +1527,7 @@ Anglebars.utils = {
 			}
 
 			else {
-				match.formula = match[12];
+				match.formula = match[13];
 				split = match.formula.split( formulaSplitter );
 				match.partialKeypath = split.shift();
 				
@@ -1557,11 +1568,15 @@ Anglebars.utils = {
 
 				else if ( match[1] ) {
 					// left side is a triple - check right side is as well
-					if ( !match[13] ) {
+					if ( !match[14] ) {
 						return false;
 					}
 
 					match.type = 'triple';
+				}
+
+				else if ( match[12] ) {
+					match.type = 'comment';
 				}
 
 				else {
