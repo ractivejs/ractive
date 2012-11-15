@@ -108,11 +108,8 @@ Anglebars.ViewModel.prototype = {
 
 			result = this.data;
 			while ( keys.length ) {
-				try {
+				if ( result ) {
 					result = result[ keys.shift() ];
-				} catch ( err ) {
-					result = undefined;
-					break;
 				}
 			
 				if ( result === undefined ) {
