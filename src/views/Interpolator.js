@@ -1,6 +1,7 @@
 Anglebars.views.Interpolator = Anglebars.view({
 	initialize: function () {
 		this.node = document.createTextNode( '' );
+
 		this.parentNode.insertBefore( this.node, this.anchor || null );
 	},
 
@@ -16,5 +17,9 @@ Anglebars.views.Interpolator = Anglebars.view({
 
 	update: function ( value ) {
 		this.node.data = value;
+	},
+
+	firstNode: function () {
+		return this.node;
 	}
 });

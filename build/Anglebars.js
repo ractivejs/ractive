@@ -110,7 +110,11 @@ Anglebars.prototype = {
 			throw new Error( 'You must specify a DOM element to render to' );
 		}
 
-		this.rendered = new Anglebars.views.Fragment( this.compiled, this, el );
+		this.rendered = new Anglebars.views.Fragment({
+			model: this.compiled,
+			anglebars: this,
+			parentNode: el
+		});
 	},
 
 	teardown: function () {
@@ -469,20 +473,22 @@ Anglebars.ViewModel.prototype = {
 Anglebars.view = function ( proto ) {
 	var AnglebarsView;
 
-	AnglebarsView = function ( model, anglebars, parentNode, contextStack, anchor ) {
+	AnglebarsView = function ( options ) {
 		
-		var formatters = model.formatters;
+		var formatters      = options.model.formatters;
 
-		this.model = model;
-		this.anglebars = anglebars;
-		this.viewmodel = anglebars.viewmodel;
-		this.parentNode = parentNode;
-		this.contextStack = contextStack || [];
-		this.anchor = anchor;
+		this.model          = options.model;
+		this.anglebars      = options.anglebars;
+		this.viewmodel      = options.anglebars.viewmodel;
+		this.parentNode     = options.parentNode;
+		this.parentFragment = options.parentFragment;
+		this.contextStack   = options.contextStack || [];
+		this.anchor         = options.anchor;
+		this.index          = options.index;
 
 		this.initialize();
 
-		this.viewmodel.getKeypath( this, model.partialKeypath, contextStack, function ( keypath ) {
+		this.viewmodel.getKeypath( this, options.model.partialKeypath, options.contextStack, function ( keypath ) {
 			var value, formatted, self = this;
 
 			value = this.viewmodel.get( keypath );
@@ -574,38 +580,44 @@ Anglebars.views.Attribute.prototype = {
 		return string;
 	}
 };
-Anglebars.views.create = function ( model, anglebars, parentNode, contextStack, anchor ) {
+Anglebars.views.create = function ( options ) {
 	var views = Anglebars.views;
 
-	switch ( model.type ) {
+	switch ( options.model.type ) {
 		case 'text':
-			return new views.Text( model, parentNode, anchor );
+			return new views.Text( options );
 
 		case 'interpolator':
-			return new views.Interpolator( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Interpolator( options );
 
 		case 'triple':
-			return new views.Triple( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Triple( options );
 
 		case 'element':
-			return new views.Element( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Element( options );
 
 		case 'section':
-			return new views.Section( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Section( options );
 	}
 };
-Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack, anchor ) {
+
+
+// model, anglebars, parentNode, contextStack, anchor, parentFragment, index
+Anglebars.views.Element = function ( options ) {
 
 	var i,
 		numAttributes,
 		numItems,
 		attributeModel,
 		item,
-		binding;
+		binding,
+		model;
 
 	// stuff we'll need later
-	this.model = model;
-	this.viewmodel = anglebars.viewmodel;
+	model = this.model = options.model;
+	this.viewmodel = options.anglebars.viewmodel;
+	this.parentFragment = options.parentFragment;
+	this.index = options.index;
 
 	// create the DOM node
 	if ( model.namespace ) {
@@ -628,26 +640,25 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 
 		// otherwise proceed as normal
 		else {
-			this.attributes[i] = new Anglebars.views.Attribute( attributeModel, anglebars, this.node, contextStack );
+			this.attributes[i] = new Anglebars.views.Attribute( attributeModel, options.anglebars, this.node, options.contextStack );
 		}
 	}
 
 	if ( binding ) {
-		this.bind( binding, anglebars.lazy );
+		this.bind( binding, options.anglebars.lazy );
 	}
 
 	// append children
-	if ( model.children ) {
-		this.children = [];
-		numItems = model.children.length;
-		for ( i=0; i<numItems; i+=1 ) {
-			item = model.children[i];
-			this.children[i] = Anglebars.views.create( item, anglebars, this.node, contextStack );
-		}
-	}
+	this.children = new Anglebars.views.Fragment({
+		model:        model.children,
+		anglebars:    options.anglebars,
+		parentNode:   this.node,
+		contextStack: options.contextStack,
+		anchor:       null
+	});
 
 	// append this.node, either at end of parent element or in front of the anchor (if defined)
-	parentNode.insertBefore( this.node, anchor || null );
+	options.parentNode.insertBefore( this.node, options.anchor );
 };
 
 Anglebars.views.Element.prototype = {
@@ -685,24 +696,44 @@ Anglebars.views.Element.prototype = {
 		
 		var numAttrs, i;
 
+		this.children.teardown();
+
 		numAttrs = this.attributes.length;
 		for ( i=0; i<numAttrs; i+=1 ) {
 			this.attributes[i].teardown();
 		}
 
 		Anglebars.utils.remove( this.node );
+	},
+
+	firstNode: function () {
+		return this.node;
 	}
 };
 
-Anglebars.views.Fragment = function ( models, anglebars, parentNode, contextStack, anchor ) {
+Anglebars.views.Fragment = function ( options ) {
 
-	var numModels, i;
+	var numModels, i, itemOptions;
+
+	this.parentSection = options.parentSection;
+	this.index = options.index;
+
+	itemOptions = {
+		anglebars:      options.anglebars,
+		parentNode:     options.parentNode,
+		contextStack:   options.contextStack,
+		anchor:         options.anchor,
+		parentFragment: this
+	};
 
 	this.items = [];
 
-	numModels = models.length;
+	numModels = options.model.length;
 	for ( i=0; i<numModels; i+=1 ) {
-		this.items[ this.items.length ] = Anglebars.views.create( models[i], anglebars, parentNode, contextStack, anchor );
+		itemOptions.model = options.model[i];
+		itemOptions.index = i;
+
+		this.items[i] = Anglebars.views.create( itemOptions );
 	}
 };
 
@@ -717,11 +748,40 @@ Anglebars.views.Fragment.prototype = {
 		}
 
 		delete this.items;
+	},
+
+	firstNode: function () {
+		if ( this.items[0] ) {
+			return this.items[0].firstNode();
+		} else {
+			if ( this.parentSection ) {
+				return this.parentSection.findNextNode( this );
+			}
+		}
+
+		return null;
+	},
+
+	findNextNode: function ( item ) {
+		var index;
+
+		index = item.index;
+
+		if ( this.items[ index + 1 ] ) {
+			return this.items[ index + 1 ].firstNode();
+		} else {
+			if ( this.parentSection ) {
+				return this.parentSection.findNextNode( this );
+			}
+		}
+
+		return null;
 	}
 };
 Anglebars.views.Interpolator = Anglebars.view({
 	initialize: function () {
 		this.node = document.createTextNode( '' );
+
 		this.parentNode.insertBefore( this.node, this.anchor || null );
 	},
 
@@ -737,15 +797,16 @@ Anglebars.views.Interpolator = Anglebars.view({
 
 	update: function ( value ) {
 		this.node.data = value;
+	},
+
+	firstNode: function () {
+		return this.node;
 	}
 });
 Anglebars.views.Section = Anglebars.view({
 	initialize: function () {
 		this.views = [];
 		this.length = 0; // number of times this section is rendered
-
-		this.sectionAnchor = Anglebars.utils.createAnchor();
-		this.parentNode.insertBefore( this.sectionAnchor, this.anchor );
 	},
 
 	teardown: function () {
@@ -760,6 +821,22 @@ Anglebars.views.Section = Anglebars.view({
 		Anglebars.utils.remove( this.anchor );
 	},
 
+	firstNode: function () {
+		if ( this.views[0] ) {
+			return this.views[0].firstNode();
+		}
+
+		return this.parentFragment.findNextNode( this );
+	},
+
+	findNextNode: function ( fragment ) {
+		if ( this.views[ fragment.index + 1 ] ) {
+			return this.views[ fragment.index + 1 ].firstNode();
+		} else {
+			return this.parentFragment.findNextNode( this );
+		}
+	},
+
 	unrender: function () {
 		while ( this.views.length ) {
 			this.views.shift().teardown();
@@ -767,8 +844,17 @@ Anglebars.views.Section = Anglebars.view({
 	},
 
 	update: function ( value ) {
-		var emptyArray, i, views = Anglebars.views, viewsToRemove;
-		
+		var emptyArray, i, views = Anglebars.views, viewsToRemove, anchor, fragmentOptions;
+
+
+		fragmentOptions = {
+			model:        this.model.children,
+			anglebars:    this.anglebars,
+			parentNode:   this.parentNode,
+			anchor:       this.parentFragment.findNextNode( this ),
+			parentSection: this
+		};
+
 		// treat empty arrays as false values
 		if ( Anglebars.utils.isArray( value ) && value.length === 0 ) {
 			emptyArray = true;
@@ -787,7 +873,13 @@ Anglebars.views.Section = Anglebars.view({
 
 			else {
 				if ( !this.length ) {
-					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
+					anchor = this.parentFragment.findNextNode( this );
+					
+					// no change to context stack in this situation
+					fragmentOptions.contextStack = this.contextStack;
+					fragmentOptions.index = 0;
+
+					this.views[0] = new views.Fragment( fragmentOptions );
 					this.length = 1;
 					return;
 				}
@@ -820,10 +912,13 @@ Anglebars.views.Section = Anglebars.view({
 				}
 
 				if ( value.length > this.length ) {
-				
 					// then add any new ones
 					for ( i=this.length; i<value.length; i+=1 ) {
-						this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
+						// append list item to context stack
+						fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+						fragmentOptions.index = i;
+
+						this.views[i] = new views.Fragment( fragmentOptions );
 					}
 				}
 			}
@@ -837,7 +932,11 @@ Anglebars.views.Section = Anglebars.view({
 			// (if it is already rendered, then any children dependent on the context stack
 			// will update themselves without any prompting)
 			if ( !this.length ) {
-				this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
+				// append this section to the context stack
+				fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
+				fragmentOptions.index = 0;
+
+				this.views[0] = new views.Fragment( fragmentOptions );
 				this.length = 1;
 			}
 		}
@@ -848,7 +947,11 @@ Anglebars.views.Section = Anglebars.view({
 
 			if ( value && !emptyArray ) {
 				if ( !this.length ) {
-					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
+					// no change to context stack
+					fragmentOptions.contextStack = this.contextStack;
+					fragmentOptions.index = 0;
+
+					this.views[0] = new views.Fragment( fragmentOptions );
 					this.length = 1;
 				}
 			}
@@ -859,31 +962,33 @@ Anglebars.views.Section = Anglebars.view({
 					this.length = 0;
 				}
 			}
-
-			
-
 		}
 	}
 });
 
-Anglebars.views.Text = function ( model, parentNode, anchor ) {
-	this.node = document.createTextNode( model.text );
+Anglebars.views.Text = function ( options ) {
+	this.node = document.createTextNode( options.model.text );
+	this.index = options.index;
 
 	// append this.node, either at end of parent element or in front of the anchor (if defined)
-	parentNode.insertBefore( this.node, anchor || null );
+	options.parentNode.insertBefore( this.node, options.anchor );
 };
 
 Anglebars.views.Text.prototype = {
 	teardown: function () {
 		Anglebars.utils.remove( this.node );
+	},
+
+	firstNode: function () {
+		return this.node;
 	}
 };
 Anglebars.views.Triple = Anglebars.view({
 	initialize: function () {
 		this.nodes = [];
 
-		this.tripleAnchor = Anglebars.utils.createAnchor();
-		this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );
+		// this.tripleAnchor = Anglebars.utils.createAnchor();
+		// this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );
 	},
 
 	teardown: function () {
@@ -903,14 +1008,24 @@ Anglebars.views.Triple = Anglebars.view({
 		Anglebars.utils.remove( this.anchor );
 	},
 
+	firstNode: function () {
+		if ( this.nodes[0] ) {
+			return this.nodes[0];
+		}
+
+		return this.parentFragment.findNextNode( this );
+	},
+
 	update: function ( value ) {
-		var numNodes, i, utils = Anglebars.utils;
+		var numNodes, i, utils = Anglebars.utils, anchor;
 
 		// TODO... not sure what's going on here? this.value isn't being set to value,
 		// and equality check should already have taken place. Commenting out for now
 		// if ( utils.isEqual( this.value, value ) ) {
 		// 	return;
 		// }
+
+		anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
 
 		// remove existing nodes
 		numNodes = this.nodes.length;
@@ -922,9 +1037,14 @@ Anglebars.views.Triple = Anglebars.view({
 		this.nodes = utils.getNodeArrayFromHtml( value, false );
 
 		numNodes = this.nodes.length;
-		for ( i=0; i<numNodes; i+=1 ) {
-			this.parentNode.insertBefore( this.nodes[i], this.tripleAnchor );
+		if ( numNodes ) {
+			anchor = this.parentFragment.findNextNode( this );
 		}
+		for ( i=0; i<numNodes; i+=1 ) {
+			this.parentNode.insertBefore( this.nodes[i], anchor );
+		}
+
+		this.initialised = true;
 	}
 });
 
@@ -1344,16 +1464,6 @@ Anglebars.utils = {
 		output = output.replace( comment, '' );
 
 		return output;
-	},
-
-
-	// create an anglebars anchor
-	createAnchor: function () {
-		var anchor = document.createElement( 'a' );
-		anchor.setAttribute( 'class', 'anglebars-anchor' );
-		anchor.style.display = 'none';
-
-		return anchor;
 	},
 
 

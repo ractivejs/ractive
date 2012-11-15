@@ -47,8 +47,7 @@ startTests = function ( set, data ) {
 				preserveWhitespace: true
 			});
 
-			pattern = /<a class="anglebars-anchor" style="display: none;"><\/a>/g;
-			result = anglebars.el.innerHTML.replace( pattern, '' );
+			result = anglebars.el.innerHTML;
 
 			testReport[ testNum ].___result = result;
 			testReport[ testNum ].charCodes.___result = charCodes( trim( result ) );

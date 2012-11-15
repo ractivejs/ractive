@@ -1,15 +1,18 @@
-Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack, anchor ) {
+Anglebars.views.Element = function ( options ) {
 
 	var i,
 		numAttributes,
 		numItems,
 		attributeModel,
 		item,
-		binding;
+		binding,
+		model;
 
 	// stuff we'll need later
-	this.model = model;
-	this.viewmodel = anglebars.viewmodel;
+	model = this.model = options.model;
+	this.viewmodel = options.anglebars.viewmodel;
+	this.parentFragment = options.parentFragment;
+	this.index = options.index;
 
 	// create the DOM node
 	if ( model.namespace ) {
@@ -32,26 +35,25 @@ Anglebars.views.Element = function ( model, anglebars, parentNode, contextStack,
 
 		// otherwise proceed as normal
 		else {
-			this.attributes[i] = new Anglebars.views.Attribute( attributeModel, anglebars, this.node, contextStack );
+			this.attributes[i] = new Anglebars.views.Attribute( attributeModel, options.anglebars, this.node, options.contextStack );
 		}
 	}
 
 	if ( binding ) {
-		this.bind( binding, anglebars.lazy );
+		this.bind( binding, options.anglebars.lazy );
 	}
 
 	// append children
-	if ( model.children ) {
-		this.children = [];
-		numItems = model.children.length;
-		for ( i=0; i<numItems; i+=1 ) {
-			item = model.children[i];
-			this.children[i] = Anglebars.views.create( item, anglebars, this.node, contextStack );
-		}
-	}
+	this.children = new Anglebars.views.Fragment({
+		model:        model.children,
+		anglebars:    options.anglebars,
+		parentNode:   this.node,
+		contextStack: options.contextStack,
+		anchor:       null
+	});
 
 	// append this.node, either at end of parent element or in front of the anchor (if defined)
-	parentNode.insertBefore( this.node, anchor || null );
+	options.parentNode.insertBefore( this.node, options.anchor );
 };
 
 Anglebars.views.Element.prototype = {
@@ -89,11 +91,17 @@ Anglebars.views.Element.prototype = {
 		
 		var numAttrs, i;
 
+		this.children.teardown();
+
 		numAttrs = this.attributes.length;
 		for ( i=0; i<numAttrs; i+=1 ) {
 			this.attributes[i].teardown();
 		}
 
 		Anglebars.utils.remove( this.node );
+	},
+
+	firstNode: function () {
+		return this.node;
 	}
 };

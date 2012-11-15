@@ -1,20 +1,23 @@
-Anglebars.views.create = function ( model, anglebars, parentNode, contextStack, anchor ) {
+Anglebars.views.create = function ( options ) {
 	var views = Anglebars.views;
 
-	switch ( model.type ) {
+	switch ( options.model.type ) {
 		case 'text':
-			return new views.Text( model, parentNode, anchor );
+			return new views.Text( options );
 
 		case 'interpolator':
-			return new views.Interpolator( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Interpolator( options );
 
 		case 'triple':
-			return new views.Triple( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Triple( options );
 
 		case 'element':
-			return new views.Element( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Element( options );
 
 		case 'section':
-			return new views.Section( model, anglebars, parentNode, contextStack, anchor );
+			return new views.Section( options );
 	}
 };
+
+
+// model, anglebars, parentNode, contextStack, anchor, parentFragment, index

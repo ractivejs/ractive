@@ -1,20 +1,22 @@
 Anglebars.view = function ( proto ) {
 	var AnglebarsView;
 
-	AnglebarsView = function ( model, anglebars, parentNode, contextStack, anchor ) {
+	AnglebarsView = function ( options ) {
 		
-		var formatters = model.formatters;
+		var formatters      = options.model.formatters;
 
-		this.model = model;
-		this.anglebars = anglebars;
-		this.viewmodel = anglebars.viewmodel;
-		this.parentNode = parentNode;
-		this.contextStack = contextStack || [];
-		this.anchor = anchor;
+		this.model          = options.model;
+		this.anglebars      = options.anglebars;
+		this.viewmodel      = options.anglebars.viewmodel;
+		this.parentNode     = options.parentNode;
+		this.parentFragment = options.parentFragment;
+		this.contextStack   = options.contextStack || [];
+		this.anchor         = options.anchor;
+		this.index          = options.index;
 
 		this.initialize();
 
-		this.viewmodel.getKeypath( this, model.partialKeypath, contextStack, function ( keypath ) {
+		this.viewmodel.getKeypath( this, options.model.partialKeypath, options.contextStack, function ( keypath ) {
 			var value, formatted, self = this;
 
 			value = this.viewmodel.get( keypath );

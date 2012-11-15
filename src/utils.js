@@ -157,16 +157,6 @@ Anglebars.utils = {
 	},
 
 
-	// create an anglebars anchor
-	createAnchor: function () {
-		var anchor = document.createElement( 'a' );
-		anchor.setAttribute( 'class', 'anglebars-anchor' );
-		anchor.style.display = 'none';
-
-		return anchor;
-	},
-
-
 	// convert a node list to an array (iterating through a node list directly often has... undesirable results)
 	nodeListToArray: function ( nodes ) {
 		var i, numNodes = nodes.length, result = [];

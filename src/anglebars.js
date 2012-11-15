@@ -99,7 +99,11 @@ Anglebars.prototype = {
 			throw new Error( 'You must specify a DOM element to render to' );
 		}
 
-		this.rendered = new Anglebars.views.Fragment( this.compiled, this, el );
+		this.rendered = new Anglebars.views.Fragment({
+			model: this.compiled,
+			anglebars: this,
+			parentNode: el
+		});
 	},
 
 	teardown: function () {

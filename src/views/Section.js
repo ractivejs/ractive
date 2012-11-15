@@ -2,9 +2,6 @@ Anglebars.views.Section = Anglebars.view({
 	initialize: function () {
 		this.views = [];
 		this.length = 0; // number of times this section is rendered
-
-		this.sectionAnchor = Anglebars.utils.createAnchor();
-		this.parentNode.insertBefore( this.sectionAnchor, this.anchor );
 	},
 
 	teardown: function () {
@@ -19,6 +16,22 @@ Anglebars.views.Section = Anglebars.view({
 		Anglebars.utils.remove( this.anchor );
 	},
 
+	firstNode: function () {
+		if ( this.views[0] ) {
+			return this.views[0].firstNode();
+		}
+
+		return this.parentFragment.findNextNode( this );
+	},
+
+	findNextNode: function ( fragment ) {
+		if ( this.views[ fragment.index + 1 ] ) {
+			return this.views[ fragment.index + 1 ].firstNode();
+		} else {
+			return this.parentFragment.findNextNode( this );
+		}
+	},
+
 	unrender: function () {
 		while ( this.views.length ) {
 			this.views.shift().teardown();
@@ -26,8 +39,17 @@ Anglebars.views.Section = Anglebars.view({
 	},
 
 	update: function ( value ) {
-		var emptyArray, i, views = Anglebars.views, viewsToRemove;
-		
+		var emptyArray, i, views = Anglebars.views, viewsToRemove, anchor, fragmentOptions;
+
+
+		fragmentOptions = {
+			model:        this.model.children,
+			anglebars:    this.anglebars,
+			parentNode:   this.parentNode,
+			anchor:       this.parentFragment.findNextNode( this ),
+			parentSection: this
+		};
+
 		// treat empty arrays as false values
 		if ( Anglebars.utils.isArray( value ) && value.length === 0 ) {
 			emptyArray = true;
@@ -46,7 +68,13 @@ Anglebars.views.Section = Anglebars.view({
 
 			else {
 				if ( !this.length ) {
-					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
+					anchor = this.parentFragment.findNextNode( this );
+					
+					// no change to context stack in this situation
+					fragmentOptions.contextStack = this.contextStack;
+					fragmentOptions.index = 0;
+
+					this.views[0] = new views.Fragment( fragmentOptions );
 					this.length = 1;
 					return;
 				}
@@ -79,10 +107,13 @@ Anglebars.views.Section = Anglebars.view({
 				}
 
 				if ( value.length > this.length ) {
-				
 					// then add any new ones
 					for ( i=this.length; i<value.length; i+=1 ) {
-						this.views[i] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath + '.' + i ), this.sectionAnchor );
+						// append list item to context stack
+						fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+						fragmentOptions.index = i;
+
+						this.views[i] = new views.Fragment( fragmentOptions );
 					}
 				}
 			}
@@ -96,7 +127,11 @@ Anglebars.views.Section = Anglebars.view({
 			// (if it is already rendered, then any children dependent on the context stack
 			// will update themselves without any prompting)
 			if ( !this.length ) {
-				this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack.concat( this.keypath ), this.sectionAnchor );
+				// append this section to the context stack
+				fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
+				fragmentOptions.index = 0;
+
+				this.views[0] = new views.Fragment( fragmentOptions );
 				this.length = 1;
 			}
 		}
@@ -107,7 +142,11 @@ Anglebars.views.Section = Anglebars.view({
 
 			if ( value && !emptyArray ) {
 				if ( !this.length ) {
-					this.views[0] = new views.Fragment( this.model.children, this.anglebars, this.parentNode, this.contextStack, this.sectionAnchor );
+					// no change to context stack
+					fragmentOptions.contextStack = this.contextStack;
+					fragmentOptions.index = 0;
+
+					this.views[0] = new views.Fragment( fragmentOptions );
 					this.length = 1;
 				}
 			}
@@ -118,9 +157,6 @@ Anglebars.views.Section = Anglebars.view({
 					this.length = 0;
 				}
 			}
-
-			
-
 		}
 	}
 });
