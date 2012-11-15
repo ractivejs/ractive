@@ -10,7 +10,7 @@ Anglebars.compile = function ( template, options ) {
 	Anglebars.utils.compileMustachePattern();
 
 	// Collapse any standalone mustaches and remove templates
-	template = utils.preProcess( template );
+	template = utils.preProcess( template, options.partials );
 	
 	// Parse the template
 	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );
@@ -24,6 +24,13 @@ Anglebars.compile = function ( template, options ) {
 	return compiled;
 };
 
+// Cached regexes
 Anglebars.patterns = {
-	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/
+	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/,
+	
+	// for template preprocessor
+	preprocessorTypes: /section|comment|delimiterChange/,
+	standalonePre: /(?:\r)?\n[ \t]*$/,
+	standalonePost: /^[ \t]*(\r)?\n/,
+	standalonePreStrip: /[ \t]+$/
 };

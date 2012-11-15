@@ -251,7 +251,7 @@ Anglebars.utils = {
 
 
 	// collapse standalones (i.e. mustaches that sit on a line by themselves) and remove comments
-	preProcess: function ( str ) {
+	preProcess: function ( str, partials ) {
 		var result = '', remaining = str, mustache, pre, post, preTest, postTest, typeTest, delimiters, tripleDelimiters, recompile;
 
 		// make a note of current delimiters, we may need to reset them in a minute
@@ -265,6 +265,7 @@ Anglebars.utils = {
 
 		while ( remaining.length ) {
 			mustache = Anglebars.utils.findMustache( remaining );
+
 
 			// if there are no more mustaches, add the remaining text and be done
 			if ( !mustache ) {
@@ -291,6 +292,12 @@ Anglebars.utils = {
 				}
 
 				remaining = post;
+			}
+
+			else if ( mustache.type === 'partial' ) {
+				result += remaining.substr( 0, mustache.start );
+				result += ( partials[ mustache[13] ] || '' );
+				remaining = remaining.substring( mustache.end );
 			}
 
 			// otherwise carry on as normal

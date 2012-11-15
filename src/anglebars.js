@@ -28,6 +28,12 @@ var Anglebars = function ( options ) {
 		this.template = options.template;
 	}
 
+	// `partials` **object** *optional*  
+	// A hash containing strings representing partial templates
+	if ( options.partials !== undefined ) {
+		this.partials = options.partials;
+	}
+
 	// `data` **object | Anglebars.ViewModel** *optional*  
 	// An object or an `Anglebars.ViewModel` instance containing the data with
 	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
@@ -67,7 +73,8 @@ var Anglebars = function ( options ) {
 		this.compiled = Anglebars.compile( this.template, {
 			preserveWhitespace: this.preserveWhitespace,
 			replaceSrcAttributes: this.replaceSrcAttributes,
-			namespace: this.namespace
+			namespace: this.namespace,
+			partials: this.partials
 		});
 	}
 

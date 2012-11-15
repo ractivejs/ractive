@@ -39,6 +39,12 @@ var Anglebars = function ( options ) {
 		this.template = options.template;
 	}
 
+	// `partials` **object** *optional*  
+	// A hash containing strings representing partial templates
+	if ( options.partials !== undefined ) {
+		this.partials = options.partials;
+	}
+
 	// `data` **object | Anglebars.ViewModel** *optional*  
 	// An object or an `Anglebars.ViewModel` instance containing the data with
 	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
@@ -78,7 +84,8 @@ var Anglebars = function ( options ) {
 		this.compiled = Anglebars.compile( this.template, {
 			preserveWhitespace: this.preserveWhitespace,
 			replaceSrcAttributes: this.replaceSrcAttributes,
-			namespace: this.namespace
+			namespace: this.namespace,
+			partials: this.partials
 		});
 	}
 
@@ -162,7 +169,7 @@ Anglebars.compile = function ( template, options ) {
 	Anglebars.utils.compileMustachePattern();
 
 	// Collapse any standalone mustaches and remove templates
-	template = utils.preProcess( template );
+	template = utils.preProcess( template, options.partials );
 	
 	// Parse the template
 	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );
@@ -176,8 +183,15 @@ Anglebars.compile = function ( template, options ) {
 	return compiled;
 };
 
+// Cached regexes
 Anglebars.patterns = {
-	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/
+	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/,
+	
+	// for template preprocessor
+	preprocessorTypes: /section|comment|delimiterChange/,
+	standalonePre: /(?:\r)?\n[ \t]*$/,
+	standalonePost: /^[ \t]*(\r)?\n/,
+	standalonePreStrip: /[ \t]+$/
 };
 // ViewModel constructor
 Anglebars.ViewModel = function ( data ) {
@@ -1427,7 +1441,7 @@ Anglebars.utils = {
 
 
 	// collapse standalones (i.e. mustaches that sit on a line by themselves) and remove comments
-	preProcess: function ( str ) {
+	preProcess: function ( str, partials ) {
 		var result = '', remaining = str, mustache, pre, post, preTest, postTest, typeTest, delimiters, tripleDelimiters, recompile;
 
 		// make a note of current delimiters, we may need to reset them in a minute
@@ -1441,6 +1455,7 @@ Anglebars.utils = {
 
 		while ( remaining.length ) {
 			mustache = Anglebars.utils.findMustache( remaining );
+
 
 			// if there are no more mustaches, add the remaining text and be done
 			if ( !mustache ) {
@@ -1467,6 +1482,12 @@ Anglebars.utils = {
 				}
 
 				remaining = post;
+			}
+
+			else if ( mustache.type === 'partial' ) {
+				result += remaining.substr( 0, mustache.start );
+				result += ( partials[ mustache[13] ] || '' );
+				remaining = remaining.substring( mustache.end );
 			}
 
 			// otherwise carry on as normal
