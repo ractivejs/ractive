@@ -247,6 +247,65 @@ Anglebars.utils = {
 	},
 
 
+	collapseStandalones: function ( str ) {
+		var result = '', remaining = str, firstMustache, pre, post, preTest, postTest, typeTest, delimiters, tripleDelimiters, recompile;
+
+		// make a note of current delimiters, we may need to reset them in a minute
+		delimiters = Anglebars.delimiters.concat();
+		tripleDelimiters = Anglebars.tripleDelimiters.concat();
+
+		// patterns
+		preTest = /(?:\r)?\n\s*$/;
+		postTest = /^\s*(?:\r)?\n/;
+		typeTest = /section|comment|delimiterChange/;
+
+		while ( remaining.length ) {
+
+			firstMustache = Anglebars.utils.findMustache( remaining );
+
+			if ( !firstMustache ) {
+				result += remaining;
+				break;
+			}
+
+			if ( typeTest.test( firstMustache.type ) ) {
+				pre = remaining.substr( 0, firstMustache.start );
+				post = remaining.substring( firstMustache.end );
+
+				if ( preTest.test( pre ) && postTest.test( post ) ) {
+					pre = pre.replace( /(?:\r)?\n\s*$/, '' );
+				}
+
+				result += pre;
+				result += firstMustache[0];
+
+				remaining = post;
+			} else {
+				result += remaining.substr( 0, firstMustache.end );
+				remaining = remaining.substring( firstMustache.end );
+			}
+		}
+
+		// reset delimiters if necessary
+		if ( ( Anglebars.delimiters[0] !== delimiters[0] ) || ( Anglebars.delimiters[1] !== delimiters[1] ) ) {
+			Anglebars.delimiters = delimiters;
+			recompile = true;
+		}
+
+		if ( ( Anglebars.tripleDelimiters[0] !== tripleDelimiters[0] ) || ( Anglebars.tripleDelimiters[1] !== tripleDelimiters[1] ) ) {
+			Anglebars.tripleDelimiters = tripleDelimiters;
+			recompile = true;
+		}
+
+		if ( recompile ) {
+			Anglebars.utils.compileMustachePattern();
+		}
+
+		return result;
+	},
+
+
+	
 	// find the first mustache in a string, and store some information about it. Returns an array
 	// - the result of regex.exec() - with some additional properties
 	findMustache: function ( text, startIndex ) {
@@ -362,7 +421,6 @@ Anglebars.utils = {
 	},
 
 
-	
 	getStubsFromNodes: function ( nodes ) {
 		var i, numNodes, node, result = [], stubs;
 

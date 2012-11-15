@@ -12,6 +12,9 @@ Anglebars.compile = function ( template, options ) {
 	// Remove any comment mustaches
 	template = utils.stripComments( template );
 
+	// Collapse any standalone mustaches
+	template = utils.collapseStandalones( template );
+	
 	// Parse the template
 	nodes = utils.getNodeArrayFromHtml( template, ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes ) );
 

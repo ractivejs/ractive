@@ -1,7 +1,7 @@
 var sets, startTests, testNum = 0;
 
 sets = [ 'comments', 'delimiters', 'interpolation', 'inverted', 'partials', 'sections' ];
-//sets = [ 'delimiters' ];
+//sets = [ 'sections' ];
 
 
 var trim = function ( str ) {
