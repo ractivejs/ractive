@@ -54,6 +54,7 @@ startTests = function ( set, data ) {
 			testReport[ testNum ].charCodes.___result = charCodes( trim( result ) );
 		} catch ( err ) {
 			console.error( err );
+			// throw err;
 		}
 
 		
