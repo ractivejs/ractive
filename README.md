@@ -37,7 +37,7 @@ If, later, you decide to change the greeting:
 Neato features
 --------------
 
-As of version 0.1.0, Anglebars supports most of the mustache specification, excepting partials. That includes things like sections:
+As of version 0.1.2, Anglebars supports most of the mustache specification, excepting partials. That includes things like sections:
 
     {{#scores.length}}
     <p>The scores so far:</p>
@@ -68,7 +68,7 @@ One feature that's not in the mustache spec is formatters. This is an idea (and 
 Caveats, feedback
 -----------------
 
-Like I said, this is version 0.1.0. It comes with no guarantees. But if you end up using the library, or just like the idea, do drop me a line at [@rich_harris](http://twitter.com/rich_harris).
+Like I said, this is version 0.1.2. It comes with no guarantees. But if you end up using the library, or just like the idea, do drop me a line at [@rich_harris](http://twitter.com/rich_harris).
 
 
 License
