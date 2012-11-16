@@ -146,7 +146,7 @@
 	// Section
 	TextViews.Section = textViewMustache({
 		initialize: function () {
-			this.substrings = [];
+			this.children = [];
 			this.length = 0;
 		},
 
@@ -161,19 +161,19 @@
 		},
 
 		unrender: function () {
-			while ( this.substrings.length ) {
-				this.substrings.shift().teardown();
+			while ( this.children.length ) {
+				this.children.shift().teardown();
 			}
 			this.length = 0;
 		},
 
 		bubble: function () {
-			this.value = this.substrings.join( '' );
+			this.value = this.children.join( '' );
 			this.parent.bubble();
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, substringsToRemove;
+			var emptyArray, i, childrenToRemove;
 
 			// treat empty arrays as false values
 			if ( A.utils.isArray( value ) && value.length === 0 ) {
@@ -191,12 +191,12 @@
 
 				else {
 					if ( !this.length ) {
-						this.substrings[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
+						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
 
-				this.value = this.substrings.join( '' );
+				this.value = this.children.join( '' );
 				this.parent.bubble();
 
 				return;
@@ -213,10 +213,10 @@
 
 					// if the array is shorter than it was previously, remove items
 					if ( value.length < this.length ) {
-						substringsToRemove = this.substrings.splice( value.length, this.length - value.length );
+						childrenToRemove = this.children.splice( value.length, this.length - value.length );
 
-						while ( substringsToRemove.length ) {
-							substringsToRemove.shift().teardown();
+						while ( childrenToRemove.length ) {
+							childrenToRemove.shift().teardown();
 						}
 					}
 
@@ -232,7 +232,7 @@
 						
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
-								this.substrings[i] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
+								this.children[i] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
 							}
 						}
 					}
@@ -246,7 +246,7 @@
 					// (if it is already rendered, then any children dependent on the context stack
 					// will update themselves without any prompting)
 					if ( !this.length ) {
-						this.substrings[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath ) );
+						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath ) );
 						this.length = 1;
 					}
 				}
@@ -257,7 +257,7 @@
 
 				if ( value && !emptyArray ) {
 					if ( !this.length ) {
-						this.substrings[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
+						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
@@ -270,7 +270,7 @@
 				}
 			}
 
-			this.value = this.substrings.join( '' );
+			this.value = this.children.join( '' );
 			this.parent.bubble();
 		},
 
