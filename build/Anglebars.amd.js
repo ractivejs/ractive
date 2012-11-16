@@ -1,3 +1,5 @@
+define([], function() { 
+
 /*! Anglebars - v0.1.2 - 2012-11-16
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
@@ -2180,3 +2182,5 @@ Anglebars.ViewModel.prototype = {
 	});
 
 }( Anglebars ));
+ return Anglebars; 
+})
