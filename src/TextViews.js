@@ -49,7 +49,7 @@
 			// get constructor name by capitalising model type
 			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
 
-			return new A.TextViews[ type ]( options );
+			return new TextViews[ type ]( options );
 		}
 	};
 
