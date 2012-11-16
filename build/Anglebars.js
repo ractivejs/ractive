@@ -1025,16 +1025,7 @@ Anglebars.views = {
 	}
 };
 
-Anglebars.substrings = {
-	create: function ( options ) {
-		var type = options.model.type;
-		
-		// get constructor name by capitalising model type
-		type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
 
-		return new Anglebars.substrings[ type ]( options );
-	}
-};
 // ViewModel constructor
 Anglebars.ViewModel = function ( data ) {
 	// Store data.
