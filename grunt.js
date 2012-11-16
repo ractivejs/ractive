@@ -35,7 +35,7 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      files: '<config:lint.files>',
+      files: ['<config:lint.files>', 'package.json'],
       tasks: ['concat','min']
     },
     jshint: {
