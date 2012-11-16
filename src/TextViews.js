@@ -10,29 +10,24 @@
 
 		Mustache = function ( options ) {
 			
-			var model, formatters;
-
-			model = this.model = options.model;
+			this.model = options.model;
 			this.anglebars = options.anglebars;
 			this.viewmodel = options.anglebars.viewmodel;
 			this.parent = options.parent;
 			this.contextStack = options.contextStack || [];
 
-			formatters = options.model.formatters;
-
 			// if there is an init method, call it
-			this.initialize && this.initialize();
+			if ( this.initialize ) {
+				this.initialize();
+			}
 
-			this.viewmodel.getKeypath( this, model.partialKeypath, options.contextStack, function ( keypath ) {
-				var value, self = this;
+			this.viewmodel.registerView( this );
 
-				value = this.viewmodel.get( keypath );
-				this.update( options.anglebars._format( value, formatters ) );
-
-				this.observerRefs = this.viewmodel.observe( keypath, this.model.priority, function ( value ) {
-					self.update( options.anglebars._format( value, formatters ) );
-				});
-			});
+			// if we have a failed keypath lookup, and this is an inverted section,
+			// we need to trigger this.update() so the contents are rendered
+			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+				this.update( false );
+			}
 		};
 
 		Mustache.prototype = proto;

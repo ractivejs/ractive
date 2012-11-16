@@ -1029,7 +1029,7 @@ Anglebars.ViewModel.prototype = {
 	
 	// Update the data model and notify observers
 	set: function ( keypath, value ) {
-		var k, keys, key, obj, i, unresolved, previous;
+		var k, keys, key, obj, i, unresolved, previous, fullKeypath;
 
 		// Allow multiple values to be set in one go
 		if ( typeof keypath === 'object' ) {
@@ -1068,7 +1068,12 @@ Anglebars.ViewModel.prototype = {
 
 		while ( i-- ) { // work backwards, so we don't go in circles
 			unresolved = this.pendingResolution.splice( i, 1 )[0];
-			this.getKeypath( unresolved.item, unresolved.item.model.partialKeypath, unresolved.item.contextStack, unresolved.callback );
+
+			fullKeypath = this.getFullKeypath( unresolved.view.model.partialKeypath, unresolved.view.contextStack );
+
+			if ( fullKeypath !== undefined ) {
+				unresolved.callback( fullKeypath );
+			}
 		}
 	},
 
@@ -1076,7 +1081,7 @@ Anglebars.ViewModel.prototype = {
 		var keys, result;
 
 		if ( !keypath ) {
-			return '';
+			return undefined;
 		}
 
 		keys = keypath.split( '.' );
@@ -1088,7 +1093,7 @@ Anglebars.ViewModel.prototype = {
 			}
 			
 			if ( result === undefined ) {
-				return '';
+				return result;
 			}
 		}
 
@@ -1100,69 +1105,71 @@ Anglebars.ViewModel.prototype = {
 		this.publish( keypath, value );
 	},
 
-	getKeypath: function ( item, partialKeypath, contextStack, callback ) {
+	registerView: function ( view ) {
+		var self = this, fullKeypath, initialUpdate, value, formatted;
 
-		// TODO refactor this, it's fugly
+		fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
 
-		var keys, keysClone, innerMost, result, contextStackClone, keypath;
+		initialUpdate = function ( keypath ) {
+			view.keypath = keypath;
 
-		contextStack = ( contextStack ? contextStack.concat() : [] );
-		contextStackClone = contextStack.concat();
+			// create observers
+			view.observerRefs = self.observe({
+				keypath: keypath,
+				priority: view.model.priority,
+				view: view
+			});
 
-		// implicit iterators - i.e. {{.}} - are a special case
-		if ( partialKeypath === '.' ) {
-			item.keypath = ( contextStack[ contextStack.length - 1 ] );
-			callback.call( item, item.keypath );
-		}
+			value = self.get( keypath );
+			formatted = view.anglebars._format( value, view.model.formatters );
 
-		while ( contextStack ) {
+			view.update( formatted );
+		};
 
-			innerMost = ( contextStack.length ? contextStack[ contextStack.length - 1 ] : null );
-			keys = ( innerMost ? innerMost.split( '.' ).concat( partialKeypath.split( '.' ) ) : partialKeypath.split( '.' ) );
-			keysClone = keys.concat();
-
-			result = this.data;
-			while ( keys.length ) {
-				if ( result ) {
-					result = result[ keys.shift() ];
-				}
-			
-				if ( result === undefined ) {
-					break;
-				}
-			}
-
-			if ( result !== undefined ) {
-				keypath = keysClone.join( '.' );
-				item.keypath = keypath;
-				callback.call( item, keypath );
-				break;
-			}
-
-			if ( contextStack.length ) {
-				contextStack.pop();
-			} else {
-				contextStack = false;
-			}
-		}
-
-		// if we didn't figure out the keypath, add this to the unresolved list
-		if ( result === undefined ) {
-			this.registerUnresolvedAddress( item, callback );
+		if ( fullKeypath === undefined ) {
+			this.registerUnresolvedAddress( view, initialUpdate );
+		} else {
+			initialUpdate( fullKeypath );
 		}
 	},
 
-	registerUnresolvedAddress: function ( item, onResolve ) {
+	getFullKeypath: function ( partialKeypath, contextStack ) {
+		
+		var innerMost;
+
+		// implicit iterators - i.e. {{.}} - are a special case
+		if ( partialKeypath === '.' ) {
+			return contextStack[ contextStack.length - 1 ];
+		}
+
+		// clone the context stack, so we don't mutate the original
+		contextStack = contextStack.concat();
+
+		while ( contextStack.length ) {
+
+			innerMost = contextStack.pop();
+
+			if ( this.get( innerMost + '.' + partialKeypath ) !== undefined ) {
+				return innerMost + '.' + partialKeypath;
+			}
+		}
+
+		if ( this.get( partialKeypath ) !== undefined ) {
+			return partialKeypath;
+		}
+	},
+
+	registerUnresolvedAddress: function ( view, onResolve ) {
 		this.pendingResolution[ this.pendingResolution.length ] = {
-			item: item,
+			view: view,
 			callback: onResolve
 		};
 	},
 
-	cancelAddressResolution: function ( item ) {
+	cancelAddressResolution: function ( view ) {
 		if ( this.pendingResolution.filter ) { // non-shit browsers
 			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
-				return pending.item !== item;
+				return pending.view !== view;
 			});
 		}
 
@@ -1170,7 +1177,7 @@ Anglebars.ViewModel.prototype = {
 			var i, filtered = [];
 
 			for ( i=0; i<this.pendingResolution.length; i+=1 ) {
-				if ( this.pendingResolution[i].item !== item ) {
+				if ( this.pendingResolution[i].view !== view ) {
 					filtered[ filtered.length ] = this.pendingResolution[i];
 				}
 			}
@@ -1180,7 +1187,7 @@ Anglebars.ViewModel.prototype = {
 	},
 
 	publish: function ( keypath, value ) {
-		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer;
+		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted;
 
 		for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
 			priority = observersGroupedByLevel[i];
@@ -1192,17 +1199,25 @@ Anglebars.ViewModel.prototype = {
 					if ( keypath !== observer.originalAddress ) {
 						value = self.get( observer.originalAddress );
 					}
-					observer.callback( value );
+
+					if ( observer.view ) {
+						formatted = observer.view.anglebars._format( value, observer.view.model.formatters );
+						observer.view.update( formatted );
+					}
+
+					if ( observer.callback ) {
+						observer.callback( value );
+					}
 				}
 			}
 		}
 	},
 
-	observe: function ( keypath, priority, callback ) {
+	observe: function ( options ) {
 		
-		var self = this, originalAddress = keypath, observerRefs = [], observe;
+		var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
 
-		if ( !keypath ) {
+		if ( !options.keypath ) {
 			return undefined;
 		}
 
@@ -1213,9 +1228,17 @@ Anglebars.ViewModel.prototype = {
 			observers = observers[ priority ] = observers[ priority ] || [];
 
 			observer = {
-				callback: callback,
 				originalAddress: originalAddress
 			};
+
+			// if we're given a view to update, add it to the observer - ditto callbacks
+			if ( options.view ) {
+				observer.view = options.view;
+			}
+
+			if ( options.callback ) {
+				observer.callback = options.callback;
+			}
 
 			observers[ observers.length ] = observer;
 			observerRefs[ observerRefs.length ] = {
@@ -1225,6 +1248,7 @@ Anglebars.ViewModel.prototype = {
 			};
 		};
 
+		keypath = options.keypath;
 		while ( keypath.lastIndexOf( '.' ) !== -1 ) {
 			observe( keypath );
 
@@ -1295,8 +1319,6 @@ Anglebars.ViewModel.prototype = {
 
 		Mustache = function ( options ) {
 			
-			var formatters      = options.model.formatters;
-
 			this.model          = options.model;
 			this.anglebars      = options.anglebars;
 			this.viewmodel      = options.anglebars.viewmodel;
@@ -1308,24 +1330,10 @@ Anglebars.ViewModel.prototype = {
 
 			this.initialize();
 
-			this.viewmodel.getKeypath( this, options.model.partialKeypath, options.contextStack, function ( keypath ) {
-				var value, formatted, self = this;
+			this.viewmodel.registerView( this );
 
-				value = this.viewmodel.get( keypath );
-				this.update( this.anglebars._format( value, formatters ) );
-
-				this.observerRefs = this.viewmodel.observe( keypath, this.model.priority, function ( value ) {
-					self.update( self.anglebars._format( value, formatters ) );
-					
-					if ( self.bubble ) {
-						self.bubble();
-					}
-				});
-			});
-
-			// if the last callback didn't run immediately (ie viewmodel.getKeypath didn't succeed)
-			// we have a failed lookup. For inverted sections, we need to trigger this.update() so
-			// the contents are rendered
+			// if we have a failed keypath lookup, and this is an inverted section,
+			// we need to trigger this.update() so the contents are rendered
 			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
 				this.update( false );
 			}
@@ -1907,29 +1915,24 @@ Anglebars.ViewModel.prototype = {
 
 		Mustache = function ( options ) {
 			
-			var model, formatters;
-
-			model = this.model = options.model;
+			this.model = options.model;
 			this.anglebars = options.anglebars;
 			this.viewmodel = options.anglebars.viewmodel;
 			this.parent = options.parent;
 			this.contextStack = options.contextStack || [];
 
-			formatters = options.model.formatters;
-
 			// if there is an init method, call it
-			this.initialize && this.initialize();
+			if ( this.initialize ) {
+				this.initialize();
+			}
 
-			this.viewmodel.getKeypath( this, model.partialKeypath, options.contextStack, function ( keypath ) {
-				var value, self = this;
+			this.viewmodel.registerView( this );
 
-				value = this.viewmodel.get( keypath );
-				this.update( options.anglebars._format( value, formatters ) );
-
-				this.observerRefs = this.viewmodel.observe( keypath, this.model.priority, function ( value ) {
-					self.update( options.anglebars._format( value, formatters ) );
-				});
-			});
+			// if we have a failed keypath lookup, and this is an inverted section,
+			// we need to trigger this.update() so the contents are rendered
+			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+				this.update( false );
+			}
 		};
 
 		Mustache.prototype = proto;
