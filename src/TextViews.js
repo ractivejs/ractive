@@ -2,13 +2,13 @@
 
 	'use strict';
 
-	var substring, substrings;
+	var textViewMustache, TextViews;
 
 	// Substring constructor factory
-	substring = A.substring = function ( proto ) {
-		var Substring;
+	textViewMustache = function ( proto ) {
+		var Mustache;
 
-		Substring = function ( options ) {
+		Mustache = function ( options ) {
 			
 			var model, formatters;
 
@@ -35,21 +35,76 @@
 			});
 		};
 
-		Substring.prototype = proto;
+		Mustache.prototype = proto;
 
-		return Substring;
+		return Mustache;
 	};
 
 
 	// Substring types
-	substrings = A.substrings;
+	TextViews = A.TextViews = {
+		create: function ( options ) {
+			var type = options.model.type;
+			
+			// get constructor name by capitalising model type
+			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
+
+			return new TextViews[ type ]( options );
+		}
+	};
+
+
+
+	// Fragment
+	TextViews.Fragment = function ( options ) {
+		var numItems, i, itemOptions;
+
+		this.parent = options.parent;
+		this.items = [];
+
+		itemOptions = {
+			anglebars:    options.anglebars,
+			parent:       this,
+			contextStack: options.contextStack
+		};
+		
+		numItems = options.models.length;
+		for ( i=0; i<numItems; i+=1 ) {
+			itemOptions.model = this.models[i];
+			this.items[ this.items.length ] = TextViews.create( itemOptions );
+		}
+
+		this.value = this.items.join('');
+	};
+
+	TextViews.Fragment.prototype = {
+		bubble: function () {
+			this.value = this.items.join( '' );
+			this.parent.bubble();
+		},
+
+		teardown: function () {
+			var numItems, i;
+
+			numItems = this.items.length;
+			for ( i=0; i<numItems; i+=1 ) {
+				this.items[i].teardown();
+			}
+		},
+
+		toString: function () {
+			return this.value || '';
+		}
+	};
+
+
 
 	// Plain text
-	substrings.Text = function ( options ) {
+	TextViews.Text = function ( options ) {
 		this.text = options.model.text;
 	};
 
-	substrings.Text.prototype = {
+	TextViews.Text.prototype = {
 		toString: function () {
 			return this.text;
 		},
@@ -58,8 +113,10 @@
 	};
 
 
+	// Mustaches
+
 	// Interpolator or Triple
-	substrings.Interpolator = substring({
+	TextViews.Interpolator = textViewMustache({
 		update: function ( value ) {
 			this.value = value;
 			this.parent.bubble();
@@ -83,13 +140,13 @@
 	});
 
 	// Triples are the same as Interpolators in this context
-	substrings.Triple = substrings.Interpolator;
+	TextViews.Triple = TextViews.Interpolator;
 
 
 	// Section
-	substrings.Section = substring({
+	TextViews.Section = textViewMustache({
 		initialize: function () {
-			this.substrings = [];
+			this.children = [];
 			this.length = 0;
 		},
 
@@ -104,19 +161,19 @@
 		},
 
 		unrender: function () {
-			while ( this.substrings.length ) {
-				this.substrings.shift().teardown();
+			while ( this.children.length ) {
+				this.children.shift().teardown();
 			}
 			this.length = 0;
 		},
 
 		bubble: function () {
-			this.value = this.substrings.join( '' );
+			this.value = this.children.join( '' );
 			this.parent.bubble();
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, substringsToRemove;
+			var emptyArray, i, childrenToRemove;
 
 			// treat empty arrays as false values
 			if ( A.utils.isArray( value ) && value.length === 0 ) {
@@ -134,12 +191,12 @@
 
 				else {
 					if ( !this.length ) {
-						this.substrings[0] = new substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack );
+						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
 
-				this.value = this.substrings.join( '' );
+				this.value = this.children.join( '' );
 				this.parent.bubble();
 
 				return;
@@ -156,10 +213,10 @@
 
 					// if the array is shorter than it was previously, remove items
 					if ( value.length < this.length ) {
-						substringsToRemove = this.substrings.splice( value.length, this.length - value.length );
+						childrenToRemove = this.children.splice( value.length, this.length - value.length );
 
-						while ( substringsToRemove.length ) {
-							substringsToRemove.shift().teardown();
+						while ( childrenToRemove.length ) {
+							childrenToRemove.shift().teardown();
 						}
 					}
 
@@ -175,7 +232,7 @@
 						
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
-								this.substrings[i] = new substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
+								this.children[i] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
 							}
 						}
 					}
@@ -189,7 +246,7 @@
 					// (if it is already rendered, then any children dependent on the context stack
 					// will update themselves without any prompting)
 					if ( !this.length ) {
-						this.substrings[0] = new substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath ) );
+						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath ) );
 						this.length = 1;
 					}
 				}
@@ -200,7 +257,7 @@
 
 				if ( value && !emptyArray ) {
 					if ( !this.length ) {
-						this.substrings[0] = new substrings.Fragment( this.model.children, this.anglebars, this, this.contextStack );
+						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
@@ -213,7 +270,7 @@
 				}
 			}
 
-			this.value = this.substrings.join( '' );
+			this.value = this.children.join( '' );
 			this.parent.bubble();
 		},
 
@@ -222,48 +279,4 @@
 		}
 	});
 
-
-	// Fragment
-	substrings.Fragment = function ( options ) {
-		var numItems, i, itemOptions;
-
-		this.parent = options.parent;
-		this.items = [];
-
-		itemOptions = {
-			anglebars:    options.anglebars,
-			parent:       this,
-			contextStack: options.contextStack
-		};
-		
-		numItems = options.models.length;
-		for ( i=0; i<numItems; i+=1 ) {
-			itemOptions.model = this.models[i];
-			this.items[ this.items.length ] = substrings.create( itemOptions );
-		}
-
-		this.value = this.items.join('');
-	};
-
-	substrings.Fragment.prototype = {
-		bubble: function () {
-			this.value = this.items.join( '' );
-			this.parent.bubble();
-		},
-
-		teardown: function () {
-			var numItems, i;
-
-			numItems = this.items.length;
-			for ( i=0; i<numItems; i+=1 ) {
-				this.items[i].teardown();
-			}
-		},
-
-		toString: function () {
-			return this.value || '';
-		}
-	};
-
 }( Anglebars ));
-

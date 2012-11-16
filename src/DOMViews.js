@@ -2,15 +2,15 @@
 
 	'use strict';
 
-	var view, views, utils;
+	var domViewMustache, DomViews, utils;
 
 	utils = A.utils;
 
 	// View constructor factory
-	view = A.view = function ( proto ) {
-		var View;
+	domViewMustache = function ( proto ) {
+		var Mustache;
 
-		View = function ( options ) {
+		Mustache = function ( options ) {
 			
 			var formatters      = options.model.formatters;
 
@@ -48,18 +48,97 @@
 			}
 		};
 
-		View.prototype = proto;
+		Mustache.prototype = proto;
 
-		return View;
+		return Mustache;
 	};
 
 
 	// View types
-	views = A.views;
+	DomViews = A.DomViews = {
+		create: function ( options ) {
+			var type = options.model.type;
+			
+			// get constructor name by capitalising model type
+			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
+
+			return new DomViews[ type ]( options );
+		}
+	};
+
+
+	// Fragment
+	DomViews.Fragment = function ( options ) {
+
+		var numModels, i, itemOptions;
+
+		this.parentSection = options.parentSection;
+		this.index = options.index;
+
+		itemOptions = {
+			anglebars:      options.anglebars,
+			parentNode:     options.parentNode,
+			contextStack:   options.contextStack,
+			anchor:         options.anchor,
+			parentFragment: this
+		};
+
+		this.items = [];
+
+		numModels = options.model.length;
+		for ( i=0; i<numModels; i+=1 ) {
+			itemOptions.model = options.model[i];
+			itemOptions.index = i;
+
+			this.items[i] = DomViews.create( itemOptions );
+		}
+	};
+
+	DomViews.Fragment.prototype = {
+		teardown: function () {
+			
+			var i, numItems;
+
+			numItems = this.items.length;
+			for ( i=0; i<numItems; i+=1 ) {
+				this.items[i].teardown();
+			}
+
+			delete this.items;
+		},
+
+		firstNode: function () {
+			if ( this.items[0] ) {
+				return this.items[0].firstNode();
+			} else {
+				if ( this.parentSection ) {
+					return this.parentSection.findNextNode( this );
+				}
+			}
+
+			return null;
+		},
+
+		findNextNode: function ( item ) {
+			var index;
+
+			index = item.index;
+
+			if ( this.items[ index + 1 ] ) {
+				return this.items[ index + 1 ].firstNode();
+			} else {
+				if ( this.parentSection ) {
+					return this.parentSection.findNextNode( this );
+				}
+			}
+
+			return null;
+		}
+	};
 
 
 	// Plain text
-	views.Text = function ( options ) {
+	DomViews.Text = function ( options ) {
 		this.node = document.createTextNode( options.model.text );
 		this.index = options.index;
 
@@ -67,7 +146,7 @@
 		options.parentNode.insertBefore( this.node, options.anchor );
 	};
 
-	views.Text.prototype = {
+	DomViews.Text.prototype = {
 		teardown: function () {
 			utils.remove( this.node );
 		},
@@ -78,8 +157,201 @@
 	};
 
 
+	// Element
+	DomViews.Element = function ( options ) {
+
+		var i,
+			numAttributes,
+			numItems,
+			attributeModel,
+			item,
+			binding,
+			model;
+
+		// stuff we'll need later
+		model = this.model = options.model;
+		this.viewmodel = options.anglebars.viewmodel;
+		this.parentFragment = options.parentFragment;
+		this.index = options.index;
+
+		// create the DOM node
+		if ( model.namespace ) {
+			this.node = document.createElementNS( model.namespace, model.tag );
+		} else {
+			this.node = document.createElement( model.tag );
+		}
+
+		
+		// set attributes
+		this.attributes = [];
+		numAttributes = model.attributes.length;
+		for ( i=0; i<numAttributes; i+=1 ) {
+			attributeModel = model.attributes[i];
+
+			// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
+			if ( attributeModel.name === 'data-bind' && ( model.tag === 'INPUT' || model.tag === 'TEXTAREA' ) ) {
+				binding = attributeModel.value;
+			}
+
+			// otherwise proceed as normal
+			else {
+				this.attributes[i] = new DomViews.Attribute({
+					model: attributeModel,
+					anglebars: options.anglebars,
+					parentNode: this.node,
+					contextStack: options.contextStack
+				});
+			}
+		}
+
+		if ( binding ) {
+			this.bind( binding, options.anglebars.lazy );
+		}
+
+		// append children
+		this.children = new DomViews.Fragment({
+			model:        model.children,
+			anglebars:    options.anglebars,
+			parentNode:   this.node,
+			contextStack: options.contextStack,
+			anchor:       null
+		});
+
+		// append this.node, either at end of parent element or in front of the anchor (if defined)
+		options.parentNode.insertBefore( this.node, options.anchor );
+	};
+
+	DomViews.Element.prototype = {
+		bind: function ( keypath, lazy ) {
+			
+			var viewmodel = this.viewmodel, node = this.node, setValue;
+
+			setValue = function () {
+				var value = node.value;
+				
+				// special cases
+				if ( value === '0' ) {
+					value = 0;
+				}
+
+				else if ( value !== '' ) {
+					value = +value || value;
+				}
+
+				viewmodel.set( keypath, value );
+			};
+
+			// set initial value
+			setValue();
+
+			// TODO support shite browsers like IE and Opera
+			node.addEventListener( 'change', setValue );
+
+			if ( !lazy ) {
+				node.addEventListener( 'keyup', setValue );
+			}
+		},
+
+		teardown: function () {
+			
+			var numAttrs, i;
+
+			this.children.teardown();
+
+			numAttrs = this.attributes.length;
+			for ( i=0; i<numAttrs; i+=1 ) {
+				this.attributes[i].teardown();
+			}
+
+			utils.remove( this.node );
+		},
+
+		firstNode: function () {
+			return this.node;
+		}
+	};
+
+
+	// Attribute
+	DomViews.Attribute = function ( options ) {
+	
+		var i, numComponents, model;
+
+		model = options.model;
+
+		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
+		if ( !model.isDynamic ) {
+			options.parentNode.setAttribute( model.name, model.value );
+			return;
+		}
+
+		// otherwise we need to do some work
+		this.parentNode = options.parentNode;
+		this.name = model.name;
+
+		this.children = [];
+
+		numComponents = model.components.length;
+		for ( i=0; i<numComponents; i+=1 ) {
+			this.children[i] = A.TextViews.create({
+				model:        model.components[i],
+				anglebars:    options.anglebars,
+				parent:       this,
+				contextStack: options.contextStack
+			});
+		}
+
+		// manually trigger first update
+		this.update();
+	};
+
+	DomViews.Attribute.prototype = {
+		teardown: function () {
+			var numChildren, i, child;
+
+			// ignore non-dynamic attributes
+			if ( !this.children ) {
+				return;
+			}
+
+			numChildren = this.children.length;
+			for ( i=0; i<numChildren; i+=1 ) {
+				child = this.children[i];
+
+				if ( child.teardown ) {
+					child.teardown();
+				}
+			}
+		},
+
+		bubble: function () {
+			this.update();
+		},
+
+		update: function () {
+			this.value = this.toString();
+			this.parentNode.setAttribute( this.name, this.value );
+		},
+
+		toString: function () {
+			var string = '', i, numChildren, child;
+
+			numChildren = this.children.length;
+			for ( i=0; i<numChildren; i+=1 ) {
+				child = this.children[i];
+				string += child.toString();
+			}
+
+			return string;
+		}
+	};
+
+
+
+
+
 	// Interpolator
-	views.Interpolator = view({
+	DomViews.Interpolator = domViewMustache({
 		initialize: function () {
 			this.node = document.createTextNode( '' );
 
@@ -107,7 +379,7 @@
 
 
 	// Triple
-	views.Triple = view({
+	DomViews.Triple = domViewMustache({
 		initialize: function () {
 			this.nodes = [];
 
@@ -173,118 +445,9 @@
 	});
 
 
-	// Element
-	views.Element = function ( options ) {
-
-		var i,
-			numAttributes,
-			numItems,
-			attributeModel,
-			item,
-			binding,
-			model;
-
-		// stuff we'll need later
-		model = this.model = options.model;
-		this.viewmodel = options.anglebars.viewmodel;
-		this.parentFragment = options.parentFragment;
-		this.index = options.index;
-
-		// create the DOM node
-		if ( model.namespace ) {
-			this.node = document.createElementNS( model.namespace, model.tag );
-		} else {
-			this.node = document.createElement( model.tag );
-		}
-
-		
-		// set attributes
-		this.attributes = [];
-		numAttributes = model.attributes.length;
-		for ( i=0; i<numAttributes; i+=1 ) {
-			attributeModel = model.attributes[i];
-
-			// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
-			if ( attributeModel.name === 'data-bind' && ( model.tag === 'INPUT' || model.tag === 'TEXTAREA' ) ) {
-				binding = attributeModel.value;
-			}
-
-			// otherwise proceed as normal
-			else {
-				this.attributes[i] = new views.Attribute( attributeModel, options.anglebars, this.node, options.contextStack );
-			}
-		}
-
-		if ( binding ) {
-			this.bind( binding, options.anglebars.lazy );
-		}
-
-		// append children
-		this.children = new views.Fragment({
-			model:        model.children,
-			anglebars:    options.anglebars,
-			parentNode:   this.node,
-			contextStack: options.contextStack,
-			anchor:       null
-		});
-
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		options.parentNode.insertBefore( this.node, options.anchor );
-	};
-
-	views.Element.prototype = {
-		bind: function ( keypath, lazy ) {
-			
-			var viewmodel = this.viewmodel, node = this.node, setValue;
-
-			setValue = function () {
-				var value = node.value;
-				
-				// special cases
-				if ( value === '0' ) {
-					value = 0;
-				}
-
-				else if ( value !== '' ) {
-					value = +value || value;
-				}
-
-				viewmodel.set( keypath, value );
-			};
-
-			// set initial value
-			setValue();
-
-			// TODO support shite browsers like IE and Opera
-			node.addEventListener( 'change', setValue );
-
-			if ( !lazy ) {
-				node.addEventListener( 'keyup', setValue );
-			}
-		},
-
-		teardown: function () {
-			
-			var numAttrs, i;
-
-			this.children.teardown();
-
-			numAttrs = this.attributes.length;
-			for ( i=0; i<numAttrs; i+=1 ) {
-				this.attributes[i].teardown();
-			}
-
-			utils.remove( this.node );
-		},
-
-		firstNode: function () {
-			return this.node;
-		}
-	};
-
 
 	// Section
-	views.Section = view({
+	DomViews.Section = domViewMustache({
 		initialize: function () {
 			this.views = [];
 			this.length = 0; // number of times this section is rendered
@@ -360,7 +523,7 @@
 						fragmentOptions.contextStack = this.contextStack;
 						fragmentOptions.index = 0;
 
-						this.views[0] = new views.Fragment( fragmentOptions );
+						this.views[0] = new DomViews.Fragment( fragmentOptions );
 						this.length = 1;
 						return;
 					}
@@ -399,7 +562,7 @@
 							fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
 							fragmentOptions.index = i;
 
-							this.views[i] = new views.Fragment( fragmentOptions );
+							this.views[i] = new DomViews.Fragment( fragmentOptions );
 						}
 					}
 				}
@@ -417,7 +580,7 @@
 					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
 					fragmentOptions.index = 0;
 
-					this.views[0] = new views.Fragment( fragmentOptions );
+					this.views[0] = new DomViews.Fragment( fragmentOptions );
 					this.length = 1;
 				}
 			}
@@ -432,7 +595,7 @@
 						fragmentOptions.contextStack = this.contextStack;
 						fragmentOptions.index = 0;
 
-						this.views[0] = new views.Fragment( fragmentOptions );
+						this.views[0] = new DomViews.Fragment( fragmentOptions );
 						this.length = 1;
 					}
 				}
@@ -446,148 +609,5 @@
 			}
 		}
 	});
-
-
-	// Fragment
-	views.Fragment = function ( options ) {
-
-		var numModels, i, itemOptions;
-
-		this.parentSection = options.parentSection;
-		this.index = options.index;
-
-		itemOptions = {
-			anglebars:      options.anglebars,
-			parentNode:     options.parentNode,
-			contextStack:   options.contextStack,
-			anchor:         options.anchor,
-			parentFragment: this
-		};
-
-		this.items = [];
-
-		numModels = options.model.length;
-		for ( i=0; i<numModels; i+=1 ) {
-			itemOptions.model = options.model[i];
-			itemOptions.index = i;
-
-			this.items[i] = views.create( itemOptions );
-		}
-	};
-
-	views.Fragment.prototype = {
-		teardown: function () {
-			
-			var i, numItems;
-
-			numItems = this.items.length;
-			for ( i=0; i<numItems; i+=1 ) {
-				this.items[i].teardown();
-			}
-
-			delete this.items;
-		},
-
-		firstNode: function () {
-			if ( this.items[0] ) {
-				return this.items[0].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
-			}
-
-			return null;
-		},
-
-		findNextNode: function ( item ) {
-			var index;
-
-			index = item.index;
-
-			if ( this.items[ index + 1 ] ) {
-				return this.items[ index + 1 ].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
-			}
-
-			return null;
-		}
-	};
-
-
-	// Attribute
-	views.Attribute = function ( model, anglebars, parentNode, contextStack ) {
-	
-		var i, numComponents;
-
-		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
-		if ( !model.isDynamic ) {
-			parentNode.setAttribute( model.name, model.value );
-			return;
-		}
-
-		// otherwise we need to do some work
-		this.parentNode = parentNode;
-		this.name = model.name;
-
-		this.substrings = [];
-
-		numComponents = model.components.length;
-		for ( i=0; i<numComponents; i+=1 ) {
-			this.substrings[i] = A.substrings.create({
-				model: model.components[i],
-				anglebars: anglebars,
-				parent: this,
-				contextStack: contextStack
-			});
-		}
-
-		// manually trigger first update
-		this.update();
-	};
-
-	views.Attribute.prototype = {
-		teardown: function () {
-			var numSubstrings, i, substring;
-
-			// ignore non-dynamic attributes
-			if ( !this.substrings ) {
-				return;
-			}
-
-			numSubstrings = this.substrings.length;
-			for ( i=0; i<numSubstrings; i+=1 ) {
-				substring = this.substrings[i];
-
-				if ( substring.teardown ) {
-					substring.teardown();
-				}
-			}
-		},
-
-		bubble: function () {
-			this.update();
-		},
-
-		update: function () {
-			this.value = this.toString();
-			this.parentNode.setAttribute( this.name, this.value );
-		},
-
-		toString: function () {
-			var string = '', i, numSubstrings, substring;
-
-			numSubstrings = this.substrings.length;
-			for ( i=0; i<numSubstrings; i+=1 ) {
-				substring = this.substrings[i];
-				string += substring.toString();
-			}
-
-			return string;
-		}
-	};
 
 }( Anglebars ));
