@@ -1,7 +1,9 @@
 {
 	"name": "Anglebars",
+	"description": "the bastard lovechild of Angular.js and handlebars",
 	"version": "0.1.2",
 	"homepage": "http://rich-harris.github.com/Anglebars/",
+	"keywords": [ "template", "templating", "binding", "data binding" ],
 	"author": {
 		"name": "Rich Harris"
 	},
@@ -9,5 +11,33 @@
 		{
 			"type": "WTFPL"
 		}
-	]
+	],
+	"jam" : {
+        "main" : "build/Anglebars.amd.js",
+        "include" : [
+            "build/Anglebars.amd.js",
+            "README.md"
+        ]
+    },
+    "categories": [ "DOM" ],
+    "bugs": {
+    	"web": "https://github.com/Rich-Harris/Anglebars/issues"
+    },
+    "contributors": [
+    	{
+    		"name": "Max Ogden",
+    		"web": "https://github.com/maxogden"
+    	},
+    	{
+    		"name": "Ryan Ramage",
+    		"web": "https://github.com/ryanramage"
+    	}
+    ],
+    "repositories": [
+    	{
+    		"type": "git",
+    		"url": "https://github.com/Rich-Harris/Anglebars.git"
+    	}
+    ],
+    "github": "https://github.com/Rich-Harris/Anglebars"
 }
