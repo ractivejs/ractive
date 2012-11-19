@@ -39,7 +39,7 @@
 
 			// replace table tags with <div data-anglebars-elementname='table'></div> -
 			// this is because the way browsers parse table HTML is F**CKING MENTAL
-			var replaceFunkyTags = true;
+			var replaceFunkyTags = true; // TODO!
 			if ( replaceFunkyTags ) {
 				tags = [ 'table', 'thead', 'tbody', 'tr', 'th', 'td' ];
 

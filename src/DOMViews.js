@@ -11,7 +11,7 @@
 		var Mustache;
 
 		Mustache = function ( options ) {
-			
+
 			this.model          = options.model;
 			this.anglebars      = options.anglebars;
 			this.viewmodel      = options.anglebars.viewmodel;
@@ -42,7 +42,7 @@
 	DomViews = A.DomViews = {
 		create: function ( options ) {
 			var type = options.model.type;
-			
+
 			// get constructor name by capitalising model type
 			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
 
@@ -80,7 +80,7 @@
 
 	DomViews.Fragment.prototype = {
 		teardown: function () {
-			
+
 			var i, numItems;
 
 			numItems = this.items.length;
@@ -145,12 +145,12 @@
 	DomViews.Element = function ( options ) {
 
 		var i,
-			numAttributes,
-			numItems,
-			attributeModel,
-			item,
-			binding,
-			model;
+		numAttributes,
+		numItems,
+		attributeModel,
+		item,
+		binding,
+		model;
 
 		// stuff we'll need later
 		model = this.model = options.model;
@@ -165,7 +165,7 @@
 			this.node = document.createElement( model.tag );
 		}
 
-		
+
 		// set attributes
 		this.attributes = [];
 		numAttributes = model.attributes.length;
@@ -207,12 +207,12 @@
 
 	DomViews.Element.prototype = {
 		bind: function ( keypath, lazy ) {
-			
+
 			var viewmodel = this.viewmodel, node = this.node, setValue;
 
 			setValue = function () {
 				var value = node.value;
-				
+
 				// special cases
 				if ( value === '0' ) {
 					value = 0;
@@ -237,7 +237,7 @@
 		},
 
 		teardown: function () {
-			
+
 			var numAttrs, i;
 
 			this.children.teardown();
@@ -258,7 +258,7 @@
 
 	// Attribute
 	DomViews.Attribute = function ( options ) {
-	
+
 		var i, numComponents, model;
 
 		model = options.model;
@@ -372,7 +372,7 @@
 		},
 
 		teardown: function () {
-			
+
 			// remove child nodes from DOM
 			while ( this.nodes.length ) {
 				utils.remove( this.nodes.shift() );
@@ -502,7 +502,7 @@
 				else {
 					if ( !this.length ) {
 						anchor = this.parentFragment.findNextNode( this );
-						
+
 						// no change to context stack in this situation
 						fragmentOptions.contextStack = this.contextStack;
 						fragmentOptions.index = 0;
@@ -518,7 +518,7 @@
 
 
 			// otherwise we need to work out what sort of section we're dealing with
-			
+
 			// if value is an array, iterate through
 			if ( utils.isArray( value ) ) {
 
@@ -559,7 +559,7 @@
 				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 				// (if it is already rendered, then any children dependent on the context stack
 				// will update themselves without any prompting)
-				if ( !this.length ) {
+if ( !this.length ) {
 					// append this section to the context stack
 					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
 					fragmentOptions.index = 0;
