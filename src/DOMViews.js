@@ -384,8 +384,6 @@
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
-
-			utils.remove( this.anchor );
 		},
 
 		firstNode: function () {
@@ -445,8 +443,6 @@
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
-
-			utils.remove( this.anchor );
 		},
 
 		firstNode: function () {

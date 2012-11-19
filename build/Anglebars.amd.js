@@ -208,13 +208,6 @@ Anglebars.patterns = {
 		},
 
 
-		// Strip whitespace from the start and end of strings
-		trim: function ( text ) {
-			var trimmed = text.replace( /^\s+/, '' ).replace( /\s+$/, '' );
-			return trimmed;
-		},
-
-
 		// convert HTML to an array of DOM nodes
 		getNodeArrayFromHtml: function ( html, replaceSrcAttributes ) {
 
@@ -329,32 +322,6 @@ Anglebars.patterns = {
 			return result;
 		},
 
-
-		// convert a node list to an array (iterating through a node list directly often has... undesirable results)
-		nodeListToArray: function ( nodes ) {
-			var i, numNodes = nodes.length, result = [];
-
-			for ( i=0; i<numNodes; i+=1 ) {
-				result[i] = nodes[i];
-			}
-
-			return result;
-		},
-
-
-		// convert an attribute list to an array
-		attributeListToArray: function ( attributes ) {
-			var i, numAttributes = attributes.length, result = [];
-
-			for ( i=0; i<numAttributes; i+=1 ) {
-				result[i] = {
-					name: attributes[i].name,
-					value: attributes[i].value
-				};
-			}
-
-			return result;
-		},
 
 
 		// CAUTION! HERE BE REGEXES
@@ -1689,8 +1656,6 @@ Anglebars.ViewModel.prototype = {
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
-
-			utils.remove( this.anchor );
 		},
 
 		firstNode: function () {
@@ -1750,8 +1715,6 @@ Anglebars.ViewModel.prototype = {
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
-
-			utils.remove( this.anchor );
 		},
 
 		firstNode: function () {
