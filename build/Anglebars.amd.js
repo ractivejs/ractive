@@ -1,6 +1,6 @@
 define([], function() { 
 
-/*! Anglebars - v0.1.2 - 2012-11-16
+/*! Anglebars - v0.1.2 - 2012-11-19
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -214,12 +214,8 @@ Anglebars.prototype = {
 			temp = document.createElement( 'div' );
 			temp.innerHTML = html;
 
-
 			// create array from node list, as node lists have some undesirable properties
-			numNodes = temp.childNodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				nodes[i] = temp.childNodes[i];
-			}
+			nodes = Array.prototype.slice.call( temp.childNodes );
 
 			return nodes;
 		},
@@ -366,7 +362,7 @@ Anglebars.prototype = {
 				// comment (12)
 				'(!)?' +
 
-				
+
 
 				// optional whitespace
 				'\\s*' +
@@ -419,7 +415,7 @@ Anglebars.prototype = {
 					}
 
 					result += pre;
-					
+
 					// strip comments
 					if ( mustache.type !== 'comment' ) {
 						result += mustache[0];
@@ -454,7 +450,7 @@ Anglebars.prototype = {
 		},
 
 
-		
+
 		// find the first mustache in a string, and store some information about it. Returns an array
 		// - the result of regex.exec() - with some additional properties
 		findMustache: function ( text, startIndex ) {
@@ -489,7 +485,7 @@ Anglebars.prototype = {
 					match.formula = match[13];
 					split = match.formula.split( formulaSplitter );
 					match.partialKeypath = split.shift();
-					
+
 					// extract formatters
 					match.formatters = [];
 
@@ -511,8 +507,8 @@ Anglebars.prototype = {
 							match.formatters.push( formatter );
 						}
 					}
-					
-					
+
+
 					// figure out what type of mustache we're dealing with
 					if ( match[9] ) {
 						// mustache is a section
@@ -607,7 +603,7 @@ Anglebars.prototype = {
 
 			// delimiter changes are a special (and bloody awkward...) case
 			while ( mustache.type === 'delimiterChange' ) {
-				
+
 				if ( mustache.start > 0 ) {
 					result[ result.length ] = {
 						type: 'text',
@@ -663,42 +659,42 @@ Anglebars.prototype = {
 
 		// borrowed wholesale from underscore... TODO include license? write an Anglebars-optimised version?
 		isEqual: function ( a, b ) {
-			
+
 			var eq = function ( a, b, stack ) {
 
 				var toString, className, length, size, result, key;
 
 				toString = Object.prototype.toString;
-				
+
 				// Identical objects are equal. `0 === -0`, but they aren't identical.
 				// See the Harmony `egal` proposal: http://wiki.ecmascript.org/doku.php?id=harmony:egal.
 				if ( a === b ) {
 					return ( a !== 0 || ( 1 / a == 1 / b ) );
 				}
-				
+
 				// A strict comparison is necessary because `null == undefined`.
 				if ( a == null || b == null ) {
 					return a === b;
 				}
-				
+
 				// Compare `[[Class]]` names.
 				className = toString.call( a );
 				if ( className != toString.call( b ) ) {
 					return false;
 				}
-				
+
 				switch ( className ) {
 					// Strings, numbers, dates, and booleans are compared by value.
 					case '[object String]':
 						// Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
 						// equivalent to `new String("5")`.
 						return a == String( b );
-					
+
 					case '[object Number]':
 						// `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
 						// other numeric values.
 						return ( ( a != +a ) ? ( b != +b ) : ( a == 0 ? ( 1 / a == 1 / b ) : ( a == +b ) ) );
-					
+
 					case '[object Date]':
 					case '[object Boolean]':
 						// Coerce dates and booleans to numeric primitive values. Dates are compared by their
@@ -716,11 +712,11 @@ Anglebars.prototype = {
 				if ( typeof a != 'object' || typeof b != 'object' ) {
 					return false;
 				}
-				
+
 				// Assume equality for cyclic structures. The algorithm for detecting cyclic
 				// structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
 				length = stack.length;
-				
+
 				while ( length-- ) {
 					// Linear search. Performance is inversely proportional to the number of
 					// unique nested structures.
@@ -728,19 +724,19 @@ Anglebars.prototype = {
 						return true;
 					}
 				}
-				
+
 				// Add the first object to the stack of traversed objects.
 				stack.push( a );
 
 				size = 0, result = true;
 				// Recursively compare objects and arrays.
-				
+
 				if ( className == '[object Array]' ) {
-					
+
 					// Compare array lengths to determine if a deep comparison is necessary.
 					size = a.length;
 					result = size == b.length;
-					
+
 					if ( result ) {
 						// Deep compare the contents, ignoring non-numeric properties.
 						while ( size-- ) {
@@ -755,7 +751,7 @@ Anglebars.prototype = {
 					if ( 'constructor' in a != 'constructor' in b || a.constructor != b.constructor ) {
 						return false;
 					}
-					
+
 					// Deep compare objects.
 					for ( key in a ) {
 						if ( a.hasOwnProperty( key ) ) {
@@ -824,7 +820,7 @@ Anglebars.prototype = {
 					case 'mustache':
 
 						partialKeypath = stub.mustache.partialKeypath;
-						
+
 						switch ( stub.mustache.type ) {
 							case 'section':
 
@@ -834,7 +830,7 @@ Anglebars.prototype = {
 
 								// find end
 								while ( ( i < stubs.length ) && !sliceEnd ) {
-									
+
 									bit = stubs[i];
 
 									if ( bit.type === 'mustache' ) {
@@ -926,7 +922,7 @@ Anglebars.prototype = {
 
 			// attributes
 			attributes = [];
-			
+
 			numAttributes = node.attributes.length;
 			for ( i=0; i<numAttributes; i+=1 ) {
 				attribute = node.attributes[i];
