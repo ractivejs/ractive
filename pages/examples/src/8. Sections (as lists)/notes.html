@@ -1,7 +1,0 @@
-<p>If the value of a section's mustache is an <strong>array</strong>, the section will be repeated once for each item in the array, with said item as context.</p>
-<p>You can modify the array using the familiar <em>pop</em>, <em>push</em>, <em>unshift</em>, <em>shift</em>, <em>splice</em>, <em>sort</em> and <em>reverse</em> methods, and the view will update accordingly. Either of these will work in the example below:</p>
-<code>anglebars.get('primeMinisters').push(jimHacker);</code>
-<code>list.push(jimHacker);</code>
-<p>If you modify the contents of an array using <em>anglebars.set()</em>, the view will update as usual. Of course, sometimes the contents will change as a consequence of something else. In these situations you can manually trigger an update with <em>anglebars.update()</em>. In the example below, once we've added Jim Hacker, we need to correct Margaret Thatcher's historical record &ndash; these two snippets will achieve the same thing:</p>
-<code>anglebars.set('primeMinisters.4.to', 1986);</code>
-<code>list[4].to = 1986;<br/>anglebars.update('primeMinisters');</code>
