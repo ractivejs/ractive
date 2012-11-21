@@ -1,6 +1,6 @@
 define([], function() { 
 
-/*! Anglebars - v0.1.2 - 2012-11-19
+/*! Anglebars - v0.1.2 - 2012-11-21
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -991,7 +991,7 @@ Anglebars.ViewModel = function ( data ) {
 };
 
 Anglebars.ViewModel.prototype = {
-	
+
 	// Update the data model and notify observers
 	set: function ( keypath, value ) {
 		var k, keys, key, obj, i, unresolved, previous, fullKeypath;
@@ -1007,7 +1007,7 @@ Anglebars.ViewModel.prototype = {
 			return;
 		}
 
-		
+
 		// Store previous value
 		previous = this.get( keypath );
 
@@ -1038,6 +1038,8 @@ Anglebars.ViewModel.prototype = {
 
 			if ( fullKeypath !== undefined ) {
 				unresolved.callback( fullKeypath );
+			} else {
+				this.registerUnresolvedKeypath( unresolved.view, unresolved.callback );
 			}
 		}
 	},
@@ -1056,7 +1058,7 @@ Anglebars.ViewModel.prototype = {
 			if ( result ) {
 				result = result[ keys.shift() ];
 			}
-			
+
 			if ( result === undefined ) {
 				return result;
 			}
@@ -1072,8 +1074,6 @@ Anglebars.ViewModel.prototype = {
 
 	registerView: function ( view ) {
 		var self = this, fullKeypath, initialUpdate, value, formatted;
-
-		fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
 
 		initialUpdate = function ( keypath ) {
 			view.keypath = keypath;
@@ -1091,15 +1091,17 @@ Anglebars.ViewModel.prototype = {
 			view.update( formatted );
 		};
 
+		fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
+
 		if ( fullKeypath === undefined ) {
-			this.registerUnresolvedAddress( view, initialUpdate );
+			this.registerUnresolvedKeypath( view, initialUpdate );
 		} else {
 			initialUpdate( fullKeypath );
 		}
 	},
 
 	getFullKeypath: function ( partialKeypath, contextStack ) {
-		
+
 		var innerMost;
 
 		// implicit iterators - i.e. {{.}} - are a special case
@@ -1124,7 +1126,7 @@ Anglebars.ViewModel.prototype = {
 		}
 	},
 
-	registerUnresolvedAddress: function ( view, onResolve ) {
+	registerUnresolvedKeypath: function ( view, onResolve ) {
 		this.pendingResolution[ this.pendingResolution.length ] = {
 			view: view,
 			callback: onResolve
@@ -1179,7 +1181,7 @@ Anglebars.ViewModel.prototype = {
 	},
 
 	observe: function ( options ) {
-		
+
 		var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
 
 		if ( !options.keypath ) {
