@@ -49,7 +49,10 @@
 			temp.innerHTML = html;
 
 			// create array from node list, as node lists have some undesirable properties
-			nodes = Array.prototype.slice.call( temp.childNodes );
+			nodes = [];
+			for ( i=0; i<temp.childNodes.length; i+=1 ) {
+				nodes[i] = temp.childNodes[i];
+			}
 
 			return nodes;
 		},
@@ -719,7 +722,7 @@
 
 			proxy = {
 				type: 'element',
-				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName,
+				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName || node.tagName, // we need localName for SVG elements but tagName for Internet Exploder
 				priority: priority
 			};
 

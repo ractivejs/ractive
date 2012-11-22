@@ -1,6 +1,6 @@
 define([], function() { 
 
-/*! Anglebars - v0.1.2 - 2012-11-21
+/*! Anglebars - v0.1.2 - 2012-11-22
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -246,7 +246,10 @@ Anglebars.patterns = {
 			temp.innerHTML = html;
 
 			// create array from node list, as node lists have some undesirable properties
-			nodes = Array.prototype.slice.call( temp.childNodes );
+			nodes = [];
+			for ( i=0; i<temp.childNodes.length; i+=1 ) {
+				nodes[i] = temp.childNodes[i];
+			}
 
 			return nodes;
 		},
@@ -916,7 +919,7 @@ Anglebars.patterns = {
 
 			proxy = {
 				type: 'element',
-				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName,
+				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName || node.tagName, // we need localName for SVG elements but tagName for Internet Exploder
 				priority: priority
 			};
 
@@ -1243,7 +1246,18 @@ Anglebars.ViewModel.prototype = {
 			return;
 		}
 
-		index = observers.indexOf( observerRef.observer );
+		if ( observers.indexOf ) {
+			index = observers.indexOf( observerRef.observer );
+		} else {
+			// fuck you IE
+			for ( var i=0, len=observers.length; i<len; i+=1 ) {
+				if ( observers[i] === observerRef.observer ) {
+					index = i;
+					break;
+				}
+			}
+		}
+
 
 		if ( index === -1 ) {
 			// nothing to unobserve
@@ -1476,7 +1490,7 @@ Anglebars.ViewModel.prototype = {
 		});
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		options.parentNode.insertBefore( this.node, options.anchor );
+		options.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
 	DomViews.Element.prototype = {

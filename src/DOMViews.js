@@ -202,7 +202,7 @@
 		});
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		options.parentNode.insertBefore( this.node, options.anchor );
+		options.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
 	DomViews.Element.prototype = {

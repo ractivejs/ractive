@@ -263,7 +263,18 @@ Anglebars.ViewModel.prototype = {
 			return;
 		}
 
-		index = observers.indexOf( observerRef.observer );
+		if ( observers.indexOf ) {
+			index = observers.indexOf( observerRef.observer );
+		} else {
+			// fuck you IE
+			for ( var i=0, len=observers.length; i<len; i+=1 ) {
+				if ( observers[i] === observerRef.observer ) {
+					index = i;
+					break;
+				}
+			}
+		}
+
 
 		if ( index === -1 ) {
 			// nothing to unobserve
