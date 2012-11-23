@@ -130,6 +130,10 @@ Anglebars.prototype = {
 	_format: function ( value, formatters ) {
 		var i, numFormatters, formatter, name, args;
 
+		if ( !formatters ) {
+			return value;
+		}
+
 		numFormatters = formatters.length;
 		for ( i=0; i<numFormatters; i+=1 ) {
 			formatter = formatters[i];
@@ -181,4 +185,18 @@ Anglebars.patterns = {
 	standalonePre: /(?:\r)?\n[ \t]*$/,
 	standalonePost: /^[ \t]*(\r)?\n/,
 	standalonePreStrip: /[ \t]+$/
+};
+
+
+// Mustache types
+Anglebars.types = {
+	TEXT:         0,
+	INTERPOLATOR: 1,
+	TRIPLE:       2,
+	SECTION:      3,
+	ELEMENT:      4,
+	PARTIAL:      5,
+	COMMENT:      6,
+	DELIMCHANGE:  7,
+	MUSTACHE:     8
 };

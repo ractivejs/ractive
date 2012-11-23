@@ -17,7 +17,7 @@ charCodes = function ( str ) {
 };
 
 startTests = function ( set, data ) {
-	
+
 	module( set );
 
 	data.tests.forEach( function ( t ) {
@@ -53,10 +53,10 @@ startTests = function ( set, data ) {
 			testReport[ testNum ].charCodes.___result = charCodes( trim( result ) );
 		} catch ( err ) {
 			console.error( err );
-			// throw err;
+			//throw err;
 		}
 
-		
+
 		test( t.name, function () {
 			equal( trim( result ), trim( t.expected ), t.desc + '\n' + t.template + '\n' );
 		});

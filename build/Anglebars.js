@@ -1,4 +1,4 @@
-/*! Anglebars - v0.1.2 - 2012-11-22
+/*! Anglebars - v0.1.2 - 2012-11-23
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -141,6 +141,10 @@ Anglebars.prototype = {
 	_format: function ( value, formatters ) {
 		var i, numFormatters, formatter, name, args;
 
+		if ( !formatters ) {
+			return value;
+		}
+
 		numFormatters = formatters.length;
 		for ( i=0; i<numFormatters; i+=1 ) {
 			formatter = formatters[i];
@@ -193,9 +197,25 @@ Anglebars.patterns = {
 	standalonePost: /^[ \t]*(\r)?\n/,
 	standalonePreStrip: /[ \t]+$/
 };
+
+
+// Mustache types
+Anglebars.types = {
+	TEXT:         0,
+	INTERPOLATOR: 1,
+	TRIPLE:       2,
+	SECTION:      3,
+	ELEMENT:      4,
+	PARTIAL:      5,
+	COMMENT:      6,
+	DELIMCHANGE:  7,
+	MUSTACHE:     8
+};
 (function ( A ) {
 
 	'use strict';
+
+	var types = A.types;
 
 	var utils = A.utils = {
 		// Remove node from DOM if it exists
@@ -397,7 +417,6 @@ Anglebars.patterns = {
 			// patterns
 			preTest = /(?:\r)?\n\s*$/;
 			postTest = /^\s*(?:\r)?\n/;
-			typeTest = /section|comment|delimiterChange/;
 
 			while ( remaining.length ) {
 				mustache = utils.findMustache( remaining );
@@ -410,7 +429,7 @@ Anglebars.patterns = {
 				}
 
 				// if we've got a section, comment, or delimiter change mustache...
-				if ( typeTest.test( mustache.type ) ) {
+				if ( mustache.type === types.SECTION || mustache.type === types.COMMENT || mustache.type === types.DELIMCHANGE ) {
 					pre = remaining.substr( 0, mustache.start ); // before the mustache
 					post = remaining.substring( mustache.end );  // after the mustache
 
@@ -423,7 +442,7 @@ Anglebars.patterns = {
 					result += pre;
 
 					// strip comments
-					if ( mustache.type !== 'comment' ) {
+					if ( mustache.type !== types.COMMENT ) {
 						result += mustache[0];
 					}
 
@@ -461,7 +480,7 @@ Anglebars.patterns = {
 		// - the result of regex.exec() - with some additional properties
 		findMustache: function ( text, startIndex ) {
 
-			var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
+			var match, split, mustache, formulaSplitter, i, formatters, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
 
 			mustache = A.patterns.mustache;
 			formulaSplitter = ' | ';
@@ -473,7 +492,7 @@ Anglebars.patterns = {
 
 				// first, see if we're dealing with a delimiter change
 				if ( match[3] && match[6] ) {
-					match.type = 'delimiterChange';
+					match.type = types.DELIMCHANGE;
 
 					// triple or regular?
 					if ( match[1] && match[7] ) {
@@ -493,7 +512,7 @@ Anglebars.patterns = {
 					match.partialKeypath = split.shift();
 
 					// extract formatters
-					match.formatters = [];
+					formatters = [];
 
 					for ( i=0; i<split.length; i+=1 ) {
 						formatterNameAndArgs = formatterPattern.exec( split[i] );
@@ -510,21 +529,25 @@ Anglebars.patterns = {
 								}
 							}
 
-							match.formatters.push( formatter );
+							formatters.push( formatter );
 						}
+					}
+
+					if ( formatters.length ) {
+						match.formatters = formatters;
 					}
 
 
 					// figure out what type of mustache we're dealing with
 					if ( match[9] ) {
 						// mustache is a section
-						match.type = 'section';
+						match.type = types.SECTION;
 						match.inverted = ( match[9] === '^' ? true : false );
 						match.closing = ( match[9] === '/' ? true : false );
 					}
 
 					else if ( match[10] ) {
-						match.type = 'partial';
+						match.type = types.PARTIAL;
 					}
 
 					else if ( match[1] ) {
@@ -533,15 +556,15 @@ Anglebars.patterns = {
 							return false;
 						}
 
-						match.type = 'triple';
+						match.type = types.TRIPLE;
 					}
 
 					else if ( match[12] ) {
-						match.type = 'comment';
+						match.type = types.COMMENT;
 					}
 
 					else {
-						match.type = 'interpolator';
+						match.type = types.INTERPOLATOR;
 					}
 				}
 
@@ -585,7 +608,7 @@ Anglebars.patterns = {
 
 				if ( node.nodeType === 1 ) {
 					result[ result.length ] = {
-						type: 'element',
+						type: types.ELEMENT,
 						original: node
 					};
 				}
@@ -608,11 +631,11 @@ Anglebars.patterns = {
 			mustache = utils.findMustache( text );
 
 			// delimiter changes are a special (and bloody awkward...) case
-			while ( mustache.type === 'delimiterChange' ) {
+			while ( mustache.type === types.DELIMCHANGE ) {
 
 				if ( mustache.start > 0 ) {
 					result[ result.length ] = {
-						type: 'text',
+						type: types.TEXT,
 						text: text.substr( 0, mustache.start )
 					};
 				}
@@ -625,7 +648,7 @@ Anglebars.patterns = {
 			if ( !mustache ) {
 				if ( text ) {
 					return result.concat({
-						type: 'text',
+						type: types.TEXT,
 						text: text
 					});
 				}
@@ -641,14 +664,14 @@ Anglebars.patterns = {
 				pre = text.substr( 0, mustache.start );
 
 				result[ result.length ] = {
-					type: 'text',
+					type: types.TEXT,
 					text: pre
 				};
 			}
 
 			// add the mustache
 			result[ result.length ] = {
-				type: 'mustache',
+				type: types.MUSTACHE,
 				mustache: mustache
 			};
 
@@ -802,14 +825,14 @@ Anglebars.patterns = {
 			compiled = [];
 
 			processStub = function ( i ) {
-				var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath;
+				var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath, compiledStub;
 
 				whitespace = /^\s*\n\r?\s*$/;
 
 				stub = stubs[i];
 
 				switch ( stub.type ) {
-					case 'text':
+					case types.TEXT:
 						if ( !preserveWhitespace ) {
 							if ( whitespace.test( stub.text ) || stub.text === '' ) {
 								return i+1; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
@@ -819,16 +842,16 @@ Anglebars.patterns = {
 						compiled[ compiled.length ] = stub;
 						return i+1;
 
-					case 'element':
+					case types.ELEMENT:
 						compiled[ compiled.length ] = utils.processElementStub( stub, priority, namespace );
 						return i+1;
 
-					case 'mustache':
+					case types.MUSTACHE:
 
 						partialKeypath = stub.mustache.partialKeypath;
 
 						switch ( stub.mustache.type ) {
-							case 'section':
+							case types.SECTION:
 
 								i += 1;
 								sliceStart = i; // first item in section
@@ -839,8 +862,8 @@ Anglebars.patterns = {
 
 									bit = stubs[i];
 
-									if ( bit.type === 'mustache' ) {
-										if ( bit.mustache.type === 'section' && bit.mustache.partialKeypath === partialKeypath ) {
+									if ( bit.type === types.MUSTACHE ) {
+										if ( bit.mustache.type === types.SECTION && bit.mustache.partialKeypath === partialKeypath ) {
 											if ( !bit.mustache.closing ) {
 												nesting += 1;
 											}
@@ -861,34 +884,46 @@ Anglebars.patterns = {
 									throw new Error( 'Illegal section "' + partialKeypath + '"' );
 								}
 
-								compiled[ compiled.length ] = {
-									type: 'section',
+								compiledStub = {
+									type: types.SECTION,
 									partialKeypath: partialKeypath,
-									formatters: stub.mustache.formatters,
 									inverted: stub.mustache.inverted,
 									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, namespace, preserveWhitespace ),
 									priority: priority
 								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
 								return i;
 
 
-							case 'triple':
-								compiled[ compiled.length ] = {
-									type: 'triple',
+							case types.TRIPLE:
+								compiledStub = {
+									type: types.TRIPLE,
 									partialKeypath: stub.mustache.partialKeypath,
-									formatters: stub.mustache.formatters,
 									priority: priority
 								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
 								return i+1;
 
 
-							case 'interpolator':
-								compiled[ compiled.length ] = {
-									type: 'interpolator',
+							case types.INTERPOLATOR:
+								compiledStub = {
+									type: types.INTERPOLATOR,
 									partialKeypath: stub.mustache.partialKeypath,
-									formatters: stub.mustache.formatters,
 									priority: priority
 								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
 								return i+1;
 
 							default:
@@ -1288,7 +1323,16 @@ Anglebars.ViewModel.prototype = {
 
 	'use strict';
 
-	var domViewMustache, DomViews, utils;
+	var domViewMustache, DomViews, utils, types, ctors;
+
+	types = A.types;
+
+	ctors = [];
+	ctors[ types.TEXT ] = 'Text';
+	ctors[ types.INTERPOLATOR ] = 'Interpolator';
+	ctors[ types.TRIPLE ] = 'Triple';
+	ctors[ types.SECTION ] = 'Section';
+	ctors[ types.ELEMENT ] = 'Element';
 
 	utils = A.utils;
 
@@ -1327,12 +1371,7 @@ Anglebars.ViewModel.prototype = {
 	// View types
 	DomViews = A.DomViews = {
 		create: function ( options ) {
-			var type = options.model.type;
-
-			// get constructor name by capitalising model type
-			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
-
-			return new DomViews[ type ]( options );
+			return new DomViews[ ctors[ options.model.type ] ]( options );
 		}
 	};
 

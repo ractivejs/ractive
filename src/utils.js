@@ -2,6 +2,8 @@
 
 	'use strict';
 
+	var types = A.types;
+
 	var utils = A.utils = {
 		// Remove node from DOM if it exists
 		remove: function ( node ) {
@@ -202,7 +204,6 @@
 			// patterns
 			preTest = /(?:\r)?\n\s*$/;
 			postTest = /^\s*(?:\r)?\n/;
-			typeTest = /section|comment|delimiterChange/;
 
 			while ( remaining.length ) {
 				mustache = utils.findMustache( remaining );
@@ -215,7 +216,7 @@
 				}
 
 				// if we've got a section, comment, or delimiter change mustache...
-				if ( typeTest.test( mustache.type ) ) {
+				if ( mustache.type === types.SECTION || mustache.type === types.COMMENT || mustache.type === types.DELIMCHANGE ) {
 					pre = remaining.substr( 0, mustache.start ); // before the mustache
 					post = remaining.substring( mustache.end );  // after the mustache
 
@@ -228,7 +229,7 @@
 					result += pre;
 
 					// strip comments
-					if ( mustache.type !== 'comment' ) {
+					if ( mustache.type !== types.COMMENT ) {
 						result += mustache[0];
 					}
 
@@ -266,7 +267,7 @@
 		// - the result of regex.exec() - with some additional properties
 		findMustache: function ( text, startIndex ) {
 
-			var match, split, mustache, formulaSplitter, i, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
+			var match, split, mustache, formulaSplitter, i, formatters, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
 
 			mustache = A.patterns.mustache;
 			formulaSplitter = ' | ';
@@ -278,7 +279,7 @@
 
 				// first, see if we're dealing with a delimiter change
 				if ( match[3] && match[6] ) {
-					match.type = 'delimiterChange';
+					match.type = types.DELIMCHANGE;
 
 					// triple or regular?
 					if ( match[1] && match[7] ) {
@@ -298,7 +299,7 @@
 					match.partialKeypath = split.shift();
 
 					// extract formatters
-					match.formatters = [];
+					formatters = [];
 
 					for ( i=0; i<split.length; i+=1 ) {
 						formatterNameAndArgs = formatterPattern.exec( split[i] );
@@ -315,21 +316,25 @@
 								}
 							}
 
-							match.formatters.push( formatter );
+							formatters.push( formatter );
 						}
+					}
+
+					if ( formatters.length ) {
+						match.formatters = formatters;
 					}
 
 
 					// figure out what type of mustache we're dealing with
 					if ( match[9] ) {
 						// mustache is a section
-						match.type = 'section';
+						match.type = types.SECTION;
 						match.inverted = ( match[9] === '^' ? true : false );
 						match.closing = ( match[9] === '/' ? true : false );
 					}
 
 					else if ( match[10] ) {
-						match.type = 'partial';
+						match.type = types.PARTIAL;
 					}
 
 					else if ( match[1] ) {
@@ -338,15 +343,15 @@
 							return false;
 						}
 
-						match.type = 'triple';
+						match.type = types.TRIPLE;
 					}
 
 					else if ( match[12] ) {
-						match.type = 'comment';
+						match.type = types.COMMENT;
 					}
 
 					else {
-						match.type = 'interpolator';
+						match.type = types.INTERPOLATOR;
 					}
 				}
 
@@ -390,7 +395,7 @@
 
 				if ( node.nodeType === 1 ) {
 					result[ result.length ] = {
-						type: 'element',
+						type: types.ELEMENT,
 						original: node
 					};
 				}
@@ -413,11 +418,11 @@
 			mustache = utils.findMustache( text );
 
 			// delimiter changes are a special (and bloody awkward...) case
-			while ( mustache.type === 'delimiterChange' ) {
+			while ( mustache.type === types.DELIMCHANGE ) {
 
 				if ( mustache.start > 0 ) {
 					result[ result.length ] = {
-						type: 'text',
+						type: types.TEXT,
 						text: text.substr( 0, mustache.start )
 					};
 				}
@@ -430,7 +435,7 @@
 			if ( !mustache ) {
 				if ( text ) {
 					return result.concat({
-						type: 'text',
+						type: types.TEXT,
 						text: text
 					});
 				}
@@ -446,14 +451,14 @@
 				pre = text.substr( 0, mustache.start );
 
 				result[ result.length ] = {
-					type: 'text',
+					type: types.TEXT,
 					text: pre
 				};
 			}
 
 			// add the mustache
 			result[ result.length ] = {
-				type: 'mustache',
+				type: types.MUSTACHE,
 				mustache: mustache
 			};
 
@@ -607,14 +612,14 @@
 			compiled = [];
 
 			processStub = function ( i ) {
-				var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath;
+				var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath, compiledStub;
 
 				whitespace = /^\s*\n\r?\s*$/;
 
 				stub = stubs[i];
 
 				switch ( stub.type ) {
-					case 'text':
+					case types.TEXT:
 						if ( !preserveWhitespace ) {
 							if ( whitespace.test( stub.text ) || stub.text === '' ) {
 								return i+1; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
@@ -624,16 +629,16 @@
 						compiled[ compiled.length ] = stub;
 						return i+1;
 
-					case 'element':
+					case types.ELEMENT:
 						compiled[ compiled.length ] = utils.processElementStub( stub, priority, namespace );
 						return i+1;
 
-					case 'mustache':
+					case types.MUSTACHE:
 
 						partialKeypath = stub.mustache.partialKeypath;
 
 						switch ( stub.mustache.type ) {
-							case 'section':
+							case types.SECTION:
 
 								i += 1;
 								sliceStart = i; // first item in section
@@ -644,8 +649,8 @@
 
 									bit = stubs[i];
 
-									if ( bit.type === 'mustache' ) {
-										if ( bit.mustache.type === 'section' && bit.mustache.partialKeypath === partialKeypath ) {
+									if ( bit.type === types.MUSTACHE ) {
+										if ( bit.mustache.type === types.SECTION && bit.mustache.partialKeypath === partialKeypath ) {
 											if ( !bit.mustache.closing ) {
 												nesting += 1;
 											}
@@ -666,34 +671,46 @@
 									throw new Error( 'Illegal section "' + partialKeypath + '"' );
 								}
 
-								compiled[ compiled.length ] = {
-									type: 'section',
+								compiledStub = {
+									type: types.SECTION,
 									partialKeypath: partialKeypath,
-									formatters: stub.mustache.formatters,
 									inverted: stub.mustache.inverted,
 									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, namespace, preserveWhitespace ),
 									priority: priority
 								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
 								return i;
 
 
-							case 'triple':
-								compiled[ compiled.length ] = {
-									type: 'triple',
+							case types.TRIPLE:
+								compiledStub = {
+									type: types.TRIPLE,
 									partialKeypath: stub.mustache.partialKeypath,
-									formatters: stub.mustache.formatters,
 									priority: priority
 								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
 								return i+1;
 
 
-							case 'interpolator':
-								compiled[ compiled.length ] = {
-									type: 'interpolator',
+							case types.INTERPOLATOR:
+								compiledStub = {
+									type: types.INTERPOLATOR,
 									partialKeypath: stub.mustache.partialKeypath,
-									formatters: stub.mustache.formatters,
 									priority: priority
 								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
 								return i+1;
 
 							default:

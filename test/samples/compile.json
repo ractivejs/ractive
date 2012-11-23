@@ -7,26 +7,26 @@
 	{
 		"name": "Mustache-less text",
 		"template": "a string",
-		"compiled": [{"type":"text","text":"a string"}]
+		"compiled": [{"type":0,"text":"a string"}]
 	},
 	{
 		"name": "Interpolator",
 		"template": "{{mustache}}",
-		"compiled": [{"type":"interpolator","partialKeypath":"mustache","formatters":[],"priority":0}]
+		"compiled": [{"type":1,"partialKeypath":"mustache","priority":0}]
 	},
 	{
 		"name": "Triple",
 		"template": "{{{mustache}}}",
-		"compiled": [{"type":"triple","partialKeypath":"mustache","formatters":[],"priority":0}]
+		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0}]
 	},
 	{
 		"name": "Section",
 		"template": "{{#mustache}}{{/mustache}}",
-		"compiled": [{"type":"section","partialKeypath":"mustache","formatters":[],"inverted":false,"children":[],"priority":0}]
+		"compiled": [{"type":3,"partialKeypath":"mustache","inverted":false,"children":[],"priority":0}]
 	},
 	{
 		"name": "Interpolator with preceding text",
 		"template": "preceding text {{mustache}}",
-		"compiled": [{"type":"text","text":"preceding text "},{"type":"interpolator","partialKeypath":"mustache","formatters":[],"priority":0}]
+		"compiled": [{"type":0,"text":"preceding text "},{"type":1,"partialKeypath":"mustache","priority":0}]
 	}
 ]

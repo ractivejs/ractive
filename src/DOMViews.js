@@ -2,7 +2,16 @@
 
 	'use strict';
 
-	var domViewMustache, DomViews, utils;
+	var domViewMustache, DomViews, utils, types, ctors;
+
+	types = A.types;
+
+	ctors = [];
+	ctors[ types.TEXT ] = 'Text';
+	ctors[ types.INTERPOLATOR ] = 'Interpolator';
+	ctors[ types.TRIPLE ] = 'Triple';
+	ctors[ types.SECTION ] = 'Section';
+	ctors[ types.ELEMENT ] = 'Element';
 
 	utils = A.utils;
 
@@ -41,12 +50,7 @@
 	// View types
 	DomViews = A.DomViews = {
 		create: function ( options ) {
-			var type = options.model.type;
-
-			// get constructor name by capitalising model type
-			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
-
-			return new DomViews[ type ]( options );
+			return new DomViews[ ctors[ options.model.type ] ]( options );
 		}
 	};
 
