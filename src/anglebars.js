@@ -7,66 +7,100 @@ var Anglebars = function ( options ) {
 
 	options = options || {};
 
-	// `el` **string | HTMLElement** *optional*
+	// `el` **string | HTMLElement** *optional*  
 	// The target element to render to. If omitted, nothing will be rendered
 	// until `.render()` is called.
-	if ( options.el !== undefined ) {
+	if ( 'el' in options ) {
 		this.el = Anglebars.utils.getEl( options.el );
 	}
 
-	// `compiled` **object** *optional*
+	// `compiled` **object** *optional*  
 	// A precompiled template, generated with the static `Anglebars.compile`
 	// method.
-	if ( options.compiled !== undefined ) {
+	if ( 'compiled' in options ) {
 		this.compiled = options.compiled;
 	}
 
-	// `template` **string** *optional*
+	// `template` **string** *optional*  
 	// A string containing valid HTML (albeit with mustaches), to be used in
 	// the absence of a precompiled template (e.g. during initial development)
-	if ( options.template !== undefined ) {
+	if ( 'template' in options ) {
 		this.template = options.template;
 	}
 
-	// `partials` **object** *optional*
+	// `partials` **object** *optional*  
 	// A hash containing strings representing partial templates
-	if ( options.partials !== undefined ) {
+	if ( 'partials' in options ) {
 		this.partials = options.partials;
 	}
 
-	// `data` **object | Anglebars.ViewModel** *optional*
+	// `compiledPartials` **object** *optional*  
+	// A hash containing compiled partials
+	this.compiledPartials = ( 'compiledPartials' in options ? options.compiledPartials : {} );
+
+	// `data` **object | Anglebars.ViewModel** *optional*  
 	// An object or an `Anglebars.ViewModel` instance containing the data with
 	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
 	// instance allows separate Anglebars instances to share a single view model
 	this.viewmodel = ( options.data instanceof Anglebars.ViewModel ? options.data : new Anglebars.ViewModel( options.data ) );
 
-	// `formatters` **object** *optional*
+	// `formatters` **object** *optional*  
 	// An object containing mustache formatter functions
-	if ( options.formatters !== undefined ) {
+	if ( 'formatters' in options ) {
 		this.formatters = options.formatters;
 	}
 
-	// `preserveWhitespace` **boolean** *optional*
+	// `preserveWhitespace` **boolean** *optional*  
 	// Whether or not to preserve whitespace in the template (e.g. newlines
 	// between elements), which is usually ignored by the browser. Defaults
 	// to `false`
-	this.preserveWhitespace = ( options.preserveWhitespace === undefined ? false : options.preserveWhitespace );
+	this.preserveWhitespace = ( 'preserveWhitespace' in options ? options.preserveWhitespace : false );
 
-	// `replaceSrcAttributes` **boolean** *optional*
+	// `replaceSrcAttributes` **boolean** *optional*  
 	// Whether to replace src attributes with data-anglebars-src during template
 	// compilation (prevents browser requesting non-existent resources).
 	// Defaults to `true`
-	this.replaceSrcAttributes = ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes );
+	this.replaceSrcAttributes = ( 'replaceSrcAttributes' in options ? options.replaceSrcAttributes : true );
 
-	// `namespace` **string** *optional*
+	// `namespace` **string** *optional*  
 	// What namespace to treat as the parent namespace when compiling. This will
-	// be guessed from the container element, but can be overridden
+	// be guessed from the container element, but can be overridden here
 	this.namespace = ( options.namespace ? options.namespace : ( this.el && this.el.namespaceURI !== 'http://www.w3.org/1999/xhtml' ? this.el.namespaceURI : null ) );
 
+	// `async` **boolean** *optional*  
+	// Whether to render asynchronously. If `true`, Anglebars will render as much
+	// as possible within the time allowed by `maxBatch` (below), before yielding
+	// the UI thread until the next available animation frame. Rendering will take
+	// longer, but this will prevent the browser from freezing up while it happens.
+	// If a `callback` is specified, it will be called when rendering is complete.
+	this.async = ( 'async' in options ? options.async : false );
+
+	// `maxBatch` **number** *optional*  
+	// Maximum time, in milliseconds, to continue rendering each batch of nodes
+	// before yielding the UI thread. Defaults to 50. Longer values will result in
+	// a quicker render, but may result in slight 'choppiness'.
+	this.maxBatch = ( 'maxBatch' in options ? options.maxBatch : 50 );
+
+	// `append` **boolean** *optional*  
+	// Whether to append to `this.el`, rather than overwriting its contents. Defaults
+	// to `false`
+	this.append = ( 'append' in options ? options.append : false );
 
 
 	// Initialization
 	// --------------
+
+	// If we were given uncompiled partials, compile them
+	if ( this.partials ) {
+		for ( var key in this.partials ) {
+			if ( this.partials.hasOwnProperty( key ) ) {
+				this.compiledPartials[ key ] = Anglebars.compile( this.partials[ key ], {
+					preserveWhitespace: this.preserveWhitespace,
+					replaceSrcAttributes: this.replaceSrcAttributes
+				});
+			}
+		}
+	}
 
 	// If we were given a template, compile it
 	if ( !this.compiled && this.template ) {
@@ -74,14 +108,13 @@ var Anglebars = function ( options ) {
 			preserveWhitespace: this.preserveWhitespace,
 			replaceSrcAttributes: this.replaceSrcAttributes,
 			namespace: this.namespace,
-			partials: this.partials
+			partials: this.compiledPartials
 		});
 	}
 
-	// Clear container and render
+	// Render
 	if ( this.compiled && this.el ) {
-		this.el.innerHTML = '';
-		this.render();
+		this.render({ el: this.el, callback: options.callback, append: this.append });
 	}
 };
 
@@ -91,12 +124,63 @@ var Anglebars = function ( options ) {
 // =================
 Anglebars.prototype = {
 
+
+	queue: function ( items ) {
+		this._queue = items.concat( this._queue || [] );
+
+		if ( !this._dispatchingQueue ) {
+			this.dispatchQueue();
+		}
+	},
+
+	dispatchQueue: function () {
+		var self = this, batch, max, queue;
+
+		max = this.maxBatch || 50; // milliseconds
+		queue = this._queue;
+
+		batch = function () {
+			var startTime = +new Date(), next;
+
+			while ( self._queue.length && ( new Date() - startTime < max ) ) {
+				next = self._queue.shift();
+
+				next.parentFragment.items[ next.index ] = Anglebars.DomViews.create( next );
+			}
+
+			if ( self._queue.length ) {
+				webkitRequestAnimationFrame( batch );
+			} else {
+				self._dispatchingQueue = false;
+
+				if ( self.callback ) {
+					self.callback();
+					delete self.callback;
+				}
+			}
+		};
+
+		this._dispatchingQueue = true;
+		webkitRequestAnimationFrame( batch );
+	},
+
+
+
+
 	// Render instance to element specified here or at initialization
-	render: function ( el ) {
-		el = ( el ? Anglebars.utils.getEl( el ) : this.el );
+	render: function ( options ) {
+		var el = ( options.el ? Anglebars.utils.getEl( options.el ) : this.el );
 
 		if ( !el ) {
 			throw new Error( 'You must specify a DOM element to render to' );
+		}
+
+		if ( !options.append ) {
+			el.innerHTML = '';
+		}
+
+		if ( options.callback ) {
+			this.callback = options.callback;
 		}
 
 		this.rendered = new Anglebars.DomViews.Fragment({
@@ -104,6 +188,10 @@ Anglebars.prototype = {
 			anglebars: this,
 			parentNode: el
 		});
+
+		if ( !this.async && options.callback ) {
+			options.callback();
+		}
 	},
 
 	teardown: function () {
@@ -113,7 +201,10 @@ Anglebars.prototype = {
 
 	// Proxies for viewmodel `set`, `get` and `update` methods
 	set: function () {
+		var oldDisplay = this.el.style.display;
+
 		this.viewmodel.set.apply( this.viewmodel, arguments );
+
 		return this;
 	},
 
@@ -184,7 +275,9 @@ Anglebars.patterns = {
 	preprocessorTypes: /section|comment|delimiterChange/,
 	standalonePre: /(?:\r)?\n[ \t]*$/,
 	standalonePost: /^[ \t]*(\r)?\n/,
-	standalonePreStrip: /[ \t]+$/
+	standalonePreStrip: /[ \t]+$/,
+
+	arrayPointer: /\[([0-9]+)\]/
 };
 
 

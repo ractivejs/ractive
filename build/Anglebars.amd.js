@@ -1,6 +1,6 @@
 define([], function() { 
 
-/*! Anglebars - v0.1.2 - 2012-11-23
+/*! Anglebars - v0.1.2 - 2012-11-27
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -20,66 +20,100 @@ var Anglebars = function ( options ) {
 
 	options = options || {};
 
-	// `el` **string | HTMLElement** *optional*
+	// `el` **string | HTMLElement** *optional*  
 	// The target element to render to. If omitted, nothing will be rendered
 	// until `.render()` is called.
-	if ( options.el !== undefined ) {
+	if ( 'el' in options ) {
 		this.el = Anglebars.utils.getEl( options.el );
 	}
 
-	// `compiled` **object** *optional*
+	// `compiled` **object** *optional*  
 	// A precompiled template, generated with the static `Anglebars.compile`
 	// method.
-	if ( options.compiled !== undefined ) {
+	if ( 'compiled' in options ) {
 		this.compiled = options.compiled;
 	}
 
-	// `template` **string** *optional*
+	// `template` **string** *optional*  
 	// A string containing valid HTML (albeit with mustaches), to be used in
 	// the absence of a precompiled template (e.g. during initial development)
-	if ( options.template !== undefined ) {
+	if ( 'template' in options ) {
 		this.template = options.template;
 	}
 
-	// `partials` **object** *optional*
+	// `partials` **object** *optional*  
 	// A hash containing strings representing partial templates
-	if ( options.partials !== undefined ) {
+	if ( 'partials' in options ) {
 		this.partials = options.partials;
 	}
 
-	// `data` **object | Anglebars.ViewModel** *optional*
+	// `compiledPartials` **object** *optional*  
+	// A hash containing compiled partials
+	this.compiledPartials = ( 'compiledPartials' in options ? options.compiledPartials : {} );
+
+	// `data` **object | Anglebars.ViewModel** *optional*  
 	// An object or an `Anglebars.ViewModel` instance containing the data with
 	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
 	// instance allows separate Anglebars instances to share a single view model
 	this.viewmodel = ( options.data instanceof Anglebars.ViewModel ? options.data : new Anglebars.ViewModel( options.data ) );
 
-	// `formatters` **object** *optional*
+	// `formatters` **object** *optional*  
 	// An object containing mustache formatter functions
-	if ( options.formatters !== undefined ) {
+	if ( 'formatters' in options ) {
 		this.formatters = options.formatters;
 	}
 
-	// `preserveWhitespace` **boolean** *optional*
+	// `preserveWhitespace` **boolean** *optional*  
 	// Whether or not to preserve whitespace in the template (e.g. newlines
 	// between elements), which is usually ignored by the browser. Defaults
 	// to `false`
-	this.preserveWhitespace = ( options.preserveWhitespace === undefined ? false : options.preserveWhitespace );
+	this.preserveWhitespace = ( 'preserveWhitespace' in options ? options.preserveWhitespace : false );
 
-	// `replaceSrcAttributes` **boolean** *optional*
+	// `replaceSrcAttributes` **boolean** *optional*  
 	// Whether to replace src attributes with data-anglebars-src during template
 	// compilation (prevents browser requesting non-existent resources).
 	// Defaults to `true`
-	this.replaceSrcAttributes = ( options.replaceSrcAttributes === undefined ? true : options.replaceSrcAttributes );
+	this.replaceSrcAttributes = ( 'replaceSrcAttributes' in options ? options.replaceSrcAttributes : true );
 
-	// `namespace` **string** *optional*
+	// `namespace` **string** *optional*  
 	// What namespace to treat as the parent namespace when compiling. This will
-	// be guessed from the container element, but can be overridden
+	// be guessed from the container element, but can be overridden here
 	this.namespace = ( options.namespace ? options.namespace : ( this.el && this.el.namespaceURI !== 'http://www.w3.org/1999/xhtml' ? this.el.namespaceURI : null ) );
 
+	// `async` **boolean** *optional*  
+	// Whether to render asynchronously. If `true`, Anglebars will render as much
+	// as possible within the time allowed by `maxBatch` (below), before yielding
+	// the UI thread until the next available animation frame. Rendering will take
+	// longer, but this will prevent the browser from freezing up while it happens.
+	// If a `callback` is specified, it will be called when rendering is complete.
+	this.async = ( 'async' in options ? options.async : false );
+
+	// `maxBatch` **number** *optional*  
+	// Maximum time, in milliseconds, to continue rendering each batch of nodes
+	// before yielding the UI thread. Defaults to 50. Longer values will result in
+	// a quicker render, but may result in slight 'choppiness'.
+	this.maxBatch = ( 'maxBatch' in options ? options.maxBatch : 50 );
+
+	// `append` **boolean** *optional*  
+	// Whether to append to `this.el`, rather than overwriting its contents. Defaults
+	// to `false`
+	this.append = ( 'append' in options ? options.append : false );
 
 
 	// Initialization
 	// --------------
+
+	// If we were given uncompiled partials, compile them
+	if ( this.partials ) {
+		for ( var key in this.partials ) {
+			if ( this.partials.hasOwnProperty( key ) ) {
+				this.compiledPartials[ key ] = Anglebars.compile( this.partials[ key ], {
+					preserveWhitespace: this.preserveWhitespace,
+					replaceSrcAttributes: this.replaceSrcAttributes
+				});
+			}
+		}
+	}
 
 	// If we were given a template, compile it
 	if ( !this.compiled && this.template ) {
@@ -87,14 +121,13 @@ var Anglebars = function ( options ) {
 			preserveWhitespace: this.preserveWhitespace,
 			replaceSrcAttributes: this.replaceSrcAttributes,
 			namespace: this.namespace,
-			partials: this.partials
+			partials: this.compiledPartials
 		});
 	}
 
-	// Clear container and render
+	// Render
 	if ( this.compiled && this.el ) {
-		this.el.innerHTML = '';
-		this.render();
+		this.render({ el: this.el, callback: options.callback, append: this.append });
 	}
 };
 
@@ -104,12 +137,63 @@ var Anglebars = function ( options ) {
 // =================
 Anglebars.prototype = {
 
+
+	queue: function ( items ) {
+		this._queue = items.concat( this._queue || [] );
+
+		if ( !this._dispatchingQueue ) {
+			this.dispatchQueue();
+		}
+	},
+
+	dispatchQueue: function () {
+		var self = this, batch, max, queue;
+
+		max = this.maxBatch || 50; // milliseconds
+		queue = this._queue;
+
+		batch = function () {
+			var startTime = +new Date(), next;
+
+			while ( self._queue.length && ( new Date() - startTime < max ) ) {
+				next = self._queue.shift();
+
+				next.parentFragment.items[ next.index ] = Anglebars.DomViews.create( next );
+			}
+
+			if ( self._queue.length ) {
+				webkitRequestAnimationFrame( batch );
+			} else {
+				self._dispatchingQueue = false;
+
+				if ( self.callback ) {
+					self.callback();
+					delete self.callback;
+				}
+			}
+		};
+
+		this._dispatchingQueue = true;
+		webkitRequestAnimationFrame( batch );
+	},
+
+
+
+
 	// Render instance to element specified here or at initialization
-	render: function ( el ) {
-		el = ( el ? Anglebars.utils.getEl( el ) : this.el );
+	render: function ( options ) {
+		var el = ( options.el ? Anglebars.utils.getEl( options.el ) : this.el );
 
 		if ( !el ) {
 			throw new Error( 'You must specify a DOM element to render to' );
+		}
+
+		if ( !options.append ) {
+			el.innerHTML = '';
+		}
+
+		if ( options.callback ) {
+			this.callback = options.callback;
 		}
 
 		this.rendered = new Anglebars.DomViews.Fragment({
@@ -117,6 +201,10 @@ Anglebars.prototype = {
 			anglebars: this,
 			parentNode: el
 		});
+
+		if ( !this.async && options.callback ) {
+			options.callback();
+		}
 	},
 
 	teardown: function () {
@@ -126,7 +214,10 @@ Anglebars.prototype = {
 
 	// Proxies for viewmodel `set`, `get` and `update` methods
 	set: function () {
+		var oldDisplay = this.el.style.display;
+
 		this.viewmodel.set.apply( this.viewmodel, arguments );
+
 		return this;
 	},
 
@@ -197,7 +288,9 @@ Anglebars.patterns = {
 	preprocessorTypes: /section|comment|delimiterChange/,
 	standalonePre: /(?:\r)?\n[ \t]*$/,
 	standalonePost: /^[ \t]*(\r)?\n/,
-	standalonePreStrip: /[ \t]+$/
+	standalonePreStrip: /[ \t]+$/,
+
+	arrayPointer: /\[([0-9]+)\]/
 };
 
 
@@ -220,14 +313,6 @@ Anglebars.types = {
 	var types = A.types;
 
 	var utils = A.utils = {
-		// Remove node from DOM if it exists
-		remove: function ( node ) {
-			if ( node.parentNode ) {
-				node.parentNode.removeChild( node );
-			}
-		},
-
-
 		// convert HTML to an array of DOM nodes
 		getNodeArrayFromHtml: function ( html, replaceSrcAttributes ) {
 
@@ -241,7 +326,8 @@ Anglebars.types = {
 			if ( replaceSrcAttributes ) {
 				attrs = [ 'src', 'poster' ];
 
-				for ( i=0; i<attrs.length; i+=1 ) {
+				i = attrs.length;
+				while ( i-- ) {
 					pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
 					html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
 				}
@@ -253,7 +339,8 @@ Anglebars.types = {
 			if ( replaceFunkyTags ) {
 				tags = [ 'table', 'thead', 'tbody', 'tr', 'th', 'td' ];
 
-				for ( i=0; i<tags.length; i+=1 ) {
+				i = tags.length;
+				while ( i-- ) {
 					pattern = new RegExp( '<(' + tags[i] + ')(\\s|>)', 'gi' );
 					html = html.replace( pattern, '<div data-anglebars-elementname="$1"$2' );
 
@@ -267,7 +354,8 @@ Anglebars.types = {
 
 			// create array from node list, as node lists have some undesirable properties
 			nodes = [];
-			for ( i=0; i<temp.childNodes.length; i+=1 ) {
+			i = temp.childNodes.length;
+			while ( i-- ) {
 				nodes[i] = temp.childNodes[i];
 			}
 
@@ -329,7 +417,7 @@ Anglebars.types = {
 			result = [ key.substr( 0, index ) ];
 			arrayPointers = key.substring( index );
 
-			pattern = /\[([0-9]+)\]/;
+			pattern = A.patterns.arrayPointer;
 
 			while ( arrayPointers.length ) {
 				match = pattern.exec( arrayPointers );
@@ -688,130 +776,6 @@ Anglebars.types = {
 			return result;
 		},
 
-		// borrowed wholesale from underscore... TODO include license? write an Anglebars-optimised version?
-		isEqual: function ( a, b ) {
-
-			var eq = function ( a, b, stack ) {
-
-				var toString, className, length, size, result, key;
-
-				toString = Object.prototype.toString;
-
-				// Identical objects are equal. `0 === -0`, but they aren't identical.
-				// See the Harmony `egal` proposal: http://wiki.ecmascript.org/doku.php?id=harmony:egal.
-				if ( a === b ) {
-					return ( a !== 0 || ( 1 / a == 1 / b ) );
-				}
-
-				// A strict comparison is necessary because `null == undefined`.
-				if ( a == null || b == null ) {
-					return a === b;
-				}
-
-				// Compare `[[Class]]` names.
-				className = toString.call( a );
-				if ( className != toString.call( b ) ) {
-					return false;
-				}
-
-				switch ( className ) {
-					// Strings, numbers, dates, and booleans are compared by value.
-					case '[object String]':
-						// Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
-						// equivalent to `new String("5")`.
-						return a == String( b );
-
-					case '[object Number]':
-						// `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
-						// other numeric values.
-						return ( ( a != +a ) ? ( b != +b ) : ( a == 0 ? ( 1 / a == 1 / b ) : ( a == +b ) ) );
-
-					case '[object Date]':
-					case '[object Boolean]':
-						// Coerce dates and booleans to numeric primitive values. Dates are compared by their
-						// millisecond representations. Note that invalid dates with millisecond representations
-						// of `NaN` are not equivalent.
-						return +a == +b;
-					// RegExps are compared by their source patterns and flags.
-					case '[object RegExp]':
-						return a.source == b.source &&
-							a.global == b.global &&
-							a.multiline == b.multiline &&
-							a.ignoreCase == b.ignoreCase;
-				}
-
-				if ( typeof a != 'object' || typeof b != 'object' ) {
-					return false;
-				}
-
-				// Assume equality for cyclic structures. The algorithm for detecting cyclic
-				// structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
-				length = stack.length;
-
-				while ( length-- ) {
-					// Linear search. Performance is inversely proportional to the number of
-					// unique nested structures.
-					if ( stack[length] == a ) {
-						return true;
-					}
-				}
-
-				// Add the first object to the stack of traversed objects.
-				stack.push( a );
-
-				size = 0, result = true;
-				// Recursively compare objects and arrays.
-
-				if ( className == '[object Array]' ) {
-
-					// Compare array lengths to determine if a deep comparison is necessary.
-					size = a.length;
-					result = size == b.length;
-
-					if ( result ) {
-						// Deep compare the contents, ignoring non-numeric properties.
-						while ( size-- ) {
-						// Ensure commutative equality for sparse arrays.
-							if ( !( result = size in a == size in b && eq( a[ size ], b[ size ], stack ) ) ) {
-								break;
-							}
-						}
-					}
-				} else {
-					// Objects with different constructors are not equivalent.
-					if ( 'constructor' in a != 'constructor' in b || a.constructor != b.constructor ) {
-						return false;
-					}
-
-					// Deep compare objects.
-					for ( key in a ) {
-						if ( a.hasOwnProperty( key ) ) {
-							// Count the expected number of properties.
-							size++;
-							// Deep compare each member.
-							if ( !( result = b.hasOwnProperty( key ) && eq( a[ key ], b[ key ], stack ) ) ) {
-								break;
-							}
-						}
-					}
-
-					// Ensure that both objects contain the same number of properties.
-					if ( result ) {
-						for ( key in b ) {
-							if ( b.hasOwnProperty( key ) && !( size-- ) ) break;
-						}
-						result = !size;
-					}
-				}
-
-				// Remove the first object from the stack of traversed objects.
-				stack.pop();
-				return result;
-			};
-
-			return eq( a, b, [] );
-		},
-
 		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 		isArray: function ( obj ) {
 			return Object.prototype.toString.call( obj ) === '[object Array]';
@@ -928,6 +892,17 @@ Anglebars.types = {
 								compiled[ compiled.length ] = compiledStub;
 								return i+1;
 
+
+							case types.PARTIAL:
+								compiledStub = {
+									type: types.PARTIAL,
+									id: stub.mustache.partialKeypath,
+									priority: priority
+								};
+								
+								compiled[ compiled.length ] = compiledStub;
+								return i+1;	
+
 							default:
 								if ( console && console.error ) { console.error( 'Bad mustache: ', stub.mustache ); }
 								throw new Error( 'Error compiling template: Illegal mustache (' + stub.mustache[0] + ')' );
@@ -953,7 +928,7 @@ Anglebars.types = {
 			node = stub.original;
 
 			proxy = {
-				type: 'element',
+				type: types.ELEMENT,
 				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName || node.tagName, // we need localName for SVG elements but tagName for Internet Exploder
 				priority: priority
 			};
@@ -1026,6 +1001,9 @@ Anglebars.ViewModel = function ( data ) {
 
 	// Create empty object for observers
 	this.observers = {};
+
+	// Async queue
+	this._queue = [];
 };
 
 Anglebars.ViewModel.prototype = {
@@ -1062,9 +1040,7 @@ Anglebars.ViewModel.prototype = {
 
 		obj[ key ] = value;
 
-		if ( !Anglebars.utils.isEqual( previous, value ) ) {
-			this.publish( keypath, value );
-		}
+		this.publish( keypath, value );
 
 		// see if we can resolve any of the unresolved keypaths (if such there be)
 		i = this.pendingResolution.length;
@@ -1218,6 +1194,42 @@ Anglebars.ViewModel.prototype = {
 		}
 	},
 
+	/*queue: function ( view, formatted ) {
+		this._queue[ this._queue.length ] = {
+			view: view,
+			formatted: formatted
+		};
+	},
+
+	dispatchQueue: function () {
+		var batch, max, queue;
+
+		max = 30; // milliseconds
+		queue = this._queue;
+
+		var batchNum = 0;
+
+		batch = function () {
+			var startTime = +new Date(), next;
+
+			batchNum++;
+			//console.log( 'batch #' + ++batchNum );
+
+			while ( queue.length && ( new Date() - startTime < max ) ) {
+				next = queue.shift();
+				next.view.update( next.formatted );
+			}
+
+			if ( queue.length ) {
+				webkitRequestAnimationFrame( batch );
+			} else {
+				console.log( 'complete', batchNum );
+			}
+		};
+
+		webkitRequestAnimationFrame( batch );
+	},*/
+
 	observe: function ( options ) {
 
 		var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
@@ -1335,6 +1347,7 @@ Anglebars.ViewModel.prototype = {
 	ctors[ types.TRIPLE ] = 'Triple';
 	ctors[ types.SECTION ] = 'Section';
 	ctors[ types.ELEMENT ] = 'Element';
+	ctors[ types.PARTIAL ] = 'Partial';
 
 	utils = A.utils;
 
@@ -1379,43 +1392,63 @@ Anglebars.ViewModel.prototype = {
 
 
 	// Fragment
-	DomViews.Fragment = function ( options ) {
+	DomViews.Fragment = function ( options, wait ) {
 
-		var numModels, i, itemOptions;
+		var numModels, i, itemOptions, async;
 
-		this.parentSection = options.parentSection;
+		async = options.anglebars.async;
+
+		this.owner = options.owner;
 		this.index = options.index;
 
-		itemOptions = {
-			anglebars:      options.anglebars,
-			parentNode:     options.parentNode,
-			contextStack:   options.contextStack,
-			anchor:         options.anchor,
-			parentFragment: this
-		};
+		if ( !async ) {
+			itemOptions = {
+				anglebars:      options.anglebars,
+				parentNode:     options.parentNode,
+				contextStack:   options.contextStack,
+				anchor:         options.anchor,
+				parentFragment: this
+			};
+		}
 
 		this.items = [];
+		this.queue = [];
 
 		numModels = options.model.length;
 		for ( i=0; i<numModels; i+=1 ) {
-			itemOptions.model = options.model[i];
-			itemOptions.index = i;
 
-			this.items[i] = DomViews.create( itemOptions );
+
+			if ( async ) {
+				itemOptions = {
+					index:          i,
+					model:          options.model[i],
+					anglebars:      options.anglebars,
+					parentNode:     options.parentNode,
+					contextStack:   options.contextStack,
+					anchor:         options.anchor,
+					parentFragment: this
+				};
+
+				this.queue[ this.queue.length ] = itemOptions;
+			} else {
+				itemOptions.model = options.model[i];
+				itemOptions.index = i;
+
+				this.items[i] = DomViews.create( itemOptions );
+			}
+		}
+
+		if ( async && !wait ) {
+			options.anglebars.queue( this.queue );
+			delete this.queue;
 		}
 	};
 
 	DomViews.Fragment.prototype = {
 		teardown: function () {
-
-			var i, numItems;
-
-			numItems = this.items.length;
-			for ( i=0; i<numItems; i+=1 ) {
-				this.items[i].teardown();
+			while ( this.items.length ) {
+				this.items.pop().teardown();
 			}
-
-			delete this.items;
 		},
 
 		firstNode: function () {
@@ -1448,18 +1481,43 @@ Anglebars.ViewModel.prototype = {
 	};
 
 
+	// Partials
+	DomViews.Partial = function ( options ) {
+		var compiledPartial;
+
+		this.fragment = new DomViews.Fragment({
+			model:        options.anglebars.compiledPartials[ options.model.id ] || [],
+			anglebars:    options.anglebars,
+			parentNode:   options.parentNode,
+			contextStack: options.contextStack,
+			anchor:       options.anchor,
+			owner:        this
+		});
+	};
+
+	DomViews.Partial.prototype = {
+		teardown: function () {
+			this.fragment.teardown();
+		}
+	};
+
+
 	// Plain text
 	DomViews.Text = function ( options ) {
 		this.node = document.createTextNode( options.model.text );
 		this.index = options.index;
+		this.anglebars = options.anglebars;
+		this.parentNode = options.parentNode;
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		options.parentNode.insertBefore( this.node, options.anchor );
+		this.parentNode.insertBefore( this.node, options.anchor );
 	};
 
 	DomViews.Text.prototype = {
 		teardown: function () {
-			utils.remove( this.node );
+			if ( this.anglebars.el.contains( this.node ) ) {
+				this.parentNode.removeChild( this.node );
+			}
 		},
 
 		firstNode: function () {
@@ -1472,17 +1530,16 @@ Anglebars.ViewModel.prototype = {
 	DomViews.Element = function ( options ) {
 
 		var i,
-		numAttributes,
-		numItems,
 		attributeModel,
-		item,
 		binding,
 		model;
 
 		// stuff we'll need later
 		model = this.model = options.model;
+		this.anglebars = options.anglebars;
 		this.viewmodel = options.anglebars.viewmodel;
 		this.parentFragment = options.parentFragment;
+		this.parentNode = options.parentNode;
 		this.index = options.index;
 
 		// create the DOM node
@@ -1495,8 +1552,8 @@ Anglebars.ViewModel.prototype = {
 
 		// set attributes
 		this.attributes = [];
-		numAttributes = model.attributes.length;
-		for ( i=0; i<numAttributes; i+=1 ) {
+		i = model.attributes.length;
+		while ( i-- ) {
 			attributeModel = model.attributes[i];
 
 			// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
@@ -1525,11 +1582,12 @@ Anglebars.ViewModel.prototype = {
 			anglebars:    options.anglebars,
 			parentNode:   this.node,
 			contextStack: options.contextStack,
-			anchor:       null
+			anchor:       null,
+			owner:        this
 		});
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		options.parentNode.insertBefore( this.node, options.anchor || null );
+		this.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
 	DomViews.Element.prototype = {
@@ -1564,17 +1622,15 @@ Anglebars.ViewModel.prototype = {
 		},
 
 		teardown: function () {
-
-			var numAttrs, i;
+			if ( this.anglebars.el.contains( this.node ) ) {
+				this.parentNode.removeChild( this.node );
+			}
 
 			this.children.teardown();
 
-			numAttrs = this.attributes.length;
-			for ( i=0; i<numAttrs; i+=1 ) {
-				this.attributes[i].teardown();
+			while ( this.attributes.length ) {
+				this.attributes.pop().teardown();
 			}
-
-			utils.remove( this.node );
 		},
 
 		firstNode: function () {
@@ -1586,7 +1642,7 @@ Anglebars.ViewModel.prototype = {
 	// Attribute
 	DomViews.Attribute = function ( options ) {
 
-		var i, numComponents, model;
+		var i, model;
 
 		model = options.model;
 
@@ -1602,8 +1658,8 @@ Anglebars.ViewModel.prototype = {
 
 		this.children = [];
 
-		numComponents = model.components.length;
-		for ( i=0; i<numComponents; i+=1 ) {
+		i = model.components.length;
+		while ( i-- ) {
 			this.children[i] = A.TextViews.create({
 				model:        model.components[i],
 				anglebars:    options.anglebars,
@@ -1618,20 +1674,13 @@ Anglebars.ViewModel.prototype = {
 
 	DomViews.Attribute.prototype = {
 		teardown: function () {
-			var numChildren, i, child;
-
 			// ignore non-dynamic attributes
 			if ( !this.children ) {
 				return;
 			}
 
-			numChildren = this.children.length;
-			for ( i=0; i<numChildren; i+=1 ) {
-				child = this.children[i];
-
-				if ( child.teardown ) {
-					child.teardown();
-				}
+			while ( this.children.length ) {
+				this.children.pop().teardown();
 			}
 		},
 
@@ -1640,20 +1689,16 @@ Anglebars.ViewModel.prototype = {
 		},
 
 		update: function () {
+			var prevValue = this.value;
 			this.value = this.toString();
-			this.parentNode.setAttribute( this.name, this.value );
+
+			if ( this.value !== prevValue ) {
+				this.parentNode.setAttribute( this.name, this.value );
+			}
 		},
 
 		toString: function () {
-			var string = '', i, numChildren, child;
-
-			numChildren = this.children.length;
-			for ( i=0; i<numChildren; i+=1 ) {
-				child = this.children[i];
-				string += child.toString();
-			}
-
-			return string;
+			return this.children.join( '' );
 		}
 	};
 
@@ -1676,11 +1721,16 @@ Anglebars.ViewModel.prototype = {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			utils.remove( this.node );
+			if ( this.anglebars.el.contains( this.node ) ) {
+				this.parentNode.removeChild( this.node );
+			}
 		},
 
-		update: function ( value ) {
-			this.node.data = value;
+		update: function ( text ) {
+			if ( text !== this.text ) {
+				this.text = text;
+				this.node.data = text;
+			}
 		},
 
 		firstNode: function () {
@@ -1701,8 +1751,10 @@ Anglebars.ViewModel.prototype = {
 		teardown: function () {
 
 			// remove child nodes from DOM
-			while ( this.nodes.length ) {
-				utils.remove( this.nodes.shift() );
+			if ( this.anglebars.contains( this.parentNode ) ) {
+				while ( this.nodes.length ) {
+					this.parentNode.removeChild( this.nodes.pop() );
+				}
 			}
 
 			// kill observer(s)
@@ -1721,32 +1773,32 @@ Anglebars.ViewModel.prototype = {
 			return this.parentFragment.findNextNode( this );
 		},
 
-		update: function ( value ) {
+		update: function ( html ) {
 			var numNodes, i, anchor;
 
-			// TODO... not sure what's going on here? this.value isn't being set to value,
-			// and equality check should already have taken place. Commenting out for now
-			// if ( utils.isEqual( this.value, value ) ) {
-			// 	return;
-			// }
+			if ( html === this.html ) {
+				return;
+			} else {
+				this.html = html;
+			}
 
 			anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
 
 			// remove existing nodes
-			numNodes = this.nodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				utils.remove( this.nodes[i] );
+			while ( this.nodes.length ) {
+				this.parentNode.removeChild( this.nodes.pop() );
 			}
 
 			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( value, false );
+			this.nodes = utils.getNodeArrayFromHtml( html, false );
 
 			numNodes = this.nodes.length;
 			if ( numNodes ) {
 				anchor = this.parentFragment.findNextNode( this );
-			}
-			for ( i=0; i<numNodes; i+=1 ) {
-				this.parentNode.insertBefore( this.nodes[i], anchor );
+
+				for ( i=0; i<numNodes; i+=1 ) {
+					this.parentNode.insertBefore( this.nodes[i], anchor );
+				}
 			}
 
 			this.initialised = true;
@@ -1797,13 +1849,16 @@ Anglebars.ViewModel.prototype = {
 		update: function ( value ) {
 			var emptyArray, i, viewsToRemove, anchor, fragmentOptions;
 
+			if ( this.anglebars.async ) {
+				this.queue = [];
+			}
 
 			fragmentOptions = {
 				model:        this.model.children,
 				anglebars:    this.anglebars,
 				parentNode:   this.parentNode,
 				anchor:       this.parentFragment.findNextNode( this ),
-				parentSection: this
+				owner:        this
 			};
 
 			// treat empty arrays as false values
@@ -1850,26 +1905,29 @@ Anglebars.ViewModel.prototype = {
 					viewsToRemove = this.views.splice( value.length, this.length - value.length );
 
 					while ( viewsToRemove.length ) {
-						viewsToRemove.shift().teardown();
+						viewsToRemove.pop().teardown();
 					}
 				}
 
 				// otherwise...
 				else {
 
-					// first, update existing views
-					for ( i=0; i<this.length; i+=1 ) {
-						this.viewmodel.update( this.keypath + '.' + i );
-					}
-
 					if ( value.length > this.length ) {
-						// then add any new ones
+						// add any new ones
 						for ( i=this.length; i<value.length; i+=1 ) {
 							// append list item to context stack
 							fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
 							fragmentOptions.index = i;
 
-							this.views[i] = new DomViews.Fragment( fragmentOptions );
+							this.views[i] = new DomViews.Fragment( fragmentOptions, true ); // true to prevent queue being updated in wrong order
+
+							if ( this.anglebars.async ) {
+								this.queue = this.queue.concat( this.views[i].queue );
+							}
+						}
+
+						if ( this.anglebars.async ) {
+							this.anglebars.queue( this.queue );
 						}
 					}
 				}
@@ -1882,7 +1940,7 @@ Anglebars.ViewModel.prototype = {
 				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 				// (if it is already rendered, then any children dependent on the context stack
 				// will update themselves without any prompting)
-if ( !this.length ) {
+				if ( !this.length ) {
 					// append this section to the context stack
 					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
 					fragmentOptions.index = 0;
@@ -1923,14 +1981,22 @@ if ( !this.length ) {
 
 	'use strict';
 
-	var textViewMustache, TextViews;
+	var textViewMustache, TextViews, types, ctors;
+
+	types = A.types;
+
+	ctors = [];
+	ctors[ types.TEXT ] = 'Text';
+	ctors[ types.INTERPOLATOR ] = 'Interpolator';
+	ctors[ types.TRIPLE ] = 'Triple';
+	ctors[ types.SECTION ] = 'Section';
 
 	// Substring constructor factory
 	textViewMustache = function ( proto ) {
 		var Mustache;
 
 		Mustache = function ( options ) {
-			
+
 			this.model = options.model;
 			this.anglebars = options.anglebars;
 			this.viewmodel = options.anglebars.viewmodel;
@@ -1960,12 +2026,7 @@ if ( !this.length ) {
 	// Substring types
 	TextViews = A.TextViews = {
 		create: function ( options ) {
-			var type = options.model.type;
-			
-			// get constructor name by capitalising model type
-			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
-
-			return new TextViews[ type ]( options );
+			return new TextViews[ ctors[ options.model.type ] ]( options );
 		}
 	};
 
@@ -1983,7 +2044,7 @@ if ( !this.length ) {
 			parent:       this,
 			contextStack: options.contextStack
 		};
-		
+
 		numItems = options.models.length;
 		for ( i=0; i<numItems; i+=1 ) {
 			itemOptions.model = this.models[i];
@@ -2121,7 +2182,7 @@ if ( !this.length ) {
 
 			// Otherwise we need to work out what sort of section we're dealing with.
 			if( typeof value === 'object' ) {
-				
+
 
 
 				// if value is an array, iterate through
@@ -2145,7 +2206,7 @@ if ( !this.length ) {
 						}
 
 						if ( value.length > this.length ) {
-						
+
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
 								this.children[i] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );

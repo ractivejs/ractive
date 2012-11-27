@@ -1,8 +1,15 @@
+// MUSTACHE SPEC COMPLIANCE TESTS
+// ==============================
+//
+// These are included to aid development; Anglebars will never be able to pass
+// every test in the suite because it's doing something fundamentally different
+// to other mustache implementations.
+
+
 var testReport = {}, sets, startTests, charCodes, trim, testNum = 0;
 
 sets = [ 'comments', 'delimiters', 'interpolation', 'inverted', 'partials', 'sections' ];
 //sets = [ 'partials' ];
-
 
 trim = function ( str ) {
 	return str.replace( /^\s*/, '' ).replace( /\s*$/, '' );
@@ -23,7 +30,7 @@ startTests = function ( set, data ) {
 	data.tests.forEach( function ( t ) {
 		var data, anglebars, result, pattern;
 
-		console.log( ++testNum + ': START\n' );
+		console.group( ++testNum );
 
 		testReport[ testNum ] = {
 			data: t.data,
@@ -44,7 +51,8 @@ startTests = function ( set, data ) {
 				template: t.template,
 				data: t.data,
 				partials: t.partials,
-				preserveWhitespace: true
+				preserveWhitespace: true,
+				async: false
 			});
 
 			result = anglebars.el.innerHTML;
@@ -53,14 +61,15 @@ startTests = function ( set, data ) {
 			testReport[ testNum ].charCodes.___result = charCodes( trim( result ) );
 		} catch ( err ) {
 			console.error( err );
-			//throw err;
+			console.trace();
 		}
 
 
 		test( t.name, function () {
 			equal( trim( result ), trim( t.expected ), t.desc + '\n' + t.template + '\n' );
 		});
-		console.log( testNum + ': END\n' );
+
+		console.groupEnd();
 	});
 };
 

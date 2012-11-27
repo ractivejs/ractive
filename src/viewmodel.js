@@ -8,6 +8,9 @@ Anglebars.ViewModel = function ( data ) {
 
 	// Create empty object for observers
 	this.observers = {};
+
+	// Async queue
+	this._queue = [];
 };
 
 Anglebars.ViewModel.prototype = {
@@ -44,9 +47,7 @@ Anglebars.ViewModel.prototype = {
 
 		obj[ key ] = value;
 
-		if ( !Anglebars.utils.isEqual( previous, value ) ) {
-			this.publish( keypath, value );
-		}
+		this.publish( keypath, value );
 
 		// see if we can resolve any of the unresolved keypaths (if such there be)
 		i = this.pendingResolution.length;
@@ -199,6 +200,42 @@ Anglebars.ViewModel.prototype = {
 			}
 		}
 	},
+
+	/*queue: function ( view, formatted ) {
+		this._queue[ this._queue.length ] = {
+			view: view,
+			formatted: formatted
+		};
+	},
+
+	dispatchQueue: function () {
+		var batch, max, queue;
+
+		max = 30; // milliseconds
+		queue = this._queue;
+
+		var batchNum = 0;
+
+		batch = function () {
+			var startTime = +new Date(), next;
+
+			batchNum++;
+			//console.log( 'batch #' + ++batchNum );
+
+			while ( queue.length && ( new Date() - startTime < max ) ) {
+				next = queue.shift();
+				next.view.update( next.formatted );
+			}
+
+			if ( queue.length ) {
+				webkitRequestAnimationFrame( batch );
+			} else {
+				console.log( 'complete', batchNum );
+			}
+		};
+
+		webkitRequestAnimationFrame( batch );
+	},*/
 
 	observe: function ( options ) {
 

@@ -28,5 +28,15 @@
 		"name": "Interpolator with preceding text",
 		"template": "preceding text {{mustache}}",
 		"compiled": [{"type":0,"text":"preceding text "},{"type":1,"partialKeypath":"mustache","priority":0}]
+	},
+	{
+		"name": "Interpolator with following text",
+		"template": "{{mustache}} following text",
+		"compiled": [{"type":1,"partialKeypath":"mustache","priority":0},{"type":0,"text":" following text"}]
+	},
+	{
+		"name": "Delimiter change",
+		"template": "{{=<% %>=}} <% mustache %>",
+		"compiled": [{"type":1,"partialKeypath":"mustache","priority":0}]
 	}
 ]

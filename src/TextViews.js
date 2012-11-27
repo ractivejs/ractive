@@ -2,14 +2,22 @@
 
 	'use strict';
 
-	var textViewMustache, TextViews;
+	var textViewMustache, TextViews, types, ctors;
+
+	types = A.types;
+
+	ctors = [];
+	ctors[ types.TEXT ] = 'Text';
+	ctors[ types.INTERPOLATOR ] = 'Interpolator';
+	ctors[ types.TRIPLE ] = 'Triple';
+	ctors[ types.SECTION ] = 'Section';
 
 	// Substring constructor factory
 	textViewMustache = function ( proto ) {
 		var Mustache;
 
 		Mustache = function ( options ) {
-			
+
 			this.model = options.model;
 			this.anglebars = options.anglebars;
 			this.viewmodel = options.anglebars.viewmodel;
@@ -39,12 +47,7 @@
 	// Substring types
 	TextViews = A.TextViews = {
 		create: function ( options ) {
-			var type = options.model.type;
-			
-			// get constructor name by capitalising model type
-			type = type.charAt( 0 ).toUpperCase() + type.slice( 1 );
-
-			return new TextViews[ type ]( options );
+			return new TextViews[ ctors[ options.model.type ] ]( options );
 		}
 	};
 
@@ -62,7 +65,7 @@
 			parent:       this,
 			contextStack: options.contextStack
 		};
-		
+
 		numItems = options.models.length;
 		for ( i=0; i<numItems; i+=1 ) {
 			itemOptions.model = this.models[i];
@@ -200,7 +203,7 @@
 
 			// Otherwise we need to work out what sort of section we're dealing with.
 			if( typeof value === 'object' ) {
-				
+
 
 
 				// if value is an array, iterate through
@@ -224,7 +227,7 @@
 						}
 
 						if ( value.length > this.length ) {
-						
+
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
 								this.children[i] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
