@@ -1,0 +1,500 @@
+<!DOCTYPE html>  <html> <head>   <title>DomViews.js</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="Anglebars.html">                 Anglebars.js               </a>                                           <a class="source" href="DomViews.html">                 DomViews.js               </a>                                           <a class="source" href="TextViews.html">                 TextViews.js               </a>                                           <a class="source" href="ViewModel.html">                 ViewModel.js               </a>                                           <a class="source" href="utils.html">                 utils.js               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               DomViews.js             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="p">(</span><span class="kd">function</span> <span class="p">(</span> <span class="nx">A</span> <span class="p">)</span> <span class="p">{</span>
+
+  <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">domViewMustache</span><span class="p">,</span> <span class="nx">DomViews</span><span class="p">,</span> <span class="nx">utils</span><span class="p">,</span> <span class="nx">types</span><span class="p">,</span> <span class="nx">ctors</span><span class="p">;</span>
+
+  <span class="nx">types</span> <span class="o">=</span> <span class="nx">A</span><span class="p">.</span><span class="nx">types</span><span class="p">;</span>
+
+  <span class="nx">ctors</span> <span class="o">=</span> <span class="p">[];</span>
+  <span class="nx">ctors</span><span class="p">[</span> <span class="nx">types</span><span class="p">.</span><span class="nx">TEXT</span> <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Text&#39;</span><span class="p">;</span>
+  <span class="nx">ctors</span><span class="p">[</span> <span class="nx">types</span><span class="p">.</span><span class="nx">INTERPOLATOR</span> <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Interpolator&#39;</span><span class="p">;</span>
+  <span class="nx">ctors</span><span class="p">[</span> <span class="nx">types</span><span class="p">.</span><span class="nx">TRIPLE</span> <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Triple&#39;</span><span class="p">;</span>
+  <span class="nx">ctors</span><span class="p">[</span> <span class="nx">types</span><span class="p">.</span><span class="nx">SECTION</span> <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Section&#39;</span><span class="p">;</span>
+  <span class="nx">ctors</span><span class="p">[</span> <span class="nx">types</span><span class="p">.</span><span class="nx">ELEMENT</span> <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Element&#39;</span><span class="p">;</span>
+  <span class="nx">ctors</span><span class="p">[</span> <span class="nx">types</span><span class="p">.</span><span class="nx">PARTIAL</span> <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Partial&#39;</span><span class="p">;</span>
+
+  <span class="nx">utils</span> <span class="o">=</span> <span class="nx">A</span><span class="p">.</span><span class="nx">utils</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>View constructor factory</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">domViewMustache</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">proto</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">Mustache</span><span class="p">;</span>
+
+    <span class="nx">Mustache</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">options</span> <span class="p">)</span> <span class="p">{</span>
+
+      <span class="k">this</span><span class="p">.</span><span class="nx">model</span>          <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span>      <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span>      <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span>     <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">contextStack</span>   <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">contextStack</span> <span class="o">||</span> <span class="p">[];</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">anchor</span>         <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anchor</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">index</span>          <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">index</span><span class="p">;</span>
+
+      <span class="k">this</span><span class="p">.</span><span class="nx">initialize</span><span class="p">();</span>
+
+      <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">.</span><span class="nx">registerView</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>if we have a failed keypath lookup, and this is an inverted section,
+we need to trigger this.update() so the contents are rendered</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">keypath</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">inverted</span> <span class="p">)</span> <span class="p">{</span> <span class="c1">// test both section-hood and inverticity in one go</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span> <span class="kc">false</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">};</span>
+
+    <span class="nx">Mustache</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nx">proto</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="nx">Mustache</span><span class="p">;</span>
+  <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>View types</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span> <span class="o">=</span> <span class="nx">A</span><span class="p">.</span><span class="nx">DomViews</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">create</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">options</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">[</span> <span class="nx">ctors</span><span class="p">[</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">type</span> <span class="p">]</span> <span class="p">](</span> <span class="nx">options</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Fragment</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">options</span><span class="p">,</span> <span class="nx">wait</span> <span class="p">)</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">numModels</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">itemOptions</span><span class="p">,</span> <span class="nx">async</span><span class="p">;</span>
+
+    <span class="nx">async</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">async</span><span class="p">;</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">owner</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">owner</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">index</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">async</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">itemOptions</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">anglebars</span><span class="o">:</span>      <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">,</span>
+        <span class="nx">parentNode</span><span class="o">:</span>     <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">,</span>
+        <span class="nx">contextStack</span><span class="o">:</span>   <span class="nx">options</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">,</span>
+        <span class="nx">anchor</span><span class="o">:</span>         <span class="nx">options</span><span class="p">.</span><span class="nx">anchor</span><span class="p">,</span>
+        <span class="nx">parentFragment</span><span class="o">:</span> <span class="k">this</span>
+      <span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">items</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">queue</span> <span class="o">=</span> <span class="p">[];</span>
+
+    <span class="nx">numModels</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span> <span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">numModels</span><span class="p">;</span> <span class="nx">i</span><span class="o">+=</span><span class="mi">1</span> <span class="p">)</span> <span class="p">{</span>
+
+
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">async</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">itemOptions</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="nx">index</span><span class="o">:</span>          <span class="nx">i</span><span class="p">,</span>
+          <span class="nx">model</span><span class="o">:</span>          <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span>
+          <span class="nx">anglebars</span><span class="o">:</span>      <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">,</span>
+          <span class="nx">parentNode</span><span class="o">:</span>     <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">,</span>
+          <span class="nx">contextStack</span><span class="o">:</span>   <span class="nx">options</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">,</span>
+          <span class="nx">anchor</span><span class="o">:</span>         <span class="nx">options</span><span class="p">.</span><span class="nx">anchor</span><span class="p">,</span>
+          <span class="nx">parentFragment</span><span class="o">:</span> <span class="k">this</span>
+        <span class="p">};</span>
+
+        <span class="k">this</span><span class="p">.</span><span class="nx">queue</span><span class="p">[</span> <span class="k">this</span><span class="p">.</span><span class="nx">queue</span><span class="p">.</span><span class="nx">length</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">itemOptions</span><span class="p">;</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">itemOptions</span><span class="p">.</span><span class="nx">model</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+        <span class="nx">itemOptions</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="nx">i</span><span class="p">;</span>
+
+        <span class="k">this</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span> <span class="nx">itemOptions</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">async</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">wait</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">queue</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">queue</span> <span class="p">);</span>
+      <span class="k">delete</span> <span class="k">this</span><span class="p">.</span><span class="nx">queue</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+
+  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">items</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">items</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">teardown</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">firstNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">firstNode</span><span class="p">();</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentSection</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentSection</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+
+      <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">},</span>
+
+    <span class="nx">findNextNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">item</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">index</span><span class="p">;</span>
+
+      <span class="nx">index</span> <span class="o">=</span> <span class="nx">item</span><span class="p">.</span><span class="nx">index</span><span class="p">;</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span> <span class="nx">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span> <span class="nx">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">].</span><span class="nx">firstNode</span><span class="p">();</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentSection</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentSection</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+
+      <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Partials</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Partial</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">options</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">compiledPartial</span><span class="p">;</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">fragment</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span><span class="p">({</span>
+      <span class="nx">model</span><span class="o">:</span>        <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">compiledPartials</span><span class="p">[</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">id</span> <span class="p">]</span> <span class="o">||</span> <span class="p">[],</span>
+      <span class="nx">anglebars</span><span class="o">:</span>    <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">,</span>
+      <span class="nx">parentNode</span><span class="o">:</span>   <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">,</span>
+      <span class="nx">contextStack</span><span class="o">:</span> <span class="nx">options</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">,</span>
+      <span class="nx">anchor</span><span class="o">:</span>       <span class="nx">options</span><span class="p">.</span><span class="nx">anchor</span><span class="p">,</span>
+      <span class="nx">owner</span><span class="o">:</span>        <span class="k">this</span>
+    <span class="p">});</span>
+  <span class="p">};</span>
+
+  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Partial</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">fragment</span><span class="p">.</span><span class="nx">teardown</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Plain text</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Text</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">options</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span><span class="p">(</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">text</span> <span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">index</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>append this.node, either at end of parent element or in front of the anchor (if defined)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">insertBefore</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anchor</span> <span class="p">);</span>
+  <span class="p">};</span>
+
+  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Text</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">el</span><span class="p">.</span><span class="nx">contains</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">firstNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Element</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Element</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">options</span> <span class="p">)</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">i</span><span class="p">,</span>
+    <span class="nx">attributeModel</span><span class="p">,</span>
+    <span class="nx">binding</span><span class="p">,</span>
+    <span class="nx">model</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>stuff we'll need later</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">model</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">model</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">index</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>create the DOM node</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span> <span class="nx">model</span><span class="p">.</span><span class="nx">namespace</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElementNS</span><span class="p">(</span> <span class="nx">model</span><span class="p">.</span><span class="nx">namespace</span><span class="p">,</span> <span class="nx">model</span><span class="p">.</span><span class="nx">tag</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span> <span class="nx">model</span><span class="p">.</span><span class="nx">tag</span> <span class="p">);</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>set attributes</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">this</span><span class="p">.</span><span class="nx">attributes</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="nx">i</span> <span class="o">=</span> <span class="nx">model</span><span class="p">.</span><span class="nx">attributes</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span> <span class="nx">i</span><span class="o">--</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">attributeModel</span> <span class="o">=</span> <span class="nx">model</span><span class="p">.</span><span class="nx">attributes</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>if the attribute name is data-bind, and this is an input or textarea, set up two-way binding</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="nx">attributeModel</span><span class="p">.</span><span class="nx">name</span> <span class="o">===</span> <span class="s1">&#39;data-bind&#39;</span> <span class="o">&amp;&amp;</span> <span class="p">(</span> <span class="nx">model</span><span class="p">.</span><span class="nx">tag</span> <span class="o">===</span> <span class="s1">&#39;INPUT&#39;</span> <span class="o">||</span> <span class="nx">model</span><span class="p">.</span><span class="nx">tag</span> <span class="o">===</span> <span class="s1">&#39;TEXTAREA&#39;</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">binding</span> <span class="o">=</span> <span class="nx">attributeModel</span><span class="p">.</span><span class="nx">value</span><span class="p">;</span>
+      <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>otherwise proceed as normal</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">attributes</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Attribute</span><span class="p">({</span>
+          <span class="nx">model</span><span class="o">:</span> <span class="nx">attributeModel</span><span class="p">,</span>
+          <span class="nx">anglebars</span><span class="o">:</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">,</span>
+          <span class="nx">parentNode</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span>
+          <span class="nx">contextStack</span><span class="o">:</span> <span class="nx">options</span><span class="p">.</span><span class="nx">contextStack</span>
+        <span class="p">});</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span> <span class="nx">binding</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span> <span class="nx">binding</span><span class="p">,</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">lazy</span> <span class="p">);</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>append children</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">this</span><span class="p">.</span><span class="nx">children</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span><span class="p">({</span>
+      <span class="nx">model</span><span class="o">:</span>        <span class="nx">model</span><span class="p">.</span><span class="nx">children</span><span class="p">,</span>
+      <span class="nx">anglebars</span><span class="o">:</span>    <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">,</span>
+      <span class="nx">parentNode</span><span class="o">:</span>   <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span>
+      <span class="nx">contextStack</span><span class="o">:</span> <span class="nx">options</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">,</span>
+      <span class="nx">anchor</span><span class="o">:</span>       <span class="kc">null</span><span class="p">,</span>
+      <span class="nx">owner</span><span class="o">:</span>        <span class="k">this</span>
+    <span class="p">});</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>append this.node, either at end of parent element or in front of the anchor (if defined)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">insertBefore</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="nx">options</span><span class="p">.</span><span class="nx">anchor</span> <span class="o">||</span> <span class="kc">null</span> <span class="p">);</span>
+  <span class="p">};</span>
+
+  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Element</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">bind</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">keypath</span><span class="p">,</span> <span class="nx">lazy</span> <span class="p">)</span> <span class="p">{</span>
+
+      <span class="kd">var</span> <span class="nx">viewmodel</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">,</span> <span class="nx">node</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="nx">setValue</span><span class="p">;</span>
+
+      <span class="nx">setValue</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">value</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>special cases</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span> <span class="o">===</span> <span class="s1">&#39;0&#39;</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">value</span> <span class="o">=</span> <span class="o">+</span><span class="nx">value</span> <span class="o">||</span> <span class="nx">value</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="nx">viewmodel</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span> <span class="nx">keypath</span><span class="p">,</span> <span class="nx">value</span> <span class="p">);</span>
+      <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>set initial value</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nx">setValue</span><span class="p">();</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>TODO support shite browsers like IE and Opera</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nx">node</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">setValue</span> <span class="p">);</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">lazy</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">node</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span> <span class="s1">&#39;keyup&#39;</span><span class="p">,</span> <span class="nx">setValue</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">el</span><span class="p">.</span><span class="nx">contains</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="p">);</span>
+      <span class="p">}</span>
+
+      <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">teardown</span><span class="p">();</span>
+
+      <span class="k">while</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">attributes</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">attributes</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">teardown</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">firstNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>Attribute</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Attribute</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">options</span> <span class="p">)</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">model</span><span class="p">;</span>
+
+    <span class="nx">model</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">model</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nx">model</span><span class="p">.</span><span class="nx">isDynamic</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span> <span class="nx">model</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="nx">model</span><span class="p">.</span><span class="nx">value</span> <span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>otherwise we need to do some work</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">model</span><span class="p">.</span><span class="nx">name</span><span class="p">;</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">children</span> <span class="o">=</span> <span class="p">[];</span>
+
+    <span class="nx">i</span> <span class="o">=</span> <span class="nx">model</span><span class="p">.</span><span class="nx">components</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span> <span class="nx">i</span><span class="o">--</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">A</span><span class="p">.</span><span class="nx">TextViews</span><span class="p">.</span><span class="nx">create</span><span class="p">({</span>
+        <span class="nx">model</span><span class="o">:</span>        <span class="nx">model</span><span class="p">.</span><span class="nx">components</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span>
+        <span class="nx">anglebars</span><span class="o">:</span>    <span class="nx">options</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">,</span>
+        <span class="nx">parent</span><span class="o">:</span>       <span class="k">this</span><span class="p">,</span>
+        <span class="nx">contextStack</span><span class="o">:</span> <span class="nx">options</span><span class="p">.</span><span class="nx">contextStack</span>
+      <span class="p">});</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>manually trigger first update</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">this</span><span class="p">.</span><span class="nx">update</span><span class="p">();</span>
+  <span class="p">};</span>
+
+  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Attribute</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <p>ignore non-dynamic attributes</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">children</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="k">while</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">teardown</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">bubble</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">update</span><span class="p">();</span>
+    <span class="p">},</span>
+
+    <span class="nx">update</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">prevValue</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="p">;</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">toString</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">!==</span> <span class="nx">prevValue</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">toString</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span> <span class="s1">&#39;&#39;</span> <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <p>Interpolator</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Interpolator</span> <span class="o">=</span> <span class="nx">domViewMustache</span><span class="p">({</span>
+    <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span><span class="p">(</span> <span class="s1">&#39;&#39;</span> <span class="p">);</span>
+
+      <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">insertBefore</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">anchor</span> <span class="o">||</span> <span class="kc">null</span> <span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">observerRefs</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">.</span><span class="nx">cancelAddressResolution</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">.</span><span class="nx">unobserveAll</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">observerRefs</span> <span class="p">);</span>
+      <span class="p">}</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">el</span><span class="p">.</span><span class="nx">contains</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">update</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">text</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">text</span> <span class="o">!==</span> <span class="k">this</span><span class="p">.</span><span class="nx">text</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">text</span> <span class="o">=</span> <span class="nx">text</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">data</span> <span class="o">=</span> <span class="nx">text</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">firstNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">node</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">});</span></pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-26">&#182;</a>               </div>               <p>Triple</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Triple</span> <span class="o">=</span> <span class="nx">domViewMustache</span><span class="p">({</span>
+    <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span> <span class="o">=</span> <span class="p">[];</span></pre></div>             </td>           </tr>                               <tr id="section-27">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-27">&#182;</a>               </div>               <p>this.tripleAnchor = Anglebars.utils.createAnchor();
+this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="p">},</span>
+
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-28">&#182;</a>               </div>               <p>remove child nodes from DOM</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">contains</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">while</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">.</span><span class="nx">pop</span><span class="p">()</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p>kill observer(s)</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">observerRefs</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">.</span><span class="nx">cancelAddressResolution</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">.</span><span class="nx">unobserveAll</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">observerRefs</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">firstNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+      <span class="p">}</span>
+
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="nx">update</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">html</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">numNodes</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">anchor</span><span class="p">;</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">html</span> <span class="o">===</span> <span class="k">this</span><span class="p">.</span><span class="nx">html</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">html</span> <span class="o">=</span> <span class="nx">html</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">anchor</span> <span class="o">=</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">initialised</span> <span class="o">?</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">)</span> <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">anchor</span> <span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-30">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-30">&#182;</a>               </div>               <p>remove existing nodes</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">while</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">.</span><span class="nx">pop</span><span class="p">()</span> <span class="p">);</span>
+      <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-31">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-31">&#182;</a>               </div>               <p>get new nodes</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">getNodeArrayFromHtml</span><span class="p">(</span> <span class="nx">html</span><span class="p">,</span> <span class="kc">false</span> <span class="p">);</span>
+
+      <span class="nx">numNodes</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="nx">numNodes</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">anchor</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+
+        <span class="k">for</span> <span class="p">(</span> <span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">numNodes</span><span class="p">;</span> <span class="nx">i</span><span class="o">+=</span><span class="mi">1</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">insertBefore</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">nodes</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span> <span class="nx">anchor</span> <span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+
+      <span class="k">this</span><span class="p">.</span><span class="nx">initialised</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">});</span></pre></div>             </td>           </tr>                               <tr id="section-32">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-32">&#182;</a>               </div>               <p>Section</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Section</span> <span class="o">=</span> <span class="nx">domViewMustache</span><span class="p">({</span>
+    <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">views</span> <span class="o">=</span> <span class="p">[];</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// number of times this section is rendered</span>
+    <span class="p">},</span>
+
+    <span class="nx">teardown</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">unrender</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">observerRefs</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">.</span><span class="nx">cancelAddressResolution</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">viewmodel</span><span class="p">.</span><span class="nx">unobserveAll</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">observerRefs</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">firstNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">firstNode</span><span class="p">();</span>
+      <span class="p">}</span>
+
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="nx">findNextNode</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">fragment</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span> <span class="nx">fragment</span><span class="p">.</span><span class="nx">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span> <span class="nx">fragment</span><span class="p">.</span><span class="nx">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">].</span><span class="nx">firstNode</span><span class="p">();</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">unrender</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">.</span><span class="nx">shift</span><span class="p">().</span><span class="nx">teardown</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="nx">update</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">value</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">emptyArray</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">viewsToRemove</span><span class="p">,</span> <span class="nx">anchor</span><span class="p">,</span> <span class="nx">fragmentOptions</span><span class="p">;</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">async</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">queue</span> <span class="o">=</span> <span class="p">[];</span>
+      <span class="p">}</span>
+
+      <span class="nx">fragmentOptions</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">model</span><span class="o">:</span>        <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">children</span><span class="p">,</span>
+        <span class="nx">anglebars</span><span class="o">:</span>    <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">,</span>
+        <span class="nx">parentNode</span><span class="o">:</span>   <span class="k">this</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">,</span>
+        <span class="nx">anchor</span><span class="o">:</span>       <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">),</span>
+        <span class="nx">owner</span><span class="o">:</span>        <span class="k">this</span>
+      <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-33">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-33">&#182;</a>               </div>               <p>treat empty arrays as false values</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span> <span class="nx">value</span> <span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">value</span><span class="p">.</span><span class="nx">length</span> <span class="o">===</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="nx">emptyArray</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-34">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-34">&#182;</a>               </div>               <p>if section is inverted, only check for truthiness/falsiness</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">inverted</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">emptyArray</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">unrender</span><span class="p">();</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="k">return</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">else</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">anchor</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">parentFragment</span><span class="p">.</span><span class="nx">findNextNode</span><span class="p">(</span> <span class="k">this</span> <span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-35">&#182;</a>               </div>               <p>no change to context stack in this situation</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">contextStack</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">;</span>
+            <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+            <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span><span class="p">(</span> <span class="nx">fragmentOptions</span> <span class="p">);</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="k">return</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-36">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-36">&#182;</a>               </div>               <p>otherwise we need to work out what sort of section we're dealing with</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-37">&#182;</a>               </div>               <p>if value is an array, iterate through</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span> <span class="nx">value</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-38">&#182;</a>               </div>               <p>if the array is shorter than it was previously, remove items</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span><span class="p">.</span><span class="nx">length</span> <span class="o">&lt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="nx">viewsToRemove</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span> <span class="nx">value</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="nx">value</span><span class="p">.</span><span class="nx">length</span> <span class="p">);</span>
+
+          <span class="k">while</span> <span class="p">(</span> <span class="nx">viewsToRemove</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">viewsToRemove</span><span class="p">.</span><span class="nx">pop</span><span class="p">().</span><span class="nx">teardown</span><span class="p">();</span>
+          <span class="p">}</span>
+        <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-39">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-39">&#182;</a>               </div>               <p>otherwise...</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">else</span> <span class="p">{</span>
+
+          <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <p>add any new ones</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="k">for</span> <span class="p">(</span> <span class="nx">i</span><span class="o">=</span><span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">value</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">+=</span><span class="mi">1</span> <span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>append list item to context stack</p>             </td>             <td class="code">               <div class="highlight"><pre>              <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">contextStack</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypath</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="nx">i</span> <span class="p">);</span>
+              <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="nx">i</span><span class="p">;</span>
+
+              <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span><span class="p">(</span> <span class="nx">fragmentOptions</span><span class="p">,</span> <span class="kc">true</span> <span class="p">);</span> <span class="c1">// true to prevent queue being updated in wrong order</span>
+
+              <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">async</span> <span class="p">)</span> <span class="p">{</span>
+                <span class="k">this</span><span class="p">.</span><span class="nx">queue</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">queue</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">queue</span> <span class="p">);</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">async</span> <span class="p">)</span> <span class="p">{</span>
+              <span class="k">this</span><span class="p">.</span><span class="nx">anglebars</span><span class="p">.</span><span class="nx">queue</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">queue</span> <span class="p">);</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="nx">value</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+      <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p>if value is a hash...</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span> <span class="nx">value</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>...then if it isn't rendered, render it, adding this.keypath to the context stack
+(if it is already rendered, then any children dependent on the context stack
+will update themselves without any prompting)</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-44">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-44">&#182;</a>               </div>               <p>append this section to the context stack</p>             </td>             <td class="code">               <div class="highlight"><pre>          <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">contextStack</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypath</span> <span class="p">);</span>
+          <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+          <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span><span class="p">(</span> <span class="nx">fragmentOptions</span> <span class="p">);</span>
+          <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-45">&#182;</a>               </div>               <p>otherwise render if value is truthy, unrender if falsy</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">else</span> <span class="p">{</span>
+
+        <span class="k">if</span> <span class="p">(</span> <span class="nx">value</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">emptyArray</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-46">&#182;</a>               </div>               <p>no change to context stack</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">contextStack</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">contextStack</span><span class="p">;</span>
+            <span class="nx">fragmentOptions</span><span class="p">.</span><span class="nx">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+            <span class="k">this</span><span class="p">.</span><span class="nx">views</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">DomViews</span><span class="p">.</span><span class="nx">Fragment</span><span class="p">(</span> <span class="nx">fragmentOptions</span> <span class="p">);</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">else</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">unrender</span><span class="p">();</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+
+<span class="p">}(</span> <span class="nx">Anglebars</span> <span class="p">));</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
