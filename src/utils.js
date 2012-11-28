@@ -682,4 +682,29 @@
 		}
 	};
 
+
+	(function() {
+		var vendors = ['ms', 'moz', 'webkit', 'o'], i;
+		
+		if ( window.requestAnimationFrame ) {
+			utils.wait = function ( task ) {
+				window.requestAnimationFrame( task );
+			};
+			return;
+		}
+
+		for ( i=0; i<vendors.length; i+=1 ) {
+			if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
+				utils.wait = function ( task ) {
+					window[ vendors[i]+'RequestAnimationFrame' ]( task );
+				};
+				return;
+			}
+		}
+
+		utils.wait = function( task ) {
+			setTimeout( task, 16 );
+		};
+	}());
+
 }( Anglebars ));
