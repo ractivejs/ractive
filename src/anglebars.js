@@ -46,9 +46,7 @@ var Anglebars = function ( options ) {
 
 	// `formatters` **object** *optional*  
 	// An object containing mustache formatter functions
-	if ( 'formatters' in options ) {
-		this.formatters = options.formatters;
-	}
+	this.formatters = ( 'formatters' in options ? options.formatters : {} );
 
 	// `preserveWhitespace` **boolean** *optional*  
 	// Whether or not to preserve whitespace in the template (e.g. newlines
@@ -124,44 +122,57 @@ var Anglebars = function ( options ) {
 // =================
 Anglebars.prototype = {
 
-
+	// Add an item to the async render queue
 	queue: function ( items ) {
 		this._queue = items.concat( this._queue || [] );
 
+		// If the queue is not currently being dispatched, dispatch it
 		if ( !this._dispatchingQueue ) {
 			this.dispatchQueue();
 		}
 	},
 
+	// iterate through queue, render as many items as possible before we need to
+	// yield the UI thread
 	dispatchQueue: function () {
-		var self = this, batch, max, queue;
+		var self = this, batch, max;
 
-		max = this.maxBatch || 50; // milliseconds
-		queue = this._queue;
+		max = this.maxBatch; // defaults to 50 milliseconds before yielding
 
 		batch = function () {
 			var startTime = +new Date(), next;
 
+			// We can't cache self._queue.length because creating new views is likely to
+			// modify it
 			while ( self._queue.length && ( new Date() - startTime < max ) ) {
 				next = self._queue.shift();
 
 				next.parentFragment.items[ next.index ] = Anglebars.DomViews.create( next );
 			}
 
+			// If we ran out of time before completing the queue, kick off a fresh batch
+			// at the next opportunity
 			if ( self._queue.length ) {
-				webkitRequestAnimationFrame( batch );
-			} else {
+				Anglebars.utils.wait( batch );
+			}
+
+			// Otherwise, mark queue as dispatched and execute any callback we have
+			else {
 				self._dispatchingQueue = false;
 
 				if ( self.callback ) {
 					self.callback();
 					delete self.callback;
 				}
+
+				// Oh, and disable async for further updates (TODO - this is messy)
+				self.async = false;
 			}
 		};
 
+		// Do the first batch
 		this._dispatchingQueue = true;
-		webkitRequestAnimationFrame( batch );
+		Anglebars.utils.wait( batch );
 	},
 
 
@@ -175,6 +186,7 @@ Anglebars.prototype = {
 			throw new Error( 'You must specify a DOM element to render to' );
 		}
 
+		// Clear the element, unless `append` is `true`
 		if ( !options.append ) {
 			el.innerHTML = '';
 		}
@@ -183,20 +195,23 @@ Anglebars.prototype = {
 			this.callback = options.callback;
 		}
 
+		// Render our *root fragment*
 		this.rendered = new Anglebars.DomViews.Fragment({
 			model: this.compiled,
 			anglebars: this,
 			parentNode: el
 		});
 
+		// If we were given a callback, but we're not in async mode, execute immediately
 		if ( !this.async && options.callback ) {
 			options.callback();
 		}
 	},
 
+	// Teardown. This goes through the root fragment and all its children, removing observers
+	// and generally cleaning up after itself
 	teardown: function () {
 		this.rendered.teardown();
-		this.el.innerHTML = '';
 	},
 
 	// Proxies for viewmodel `set`, `get` and `update` methods
@@ -219,20 +234,26 @@ Anglebars.prototype = {
 
 	// Internal method to format a value, using formatters passed in at initialization
 	_format: function ( value, formatters ) {
-		var i, numFormatters, formatter, name, args;
+		var i, numFormatters, formatter, name, args, fn;
 
+		// If there are no formatters, groovy - just return the value unchanged
 		if ( !formatters ) {
 			return value;
 		}
 
+		// Otherwise go through each in turn, applying sequentially
 		numFormatters = formatters.length;
 		for ( i=0; i<numFormatters; i+=1 ) {
 			formatter = formatters[i];
 			name = formatter.name;
 			args = formatter.args || [];
 
-			if ( this.formatters[ name ] ) {
-				value = this.formatters[ name ].apply( this, [ value ].concat( args ) );
+			// If a formatter was passed in, use it, otherwise see if there's a default
+			// one with this name
+			fn = this.formatters[ name ] || Anglebars.formatters[ name ];
+
+			if ( fn ) {
+				value = fn.apply( this, [ value ].concat( args ) );
 			}
 		}
 
@@ -247,9 +268,11 @@ Anglebars.compile = function ( template, options ) {
 
 	options = options || {};
 
+	// If delimiters are specified use them, otherwise reset to defaults
 	Anglebars.delimiters = options.delimiters || [ '{{', '}}' ];
 	Anglebars.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
+	// Compile the regex that will be used to parse the template
 	Anglebars.utils.compileMustachePattern();
 
 	// Collapse any standalone mustaches and remove templates
@@ -292,4 +315,28 @@ Anglebars.types = {
 	COMMENT:      6,
 	DELIMCHANGE:  7,
 	MUSTACHE:     8
+};
+
+
+// Default formatters
+Anglebars.formatters = {
+	equals: function ( a, b ) {
+		return a === b;
+	},
+
+	greaterThan: function ( a, b ) {
+		return a > b;
+	},
+
+	greaterThanEquals: function ( a, b ) {
+		return a >= b;
+	},
+
+	lessThan: function ( a, b ) {
+		return a < b;
+	},
+
+	lessThanEquals: function ( a, b ) {
+		return a <= b;
+	}
 };
