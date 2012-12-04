@@ -1,4 +1,4 @@
-/*! Anglebars - v0.1.2 - 2012-11-28
+/*! Anglebars - v0.1.2 - 2012-12-03
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2012 Rich Harris; Licensed WTFPL */
 
@@ -1061,26 +1061,25 @@ Anglebars.formatters = {
 	}());
 
 }( Anglebars ));
+
 // ViewModel constructor
 Anglebars.ViewModel = function ( data ) {
-	// Store data.
+	// Initialise with supplied data, or create an empty object
 	this.data = data || {};
 
-	// Create empty array for keypathes that can't be resolved initially
+	// Create empty array for keypaths that can't be resolved initially
 	this.pendingResolution = [];
 
 	// Create empty object for observers
 	this.observers = {};
-
-	// Async queue
-	this._queue = [];
 };
 
 Anglebars.ViewModel.prototype = {
 
-	// Update the data model and notify observers
+	// Update the `value` of `keypath`, and notify the observers of
+	// `keypath` and its descendants
 	set: function ( keypath, value ) {
-		var k, keys, key, obj, i, unresolved, previous, fullKeypath;
+		var k, keys, key, obj, i, unresolved, fullKeypath;
 
 		// Allow multiple values to be set in one go
 		if ( typeof keypath === 'object' ) {
@@ -1094,12 +1093,10 @@ Anglebars.ViewModel.prototype = {
 		}
 
 
-		// Store previous value
-		previous = this.get( keypath );
-
-		// split key path into keys
+		// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
 		keys = Anglebars.utils.splitKeypath( keypath );
 
+		// TODO accommodate implicit array generation
 		obj = this.data;
 		while ( keys.length > 1 ) {
 			key = keys.shift();
@@ -1110,24 +1107,29 @@ Anglebars.ViewModel.prototype = {
 
 		obj[ key ] = value;
 
-		this.publish( keypath, value );
+		// Trigger updates of views that observe `keypaths` or its descendants
+		this._notifyObservers( keypath, value );
 
-		// see if we can resolve any of the unresolved keypaths (if such there be)
+		// See if we can resolve any of the unresolved keypaths (if such there be)
 		i = this.pendingResolution.length;
-
-		while ( i-- ) { // work backwards, so we don't go in circles
+		while ( i-- ) { // Work backwards, so we don't go in circles!
 			unresolved = this.pendingResolution.splice( i, 1 )[0];
 
 			fullKeypath = this.getFullKeypath( unresolved.view.model.partialKeypath, unresolved.view.contextStack );
 
+			// If we were able to find a keypath, initialise the view
 			if ( fullKeypath !== undefined ) {
 				unresolved.callback( fullKeypath );
-			} else {
-				this.registerUnresolvedKeypath( unresolved.view, unresolved.callback );
+			}
+
+			// Otherwise add to the back of the queue (this is why we're working backwards)
+			else {
+				this.registerUnresolvedKeypath( unresolved );
 			}
 		}
 	},
 
+	// Get the current value of `keypath`
 	get: function ( keypath ) {
 		var keys, result;
 
@@ -1135,7 +1137,7 @@ Anglebars.ViewModel.prototype = {
 			return undefined;
 		}
 
-		keys = keypath.split( '.' );
+		keys = Anglebars.utils.splitKeypath( keypath );
 
 		result = this.data;
 		while ( keys.length ) {
@@ -1151,9 +1153,11 @@ Anglebars.ViewModel.prototype = {
 		return result;
 	},
 
+	// Force notify observers of `keypath` (useful if e.g. an array or object member
+	// was changed without calling `anglebars.set()`)
 	update: function ( keypath ) {
 		var value = this.get( keypath );
-		this.publish( keypath, value );
+		this._notifyObservers( keypath, value );
 	},
 
 	registerView: function ( view ) {
@@ -1178,24 +1182,30 @@ Anglebars.ViewModel.prototype = {
 		fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
 
 		if ( fullKeypath === undefined ) {
-			this.registerUnresolvedKeypath( view, initialUpdate );
+			this.registerUnresolvedKeypath({
+				view: view,
+				callback: initialUpdate
+			});
 		} else {
 			initialUpdate( fullKeypath );
 		}
 	},
 
+	// Resolve a full keypath from `partialKeypath` within the given `contextStack` (e.g.
+	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 	getFullKeypath: function ( partialKeypath, contextStack ) {
 
 		var innerMost;
 
-		// implicit iterators - i.e. {{.}} - are a special case
+		// Implicit iterators - i.e. {{.}} - are a special case
 		if ( partialKeypath === '.' ) {
 			return contextStack[ contextStack.length - 1 ];
 		}
 
-		// clone the context stack, so we don't mutate the original
+		// Clone the context stack, so we don't mutate the original
 		contextStack = contextStack.concat();
 
+		// Take each context from the stack, working backwards from the innermost context
 		while ( contextStack.length ) {
 
 			innerMost = contextStack.pop();
@@ -1210,34 +1220,11 @@ Anglebars.ViewModel.prototype = {
 		}
 	},
 
-	registerUnresolvedKeypath: function ( view, onResolve ) {
-		this.pendingResolution[ this.pendingResolution.length ] = {
-			view: view,
-			callback: onResolve
-		};
+	registerUnresolvedKeypath: function ( unresolved ) {
+		this.pendingResolution[ this.pendingResolution.length ] = unresolved;
 	},
 
-	cancelAddressResolution: function ( view ) {
-		if ( this.pendingResolution.filter ) { // non-shit browsers
-			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
-				return pending.view !== view;
-			});
-		}
-
-		else { // IE (you utter, utter piece of shit)
-			var i, filtered = [];
-
-			for ( i=0; i<this.pendingResolution.length; i+=1 ) {
-				if ( this.pendingResolution[i].view !== view ) {
-					filtered[ filtered.length ] = this.pendingResolution[i];
-				}
-			}
-
-			this.pendingResolution = filtered;
-		}
-	},
-
-	publish: function ( keypath, value ) {
+	_notifyObservers: function ( keypath, value ) {
 		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted;
 
 		for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
@@ -1263,42 +1250,6 @@ Anglebars.ViewModel.prototype = {
 			}
 		}
 	},
-
-	/*queue: function ( view, formatted ) {
-		this._queue[ this._queue.length ] = {
-			view: view,
-			formatted: formatted
-		};
-	},
-
-	dispatchQueue: function () {
-		var batch, max, queue;
-
-		max = 30; // milliseconds
-		queue = this._queue;
-
-		var batchNum = 0;
-
-		batch = function () {
-			var startTime = +new Date(), next;
-
-			batchNum++;
-			//console.log( 'batch #' + ++batchNum );
-
-			while ( queue.length && ( new Date() - startTime < max ) ) {
-				next = queue.shift();
-				next.view.update( next.formatted );
-			}
-
-			if ( queue.length ) {
-				webkitRequestAnimationFrame( batch );
-			} else {
-				console.log( 'complete', batchNum );
-			}
-		};
-
-		webkitRequestAnimationFrame( batch );
-	},*/
 
 	observe: function ( options ) {
 
@@ -1402,7 +1353,27 @@ Anglebars.ViewModel.prototype = {
 };
 
 
+if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
+	Anglebars.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+		this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
+			return pending.view !== view;
+		});
+	};
+}
 
+else { // Internet Exploder
+	Anglebars.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+		var i, filtered = [];
+
+		for ( i=0; i<this.pendingResolution.length; i+=1 ) {
+			if ( this.pendingResolution[i].view !== view ) {
+				filtered[ filtered.length ] = this.pendingResolution[i];
+			}
+		}
+
+		this.pendingResolution = filtered;
+	};
+}
 (function ( A ) {
 
 	'use strict';
@@ -1786,7 +1757,7 @@ Anglebars.ViewModel.prototype = {
 
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
@@ -1829,7 +1800,7 @@ Anglebars.ViewModel.prototype = {
 
 			// kill observer(s)
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
@@ -1888,7 +1859,7 @@ Anglebars.ViewModel.prototype = {
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
@@ -2175,7 +2146,7 @@ Anglebars.ViewModel.prototype = {
 
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
@@ -2201,7 +2172,7 @@ Anglebars.ViewModel.prototype = {
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
