@@ -16,7 +16,7 @@ module.exports = function(grunt) {
         '\n' +
         '\'use strict\';\n\n',
       amd_start: 'define([], function() { ',
-      amd_end: ' return Anglebars; \n})'
+      amd_end: ' return Anglebars; \n});'
     },
     lint: {
       files: ['grunt.js', 'src/**/*.js'] // TODO add tests
@@ -26,7 +26,7 @@ module.exports = function(grunt) {
     },
     concat: {
       dist: {
-        src: ['<banner:meta.banner>', 'src/Anglebars.js', 'src/utils.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js'],
+        src: ['<banner:meta.banner>', 'src/Anglebars.js', 'src/utils.js', 'src/ViewModel.js', 'src/DOMViews.js', 'src/TextViews.js'],
         dest: 'build/<%= pkg.name %>.js'
       },
       amd : {
