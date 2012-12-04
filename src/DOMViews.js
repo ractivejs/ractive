@@ -381,7 +381,7 @@
 
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
@@ -424,7 +424,7 @@
 
 			// kill observer(s)
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
@@ -483,7 +483,7 @@
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
