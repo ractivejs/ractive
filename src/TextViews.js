@@ -24,16 +24,16 @@
 			this.parent = options.parent;
 			this.contextStack = options.contextStack || [];
 
-			// if there is an init method, call it
+			// If there is an init method, call it
 			if ( this.initialize ) {
 				this.initialize();
 			}
 
 			this.viewmodel.registerView( this );
 
-			// if we have a failed keypath lookup, and this is an inverted section,
+			// If we have a failed keypath lookup, and this is an inverted section,
 			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+			if ( !this.keypath && this.model.inverted ) { // Test both section-hood and inverticity in one go
 				this.update( false );
 			}
 		};
@@ -66,7 +66,7 @@
 			contextStack: options.contextStack
 		};
 
-		numItems = options.models.length;
+		numItems = ( options.models ? options.models.length : 0 );
 		for ( i=0; i<numItems; i+=1 ) {
 			itemOptions.model = this.models[i];
 			this.items[ this.items.length ] = TextViews.create( itemOptions );
@@ -126,7 +126,7 @@
 
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
@@ -152,7 +152,7 @@
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelAddressResolution( this );
+				this.viewmodel.cancelKeypathResolution( this );
 			} else {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
