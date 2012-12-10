@@ -24,6 +24,8 @@
 			this.parent = options.parent;
 			this.contextStack = options.contextStack || [];
 
+			this.type = options.model.type;
+
 			// If there is an init method, call it
 			if ( this.initialize ) {
 				this.initialize();
@@ -91,7 +93,7 @@
 		},
 
 		toString: function () {
-			return this.value || '';
+			return ( this.value === undefined ? '' : this.value );
 		}
 	};
 
@@ -133,7 +135,7 @@
 		},
 
 		toString: function () {
-			return this.value || '';
+			return ( this.value === undefined ? '' : this.value );
 		}
 	});
 
@@ -273,7 +275,7 @@
 		},
 
 		toString: function () {
-			return this.value || '';
+			return ( this.value === undefined ? '' : this.value );
 		}
 	});
 
