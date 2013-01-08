@@ -84,6 +84,10 @@ var Anglebars = function ( options ) {
 	// to `false`
 	this.append = ( 'append' in options ? options.append : false );
 
+	// `twoway` **boolean** *optional*
+	// Whether to automate two-way data binding. Defaults to `true`
+	this.twoway = ( 'twoway' in options ? options.twoway : true );
+
 
 	// Initialization
 	// --------------
@@ -214,7 +218,7 @@ Anglebars.prototype = {
 		this.rendered.teardown();
 	},
 
-	// Proxies for viewmodel `set`, `get` and `update` methods
+	// Proxies for viewmodel `set`, `get`, `update`, `observe` and `unobserve` methods
 	set: function () {
 		var oldDisplay = this.el.style.display;
 
@@ -229,6 +233,15 @@ Anglebars.prototype = {
 
 	update: function () {
 		this.viewmodel.update.apply( this.viewmodel, arguments );
+		return this;
+	},
+
+	observe: function () {
+		return this.viewmodel.observe.apply( this.viewmodel, arguments );
+	},
+
+	unobserve: function () {
+		this.viewmodel.unobserve.apply( this.viewmodel, arguments );
 		return this;
 	},
 
@@ -285,7 +298,7 @@ Anglebars.compile = function ( template, options ) {
 	stubs = utils.getStubsFromNodes( nodes );
 
 	// Compile the stubs
-	compiled = utils.compileStubs( stubs, 0, options.namespace, options.preserveWhitespace );
+	compiled = utils.compileStubs( stubs, 0, options.preserveWhitespace );
 
 	return compiled;
 };
