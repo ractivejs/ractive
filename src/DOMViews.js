@@ -31,6 +31,8 @@
 			this.anchor         = options.anchor;
 			this.index          = options.index;
 
+			this.type = options.model.type;
+
 			this.initialize();
 
 			this.viewmodel.registerView( this );
@@ -175,7 +177,7 @@
 		this.parentNode = options.parentNode;
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor );
+		this.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
 	DomViews.Text.prototype = {
@@ -197,7 +199,8 @@
 		var i,
 		attributeModel,
 		binding,
-		model;
+		model,
+		namespace;
 
 		// stuff we'll need later
 		model = this.model = options.model;
@@ -207,12 +210,10 @@
 		this.parentNode = options.parentNode;
 		this.index = options.index;
 
+		namespace = model.namespace || this.parentNode.namespaceURI;
+
 		// create the DOM node
-		if ( model.namespace ) {
-			this.node = document.createElementNS( model.namespace, model.tag );
-		} else {
-			this.node = document.createElement( model.tag );
-		}
+		this.node = document.createElementNS( namespace, model.tag );
 
 
 		// set attributes
@@ -221,19 +222,16 @@
 		while ( i-- ) {
 			attributeModel = model.attributes[i];
 
-			// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
-			if ( attributeModel.name === 'data-bind' && ( model.tag === 'INPUT' || model.tag === 'TEXTAREA' ) ) {
-				binding = attributeModel.value;
-			}
+			this.attributes[i] = new DomViews.Attribute({
+				model: attributeModel,
+				anglebars: options.anglebars,
+				parentNode: this.node,
+				contextStack: options.contextStack
+			});
 
-			// otherwise proceed as normal
-			else {
-				this.attributes[i] = new DomViews.Attribute({
-					model: attributeModel,
-					anglebars: options.anglebars,
-					parentNode: this.node,
-					contextStack: options.contextStack
-				});
+			// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
+			if ( attributeModel.name === 'value' && this.anglebars.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
+				binding = this.attributes[i];
 			}
 		}
 
@@ -256,9 +254,40 @@
 	};
 
 	DomViews.Element.prototype = {
-		bind: function ( keypath, lazy ) {
+		bind: function ( attribute, lazy ) {
 
-			var viewmodel = this.viewmodel, node = this.node, setValue;
+			var viewmodel = this.viewmodel, node = this.node, setValue, valid, interpolator, keypath;
+
+			// Check this is a suitable candidate for two-way binding - i.e. it is
+			// a single interpolator with no formatters
+			valid = true;
+			if ( !attribute.children ||
+			     ( attribute.children.length !== 1 ) ||
+			     ( attribute.children[0].type !== A.types.INTERPOLATOR ) ||
+			     ( attribute.children[0].model.formatters && attribute.children[0].model.formatters.length )
+			) {
+				throw 'Not a valid two-way data binding candidate - must be a single interpolator with no formatters';
+			}
+
+			interpolator = attribute.children[0];
+
+			// Hmmm. Not sure if this is the best way to handle this ambiguity...
+			//
+			// Let's say we were given `value="{{bar}}"`. If the context stack was
+			// context stack was `["foo"]`, and `foo.bar` *wasn't* `undefined`, the
+			// keypath would be `foo.bar`. Then, any user input would result in
+			// `foo.bar` being updated.
+			//
+			// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
+			// left with an unresolved partial keypath - so we are forced to make an
+			// assumption. That assumption is that the input in question should
+			// be forced to resolve to `bar`, and any user input would affect `bar`
+			// and not `foo.bar`.
+			//
+			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
+			// be explicit when using two-way data-binding about what keypath you're
+			// updating. Using it in lists is probably a recipe for confusion...
+			keypath = interpolator.keypath || interpolator.model.partialKeypath;
 
 			setValue = function () {
 				var value = node.value;
@@ -272,6 +301,9 @@
 					value = +value || value;
 				}
 
+				// Note: we're counting on `viewmodel.set` recognising that `value` is
+				// already what it wants it to be, and short circuiting the process.
+				// Rather than triggering an infinite loop...
 				viewmodel.set( keypath, value );
 			};
 
@@ -416,7 +448,7 @@
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( this.anglebars.contains( this.parentNode ) ) {
+			if ( this.anglebars.el.contains( this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
