@@ -1,313 +1,323 @@
+(function ( A ) {
 
-// ViewModel constructor
-Anglebars.ViewModel = function ( data ) {
-	// Initialise with supplied data, or create an empty object
-	this.data = data || {};
+	// ViewModel constructor
+	A.ViewModel = function ( data ) {
+		// Initialise with supplied data, or create an empty object
+		this.data = data || {};
 
-	// Create empty array for keypaths that can't be resolved initially
-	this.pendingResolution = [];
+		// Create empty array for keypaths that can't be resolved initially
+		this.pendingResolution = [];
 
-	// Create empty object for observers
-	this.observers = {};
-};
+		// Create empty object for observers
+		this.observers = {};
+	};
 
-Anglebars.ViewModel.prototype = {
+	A.ViewModel.prototype = {
 
-	// Update the `value` of `keypath`, and notify the observers of
-	// `keypath` and its descendants
-	set: function ( keypath, value ) {
-		var k, keys, key, obj, i, unresolved, fullKeypath;
+		// Update the `value` of `keypath`, and notify the observers of
+		// `keypath` and its descendants
+		set: function ( keypath, value ) {
+			var k, keys, key, obj, i, unresolved, fullKeypath;
 
-		// Allow multiple values to be set in one go
-		if ( typeof keypath === 'object' ) {
-			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
-					this.set( k, keypath[k] );
+			// Allow multiple values to be set in one go
+			if ( typeof keypath === 'object' ) {
+				for ( k in keypath ) {
+					if ( keypath.hasOwnProperty( k ) ) {
+						this.set( k, keypath[k] );
+					}
+				}
+
+				return;
+			}
+
+
+			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
+			keys = A.utils.splitKeypath( keypath );
+
+			// TODO accommodate implicit array generation
+			obj = this.data;
+			while ( keys.length > 1 ) {
+				key = keys.shift();
+				obj = obj[ key ] || {};
+			}
+
+			key = keys[0];
+
+			obj[ key ] = value;
+
+			// Trigger updates of views that observe `keypaths` or its descendants
+			this._notifyObservers( keypath, value );
+
+			// See if we can resolve any of the unresolved keypaths (if such there be)
+			i = this.pendingResolution.length;
+			while ( i-- ) { // Work backwards, so we don't go in circles!
+				unresolved = this.pendingResolution.splice( i, 1 )[0];
+
+				fullKeypath = this.getFullKeypath( unresolved.view.model.partialKeypath, unresolved.view.contextStack );
+
+				// If we were able to find a keypath, initialise the view
+				if ( fullKeypath !== undefined ) {
+					unresolved.callback( fullKeypath );
+				}
+
+				// Otherwise add to the back of the queue (this is why we're working backwards)
+				else {
+					this.registerUnresolvedKeypath( unresolved );
+				}
+			}
+		},
+
+		// Get the current value of `keypath`
+		get: function ( keypath ) {
+			var keys, result;
+
+			if ( !keypath ) {
+				return undefined;
+			}
+
+			keys = A.utils.splitKeypath( keypath );
+
+			result = this.data;
+			while ( keys.length ) {
+				if ( result ) {
+					result = result[ keys.shift() ];
+				}
+
+				if ( result === undefined ) {
+					return result;
 				}
 			}
 
-			return;
-		}
+			return result;
+		},
 
+		// Force notify observers of `keypath` (useful if e.g. an array or object member
+		// was changed without calling `anglebars.set()`)
+		update: function ( keypath ) {
+			var value = this.get( keypath );
+			this._notifyObservers( keypath, value );
+		},
 
-		// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
-		keys = Anglebars.utils.splitKeypath( keypath );
+		registerView: function ( view ) {
+			var self = this, fullKeypath, initialUpdate, value, formatted;
 
-		// TODO accommodate implicit array generation
-		obj = this.data;
-		while ( keys.length > 1 ) {
-			key = keys.shift();
-			obj = obj[ key ] || {};
-		}
+			initialUpdate = function ( keypath ) {
+				view.keypath = keypath;
 
-		key = keys[0];
+				// create observers
+				view.observerRefs = self.observe({
+					keypath: keypath,
+					priority: view.model.priority,
+					view: view
+				});
 
-		obj[ key ] = value;
+				value = self.get( keypath );
+				formatted = view.anglebars._format( value, view.model.formatters );
 
-		// Trigger updates of views that observe `keypaths` or its descendants
-		this._notifyObservers( keypath, value );
+				view.update( formatted );
+			};
 
-		// See if we can resolve any of the unresolved keypaths (if such there be)
-		i = this.pendingResolution.length;
-		while ( i-- ) { // Work backwards, so we don't go in circles!
-			unresolved = this.pendingResolution.splice( i, 1 )[0];
+			fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
 
-			fullKeypath = this.getFullKeypath( unresolved.view.model.partialKeypath, unresolved.view.contextStack );
+			if ( fullKeypath === undefined ) {
+				this.registerUnresolvedKeypath({
+					view: view,
+					callback: initialUpdate
+				});
+			} else {
+				initialUpdate( fullKeypath );
+			}
+		},
 
-			// If we were able to find a keypath, initialise the view
-			if ( fullKeypath !== undefined ) {
-				unresolved.callback( fullKeypath );
+		// Resolve a full keypath from `partialKeypath` within the given `contextStack` (e.g.
+		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
+		getFullKeypath: function ( partialKeypath, contextStack ) {
+
+			var innerMost;
+
+			// Implicit iterators - i.e. {{.}} - are a special case
+			if ( partialKeypath === '.' ) {
+				return contextStack[ contextStack.length - 1 ];
 			}
 
-			// Otherwise add to the back of the queue (this is why we're working backwards)
-			else {
-				this.registerUnresolvedKeypath( unresolved );
-			}
-		}
-	},
+			// Clone the context stack, so we don't mutate the original
+			contextStack = contextStack.concat();
 
-	// Get the current value of `keypath`
-	get: function ( keypath ) {
-		var keys, result;
+			// Take each context from the stack, working backwards from the innermost context
+			while ( contextStack.length ) {
 
-		if ( !keypath ) {
-			return undefined;
-		}
+				innerMost = contextStack.pop();
 
-		keys = Anglebars.utils.splitKeypath( keypath );
-
-		result = this.data;
-		while ( keys.length ) {
-			if ( result ) {
-				result = result[ keys.shift() ];
+				if ( this.get( innerMost + '.' + partialKeypath ) !== undefined ) {
+					return innerMost + '.' + partialKeypath;
+				}
 			}
 
-			if ( result === undefined ) {
-				return result;
+			if ( this.get( partialKeypath ) !== undefined ) {
+				return partialKeypath;
 			}
-		}
+		},
 
-		return result;
-	},
+		registerUnresolvedKeypath: function ( unresolved ) {
+			this.pendingResolution[ this.pendingResolution.length ] = unresolved;
+		},
 
-	// Force notify observers of `keypath` (useful if e.g. an array or object member
-	// was changed without calling `anglebars.set()`)
-	update: function ( keypath ) {
-		var value = this.get( keypath );
-		this._notifyObservers( keypath, value );
-	},
+		_notifyObservers: function ( keypath, value ) {
+			var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted, actualValue;
 
-	registerView: function ( view ) {
-		var self = this, fullKeypath, initialUpdate, value, formatted;
+			for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
+				priority = observersGroupedByLevel[i];
 
-		initialUpdate = function ( keypath ) {
-			view.keypath = keypath;
+				if ( priority ) {
+					for ( j=0; j<priority.length; j+=1 ) {
+						observer = priority[j];
 
-			// create observers
-			view.observerRefs = self.observe({
-				keypath: keypath,
-				priority: view.model.priority,
-				view: view
-			});
+						if ( keypath !== observer.originalAddress ) {
+							actualValue = self.get( observer.originalAddress );
+						} else {
+							actualValue = value;
+						}
 
-			value = self.get( keypath );
-			formatted = view.anglebars._format( value, view.model.formatters );
+						if ( observer.view ) {
+							formatted = observer.view.anglebars._format( actualValue, observer.view.model.formatters );
+							observer.view.update( formatted );
+						}
 
-			view.update( formatted );
-		};
-
-		fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
-
-		if ( fullKeypath === undefined ) {
-			this.registerUnresolvedKeypath({
-				view: view,
-				callback: initialUpdate
-			});
-		} else {
-			initialUpdate( fullKeypath );
-		}
-	},
-
-	// Resolve a full keypath from `partialKeypath` within the given `contextStack` (e.g.
-	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-	getFullKeypath: function ( partialKeypath, contextStack ) {
-
-		var innerMost;
-
-		// Implicit iterators - i.e. {{.}} - are a special case
-		if ( partialKeypath === '.' ) {
-			return contextStack[ contextStack.length - 1 ];
-		}
-
-		// Clone the context stack, so we don't mutate the original
-		contextStack = contextStack.concat();
-
-		// Take each context from the stack, working backwards from the innermost context
-		while ( contextStack.length ) {
-
-			innerMost = contextStack.pop();
-
-			if ( this.get( innerMost + '.' + partialKeypath ) !== undefined ) {
-				return innerMost + '.' + partialKeypath;
-			}
-		}
-
-		if ( this.get( partialKeypath ) !== undefined ) {
-			return partialKeypath;
-		}
-	},
-
-	registerUnresolvedKeypath: function ( unresolved ) {
-		this.pendingResolution[ this.pendingResolution.length ] = unresolved;
-	},
-
-	_notifyObservers: function ( keypath, value ) {
-		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted;
-
-		for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
-			priority = observersGroupedByLevel[i];
-
-			if ( priority ) {
-				for ( j=0; j<priority.length; j+=1 ) {
-					observer = priority[j];
-
-					if ( keypath !== observer.originalAddress ) {
-						value = self.get( observer.originalAddress );
-					}
-
-					if ( observer.view ) {
-						formatted = observer.view.anglebars._format( value, observer.view.model.formatters );
-						observer.view.update( formatted );
-					}
-
-					if ( observer.callback ) {
-						observer.callback( value );
+						if ( observer.callback ) {
+							observer.callback( actualValue );
+						}
 					}
 				}
 			}
-		}
-	},
+		},
 
-	observe: function ( options ) {
+		observe: function ( options ) {
 
-		var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
+			var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
 
-		if ( !options.keypath ) {
-			return undefined;
-		}
-
-		observe = function ( keypath ) {
-			var observers, observer;
-
-			observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
-			observers = observers[ priority ] = observers[ priority ] || [];
-
-			observer = {
-				originalAddress: originalAddress
-			};
-
-			// if we're given a view to update, add it to the observer - ditto callbacks
-			if ( options.view ) {
-				observer.view = options.view;
+			// Allow `observe( keypath, callback )` syntax
+			if ( arguments.length === 2 && typeof arguments[0] === 'string' && typeof arguments[1] === 'function' ) {
+				return this.observe({ keypath: arguments[0], callback: arguments[1], priority: 0 });
 			}
 
-			if ( options.callback ) {
-				observer.callback = options.callback;
+			if ( !options.keypath ) {
+				return undefined;
 			}
 
-			observers[ observers.length ] = observer;
-			observerRefs[ observerRefs.length ] = {
-				keypath: keypath,
-				priority: priority,
-				observer: observer
-			};
-		};
+			observe = function ( keypath ) {
+				var observers, observer;
 
-		keypath = options.keypath;
-		while ( keypath.lastIndexOf( '.' ) !== -1 ) {
+				observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
+				observers = observers[ priority ] = observers[ priority ] || [];
+
+				observer = {
+					originalAddress: originalAddress
+				};
+
+				// if we're given a view to update, add it to the observer - ditto callbacks
+				if ( options.view ) {
+					observer.view = options.view;
+				}
+
+				if ( options.callback ) {
+					observer.callback = options.callback;
+				}
+
+				observers[ observers.length ] = observer;
+				observerRefs[ observerRefs.length ] = {
+					keypath: keypath,
+					priority: priority,
+					observer: observer
+				};
+			};
+
+			keypath = options.keypath;
+			while ( keypath.lastIndexOf( '.' ) !== -1 ) {
+				observe( keypath );
+
+				// remove the last item in the keypath, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
+				keypath = keypath.substr( 0, keypath.lastIndexOf( '.' ) );
+			}
+
 			observe( keypath );
 
-			// remove the last item in the keypath, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
-			keypath = keypath.substr( 0, keypath.lastIndexOf( '.' ) );
-		}
+			return observerRefs;
+		},
 
-		observe( keypath );
+		unobserve: function ( observerRef ) {
+			var priorities, observers, index;
 
-		return observerRefs;
-	},
+			priorities = this.observers[ observerRef.keypath ];
+			if ( !priorities ) {
+				// nothing to unobserve
+				return;
+			}
 
-	unobserve: function ( observerRef ) {
-		var priorities, observers, index;
+			observers = priorities[ observerRef.priority ];
+			if ( !observers ) {
+				// nothing to unobserve
+				return;
+			}
 
-		priorities = this.observers[ observerRef.keypath ];
-		if ( !priorities ) {
-			// nothing to unobserve
-			return;
-		}
-
-		observers = priorities[ observerRef.priority ];
-		if ( !observers ) {
-			// nothing to unobserve
-			return;
-		}
-
-		if ( observers.indexOf ) {
-			index = observers.indexOf( observerRef.observer );
-		} else {
-			// fuck you IE
-			for ( var i=0, len=observers.length; i<len; i+=1 ) {
-				if ( observers[i] === observerRef.observer ) {
-					index = i;
-					break;
+			if ( observers.indexOf ) {
+				index = observers.indexOf( observerRef.observer );
+			} else {
+				// fuck you IE
+				for ( var i=0, len=observers.length; i<len; i+=1 ) {
+					if ( observers[i] === observerRef.observer ) {
+						index = i;
+						break;
+					}
 				}
 			}
-		}
 
 
-		if ( index === -1 ) {
-			// nothing to unobserve
-			return;
-		}
+			if ( index === -1 ) {
+				// nothing to unobserve
+				return;
+			}
 
-		// remove the observer from the list...
-		observers.splice( index, 1 );
+			// remove the observer from the list...
+			observers.splice( index, 1 );
 
-		// ...then tidy up if necessary
-		if ( observers.length === 0 ) {
-			delete priorities[ observerRef.priority ];
-		}
+			// ...then tidy up if necessary
+			if ( observers.length === 0 ) {
+				delete priorities[ observerRef.priority ];
+			}
 
-		if ( priorities.length === 0 ) {
-			delete this.observers[ observerRef.keypath ];
-		}
-	},
+			if ( priorities.length === 0 ) {
+				delete this.observers[ observerRef.keypath ];
+			}
+		},
 
-	unobserveAll: function ( observerRefs ) {
-		while ( observerRefs.length ) {
-			this.unobserve( observerRefs.shift() );
-		}
-	}
-};
-
-
-if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
-	Anglebars.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
-		this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
-			return pending.view !== view;
-		});
-	};
-}
-
-else { // Internet Exploder
-	Anglebars.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
-		var i, filtered = [];
-
-		for ( i=0; i<this.pendingResolution.length; i+=1 ) {
-			if ( this.pendingResolution[i].view !== view ) {
-				filtered[ filtered.length ] = this.pendingResolution[i];
+		unobserveAll: function ( observerRefs ) {
+			while ( observerRefs.length ) {
+				this.unobserve( observerRefs.shift() );
 			}
 		}
-
-		this.pendingResolution = filtered;
 	};
-}
+
+
+	if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
+		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
+				return pending.view !== view;
+			});
+		};
+	}
+
+	else { // Internet Exploder
+		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+			var i, filtered = [];
+
+			for ( i=0; i<this.pendingResolution.length; i+=1 ) {
+				if ( this.pendingResolution[i].view !== view ) {
+					filtered[ filtered.length ] = this.pendingResolution[i];
+				}
+			}
+
+			this.pendingResolution = filtered;
+		};
+	}
+
+}( Anglebars ));
