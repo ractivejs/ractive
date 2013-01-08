@@ -1,8 +1,8 @@
 define([], function() { 
 
-/*! Anglebars - v0.1.2 - 2012-12-03
+/*! Anglebars - v0.1.2 - 2013-01-08
 * http://rich-harris.github.com/Anglebars/
-* Copyright (c) 2012 Rich Harris; Licensed WTFPL */
+* Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
 /*jslint eqeq: true, plusplus: true */
 /*global document, HTMLElement */
@@ -96,6 +96,10 @@ var Anglebars = function ( options ) {
 	// Whether to append to `this.el`, rather than overwriting its contents. Defaults
 	// to `false`
 	this.append = ( 'append' in options ? options.append : false );
+
+	// `twoway` **boolean** *optional*
+	// Whether to automate two-way data binding. Defaults to `true`
+	this.twoway = ( 'twoway' in options ? options.twoway : true );
 
 
 	// Initialization
@@ -227,7 +231,7 @@ Anglebars.prototype = {
 		this.rendered.teardown();
 	},
 
-	// Proxies for viewmodel `set`, `get` and `update` methods
+	// Proxies for viewmodel `set`, `get`, `update`, `observe` and `unobserve` methods
 	set: function () {
 		var oldDisplay = this.el.style.display;
 
@@ -242,6 +246,15 @@ Anglebars.prototype = {
 
 	update: function () {
 		this.viewmodel.update.apply( this.viewmodel, arguments );
+		return this;
+	},
+
+	observe: function () {
+		return this.viewmodel.observe.apply( this.viewmodel, arguments );
+	},
+
+	unobserve: function () {
+		this.viewmodel.unobserve.apply( this.viewmodel, arguments );
 		return this;
 	},
 
@@ -298,7 +311,7 @@ Anglebars.compile = function ( template, options ) {
 	stubs = utils.getStubsFromNodes( nodes );
 
 	// Compile the stubs
-	compiled = utils.compileStubs( stubs, 0, options.namespace, options.preserveWhitespace );
+	compiled = utils.compileStubs( stubs, 0, options.preserveWhitespace );
 
 	return compiled;
 };
@@ -832,7 +845,7 @@ Anglebars.formatters = {
 			return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 		},
 
-		compileStubs: function ( stubs, priority, namespace, preserveWhitespace ) {
+		compileStubs: function ( stubs, priority, preserveWhitespace ) {
 			var compiled, next, processStub;
 
 			compiled = [];
@@ -856,7 +869,7 @@ Anglebars.formatters = {
 						return i+1;
 
 					case types.ELEMENT:
-						compiled[ compiled.length ] = utils.processElementStub( stub, priority, namespace );
+						compiled[ compiled.length ] = utils.processElementStub( stub, priority );
 						return i+1;
 
 					case types.MUSTACHE:
@@ -901,7 +914,7 @@ Anglebars.formatters = {
 									type: types.SECTION,
 									partialKeypath: partialKeypath,
 									inverted: stub.mustache.inverted,
-									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, namespace, preserveWhitespace ),
+									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, preserveWhitespace ),
 									priority: priority
 								};
 								if ( stub.mustache.formatters ) {
@@ -969,7 +982,7 @@ Anglebars.formatters = {
 			return compiled;
 		},
 
-		processElementStub: function ( stub, priority, namespace ) {
+		processElementStub: function ( stub, priority ) {
 			var proxy, attributes, numAttributes, attribute, i, node;
 
 			node = stub.original;
@@ -979,11 +992,6 @@ Anglebars.formatters = {
 				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName || node.tagName, // we need localName for SVG elements but tagName for Internet Exploder
 				priority: priority
 			};
-
-			// inherit namespace from parent, if applicable
-			if ( namespace ) {
-				proxy.namespace = namespace;
-			}
 
 			// attributes
 			attributes = [];
@@ -1006,7 +1014,7 @@ Anglebars.formatters = {
 			proxy.attributes = attributes;
 
 			// get children
-			proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), priority + 1, proxy.namespace );
+			proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), priority + 1 );
 
 			return proxy;
 		},
@@ -1030,7 +1038,7 @@ Anglebars.formatters = {
 			// mustaches present - attribute is dynamic
 			attribute.isDynamic = true;
 			attribute.priority = priority;
-			attribute.components = utils.compileStubs( stubs, priority, null );
+			attribute.components = utils.compileStubs( stubs, priority );
 
 
 			return attribute;
@@ -1039,7 +1047,7 @@ Anglebars.formatters = {
 
 
 	(function() {
-		var vendors = ['ms', 'moz', 'webkit', 'o'], i;
+		var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor;
 		
 		if ( window.requestAnimationFrame ) {
 			utils.wait = function ( task ) {
@@ -1048,13 +1056,17 @@ Anglebars.formatters = {
 			return;
 		}
 
-		for ( i=0; i<vendors.length; i+=1 ) {
+		tryVendor = function ( i ) {
 			if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
 				utils.wait = function ( task ) {
 					window[ vendors[i]+'RequestAnimationFrame' ]( task );
 				};
 				return;
 			}
+		};
+
+		for ( i=0; i<vendors.length; i+=1 ) {
+			tryVendor( i );
 		}
 
 		utils.wait = function( task ) {
@@ -1063,960 +1075,327 @@ Anglebars.formatters = {
 	}());
 
 }( Anglebars ));
-
-// ViewModel constructor
-Anglebars.ViewModel = function ( data ) {
-	// Initialise with supplied data, or create an empty object
-	this.data = data || {};
-
-	// Create empty array for keypaths that can't be resolved initially
-	this.pendingResolution = [];
-
-	// Create empty object for observers
-	this.observers = {};
-};
-
-Anglebars.ViewModel.prototype = {
-
-	// Update the `value` of `keypath`, and notify the observers of
-	// `keypath` and its descendants
-	set: function ( keypath, value ) {
-		var k, keys, key, obj, i, unresolved, fullKeypath;
-
-		// Allow multiple values to be set in one go
-		if ( typeof keypath === 'object' ) {
-			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
-					this.set( k, keypath[k] );
-				}
-			}
-
-			return;
-		}
-
-
-		// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
-		keys = Anglebars.utils.splitKeypath( keypath );
-
-		// TODO accommodate implicit array generation
-		obj = this.data;
-		while ( keys.length > 1 ) {
-			key = keys.shift();
-			obj = obj[ key ] || {};
-		}
-
-		key = keys[0];
-
-		obj[ key ] = value;
-
-		// Trigger updates of views that observe `keypaths` or its descendants
-		this._notifyObservers( keypath, value );
-
-		// See if we can resolve any of the unresolved keypaths (if such there be)
-		i = this.pendingResolution.length;
-		while ( i-- ) { // Work backwards, so we don't go in circles!
-			unresolved = this.pendingResolution.splice( i, 1 )[0];
-
-			fullKeypath = this.getFullKeypath( unresolved.view.model.partialKeypath, unresolved.view.contextStack );
-
-			// If we were able to find a keypath, initialise the view
-			if ( fullKeypath !== undefined ) {
-				unresolved.callback( fullKeypath );
-			}
-
-			// Otherwise add to the back of the queue (this is why we're working backwards)
-			else {
-				this.registerUnresolvedKeypath( unresolved );
-			}
-		}
-	},
-
-	// Get the current value of `keypath`
-	get: function ( keypath ) {
-		var keys, result;
-
-		if ( !keypath ) {
-			return undefined;
-		}
-
-		keys = Anglebars.utils.splitKeypath( keypath );
-
-		result = this.data;
-		while ( keys.length ) {
-			if ( result ) {
-				result = result[ keys.shift() ];
-			}
-
-			if ( result === undefined ) {
-				return result;
-			}
-		}
-
-		return result;
-	},
-
-	// Force notify observers of `keypath` (useful if e.g. an array or object member
-	// was changed without calling `anglebars.set()`)
-	update: function ( keypath ) {
-		var value = this.get( keypath );
-		this._notifyObservers( keypath, value );
-	},
-
-	registerView: function ( view ) {
-		var self = this, fullKeypath, initialUpdate, value, formatted;
-
-		initialUpdate = function ( keypath ) {
-			view.keypath = keypath;
-
-			// create observers
-			view.observerRefs = self.observe({
-				keypath: keypath,
-				priority: view.model.priority,
-				view: view
-			});
-
-			value = self.get( keypath );
-			formatted = view.anglebars._format( value, view.model.formatters );
-
-			view.update( formatted );
-		};
-
-		fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
-
-		if ( fullKeypath === undefined ) {
-			this.registerUnresolvedKeypath({
-				view: view,
-				callback: initialUpdate
-			});
-		} else {
-			initialUpdate( fullKeypath );
-		}
-	},
-
-	// Resolve a full keypath from `partialKeypath` within the given `contextStack` (e.g.
-	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-	getFullKeypath: function ( partialKeypath, contextStack ) {
-
-		var innerMost;
-
-		// Implicit iterators - i.e. {{.}} - are a special case
-		if ( partialKeypath === '.' ) {
-			return contextStack[ contextStack.length - 1 ];
-		}
-
-		// Clone the context stack, so we don't mutate the original
-		contextStack = contextStack.concat();
-
-		// Take each context from the stack, working backwards from the innermost context
-		while ( contextStack.length ) {
-
-			innerMost = contextStack.pop();
-
-			if ( this.get( innerMost + '.' + partialKeypath ) !== undefined ) {
-				return innerMost + '.' + partialKeypath;
-			}
-		}
-
-		if ( this.get( partialKeypath ) !== undefined ) {
-			return partialKeypath;
-		}
-	},
-
-	registerUnresolvedKeypath: function ( unresolved ) {
-		this.pendingResolution[ this.pendingResolution.length ] = unresolved;
-	},
-
-	_notifyObservers: function ( keypath, value ) {
-		var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted;
-
-		for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
-			priority = observersGroupedByLevel[i];
-
-			if ( priority ) {
-				for ( j=0; j<priority.length; j+=1 ) {
-					observer = priority[j];
-
-					if ( keypath !== observer.originalAddress ) {
-						value = self.get( observer.originalAddress );
-					}
-
-					if ( observer.view ) {
-						formatted = observer.view.anglebars._format( value, observer.view.model.formatters );
-						observer.view.update( formatted );
-					}
-
-					if ( observer.callback ) {
-						observer.callback( value );
-					}
-				}
-			}
-		}
-	},
-
-	observe: function ( options ) {
-
-		var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
-
-		if ( !options.keypath ) {
-			return undefined;
-		}
-
-		observe = function ( keypath ) {
-			var observers, observer;
-
-			observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
-			observers = observers[ priority ] = observers[ priority ] || [];
-
-			observer = {
-				originalAddress: originalAddress
-			};
-
-			// if we're given a view to update, add it to the observer - ditto callbacks
-			if ( options.view ) {
-				observer.view = options.view;
-			}
-
-			if ( options.callback ) {
-				observer.callback = options.callback;
-			}
-
-			observers[ observers.length ] = observer;
-			observerRefs[ observerRefs.length ] = {
-				keypath: keypath,
-				priority: priority,
-				observer: observer
-			};
-		};
-
-		keypath = options.keypath;
-		while ( keypath.lastIndexOf( '.' ) !== -1 ) {
-			observe( keypath );
-
-			// remove the last item in the keypath, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
-			keypath = keypath.substr( 0, keypath.lastIndexOf( '.' ) );
-		}
-
-		observe( keypath );
-
-		return observerRefs;
-	},
-
-	unobserve: function ( observerRef ) {
-		var priorities, observers, index;
-
-		priorities = this.observers[ observerRef.keypath ];
-		if ( !priorities ) {
-			// nothing to unobserve
-			return;
-		}
-
-		observers = priorities[ observerRef.priority ];
-		if ( !observers ) {
-			// nothing to unobserve
-			return;
-		}
-
-		if ( observers.indexOf ) {
-			index = observers.indexOf( observerRef.observer );
-		} else {
-			// fuck you IE
-			for ( var i=0, len=observers.length; i<len; i+=1 ) {
-				if ( observers[i] === observerRef.observer ) {
-					index = i;
-					break;
-				}
-			}
-		}
-
-
-		if ( index === -1 ) {
-			// nothing to unobserve
-			return;
-		}
-
-		// remove the observer from the list...
-		observers.splice( index, 1 );
-
-		// ...then tidy up if necessary
-		if ( observers.length === 0 ) {
-			delete priorities[ observerRef.priority ];
-		}
-
-		if ( priorities.length === 0 ) {
-			delete this.observers[ observerRef.keypath ];
-		}
-	},
-
-	unobserveAll: function ( observerRefs ) {
-		while ( observerRefs.length ) {
-			this.unobserve( observerRefs.shift() );
-		}
-	}
-};
-
-
-if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
-	Anglebars.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
-		this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
-			return pending.view !== view;
-		});
-	};
-}
-
-else { // Internet Exploder
-	Anglebars.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
-		var i, filtered = [];
-
-		for ( i=0; i<this.pendingResolution.length; i+=1 ) {
-			if ( this.pendingResolution[i].view !== view ) {
-				filtered[ filtered.length ] = this.pendingResolution[i];
-			}
-		}
-
-		this.pendingResolution = filtered;
-	};
-}
 (function ( A ) {
 
-	'use strict';
+	// ViewModel constructor
+	A.ViewModel = function ( data ) {
+		// Initialise with supplied data, or create an empty object
+		this.data = data || {};
 
-	var domViewMustache, DomViews, utils, types, ctors;
+		// Create empty array for keypaths that can't be resolved initially
+		this.pendingResolution = [];
 
-	types = A.types;
+		// Create empty object for observers
+		this.observers = {};
+	};
 
-	ctors = [];
-	ctors[ types.TEXT ] = 'Text';
-	ctors[ types.INTERPOLATOR ] = 'Interpolator';
-	ctors[ types.TRIPLE ] = 'Triple';
-	ctors[ types.SECTION ] = 'Section';
-	ctors[ types.ELEMENT ] = 'Element';
-	ctors[ types.PARTIAL ] = 'Partial';
+	A.ViewModel.prototype = {
 
-	utils = A.utils;
+		// Update the `value` of `keypath`, and notify the observers of
+		// `keypath` and its descendants
+		set: function ( keypath, value ) {
+			var k, keys, key, obj, i, unresolved, fullKeypath;
 
-	// View constructor factory
-	domViewMustache = function ( proto ) {
-		var Mustache;
+			// Allow multiple values to be set in one go
+			if ( typeof keypath === 'object' ) {
+				for ( k in keypath ) {
+					if ( keypath.hasOwnProperty( k ) ) {
+						this.set( k, keypath[k] );
+					}
+				}
 
-		Mustache = function ( options ) {
-
-			this.model          = options.model;
-			this.anglebars      = options.anglebars;
-			this.viewmodel      = options.anglebars.viewmodel;
-			this.parentNode     = options.parentNode;
-			this.parentFragment = options.parentFragment;
-			this.contextStack   = options.contextStack || [];
-			this.anchor         = options.anchor;
-			this.index          = options.index;
-
-			this.initialize();
-
-			this.viewmodel.registerView( this );
-
-			// if we have a failed keypath lookup, and this is an inverted section,
-			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
-				this.update( false );
+				return;
 			}
-		};
-
-		Mustache.prototype = proto;
-
-		return Mustache;
-	};
 
 
-	// View types
-	DomViews = A.DomViews = {
-		create: function ( options ) {
-			return new DomViews[ ctors[ options.model.type ] ]( options );
-		}
-	};
+			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
+			keys = A.utils.splitKeypath( keypath );
 
+			// TODO accommodate implicit array generation
+			obj = this.data;
+			while ( keys.length > 1 ) {
+				key = keys.shift();
+				obj = obj[ key ] || {};
+			}
 
-	// Fragment
-	DomViews.Fragment = function ( options, wait ) {
+			key = keys[0];
 
-		var numModels, i, itemOptions, async;
+			obj[ key ] = value;
 
-		async = options.anglebars.async;
+			// Trigger updates of views that observe `keypaths` or its descendants
+			this._notifyObservers( keypath, value );
 
-		this.owner = options.owner;
-		this.index = options.index;
+			// See if we can resolve any of the unresolved keypaths (if such there be)
+			i = this.pendingResolution.length;
+			while ( i-- ) { // Work backwards, so we don't go in circles!
+				unresolved = this.pendingResolution.splice( i, 1 )[0];
 
-		if ( !async ) {
-			itemOptions = {
-				anglebars:      options.anglebars,
-				parentNode:     options.parentNode,
-				contextStack:   options.contextStack,
-				anchor:         options.anchor,
-				parentFragment: this
+				fullKeypath = this.getFullKeypath( unresolved.view.model.partialKeypath, unresolved.view.contextStack );
+
+				// If we were able to find a keypath, initialise the view
+				if ( fullKeypath !== undefined ) {
+					unresolved.callback( fullKeypath );
+				}
+
+				// Otherwise add to the back of the queue (this is why we're working backwards)
+				else {
+					this.registerUnresolvedKeypath( unresolved );
+				}
+			}
+		},
+
+		// Get the current value of `keypath`
+		get: function ( keypath ) {
+			var keys, result;
+
+			if ( !keypath ) {
+				return undefined;
+			}
+
+			keys = A.utils.splitKeypath( keypath );
+
+			result = this.data;
+			while ( keys.length ) {
+				if ( result ) {
+					result = result[ keys.shift() ];
+				}
+
+				if ( result === undefined ) {
+					return result;
+				}
+			}
+
+			return result;
+		},
+
+		// Force notify observers of `keypath` (useful if e.g. an array or object member
+		// was changed without calling `anglebars.set()`)
+		update: function ( keypath ) {
+			var value = this.get( keypath );
+			this._notifyObservers( keypath, value );
+		},
+
+		registerView: function ( view ) {
+			var self = this, fullKeypath, initialUpdate, value, formatted;
+
+			initialUpdate = function ( keypath ) {
+				view.keypath = keypath;
+
+				// create observers
+				view.observerRefs = self.observe({
+					keypath: keypath,
+					priority: view.model.priority,
+					view: view
+				});
+
+				value = self.get( keypath );
+				formatted = view.anglebars._format( value, view.model.formatters );
+
+				view.update( formatted );
 			};
-		}
 
-		this.items = [];
-		this.queue = [];
+			fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
 
-		numModels = options.model.length;
-		for ( i=0; i<numModels; i+=1 ) {
+			if ( fullKeypath === undefined ) {
+				this.registerUnresolvedKeypath({
+					view: view,
+					callback: initialUpdate
+				});
+			} else {
+				initialUpdate( fullKeypath );
+			}
+		},
 
+		// Resolve a full keypath from `partialKeypath` within the given `contextStack` (e.g.
+		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
+		getFullKeypath: function ( partialKeypath, contextStack ) {
 
-			if ( async ) {
-				itemOptions = {
-					index:          i,
-					model:          options.model[i],
-					anglebars:      options.anglebars,
-					parentNode:     options.parentNode,
-					contextStack:   options.contextStack,
-					anchor:         options.anchor,
-					parentFragment: this
+			var innerMost;
+
+			// Implicit iterators - i.e. {{.}} - are a special case
+			if ( partialKeypath === '.' ) {
+				return contextStack[ contextStack.length - 1 ];
+			}
+
+			// Clone the context stack, so we don't mutate the original
+			contextStack = contextStack.concat();
+
+			// Take each context from the stack, working backwards from the innermost context
+			while ( contextStack.length ) {
+
+				innerMost = contextStack.pop();
+
+				if ( this.get( innerMost + '.' + partialKeypath ) !== undefined ) {
+					return innerMost + '.' + partialKeypath;
+				}
+			}
+
+			if ( this.get( partialKeypath ) !== undefined ) {
+				return partialKeypath;
+			}
+		},
+
+		registerUnresolvedKeypath: function ( unresolved ) {
+			this.pendingResolution[ this.pendingResolution.length ] = unresolved;
+		},
+
+		_notifyObservers: function ( keypath, value ) {
+			var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted, actualValue;
+
+			for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
+				priority = observersGroupedByLevel[i];
+
+				if ( priority ) {
+					for ( j=0; j<priority.length; j+=1 ) {
+						observer = priority[j];
+
+						if ( keypath !== observer.originalAddress ) {
+							actualValue = self.get( observer.originalAddress );
+						} else {
+							actualValue = value;
+						}
+
+						if ( observer.view ) {
+							formatted = observer.view.anglebars._format( actualValue, observer.view.model.formatters );
+							observer.view.update( formatted );
+						}
+
+						if ( observer.callback ) {
+							observer.callback( actualValue );
+						}
+					}
+				}
+			}
+		},
+
+		observe: function ( options ) {
+
+			var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
+
+			// Allow `observe( keypath, callback )` syntax
+			if ( arguments.length === 2 && typeof arguments[0] === 'string' && typeof arguments[1] === 'function' ) {
+				return this.observe({ keypath: arguments[0], callback: arguments[1], priority: 0 });
+			}
+
+			if ( !options.keypath ) {
+				return undefined;
+			}
+
+			observe = function ( keypath ) {
+				var observers, observer;
+
+				observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
+				observers = observers[ priority ] = observers[ priority ] || [];
+
+				observer = {
+					originalAddress: originalAddress
 				};
 
-				this.queue[ this.queue.length ] = itemOptions;
-			} else {
-				itemOptions.model = options.model[i];
-				itemOptions.index = i;
-
-				this.items[i] = DomViews.create( itemOptions );
-			}
-		}
-
-		if ( async && !wait ) {
-			options.anglebars.queue( this.queue );
-			delete this.queue;
-		}
-	};
-
-	DomViews.Fragment.prototype = {
-		teardown: function () {
-			while ( this.items.length ) {
-				this.items.pop().teardown();
-			}
-		},
-
-		firstNode: function () {
-			if ( this.items[0] ) {
-				return this.items[0].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
-			}
-
-			return null;
-		},
-
-		findNextNode: function ( item ) {
-			var index;
-
-			index = item.index;
-
-			if ( this.items[ index + 1 ] ) {
-				return this.items[ index + 1 ].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
-			}
-
-			return null;
-		}
-	};
-
-
-	// Partials
-	DomViews.Partial = function ( options ) {
-		var compiledPartial;
-
-		this.fragment = new DomViews.Fragment({
-			model:        options.anglebars.compiledPartials[ options.model.id ] || [],
-			anglebars:    options.anglebars,
-			parentNode:   options.parentNode,
-			contextStack: options.contextStack,
-			anchor:       options.anchor,
-			owner:        this
-		});
-	};
-
-	DomViews.Partial.prototype = {
-		teardown: function () {
-			this.fragment.teardown();
-		}
-	};
-
-
-	// Plain text
-	DomViews.Text = function ( options ) {
-		this.node = document.createTextNode( options.model.text );
-		this.index = options.index;
-		this.anglebars = options.anglebars;
-		this.parentNode = options.parentNode;
-
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor );
-	};
-
-	DomViews.Text.prototype = {
-		teardown: function () {
-			if ( this.anglebars.el.contains( this.node ) ) {
-				this.parentNode.removeChild( this.node );
-			}
-		},
-
-		firstNode: function () {
-			return this.node;
-		}
-	};
-
-
-	// Element
-	DomViews.Element = function ( options ) {
-
-		var i,
-		attributeModel,
-		binding,
-		model;
-
-		// stuff we'll need later
-		model = this.model = options.model;
-		this.anglebars = options.anglebars;
-		this.viewmodel = options.anglebars.viewmodel;
-		this.parentFragment = options.parentFragment;
-		this.parentNode = options.parentNode;
-		this.index = options.index;
-
-		// create the DOM node
-		if ( model.namespace ) {
-			this.node = document.createElementNS( model.namespace, model.tag );
-		} else {
-			this.node = document.createElement( model.tag );
-		}
-
-
-		// set attributes
-		this.attributes = [];
-		i = model.attributes.length;
-		while ( i-- ) {
-			attributeModel = model.attributes[i];
-
-			// if the attribute name is data-bind, and this is an input or textarea, set up two-way binding
-			if ( attributeModel.name === 'data-bind' && ( model.tag === 'INPUT' || model.tag === 'TEXTAREA' ) ) {
-				binding = attributeModel.value;
-			}
-
-			// otherwise proceed as normal
-			else {
-				this.attributes[i] = new DomViews.Attribute({
-					model: attributeModel,
-					anglebars: options.anglebars,
-					parentNode: this.node,
-					contextStack: options.contextStack
-				});
-			}
-		}
-
-		if ( binding ) {
-			this.bind( binding, options.anglebars.lazy );
-		}
-
-		// append children
-		this.children = new DomViews.Fragment({
-			model:        model.children,
-			anglebars:    options.anglebars,
-			parentNode:   this.node,
-			contextStack: options.contextStack,
-			anchor:       null,
-			owner:        this
-		});
-
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor || null );
-	};
-
-	DomViews.Element.prototype = {
-		bind: function ( keypath, lazy ) {
-
-			var viewmodel = this.viewmodel, node = this.node, setValue;
-
-			setValue = function () {
-				var value = node.value;
-
-				// special cases
-				if ( value === '0' ) {
-					value = 0;
+				// if we're given a view to update, add it to the observer - ditto callbacks
+				if ( options.view ) {
+					observer.view = options.view;
 				}
 
-				else if ( value !== '' ) {
-					value = +value || value;
+				if ( options.callback ) {
+					observer.callback = options.callback;
 				}
 
-				viewmodel.set( keypath, value );
+				observers[ observers.length ] = observer;
+				observerRefs[ observerRefs.length ] = {
+					keypath: keypath,
+					priority: priority,
+					observer: observer
+				};
 			};
 
-			// set initial value
-			setValue();
+			keypath = options.keypath;
+			while ( keypath.lastIndexOf( '.' ) !== -1 ) {
+				observe( keypath );
 
-			// TODO support shite browsers like IE and Opera
-			node.addEventListener( 'change', setValue );
+				// remove the last item in the keypath, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
+				keypath = keypath.substr( 0, keypath.lastIndexOf( '.' ) );
+			}
 
-			if ( !lazy ) {
-				node.addEventListener( 'keyup', setValue );
+			observe( keypath );
+
+			return observerRefs;
+		},
+
+		unobserve: function ( observerRef ) {
+			var priorities, observers, index;
+
+			priorities = this.observers[ observerRef.keypath ];
+			if ( !priorities ) {
+				// nothing to unobserve
+				return;
+			}
+
+			observers = priorities[ observerRef.priority ];
+			if ( !observers ) {
+				// nothing to unobserve
+				return;
+			}
+
+			if ( observers.indexOf ) {
+				index = observers.indexOf( observerRef.observer );
+			} else {
+				// fuck you IE
+				for ( var i=0, len=observers.length; i<len; i+=1 ) {
+					if ( observers[i] === observerRef.observer ) {
+						index = i;
+						break;
+					}
+				}
+			}
+
+
+			if ( index === -1 ) {
+				// nothing to unobserve
+				return;
+			}
+
+			// remove the observer from the list...
+			observers.splice( index, 1 );
+
+			// ...then tidy up if necessary
+			if ( observers.length === 0 ) {
+				delete priorities[ observerRef.priority ];
+			}
+
+			if ( priorities.length === 0 ) {
+				delete this.observers[ observerRef.keypath ];
 			}
 		},
 
-		teardown: function () {
-			if ( this.anglebars.el.contains( this.node ) ) {
-				this.parentNode.removeChild( this.node );
+		unobserveAll: function ( observerRefs ) {
+			while ( observerRefs.length ) {
+				this.unobserve( observerRefs.shift() );
 			}
-
-			this.children.teardown();
-
-			while ( this.attributes.length ) {
-				this.attributes.pop().teardown();
-			}
-		},
-
-		firstNode: function () {
-			return this.node;
 		}
 	};
 
 
-	// Attribute
-	DomViews.Attribute = function ( options ) {
-
-		var i, model;
-
-		model = options.model;
-
-		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
-		if ( !model.isDynamic ) {
-			options.parentNode.setAttribute( model.name, model.value );
-			return;
-		}
-
-		// otherwise we need to do some work
-		this.parentNode = options.parentNode;
-		this.name = model.name;
-
-		this.children = [];
-
-		i = model.components.length;
-		while ( i-- ) {
-			this.children[i] = A.TextViews.create({
-				model:        model.components[i],
-				anglebars:    options.anglebars,
-				parent:       this,
-				contextStack: options.contextStack
+	if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
+		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
+				return pending.view !== view;
 			});
-		}
+		};
+	}
 
-		// manually trigger first update
-		this.update();
-	};
+	else { // Internet Exploder
+		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+			var i, filtered = [];
 
-	DomViews.Attribute.prototype = {
-		teardown: function () {
-			// ignore non-dynamic attributes
-			if ( !this.children ) {
-				return;
-			}
-
-			while ( this.children.length ) {
-				this.children.pop().teardown();
-			}
-		},
-
-		bubble: function () {
-			this.update();
-		},
-
-		update: function () {
-			var prevValue = this.value;
-			this.value = this.toString();
-
-			if ( this.value !== prevValue ) {
-				this.parentNode.setAttribute( this.name, this.value );
-			}
-		},
-
-		toString: function () {
-			return this.children.join( '' );
-		}
-	};
-
-
-
-
-
-	// Interpolator
-	DomViews.Interpolator = domViewMustache({
-		initialize: function () {
-			this.node = document.createTextNode( '' );
-
-			this.parentNode.insertBefore( this.node, this.anchor || null );
-		},
-
-		teardown: function () {
-			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
-			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
-			}
-
-			if ( this.anglebars.el.contains( this.node ) ) {
-				this.parentNode.removeChild( this.node );
-			}
-		},
-
-		update: function ( text ) {
-			if ( text !== this.text ) {
-				this.text = text;
-				this.node.data = text;
-			}
-		},
-
-		firstNode: function () {
-			return this.node;
-		}
-	});
-
-
-	// Triple
-	DomViews.Triple = domViewMustache({
-		initialize: function () {
-			this.nodes = [];
-
-			// this.tripleAnchor = Anglebars.utils.createAnchor();
-			// this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );
-		},
-
-		teardown: function () {
-
-			// remove child nodes from DOM
-			if ( this.anglebars.contains( this.parentNode ) ) {
-				while ( this.nodes.length ) {
-					this.parentNode.removeChild( this.nodes.pop() );
+			for ( i=0; i<this.pendingResolution.length; i+=1 ) {
+				if ( this.pendingResolution[i].view !== view ) {
+					filtered[ filtered.length ] = this.pendingResolution[i];
 				}
 			}
 
-			// kill observer(s)
-			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
-			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
-			}
-		},
-
-		firstNode: function () {
-			if ( this.nodes[0] ) {
-				return this.nodes[0];
-			}
-
-			return this.parentFragment.findNextNode( this );
-		},
-
-		update: function ( html ) {
-			var numNodes, i, anchor;
-
-			if ( html === this.html ) {
-				return;
-			} else {
-				this.html = html;
-			}
-
-			anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
-
-			// remove existing nodes
-			while ( this.nodes.length ) {
-				this.parentNode.removeChild( this.nodes.pop() );
-			}
-
-			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( html, false );
-
-			numNodes = this.nodes.length;
-			if ( numNodes ) {
-				anchor = this.parentFragment.findNextNode( this );
-
-				for ( i=0; i<numNodes; i+=1 ) {
-					this.parentNode.insertBefore( this.nodes[i], anchor );
-				}
-			}
-
-			this.initialised = true;
-		}
-	});
-
-
-
-	// Section
-	DomViews.Section = domViewMustache({
-		initialize: function () {
-			this.views = [];
-			this.length = 0; // number of times this section is rendered
-		},
-
-		teardown: function () {
-			this.unrender();
-
-			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
-			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
-			}
-		},
-
-		firstNode: function () {
-			if ( this.views[0] ) {
-				return this.views[0].firstNode();
-			}
-
-			return this.parentFragment.findNextNode( this );
-		},
-
-		findNextNode: function ( fragment ) {
-			if ( this.views[ fragment.index + 1 ] ) {
-				return this.views[ fragment.index + 1 ].firstNode();
-			} else {
-				return this.parentFragment.findNextNode( this );
-			}
-		},
-
-		unrender: function () {
-			while ( this.views.length ) {
-				this.views.shift().teardown();
-			}
-		},
-
-		update: function ( value ) {
-			var emptyArray, i, viewsToRemove, anchor, fragmentOptions;
-
-			if ( this.anglebars.async ) {
-				this.queue = [];
-			}
-
-			fragmentOptions = {
-				model:        this.model.children,
-				anglebars:    this.anglebars,
-				parentNode:   this.parentNode,
-				anchor:       this.parentFragment.findNextNode( this ),
-				owner:        this
-			};
-
-			// treat empty arrays as false values
-			if ( utils.isArray( value ) && value.length === 0 ) {
-				emptyArray = true;
-			}
-
-
-			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inverted ) {
-				if ( value && !emptyArray ) {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-						return;
-					}
-				}
-
-				else {
-					if ( !this.length ) {
-						anchor = this.parentFragment.findNextNode( this );
-
-						// no change to context stack in this situation
-						fragmentOptions.contextStack = this.contextStack;
-						fragmentOptions.index = 0;
-
-						this.views[0] = new DomViews.Fragment( fragmentOptions );
-						this.length = 1;
-						return;
-					}
-				}
-
-				return;
-			}
-
-
-			// otherwise we need to work out what sort of section we're dealing with
-
-			// if value is an array, iterate through
-			if ( utils.isArray( value ) ) {
-
-				// if the array is shorter than it was previously, remove items
-				if ( value.length < this.length ) {
-					viewsToRemove = this.views.splice( value.length, this.length - value.length );
-
-					while ( viewsToRemove.length ) {
-						viewsToRemove.pop().teardown();
-					}
-				}
-
-				// otherwise...
-				else {
-
-					if ( value.length > this.length ) {
-						// add any new ones
-						for ( i=this.length; i<value.length; i+=1 ) {
-							// append list item to context stack
-							fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
-							fragmentOptions.index = i;
-
-							this.views[i] = new DomViews.Fragment( fragmentOptions, true ); // true to prevent queue being updated in wrong order
-
-							if ( this.anglebars.async ) {
-								this.queue = this.queue.concat( this.views[i].queue );
-							}
-						}
-
-						if ( this.anglebars.async ) {
-							this.anglebars.queue( this.queue );
-						}
-					}
-				}
-
-				this.length = value.length;
-			}
-
-			// if value is a hash...
-			else if ( utils.isObject( value ) ) {
-				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
-				// (if it is already rendered, then any children dependent on the context stack
-				// will update themselves without any prompting)
-				if ( !this.length ) {
-					// append this section to the context stack
-					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
-					fragmentOptions.index = 0;
-
-					this.views[0] = new DomViews.Fragment( fragmentOptions );
-					this.length = 1;
-				}
-			}
-
-
-			// otherwise render if value is truthy, unrender if falsy
-			else {
-
-				if ( value && !emptyArray ) {
-					if ( !this.length ) {
-						// no change to context stack
-						fragmentOptions.contextStack = this.contextStack;
-						fragmentOptions.index = 0;
-
-						this.views[0] = new DomViews.Fragment( fragmentOptions );
-						this.length = 1;
-					}
-				}
-
-				else {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-					}
-				}
-			}
-		}
-	});
+			this.pendingResolution = filtered;
+		};
+	}
 
 }( Anglebars ));
 
@@ -2046,16 +1425,18 @@ else { // Internet Exploder
 			this.parent = options.parent;
 			this.contextStack = options.contextStack || [];
 
-			// if there is an init method, call it
+			this.type = options.model.type;
+
+			// If there is an init method, call it
 			if ( this.initialize ) {
 				this.initialize();
 			}
 
 			this.viewmodel.registerView( this );
 
-			// if we have a failed keypath lookup, and this is an inverted section,
+			// If we have a failed keypath lookup, and this is an inverted section,
 			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+			if ( !this.keypath && this.model.inverted ) { // Test both section-hood and inverticity in one go
 				this.update( false );
 			}
 		};
@@ -2088,7 +1469,7 @@ else { // Internet Exploder
 			contextStack: options.contextStack
 		};
 
-		numItems = options.models.length;
+		numItems = ( options.models ? options.models.length : 0 );
 		for ( i=0; i<numItems; i+=1 ) {
 			itemOptions.model = this.models[i];
 			this.items[ this.items.length ] = TextViews.create( itemOptions );
@@ -2113,7 +1494,7 @@ else { // Internet Exploder
 		},
 
 		toString: function () {
-			return this.value || '';
+			return ( this.value === undefined ? '' : this.value );
 		}
 	};
 
@@ -2155,7 +1536,7 @@ else { // Internet Exploder
 		},
 
 		toString: function () {
-			return this.value || '';
+			return ( this.value === undefined ? '' : this.value );
 		}
 	});
 
@@ -2295,10 +1676,10 @@ else { // Internet Exploder
 		},
 
 		toString: function () {
-			return this.value || '';
+			return ( this.value === undefined ? '' : this.value );
 		}
 	});
 
 }( Anglebars ));
  return Anglebars; 
-})
+});
