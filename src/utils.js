@@ -477,7 +477,7 @@
 			return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 		},
 
-		compileStubs: function ( stubs, priority, namespace, preserveWhitespace ) {
+		compileStubs: function ( stubs, priority, preserveWhitespace ) {
 			var compiled, next, processStub;
 
 			compiled = [];
@@ -501,7 +501,7 @@
 						return i+1;
 
 					case types.ELEMENT:
-						compiled[ compiled.length ] = utils.processElementStub( stub, priority, namespace );
+						compiled[ compiled.length ] = utils.processElementStub( stub, priority );
 						return i+1;
 
 					case types.MUSTACHE:
@@ -546,7 +546,7 @@
 									type: types.SECTION,
 									partialKeypath: partialKeypath,
 									inverted: stub.mustache.inverted,
-									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, namespace, preserveWhitespace ),
+									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, preserveWhitespace ),
 									priority: priority
 								};
 								if ( stub.mustache.formatters ) {
@@ -614,7 +614,7 @@
 			return compiled;
 		},
 
-		processElementStub: function ( stub, priority, namespace ) {
+		processElementStub: function ( stub, priority ) {
 			var proxy, attributes, numAttributes, attribute, i, node;
 
 			node = stub.original;
@@ -624,11 +624,6 @@
 				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName || node.tagName, // we need localName for SVG elements but tagName for Internet Exploder
 				priority: priority
 			};
-
-			// inherit namespace from parent, if applicable
-			if ( namespace ) {
-				proxy.namespace = namespace;
-			}
 
 			// attributes
 			attributes = [];
@@ -651,7 +646,7 @@
 			proxy.attributes = attributes;
 
 			// get children
-			proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), priority + 1, proxy.namespace );
+			proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), priority + 1 );
 
 			return proxy;
 		},
@@ -675,7 +670,7 @@
 			// mustaches present - attribute is dynamic
 			attribute.isDynamic = true;
 			attribute.priority = priority;
-			attribute.components = utils.compileStubs( stubs, priority, null );
+			attribute.components = utils.compileStubs( stubs, priority );
 
 
 			return attribute;
@@ -684,7 +679,7 @@
 
 
 	(function() {
-		var vendors = ['ms', 'moz', 'webkit', 'o'], i;
+		var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor;
 		
 		if ( window.requestAnimationFrame ) {
 			utils.wait = function ( task ) {
@@ -693,13 +688,17 @@
 			return;
 		}
 
-		for ( i=0; i<vendors.length; i+=1 ) {
+		tryVendor = function ( i ) {
 			if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
 				utils.wait = function ( task ) {
 					window[ vendors[i]+'RequestAnimationFrame' ]( task );
 				};
 				return;
 			}
+		};
+
+		for ( i=0; i<vendors.length; i+=1 ) {
+			tryVendor( i );
 		}
 
 		utils.wait = function( task ) {
