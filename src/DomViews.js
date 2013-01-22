@@ -339,13 +339,51 @@
 	// Attribute
 	DomViews.Attribute = function ( options ) {
 
-		var i, model;
+		var i, model, colonIndex, namespacePrefix, namespace, ancestor;
 
 		model = options.model;
 
+		// are we dealing with a namespaced attribute, e.g. xlink:href?
+		colonIndex = model.name.indexOf( ':' );
+		if ( colonIndex !== -1 ) {
+
+			// looks like we are, yes...
+			namespacePrefix = model.name.substr( 0, colonIndex );
+
+			// ...unless it's a namespace *declaration*
+			if ( namespacePrefix === 'xmlns' ) {
+				namespace = null;
+			}
+
+			else {
+
+				// we need to find an ancestor element that defines this prefix
+				ancestor = options.parentNode;
+
+				// continue searching until there's nowhere further to go, or we've found the declaration
+				while ( ancestor && !namespace ) {
+					namespace = ancestor.getAttribute( 'xmlns:' + namespacePrefix );
+
+					// continue searching possible ancestors
+					ancestor = ancestor.parentNode || options.owner.parentFragment.owner.node || options.owner.parentFragment.owner.parentNode;
+				}
+			}
+
+			// if we've found a namespace, make a note of it
+			if ( namespace ) {
+				this.namespace = namespace;
+			}
+		}
+
 		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
 		if ( !model.isDynamic ) {
-			options.parentNode.setAttribute( model.name, model.value );
+			
+			if ( namespace ) {
+				options.parentNode.setAttributeNS( namespace, model.name, model.value );
+			} else {
+				options.parentNode.setAttribute( model.name, model.value );
+			}
+			
 			return;
 		}
 
@@ -390,7 +428,11 @@
 			this.value = this.toString();
 
 			if ( this.value !== prevValue ) {
-				this.parentNode.setAttribute( this.name, this.value );
+				if ( this.namespace ) {
+					this.parentNode.setAttributeNS( this.namespace, this.name, this.value );
+				} else {
+					this.parentNode.setAttribute( this.name, this.value );
+				}
 			}
 		},
 
