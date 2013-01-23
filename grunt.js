@@ -14,7 +14,15 @@ module.exports = function(grunt) {
 				'/*jslint eqeq: true, plusplus: true */\n' +
 				'/*global document, HTMLElement */\n' +
 				'\n' +
-				'\'use strict\';\n\n'
+				'\'use strict\';\n\n',
+			wrapper: {
+				start: '(function ( global ) {',
+				end: '\n// export\n' +
+						'if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS\n' +
+						'else if ( typeof define === "function" && define.amd ) define( function () { return Anglebars } ) // AMD\n' +
+						'else { global.Anglebars = Anglebars }\n\n' +
+						'}( this ));'
+			}
 		},
 		lint: {
 			files: ['grunt.js', 'src/**/*.js'] // TODO add tests
@@ -24,7 +32,7 @@ module.exports = function(grunt) {
 		},
 		concat: {
 			dist: {
-				src: ['<banner:meta.banner>', 'src/Anglebars.js', 'src/utils.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js'],
+				src: ['<banner:meta.banner>', '<banner:meta.wrapper.start>', 'src/Anglebars.js', 'src/utils.js', 'src/parse.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', '<banner:meta.wrapper.end>' ],
 				dest: 'build/<%= pkg.name %>.js'
 			}
 		},
