@@ -3,19 +3,24 @@
 <head>
 	<title>Compiling | Anglebars Test Suite</title>
 	<link rel='stylesheet' href='vendor/qunit.css' type='text/css' media='screen' />
+</head>
+<body>
+	<div id='qunit'></div>
+	<div id='qunit-fixture'></div>
 
 	<script src='vendor/jquery.js'></script>
 	<script src='vendor/underscore.js'></script>
 	<script src='vendor/qunit.js'></script>
 
-	<script src='../build/Anglebars.js'></script>
+	<script src='../src/Anglebars.js'></script>
+	<script src='../src/utils.js'></script>
+	<script src='../src/parse.js'></script>
+	<script src='../src/compile.js'></script>
+	<script src='../src/ViewModel.js'></script>
+	<script src='../src/DomViews.js'></script>
+	<script src='../src/TextViews.js'></script>
 
 	<!-- load test modules -->
 	<script src='unit/compile.js'></script>
-
-</head>
-<body>
-	<div id='qunit'></div>
-	<div id='qunit-fixture'></div>
 </body>
 </html>

@@ -7,11 +7,6 @@
 // TODO: add moar samples
 
 
-// useful function to generate stringified JSON from a template...
-var stringify = function ( input, options ) {
-	console.log( JSON.stringify( Anglebars.compile( input, options ) ) );
-};
-
 test( 'Anglebars has a compile method', function () {
 	ok( _.isFunction( Anglebars.compile ) );
 });
