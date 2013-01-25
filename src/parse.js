@@ -9,106 +9,50 @@
 		getTree,
 		whitespace,
 		alphanumerics,
-		parse,
+		tokenize,
 
 		TokenStream,
-		TagBuffer,
+		MustacheBuffer,
 		
 		TextToken,
 		MustacheToken,
 		TripleToken,
 		TagToken,
+		AttributeValueToken,
 
-		TextStub,
-		MustacheStub,
-		FragmentStub,
-		ElementStub,
-		voidElementNames,
-		implicitClosersByTagName,
-		closedByParentClose,
+		mustacheTypes,
 
-		mustacheTypes;
+		error;
 
 
 	utils = A.utils;
 	types = A.types;
 
+	error = function ( char ) {
+		throw 'Unexpected character ("' + char + '")';
+	};
+
 
 	whitespace = /\s/;
 	alphanumerics = /[0-9a-zA-Z]/;
 
-	voidElementNames = [ 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
-
-	closedByParentClose = [ 'li', 'dd', 'rt', 'rp', 'optgroup', 'option', 'tbody', 'tfoot', 'tr', 'td', 'th' ];
-
-	implicitClosersByTagName = {
-		li: [ 'li' ],
-		dt: [ 'dt', 'dd' ],
-		dd: [ 'dt', 'dd' ],
-		p: [ 'address', 'article', 'aside', 'blockquote', 'dir', 'div', 'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'ul' ],
-		rt: [ 'rt', 'rp' ],
-		rp: [ 'rp', 'rt' ],
-		optgroup: [ 'optgroup' ],
-		option: [ 'option', 'optgroup' ],
-		thead: [ 'tbody', 'tfoot' ],
-		tbody: [ 'tbody', 'tfoot' ],
-		tr: [ 'tr' ],
-		td: [ 'td', 'th' ],
-		th: [ 'td', 'th' ]
-	};
+	
 
 
-	stripComments = function ( template ) {
-		var commentStart, commentEnd, remaining, processed;
+	
 
-		remaining = template;
-		processed = '';
-
-		while ( remaining.length ) {
-			commentStart = remaining.indexOf( '<!--' );
-			commentEnd = remaining.indexOf( '-->' );
-
-			// no comments? great
-			if ( commentStart === -1 && commentEnd === -1 ) {
-				processed += remaining;
-				break;
-			}
-
-			// comment start but no comment end
-			if ( commentStart !== -1 && commentEnd === -1 ) {
-				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
-			}
-
-			// comment end but no comment start, or comment end before comment start
-			if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
-				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
-			}
-
-			processed += remaining.substr( 0, commentStart );
-			remaining = remaining.substring( commentEnd + 3 );
-		}
-
-		return processed;
-	};
-
-
-	TagBuffer = function () {
+	MustacheBuffer = function () {
 		this.value = '';
 	};
 
-	TagBuffer.prototype = {
+	MustacheBuffer.prototype = {
 		read: function ( char ) {
 			var continueBuffering;
 
 			this.value += char;
 
-			console.log( 'buffering "%s" ("%s")', char, this.value );
-
 			// if this could turn out to be a tag, a mustache or a triple return true
-			continueBuffering = ( this.value === '<' || this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
-
-			console.log( 'continue buffering?', continueBuffering );
-
+			continueBuffering = ( this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
 			return continueBuffering;
 		},
 
@@ -148,24 +92,22 @@
 				}
 			}
 
-			if ( !token ) {
-				// so it's not a mustache or a triple. how about a tag?
-				if ( this.value.charAt( 0 ) === '<' ) {
-					token = new TagToken();
+			if ( token ) {
+				while ( this.value.length ) {
+					token.read( this.value.charAt( 0 ) );
+					this.value = this.value.substring( 1 );
 				}
 
-				// must be regular text
-				else {
-					token = new TextToken();
-				}
+				return token;
 			}
 
-			while ( this.value.length ) {
-				token.read( this.value.charAt( 0 ) );
-				this.value = this.value.substring( 1 );
-			}
+			return false;
+		},
 
-			return token;
+		release: function () {
+			var value = this.value;
+			this.value = '';
+			return value;
 		},
 
 		isEmpty: function () {
@@ -182,40 +124,79 @@
 
 	TokenStream = function () {
 		this.tokens = [];
-		this.buffer = new TagBuffer();
+		this.buffer = new MustacheBuffer();
 	};
 
 	TokenStream.prototype = {
 		read: function ( char ) {
-			var previousToken;
+			var mustacheToken, bufferValue;
 
-			console.log( 'reading "%s" to token stream. current token:', char, this.currentToken );
+			// if we're building a tag, send everything to it including delimiter characters
+			if ( this.currentToken && this.currentToken.type === types.TAG ) {
+				if ( this.currentToken.read( char ) ) {
+					return true;
+				}
+			}
+
+			// either we're not building a tag, or the character was rejected
+			
+			// send to buffer. if accepted, we don't need to do anything else
+			if ( this.buffer.read( char ) ) {
+				return true;
+			}
+			
+			// can we convert the buffer to a mustache or triple?
+			mustacheToken = this.buffer.convert();
+
+			if ( mustacheToken ) {
+				// if we were building a token, seal it
+				if ( this.currentToken ) {
+					this.currentToken.seal();
+				}
+
+				// start building the new mustache instead
+				this.currentToken = this.tokens[ this.tokens.length ] = mustacheToken;
+				return true;
+			}
+
+
+			// could not convert to a mustache. can we append to current token?
+			bufferValue = this.buffer.release();
 
 			if ( this.currentToken ) {
-				console.log( 'sending char "%s" to current token', char );
-				if ( this.currentToken.read( char ) ) {
-					console.log( 'accepted' );
-					return;
-				} else {
-					console.log( 'rejected' );
-					this.currentToken = null;
+				while ( bufferValue.length ) {
+					while ( bufferValue.length && this.currentToken.read( bufferValue.charAt( 0 ) ) ) {
+						bufferValue = bufferValue.substring( 1 );
+					}
+
+					// still got something left over? create a new token
+					if ( bufferValue.length ) {
+						if ( bufferValue.charAt( 0 ) === '<' ) {
+							this.currentToken = new TagToken();
+							this.currentToken.read( '<' );
+						} else {
+							this.currentToken = new TextToken();
+							this.currentToken.read( bufferValue.charAt( 0 ) );
+						}
+
+						this.tokens[ this.tokens.length ] = this.currentToken;
+						bufferValue = bufferValue.substring( 1 );
+					}
 				}
+
+				return true;
 			}
 
-			// see if the stream could turn out to be a mustache, triple or tag
-			if ( !this.buffer.read( char ) ) {
-				this.currentToken = this.buffer.convert();
-
-				// if it turns out to be a text token, and the previous token was a text token
-				// (i.e. the previous token bugged out on a false positive), merge the two
-				previousToken = this.tokens[ this.tokens.length - 1 ];
-				if ( this.currentToken instanceof TextToken && previousToken instanceof TextToken ) {
-					previousToken.merge( this.currentToken );
-					this.currentToken = previousToken;
-				} else {
-					this.tokens[ this.tokens.length ] = this.currentToken;
-				}
+			// otherwise we need to create a new token
+			if ( char === '<' ) {
+				this.currentToken = new TagToken();
+			} else {
+				this.currentToken = new TextToken();
 			}
+
+			this.currentToken.read( char );
+			this.tokens[ this.tokens.length ] = this.currentToken;
+			return true;
 		},
 
 		end: function () {
@@ -233,9 +214,7 @@
 		len = string.length;
 
 		while ( i < len ) {
-			console.group( string.charAt( i ) );
 			stream.read( string.charAt( i ) );
-			console.groupEnd();
 			i += 1;
 		}
 
@@ -247,13 +226,18 @@
 
 
 	TextToken = function () {
+		this.type = types.TEXT;
 		this.value = '';
 	};
 
 	TextToken.prototype = {
 		read: function ( char ) {
-			// if this looks like it could be the start of a tag or an opening delimiter, stop reading
-			if ( char === '<' || char === A.delimiters[0].charAt( 0 ) || char === A.tripleDelimiters[0].charAt( 0 ) ) {
+			if ( this.sealed ) {
+				return false;
+			}
+
+			// this can be anything except a '<'
+			if ( char === '<' ) {
 				return false;
 			}
 
@@ -261,8 +245,12 @@
 			return true;
 		},
 
-		merge: function ( token ) {
-			this.value += token.value;
+		// merge: function ( token ) {
+		// 	this.value += token.value;
+		// },
+
+		seal: function () {
+			this.sealed = true;
 		}
 	};
 
@@ -289,7 +277,7 @@
 		this.type = types.TRIPLE;
 	};
 
-	MustacheToken.prototype = {
+	MustacheToken.prototype = TripleToken.prototype = {
 		read: function ( char ) {
 			if ( this.sealed ) {
 				return false;
@@ -357,23 +345,251 @@
 	};
 
 
+	var OpeningBracket, TagName, AttributeCollection, Solidus, ClosingBracket, Attribute, AttributeName, AttributeValue;
 
-	TripleToken = function () {
-		this.value = '';
-		this.closingDelimiter = A.tripleDelimiters[1];
+
+	var genericToken = function ( options ) {
+		var Token, pattern, length;
+
+		if ( typeof options.pattern === 'string' ) {
+			length = options.pattern.length;
+			pattern = new RegExp( '^' + A.utils.escape( options.pattern ) + '$' );
+		} else {
+			pattern = options.pattern;
+		}
+
+
+		Token = function () {
+			this.value = '';
+			this.pattern = pattern;
+			this.required = options.required;
+
+			this.length = options.length || length;
+		};
+
+		Token.prototype = {
+			toString: options.toString || function () {
+				return this.value;
+			},
+
+			read: function ( char ) {
+				var newValue;
+
+				if ( char.length > 1 ) {
+					throw 'Token can only read one character at a time';
+				}
+
+				if ( this.sealed ) {
+					return false;
+				}
+
+				newValue = this.value + char;
+
+				if ( this.pattern.test( newValue ) ) {
+					this.value = newValue;
+
+					// if we know how long this token should be, and we're at that length, we can seal
+					if ( this.length && this.value.length === this.length ) {
+						this.seal();
+					}
+
+					return true;
+				}
+
+				this.seal();
+				return false;
+			},
+
+			seal: function () {
+				var i, properties, match, value;
+
+				value = this.value;
+
+				if ( this.required && !pattern.test( value ) ) {
+					throw 'Token string "' + value + '" did not match pattern ' + pattern;
+				}
+
+				if ( options.properties && pattern ) {
+					properties = ( typeof options.properties === 'string' ? [ options.properties ] : options.properties );
+
+					i = properties.length;
+					match = pattern.exec( this.value );
+
+					while ( i-- ) {
+						this[ properties[i] ] = ( match ? match[ i+1 ] : '' );
+					}
+				}
+
+				if ( options.onseal ) {
+					options.onseal.call( this, value );
+				}
+
+				this.sealed = true;
+			}
+		};
+
+		return Token;
 	};
 
-	TripleToken.prototype = {
+
+
+
+	TagToken = function () {
+		this.type = types.TAG;
+
+		this.openingBracket     = new OpeningBracket();
+		this.closingTagSolidus  = new Solidus();
+		this.tagName            = new TagName();
+		this.attributes         = new AttributeCollection();
+		this.selfClosingSolidus = new Solidus();
+		this.closingBracket     = new ClosingBracket();
+	};
+
+	TagToken.prototype = {
+		read: function ( char ) {
+			var accepted;
+
+			if ( this.sealed ) {
+				return false;
+			}
+
+			// if there is room for this character, read it
+			accepted = this.openingBracket.read( char ) ||
+				this.closingTagSolidus.read( char )     ||
+				this.tagName.read( char )               ||
+				this.attributes.read( char )            ||
+				this.selfClosingSolidus.read( char )    ||
+				this.closingBracket.read( char );
+
+			if ( accepted ) {
+				// if closing bracket is sealed, so are we. save ourselves a trip
+				if ( this.closingBracket.sealed ) {
+					this.seal();
+				}
+
+				return true;
+			}
+
+			// otherwise we are done with this token
+			this.seal();
+			return false;
+		},
+
+		seal: function () {
+			var i, len, attributes, numAttributes;
+
+			// time to figure out some stuff about this tag
+			
+			// tag name
+			this.tag = this.tagName.value;
+
+			// opening or closing tag?
+			if ( this.closingTagSolidus.value ) {
+				this.isClosingTag = true;
+			}
+
+			// self-closing?
+			if ( this.selfClosingSolidus.value ) {
+				this.isSelfClosingTag = true;
+			}
+
+			this.sealed = true;
+		}
+	};
+
+
+	OpeningBracket = genericToken({
+		pattern: '<',
+		required: true
+	});
+
+
+	TagName = genericToken({
+		pattern: /^([a-zA-Z][a-zA-Z0-9]*)$/,
+		required: true
+	});
+
+
+	
+
+
+
+	AttributeCollection = function () {
+		this.items = [];
+	};
+
+	AttributeCollection.prototype = {
 		read: function ( char ) {
 			if ( this.sealed ) {
 				return false;
 			}
 
-			this.value += char;
-
-			if ( this.value.substr( -this.closingDelimiter.length ) === this.closingDelimiter ) {
-				this.seal();
+			// are we currently building an attribute?
+			if ( this.nextItem ) {
+				// can it take this character?
+				if ( this.nextItem.read( char ) ) {
+					return true;
+				}
 			}
+
+			// ignore whitespace before attributes
+			if ( whitespace.test( char ) ) {
+				return true;
+			}
+
+			// if not, start a new attribute
+			this.nextItem = new Attribute();
+
+			// will it accept this character? if so add the new attribute
+			if ( this.nextItem.read( char ) ) {
+				this.items[ this.items.length ] = this.nextItem;
+				return true;
+			}
+
+			// if not, we're done here
+			else {
+				this.seal();
+				return false;
+			}
+		},
+
+		seal: function () {
+			this.sealed = true;
+		}
+	};
+
+
+
+	Attribute = function () {
+		this.name = new AttributeName();
+		this.value = new AttributeValue();
+	};
+
+	Attribute.prototype = {
+		read: function ( char ) {
+			if ( this.sealed ) {
+				return false;
+			}
+
+			// can we append this character to the attribute name?
+			if ( this.name.read( char ) ) {
+				return true;
+			}
+			
+			// if not, only continue if we had a name in the first place
+			if ( !this.name.value ) {
+				this.seal();
+				return false;
+			}
+
+			// send character to this.value
+			if ( this.value.read( char ) ) {
+				return true;
+			}
+			
+			// rejected? okay, we're done
+			this.seal();
+			return false;
 		},
 
 		seal: function () {
@@ -386,491 +602,220 @@
 
 
 
-	TagToken = function () {
-		this.status = null;
+	AttributeName = function () {};
 
-		this.tagName = '';
-		this.attributes = [];
-	};
-
-	TagToken.prototype = {
+	AttributeName.prototype = {
 		read: function ( char ) {
-			var response;
-
-			switch ( this.status ) {
-				
-				// we haven't started yet
-				case null:
-					return this.appendOpeningBracket( char );
-
-				case 'ambiguous':
-					return this.determineStartOrEnd( char );
-
-				case 'buildingTagName':
-					return this.appendTagNameChar( char );
-
-				case 'awaitingAttributeName':
-					return this.startAttributeName( char );
-
-				case 'buildingAttributeName':
-					return this.appendAttributeNameChar( char );
-
-				case 'awaitingAttributeNameOrEquals':
-					return this.appendEquals( char );
-
-				case 'awaitingAttributeValue':
-					return this.startAttributeValue( char );
-
-				case 'buildingAttributeValue':
-					return this.appendAttributeValueChar( char );
-
-				case 'expectingClosingAngleBracket':
-					return this.appendClosingBracket( char );
-
-				case 'complete':
-					return false;
-
-				default:
-					// what are you doing here?
-					throw 'Something went wrong!';
-			}
-		},
-
-		appendOpeningBracket: function ( char ) {
-			if ( char === '<' ) {
-				this.status = 'ambiguous';
-				return true;
-			}
-
-			return false;
-		},
-
-		determineStartOrEnd: function ( char ) {
-			this.status = 'buildingTagName';
-
-			if ( char === '/' ) {
-				this.isClosingTag = true;
-				return true;
-			}
-
-			this.isClosingTag = false;
-			return this.appendTagNameChar( char );
-		},
-
-		appendTagNameChar: function ( char ) {
-			if ( alphanumerics.test( char ) ) {
-				this.tagName += char;
-				return true;
-			}
-
-			// if not an alphanumeric, this character could be
-			// 1. whitespace - close tagName, await further input
-			if ( whitespace.test( char ) ) {
-				this.status = 'awaitingAttributeName';
-				return true;
-			}
-
-			// 2. '/' - mark tag as self-closing, await '>'
-			return this.appendClosingSlash( char ) ||
-
-			// 3. '>' - tag is complete
-			this.appendClosingBracket( char );
-		},
-
-		startAttributeName: function ( char ) {
-			// ignore whitespace
-			if ( whitespace.test( char ) ) {
-				return true;
-			}
-
-			// first character cannot be '='
-			if ( char === '=' ) {
+			if ( this.sealed ) {
 				return false;
 			}
 
-			if ( this.appendClosingSlash( char ) || this.appendClosingBracket( char ) ) {
-				return true;
-			}
-
-			this.status = 'buildingAttributeName';
-			
-			this.nextAttribute = this.attributes[ this.attributes.length ] = {
-				name: '',
-				value: ''
-			};
-
-			return this.appendAttributeNameChar( char );
-		},
-
-		appendAttributeNameChar: function ( char ) {
-
-			// whitespace terminates attribute name
-			if ( whitespace.test( char ) ) {
-				this.status = 'awaitingAttributeNameOrEquals';
-				return true;
-			}
-
-			// is it an invalid character? invalid chars are ', ", /, =, >
-			if ( /['"\/=>]/.test( char ) ) {
-				
-				this.status = 'awaitingAttributeNameOrEquals';
-
-				return this.appendEquals( char ) ||
-						this.appendClosingSlash( char ) ||
-						this.appendClosingBracket( char );
-				
-			}
-
-			this.nextAttribute.name += char;
-			return true;
-		},
-
-
-		appendEquals: function ( char ) {
-			// ignore whitespace
-			if ( whitespace.test( char ) ) {
-				return true;
-			}
-
-			if ( char === '=' ) {
-				this.status = 'awaitingAttributeValue';
-				return true;
-			}
-
-			// otherwise we are done with this attribute
-			delete this.nextAttribute;
-			return this.startAttributeName( char );
-		},
-
-
-		startAttributeValue: function ( char ) {
-			if ( char === '"' ) {
-				this.status = 'buildingAttributeValue';
-				this.nextAttribute.doubleQuoted = true;
-				return true;
-			}
-
-			if ( char === "'" ) {
-				this.status = 'buildingAttributeValue';
-				this.nextAttribute.singleQuoted = true;
-				return true;
-			}
-
-			return this.appendAttributeValueChar( char );
-		},
-
-		appendAttributeValueChar: function ( char ) {
-			if ( this.nextAttribute.doubleQuoted ) {
-				// anything goes, except a double quote
-				if ( char === '"' ) {
-					this.status = 'awaitingAttributeName';
-					delete this.nextAttribute.doubleQuoted;
-					delete this.nextAttribute;
+			// first char?
+			if ( !this.value ) {
+				// first char must be letter, underscore or colon. (It really shouldn't be a colon.)
+				if ( /[a-zA-Z_:]/.test( char ) ) {
+					this.value = char;
 					return true;
 				}
 
-				this.nextAttribute.value += char;
-				return true;
-			}
-
-			if ( this.nextAttribute.singleQuoted ) {
-				// anything goes, except a single quote
-				if ( char === "'" ) {
-					this.status = 'awaitingAttributeName';
-					delete this.nextAttribute.singleQuoted;
-					delete this.nextAttribute;
-					return true;
-				}
-
-				this.nextAttribute.value += char;
-				return true;
-			}
-
-			// illegal characters: whitespace, ', ", =, /, <, >, `
-			if ( !/\s'"=\/<>`/.test( char ) ) {
-				this.nextAttribute.value += char;
-				return true;
-			}
-
-			delete this.nextAttribute;
-
-			return this.appendClosingSlash( char ) || this.appendClosingBracket( char );
-		},
-
-
-		appendClosingSlash: function ( char ) {
-			if ( char === '/' ) {
-				this.selfClosing = true;
-				this.status = 'expectingClosingAngleBracket';
-				return true;
-			}
-
-			return false;
-		},
-
-		appendClosingBracket: function ( char ) {
-			if ( char === '>' ) {
-				this.status = 'complete';
-				return true;
-			}
-
-			return false;
-		}
-	};
-
-
-
-
-
-
-	FragmentStub = function () {
-		this.children = [];
-	};
-
-	FragmentStub.prototype = {
-		append: function ( item ) {
-			if ( this.childElement ) {
-				if ( !this.childElement.append( item ) ) {
-					delete this.childElement;
-				}
-				return;
-			}
-
-			if ( item instanceof TagToken ) {
-				this.childElement = this.children[ this.children.length ] = new ElementStub();
-				
-				if ( !this.childElement.append( item ) ) {
-					throw 'Something went wrong';
-				}
-			}
-
-			else {
-				this.children[ this.children.length ] = item;
-				return;
-			}
-		},
-
-		toString: function () {
-			return this.children.join( '' );
-		}
-	};
-
-	FragmentStub.fromTokenStream = function ( stream ) {
-		var fragStub, tokens, token;
-
-		fragStub = new FragmentStub();
-		tokens = stream.tokens;
-
-		while ( tokens.length ) {
-			token = tokens.shift();
-			fragStub.append( token );
-		}
-
-		return fragStub;
-	};
-
-
-
-	ElementStub = function ( parent ) {
-		this.parent = parent;
-		this.status = null;
-		this.children = [];
-	};
-
-	ElementStub.prototype = {
-		append: function ( token ) {
-
-			console.log( 'appending token to element with status "%s"', this.status, token );
-			
-			switch ( this.status ) {
-
-				case null:
-					return this.appendOpeningTag( token );
-
-				case 'appending':
-					return this.appendToken( token );
-
-				case 'appendingToChild':
-					return this.appendTokenToChild( token );
-
-				case 'closed':
-					return false;
-			}
-		},
-
-		appendOpeningTag: function ( token ) {
-			
-			// check it is a valid opening tag
-			if ( !token.tagName || token.isClosingTag ) {
-				console.error( token );
-				throw 'Illegal tag';
-			}
-
-			this.tag = token.tagName;
-			this.attributes = token.attributes;
-
-			// if this is a void tag or a self-closing tag, mark it as such
-			if ( token.selfClosing ) {
-				this.status = 'closed';
-			}
-
-			else if ( voidElementNames.indexOf( this.tag ) !== -1 ) {
-				this.isVoid = true;
-				this.status = 'closed';
-			}
-
-			else {
-				this.status = 'appending';
-			}
-
-			return true;
-		},
-
-		appendToken: function ( token ) {
-			
-			// check first that this isn't a closing tag
-			if ( this.isClosedBy( token ) ) {
-				this.status = 'closed';
-				return true;
-			}
-
-			// if it is a text token, add and move on
-			if ( !( token instanceof TagToken ) ) {
-				this.children[ this.children.length ] = token;
-				return true;
-			}
-
-			// otherwise it looks like we have a child element
-			this.nextStub = new ElementStub( this );
-			this.children[ this.children.length ] = this.nextStub;
-			this.status = 'appendingToChild';
-
-			return this.nextStub.append( token );
-
-		},
-
-		appendTokenToChild: function ( token ) {
-			if ( this.nextStub.append( token ) ) {
-				return true;
-			} else {
-				this.status = 'appending';
-				return this.appendToken( token );
-			}
-		},
-
-		isClosedBy: function ( token ) {
-			var implicitClosers, i;
-
-			// if this is a text token, it cannot close an element
-			if ( !( token instanceof TagToken ) ) {
+				this.seal();
 				return false;
 			}
 
-			// if token is a closing tag with the same name, it closes this element
-			if ( token.isClosingTag && token.tagName === this.tag ) {
+			// subsequent chars can be letters, numbers, underscores, colons, periods, or hyphens. Yeah. Nuts.
+			if ( /[_:a-zA-Z0-9\.\-]/.test( char ) ) {
+				this.value += char;
 				return true;
 			}
 
-			// if this is an element whose end tag can be omitted if followed by an element
-			// which is an 'implicit closer', return true
-			implicitClosers = implicitClosersByTagName[ this.tag.toLowerCase() ];
-			console.log( 1 );
-
-			if ( implicitClosers ) {
-				if ( !token.isClosingTag && implicitClosers.indexOf( token.tagName.toLowerCase() ) !== -1 ) {
-					this.parent.appendToken( token );
-					return true;
-				}
-			}
-			console.log( 2 );
-
-			// if this is an element that is closed when its parent closes, return true
-			if ( closedByParentClose.indexOf( this.tag.toLowerCase() ) !== -1 ) {
-				if ( this.parent && this.parent.isClosedBy( token ) ) {
-					this.parent.appendToken( token );
-					return true;
-				}
-			}
-			console.log( 3 );
-
-			// special cases
-			// p element end tag can be omitted when parent closes if it is not an a element
-			if ( this.tag.toLowerCase() === 'p' ) {
-				if ( this.parent && this.parent.tag.toLowerCase() === 'a' && this.parent.isClosedBy( token ) ) {
-					this.parent.appendToken( token );
-					return true;
-				}
-			}
-			console.log( 4 );
-			
-
+			this.seal();
 			return false;
 		},
 
-		toString: function () {
-			var attrString, stringifyAttribute, openingTag, closingTag, contents;
+		seal: function () {
+			this.sealed = true;
+		}
+	};
 
-			// TODO
 
-			stringifyAttribute = function ( attribute ) {
-				var stringified = ' ';
+	AttributeValue = function () {
+		this.tokens = [];
+		this.buffer = new MustacheBuffer();
 
-				stringified += attribute.name;
+		this.expected = false;
+	};
 
-				// empty string
-				if ( !attribute.value ) {
-					return stringified;
-				}
+	AttributeValue.prototype = {
+		read: function ( char ) {
+			var mustacheToken, bufferValue;
 
-				stringified += '=';
-
-				// if attribute value doesn't need to be qualified, don't bother
-				if ( !/[\s"'=<>`]/.test( attribute.value ) ) {
-					stringified += attribute.value;
-				}
-
-				// if attribute value has unescaped double quote marks, escape them
-				else if ( attribute.value.indexOf( '"' ) !== -1 ) {
-					stringified += '"' + attribute.value.replace( /"/g, '&quot;' ) + '"';
-				}
-
-				else {
-					stringified += '"' + attribute.value + '"';
-				}
-
-				return stringified;
-			};
-
-			attrString = this.attributes.map( stringifyAttribute ).join( '' );
-
-			openingTag = '<' + this.tag + attrString + ( this.selfClosing && !this.isVoid ? '/>' : '>' );
-
-			if ( this.selfClosing || this.isVoid ) {
-				return openingTag;
+			if ( this.sealed ) {
+				return false;
 			}
 
-			contents = this.children.join( '' );
-			closingTag = '</' + this.tag + '>';
+			// have we had the = character yet?
+			if ( !this.expected ) {
+				// ignore whitespace between name and =
+				if ( whitespace.test( char ) ) {
+					return true;
+				}
 
-			return openingTag + contents + closingTag;
+				// if we have the =, we can read in the value
+				if ( char === '=' ) {
+					this.expected = true;
+					return true;
+				}
+
+				// anything else is an error
+				return false;
+			}
+
+			
+			if ( !this.tokens.length ) {
+				// ignore leading whitespace
+				if ( whitespace.test( char ) ) {
+					return true;
+				}
+
+				// if we get a " or a ', flag value as quoted
+				if ( char === '"' || char === "'" ) {
+					this.quoteMark = char;
+					return true;
+				}
+			}
+
+			
+			// send character to buffer
+			if ( this.buffer.read( char ) ) {
+				return true;
+			}
+
+
+			// buffer rejected char. can we convert it to a mustache or triple?
+			mustacheToken = this.buffer.convert();
+
+			if ( mustacheToken ) {
+				// if we were building a token, seal it
+				if ( this.currentToken ) {
+					this.currentToken.seal();
+				}
+
+				// start building the new mustache instead
+				this.currentToken = this.tokens[ this.tokens.length ] = mustacheToken;
+				return true;
+			}
+
+
+			// could not convert to a mustache. can we append to current token?
+			bufferValue = this.buffer.release();
+
+			if ( this.currentToken ) {
+				while ( bufferValue.length ) {
+
+					while ( bufferValue.length && bufferValue.charAt( 0 ) !== this.quoteMark && this.currentToken.read( bufferValue.charAt( 0 ) ) ) {
+						bufferValue = bufferValue.substring( 1 );
+					}
+
+					// still got something left over? create a new token
+					if ( bufferValue.length && bufferValue.charAt( 0 ) !== this.quoteMark ) {
+						this.currentToken = new AttributeValueToken( this.quoteMark );
+						this.currentToken.read( bufferValue.charAt( 0 ) );
+
+						this.tokens[ this.tokens.length ] = this.currentToken;
+						bufferValue = bufferValue.substring( 1 );
+					}
+
+					// closing quoteMark? seal value
+					if ( bufferValue.charAt( 0 ) === this.quoteMark ) {
+						this.currentToken.seal();
+						this.seal();
+						return true;
+					}
+				}
+
+				return true;
+			}
+
+			// otherwise we need to create a new token
+			this.currentToken = new AttributeValueToken( this.quoteMark );
+
+			this.currentToken.read( char );
+			this.tokens[ this.tokens.length ] = this.currentToken;
+			return true;
+		},
+
+		seal: function () {
+			this.sealed = true;
+		}
+	};
+
+
+	AttributeValueToken = function ( quoteMark ) {
+		this.type = types.ATTR_VALUE_TOKEN;
+
+		this.quoteMark = quoteMark || '';
+		this.value = '';
+	};
+
+	AttributeValueToken.prototype = {
+		read: function ( char ) {
+			if ( this.sealed ) {
+				return false;
+			}
+
+			if ( char === this.quoteMark ) {
+				this.seal();
+				return true;
+			}
+
+			// within quotemarks, anything goes
+			if ( this.quoteMark ) {
+				this.value += char;
+				return true;
+			}
+
+			// without quotemarks, the following characters are invalid: whitespace, ", ', =, <, >, `
+			if ( /[\s"'=<>`]/.test( char ) ) {
+				this.seal();
+				return false;
+			}
+
+			this.value += char;
+			return true;
+		},
+
+		seal: function () {
+			this.sealed = true;
 		}
 	};
 
 
 
-	parse = function ( template ) {
+	Solidus = genericToken({
+		pattern: '/'
+	});
+
+	ClosingBracket = genericToken({
+		pattern: '>',
+		required: true
+	});
+	
+
+
+
+
+
+	tokenize = function ( template ) {
 		var stream, fragmentStub;
 
 		stream = TokenStream.fromString( template );
-		console.log( 'stream:', stream );
-
-		fragmentStub = FragmentStub.fromTokenStream( stream );
+		fragmentStub = A.utils.getFragmentStubFromTokens( stream.tokens );
 
 		return fragmentStub;
 	};
 
 
 
-	A.utils.parse = parse;
+	A.utils.tokenize = tokenize;
 
 }( Anglebars ));
