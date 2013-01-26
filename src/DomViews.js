@@ -281,14 +281,21 @@
 
 		// append children, if there are any
 		if ( model.frag ) {
-			this.children = new DomViews.Fragment({
-				model:        model.frag,
-				anglebars:    options.anglebars,
-				parentNode:   this.node,
-				contextStack: options.contextStack,
-				anchor:       null,
-				owner:        this
-			});
+			if ( typeof model.frag === 'string' ) {
+				// great! we can use innerHTML
+				this.node.innerHTML = model.frag;
+			}
+
+			else {
+				this.children = new DomViews.Fragment({
+					model:        model.frag,
+					anglebars:    options.anglebars,
+					parentNode:   this.node,
+					contextStack: options.contextStack,
+					anchor:       null,
+					owner:        this
+				});
+			}
 		}
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
@@ -365,7 +372,9 @@
 				this.parentNode.removeChild( this.node );
 			}
 
-			this.children.teardown();
+			if ( this.children ) {
+				this.children.teardown();
+			}
 
 			while ( this.attributes.length ) {
 				this.attributes.pop().teardown();
