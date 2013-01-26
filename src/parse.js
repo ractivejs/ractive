@@ -271,10 +271,6 @@
 			return true;
 		},
 
-		// merge: function ( token ) {
-		// 	this.value += token.value;
-		// },
-
 		seal: function () {
 			this.sealed = true;
 		}
@@ -379,88 +375,7 @@
 	var OpeningBracket, TagName, AttributeCollection, Solidus, ClosingBracket, Attribute, AttributeName, AttributeValue;
 
 
-	var genericToken = function ( options ) {
-		var Token, pattern, length;
-
-		if ( typeof options.pattern === 'string' ) {
-			length = options.pattern.length;
-			pattern = new RegExp( '^' + A.utils.escape( options.pattern ) + '$' );
-		} else {
-			pattern = options.pattern;
-		}
-
-
-		Token = function () {
-			this.value = '';
-			this.pattern = pattern;
-			this.required = options.required;
-
-			this.length = options.length || length;
-		};
-
-		Token.prototype = {
-			toString: options.toString || function () {
-				return this.value;
-			},
-
-			read: function ( char ) {
-				var newValue;
-
-				if ( char.length > 1 ) {
-					throw 'Token can only read one character at a time';
-				}
-
-				if ( this.sealed ) {
-					return false;
-				}
-
-				newValue = this.value + char;
-
-				if ( this.pattern.test( newValue ) ) {
-					this.value = newValue;
-
-					// if we know how long this token should be, and we're at that length, we can seal
-					if ( this.length && this.value.length === this.length ) {
-						this.seal();
-					}
-
-					return true;
-				}
-
-				this.seal();
-				return false;
-			},
-
-			seal: function () {
-				var i, properties, match, value;
-
-				value = this.value;
-
-				if ( this.required && !pattern.test( value ) ) {
-					throw 'Token string "' + value + '" did not match pattern ' + pattern;
-				}
-
-				if ( options.properties && pattern ) {
-					properties = ( typeof options.properties === 'string' ? [ options.properties ] : options.properties );
-
-					i = properties.length;
-					match = pattern.exec( this.value );
-
-					while ( i-- ) {
-						this[ properties[i] ] = ( match ? match[ i+1 ] : '' );
-					}
-				}
-
-				if ( options.onseal ) {
-					options.onseal.call( this, value );
-				}
-
-				this.sealed = true;
-			}
-		};
-
-		return Token;
-	};
+	
 
 
 
