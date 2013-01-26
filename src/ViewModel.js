@@ -53,7 +53,7 @@
 			while ( i-- ) { // Work backwards, so we don't go in circles!
 				unresolved = this.pendingResolution.splice( i, 1 )[0];
 
-				fullKeypath = this.getFullKeypath( unresolved.view.model.partialKeypath, unresolved.view.contextStack );
+				fullKeypath = this.getFullKeypath( unresolved.view.model.ref, unresolved.view.contextStack );
 
 				// If we were able to find a keypath, initialise the view
 				if ( fullKeypath !== undefined ) {
@@ -107,17 +107,17 @@
 				// create observers
 				view.observerRefs = self.observe({
 					keypath: keypath,
-					priority: view.model.priority,
+					priority: view.model.p || 0,
 					view: view
 				});
 
 				value = self.get( keypath );
-				formatted = view.anglebars._format( value, view.model.formatters );
+				formatted = view.anglebars._format( value, view.model.fmtrs );
 
 				view.update( formatted );
 			};
 
-			fullKeypath = this.getFullKeypath( view.model.partialKeypath, view.contextStack );
+			fullKeypath = this.getFullKeypath( view.model.ref, view.contextStack );
 
 			if ( fullKeypath === undefined ) {
 				this.registerUnresolvedKeypath({
@@ -129,14 +129,14 @@
 			}
 		},
 
-		// Resolve a full keypath from `partialKeypath` within the given `contextStack` (e.g.
+		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-		getFullKeypath: function ( partialKeypath, contextStack ) {
+		getFullKeypath: function ( ref, contextStack ) {
 
 			var innerMost;
 
 			// Implicit iterators - i.e. {{.}} - are a special case
-			if ( partialKeypath === '.' ) {
+			if ( ref === '.' ) {
 				return contextStack[ contextStack.length - 1 ];
 			}
 
@@ -148,13 +148,13 @@
 
 				innerMost = contextStack.pop();
 
-				if ( this.get( innerMost + '.' + partialKeypath ) !== undefined ) {
-					return innerMost + '.' + partialKeypath;
+				if ( this.get( innerMost + '.' + ref ) !== undefined ) {
+					return innerMost + '.' + ref;
 				}
 			}
 
-			if ( this.get( partialKeypath ) !== undefined ) {
-				return partialKeypath;
+			if ( this.get( ref ) !== undefined ) {
+				return ref;
 			}
 		},
 
@@ -179,7 +179,7 @@
 						}
 
 						if ( observer.view ) {
-							formatted = observer.view.anglebars._format( actualValue, observer.view.model.formatters );
+							formatted = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
 							observer.view.update( formatted );
 						}
 

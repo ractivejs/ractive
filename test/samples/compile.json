@@ -7,36 +7,36 @@
 	{
 		"name": "Mustache-less text",
 		"template": "a string",
-		"compiled": [{"type":0,"text":"a string"}]
+		"compiled": [{"type":1,"text":"a string"}]
 	},
 	{
 		"name": "Interpolator",
 		"template": "{{mustache}}",
-		"compiled": [{"type":1,"partialKeypath":"mustache","priority":0}]
+		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0}]
 	},
 	{
 		"name": "Triple",
 		"template": "{{{mustache}}}",
-		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0}]
+		"compiled": [{"type":3,"partialKeypath":"mustache","priority":0}]
 	},
 	{
 		"name": "Section",
 		"template": "{{#mustache}}{{/mustache}}",
-		"compiled": [{"type":3,"partialKeypath":"mustache","inverted":false,"children":[],"priority":0}]
+		"compiled": [{"type":4,"partialKeypath":"mustache","inverted":false,"children":[],"priority":0}]
 	},
 	{
 		"name": "Interpolator with preceding text",
 		"template": "preceding text {{mustache}}",
-		"compiled": [{"type":0,"text":"preceding text "},{"type":1,"partialKeypath":"mustache","priority":0}]
+		"compiled": [{"type":1,"text":"preceding text "},{"type":2,"partialKeypath":"mustache","priority":0}]
 	},
 	{
 		"name": "Interpolator with following text",
 		"template": "{{mustache}} following text",
-		"compiled": [{"type":1,"partialKeypath":"mustache","priority":0},{"type":0,"text":" following text"}]
+		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0},{"type":1,"text":" following text"}]
 	},
 	{
 		"name": "Delimiter change",
 		"template": "{{=<% %>=}} <% mustache %>",
-		"compiled": [{"type":1,"partialKeypath":"mustache","priority":0}]
+		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0}]
 	}
 ]

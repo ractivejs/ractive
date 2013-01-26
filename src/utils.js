@@ -6,7 +6,7 @@
 
 	var utils = A.utils = {
 		// convert HTML to an array of DOM nodes
-		getNodeArrayFromHtml: function ( html, replaceSrcAttributes ) {
+		/*getNodeArrayFromHtml: function ( html, replaceSrcAttributes ) {
 
 			var temp, i, numNodes, nodes = [], attrs, tags, pattern;
 
@@ -52,7 +52,7 @@
 			}
 
 			return nodes;
-		},
+		},*/
 
 
 		// Returns the specified DOM node
@@ -81,7 +81,7 @@
 		},
 
 
-		// Split partialKeypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
+		// Split keypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
 		splitKeypath: function ( keypath ) {
 			var firstPass, secondPass = [], i;
 
@@ -135,7 +135,7 @@
 			return str.replace( theSpecials, '\\$&' );
 		},
 
-		compileMustachePattern: function () {
+		/*compileMustachePattern: function () {
 			var openDelim = this.escape( A.delimiters[0] ),
 				closeDelim = this.escape( A.delimiters[1] ),
 				openTrDelim = this.escape( A.tripleDelimiters[0] ),
@@ -185,11 +185,44 @@
 				'(?:(' + closeTrDelim + ')|(' + closeDelim + '))' +
 
 			'))', 'g' );
+		},*/
+
+
+		stripHtmlComments: function ( str ) {
+			var commentStart, commentEnd, processed;
+
+			processed = '';
+
+			while ( str.length ) {
+				commentStart = str.indexOf( '<!--' );
+				commentEnd = str.indexOf( '-->' );
+
+				// no comments? great
+				if ( commentStart === -1 && commentEnd === -1 ) {
+					processed += str;
+					break;
+				}
+
+				// comment start but no comment end
+				if ( commentStart !== -1 && commentEnd === -1 ) {
+					throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
+				}
+
+				// comment end but no comment start, or comment end before comment start
+				if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
+					throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
+				}
+
+				processed += str.substr( 0, commentStart );
+				str = str.substring( commentEnd + 3 );
+			}
+
+			return processed;
 		},
 
 
 		// collapse standalones (i.e. mustaches that sit on a line by themselves) and remove comments
-		preProcess: function ( str ) {
+		/*preProcess: function ( str ) {
 			var result = '', remaining = str, mustache, pre, post, preTest, postTest, typeTest, delimiters, tripleDelimiters, recompile;
 
 			// make a note of current delimiters, we may need to reset them in a minute
@@ -254,13 +287,13 @@
 			}
 
 			return result;
-		},
+		},*/
 
 
 
 		// find the first mustache in a string, and store some information about it. Returns an array
 		// - the result of regex.exec() - with some additional properties
-		findMustache: function ( text, startIndex ) {
+		/*findMustache: function ( text, startIndex ) {
 
 			var match, split, mustache, formulaSplitter, i, formatters, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
 
@@ -356,11 +389,11 @@
 
 			// if no mustache found, report failure
 			return false;
-		},
+		},*/
 
 
 		// find the first match of a pattern within a string. Returns an array with start and end properties indicating where the match was found within the string
-		findMatch: function ( text, pattern, startIndex ) {
+		/*findMatch: function ( text, pattern, startIndex ) {
 
 			var match;
 
@@ -378,10 +411,10 @@
 				match.start = ( match.end - match[0].length );
 				return match;
 			}
-		},
+		},*/
 
 
-		getStubsFromNodes: function ( nodes ) {
+		/*getStubsFromNodes: function ( nodes ) {
 			var i, numNodes, node, result = [], stubs;
 
 			numNodes = nodes.length;
@@ -404,9 +437,9 @@
 			}
 
 			return result;
-		},
+		},*/
 
-		expandText: function ( text ) {
+		/*expandText: function ( text ) {
 			var result = [], mustache, start, ws, pre, post, standalone, stubs;
 
 			// see if there's a mustache involved here
@@ -466,7 +499,7 @@
 			}
 
 			return result;
-		},
+		},*/
 
 		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 		isArray: function ( obj ) {
@@ -477,7 +510,29 @@
 			return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 		},
 
-		compileStubs: function ( stubs, priority, preserveWhitespace ) {
+
+		insertHtml: function ( html, parent, anchor ) {
+			var div, i, len, nodes = [];
+
+			anchor = anchor || null;
+
+			div = document.createElement( 'div' );
+			div.innerHTML = html;
+
+			len = div.childNodes.length;
+
+			for ( i=0; i<len; i+=1 ) {
+				nodes[i] = div.childNodes[i];
+			}
+
+			for ( i=0; i<len; i+=1 ) {
+				parent.insertBefore( nodes[i], anchor );
+			}
+
+			return nodes;
+		}
+
+		/*compileStubs: function ( stubs, priority, preserveWhitespace ) {
 			var compiled, next, processStub;
 
 			compiled = [];
@@ -612,9 +667,146 @@
 			}
 
 			return compiled;
-		},
+		},*/
 
-		processElementStub: function ( stub, priority ) {
+		/*compileStubs: function ( stubs, priority, preserveWhitespace ) {
+			var compiled, next, processStub;
+
+			compiled = [];
+
+			processStub = function ( i ) {
+				var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath, compiledStub;
+
+				whitespace = /^\s*\n\r?\s*$/;
+
+				stub = stubs[i];
+
+				switch ( stub.type ) {
+					case types.TEXT:
+						if ( !preserveWhitespace ) {
+							if ( whitespace.test( stub.text ) || stub.text === '' ) {
+								return i+1; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
+							}
+						}
+
+						compiled[ compiled.length ] = stub;
+						return i+1;
+
+					case types.ELEMENT:
+						compiled[ compiled.length ] = utils.processElementStub( stub, priority );
+						return i+1;
+
+					case types.MUSTACHE:
+
+						partialKeypath = stub.mustache.partialKeypath;
+
+						switch ( stub.mustache.type ) {
+							case types.SECTION:
+
+								i += 1;
+								sliceStart = i; // first item in section
+								nesting = 1;
+
+								// find end
+								while ( ( i < stubs.length ) && !sliceEnd ) {
+
+									bit = stubs[i];
+
+									if ( bit.type === types.MUSTACHE ) {
+										if ( bit.mustache.type === types.SECTION && bit.mustache.partialKeypath === partialKeypath ) {
+											if ( !bit.mustache.closing ) {
+												nesting += 1;
+											}
+
+											else {
+												nesting -= 1;
+												if ( !nesting ) {
+													sliceEnd = i;
+												}
+											}
+										}
+									}
+
+									i += 1;
+								}
+
+								if ( !sliceEnd ) {
+									throw new Error( 'Illegal section "' + partialKeypath + '"' );
+								}
+
+								compiledStub = {
+									type: types.SECTION,
+									partialKeypath: partialKeypath,
+									inverted: stub.mustache.inverted,
+									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, preserveWhitespace ),
+									priority: priority
+								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
+								return i;
+
+
+							case types.TRIPLE:
+								compiledStub = {
+									type: types.TRIPLE,
+									partialKeypath: stub.mustache.partialKeypath,
+									priority: priority
+								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
+								return i+1;
+
+
+							case types.INTERPOLATOR:
+								compiledStub = {
+									type: types.INTERPOLATOR,
+									partialKeypath: stub.mustache.partialKeypath,
+									priority: priority
+								};
+								if ( stub.mustache.formatters ) {
+									compiledStub.formatters = stub.mustache.formatters;
+								}
+
+								compiled[ compiled.length ] = compiledStub;
+								return i+1;
+
+
+							case types.PARTIAL:
+								compiledStub = {
+									type: types.PARTIAL,
+									id: stub.mustache.partialKeypath,
+									priority: priority
+								};
+								
+								compiled[ compiled.length ] = compiledStub;
+								return i+1;	
+
+							default:
+								if ( console && console.error ) { console.error( 'Bad mustache: ', stub.mustache ); }
+								throw new Error( 'Error compiling template: Illegal mustache (' + stub.mustache[0] + ')' );
+						}
+						break;
+
+					default:
+						throw new Error( 'Error compiling template. Something *very weird* has happened' );
+				}
+			};
+
+			next = 0;
+			while ( next < stubs.length ) {
+				next = processStub( next );
+			}
+
+			return compiled;
+		},*/
+
+		/*processElementStub: function ( stub, priority ) {
 			var proxy, attributes, numAttributes, attribute, i, node;
 
 			node = stub.original;
@@ -638,9 +830,9 @@
 
 				if ( attribute.name === 'xmlns' ) {
 					proxy.namespace = attribute.value;
-				} else {
-					attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value, priority + 1 );
 				}
+
+				attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value, priority + 1 );
 			}
 
 			proxy.attributes = attributes;
@@ -674,7 +866,7 @@
 
 
 			return attribute;
-		}
+		}*/
 	};
 
 

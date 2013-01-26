@@ -49,6 +49,10 @@
 	// Substring types
 	TextViews = A.TextViews = {
 		create: function ( options ) {
+			if ( typeof options.model === 'string' ) {
+				return new TextViews.Text( options.model );
+			}
+
 			return new TextViews[ ctors[ options.model.type ] ]( options );
 		}
 	};
@@ -100,8 +104,8 @@
 
 
 	// Plain text
-	TextViews.Text = function ( options ) {
-		this.text = options.model.text;
+	TextViews.Text = function ( text ) {
+		this.text = text;
 	};
 
 	TextViews.Text.prototype = {
@@ -191,7 +195,7 @@
 
 				else {
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
+						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
@@ -232,7 +236,7 @@
 
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
-								this.children[i] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
+								this.children[i] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
 							}
 						}
 					}
@@ -246,7 +250,7 @@
 					// (if it is already rendered, then any children dependent on the context stack
 					// will update themselves without any prompting)
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack.concat( this.keypath ) );
+						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
 						this.length = 1;
 					}
 				}
@@ -257,7 +261,7 @@
 
 				if ( value && !emptyArray ) {
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.children, this.anglebars, this, this.contextStack );
+						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}

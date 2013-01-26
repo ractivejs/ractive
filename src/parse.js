@@ -4,7 +4,7 @@
 
 	var utils,
 		types,
-		stripComments,
+		stripHtmlComments,
 		getTokens,
 		getTree,
 		whitespace,
@@ -20,16 +20,42 @@
 		TagToken,
 		AttributeValueToken,
 
-		mustacheTypes,
-
-		error;
+		mustacheTypes;
 
 
 	utils = A.utils;
 	types = A.types;
 
-	error = function ( char ) {
-		throw 'Unexpected character ("' + char + '")';
+	stripHtmlComments = function ( str ) {
+		var commentStart, commentEnd, processed;
+
+		processed = '';
+
+		while ( str.length ) {
+			commentStart = str.indexOf( '<!--' );
+			commentEnd = str.indexOf( '-->' );
+
+			// no comments? great
+			if ( commentStart === -1 && commentEnd === -1 ) {
+				processed += str;
+				break;
+			}
+
+			// comment start but no comment end
+			if ( commentStart !== -1 && commentEnd === -1 ) {
+				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
+			}
+
+			// comment end but no comment start, or comment end before comment start
+			if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
+				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
+			}
+
+			processed += str.substr( 0, commentStart );
+			str = str.substring( commentEnd + 3 );
+		}
+
+		return processed;
 	};
 
 
@@ -259,7 +285,8 @@
 		'#': types.SECTION,
 		'^': types.INVERTED,
 		'/': types.CLOSING,
-		'>': types.PARTIAL
+		'>': types.PARTIAL,
+		'!': types.COMMENT
 	};
 
 
@@ -295,6 +322,10 @@
 		seal: function () {
 			var trimmed, firstChar, identifiers;
 
+			if ( this.sealed ) {
+				return;
+			}
+
 			// lop off opening and closing delimiters, and leading/trailing whitespace
 			trimmed = this.value.replace( this.openingDelimiter, '' ).replace( this.closingDelimiter, '' ).trim();
 
@@ -306,10 +337,10 @@
 
 			// if type isn't TRIPLE or DELIMCHANGE, determine from first character
 			if ( !this.type ) {
-				
+
 				firstChar = trimmed.charAt( 0 );
 				if ( mustacheTypes[ firstChar ] ) {
-					
+
 					this.type = mustacheTypes[ firstChar ];
 					trimmed = trimmed.substring( 1 ).trim();
 
@@ -318,10 +349,10 @@
 				}
 			}
 
-			// get partial keypath and any formatters
+			// get reference and any formatters
 			identifiers = trimmed.split( '|' );
 
-			this.partialKeypath = identifiers.shift().trim();
+			this.ref = identifiers.shift().trim();
 
 			if ( identifiers.length ) {
 				this.formatters = identifiers.map( function ( name ) {
@@ -498,17 +529,68 @@
 	};
 
 
-	OpeningBracket = genericToken({
-		pattern: '<',
-		required: true
-	});
+	// OpeningBracket = genericToken({
+	// 	pattern: '<',
+	// 	required: true
+	// });
+
+	OpeningBracket = function () {};
+	OpeningBracket.prototype = {
+		read: function ( char ) {
+			if ( this.sealed ) {
+				return false;
+			}
+
+			if ( char === '<' ) {
+				this.value = '<';
+				this.seal();
+				return true;
+			}
+
+			throw 'Expected "<", saw "' + char + '"';
+		},
+
+		seal: function () {
+			this.sealed = true;
+		}
+	};
 
 
-	TagName = genericToken({
-		pattern: /^([a-zA-Z][a-zA-Z0-9]*)$/,
-		required: true
-	});
+	// TagName = genericToken({
+	// 	pattern: /^([a-zA-Z][a-zA-Z0-9]*)$/,
+	// 	required: true
+	// });
 
+
+	TagName = function () {};
+	TagName.prototype = {
+		read: function ( char ) {
+			if ( this.sealed ) {
+				return false;
+			}
+
+			// first char must be a letter
+			if ( !this.value ) {
+				if ( /[a-zA-Z]/.test( char ) ) {
+					this.value = char;
+					return true;
+				}
+			}
+
+			// subsequent characters can be letters, numbers or hyphens
+			if ( /[a-zA-Z0-9\-]/.test( char ) ) {
+				this.value += char;
+				return true;
+			}
+
+			this.seal();
+			return false;
+		},
+
+		seal: function () {
+			this.sealed = true;
+		}
+	};
 
 	
 
@@ -791,14 +873,57 @@
 
 
 
-	Solidus = genericToken({
-		pattern: '/'
-	});
+	// Solidus = genericToken({
+	// 	pattern: '/'
+	// });
 
-	ClosingBracket = genericToken({
-		pattern: '>',
-		required: true
-	});
+	Solidus = function () {};
+	Solidus.prototype = {
+		read: function ( char ) {
+			if ( this.sealed ) {
+				return false;
+			}
+
+			if ( char === '/' ) {
+				this.value = '/';
+				this.seal();
+				return true;
+			}
+
+			this.seal();
+			return false;
+		},
+
+		seal: function () {
+			this.sealed = true;
+		}
+	};
+
+	// ClosingBracket = genericToken({
+	// 	pattern: '>',
+	// 	required: true
+	// });
+
+	ClosingBracket = function () {};
+	ClosingBracket.prototype = {
+		read: function ( char ) {
+			if ( this.sealed ) {
+				return false;
+			}
+
+			if ( char === '>' ) {
+				this.value = '>';
+				this.seal();
+				return true;
+			}
+
+			throw 'Expected ">", received "' + char + '"';
+		},
+
+		seal: function () {
+			this.sealed = true;
+		}
+	};
 	
 
 
@@ -808,10 +933,9 @@
 	tokenize = function ( template ) {
 		var stream, fragmentStub;
 
-		stream = TokenStream.fromString( template );
-		fragmentStub = A.utils.getFragmentStubFromTokens( stream.tokens );
+		stream = TokenStream.fromString( stripHtmlComments( template ) );
 
-		return fragmentStub;
+		return stream.tokens;
 	};
 
 

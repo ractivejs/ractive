@@ -83,7 +83,7 @@
 		}
 		
 		// if this is a void element, or a self-closing tag, seal the element
-		if ( token.isSelfClosing || voidElementNames.indexOf( token.tag.toLowerCase() ) !== -1 ) {
+		if ( token.isSelfClosingTag || voidElementNames.indexOf( token.tag.toLowerCase() ) !== -1 ) {
 			return;
 		}
 		
@@ -96,7 +96,7 @@
 		},
 
 		toJson: function ( noStringify ) {
-			var json, attr, str, i, fragStr;
+			var json, attrName, attrValue, str, i, fragStr;
 
 			json = {
 				type: types.ELEMENT,
@@ -104,26 +104,24 @@
 			};
 
 			if ( this.attributes ) {
-				json.attrs = [];
+				json.attrs = {};
 
 				for ( i=0; i<this.attributes.length; i+=1 ) {
-					attr = {
-						k: this.attributes[i].name
-					};
+					attrName = this.attributes[i].name;
 
 					// can we stringify the value?
 					str = this.attributes[i].value.toString();
 					if ( str !== false ) { // need to explicitly check, as '' === false
-						attr.v = str;
+						attrValue = str;
 					} else {
-						attr.v = this.attributes[i].value.toJson();
+						attrValue = this.attributes[i].value.toJson();
 					}
 
-					json.attrs[i] = attr;
+					json.attrs[ attrName ] = attrValue;
 				}
 			}
 
-			if ( this.fragment.items.length ) {
+			if ( this.fragment && this.fragment.items.length ) {
 				json.frag = this.fragment.toJson( noStringify );
 			}
 
@@ -140,7 +138,7 @@
 			}
 
 			// see if children can be stringified (i.e. don't contain mustaches)
-			fragStr = this.fragment.toString();
+			fragStr = ( this.fragment ? this.fragment.toString() : '' );
 			if ( fragStr === false ) {
 				return false;
 			}
@@ -208,7 +206,7 @@
 		this.type = types.SECTION;
 		this.parentFragment = parentFragment;
 
-		this.ref = token.partialKeypath;
+		this.ref = token.ref;
 		this.inverted = ( token.type === types.INVERTED );
 		this.formatters = token.formatters;
 
@@ -255,7 +253,7 @@
 		this.type = token.type;
 		this.priority = priority;
 
-		this.ref = token.partialKeypath;
+		this.ref = token.ref;
 		this.formatters = token.formatters;
 	};
 
@@ -331,8 +329,8 @@
 
 			// time to create a new child...
 
-			// (...unless this is a section closer)
-			if ( token.type === types.CLOSING ) {
+			// (...unless this is a section closer or a delimiter change or a comment)
+			if ( token.type === types.CLOSING || token.type === types.DELIMCHANGE || token.type === types.COMMENT ) {
 				return false;
 			}
 
@@ -411,7 +409,7 @@
 			}
 
 			if ( this.owner.type === types.SECTION ) {
-				if ( token.type === types.CLOSING && token.partialKeypath === this.owner.partialKeypath ) {
+				if ( token.type === types.CLOSING && token.ref === this.owner.ref ) {
 					return true;
 				}
 			}

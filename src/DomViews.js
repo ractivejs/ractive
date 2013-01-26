@@ -7,12 +7,12 @@
 	types = A.types;
 
 	ctors = [];
-	ctors[ types.TEXT ] = 'Text';
+	ctors[ types.TEXT ]         = 'Text';
 	ctors[ types.INTERPOLATOR ] = 'Interpolator';
-	ctors[ types.TRIPLE ] = 'Triple';
-	ctors[ types.SECTION ] = 'Section';
-	ctors[ types.ELEMENT ] = 'Element';
-	ctors[ types.PARTIAL ] = 'Partial';
+	ctors[ types.TRIPLE ]       = 'Triple';
+	ctors[ types.SECTION ]      = 'Section';
+	ctors[ types.ELEMENT ]      = 'Element';
+	ctors[ types.PARTIAL ]      = 'Partial';
 
 	utils = A.utils;
 
@@ -53,6 +53,9 @@
 	// View types
 	DomViews = A.DomViews = {
 		create: function ( options ) {
+			if ( typeof options.model === 'string' ) {
+				return new DomViews.Text( options );
+			}
 			return new DomViews[ ctors[ options.model.type ] ]( options );
 		}
 	};
@@ -62,6 +65,15 @@
 	DomViews.Fragment = function ( options, wait ) {
 
 		var numModels, i, itemOptions, async;
+
+
+		// if we have an HTML string, our job is easy. TODO consider async?
+		if ( typeof options.model === 'string' ) {
+			this.nodes = utils.insertHtml( options.model, options.parentNode, options.anchor );
+			return;
+		}
+
+		// otherwise we have to do some work
 
 		async = options.anglebars.async;
 
@@ -113,6 +125,17 @@
 
 	DomViews.Fragment.prototype = {
 		teardown: function () {
+			var node;
+
+			// if this was built from HTML, we just need to remove the nodes
+			if ( this.nodes ) {
+				while ( this.nodes.length ) {
+					node = this.nodes.pop();
+					node.parentNode.removeChild( node );
+				}
+			}
+
+			// otherwise we need to do a proper teardown
 			while ( this.items.length ) {
 				this.items.pop().teardown();
 			}
@@ -171,7 +194,7 @@
 
 	// Plain text
 	DomViews.Text = function ( options ) {
-		this.node = document.createTextNode( options.model.text );
+		this.node = document.createTextNode( options.model );
 		this.index = options.index;
 		this.anglebars = options.anglebars;
 		this.parentNode = options.parentNode;
@@ -196,11 +219,12 @@
 	// Element
 	DomViews.Element = function ( options ) {
 
-		var i,
-		attributeModel,
-		binding,
-		model,
-		namespace;
+		var binding,
+			model,
+			namespace,
+			attr,
+			attrName,
+			attrValue;
 
 		// stuff we'll need later
 		model = this.model = options.model;
@@ -210,7 +234,18 @@
 		this.parentNode = options.parentNode;
 		this.index = options.index;
 
-		namespace = model.namespace || this.parentNode.namespaceURI;
+		// get namespace
+		if ( model.attrs && model.attrs.xmlns ) {
+			namespace = model.attrs.xmlns;
+
+			// check it's a string!
+			if ( typeof namespace !== 'string' ) {
+				throw 'Namespace attribute cannot contain mustaches';
+			}
+		} else {
+			namespace = this.parentNode.namespaceURI;
+		}
+		
 
 		// create the DOM node
 		this.node = document.createElementNS( namespace, model.tag );
@@ -218,20 +253,25 @@
 
 		// set attributes
 		this.attributes = [];
-		i = model.attributes.length;
-		while ( i-- ) {
-			attributeModel = model.attributes[i];
+		for ( attrName in model.attrs ) {
+			if ( model.attrs.hasOwnProperty( attrName ) ) {
+				attrValue = model.attrs[ attrName ];
 
-			this.attributes[i] = new DomViews.Attribute({
-				model: attributeModel,
-				anglebars: options.anglebars,
-				parentNode: this.node,
-				contextStack: options.contextStack
-			});
+				attr = new DomViews.Attribute({
+					owner: this,
+					name: attrName,
+					value: attrValue,
+					anglebars: options.anglebars,
+					parentNode: this.node,
+					contextStack: options.contextStack
+				});
 
-			// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-			if ( attributeModel.name === 'value' && this.anglebars.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
-				binding = this.attributes[i];
+				// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
+				if ( attrName === 'value' && this.anglebars.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
+					binding = attr;
+				}
+
+				this.attributes[ this.attributes.length ] = attr;
 			}
 		}
 
@@ -239,15 +279,17 @@
 			this.bind( binding, options.anglebars.lazy );
 		}
 
-		// append children
-		this.children = new DomViews.Fragment({
-			model:        model.children,
-			anglebars:    options.anglebars,
-			parentNode:   this.node,
-			contextStack: options.contextStack,
-			anchor:       null,
-			owner:        this
-		});
+		// append children, if there are any
+		if ( model.frag ) {
+			this.children = new DomViews.Fragment({
+				model:        model.frag,
+				anglebars:    options.anglebars,
+				parentNode:   this.node,
+				contextStack: options.contextStack,
+				anchor:       null,
+				owner:        this
+			});
+		}
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		this.parentNode.insertBefore( this.node, options.anchor || null );
@@ -339,16 +381,17 @@
 	// Attribute
 	DomViews.Attribute = function ( options ) {
 
-		var i, model, colonIndex, namespacePrefix, namespace, ancestor;
+		var i, name, value, colonIndex, namespacePrefix, namespace, ancestor;
 
-		model = options.model;
+		name = options.name;
+		value = options.value;
 
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
-		colonIndex = model.name.indexOf( ':' );
+		colonIndex = name.indexOf( ':' );
 		if ( colonIndex !== -1 ) {
 
 			// looks like we are, yes...
-			namespacePrefix = model.name.substr( 0, colonIndex );
+			namespacePrefix = name.substr( 0, colonIndex );
 
 			// ...unless it's a namespace *declaration*
 			if ( namespacePrefix === 'xmlns' ) {
@@ -376,12 +419,12 @@
 		}
 
 		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
-		if ( !model.isDynamic ) {
+		if ( typeof value === 'string' ) {
 			
 			if ( namespace ) {
-				options.parentNode.setAttributeNS( namespace, model.name, model.value );
+				options.parentNode.setAttributeNS( namespace, name.replace( namespacePrefix + ':', '' ), value );
 			} else {
-				options.parentNode.setAttribute( model.name, model.value );
+				options.parentNode.setAttribute( name, value );
 			}
 			
 			return;
@@ -389,14 +432,14 @@
 
 		// otherwise we need to do some work
 		this.parentNode = options.parentNode;
-		this.name = model.name;
+		this.name = name;
 
 		this.children = [];
 
-		i = model.components.length;
+		i = value.length;
 		while ( i-- ) {
 			this.children[i] = A.TextViews.create({
-				model:        model.components[i],
+				model:        value[i],
 				anglebars:    options.anglebars,
 				parent:       this,
 				contextStack: options.contextStack
@@ -593,7 +636,7 @@
 			}
 
 			fragmentOptions = {
-				model:        this.model.children,
+				model:        this.model.frag,
 				anglebars:    this.anglebars,
 				parentNode:   this.parentNode,
 				anchor:       this.parentFragment.findNextNode( this ),
