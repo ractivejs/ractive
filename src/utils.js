@@ -158,6 +158,10 @@
 
 	(function() {
 		var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor;
+
+		if ( typeof window === 'undefined' ) {
+			return; // we're not in a browser!
+		}
 		
 		if ( window.requestAnimationFrame ) {
 			utils.wait = function ( task ) {
