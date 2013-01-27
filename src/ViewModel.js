@@ -1,5 +1,7 @@
 (function ( A ) {
 
+	var splitKeypath, parseArrayNotation;
+
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
 		// Initialise with supplied data, or create an empty object
@@ -32,7 +34,7 @@
 
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
-			keys = A.utils.splitKeypath( keypath );
+			keys = splitKeypath( keypath );
 
 			// TODO accommodate implicit array generation
 			obj = this.data;
@@ -75,7 +77,7 @@
 				return undefined;
 			}
 
-			keys = A.utils.splitKeypath( keypath );
+			keys = splitKeypath( keypath );
 
 			result = this.data;
 			while ( keys.length ) {
@@ -99,7 +101,7 @@
 		},
 
 		registerView: function ( view ) {
-			var self = this, fullKeypath, initialUpdate, value, formatted;
+			var self = this, fullKeypath, initialUpdate, value;
 
 			initialUpdate = function ( keypath ) {
 				view.keypath = keypath;
@@ -112,9 +114,15 @@
 				});
 
 				value = self.get( keypath );
-				formatted = view.anglebars._format( value, view.model.fmtrs );
+				
+				
+				// pass value through formatters, if there are any
+				if ( view.model.fmtrs ) {
+					console.log( view );
+					value = view.anglebars._format( value, view.model.fmtrs );
+				}
 
-				view.update( formatted );
+				view.update( value );
 			};
 
 			fullKeypath = this.getFullKeypath( view.model.ref, view.contextStack );
@@ -163,7 +171,7 @@
 		},
 
 		_notifyObservers: function ( keypath, value ) {
-			var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted, actualValue;
+			var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, actualValue;
 
 			for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
 				priority = observersGroupedByLevel[i];
@@ -179,8 +187,12 @@
 						}
 
 						if ( observer.view ) {
-							formatted = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
-							observer.view.update( formatted );
+							// apply formatters, if there are any
+							if ( observer.view.model.fmtrs ) {
+								actualValue = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
+							}
+
+							observer.view.update( actualValue );
 						}
 
 						if ( observer.callback ) {
@@ -319,5 +331,51 @@
 			this.pendingResolution = filtered;
 		};
 	}
+
+
+
+	// Split keypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
+	splitKeypath = function ( keypath ) {
+		var firstPass, secondPass = [], i;
+
+		// Start by splitting on periods
+		firstPass = keypath.split( '.' );
+
+		// Then see if any keys use array notation instead of dot notation
+		for ( i=0; i<firstPass.length; i+=1 ) {
+			secondPass = secondPass.concat( parseArrayNotation( firstPass[i] ) );
+		}
+
+		return secondPass;
+	};
+
+	// Split key with array notation ('baz[0]') into identifier and array pointer(s) (['baz', 0])
+	parseArrayNotation = function ( key ) {
+		var index, arrayPointers, pattern, match, result;
+
+		index = key.indexOf( '[' );
+
+		if ( index === -1 ) {
+			return key;
+		}
+
+		result = [ key.substr( 0, index ) ];
+		arrayPointers = key.substring( index );
+
+		pattern = A.patterns.arrayPointer;
+
+		while ( arrayPointers.length ) {
+			match = pattern.exec( arrayPointers );
+
+			if ( !match ) {
+				return result;
+			}
+
+			result[ result.length ] = +match[1];
+			arrayPointers = arrayPointers.substring( match[0].length );
+		}
+
+		return result;
+	};
 
 }( Anglebars ));

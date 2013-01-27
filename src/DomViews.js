@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	var domViewMustache, DomViews, utils, types, ctors;
+	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject;
 
 	types = A.types;
 
@@ -14,7 +14,29 @@
 	ctors[ types.ELEMENT ]      = 'Element';
 	ctors[ types.PARTIAL ]      = 'Partial';
 
-	utils = A.utils;
+	isArray = A.isArray;
+	isObject = A.isObject;
+
+	insertHtml = function ( html, parent, anchor ) {
+		var div, i, len, nodes = [];
+
+		anchor = anchor || null;
+
+		div = document.createElement( 'div' );
+		div.innerHTML = html;
+
+		len = div.childNodes.length;
+
+		for ( i=0; i<len; i+=1 ) {
+			nodes[i] = div.childNodes[i];
+		}
+
+		for ( i=0; i<len; i+=1 ) {
+			parent.insertBefore( nodes[i], anchor );
+		}
+
+		return nodes;
+	};
 
 	// View constructor factory
 	domViewMustache = function ( proto ) {
@@ -69,7 +91,7 @@
 
 		// if we have an HTML string, our job is easy. TODO consider async?
 		if ( typeof options.model === 'string' ) {
-			this.nodes = utils.insertHtml( options.model, options.parentNode, options.anchor );
+			this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
 			return;
 		}
 
@@ -534,9 +556,6 @@
 	DomViews.Triple = domViewMustache({
 		initialize: function () {
 			this.nodes = [];
-
-			// this.tripleAnchor = Anglebars.utils.createAnchor();
-			// this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );
 		},
 
 		teardown: function () {
@@ -565,7 +584,7 @@
 		},
 
 		update: function ( html ) {
-			var numNodes, i, anchor;
+			var anchor;
 
 			if ( html === this.html ) {
 				return;
@@ -573,26 +592,18 @@
 				this.html = html;
 			}
 
-			anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
+			// TODO figure out if this line was supposed to mean something...
+			//anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
 
 			// remove existing nodes
 			while ( this.nodes.length ) {
 				this.parentNode.removeChild( this.nodes.pop() );
 			}
 
+			anchor = this.anchor || this.parentFragment.findNextNode( this );
+
 			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( html, false );
-
-			numNodes = this.nodes.length;
-			if ( numNodes ) {
-				anchor = this.parentFragment.findNextNode( this );
-
-				for ( i=0; i<numNodes; i+=1 ) {
-					this.parentNode.insertBefore( this.nodes[i], anchor );
-				}
-			}
-
-			this.initialised = true;
+			this.nodes = insertHtml( html, this.parentNode, anchor );
 		}
 	});
 
@@ -653,7 +664,7 @@
 			};
 
 			// treat empty arrays as false values
-			if ( utils.isArray( value ) && value.length === 0 ) {
+			if ( isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -689,7 +700,7 @@
 			// otherwise we need to work out what sort of section we're dealing with
 
 			// if value is an array, iterate through
-			if ( utils.isArray( value ) ) {
+			if ( isArray( value ) ) {
 
 				// if the array is shorter than it was previously, remove items
 				if ( value.length < this.length ) {
@@ -727,7 +738,7 @@
 			}
 
 			// if value is a hash...
-			else if ( utils.isObject( value ) ) {
+			else if ( isObject( value ) ) {
 				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 				// (if it is already rendered, then any children dependent on the context stack
 				// will update themselves without any prompting)

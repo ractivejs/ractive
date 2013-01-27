@@ -1,95 +1,36 @@
-// Create our global variable, which serves as both constructor function and namespace
-var Anglebars = function ( options ) {
+/*jslint white: true */
+
+var Anglebars, extend, getEl, wait;
+
+
+
+Anglebars = function ( options ) {
+
+	var defaults;
 
 	// Options
 	// -------
 
 	options = options || {};
+	defaults = {
+		preserveWhitespace: false,
+		async: false,
+		maxBatch: 50,
+		append: false,
+		twoway: true,
+		compiledPartials: {},
+		formatters: {}
+	};
 
-	// `el` **string | HTMLElement** *optional*  
-	// The target element to render to. If omitted, nothing will be rendered
-	// until `.render()` is called.
-	if ( 'el' in options ) {
-		this.el = Anglebars.utils.getEl( options.el );
-	}
-
-	// `compiled` **object** *optional*  
-	// A precompiled template, generated with the static `Anglebars.compile`
-	// method.
-	if ( 'compiled' in options ) {
-		this.compiled = options.compiled;
-	}
-
-	// `template` **string** *optional*  
-	// A string containing valid HTML (albeit with mustaches), to be used in
-	// the absence of a precompiled template (e.g. during initial development)
-	if ( 'template' in options ) {
-		this.template = options.template;
-	}
-
-	// `partials` **object** *optional*  
-	// A hash containing strings representing partial templates
-	if ( 'partials' in options ) {
-		this.partials = options.partials;
-	}
-
-	// `compiledPartials` **object** *optional*  
-	// A hash containing compiled partials
-	this.compiledPartials = ( 'compiledPartials' in options ? options.compiledPartials : {} );
-
-	// `data` **object | Anglebars.ViewModel** *optional*  
-	// An object or an `Anglebars.ViewModel` instance containing the data with
-	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
-	// instance allows separate Anglebars instances to share a single view model
-	this.viewmodel = ( options.data instanceof Anglebars.ViewModel ? options.data : new Anglebars.ViewModel( options.data ) );
-
-	// `formatters` **object** *optional*  
-	// An object containing mustache formatter functions
-	this.formatters = ( 'formatters' in options ? options.formatters : {} );
-
-	// `preserveWhitespace` **boolean** *optional*  
-	// Whether or not to preserve whitespace in the template (e.g. newlines
-	// between elements), which is usually ignored by the browser. Defaults
-	// to `false`
-	this.preserveWhitespace = ( 'preserveWhitespace' in options ? options.preserveWhitespace : false );
-
-	// `replaceSrcAttributes` **boolean** *optional*  
-	// Whether to replace src attributes with data-anglebars-src during template
-	// compilation (prevents browser requesting non-existent resources).
-	// Defaults to `true`
-	this.replaceSrcAttributes = ( 'replaceSrcAttributes' in options ? options.replaceSrcAttributes : true );
-
-	// `namespace` **string** *optional*  
-	// What namespace to treat as the parent namespace when compiling. This will
-	// be guessed from the container element, but can be overridden here
-	this.namespace = ( options.namespace ? options.namespace : ( this.el && this.el.namespaceURI !== 'http://www.w3.org/1999/xhtml' ? this.el.namespaceURI : null ) );
-
-	// `async` **boolean** *optional*  
-	// Whether to render asynchronously. If `true`, Anglebars will render as much
-	// as possible within the time allowed by `maxBatch` (below), before yielding
-	// the UI thread until the next available animation frame. Rendering will take
-	// longer, but this will prevent the browser from freezing up while it happens.
-	// If a `callback` is specified, it will be called when rendering is complete.
-	this.async = ( 'async' in options ? options.async : false );
-
-	// `maxBatch` **number** *optional*  
-	// Maximum time, in milliseconds, to continue rendering each batch of nodes
-	// before yielding the UI thread. Defaults to 50. Longer values will result in
-	// a quicker render, but may result in slight 'choppiness'.
-	this.maxBatch = ( 'maxBatch' in options ? options.maxBatch : 50 );
-
-	// `append` **boolean** *optional*  
-	// Whether to append to `this.el`, rather than overwriting its contents. Defaults
-	// to `false`
-	this.append = ( 'append' in options ? options.append : false );
-
-	// `twoway` **boolean** *optional*
-	// Whether to automate two-way data binding. Defaults to `true`
-	this.twoway = ( 'twoway' in options ? options.twoway : true );
+	extend( this, defaults );
+	extend( this, options );
 
 
 	// Initialization
 	// --------------
+
+	this.el = getEl( this.el );
+	this.viewmodel = ( this.data instanceof Anglebars.ViewModel ? this.data : new Anglebars.ViewModel( this.data ) );
 
 	// If we were given uncompiled partials, compile them
 	if ( this.partials ) {
@@ -115,7 +56,7 @@ var Anglebars = function ( options ) {
 
 	// Render
 	if ( this.compiled && this.el ) {
-		this.render({ el: this.el, callback: options.callback, append: this.append });
+		this.render({ el: this.el, callback: this.callback, append: this.append });
 	}
 };
 
@@ -156,7 +97,7 @@ Anglebars.prototype = {
 			// If we ran out of time before completing the queue, kick off a fresh batch
 			// at the next opportunity
 			if ( self._queue.length ) {
-				Anglebars.utils.wait( batch );
+				wait( batch );
 			}
 
 			// Otherwise, mark queue as dispatched and execute any callback we have
@@ -175,7 +116,7 @@ Anglebars.prototype = {
 
 		// Do the first batch
 		this._dispatchingQueue = true;
-		Anglebars.utils.wait( batch );
+		wait( batch );
 	},
 
 
@@ -183,7 +124,7 @@ Anglebars.prototype = {
 
 	// Render instance to element specified here or at initialization
 	render: function ( options ) {
-		var el = ( options.el ? Anglebars.utils.getEl( options.el ) : this.el );
+		var el = ( options.el ? getEl( options.el ) : this.el );
 
 		if ( !el ) {
 			throw new Error( 'You must specify a DOM element to render to' );
@@ -248,8 +189,12 @@ Anglebars.prototype = {
 	_format: function ( value, formatters ) {
 		var i, numFormatters, formatter, name, args, fn;
 
+		console.group( 'Formatting', value );
+
 		// If there are no formatters, groovy - just return the value unchanged
 		if ( !formatters ) {
+			console.log( 'no formatters' );
+			console.groupEnd();
 			return value;
 		}
 
@@ -269,6 +214,8 @@ Anglebars.prototype = {
 			}
 		}
 
+
+		console.groupEnd();
 		return value;
 	}
 };
@@ -276,31 +223,12 @@ Anglebars.prototype = {
 
 // Static method to compile a template string
 Anglebars.compile = function ( template, options ) {
-	var nodes, tokens, fragmentStub, compiled, delimiters, tripleDelimiters, utils = Anglebars.utils;
-
-	options = options || {};
-
-	// If delimiters are specified use them, otherwise reset to defaults
-	Anglebars.delimiters = options.delimiters || [ '{{', '}}' ];
-	Anglebars.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
-
-	tokens = utils.tokenize( template );
-	fragmentStub = utils.getFragmentStubFromTokens( tokens );
-	compiled = fragmentStub.toJson();
-
-	return compiled;
+	
 };
 
 // Cached regexes
 Anglebars.patterns = {
-	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/,
-
 	// for template preprocessor
-	preprocessorTypes: /section|comment|delimiterChange/,
-	standalonePre: /(?:\r)?\n[ \t]*$/,
-	standalonePost: /^[ \t]*(\r)?\n/,
-	standalonePreStrip: /[ \t]+$/,
-
 	arrayPointer: /\[([0-9]+)\]/
 };
 
@@ -344,4 +272,79 @@ Anglebars.formatters = {
 	lessThanEquals: function ( a, b ) {
 		return a <= b;
 	}
+};
+
+
+// helper functions
+extend = function ( obj1, obj2 ) {
+	var key;
+
+	for ( key in obj2 ) {
+		if ( obj2.hasOwnProperty( key ) ) {
+			obj1[ key ] = obj2[ key ];
+		}
+	}
+};
+
+getEl = function ( input ) {
+	var output;
+
+	if ( !input ) {
+		throw new Error( 'No container element specified' );
+	}
+
+	// We already have a DOM node - no work to do
+	if ( input.tagName ) {
+		return input;
+	}
+
+	// Get node from string
+	if ( typeof input === 'string' ) {
+		output = document.getElementById( input );
+
+		if ( output.tagName ) {
+			return output;
+		}
+	}
+
+	throw new Error( 'Could not find container element' );
+};
+
+wait = (function() {
+	var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor, wait;
+
+	if ( typeof window === 'undefined' ) {
+		return; // we're not in a browser!
+	}
+	
+	if ( window.requestAnimationFrame ) {
+		return function ( task ) {
+			window.requestAnimationFrame( task );
+		};
+	}
+
+	tryVendor = function ( i ) {
+		if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
+			return function ( task ) {
+				window[ vendors[i]+'RequestAnimationFrame' ]( task );
+			};
+		}
+	};
+
+	for ( i=0; i<vendors.length; i+=1 ) {
+		tryVendor( i );
+	}
+
+	return function( task ) {
+		setTimeout( task, 16 );
+	};
+}());
+
+// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+Anglebars.isArray = function ( obj ) {
+	return Object.prototype.toString.call( obj ) === '[object Array]';
+};
+
+Anglebars.isObject = function ( obj ) {
+	return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 };

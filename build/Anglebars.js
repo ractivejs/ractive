@@ -1,4 +1,4 @@
-/*! Anglebars - v0.1.2 - 2013-01-26
+/*! Anglebars - v0.1.2 - 2013-01-27
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
@@ -11,98 +11,39 @@
 
 (function ( global ) {
 
-// Create our global variable, which serves as both constructor function and namespace
-var Anglebars = function ( options ) {
+/*jslint white: true */
+
+var Anglebars, extend, getEl, wait;
+
+
+
+Anglebars = function ( options ) {
+
+	var defaults;
 
 	// Options
 	// -------
 
 	options = options || {};
+	defaults = {
+		preserveWhitespace: false,
+		async: false,
+		maxBatch: 50,
+		append: false,
+		twoway: true,
+		compiledPartials: {},
+		formatters: {}
+	};
 
-	// `el` **string | HTMLElement** *optional*  
-	// The target element to render to. If omitted, nothing will be rendered
-	// until `.render()` is called.
-	if ( 'el' in options ) {
-		this.el = Anglebars.utils.getEl( options.el );
-	}
-
-	// `compiled` **object** *optional*  
-	// A precompiled template, generated with the static `Anglebars.compile`
-	// method.
-	if ( 'compiled' in options ) {
-		this.compiled = options.compiled;
-	}
-
-	// `template` **string** *optional*  
-	// A string containing valid HTML (albeit with mustaches), to be used in
-	// the absence of a precompiled template (e.g. during initial development)
-	if ( 'template' in options ) {
-		this.template = options.template;
-	}
-
-	// `partials` **object** *optional*  
-	// A hash containing strings representing partial templates
-	if ( 'partials' in options ) {
-		this.partials = options.partials;
-	}
-
-	// `compiledPartials` **object** *optional*  
-	// A hash containing compiled partials
-	this.compiledPartials = ( 'compiledPartials' in options ? options.compiledPartials : {} );
-
-	// `data` **object | Anglebars.ViewModel** *optional*  
-	// An object or an `Anglebars.ViewModel` instance containing the data with
-	// which to populate the template. Passing in an existing `Anglebars.ViewModel`
-	// instance allows separate Anglebars instances to share a single view model
-	this.viewmodel = ( options.data instanceof Anglebars.ViewModel ? options.data : new Anglebars.ViewModel( options.data ) );
-
-	// `formatters` **object** *optional*  
-	// An object containing mustache formatter functions
-	this.formatters = ( 'formatters' in options ? options.formatters : {} );
-
-	// `preserveWhitespace` **boolean** *optional*  
-	// Whether or not to preserve whitespace in the template (e.g. newlines
-	// between elements), which is usually ignored by the browser. Defaults
-	// to `false`
-	this.preserveWhitespace = ( 'preserveWhitespace' in options ? options.preserveWhitespace : false );
-
-	// `replaceSrcAttributes` **boolean** *optional*  
-	// Whether to replace src attributes with data-anglebars-src during template
-	// compilation (prevents browser requesting non-existent resources).
-	// Defaults to `true`
-	this.replaceSrcAttributes = ( 'replaceSrcAttributes' in options ? options.replaceSrcAttributes : true );
-
-	// `namespace` **string** *optional*  
-	// What namespace to treat as the parent namespace when compiling. This will
-	// be guessed from the container element, but can be overridden here
-	this.namespace = ( options.namespace ? options.namespace : ( this.el && this.el.namespaceURI !== 'http://www.w3.org/1999/xhtml' ? this.el.namespaceURI : null ) );
-
-	// `async` **boolean** *optional*  
-	// Whether to render asynchronously. If `true`, Anglebars will render as much
-	// as possible within the time allowed by `maxBatch` (below), before yielding
-	// the UI thread until the next available animation frame. Rendering will take
-	// longer, but this will prevent the browser from freezing up while it happens.
-	// If a `callback` is specified, it will be called when rendering is complete.
-	this.async = ( 'async' in options ? options.async : false );
-
-	// `maxBatch` **number** *optional*  
-	// Maximum time, in milliseconds, to continue rendering each batch of nodes
-	// before yielding the UI thread. Defaults to 50. Longer values will result in
-	// a quicker render, but may result in slight 'choppiness'.
-	this.maxBatch = ( 'maxBatch' in options ? options.maxBatch : 50 );
-
-	// `append` **boolean** *optional*  
-	// Whether to append to `this.el`, rather than overwriting its contents. Defaults
-	// to `false`
-	this.append = ( 'append' in options ? options.append : false );
-
-	// `twoway` **boolean** *optional*
-	// Whether to automate two-way data binding. Defaults to `true`
-	this.twoway = ( 'twoway' in options ? options.twoway : true );
+	extend( this, defaults );
+	extend( this, options );
 
 
 	// Initialization
 	// --------------
+
+	this.el = getEl( this.el );
+	this.viewmodel = ( this.data instanceof Anglebars.ViewModel ? this.data : new Anglebars.ViewModel( this.data ) );
 
 	// If we were given uncompiled partials, compile them
 	if ( this.partials ) {
@@ -128,7 +69,7 @@ var Anglebars = function ( options ) {
 
 	// Render
 	if ( this.compiled && this.el ) {
-		this.render({ el: this.el, callback: options.callback, append: this.append });
+		this.render({ el: this.el, callback: this.callback, append: this.append });
 	}
 };
 
@@ -169,7 +110,7 @@ Anglebars.prototype = {
 			// If we ran out of time before completing the queue, kick off a fresh batch
 			// at the next opportunity
 			if ( self._queue.length ) {
-				Anglebars.utils.wait( batch );
+				wait( batch );
 			}
 
 			// Otherwise, mark queue as dispatched and execute any callback we have
@@ -188,7 +129,7 @@ Anglebars.prototype = {
 
 		// Do the first batch
 		this._dispatchingQueue = true;
-		Anglebars.utils.wait( batch );
+		wait( batch );
 	},
 
 
@@ -196,7 +137,7 @@ Anglebars.prototype = {
 
 	// Render instance to element specified here or at initialization
 	render: function ( options ) {
-		var el = ( options.el ? Anglebars.utils.getEl( options.el ) : this.el );
+		var el = ( options.el ? getEl( options.el ) : this.el );
 
 		if ( !el ) {
 			throw new Error( 'You must specify a DOM element to render to' );
@@ -261,8 +202,12 @@ Anglebars.prototype = {
 	_format: function ( value, formatters ) {
 		var i, numFormatters, formatter, name, args, fn;
 
+		console.group( 'Formatting', value );
+
 		// If there are no formatters, groovy - just return the value unchanged
 		if ( !formatters ) {
+			console.log( 'no formatters' );
+			console.groupEnd();
 			return value;
 		}
 
@@ -282,6 +227,8 @@ Anglebars.prototype = {
 			}
 		}
 
+
+		console.groupEnd();
 		return value;
 	}
 };
@@ -289,31 +236,12 @@ Anglebars.prototype = {
 
 // Static method to compile a template string
 Anglebars.compile = function ( template, options ) {
-	var nodes, tokens, fragmentStub, compiled, delimiters, tripleDelimiters, utils = Anglebars.utils;
-
-	options = options || {};
-
-	// If delimiters are specified use them, otherwise reset to defaults
-	Anglebars.delimiters = options.delimiters || [ '{{', '}}' ];
-	Anglebars.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
-
-	tokens = utils.tokenize( template );
-	fragmentStub = utils.getFragmentStubFromTokens( tokens );
-	compiled = fragmentStub.toJson();
-
-	return compiled;
+	
 };
 
 // Cached regexes
 Anglebars.patterns = {
-	formatter: /([a-zA-Z_$][a-zA-Z_$0-9]*)(\[[^\]]*\])?/,
-
 	// for template preprocessor
-	preprocessorTypes: /section|comment|delimiterChange/,
-	standalonePre: /(?:\r)?\n[ \t]*$/,
-	standalonePost: /^[ \t]*(\r)?\n/,
-	standalonePreStrip: /[ \t]+$/,
-
 	arrayPointer: /\[([0-9]+)\]/
 };
 
@@ -358,919 +286,92 @@ Anglebars.formatters = {
 		return a <= b;
 	}
 };
-(function ( A ) {
 
-	'use strict';
 
-	var types = A.types;
+// helper functions
+extend = function ( obj1, obj2 ) {
+	var key;
 
-	var utils = A.utils = {
-		// convert HTML to an array of DOM nodes
-		/*getNodeArrayFromHtml: function ( html, replaceSrcAttributes ) {
-
-			var temp, i, numNodes, nodes = [], attrs, tags, pattern;
-
-			html = '' + html; // coerce non-string values to string (i.e. in triples)
-
-			// TODO work out the most efficient way to do this
-
-			// replace src attribute with data-anglebars-src
-			if ( replaceSrcAttributes ) {
-				attrs = [ 'src', 'poster' ];
-
-				i = attrs.length;
-				while ( i-- ) {
-					pattern = new RegExp( '(<[^>]+\\s)(' + attrs[i] + '=)', 'g' );
-					html = html.replace( pattern, '$1data-anglebars-' + attrs[i] + '=' );
-				}
-			}
-
-			// replace table tags with <div data-anglebars-elementname='table'></div> -
-			// this is because the way browsers parse table HTML is F**CKING MENTAL
-			var replaceFunkyTags = true; // TODO!
-			if ( replaceFunkyTags ) {
-				tags = [ 'table', 'thead', 'tbody', 'tr', 'th', 'td' ];
-
-				i = tags.length;
-				while ( i-- ) {
-					pattern = new RegExp( '<(' + tags[i] + ')(\\s|>)', 'gi' );
-					html = html.replace( pattern, '<div data-anglebars-elementname="$1"$2' );
-
-					pattern = new RegExp( '<\\/' + tags[i] + '>', 'gi' );
-					html = html.replace( pattern, '</div>' );
-				}
-			}
-
-			temp = document.createElement( 'div' );
-			temp.innerHTML = html;
-
-			// create array from node list, as node lists have some undesirable properties
-			nodes = [];
-			i = temp.childNodes.length;
-			while ( i-- ) {
-				nodes[i] = temp.childNodes[i];
-			}
-
-			return nodes;
-		},*/
-
-
-		// Returns the specified DOM node
-		getEl: function ( input ) {
-			var output;
-
-			if ( !input ) {
-				throw new Error( 'No container element specified' );
-			}
-
-			// We already have a DOM node - no work to do
-			if ( input.tagName ) {
-				return input;
-			}
-
-			// Get node from string
-			if ( typeof input === 'string' ) {
-				output = document.getElementById( input );
-
-				if ( output.tagName ) {
-					return output;
-				}
-			}
-
-			throw new Error( 'Could not find container element' );
-		},
-
-
-		// Split keypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
-		splitKeypath: function ( keypath ) {
-			var firstPass, secondPass = [], i;
-
-			// Start by splitting on periods
-			firstPass = keypath.split( '.' );
-
-			// Then see if any keys use array notation instead of dot notation
-			for ( i=0; i<firstPass.length; i+=1 ) {
-				secondPass = secondPass.concat( utils.parseArrayNotation( firstPass[i] ) );
-			}
-
-			return secondPass;
-		},
-
-		// Split key with array notation ('baz[0]') into identifier and array pointer(s) (['baz', 0])
-		parseArrayNotation: function ( key ) {
-			var index, arrayPointers, pattern, match, result;
-
-			index = key.indexOf( '[' );
-
-			if ( index === -1 ) {
-				return key;
-			}
-
-			result = [ key.substr( 0, index ) ];
-			arrayPointers = key.substring( index );
-
-			pattern = A.patterns.arrayPointer;
-
-			while ( arrayPointers.length ) {
-				match = pattern.exec( arrayPointers );
-
-				if ( !match ) {
-					return result;
-				}
-
-				result[ result.length ] = +match[1];
-				arrayPointers = arrayPointers.substring( match[0].length );
-			}
-
-			return result;
-		},
-
-
-
-		// CAUTION! HERE BE REGEXES
-		escape: function ( str ) {
-			var theSpecials = /[\[\]\(\)\{\}\^\$\*\+\?\.\|]/g;
-
-			// escaped characters need an extra backslash
-			return str.replace( theSpecials, '\\$&' );
-		},
-
-		/*compileMustachePattern: function () {
-			var openDelim = this.escape( A.delimiters[0] ),
-				closeDelim = this.escape( A.delimiters[1] ),
-				openTrDelim = this.escape( A.tripleDelimiters[0] ),
-				closeTrDelim = this.escape( A.tripleDelimiters[1] );
-
-			A.patterns.mustache = new RegExp( '' +
-
-			// opening delimiters - triple (1) or regular (2)
-			'(?:(' + openTrDelim + ')|(' + openDelim + '))' +
-
-			// EITHER:
-			'(?:(?:' +
-
-				// delimiter change (3/6) - the new opening (4) and closing (5) delimiters
-				'(=)\\s*([^\\s]+)\\s+([^\\s]+)\\s*(=)' +
-
-				// closing delimiters - triple (7) or regular (8)
-				'(?:(' + closeTrDelim + ')|(' + closeDelim + '))' +
-
-			// OR:
-			')|(?:' +
-
-				// sections (9): opening normal, opening inverted, closing
-				'(#|\\^|\\/)?' +
-
-				// partials (10)
-				'(\\>)?' +
-
-				// unescaper (11) (not sure what relevance this has...?)
-				'(&)?' +
-
-				// comment (12)
-				'(!)?' +
-
-
-
-				// optional whitespace
-				'\\s*' +
-
-				// mustache formula (13)
-				'([\\s\\S]+?)' +
-
-				// more optional whitespace
-				'\\s*' +
-
-				// closing delimiters - triple (14) or regular (15)
-				'(?:(' + closeTrDelim + ')|(' + closeDelim + '))' +
-
-			'))', 'g' );
-		},*/
-
-
-		stripHtmlComments: function ( str ) {
-			var commentStart, commentEnd, processed;
-
-			processed = '';
-
-			while ( str.length ) {
-				commentStart = str.indexOf( '<!--' );
-				commentEnd = str.indexOf( '-->' );
-
-				// no comments? great
-				if ( commentStart === -1 && commentEnd === -1 ) {
-					processed += str;
-					break;
-				}
-
-				// comment start but no comment end
-				if ( commentStart !== -1 && commentEnd === -1 ) {
-					throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
-				}
-
-				// comment end but no comment start, or comment end before comment start
-				if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
-					throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
-				}
-
-				processed += str.substr( 0, commentStart );
-				str = str.substring( commentEnd + 3 );
-			}
-
-			return processed;
-		},
-
-
-		// collapse standalones (i.e. mustaches that sit on a line by themselves) and remove comments
-		/*preProcess: function ( str ) {
-			var result = '', remaining = str, mustache, pre, post, preTest, postTest, typeTest, delimiters, tripleDelimiters, recompile;
-
-			// make a note of current delimiters, we may need to reset them in a minute
-			delimiters = A.delimiters.concat();
-			tripleDelimiters = A.tripleDelimiters.concat();
-
-			// patterns
-			preTest = /(?:\r)?\n\s*$/;
-			postTest = /^\s*(?:\r)?\n/;
-
-			while ( remaining.length ) {
-				mustache = utils.findMustache( remaining );
-
-
-				// if there are no more mustaches, add the remaining text and be done
-				if ( !mustache ) {
-					result += remaining;
-					break;
-				}
-
-				// if we've got a section, comment, or delimiter change mustache...
-				if ( mustache.type === types.SECTION || mustache.type === types.COMMENT || mustache.type === types.DELIMCHANGE ) {
-					pre = remaining.substr( 0, mustache.start ); // before the mustache
-					post = remaining.substring( mustache.end );  // after the mustache
-
-					// if there is newline + (whitespace)? immediately before the mustache, and
-					// (whitespace)? + newline immediately after, remove one of them
-					if ( preTest.test( pre ) && postTest.test( post ) ) {
-						pre = pre.replace( /(?:\r)?\n\s*$/, '' );
-					}
-
-					result += pre;
-
-					// strip comments
-					if ( mustache.type !== types.COMMENT ) {
-						result += mustache[0];
-					}
-
-					remaining = post;
-				}
-
-				// otherwise carry on as normal
-				else {
-					result += remaining.substr( 0, mustache.end );
-					remaining = remaining.substring( mustache.end );
-				}
-			}
-
-			// reset delimiters if necessary
-			if ( ( A.delimiters[0] !== delimiters[0] ) || ( A.delimiters[1] !== delimiters[1] ) ) {
-				A.delimiters = delimiters;
-				recompile = true;
-			}
-
-			if ( ( A.tripleDelimiters[0] !== tripleDelimiters[0] ) || ( A.tripleDelimiters[1] !== tripleDelimiters[1] ) ) {
-				A.tripleDelimiters = tripleDelimiters;
-				recompile = true;
-			}
-
-			if ( recompile ) {
-				utils.compileMustachePattern();
-			}
-
-			return result;
-		},*/
-
-
-
-		// find the first mustache in a string, and store some information about it. Returns an array
-		// - the result of regex.exec() - with some additional properties
-		/*findMustache: function ( text, startIndex ) {
-
-			var match, split, mustache, formulaSplitter, i, formatters, formatterNameAndArgs, formatterPattern, formatter, newDelimiters;
-
-			mustache = A.patterns.mustache;
-			formulaSplitter = ' | ';
-			formatterPattern = A.patterns.formatter;
-
-			match = utils.findMatch( text, mustache, startIndex );
-
-			if ( match ) {
-
-				// first, see if we're dealing with a delimiter change
-				if ( match[3] && match[6] ) {
-					match.type = types.DELIMCHANGE;
-
-					// triple or regular?
-					if ( match[1] && match[7] ) {
-						// triple delimiter change
-						A.tripleDelimiters = [ match[4], match[5] ];
-					} else {
-						// triple delimiter change
-						A.delimiters = [ match[4], match[5] ];
-					}
-
-					utils.compileMustachePattern();
-				}
-
-				else {
-					match.formula = match[13];
-					split = match.formula.split( formulaSplitter );
-					match.partialKeypath = split.shift();
-
-					// extract formatters
-					formatters = [];
-
-					for ( i=0; i<split.length; i+=1 ) {
-						formatterNameAndArgs = formatterPattern.exec( split[i] );
-						if ( formatterNameAndArgs ) {
-							formatter = {
-								name: formatterNameAndArgs[1]
-							};
-
-							if ( formatterNameAndArgs[2] ) {
-								try {
-									formatter.args = JSON.parse( formatterNameAndArgs[2] );
-								} catch ( err ) {
-									throw new Error( 'Illegal arguments for formatter \'' + formatter.name + '\': ' + formatterNameAndArgs[2] + ' (JSON.parse() failed)' );
-								}
-							}
-
-							formatters.push( formatter );
-						}
-					}
-
-					if ( formatters.length ) {
-						match.formatters = formatters;
-					}
-
-
-					// figure out what type of mustache we're dealing with
-					if ( match[9] ) {
-						// mustache is a section
-						match.type = types.SECTION;
-						match.inverted = ( match[9] === '^' ? true : false );
-						match.closing = ( match[9] === '/' ? true : false );
-					}
-
-					else if ( match[10] ) {
-						match.type = types.PARTIAL;
-					}
-
-					else if ( match[1] ) {
-						// left side is a triple - check right side is as well
-						if ( !match[14] ) {
-							return false;
-						}
-
-						match.type = types.TRIPLE;
-					}
-
-					else if ( match[12] ) {
-						match.type = types.COMMENT;
-					}
-
-					else {
-						match.type = types.INTERPOLATOR;
-					}
-				}
-
-				match.isMustache = true;
-				return match;
-			}
-
-			// if no mustache found, report failure
-			return false;
-		},*/
-
-
-		// find the first match of a pattern within a string. Returns an array with start and end properties indicating where the match was found within the string
-		/*findMatch: function ( text, pattern, startIndex ) {
-
-			var match;
-
-			// reset lastIndex
-			if ( pattern.global ) {
-				pattern.lastIndex = startIndex || 0;
-			} else {
-				throw new Error( 'You must pass findMatch() a regex with the global flag set' );
-			}
-
-			match = pattern.exec( text );
-
-			if ( match ) {
-				match.end = pattern.lastIndex;
-				match.start = ( match.end - match[0].length );
-				return match;
-			}
-		},*/
-
-
-		/*getStubsFromNodes: function ( nodes ) {
-			var i, numNodes, node, result = [], stubs;
-
-			numNodes = nodes.length;
-			for ( i=0; i<numNodes; i+=1 ) {
-				node = nodes[i];
-
-				if ( node.nodeType === 1 ) {
-					result[ result.length ] = {
-						type: types.ELEMENT,
-						original: node
-					};
-				}
-
-				else if ( node.nodeType === 3 ) {
-					stubs = utils.expandText( node.data );
-					if ( stubs ) {
-						result = result.concat( stubs );
-					}
-				}
-			}
-
-			return result;
-		},*/
-
-		/*expandText: function ( text ) {
-			var result = [], mustache, start, ws, pre, post, standalone, stubs;
-
-			// see if there's a mustache involved here
-			mustache = utils.findMustache( text );
-
-			// delimiter changes are a special (and bloody awkward...) case
-			while ( mustache.type === types.DELIMCHANGE ) {
-
-				if ( mustache.start > 0 ) {
-					result[ result.length ] = {
-						type: types.TEXT,
-						text: text.substr( 0, mustache.start )
-					};
-				}
-
-				text = text.substring( mustache.end );
-				mustache = utils.findMustache( text );
-			}
-
-			// if no mustaches, groovy - no work to do
-			if ( !mustache ) {
-				if ( text ) {
-					return result.concat({
-						type: types.TEXT,
-						text: text
-					});
-				}
-
-				return ( result.length ? result : false );
-			}
-
-			// otherwise, see if there is any text before the node
-			standalone = true;
-			ws = /\s*\n\s*$/;
-
-			if ( mustache.start > 0 ) {
-				pre = text.substr( 0, mustache.start );
-
-				result[ result.length ] = {
-					type: types.TEXT,
-					text: pre
-				};
-			}
-
-			// add the mustache
-			result[ result.length ] = {
-				type: types.MUSTACHE,
-				mustache: mustache
-			};
-
-			if ( mustache.end < text.length ) {
-				stubs = utils.expandText( text.substring( mustache.end ) );
-
-				if ( stubs ) {
-					result = result.concat( stubs );
-				}
-			}
-
-			return result;
-		},*/
-
-		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-		isArray: function ( obj ) {
-			return Object.prototype.toString.call( obj ) === '[object Array]';
-		},
-
-		isObject: function ( obj ) {
-			return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
-		},
-
-
-		insertHtml: function ( html, parent, anchor ) {
-			var div, i, len, nodes = [];
-
-			anchor = anchor || null;
-
-			div = document.createElement( 'div' );
-			div.innerHTML = html;
-
-			len = div.childNodes.length;
-
-			for ( i=0; i<len; i+=1 ) {
-				nodes[i] = div.childNodes[i];
-			}
-
-			for ( i=0; i<len; i+=1 ) {
-				parent.insertBefore( nodes[i], anchor );
-			}
-
-			return nodes;
+	for ( key in obj2 ) {
+		if ( obj2.hasOwnProperty( key ) ) {
+			obj1[ key ] = obj2[ key ];
 		}
+	}
+};
 
-		/*compileStubs: function ( stubs, priority, preserveWhitespace ) {
-			var compiled, next, processStub;
+getEl = function ( input ) {
+	var output;
 
-			compiled = [];
+	if ( !input ) {
+		throw new Error( 'No container element specified' );
+	}
 
-			processStub = function ( i ) {
-				var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath, compiledStub;
+	// We already have a DOM node - no work to do
+	if ( input.tagName ) {
+		return input;
+	}
 
-				whitespace = /^\s*\n\r?\s*$/;
+	// Get node from string
+	if ( typeof input === 'string' ) {
+		output = document.getElementById( input );
 
-				stub = stubs[i];
+		if ( output.tagName ) {
+			return output;
+		}
+	}
 
-				switch ( stub.type ) {
-					case types.TEXT:
-						if ( !preserveWhitespace ) {
-							if ( whitespace.test( stub.text ) || stub.text === '' ) {
-								return i+1; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
-							}
-						}
+	throw new Error( 'Could not find container element' );
+};
 
-						compiled[ compiled.length ] = stub;
-						return i+1;
+wait = (function() {
+	var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor, wait;
 
-					case types.ELEMENT:
-						compiled[ compiled.length ] = utils.processElementStub( stub, priority );
-						return i+1;
+	if ( typeof window === 'undefined' ) {
+		return; // we're not in a browser!
+	}
+	
+	if ( window.requestAnimationFrame ) {
+		return function ( task ) {
+			window.requestAnimationFrame( task );
+		};
+	}
 
-					case types.MUSTACHE:
-
-						partialKeypath = stub.mustache.partialKeypath;
-
-						switch ( stub.mustache.type ) {
-							case types.SECTION:
-
-								i += 1;
-								sliceStart = i; // first item in section
-								nesting = 1;
-
-								// find end
-								while ( ( i < stubs.length ) && !sliceEnd ) {
-
-									bit = stubs[i];
-
-									if ( bit.type === types.MUSTACHE ) {
-										if ( bit.mustache.type === types.SECTION && bit.mustache.partialKeypath === partialKeypath ) {
-											if ( !bit.mustache.closing ) {
-												nesting += 1;
-											}
-
-											else {
-												nesting -= 1;
-												if ( !nesting ) {
-													sliceEnd = i;
-												}
-											}
-										}
-									}
-
-									i += 1;
-								}
-
-								if ( !sliceEnd ) {
-									throw new Error( 'Illegal section "' + partialKeypath + '"' );
-								}
-
-								compiledStub = {
-									type: types.SECTION,
-									partialKeypath: partialKeypath,
-									inverted: stub.mustache.inverted,
-									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, preserveWhitespace ),
-									priority: priority
-								};
-								if ( stub.mustache.formatters ) {
-									compiledStub.formatters = stub.mustache.formatters;
-								}
-
-								compiled[ compiled.length ] = compiledStub;
-								return i;
-
-
-							case types.TRIPLE:
-								compiledStub = {
-									type: types.TRIPLE,
-									partialKeypath: stub.mustache.partialKeypath,
-									priority: priority
-								};
-								if ( stub.mustache.formatters ) {
-									compiledStub.formatters = stub.mustache.formatters;
-								}
-
-								compiled[ compiled.length ] = compiledStub;
-								return i+1;
-
-
-							case types.INTERPOLATOR:
-								compiledStub = {
-									type: types.INTERPOLATOR,
-									partialKeypath: stub.mustache.partialKeypath,
-									priority: priority
-								};
-								if ( stub.mustache.formatters ) {
-									compiledStub.formatters = stub.mustache.formatters;
-								}
-
-								compiled[ compiled.length ] = compiledStub;
-								return i+1;
-
-
-							case types.PARTIAL:
-								compiledStub = {
-									type: types.PARTIAL,
-									id: stub.mustache.partialKeypath,
-									priority: priority
-								};
-								
-								compiled[ compiled.length ] = compiledStub;
-								return i+1;	
-
-							default:
-								if ( console && console.error ) { console.error( 'Bad mustache: ', stub.mustache ); }
-								throw new Error( 'Error compiling template: Illegal mustache (' + stub.mustache[0] + ')' );
-						}
-						break;
-
-					default:
-						throw new Error( 'Error compiling template. Something *very weird* has happened' );
-				}
+	tryVendor = function ( i ) {
+		if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
+			return function ( task ) {
+				window[ vendors[i]+'RequestAnimationFrame' ]( task );
 			};
-
-			next = 0;
-			while ( next < stubs.length ) {
-				next = processStub( next );
-			}
-
-			return compiled;
-		},*/
-
-		/*compileStubs: function ( stubs, priority, preserveWhitespace ) {
-			var compiled, next, processStub;
-
-			compiled = [];
-
-			processStub = function ( i ) {
-				var whitespace, mustache, item, text, element, stub, sliceStart, sliceEnd, nesting, bit, partialKeypath, compiledStub;
-
-				whitespace = /^\s*\n\r?\s*$/;
-
-				stub = stubs[i];
-
-				switch ( stub.type ) {
-					case types.TEXT:
-						if ( !preserveWhitespace ) {
-							if ( whitespace.test( stub.text ) || stub.text === '' ) {
-								return i+1; // don't bother keeping this if it only contains whitespace, unless that's what the user wants
-							}
-						}
-
-						compiled[ compiled.length ] = stub;
-						return i+1;
-
-					case types.ELEMENT:
-						compiled[ compiled.length ] = utils.processElementStub( stub, priority );
-						return i+1;
-
-					case types.MUSTACHE:
-
-						partialKeypath = stub.mustache.partialKeypath;
-
-						switch ( stub.mustache.type ) {
-							case types.SECTION:
-
-								i += 1;
-								sliceStart = i; // first item in section
-								nesting = 1;
-
-								// find end
-								while ( ( i < stubs.length ) && !sliceEnd ) {
-
-									bit = stubs[i];
-
-									if ( bit.type === types.MUSTACHE ) {
-										if ( bit.mustache.type === types.SECTION && bit.mustache.partialKeypath === partialKeypath ) {
-											if ( !bit.mustache.closing ) {
-												nesting += 1;
-											}
-
-											else {
-												nesting -= 1;
-												if ( !nesting ) {
-													sliceEnd = i;
-												}
-											}
-										}
-									}
-
-									i += 1;
-								}
-
-								if ( !sliceEnd ) {
-									throw new Error( 'Illegal section "' + partialKeypath + '"' );
-								}
-
-								compiledStub = {
-									type: types.SECTION,
-									partialKeypath: partialKeypath,
-									inverted: stub.mustache.inverted,
-									children: utils.compileStubs( stubs.slice( sliceStart, sliceEnd ), priority + 1, preserveWhitespace ),
-									priority: priority
-								};
-								if ( stub.mustache.formatters ) {
-									compiledStub.formatters = stub.mustache.formatters;
-								}
-
-								compiled[ compiled.length ] = compiledStub;
-								return i;
-
-
-							case types.TRIPLE:
-								compiledStub = {
-									type: types.TRIPLE,
-									partialKeypath: stub.mustache.partialKeypath,
-									priority: priority
-								};
-								if ( stub.mustache.formatters ) {
-									compiledStub.formatters = stub.mustache.formatters;
-								}
-
-								compiled[ compiled.length ] = compiledStub;
-								return i+1;
-
-
-							case types.INTERPOLATOR:
-								compiledStub = {
-									type: types.INTERPOLATOR,
-									partialKeypath: stub.mustache.partialKeypath,
-									priority: priority
-								};
-								if ( stub.mustache.formatters ) {
-									compiledStub.formatters = stub.mustache.formatters;
-								}
-
-								compiled[ compiled.length ] = compiledStub;
-								return i+1;
-
-
-							case types.PARTIAL:
-								compiledStub = {
-									type: types.PARTIAL,
-									id: stub.mustache.partialKeypath,
-									priority: priority
-								};
-								
-								compiled[ compiled.length ] = compiledStub;
-								return i+1;	
-
-							default:
-								if ( console && console.error ) { console.error( 'Bad mustache: ', stub.mustache ); }
-								throw new Error( 'Error compiling template: Illegal mustache (' + stub.mustache[0] + ')' );
-						}
-						break;
-
-					default:
-						throw new Error( 'Error compiling template. Something *very weird* has happened' );
-				}
-			};
-
-			next = 0;
-			while ( next < stubs.length ) {
-				next = processStub( next );
-			}
-
-			return compiled;
-		},*/
-
-		/*processElementStub: function ( stub, priority ) {
-			var proxy, attributes, numAttributes, attribute, i, node;
-
-			node = stub.original;
-
-			proxy = {
-				type: types.ELEMENT,
-				tag: node.getAttribute( 'data-anglebars-elementname' ) || node.localName || node.tagName, // we need localName for SVG elements but tagName for Internet Exploder
-				priority: priority
-			};
-
-			// attributes
-			attributes = [];
-
-			numAttributes = node.attributes.length;
-			for ( i=0; i<numAttributes; i+=1 ) {
-				attribute = node.attributes[i];
-
-				if ( attributes.name === 'data-anglebars-elementname' ) {
-					continue;
-				}
-
-				if ( attribute.name === 'xmlns' ) {
-					proxy.namespace = attribute.value;
-				}
-
-				attributes[ attributes.length ] = utils.processAttribute( attribute.name, attribute.value, priority + 1 );
-			}
-
-			proxy.attributes = attributes;
-
-			// get children
-			proxy.children = utils.compileStubs( utils.getStubsFromNodes( node.childNodes ), priority + 1 );
-
-			return proxy;
-		},
-
-		processAttribute: function ( name, value, priority ) {
-			var attribute, stubs;
-
-			stubs = utils.expandText( value );
-
-			attribute = {
-				name: name.replace( 'data-anglebars-', '' )
-			};
-
-			// no mustaches in this attribute - no extra work to be done
-			if ( !utils.findMustache( value ) || !stubs ) {
-				attribute.value = value;
-				return attribute;
-			}
-
-
-			// mustaches present - attribute is dynamic
-			attribute.isDynamic = true;
-			attribute.priority = priority;
-			attribute.components = utils.compileStubs( stubs, priority );
-
-
-			return attribute;
-		}*/
+		}
 	};
 
+	for ( i=0; i<vendors.length; i+=1 ) {
+		tryVendor( i );
+	}
 
-	(function() {
-		var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor;
-		
-		if ( window.requestAnimationFrame ) {
-			utils.wait = function ( task ) {
-				window.requestAnimationFrame( task );
-			};
-			return;
-		}
+	return function( task ) {
+		setTimeout( task, 16 );
+	};
+}());
 
-		tryVendor = function ( i ) {
-			if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
-				utils.wait = function ( task ) {
-					window[ vendors[i]+'RequestAnimationFrame' ]( task );
-				};
-				return;
-			}
-		};
+// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+Anglebars.isArray = function ( obj ) {
+	return Object.prototype.toString.call( obj ) === '[object Array]';
+};
 
-		for ( i=0; i<vendors.length; i+=1 ) {
-			tryVendor( i );
-		}
+Anglebars.isObject = function ( obj ) {
+	return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+};
+/*global Anglebars */
+/*jslint white: true */
 
-		utils.wait = function( task ) {
-			setTimeout( task, 16 );
-		};
-	}());
-
-}( Anglebars ));
 (function ( A ) {
 	
 	'use strict';
 
-	var utils,
-		types,
-		stripHtmlComments,
-		getTokens,
-		getTree,
+	var types,
 		whitespace,
-		alphanumerics,
-		tokenize,
+
+		stripHtmlComments,
 
 		TokenStream,
 		MustacheBuffer,
@@ -1281,134 +382,25 @@ Anglebars.formatters = {
 		TagToken,
 		AttributeValueToken,
 
-		mustacheTypes;
+		mustacheTypes,
+		OpeningBracket,
+		TagName,
+		AttributeCollection,
+		Solidus,
+		ClosingBracket,
+		Attribute,
+		AttributeName,
+		AttributeValue;
 
 
-	utils = A.utils;
-	types = A.types;
 
-	stripHtmlComments = function ( str ) {
-		var commentStart, commentEnd, processed;
-
-		processed = '';
-
-		while ( str.length ) {
-			commentStart = str.indexOf( '<!--' );
-			commentEnd = str.indexOf( '-->' );
-
-			// no comments? great
-			if ( commentStart === -1 && commentEnd === -1 ) {
-				processed += str;
-				break;
-			}
-
-			// comment start but no comment end
-			if ( commentStart !== -1 && commentEnd === -1 ) {
-				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
-			}
-
-			// comment end but no comment start, or comment end before comment start
-			if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
-				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
-			}
-
-			processed += str.substr( 0, commentStart );
-			str = str.substring( commentEnd + 3 );
-		}
-
-		return processed;
+	A.tokenize = function ( template ) {
+		var stream = TokenStream.fromString( stripHtmlComments( template ) );
+		return stream.tokens;
 	};
-
-
-	whitespace = /\s/;
-	alphanumerics = /[0-9a-zA-Z]/;
-
 	
-
-
 	
-
-	MustacheBuffer = function () {
-		this.value = '';
-	};
-
-	MustacheBuffer.prototype = {
-		read: function ( char ) {
-			var continueBuffering;
-
-			this.value += char;
-
-			// if this could turn out to be a tag, a mustache or a triple return true
-			continueBuffering = ( this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
-			return continueBuffering;
-		},
-
-		convert: function () {
-			var mustache, triple, token;
-
-			// store mustache and triple opening delimiters
-			mustache = A.delimiters[0];
-			triple = A.tripleDelimiters[0];
-
-			// out of mustache and triple opening delimiters, try to match longest first.
-			// if they're the same length then only one will match anyway, unless some
-			// plonker has set them to the same thing (which should probably throw an error)
-			if ( triple.length > mustache.length ) {
-
-				// triple first
-				if ( this.value.indexOf( triple ) === 0 ) {
-					token = new TripleToken();
-				}
-
-				// mustache first
-				else if ( this.value.indexOf( mustache ) === 0 ) {
-					token = new MustacheToken();
-				}
-			}
-
-			else {
-
-				// mustache first
-				if ( this.value.indexOf( mustache ) === 0 ) {
-					token = new MustacheToken();
-				}
-
-				// triple first
-				if ( this.value.indexOf( triple ) === 0 ) {
-					token = new TripleToken();
-				}
-			}
-
-			if ( token ) {
-				while ( this.value.length ) {
-					token.read( this.value.charAt( 0 ) );
-					this.value = this.value.substring( 1 );
-				}
-
-				return token;
-			}
-
-			return false;
-		},
-
-		release: function () {
-			var value = this.value;
-			this.value = '';
-			return value;
-		},
-
-		isEmpty: function () {
-			return !this.value.length;
-		},
-
-		isPartialMatchOf: function ( str ) {
-			// if str begins with this.value, the index will be 0
-			return str.indexOf( this.value ) === 0;
-		}
-	};
-
-	
-
+	// TokenStream generates an array of tokens from an HTML string
 	TokenStream = function () {
 		this.tokens = [];
 		this.buffer = new MustacheBuffer();
@@ -1511,6 +503,83 @@ Anglebars.formatters = {
 	};
 
 
+	// MustacheBuffer intercepts characters in the token stream and determines
+	// whether they could be a mustache/triple delimiter
+	MustacheBuffer = function () {
+		this.value = '';
+	};
+
+	MustacheBuffer.prototype = {
+		read: function ( char ) {
+			var continueBuffering;
+
+			this.value += char;
+
+			// if this could turn out to be a tag, a mustache or a triple return true
+			continueBuffering = ( this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
+			return continueBuffering;
+		},
+
+		convert: function () {
+			var value, mustache, triple, token, getTriple, getMustache;
+
+			// store mustache and triple opening delimiters
+			mustache = A.delimiters[0];
+			triple = A.tripleDelimiters[0];
+
+			value = this.value;
+
+			getTriple = function () {
+				if ( value.indexOf( triple ) === 0 ) {
+					return new TripleToken();
+				}
+			};
+
+			getMustache = function () {
+				if ( value.indexOf( mustache ) === 0 ) {
+					return new MustacheToken();
+				}
+			};
+
+			// out of mustache and triple opening delimiters, try to match longest first.
+			// if they're the same length then only one will match anyway, unless some
+			// plonker has set them to the same thing (which should probably throw an error)
+			if ( triple.length > mustache.length ) {
+				token = getTriple() || getMustache();
+			} else {
+				token = getMustache() || getTriple();
+			}
+
+			if ( token ) {
+				while ( this.value.length ) {
+					token.read( this.value.charAt( 0 ) );
+					this.value = this.value.substring( 1 );
+				}
+
+				return token;
+			}
+
+			return false;
+		},
+
+		release: function () {
+			var value = this.value;
+			this.value = '';
+			return value;
+		},
+
+		isEmpty: function () {
+			return !this.value.length;
+		},
+
+		isPartialMatchOf: function ( str ) {
+			// if str begins with this.value, the index will be 0
+			return str.indexOf( this.value ) === 0;
+		}
+	};
+
+	
+
 
 	TextToken = function () {
 		this.type = types.TEXT;
@@ -1532,23 +601,13 @@ Anglebars.formatters = {
 			return true;
 		},
 
-		// merge: function ( token ) {
-		// 	this.value += token.value;
-		// },
-
 		seal: function () {
 			this.sealed = true;
 		}
 	};
 
 
-	mustacheTypes = {
-		'#': types.SECTION,
-		'^': types.INVERTED,
-		'/': types.CLOSING,
-		'>': types.PARTIAL,
-		'!': types.COMMENT
-	};
+	
 
 
 	MustacheToken = function () {
@@ -1632,96 +691,13 @@ Anglebars.formatters = {
 			delimiters = ( this.type === types.TRIPLE ? A.tripleDelimiters : A.delimiters );
 
 			delimiters[0] = newDelimiters[1];
-			delimiters[1] = newDelimiters[2]; 
+			delimiters[1] = newDelimiters[2];
 		}
 	};
 
 
-	var OpeningBracket, TagName, AttributeCollection, Solidus, ClosingBracket, Attribute, AttributeName, AttributeValue;
-
-
-	var genericToken = function ( options ) {
-		var Token, pattern, length;
-
-		if ( typeof options.pattern === 'string' ) {
-			length = options.pattern.length;
-			pattern = new RegExp( '^' + A.utils.escape( options.pattern ) + '$' );
-		} else {
-			pattern = options.pattern;
-		}
-
-
-		Token = function () {
-			this.value = '';
-			this.pattern = pattern;
-			this.required = options.required;
-
-			this.length = options.length || length;
-		};
-
-		Token.prototype = {
-			toString: options.toString || function () {
-				return this.value;
-			},
-
-			read: function ( char ) {
-				var newValue;
-
-				if ( char.length > 1 ) {
-					throw 'Token can only read one character at a time';
-				}
-
-				if ( this.sealed ) {
-					return false;
-				}
-
-				newValue = this.value + char;
-
-				if ( this.pattern.test( newValue ) ) {
-					this.value = newValue;
-
-					// if we know how long this token should be, and we're at that length, we can seal
-					if ( this.length && this.value.length === this.length ) {
-						this.seal();
-					}
-
-					return true;
-				}
-
-				this.seal();
-				return false;
-			},
-
-			seal: function () {
-				var i, properties, match, value;
-
-				value = this.value;
-
-				if ( this.required && !pattern.test( value ) ) {
-					throw 'Token string "' + value + '" did not match pattern ' + pattern;
-				}
-
-				if ( options.properties && pattern ) {
-					properties = ( typeof options.properties === 'string' ? [ options.properties ] : options.properties );
-
-					i = properties.length;
-					match = pattern.exec( this.value );
-
-					while ( i-- ) {
-						this[ properties[i] ] = ( match ? match[ i+1 ] : '' );
-					}
-				}
-
-				if ( options.onseal ) {
-					options.onseal.call( this, value );
-				}
-
-				this.sealed = true;
-			}
-		};
-
-		return Token;
-	};
+	
+	
 
 
 
@@ -1768,8 +744,6 @@ Anglebars.formatters = {
 		},
 
 		seal: function () {
-			var i, len, attributes, numAttributes;
-
 			// time to figure out some stuff about this tag
 			
 			// tag name
@@ -1789,11 +763,6 @@ Anglebars.formatters = {
 		}
 	};
 
-
-	// OpeningBracket = genericToken({
-	// 	pattern: '<',
-	// 	required: true
-	// });
 
 	OpeningBracket = function () {};
 	OpeningBracket.prototype = {
@@ -1815,12 +784,6 @@ Anglebars.formatters = {
 			this.sealed = true;
 		}
 	};
-
-
-	// TagName = genericToken({
-	// 	pattern: /^([a-zA-Z][a-zA-Z0-9]*)$/,
-	// 	required: true
-	// });
 
 
 	TagName = function () {};
@@ -1890,10 +853,8 @@ Anglebars.formatters = {
 			}
 
 			// if not, we're done here
-			else {
-				this.seal();
-				return false;
-			}
+			this.seal();
+			return false;
 		},
 
 		seal: function () {
@@ -2134,10 +1095,6 @@ Anglebars.formatters = {
 
 
 
-	// Solidus = genericToken({
-	// 	pattern: '/'
-	// });
-
 	Solidus = function () {};
 	Solidus.prototype = {
 		read: function ( char ) {
@@ -2160,11 +1117,6 @@ Anglebars.formatters = {
 		}
 	};
 
-	// ClosingBracket = genericToken({
-	// 	pattern: '>',
-	// 	required: true
-	// });
-
 	ClosingBracket = function () {};
 	ClosingBracket.prototype = {
 		read: function ( char ) {
@@ -2185,23 +1137,52 @@ Anglebars.formatters = {
 			this.sealed = true;
 		}
 	};
-	
 
 
 
+	stripHtmlComments = function ( html ) {
+		var commentStart, commentEnd, processed;
 
+		processed = '';
 
-	tokenize = function ( template ) {
-		var stream, fragmentStub;
+		while ( html.length ) {
+			commentStart = html.indexOf( '<!--' );
+			commentEnd = html.indexOf( '-->' );
 
-		stream = TokenStream.fromString( stripHtmlComments( template ) );
+			// no comments? great
+			if ( commentStart === -1 && commentEnd === -1 ) {
+				processed += html;
+				break;
+			}
 
-		return stream.tokens;
+			// comment start but no comment end
+			if ( commentStart !== -1 && commentEnd === -1 ) {
+				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
+			}
+
+			// comment end but no comment start, or comment end before comment start
+			if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
+				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
+			}
+
+			processed += html.substr( 0, commentStart );
+			html = html.substring( commentEnd + 3 );
+		}
+
+		return processed;
 	};
 
+	types = A.types;
+	whitespace = /\s/;
+	mustacheTypes = {
+		'#': types.SECTION,
+		'^': types.INVERTED,
+		'/': types.CLOSING,
+		'>': types.PARTIAL,
+		'!': types.COMMENT
+	};
+	
 
-
-	A.utils.tokenize = tokenize;
 
 }( Anglebars ));
 (function ( A ) {
@@ -2209,10 +1190,16 @@ Anglebars.formatters = {
 	'use strict';
 
 	var FragmentStub,
+		getFragmentStubFromTokens,
 		TextStub,
 		ElementStub,
 		SectionStub,
 		MustacheStub,
+
+		decodeCharacterReferences,
+		htmlEntities,
+
+		getFormatter,
 
 		types,
 
@@ -2222,6 +1209,22 @@ Anglebars.formatters = {
 		implicitClosersByTagName,
 
 		elementIsClosedBy;
+
+
+	A.compile = function ( template, options ) {
+		var tokens, fragmentStub;
+
+		options = options || {};
+
+		// If delimiters are specified use them, otherwise reset to defaults
+		A.delimiters = options.delimiters || [ '{{', '}}' ];
+		A.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+
+		tokens = A.tokenize( template );
+		fragmentStub = getFragmentStubFromTokens( tokens );
+		
+		return fragmentStub.toJson();
+	};
 
 
 	types = A.types;
@@ -2248,6 +1251,61 @@ Anglebars.formatters = {
 		th: [ 'td', 'th' ]
 	};
 
+	getFormatter = function ( str ) {
+		var match, name, argsStr, args, openIndex;
+
+		openIndex = str.indexOf( '[' );
+		if ( openIndex !== -1 ) {
+			name = str.substr( 0, openIndex );
+			argsStr = str.substring( openIndex + 1, str.length - 1 );
+
+			try {
+				args = JSON.parse( argsStr );
+			} catch ( err ) {
+				throw 'Could not parse arguments (' + argsStr + ') using JSON.parse';
+			}
+
+			return {
+				name: name,
+				args: args
+			};
+		}
+
+		return {
+			name: str
+		};
+	};
+
+	htmlEntities = { quot: 34, amp: 38, apos: 39, lt: 60, gt: 62, nbsp: 160, iexcl: 161, cent: 162, pound: 163, curren: 164, yen: 165, brvbar: 166, sect: 167, uml: 168, copy: 169, ordf: 170, laquo: 171, not: 172, shy: 173, reg: 174, macr: 175, deg: 176, plusmn: 177, sup2: 178, sup3: 179, acute: 180, micro: 181, para: 182, middot: 183, cedil: 184, sup1: 185, ordm: 186, raquo: 187, frac14: 188, frac12: 189, frac34: 190, iquest: 191, Agrave: 192, Aacute: 193, Acirc: 194, Atilde: 195, Auml: 196, Aring: 197, AElig: 198, Ccedil: 199, Egrave: 200, Eacute: 201, Ecirc: 202, Euml: 203, Igrave: 204, Iacute: 205, Icirc: 206, Iuml: 207, ETH: 208, Ntilde: 209, Ograve: 210, Oacute: 211, Ocirc: 212, Otilde: 213, Ouml: 214, times: 215, Oslash: 216, Ugrave: 217, Uacute: 218, Ucirc: 219, Uuml: 220, Yacute: 221, THORN: 222, szlig: 223, agrave: 224, aacute: 225, acirc: 226, atilde: 227, auml: 228, aring: 229, aelig: 230, ccedil: 231, egrave: 232, eacute: 233, ecirc: 234, euml: 235, igrave: 236, iacute: 237, icirc: 238, iuml: 239, eth: 240, ntilde: 241, ograve: 242, oacute: 243, ocirc: 244, otilde: 245, ouml: 246, divide: 247, oslash: 248, ugrave: 249, uacute: 250, ucirc: 251, uuml: 252, yacute: 253, thorn: 254, yuml: 255, OElig: 338, oelig: 339, Scaron: 352, scaron: 353, Yuml: 376, fnof: 402, circ: 710, tilde: 732, Alpha: 913, Beta: 914, Gamma: 915, Delta: 916, Epsilon: 917, Zeta: 918, Eta: 919, Theta: 920, Iota: 921, Kappa: 922, Lambda: 923, Mu: 924, Nu: 925, Xi: 926, Omicron: 927, Pi: 928, Rho: 929, Sigma: 931, Tau: 932, Upsilon: 933, Phi: 934, Chi: 935, Psi: 936, Omega: 937, alpha: 945, beta: 946, gamma: 947, delta: 948, epsilon: 949, zeta: 950, eta: 951, theta: 952, iota: 953, kappa: 954, lambda: 955, mu: 956, nu: 957, xi: 958, omicron: 959, pi: 960, rho: 961, sigmaf: 962, sigma: 963, tau: 964, upsilon: 965, phi: 966, chi: 967, psi: 968, omega: 969, thetasym: 977, upsih: 978, piv: 982, ensp: 8194, emsp: 8195, thinsp: 8201, zwnj: 8204, zwj: 8205, lrm: 8206, rlm: 8207, ndash: 8211, mdash: 8212, lsquo: 8216, rsquo: 8217, sbquo: 8218, ldquo: 8220, rdquo: 8221, bdquo: 8222, dagger: 8224, Dagger: 8225, bull: 8226, hellip: 8230, permil: 8240, prime: 8242, Prime: 8243, lsaquo: 8249, rsaquo: 8250, oline: 8254, frasl: 8260, euro: 8364, image: 8465, weierp: 8472, real: 8476, trade: 8482, alefsym: 8501, larr: 8592, uarr: 8593, rarr: 8594, darr: 8595, harr: 8596, crarr: 8629, lArr: 8656, uArr: 8657, rArr: 8658, dArr: 8659, hArr: 8660, forall: 8704, part: 8706, exist: 8707, empty: 8709, nabla: 8711, isin: 8712, notin: 8713, ni: 8715, prod: 8719, sum: 8721, minus: 8722, lowast: 8727, radic: 8730, prop: 8733, infin: 8734, ang: 8736, and: 8743, or: 8744, cap: 8745, cup: 8746, 'int': 8747, there4: 8756, sim: 8764, cong: 8773, asymp: 8776, ne: 8800, equiv: 8801, le: 8804, ge: 8805, sub: 8834, sup: 8835, nsub: 8836, sube: 8838, supe: 8839, oplus: 8853, otimes: 8855, perp: 8869, sdot: 8901, lceil: 8968, rceil: 8969, lfloor: 8970, rfloor: 8971, lang: 9001, rang: 9002, loz: 9674, spades: 9824, clubs: 9827, hearts: 9829, diams: 9830	};
+
+
+	decodeCharacterReferences = function ( html ) {
+		var result;
+
+		// named entities
+		result = html.replace( /&([a-zA-Z]+);/, function ( match, name ) {
+			if ( htmlEntities[ name ] ) {
+				return String.fromCharCode( htmlEntities[ name ] );
+			}
+
+			return match;
+		});
+
+		// hex references
+		result = result.replace( /&#x([0-9]+);/, function ( match, hex ) {
+			return String.fromCharCode( parseInt( hex, 16 ) );
+		});
+
+		// decimal references
+		result = result.replace( /&#([0-9]+);/, function ( match, num ) {
+			return String.fromCharCode( num );
+		});
+
+		return result;
+	};
+
+
+
 
 	TextStub = function ( token ) {
 		this.text = token.value;
@@ -2255,11 +1313,17 @@ Anglebars.formatters = {
 
 	TextStub.prototype = {
 		toJson: function () {
-			return this.text;
+			// this will be used as text, so we need to decode things like &amp;
+			return this.decoded || ( this.decoded = decodeCharacterReferences( this.text) );
 		},
 
 		toString: function () {
+			// this will be used as straight text
 			return this.text;
+		},
+
+		decodeCharacterReferences: function () {
+			
 		}
 	};
 
@@ -2281,7 +1345,7 @@ Anglebars.formatters = {
 			for ( i=0; i<numAttributes; i+=1 ) {
 				attributes[i] = {
 					name: items[i].name.value,
-					value: A.utils.getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
+					value: getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
 				};
 			}
 
@@ -2434,7 +1498,7 @@ Anglebars.formatters = {
 			};
 
 			if ( this.formatters && this.formatters.length ) {
-				json.fmtrs = this.formatters;
+				json.fmtrs = this.formatters.map( getFormatter );
 			}
 
 			if ( this.inverted ) {
@@ -2471,7 +1535,7 @@ Anglebars.formatters = {
 			};
 
 			if ( this.formatters ) {
-				json.fmtrs = this.formatters;
+				json.fmtrs = this.formatters.map( getFormatter );
 			}
 
 			if ( this.priority ) {
@@ -2668,9 +1732,7 @@ Anglebars.formatters = {
 	};
 
 
-
-
-	A.utils.getFragmentStubFromTokens = function ( tokens, priority ) {
+	getFragmentStubFromTokens = function ( tokens, priority ) {
 		var fragStub = new FragmentStub( null, priority || 0 ), token;
 
 		while ( tokens.length ) {
@@ -2680,9 +1742,12 @@ Anglebars.formatters = {
 
 		return fragStub;
 	};
+	
 
 }( Anglebars ));
 (function ( A ) {
+
+	var splitKeypath, parseArrayNotation;
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -2716,7 +1781,7 @@ Anglebars.formatters = {
 
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
-			keys = A.utils.splitKeypath( keypath );
+			keys = splitKeypath( keypath );
 
 			// TODO accommodate implicit array generation
 			obj = this.data;
@@ -2759,7 +1824,7 @@ Anglebars.formatters = {
 				return undefined;
 			}
 
-			keys = A.utils.splitKeypath( keypath );
+			keys = splitKeypath( keypath );
 
 			result = this.data;
 			while ( keys.length ) {
@@ -2783,7 +1848,7 @@ Anglebars.formatters = {
 		},
 
 		registerView: function ( view ) {
-			var self = this, fullKeypath, initialUpdate, value, formatted;
+			var self = this, fullKeypath, initialUpdate, value;
 
 			initialUpdate = function ( keypath ) {
 				view.keypath = keypath;
@@ -2796,9 +1861,15 @@ Anglebars.formatters = {
 				});
 
 				value = self.get( keypath );
-				formatted = view.anglebars._format( value, view.model.fmtrs );
+				
+				
+				// pass value through formatters, if there are any
+				if ( view.model.fmtrs ) {
+					console.log( view );
+					value = view.anglebars._format( value, view.model.fmtrs );
+				}
 
-				view.update( formatted );
+				view.update( value );
 			};
 
 			fullKeypath = this.getFullKeypath( view.model.ref, view.contextStack );
@@ -2847,7 +1918,7 @@ Anglebars.formatters = {
 		},
 
 		_notifyObservers: function ( keypath, value ) {
-			var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, formatted, actualValue;
+			var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, actualValue;
 
 			for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
 				priority = observersGroupedByLevel[i];
@@ -2863,8 +1934,12 @@ Anglebars.formatters = {
 						}
 
 						if ( observer.view ) {
-							formatted = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
-							observer.view.update( formatted );
+							// apply formatters, if there are any
+							if ( observer.view.model.fmtrs ) {
+								actualValue = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
+							}
+
+							observer.view.update( actualValue );
 						}
 
 						if ( observer.callback ) {
@@ -3004,13 +2079,59 @@ Anglebars.formatters = {
 		};
 	}
 
+
+
+	// Split keypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
+	splitKeypath = function ( keypath ) {
+		var firstPass, secondPass = [], i;
+
+		// Start by splitting on periods
+		firstPass = keypath.split( '.' );
+
+		// Then see if any keys use array notation instead of dot notation
+		for ( i=0; i<firstPass.length; i+=1 ) {
+			secondPass = secondPass.concat( parseArrayNotation( firstPass[i] ) );
+		}
+
+		return secondPass;
+	};
+
+	// Split key with array notation ('baz[0]') into identifier and array pointer(s) (['baz', 0])
+	parseArrayNotation = function ( key ) {
+		var index, arrayPointers, pattern, match, result;
+
+		index = key.indexOf( '[' );
+
+		if ( index === -1 ) {
+			return key;
+		}
+
+		result = [ key.substr( 0, index ) ];
+		arrayPointers = key.substring( index );
+
+		pattern = A.patterns.arrayPointer;
+
+		while ( arrayPointers.length ) {
+			match = pattern.exec( arrayPointers );
+
+			if ( !match ) {
+				return result;
+			}
+
+			result[ result.length ] = +match[1];
+			arrayPointers = arrayPointers.substring( match[0].length );
+		}
+
+		return result;
+	};
+
 }( Anglebars ));
 
 (function ( A ) {
 
 	'use strict';
 
-	var domViewMustache, DomViews, utils, types, ctors;
+	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject;
 
 	types = A.types;
 
@@ -3022,7 +2143,29 @@ Anglebars.formatters = {
 	ctors[ types.ELEMENT ]      = 'Element';
 	ctors[ types.PARTIAL ]      = 'Partial';
 
-	utils = A.utils;
+	isArray = A.isArray;
+	isObject = A.isObject;
+
+	insertHtml = function ( html, parent, anchor ) {
+		var div, i, len, nodes = [];
+
+		anchor = anchor || null;
+
+		div = document.createElement( 'div' );
+		div.innerHTML = html;
+
+		len = div.childNodes.length;
+
+		for ( i=0; i<len; i+=1 ) {
+			nodes[i] = div.childNodes[i];
+		}
+
+		for ( i=0; i<len; i+=1 ) {
+			parent.insertBefore( nodes[i], anchor );
+		}
+
+		return nodes;
+	};
 
 	// View constructor factory
 	domViewMustache = function ( proto ) {
@@ -3077,7 +2220,7 @@ Anglebars.formatters = {
 
 		// if we have an HTML string, our job is easy. TODO consider async?
 		if ( typeof options.model === 'string' ) {
-			this.nodes = utils.insertHtml( options.model, options.parentNode, options.anchor );
+			this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
 			return;
 		}
 
@@ -3289,14 +2432,21 @@ Anglebars.formatters = {
 
 		// append children, if there are any
 		if ( model.frag ) {
-			this.children = new DomViews.Fragment({
-				model:        model.frag,
-				anglebars:    options.anglebars,
-				parentNode:   this.node,
-				contextStack: options.contextStack,
-				anchor:       null,
-				owner:        this
-			});
+			if ( typeof model.frag === 'string' ) {
+				// great! we can use innerHTML
+				this.node.innerHTML = model.frag;
+			}
+
+			else {
+				this.children = new DomViews.Fragment({
+					model:        model.frag,
+					anglebars:    options.anglebars,
+					parentNode:   this.node,
+					contextStack: options.contextStack,
+					anchor:       null,
+					owner:        this
+				});
+			}
 		}
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
@@ -3373,7 +2523,9 @@ Anglebars.formatters = {
 				this.parentNode.removeChild( this.node );
 			}
 
-			this.children.teardown();
+			if ( this.children ) {
+				this.children.teardown();
+			}
 
 			while ( this.attributes.length ) {
 				this.attributes.pop().teardown();
@@ -3533,9 +2685,6 @@ Anglebars.formatters = {
 	DomViews.Triple = domViewMustache({
 		initialize: function () {
 			this.nodes = [];
-
-			// this.tripleAnchor = Anglebars.utils.createAnchor();
-			// this.parentNode.insertBefore( this.tripleAnchor, this.anchor || null );
 		},
 
 		teardown: function () {
@@ -3564,7 +2713,7 @@ Anglebars.formatters = {
 		},
 
 		update: function ( html ) {
-			var numNodes, i, anchor;
+			var anchor;
 
 			if ( html === this.html ) {
 				return;
@@ -3572,26 +2721,18 @@ Anglebars.formatters = {
 				this.html = html;
 			}
 
-			anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
+			// TODO figure out if this line was supposed to mean something...
+			//anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
 
 			// remove existing nodes
 			while ( this.nodes.length ) {
 				this.parentNode.removeChild( this.nodes.pop() );
 			}
 
+			anchor = this.anchor || this.parentFragment.findNextNode( this );
+
 			// get new nodes
-			this.nodes = utils.getNodeArrayFromHtml( html, false );
-
-			numNodes = this.nodes.length;
-			if ( numNodes ) {
-				anchor = this.parentFragment.findNextNode( this );
-
-				for ( i=0; i<numNodes; i+=1 ) {
-					this.parentNode.insertBefore( this.nodes[i], anchor );
-				}
-			}
-
-			this.initialised = true;
+			this.nodes = insertHtml( html, this.parentNode, anchor );
 		}
 	});
 
@@ -3652,7 +2793,7 @@ Anglebars.formatters = {
 			};
 
 			// treat empty arrays as false values
-			if ( utils.isArray( value ) && value.length === 0 ) {
+			if ( isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -3688,7 +2829,7 @@ Anglebars.formatters = {
 			// otherwise we need to work out what sort of section we're dealing with
 
 			// if value is an array, iterate through
-			if ( utils.isArray( value ) ) {
+			if ( isArray( value ) ) {
 
 				// if the array is shorter than it was previously, remove items
 				if ( value.length < this.length ) {
@@ -3726,7 +2867,7 @@ Anglebars.formatters = {
 			}
 
 			// if value is a hash...
-			else if ( utils.isObject( value ) ) {
+			else if ( isObject( value ) ) {
 				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 				// (if it is already rendered, then any children dependent on the context stack
 				// will update themselves without any prompting)
@@ -3771,7 +2912,7 @@ Anglebars.formatters = {
 
 	'use strict';
 
-	var textViewMustache, TextViews, types, ctors;
+	var textViewMustache, TextViews, types, ctors, isArray, isObject;
 
 	types = A.types;
 
@@ -3780,6 +2921,9 @@ Anglebars.formatters = {
 	ctors[ types.INTERPOLATOR ] = 'Interpolator';
 	ctors[ types.TRIPLE ] = 'Triple';
 	ctors[ types.SECTION ] = 'Section';
+
+	isArray = A.isArray;
+	isObject = A.isObject;
 
 	// Substring constructor factory
 	textViewMustache = function ( proto ) {
@@ -3949,7 +3093,7 @@ Anglebars.formatters = {
 			var emptyArray, i, childrenToRemove;
 
 			// treat empty arrays as false values
-			if ( A.utils.isArray( value ) && value.length === 0 ) {
+			if ( isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -3982,7 +3126,7 @@ Anglebars.formatters = {
 
 
 				// if value is an array, iterate through
-				if ( A.utils.isArray( value ) ) {
+				if ( isArray( value ) ) {
 
 					// if the array is shorter than it was previously, remove items
 					if ( value.length < this.length ) {

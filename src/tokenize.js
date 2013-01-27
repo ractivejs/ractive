@@ -1,15 +1,14 @@
+/*global Anglebars */
+/*jslint white: true */
+
 (function ( A ) {
 	
 	'use strict';
 
-	var utils,
-		types,
-		stripHtmlComments,
-		getTokens,
-		getTree,
+	var types,
 		whitespace,
-		alphanumerics,
-		tokenize,
+
+		stripHtmlComments,
 
 		TokenStream,
 		MustacheBuffer,
@@ -20,134 +19,25 @@
 		TagToken,
 		AttributeValueToken,
 
-		mustacheTypes;
+		mustacheTypes,
+		OpeningBracket,
+		TagName,
+		AttributeCollection,
+		Solidus,
+		ClosingBracket,
+		Attribute,
+		AttributeName,
+		AttributeValue;
 
 
-	utils = A.utils;
-	types = A.types;
 
-	stripHtmlComments = function ( str ) {
-		var commentStart, commentEnd, processed;
-
-		processed = '';
-
-		while ( str.length ) {
-			commentStart = str.indexOf( '<!--' );
-			commentEnd = str.indexOf( '-->' );
-
-			// no comments? great
-			if ( commentStart === -1 && commentEnd === -1 ) {
-				processed += str;
-				break;
-			}
-
-			// comment start but no comment end
-			if ( commentStart !== -1 && commentEnd === -1 ) {
-				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
-			}
-
-			// comment end but no comment start, or comment end before comment start
-			if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
-				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
-			}
-
-			processed += str.substr( 0, commentStart );
-			str = str.substring( commentEnd + 3 );
-		}
-
-		return processed;
+	A.tokenize = function ( template ) {
+		var stream = TokenStream.fromString( stripHtmlComments( template ) );
+		return stream.tokens;
 	};
-
-
-	whitespace = /\s/;
-	alphanumerics = /[0-9a-zA-Z]/;
-
 	
-
-
 	
-
-	MustacheBuffer = function () {
-		this.value = '';
-	};
-
-	MustacheBuffer.prototype = {
-		read: function ( char ) {
-			var continueBuffering;
-
-			this.value += char;
-
-			// if this could turn out to be a tag, a mustache or a triple return true
-			continueBuffering = ( this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
-			return continueBuffering;
-		},
-
-		convert: function () {
-			var mustache, triple, token;
-
-			// store mustache and triple opening delimiters
-			mustache = A.delimiters[0];
-			triple = A.tripleDelimiters[0];
-
-			// out of mustache and triple opening delimiters, try to match longest first.
-			// if they're the same length then only one will match anyway, unless some
-			// plonker has set them to the same thing (which should probably throw an error)
-			if ( triple.length > mustache.length ) {
-
-				// triple first
-				if ( this.value.indexOf( triple ) === 0 ) {
-					token = new TripleToken();
-				}
-
-				// mustache first
-				else if ( this.value.indexOf( mustache ) === 0 ) {
-					token = new MustacheToken();
-				}
-			}
-
-			else {
-
-				// mustache first
-				if ( this.value.indexOf( mustache ) === 0 ) {
-					token = new MustacheToken();
-				}
-
-				// triple first
-				if ( this.value.indexOf( triple ) === 0 ) {
-					token = new TripleToken();
-				}
-			}
-
-			if ( token ) {
-				while ( this.value.length ) {
-					token.read( this.value.charAt( 0 ) );
-					this.value = this.value.substring( 1 );
-				}
-
-				return token;
-			}
-
-			return false;
-		},
-
-		release: function () {
-			var value = this.value;
-			this.value = '';
-			return value;
-		},
-
-		isEmpty: function () {
-			return !this.value.length;
-		},
-
-		isPartialMatchOf: function ( str ) {
-			// if str begins with this.value, the index will be 0
-			return str.indexOf( this.value ) === 0;
-		}
-	};
-
-	
-
+	// TokenStream generates an array of tokens from an HTML string
 	TokenStream = function () {
 		this.tokens = [];
 		this.buffer = new MustacheBuffer();
@@ -250,6 +140,83 @@
 	};
 
 
+	// MustacheBuffer intercepts characters in the token stream and determines
+	// whether they could be a mustache/triple delimiter
+	MustacheBuffer = function () {
+		this.value = '';
+	};
+
+	MustacheBuffer.prototype = {
+		read: function ( char ) {
+			var continueBuffering;
+
+			this.value += char;
+
+			// if this could turn out to be a tag, a mustache or a triple return true
+			continueBuffering = ( this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
+			return continueBuffering;
+		},
+
+		convert: function () {
+			var value, mustache, triple, token, getTriple, getMustache;
+
+			// store mustache and triple opening delimiters
+			mustache = A.delimiters[0];
+			triple = A.tripleDelimiters[0];
+
+			value = this.value;
+
+			getTriple = function () {
+				if ( value.indexOf( triple ) === 0 ) {
+					return new TripleToken();
+				}
+			};
+
+			getMustache = function () {
+				if ( value.indexOf( mustache ) === 0 ) {
+					return new MustacheToken();
+				}
+			};
+
+			// out of mustache and triple opening delimiters, try to match longest first.
+			// if they're the same length then only one will match anyway, unless some
+			// plonker has set them to the same thing (which should probably throw an error)
+			if ( triple.length > mustache.length ) {
+				token = getTriple() || getMustache();
+			} else {
+				token = getMustache() || getTriple();
+			}
+
+			if ( token ) {
+				while ( this.value.length ) {
+					token.read( this.value.charAt( 0 ) );
+					this.value = this.value.substring( 1 );
+				}
+
+				return token;
+			}
+
+			return false;
+		},
+
+		release: function () {
+			var value = this.value;
+			this.value = '';
+			return value;
+		},
+
+		isEmpty: function () {
+			return !this.value.length;
+		},
+
+		isPartialMatchOf: function ( str ) {
+			// if str begins with this.value, the index will be 0
+			return str.indexOf( this.value ) === 0;
+		}
+	};
+
+	
+
 
 	TextToken = function () {
 		this.type = types.TEXT;
@@ -277,13 +244,7 @@
 	};
 
 
-	mustacheTypes = {
-		'#': types.SECTION,
-		'^': types.INVERTED,
-		'/': types.CLOSING,
-		'>': types.PARTIAL,
-		'!': types.COMMENT
-	};
+	
 
 
 	MustacheToken = function () {
@@ -367,14 +328,12 @@
 			delimiters = ( this.type === types.TRIPLE ? A.tripleDelimiters : A.delimiters );
 
 			delimiters[0] = newDelimiters[1];
-			delimiters[1] = newDelimiters[2]; 
+			delimiters[1] = newDelimiters[2];
 		}
 	};
 
 
-	var OpeningBracket, TagName, AttributeCollection, Solidus, ClosingBracket, Attribute, AttributeName, AttributeValue;
-
-
+	
 	
 
 
@@ -422,8 +381,6 @@
 		},
 
 		seal: function () {
-			var i, len, attributes, numAttributes;
-
 			// time to figure out some stuff about this tag
 			
 			// tag name
@@ -443,11 +400,6 @@
 		}
 	};
 
-
-	// OpeningBracket = genericToken({
-	// 	pattern: '<',
-	// 	required: true
-	// });
 
 	OpeningBracket = function () {};
 	OpeningBracket.prototype = {
@@ -469,12 +421,6 @@
 			this.sealed = true;
 		}
 	};
-
-
-	// TagName = genericToken({
-	// 	pattern: /^([a-zA-Z][a-zA-Z0-9]*)$/,
-	// 	required: true
-	// });
 
 
 	TagName = function () {};
@@ -544,10 +490,8 @@
 			}
 
 			// if not, we're done here
-			else {
-				this.seal();
-				return false;
-			}
+			this.seal();
+			return false;
 		},
 
 		seal: function () {
@@ -788,10 +732,6 @@
 
 
 
-	// Solidus = genericToken({
-	// 	pattern: '/'
-	// });
-
 	Solidus = function () {};
 	Solidus.prototype = {
 		read: function ( char ) {
@@ -814,11 +754,6 @@
 		}
 	};
 
-	// ClosingBracket = genericToken({
-	// 	pattern: '>',
-	// 	required: true
-	// });
-
 	ClosingBracket = function () {};
 	ClosingBracket.prototype = {
 		read: function ( char ) {
@@ -839,22 +774,51 @@
 			this.sealed = true;
 		}
 	};
-	
 
 
 
+	stripHtmlComments = function ( html ) {
+		var commentStart, commentEnd, processed;
 
+		processed = '';
 
-	tokenize = function ( template ) {
-		var stream, fragmentStub;
+		while ( html.length ) {
+			commentStart = html.indexOf( '<!--' );
+			commentEnd = html.indexOf( '-->' );
 
-		stream = TokenStream.fromString( stripHtmlComments( template ) );
+			// no comments? great
+			if ( commentStart === -1 && commentEnd === -1 ) {
+				processed += html;
+				break;
+			}
 
-		return stream.tokens;
+			// comment start but no comment end
+			if ( commentStart !== -1 && commentEnd === -1 ) {
+				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
+			}
+
+			// comment end but no comment start, or comment end before comment start
+			if ( ( commentEnd !== -1 && commentStart === -1 ) || ( commentEnd < commentStart ) ) {
+				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
+			}
+
+			processed += html.substr( 0, commentStart );
+			html = html.substring( commentEnd + 3 );
+		}
+
+		return processed;
 	};
 
+	types = A.types;
+	whitespace = /\s/;
+	mustacheTypes = {
+		'#': types.SECTION,
+		'^': types.INVERTED,
+		'/': types.CLOSING,
+		'>': types.PARTIAL,
+		'!': types.COMMENT
+	};
+	
 
-
-	A.utils.tokenize = tokenize;
 
 }( Anglebars ));

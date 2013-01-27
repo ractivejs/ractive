@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	var textViewMustache, TextViews, types, ctors;
+	var textViewMustache, TextViews, types, ctors, isArray, isObject;
 
 	types = A.types;
 
@@ -11,6 +11,9 @@
 	ctors[ types.INTERPOLATOR ] = 'Interpolator';
 	ctors[ types.TRIPLE ] = 'Triple';
 	ctors[ types.SECTION ] = 'Section';
+
+	isArray = A.isArray;
+	isObject = A.isObject;
 
 	// Substring constructor factory
 	textViewMustache = function ( proto ) {
@@ -180,7 +183,7 @@
 			var emptyArray, i, childrenToRemove;
 
 			// treat empty arrays as false values
-			if ( A.utils.isArray( value ) && value.length === 0 ) {
+			if ( isArray( value ) && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -213,7 +216,7 @@
 
 
 				// if value is an array, iterate through
-				if ( A.utils.isArray( value ) ) {
+				if ( isArray( value ) ) {
 
 					// if the array is shorter than it was previously, remove items
 					if ( value.length < this.length ) {
