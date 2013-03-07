@@ -38,7 +38,7 @@
 
 			// If we have a failed keypath lookup, and this is an inverted section,
 			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inverted ) { // Test both section-hood and inverticity in one go
+			if ( !this.keypath && this.model.inv ) { // Test both section-hood and inverticity in one go
 				this.update( false );
 			}
 		};
@@ -188,7 +188,7 @@
 			}
 
 			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inverted ) {
+			if ( this.model.inv ) {
 				if ( value && !emptyArray ) {
 					if ( this.length ) {
 						this.unrender();
