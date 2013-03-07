@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject;
+	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject, elContains;
 
 	types = A.types;
 
@@ -16,6 +16,15 @@
 
 	isArray = A.isArray;
 	isObject = A.isObject;
+
+	elContains = function ( haystack, needle ) {
+		// TODO!
+		if ( haystack.contains ) {
+			return haystack.contains( needle );
+		}
+
+		return true;
+	};
 
 	insertHtml = function ( html, parent, anchor ) {
 		var div, i, len, nodes = [];
@@ -61,7 +70,7 @@
 
 			// if we have a failed keypath lookup, and this is an inverted section,
 			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+			if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
 				this.update( false );
 			}
 		};
@@ -155,6 +164,7 @@
 					node = this.nodes.pop();
 					node.parentNode.removeChild( node );
 				}
+				return;
 			}
 
 			// otherwise we need to do a proper teardown
@@ -227,7 +237,7 @@
 
 	DomViews.Text.prototype = {
 		teardown: function () {
-			if ( this.anglebars.el.contains( this.node ) ) {
+			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -390,7 +400,7 @@
 		},
 
 		teardown: function () {
-			if ( this.anglebars.el.contains( this.node ) ) {
+			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 
@@ -534,7 +544,7 @@
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			if ( this.anglebars.el.contains( this.node ) ) {
+			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -561,7 +571,7 @@
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( this.anglebars.el.contains( this.parentNode ) ) {
+			if ( elContains( this.anglebars.el, this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -670,7 +680,7 @@
 
 
 			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inverted ) {
+			if ( this.model.inv ) {
 				if ( value && !emptyArray ) {
 					if ( this.length ) {
 						this.unrender();
