@@ -1,17 +1,14 @@
-/*! Anglebars - v0.1.2 - 2013-01-27
+/*! Anglebars - v0.1.2 - 2013-03-07
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
 /*jslint eqeq: true, plusplus: true */
 /*global document, HTMLElement */
 
-'use strict';
-
-
 
 (function ( global ) {
 
-/*jslint white: true */
+"use strict";/*jslint white: true */
 
 var Anglebars, extend, getEl, wait;
 
@@ -19,7 +16,7 @@ var Anglebars, extend, getEl, wait;
 
 Anglebars = function ( options ) {
 
-	var defaults;
+	var defaults, key;
 
 	// Options
 	// -------
@@ -47,7 +44,7 @@ Anglebars = function ( options ) {
 
 	// If we were given uncompiled partials, compile them
 	if ( this.partials ) {
-		for ( var key in this.partials ) {
+		for ( key in this.partials ) {
 			if ( this.partials.hasOwnProperty( key ) ) {
 				this.compiledPartials[ key ] = Anglebars.compile( this.partials[ key ], {
 					preserveWhitespace: this.preserveWhitespace,
@@ -202,12 +199,8 @@ Anglebars.prototype = {
 	_format: function ( value, formatters ) {
 		var i, numFormatters, formatter, name, args, fn;
 
-		console.group( 'Formatting', value );
-
 		// If there are no formatters, groovy - just return the value unchanged
 		if ( !formatters ) {
-			console.log( 'no formatters' );
-			console.groupEnd();
 			return value;
 		}
 
@@ -227,8 +220,6 @@ Anglebars.prototype = {
 			}
 		}
 
-
-		console.groupEnd();
 		return value;
 	}
 };
@@ -1865,7 +1856,6 @@ Anglebars.isObject = function ( obj ) {
 				
 				// pass value through formatters, if there are any
 				if ( view.model.fmtrs ) {
-					console.log( view );
 					value = view.anglebars._format( value, view.model.fmtrs );
 				}
 
@@ -2131,7 +2121,7 @@ Anglebars.isObject = function ( obj ) {
 
 	'use strict';
 
-	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject;
+	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject, elContains;
 
 	types = A.types;
 
@@ -2145,6 +2135,15 @@ Anglebars.isObject = function ( obj ) {
 
 	isArray = A.isArray;
 	isObject = A.isObject;
+
+	elContains = function ( haystack, needle ) {
+		// TODO!
+		if ( haystack.contains ) {
+			return haystack.contains( needle );
+		}
+
+		return true;
+	};
 
 	insertHtml = function ( html, parent, anchor ) {
 		var div, i, len, nodes = [];
@@ -2190,7 +2189,7 @@ Anglebars.isObject = function ( obj ) {
 
 			// if we have a failed keypath lookup, and this is an inverted section,
 			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inverted ) { // test both section-hood and inverticity in one go
+			if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
 				this.update( false );
 			}
 		};
@@ -2284,6 +2283,7 @@ Anglebars.isObject = function ( obj ) {
 					node = this.nodes.pop();
 					node.parentNode.removeChild( node );
 				}
+				return;
 			}
 
 			// otherwise we need to do a proper teardown
@@ -2356,7 +2356,7 @@ Anglebars.isObject = function ( obj ) {
 
 	DomViews.Text.prototype = {
 		teardown: function () {
-			if ( this.anglebars.el.contains( this.node ) ) {
+			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -2519,7 +2519,7 @@ Anglebars.isObject = function ( obj ) {
 		},
 
 		teardown: function () {
-			if ( this.anglebars.el.contains( this.node ) ) {
+			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 
@@ -2663,7 +2663,7 @@ Anglebars.isObject = function ( obj ) {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			if ( this.anglebars.el.contains( this.node ) ) {
+			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -2690,7 +2690,7 @@ Anglebars.isObject = function ( obj ) {
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( this.anglebars.el.contains( this.parentNode ) ) {
+			if ( elContains( this.anglebars.el, this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -2799,7 +2799,7 @@ Anglebars.isObject = function ( obj ) {
 
 
 			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inverted ) {
+			if ( this.model.inv ) {
 				if ( value && !emptyArray ) {
 					if ( this.length ) {
 						this.unrender();
@@ -2948,7 +2948,7 @@ Anglebars.isObject = function ( obj ) {
 
 			// If we have a failed keypath lookup, and this is an inverted section,
 			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inverted ) { // Test both section-hood and inverticity in one go
+			if ( !this.keypath && this.model.inv ) { // Test both section-hood and inverticity in one go
 				this.update( false );
 			}
 		};
@@ -3098,7 +3098,7 @@ Anglebars.isObject = function ( obj ) {
 			}
 
 			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inverted ) {
+			if ( this.model.inv ) {
 				if ( value && !emptyArray ) {
 					if ( this.length ) {
 						this.unrender();
@@ -3197,7 +3197,6 @@ Anglebars.isObject = function ( obj ) {
 	});
 
 }( Anglebars ));
-
 // export
 if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS
 else if ( typeof define === "function" && define.amd ) define( function () { return Anglebars } ) // AMD
