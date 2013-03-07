@@ -6,7 +6,7 @@ var Anglebars, extend, getEl, wait;
 
 Anglebars = function ( options ) {
 
-	var defaults;
+	var defaults, key;
 
 	// Options
 	// -------
@@ -34,7 +34,7 @@ Anglebars = function ( options ) {
 
 	// If we were given uncompiled partials, compile them
 	if ( this.partials ) {
-		for ( var key in this.partials ) {
+		for ( key in this.partials ) {
 			if ( this.partials.hasOwnProperty( key ) ) {
 				this.compiledPartials[ key ] = Anglebars.compile( this.partials[ key ], {
 					preserveWhitespace: this.preserveWhitespace,
@@ -189,12 +189,8 @@ Anglebars.prototype = {
 	_format: function ( value, formatters ) {
 		var i, numFormatters, formatter, name, args, fn;
 
-		console.group( 'Formatting', value );
-
 		// If there are no formatters, groovy - just return the value unchanged
 		if ( !formatters ) {
-			console.log( 'no formatters' );
-			console.groupEnd();
 			return value;
 		}
 
@@ -214,8 +210,6 @@ Anglebars.prototype = {
 			}
 		}
 
-
-		console.groupEnd();
 		return value;
 	}
 };
