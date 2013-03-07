@@ -118,7 +118,6 @@
 				
 				// pass value through formatters, if there are any
 				if ( view.model.fmtrs ) {
-					console.log( view );
 					value = view.anglebars._format( value, view.model.fmtrs );
 				}
 

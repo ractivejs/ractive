@@ -1,6 +1,6 @@
 .DS_Store
-build
-pages-OLD
-pages
-speedtest
-node_modules
+build/
+pages-OLD/
+pages/
+speedtest/
+node_modules/
