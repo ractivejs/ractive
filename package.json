@@ -1,9 +1,9 @@
 {
 	"name": "Anglebars",
-	"description": "the bastard lovechild of Angular.js and handlebars",
+	"description": "Declarative data binding done right",
 	"version": "0.1.3",
 	"homepage": "http://rich-harris.github.com/Anglebars/",
-	"keywords": [ "template", "templating", "binding", "data binding" ],
+	"keywords": [ "template", "templating", "binding", "data binding", "declarative" ],
 	"author": {
 		"name": "Rich Harris"
 	},
@@ -13,9 +13,9 @@
 		}
 	],
 	"jam" : {
-        "main" : "build/Anglebars.amd.js",
+        "main" : "build/Anglebars.js",
         "include" : [
-            "build/Anglebars.amd.js",
+            "build/Anglebars.js",
             "README.md"
         ]
     },

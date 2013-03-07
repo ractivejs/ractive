@@ -1,4 +1,4 @@
-/*! Anglebars - v0.1.2 - 2013-03-07
+/*! Anglebars - v0.1.3 - 2013-03-07
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
@@ -3197,6 +3197,7 @@ Anglebars.isObject = function ( obj ) {
 	});
 
 }( Anglebars ));
+
 // export
 if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS
 else if ( typeof define === "function" && define.amd ) define( function () { return Anglebars } ) // AMD
