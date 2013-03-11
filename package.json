@@ -1,8 +1,9 @@
 {
-	"name": "Anglebars",
+	"name": "anglebars",
 	"description": "Declarative data binding done right",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"homepage": "http://rich-harris.github.com/Anglebars/",
+    "main": "build/Anglebars.js",
 	"keywords": [ "template", "templating", "binding", "data binding", "declarative" ],
 	"author": {
 		"name": "Rich Harris"
