@@ -187,15 +187,6 @@ Anglebars.prototype = {
 		return this;
 	},
 
-	observe: function () {
-		return this.viewmodel.observe.apply( this.viewmodel, arguments );
-	},
-
-	unobserve: function () {
-		this.viewmodel.unobserve.apply( this.viewmodel, arguments );
-		return this;
-	},
-
 	// Internal method to format a value, using formatters passed in at initialization
 	_format: function ( value, formatters ) {
 		var i, numFormatters, formatter, name, args, fn;
