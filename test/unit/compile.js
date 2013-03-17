@@ -11,7 +11,7 @@ test( 'Anglebars has a compile method', function () {
 	ok( _.isFunction( Anglebars.compile ) );
 });
 
-$.ajax( 'samples/compile.json' ).done( function ( data ) {
+$.getJSON( 'samples/compile.json' ).done( function ( data ) {
 	_.each( data, function ( t ) {
 		test( t.name, function () {
 			console.group( t.template );

@@ -28,16 +28,27 @@ module.exports = function(grunt) {
 			files: ['grunt.js', 'src/**/*.js'] // TODO add tests
 		},
 		qunit: {
-			files: ['test/**/*.html']
+			files: [ 'test/core.html', 'test/compile.html', 'test/render.html' ]
+		},
+		clean: {
+			files: [ 'build/**/*.js' ]
 		},
 		concat: {
 			options: {
 				banner: '<%= meta.banner %><%= meta.wrapper.start %>',
 				footer: '<%= meta.wrapper.end %>'
 			},
-			dist: {
-				src: [ 'src/Anglebars.js', 'src/tokenize.js', 'src/compile.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js' ],
-				dest: 'build/<%= pkg.name %>.js'
+			compile: {
+				src: [ 'src/compile.js', 'src/tokenize.js', 'src/types.js' ],
+				dest: 'build/compile/Anglebars.compile.js'
+			},
+			runtime: {
+				src: [ 'src/Anglebars.js', 'src/types.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js' ],
+				dest: 'build/runtime/Anglebars.runtime.js'
+			},
+			full: {
+				src: [ 'src/Anglebars.js', 'src/types.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js' ],
+				dest: 'build/Anglebars.js'
 			}
 		},
 		watch: {
@@ -50,19 +61,28 @@ module.exports = function(grunt) {
 			}
 		},
 		uglify: {
-			dist: {
-				src: ['<%= concat.dist.dest %>'],
-				dest: 'build/<%= pkg.name %>.min.js'
+			compile: {
+				src: ['<%= concat.compile.dest %>'],
+				dest: 'build/compile/Anglebars.compile.min.js'
+			},
+			runtime: {
+				src: ['<%= concat.runtime.dest %>'],
+				dest: 'build/runtime/Anglebars.runtime.min.js'
+			},
+			full: {
+				src: ['<%= concat.full.dest %>'],
+				dest: 'build/Anglebars.min.js'
 			}
 		}
 	});
 
 	grunt.loadNpmTasks( 'grunt-contrib-jshint' );
+	grunt.loadNpmTasks( 'grunt-contrib-clean' );
 	grunt.loadNpmTasks( 'grunt-contrib-qunit' );
 	grunt.loadNpmTasks( 'grunt-contrib-concat' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	
 	// Default task.
-	grunt.registerTask('default', [ 'jshint', 'qunit', 'concat', 'uglify' ]);
+	grunt.registerTask('default', [ 'jshint', 'qunit', 'clean', 'concat', 'uglify' ]);
 
 };

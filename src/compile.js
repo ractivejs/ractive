@@ -1,3 +1,5 @@
+var Anglebars = Anglebars || {}; // in case we're not using the runtime
+
 (function ( A ) {
 
 	'use strict';

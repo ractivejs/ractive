@@ -2,41 +2,41 @@
 	{
 		"name": "Empty string",
 		"template": "",
-		"compiled": []
+		"compiled": ""
 	},
 	{
 		"name": "Mustache-less text",
 		"template": "a string",
-		"compiled": [{"type":1,"text":"a string"}]
+		"compiled": "a string"
 	},
 	{
 		"name": "Interpolator",
 		"template": "{{mustache}}",
-		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0}]
+		"compiled": [{"type":2,"ref":"mustache"}]
 	},
 	{
 		"name": "Triple",
 		"template": "{{{mustache}}}",
-		"compiled": [{"type":3,"partialKeypath":"mustache","priority":0}]
+		"compiled": [{"type":3,"ref":"mustache"}]
 	},
 	{
 		"name": "Section",
 		"template": "{{#mustache}}{{/mustache}}",
-		"compiled": [{"type":4,"partialKeypath":"mustache","inverted":false,"children":[],"priority":0}]
+		"compiled": [{"frag":"","type":4,"ref":"mustache"}]
 	},
 	{
 		"name": "Interpolator with preceding text",
 		"template": "preceding text {{mustache}}",
-		"compiled": [{"type":1,"text":"preceding text "},{"type":2,"partialKeypath":"mustache","priority":0}]
+		"compiled": ["preceding text ",{"type":2,"ref":"mustache"}]
 	},
 	{
 		"name": "Interpolator with following text",
 		"template": "{{mustache}} following text",
-		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0},{"type":1,"text":" following text"}]
+		"compiled": [{"type":2,"ref":"mustache"}," following text"]
 	},
 	{
 		"name": "Delimiter change",
 		"template": "{{=<% %>=}} <% mustache %>",
-		"compiled": [{"type":2,"partialKeypath":"mustache","priority":0}]
+		"compiled": [" ",{"type":2,"ref":"mustache"}]
 	}
 ]

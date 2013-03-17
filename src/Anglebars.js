@@ -29,7 +29,10 @@ Anglebars = function ( options ) {
 	// Initialization
 	// --------------
 
-	this.el = getEl( this.el );
+	if ( this.el !== undefined ) {
+		this.el = getEl( this.el ); // turn ID string into DOM element
+	}
+
 	this.viewmodel = ( this.data instanceof Anglebars.ViewModel ? this.data : new Anglebars.ViewModel( this.data ) );
 
 	// If we were given uncompiled partials, compile them
@@ -56,6 +59,7 @@ Anglebars = function ( options ) {
 
 	// Render
 	if ( this.compiled && this.el ) {
+		console.log( 'rendering to', this.el );
 		this.render({ el: this.el, callback: this.callback, append: this.append });
 	}
 };
@@ -215,58 +219,7 @@ Anglebars.prototype = {
 };
 
 
-// Static method to compile a template string
-Anglebars.compile = function ( template, options ) {
-	
-};
 
-// Cached regexes
-Anglebars.patterns = {
-	// for template preprocessor
-	arrayPointer: /\[([0-9]+)\]/
-};
-
-
-// Mustache types
-Anglebars.types = {
-	TEXT:             1,
-	INTERPOLATOR:     2,
-	TRIPLE:           3,
-	SECTION:          4,
-	INVERTED:         5,
-	CLOSING:          6,
-	ELEMENT:          7,
-	PARTIAL:          8,
-	COMMENT:          9,
-	DELIMCHANGE:      10,
-	MUSTACHE:         11,
-	TAG:              12,
-	ATTR_VALUE_TOKEN: 13
-};
-
-
-// Default formatters
-Anglebars.formatters = {
-	equals: function ( a, b ) {
-		return a === b;
-	},
-
-	greaterThan: function ( a, b ) {
-		return a > b;
-	},
-
-	greaterThanEquals: function ( a, b ) {
-		return a >= b;
-	},
-
-	lessThan: function ( a, b ) {
-		return a < b;
-	},
-
-	lessThanEquals: function ( a, b ) {
-		return a <= b;
-	}
-};
 
 
 // helper functions

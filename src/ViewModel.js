@@ -1,6 +1,6 @@
 (function ( A ) {
 
-	var splitKeypath, parseArrayNotation;
+	var arrayPointer, splitKeypath, parseArrayNotation;
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -348,9 +348,11 @@
 		return secondPass;
 	};
 
+	arrayPointer = /\[([0-9]+)\]/;
+
 	// Split key with array notation ('baz[0]') into identifier and array pointer(s) (['baz', 0])
 	parseArrayNotation = function ( key ) {
-		var index, arrayPointers, pattern, match, result;
+		var index, arrayPointers, match, result;
 
 		index = key.indexOf( '[' );
 
@@ -361,10 +363,8 @@
 		result = [ key.substr( 0, index ) ];
 		arrayPointers = key.substring( index );
 
-		pattern = A.patterns.arrayPointer;
-
 		while ( arrayPointers.length ) {
-			match = pattern.exec( arrayPointers );
+			match = arrayPointer.exec( arrayPointers );
 
 			if ( !match ) {
 				return result;

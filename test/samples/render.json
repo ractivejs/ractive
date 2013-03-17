@@ -1,12 +1,12 @@
 [
 	{
 		"name": "Empty model",
-		"compiled": [],
+		"compiled": "",
 		"result": ""
 	},
 	{
 		"name": "Plain text",
-		"compiled": [{"type":0,"text":"a string"}],
+		"compiled": "a string",
 		"result": "a string"
 	}
 ]
