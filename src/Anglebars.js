@@ -69,6 +69,10 @@ Anglebars = function ( options ) {
 	if ( this.el ) {
 		this.render({ el: this.el, callback: this.callback, append: this.append });
 	}
+
+
+	// Set up event bus
+	this._subs = {};
 };
 
 
