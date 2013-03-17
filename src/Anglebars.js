@@ -13,12 +13,12 @@ Anglebars = function ( options ) {
 
 	options = options || {};
 	defaults = {
+		template: '',
 		preserveWhitespace: false,
 		async: false,
 		maxBatch: 50,
 		append: false,
 		twoway: true,
-		compiledPartials: {},
 		formatters: {}
 	};
 
@@ -33,33 +33,40 @@ Anglebars = function ( options ) {
 		this.el = getEl( this.el ); // turn ID string into DOM element
 	}
 
-	this.viewmodel = ( this.data instanceof Anglebars.ViewModel ? this.data : new Anglebars.ViewModel( this.data ) );
+	if ( this.viewmodel === undefined ) {
+		this.viewmodel = new Anglebars.ViewModel();
+	}
+
+	if ( this.data ) {
+		this.viewmodel.set( this.data );
+	}
 
 	// If we were given uncompiled partials, compile them
 	if ( this.partials ) {
 		for ( key in this.partials ) {
 			if ( this.partials.hasOwnProperty( key ) ) {
-				this.compiledPartials[ key ] = Anglebars.compile( this.partials[ key ], {
-					preserveWhitespace: this.preserveWhitespace,
-					replaceSrcAttributes: this.replaceSrcAttributes
-				});
+				if ( typeof this.partials[ key ] === 'string' ) {
+					if ( !Anglebars.compile ) {
+						throw new Error( 'Missing Anglebars.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
+					}
+
+					this.partials[ key ] = Anglebars.compile( this.partials, this ); // all compiler options are present on `this`, so just passing `this`
+				}
 			}
 		}
 	}
 
-	// If we were given a template, compile it
-	if ( !this.compiled && this.template ) {
-		this.compiled = Anglebars.compile( this.template, {
-			preserveWhitespace: this.preserveWhitespace,
-			replaceSrcAttributes: this.replaceSrcAttributes,
-			namespace: this.namespace,
-			partials: this.compiledPartials
-		});
+	// Compile template, if it hasn't been compiled already
+	if ( typeof this.template === 'string' ) {
+		if ( !Anglebars.compile ) {
+			throw new Error( 'Missing Anglebars.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
+		}
+
+		this.template = Anglebars.compile( this.template, this );
 	}
 
-	// Render
-	if ( this.compiled && this.el ) {
-		console.log( 'rendering to', this.el );
+	// If passed an element, render immediately
+	if ( this.el ) {
 		this.render({ el: this.el, callback: this.callback, append: this.append });
 	}
 };
@@ -145,7 +152,7 @@ Anglebars.prototype = {
 
 		// Render our *root fragment*
 		this.rendered = new Anglebars.DomViews.Fragment({
-			model: this.compiled,
+			model: this.template,
 			anglebars: this,
 			parentNode: el
 		});
