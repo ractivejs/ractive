@@ -73,6 +73,16 @@ module.exports = function(grunt) {
 				src: ['<%= concat.full.dest %>'],
 				dest: 'build/Anglebars.min.js'
 			}
+		},
+		copy: {
+			release: {
+				files: [{
+					expand: true,
+					cwd: 'build/',
+					src: [ '**/*' ],
+					dest: 'release/<%= pkg.version %>/'
+				}]
+			}
 		}
 	});
 
@@ -81,8 +91,11 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-qunit' );
 	grunt.loadNpmTasks( 'grunt-contrib-concat' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
+	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	
 	// Default task.
 	grunt.registerTask('default', [ 'jshint', 'qunit', 'clean', 'concat', 'uglify' ]);
+
+	grunt.registerTask( 'release', [ 'default', 'copy' ] );
 
 };
