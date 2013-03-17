@@ -1,6 +1,6 @@
 /*jslint white: true */
 
-var Anglebars, extend, getEl, wait;
+var Anglebars, getEl, wait;
 
 
 
@@ -11,9 +11,15 @@ Anglebars = function ( options ) {
 	// Options
 	// -------
 
-	options = options || {};
+	if ( options ) {
+		for ( key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				this[ key ] = options[ key ];
+			}
+		}
+	}
+
 	defaults = {
-		template: '',
 		preserveWhitespace: false,
 		async: false,
 		maxBatch: 50,
@@ -22,8 +28,11 @@ Anglebars = function ( options ) {
 		formatters: {}
 	};
 
-	extend( this, defaults );
-	extend( this, options );
+	for ( key in defaults ) {
+		if ( this[ key ] === undefined ) {
+			this[ key ] = defaults[ key ];
+		}
+	}
 
 
 	// Initialization
@@ -225,16 +234,6 @@ Anglebars.prototype = {
 
 
 // helper functions
-extend = function ( obj1, obj2 ) {
-	var key;
-
-	for ( key in obj2 ) {
-		if ( obj2.hasOwnProperty( key ) ) {
-			obj1[ key ] = obj2[ key ];
-		}
-	}
-};
-
 getEl = function ( input ) {
 	var output;
 
