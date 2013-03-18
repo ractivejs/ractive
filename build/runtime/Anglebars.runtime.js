@@ -519,7 +519,7 @@ Anglebars.formatters = {
 		registerView: function ( view ) {
 			var self = this, fullKeypath, initialUpdate, value, index;
 
-			if ( view.model.ref in view.parentFragment.indexRefs ) {
+			if ( view.parentFragment && ( view.model.ref in view.parentFragment.indexRefs ) ) {
 				// this isn't a real keypath, it's an index reference
 				index = view.parentFragment.indexRefs[ view.model.ref ];
 
@@ -1680,10 +1680,24 @@ Anglebars.formatters = {
 
 	// Fragment
 	TextViews.Fragment = function ( options ) {
-		var numItems, i, itemOptions;
+		var numItems, i, itemOptions, parentRefs, ref;
 
 		this.parent = options.parent;
 		this.items = [];
+
+		this.indexRefs = {};
+		if ( this.owner ) {
+			parentRefs = this.owner.parentFragment.indexRefs;
+			for ( ref in parentRefs ) {
+				if ( parentRefs.hasOwnProperty( ref ) ) {
+					this.indexRefs[ ref ] = parentRefs[ ref ];
+				}
+			}
+		}
+
+		if ( options.indexRef ) {
+			this.indexRefs[ options.indexRef ] = options.index;
+		}
 
 		itemOptions = {
 			anglebars:    options.anglebars,
