@@ -59,7 +59,7 @@ Anglebars = function ( options ) {
 						throw new Error( 'Missing Anglebars.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
 					}
 
-					this.partials[ key ] = Anglebars.compile( this.partials, this ); // all compiler options are present on `this`, so just passing `this`
+					this.partials[ key ] = Anglebars.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
 				}
 			}
 		}

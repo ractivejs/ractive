@@ -111,7 +111,7 @@
 		this.index = options.index;
 
 		this.indexRefs = {};
-		if ( this.owner ) {
+		if ( this.owner && this.owner.parentFragment ) {
 			parentRefs = this.owner.parentFragment.indexRefs;
 			for ( ref in parentRefs ) {
 				if ( parentRefs.hasOwnProperty( ref ) ) {
@@ -218,10 +218,8 @@
 
 	// Partials
 	DomViews.Partial = function ( options ) {
-		var compiledPartial;
-
 		this.fragment = new DomViews.Fragment({
-			model:        options.anglebars.compiledPartials[ options.model.id ] || [],
+			model:        options.anglebars.partials[ options.model.ref ] || [],
 			anglebars:    options.anglebars,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
