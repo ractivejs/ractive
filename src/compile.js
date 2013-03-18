@@ -294,6 +294,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		this.ref = token.ref;
 		this.inverted = ( token.type === types.INVERTED );
 		this.formatters = token.formatters;
+		this.i = token.i;
 
 		this.fragment = new FragmentStub( this, parentFragment.priority + 1 );
 	};
@@ -322,6 +323,10 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 
 			if ( this.priority ) {
 				json.p = this.parentFragment.priority;
+			}
+
+			if ( this.i ) {
+				json.i = this.i;
 			}
 
 			return json;

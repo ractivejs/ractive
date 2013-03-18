@@ -277,7 +277,7 @@
 		},
 
 		seal: function () {
-			var trimmed, firstChar, identifiers;
+			var trimmed, firstChar, identifiers, pattern, match;
 
 			if ( this.sealed ) {
 				return;
@@ -303,6 +303,17 @@
 
 				} else {
 					this.type = types.INTERPOLATOR;
+				}
+			}
+
+			// do we have a named index?
+			if ( this.type === types.SECTION ) {
+				pattern = /:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)$/;
+				match = pattern.exec( trimmed );
+
+				if ( match ) {
+					this.i = match[1];
+					trimmed = trimmed.substr( 0, trimmed.length - match[0].length );
 				}
 			}
 
@@ -816,7 +827,8 @@
 		'^': types.INVERTED,
 		'/': types.CLOSING,
 		'>': types.PARTIAL,
-		'!': types.COMMENT
+		'!': types.COMMENT,
+		'&': types.INTERPOLATOR
 	};
 	
 
