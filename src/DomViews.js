@@ -95,8 +95,7 @@
 	// Fragment
 	DomViews.Fragment = function ( options, wait ) {
 
-		var numModels, i, itemOptions, async;
-
+		var numModels, i, itemOptions, async, parentRefs, ref;
 
 		// if we have an HTML string, our job is easy. TODO consider async?
 		if ( typeof options.model === 'string' ) {
@@ -110,6 +109,20 @@
 
 		this.owner = options.owner;
 		this.index = options.index;
+
+		this.indexRefs = {};
+		if ( this.owner ) {
+			parentRefs = this.owner.parentFragment.indexRefs;
+			for ( ref in parentRefs ) {
+				if ( parentRefs.hasOwnProperty( ref ) ) {
+					this.indexRefs[ ref ] = parentRefs[ ref ];
+				}
+			}
+		}
+
+		if ( options.indexRef ) {
+			this.indexRefs[ options.indexRef ] = options.index;
+		}
 
 		if ( !async ) {
 			itemOptions = {
@@ -533,7 +546,6 @@
 	DomViews.Interpolator = domViewMustache({
 		initialize: function () {
 			this.node = document.createTextNode( '' );
-
 			this.parentNode.insertBefore( this.node, this.anchor || null );
 		},
 
@@ -659,7 +671,7 @@
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, viewsToRemove, anchor, fragmentOptions;
+			var emptyArray, i, viewsToRemove, anchor, fragmentOptions, valueIsArray, valueIsObject;
 
 			if ( this.anglebars.async ) {
 				this.queue = [];
@@ -673,8 +685,10 @@
 				owner:        this
 			};
 
+			valueIsArray = isArray( value );
+
 			// treat empty arrays as false values
-			if ( isArray( value ) && value.length === 0 ) {
+			if ( valueIsArray && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -710,7 +724,7 @@
 			// otherwise we need to work out what sort of section we're dealing with
 
 			// if value is an array, iterate through
-			if ( isArray( value ) ) {
+			if ( valueIsArray ) {
 
 				// if the array is shorter than it was previously, remove items
 				if ( value.length < this.length ) {
@@ -730,6 +744,10 @@
 							// append list item to context stack
 							fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
 							fragmentOptions.index = i;
+
+							if ( this.model.i ) {
+								fragmentOptions.indexRef = this.model.i;
+							}
 
 							this.views[i] = new DomViews.Fragment( fragmentOptions, true ); // true to prevent queue being updated in wrong order
 

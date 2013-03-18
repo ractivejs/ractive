@@ -101,7 +101,17 @@
 		},
 
 		registerView: function ( view ) {
-			var self = this, fullKeypath, initialUpdate, value;
+			var self = this, fullKeypath, initialUpdate, value, index;
+
+			if ( view.model.ref in view.parentFragment.indexRefs ) {
+				// this isn't a real keypath, it's an index reference
+				index = view.parentFragment.indexRefs[ view.model.ref ];
+
+				value = ( view.model.fmtrs ? view.anglebars._format( index, view.model.fmtrs ) : index );
+				view.update( value );
+
+				return; // this value will never change, and doesn't have a keypath
+			}
 
 			initialUpdate = function ( keypath ) {
 				view.keypath = keypath;
