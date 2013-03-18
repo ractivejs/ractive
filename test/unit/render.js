@@ -21,7 +21,8 @@ $.getJSON( 'samples/render.json' ).done( function ( data ) {
 			var anglebars = new Anglebars({
 				el: fixture,
 				data: t.data,
-				template: t.template
+				template: t.template,
+				partials: t.partials
 			});
 
 			equal( fixture.innerHTML, t.result );

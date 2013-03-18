@@ -30,5 +30,16 @@
 			"todos": [{"todo":"debug Anglebars"},{"todo":"release Anglebars"}]
 		},
 		"result": "<li><label>debug Anglebars</label><input value=\"debug Anglebars\"></li><li><label>release Anglebars</label><input value=\"release Anglebars\"></li>"
+	},
+	{
+		"name": "Partials",
+		"template": "{{#items}}{{>item}}{{/items}}",
+		"data": {
+			"items": [{"description":"Item the first"},{"description":"Item the second"},{"description":"Item the third"}]
+		},
+		"partials": {
+			"item": "<p>{{description}}</p>"
+		},
+		"result": "<p>Item the first</p><p>Item the second</p><p>Item the third</p>"
 	}
 ]
