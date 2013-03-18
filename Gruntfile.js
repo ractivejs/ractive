@@ -82,6 +82,13 @@ module.exports = function(grunt) {
 					src: [ '**/*' ],
 					dest: 'release/<%= pkg.version %>/'
 				}]
+			},
+			link: {
+				files:{
+					'Anglebars.js': 'build/Anglebars.js',
+					'Anglebars.compile.js': 'build/compile/Anglebars.compile.js',
+					'Anglebars.runtime.js': 'build/runtime/Anglebars.runtime.js'
+				}
 			}
 		}
 	});

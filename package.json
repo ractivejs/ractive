@@ -14,9 +14,11 @@
 		}
 	],
 	"jam" : {
-        "main" : "build/Anglebars.js",
+        "main" : "Anglebars.js",
         "include" : [
-            "build/Anglebars.js",
+            "Anglebars.js",
+            "Anglebars.compile.js",
+            "Anglebars.runtime.js",
             "README.md"
         ]
     },
