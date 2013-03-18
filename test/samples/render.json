@@ -1,12 +1,26 @@
 [
 	{
 		"name": "Empty model",
-		"compiled": "",
+		"template": "",
 		"result": ""
 	},
 	{
 		"name": "Plain text",
-		"compiled": "a string",
+		"template": "a string",
 		"result": "a string"
+	},
+	{
+		"name": "Single interpolator",
+		"template": "{{mustache}}",
+		"data": { "mustache": "hello world" },
+		"result": "hello world"
+	},
+	{
+		"name": "Section with index refs",
+		"template": "<ul>{{#items:i}}<li>{{i}}: {{name}}</li>{{/items}}</ul>",
+		"data": {
+			"items": [{"name":"zero"},{"name":"one"},{"name":"two"}]
+		},
+		"result": "<ul><li>0: zero</li><li>1: one</li><li>2: two</li></ul>"
 	}
 ]
