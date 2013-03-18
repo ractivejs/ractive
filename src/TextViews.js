@@ -64,10 +64,24 @@
 
 	// Fragment
 	TextViews.Fragment = function ( options ) {
-		var numItems, i, itemOptions;
+		var numItems, i, itemOptions, parentRefs, ref;
 
 		this.parent = options.parent;
 		this.items = [];
+
+		this.indexRefs = {};
+		if ( this.owner ) {
+			parentRefs = this.owner.parentFragment.indexRefs;
+			for ( ref in parentRefs ) {
+				if ( parentRefs.hasOwnProperty( ref ) ) {
+					this.indexRefs[ ref ] = parentRefs[ ref ];
+				}
+			}
+		}
+
+		if ( options.indexRef ) {
+			this.indexRefs[ options.indexRef ] = options.index;
+		}
 
 		itemOptions = {
 			anglebars:    options.anglebars,
