@@ -22,5 +22,13 @@
 			"items": [{"name":"zero"},{"name":"one"},{"name":"two"}]
 		},
 		"result": "<ul><li>0: zero</li><li>1: one</li><li>2: two</li></ul>"
+	},
+	{
+		"name": "Section with descendant attributes",
+		"template": "{{#todos}}<li><label>{{todo}}</label><input value='{{todo}}'></li>{{/todos}}",
+		"data": {
+			"todos": [{"todo":"debug Anglebars"},{"todo":"release Anglebars"}]
+		},
+		"result": "<li><label>debug Anglebars</label><input value=\"debug Anglebars\"></li><li><label>release Anglebars</label><input value=\"release Anglebars\"></li>"
 	}
 ]
