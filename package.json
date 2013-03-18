@@ -1,7 +1,7 @@
 {
 	"name": "anglebars",
 	"description": "Mustache-style declarative data binding, for the sceptical developer",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"homepage": "http://rich-harris.github.com/Anglebars/",
     "main": "build/Anglebars.js",
 	"keywords": [ "template", "templating", "binding", "data binding", "declarative" ],
