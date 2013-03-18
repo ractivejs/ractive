@@ -38,5 +38,10 @@
 		"name": "Delimiter change",
 		"template": "{{=<% %>=}} <% mustache %>",
 		"compiled": [" ",{"type":2,"ref":"mustache"}]
+	},
+	{
+		"name": "Named index",
+		"template": "{{#items:i}}{{i}}: {{name}}{{/items}}",
+		"compiled": [{"frag":[{"p":1,"ref":"i","type":2},": ",{"p":1,"ref":"name","type":2}],"i":"i","ref":"items","type":4}]
 	}
 ]
