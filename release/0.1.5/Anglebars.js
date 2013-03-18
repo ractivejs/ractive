@@ -69,7 +69,7 @@ Anglebars = function ( options ) {
 						throw new Error( 'Missing Anglebars.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
 					}
 
-					this.partials[ key ] = Anglebars.compile( this.partials, this ); // all compiler options are present on `this`, so just passing `this`
+					this.partials[ key ] = Anglebars.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
 				}
 			}
 		}
@@ -2321,7 +2321,7 @@ Anglebars.formatters = {
 		this.index = options.index;
 
 		this.indexRefs = {};
-		if ( this.owner ) {
+		if ( this.owner && this.owner.parentFragment ) {
 			parentRefs = this.owner.parentFragment.indexRefs;
 			for ( ref in parentRefs ) {
 				if ( parentRefs.hasOwnProperty( ref ) ) {
@@ -2428,10 +2428,8 @@ Anglebars.formatters = {
 
 	// Partials
 	DomViews.Partial = function ( options ) {
-		var compiledPartial;
-
 		this.fragment = new DomViews.Fragment({
-			model:        options.anglebars.compiledPartials[ options.model.id ] || [],
+			model:        options.anglebars.partials[ options.model.ref ] || [],
 			anglebars:    options.anglebars,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
