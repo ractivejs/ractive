@@ -166,7 +166,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 
 			this.attributes = attributes;
 		}
-		
+
 		// if this is a void element, or a self-closing tag, seal the element
 		if ( token.isSelfClosingTag || voidElementNames.indexOf( token.tag.toLowerCase() ) !== -1 ) {
 			return;

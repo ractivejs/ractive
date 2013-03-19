@@ -623,7 +623,7 @@
 			}
 
 			
-			if ( !this.tokens.length ) {
+			if ( !this.tokens.length && !this.quoteMark ) {
 				// ignore leading whitespace
 				if ( whitespace.test( char ) ) {
 					return true;
@@ -636,7 +636,7 @@
 				}
 			}
 
-			
+
 			// send character to buffer
 			if ( this.buffer.read( char ) ) {
 				return true;
@@ -693,6 +693,11 @@
 
 			this.currentToken.read( char );
 			this.tokens[ this.tokens.length ] = this.currentToken;
+
+			if ( this.currentToken.sealed ) {
+				this.seal();
+			}
+
 			return true;
 		},
 
