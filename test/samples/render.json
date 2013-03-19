@@ -41,5 +41,10 @@
 			"item": "<p>{{description}}</p>"
 		},
 		"result": "<p>Item the first</p><p>Item the second</p><p>Item the third</p>"
+	},
+	{
+		"name": "Empty string attributes",
+		"template": "<p class=\"\">test</p>",
+		"result": "<p class=\"\">test</p>"
 	}
 ]
