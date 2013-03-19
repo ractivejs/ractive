@@ -25,7 +25,8 @@ Anglebars = function ( options ) {
 		maxBatch: 50,
 		append: false,
 		twoway: true,
-		formatters: {}
+		formatters: {},
+		modifyArrays: true
 	};
 
 	for ( key in defaults ) {
