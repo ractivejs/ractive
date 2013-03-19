@@ -1,18 +1,11 @@
-(function ( A ) {
+(function ( A, doc ) {
 
 	'use strict';
 
-	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject, elContains;
+	var createView, types, insertHtml, isArray, isObject, elContains,
+		Text, Element, Partial, Attribute, Mustache, Interpolator, Triple, Section;
 
 	types = A.types;
-
-	ctors = [];
-	ctors[ types.TEXT ]         = 'Text';
-	ctors[ types.INTERPOLATOR ] = 'Interpolator';
-	ctors[ types.TRIPLE ]       = 'Triple';
-	ctors[ types.SECTION ]      = 'Section';
-	ctors[ types.ELEMENT ]      = 'Element';
-	ctors[ types.PARTIAL ]      = 'Partial';
 
 	isArray = A.isArray;
 	isObject = A.isObject;
@@ -31,7 +24,7 @@
 
 		anchor = anchor || null;
 
-		div = document.createElement( 'div' );
+		div = doc.createElement( 'div' );
 		div.innerHTML = html;
 
 		len = div.childNodes.length;
@@ -47,66 +40,64 @@
 		return nodes;
 	};
 
-	// View constructor factory
-	domViewMustache = function ( proto ) {
-		var Mustache;
+	// Base Mustache class
+	Mustache = function ( options ) {
 
-		Mustache = function ( options ) {
+		this.model          = options.model;
+		this.anglebars      = options.anglebars;
+		this.viewmodel      = options.anglebars.viewmodel;
+		this.parentNode     = options.parentNode;
+		this.parentFragment = options.parentFragment;
+		this.contextStack   = options.contextStack || [];
+		this.anchor         = options.anchor;
+		this.index          = options.index;
 
-			this.model          = options.model;
-			this.anglebars      = options.anglebars;
-			this.viewmodel      = options.anglebars.viewmodel;
-			this.parentNode     = options.parentNode;
-			this.parentFragment = options.parentFragment;
-			this.contextStack   = options.contextStack || [];
-			this.anchor         = options.anchor;
-			this.index          = options.index;
+		this.type = options.model.type;
 
-			this.type = options.model.type;
+		this.initialize();
 
-			this.initialize();
+		this.viewmodel.registerView( this );
 
-			this.viewmodel.registerView( this );
-
-			// if we have a failed keypath lookup, and this is an inverted section,
-			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
-				this.update( false );
-			}
-		};
-
-		Mustache.prototype = proto;
-
-		return Mustache;
+		// if we have a failed keypath lookup, and this is an inverted section,
+		// we need to trigger this.update() so the contents are rendered
+		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
+			this.update( false );
+		}
 	};
 
+	
 
 	// View types
-	DomViews = A.DomViews = {
-		create: function ( options ) {
-			if ( typeof options.model === 'string' ) {
-				return new DomViews.Text( options );
-			}
-			return new DomViews[ ctors[ options.model.type ] ]( options );
+	createView = function ( options ) {
+		if ( typeof options.model === 'string' ) {
+			return new Text( options );
+		}
+
+		switch ( options.model.type ) {
+			case types.INTERPOLATOR: return new Interpolator( options );
+			case types.SECTION: return new Section( options );
+			case types.TRIPLE: return new Triple( options );
+
+			case types.ELEMENT: return new Element( options );
+			case types.PARTIAL: return new Partial( options );
+
+			default: throw 'WTF? not sure what happened here...';
 		}
 	};
 
 
 	// Fragment
-	DomViews.Fragment = function ( options, wait ) {
+	A.DomFragment = function ( options ) {
 
-		var numModels, i, itemOptions, async, parentRefs, ref;
+		var numModels, i, itemOptions, parentRefs, ref;
 
-		// if we have an HTML string, our job is easy. TODO consider async?
+		// if we have an HTML string, our job is easy.
 		if ( typeof options.model === 'string' ) {
 			this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
 			return;
 		}
 
 		// otherwise we have to do some work
-
-		async = options.anglebars.async;
-
 		this.owner = options.owner;
 		this.index = options.index;
 
@@ -124,50 +115,28 @@
 			this.indexRefs[ options.indexRef ] = options.index;
 		}
 
-		if ( !async ) {
-			itemOptions = {
-				anglebars:      options.anglebars,
-				parentNode:     options.parentNode,
-				contextStack:   options.contextStack,
-				anchor:         options.anchor,
-				parentFragment: this
-			};
-		}
+		
+		itemOptions = {
+			anglebars:      options.anglebars,
+			parentNode:     options.parentNode,
+			contextStack:   options.contextStack,
+			anchor:         options.anchor,
+			parentFragment: this
+		};
 
 		this.items = [];
 		this.queue = [];
 
 		numModels = options.model.length;
-		for ( i=0; i<numModels; i+=1 ) {
+		for ( i=0; i<numModels; i+=1 ) {			
+			itemOptions.model = options.model[i];
+			itemOptions.index = i;
 
-
-			if ( async ) {
-				itemOptions = {
-					index:          i,
-					model:          options.model[i],
-					anglebars:      options.anglebars,
-					parentNode:     options.parentNode,
-					contextStack:   options.contextStack,
-					anchor:         options.anchor,
-					parentFragment: this
-				};
-
-				this.queue[ this.queue.length ] = itemOptions;
-			} else {
-				itemOptions.model = options.model[i];
-				itemOptions.index = i;
-
-				this.items[i] = DomViews.create( itemOptions );
-			}
-		}
-
-		if ( async && !wait ) {
-			options.anglebars.queue( this.queue );
-			delete this.queue;
+			this.items[i] = createView( itemOptions );
 		}
 	};
 
-	DomViews.Fragment.prototype = {
+	A.DomFragment.prototype = {
 		teardown: function () {
 			var node;
 
@@ -217,8 +186,8 @@
 
 
 	// Partials
-	DomViews.Partial = function ( options ) {
-		this.fragment = new DomViews.Fragment({
+	Partial = function ( options ) {
+		this.fragment = new A.DomFragment({
 			model:        options.anglebars.partials[ options.model.ref ] || [],
 			anglebars:    options.anglebars,
 			parentNode:   options.parentNode,
@@ -228,7 +197,7 @@
 		});
 	};
 
-	DomViews.Partial.prototype = {
+	Partial.prototype = {
 		teardown: function () {
 			this.fragment.teardown();
 		}
@@ -236,8 +205,8 @@
 
 
 	// Plain text
-	DomViews.Text = function ( options ) {
-		this.node = document.createTextNode( options.model );
+	Text = function ( options ) {
+		this.node = doc.createTextNode( options.model );
 		this.index = options.index;
 		this.anglebars = options.anglebars;
 		this.parentNode = options.parentNode;
@@ -246,7 +215,7 @@
 		this.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
-	DomViews.Text.prototype = {
+	Text.prototype = {
 		teardown: function () {
 			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
@@ -260,7 +229,7 @@
 
 
 	// Element
-	DomViews.Element = function ( options ) {
+	Element = function ( options ) {
 
 		var binding,
 			model,
@@ -291,7 +260,7 @@
 		
 
 		// create the DOM node
-		this.node = document.createElementNS( namespace, model.tag );
+		this.node = doc.createElementNS( namespace, model.tag );
 
 
 		// set attributes
@@ -300,7 +269,7 @@
 			if ( model.attrs.hasOwnProperty( attrName ) ) {
 				attrValue = model.attrs[ attrName ];
 
-				attr = new DomViews.Attribute({
+				attr = new Attribute({
 					owner: this,
 					name: attrName,
 					value: attrValue,
@@ -330,7 +299,7 @@
 			}
 
 			else {
-				this.children = new DomViews.Fragment({
+				this.children = new A.DomFragment({
 					model:        model.frag,
 					anglebars:    options.anglebars,
 					parentNode:   this.node,
@@ -345,7 +314,7 @@
 		this.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
-	DomViews.Element.prototype = {
+	Element.prototype = {
 		bind: function ( attribute, lazy ) {
 
 			var viewmodel = this.viewmodel, node = this.node, setValue, valid, interpolator, keypath;
@@ -353,15 +322,15 @@
 			// Check this is a suitable candidate for two-way binding - i.e. it is
 			// a single interpolator with no formatters
 			valid = true;
-			if ( !attribute.children ||
-			     ( attribute.children.length !== 1 ) ||
-			     ( attribute.children[0].type !== A.types.INTERPOLATOR ) ||
-			     ( attribute.children[0].model.formatters && attribute.children[0].model.formatters.length )
+			if ( !attribute.fragment ||
+			     ( attribute.fragment.items.length !== 1 ) ||
+			     ( attribute.fragment.items[0].type !== A.types.INTERPOLATOR ) ||
+			     ( attribute.fragment.items[0].model.formatters && attribute.fragment.items[0].model.formatters.length )
 			) {
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator with no formatters';
 			}
 
-			interpolator = attribute.children[0];
+			interpolator = attribute.fragment.items[0];
 
 			// Hmmm. Not sure if this is the best way to handle this ambiguity...
 			//
@@ -431,12 +400,14 @@
 
 
 	// Attribute
-	DomViews.Attribute = function ( options ) {
+	Attribute = function ( options ) {
 
 		var i, name, value, colonIndex, namespacePrefix, namespace, ancestor;
 
 		name = options.name;
 		value = options.value;
+
+		this.owner = options.owner; // the element this belongs to
 
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
 		colonIndex = name.indexOf( ':' );
@@ -488,21 +459,22 @@
 
 		this.children = [];
 
-		i = value.length;
-		while ( i-- ) {
-			this.children[i] = A.TextViews.create({
-				model:        value[i],
-				anglebars:    options.anglebars,
-				parent:       this,
-				contextStack: options.contextStack
-			});
-		}
+		// share parentFragment with parent element
+		this.parentFragment = this.owner.parentFragment;
+
+		this.fragment = new A.TextFragment({
+			model:        value,
+			anglebars:    options.anglebars,
+			owner:        this,
+			contextStack: options.contextStack
+		});
 
 		// manually trigger first update
+		this.ready = true;
 		this.update();
 	};
 
-	DomViews.Attribute.prototype = {
+	Attribute.prototype = {
 		teardown: function () {
 			// ignore non-dynamic attributes
 			if ( !this.children ) {
@@ -520,8 +492,13 @@
 
 		update: function () {
 			var prevValue = this.value;
-			this.value = this.toString();
 
+			if ( !this.ready ) {
+				return; // avoid items bubbling to the surface when we're still initialising
+			}
+			
+			this.value = this.fragment.toString();
+		
 			if ( this.value !== prevValue ) {
 				if ( this.namespace ) {
 					this.parentNode.setAttributeNS( this.namespace, this.name, this.value );
@@ -529,10 +506,6 @@
 					this.parentNode.setAttribute( this.name, this.value );
 				}
 			}
-		},
-
-		toString: function () {
-			return this.children.join( '' );
 		}
 	};
 
@@ -541,9 +514,14 @@
 
 
 	// Interpolator
-	DomViews.Interpolator = domViewMustache({
+	Interpolator = function ( options ) {
+		// extend Mustache
+		Mustache.call( this, options );
+	};
+
+	Interpolator.prototype = {
 		initialize: function () {
-			this.node = document.createTextNode( '' );
+			this.node = doc.createTextNode( '' );
 			this.parentNode.insertBefore( this.node, this.anchor || null );
 		},
 
@@ -569,11 +547,15 @@
 		firstNode: function () {
 			return this.node;
 		}
-	});
+	};
 
 
 	// Triple
-	DomViews.Triple = domViewMustache({
+	Triple = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Triple.prototype = {
 		initialize: function () {
 			this.nodes = [];
 		},
@@ -625,12 +607,16 @@
 			// get new nodes
 			this.nodes = insertHtml( html, this.parentNode, anchor );
 		}
-	});
+	};
 
 
 
 	// Section
-	DomViews.Section = domViewMustache({
+	Section = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Section.prototype = {
 		initialize: function () {
 			this.views = [];
 			this.length = 0; // number of times this section is rendered
@@ -671,10 +657,6 @@
 		update: function ( value ) {
 			var emptyArray, i, viewsToRemove, anchor, fragmentOptions, valueIsArray, valueIsObject;
 
-			if ( this.anglebars.async ) {
-				this.queue = [];
-			}
-
 			fragmentOptions = {
 				model:        this.model.frag,
 				anglebars:    this.anglebars,
@@ -686,7 +668,7 @@
 			valueIsArray = isArray( value );
 
 			// modify the array to allow updates via push, pop etc
-			if ( this.anglebars.modifyArrays ) {
+			if ( valueIsArray && this.anglebars.modifyArrays ) {
 				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
 			}
 
@@ -714,7 +696,7 @@
 						fragmentOptions.contextStack = this.contextStack;
 						fragmentOptions.index = 0;
 
-						this.views[0] = new DomViews.Fragment( fragmentOptions );
+						this.views[0] = new A.DomFragment( fragmentOptions );
 						this.length = 1;
 						return;
 					}
@@ -752,15 +734,7 @@
 								fragmentOptions.indexRef = this.model.i;
 							}
 
-							this.views[i] = new DomViews.Fragment( fragmentOptions, true ); // true to prevent queue being updated in wrong order
-
-							if ( this.anglebars.async ) {
-								this.queue = this.queue.concat( this.views[i].queue );
-							}
-						}
-
-						if ( this.anglebars.async ) {
-							this.anglebars.queue( this.queue );
+							this.views[i] = new A.DomFragment( fragmentOptions );
 						}
 					}
 				}
@@ -778,7 +752,7 @@
 					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
 					fragmentOptions.index = 0;
 
-					this.views[0] = new DomViews.Fragment( fragmentOptions );
+					this.views[0] = new A.DomFragment( fragmentOptions );
 					this.length = 1;
 				}
 			}
@@ -793,7 +767,7 @@
 						fragmentOptions.contextStack = this.contextStack;
 						fragmentOptions.index = 0;
 
-						this.views[0] = new DomViews.Fragment( fragmentOptions );
+						this.views[0] = new A.DomFragment( fragmentOptions );
 						this.length = 1;
 					}
 				}
@@ -806,6 +780,6 @@
 				}
 			}
 		}
-	});
+	};
 
-}( Anglebars ));
+}( Anglebars, document ));
