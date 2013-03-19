@@ -96,8 +96,18 @@
 		// Force notify observers of `keypath` (useful if e.g. an array or object member
 		// was changed without calling `anglebars.set()`)
 		update: function ( keypath ) {
-			var value = this.get( keypath );
-			this._notifyObservers( keypath, value );
+			if ( keypath ) {
+				this._notifyObservers( keypath, this.get( keypath ) );
+			}
+
+			// no keypath? update all the things
+			else {
+				for ( keypath in this.data ) {
+					if ( this.data.hasOwnProperty( keypath ) ) {
+						this._notifyObservers( keypath, this.get( keypath ) );
+					}
+				}
+			}
 		},
 
 		registerView: function ( view ) {
