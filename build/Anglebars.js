@@ -8,11 +8,7 @@
 
 (function ( global ) {
 
-"use strict";/*jslint white: true */
-
-var Anglebars, getEl, wait;
-
-
+"use strict";var Anglebars, getEl;
 
 Anglebars = function ( options ) {
 
@@ -31,8 +27,6 @@ Anglebars = function ( options ) {
 
 	defaults = {
 		preserveWhitespace: false,
-		async: false,
-		maxBatch: 50,
 		append: false,
 		twoway: true,
 		formatters: {},
@@ -53,10 +47,17 @@ Anglebars = function ( options ) {
 		this.el = getEl( this.el ); // turn ID string into DOM element
 	}
 
+	// Set up event bus
+	this._subs = {};
+
 	if ( this.viewmodel === undefined ) {
 		this.viewmodel = new Anglebars.ViewModel();
 	}
 
+	// bind viewmodel to this anglebars instance
+	this.viewmodel.dependents.push( this );
+
+	// Initialise (or update) viewmodel with data
 	if ( this.data ) {
 		this.viewmodel.set( this.data );
 	}
@@ -89,10 +90,6 @@ Anglebars = function ( options ) {
 	if ( this.el ) {
 		this.render({ el: this.el, callback: this.callback, append: this.append });
 	}
-
-
-	// Set up event bus
-	this._subs = {};
 };
 
 
@@ -100,62 +97,6 @@ Anglebars = function ( options ) {
 // Prototype methods
 // =================
 Anglebars.prototype = {
-
-	// Add an item to the async render queue
-	queue: function ( items ) {
-		this._queue = items.concat( this._queue || [] );
-
-		// If the queue is not currently being dispatched, dispatch it
-		if ( !this._dispatchingQueue ) {
-			this.dispatchQueue();
-		}
-	},
-
-	// iterate through queue, render as many items as possible before we need to
-	// yield the UI thread
-	dispatchQueue: function () {
-		var self = this, batch, max;
-
-		max = this.maxBatch; // defaults to 50 milliseconds before yielding
-
-		batch = function () {
-			var startTime = +new Date(), next;
-
-			// We can't cache self._queue.length because creating new views is likely to
-			// modify it
-			while ( self._queue.length && ( new Date() - startTime < max ) ) {
-				next = self._queue.shift();
-
-				next.parentFragment.items[ next.index ] = Anglebars.DomViews.create( next );
-			}
-
-			// If we ran out of time before completing the queue, kick off a fresh batch
-			// at the next opportunity
-			if ( self._queue.length ) {
-				wait( batch );
-			}
-
-			// Otherwise, mark queue as dispatched and execute any callback we have
-			else {
-				self._dispatchingQueue = false;
-
-				if ( self.callback ) {
-					self.callback();
-					delete self.callback;
-				}
-
-				// Oh, and disable async for further updates (TODO - this is messy)
-				self.async = false;
-			}
-		};
-
-		// Do the first batch
-		this._dispatchingQueue = true;
-		wait( batch );
-	},
-
-
-
 
 	// Render instance to element specified here or at initialization
 	render: function ( options ) {
@@ -175,16 +116,11 @@ Anglebars.prototype = {
 		}
 
 		// Render our *root fragment*
-		this.rendered = new Anglebars.DomViews.Fragment({
+		this.rendered = new Anglebars.DomFragment({
 			model: this.template,
 			anglebars: this,
 			parentNode: el
 		});
-
-		// If we were given a callback, but we're not in async mode, execute immediately
-		if ( !this.async && options.callback ) {
-			options.callback();
-		}
 	},
 
 	// Teardown. This goes through the root fragment and all its children, removing observers
@@ -280,36 +216,6 @@ getEl = function ( input ) {
 
 	throw new Error( 'Could not find container element' );
 };
-
-wait = (function() {
-	var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor, wait;
-
-	if ( typeof window === 'undefined' ) {
-		return; // we're not in a browser!
-	}
-	
-	if ( window.requestAnimationFrame ) {
-		return function ( task ) {
-			window.requestAnimationFrame( task );
-		};
-	}
-
-	tryVendor = function ( i ) {
-		if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
-			return function ( task ) {
-				window[ vendors[i]+'RequestAnimationFrame' ]( task );
-			};
-		}
-	};
-
-	for ( i=0; i<vendors.length; i+=1 ) {
-		tryVendor( i );
-	}
-
-	return function( task ) {
-		setTimeout( task, 16 );
-	};
-}());
 
 // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 Anglebars.isArray = function ( obj ) {
@@ -1832,6 +1738,9 @@ Anglebars.formatters = {
 
 		// Create empty object for observers
 		this.observers = {};
+
+		// Dependent Anglebars instances
+		this.dependents = [];
 	};
 
 	A.ViewModel.prototype = {
@@ -1851,6 +1760,18 @@ Anglebars.formatters = {
 
 				return;
 			}
+
+			// fire events
+			this.dependents.forEach( function ( dep ) {
+				if ( dep.setting ) {
+					return; // short-circuit any potential infinite loops
+				}
+
+				dep.setting = true;
+				dep.fire( 'set', keypath, value );
+				dep.fire( 'set:' + keypath, value );
+				dep.setting = false;
+			});	
 
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
@@ -2188,21 +2109,14 @@ Anglebars.formatters = {
 
 }( Anglebars ));
 
-(function ( A ) {
+(function ( A, doc ) {
 
 	'use strict';
 
-	var domViewMustache, DomViews, types, ctors, insertHtml, isArray, isObject, elContains;
+	var createView, types, insertHtml, isArray, isObject, elContains,
+		Text, Element, Partial, Attribute, Mustache, Interpolator, Triple, Section;
 
 	types = A.types;
-
-	ctors = [];
-	ctors[ types.TEXT ]         = 'Text';
-	ctors[ types.INTERPOLATOR ] = 'Interpolator';
-	ctors[ types.TRIPLE ]       = 'Triple';
-	ctors[ types.SECTION ]      = 'Section';
-	ctors[ types.ELEMENT ]      = 'Element';
-	ctors[ types.PARTIAL ]      = 'Partial';
 
 	isArray = A.isArray;
 	isObject = A.isObject;
@@ -2221,7 +2135,7 @@ Anglebars.formatters = {
 
 		anchor = anchor || null;
 
-		div = document.createElement( 'div' );
+		div = doc.createElement( 'div' );
 		div.innerHTML = html;
 
 		len = div.childNodes.length;
@@ -2237,66 +2151,64 @@ Anglebars.formatters = {
 		return nodes;
 	};
 
-	// View constructor factory
-	domViewMustache = function ( proto ) {
-		var Mustache;
+	// Base Mustache class
+	Mustache = function ( options ) {
 
-		Mustache = function ( options ) {
+		this.model          = options.model;
+		this.anglebars      = options.anglebars;
+		this.viewmodel      = options.anglebars.viewmodel;
+		this.parentNode     = options.parentNode;
+		this.parentFragment = options.parentFragment;
+		this.contextStack   = options.contextStack || [];
+		this.anchor         = options.anchor;
+		this.index          = options.index;
 
-			this.model          = options.model;
-			this.anglebars      = options.anglebars;
-			this.viewmodel      = options.anglebars.viewmodel;
-			this.parentNode     = options.parentNode;
-			this.parentFragment = options.parentFragment;
-			this.contextStack   = options.contextStack || [];
-			this.anchor         = options.anchor;
-			this.index          = options.index;
+		this.type = options.model.type;
 
-			this.type = options.model.type;
+		this.initialize();
 
-			this.initialize();
+		this.viewmodel.registerView( this );
 
-			this.viewmodel.registerView( this );
-
-			// if we have a failed keypath lookup, and this is an inverted section,
-			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
-				this.update( false );
-			}
-		};
-
-		Mustache.prototype = proto;
-
-		return Mustache;
+		// if we have a failed keypath lookup, and this is an inverted section,
+		// we need to trigger this.update() so the contents are rendered
+		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
+			this.update( false );
+		}
 	};
 
+	
 
 	// View types
-	DomViews = A.DomViews = {
-		create: function ( options ) {
-			if ( typeof options.model === 'string' ) {
-				return new DomViews.Text( options );
-			}
-			return new DomViews[ ctors[ options.model.type ] ]( options );
+	createView = function ( options ) {
+		if ( typeof options.model === 'string' ) {
+			return new Text( options );
+		}
+
+		switch ( options.model.type ) {
+			case types.INTERPOLATOR: return new Interpolator( options );
+			case types.SECTION: return new Section( options );
+			case types.TRIPLE: return new Triple( options );
+
+			case types.ELEMENT: return new Element( options );
+			case types.PARTIAL: return new Partial( options );
+
+			default: throw 'WTF? not sure what happened here...';
 		}
 	};
 
 
 	// Fragment
-	DomViews.Fragment = function ( options, wait ) {
+	A.DomFragment = function ( options ) {
 
-		var numModels, i, itemOptions, async, parentRefs, ref;
+		var numModels, i, itemOptions, parentRefs, ref;
 
-		// if we have an HTML string, our job is easy. TODO consider async?
+		// if we have an HTML string, our job is easy.
 		if ( typeof options.model === 'string' ) {
 			this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
 			return;
 		}
 
 		// otherwise we have to do some work
-
-		async = options.anglebars.async;
-
 		this.owner = options.owner;
 		this.index = options.index;
 
@@ -2314,50 +2226,28 @@ Anglebars.formatters = {
 			this.indexRefs[ options.indexRef ] = options.index;
 		}
 
-		if ( !async ) {
-			itemOptions = {
-				anglebars:      options.anglebars,
-				parentNode:     options.parentNode,
-				contextStack:   options.contextStack,
-				anchor:         options.anchor,
-				parentFragment: this
-			};
-		}
+		
+		itemOptions = {
+			anglebars:      options.anglebars,
+			parentNode:     options.parentNode,
+			contextStack:   options.contextStack,
+			anchor:         options.anchor,
+			parentFragment: this
+		};
 
 		this.items = [];
 		this.queue = [];
 
 		numModels = options.model.length;
-		for ( i=0; i<numModels; i+=1 ) {
+		for ( i=0; i<numModels; i+=1 ) {			
+			itemOptions.model = options.model[i];
+			itemOptions.index = i;
 
-
-			if ( async ) {
-				itemOptions = {
-					index:          i,
-					model:          options.model[i],
-					anglebars:      options.anglebars,
-					parentNode:     options.parentNode,
-					contextStack:   options.contextStack,
-					anchor:         options.anchor,
-					parentFragment: this
-				};
-
-				this.queue[ this.queue.length ] = itemOptions;
-			} else {
-				itemOptions.model = options.model[i];
-				itemOptions.index = i;
-
-				this.items[i] = DomViews.create( itemOptions );
-			}
-		}
-
-		if ( async && !wait ) {
-			options.anglebars.queue( this.queue );
-			delete this.queue;
+			this.items[i] = createView( itemOptions );
 		}
 	};
 
-	DomViews.Fragment.prototype = {
+	A.DomFragment.prototype = {
 		teardown: function () {
 			var node;
 
@@ -2407,8 +2297,8 @@ Anglebars.formatters = {
 
 
 	// Partials
-	DomViews.Partial = function ( options ) {
-		this.fragment = new DomViews.Fragment({
+	Partial = function ( options ) {
+		this.fragment = new A.DomFragment({
 			model:        options.anglebars.partials[ options.model.ref ] || [],
 			anglebars:    options.anglebars,
 			parentNode:   options.parentNode,
@@ -2418,7 +2308,7 @@ Anglebars.formatters = {
 		});
 	};
 
-	DomViews.Partial.prototype = {
+	Partial.prototype = {
 		teardown: function () {
 			this.fragment.teardown();
 		}
@@ -2426,8 +2316,8 @@ Anglebars.formatters = {
 
 
 	// Plain text
-	DomViews.Text = function ( options ) {
-		this.node = document.createTextNode( options.model );
+	Text = function ( options ) {
+		this.node = doc.createTextNode( options.model );
 		this.index = options.index;
 		this.anglebars = options.anglebars;
 		this.parentNode = options.parentNode;
@@ -2436,7 +2326,7 @@ Anglebars.formatters = {
 		this.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
-	DomViews.Text.prototype = {
+	Text.prototype = {
 		teardown: function () {
 			if ( elContains( this.anglebars.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
@@ -2450,7 +2340,7 @@ Anglebars.formatters = {
 
 
 	// Element
-	DomViews.Element = function ( options ) {
+	Element = function ( options ) {
 
 		var binding,
 			model,
@@ -2481,7 +2371,7 @@ Anglebars.formatters = {
 		
 
 		// create the DOM node
-		this.node = document.createElementNS( namespace, model.tag );
+		this.node = doc.createElementNS( namespace, model.tag );
 
 
 		// set attributes
@@ -2490,7 +2380,7 @@ Anglebars.formatters = {
 			if ( model.attrs.hasOwnProperty( attrName ) ) {
 				attrValue = model.attrs[ attrName ];
 
-				attr = new DomViews.Attribute({
+				attr = new Attribute({
 					owner: this,
 					name: attrName,
 					value: attrValue,
@@ -2520,7 +2410,7 @@ Anglebars.formatters = {
 			}
 
 			else {
-				this.children = new DomViews.Fragment({
+				this.children = new A.DomFragment({
 					model:        model.frag,
 					anglebars:    options.anglebars,
 					parentNode:   this.node,
@@ -2535,7 +2425,7 @@ Anglebars.formatters = {
 		this.parentNode.insertBefore( this.node, options.anchor || null );
 	};
 
-	DomViews.Element.prototype = {
+	Element.prototype = {
 		bind: function ( attribute, lazy ) {
 
 			var viewmodel = this.viewmodel, node = this.node, setValue, valid, interpolator, keypath;
@@ -2543,15 +2433,15 @@ Anglebars.formatters = {
 			// Check this is a suitable candidate for two-way binding - i.e. it is
 			// a single interpolator with no formatters
 			valid = true;
-			if ( !attribute.children ||
-			     ( attribute.children.length !== 1 ) ||
-			     ( attribute.children[0].type !== A.types.INTERPOLATOR ) ||
-			     ( attribute.children[0].model.formatters && attribute.children[0].model.formatters.length )
+			if ( !attribute.fragment ||
+			     ( attribute.fragment.items.length !== 1 ) ||
+			     ( attribute.fragment.items[0].type !== A.types.INTERPOLATOR ) ||
+			     ( attribute.fragment.items[0].model.formatters && attribute.fragment.items[0].model.formatters.length )
 			) {
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator with no formatters';
 			}
 
-			interpolator = attribute.children[0];
+			interpolator = attribute.fragment.items[0];
 
 			// Hmmm. Not sure if this is the best way to handle this ambiguity...
 			//
@@ -2621,12 +2511,14 @@ Anglebars.formatters = {
 
 
 	// Attribute
-	DomViews.Attribute = function ( options ) {
+	Attribute = function ( options ) {
 
 		var i, name, value, colonIndex, namespacePrefix, namespace, ancestor;
 
 		name = options.name;
 		value = options.value;
+
+		this.owner = options.owner; // the element this belongs to
 
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
 		colonIndex = name.indexOf( ':' );
@@ -2678,21 +2570,22 @@ Anglebars.formatters = {
 
 		this.children = [];
 
-		i = value.length;
-		while ( i-- ) {
-			this.children[i] = A.TextViews.create({
-				model:        value[i],
-				anglebars:    options.anglebars,
-				parent:       this,
-				contextStack: options.contextStack
-			});
-		}
+		// share parentFragment with parent element
+		this.parentFragment = this.owner.parentFragment;
+
+		this.fragment = new A.TextFragment({
+			model:        value,
+			anglebars:    options.anglebars,
+			owner:        this,
+			contextStack: options.contextStack
+		});
 
 		// manually trigger first update
+		this.ready = true;
 		this.update();
 	};
 
-	DomViews.Attribute.prototype = {
+	Attribute.prototype = {
 		teardown: function () {
 			// ignore non-dynamic attributes
 			if ( !this.children ) {
@@ -2710,8 +2603,13 @@ Anglebars.formatters = {
 
 		update: function () {
 			var prevValue = this.value;
-			this.value = this.toString();
 
+			if ( !this.ready ) {
+				return; // avoid items bubbling to the surface when we're still initialising
+			}
+			
+			this.value = this.fragment.toString();
+		
 			if ( this.value !== prevValue ) {
 				if ( this.namespace ) {
 					this.parentNode.setAttributeNS( this.namespace, this.name, this.value );
@@ -2719,10 +2617,6 @@ Anglebars.formatters = {
 					this.parentNode.setAttribute( this.name, this.value );
 				}
 			}
-		},
-
-		toString: function () {
-			return this.children.join( '' );
 		}
 	};
 
@@ -2731,9 +2625,14 @@ Anglebars.formatters = {
 
 
 	// Interpolator
-	DomViews.Interpolator = domViewMustache({
+	Interpolator = function ( options ) {
+		// extend Mustache
+		Mustache.call( this, options );
+	};
+
+	Interpolator.prototype = {
 		initialize: function () {
-			this.node = document.createTextNode( '' );
+			this.node = doc.createTextNode( '' );
 			this.parentNode.insertBefore( this.node, this.anchor || null );
 		},
 
@@ -2759,11 +2658,15 @@ Anglebars.formatters = {
 		firstNode: function () {
 			return this.node;
 		}
-	});
+	};
 
 
 	// Triple
-	DomViews.Triple = domViewMustache({
+	Triple = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Triple.prototype = {
 		initialize: function () {
 			this.nodes = [];
 		},
@@ -2815,12 +2718,16 @@ Anglebars.formatters = {
 			// get new nodes
 			this.nodes = insertHtml( html, this.parentNode, anchor );
 		}
-	});
+	};
 
 
 
 	// Section
-	DomViews.Section = domViewMustache({
+	Section = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Section.prototype = {
 		initialize: function () {
 			this.views = [];
 			this.length = 0; // number of times this section is rendered
@@ -2861,10 +2768,6 @@ Anglebars.formatters = {
 		update: function ( value ) {
 			var emptyArray, i, viewsToRemove, anchor, fragmentOptions, valueIsArray, valueIsObject;
 
-			if ( this.anglebars.async ) {
-				this.queue = [];
-			}
-
 			fragmentOptions = {
 				model:        this.model.frag,
 				anglebars:    this.anglebars,
@@ -2876,7 +2779,7 @@ Anglebars.formatters = {
 			valueIsArray = isArray( value );
 
 			// modify the array to allow updates via push, pop etc
-			if ( this.anglebars.modifyArrays ) {
+			if ( valueIsArray && this.anglebars.modifyArrays ) {
 				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
 			}
 
@@ -2904,7 +2807,7 @@ Anglebars.formatters = {
 						fragmentOptions.contextStack = this.contextStack;
 						fragmentOptions.index = 0;
 
-						this.views[0] = new DomViews.Fragment( fragmentOptions );
+						this.views[0] = new A.DomFragment( fragmentOptions );
 						this.length = 1;
 						return;
 					}
@@ -2942,15 +2845,7 @@ Anglebars.formatters = {
 								fragmentOptions.indexRef = this.model.i;
 							}
 
-							this.views[i] = new DomViews.Fragment( fragmentOptions, true ); // true to prevent queue being updated in wrong order
-
-							if ( this.anglebars.async ) {
-								this.queue = this.queue.concat( this.views[i].queue );
-							}
-						}
-
-						if ( this.anglebars.async ) {
-							this.anglebars.queue( this.queue );
+							this.views[i] = new A.DomFragment( fragmentOptions );
 						}
 					}
 				}
@@ -2968,7 +2863,7 @@ Anglebars.formatters = {
 					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
 					fragmentOptions.index = 0;
 
-					this.views[0] = new DomViews.Fragment( fragmentOptions );
+					this.views[0] = new A.DomFragment( fragmentOptions );
 					this.length = 1;
 				}
 			}
@@ -2983,7 +2878,7 @@ Anglebars.formatters = {
 						fragmentOptions.contextStack = this.contextStack;
 						fragmentOptions.index = 0;
 
-						this.views[0] = new DomViews.Fragment( fragmentOptions );
+						this.views[0] = new A.DomFragment( fragmentOptions );
 						this.length = 1;
 					}
 				}
@@ -2996,15 +2891,16 @@ Anglebars.formatters = {
 				}
 			}
 		}
-	});
+	};
 
-}( Anglebars ));
+}( Anglebars, document ));
 
 (function ( A ) {
 
 	'use strict';
 
-	var textViewMustache, TextViews, types, ctors, isArray, isObject;
+	var createView, types, ctors, isArray, isObject,
+		Text, Mustache, Interpolator, Triple, Section;
 
 	types = A.types;
 
@@ -3017,62 +2913,60 @@ Anglebars.formatters = {
 	isArray = A.isArray;
 	isObject = A.isObject;
 
-	// Substring constructor factory
-	textViewMustache = function ( proto ) {
-		var Mustache;
+	// Base Mustache class
+	Mustache = function ( options ) {
 
-		Mustache = function ( options ) {
+		this.model = options.model;
+		this.anglebars = options.anglebars;
+		this.viewmodel = options.anglebars.viewmodel;
+		this.parent = options.parent;
+		this.parentFragment = options.parentFragment;
+		this.contextStack = options.contextStack || [];
 
-			this.model = options.model;
-			this.anglebars = options.anglebars;
-			this.viewmodel = options.anglebars.viewmodel;
-			this.parent = options.parent;
-			this.contextStack = options.contextStack || [];
+		this.type = options.model.type;
 
-			this.type = options.model.type;
+		// If there is an init method, call it
+		if ( this.initialize ) {
+			this.initialize();
+		}
 
-			// If there is an init method, call it
-			if ( this.initialize ) {
-				this.initialize();
-			}
+		this.viewmodel.registerView( this );
 
-			this.viewmodel.registerView( this );
-
-			// If we have a failed keypath lookup, and this is an inverted section,
-			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inv ) { // Test both section-hood and inverticity in one go
-				this.update( false );
-			}
-		};
-
-		Mustache.prototype = proto;
-
-		return Mustache;
+		// If we have a failed keypath lookup, and this is an inverted section,
+		// we need to trigger this.update() so the contents are rendered
+		if ( !this.keypath && this.model.inv ) { // Test both section-hood and inverticity in one go
+			this.update( false );
+		}
 	};
 
 
 	// Substring types
-	TextViews = A.TextViews = {
-		create: function ( options ) {
-			if ( typeof options.model === 'string' ) {
-				return new TextViews.Text( options.model );
-			}
+	createView = function ( options ) {
+		if ( typeof options.model === 'string' ) {
+			return new Text( options.model );
+		}
 
-			return new TextViews[ ctors[ options.model.type ] ]( options );
+		switch ( options.model.type ) {
+			case types.INTERPOLATOR: return new Interpolator( options );
+			case types.TRIPLE: return new Triple( options );
+			case types.SECTION: return new Section( options );
+
+			default: throw 'Something went wrong in a rather interesting way';
 		}
 	};
 
 
 
 	// Fragment
-	TextViews.Fragment = function ( options ) {
+	A.TextFragment = function ( options ) {
 		var numItems, i, itemOptions, parentRefs, ref;
 
-		this.parent = options.parent;
+		this.owner = options.owner;
+		this.index = options.index;
 		this.items = [];
 
 		this.indexRefs = {};
-		if ( this.owner ) {
+		if ( this.owner && this.owner.parentFragment ) {
 			parentRefs = this.owner.parentFragment.indexRefs;
 			for ( ref in parentRefs ) {
 				if ( parentRefs.hasOwnProperty( ref ) ) {
@@ -3086,21 +2980,22 @@ Anglebars.formatters = {
 		}
 
 		itemOptions = {
-			anglebars:    options.anglebars,
-			parent:       this,
+			anglebars: options.anglebars,
+			parentFragment: this,
+			parent: this.owner,
 			contextStack: options.contextStack
 		};
 
-		numItems = ( options.models ? options.models.length : 0 );
+		numItems = ( options.model ? options.model.length : 0 );
 		for ( i=0; i<numItems; i+=1 ) {
-			itemOptions.model = this.models[i];
-			this.items[ this.items.length ] = TextViews.create( itemOptions );
+			itemOptions.model = options.model[i];
+			this.items[ this.items.length ] = createView( itemOptions );
 		}
 
 		this.value = this.items.join('');
 	};
 
-	TextViews.Fragment.prototype = {
+	A.TextFragment.prototype = {
 		bubble: function () {
 			this.value = this.items.join( '' );
 			this.parent.bubble();
@@ -3123,11 +3018,11 @@ Anglebars.formatters = {
 
 
 	// Plain text
-	TextViews.Text = function ( text ) {
+	Text = function ( text ) {
 		this.text = text;
 	};
 
-	TextViews.Text.prototype = {
+	Text.prototype = {
 		toString: function () {
 			return this.text;
 		},
@@ -3139,7 +3034,11 @@ Anglebars.formatters = {
 	// Mustaches
 
 	// Interpolator or Triple
-	TextViews.Interpolator = textViewMustache({
+	Interpolator = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Interpolator.prototype = {
 		update: function ( value ) {
 			this.value = value;
 			this.parent.bubble();
@@ -3160,14 +3059,18 @@ Anglebars.formatters = {
 		toString: function () {
 			return ( this.value === undefined ? '' : this.value );
 		}
-	});
+	};
 
 	// Triples are the same as Interpolators in this context
-	TextViews.Triple = TextViews.Interpolator;
+	Triple = Interpolator;
 
 
 	// Section
-	TextViews.Section = textViewMustache({
+	Section = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Section.prototype = {
 		initialize: function () {
 			this.children = [];
 			this.length = 0;
@@ -3201,7 +3104,7 @@ Anglebars.formatters = {
 			valueIsArray = isArray( value );
 
 			// modify the array to allow updates via push, pop etc
-			if ( this.anglebars.modifyArrays ) {
+			if ( valueIsArray && this.anglebars.modifyArrays ) {
 				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
 			}
 
@@ -3221,7 +3124,7 @@ Anglebars.formatters = {
 
 				else {
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack );
+						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
@@ -3262,7 +3165,7 @@ Anglebars.formatters = {
 
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
-								this.children[i] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
+								this.children[i] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
 							}
 						}
 					}
@@ -3276,7 +3179,7 @@ Anglebars.formatters = {
 					// (if it is already rendered, then any children dependent on the context stack
 					// will update themselves without any prompting)
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
+						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
 						this.length = 1;
 					}
 				}
@@ -3287,7 +3190,7 @@ Anglebars.formatters = {
 
 				if ( value && !emptyArray ) {
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack );
+						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
@@ -3307,7 +3210,7 @@ Anglebars.formatters = {
 		toString: function () {
 			return ( this.value === undefined ? '' : this.value );
 		}
-	});
+	};
 
 }( Anglebars ));
 (function ( A ) {
