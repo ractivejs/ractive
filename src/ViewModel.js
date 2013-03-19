@@ -1,6 +1,6 @@
 (function ( A ) {
 
-	var arrayPointer, splitKeypath, parseArrayNotation;
+	var arrayPointer, splitKeypath, keypathNormaliser;
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -343,48 +343,17 @@
 
 
 
-	// Split keypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
+	
+	keypathNormaliser = /\[\s*([0-9]+)\s*\]/g;
 	splitKeypath = function ( keypath ) {
-		var firstPass, secondPass = [], i;
+		var normalised;
 
-		// Start by splitting on periods
-		firstPass = keypath.split( '.' );
+		// normalise keypath (e.g. 'foo[0]' becomes 'foo.0')
+		normalised = keypath.replace( keypathNormaliser, '.$1' );
 
-		// Then see if any keys use array notation instead of dot notation
-		for ( i=0; i<firstPass.length; i+=1 ) {
-			secondPass = secondPass.concat( parseArrayNotation( firstPass[i] ) );
-		}
-
-		return secondPass;
+		return normalised.split( '.' );
 	};
 
-	arrayPointer = /\[([0-9]+)\]/;
 
-	// Split key with array notation ('baz[0]') into identifier and array pointer(s) (['baz', 0])
-	parseArrayNotation = function ( key ) {
-		var index, arrayPointers, match, result;
-
-		index = key.indexOf( '[' );
-
-		if ( index === -1 ) {
-			return key;
-		}
-
-		result = [ key.substr( 0, index ) ];
-		arrayPointers = key.substring( index );
-
-		while ( arrayPointers.length ) {
-			match = arrayPointer.exec( arrayPointers );
-
-			if ( !match ) {
-				return result;
-			}
-
-			result[ result.length ] = +match[1];
-			arrayPointers = arrayPointers.substring( match[0].length );
-		}
-
-		return result;
-	};
 
 }( Anglebars ));
