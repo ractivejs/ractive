@@ -12,6 +12,10 @@ sets = [ 'comments', 'delimiters', 'interpolation', 'inverted', 'partials', 'sec
 //sets = [ 'partials' ];
 
 trim = function ( str ) {
+	if ( typeof str !== 'string' ) {
+		return '';
+	}
+
 	return str.replace( /^\s*/, '' ).replace( /\s*$/, '' );
 };
 
@@ -51,8 +55,7 @@ startTests = function ( set, data ) {
 				template: t.template,
 				data: t.data,
 				partials: t.partials,
-				preserveWhitespace: true,
-				async: false
+				preserveWhitespace: true
 			});
 
 			result = anglebars.el.innerHTML;
