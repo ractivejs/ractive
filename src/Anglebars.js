@@ -1,8 +1,4 @@
-/*jslint white: true */
-
-var Anglebars, getEl, wait;
-
-
+var Anglebars, getEl;
 
 Anglebars = function ( options ) {
 
@@ -21,8 +17,6 @@ Anglebars = function ( options ) {
 
 	defaults = {
 		preserveWhitespace: false,
-		async: false,
-		maxBatch: 50,
 		append: false,
 		twoway: true,
 		formatters: {},
@@ -43,10 +37,17 @@ Anglebars = function ( options ) {
 		this.el = getEl( this.el ); // turn ID string into DOM element
 	}
 
+	// Set up event bus
+	this._subs = {};
+
 	if ( this.viewmodel === undefined ) {
 		this.viewmodel = new Anglebars.ViewModel();
 	}
 
+	// bind viewmodel to this anglebars instance
+	this.viewmodel.dependents.push( this );
+
+	// Initialise (or update) viewmodel with data
 	if ( this.data ) {
 		this.viewmodel.set( this.data );
 	}
@@ -79,10 +80,6 @@ Anglebars = function ( options ) {
 	if ( this.el ) {
 		this.render({ el: this.el, callback: this.callback, append: this.append });
 	}
-
-
-	// Set up event bus
-	this._subs = {};
 };
 
 
@@ -90,62 +87,6 @@ Anglebars = function ( options ) {
 // Prototype methods
 // =================
 Anglebars.prototype = {
-
-	// Add an item to the async render queue
-	queue: function ( items ) {
-		this._queue = items.concat( this._queue || [] );
-
-		// If the queue is not currently being dispatched, dispatch it
-		if ( !this._dispatchingQueue ) {
-			this.dispatchQueue();
-		}
-	},
-
-	// iterate through queue, render as many items as possible before we need to
-	// yield the UI thread
-	dispatchQueue: function () {
-		var self = this, batch, max;
-
-		max = this.maxBatch; // defaults to 50 milliseconds before yielding
-
-		batch = function () {
-			var startTime = +new Date(), next;
-
-			// We can't cache self._queue.length because creating new views is likely to
-			// modify it
-			while ( self._queue.length && ( new Date() - startTime < max ) ) {
-				next = self._queue.shift();
-
-				next.parentFragment.items[ next.index ] = Anglebars.DomViews.create( next );
-			}
-
-			// If we ran out of time before completing the queue, kick off a fresh batch
-			// at the next opportunity
-			if ( self._queue.length ) {
-				wait( batch );
-			}
-
-			// Otherwise, mark queue as dispatched and execute any callback we have
-			else {
-				self._dispatchingQueue = false;
-
-				if ( self.callback ) {
-					self.callback();
-					delete self.callback;
-				}
-
-				// Oh, and disable async for further updates (TODO - this is messy)
-				self.async = false;
-			}
-		};
-
-		// Do the first batch
-		this._dispatchingQueue = true;
-		wait( batch );
-	},
-
-
-
 
 	// Render instance to element specified here or at initialization
 	render: function ( options ) {
@@ -165,16 +106,11 @@ Anglebars.prototype = {
 		}
 
 		// Render our *root fragment*
-		this.rendered = new Anglebars.DomViews.Fragment({
+		this.rendered = new Anglebars.DomFragment({
 			model: this.template,
 			anglebars: this,
 			parentNode: el
 		});
-
-		// If we were given a callback, but we're not in async mode, execute immediately
-		if ( !this.async && options.callback ) {
-			options.callback();
-		}
 	},
 
 	// Teardown. This goes through the root fragment and all its children, removing observers
@@ -270,36 +206,6 @@ getEl = function ( input ) {
 
 	throw new Error( 'Could not find container element' );
 };
-
-wait = (function() {
-	var vendors = ['ms', 'moz', 'webkit', 'o'], i, tryVendor, wait;
-
-	if ( typeof window === 'undefined' ) {
-		return; // we're not in a browser!
-	}
-	
-	if ( window.requestAnimationFrame ) {
-		return function ( task ) {
-			window.requestAnimationFrame( task );
-		};
-	}
-
-	tryVendor = function ( i ) {
-		if ( window[ vendors[i]+'RequestAnimationFrame' ] ) {
-			return function ( task ) {
-				window[ vendors[i]+'RequestAnimationFrame' ]( task );
-			};
-		}
-	};
-
-	for ( i=0; i<vendors.length; i+=1 ) {
-		tryVendor( i );
-	}
-
-	return function( task ) {
-		setTimeout( task, 16 );
-	};
-}());
 
 // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 Anglebars.isArray = function ( obj ) {
