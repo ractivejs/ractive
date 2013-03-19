@@ -194,10 +194,17 @@
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, childrenToRemove;
+			var emptyArray, i, childrenToRemove, valueIsArray;
+
+			valueIsArray = isArray( value );
+
+			// modify the array to allow updates via push, pop etc
+			if ( this.anglebars.modifyArrays ) {
+				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
+			}
 
 			// treat empty arrays as false values
-			if ( isArray( value ) && value.length === 0 ) {
+			if ( valueIsArray && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -230,7 +237,7 @@
 
 
 				// if value is an array, iterate through
-				if ( isArray( value ) ) {
+				if ( valueIsArray ) {
 
 					// if the array is shorter than it was previously, remove items
 					if ( value.length < this.length ) {
