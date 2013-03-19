@@ -1,4 +1,4 @@
-/*! anglebars - v0.1.5 - 2013-03-19
+/*! anglebars - v0.1.6 - 2013-03-19
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
@@ -467,7 +467,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 
 			this.attributes = attributes;
 		}
-		
+
 		// if this is a void element, or a self-closing tag, seal the element
 		if ( token.isSelfClosingTag || voidElementNames.indexOf( token.tag.toLowerCase() ) !== -1 ) {
 			return;
@@ -1491,7 +1491,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 			}
 
 			
-			if ( !this.tokens.length ) {
+			if ( !this.tokens.length && !this.quoteMark ) {
 				// ignore leading whitespace
 				if ( whitespace.test( char ) ) {
 					return true;
@@ -1504,7 +1504,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 				}
 			}
 
-			
+
 			// send character to buffer
 			if ( this.buffer.read( char ) ) {
 				return true;
@@ -1561,6 +1561,11 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 
 			this.currentToken.read( char );
 			this.tokens[ this.tokens.length ] = this.currentToken;
+
+			if ( this.currentToken.sealed ) {
+				this.seal();
+			}
+
 			return true;
 		},
 
