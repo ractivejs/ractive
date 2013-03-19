@@ -12,6 +12,9 @@
 
 		// Create empty object for observers
 		this.observers = {};
+
+		// Dependent Anglebars instances
+		this.dependents = [];
 	};
 
 	A.ViewModel.prototype = {
@@ -31,6 +34,18 @@
 
 				return;
 			}
+
+			// fire events
+			this.dependents.forEach( function ( dep ) {
+				if ( dep.setting ) {
+					return; // short-circuit any potential infinite loops
+				}
+
+				dep.setting = true;
+				dep.fire( 'set', keypath, value );
+				dep.fire( 'set:' + keypath, value );
+				dep.setting = false;
+			});	
 
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
