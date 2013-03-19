@@ -2,7 +2,8 @@
 
 	'use strict';
 
-	var textViewMustache, TextViews, types, ctors, isArray, isObject;
+	var createView, types, ctors, isArray, isObject,
+		Text, Mustache, Interpolator, Triple, Section;
 
 	types = A.types;
 
@@ -15,62 +16,60 @@
 	isArray = A.isArray;
 	isObject = A.isObject;
 
-	// Substring constructor factory
-	textViewMustache = function ( proto ) {
-		var Mustache;
+	// Base Mustache class
+	Mustache = function ( options ) {
 
-		Mustache = function ( options ) {
+		this.model = options.model;
+		this.anglebars = options.anglebars;
+		this.viewmodel = options.anglebars.viewmodel;
+		this.parent = options.parent;
+		this.parentFragment = options.parentFragment;
+		this.contextStack = options.contextStack || [];
 
-			this.model = options.model;
-			this.anglebars = options.anglebars;
-			this.viewmodel = options.anglebars.viewmodel;
-			this.parent = options.parent;
-			this.contextStack = options.contextStack || [];
+		this.type = options.model.type;
 
-			this.type = options.model.type;
+		// If there is an init method, call it
+		if ( this.initialize ) {
+			this.initialize();
+		}
 
-			// If there is an init method, call it
-			if ( this.initialize ) {
-				this.initialize();
-			}
+		this.viewmodel.registerView( this );
 
-			this.viewmodel.registerView( this );
-
-			// If we have a failed keypath lookup, and this is an inverted section,
-			// we need to trigger this.update() so the contents are rendered
-			if ( !this.keypath && this.model.inv ) { // Test both section-hood and inverticity in one go
-				this.update( false );
-			}
-		};
-
-		Mustache.prototype = proto;
-
-		return Mustache;
+		// If we have a failed keypath lookup, and this is an inverted section,
+		// we need to trigger this.update() so the contents are rendered
+		if ( !this.keypath && this.model.inv ) { // Test both section-hood and inverticity in one go
+			this.update( false );
+		}
 	};
 
 
 	// Substring types
-	TextViews = A.TextViews = {
-		create: function ( options ) {
-			if ( typeof options.model === 'string' ) {
-				return new TextViews.Text( options.model );
-			}
+	createView = function ( options ) {
+		if ( typeof options.model === 'string' ) {
+			return new Text( options.model );
+		}
 
-			return new TextViews[ ctors[ options.model.type ] ]( options );
+		switch ( options.model.type ) {
+			case types.INTERPOLATOR: return new Interpolator( options );
+			case types.TRIPLE: return new Triple( options );
+			case types.SECTION: return new Section( options );
+
+			default: throw 'Something went wrong in a rather interesting way';
 		}
 	};
 
 
 
 	// Fragment
-	TextViews.Fragment = function ( options ) {
+	A.TextFragment = function ( options ) {
 		var numItems, i, itemOptions, parentRefs, ref;
 
-		this.parent = options.parent;
+		this.owner = options.owner;
+		this.index = options.index;
 		this.items = [];
 
 		this.indexRefs = {};
-		if ( this.owner ) {
+		if ( this.owner && this.owner.parentFragment ) {
 			parentRefs = this.owner.parentFragment.indexRefs;
 			for ( ref in parentRefs ) {
 				if ( parentRefs.hasOwnProperty( ref ) ) {
@@ -84,21 +83,22 @@
 		}
 
 		itemOptions = {
-			anglebars:    options.anglebars,
-			parent:       this,
+			anglebars: options.anglebars,
+			parentFragment: this,
+			parent: this.owner,
 			contextStack: options.contextStack
 		};
 
-		numItems = ( options.models ? options.models.length : 0 );
+		numItems = ( options.model ? options.model.length : 0 );
 		for ( i=0; i<numItems; i+=1 ) {
-			itemOptions.model = this.models[i];
-			this.items[ this.items.length ] = TextViews.create( itemOptions );
+			itemOptions.model = options.model[i];
+			this.items[ this.items.length ] = createView( itemOptions );
 		}
 
 		this.value = this.items.join('');
 	};
 
-	TextViews.Fragment.prototype = {
+	A.TextFragment.prototype = {
 		bubble: function () {
 			this.value = this.items.join( '' );
 			this.parent.bubble();
@@ -121,11 +121,11 @@
 
 
 	// Plain text
-	TextViews.Text = function ( text ) {
+	Text = function ( text ) {
 		this.text = text;
 	};
 
-	TextViews.Text.prototype = {
+	Text.prototype = {
 		toString: function () {
 			return this.text;
 		},
@@ -137,7 +137,11 @@
 	// Mustaches
 
 	// Interpolator or Triple
-	TextViews.Interpolator = textViewMustache({
+	Interpolator = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Interpolator.prototype = {
 		update: function ( value ) {
 			this.value = value;
 			this.parent.bubble();
@@ -158,14 +162,18 @@
 		toString: function () {
 			return ( this.value === undefined ? '' : this.value );
 		}
-	});
+	};
 
 	// Triples are the same as Interpolators in this context
-	TextViews.Triple = TextViews.Interpolator;
+	Triple = Interpolator;
 
 
 	// Section
-	TextViews.Section = textViewMustache({
+	Section = function ( options ) {
+		Mustache.call( this, options );
+	};
+
+	Section.prototype = {
 		initialize: function () {
 			this.children = [];
 			this.length = 0;
@@ -199,7 +207,7 @@
 			valueIsArray = isArray( value );
 
 			// modify the array to allow updates via push, pop etc
-			if ( this.anglebars.modifyArrays ) {
+			if ( valueIsArray && this.anglebars.modifyArrays ) {
 				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
 			}
 
@@ -219,7 +227,7 @@
 
 				else {
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack );
+						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
@@ -260,7 +268,7 @@
 
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
-								this.children[i] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
+								this.children[i] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
 							}
 						}
 					}
@@ -274,7 +282,7 @@
 					// (if it is already rendered, then any children dependent on the context stack
 					// will update themselves without any prompting)
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
+						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
 						this.length = 1;
 					}
 				}
@@ -285,7 +293,7 @@
 
 				if ( value && !emptyArray ) {
 					if ( !this.length ) {
-						this.children[0] = new TextViews.Fragment( this.model.frag, this.anglebars, this, this.contextStack );
+						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
 						this.length = 1;
 					}
 				}
@@ -305,6 +313,6 @@
 		toString: function () {
 			return ( this.value === undefined ? '' : this.value );
 		}
-	});
+	};
 
 }( Anglebars ));
