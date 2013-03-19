@@ -1,4 +1,4 @@
-/*! anglebars - v0.1.5 - 2013-03-18
+/*! anglebars - v0.1.5 - 2013-03-19
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
@@ -35,7 +35,8 @@ Anglebars = function ( options ) {
 		maxBatch: 50,
 		append: false,
 		twoway: true,
-		formatters: {}
+		formatters: {},
+		modifyArrays: true
 	};
 
 	for ( key in defaults ) {
@@ -1819,7 +1820,7 @@ Anglebars.formatters = {
 };
 (function ( A ) {
 
-	var arrayPointer, splitKeypath, parseArrayNotation;
+	var arrayPointer, splitKeypath, keypathNormaliser;
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -1915,8 +1916,18 @@ Anglebars.formatters = {
 		// Force notify observers of `keypath` (useful if e.g. an array or object member
 		// was changed without calling `anglebars.set()`)
 		update: function ( keypath ) {
-			var value = this.get( keypath );
-			this._notifyObservers( keypath, value );
+			if ( keypath ) {
+				this._notifyObservers( keypath, this.get( keypath ) );
+			}
+
+			// no keypath? update all the things
+			else {
+				for ( keypath in this.data ) {
+					if ( this.data.hasOwnProperty( keypath ) ) {
+						this._notifyObservers( keypath, this.get( keypath ) );
+					}
+				}
+			}
 		},
 
 		registerView: function ( view ) {
@@ -2162,49 +2173,18 @@ Anglebars.formatters = {
 
 
 
-	// Split keypath ('foo.bar.baz[0]') into keys (['foo', 'bar', 'baz', 0])
+	
+	keypathNormaliser = /\[\s*([0-9]+)\s*\]/g;
 	splitKeypath = function ( keypath ) {
-		var firstPass, secondPass = [], i;
+		var normalised;
 
-		// Start by splitting on periods
-		firstPass = keypath.split( '.' );
+		// normalise keypath (e.g. 'foo[0]' becomes 'foo.0')
+		normalised = keypath.replace( keypathNormaliser, '.$1' );
 
-		// Then see if any keys use array notation instead of dot notation
-		for ( i=0; i<firstPass.length; i+=1 ) {
-			secondPass = secondPass.concat( parseArrayNotation( firstPass[i] ) );
-		}
-
-		return secondPass;
+		return normalised.split( '.' );
 	};
 
-	arrayPointer = /\[([0-9]+)\]/;
 
-	// Split key with array notation ('baz[0]') into identifier and array pointer(s) (['baz', 0])
-	parseArrayNotation = function ( key ) {
-		var index, arrayPointers, match, result;
-
-		index = key.indexOf( '[' );
-
-		if ( index === -1 ) {
-			return key;
-		}
-
-		result = [ key.substr( 0, index ) ];
-		arrayPointers = key.substring( index );
-
-		while ( arrayPointers.length ) {
-			match = arrayPointer.exec( arrayPointers );
-
-			if ( !match ) {
-				return result;
-			}
-
-			result[ result.length ] = +match[1];
-			arrayPointers = arrayPointers.substring( match[0].length );
-		}
-
-		return result;
-	};
 
 }( Anglebars ));
 
@@ -2895,6 +2875,11 @@ Anglebars.formatters = {
 
 			valueIsArray = isArray( value );
 
+			// modify the array to allow updates via push, pop etc
+			if ( this.anglebars.modifyArrays ) {
+				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
+			}
+
 			// treat empty arrays as false values
 			if ( valueIsArray && value.length === 0 ) {
 				emptyArray = true;
@@ -3211,10 +3196,17 @@ Anglebars.formatters = {
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, childrenToRemove;
+			var emptyArray, i, childrenToRemove, valueIsArray;
+
+			valueIsArray = isArray( value );
+
+			// modify the array to allow updates via push, pop etc
+			if ( this.anglebars.modifyArrays ) {
+				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
+			}
 
 			// treat empty arrays as false values
-			if ( isArray( value ) && value.length === 0 ) {
+			if ( valueIsArray && value.length === 0 ) {
 				emptyArray = true;
 			}
 
@@ -3247,7 +3239,7 @@ Anglebars.formatters = {
 
 
 				// if value is an array, iterate through
-				if ( isArray( value ) ) {
+				if ( valueIsArray ) {
 
 					// if the array is shorter than it was previously, remove items
 					if ( value.length < this.length ) {
@@ -3357,6 +3349,76 @@ Anglebars.formatters = {
 		Child.extend = Parent.extend;
 
 		return Child;
+	};
+
+}( Anglebars ));
+(function ( A ) {
+
+	'use strict';
+
+	var wrapMethods;
+
+	A.modifyArray = function ( array, keypath, viewmodel ) {
+
+		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
+
+		if ( !array._anglebars ) {
+			array._anglebars = {
+				viewmodels: [ viewmodel ],
+				keypathsByIndex: [ [ keypath ] ]
+			};
+
+			wrapMethods( array );
+		}
+
+		else {
+			viewmodels = array._anglebars.viewmodels;
+			keypathsByIndex = array._anglebars.keypathsByIndex;
+
+			// see if this viewmodel is currently associated with this array
+			viewmodelIndex = viewmodels.indexOf( viewmodel );
+
+			// if not, associate it
+			if ( viewmodelIndex === -1 ) {
+				viewmodelIndex = viewmodels.length;
+				viewmodels[ viewmodelIndex ] = viewmodel;
+			}
+
+			// find keypaths that reference this array, on this viewmodel
+			keypaths = keypathsByIndex[ viewmodelIndex ];
+
+			// if the current keypath isn't among them, add it
+			if ( keypaths.indexOf( keypath ) === -1 ) {
+				keypaths[ keypaths.length ] = keypath;
+			}
+		}
+
+	};
+
+	wrapMethods = function ( array ) {
+		var notifyDependents = function ( array ) {
+			var viewmodels, keypathsByIndex;
+
+			viewmodels = array._anglebars.viewmodels;
+			keypathsByIndex = array._anglebars.keypathsByIndex;
+
+			viewmodels.forEach( function ( viewmodel, i ) {
+				var keypaths = keypathsByIndex[i];
+
+				keypaths.forEach( function ( keypath ) {
+					viewmodel.set( keypath, array );
+				});
+			});
+		};
+
+		[ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ].forEach( function ( method ) {
+			array[ method ] = function () {
+				var result = Array.prototype[ method ].apply( this, arguments );
+				notifyDependents( array );
+
+				return result;
+			};
+		});
 	};
 
 }( Anglebars ));

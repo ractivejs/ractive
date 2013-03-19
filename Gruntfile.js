@@ -43,11 +43,11 @@ module.exports = function(grunt) {
 				dest: 'build/compile/Anglebars.compile.js'
 			},
 			runtime: {
-				src: [ 'src/Anglebars.js', 'src/types.js', 'src/events.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js' ],
+				src: [ 'src/Anglebars.js', 'src/types.js', 'src/events.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js' ],
 				dest: 'build/runtime/Anglebars.runtime.js'
 			},
 			full: {
-				src: [ 'src/Anglebars.js', 'src/types.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js' ],
+				src: [ 'src/Anglebars.js', 'src/types.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js' ],
 				dest: 'build/Anglebars.js'
 			}
 		},

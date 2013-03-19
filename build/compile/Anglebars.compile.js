@@ -1,4 +1,4 @@
-/*! anglebars - v0.1.5 - 2013-03-18
+/*! anglebars - v0.1.5 - 2013-03-19
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
