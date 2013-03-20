@@ -1,4 +1,4 @@
-/*! anglebars - v0.1.6 - 2013-03-19
+/*! anglebars - v0.1.6 - 2013-03-20
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
@@ -345,7 +345,7 @@ Anglebars.formatters = {
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
 		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, fullKeypath;
+			var k, keys, key, obj, i, unresolved, resolved, fullKeypath;
 
 			// Allow multiple values to be set in one go
 			if ( typeof keypath === 'object' ) {
@@ -393,11 +393,11 @@ Anglebars.formatters = {
 			while ( i-- ) { // Work backwards, so we don't go in circles!
 				unresolved = this.pendingResolution.splice( i, 1 )[0];
 
-				fullKeypath = this.getFullKeypath( unresolved.view.model.ref, unresolved.view.contextStack );
+				resolved = this.resolveRef( unresolved.view.model.ref, unresolved.view.contextStack );
 
 				// If we were able to find a keypath, initialise the view
-				if ( fullKeypath !== undefined ) {
-					unresolved.callback( fullKeypath );
+				if ( resolved ) {
+					unresolved.callback( resolved.keypath, resolved.value );
 				}
 
 				// Otherwise add to the back of the queue (this is why we're working backwards)
@@ -428,6 +428,10 @@ Anglebars.formatters = {
 				}
 			}
 
+			if ( typeof result === 'function' ) {
+				return result.call( this, keypath );
+			}
+
 			return result;
 		},
 
@@ -449,7 +453,7 @@ Anglebars.formatters = {
 		},
 
 		registerView: function ( view ) {
-			var self = this, fullKeypath, initialUpdate, value, index;
+			var self = this, resolved, fullKeypath, initialUpdate, value, index;
 
 			if ( view.parentFragment && ( view.model.ref in view.parentFragment.indexRefs ) ) {
 				// this isn't a real keypath, it's an index reference
@@ -461,7 +465,7 @@ Anglebars.formatters = {
 				return; // this value will never change, and doesn't have a keypath
 			}
 
-			initialUpdate = function ( keypath ) {
+			initialUpdate = function ( keypath, value ) {
 				view.keypath = keypath;
 
 				// create observers
@@ -471,9 +475,6 @@ Anglebars.formatters = {
 					view: view
 				});
 
-				value = self.get( keypath );
-				
-				
 				// pass value through formatters, if there are any
 				if ( view.model.fmtrs ) {
 					value = view.anglebars._format( value, view.model.fmtrs );
@@ -482,27 +483,31 @@ Anglebars.formatters = {
 				view.update( value );
 			};
 
-			fullKeypath = this.getFullKeypath( view.model.ref, view.contextStack );
+			resolved = this.resolveRef( view.model.ref, view.contextStack );
 
-			if ( fullKeypath === undefined ) {
+
+			if ( !resolved ) {
 				this.registerUnresolvedKeypath({
 					view: view,
 					callback: initialUpdate
 				});
 			} else {
-				initialUpdate( fullKeypath );
+				initialUpdate( resolved.keypath, resolved.value );
 			}
 		},
 
 		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-		getFullKeypath: function ( ref, contextStack ) {
+		resolveRef: function ( ref, contextStack ) {
 
-			var innerMost;
+			var innerMost, keypath, value;
 
 			// Implicit iterators - i.e. {{.}} - are a special case
 			if ( ref === '.' ) {
-				return contextStack[ contextStack.length - 1 ];
+				keypath = contextStack[ contextStack.length - 1 ];
+				value = this.get( keypath );
+
+				return { keypath: keypath, value: value };
 			}
 
 			// Clone the context stack, so we don't mutate the original
@@ -513,13 +518,17 @@ Anglebars.formatters = {
 
 				innerMost = contextStack.pop();
 
-				if ( this.get( innerMost + '.' + ref ) !== undefined ) {
-					return innerMost + '.' + ref;
+				keypath = innerMost + '.' + ref;
+				value = this.get( keypath );
+
+				if ( value !== undefined ) {
+					return { keypath: keypath, value: value };
 				}
 			}
 
-			if ( this.get( ref ) !== undefined ) {
-				return ref;
+			value = this.get( ref );
+			if ( value !== undefined ) {
+				return { keypath: ref, value: value };
 			}
 		},
 
@@ -543,18 +552,12 @@ Anglebars.formatters = {
 							actualValue = value;
 						}
 
-						if ( observer.view ) {
-							// apply formatters, if there are any
-							if ( observer.view.model.fmtrs ) {
-								actualValue = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
-							}
-
-							observer.view.update( actualValue );
+						// apply formatters, if there are any
+						if ( observer.view.model.fmtrs ) {
+							actualValue = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
 						}
 
-						if ( observer.callback ) {
-							observer.callback( actualValue );
-						}
+						observer.view.update( actualValue );
 					}
 				}
 			}
