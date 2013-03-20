@@ -7,6 +7,8 @@
 // TODO: add moar samples
 
 
+QUnit.config.reorder = false;
+
 test( 'Anglebars has a compile method', function () {
 	ok( _.isFunction( Anglebars.compile ) );
 });

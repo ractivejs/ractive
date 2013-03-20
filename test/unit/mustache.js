@@ -6,6 +6,8 @@
 // to other mustache implementations.
 
 
+QUnit.config.reorder = false;
+
 var testReport = {}, sets, startTests, charCodes, trim, testNum = 0;
 
 sets = [ 'comments', 'delimiters', 'interpolation', 'inverted', 'partials', 'sections' ];
