@@ -7,7 +7,7 @@
 //
 // TODO: add moar samples
 
-
+QUnit.config.reorder = false;
 
 var fixture = document.getElementById( 'qunit-fixture' );
 
@@ -16,8 +16,10 @@ test( 'Anglebars prototype has a render method', function () {
 });
 
 $.getJSON( 'samples/render.json' ).done( function ( data ) {
-	_.each( data, function ( t ) {
+	_.each( data, function ( t, i ) {
 		test( t.name, function () {
+			console.group(i+2);
+
 			var anglebars = new Anglebars({
 				el: fixture,
 				data: t.data,
@@ -26,6 +28,8 @@ $.getJSON( 'samples/render.json' ).done( function ( data ) {
 			});
 
 			equal( fixture.innerHTML, t.result );
+
+			console.groupEnd();
 		});
 	});
 });

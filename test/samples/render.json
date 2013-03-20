@@ -24,6 +24,22 @@
 		"result": "<ul><li>0: zero</li><li>1: one</li><li>2: two</li></ul>"
 	},
 	{
+		"name": "Section with index refs in attributes",
+		"template": "<ul>{{#items:i}}<li data-id=\"{{i}}\">{{name}}</li>{{/items}}</ul>",
+		"data": {
+			"items": [{"name":"zero"},{"name":"one"},{"name":"two"}]
+		},
+		"result": "<ul><li data-id=\"0\">zero</li><li data-id=\"1\">one</li><li data-id=\"2\">two</li></ul>"
+	},
+	{
+		"name": "Element with attributes",
+		"template": "<p class='{{class_name}}'>text</p>",
+		"data": {
+			"class_name": "it_works"
+		},
+		"result": "<p class=\"it_works\">text</p>"
+	},
+	{
 		"name": "Section with descendant attributes",
 		"template": "{{#todos}}<li><label>{{todo}}</label><input value='{{todo}}'></li>{{/todos}}",
 		"data": {
