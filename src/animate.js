@@ -53,8 +53,6 @@
 		tick: function () {
 			var i, animation;
 
-			console.log( '%s animations', this.animations.length );
-
 			for ( i=0; i<this.animations.length; i+=1 ) {
 				animation = this.animations[i];
 
