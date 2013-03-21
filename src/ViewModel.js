@@ -22,7 +22,7 @@
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
 		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, resolved, fullKeypath;
+			var k, keys, key, obj, i, unresolved, resolved, fullKeypath, normalisedKeypath;
 
 			// Allow multiple values to be set in one go
 			if ( typeof keypath === 'object' ) {
@@ -50,6 +50,7 @@
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
 			keys = splitKeypath( keypath );
+			normalisedKeypath = keys.join( '.' );
 
 			// TODO accommodate implicit array generation
 			obj = this.data;
@@ -63,7 +64,7 @@
 			obj[ key ] = value;
 
 			// Trigger updates of views that observe `keypaths` or its descendants
-			this._notifyObservers( keypath, value );
+			this._notifyObservers( normalisedKeypath, value );
 
 			// See if we can resolve any of the unresolved keypaths (if such there be)
 			i = this.pendingResolution.length;
