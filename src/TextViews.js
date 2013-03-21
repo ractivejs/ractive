@@ -99,10 +99,10 @@
 	};
 
 	A.TextFragment.prototype = {
-		bubble: function () {
-			this.value = this.items.join( '' );
-			this.parent.bubble();
-		},
+		// bubble: function () {
+		// 	this.value = this.items.join( '' );
+		// 	this.parent.bubble();
+		// },
 
 		teardown: function () {
 			var numItems, i;
@@ -114,7 +114,9 @@
 		},
 
 		toString: function () {
-			return ( this.value === undefined ? '' : this.value );
+			// TODO refactor this... value should already have been calculated? or maybe not. Top-level items skip the fragment and bubble straight to the attribute...
+			// argh, it's confusing me
+			return this.items.join( '' );
 		}
 	};
 
@@ -144,10 +146,6 @@
 	Interpolator.prototype = {
 		update: function ( value ) {
 			this.value = value;
-			this.parent.bubble();
-		},
-
-		bubble: function () {
 			this.parent.bubble();
 		},
 
