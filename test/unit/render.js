@@ -81,6 +81,12 @@ tests = [
 		template: '<p>{{message}}</p>',
 		data: { message: function () { return 'functions work'; } },
 		result: '<p>functions work</p>'
+	},
+	{
+		name: 'Attribute with sections',
+		template: '<ul>{{#todos:i}}<li data-index="{{i}}" class="{{#completed}}completed{{/completed}}{{^completed}}view{{/completed}}">{{desc}}</li>{{/todos}}</ul>',
+		data: { todos: [{ desc: 'debug Anglebars', completed: false }, { desc: 'release Anglebars', completed: false }, { desc: 'make cup of tea', completed: true }]},
+		result: '<ul><li data-index="0" class="view">debug Anglebars</li><li data-index="1" class="view">release Anglebars</li><li data-index="2" class="completed">make cup of tea</li></ul>'
 	}
 ];
 
