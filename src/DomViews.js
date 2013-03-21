@@ -1,4 +1,4 @@
-(function ( A, doc ) {
+(function ( A ) {
 
 	'use strict';
 
@@ -24,7 +24,7 @@
 
 		anchor = anchor || null;
 
-		div = doc.createElement( 'div' );
+		div = document.createElement( 'div' );
 		div.innerHTML = html;
 
 		len = div.childNodes.length;
@@ -206,7 +206,7 @@
 
 	// Plain text
 	Text = function ( options ) {
-		this.node = doc.createTextNode( options.model );
+		this.node = document.createTextNode( options.model );
 		this.index = options.index;
 		this.anglebars = options.anglebars;
 		this.parentNode = options.parentNode;
@@ -260,7 +260,7 @@
 		
 
 		// create the DOM node
-		this.node = doc.createElementNS( namespace, model.tag );
+		this.node = document.createElementNS( namespace, model.tag );
 
 
 		// set attributes
@@ -521,7 +521,7 @@
 
 	Interpolator.prototype = {
 		initialize: function () {
-			this.node = doc.createTextNode( '' );
+			this.node = document.createTextNode( '' );
 			this.parentNode.insertBefore( this.node, this.anchor || null );
 		},
 
@@ -782,4 +782,4 @@
 		}
 	};
 
-}( Anglebars, document ));
+}( Anglebars ));
