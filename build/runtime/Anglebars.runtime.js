@@ -1,4 +1,4 @@
-/*! anglebars - v0.1.6 - 2013-03-20
+/*! anglebars - v0.1.6 - 2013-03-21
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
@@ -345,7 +345,7 @@ Anglebars.formatters = {
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
 		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, resolved, fullKeypath;
+			var k, keys, key, obj, i, unresolved, resolved, fullKeypath, normalisedKeypath;
 
 			// Allow multiple values to be set in one go
 			if ( typeof keypath === 'object' ) {
@@ -373,6 +373,7 @@ Anglebars.formatters = {
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
 			keys = splitKeypath( keypath );
+			normalisedKeypath = keys.join( '.' );
 
 			// TODO accommodate implicit array generation
 			obj = this.data;
@@ -386,7 +387,7 @@ Anglebars.formatters = {
 			obj[ key ] = value;
 
 			// Trigger updates of views that observe `keypaths` or its descendants
-			this._notifyObservers( keypath, value );
+			this._notifyObservers( normalisedKeypath, value );
 
 			// See if we can resolve any of the unresolved keypaths (if such there be)
 			i = this.pendingResolution.length;
@@ -709,7 +710,7 @@ Anglebars.formatters = {
 
 }( Anglebars ));
 
-(function ( A, doc ) {
+(function ( A ) {
 
 	'use strict';
 
@@ -735,7 +736,7 @@ Anglebars.formatters = {
 
 		anchor = anchor || null;
 
-		div = doc.createElement( 'div' );
+		div = document.createElement( 'div' );
 		div.innerHTML = html;
 
 		len = div.childNodes.length;
@@ -917,7 +918,7 @@ Anglebars.formatters = {
 
 	// Plain text
 	Text = function ( options ) {
-		this.node = doc.createTextNode( options.model );
+		this.node = document.createTextNode( options.model );
 		this.index = options.index;
 		this.anglebars = options.anglebars;
 		this.parentNode = options.parentNode;
@@ -971,7 +972,7 @@ Anglebars.formatters = {
 		
 
 		// create the DOM node
-		this.node = doc.createElementNS( namespace, model.tag );
+		this.node = document.createElementNS( namespace, model.tag );
 
 
 		// set attributes
@@ -1232,7 +1233,7 @@ Anglebars.formatters = {
 
 	Interpolator.prototype = {
 		initialize: function () {
-			this.node = doc.createTextNode( '' );
+			this.node = document.createTextNode( '' );
 			this.parentNode.insertBefore( this.node, this.anchor || null );
 		},
 
@@ -1493,7 +1494,7 @@ Anglebars.formatters = {
 		}
 	};
 
-}( Anglebars, document ));
+}( Anglebars ));
 
 (function ( A ) {
 
@@ -1596,10 +1597,10 @@ Anglebars.formatters = {
 	};
 
 	A.TextFragment.prototype = {
-		bubble: function () {
-			this.value = this.items.join( '' );
-			this.parent.bubble();
-		},
+		// bubble: function () {
+		// 	this.value = this.items.join( '' );
+		// 	this.parent.bubble();
+		// },
 
 		teardown: function () {
 			var numItems, i;
@@ -1611,7 +1612,9 @@ Anglebars.formatters = {
 		},
 
 		toString: function () {
-			return ( this.value === undefined ? '' : this.value );
+			// TODO refactor this... value should already have been calculated? or maybe not. Top-level items skip the fragment and bubble straight to the attribute...
+			// argh, it's confusing me
+			return this.items.join( '' );
 		}
 	};
 
@@ -1641,10 +1644,6 @@ Anglebars.formatters = {
 	Interpolator.prototype = {
 		update: function ( value ) {
 			this.value = value;
-			this.parent.bubble();
-		},
-
-		bubble: function () {
 			this.parent.bubble();
 		},
 
@@ -1699,7 +1698,13 @@ Anglebars.formatters = {
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, childrenToRemove, valueIsArray;
+			var emptyArray, i, childrenToRemove, valueIsArray, fragmentOptions;
+
+			fragmentOptions = {
+				model:        this.model.frag,
+				anglebars:    this.anglebars,
+				owner:        this
+			};
 
 			valueIsArray = isArray( value );
 
@@ -1724,7 +1729,9 @@ Anglebars.formatters = {
 
 				else {
 					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
+						fragmentOptions.contextStack = this.contextStack;
+						this.children[0] = new A.TextFragment( fragmentOptions );
+
 						this.length = 1;
 					}
 				}
@@ -1765,7 +1772,8 @@ Anglebars.formatters = {
 
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
-								this.children[i] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
+								fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+								this.children[i] = new A.TextFragment( fragmentOptions );
 							}
 						}
 					}
@@ -1779,7 +1787,9 @@ Anglebars.formatters = {
 					// (if it is already rendered, then any children dependent on the context stack
 					// will update themselves without any prompting)
 					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
+						fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
+						this.children[0] = new A.TextFragment( fragmentOptions );
+
 						this.length = 1;
 					}
 				}
@@ -1790,7 +1800,9 @@ Anglebars.formatters = {
 
 				if ( value && !emptyArray ) {
 					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
+						fragmentOptions.contextStack = this.contextStack;
+						this.children[0] = new A.TextFragment( fragmentOptions );
+
 						this.length = 1;
 					}
 				}
@@ -1922,6 +1934,192 @@ Anglebars.formatters = {
 				return result;
 			};
 		});
+	};
+
+}( Anglebars ));
+(function ( A ) {
+
+	'use strict';
+
+	var Animation, animationCollection, requestAnimationFrame;
+
+	// https://gist.github.com/paulirish/1579671
+	(function( vendors, lastTime, window ) {
+		
+		for ( var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
+			window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+			window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+		}
+
+		if ( !window.requestAnimationFrame ) {
+			window.requestAnimationFrame = function(callback, element) {
+				var currTime = Date.now();
+				var timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
+				var id = window.setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+				lastTime = currTime + timeToCall;
+				return id;
+			};
+		}
+
+		if ( !window.cancelAnimationFrame ) {
+			window.cancelAnimationFrame = function( id ) {
+				clearTimeout( id );
+			};
+		}
+	}( ['ms', 'moz', 'webkit', 'o'], 0, window ));
+
+
+
+	Animation = function ( options ) {
+		var self = this, key;
+
+		this.startTime = Date.now(); // TODO does this work everywhere?
+
+		// from and to
+		for ( key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				this[ key ] = options[ key ];
+			}
+		}
+
+		this.delta = this.to - this.from;
+		this.running = true;
+	};
+
+	animationCollection = {
+		animations: [],
+
+		tick: function () {
+			var i, animation;
+
+			for ( i=0; i<this.animations.length; i+=1 ) {
+				animation = this.animations[i];
+
+				if ( !animation.tick() ) {
+					// animation is complete, remove it from the stack, and decrement i so we don't miss one
+					this.animations.splice( i--, 1 );
+				}
+			}
+
+			if ( this.animations.length ) {
+				window.requestAnimationFrame( this.boundTick );
+			} else {
+				this.running = false;
+			}
+		},
+
+		// bind method to animationCollection
+		boundTick: function () {
+			animationCollection.tick();
+		},
+
+		push: function ( animation ) {
+			this.animations[ this.animations.length ] = animation;
+
+			if ( !this.running ) {
+				this.running = true;
+				this.tick();
+			}
+		}
+	};
+
+	Animation.prototype = {
+		tick: function () {
+			var elapsed, t, value, timeNow;
+
+			if ( this.running ) {
+				timeNow = Date.now();
+				elapsed = timeNow - this.startTime;
+
+				if ( elapsed >= this.duration ) {
+					this.viewmodel.set( this.keypath, this.to );
+
+					if ( this.complete ) {
+						this.complete( 1 );
+					}
+
+					this.running = false;
+					return false;
+				}
+
+				t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
+				value = this.from + ( t * this.delta );
+
+				this.viewmodel.set( this.keypath, value );
+
+				if ( this.step ) {
+					this.step( t, value );
+				}
+
+				return true;
+			}
+
+			else {
+				return false;
+			}
+		},
+
+		stop: function () {
+			this.running = false;
+		}
+	};
+
+
+	A.prototype.animate = function ( keypath, to, options ) {
+		var easing, from, duration, animation;
+
+		// check from and to are both numeric
+		to = parseFloat( to );
+		if ( isNaN( to ) ) {
+			throw 'Cannot animate to a non-numeric property';
+		}
+
+		from = parseFloat( this.get( keypath ) );
+		if ( isNaN( to ) ) {
+			throw 'Cannot animate from a non-numeric property';
+		}
+
+		// easing function
+		if ( options && options.easing ) {
+			if ( typeof options.easing === 'function' ) {
+				easing = options.easing;
+			}
+
+			else {
+				if ( this.easing && this.easing[ options.easing ] ) {
+					// use instance easing function first
+					easing = this.easing[ options.easing ];
+				} else {
+					// fallback to global easing functions
+					easing = A.easing[ options.easing ];
+				}
+			}
+
+			if ( typeof easing !== 'function' ) {
+				easing = null;
+			}
+		}
+
+		// duration
+		duration = ( !options || options.duration === undefined ? 400 : options.duration );
+
+		animation = new Animation({
+			keypath: keypath,
+			from: from,
+			to: to,
+			viewmodel: this.viewmodel,
+			duration: duration,
+			easing: easing
+		});
+
+		animationCollection.push( animation );
+	};
+
+
+
+	// Easing functions
+	A.easing = {
+
 	};
 
 }( Anglebars ));
