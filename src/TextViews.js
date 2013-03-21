@@ -202,7 +202,13 @@
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, childrenToRemove, valueIsArray;
+			var emptyArray, i, childrenToRemove, valueIsArray, fragmentOptions;
+
+			fragmentOptions = {
+				model:        this.model.frag,
+				anglebars:    this.anglebars,
+				owner:        this
+			};
 
 			valueIsArray = isArray( value );
 
@@ -227,7 +233,9 @@
 
 				else {
 					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
+						fragmentOptions.contextStack = this.contextStack;
+						this.children[0] = new A.TextFragment( fragmentOptions );
+
 						this.length = 1;
 					}
 				}
@@ -268,7 +276,8 @@
 
 							// then add any new ones
 							for ( i=this.length; i<value.length; i+=1 ) {
-								this.children[i] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
+								fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+								this.children[i] = new A.TextFragment( fragmentOptions );
 							}
 						}
 					}
@@ -282,7 +291,9 @@
 					// (if it is already rendered, then any children dependent on the context stack
 					// will update themselves without any prompting)
 					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
+						fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
+						this.children[0] = new A.TextFragment( fragmentOptions );
+
 						this.length = 1;
 					}
 				}
@@ -293,7 +304,9 @@
 
 				if ( value && !emptyArray ) {
 					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
+						fragmentOptions.contextStack = this.contextStack;
+						this.children[0] = new A.TextFragment( fragmentOptions );
+
 						this.length = 1;
 					}
 				}
