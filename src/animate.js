@@ -187,8 +187,4 @@
 	};
 
 
-
-	// Easing functions
-	A.easing = A.easing || {};
-
 }( Anglebars ));
