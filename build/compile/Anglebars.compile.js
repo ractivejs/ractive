@@ -1,4 +1,4 @@
-/*! anglebars - v0.1.6 - 2013-03-21
+/*! anglebars - v0.1.6 - 2013-03-22
 * http://rich-harris.github.com/Anglebars/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
@@ -31,9 +31,7 @@
 		voidElementNames,
 		allElementNames,
 		closedByParentClose,
-		implicitClosersByTagName,
-
-		elementIsClosedBy;
+		implicitClosersByTagName;
 
 
 	A.compile = function ( template, options ) {
@@ -77,12 +75,12 @@
 	};
 
 	getFormatter = function ( str ) {
-		var match, name, argsStr, args, openIndex;
+		var name, argsStr, args, openIndex;
 
 		openIndex = str.indexOf( '[' );
 		if ( openIndex !== -1 ) {
 			name = str.substr( 0, openIndex );
-			argsStr = str.substring( openIndex + 1, str.length - 1 );
+			argsStr = str.substring( openIndex, str.length );
 
 			try {
 				args = JSON.parse( argsStr );
@@ -191,7 +189,7 @@
 		},
 
 		toJson: function ( noStringify ) {
-			var json, attrName, attrValue, str, i, fragStr;
+			var json, attrName, attrValue, str, i;
 
 			json = {
 				type: types.ELEMENT,
@@ -224,7 +222,7 @@
 		},
 
 		toString: function () {
-			var str, i, len, attrStr, attrValueStr, fragStr, itemStr, isVoid;
+			var str, i, len, attrStr, attrValueStr, fragStr, isVoid;
 
 			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
 			// element is to use with innerHTML, and SVG doesn't support that method
@@ -1416,22 +1414,27 @@
 
 
 }( Anglebars ));
-// Mustache types, used in various places
-Anglebars.types = {
-	TEXT:             1,
-	INTERPOLATOR:     2,
-	TRIPLE:           3,
-	SECTION:          4,
-	INVERTED:         5,
-	CLOSING:          6,
-	ELEMENT:          7,
-	PARTIAL:          8,
-	COMMENT:          9,
-	DELIMCHANGE:      10,
-	MUSTACHE:         11,
-	TAG:              12,
-	ATTR_VALUE_TOKEN: 13
-};
+(function ( A ) {
+
+	'use strict';
+
+	A.types = {
+		TEXT:             1,
+		INTERPOLATOR:     2,
+		TRIPLE:           3,
+		SECTION:          4,
+		INVERTED:         5,
+		CLOSING:          6,
+		ELEMENT:          7,
+		PARTIAL:          8,
+		COMMENT:          9,
+		DELIMCHANGE:      10,
+		MUSTACHE:         11,
+		TAG:              12,
+		ATTR_VALUE_TOKEN: 13
+	};
+
+}( Anglebars ));
 
 // export
 if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS
