@@ -34,7 +34,11 @@
     	{
     		"name": "Ryan Ramage",
     		"web": "https://github.com/ryanramage"
-    	}
+    	},
+        {
+            "name": "Ayman Mackouly",
+            "web": "https://github.com/1N50MN14"
+        }
     ],
     "repositories": [
     	{
