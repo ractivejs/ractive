@@ -72,7 +72,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		openIndex = str.indexOf( '[' );
 		if ( openIndex !== -1 ) {
 			name = str.substr( 0, openIndex );
-			argsStr = str.substring( openIndex + 1, str.length - 1 );
+			argsStr = str.substring( openIndex, str.length );
 
 			try {
 				args = JSON.parse( argsStr );
