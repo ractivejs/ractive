@@ -108,7 +108,7 @@ Anglebars.prototype = {
 		// Render our *root fragment*
 		this.rendered = new Anglebars.DomFragment({
 			model: this.template,
-			anglebars: this,
+			root: this,
 			parentNode: el
 		});
 	},

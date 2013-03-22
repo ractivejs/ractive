@@ -137,7 +137,7 @@
 				// this isn't a real keypath, it's an index reference
 				index = view.parentFragment.indexRefs[ view.model.ref ];
 
-				value = ( view.model.fmtrs ? view.anglebars._format( index, view.model.fmtrs ) : index );
+				value = ( view.model.fmtrs ? view.root._format( index, view.model.fmtrs ) : index );
 				view.update( value );
 
 				return; // this value will never change, and doesn't have a keypath
@@ -155,7 +155,7 @@
 
 				// pass value through formatters, if there are any
 				if ( view.model.fmtrs ) {
-					value = view.anglebars._format( value, view.model.fmtrs );
+					value = view.root._format( value, view.model.fmtrs );
 				}
 
 				view.update( value );
@@ -232,7 +232,7 @@
 
 						// apply formatters, if there are any
 						if ( observer.view.model.fmtrs ) {
-							actualValue = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
+							actualValue = observer.view.root._format( actualValue, observer.view.model.fmtrs );
 						}
 
 						observer.view.update( actualValue );

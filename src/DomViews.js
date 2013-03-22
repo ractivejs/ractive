@@ -44,8 +44,8 @@
 	Mustache = function ( options ) {
 
 		this.model          = options.model;
-		this.anglebars      = options.anglebars;
-		this.viewmodel      = options.anglebars.viewmodel;
+		this.root           = options.root;
+		this.viewmodel      = options.root.viewmodel;
 		this.parentNode     = options.parentNode;
 		this.parentFragment = options.parentFragment;
 		this.contextStack   = options.contextStack || [];
@@ -117,7 +117,7 @@
 
 		
 		itemOptions = {
-			anglebars:      options.anglebars,
+			root:           options.root,
 			parentNode:     options.parentNode,
 			contextStack:   options.contextStack,
 			anchor:         options.anchor,
@@ -188,8 +188,8 @@
 	// Partials
 	Partial = function ( options ) {
 		this.fragment = new A.DomFragment({
-			model:        options.anglebars.partials[ options.model.ref ] || [],
-			anglebars:    options.anglebars,
+			model:        options.root.partials[ options.model.ref ] || [],
+			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
 			anchor:       options.anchor,
@@ -208,7 +208,7 @@
 	Text = function ( options ) {
 		this.node = document.createTextNode( options.model );
 		this.index = options.index;
-		this.anglebars = options.anglebars;
+		this.root = options.root;
 		this.parentNode = options.parentNode;
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
@@ -217,7 +217,7 @@
 
 	Text.prototype = {
 		teardown: function () {
-			if ( elContains( this.anglebars.el, this.node ) ) {
+			if ( elContains( this.root.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -240,8 +240,8 @@
 
 		// stuff we'll need later
 		model = this.model = options.model;
-		this.anglebars = options.anglebars;
-		this.viewmodel = options.anglebars.viewmodel;
+		this.root = options.root;
+		this.viewmodel = options.root.viewmodel;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
@@ -273,13 +273,13 @@
 					owner: this,
 					name: attrName,
 					value: attrValue,
-					anglebars: options.anglebars,
+					root: options.root,
 					parentNode: this.node,
 					contextStack: options.contextStack
 				});
 
 				// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-				if ( attrName === 'value' && this.anglebars.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
+				if ( attrName === 'value' && this.root.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
 					binding = attr;
 				}
 
@@ -288,7 +288,7 @@
 		}
 
 		if ( binding ) {
-			this.bind( binding, options.anglebars.lazy );
+			this.bind( binding, options.root.lazy );
 		}
 
 		// append children, if there are any
@@ -301,7 +301,7 @@
 			else {
 				this.children = new A.DomFragment({
 					model:        model.frag,
-					anglebars:    options.anglebars,
+					root:    options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
 					anchor:       null,
@@ -380,7 +380,7 @@
 		},
 
 		teardown: function () {
-			if ( elContains( this.anglebars.el, this.node ) ) {
+			if ( elContains( this.root.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 
@@ -464,7 +464,7 @@
 
 		this.fragment = new A.TextFragment({
 			model:        value,
-			anglebars:    options.anglebars,
+			root:    options.root,
 			owner:        this,
 			contextStack: options.contextStack
 		});
@@ -532,7 +532,7 @@
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			if ( elContains( this.anglebars.el, this.node ) ) {
+			if ( elContains( this.root.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -563,7 +563,7 @@
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( elContains( this.anglebars.el, this.parentNode ) ) {
+			if ( elContains( this.root.el, this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -658,18 +658,18 @@
 			var emptyArray, i, viewsToRemove, anchor, fragmentOptions, valueIsArray, valueIsObject;
 
 			fragmentOptions = {
-				model:        this.model.frag,
-				anglebars:    this.anglebars,
-				parentNode:   this.parentNode,
-				anchor:       this.parentFragment.findNextNode( this ),
-				owner:        this
+				model:      this.model.frag,
+				root:       this.root,
+				parentNode: this.parentNode,
+				anchor:     this.parentFragment.findNextNode( this ),
+				owner:      this
 			};
 
 			valueIsArray = isArray( value );
 
 			// modify the array to allow updates via push, pop etc
-			if ( valueIsArray && this.anglebars.modifyArrays ) {
-				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
+			if ( valueIsArray && this.root.modifyArrays ) {
+				A.modifyArray( value, this.keypath, this.root.viewmodel );
 			}
 
 			// treat empty arrays as false values

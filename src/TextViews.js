@@ -2,16 +2,10 @@
 
 	'use strict';
 
-	var createView, types, ctors, isArray, isObject,
+	var createView, types, isArray, isObject,
 		Text, Mustache, Interpolator, Triple, Section;
 
 	types = A.types;
-
-	ctors = [];
-	ctors[ types.TEXT ] = 'Text';
-	ctors[ types.INTERPOLATOR ] = 'Interpolator';
-	ctors[ types.TRIPLE ] = 'Triple';
-	ctors[ types.SECTION ] = 'Section';
 
 	isArray = A.isArray;
 	isObject = A.isObject;
@@ -19,12 +13,12 @@
 	// Base Mustache class
 	Mustache = function ( options ) {
 
-		this.model = options.model;
-		this.anglebars = options.anglebars;
-		this.viewmodel = options.anglebars.viewmodel;
-		this.parent = options.parent;
+		this.model          = options.model;
+		this.root           = options.root;
+		this.viewmodel      = options.root.viewmodel;
+		this.parent         = options.parent;
 		this.parentFragment = options.parentFragment;
-		this.contextStack = options.contextStack || [];
+		this.contextStack   = options.contextStack || [];
 
 		this.type = options.model.type;
 
@@ -83,7 +77,7 @@
 		}
 
 		itemOptions = {
-			anglebars: options.anglebars,
+			root: options.root,
 			parentFragment: this,
 			parent: this.owner,
 			contextStack: options.contextStack
@@ -203,16 +197,16 @@
 			var emptyArray, i, childrenToRemove, valueIsArray, fragmentOptions;
 
 			fragmentOptions = {
-				model:        this.model.frag,
-				anglebars:    this.anglebars,
-				owner:        this
+				model: this.model.frag,
+				root:  this.root,
+				owner: this
 			};
 
 			valueIsArray = isArray( value );
 
 			// modify the array to allow updates via push, pop etc
-			if ( valueIsArray && this.anglebars.modifyArrays ) {
-				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
+			if ( valueIsArray && this.root.modifyArrays ) {
+				A.modifyArray( value, this.keypath, this.root.viewmodel );
 			}
 
 			// treat empty arrays as false values
