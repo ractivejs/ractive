@@ -2,8 +2,8 @@
 
 	'use strict';
 
-	var createView, types, insertHtml, isArray, isObject, elContains,
-		Text, Element, Partial, Attribute, Mustache, Interpolator, Triple, Section;
+	var types, insertHtml, isArray, isObject, elContains,
+		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	types = A.types;
 
@@ -40,103 +40,36 @@
 		return nodes;
 	};
 
-	// Base Mustache class
-	Mustache = function ( options ) {
-
-		this.model          = options.model;
-		this.root           = options.root;
-		this.viewmodel      = options.root.viewmodel;
-		this.parentNode     = options.parentNode;
-		this.parentFragment = options.parentFragment;
-		this.contextStack   = options.contextStack || [];
-		this.anchor         = options.anchor;
-		this.index          = options.index;
-
-		this.type = options.model.type;
-
-		this.initialize();
-
-		this.viewmodel.registerView( this );
-
-		// if we have a failed keypath lookup, and this is an inverted section,
-		// we need to trigger this.update() so the contents are rendered
-		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
-			this.update( false );
-		}
-	};
-
-	
-
-	// View types
-	createView = function ( options ) {
-		if ( typeof options.model === 'string' ) {
-			return new Text( options );
-		}
-
-		switch ( options.model.type ) {
-			case types.INTERPOLATOR: return new Interpolator( options );
-			case types.SECTION: return new Section( options );
-			case types.TRIPLE: return new Triple( options );
-
-			case types.ELEMENT: return new Element( options );
-			case types.PARTIAL: return new Partial( options );
-
-			default: throw 'WTF? not sure what happened here...';
-		}
-	};
-
-
-	// Fragment
 	A.DomFragment = function ( options ) {
-
-		var numModels, i, itemOptions, parentRefs, ref;
-
-		// if we have an HTML string, our job is easy.
-		if ( typeof options.model === 'string' ) {
-			this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
-			return;
-		}
-
-		// otherwise we have to do some work
-		this.owner = options.owner;
-		this.index = options.index;
-
-		this.indexRefs = {};
-		if ( this.owner && this.owner.parentFragment ) {
-			parentRefs = this.owner.parentFragment.indexRefs;
-			for ( ref in parentRefs ) {
-				if ( parentRefs.hasOwnProperty( ref ) ) {
-					this.indexRefs[ ref ] = parentRefs[ ref ];
-				}
-			}
-		}
-
-		if ( options.indexRef ) {
-			this.indexRefs[ options.indexRef ] = options.index;
-		}
-
-		
-		itemOptions = {
-			root:           options.root,
-			parentNode:     options.parentNode,
-			contextStack:   options.contextStack,
-			anchor:         options.anchor,
-			parentFragment: this
-		};
-
-		this.items = [];
-		this.queue = [];
-
-		numModels = options.model.length;
-		for ( i=0; i<numModels; i+=1 ) {			
-			itemOptions.model = options.model[i];
-			itemOptions.index = i;
-
-			this.items[i] = createView( itemOptions );
-		}
+		A._Fragment.call( this, options );
 	};
 
 	A.DomFragment.prototype = {
+		preInit: function ( options ) {
+			// if we have an HTML string, our job is easy.
+			if ( typeof options.model === 'string' ) {
+				this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
+				return true; // prevent the rest of the init sequence
+			}
+		},
+
+		createItem: function ( options ) {
+			if ( typeof options.model === 'string' ) {
+				return new Text( options );
+			}
+
+			switch ( options.model.type ) {
+				case types.INTERPOLATOR: return new Interpolator( options );
+				case types.SECTION: return new Section( options );
+				case types.TRIPLE: return new Triple( options );
+
+				case types.ELEMENT: return new Element( options );
+				case types.PARTIAL: return new Partial( options );
+
+				default: throw 'WTF? not sure what happened here...';
+			}
+		},
+
 		teardown: function () {
 			var node;
 
@@ -193,7 +126,7 @@
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
 			anchor:       options.anchor,
-			owner:        this
+			parent:        this
 		});
 	};
 
@@ -270,7 +203,7 @@
 				attrValue = model.attrs[ attrName ];
 
 				attr = new Attribute({
-					owner: this,
+					parent: this,
 					name: attrName,
 					value: attrValue,
 					root: options.root,
@@ -305,7 +238,7 @@
 					parentNode:   this.node,
 					contextStack: options.contextStack,
 					anchor:       null,
-					owner:        this
+					parent:        this
 				});
 			}
 		}
@@ -407,7 +340,7 @@
 		name = options.name;
 		value = options.value;
 
-		this.owner = options.owner; // the element this belongs to
+		this.parent = options.parent; // the element this belongs to
 
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
 		colonIndex = name.indexOf( ':' );
@@ -431,7 +364,7 @@
 					namespace = ancestor.getAttribute( 'xmlns:' + namespacePrefix );
 
 					// continue searching possible ancestors
-					ancestor = ancestor.parentNode || options.owner.parentFragment.owner.node || options.owner.parentFragment.owner.parentNode;
+					ancestor = ancestor.parentNode || options.parent.parentFragment.parent.node || options.parent.parentFragment.parent.parentNode;
 				}
 			}
 
@@ -460,12 +393,12 @@
 		this.children = [];
 
 		// share parentFragment with parent element
-		this.parentFragment = this.owner.parentFragment;
+		this.parentFragment = this.parent.parentFragment;
 
 		this.fragment = new A.TextFragment({
 			model:        value,
 			root:    options.root,
-			owner:        this,
+			parent:        this,
 			contextStack: options.contextStack
 		});
 
@@ -498,7 +431,7 @@
 			}
 			
 			this.value = this.fragment.toString();
-		
+
 			if ( this.value !== prevValue ) {
 				if ( this.namespace ) {
 					this.parentNode.setAttributeNS( this.namespace, this.name, this.value );
@@ -516,7 +449,7 @@
 	// Interpolator
 	Interpolator = function ( options ) {
 		// extend Mustache
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -552,7 +485,7 @@
 
 	// Triple
 	Triple = function ( options ) {
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Triple.prototype = {
@@ -613,12 +546,12 @@
 
 	// Section
 	Section = function ( options ) {
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
 		initialize: function () {
-			this.views = [];
+			this.fragments = [];
 			this.length = 0; // number of times this section is rendered
 		},
 
@@ -654,131 +587,10 @@
 			}
 		},
 
-		update: function ( value ) {
-			var emptyArray, i, viewsToRemove, anchor, fragmentOptions, valueIsArray, valueIsObject;
+		update: A._sectionUpdate,
 
-			fragmentOptions = {
-				model:      this.model.frag,
-				root:       this.root,
-				parentNode: this.parentNode,
-				anchor:     this.parentFragment.findNextNode( this ),
-				owner:      this
-			};
-
-			valueIsArray = isArray( value );
-
-			// modify the array to allow updates via push, pop etc
-			if ( valueIsArray && this.root.modifyArrays ) {
-				A.modifyArray( value, this.keypath, this.root.viewmodel );
-			}
-
-			// treat empty arrays as false values
-			if ( valueIsArray && value.length === 0 ) {
-				emptyArray = true;
-			}
-
-
-			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inv ) {
-				if ( value && !emptyArray ) {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-						return;
-					}
-				}
-
-				else {
-					if ( !this.length ) {
-						anchor = this.parentFragment.findNextNode( this );
-
-						// no change to context stack in this situation
-						fragmentOptions.contextStack = this.contextStack;
-						fragmentOptions.index = 0;
-
-						this.views[0] = new A.DomFragment( fragmentOptions );
-						this.length = 1;
-						return;
-					}
-				}
-
-				return;
-			}
-
-
-			// otherwise we need to work out what sort of section we're dealing with
-
-			// if value is an array, iterate through
-			if ( valueIsArray ) {
-
-				// if the array is shorter than it was previously, remove items
-				if ( value.length < this.length ) {
-					viewsToRemove = this.views.splice( value.length, this.length - value.length );
-
-					while ( viewsToRemove.length ) {
-						viewsToRemove.pop().teardown();
-					}
-				}
-
-				// otherwise...
-				else {
-
-					if ( value.length > this.length ) {
-						// add any new ones
-						for ( i=this.length; i<value.length; i+=1 ) {
-							// append list item to context stack
-							fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
-							fragmentOptions.index = i;
-
-							if ( this.model.i ) {
-								fragmentOptions.indexRef = this.model.i;
-							}
-
-							this.views[i] = new A.DomFragment( fragmentOptions );
-						}
-					}
-				}
-
-				this.length = value.length;
-			}
-
-			// if value is a hash...
-			else if ( isObject( value ) ) {
-				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
-				// (if it is already rendered, then any children dependent on the context stack
-				// will update themselves without any prompting)
-				if ( !this.length ) {
-					// append this section to the context stack
-					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
-					fragmentOptions.index = 0;
-
-					this.views[0] = new A.DomFragment( fragmentOptions );
-					this.length = 1;
-				}
-			}
-
-
-			// otherwise render if value is truthy, unrender if falsy
-			else {
-
-				if ( value && !emptyArray ) {
-					if ( !this.length ) {
-						// no change to context stack
-						fragmentOptions.contextStack = this.contextStack;
-						fragmentOptions.index = 0;
-
-						this.views[0] = new A.DomFragment( fragmentOptions );
-						this.length = 1;
-					}
-				}
-
-				else {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-					}
-				}
-			}
+		createFragment: function ( options ) {
+			return new A.DomFragment( options );
 		}
 	};
 
