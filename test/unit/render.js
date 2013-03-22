@@ -87,6 +87,30 @@ tests = [
 		template: '<ul>{{#todos:i}}<li data-index="{{i}}" class="{{#completed}}completed{{/completed}}{{^completed}}view{{/completed}}">{{desc}}</li>{{/todos}}</ul>',
 		data: { todos: [{ desc: 'debug Anglebars', completed: false }, { desc: 'release Anglebars', completed: false }, { desc: 'make cup of tea', completed: true }]},
 		result: '<ul><li data-index="0" class="view">debug Anglebars</li><li data-index="1" class="view">release Anglebars</li><li data-index="2" class="completed">make cup of tea</li></ul>'
+	},
+	{
+		name: 'Conditional section with true condition',
+		template: '{{#condition}}The condition is truthy{{/condition}}',
+		data: { condition: true },
+		result: 'The condition is truthy'
+	},
+	{
+		name: 'Conditional section with false condition',
+		template: '{{#condition}}The condition is truthy{{/condition}}',
+		data: { condition: false },
+		result: ''
+	},
+	{
+		name: 'Inverted section with true condition',
+		template: '{{^condition}}The condition is falsy{{/condition}}',
+		data: { condition: true },
+		result: ''
+	},
+	{
+		name: 'Inverted section with false condition',
+		template: '{{^condition}}The condition is falsy{{/condition}}',
+		data: { condition: false },
+		result: 'The condition is falsy'
 	}
 ];
 
