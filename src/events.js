@@ -3,7 +3,7 @@
 	'use strict';
 
 	proto.on = function ( eventName, callback ) {
-		var self = this, subscribers;
+		var self = this;
 
 		if ( !this._subs[ eventName ] ) {
 			this._subs[ eventName ] = [ callback ];

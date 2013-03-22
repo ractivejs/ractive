@@ -4,7 +4,7 @@
 
 	A.extend = function ( childProps ) {
 
-		var Parent, Child, key, blacklist;
+		var Parent, Child, key;
 
 		Parent = this;
 

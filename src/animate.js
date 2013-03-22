@@ -1,40 +1,45 @@
-(function ( A ) {
+(function ( A, global ) {
 
 	'use strict';
 
-	var Animation, animationCollection, requestAnimationFrame;
+	var Animation, animationCollection;
 
 	// https://gist.github.com/paulirish/1579671
-	(function( vendors, lastTime, window ) {
+	(function( vendors, lastTime, global ) {
 		
-		for ( var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
-			window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-			window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+		var x;
+
+		for ( x = 0; x < vendors.length && !global.requestAnimationFrame; ++x ) {
+			global.requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
+			global.cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
 		}
 
-		if ( !window.requestAnimationFrame ) {
-			window.requestAnimationFrame = function(callback, element) {
-				var currTime = Date.now();
-				var timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
-				var id = window.setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+		if ( !global.requestAnimationFrame ) {
+			global.requestAnimationFrame = function(callback) {
+				var currTime, timeToCall, id;
+				
+				currTime = Date.now();
+				timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
+				id = global.setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+				
 				lastTime = currTime + timeToCall;
 				return id;
 			};
 		}
 
-		if ( !window.cancelAnimationFrame ) {
-			window.cancelAnimationFrame = function( id ) {
-				clearTimeout( id );
+		if ( !global.cancelAnimationFrame ) {
+			global.cancelAnimationFrame = function( id ) {
+				global.clearTimeout( id );
 			};
 		}
-	}( ['ms', 'moz', 'webkit', 'o'], 0, window ));
+	}( ['ms', 'moz', 'webkit', 'o'], 0, global ));
 
 
 
 	Animation = function ( options ) {
-		var self = this, key;
+		var key;
 
-		this.startTime = Date.now(); // TODO does this work everywhere?
+		this.startTime = Date.now();
 
 		// from and to
 		for ( key in options ) {
@@ -63,7 +68,7 @@
 			}
 
 			if ( this.animations.length ) {
-				window.requestAnimationFrame( this.boundTick );
+				global.requestAnimationFrame( this.boundTick );
 			} else {
 				this.running = false;
 			}
@@ -115,9 +120,7 @@
 				return true;
 			}
 
-			else {
-				return false;
-			}
+			return false;
 		},
 
 		stop: function () {
@@ -185,4 +188,4 @@
 	};
 
 
-}( Anglebars ));
+}( Anglebars, this ));

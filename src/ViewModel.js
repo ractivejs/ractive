@@ -1,6 +1,8 @@
 (function ( A ) {
 
-	var arrayPointer, splitKeypath, keypathNormaliser;
+	'use strict';
+
+	var splitKeypath, keypathNormaliser;
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -22,7 +24,7 @@
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
 		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, resolved, fullKeypath, normalisedKeypath;
+			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath;
 
 			// Allow multiple values to be set in one go
 			if ( typeof keypath === 'object' ) {
@@ -116,24 +118,26 @@
 		// Force notify observers of `keypath` (useful if e.g. an array or object member
 		// was changed without calling `anglebars.set()`)
 		update: function ( keypath ) {
+			var kp;
+
 			if ( keypath ) {
 				this._notifyObservers( keypath, this.get( keypath ) );
 			}
 
 			// no keypath? update all the things
 			else {
-				for ( keypath in this.data ) {
-					if ( this.data.hasOwnProperty( keypath ) ) {
-						this._notifyObservers( keypath, this.get( keypath ) );
+				for ( kp in this.data ) {
+					if ( this.data.hasOwnProperty( kp ) ) {
+						this._notifyObservers( kp, this.get( kp ) );
 					}
 				}
 			}
 		},
 
 		registerView: function ( view ) {
-			var self = this, resolved, fullKeypath, initialUpdate, value, index;
+			var self = this, resolved, initialUpdate, value, index;
 
-			if ( view.parentFragment && ( view.model.ref in view.parentFragment.indexRefs ) ) {
+			if ( view.parentFragment && ( view.parentFragment.indexRefs.hasOwnProperty( view.model.ref ) ) ) {
 				// this isn't a real keypath, it's an index reference
 				index = view.parentFragment.indexRefs[ view.model.ref ];
 
@@ -295,7 +299,7 @@
 		},
 
 		unobserve: function ( observerRef ) {
-			var priorities, observers, index;
+			var priorities, observers, index, i, len;
 
 			priorities = this.observers[ observerRef.keypath ];
 			if ( !priorities ) {
@@ -313,7 +317,7 @@
 				index = observers.indexOf( observerRef.observer );
 			} else {
 				// fuck you IE
-				for ( var i=0, len=observers.length; i<len; i+=1 ) {
+				for ( i=0, len=observers.length; i<len; i+=1 ) {
 					if ( observers[i] === observerRef.observer ) {
 						index = i;
 						break;

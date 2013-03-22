@@ -1,14 +1,13 @@
-(function ( A ) {
+(function ( A, global ) {
 
 	'use strict';
 
-	var types, insertHtml, isArray, isObject, elContains,
+	var types, insertHtml, elContains, doc,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	types = A.types;
 
-	isArray = A.isArray;
-	isObject = A.isObject;
+	doc = global.document;
 
 	elContains = function ( haystack, needle ) {
 		// TODO!
@@ -24,7 +23,7 @@
 
 		anchor = anchor || null;
 
-		div = document.createElement( 'div' );
+		div = doc.createElement( 'div' );
 		div.innerHTML = html;
 
 		len = div.childNodes.length;
@@ -91,26 +90,24 @@
 		firstNode: function () {
 			if ( this.items[0] ) {
 				return this.items[0].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
+			} 
+
+			if ( this.parentSection ) {
+				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
 		},
 
 		findNextNode: function ( item ) {
-			var index;
-
-			index = item.index;
+			var index = item.index;
 
 			if ( this.items[ index + 1 ] ) {
 				return this.items[ index + 1 ].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
+			}
+
+			if ( this.parentSection ) {
+				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -139,7 +136,7 @@
 
 	// Plain text
 	Text = function ( options ) {
-		this.node = document.createTextNode( options.model );
+		this.node = doc.createTextNode( options.model );
 		this.index = options.index;
 		this.root = options.root;
 		this.parentNode = options.parentNode;
@@ -193,7 +190,7 @@
 		
 
 		// create the DOM node
-		this.node = document.createElementNS( namespace, model.tag );
+		this.node = doc.createElementNS( namespace, model.tag );
 
 
 		// set attributes
@@ -335,7 +332,7 @@
 	// Attribute
 	Attribute = function ( options ) {
 
-		var i, name, value, colonIndex, namespacePrefix, namespace, ancestor;
+		var name, value, colonIndex, namespacePrefix, namespace, ancestor;
 
 		name = options.name;
 		value = options.value;
@@ -454,7 +451,7 @@
 
 	Interpolator.prototype = {
 		initialize: function () {
-			this.node = document.createTextNode( '' );
+			this.node = doc.createTextNode( '' );
 			this.parentNode.insertBefore( this.node, this.anchor || null );
 		},
 
@@ -523,13 +520,10 @@
 
 			if ( html === this.html ) {
 				return;
-			} else {
-				this.html = html;
 			}
 
-			// TODO figure out if this line was supposed to mean something...
-			//anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
-
+			this.html = html;
+			
 			// remove existing nodes
 			while ( this.nodes.length ) {
 				this.parentNode.removeChild( this.nodes.pop() );
@@ -566,24 +560,24 @@
 		},
 
 		firstNode: function () {
-			if ( this.views[0] ) {
-				return this.views[0].firstNode();
+			if ( this.fragments[0] ) {
+				return this.fragments[0].firstNode();
 			}
 
 			return this.parentFragment.findNextNode( this );
 		},
 
 		findNextNode: function ( fragment ) {
-			if ( this.views[ fragment.index + 1 ] ) {
-				return this.views[ fragment.index + 1 ].firstNode();
-			} else {
-				return this.parentFragment.findNextNode( this );
+			if ( this.fragments[ fragment.index + 1 ] ) {
+				return this.fragments[ fragment.index + 1 ].firstNode();
 			}
+
+			return this.parentFragment.findNextNode( this );
 		},
 
 		unrender: function () {
-			while ( this.views.length ) {
-				this.views.shift().teardown();
+			while ( this.fragments.length ) {
+				this.fragments.shift().teardown();
 			}
 		},
 
@@ -594,4 +588,4 @@
 		}
 	};
 
-}( Anglebars ));
+}( Anglebars, this ));

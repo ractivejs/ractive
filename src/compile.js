@@ -21,9 +21,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		voidElementNames,
 		allElementNames,
 		closedByParentClose,
-		implicitClosersByTagName,
-
-		elementIsClosedBy;
+		implicitClosersByTagName;
 
 
 	A.compile = function ( template, options ) {
@@ -67,7 +65,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 	};
 
 	getFormatter = function ( str ) {
-		var match, name, argsStr, args, openIndex;
+		var name, argsStr, args, openIndex;
 
 		openIndex = str.indexOf( '[' );
 		if ( openIndex !== -1 ) {
@@ -181,7 +179,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		},
 
 		toJson: function ( noStringify ) {
-			var json, attrName, attrValue, str, i, fragStr;
+			var json, attrName, attrValue, str, i;
 
 			json = {
 				type: types.ELEMENT,
@@ -214,7 +212,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		},
 
 		toString: function () {
-			var str, i, len, attrStr, attrValueStr, fragStr, itemStr, isVoid;
+			var str, i, len, attrStr, attrValueStr, fragStr, isVoid;
 
 			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
 			// element is to use with innerHTML, and SVG doesn't support that method

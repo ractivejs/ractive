@@ -2,13 +2,10 @@
 
 	'use strict';
 
-	var types, isArray, isObject,
+	var types,
 		Text, Interpolator, Triple, Section;
 
 	types = A.types;
-
-	isArray = A.isArray;
-	isObject = A.isObject;
 
 	A.TextFragment = function ( options ) {
 		A._Fragment.call( this, options );
@@ -123,14 +120,14 @@
 		},
 
 		unrender: function () {
-			while ( this.children.length ) {
-				this.children.shift().teardown();
+			while ( this.fragments.length ) {
+				this.fragments.shift().teardown();
 			}
 			this.length = 0;
 		},
 
 		bubble: function () {
-			this.value = this.children.join( '' );
+			this.value = this.fragments.join( '' );
 			this.parent.bubble();
 		},
 

@@ -4,8 +4,14 @@
 
 	var isArray, isObject;
 
-	isArray = A.isArray;
-	isObject = A.isObject;
+	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+	isArray = function ( obj ) {
+		return Object.prototype.toString.call( obj ) === '[object Array]';
+	};
+
+	isObject = function ( obj ) {
+		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	};
 
 	A._Mustache = function ( options ) {
 
