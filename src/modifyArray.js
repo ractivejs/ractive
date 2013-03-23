@@ -8,8 +8,8 @@
 
 		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
 
-		if ( !array._anglebars ) {
-			array._anglebars = {
+		if ( !array._ractive ) {
+			array._ractive = {
 				viewmodels: [ viewmodel ],
 				keypathsByIndex: [ [ keypath ] ]
 			};
@@ -18,8 +18,8 @@
 		}
 
 		else {
-			viewmodels = array._anglebars.viewmodels;
-			keypathsByIndex = array._anglebars.keypathsByIndex;
+			viewmodels = array._ractive.viewmodels;
+			keypathsByIndex = array._ractive.keypathsByIndex;
 
 			// see if this viewmodel is currently associated with this array
 			viewmodelIndex = viewmodels.indexOf( viewmodel );
@@ -45,8 +45,8 @@
 		var notifyDependents = function ( array ) {
 			var viewmodels, keypathsByIndex;
 
-			viewmodels = array._anglebars.viewmodels;
-			keypathsByIndex = array._anglebars.keypathsByIndex;
+			viewmodels = array._ractive.viewmodels;
+			keypathsByIndex = array._ractive.keypathsByIndex;
 
 			viewmodels.forEach( function ( viewmodel, i ) {
 				var keypaths = keypathsByIndex[i];
@@ -67,4 +67,4 @@
 		});
 	};
 
-}( Anglebars ));
+}( Ractive ));

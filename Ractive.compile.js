@@ -1,5 +1,5 @@
-/*! anglebars - v0.1.6 - 2013-03-22
-* http://rich-harris.github.com/Anglebars/
+/*! ractive - v0.1.7 - 2013-03-23
+* http://rich-harris.github.com/Ractive/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
 /*jslint eqeq: true, plusplus: true */
@@ -8,7 +8,7 @@
 
 (function ( global ) {
 
-"use strict";var Anglebars = Anglebars || {}; // in case we're not using the runtime
+"use strict";var Ractive = Ractive || {}; // in case we're not using the runtime
 
 (function ( A ) {
 
@@ -572,8 +572,8 @@
 	};
 	
 
-}( Anglebars ));
-/*global Anglebars */
+}( Ractive ));
+/*global Ractive */
 /*jslint white: true */
 
 (function ( A ) {
@@ -1413,7 +1413,7 @@
 	
 
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 
 	'use strict';
@@ -1434,11 +1434,11 @@
 		ATTR_VALUE_TOKEN: 13
 	};
 
-}( Anglebars ));
+}( Ractive ));
 
 // export
-if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS
-else if ( typeof define === "function" && define.amd ) define( function () { return Anglebars } ) // AMD
-else { global.Anglebars = Anglebars }
+if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS
+else if ( typeof define === "function" && define.amd ) define( function () { return Ractive } ) // AMD
+else { global.Ractive = Ractive }
 
 }( this ));

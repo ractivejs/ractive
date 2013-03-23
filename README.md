@@ -1,77 +1,93 @@
-Anglebars.js
-============
-the bastard lovechild of [Angular.js](http://angularjs.org/) and [handlebars](http://handlebarsjs.com/)
--------------------------------------------------------------------------------------------------------
+Ractive.js
+==========
+
+Mustache-style declarative data binding for the sceptical developer
+
+
+It's templating Jim, but not as we know it
+------------------------------------------
+
+You've probably seen this kind of thing in JavaScript apps:
+
+```js
+template = '<p>Hello {{name}}!</p>';
+data = { name: 'world' };
+ 
+element.innerHTML = render( template, data ); // '<p>Hello world!</p>'
+```
+
+That's great, but what happens when `name` changes? Typically, you would have a view with a render method that re-created the HTML with the new data, then either updated `innerHTML`, or did the jQuery/Zepto/Ender equivalent.
+
+In other words, we just threw away a perfectly good `p` element!
+
+Ractive.js takes a different approach. It's **DOM manipulation with surgical precision**.
 
 
 
-[Angular.js](http://angularjs.org/) is awesome. If you haven't tried it yet, you definitely should. There's something rather magical about watching pages updating with new data, or respond to user input, without you telling them to. But it's 76kb minified - for many simple apps, it's overkill.
+Every node is sacred
+--------------------
 
-At the other end of the spectrum are templating engines like [Handlebars](http://handlebarsjs.com/) or [Hogan](http://twitter.github.com/hogan.js/) or other variations on the [Mustache](http://mustache.github.com/) theme. These are simple to use and understand, but they're often not well suited to complex dynamic views, because a change in the model necessitates a complete re-render - which is expensive and a nuisance when it comes to event handling.
+Here's a basic Ractive.js setup:
 
-**Anglebars.js** is half way in between. It's like a normal templating engine, but with added *magic*.
+```js
+view = new Ractive({
+    el: element,
+    template: '<p>Hello {{name}}!</p>',
+    data: { name: world }
+});
+// renders <p>Hello world!</p> to our container element
+ 
+view.set( 'name', 'Jim' );
+// changes 'world' to 'Jim', leaves everything else untouched
+```
+
+When Ractive.js renders the template, it stores references to the bits that contain dynamic data – splitting up text nodes if necessary – and updating them when the data changes. It's quicker than `el.innerHTML` (or `$(el).html()`), and gives you a much nicer API to deal with.
 
 
-Usage
------
 
-Add the anglebars.js file somewhere on your page. Then:
+Yeah, yeah. Heard of Ember? Knockout?
+-------------------------------------
 
-    <div id='anglebars'></div>
+You're right – we've already got perfectly good data binding options. We've got frameworks like [Ember.js](http://emberjs.com/) and [Angular.js](http://angularjs.org/), made by brilliant developers and used in successful apps. I'd certainly recommend trying them.
 
-    <script>
-        var anglebars = new Anglebars({
-        	el: 'anglebars',
-        	template: '<p>{{helloworld}}</p>',
-        	data: {
-        		helloworld: 'Hello world!'
-        	}
-        });
-    </script>
+A lot of the time, though, you don't need the functionality of mega-frameworks, or the extra kilobytes (and learning curve) that go with them. And if you stray from the 'happy path' of anticipated use cases, be prepared to hack your way to a solution. Some developers become sceptical of the *magic* that goes on under the hood – if you can't understand it, you can't fix it when it goes wrong.
 
-If, later, you decide to change the greeting:
+[Knockout.js](http://knockoutjs.com/) also deserves a special mention, for popularising the idea of declarative data binding, and doing so with a cracking library. Ractive.js is indebted to Knockout, from where it takes much inspiration.
 
-    anglebars.set( 'helloworld', 'Greetings, my good fellow!' );
+But [mustache syntax](http://mustache.github.com/) is arguably much nicer to deal with, and your non-developer colleagues can easily understand it.
+
+Ractive.js aims to combine **beautiful syntax** with a **simple API**, **miniscule footprint**, and **best-in-class performance**.
+
 
 
 Neato features
 --------------
 
-As of version 0.1.2, Anglebars supports most of the mustache specification, excepting partials. That includes things like sections:
+Ractive.js complies with the [mustache spec](https://github.com/mustache/spec) as closely as possible. If you know mustache, you're good to go. (And if you don't, you can learn it in under 5 minutes.) That means:
 
-    {{#scores.length}}
-    <p>The scores so far:</p>
-    <ul>
-        {{#scores}}<li>{{user}}: <strong>{{score}}</strong></li>{{/scores}}
-    </ul>
-    {{#scores.length}}
+* Nested properties of arbitrary depth: Hi there, {{user.info.name.first}}
+* Update entire chunks of HTML with triples: <div>{{{contents}}}</div>
+* Conditionals: {{#gameover}}<p>Game over man, game over!</p>{{/gameover}}
+* Lists: <ul>{{#users}}<li>{{name}} - {{company}}</li>{{/users}}</ul>
+* Custom delimiters, if you like to kick it <%= old_school %>
+* Partials: {{#basket}}<div>{{>item}}</div>{{/basket}}
+* Control over attributes: <div style='color: {{prefs.color}};'></div>
 
-    {{^scores}}
-    <p>No scores yet!</p>
-    {{/scores}}
+There's more!
 
-Take a look at the [examples](http://rich-harris.github.com/Anglebars/examples/) to see more of what can be done, including two-way data binding and other voodoo.
+* Precompilation: boost performance. Works on server or client.
+* SVG support: create data-bound graphics
+* Two-way data binding: respond to user input
+* Extensibility: Use Ractive.extend to add your own logic
+* AMD support: including a [RequireJS loader plugin](https://github.com/Rich-Harris/require-ractive-plugin)
 
-One feature that's not in the mustache spec is formatters. This is an idea (and not the only one) pinched from the excellent [knockout.js](http://knockoutjs.com/):
-
-    var anglebars = new Anglebars({
-    	el: 'anglebars',
-    	template: '<p>The following text will appear in capitals: {{sometext | uppercase}}</p>',
-    	formatters: {
-    		uppercase: function ( input ) {
-    			return input.toUpperCase();
-    		}
-    	}
-    });
+Take a look at the [tutorials](http://rich-harris.github.com/Ractive/tutorials) and [examples](http://rich-harris.github.com/Ractive/examples) to see how Ractive.js can make your life as a web developer easier, then read the [API docs](wiki).
 
 
-Caveats, feedback
------------------
 
-Like I said, this is version 0.1.2. It comes with no guarantees. But if you end up using the library, or just like the idea, do drop me a line at [@rich_harris](http://twitter.com/rich_harris).
+Caveats and feedback
+--------------------
 
+This is a personal project in the early stages of development, albeit one I've used regularly in production code in my day job. YMMV! But if you end up using the library I'd love to hear from you – I'm [@rich_harris](http://twitter.com/rich_harris).
 
-License
--------
-
-Released under the [WTFPL license](http://en.wikipedia.org/wiki/WTFPL).
+[Bug reports and issues](https://github.com/Rich-Harris/Ractive/issues) are very welcome, as are pull requests. If you run into problems, I'll do my best to help.

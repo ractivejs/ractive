@@ -25,4 +25,4 @@
 		}
 	};
 
-}( Anglebars ));
+}( Ractive ));

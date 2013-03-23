@@ -55,4 +55,4 @@
 		}
 	};
 
-}( Anglebars.prototype ));
+}( Ractive.prototype ));

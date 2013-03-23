@@ -1,7 +1,7 @@
 // MUSTACHE SPEC COMPLIANCE TESTS
 // ==============================
 //
-// These are included to aid development; Anglebars will never be able to pass
+// These are included to aid development; Ractive will never be able to pass
 // every test in the suite because it's doing something fundamentally different
 // to other mustache implementations.
 
@@ -34,7 +34,7 @@ startTests = function ( set, data ) {
 	module( set );
 
 	data.tests.forEach( function ( t ) {
-		var data, anglebars, result, pattern;
+		var data, ractive, result, pattern;
 
 		console.group( ++testNum );
 
@@ -52,7 +52,7 @@ startTests = function ( set, data ) {
 		}
 
 		try {
-			anglebars = new Anglebars({
+			ractive = new Ractive({
 				el: 'qunit-fixture',
 				template: t.template,
 				data: t.data,
@@ -60,7 +60,7 @@ startTests = function ( set, data ) {
 				preserveWhitespace: true
 			});
 
-			result = anglebars.el.innerHTML;
+			result = ractive.el.innerHTML;
 
 			testReport[ testNum ].___result = result;
 			testReport[ testNum ].charCodes.___result = charCodes( trim( result ) );

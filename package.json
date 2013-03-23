@@ -1,9 +1,9 @@
 {
-	"name": "anglebars",
+	"name": "ractive",
 	"description": "Mustache-style declarative data binding, for the sceptical developer",
-	"version": "0.1.6",
-	"homepage": "http://rich-harris.github.com/Anglebars/",
-    "main": "build/Anglebars.js",
+	"version": "0.1.7",
+	"homepage": "http://rich-harris.github.com/Ractive/",
+    "main": "build/Ractive.js",
 	"keywords": [ "template", "templating", "binding", "data binding", "declarative" ],
 	"author": {
 		"name": "Rich Harris"
@@ -14,17 +14,17 @@
 		}
 	],
 	"jam" : {
-        "main" : "Anglebars.js",
+        "main" : "Ractive.js",
         "include" : [
-            "Anglebars.js",
-            "Anglebars.compile.js",
-            "Anglebars.runtime.js",
+            "Ractive.js",
+            "Ractive.compile.js",
+            "Ractive.runtime.js",
             "README.md"
         ]
     },
     "categories": [ "DOM", "Templating" ],
     "bugs": {
-    	"web": "https://github.com/Rich-Harris/Anglebars/issues"
+    	"web": "https://github.com/Rich-Harris/Ractive/issues"
     },
     "contributors": [
     	{
@@ -43,10 +43,10 @@
     "repositories": [
     	{
     		"type": "git",
-    		"url": "https://github.com/Rich-Harris/Anglebars.git"
+    		"url": "https://github.com/Rich-Harris/Ractive.git"
     	}
     ],
-    "github": "https://github.com/Rich-Harris/Anglebars",
+    "github": "https://github.com/Rich-Harris/Ractive",
     "devDependencies": {
         "grunt": "~0.4.0",
         "grunt-contrib-jshint": "~0.2.0",

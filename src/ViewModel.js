@@ -15,7 +15,7 @@
 		// Create empty object for observers
 		this.observers = {};
 
-		// Dependent Anglebars instances
+		// Dependent Ractive instances
 		this.dependents = [];
 	};
 
@@ -116,7 +116,7 @@
 		},
 
 		// Force notify observers of `keypath` (useful if e.g. an array or object member
-		// was changed without calling `anglebars.set()`)
+		// was changed without calling `ractive.set()`)
 		update: function ( keypath ) {
 			var kp;
 
@@ -389,4 +389,4 @@
 
 
 
-}( Anglebars ));
+}( Ractive ));

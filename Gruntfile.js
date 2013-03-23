@@ -18,9 +18,9 @@ module.exports = function(grunt) {
 				start: '(function ( global ) {\n\n' +
 						'"use strict";',
 				end: '\n\n// export\n' +
-						'if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS\n' +
-						'else if ( typeof define === "function" && define.amd ) define( function () { return Anglebars } ) // AMD\n' +
-						'else { global.Anglebars = Anglebars }\n\n' +
+						'if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS\n' +
+						'else if ( typeof define === "function" && define.amd ) define( function () { return Ractive } ) // AMD\n' +
+						'else { global.Ractive = Ractive }\n\n' +
 						'}( this ));'
 			}
 		},
@@ -40,15 +40,15 @@ module.exports = function(grunt) {
 			},
 			compile: {
 				src: [ 'src/compile.js', 'src/tokenize.js', 'src/types.js' ],
-				dest: 'build/compile/Anglebars.compile.js'
+				dest: 'build/compile/Ractive.compile.js'
 			},
 			runtime: {
-				src: [ 'src/Anglebars.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
-				dest: 'build/runtime/Anglebars.runtime.js'
+				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
+				dest: 'build/runtime/Ractive.runtime.js'
 			},
 			full: {
-				src: [ 'src/Anglebars.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
-				dest: 'build/Anglebars.js'
+				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
+				dest: 'build/Ractive.js'
 			}
 		},
 		watch: {
@@ -63,15 +63,15 @@ module.exports = function(grunt) {
 		uglify: {
 			compile: {
 				src: ['<%= concat.compile.dest %>'],
-				dest: 'build/compile/Anglebars.compile.min.js'
+				dest: 'build/compile/Ractive.compile.min.js'
 			},
 			runtime: {
 				src: ['<%= concat.runtime.dest %>'],
-				dest: 'build/runtime/Anglebars.runtime.min.js'
+				dest: 'build/runtime/Ractive.runtime.min.js'
 			},
 			full: {
 				src: ['<%= concat.full.dest %>'],
-				dest: 'build/Anglebars.min.js'
+				dest: 'build/Ractive.min.js'
 			}
 		},
 		copy: {
@@ -85,9 +85,9 @@ module.exports = function(grunt) {
 			},
 			link: {
 				files:{
-					'Anglebars.js': 'build/Anglebars.js',
-					'Anglebars.compile.js': 'build/compile/Anglebars.compile.js',
-					'Anglebars.runtime.js': 'build/runtime/Anglebars.runtime.js'
+					'Ractive.js': 'build/Ractive.js',
+					'Ractive.compile.js': 'build/compile/Ractive.compile.js',
+					'Ractive.runtime.js': 'build/runtime/Ractive.runtime.js'
 				}
 			}
 		}

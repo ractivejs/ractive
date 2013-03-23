@@ -56,9 +56,9 @@ tests = [
 		name: "Section with descendant attributes",
 		template: "{{#todos}}<li><label>{{todo}}</label><input value='{{todo}}'></li>{{/todos}}",
 		data: {
-			todos: [{todo:"debug Anglebars"},{todo:"release Anglebars"}]
+			todos: [{todo:"debug Ractive"},{todo:"release Ractive"}]
 		},
-		result: "<li><label>debug Anglebars</label><input value=\"debug Anglebars\"></li><li><label>release Anglebars</label><input value=\"release Anglebars\"></li>"
+		result: "<li><label>debug Ractive</label><input value=\"debug Ractive\"></li><li><label>release Ractive</label><input value=\"release Ractive\"></li>"
 	},
 	{
 		name: "Partials",
@@ -85,8 +85,8 @@ tests = [
 	{
 		name: 'Attribute with sections',
 		template: '<ul>{{#todos:i}}<li data-index="{{i}}" class="{{#completed}}completed{{/completed}}{{^completed}}view{{/completed}}">{{desc}}</li>{{/todos}}</ul>',
-		data: { todos: [{ desc: 'debug Anglebars', completed: false }, { desc: 'release Anglebars', completed: false }, { desc: 'make cup of tea', completed: true }]},
-		result: '<ul><li data-index="0" class="view">debug Anglebars</li><li data-index="1" class="view">release Anglebars</li><li data-index="2" class="completed">make cup of tea</li></ul>'
+		data: { todos: [{ desc: 'debug Ractive', completed: false }, { desc: 'release Ractive', completed: false }, { desc: 'make cup of tea', completed: true }]},
+		result: '<ul><li data-index="0" class="view">debug Ractive</li><li data-index="1" class="view">release Ractive</li><li data-index="2" class="completed">make cup of tea</li></ul>'
 	},
 	{
 		name: 'Conditional section with true condition',
@@ -119,7 +119,7 @@ _.each( tests, function ( t, i ) {
 	test( t.name, function () {
 		console.group(i+2);
 
-		var anglebars = new Anglebars({
+		var ractive = new Ractive({
 			el: fixture,
 			data: t.data,
 			template: t.template,

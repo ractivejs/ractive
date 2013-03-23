@@ -1,5 +1,5 @@
-/*! anglebars - v0.1.6 - 2013-03-19
-* http://rich-harris.github.com/Anglebars/
+/*! ractive - v0.1.7 - 2013-03-23
+* http://rich-harris.github.com/Ractive/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
 /*jslint eqeq: true, plusplus: true */
@@ -8,245 +8,490 @@
 
 (function ( global ) {
 
-"use strict";var Anglebars, getEl;
+"use strict";var Ractive = (function ( global ) {
 
-Anglebars = function ( options ) {
+	'use strict';
 
-	var defaults, key;
+	var Ractive, getEl;
 
-	// Options
-	// -------
+	Ractive = function ( options ) {
 
-	if ( options ) {
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				this[ key ] = options[ key ];
-			}
-		}
-	}
+		var defaults, key;
 
-	defaults = {
-		preserveWhitespace: false,
-		append: false,
-		twoway: true,
-		formatters: {},
-		modifyArrays: true
-	};
+		// Options
+		// -------
 
-	for ( key in defaults ) {
-		if ( this[ key ] === undefined ) {
-			this[ key ] = defaults[ key ];
-		}
-	}
-
-
-	// Initialization
-	// --------------
-
-	if ( this.el !== undefined ) {
-		this.el = getEl( this.el ); // turn ID string into DOM element
-	}
-
-	// Set up event bus
-	this._subs = {};
-
-	if ( this.viewmodel === undefined ) {
-		this.viewmodel = new Anglebars.ViewModel();
-	}
-
-	// bind viewmodel to this anglebars instance
-	this.viewmodel.dependents.push( this );
-
-	// Initialise (or update) viewmodel with data
-	if ( this.data ) {
-		this.viewmodel.set( this.data );
-	}
-
-	// If we were given uncompiled partials, compile them
-	if ( this.partials ) {
-		for ( key in this.partials ) {
-			if ( this.partials.hasOwnProperty( key ) ) {
-				if ( typeof this.partials[ key ] === 'string' ) {
-					if ( !Anglebars.compile ) {
-						throw new Error( 'Missing Anglebars.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
-					}
-
-					this.partials[ key ] = Anglebars.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
+		if ( options ) {
+			for ( key in options ) {
+				if ( options.hasOwnProperty( key ) ) {
+					this[ key ] = options[ key ];
 				}
 			}
 		}
-	}
 
-	// Compile template, if it hasn't been compiled already
-	if ( typeof this.template === 'string' ) {
-		if ( !Anglebars.compile ) {
-			throw new Error( 'Missing Anglebars.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
-		}
+		defaults = {
+			preserveWhitespace: false,
+			append: false,
+			twoway: true,
+			formatters: {},
+			modifyArrays: true
+		};
 
-		this.template = Anglebars.compile( this.template, this );
-	}
-
-	// If passed an element, render immediately
-	if ( this.el ) {
-		this.render({ el: this.el, callback: this.callback, append: this.append });
-	}
-};
-
-
-
-// Prototype methods
-// =================
-Anglebars.prototype = {
-
-	// Render instance to element specified here or at initialization
-	render: function ( options ) {
-		var el = ( options.el ? getEl( options.el ) : this.el );
-
-		if ( !el ) {
-			throw new Error( 'You must specify a DOM element to render to' );
-		}
-
-		// Clear the element, unless `append` is `true`
-		if ( !options.append ) {
-			el.innerHTML = '';
-		}
-
-		if ( options.callback ) {
-			this.callback = options.callback;
-		}
-
-		// Render our *root fragment*
-		this.rendered = new Anglebars.DomFragment({
-			model: this.template,
-			anglebars: this,
-			parentNode: el
-		});
-	},
-
-	// Teardown. This goes through the root fragment and all its children, removing observers
-	// and generally cleaning up after itself
-	teardown: function () {
-		this.rendered.teardown();
-	},
-
-	// Proxies for viewmodel `set`, `get`, `update`, `observe` and `unobserve` methods
-	set: function () {
-		var oldDisplay = this.el.style.display;
-
-		this.viewmodel.set.apply( this.viewmodel, arguments );
-
-		return this;
-	},
-
-	get: function () {
-		return this.viewmodel.get.apply( this.viewmodel, arguments );
-	},
-
-	update: function () {
-		this.viewmodel.update.apply( this.viewmodel, arguments );
-		return this;
-	},
-
-	// Internal method to format a value, using formatters passed in at initialization
-	_format: function ( value, formatters ) {
-		var i, numFormatters, formatter, name, args, fn;
-
-		// If there are no formatters, groovy - just return the value unchanged
-		if ( !formatters ) {
-			return value;
-		}
-
-		// Otherwise go through each in turn, applying sequentially
-		numFormatters = formatters.length;
-		for ( i=0; i<numFormatters; i+=1 ) {
-			formatter = formatters[i];
-			name = formatter.name;
-			args = formatter.args || [];
-
-			// If a formatter was passed in, use it, otherwise see if there's a default
-			// one with this name
-			fn = this.formatters[ name ] || Anglebars.formatters[ name ];
-
-			if ( fn ) {
-				value = fn.apply( this, [ value ].concat( args ) );
+		for ( key in defaults ) {
+			if ( defaults.hasOwnProperty( key ) && this[ key ] === undefined ) {
+				this[ key ] = defaults[ key ];
 			}
 		}
 
-		return value;
-	}
-};
 
+		// Initialization
+		// --------------
 
-
-
-
-// helper functions
-getEl = function ( input ) {
-	var output;
-
-	if ( !input ) {
-		throw new Error( 'No container element specified' );
-	}
-
-	// We already have a DOM node - no work to do
-	if ( input.tagName ) {
-		return input;
-	}
-
-	// Get node from string
-	if ( typeof input === 'string' ) {
-		// try ID first
-		output = document.getElementById( input );
-
-		// then as selector, if possible
-		if ( !output && document.querySelector ) {
-			output = document.querySelector( input );
+		if ( this.el !== undefined ) {
+			this.el = getEl( this.el ); // turn ID string into DOM element
 		}
 
-		// did it work?
-		if ( output.tagName ) {
-			return output;
+		// Set up event bus
+		this._subs = {};
+
+		if ( this.viewmodel === undefined ) {
+			this.viewmodel = new Ractive.ViewModel();
 		}
-	}
 
-	// If we've been given a collection (jQuery, Zepto etc), extract the first item
-	if ( input[0] && input[0].tagName ) {
-		return input[0];
-	}
+		// bind viewmodel to this ractive instance
+		this.viewmodel.dependents.push( this );
 
-	throw new Error( 'Could not find container element' );
-};
+		// Initialise (or update) viewmodel with data
+		if ( this.data ) {
+			this.viewmodel.set( this.data );
+		}
 
-// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-Anglebars.isArray = function ( obj ) {
-	return Object.prototype.toString.call( obj ) === '[object Array]';
-};
+		// If we were given uncompiled partials, compile them
+		if ( this.partials ) {
+			for ( key in this.partials ) {
+				if ( this.partials.hasOwnProperty( key ) ) {
+					if ( typeof this.partials[ key ] === 'string' ) {
+						if ( !Ractive.compile ) {
+							throw new Error( 'Missing Ractive.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
+						}
 
-Anglebars.isObject = function ( obj ) {
-	return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
-};
-// Mustache types, used in various places
-Anglebars.types = {
-	TEXT:             1,
-	INTERPOLATOR:     2,
-	TRIPLE:           3,
-	SECTION:          4,
-	INVERTED:         5,
-	CLOSING:          6,
-	ELEMENT:          7,
-	PARTIAL:          8,
-	COMMENT:          9,
-	DELIMCHANGE:      10,
-	MUSTACHE:         11,
-	TAG:              12,
-	ATTR_VALUE_TOKEN: 13
-};
+						this.partials[ key ] = Ractive.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
+					}
+				}
+			}
+		}
+
+		// Compile template, if it hasn't been compiled already
+		if ( typeof this.template === 'string' ) {
+			if ( !Ractive.compile ) {
+				throw new Error( 'Missing Ractive.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
+			}
+
+			this.template = Ractive.compile( this.template, this );
+		}
+
+		// If passed an element, render immediately
+		if ( this.el ) {
+			this.render({ el: this.el, callback: this.callback, append: this.append });
+		}
+	};
+
+
+
+	// Prototype methods
+	// =================
+	Ractive.prototype = {
+
+		// Render instance to element specified here or at initialization
+		render: function ( options ) {
+			var el = ( options.el ? getEl( options.el ) : this.el );
+
+			if ( !el ) {
+				throw new Error( 'You must specify a DOM element to render to' );
+			}
+
+			// Clear the element, unless `append` is `true`
+			if ( !options.append ) {
+				el.innerHTML = '';
+			}
+
+			if ( options.callback ) {
+				this.callback = options.callback;
+			}
+
+			// Render our *root fragment*
+			this.rendered = new Ractive.DomFragment({
+				model: this.template,
+				root: this,
+				parentNode: el
+			});
+		},
+
+		// Teardown. This goes through the root fragment and all its children, removing observers
+		// and generally cleaning up after itself
+		teardown: function () {
+			this.rendered.teardown();
+		},
+
+		// Proxies for viewmodel `set`, `get`, `update`, `observe` and `unobserve` methods
+		set: function () {
+			this.viewmodel.set.apply( this.viewmodel, arguments );
+			return this;
+		},
+
+		get: function () {
+			return this.viewmodel.get.apply( this.viewmodel, arguments );
+		},
+
+		update: function () {
+			this.viewmodel.update.apply( this.viewmodel, arguments );
+			return this;
+		},
+
+		// Internal method to format a value, using formatters passed in at initialization
+		_format: function ( value, formatters ) {
+			var i, numFormatters, formatter, name, args, fn;
+
+			// If there are no formatters, groovy - just return the value unchanged
+			if ( !formatters ) {
+				return value;
+			}
+
+			// Otherwise go through each in turn, applying sequentially
+			numFormatters = formatters.length;
+			for ( i=0; i<numFormatters; i+=1 ) {
+				formatter = formatters[i];
+				name = formatter.name;
+				args = formatter.args || [];
+
+				// If a formatter was passed in, use it, otherwise see if there's a default
+				// one with this name
+				fn = this.formatters[ name ] || Ractive.formatters[ name ];
+
+				if ( fn ) {
+					value = fn.apply( this, [ value ].concat( args ) );
+				}
+			}
+
+			return value;
+		}
+	};
+
+
+	// helper functions
+	getEl = function ( input ) {
+		var output, doc;
+
+		if ( !global.document ) {
+			return;
+		}
+
+		doc = global.document;
+
+		if ( !input ) {
+			throw new Error( 'No container element specified' );
+		}
+
+		// We already have a DOM node - no work to do
+		if ( input.tagName ) {
+			return input;
+		}
+
+		// Get node from string
+		if ( typeof input === 'string' ) {
+			// try ID first
+			output = doc.getElementById( input );
+
+			// then as selector, if possible
+			if ( !output && doc.querySelector ) {
+				output = doc.querySelector( input );
+			}
+
+			// did it work?
+			if ( output.tagName ) {
+				return output;
+			}
+		}
+
+		// If we've been given a collection (jQuery, Zepto etc), extract the first item
+		if ( input[0] && input[0].tagName ) {
+			return input[0];
+		}
+
+		throw new Error( 'Could not find container element' );
+	};
+
+	return Ractive;
+
+}( this ));
+(function ( A ) {
+
+	'use strict';
+
+	A.types = {
+		TEXT:             1,
+		INTERPOLATOR:     2,
+		TRIPLE:           3,
+		SECTION:          4,
+		INVERTED:         5,
+		CLOSING:          6,
+		ELEMENT:          7,
+		PARTIAL:          8,
+		COMMENT:          9,
+		DELIMCHANGE:      10,
+		MUSTACHE:         11,
+		TAG:              12,
+		ATTR_VALUE_TOKEN: 13
+	};
+
+}( Ractive ));
+(function ( A ) {
+
+	'use strict';
+
+	var isArray, isObject;
+
+	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+	isArray = function ( obj ) {
+		return Object.prototype.toString.call( obj ) === '[object Array]';
+	};
+
+	isObject = function ( obj ) {
+		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	};
+
+	A._Mustache = function ( options ) {
+
+		this.root           = options.root;
+		this.model          = options.model;
+		this.viewmodel      = options.root.viewmodel;
+		this.parent         = options.parent;
+		this.parentFragment = options.parentFragment;
+		this.contextStack   = options.contextStack || [];
+		this.index          = options.index || 0;
+
+		// DOM only
+		if ( options.parentNode || options.anchor ) {
+			this.parentNode = options.parentNode;
+			this.anchor = options.anchor;
+		}
+
+		this.type = options.model.type;
+
+		if ( this.initialize ) {
+			this.initialize();
+		}
+
+		this.viewmodel.registerView( this );
+
+		// if we have a failed keypath lookup, and this is an inverted section,
+		// we need to trigger this.update() so the contents are rendered
+		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
+			this.update( false );
+		}
+
+	};
+
+
+	A._Fragment = function ( options ) {
+
+		var numItems, i, itemOptions, parentRefs, ref;
+
+		if ( this.preInit ) {
+			if ( this.preInit( options ) ) {
+				return;
+			}
+		}
+
+		this.parent = options.parent;
+		this.index = options.index;
+		this.items = [];
+
+		this.indexRefs = {};
+		if ( this.parent && this.parent.parentFragment ) {
+			parentRefs = this.parent.parentFragment.indexRefs;
+			for ( ref in parentRefs ) {
+				if ( parentRefs.hasOwnProperty( ref ) ) {
+					this.indexRefs[ ref ] = parentRefs[ ref ];
+				}
+			}
+		}
+
+		if ( options.indexRef ) {
+			this.indexRefs[ options.indexRef ] = options.index;
+		}
+
+		itemOptions = {
+			root: options.root,
+			parentFragment: this,
+			parent: this,
+			parentNode:     options.parentNode,
+			contextStack: options.contextStack
+		};
+
+		numItems = ( options.model ? options.model.length : 0 );
+		for ( i=0; i<numItems; i+=1 ) {
+			itemOptions.model = options.model[i];
+			itemOptions.index = i;
+			// this.items[ this.items.length ] = createView( itemOptions );
+
+			this.items[ this.items.length ] = this.createItem( itemOptions );
+		}
+
+	};
+
+
+	A._sectionUpdate = function ( value ) {
+		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
+
+		fragmentOptions = {
+			model: this.model.frag,
+			root: this.root,
+			parentNode: this.parentNode,
+			parent: this
+		};
+
+		// TODO if DOM type, need to know anchor
+		if ( this.parentNode ) {
+			fragmentOptions.anchor = this.parentFragment.findNextNode( this );
+		}
+
+		valueIsArray = isArray( value );
+
+		// modify the array to allow updates via push, pop etc
+		if ( valueIsArray && this.root.modifyArrays ) {
+			A.modifyArray( value, this.keypath, this.root.viewmodel );
+		}
+
+		// treat empty arrays as false values
+		if ( valueIsArray && value.length === 0 ) {
+			emptyArray = true;
+		}
+
+
+
+		// if section is inverted, only check for truthiness/falsiness
+		if ( this.model.inv ) {
+			if ( value && !emptyArray ) {
+				if ( this.length ) {
+					this.unrender();
+					this.length = 0;
+				}
+			}
+
+			else {
+				if ( !this.length ) {
+					// no change to context stack in this situation
+					fragmentOptions.contextStack = this.contextStack;
+					fragmentOptions.index = 0;
+
+					this.fragments[0] = this.createFragment( fragmentOptions );
+					this.length = 1;
+					return;
+				}
+			}
+
+			if ( this.postUpdate ) {
+				this.postUpdate();
+			}
+
+			return;
+		}
+
+
+		// otherwise we need to work out what sort of section we're dealing with
+
+		// if value is an array, iterate through
+		if ( valueIsArray ) {
+
+			// if the array is shorter than it was previously, remove items
+			if ( value.length < this.length ) {
+				itemsToRemove = this.views.splice( value.length, this.length - value.length );
+
+				while ( itemsToRemove.length ) {
+					itemsToRemove.pop().teardown();
+				}
+			}
+
+			// otherwise...
+			else {
+
+				if ( value.length > this.length ) {
+					// add any new ones
+					for ( i=this.length; i<value.length; i+=1 ) {
+						// append list item to context stack
+						fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+						fragmentOptions.index = i;
+
+						if ( this.model.i ) {
+							fragmentOptions.indexRef = this.model.i;
+						}
+
+						this.fragments[i] = this.createFragment( fragmentOptions );
+					}
+				}
+			}
+
+			this.length = value.length;
+		}
+
+
+		// if value is a hash...
+		else if ( isObject( value ) ) {
+			// ...then if it isn't rendered, render it, adding this.keypath to the context stack
+			// (if it is already rendered, then any children dependent on the context stack
+			// will update themselves without any prompting)
+			if ( !this.length ) {
+				// append this section to the context stack
+				fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
+				fragmentOptions.index = 0;
+
+				this.fragments[0] = this.createFragment( fragmentOptions );
+				this.length = 1;
+			}
+		}
+
+
+		// otherwise render if value is truthy, unrender if falsy
+		else {
+
+			if ( value && !emptyArray ) {
+				if ( !this.length ) {
+					// no change to context stack
+					fragmentOptions.contextStack = this.contextStack;
+					fragmentOptions.index = 0;
+
+					this.fragments[0] = this.createFragment( fragmentOptions );
+					this.length = 1;
+				}
+			}
+
+			else {
+				if ( this.length ) {
+					this.unrender();
+					this.length = 0;
+				}
+			}
+		}
+
+
+		if ( this.postUpdate ) {
+			this.postUpdate();
+		}
+
+
+	};
+
+
+
+
+}( Ractive ));
 (function ( proto ) {
 
 	'use strict';
 
 	proto.on = function ( eventName, callback ) {
-		var self = this, subscribers;
+		var self = this;
 
 		if ( !this._subs[ eventName ] ) {
 			this._subs[ eventName ] = [ callback ];
@@ -298,8 +543,8 @@ Anglebars.types = {
 		}
 	};
 
-}( Anglebars.prototype ));
-var Anglebars = Anglebars || {}; // in case we're not using the runtime
+}( Ractive.prototype ));
+var Ractive = Ractive || {}; // in case we're not using the runtime
 
 (function ( A ) {
 
@@ -322,9 +567,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		voidElementNames,
 		allElementNames,
 		closedByParentClose,
-		implicitClosersByTagName,
-
-		elementIsClosedBy;
+		implicitClosersByTagName;
 
 
 	A.compile = function ( template, options ) {
@@ -368,12 +611,12 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 	};
 
 	getFormatter = function ( str ) {
-		var match, name, argsStr, args, openIndex;
+		var name, argsStr, args, openIndex;
 
 		openIndex = str.indexOf( '[' );
 		if ( openIndex !== -1 ) {
 			name = str.substr( 0, openIndex );
-			argsStr = str.substring( openIndex + 1, str.length - 1 );
+			argsStr = str.substring( openIndex, str.length );
 
 			try {
 				args = JSON.parse( argsStr );
@@ -482,7 +725,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		},
 
 		toJson: function ( noStringify ) {
-			var json, attrName, attrValue, str, i, fragStr;
+			var json, attrName, attrValue, str, i;
 
 			json = {
 				type: types.ELEMENT,
@@ -515,7 +758,7 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 		},
 
 		toString: function () {
-			var str, i, len, attrStr, attrValueStr, fragStr, itemStr, isVoid;
+			var str, i, len, attrStr, attrValueStr, fragStr, isVoid;
 
 			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
 			// element is to use with innerHTML, and SVG doesn't support that method
@@ -865,8 +1108,8 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 	};
 	
 
-}( Anglebars ));
-/*global Anglebars */
+}( Ractive ));
+/*global Ractive */
 /*jslint white: true */
 
 (function ( A ) {
@@ -1706,32 +1949,40 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 	
 
 
-}( Anglebars ));
+}( Ractive ));
 // Default formatters
-Anglebars.formatters = {
-	equals: function ( a, b ) {
-		return a === b;
-	},
+(function ( A ) {
+	
+	'use strict';
 
-	greaterThan: function ( a, b ) {
-		return a > b;
-	},
+	A.formatters = {
+		equals: function ( a, b ) {
+			return a === b;
+		},
 
-	greaterThanEquals: function ( a, b ) {
-		return a >= b;
-	},
+		greaterThan: function ( a, b ) {
+			return a > b;
+		},
 
-	lessThan: function ( a, b ) {
-		return a < b;
-	},
+		greaterThanEquals: function ( a, b ) {
+			return a >= b;
+		},
 
-	lessThanEquals: function ( a, b ) {
-		return a <= b;
-	}
-};
+		lessThan: function ( a, b ) {
+			return a < b;
+		},
+
+		lessThanEquals: function ( a, b ) {
+			return a <= b;
+		}
+	};
+
+}( Ractive ));
 (function ( A ) {
 
-	var arrayPointer, splitKeypath, keypathNormaliser;
+	'use strict';
+
+	var splitKeypath, keypathNormaliser;
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -1744,7 +1995,7 @@ Anglebars.formatters = {
 		// Create empty object for observers
 		this.observers = {};
 
-		// Dependent Anglebars instances
+		// Dependent Ractive instances
 		this.dependents = [];
 	};
 
@@ -1753,7 +2004,7 @@ Anglebars.formatters = {
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
 		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, fullKeypath;
+			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath;
 
 			// Allow multiple values to be set in one go
 			if ( typeof keypath === 'object' ) {
@@ -1781,6 +2032,7 @@ Anglebars.formatters = {
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
 			keys = splitKeypath( keypath );
+			normalisedKeypath = keys.join( '.' );
 
 			// TODO accommodate implicit array generation
 			obj = this.data;
@@ -1794,18 +2046,18 @@ Anglebars.formatters = {
 			obj[ key ] = value;
 
 			// Trigger updates of views that observe `keypaths` or its descendants
-			this._notifyObservers( keypath, value );
+			this._notifyObservers( normalisedKeypath, value );
 
 			// See if we can resolve any of the unresolved keypaths (if such there be)
 			i = this.pendingResolution.length;
 			while ( i-- ) { // Work backwards, so we don't go in circles!
 				unresolved = this.pendingResolution.splice( i, 1 )[0];
 
-				fullKeypath = this.getFullKeypath( unresolved.view.model.ref, unresolved.view.contextStack );
+				resolved = this.resolveRef( unresolved.view.model.ref, unresolved.view.contextStack );
 
 				// If we were able to find a keypath, initialise the view
-				if ( fullKeypath !== undefined ) {
-					unresolved.callback( fullKeypath );
+				if ( resolved ) {
+					unresolved.callback( resolved.keypath, resolved.value );
 				}
 
 				// Otherwise add to the back of the queue (this is why we're working backwards)
@@ -1836,40 +2088,46 @@ Anglebars.formatters = {
 				}
 			}
 
+			if ( typeof result === 'function' ) {
+				return result.call( this, keypath );
+			}
+
 			return result;
 		},
 
 		// Force notify observers of `keypath` (useful if e.g. an array or object member
-		// was changed without calling `anglebars.set()`)
+		// was changed without calling `ractive.set()`)
 		update: function ( keypath ) {
+			var kp;
+
 			if ( keypath ) {
 				this._notifyObservers( keypath, this.get( keypath ) );
 			}
 
 			// no keypath? update all the things
 			else {
-				for ( keypath in this.data ) {
-					if ( this.data.hasOwnProperty( keypath ) ) {
-						this._notifyObservers( keypath, this.get( keypath ) );
+				for ( kp in this.data ) {
+					if ( this.data.hasOwnProperty( kp ) ) {
+						this._notifyObservers( kp, this.get( kp ) );
 					}
 				}
 			}
 		},
 
 		registerView: function ( view ) {
-			var self = this, fullKeypath, initialUpdate, value, index;
+			var self = this, resolved, initialUpdate, value, index;
 
-			if ( view.parentFragment && ( view.model.ref in view.parentFragment.indexRefs ) ) {
+			if ( view.parentFragment && ( view.parentFragment.indexRefs.hasOwnProperty( view.model.ref ) ) ) {
 				// this isn't a real keypath, it's an index reference
 				index = view.parentFragment.indexRefs[ view.model.ref ];
 
-				value = ( view.model.fmtrs ? view.anglebars._format( index, view.model.fmtrs ) : index );
+				value = ( view.model.fmtrs ? view.root._format( index, view.model.fmtrs ) : index );
 				view.update( value );
 
 				return; // this value will never change, and doesn't have a keypath
 			}
 
-			initialUpdate = function ( keypath ) {
+			initialUpdate = function ( keypath, value ) {
 				view.keypath = keypath;
 
 				// create observers
@@ -1879,38 +2137,39 @@ Anglebars.formatters = {
 					view: view
 				});
 
-				value = self.get( keypath );
-				
-				
 				// pass value through formatters, if there are any
 				if ( view.model.fmtrs ) {
-					value = view.anglebars._format( value, view.model.fmtrs );
+					value = view.root._format( value, view.model.fmtrs );
 				}
 
 				view.update( value );
 			};
 
-			fullKeypath = this.getFullKeypath( view.model.ref, view.contextStack );
+			resolved = this.resolveRef( view.model.ref, view.contextStack );
 
-			if ( fullKeypath === undefined ) {
+
+			if ( !resolved ) {
 				this.registerUnresolvedKeypath({
 					view: view,
 					callback: initialUpdate
 				});
 			} else {
-				initialUpdate( fullKeypath );
+				initialUpdate( resolved.keypath, resolved.value );
 			}
 		},
 
 		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-		getFullKeypath: function ( ref, contextStack ) {
+		resolveRef: function ( ref, contextStack ) {
 
-			var innerMost;
+			var innerMost, keypath, value;
 
 			// Implicit iterators - i.e. {{.}} - are a special case
 			if ( ref === '.' ) {
-				return contextStack[ contextStack.length - 1 ];
+				keypath = contextStack[ contextStack.length - 1 ];
+				value = this.get( keypath );
+
+				return { keypath: keypath, value: value };
 			}
 
 			// Clone the context stack, so we don't mutate the original
@@ -1921,13 +2180,17 @@ Anglebars.formatters = {
 
 				innerMost = contextStack.pop();
 
-				if ( this.get( innerMost + '.' + ref ) !== undefined ) {
-					return innerMost + '.' + ref;
+				keypath = innerMost + '.' + ref;
+				value = this.get( keypath );
+
+				if ( value !== undefined ) {
+					return { keypath: keypath, value: value };
 				}
 			}
 
-			if ( this.get( ref ) !== undefined ) {
-				return ref;
+			value = this.get( ref );
+			if ( value !== undefined ) {
+				return { keypath: ref, value: value };
 			}
 		},
 
@@ -1951,18 +2214,12 @@ Anglebars.formatters = {
 							actualValue = value;
 						}
 
-						if ( observer.view ) {
-							// apply formatters, if there are any
-							if ( observer.view.model.fmtrs ) {
-								actualValue = observer.view.anglebars._format( actualValue, observer.view.model.fmtrs );
-							}
-
-							observer.view.update( actualValue );
+						// apply formatters, if there are any
+						if ( observer.view.model.fmtrs ) {
+							actualValue = observer.view.root._format( actualValue, observer.view.model.fmtrs );
 						}
 
-						if ( observer.callback ) {
-							observer.callback( actualValue );
-						}
+						observer.view.update( actualValue );
 					}
 				}
 			}
@@ -2022,7 +2279,7 @@ Anglebars.formatters = {
 		},
 
 		unobserve: function ( observerRef ) {
-			var priorities, observers, index;
+			var priorities, observers, index, i, len;
 
 			priorities = this.observers[ observerRef.keypath ];
 			if ( !priorities ) {
@@ -2040,7 +2297,7 @@ Anglebars.formatters = {
 				index = observers.indexOf( observerRef.observer );
 			} else {
 				// fuck you IE
-				for ( var i=0, len=observers.length; i<len; i+=1 ) {
+				for ( i=0, len=observers.length; i<len; i+=1 ) {
 					if ( observers[i] === observerRef.observer ) {
 						index = i;
 						break;
@@ -2112,19 +2369,18 @@ Anglebars.formatters = {
 
 
 
-}( Anglebars ));
+}( Ractive ));
 
-(function ( A, doc ) {
+(function ( A, global ) {
 
 	'use strict';
 
-	var createView, types, insertHtml, isArray, isObject, elContains,
-		Text, Element, Partial, Attribute, Mustache, Interpolator, Triple, Section;
+	var types, insertHtml, elContains, doc,
+		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	types = A.types;
 
-	isArray = A.isArray;
-	isObject = A.isObject;
+	doc = global.document;
 
 	elContains = function ( haystack, needle ) {
 		// TODO!
@@ -2156,103 +2412,36 @@ Anglebars.formatters = {
 		return nodes;
 	};
 
-	// Base Mustache class
-	Mustache = function ( options ) {
-
-		this.model          = options.model;
-		this.anglebars      = options.anglebars;
-		this.viewmodel      = options.anglebars.viewmodel;
-		this.parentNode     = options.parentNode;
-		this.parentFragment = options.parentFragment;
-		this.contextStack   = options.contextStack || [];
-		this.anchor         = options.anchor;
-		this.index          = options.index;
-
-		this.type = options.model.type;
-
-		this.initialize();
-
-		this.viewmodel.registerView( this );
-
-		// if we have a failed keypath lookup, and this is an inverted section,
-		// we need to trigger this.update() so the contents are rendered
-		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
-			this.update( false );
-		}
-	};
-
-	
-
-	// View types
-	createView = function ( options ) {
-		if ( typeof options.model === 'string' ) {
-			return new Text( options );
-		}
-
-		switch ( options.model.type ) {
-			case types.INTERPOLATOR: return new Interpolator( options );
-			case types.SECTION: return new Section( options );
-			case types.TRIPLE: return new Triple( options );
-
-			case types.ELEMENT: return new Element( options );
-			case types.PARTIAL: return new Partial( options );
-
-			default: throw 'WTF? not sure what happened here...';
-		}
-	};
-
-
-	// Fragment
 	A.DomFragment = function ( options ) {
-
-		var numModels, i, itemOptions, parentRefs, ref;
-
-		// if we have an HTML string, our job is easy.
-		if ( typeof options.model === 'string' ) {
-			this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
-			return;
-		}
-
-		// otherwise we have to do some work
-		this.owner = options.owner;
-		this.index = options.index;
-
-		this.indexRefs = {};
-		if ( this.owner && this.owner.parentFragment ) {
-			parentRefs = this.owner.parentFragment.indexRefs;
-			for ( ref in parentRefs ) {
-				if ( parentRefs.hasOwnProperty( ref ) ) {
-					this.indexRefs[ ref ] = parentRefs[ ref ];
-				}
-			}
-		}
-
-		if ( options.indexRef ) {
-			this.indexRefs[ options.indexRef ] = options.index;
-		}
-
-		
-		itemOptions = {
-			anglebars:      options.anglebars,
-			parentNode:     options.parentNode,
-			contextStack:   options.contextStack,
-			anchor:         options.anchor,
-			parentFragment: this
-		};
-
-		this.items = [];
-		this.queue = [];
-
-		numModels = options.model.length;
-		for ( i=0; i<numModels; i+=1 ) {			
-			itemOptions.model = options.model[i];
-			itemOptions.index = i;
-
-			this.items[i] = createView( itemOptions );
-		}
+		A._Fragment.call( this, options );
 	};
 
 	A.DomFragment.prototype = {
+		preInit: function ( options ) {
+			// if we have an HTML string, our job is easy.
+			if ( typeof options.model === 'string' ) {
+				this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
+				return true; // prevent the rest of the init sequence
+			}
+		},
+
+		createItem: function ( options ) {
+			if ( typeof options.model === 'string' ) {
+				return new Text( options );
+			}
+
+			switch ( options.model.type ) {
+				case types.INTERPOLATOR: return new Interpolator( options );
+				case types.SECTION: return new Section( options );
+				case types.TRIPLE: return new Triple( options );
+
+				case types.ELEMENT: return new Element( options );
+				case types.PARTIAL: return new Partial( options );
+
+				default: throw 'WTF? not sure what happened here...';
+			}
+		},
+
 		teardown: function () {
 			var node;
 
@@ -2274,26 +2463,24 @@ Anglebars.formatters = {
 		firstNode: function () {
 			if ( this.items[0] ) {
 				return this.items[0].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
+			} 
+
+			if ( this.parentSection ) {
+				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
 		},
 
 		findNextNode: function ( item ) {
-			var index;
-
-			index = item.index;
+			var index = item.index;
 
 			if ( this.items[ index + 1 ] ) {
 				return this.items[ index + 1 ].firstNode();
-			} else {
-				if ( this.parentSection ) {
-					return this.parentSection.findNextNode( this );
-				}
+			}
+
+			if ( this.parentSection ) {
+				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -2304,12 +2491,12 @@ Anglebars.formatters = {
 	// Partials
 	Partial = function ( options ) {
 		this.fragment = new A.DomFragment({
-			model:        options.anglebars.partials[ options.model.ref ] || [],
-			anglebars:    options.anglebars,
+			model:        options.root.partials[ options.model.ref ] || [],
+			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
 			anchor:       options.anchor,
-			owner:        this
+			parent:        this
 		});
 	};
 
@@ -2324,7 +2511,7 @@ Anglebars.formatters = {
 	Text = function ( options ) {
 		this.node = doc.createTextNode( options.model );
 		this.index = options.index;
-		this.anglebars = options.anglebars;
+		this.root = options.root;
 		this.parentNode = options.parentNode;
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
@@ -2333,7 +2520,7 @@ Anglebars.formatters = {
 
 	Text.prototype = {
 		teardown: function () {
-			if ( elContains( this.anglebars.el, this.node ) ) {
+			if ( elContains( this.root.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -2356,8 +2543,8 @@ Anglebars.formatters = {
 
 		// stuff we'll need later
 		model = this.model = options.model;
-		this.anglebars = options.anglebars;
-		this.viewmodel = options.anglebars.viewmodel;
+		this.root = options.root;
+		this.viewmodel = options.root.viewmodel;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
@@ -2386,16 +2573,16 @@ Anglebars.formatters = {
 				attrValue = model.attrs[ attrName ];
 
 				attr = new Attribute({
-					owner: this,
+					parent: this,
 					name: attrName,
 					value: attrValue,
-					anglebars: options.anglebars,
+					root: options.root,
 					parentNode: this.node,
 					contextStack: options.contextStack
 				});
 
 				// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-				if ( attrName === 'value' && this.anglebars.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
+				if ( attrName === 'value' && this.root.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
 					binding = attr;
 				}
 
@@ -2404,7 +2591,7 @@ Anglebars.formatters = {
 		}
 
 		if ( binding ) {
-			this.bind( binding, options.anglebars.lazy );
+			this.bind( binding, options.root.lazy );
 		}
 
 		// append children, if there are any
@@ -2417,11 +2604,11 @@ Anglebars.formatters = {
 			else {
 				this.children = new A.DomFragment({
 					model:        model.frag,
-					anglebars:    options.anglebars,
+					root:    options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
 					anchor:       null,
-					owner:        this
+					parent:        this
 				});
 			}
 		}
@@ -2496,7 +2683,7 @@ Anglebars.formatters = {
 		},
 
 		teardown: function () {
-			if ( elContains( this.anglebars.el, this.node ) ) {
+			if ( elContains( this.root.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 
@@ -2518,12 +2705,12 @@ Anglebars.formatters = {
 	// Attribute
 	Attribute = function ( options ) {
 
-		var i, name, value, colonIndex, namespacePrefix, namespace, ancestor;
+		var name, value, colonIndex, namespacePrefix, namespace, ancestor;
 
 		name = options.name;
 		value = options.value;
 
-		this.owner = options.owner; // the element this belongs to
+		this.parent = options.parent; // the element this belongs to
 
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
 		colonIndex = name.indexOf( ':' );
@@ -2547,7 +2734,7 @@ Anglebars.formatters = {
 					namespace = ancestor.getAttribute( 'xmlns:' + namespacePrefix );
 
 					// continue searching possible ancestors
-					ancestor = ancestor.parentNode || options.owner.parentFragment.owner.node || options.owner.parentFragment.owner.parentNode;
+					ancestor = ancestor.parentNode || options.parent.parentFragment.parent.node || options.parent.parentFragment.parent.parentNode;
 				}
 			}
 
@@ -2576,12 +2763,12 @@ Anglebars.formatters = {
 		this.children = [];
 
 		// share parentFragment with parent element
-		this.parentFragment = this.owner.parentFragment;
+		this.parentFragment = this.parent.parentFragment;
 
 		this.fragment = new A.TextFragment({
 			model:        value,
-			anglebars:    options.anglebars,
-			owner:        this,
+			root:    options.root,
+			parent:        this,
 			contextStack: options.contextStack
 		});
 
@@ -2614,7 +2801,7 @@ Anglebars.formatters = {
 			}
 			
 			this.value = this.fragment.toString();
-		
+
 			if ( this.value !== prevValue ) {
 				if ( this.namespace ) {
 					this.parentNode.setAttributeNS( this.namespace, this.name, this.value );
@@ -2632,7 +2819,7 @@ Anglebars.formatters = {
 	// Interpolator
 	Interpolator = function ( options ) {
 		// extend Mustache
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -2648,7 +2835,7 @@ Anglebars.formatters = {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			if ( elContains( this.anglebars.el, this.node ) ) {
+			if ( elContains( this.root.el, this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -2668,7 +2855,7 @@ Anglebars.formatters = {
 
 	// Triple
 	Triple = function ( options ) {
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Triple.prototype = {
@@ -2679,7 +2866,7 @@ Anglebars.formatters = {
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( elContains( this.anglebars.el, this.parentNode ) ) {
+			if ( elContains( this.root.el, this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -2706,13 +2893,10 @@ Anglebars.formatters = {
 
 			if ( html === this.html ) {
 				return;
-			} else {
-				this.html = html;
 			}
 
-			// TODO figure out if this line was supposed to mean something...
-			//anchor = ( this.initialised ? this.parentFragment.findNextNode( this ) : this.anchor );
-
+			this.html = html;
+			
 			// remove existing nodes
 			while ( this.nodes.length ) {
 				this.parentNode.removeChild( this.nodes.pop() );
@@ -2729,12 +2913,12 @@ Anglebars.formatters = {
 
 	// Section
 	Section = function ( options ) {
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
 		initialize: function () {
-			this.views = [];
+			this.fragments = [];
 			this.length = 0; // number of times this section is rendered
 		},
 
@@ -2749,258 +2933,69 @@ Anglebars.formatters = {
 		},
 
 		firstNode: function () {
-			if ( this.views[0] ) {
-				return this.views[0].firstNode();
+			if ( this.fragments[0] ) {
+				return this.fragments[0].firstNode();
 			}
 
 			return this.parentFragment.findNextNode( this );
 		},
 
 		findNextNode: function ( fragment ) {
-			if ( this.views[ fragment.index + 1 ] ) {
-				return this.views[ fragment.index + 1 ].firstNode();
-			} else {
-				return this.parentFragment.findNextNode( this );
+			if ( this.fragments[ fragment.index + 1 ] ) {
+				return this.fragments[ fragment.index + 1 ].firstNode();
 			}
+
+			return this.parentFragment.findNextNode( this );
 		},
 
 		unrender: function () {
-			while ( this.views.length ) {
-				this.views.shift().teardown();
+			while ( this.fragments.length ) {
+				this.fragments.shift().teardown();
 			}
 		},
 
-		update: function ( value ) {
-			var emptyArray, i, viewsToRemove, anchor, fragmentOptions, valueIsArray, valueIsObject;
+		update: A._sectionUpdate,
 
-			fragmentOptions = {
-				model:        this.model.frag,
-				anglebars:    this.anglebars,
-				parentNode:   this.parentNode,
-				anchor:       this.parentFragment.findNextNode( this ),
-				owner:        this
-			};
-
-			valueIsArray = isArray( value );
-
-			// modify the array to allow updates via push, pop etc
-			if ( valueIsArray && this.anglebars.modifyArrays ) {
-				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
-			}
-
-			// treat empty arrays as false values
-			if ( valueIsArray && value.length === 0 ) {
-				emptyArray = true;
-			}
-
-
-			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inv ) {
-				if ( value && !emptyArray ) {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-						return;
-					}
-				}
-
-				else {
-					if ( !this.length ) {
-						anchor = this.parentFragment.findNextNode( this );
-
-						// no change to context stack in this situation
-						fragmentOptions.contextStack = this.contextStack;
-						fragmentOptions.index = 0;
-
-						this.views[0] = new A.DomFragment( fragmentOptions );
-						this.length = 1;
-						return;
-					}
-				}
-
-				return;
-			}
-
-
-			// otherwise we need to work out what sort of section we're dealing with
-
-			// if value is an array, iterate through
-			if ( valueIsArray ) {
-
-				// if the array is shorter than it was previously, remove items
-				if ( value.length < this.length ) {
-					viewsToRemove = this.views.splice( value.length, this.length - value.length );
-
-					while ( viewsToRemove.length ) {
-						viewsToRemove.pop().teardown();
-					}
-				}
-
-				// otherwise...
-				else {
-
-					if ( value.length > this.length ) {
-						// add any new ones
-						for ( i=this.length; i<value.length; i+=1 ) {
-							// append list item to context stack
-							fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
-							fragmentOptions.index = i;
-
-							if ( this.model.i ) {
-								fragmentOptions.indexRef = this.model.i;
-							}
-
-							this.views[i] = new A.DomFragment( fragmentOptions );
-						}
-					}
-				}
-
-				this.length = value.length;
-			}
-
-			// if value is a hash...
-			else if ( isObject( value ) ) {
-				// ...then if it isn't rendered, render it, adding this.keypath to the context stack
-				// (if it is already rendered, then any children dependent on the context stack
-				// will update themselves without any prompting)
-				if ( !this.length ) {
-					// append this section to the context stack
-					fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
-					fragmentOptions.index = 0;
-
-					this.views[0] = new A.DomFragment( fragmentOptions );
-					this.length = 1;
-				}
-			}
-
-
-			// otherwise render if value is truthy, unrender if falsy
-			else {
-
-				if ( value && !emptyArray ) {
-					if ( !this.length ) {
-						// no change to context stack
-						fragmentOptions.contextStack = this.contextStack;
-						fragmentOptions.index = 0;
-
-						this.views[0] = new A.DomFragment( fragmentOptions );
-						this.length = 1;
-					}
-				}
-
-				else {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-					}
-				}
-			}
+		createFragment: function ( options ) {
+			return new A.DomFragment( options );
 		}
 	};
 
-}( Anglebars, document ));
+}( Ractive, this ));
 
 (function ( A ) {
 
 	'use strict';
 
-	var createView, types, ctors, isArray, isObject,
-		Text, Mustache, Interpolator, Triple, Section;
+	var types,
+		Text, Interpolator, Triple, Section;
 
 	types = A.types;
 
-	ctors = [];
-	ctors[ types.TEXT ] = 'Text';
-	ctors[ types.INTERPOLATOR ] = 'Interpolator';
-	ctors[ types.TRIPLE ] = 'Triple';
-	ctors[ types.SECTION ] = 'Section';
-
-	isArray = A.isArray;
-	isObject = A.isObject;
-
-	// Base Mustache class
-	Mustache = function ( options ) {
-
-		this.model = options.model;
-		this.anglebars = options.anglebars;
-		this.viewmodel = options.anglebars.viewmodel;
-		this.parent = options.parent;
-		this.parentFragment = options.parentFragment;
-		this.contextStack = options.contextStack || [];
-
-		this.type = options.model.type;
-
-		// If there is an init method, call it
-		if ( this.initialize ) {
-			this.initialize();
-		}
-
-		this.viewmodel.registerView( this );
-
-		// If we have a failed keypath lookup, and this is an inverted section,
-		// we need to trigger this.update() so the contents are rendered
-		if ( !this.keypath && this.model.inv ) { // Test both section-hood and inverticity in one go
-			this.update( false );
-		}
-	};
-
-
-	// Substring types
-	createView = function ( options ) {
-		if ( typeof options.model === 'string' ) {
-			return new Text( options.model );
-		}
-
-		switch ( options.model.type ) {
-			case types.INTERPOLATOR: return new Interpolator( options );
-			case types.TRIPLE: return new Triple( options );
-			case types.SECTION: return new Section( options );
-
-			default: throw 'Something went wrong in a rather interesting way';
-		}
-	};
-
-
-
-	// Fragment
 	A.TextFragment = function ( options ) {
-		var numItems, i, itemOptions, parentRefs, ref;
-
-		this.owner = options.owner;
-		this.index = options.index;
-		this.items = [];
-
-		this.indexRefs = {};
-		if ( this.owner && this.owner.parentFragment ) {
-			parentRefs = this.owner.parentFragment.indexRefs;
-			for ( ref in parentRefs ) {
-				if ( parentRefs.hasOwnProperty( ref ) ) {
-					this.indexRefs[ ref ] = parentRefs[ ref ];
-				}
-			}
-		}
-
-		if ( options.indexRef ) {
-			this.indexRefs[ options.indexRef ] = options.index;
-		}
-
-		itemOptions = {
-			anglebars: options.anglebars,
-			parentFragment: this,
-			parent: this.owner,
-			contextStack: options.contextStack
-		};
-
-		numItems = ( options.model ? options.model.length : 0 );
-		for ( i=0; i<numItems; i+=1 ) {
-			itemOptions.model = options.model[i];
-			this.items[ this.items.length ] = createView( itemOptions );
-		}
-
-		this.value = this.items.join('');
+		A._Fragment.call( this, options );
 	};
 
 	A.TextFragment.prototype = {
+		init: function () {
+			this.value = this.items.join('');
+		},
+
+		createItem: function ( options ) {
+			if ( typeof options.model === 'string' ) {
+				return new Text( options.model );
+			}
+
+			switch ( options.model.type ) {
+				case types.INTERPOLATOR: return new Interpolator( options );
+				case types.TRIPLE: return new Triple( options );
+				case types.SECTION: return new Section( options );
+
+				default: throw 'Something went wrong in a rather interesting way';
+			}
+		},
+
+
 		bubble: function () {
 			this.value = this.items.join( '' );
 			this.parent.bubble();
@@ -3016,7 +3011,9 @@ Anglebars.formatters = {
 		},
 
 		toString: function () {
-			return ( this.value === undefined ? '' : this.value );
+			// TODO refactor this... value should already have been calculated? or maybe not. Top-level items skip the fragment and bubble straight to the attribute...
+			// argh, it's confusing me
+			return this.items.join( '' );
 		}
 	};
 
@@ -3040,16 +3037,12 @@ Anglebars.formatters = {
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
 		update: function ( value ) {
 			this.value = value;
-			this.parent.bubble();
-		},
-
-		bubble: function () {
 			this.parent.bubble();
 		},
 
@@ -3072,12 +3065,12 @@ Anglebars.formatters = {
 
 	// Section
 	Section = function ( options ) {
-		Mustache.call( this, options );
+		A._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
 		initialize: function () {
-			this.children = [];
+			this.fragments = [];
 			this.length = 0;
 		},
 
@@ -3092,139 +3085,44 @@ Anglebars.formatters = {
 		},
 
 		unrender: function () {
-			while ( this.children.length ) {
-				this.children.shift().teardown();
+			while ( this.fragments.length ) {
+				this.fragments.shift().teardown();
 			}
 			this.length = 0;
 		},
 
 		bubble: function () {
-			this.value = this.children.join( '' );
+			this.value = this.fragments.join( '' );
 			this.parent.bubble();
 		},
 
 		update: function ( value ) {
-			var emptyArray, i, childrenToRemove, valueIsArray;
+			A._sectionUpdate.call( this, value );
+		},
 
-			valueIsArray = isArray( value );
+		createFragment: function ( options ) {
+			return new A.TextFragment( options );
+		},
 
-			// modify the array to allow updates via push, pop etc
-			if ( valueIsArray && this.anglebars.modifyArrays ) {
-				A.modifyArray( value, this.keypath, this.anglebars.viewmodel );
-			}
-
-			// treat empty arrays as false values
-			if ( valueIsArray && value.length === 0 ) {
-				emptyArray = true;
-			}
-
-			// if section is inverted, only check for truthiness/falsiness
-			if ( this.model.inv ) {
-				if ( value && !emptyArray ) {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-					}
-				}
-
-				else {
-					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
-						this.length = 1;
-					}
-				}
-
-				this.value = this.children.join( '' );
-				this.parent.bubble();
-
-				return;
-			}
-
-
-			// Otherwise we need to work out what sort of section we're dealing with.
-			if( typeof value === 'object' ) {
-
-
-
-				// if value is an array, iterate through
-				if ( valueIsArray ) {
-
-					// if the array is shorter than it was previously, remove items
-					if ( value.length < this.length ) {
-						childrenToRemove = this.children.splice( value.length, this.length - value.length );
-
-						while ( childrenToRemove.length ) {
-							childrenToRemove.shift().teardown();
-						}
-					}
-
-					// otherwise...
-					else {
-
-						// first, update existing views
-						for ( i=0; i<this.length; i+=1 ) {
-							this.viewmodel.update( this.keypath + '.' + i );
-						}
-
-						if ( value.length > this.length ) {
-
-							// then add any new ones
-							for ( i=this.length; i<value.length; i+=1 ) {
-								this.children[i] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath + '.' + i ) );
-							}
-						}
-					}
-
-					this.length = value.length;
-				}
-
-				// if value is a hash...
-				else {
-					// ...then if it isn't rendered, render it, adding this.keypath to the context stack
-					// (if it is already rendered, then any children dependent on the context stack
-					// will update themselves without any prompting)
-					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack.concat( this.keypath ) );
-						this.length = 1;
-					}
-				}
-			}
-
-			// otherwise render if value is truthy, unrender if falsy
-			else {
-
-				if ( value && !emptyArray ) {
-					if ( !this.length ) {
-						this.children[0] = new A.TextFragment( this.model.frag, this.anglebars, this, this.contextStack );
-						this.length = 1;
-					}
-				}
-
-				else {
-					if ( this.length ) {
-						this.unrender();
-						this.length = 0;
-					}
-				}
-			}
-
-			this.value = this.children.join( '' );
+		postUpdate: function () {
+			this.value = this.fragments.join( '' );
 			this.parent.bubble();
 		},
 
 		toString: function () {
-			return ( this.value === undefined ? '' : this.value );
+			return this.fragments.join( '' );
+			//return ( this.value === undefined ? '' : this.value );
 		}
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 
 	'use strict';
 
 	A.extend = function ( childProps ) {
 
-		var Parent, Child, key, blacklist;
+		var Parent, Child, key;
 
 		Parent = this;
 
@@ -3243,11 +3141,11 @@ Anglebars.formatters = {
 			}
 		}
 
-		// extend child with specified methods, as long as they don't override Anglebars.prototype methods
+		// extend child with specified methods, as long as they don't override Ractive.prototype methods
 		for ( key in childProps ) {
 			if ( childProps.hasOwnProperty( key ) ) {
 				if ( A.prototype.hasOwnProperty( key ) ) {
-					throw new Error( 'Cannot override "' + key + '" method or property of Anglebars prototype' );
+					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
 				}
 
 				Child.prototype[ key ] = childProps[ key ];
@@ -3259,7 +3157,7 @@ Anglebars.formatters = {
 		return Child;
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 
 	'use strict';
@@ -3270,8 +3168,8 @@ Anglebars.formatters = {
 
 		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
 
-		if ( !array._anglebars ) {
-			array._anglebars = {
+		if ( !array._ractive ) {
+			array._ractive = {
 				viewmodels: [ viewmodel ],
 				keypathsByIndex: [ [ keypath ] ]
 			};
@@ -3280,8 +3178,8 @@ Anglebars.formatters = {
 		}
 
 		else {
-			viewmodels = array._anglebars.viewmodels;
-			keypathsByIndex = array._anglebars.keypathsByIndex;
+			viewmodels = array._ractive.viewmodels;
+			keypathsByIndex = array._ractive.keypathsByIndex;
 
 			// see if this viewmodel is currently associated with this array
 			viewmodelIndex = viewmodels.indexOf( viewmodel );
@@ -3307,8 +3205,8 @@ Anglebars.formatters = {
 		var notifyDependents = function ( array ) {
 			var viewmodels, keypathsByIndex;
 
-			viewmodels = array._anglebars.viewmodels;
-			keypathsByIndex = array._anglebars.keypathsByIndex;
+			viewmodels = array._ractive.viewmodels;
+			keypathsByIndex = array._ractive.keypathsByIndex;
 
 			viewmodels.forEach( function ( viewmodel, i ) {
 				var keypaths = keypathsByIndex[i];
@@ -3329,11 +3227,397 @@ Anglebars.formatters = {
 		});
 	};
 
-}( Anglebars ));
+}( Ractive ));
+(function ( A ) {
+	
+	'use strict';
+
+	// --------------------------------------------------
+	// easing.js v0.5.4
+	// Generic set of easing functions with AMD support
+	// https://github.com/danro/easing-js
+	// This code may be freely distributed under the MIT license
+	// http://danro.mit-license.org/
+	// --------------------------------------------------
+	// All functions adapted from Thomas Fuchs & Jeremy Kahn
+	// Easing Equations (c) 2003 Robert Penner, BSD license
+	// https://raw.github.com/danro/easing-js/master/LICENSE
+	// --------------------------------------------------
+	A.easing = {
+		easeInQuad: function(pos) {
+			return Math.pow(pos, 2);
+		},
+
+		easeOutQuad: function(pos) {
+			return -(Math.pow((pos-1), 2) -1);
+		},
+
+		easeInOutQuad: function(pos) {
+			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,2);
+			return -0.5 * ((pos-=2)*pos - 2);
+		},
+
+		easeInCubic: function(pos) {
+			return Math.pow(pos, 3);
+		},
+
+		easeOutCubic: function(pos) {
+			return (Math.pow((pos-1), 3) +1);
+		},
+
+		easeInOutCubic: function(pos) {
+			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,3);
+			return 0.5 * (Math.pow((pos-2),3) + 2);
+		},
+
+		easeInQuart: function(pos) {
+			return Math.pow(pos, 4);
+		},
+
+		easeOutQuart: function(pos) {
+			return -(Math.pow((pos-1), 4) -1);
+		},
+
+		easeInOutQuart: function(pos) {
+			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,4);
+			return -0.5 * ((pos-=2)*Math.pow(pos,3) - 2);
+		},
+
+		easeInQuint: function(pos) {
+			return Math.pow(pos, 5);
+		},
+
+		easeOutQuint: function(pos) {
+			return (Math.pow((pos-1), 5) +1);
+		},
+
+		easeInOutQuint: function(pos) {
+			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,5);
+			return 0.5 * (Math.pow((pos-2),5) + 2);
+		},
+
+		easeInSine: function(pos) {
+			return -Math.cos(pos * (Math.PI/2)) + 1;
+		},
+
+		easeOutSine: function(pos) {
+			return Math.sin(pos * (Math.PI/2));
+		},
+
+		easeInOutSine: function(pos) {
+			return (-0.5 * (Math.cos(Math.PI*pos) -1));
+		},
+
+		easeInExpo: function(pos) {
+			return (pos===0) ? 0 : Math.pow(2, 10 * (pos - 1));
+		},
+
+		easeOutExpo: function(pos) {
+			return (pos===1) ? 1 : -Math.pow(2, -10 * pos) + 1;
+		},
+
+		easeInOutExpo: function(pos) {
+			if(pos===0) return 0;
+			if(pos===1) return 1;
+			if((pos/=0.5) < 1) return 0.5 * Math.pow(2,10 * (pos-1));
+			return 0.5 * (-Math.pow(2, -10 * --pos) + 2);
+		},
+
+		easeInCirc: function(pos) {
+			return -(Math.sqrt(1 - (pos*pos)) - 1);
+		},
+
+		easeOutCirc: function(pos) {
+			return Math.sqrt(1 - Math.pow((pos-1), 2));
+		},
+
+		easeInOutCirc: function(pos) {
+			if((pos/=0.5) < 1) return -0.5 * (Math.sqrt(1 - pos*pos) - 1);
+			return 0.5 * (Math.sqrt(1 - (pos-=2)*pos) + 1);
+		},
+
+		easeOutBounce: function(pos) {
+			if ((pos) < (1/2.75)) {
+				return (7.5625*pos*pos);
+			} else if (pos < (2/2.75)) {
+				return (7.5625*(pos-=(1.5/2.75))*pos + 0.75);
+			} else if (pos < (2.5/2.75)) {
+				return (7.5625*(pos-=(2.25/2.75))*pos + 0.9375);
+			} else {
+				return (7.5625*(pos-=(2.625/2.75))*pos + 0.984375);
+			}
+		},
+
+		easeInBack: function(pos) {
+			var s = 1.70158;
+			return (pos)*pos*((s+1)*pos - s);
+		},
+
+		easeOutBack: function(pos) {
+			var s = 1.70158;
+			return (pos=pos-1)*pos*((s+1)*pos + s) + 1;
+		},
+
+		easeInOutBack: function(pos) {
+			var s = 1.70158;
+			if((pos/=0.5) < 1) return 0.5*(pos*pos*(((s*=(1.525))+1)*pos -s));
+			return 0.5*((pos-=2)*pos*(((s*=(1.525))+1)*pos +s) +2);
+		},
+
+		elastic: function(pos) {
+			return -1 * Math.pow(4,-8*pos) * Math.sin((pos*6-1)*(2*Math.PI)/2) + 1;
+		},
+
+		swingFromTo: function(pos) {
+			var s = 1.70158;
+			return ((pos/=0.5) < 1) ? 0.5*(pos*pos*(((s*=(1.525))+1)*pos - s)) :
+			0.5*((pos-=2)*pos*(((s*=(1.525))+1)*pos + s) + 2);
+		},
+
+		swingFrom: function(pos) {
+			var s = 1.70158;
+			return pos*pos*((s+1)*pos - s);
+		},
+
+		swingTo: function(pos) {
+			var s = 1.70158;
+			return (pos-=1)*pos*((s+1)*pos + s) + 1;
+		},
+
+		bounce: function(pos) {
+			if (pos < (1/2.75)) {
+				return (7.5625*pos*pos);
+			} else if (pos < (2/2.75)) {
+				return (7.5625*(pos-=(1.5/2.75))*pos + 0.75);
+			} else if (pos < (2.5/2.75)) {
+				return (7.5625*(pos-=(2.25/2.75))*pos + 0.9375);
+			} else {
+				return (7.5625*(pos-=(2.625/2.75))*pos + 0.984375);
+			}
+		},
+
+		bouncePast: function(pos) {
+			if (pos < (1/2.75)) {
+				return (7.5625*pos*pos);
+			} else if (pos < (2/2.75)) {
+				return 2 - (7.5625*(pos-=(1.5/2.75))*pos + 0.75);
+			} else if (pos < (2.5/2.75)) {
+				return 2 - (7.5625*(pos-=(2.25/2.75))*pos + 0.9375);
+			} else {
+				return 2 - (7.5625*(pos-=(2.625/2.75))*pos + 0.984375);
+			}
+		},
+
+		easeFromTo: function(pos) {
+			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,4);
+			return -0.5 * ((pos-=2)*Math.pow(pos,3) - 2);
+		},
+
+		easeFrom: function(pos) {
+			return Math.pow(pos,4);
+		},
+
+		easeTo: function(pos) {
+			return Math.pow(pos,0.25);
+		}
+	};
+
+}( Ractive ));
+(function ( A, global ) {
+
+	'use strict';
+
+	var Animation, animationCollection;
+
+	// https://gist.github.com/paulirish/1579671
+	(function( vendors, lastTime, global ) {
+		
+		var x;
+
+		for ( x = 0; x < vendors.length && !global.requestAnimationFrame; ++x ) {
+			global.requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
+			global.cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
+		}
+
+		if ( !global.requestAnimationFrame ) {
+			global.requestAnimationFrame = function(callback) {
+				var currTime, timeToCall, id;
+				
+				currTime = Date.now();
+				timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
+				id = global.setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+				
+				lastTime = currTime + timeToCall;
+				return id;
+			};
+		}
+
+		if ( !global.cancelAnimationFrame ) {
+			global.cancelAnimationFrame = function( id ) {
+				global.clearTimeout( id );
+			};
+		}
+	}( ['ms', 'moz', 'webkit', 'o'], 0, global ));
+
+
+
+	Animation = function ( options ) {
+		var key;
+
+		this.startTime = Date.now();
+
+		// from and to
+		for ( key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				this[ key ] = options[ key ];
+			}
+		}
+
+		this.delta = this.to - this.from;
+		this.running = true;
+	};
+
+	animationCollection = {
+		animations: [],
+
+		tick: function () {
+			var i, animation;
+
+			for ( i=0; i<this.animations.length; i+=1 ) {
+				animation = this.animations[i];
+
+				if ( !animation.tick() ) {
+					// animation is complete, remove it from the stack, and decrement i so we don't miss one
+					this.animations.splice( i--, 1 );
+				}
+			}
+
+			if ( this.animations.length ) {
+				global.requestAnimationFrame( this.boundTick );
+			} else {
+				this.running = false;
+			}
+		},
+
+		// bind method to animationCollection
+		boundTick: function () {
+			animationCollection.tick();
+		},
+
+		push: function ( animation ) {
+			this.animations[ this.animations.length ] = animation;
+
+			if ( !this.running ) {
+				this.running = true;
+				this.tick();
+			}
+		}
+	};
+
+	Animation.prototype = {
+		tick: function () {
+			var elapsed, t, value, timeNow;
+
+			if ( this.running ) {
+				timeNow = Date.now();
+				elapsed = timeNow - this.startTime;
+
+				if ( elapsed >= this.duration ) {
+					this.viewmodel.set( this.keypath, this.to );
+
+					if ( this.complete ) {
+						this.complete( 1 );
+					}
+
+					this.running = false;
+					return false;
+				}
+
+				t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
+				value = this.from + ( t * this.delta );
+
+				this.viewmodel.set( this.keypath, value );
+
+				if ( this.step ) {
+					this.step( t, value );
+				}
+
+				return true;
+			}
+
+			return false;
+		},
+
+		stop: function () {
+			this.running = false;
+		}
+	};
+
+
+	A.prototype.animate = function ( keypath, to, options ) {
+		var easing, from, duration, animation, i;
+
+		// check from and to are both numeric
+		to = parseFloat( to );
+		if ( isNaN( to ) ) {
+			throw 'Cannot animate to a non-numeric property';
+		}
+
+		from = parseFloat( this.get( keypath ) );
+		if ( isNaN( to ) ) {
+			throw 'Cannot animate from a non-numeric property';
+		}
+
+		// cancel any existing animation
+		i = animationCollection.animations.length;
+		while ( i-- ) {
+			if ( animationCollection.animations[ i ].keypath === keypath ) {
+				animationCollection.animations[ i ].stop();
+			}
+		}
+
+		// easing function
+		if ( options && options.easing ) {
+			if ( typeof options.easing === 'function' ) {
+				easing = options.easing;
+			}
+
+			else {
+				if ( this.easing && this.easing[ options.easing ] ) {
+					// use instance easing function first
+					easing = this.easing[ options.easing ];
+				} else {
+					// fallback to global easing functions
+					easing = A.easing[ options.easing ];
+				}
+			}
+
+			if ( typeof easing !== 'function' ) {
+				easing = null;
+			}
+		}
+
+		// duration
+		duration = ( !options || options.duration === undefined ? 400 : options.duration );
+
+		animation = new Animation({
+			keypath: keypath,
+			from: from,
+			to: to,
+			viewmodel: this.viewmodel,
+			duration: duration,
+			easing: easing
+		});
+
+		animationCollection.push( animation );
+	};
+
+
+}( Ractive, this ));
 
 // export
-if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS
-else if ( typeof define === "function" && define.amd ) define( function () { return Anglebars } ) // AMD
-else { global.Anglebars = Anglebars }
+if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS
+else if ( typeof define === "function" && define.amd ) define( function () { return Ractive } ) // AMD
+else { global.Ractive = Ractive }
 
 }( this ));

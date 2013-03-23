@@ -588,4 +588,4 @@
 		}
 	};
 
-}( Anglebars, this ));
+}( Ractive, this ));

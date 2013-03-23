@@ -23,11 +23,11 @@
 			}
 		}
 
-		// extend child with specified methods, as long as they don't override Anglebars.prototype methods
+		// extend child with specified methods, as long as they don't override Ractive.prototype methods
 		for ( key in childProps ) {
 			if ( childProps.hasOwnProperty( key ) ) {
 				if ( A.prototype.hasOwnProperty( key ) ) {
-					throw new Error( 'Cannot override "' + key + '" method or property of Anglebars prototype' );
+					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
 				}
 
 				Child.prototype[ key ] = childProps[ key ];
@@ -39,4 +39,4 @@
 		return Child;
 	};
 
-}( Anglebars ));
+}( Ractive ));

@@ -18,4 +18,4 @@
 		ATTR_VALUE_TOKEN: 13
 	};
 
-}( Anglebars ));
+}( Ractive ));

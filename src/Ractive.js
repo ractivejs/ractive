@@ -1,10 +1,10 @@
-var Anglebars = (function ( global ) {
+var Ractive = (function ( global ) {
 
 	'use strict';
 
-	var Anglebars, getEl;
+	var Ractive, getEl;
 
-	Anglebars = function ( options ) {
+	Ractive = function ( options ) {
 
 		var defaults, key;
 
@@ -45,10 +45,10 @@ var Anglebars = (function ( global ) {
 		this._subs = {};
 
 		if ( this.viewmodel === undefined ) {
-			this.viewmodel = new Anglebars.ViewModel();
+			this.viewmodel = new Ractive.ViewModel();
 		}
 
-		// bind viewmodel to this anglebars instance
+		// bind viewmodel to this ractive instance
 		this.viewmodel.dependents.push( this );
 
 		// Initialise (or update) viewmodel with data
@@ -61,11 +61,11 @@ var Anglebars = (function ( global ) {
 			for ( key in this.partials ) {
 				if ( this.partials.hasOwnProperty( key ) ) {
 					if ( typeof this.partials[ key ] === 'string' ) {
-						if ( !Anglebars.compile ) {
-							throw new Error( 'Missing Anglebars.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
+						if ( !Ractive.compile ) {
+							throw new Error( 'Missing Ractive.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
 						}
 
-						this.partials[ key ] = Anglebars.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
+						this.partials[ key ] = Ractive.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
 					}
 				}
 			}
@@ -73,11 +73,11 @@ var Anglebars = (function ( global ) {
 
 		// Compile template, if it hasn't been compiled already
 		if ( typeof this.template === 'string' ) {
-			if ( !Anglebars.compile ) {
-				throw new Error( 'Missing Anglebars.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
+			if ( !Ractive.compile ) {
+				throw new Error( 'Missing Ractive.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
 			}
 
-			this.template = Anglebars.compile( this.template, this );
+			this.template = Ractive.compile( this.template, this );
 		}
 
 		// If passed an element, render immediately
@@ -90,7 +90,7 @@ var Anglebars = (function ( global ) {
 
 	// Prototype methods
 	// =================
-	Anglebars.prototype = {
+	Ractive.prototype = {
 
 		// Render instance to element specified here or at initialization
 		render: function ( options ) {
@@ -110,7 +110,7 @@ var Anglebars = (function ( global ) {
 			}
 
 			// Render our *root fragment*
-			this.rendered = new Anglebars.DomFragment({
+			this.rendered = new Ractive.DomFragment({
 				model: this.template,
 				root: this,
 				parentNode: el
@@ -156,7 +156,7 @@ var Anglebars = (function ( global ) {
 
 				// If a formatter was passed in, use it, otherwise see if there's a default
 				// one with this name
-				fn = this.formatters[ name ] || Anglebars.formatters[ name ];
+				fn = this.formatters[ name ] || Ractive.formatters[ name ];
 
 				if ( fn ) {
 					value = fn.apply( this, [ value ].concat( args ) );
@@ -211,6 +211,6 @@ var Anglebars = (function ( global ) {
 		throw new Error( 'Could not find container element' );
 	};
 
-	return Anglebars;
+	return Ractive;
 
 }( this ));

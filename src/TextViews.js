@@ -150,4 +150,4 @@
 		}
 	};
 
-}( Anglebars ));
+}( Ractive ));

@@ -1,4 +1,4 @@
-/*global Anglebars */
+/*global Ractive */
 /*jslint white: true */
 
 (function ( A ) {
@@ -838,4 +838,4 @@
 	
 
 
-}( Anglebars ));
+}( Ractive ));

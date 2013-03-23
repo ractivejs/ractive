@@ -188,4 +188,4 @@
 	};
 
 
-}( Anglebars, this ));
+}( Ractive, this ));

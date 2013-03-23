@@ -1,4 +1,4 @@
-var Anglebars = Anglebars || {}; // in case we're not using the runtime
+var Ractive = Ractive || {}; // in case we're not using the runtime
 
 (function ( A ) {
 
@@ -562,4 +562,4 @@ var Anglebars = Anglebars || {}; // in case we're not using the runtime
 	};
 	
 
-}( Anglebars ));
+}( Ractive ));

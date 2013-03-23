@@ -1,5 +1,5 @@
-/*! anglebars - v0.1.6 - 2013-03-22
-* http://rich-harris.github.com/Anglebars/
+/*! ractive - v0.1.7 - 2013-03-23
+* http://rich-harris.github.com/Ractive/
 * Copyright (c) 2013 Rich Harris; Licensed WTFPL */
 
 /*jslint eqeq: true, plusplus: true */
@@ -8,13 +8,13 @@
 
 (function ( global ) {
 
-"use strict";var Anglebars = (function ( global ) {
+"use strict";var Ractive = (function ( global ) {
 
 	'use strict';
 
-	var Anglebars, getEl;
+	var Ractive, getEl;
 
-	Anglebars = function ( options ) {
+	Ractive = function ( options ) {
 
 		var defaults, key;
 
@@ -55,10 +55,10 @@
 		this._subs = {};
 
 		if ( this.viewmodel === undefined ) {
-			this.viewmodel = new Anglebars.ViewModel();
+			this.viewmodel = new Ractive.ViewModel();
 		}
 
-		// bind viewmodel to this anglebars instance
+		// bind viewmodel to this ractive instance
 		this.viewmodel.dependents.push( this );
 
 		// Initialise (or update) viewmodel with data
@@ -71,11 +71,11 @@
 			for ( key in this.partials ) {
 				if ( this.partials.hasOwnProperty( key ) ) {
 					if ( typeof this.partials[ key ] === 'string' ) {
-						if ( !Anglebars.compile ) {
-							throw new Error( 'Missing Anglebars.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
+						if ( !Ractive.compile ) {
+							throw new Error( 'Missing Ractive.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
 						}
 
-						this.partials[ key ] = Anglebars.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
+						this.partials[ key ] = Ractive.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
 					}
 				}
 			}
@@ -83,11 +83,11 @@
 
 		// Compile template, if it hasn't been compiled already
 		if ( typeof this.template === 'string' ) {
-			if ( !Anglebars.compile ) {
-				throw new Error( 'Missing Anglebars.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
+			if ( !Ractive.compile ) {
+				throw new Error( 'Missing Ractive.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
 			}
 
-			this.template = Anglebars.compile( this.template, this );
+			this.template = Ractive.compile( this.template, this );
 		}
 
 		// If passed an element, render immediately
@@ -100,7 +100,7 @@
 
 	// Prototype methods
 	// =================
-	Anglebars.prototype = {
+	Ractive.prototype = {
 
 		// Render instance to element specified here or at initialization
 		render: function ( options ) {
@@ -120,7 +120,7 @@
 			}
 
 			// Render our *root fragment*
-			this.rendered = new Anglebars.DomFragment({
+			this.rendered = new Ractive.DomFragment({
 				model: this.template,
 				root: this,
 				parentNode: el
@@ -166,7 +166,7 @@
 
 				// If a formatter was passed in, use it, otherwise see if there's a default
 				// one with this name
-				fn = this.formatters[ name ] || Anglebars.formatters[ name ];
+				fn = this.formatters[ name ] || Ractive.formatters[ name ];
 
 				if ( fn ) {
 					value = fn.apply( this, [ value ].concat( args ) );
@@ -221,7 +221,7 @@
 		throw new Error( 'Could not find container element' );
 	};
 
-	return Anglebars;
+	return Ractive;
 
 }( this ));
 (function ( A ) {
@@ -244,7 +244,7 @@
 		ATTR_VALUE_TOKEN: 13
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 
 	'use strict';
@@ -485,7 +485,7 @@
 
 
 
-}( Anglebars ));
+}( Ractive ));
 (function ( proto ) {
 
 	'use strict';
@@ -543,7 +543,7 @@
 		}
 	};
 
-}( Anglebars.prototype ));
+}( Ractive.prototype ));
 // Default formatters
 (function ( A ) {
 	
@@ -571,7 +571,7 @@
 		}
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 
 	'use strict';
@@ -589,7 +589,7 @@
 		// Create empty object for observers
 		this.observers = {};
 
-		// Dependent Anglebars instances
+		// Dependent Ractive instances
 		this.dependents = [];
 	};
 
@@ -690,7 +690,7 @@
 		},
 
 		// Force notify observers of `keypath` (useful if e.g. an array or object member
-		// was changed without calling `anglebars.set()`)
+		// was changed without calling `ractive.set()`)
 		update: function ( keypath ) {
 			var kp;
 
@@ -963,7 +963,7 @@
 
 
 
-}( Anglebars ));
+}( Ractive ));
 
 (function ( A, global ) {
 
@@ -1555,7 +1555,7 @@
 		}
 	};
 
-}( Anglebars, this ));
+}( Ractive, this ));
 
 (function ( A ) {
 
@@ -1709,7 +1709,7 @@
 		}
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 
 	'use strict';
@@ -1735,11 +1735,11 @@
 			}
 		}
 
-		// extend child with specified methods, as long as they don't override Anglebars.prototype methods
+		// extend child with specified methods, as long as they don't override Ractive.prototype methods
 		for ( key in childProps ) {
 			if ( childProps.hasOwnProperty( key ) ) {
 				if ( A.prototype.hasOwnProperty( key ) ) {
-					throw new Error( 'Cannot override "' + key + '" method or property of Anglebars prototype' );
+					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
 				}
 
 				Child.prototype[ key ] = childProps[ key ];
@@ -1751,7 +1751,7 @@
 		return Child;
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 
 	'use strict';
@@ -1762,8 +1762,8 @@
 
 		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
 
-		if ( !array._anglebars ) {
-			array._anglebars = {
+		if ( !array._ractive ) {
+			array._ractive = {
 				viewmodels: [ viewmodel ],
 				keypathsByIndex: [ [ keypath ] ]
 			};
@@ -1772,8 +1772,8 @@
 		}
 
 		else {
-			viewmodels = array._anglebars.viewmodels;
-			keypathsByIndex = array._anglebars.keypathsByIndex;
+			viewmodels = array._ractive.viewmodels;
+			keypathsByIndex = array._ractive.keypathsByIndex;
 
 			// see if this viewmodel is currently associated with this array
 			viewmodelIndex = viewmodels.indexOf( viewmodel );
@@ -1799,8 +1799,8 @@
 		var notifyDependents = function ( array ) {
 			var viewmodels, keypathsByIndex;
 
-			viewmodels = array._anglebars.viewmodels;
-			keypathsByIndex = array._anglebars.keypathsByIndex;
+			viewmodels = array._ractive.viewmodels;
+			keypathsByIndex = array._ractive.keypathsByIndex;
 
 			viewmodels.forEach( function ( viewmodel, i ) {
 				var keypaths = keypathsByIndex[i];
@@ -1821,7 +1821,7 @@
 		});
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A ) {
 	
 	'use strict';
@@ -2016,7 +2016,7 @@
 		}
 	};
 
-}( Anglebars ));
+}( Ractive ));
 (function ( A, global ) {
 
 	'use strict';
@@ -2207,11 +2207,11 @@
 	};
 
 
-}( Anglebars, this ));
+}( Ractive, this ));
 
 // export
-if ( typeof module !== "undefined" && module.exports ) module.exports = Anglebars // Common JS
-else if ( typeof define === "function" && define.amd ) define( function () { return Anglebars } ) // AMD
-else { global.Anglebars = Anglebars }
+if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS
+else if ( typeof define === "function" && define.amd ) define( function () { return Ractive } ) // AMD
+else { global.Ractive = Ractive }
 
 }( this ));
