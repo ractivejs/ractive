@@ -65,13 +65,13 @@ Neato features
 
 Ractive.js complies with the [mustache spec](https://github.com/mustache/spec) as closely as possible. If you know mustache, you're good to go. (And if you don't, you can learn it in under 5 minutes.) That means:
 
-* Nested properties of arbitrary depth: Hi there, {{user.info.name.first}}
-* Update entire chunks of HTML with triples: <div>{{{contents}}}</div>
-* Conditionals: {{#gameover}}<p>Game over man, game over!</p>{{/gameover}}
-* Lists: <ul>{{#users}}<li>{{name}} - {{company}}</li>{{/users}}</ul>
-* Custom delimiters, if you like to kick it <%= old_school %>
-* Partials: {{#basket}}<div>{{>item}}</div>{{/basket}}
-* Control over attributes: <div style='color: {{prefs.color}};'></div>
+* Nested properties of arbitrary depth: Hi there, `{{user.info.name.first}}`
+* Update entire chunks of HTML with triples: `<div>{{{contents}}}</div>`
+* Conditionals: `{{#gameover}}<p>Game over man, game over!</p>{{/gameover}}`
+* Lists: `<ul>{{#users}}<li>{{name}} - {{company}}</li>{{/users}}</ul>`
+* Custom delimiters, if you like to kick it `<%= old_school %>`
+* Partials: `{{#basket}}<div>{{>item}}</div>{{/basket}}`
+* Control over attributes: `<div style='color: {{prefs.color}};'></div>`
 
 There's more!
 
