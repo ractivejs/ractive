@@ -15,3 +15,7 @@ Changelog
 	* Modify arrays so that `pop`, `push` and other mutator methods trigger a view update
 	* Removed half-finished, flaky async code. Async mode may return later
 	* `set` events are called when a) `view.set()` is called, b) twoway bindings trigger them, c) array mutator methods cause an update
+* 0.1.7
+	* Renamed project from Anglebars to Ractive
+	* Added support for animation
+	* A shed-load of bug fixes, and a big dollop of refactoring
