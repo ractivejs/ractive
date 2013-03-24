@@ -5,8 +5,8 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON( 'package.json' ),
 		meta: {
-			banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
-				'<%= grunt.template.today("yyyy-mm-dd") %>\n' +
+			banner: '/*! Ractive - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
+				'* <%= pkg.description %>\n\n' +
 				'* <%= pkg.homepage %>\n' +
 				'* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
 				' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n' +
@@ -16,7 +16,7 @@ module.exports = function(grunt) {
 				'\n\n',
 			wrapper: {
 				start: '(function ( global ) {\n\n' +
-						'"use strict";',
+						'\'use strict\';\n\n',
 				end: '\n\n// export\n' +
 						'if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS\n' +
 						'else if ( typeof define === "function" && define.amd ) define( function () { return Ractive } ) // AMD\n' +
@@ -31,24 +31,32 @@ module.exports = function(grunt) {
 			files: [ 'test/core.html', 'test/compile.html', 'test/render.html' ]
 		},
 		clean: {
-			files: [ 'build/**/*.js' ]
+			files: [ 'build/**/*' ]
 		},
 		concat: {
-			options: {
-				banner: '<%= meta.banner %><%= meta.wrapper.start %>',
-				footer: '<%= meta.wrapper.end %>'
-			},
-			compile: {
-				src: [ 'src/compile.js', 'src/tokenize.js', 'src/types.js' ],
-				dest: 'build/compile/Ractive.compile.js'
-			},
 			runtime: {
+				options: {
+					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
+					footer: '<%= meta.wrapper.end %>'
+				},
 				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
-				dest: 'build/runtime/Ractive.runtime.js'
+				dest: 'build/Ractive.runtime.js'
 			},
 			full: {
+				options: {
+					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
+					footer: '<%= meta.wrapper.end %>'
+				},
 				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
 				dest: 'build/Ractive.js'
+			},
+			runtime_legacy: {
+				src: [ 'src/legacy.js', '<%= concat.runtime.dest %>' ],
+				dest: 'build/Ractive-legacy.runtime.js'
+			},
+			full_legacy: {
+				src: [ 'src/legacy.js', '<%= concat.full.dest %>' ],
+				dest: 'build/Ractive-legacy.js'
 			}
 		},
 		watch: {
@@ -61,17 +69,21 @@ module.exports = function(grunt) {
 			}
 		},
 		uglify: {
-			compile: {
-				src: ['<%= concat.compile.dest %>'],
-				dest: 'build/compile/Ractive.compile.min.js'
-			},
 			runtime: {
 				src: ['<%= concat.runtime.dest %>'],
-				dest: 'build/runtime/Ractive.runtime.min.js'
+				dest: 'build/Ractive.runtime.min.js'
 			},
 			full: {
 				src: ['<%= concat.full.dest %>'],
 				dest: 'build/Ractive.min.js'
+			},
+			runtime_legacy: {
+				src: ['<%= concat.runtime_legacy.dest %>'],
+				dest: 'build/Ractive-legacy.runtime.min.js'
+			},
+			full_legacy: {
+				src: ['<%= concat.full_legacy.dest %>'],
+				dest: 'build/Ractive-legacy.min.js'
 			}
 		},
 		copy: {
@@ -84,10 +96,8 @@ module.exports = function(grunt) {
 				}]
 			},
 			link: {
-				files:{
-					'Ractive.js': 'build/Ractive.js',
-					'Ractive.compile.js': 'build/compile/Ractive.compile.js',
-					'Ractive.runtime.js': 'build/runtime/Ractive.runtime.js'
+				files: {
+					'Ractive.js': 'build/Ractive.js'
 				}
 			}
 		}

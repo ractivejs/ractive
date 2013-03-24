@@ -1,3 +1,16 @@
+(function () {
+
+	'use strict';
+
+	// IE shims
+	if ( !Date.now ) {
+		Date.now = function () { return +new Date(); };
+	}
+
+	// TODO....
+
+}());
+
 /*! ractive - v0.1.7 - 2013-03-23
 * http://rich-harris.github.com/Ractive/
 * Copyright (c) 2013 Rich Harris; Licensed MIT */

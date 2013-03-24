@@ -1,4 +1,19 @@
-/*! ractive - v0.1.7 - 2013-03-23
+(function () {
+
+	'use strict';
+
+	// IE shims
+	if ( !Date.now ) {
+		Date.now = function () { return +new Date(); };
+	}
+
+	// TODO....
+
+}());
+
+/*! Ractive - v0.1.7 - 2013-03-23
+* Faster, easier, better interactive web development
+
 * http://rich-harris.github.com/Ractive/
 * Copyright (c) 2013 Rich Harris; Licensed MIT */
 
@@ -8,7 +23,9 @@
 
 (function ( global ) {
 
-"use strict";var Ractive = (function () {
+'use strict';
+
+var Ractive = (function () {
 
 	'use strict';
 

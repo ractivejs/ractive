@@ -1,11 +1,13 @@
-(function ( A, global ) {
+(function ( A ) {
 
 	'use strict';
 
-	var Animation, animationCollection;
+	var Animation, animationCollection, global;
+
+	global = ( typeof window !== 'undefined' ? window : {} );
 
 	// https://gist.github.com/paulirish/1579671
-	(function( vendors, lastTime, global ) {
+	(function( vendors, lastTime, window ) {
 		
 		var x;
 
@@ -188,4 +190,4 @@
 	};
 
 
-}( Ractive, this ));
+}( Ractive ));

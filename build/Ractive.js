@@ -1,6 +1,8 @@
-/*! ractive - v0.1.7 - 2013-03-23
+/*! Ractive - v0.1.7 - 2013-03-23
+* Faster, easier, better interactive web development
+
 * http://rich-harris.github.com/Ractive/
-* Copyright (c) 2013 Rich Harris; Licensed WTFPL */
+* Copyright (c) 2013 Rich Harris; Licensed MIT */
 
 /*jslint eqeq: true, plusplus: true */
 /*global document, HTMLElement */
@@ -8,7 +10,9 @@
 
 (function ( global ) {
 
-"use strict";var Ractive = (function ( global ) {
+'use strict';
+
+var Ractive = (function () {
 
 	'use strict';
 
@@ -182,11 +186,11 @@
 	getEl = function ( input ) {
 		var output, doc;
 
-		if ( !global.document ) {
+		if ( typeof window === 'undefined' ) {
 			return;
 		}
 
-		doc = global.document;
+		doc = window.document;
 
 		if ( !input ) {
 			throw new Error( 'No container element specified' );
@@ -223,7 +227,7 @@
 
 	return Ractive;
 
-}( this ));
+}());
 (function ( A ) {
 
 	'use strict';
@@ -2371,7 +2375,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 }( Ractive ));
 
-(function ( A, global ) {
+(function ( A ) {
 
 	'use strict';
 
@@ -2380,7 +2384,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	types = A.types;
 
-	doc = global.document;
+	doc = ( typeof window !== 'undefined' ? window.document : null );
 
 	elContains = function ( haystack, needle ) {
 		// TODO!
@@ -2961,7 +2965,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		}
 	};
 
-}( Ractive, this ));
+}( Ractive ));
 
 (function ( A ) {
 
@@ -3423,14 +3427,16 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 }( Ractive ));
-(function ( A, global ) {
+(function ( A ) {
 
 	'use strict';
 
-	var Animation, animationCollection;
+	var Animation, animationCollection, global;
+
+	global = ( typeof window !== 'undefined' ? window : {} );
 
 	// https://gist.github.com/paulirish/1579671
-	(function( vendors, lastTime, global ) {
+	(function( vendors, lastTime, window ) {
 		
 		var x;
 
@@ -3613,7 +3619,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 
-}( Ractive, this ));
+}( Ractive ));
 
 // export
 if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS

@@ -1,6 +1,3 @@
-/*global Ractive */
-/*jslint white: true */
-
 (function ( A ) {
 	
 	'use strict';

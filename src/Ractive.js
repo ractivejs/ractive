@@ -1,4 +1,4 @@
-var Ractive = (function ( global ) {
+var Ractive = (function () {
 
 	'use strict';
 
@@ -172,11 +172,11 @@ var Ractive = (function ( global ) {
 	getEl = function ( input ) {
 		var output, doc;
 
-		if ( !global.document ) {
+		if ( typeof window === 'undefined' ) {
 			return;
 		}
 
-		doc = global.document;
+		doc = window.document;
 
 		if ( !input ) {
 			throw new Error( 'No container element specified' );
@@ -213,4 +213,4 @@ var Ractive = (function ( global ) {
 
 	return Ractive;
 
-}( this ));
+}());
