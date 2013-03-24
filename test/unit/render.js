@@ -132,6 +132,14 @@ tests = [
 		formatters: {
 			plus_one: function ( n ) { return n + 1; }
 		}
+	},
+	{
+		name: 'Triple',
+		template: '<div>before {{{triple}}} after</div>',
+		data: { triple: '<strong>bold</strong> <em>italic</em>' },
+		result: '<div>before <strong>bold</strong> <em>italic</em> after</div>',
+		new_data: { triple: '<em>italic</em> <strong>bold</strong>' },
+		new_result: '<div>before <em>italic</em> <strong>bold</strong> after</div>'
 	}
 ];
 
@@ -149,6 +157,11 @@ _.each( tests, function ( t, i ) {
 		});
 
 		equal( fixture.innerHTML, t.result );
+
+		if ( t.new_data ) {
+			ractive.set( t.new_data );
+			equal( fixture.innerHTML, t.new_result );
+		}
 
 		console.groupEnd();
 	});
