@@ -2,16 +2,113 @@
 
 	'use strict';
 
-	// IE shims
+	// Shims for older browsers
+
 	if ( !Date.now ) {
 		Date.now = function () { return +new Date(); };
 	}
 
-	// TODO....
+	if ( !document.createElementNS ) {
+		document.createElementNS = function ( ns, type ) {
+			if ( ns !== null && ns !== 'http://www.w3.org/1999/xhtml' ) {
+				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
+			}
+
+			return document.createElement( type );
+		};
+	}
+
+	if ( !Element.prototype.contains ) {
+		Element.prototype.contains = function ( el ) {
+			while ( el.parentNode ) {
+				if ( el.parentNode === this ) {
+					return true;
+				}
+
+				el = el.parentNode;
+			}
+
+			return false;
+		};
+	}
+
+	if ( !String.prototype.trim ) {
+		String.prototype.trim = function () {
+			return this.replace(/^\s+/, '').replace(/\s+$/, '');
+		};
+	}
+
+
+	// Array extras
+	if ( !Array.prototype.indexOf ) {
+		Array.prototype.indexOf = function ( needle, i ) {
+			var len;
+
+			if ( i === undefined ) {
+				i = 0;
+			}
+
+			if ( i < 0 ) {
+				i+= this.length;
+			}
+
+			if ( i < 0 ) {
+				i = 0;
+			}
+
+			for ( len = this.length; i<len; i++ ) {
+				if ( i in this && this[i] === needle ) {
+					return i;
+				}
+			}
+
+			return -1;
+		};
+	}
+
+	if ( !Array.prototype.forEach ) {
+		Array.prototype.forEach = function ( callback, context ) {
+			var i, len;
+
+			for ( i=0, len=this.length; i<len; i+=1 ) {
+				if ( i in this ) {
+					callback.call( context, this[i], i, this );
+				}
+			}
+		};
+	}
+
+	if ( !Array.prototype.map ) {
+		Array.prototype.map = function ( mapper, context ) {
+			var i, len, mapped = [];
+
+			for ( i=0, len=this.length; i<len; i+=1 ) {
+				if ( i in this ) {
+					mapped[i] = mapper.call( context, this[i], i, this );
+				}
+			}
+
+			return mapped;
+		};
+	}
+
+	if ( !Array.prototype.map ) {
+		Array.prototype.map = function ( filter, context ) {
+			var i, len, filtered = [];
+
+			for ( i=0, len=this.length; i<len; i+=1 ) {
+				if ( i in this && filter.call( context, this[i], i, this ) ) {
+					filtered[ filtered.length ] = this[i];
+				}
+			}
+
+			return filtered;
+		};
+	}
 
 }());
 
-/*! Ractive - v0.1.7 - 2013-03-23
+/*! Ractive - v0.1.7 - 2013-03-24
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -142,6 +239,8 @@ var Ractive = (function () {
 				root: this,
 				parentNode: el
 			});
+
+			el.appendChild( this.rendered.docFrag );
 		},
 
 		// Teardown. This goes through the root fragment and all its children, removing observers
@@ -273,6 +372,7 @@ var Ractive = (function () {
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	};
 
+	// TODO what about non-POJOs?
 	isObject = function ( obj ) {
 		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 	};
@@ -295,10 +395,6 @@ var Ractive = (function () {
 
 		this.type = options.model.type;
 
-		if ( this.initialize ) {
-			this.initialize();
-		}
-
 		this.viewmodel.registerView( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
@@ -313,12 +409,6 @@ var Ractive = (function () {
 	A._Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
-
-		if ( this.preInit ) {
-			if ( this.preInit( options ) ) {
-				return;
-			}
-		}
 
 		this.parent = options.parent;
 		this.index = options.index;
@@ -423,7 +513,7 @@ var Ractive = (function () {
 
 			// if the array is shorter than it was previously, remove items
 			if ( value.length < this.length ) {
-				itemsToRemove = this.views.splice( value.length, this.length - value.length );
+				itemsToRemove = this.fragments.splice( value.length, this.length - value.length );
 
 				while ( itemsToRemove.length ) {
 					itemsToRemove.pop().teardown();
@@ -986,68 +1076,53 @@ var Ractive = (function () {
 
 	'use strict';
 
-	var types, insertHtml, elContains, doc,
+	var types, insertHtml, doc,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	types = A.types;
 
 	doc = ( typeof window !== 'undefined' ? window.document : null );
 
-	elContains = function ( haystack, needle ) {
-		// TODO!
-		if ( haystack.contains ) {
-			return haystack.contains( needle );
-		}
-
-		return true;
-	};
-
-	insertHtml = function ( html, parent, anchor ) {
+	insertHtml = function ( html, docFrag ) {
 		var div, i, len, nodes = [];
-
-		anchor = anchor || null;
 
 		div = doc.createElement( 'div' );
 		div.innerHTML = html;
 
-		len = div.childNodes.length;
-
-		for ( i=0; i<len; i+=1 ) {
-			nodes[i] = div.childNodes[i];
-		}
-
-		for ( i=0; i<len; i+=1 ) {
-			parent.insertBefore( nodes[i], anchor );
+		while ( div.firstChild ) {
+			nodes[ nodes.length ] = div.firstChild;
+			docFrag.appendChild( div.firstChild );
 		}
 
 		return nodes;
 	};
 
 	A.DomFragment = function ( options ) {
+		this.docFrag = doc.createDocumentFragment();
+
+		// if we have an HTML string, our job is easy.
+		if ( typeof options.model === 'string' ) {
+			this.nodes = insertHtml( options.model, this.docFrag );
+			return; // prevent the rest of the init sequence
+		}
+
+		// otherwise we need to make a proper fragment
 		A._Fragment.call( this, options );
 	};
 
 	A.DomFragment.prototype = {
-		preInit: function ( options ) {
-			// if we have an HTML string, our job is easy.
-			if ( typeof options.model === 'string' ) {
-				this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
-				return true; // prevent the rest of the init sequence
-			}
-		},
-
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
-				return new Text( options );
+				return new Text( options, this.docFrag );
 			}
 
 			switch ( options.model.type ) {
-				case types.INTERPOLATOR: return new Interpolator( options );
-				case types.SECTION: return new Section( options );
-				case types.TRIPLE: return new Triple( options );
+				case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
+				case types.SECTION: return new Section( options, this.docFrag );
+				case types.TRIPLE: return new Triple( options, this.docFrag );
 
-				case types.ELEMENT: return new Element( options );
-				case types.PARTIAL: return new Partial( options );
+				case types.ELEMENT: return new Element( options, this.docFrag );
+				case types.PARTIAL: return new Partial( options, this.docFrag );
 
 				default: throw 'WTF? not sure what happened here...';
 			}
@@ -1100,7 +1175,7 @@ var Ractive = (function () {
 
 
 	// Partials
-	Partial = function ( options ) {
+	Partial = function ( options, docFrag ) {
 		this.fragment = new A.DomFragment({
 			model:        options.root.partials[ options.model.ref ] || [],
 			root:         options.root,
@@ -1109,6 +1184,8 @@ var Ractive = (function () {
 			anchor:       options.anchor,
 			parent:        this
 		});
+
+		docFrag.appendChild( this.fragment.docFrag );
 	};
 
 	Partial.prototype = {
@@ -1119,19 +1196,19 @@ var Ractive = (function () {
 
 
 	// Plain text
-	Text = function ( options ) {
+	Text = function ( options, docFrag ) {
 		this.node = doc.createTextNode( options.model );
 		this.index = options.index;
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor || null );
+		docFrag.appendChild( this.node );
 	};
 
 	Text.prototype = {
 		teardown: function () {
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -1143,7 +1220,7 @@ var Ractive = (function () {
 
 
 	// Element
-	Element = function ( options ) {
+	Element = function ( options, docFrag ) {
 
 		var binding,
 			model,
@@ -1221,11 +1298,12 @@ var Ractive = (function () {
 					anchor:       null,
 					parent:        this
 				});
+
+				this.node.appendChild( this.children.docFrag );
 			}
 		}
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor || null );
+		docFrag.appendChild( this.node );
 	};
 
 	Element.prototype = {
@@ -1294,7 +1372,7 @@ var Ractive = (function () {
 		},
 
 		teardown: function () {
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 
@@ -1428,17 +1506,15 @@ var Ractive = (function () {
 
 
 	// Interpolator
-	Interpolator = function ( options ) {
+	Interpolator = function ( options, docFrag ) {
+		this.node = doc.createTextNode( '' );
+		docFrag.appendChild( this.node );
+
 		// extend Mustache
 		A._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
-		initialize: function () {
-			this.node = doc.createTextNode( '' );
-			this.parentNode.insertBefore( this.node, this.anchor || null );
-		},
-
 		teardown: function () {
 			if ( !this.observerRefs ) {
 				this.viewmodel.cancelKeypathResolution( this );
@@ -1446,7 +1522,7 @@ var Ractive = (function () {
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -1465,19 +1541,17 @@ var Ractive = (function () {
 
 
 	// Triple
-	Triple = function ( options ) {
+	Triple = function ( options, docFrag ) {
+		this.nodes = [];
+
 		A._Mustache.call( this, options );
 	};
 
 	Triple.prototype = {
-		initialize: function () {
-			this.nodes = [];
-		},
-
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( elContains( this.root.el, this.parentNode ) ) {
+			if ( this.root.el.contains( this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -1523,16 +1597,21 @@ var Ractive = (function () {
 
 
 	// Section
-	Section = function ( options ) {
+	Section = function ( options, docFrag ) {
+		this.fragments = [];
+		this.length = 0; // number of times this section is rendered
+
+		this.docFrag = doc.createDocumentFragment();
+		this.initialising = true;
+
 		A._Mustache.call( this, options );
+
+		docFrag.appendChild( this.docFrag );
+
+		this.initialising = false;
 	};
 
 	Section.prototype = {
-		initialize: function () {
-			this.fragments = [];
-			this.length = 0; // number of times this section is rendered
-		},
-
 		teardown: function () {
 			this.unrender();
 
@@ -1565,10 +1644,22 @@ var Ractive = (function () {
 			}
 		},
 
-		update: A._sectionUpdate,
+		update: function ( value ) {
+			
+			A._sectionUpdate.call( this, value );
+
+			if ( !this.initialising ) {
+				// we need to insert the contents of our document fragment into the correct place
+				this.parentNode.appendChild( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
+			
+		},
 
 		createFragment: function ( options ) {
-			return new A.DomFragment( options );
+			var fragment = new A.DomFragment( options );
+			
+			this.docFrag.appendChild( fragment.docFrag );
+			return fragment;
 		}
 	};
 
@@ -1585,13 +1676,11 @@ var Ractive = (function () {
 
 	A.TextFragment = function ( options ) {
 		A._Fragment.call( this, options );
+
+		this.value = this.items.join('');
 	};
 
 	A.TextFragment.prototype = {
-		init: function () {
-			this.value = this.items.join('');
-		},
-
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options.model );
@@ -1676,15 +1765,13 @@ var Ractive = (function () {
 
 	// Section
 	Section = function ( options ) {
+		this.fragments = [];
+		this.length = 0;
+
 		A._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
-		initialize: function () {
-			this.fragments = [];
-			this.length = 0;
-		},
-
 		teardown: function () {
 			this.unrender();
 
