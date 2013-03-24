@@ -75,10 +75,6 @@
 		firstNode: function () {
 			if ( this.items[0] ) {
 				return this.items[0].firstNode();
-			} 
-
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -89,10 +85,6 @@
 
 			if ( this.items[ index + 1 ] ) {
 				return this.items[ index + 1 ].firstNode();
-			}
-
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -107,7 +99,6 @@
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
-			anchor:       options.anchor,
 			parent:        this
 		});
 
@@ -124,11 +115,9 @@
 	// Plain text
 	Text = function ( options, docFrag ) {
 		this.node = doc.createTextNode( options.model );
-		this.index = options.index;
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		docFrag.appendChild( this.node );
 	};
 
@@ -221,7 +210,6 @@
 					root:    options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
-					anchor:       null,
 					parent:        this
 				});
 
@@ -289,12 +277,13 @@
 			// set initial value
 			setValue();
 
-			// TODO support shite browsers like IE and Opera
 			node.addEventListener( 'change', setValue );
 
 			if ( !lazy ) {
 				node.addEventListener( 'keyup', setValue );
 			}
+
+			// TODO remove event listeners on teardown
 		},
 
 		teardown: function () {
@@ -469,8 +458,12 @@
 	// Triple
 	Triple = function ( options, docFrag ) {
 		this.nodes = [];
+		this.docFrag = doc.createDocumentFragment();
 
+		this.initialising = true;
 		A._Mustache.call( this, options );
+		docFrag.appendChild( this.docFrag );
+		this.initialising = false;
 	};
 
 	Triple.prototype = {
@@ -500,8 +493,6 @@
 		},
 
 		update: function ( html ) {
-			var anchor;
-
 			if ( html === this.html ) {
 				return;
 			}
@@ -513,10 +504,12 @@
 				this.parentNode.removeChild( this.nodes.pop() );
 			}
 
-			anchor = this.anchor || this.parentFragment.findNextNode( this );
-
 			// get new nodes
-			this.nodes = insertHtml( html, this.parentNode, anchor );
+			this.nodes = insertHtml( html, this.docFrag );
+
+			if ( !this.initialising ) {
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
 		}
 	};
 
@@ -528,12 +521,10 @@
 		this.length = 0; // number of times this section is rendered
 
 		this.docFrag = doc.createDocumentFragment();
+		
 		this.initialising = true;
-
 		A._Mustache.call( this, options );
-
 		docFrag.appendChild( this.docFrag );
-
 		this.initialising = false;
 	};
 
@@ -576,7 +567,7 @@
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
-				this.parentNode.appendChild( this.docFrag, this.parentFragment.findNextNode( this ) );
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
 			
 		},
