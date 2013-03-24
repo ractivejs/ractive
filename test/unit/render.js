@@ -29,6 +29,18 @@ tests = [
 		result: "hello world"
 	},
 	{
+		name: "Element containing single interpolator",
+		template: "<p>{{mustache}}</p>",
+		data: { mustache: "hello world" },
+		result: "<p>hello world</p>"
+	},
+	{
+		name: "Element containing interpolator surrounded by text",
+		template: "<p>Hello {{mustache}}!</p>",
+		data: { mustache: "world" },
+		result: "<p>Hello world!</p>"
+	},
+	{
 		name: "Section with index refs",
 		template: "<ul>{{#items:i}}<li>{{i}}: {{name}}</li>{{/items}}</ul>",
 		data: {
@@ -111,19 +123,29 @@ tests = [
 		template: '{{^condition}}The condition is falsy{{/condition}}',
 		data: { condition: false },
 		result: 'The condition is falsy'
+	},
+	{
+		name: 'Table',
+		template: "<p>Click headers to sort:</p><table><tr><th>#</th><th class='sort' data-col='name'>Superhero name</th><th class='sort' data-col='realname'>Real name</th><th class='sort' data-col='power'>Superpower</th></tr>{{#superheroes:i}}<tr data-id='{{i}}'><td>{{i | plus_one}}</td><td><a href='{{info}}'>{{name}}</a></td><td>{{realname}}</td><td>{{power}}</td></tr>{{/superheroes}}</table>",
+		data: { superheroes: [{ name: 'Nightcrawler', realname: 'Wagner, Kurt',     power: 'Teleportation', info: 'http://www.superherodb.com/Nightcrawler/10-107/' }, { name: 'Cyclops',      realname: 'Summers, Scott',   power: 'Optic blast',   info: 'http://www.superherodb.com/Cyclops/10-50/' }, { name: 'Mystique',     realname: 'Darkholme, Raven', power: 'Shapeshifting', info: 'http://www.superherodb.com/Mystique/10-817/' }, { name: 'Wolverine',    realname: 'Howlett, James',   power: 'Regeneration',  info: 'http://www.superherodb.com/Wolverine/10-161/' } ]},
+		result: '<p>Click headers to sort:</p><table><tr><th>#</th><th class="sort" data-col="name">Superhero name</th><th class="sort" data-col="realname">Real name</th><th class="sort" data-col="power">Superpower</th></tr><tr data-id="0"><td>1</td><td><a href="http://www.superherodb.com/Nightcrawler/10-107/">Nightcrawler</a></td><td>Wagner, Kurt</td><td>Teleportation</td></tr><tr data-id="1"><td>2</td><td><a href="http://www.superherodb.com/Cyclops/10-50/">Cyclops</a></td><td>Summers, Scott</td><td>Optic blast</td></tr><tr data-id="2"><td>3</td><td><a href="http://www.superherodb.com/Mystique/10-817/">Mystique</a></td><td>Darkholme, Raven</td><td>Shapeshifting</td></tr><tr data-id="3"><td>4</td><td><a href="http://www.superherodb.com/Wolverine/10-161/">Wolverine</a></td><td>Howlett, James</td><td>Regeneration</td></tr></table>',
+		formatters: {
+			plus_one: function ( n ) { return n + 1; }
+		}
 	}
 ];
 
 
 _.each( tests, function ( t, i ) {
 	test( t.name, function () {
-		console.group(i+2);
+		console.group(i+1);
 
 		var ractive = new Ractive({
 			el: fixture,
 			data: t.data,
 			template: t.template,
-			partials: t.partials
+			partials: t.partials,
+			formatters: t.formatters
 		});
 
 		equal( fixture.innerHTML, t.result );
