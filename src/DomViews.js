@@ -1,22 +1,13 @@
-(function ( A, global ) {
+(function ( A ) {
 
 	'use strict';
 
-	var types, insertHtml, elContains, doc,
+	var types, insertHtml, doc,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	types = A.types;
 
-	doc = global.document;
-
-	elContains = function ( haystack, needle ) {
-		// TODO!
-		if ( haystack.contains ) {
-			return haystack.contains( needle );
-		}
-
-		return true;
-	};
+	doc = ( typeof window !== 'undefined' ? window.document : null );
 
 	insertHtml = function ( html, parent, anchor ) {
 		var div, i, len, nodes = [];
@@ -147,7 +138,7 @@
 
 	Text.prototype = {
 		teardown: function () {
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -310,7 +301,7 @@
 		},
 
 		teardown: function () {
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 
@@ -462,7 +453,7 @@
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -493,7 +484,7 @@
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( elContains( this.root.el, this.parentNode ) ) {
+			if ( this.root.el.contains( this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -588,4 +579,4 @@
 		}
 	};
 
-}( Ractive, this ));
+}( Ractive ));
