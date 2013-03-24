@@ -275,18 +275,22 @@
 			};
 
 			// set initial value
-			setValue();
+			this.setValue();
 
-			node.addEventListener( 'change', setValue );
+			node.addEventListener( 'change', this.setValue );
 
 			if ( !lazy ) {
-				node.addEventListener( 'keyup', setValue );
+				node.addEventListener( 'keyup', this.setValue );
 			}
-
-			// TODO remove event listeners on teardown
 		},
 
 		teardown: function () {
+			// remove the event listeners we added, if we added them
+			if ( this.setValue ) {
+				this.node.removeEventListener( 'change', this.setValue );
+				this.node.removeEventListener( 'keyup', this.setValue );
+			}
+
 			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
