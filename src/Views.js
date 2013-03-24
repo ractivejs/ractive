@@ -9,6 +9,7 @@
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	};
 
+	// TODO what about non-POJOs?
 	isObject = function ( obj ) {
 		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 	};
@@ -31,10 +32,6 @@
 
 		this.type = options.model.type;
 
-		if ( this.initialize ) {
-			this.initialize();
-		}
-
 		this.viewmodel.registerView( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
@@ -49,12 +46,6 @@
 	A._Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
-
-		if ( this.preInit ) {
-			if ( this.preInit( options ) ) {
-				return;
-			}
-		}
 
 		this.parent = options.parent;
 		this.index = options.index;
@@ -159,7 +150,7 @@
 
 			// if the array is shorter than it was previously, remove items
 			if ( value.length < this.length ) {
-				itemsToRemove = this.views.splice( value.length, this.length - value.length );
+				itemsToRemove = this.fragments.splice( value.length, this.length - value.length );
 
 				while ( itemsToRemove.length ) {
 					itemsToRemove.pop().teardown();

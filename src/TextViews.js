@@ -9,13 +9,11 @@
 
 	A.TextFragment = function ( options ) {
 		A._Fragment.call( this, options );
+
+		this.value = this.items.join('');
 	};
 
 	A.TextFragment.prototype = {
-		init: function () {
-			this.value = this.items.join('');
-		},
-
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options.model );
@@ -100,15 +98,13 @@
 
 	// Section
 	Section = function ( options ) {
+		this.fragments = [];
+		this.length = 0;
+
 		A._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
-		initialize: function () {
-			this.fragments = [];
-			this.length = 0;
-		},
-
 		teardown: function () {
 			this.unrender();
 

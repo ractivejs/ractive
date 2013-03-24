@@ -115,6 +115,8 @@ var Ractive = (function () {
 				root: this,
 				parentNode: el
 			});
+
+			el.appendChild( this.rendered.docFrag );
 		},
 
 		// Teardown. This goes through the root fragment and all its children, removing observers

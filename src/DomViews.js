@@ -9,52 +9,46 @@
 
 	doc = ( typeof window !== 'undefined' ? window.document : null );
 
-	insertHtml = function ( html, parent, anchor ) {
+	insertHtml = function ( html, docFrag ) {
 		var div, i, len, nodes = [];
-
-		anchor = anchor || null;
 
 		div = doc.createElement( 'div' );
 		div.innerHTML = html;
 
-		len = div.childNodes.length;
-
-		for ( i=0; i<len; i+=1 ) {
-			nodes[i] = div.childNodes[i];
-		}
-
-		for ( i=0; i<len; i+=1 ) {
-			parent.insertBefore( nodes[i], anchor );
+		while ( div.firstChild ) {
+			nodes[ nodes.length ] = div.firstChild;
+			docFrag.appendChild( div.firstChild );
 		}
 
 		return nodes;
 	};
 
 	A.DomFragment = function ( options ) {
+		this.docFrag = doc.createDocumentFragment();
+
+		// if we have an HTML string, our job is easy.
+		if ( typeof options.model === 'string' ) {
+			this.nodes = insertHtml( options.model, this.docFrag );
+			return; // prevent the rest of the init sequence
+		}
+
+		// otherwise we need to make a proper fragment
 		A._Fragment.call( this, options );
 	};
 
 	A.DomFragment.prototype = {
-		preInit: function ( options ) {
-			// if we have an HTML string, our job is easy.
-			if ( typeof options.model === 'string' ) {
-				this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
-				return true; // prevent the rest of the init sequence
-			}
-		},
-
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
-				return new Text( options );
+				return new Text( options, this.docFrag );
 			}
 
 			switch ( options.model.type ) {
-				case types.INTERPOLATOR: return new Interpolator( options );
-				case types.SECTION: return new Section( options );
-				case types.TRIPLE: return new Triple( options );
+				case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
+				case types.SECTION: return new Section( options, this.docFrag );
+				case types.TRIPLE: return new Triple( options, this.docFrag );
 
-				case types.ELEMENT: return new Element( options );
-				case types.PARTIAL: return new Partial( options );
+				case types.ELEMENT: return new Element( options, this.docFrag );
+				case types.PARTIAL: return new Partial( options, this.docFrag );
 
 				default: throw 'WTF? not sure what happened here...';
 			}
@@ -107,7 +101,7 @@
 
 
 	// Partials
-	Partial = function ( options ) {
+	Partial = function ( options, docFrag ) {
 		this.fragment = new A.DomFragment({
 			model:        options.root.partials[ options.model.ref ] || [],
 			root:         options.root,
@@ -116,6 +110,8 @@
 			anchor:       options.anchor,
 			parent:        this
 		});
+
+		docFrag.appendChild( this.fragment.docFrag );
 	};
 
 	Partial.prototype = {
@@ -126,14 +122,14 @@
 
 
 	// Plain text
-	Text = function ( options ) {
+	Text = function ( options, docFrag ) {
 		this.node = doc.createTextNode( options.model );
 		this.index = options.index;
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
 		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor || null );
+		docFrag.appendChild( this.node );
 	};
 
 	Text.prototype = {
@@ -150,7 +146,7 @@
 
 
 	// Element
-	Element = function ( options ) {
+	Element = function ( options, docFrag ) {
 
 		var binding,
 			model,
@@ -228,11 +224,12 @@
 					anchor:       null,
 					parent:        this
 				});
+
+				this.node.appendChild( this.children.docFrag );
 			}
 		}
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor || null );
+		docFrag.appendChild( this.node );
 	};
 
 	Element.prototype = {
@@ -435,17 +432,15 @@
 
 
 	// Interpolator
-	Interpolator = function ( options ) {
+	Interpolator = function ( options, docFrag ) {
+		this.node = doc.createTextNode( '' );
+		docFrag.appendChild( this.node );
+
 		// extend Mustache
 		A._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
-		initialize: function () {
-			this.node = doc.createTextNode( '' );
-			this.parentNode.insertBefore( this.node, this.anchor || null );
-		},
-
 		teardown: function () {
 			if ( !this.observerRefs ) {
 				this.viewmodel.cancelKeypathResolution( this );
@@ -472,15 +467,13 @@
 
 
 	// Triple
-	Triple = function ( options ) {
+	Triple = function ( options, docFrag ) {
+		this.nodes = [];
+
 		A._Mustache.call( this, options );
 	};
 
 	Triple.prototype = {
-		initialize: function () {
-			this.nodes = [];
-		},
-
 		teardown: function () {
 
 			// remove child nodes from DOM
@@ -530,16 +523,21 @@
 
 
 	// Section
-	Section = function ( options ) {
+	Section = function ( options, docFrag ) {
+		this.fragments = [];
+		this.length = 0; // number of times this section is rendered
+
+		this.docFrag = doc.createDocumentFragment();
+		this.initialising = true;
+
 		A._Mustache.call( this, options );
+
+		docFrag.appendChild( this.docFrag );
+
+		this.initialising = false;
 	};
 
 	Section.prototype = {
-		initialize: function () {
-			this.fragments = [];
-			this.length = 0; // number of times this section is rendered
-		},
-
 		teardown: function () {
 			this.unrender();
 
@@ -572,10 +570,22 @@
 			}
 		},
 
-		update: A._sectionUpdate,
+		update: function ( value ) {
+			
+			A._sectionUpdate.call( this, value );
+
+			if ( !this.initialising ) {
+				// we need to insert the contents of our document fragment into the correct place
+				this.parentNode.appendChild( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
+			
+		},
 
 		createFragment: function ( options ) {
-			return new A.DomFragment( options );
+			var fragment = new A.DomFragment( options );
+			
+			this.docFrag.appendChild( fragment.docFrag );
+			return fragment;
 		}
 	};
 
