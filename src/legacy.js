@@ -38,61 +38,37 @@
 		};
 	}
 
-	// https://gist.github.com/2864711/946225eb3822c203e8d6218095d888aac5e1748e
-	// addEventListener polyfill 1.0 / Eirik Backer / MIT Licence
-	(function( win, doc ){
-		var docHijack, addEvent, addListen;
+	// https://gist.github.com/jonathantneal/3748027
+	if ( !window.addEventListener ) {
+		(function ( WindowPrototype, DocumentPrototype, ElementPrototype, addEventListener, removeEventListener, dispatchEvent, registry ) {
+			WindowPrototype[addEventListener] = DocumentPrototype[addEventListener] = ElementPrototype[addEventListener] = function (type, listener) {
+				var target = this;
 
-		if ( win.addEventListener ) {
-			return;
-		}
-	 
-		docHijack = function ( p ) {
-			var old = doc[p];
-			doc[p] = function(v){
-				return addListen( old( v ) );
+				registry.unshift([target, type, listener, function (event) {
+					event.currentTarget = target;
+					event.preventDefault = function () { event.returnValue = false; };
+					event.stopPropagation = function () { event.cancelBubble = true; };
+					event.target = event.srcElement || target;
+
+					listener.call(target, event);
+				}]);
+
+				this.attachEvent("on" + type, registry[0][3]);
 			};
-		};
 
-		addEvent = function ( on, fn, self ) {
-			return ( self = this ).attachEvent( 'on' + on, function ( e ) {
-				e = e || win.event;
-				e.preventDefault  = e.preventDefault  || function () { e.returnValue = false; };
-				e.stopPropagation = e.stopPropagation || function () { e.cancelBubble = true; };
-				fn.call( self, e );
-			});
-		};
-
-		addListen = function ( obj, i ) {
-			if ( i = obj.length ) {
-				while ( i-- ) {
-					obj[i].addEventListener = addEvent;
+			WindowPrototype[removeEventListener] = DocumentPrototype[removeEventListener] = ElementPrototype[removeEventListener] = function (type, listener) {
+				for (var index = 0, register; register = registry[index]; ++index) {
+					if ( register[0] === this && register[1] === type && register[2] === listener ) {
+						return this.detachEvent("on" + type, registry.splice(index, 1)[0][3]);
+					}
 				}
-			}
+			};
 
-			else {
-				obj.addEventListener = addEvent;
-			}
-
-			return obj;
-		};
-	 
-		addListen([ doc, win ]);
-
-		if ( 'Element' in win ) { //IE8
-			win.Element.prototype.addEventListener = addEvent;
-		}
-
-		else { //IE < 8
-			doc.attachEvent( 'onreadystatechange', function () {
-				addListen( doc.all );
-			}); //Make sure we also init at domReady
-			docHijack( 'getElementsByTagName' );
-			docHijack( 'getElementById' );
-			docHijack( 'createElement' );
-			addListen( doc.all ); 
-		}
-	})( window, document );
+			WindowPrototype[dispatchEvent] = DocumentPrototype[dispatchEvent] = ElementPrototype[dispatchEvent] = function (eventObject) {
+				return this.fireEvent("on" + eventObject.type, eventObject);
+			};
+		}( Window.prototype, HTMLDocument.prototype, Element.prototype, "addEventListener", "removeEventListener", "dispatchEvent", [] ));
+	}
 
 
 	// Array extras
