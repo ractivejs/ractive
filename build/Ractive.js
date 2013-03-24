@@ -2442,10 +2442,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		firstNode: function () {
 			if ( this.items[0] ) {
 				return this.items[0].firstNode();
-			} 
-
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -2456,10 +2452,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 			if ( this.items[ index + 1 ] ) {
 				return this.items[ index + 1 ].firstNode();
-			}
-
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -2474,7 +2466,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
-			anchor:       options.anchor,
 			parent:        this
 		});
 
@@ -2491,11 +2482,9 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	// Plain text
 	Text = function ( options, docFrag ) {
 		this.node = doc.createTextNode( options.model );
-		this.index = options.index;
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		docFrag.appendChild( this.node );
 	};
 
@@ -2588,7 +2577,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 					root:    options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
-					anchor:       null,
 					parent:        this
 				});
 
@@ -2656,12 +2644,13 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			// set initial value
 			setValue();
 
-			// TODO support shite browsers like IE and Opera
 			node.addEventListener( 'change', setValue );
 
 			if ( !lazy ) {
 				node.addEventListener( 'keyup', setValue );
 			}
+
+			// TODO remove event listeners on teardown
 		},
 
 		teardown: function () {
@@ -2836,8 +2825,12 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	// Triple
 	Triple = function ( options, docFrag ) {
 		this.nodes = [];
+		this.docFrag = doc.createDocumentFragment();
 
+		this.initialising = true;
 		A._Mustache.call( this, options );
+		docFrag.appendChild( this.docFrag );
+		this.initialising = false;
 	};
 
 	Triple.prototype = {
@@ -2867,8 +2860,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		},
 
 		update: function ( html ) {
-			var anchor;
-
 			if ( html === this.html ) {
 				return;
 			}
@@ -2880,10 +2871,12 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 				this.parentNode.removeChild( this.nodes.pop() );
 			}
 
-			anchor = this.anchor || this.parentFragment.findNextNode( this );
-
 			// get new nodes
-			this.nodes = insertHtml( html, this.parentNode, anchor );
+			this.nodes = insertHtml( html, this.docFrag );
+
+			if ( !this.initialising ) {
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
 		}
 	};
 
@@ -2895,12 +2888,10 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.length = 0; // number of times this section is rendered
 
 		this.docFrag = doc.createDocumentFragment();
+		
 		this.initialising = true;
-
 		A._Mustache.call( this, options );
-
 		docFrag.appendChild( this.docFrag );
-
 		this.initialising = false;
 	};
 
@@ -2943,7 +2934,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
-				this.parentNode.appendChild( this.docFrag, this.parentFragment.findNextNode( this ) );
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
 			
 		},

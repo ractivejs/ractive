@@ -38,6 +38,38 @@
 		};
 	}
 
+	// https://gist.github.com/jonathantneal/3748027
+	if ( !window.addEventListener ) {
+		(function ( WindowPrototype, DocumentPrototype, ElementPrototype, addEventListener, removeEventListener, dispatchEvent, registry ) {
+			WindowPrototype[addEventListener] = DocumentPrototype[addEventListener] = ElementPrototype[addEventListener] = function (type, listener) {
+				var target = this;
+
+				registry.unshift([target, type, listener, function (event) {
+					event.currentTarget = target;
+					event.preventDefault = function () { event.returnValue = false; };
+					event.stopPropagation = function () { event.cancelBubble = true; };
+					event.target = event.srcElement || target;
+
+					listener.call(target, event);
+				}]);
+
+				this.attachEvent("on" + type, registry[0][3]);
+			};
+
+			WindowPrototype[removeEventListener] = DocumentPrototype[removeEventListener] = ElementPrototype[removeEventListener] = function (type, listener) {
+				for (var index = 0, register; register = registry[index]; ++index) {
+					if ( register[0] === this && register[1] === type && register[2] === listener ) {
+						return this.detachEvent("on" + type, registry.splice(index, 1)[0][3]);
+					}
+				}
+			};
+
+			WindowPrototype[dispatchEvent] = DocumentPrototype[dispatchEvent] = ElementPrototype[dispatchEvent] = function (eventObject) {
+				return this.fireEvent("on" + eventObject.type, eventObject);
+			};
+		}( Window.prototype, HTMLDocument.prototype, Element.prototype, "addEventListener", "removeEventListener", "dispatchEvent", [] ));
+	}
+
 
 	// Array extras
 	if ( !Array.prototype.indexOf ) {
@@ -1149,10 +1181,6 @@ var Ractive = (function () {
 		firstNode: function () {
 			if ( this.items[0] ) {
 				return this.items[0].firstNode();
-			} 
-
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -1163,10 +1191,6 @@ var Ractive = (function () {
 
 			if ( this.items[ index + 1 ] ) {
 				return this.items[ index + 1 ].firstNode();
-			}
-
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -1181,7 +1205,6 @@ var Ractive = (function () {
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
-			anchor:       options.anchor,
 			parent:        this
 		});
 
@@ -1198,11 +1221,9 @@ var Ractive = (function () {
 	// Plain text
 	Text = function ( options, docFrag ) {
 		this.node = doc.createTextNode( options.model );
-		this.index = options.index;
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
 		docFrag.appendChild( this.node );
 	};
 
@@ -1295,7 +1316,6 @@ var Ractive = (function () {
 					root:    options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
-					anchor:       null,
 					parent:        this
 				});
 
@@ -1363,12 +1383,13 @@ var Ractive = (function () {
 			// set initial value
 			setValue();
 
-			// TODO support shite browsers like IE and Opera
 			node.addEventListener( 'change', setValue );
 
 			if ( !lazy ) {
 				node.addEventListener( 'keyup', setValue );
 			}
+
+			// TODO remove event listeners on teardown
 		},
 
 		teardown: function () {
@@ -1543,8 +1564,12 @@ var Ractive = (function () {
 	// Triple
 	Triple = function ( options, docFrag ) {
 		this.nodes = [];
+		this.docFrag = doc.createDocumentFragment();
 
+		this.initialising = true;
 		A._Mustache.call( this, options );
+		docFrag.appendChild( this.docFrag );
+		this.initialising = false;
 	};
 
 	Triple.prototype = {
@@ -1574,8 +1599,6 @@ var Ractive = (function () {
 		},
 
 		update: function ( html ) {
-			var anchor;
-
 			if ( html === this.html ) {
 				return;
 			}
@@ -1587,10 +1610,12 @@ var Ractive = (function () {
 				this.parentNode.removeChild( this.nodes.pop() );
 			}
 
-			anchor = this.anchor || this.parentFragment.findNextNode( this );
-
 			// get new nodes
-			this.nodes = insertHtml( html, this.parentNode, anchor );
+			this.nodes = insertHtml( html, this.docFrag );
+
+			if ( !this.initialising ) {
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
 		}
 	};
 
@@ -1602,12 +1627,10 @@ var Ractive = (function () {
 		this.length = 0; // number of times this section is rendered
 
 		this.docFrag = doc.createDocumentFragment();
+		
 		this.initialising = true;
-
 		A._Mustache.call( this, options );
-
 		docFrag.appendChild( this.docFrag );
-
 		this.initialising = false;
 	};
 
@@ -1650,7 +1673,7 @@ var Ractive = (function () {
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
-				this.parentNode.appendChild( this.docFrag, this.parentFragment.findNextNode( this ) );
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
 			
 		},
