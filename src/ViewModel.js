@@ -169,6 +169,12 @@
 
 
 			if ( !resolved ) {
+				// we may still need to do an update, if the view has formatters
+				// that e.g. offer an alternative to undefined
+				if ( view.model.fmtrs ) {
+					view.update( view.root._format( undefined, view.model.fmtrs ) );
+				}
+
 				this.registerUnresolvedKeypath({
 					view: view,
 					callback: initialUpdate
