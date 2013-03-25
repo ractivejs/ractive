@@ -10,7 +10,7 @@
 	doc = ( typeof window !== 'undefined' ? window.document : null );
 
 	insertHtml = function ( html, docFrag ) {
-		var div, i, len, nodes = [];
+		var div, nodes = [];
 
 		div = doc.createElement( 'div' );
 		div.innerHTML = html;
@@ -138,6 +138,8 @@
 	Element = function ( options, docFrag ) {
 
 		var binding,
+			bindingCandidate,
+			tagName,
 			model,
 			namespace,
 			attr,
@@ -169,33 +171,7 @@
 		this.node = doc.createElementNS( namespace, model.tag );
 
 
-		// set attributes
-		this.attributes = [];
-		for ( attrName in model.attrs ) {
-			if ( model.attrs.hasOwnProperty( attrName ) ) {
-				attrValue = model.attrs[ attrName ];
-
-				attr = new Attribute({
-					parent: this,
-					name: attrName,
-					value: attrValue,
-					root: options.root,
-					parentNode: this.node,
-					contextStack: options.contextStack
-				});
-
-				// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-				if ( attrName === 'value' && this.root.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
-					binding = attr;
-				}
-
-				this.attributes[ this.attributes.length ] = attr;
-			}
-		}
-
-		if ( binding ) {
-			this.bind( binding, options.root.lazy );
-		}
+		
 
 		// append children, if there are any
 		if ( model.frag ) {
@@ -217,26 +193,71 @@
 			}
 		}
 
+
+		// set attributes
+		this.attributes = [];
+		for ( attrName in model.attrs ) {
+			if ( model.attrs.hasOwnProperty( attrName ) ) {
+				attrValue = model.attrs[ attrName ];
+
+				
+
+				
+
+				attr = new Attribute({
+					parent: this,
+					name: attrName,
+					value: attrValue,
+					root: options.root,
+					parentNode: this.node,
+					contextStack: options.contextStack
+				});
+
+				// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
+				if ( this.root.twoway ) {
+					tagName = model.tag.toLowerCase();
+					bindingCandidate = ( ( attrName === 'name' || attrName === 'value' || attrName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
+				}
+
+				if ( !bindingCandidate || !this.bind( attr, options.root.lazy ) ) {
+					this.attributes[ this.attributes.length ] = attr;
+				}
+
+				attr.update();
+			}
+		}
+
+
+		// two-way binding: if we have e.g. <input name='{{colour}}' value='red' checked>
+		// then we want to do view.set( 'colour', 'red' );
+		if ( this.updateViewModel ) {
+			this.updateViewModel();
+		}
+
 		docFrag.appendChild( this.node );
 	};
 
 	Element.prototype = {
 		bind: function ( attribute, lazy ) {
 
-			var viewmodel = this.viewmodel, node = this.node, setValue, valid, interpolator, keypath;
+			var viewmodel = this.viewmodel, node = this.node, setValue, keypath;
+
+			if ( !attribute.fragment ) {
+				return false; // report failure
+			}
 
 			// Check this is a suitable candidate for two-way binding - i.e. it is
 			// a single interpolator with no formatters
-			valid = true;
-			if ( !attribute.fragment ||
-			     ( attribute.fragment.items.length !== 1 ) ||
-			     ( attribute.fragment.items[0].type !== A.types.INTERPOLATOR ) ||
-			     ( attribute.fragment.items[0].model.formatters && attribute.fragment.items[0].model.formatters.length )
+			if (
+				attribute.fragment.items.length !== 1 ||
+				attribute.fragment.items[0].type !== A.types.INTERPOLATOR ||
+				attribute.fragment.items[0].model.formatters && attribute.fragment.items[0].model.formatters.length
 			) {
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator with no formatters';
 			}
 
-			interpolator = attribute.fragment.items[0];
+			attribute.twoway = true;
+			attribute.interpolator = attribute.fragment.items[0];
 
 			// Hmmm. Not sure if this is the best way to handle this ambiguity...
 			//
@@ -254,41 +275,67 @@
 			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
-			keypath = interpolator.keypath || interpolator.model.partialKeypath;
+			keypath = attribute.interpolator.keypath || attribute.interpolator.model.ref;
+			
 
-			setValue = function () {
-				var value = node.value;
+			// checkboxes and radio buttons
+			if ( node.type === 'checkbox' || node.type === 'radio' ) {
+				// replace actual name attribute
+				node.setAttribute( 'name', '{{' + keypath + '}}' );
 
-				// special cases
-				if ( value === '0' ) {
-					value = 0;
+				if ( attribute.name.toLowerCase() === 'name' ) {
+					this.updateViewModel = function () {
+						if ( node.checked ) {
+							viewmodel.set( keypath, node.value );
+						}
+					};
 				}
 
-				else if ( value !== '' ) {
-					value = +value || value;
+				else {
+					this.updateViewModel = function () {
+						viewmodel.set( keypath, node.checked );
+					};
 				}
+			}
 
-				// Note: we're counting on `viewmodel.set` recognising that `value` is
-				// already what it wants it to be, and short circuiting the process.
-				// Rather than triggering an infinite loop...
-				viewmodel.set( keypath, value );
-			};
+			else {
+				this.updateViewModel = function () {
+					var value = node.value;
+
+					// special cases
+					if ( value === '0' ) {
+						value = 0;
+					}
+
+					else if ( value !== '' ) {
+						value = +value || value;
+					}
+
+					// Note: we're counting on `viewmodel.set` recognising that `value` is
+					// already what it wants it to be, and short circuiting the process.
+					// Rather than triggering an infinite loop...
+					viewmodel.set( keypath, value );
+				};
+			}
+			
 
 			// set initial value
-			this.setValue();
+			// TODO do we need to do this? this.updateViewModel();
 
-			node.addEventListener( 'change', this.setValue );
+			node.addEventListener( 'change', this.updateViewModel );
 
 			if ( !lazy ) {
-				node.addEventListener( 'keyup', this.setValue );
+				node.addEventListener( 'keyup', this.updateViewModel );
 			}
+
+			return true;
 		},
 
 		teardown: function () {
 			// remove the event listeners we added, if we added them
-			if ( this.setValue ) {
-				this.node.removeEventListener( 'change', this.setValue );
-				this.node.removeEventListener( 'keyup', this.setValue );
+			if ( this.updateViewModel ) {
+				this.node.removeEventListener( 'change', this.updateViewModel );
+				this.node.removeEventListener( 'keyup', this.updateViewModel );
 			}
 
 			if ( this.root.el.contains( this.node ) ) {
@@ -382,7 +429,7 @@
 
 		// manually trigger first update
 		this.ready = true;
-		this.update();
+		//this.update();
 	};
 
 	Attribute.prototype = {
@@ -402,12 +449,41 @@
 		},
 
 		update: function () {
-			var prevValue = this.value;
+			var prevValue, lowerCaseName;
 
+			if ( this.twoway ) {
+				lowerCaseName = this.name.toLowerCase();
+				this.value = this.interpolator.value;
+
+				if ( lowerCaseName === 'name' && ( this.parentNode.type === 'checkbox' || this.parentNode.type === 'radio' ) ) {
+					// we don't actually want to update the name, it's just a reference.
+					// instead we want to see if the value of the reference matches the
+					// specified value
+					if ( this.value === this.parentNode.value ) {
+						this.parentNode.checked = true;
+					} else {
+						this.parentNode.checked = false;
+					}
+
+					return; 
+				}
+
+				if ( this.value === undefined ) {
+					this.value = ''; // otherwise text fields will contain 'undefined' rather than their placeholder
+				}
+
+				if ( this.parentNode[ lowerCaseName ] != this.value ) { // one of the rare cases where we want != rather than !==
+					this.parentNode[ lowerCaseName ] = this.value;
+				}
+
+				return;
+			}
+			
 			if ( !this.ready ) {
 				return; // avoid items bubbling to the surface when we're still initialising
 			}
-			
+
+			prevValue = this.value;
 			this.value = this.fragment.toString();
 
 			if ( this.value !== prevValue ) {
