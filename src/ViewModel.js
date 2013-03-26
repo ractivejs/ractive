@@ -2,7 +2,17 @@
 
 	'use strict';
 
-	var splitKeypath, keypathNormaliser;
+	var splitKeypath, keypathNormaliser, isArray, isObject;
+
+	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+	isArray = function ( obj ) {
+		return Object.prototype.toString.call( obj ) === '[object Array]';
+	};
+
+	// TODO what about non-POJOs?
+	isObject = function ( obj ) {
+		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	};
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -27,7 +37,7 @@
 			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath;
 
 			// Allow multiple values to be set in one go
-			if ( typeof keypath === 'object' ) {
+			if ( isObject( keypath ) ) {
 				for ( k in keypath ) {
 					if ( keypath.hasOwnProperty( k ) ) {
 						this.set( k, keypath[k] );
@@ -51,7 +61,7 @@
 
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
-			keys = splitKeypath( keypath );
+			keys = ( isArray( keypath ) ? keypath.concat() : splitKeypath( keypath ) );
 			normalisedKeypath = keys.join( '.' );
 
 			// TODO accommodate implicit array generation
@@ -95,7 +105,7 @@
 				return undefined;
 			}
 
-			keys = splitKeypath( keypath );
+			keys = ( isArray( keypath ) ? keypath.concat() : splitKeypath( keypath ) );
 
 			result = this.data;
 			while ( keys.length ) {
