@@ -214,24 +214,11 @@
 			}
 		}
 
-
-		// two-way binding: if we have e.g. <input name='{{colour}}' value='red' checked>
-		// then we want to do view.set( 'colour', 'red' );
-		if ( this.updateViewModel ) {
-			this.updateViewModel();
-		}
-
 		docFrag.appendChild( this.node );
 	};
 
 	Element.prototype = {
 		teardown: function () {
-			// remove the event listeners we added, if we added them
-			if ( this.updateViewModel ) {
-				this.node.removeEventListener( 'change', this.updateViewModel );
-				this.node.removeEventListener( 'keyup', this.updateViewModel );
-			}
-
 			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
@@ -430,15 +417,29 @@
 			// TODO do we need to do this? this.updateViewModel();
 
 			node.addEventListener( 'change', this.updateViewModel );
+			node.addEventListener( 'blur', this.updateViewModel );
 
 			if ( !lazy ) {
 				node.addEventListener( 'keyup', this.updateViewModel );
+				node.addEventListener( 'keydown', this.updateViewModel );
+				node.addEventListener( 'keypress', this.updateViewModel );
+				node.addEventListener( 'input', this.updateViewModel );
 			}
 
 			return true;
 		},
 
 		teardown: function () {
+			// remove the event listeners we added, if we added them
+			if ( this.updateViewModel ) {
+				this.node.removeEventListener( 'change', this.updateViewModel );
+				this.node.removeEventListener( 'blur', this.updateViewModel );
+				this.node.removeEventListener( 'keyup', this.updateViewModel );
+				this.node.removeEventListener( 'keydown', this.updateViewModel );
+				this.node.removeEventListener( 'keypress', this.updateViewModel );
+				this.node.removeEventListener( 'input', this.updateViewModel );
+			}
+
 			// ignore non-dynamic attributes
 			if ( !this.children ) {
 				return;
