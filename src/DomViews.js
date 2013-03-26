@@ -138,8 +138,6 @@
 	Element = function ( options, docFrag ) {
 
 		var binding,
-			bindingCandidate,
-			tagName,
 			model,
 			namespace,
 			attr,
@@ -201,9 +199,6 @@
 				attrValue = model.attrs[ attrName ];
 
 				
-
-				
-
 				attr = new Attribute({
 					parent: this,
 					name: attrName,
@@ -213,15 +208,7 @@
 					contextStack: options.contextStack
 				});
 
-				// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-				if ( this.root.twoway ) {
-					tagName = model.tag.toLowerCase();
-					bindingCandidate = ( ( attrName === 'name' || attrName === 'value' || attrName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
-				}
-
-				if ( !bindingCandidate || !this.bind( attr, options.root.lazy ) ) {
-					this.attributes[ this.attributes.length ] = attr;
-				}
+				this.attributes[ this.attributes.length ] = attr;
 
 				attr.update();
 			}
@@ -238,99 +225,6 @@
 	};
 
 	Element.prototype = {
-		bind: function ( attribute, lazy ) {
-
-			var viewmodel = this.viewmodel, node = this.node, setValue, keypath;
-
-			if ( !attribute.fragment ) {
-				return false; // report failure
-			}
-
-			// Check this is a suitable candidate for two-way binding - i.e. it is
-			// a single interpolator with no formatters
-			if (
-				attribute.fragment.items.length !== 1 ||
-				attribute.fragment.items[0].type !== A.types.INTERPOLATOR ||
-				attribute.fragment.items[0].model.formatters && attribute.fragment.items[0].model.formatters.length
-			) {
-				throw 'Not a valid two-way data binding candidate - must be a single interpolator with no formatters';
-			}
-
-			attribute.twoway = true;
-			attribute.interpolator = attribute.fragment.items[0];
-
-			// Hmmm. Not sure if this is the best way to handle this ambiguity...
-			//
-			// Let's say we were given `value="{{bar}}"`. If the context stack was
-			// context stack was `["foo"]`, and `foo.bar` *wasn't* `undefined`, the
-			// keypath would be `foo.bar`. Then, any user input would result in
-			// `foo.bar` being updated.
-			//
-			// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
-			// left with an unresolved partial keypath - so we are forced to make an
-			// assumption. That assumption is that the input in question should
-			// be forced to resolve to `bar`, and any user input would affect `bar`
-			// and not `foo.bar`.
-			//
-			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
-			// be explicit when using two-way data-binding about what keypath you're
-			// updating. Using it in lists is probably a recipe for confusion...
-			keypath = attribute.interpolator.keypath || attribute.interpolator.model.ref;
-			
-
-			// checkboxes and radio buttons
-			if ( node.type === 'checkbox' || node.type === 'radio' ) {
-				// replace actual name attribute
-				node.setAttribute( 'name', '{{' + keypath + '}}' );
-
-				if ( attribute.name.toLowerCase() === 'name' ) {
-					this.updateViewModel = function () {
-						if ( node.checked ) {
-							viewmodel.set( keypath, node.value );
-						}
-					};
-				}
-
-				else {
-					this.updateViewModel = function () {
-						viewmodel.set( keypath, node.checked );
-					};
-				}
-			}
-
-			else {
-				this.updateViewModel = function () {
-					var value = node.value;
-
-					// special cases
-					if ( value === '0' ) {
-						value = 0;
-					}
-
-					else if ( value !== '' ) {
-						value = +value || value;
-					}
-
-					// Note: we're counting on `viewmodel.set` recognising that `value` is
-					// already what it wants it to be, and short circuiting the process.
-					// Rather than triggering an infinite loop...
-					viewmodel.set( keypath, value );
-				};
-			}
-			
-
-			// set initial value
-			// TODO do we need to do this? this.updateViewModel();
-
-			node.addEventListener( 'change', this.updateViewModel );
-
-			if ( !lazy ) {
-				node.addEventListener( 'keyup', this.updateViewModel );
-			}
-
-			return true;
-		},
-
 		teardown: function () {
 			// remove the event listeners we added, if we added them
 			if ( this.updateViewModel ) {
@@ -360,7 +254,7 @@
 	// Attribute
 	Attribute = function ( options ) {
 
-		var name, value, colonIndex, namespacePrefix, namespace, ancestor;
+		var name, value, colonIndex, namespacePrefix, namespace, ancestor, tagName, bindingCandidate;
 
 		name = options.name;
 		value = options.value;
@@ -412,6 +306,7 @@
 		}
 
 		// otherwise we need to do some work
+		this.root = options.root;
 		this.parentNode = options.parentNode;
 		this.name = name;
 
@@ -421,11 +316,23 @@
 		this.parentFragment = this.parent.parentFragment;
 
 		this.fragment = new A.TextFragment({
-			model:        value,
-			root:    options.root,
-			parent:        this,
+			model: value,
+			root: this.root,
+			parent: this,
 			contextStack: options.contextStack
 		});
+
+
+		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
+		if ( this.root.twoway ) {
+			tagName = this.parent.model.tag.toLowerCase();
+			bindingCandidate = ( ( this.name === 'name' || this.name === 'value' || this.name === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
+		}
+
+		if ( bindingCandidate ) {
+			this.bind( this.root.lazy );
+		}
+
 
 		// manually trigger first update
 		this.ready = true;
@@ -433,6 +340,104 @@
 	};
 
 	Attribute.prototype = {
+		bind: function ( lazy ) {
+			// two-way binding logic should go here
+			var self = this, viewmodel = this.root.viewmodel, node = this.parentNode, setValue, keypath;
+
+			if ( !this.fragment ) {
+				return false; // report failure
+			}
+
+			// Check this is a suitable candidate for two-way binding - i.e. it is
+			// a single interpolator with no formatters
+			if (
+				this.fragment.items.length !== 1 ||
+				this.fragment.items[0].type !== A.types.INTERPOLATOR
+			) {
+				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
+			}
+
+			this.twoway = true;
+			this.interpolator = this.fragment.items[0];
+
+			// Hmmm. Not sure if this is the best way to handle this ambiguity...
+			//
+			// Let's say we were given `value="{{bar}}"`. If the context stack was
+			// context stack was `["foo"]`, and `foo.bar` *wasn't* `undefined`, the
+			// keypath would be `foo.bar`. Then, any user input would result in
+			// `foo.bar` being updated.
+			//
+			// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
+			// left with an unresolved partial keypath - so we are forced to make an
+			// assumption. That assumption is that the input in question should
+			// be forced to resolve to `bar`, and any user input would affect `bar`
+			// and not `foo.bar`.
+			//
+			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
+			// be explicit when using two-way data-binding about what keypath you're
+			// updating. Using it in lists is probably a recipe for confusion...
+			keypath = this.interpolator.keypath || this.interpolator.model.ref;
+			
+
+			// checkboxes and radio buttons
+			if ( node.type === 'checkbox' || node.type === 'radio' ) {
+				// replace actual name attribute
+				node.setAttribute( 'name', '{{' + keypath + '}}' );
+
+				if ( this.name.toLowerCase() === 'name' ) {
+					this.updateViewModel = function () {
+						if ( node.checked ) {
+							viewmodel.set( keypath, node.value );
+						}
+					};
+				}
+
+				else {
+					this.updateViewModel = function () {
+						viewmodel.set( keypath, node.checked );
+					};
+				}
+			}
+
+			else {
+				this.updateViewModel = function () {
+					var value;
+
+					if ( self.interpolator.model.fmtrs ) {
+						value = self.root._format( node.value, self.interpolator.model.fmtrs );
+					} else {
+						value = node.value;
+					}
+
+					// special cases
+					if ( value === '0' ) {
+						value = 0;
+					}
+
+					else if ( value !== '' ) {
+						value = +value || value;
+					}
+
+					// Note: we're counting on `viewmodel.set` recognising that `value` is
+					// already what it wants it to be, and short circuiting the process.
+					// Rather than triggering an infinite loop...
+					viewmodel.set( keypath, value );
+				};
+			}
+			
+
+			// set initial value
+			// TODO do we need to do this? this.updateViewModel();
+
+			node.addEventListener( 'change', this.updateViewModel );
+
+			if ( !lazy ) {
+				node.addEventListener( 'keyup', this.updateViewModel );
+			}
+
+			return true;
+		},
+
 		teardown: function () {
 			// ignore non-dynamic attributes
 			if ( !this.children ) {
@@ -466,6 +471,11 @@
 					}
 
 					return; 
+				}
+
+				// don't programmatically update focused element
+				if ( lowerCaseName === 'value' && doc.activeElement === this.parentNode ) {
+					return;
 				}
 
 				if ( this.value === undefined ) {
