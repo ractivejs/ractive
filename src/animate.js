@@ -134,6 +134,8 @@
 	A.prototype.animate = function ( keypath, to, options ) {
 		var easing, from, duration, animation, i;
 
+		options = options || {};
+
 		// check from and to are both numeric
 		to = parseFloat( to );
 		if ( isNaN( to ) ) {
@@ -154,7 +156,7 @@
 		}
 
 		// easing function
-		if ( options && options.easing ) {
+		if ( options.easing ) {
 			if ( typeof options.easing === 'function' ) {
 				easing = options.easing;
 			}
@@ -175,7 +177,7 @@
 		}
 
 		// duration
-		duration = ( !options || options.duration === undefined ? 400 : options.duration );
+		duration = ( options.duration === undefined ? 400 : options.duration );
 
 		animation = new Animation({
 			keypath: keypath,
@@ -183,7 +185,9 @@
 			to: to,
 			viewmodel: this.viewmodel,
 			duration: duration,
-			easing: easing
+			easing: easing,
+			step: options.step,
+			complete: options.complete
 		});
 
 		animationCollection.push( animation );
