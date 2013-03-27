@@ -64,11 +64,18 @@
 			keys = ( isArray( keypath ) ? keypath.concat() : splitKeypath( keypath ) );
 			normalisedKeypath = keys.join( '.' );
 
-			// TODO accommodate implicit array generation
 			obj = this.data;
 			while ( keys.length > 1 ) {
 				key = keys.shift();
-				obj = obj[ key ] || {};
+
+				// if this branch doesn't exist yet, create a new one - if the next
+				// key matches /^[0-9]+$/, assume we want an array branch rather
+				// than an object
+				if ( !obj[ key ] ) {
+					obj[ key ] = ( /^[0-9]+$/.test( keys[0] ) ? [] : {} );
+				}
+
+				obj = obj[ key ];
 			}
 
 			key = keys[0];
