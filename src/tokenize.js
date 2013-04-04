@@ -591,7 +591,7 @@
 		this.tokens = [];
 		this.buffer = new MustacheBuffer();
 
-		this.expected = false;
+		this.isNull = true;
 	};
 
 	AttributeValue.prototype = {
@@ -603,7 +603,7 @@
 			}
 
 			// have we had the = character yet?
-			if ( !this.expected ) {
+			if ( this.isNull ) {
 				// ignore whitespace between name and =
 				if ( whitespace.test( char ) ) {
 					return true;
@@ -611,7 +611,7 @@
 
 				// if we have the =, we can read in the value
 				if ( char === '=' ) {
-					this.expected = true;
+					this.isNull = false;
 					return true;
 				}
 

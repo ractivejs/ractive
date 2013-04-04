@@ -25,7 +25,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	A.compile = function ( template, options ) {
-		var tokens, fragmentStub;
+		var tokens, fragmentStub, json;
 
 		options = options || {};
 
@@ -35,6 +35,9 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 		tokens = A.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens );
+		
+		// TEMP
+		json = fragmentStub.toJson();
 		
 		return fragmentStub.toJson();
 	};
@@ -142,7 +145,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	ElementStub = function ( token, parentFragment ) {
-		var items, attributes, numAttributes, i;
+		var items, attributes, numAttributes, i, attribute;
 
 		this.type = types.ELEMENT;
 
@@ -156,10 +159,20 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			attributes = [];
 			
 			for ( i=0; i<numAttributes; i+=1 ) {
-				attributes[i] = {
-					name: items[i].name.value,
-					value: getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
+				attribute = {
+					name: items[i].name.value
 				};
+
+				if ( !items[i].value.isNull ) {
+					attribute.value = getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 );
+				}
+
+				attributes[i] = attribute;
+
+				// attributes[i] = {
+				// 	name: items[i].name.value,
+				// 	value: getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
+				// };
 			}
 
 			this.attributes = attributes;
@@ -192,12 +205,20 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 				for ( i=0; i<this.attributes.length; i+=1 ) {
 					attrName = this.attributes[i].name;
 
-					// can we stringify the value?
-					str = this.attributes[i].value.toString();
-					if ( str !== false ) { // need to explicitly check, as '' === false
-						attrValue = str;
-					} else {
-						attrValue = this.attributes[i].value.toJson();
+					// empty attributes (e.g. autoplay, checked)
+					if( this.attributes[i].value === undefined ) {
+						attrValue = null;
+					}
+
+					else {
+						// can we stringify the value?
+						str = this.attributes[i].value.toString();
+
+						if ( str !== false ) { // need to explicitly check, as '' === false
+							attrValue = str;
+						} else {
+							attrValue = this.attributes[i].value.toJson();
+						}
 					}
 
 					json.attrs[ attrName ] = attrValue;
@@ -241,20 +262,23 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 					attrStr = ' ' + this.attributes[i].name;
 
-					attrValueStr = this.attributes[i].value.toString();
+					// empty attributes
+					if ( this.attributes[i].value !== undefined ) {
+						attrValueStr = this.attributes[i].value.toString();
 
-					if ( attrValueStr === false ) {
-						return false;
-					}
+						if ( attrValueStr === false ) {
+							return false;
+						}
 
-					if ( attrValueStr !== '' ) {
-						attrStr += '=';
+						if ( attrValueStr !== '' ) {
+							attrStr += '=';
 
-						// does it need to be quoted?
-						if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
-							attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
-						} else {
-							attrStr += attrValueStr;
+							// does it need to be quoted?
+							if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
+								attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
+							} else {
+								attrStr += attrValueStr;
+							}
 						}
 					}
 
