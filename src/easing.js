@@ -1,4 +1,4 @@
-(function ( A ) {
+(function ( R ) {
 	
 	'use strict';
 
@@ -13,7 +13,7 @@
 	// Easing Equations (c) 2003 Robert Penner, BSD license
 	// https://raw.github.com/danro/easing-js/master/LICENSE
 	// --------------------------------------------------
-	A.easing = {
+	R.easing = {
 		easeInQuad: function(pos) {
 			return Math.pow(pos, 2);
 		},

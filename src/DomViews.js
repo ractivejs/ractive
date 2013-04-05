@@ -1,11 +1,11 @@
-(function ( A ) {
+(function ( R, _private ) {
 
 	'use strict';
 
 	var types, insertHtml, doc,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
-	types = A.types;
+	types = _private.types;
 
 	doc = ( typeof window !== 'undefined' ? window.document : null );
 
@@ -23,7 +23,7 @@
 		return nodes;
 	};
 
-	A.DomFragment = function ( options ) {
+	_private.DomFragment = function ( options ) {
 		this.docFrag = doc.createDocumentFragment();
 
 		// if we have an HTML string, our job is easy.
@@ -33,10 +33,10 @@
 		}
 
 		// otherwise we need to make a proper fragment
-		A._Fragment.call( this, options );
+		_private._Fragment.call( this, options );
 	};
 
-	A.DomFragment.prototype = {
+	_private.DomFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options, this.docFrag );
@@ -94,7 +94,7 @@
 
 	// Partials
 	Partial = function ( options, docFrag ) {
-		this.fragment = new A.DomFragment({
+		this.fragment = new _private.DomFragment({
 			model:        options.root.partials[ options.model.ref ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
@@ -181,7 +181,7 @@
 			}
 
 			else {
-				this.children = new A.DomFragment({
+				this.children = new _private.DomFragment({
 					model:        model.frag,
 					root:         options.root,
 					parentNode:   this.node,
@@ -313,7 +313,7 @@
 		// share parentFragment with parent element
 		this.parentFragment = this.parent.parentFragment;
 
-		this.fragment = new A.TextFragment({
+		this.fragment = new _private.TextFragment({
 			model: value,
 			root: this.root,
 			parent: this,
@@ -362,7 +362,7 @@
 			// a single interpolator with no formatters
 			if (
 				this.fragment.items.length !== 1 ||
-				this.fragment.items[0].type !== A.types.INTERPOLATOR
+				this.fragment.items[0].type !== _private.types.INTERPOLATOR
 			) {
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
 			}
@@ -568,7 +568,7 @@
 		docFrag.appendChild( this.node );
 
 		// extend Mustache
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -603,7 +603,7 @@
 		this.docFrag = doc.createDocumentFragment();
 
 		this.initialising = true;
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -665,7 +665,7 @@
 		this.docFrag = doc.createDocumentFragment();
 		
 		this.initialising = true;
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -705,7 +705,7 @@
 
 		update: function ( value ) {
 			
-			A._sectionUpdate.call( this, value );
+			_private._sectionUpdate.call( this, value );
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
@@ -715,11 +715,11 @@
 		},
 
 		createFragment: function ( options ) {
-			var fragment = new A.DomFragment( options );
+			var fragment = new _private.DomFragment( options );
 			
 			this.docFrag.appendChild( fragment.docFrag );
 			return fragment;
 		}
 	};
 
-}( Ractive ));
+}( Ractive, _private ));

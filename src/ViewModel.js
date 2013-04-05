@@ -1,4 +1,4 @@
-(function ( A ) {
+(function ( R ) {
 
 	'use strict';
 
@@ -15,7 +15,7 @@
 	};
 
 	// ViewModel constructor
-	A.ViewModel = function ( data ) {
+	R.ViewModel = function ( data ) {
 		// Initialise with supplied data, or create an empty object
 		this.data = data || {};
 
@@ -29,7 +29,7 @@
 		this.dependents = [];
 	};
 
-	A.ViewModel.prototype = {
+	R.ViewModel.prototype = {
 
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
@@ -376,7 +376,7 @@
 
 
 	if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
-		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+		R.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
 			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
 				return pending.view !== view;
 			});
@@ -384,7 +384,7 @@
 	}
 
 	else { // Internet Exploder
-		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+		R.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
 			var i, filtered = [];
 
 			for ( i=0; i<this.pendingResolution.length; i+=1 ) {

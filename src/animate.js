@@ -1,4 +1,4 @@
-(function ( A ) {
+(function ( R ) {
 
 	'use strict';
 
@@ -131,7 +131,7 @@
 	};
 
 
-	A.prototype.animate = function ( keypath, to, options ) {
+	R.prototype.animate = function ( keypath, to, options ) {
 		var easing, from, duration, animation, i;
 
 		options = options || {};
@@ -167,7 +167,7 @@
 					easing = this.easing[ options.easing ];
 				} else {
 					// fallback to global easing functions
-					easing = A.easing[ options.easing ];
+					easing = R.easing[ options.easing ];
 				}
 			}
 

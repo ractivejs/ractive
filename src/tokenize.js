@@ -1,4 +1,4 @@
-(function ( A ) {
+(function ( R, _private ) {
 	
 	'use strict';
 
@@ -28,7 +28,7 @@
 
 
 
-	A.tokenize = function ( template ) {
+	_private.tokenize = function ( template ) {
 		var stream = TokenStream.fromString( stripHtmlComments( template ) );
 		return stream.tokens;
 	};
@@ -150,7 +150,7 @@
 			this.value += char;
 
 			// if this could turn out to be a tag, a mustache or a triple return true
-			continueBuffering = ( this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
+			continueBuffering = ( this.isPartialMatchOf( R.delimiters[0] ) || this.isPartialMatchOf( R.tripleDelimiters[0] ) );
 			return continueBuffering;
 		},
 
@@ -158,8 +158,8 @@
 			var value, mustache, triple, token, getTriple, getMustache;
 
 			// store mustache and triple opening delimiters
-			mustache = A.delimiters[0];
-			triple = A.tripleDelimiters[0];
+			mustache = R.delimiters[0];
+			triple = R.tripleDelimiters[0];
 
 			value = this.value;
 
@@ -246,14 +246,14 @@
 
 	MustacheToken = function () {
 		this.value = '';
-		this.openingDelimiter = A.delimiters[0];
-		this.closingDelimiter = A.delimiters[1];
+		this.openingDelimiter = R.delimiters[0];
+		this.closingDelimiter = R.delimiters[1];
 	};
 
 	TripleToken = function () {
 		this.value = '';
-		this.openingDelimiter = A.tripleDelimiters[0];
-		this.closingDelimiter = A.tripleDelimiters[1];
+		this.openingDelimiter = R.tripleDelimiters[0];
+		this.closingDelimiter = R.tripleDelimiters[1];
 
 		this.type = types.TRIPLE;
 	};
@@ -333,7 +333,7 @@
 			var delimiters, newDelimiters;
 
 			newDelimiters = /\=([^\s=]+)\s+([^\s=]+)=/.exec( str );
-			delimiters = ( this.type === types.TRIPLE ? A.tripleDelimiters : A.delimiters );
+			delimiters = ( this.type === types.TRIPLE ? R.tripleDelimiters : R.delimiters );
 
 			delimiters[0] = newDelimiters[1];
 			delimiters[1] = newDelimiters[2];
@@ -822,7 +822,7 @@
 		return processed;
 	};
 
-	types = A.types;
+	types = _private.types;
 	whitespace = /\s/;
 	mustacheTypes = {
 		'#': types.SECTION,
@@ -835,4 +835,4 @@
 	
 
 
-}( Ractive ));
+}( Ractive, _private ));

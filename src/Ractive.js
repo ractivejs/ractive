@@ -1,8 +1,10 @@
-var Ractive = (function () {
+var Ractive, _private = {};
+
+(function () {
 
 	'use strict';
 
-	var Ractive, getEl;
+	var getEl;
 
 	Ractive = function ( options ) {
 
@@ -110,7 +112,7 @@ var Ractive = (function () {
 			}
 
 			// Render our *root fragment*
-			this.rendered = new Ractive.DomFragment({
+			this.rendered = new _private.DomFragment({
 				model: this.template,
 				root: this,
 				parentNode: el

@@ -12,11 +12,13 @@
 
 'use strict';
 
-var Ractive = (function () {
+var Ractive, _private = {};
+
+(function () {
 
 	'use strict';
 
-	var Ractive, getEl;
+	var getEl;
 
 	Ractive = function ( options ) {
 
@@ -124,7 +126,7 @@ var Ractive = (function () {
 			}
 
 			// Render our *root fragment*
-			this.rendered = new Ractive.DomFragment({
+			this.rendered = new _private.DomFragment({
 				model: this.template,
 				root: this,
 				parentNode: el
@@ -230,28 +232,22 @@ var Ractive = (function () {
 	return Ractive;
 
 }());
-(function ( A ) {
-
-	'use strict';
-
-	A.types = {
-		TEXT:             1,
-		INTERPOLATOR:     2,
-		TRIPLE:           3,
-		SECTION:          4,
-		INVERTED:         5,
-		CLOSING:          6,
-		ELEMENT:          7,
-		PARTIAL:          8,
-		COMMENT:          9,
-		DELIMCHANGE:      10,
-		MUSTACHE:         11,
-		TAG:              12,
-		ATTR_VALUE_TOKEN: 13
-	};
-
-}( Ractive ));
-(function ( A ) {
+_private.types = {
+	TEXT:             1,
+	INTERPOLATOR:     2,
+	TRIPLE:           3,
+	SECTION:          4,
+	INVERTED:         5,
+	CLOSING:          6,
+	ELEMENT:          7,
+	PARTIAL:          8,
+	COMMENT:          9,
+	DELIMCHANGE:      10,
+	MUSTACHE:         11,
+	TAG:              12,
+	ATTR_VALUE_TOKEN: 13
+};
+(function ( _private ) {
 
 	'use strict';
 
@@ -267,7 +263,7 @@ var Ractive = (function () {
 		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 	};
 
-	A._Mustache = function ( options ) {
+	_private._Mustache = function ( options ) {
 
 		this.root           = options.root;
 		this.model          = options.model;
@@ -296,7 +292,7 @@ var Ractive = (function () {
 	};
 
 
-	A._Fragment = function ( options ) {
+	_private._Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
 
@@ -338,7 +334,7 @@ var Ractive = (function () {
 	};
 
 
-	A._sectionUpdate = function ( value ) {
+	_private._sectionUpdate = function ( value ) {
 		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 		fragmentOptions = {
@@ -357,7 +353,7 @@ var Ractive = (function () {
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
-			A.modifyArray( value, this.keypath, this.root.viewmodel );
+			_private.modifyArray( value, this.keypath, this.root.viewmodel );
 		}
 
 		// treat empty arrays as false values
@@ -482,7 +478,7 @@ var Ractive = (function () {
 
 
 
-}( Ractive ));
+}( _private ));
 (function ( proto ) {
 
 	'use strict';
@@ -541,9 +537,9 @@ var Ractive = (function () {
 	};
 
 }( Ractive.prototype ));
-var Ractive = Ractive || {}; // in case we're not using the runtime
+var Ractive = Ractive || {}, _private = _private || {}; // in case we're not using the runtime
 
-(function ( A ) {
+(function ( R, _private ) {
 
 	'use strict';
 
@@ -567,16 +563,16 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		implicitClosersByTagName;
 
 
-	A.compile = function ( template, options ) {
+	R.compile = function ( template, options ) {
 		var tokens, fragmentStub, json;
 
 		options = options || {};
 
 		// If delimiters are specified use them, otherwise reset to defaults
-		A.delimiters = options.delimiters || [ '{{', '}}' ];
-		A.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+		R.delimiters = options.delimiters || [ '{{', '}}' ];
+		R.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
-		tokens = A.tokenize( template );
+		tokens = _private.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens );
 		
 		// TEMP
@@ -586,7 +582,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 
-	types = A.types;
+	types = _private.types;
 
 	voidElementNames = [ 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
@@ -1129,8 +1125,8 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 	
 
-}( Ractive ));
-(function ( A ) {
+}( Ractive, _private ));
+(function ( R, _private ) {
 	
 	'use strict';
 
@@ -1160,7 +1156,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 
-	A.tokenize = function ( template ) {
+	_private.tokenize = function ( template ) {
 		var stream = TokenStream.fromString( stripHtmlComments( template ) );
 		return stream.tokens;
 	};
@@ -1282,7 +1278,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			this.value += char;
 
 			// if this could turn out to be a tag, a mustache or a triple return true
-			continueBuffering = ( this.isPartialMatchOf( A.delimiters[0] ) || this.isPartialMatchOf( A.tripleDelimiters[0] ) );
+			continueBuffering = ( this.isPartialMatchOf( R.delimiters[0] ) || this.isPartialMatchOf( R.tripleDelimiters[0] ) );
 			return continueBuffering;
 		},
 
@@ -1290,8 +1286,8 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			var value, mustache, triple, token, getTriple, getMustache;
 
 			// store mustache and triple opening delimiters
-			mustache = A.delimiters[0];
-			triple = A.tripleDelimiters[0];
+			mustache = R.delimiters[0];
+			triple = R.tripleDelimiters[0];
 
 			value = this.value;
 
@@ -1378,14 +1374,14 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	MustacheToken = function () {
 		this.value = '';
-		this.openingDelimiter = A.delimiters[0];
-		this.closingDelimiter = A.delimiters[1];
+		this.openingDelimiter = R.delimiters[0];
+		this.closingDelimiter = R.delimiters[1];
 	};
 
 	TripleToken = function () {
 		this.value = '';
-		this.openingDelimiter = A.tripleDelimiters[0];
-		this.closingDelimiter = A.tripleDelimiters[1];
+		this.openingDelimiter = R.tripleDelimiters[0];
+		this.closingDelimiter = R.tripleDelimiters[1];
 
 		this.type = types.TRIPLE;
 	};
@@ -1465,7 +1461,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			var delimiters, newDelimiters;
 
 			newDelimiters = /\=([^\s=]+)\s+([^\s=]+)=/.exec( str );
-			delimiters = ( this.type === types.TRIPLE ? A.tripleDelimiters : A.delimiters );
+			delimiters = ( this.type === types.TRIPLE ? R.tripleDelimiters : R.delimiters );
 
 			delimiters[0] = newDelimiters[1];
 			delimiters[1] = newDelimiters[2];
@@ -1954,7 +1950,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		return processed;
 	};
 
-	types = A.types;
+	types = _private.types;
 	whitespace = /\s/;
 	mustacheTypes = {
 		'#': types.SECTION,
@@ -1967,13 +1963,13 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	
 
 
-}( Ractive ));
+}( Ractive, _private ));
 // Default formatters
-(function ( A ) {
+(function ( R ) {
 	
 	'use strict';
 
-	A.formatters = {
+	R.formatters = {
 		equals: function ( a, b ) {
 			return a === b;
 		},
@@ -1996,7 +1992,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 }( Ractive ));
-(function ( A ) {
+(function ( R ) {
 
 	'use strict';
 
@@ -2013,7 +2009,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 	// ViewModel constructor
-	A.ViewModel = function ( data ) {
+	R.ViewModel = function ( data ) {
 		// Initialise with supplied data, or create an empty object
 		this.data = data || {};
 
@@ -2027,7 +2023,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.dependents = [];
 	};
 
-	A.ViewModel.prototype = {
+	R.ViewModel.prototype = {
 
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
@@ -2374,7 +2370,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
-		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+		R.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
 			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
 				return pending.view !== view;
 			});
@@ -2382,7 +2378,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	}
 
 	else { // Internet Exploder
-		A.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
+		R.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
 			var i, filtered = [];
 
 			for ( i=0; i<this.pendingResolution.length; i+=1 ) {
@@ -2412,14 +2408,14 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 }( Ractive ));
 
-(function ( A ) {
+(function ( R, _private ) {
 
 	'use strict';
 
 	var types, insertHtml, doc,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
-	types = A.types;
+	types = _private.types;
 
 	doc = ( typeof window !== 'undefined' ? window.document : null );
 
@@ -2437,7 +2433,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		return nodes;
 	};
 
-	A.DomFragment = function ( options ) {
+	_private.DomFragment = function ( options ) {
 		this.docFrag = doc.createDocumentFragment();
 
 		// if we have an HTML string, our job is easy.
@@ -2447,10 +2443,10 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		}
 
 		// otherwise we need to make a proper fragment
-		A._Fragment.call( this, options );
+		_private._Fragment.call( this, options );
 	};
 
-	A.DomFragment.prototype = {
+	_private.DomFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options, this.docFrag );
@@ -2508,7 +2504,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	// Partials
 	Partial = function ( options, docFrag ) {
-		this.fragment = new A.DomFragment({
+		this.fragment = new _private.DomFragment({
 			model:        options.root.partials[ options.model.ref ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
@@ -2595,7 +2591,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			}
 
 			else {
-				this.children = new A.DomFragment({
+				this.children = new _private.DomFragment({
 					model:        model.frag,
 					root:         options.root,
 					parentNode:   this.node,
@@ -2727,7 +2723,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		// share parentFragment with parent element
 		this.parentFragment = this.parent.parentFragment;
 
-		this.fragment = new A.TextFragment({
+		this.fragment = new _private.TextFragment({
 			model: value,
 			root: this.root,
 			parent: this,
@@ -2776,7 +2772,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			// a single interpolator with no formatters
 			if (
 				this.fragment.items.length !== 1 ||
-				this.fragment.items[0].type !== A.types.INTERPOLATOR
+				this.fragment.items[0].type !== _private.types.INTERPOLATOR
 			) {
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
 			}
@@ -2982,7 +2978,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		docFrag.appendChild( this.node );
 
 		// extend Mustache
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -3017,7 +3013,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.docFrag = doc.createDocumentFragment();
 
 		this.initialising = true;
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -3079,7 +3075,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.docFrag = doc.createDocumentFragment();
 		
 		this.initialising = true;
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -3119,7 +3115,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 		update: function ( value ) {
 			
-			A._sectionUpdate.call( this, value );
+			_private._sectionUpdate.call( this, value );
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
@@ -3129,31 +3125,31 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		},
 
 		createFragment: function ( options ) {
-			var fragment = new A.DomFragment( options );
+			var fragment = new _private.DomFragment( options );
 			
 			this.docFrag.appendChild( fragment.docFrag );
 			return fragment;
 		}
 	};
 
-}( Ractive ));
+}( Ractive, _private ));
 
-(function ( A ) {
+(function ( _private ) {
 
 	'use strict';
 
 	var types,
 		Text, Interpolator, Triple, Section;
 
-	types = A.types;
+	types = _private.types;
 
-	A.TextFragment = function ( options ) {
-		A._Fragment.call( this, options );
+	_private.TextFragment = function ( options ) {
+		_private._Fragment.call( this, options );
 
 		this.value = this.items.join('');
 	};
 
-	A.TextFragment.prototype = {
+	_private.TextFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options.model );
@@ -3210,7 +3206,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -3241,7 +3237,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.fragments = [];
 		this.length = 0;
 
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
@@ -3268,11 +3264,11 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		},
 
 		update: function ( value ) {
-			A._sectionUpdate.call( this, value );
+			_private._sectionUpdate.call( this, value );
 		},
 
 		createFragment: function ( options ) {
-			return new A.TextFragment( options );
+			return new _private.TextFragment( options );
 		},
 
 		postUpdate: function () {
@@ -3286,19 +3282,19 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		}
 	};
 
-}( Ractive ));
-(function ( A ) {
+}( _private ));
+(function ( R ) {
 
 	'use strict';
 
-	A.extend = function ( childProps ) {
+	R.extend = function ( childProps ) {
 
 		var Parent, Child, key;
 
 		Parent = this;
 
 		Child = function () {
-			A.apply( this, arguments );
+			R.apply( this, arguments );
 
 			if ( this.init ) {
 				this.init.apply( this, arguments );
@@ -3329,13 +3325,13 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 }( Ractive ));
-(function ( A ) {
+(function ( _private ) {
 
 	'use strict';
 
 	var wrapMethods;
 
-	A.modifyArray = function ( array, keypath, viewmodel ) {
+	_private.modifyArray = function ( array, keypath, viewmodel ) {
 
 		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
 
@@ -3398,8 +3394,8 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		});
 	};
 
-}( Ractive ));
-(function ( A ) {
+}( _private ));
+(function ( R ) {
 	
 	'use strict';
 
@@ -3414,7 +3410,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	// Easing Equations (c) 2003 Robert Penner, BSD license
 	// https://raw.github.com/danro/easing-js/master/LICENSE
 	// --------------------------------------------------
-	A.easing = {
+	R.easing = {
 		easeInQuad: function(pos) {
 			return Math.pow(pos, 2);
 		},
@@ -3594,7 +3590,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 }( Ractive ));
-(function ( A ) {
+(function ( R ) {
 
 	'use strict';
 
@@ -3727,7 +3723,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 
-	A.prototype.animate = function ( keypath, to, options ) {
+	R.prototype.animate = function ( keypath, to, options ) {
 		var easing, from, duration, animation, i;
 
 		options = options || {};
@@ -3763,7 +3759,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 					easing = this.easing[ options.easing ];
 				} else {
 					// fallback to global easing functions
-					easing = A.easing[ options.easing ];
+					easing = R.easing[ options.easing ];
 				}
 			}
 

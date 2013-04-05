@@ -27,7 +27,7 @@ Of course, rather than doing the quick-at-first-but-wasteful-thereafter `innerHT
 ```
 
 ```js
-$('#name').set( currentName );
+$('#name').text( currentName );
 ```
 
 But that's no solution. You've added needless complexity to your DOM structure (bad for performance) and made your template more verbose and harder to reason about. And worst of all, you've swapped extra work for the browser with extra work for yourself.

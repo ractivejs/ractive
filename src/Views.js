@@ -1,4 +1,4 @@
-(function ( A ) {
+(function ( _private ) {
 
 	'use strict';
 
@@ -14,7 +14,7 @@
 		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 	};
 
-	A._Mustache = function ( options ) {
+	_private._Mustache = function ( options ) {
 
 		this.root           = options.root;
 		this.model          = options.model;
@@ -43,7 +43,7 @@
 	};
 
 
-	A._Fragment = function ( options ) {
+	_private._Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
 
@@ -85,7 +85,7 @@
 	};
 
 
-	A._sectionUpdate = function ( value ) {
+	_private._sectionUpdate = function ( value ) {
 		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 		fragmentOptions = {
@@ -104,7 +104,7 @@
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
-			A.modifyArray( value, this.keypath, this.root.viewmodel );
+			_private.modifyArray( value, this.keypath, this.root.viewmodel );
 		}
 
 		// treat empty arrays as false values
@@ -229,4 +229,4 @@
 
 
 
-}( Ractive ));
+}( _private ));

@@ -1,10 +1,10 @@
-(function ( A ) {
+(function ( _private ) {
 
 	'use strict';
 
 	var wrapMethods;
 
-	A.modifyArray = function ( array, keypath, viewmodel ) {
+	_private.modifyArray = function ( array, keypath, viewmodel ) {
 
 		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
 
@@ -67,4 +67,4 @@
 		});
 	};
 
-}( Ractive ));
+}( _private ));

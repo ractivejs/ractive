@@ -1,15 +1,15 @@
-(function ( A ) {
+(function ( R ) {
 
 	'use strict';
 
-	A.extend = function ( childProps ) {
+	R.extend = function ( childProps ) {
 
 		var Parent, Child, key;
 
 		Parent = this;
 
 		Child = function () {
-			A.apply( this, arguments );
+			R.apply( this, arguments );
 
 			if ( this.init ) {
 				this.init.apply( this, arguments );

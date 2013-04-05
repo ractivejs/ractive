@@ -1,19 +1,19 @@
-(function ( A ) {
+(function ( _private ) {
 
 	'use strict';
 
 	var types,
 		Text, Interpolator, Triple, Section;
 
-	types = A.types;
+	types = _private.types;
 
-	A.TextFragment = function ( options ) {
-		A._Fragment.call( this, options );
+	_private.TextFragment = function ( options ) {
+		_private._Fragment.call( this, options );
 
 		this.value = this.items.join('');
 	};
 
-	A.TextFragment.prototype = {
+	_private.TextFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options.model );
@@ -70,7 +70,7 @@
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -101,7 +101,7 @@
 		this.fragments = [];
 		this.length = 0;
 
-		A._Mustache.call( this, options );
+		_private._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
@@ -128,11 +128,11 @@
 		},
 
 		update: function ( value ) {
-			A._sectionUpdate.call( this, value );
+			_private._sectionUpdate.call( this, value );
 		},
 
 		createFragment: function ( options ) {
-			return new A.TextFragment( options );
+			return new _private.TextFragment( options );
 		},
 
 		postUpdate: function () {
@@ -146,4 +146,4 @@
 		}
 	};
 
-}( Ractive ));
+}( _private ));

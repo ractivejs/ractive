@@ -1,6 +1,6 @@
-var Ractive = Ractive || {}; // in case we're not using the runtime
+var Ractive = Ractive || {}, _private = _private || {}; // in case we're not using the runtime
 
-(function ( A ) {
+(function ( R, _private ) {
 
 	'use strict';
 
@@ -24,16 +24,16 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		implicitClosersByTagName;
 
 
-	A.compile = function ( template, options ) {
+	R.compile = function ( template, options ) {
 		var tokens, fragmentStub, json;
 
 		options = options || {};
 
 		// If delimiters are specified use them, otherwise reset to defaults
-		A.delimiters = options.delimiters || [ '{{', '}}' ];
-		A.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+		R.delimiters = options.delimiters || [ '{{', '}}' ];
+		R.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
-		tokens = A.tokenize( template );
+		tokens = _private.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens );
 		
 		// TEMP
@@ -43,7 +43,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 
 
-	types = A.types;
+	types = _private.types;
 
 	voidElementNames = [ 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
@@ -586,4 +586,4 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	};
 	
 
-}( Ractive ));
+}( Ractive, _private ));

@@ -1,9 +1,9 @@
 // Default formatters
-(function ( A ) {
+(function ( R ) {
 	
 	'use strict';
 
-	A.formatters = {
+	R.formatters = {
 		equals: function ( a, b ) {
 			return a === b;
 		},
