@@ -6,7 +6,7 @@
 		whitespace,
 
 		stripHtmlComments,
-
+		stripStandalones,
 		TokenStream,
 		MustacheBuffer,
 		
@@ -30,7 +30,8 @@
 
 	_private.tokenize = function ( template ) {
 		var stream = TokenStream.fromString( stripHtmlComments( template ) );
-		return stream.tokens;
+
+		return stripStandalones( stream.tokens );
 	};
 	
 	
@@ -820,6 +821,34 @@
 		}
 
 		return processed;
+	};
+
+	stripStandalones = function ( tokens ) {
+		var i, len, current, backOne, backTwo, trailingLinebreak, leadingLinebreak;
+
+		trailingLinebreak = /\n\s*$/;
+		leadingLinebreak = /^\s*\n/;
+
+		len = tokens.length;
+		for ( i=2; i<len; i+=1 ) {
+			current = tokens[i];
+			backOne = tokens[i-1];
+			backTwo = tokens[i-2];
+
+			// if we're at the end of a [text][mustache][text] sequence...
+			if ( current.type === types.TEXT && ( backOne.type !== types.TAG ) && backTwo.type === types.TEXT ) {
+				// ... and the mustache is a standalone (i.e. line breaks either side)...
+				if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
+					// ... then we want to remove the whitespace after the first line break
+					backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
+
+					// and the leading line break of the second text token
+					current.value = current.value.replace( leadingLinebreak, '' );
+				}
+			}
+		}
+
+		return tokens;
 	};
 
 	types = _private.types;
