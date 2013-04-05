@@ -26,7 +26,7 @@
 		// extend child with specified methods, as long as they don't override Ractive.prototype methods
 		for ( key in childProps ) {
 			if ( childProps.hasOwnProperty( key ) ) {
-				if ( A.prototype.hasOwnProperty( key ) ) {
+				if ( R.prototype.hasOwnProperty( key ) ) {
 					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
 				}
 
