@@ -1,4 +1,6 @@
-/*! ractive - v0.1.7 - 2013-03-23
+/*! Ractive - v0.1.8 - 2013-04-05
+* Faster, easier, better interactive web development
+
 * http://rich-harris.github.com/Ractive/
 * Copyright (c) 2013 Rich Harris; Licensed MIT */
 
@@ -8,7 +10,9 @@
 
 (function ( global ) {
 
-"use strict";var Ractive = (function () {
+'use strict';
+
+var Ractive = (function () {
 
 	'use strict';
 
@@ -125,6 +129,8 @@
 				root: this,
 				parentNode: el
 			});
+
+			el.appendChild( this.rendered.docFrag );
 		},
 
 		// Teardown. This goes through the root fragment and all its children, removing observers
@@ -256,6 +262,7 @@
 		return Object.prototype.toString.call( obj ) === '[object Array]';
 	};
 
+	// TODO what about non-POJOs?
 	isObject = function ( obj ) {
 		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 	};
@@ -278,10 +285,6 @@
 
 		this.type = options.model.type;
 
-		if ( this.initialize ) {
-			this.initialize();
-		}
-
 		this.viewmodel.registerView( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
@@ -296,12 +299,6 @@
 	A._Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
-
-		if ( this.preInit ) {
-			if ( this.preInit( options ) ) {
-				return;
-			}
-		}
 
 		this.parent = options.parent;
 		this.index = options.index;
@@ -406,7 +403,7 @@
 
 			// if the array is shorter than it was previously, remove items
 			if ( value.length < this.length ) {
-				itemsToRemove = this.views.splice( value.length, this.length - value.length );
+				itemsToRemove = this.fragments.splice( value.length, this.length - value.length );
 
 				while ( itemsToRemove.length ) {
 					itemsToRemove.pop().teardown();
@@ -571,7 +568,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	A.compile = function ( template, options ) {
-		var tokens, fragmentStub;
+		var tokens, fragmentStub, json;
 
 		options = options || {};
 
@@ -581,6 +578,9 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 		tokens = A.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens );
+		
+		// TEMP
+		json = fragmentStub.toJson();
 		
 		return fragmentStub.toJson();
 	};
@@ -688,7 +688,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	ElementStub = function ( token, parentFragment ) {
-		var items, attributes, numAttributes, i;
+		var items, attributes, numAttributes, i, attribute;
 
 		this.type = types.ELEMENT;
 
@@ -702,10 +702,20 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			attributes = [];
 			
 			for ( i=0; i<numAttributes; i+=1 ) {
-				attributes[i] = {
-					name: items[i].name.value,
-					value: getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
+				attribute = {
+					name: items[i].name.value
 				};
+
+				if ( !items[i].value.isNull ) {
+					attribute.value = getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 );
+				}
+
+				attributes[i] = attribute;
+
+				// attributes[i] = {
+				// 	name: items[i].name.value,
+				// 	value: getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
+				// };
 			}
 
 			this.attributes = attributes;
@@ -738,12 +748,20 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 				for ( i=0; i<this.attributes.length; i+=1 ) {
 					attrName = this.attributes[i].name;
 
-					// can we stringify the value?
-					str = this.attributes[i].value.toString();
-					if ( str !== false ) { // need to explicitly check, as '' === false
-						attrValue = str;
-					} else {
-						attrValue = this.attributes[i].value.toJson();
+					// empty attributes (e.g. autoplay, checked)
+					if( this.attributes[i].value === undefined ) {
+						attrValue = null;
+					}
+
+					else {
+						// can we stringify the value?
+						str = this.attributes[i].value.toString();
+
+						if ( str !== false ) { // need to explicitly check, as '' === false
+							attrValue = str;
+						} else {
+							attrValue = this.attributes[i].value.toJson();
+						}
 					}
 
 					json.attrs[ attrName ] = attrValue;
@@ -787,20 +805,23 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 					attrStr = ' ' + this.attributes[i].name;
 
-					attrValueStr = this.attributes[i].value.toString();
+					// empty attributes
+					if ( this.attributes[i].value !== undefined ) {
+						attrValueStr = this.attributes[i].value.toString();
 
-					if ( attrValueStr === false ) {
-						return false;
-					}
+						if ( attrValueStr === false ) {
+							return false;
+						}
 
-					if ( attrValueStr !== '' ) {
-						attrStr += '=';
+						if ( attrValueStr !== '' ) {
+							attrStr += '=';
 
-						// does it need to be quoted?
-						if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
-							attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
-						} else {
-							attrStr += attrValueStr;
+							// does it need to be quoted?
+							if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
+								attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
+							} else {
+								attrStr += attrValueStr;
+							}
 						}
 					}
 
@@ -1109,9 +1130,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	
 
 }( Ractive ));
-/*global Ractive */
-/*jslint white: true */
-
 (function ( A ) {
 	
 	'use strict';
@@ -1705,7 +1723,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.tokens = [];
 		this.buffer = new MustacheBuffer();
 
-		this.expected = false;
+		this.isNull = true;
 	};
 
 	AttributeValue.prototype = {
@@ -1717,7 +1735,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			}
 
 			// have we had the = character yet?
-			if ( !this.expected ) {
+			if ( this.isNull ) {
 				// ignore whitespace between name and =
 				if ( whitespace.test( char ) ) {
 					return true;
@@ -1725,7 +1743,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 				// if we have the =, we can read in the value
 				if ( char === '=' ) {
-					this.expected = true;
+					this.isNull = false;
 					return true;
 				}
 
@@ -1982,7 +2000,17 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	'use strict';
 
-	var splitKeypath, keypathNormaliser;
+	var splitKeypath, keypathNormaliser, isArray, isObject;
+
+	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+	isArray = function ( obj ) {
+		return Object.prototype.toString.call( obj ) === '[object Array]';
+	};
+
+	// TODO what about non-POJOs?
+	isObject = function ( obj ) {
+		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	};
 
 	// ViewModel constructor
 	A.ViewModel = function ( data ) {
@@ -2007,7 +2035,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath;
 
 			// Allow multiple values to be set in one go
-			if ( typeof keypath === 'object' ) {
+			if ( isObject( keypath ) ) {
 				for ( k in keypath ) {
 					if ( keypath.hasOwnProperty( k ) ) {
 						this.set( k, keypath[k] );
@@ -2031,14 +2059,21 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
-			keys = splitKeypath( keypath );
+			keys = ( isArray( keypath ) ? keypath.concat() : splitKeypath( keypath ) );
 			normalisedKeypath = keys.join( '.' );
 
-			// TODO accommodate implicit array generation
 			obj = this.data;
 			while ( keys.length > 1 ) {
 				key = keys.shift();
-				obj = obj[ key ] || {};
+
+				// if this branch doesn't exist yet, create a new one - if the next
+				// key matches /^[0-9]+$/, assume we want an array branch rather
+				// than an object
+				if ( !obj[ key ] ) {
+					obj[ key ] = ( /^[0-9]+$/.test( keys[0] ) ? [] : {} );
+				}
+
+				obj = obj[ key ];
 			}
 
 			key = keys[0];
@@ -2075,7 +2110,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 				return undefined;
 			}
 
-			keys = splitKeypath( keypath );
+			keys = ( isArray( keypath ) ? keypath.concat() : splitKeypath( keypath ) );
 
 			result = this.data;
 			while ( keys.length ) {
@@ -2149,6 +2184,12 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 			if ( !resolved ) {
+				// we may still need to do an update, if the view has formatters
+				// that e.g. offer an alternative to undefined
+				if ( view.model.fmtrs ) {
+					view.update( view.root._format( undefined, view.model.fmtrs ) );
+				}
+
 				this.registerUnresolvedKeypath({
 					view: view,
 					callback: initialUpdate
@@ -2375,68 +2416,53 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	'use strict';
 
-	var types, insertHtml, elContains, doc,
+	var types, insertHtml, doc,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	types = A.types;
 
 	doc = ( typeof window !== 'undefined' ? window.document : null );
 
-	elContains = function ( haystack, needle ) {
-		// TODO!
-		if ( haystack.contains ) {
-			return haystack.contains( needle );
-		}
-
-		return true;
-	};
-
-	insertHtml = function ( html, parent, anchor ) {
-		var div, i, len, nodes = [];
-
-		anchor = anchor || null;
+	insertHtml = function ( html, docFrag ) {
+		var div, nodes = [];
 
 		div = doc.createElement( 'div' );
 		div.innerHTML = html;
 
-		len = div.childNodes.length;
-
-		for ( i=0; i<len; i+=1 ) {
-			nodes[i] = div.childNodes[i];
-		}
-
-		for ( i=0; i<len; i+=1 ) {
-			parent.insertBefore( nodes[i], anchor );
+		while ( div.firstChild ) {
+			nodes[ nodes.length ] = div.firstChild;
+			docFrag.appendChild( div.firstChild );
 		}
 
 		return nodes;
 	};
 
 	A.DomFragment = function ( options ) {
+		this.docFrag = doc.createDocumentFragment();
+
+		// if we have an HTML string, our job is easy.
+		if ( typeof options.model === 'string' ) {
+			this.nodes = insertHtml( options.model, this.docFrag );
+			return; // prevent the rest of the init sequence
+		}
+
+		// otherwise we need to make a proper fragment
 		A._Fragment.call( this, options );
 	};
 
 	A.DomFragment.prototype = {
-		preInit: function ( options ) {
-			// if we have an HTML string, our job is easy.
-			if ( typeof options.model === 'string' ) {
-				this.nodes = insertHtml( options.model, options.parentNode, options.anchor );
-				return true; // prevent the rest of the init sequence
-			}
-		},
-
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
-				return new Text( options );
+				return new Text( options, this.docFrag );
 			}
 
 			switch ( options.model.type ) {
-				case types.INTERPOLATOR: return new Interpolator( options );
-				case types.SECTION: return new Section( options );
-				case types.TRIPLE: return new Triple( options );
+				case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
+				case types.SECTION: return new Section( options, this.docFrag );
+				case types.TRIPLE: return new Triple( options, this.docFrag );
 
-				case types.ELEMENT: return new Element( options );
-				case types.PARTIAL: return new Partial( options );
+				case types.ELEMENT: return new Element( options, this.docFrag );
+				case types.PARTIAL: return new Partial( options, this.docFrag );
 
 				default: throw 'WTF? not sure what happened here...';
 			}
@@ -2463,10 +2489,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		firstNode: function () {
 			if ( this.items[0] ) {
 				return this.items[0].firstNode();
-			} 
-
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
 			}
 
 			return null;
@@ -2479,25 +2501,22 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 				return this.items[ index + 1 ].firstNode();
 			}
 
-			if ( this.parentSection ) {
-				return this.parentSection.findNextNode( this );
-			}
-
 			return null;
 		}
 	};
 
 
 	// Partials
-	Partial = function ( options ) {
+	Partial = function ( options, docFrag ) {
 		this.fragment = new A.DomFragment({
 			model:        options.root.partials[ options.model.ref ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
-			anchor:       options.anchor,
 			parent:        this
 		});
+
+		docFrag.appendChild( this.fragment.docFrag );
 	};
 
 	Partial.prototype = {
@@ -2508,19 +2527,17 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	// Plain text
-	Text = function ( options ) {
+	Text = function ( options, docFrag ) {
 		this.node = doc.createTextNode( options.model );
-		this.index = options.index;
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor || null );
+		docFrag.appendChild( this.node );
 	};
 
 	Text.prototype = {
 		teardown: function () {
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -2532,14 +2549,16 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	// Element
-	Element = function ( options ) {
+	Element = function ( options, docFrag ) {
 
 		var binding,
 			model,
 			namespace,
 			attr,
 			attrName,
-			attrValue;
+			attrValue,
+			twowayNameAttr,
+			i;
 
 		// stuff we'll need later
 		model = this.model = options.model;
@@ -2566,33 +2585,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.node = doc.createElementNS( namespace, model.tag );
 
 
-		// set attributes
-		this.attributes = [];
-		for ( attrName in model.attrs ) {
-			if ( model.attrs.hasOwnProperty( attrName ) ) {
-				attrValue = model.attrs[ attrName ];
-
-				attr = new Attribute({
-					parent: this,
-					name: attrName,
-					value: attrValue,
-					root: options.root,
-					parentNode: this.node,
-					contextStack: options.contextStack
-				});
-
-				// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-				if ( attrName === 'value' && this.root.twoway && ( model.tag.toLowerCase() === 'input' || model.tag.toLowerCase() === 'textarea' ) ) {
-					binding = attr;
-				}
-
-				this.attributes[ this.attributes.length ] = attr;
-			}
-		}
-
-		if ( binding ) {
-			this.bind( binding, options.root.lazy );
-		}
+		
 
 		// append children, if there are any
 		if ( model.frag ) {
@@ -2604,86 +2597,53 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			else {
 				this.children = new A.DomFragment({
 					model:        model.frag,
-					root:    options.root,
+					root:         options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
-					anchor:       null,
-					parent:        this
+					parent:       this
 				});
+
+				this.node.appendChild( this.children.docFrag );
 			}
 		}
 
-		// append this.node, either at end of parent element or in front of the anchor (if defined)
-		this.parentNode.insertBefore( this.node, options.anchor || null );
+
+		// set attributes
+		this.attributes = [];
+		for ( attrName in model.attrs ) {
+			if ( model.attrs.hasOwnProperty( attrName ) ) {
+				attrValue = model.attrs[ attrName ];
+
+				attr = new Attribute({
+					parent: this,
+					name: attrName,
+					value: ( attrValue === undefined ? null : attrValue ),
+					root: options.root,
+					parentNode: this.node,
+					contextStack: options.contextStack
+				});
+
+				this.attributes[ this.attributes.length ] = attr;
+
+				if ( attr.isTwowayNameAttr ) {
+					twowayNameAttr = attr;
+				} else {
+					attr.update();
+				}
+			}
+		}
+
+		if ( twowayNameAttr ) {
+			twowayNameAttr.updateViewModel();
+			twowayNameAttr.update();
+		}
+
+		docFrag.appendChild( this.node );
 	};
 
 	Element.prototype = {
-		bind: function ( attribute, lazy ) {
-
-			var viewmodel = this.viewmodel, node = this.node, setValue, valid, interpolator, keypath;
-
-			// Check this is a suitable candidate for two-way binding - i.e. it is
-			// a single interpolator with no formatters
-			valid = true;
-			if ( !attribute.fragment ||
-			     ( attribute.fragment.items.length !== 1 ) ||
-			     ( attribute.fragment.items[0].type !== A.types.INTERPOLATOR ) ||
-			     ( attribute.fragment.items[0].model.formatters && attribute.fragment.items[0].model.formatters.length )
-			) {
-				throw 'Not a valid two-way data binding candidate - must be a single interpolator with no formatters';
-			}
-
-			interpolator = attribute.fragment.items[0];
-
-			// Hmmm. Not sure if this is the best way to handle this ambiguity...
-			//
-			// Let's say we were given `value="{{bar}}"`. If the context stack was
-			// context stack was `["foo"]`, and `foo.bar` *wasn't* `undefined`, the
-			// keypath would be `foo.bar`. Then, any user input would result in
-			// `foo.bar` being updated.
-			//
-			// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
-			// left with an unresolved partial keypath - so we are forced to make an
-			// assumption. That assumption is that the input in question should
-			// be forced to resolve to `bar`, and any user input would affect `bar`
-			// and not `foo.bar`.
-			//
-			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
-			// be explicit when using two-way data-binding about what keypath you're
-			// updating. Using it in lists is probably a recipe for confusion...
-			keypath = interpolator.keypath || interpolator.model.partialKeypath;
-
-			setValue = function () {
-				var value = node.value;
-
-				// special cases
-				if ( value === '0' ) {
-					value = 0;
-				}
-
-				else if ( value !== '' ) {
-					value = +value || value;
-				}
-
-				// Note: we're counting on `viewmodel.set` recognising that `value` is
-				// already what it wants it to be, and short circuiting the process.
-				// Rather than triggering an infinite loop...
-				viewmodel.set( keypath, value );
-			};
-
-			// set initial value
-			setValue();
-
-			// TODO support shite browsers like IE and Opera
-			node.addEventListener( 'change', setValue );
-
-			if ( !lazy ) {
-				node.addEventListener( 'keyup', setValue );
-			}
-		},
-
 		teardown: function () {
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 
@@ -2705,7 +2665,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	// Attribute
 	Attribute = function ( options ) {
 
-		var name, value, colonIndex, namespacePrefix, namespace, ancestor;
+		var name, value, colonIndex, namespacePrefix, namespace, ancestor, tagName, bindingCandidate, lowerCaseName;
 
 		name = options.name;
 		value = options.value;
@@ -2744,8 +2704,9 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			}
 		}
 
-		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
-		if ( typeof value === 'string' ) {
+		// if it's an empty attribute, or just a straight key-value pair, with no
+		// mustache shenanigans, set the attribute accordingly
+		if ( value === null || typeof value === 'string' ) {
 			
 			if ( namespace ) {
 				options.parentNode.setAttributeNS( namespace, name.replace( namespacePrefix + ':', '' ), value );
@@ -2757,6 +2718,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		}
 
 		// otherwise we need to do some work
+		this.root = options.root;
 		this.parentNode = options.parentNode;
 		this.name = name;
 
@@ -2766,19 +2728,179 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		this.parentFragment = this.parent.parentFragment;
 
 		this.fragment = new A.TextFragment({
-			model:        value,
-			root:    options.root,
-			parent:        this,
+			model: value,
+			root: this.root,
+			parent: this,
 			contextStack: options.contextStack
 		});
 
+
+		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
+		if ( this.root.twoway ) {
+			tagName = this.parent.model.tag.toLowerCase();
+			lowerCaseName = this.name.toLowerCase();
+			bindingCandidate = ( ( lowerCaseName === 'name' || lowerCaseName === 'value' || lowerCaseName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
+		}
+
+		if ( bindingCandidate ) {
+			this.bind( lowerCaseName, this.root.lazy );
+
+			// name attribute is a special case - it is the only two-way attribute that updates
+			// the viewmodel based on the value of another attribute. For that reason it must wait
+			// until the node has been initialised, and the viewmodel has had its first two-way
+			// update, before updating itself (otherwise it may disable a checkbox or radio that
+			// was enabled in the template)
+			if ( lowerCaseName === 'name' ) {
+				this.isTwowayNameAttr = true;
+			}
+		}
+
+
 		// manually trigger first update
 		this.ready = true;
-		this.update();
+		if ( !this.isTwowayNameAttr ) {
+			this.update();
+		}
 	};
 
 	Attribute.prototype = {
+		bind: function ( lowerCaseName, lazy ) {
+			// two-way binding logic should go here
+			var self = this, viewmodel = this.root.viewmodel, node = this.parentNode, setValue, keypath;
+
+			if ( !this.fragment ) {
+				return false; // report failure
+			}
+
+			// Check this is a suitable candidate for two-way binding - i.e. it is
+			// a single interpolator with no formatters
+			if (
+				this.fragment.items.length !== 1 ||
+				this.fragment.items[0].type !== A.types.INTERPOLATOR
+			) {
+				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
+			}
+
+			this.interpolator = this.fragment.items[0];
+
+			// Hmmm. Not sure if this is the best way to handle this ambiguity...
+			//
+			// Let's say we were given `value="{{bar}}"`. If the context stack was
+			// context stack was `["foo"]`, and `foo.bar` *wasn't* `undefined`, the
+			// keypath would be `foo.bar`. Then, any user input would result in
+			// `foo.bar` being updated.
+			//
+			// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
+			// left with an unresolved partial keypath - so we are forced to make an
+			// assumption. That assumption is that the input in question should
+			// be forced to resolve to `bar`, and any user input would affect `bar`
+			// and not `foo.bar`.
+			//
+			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
+			// be explicit when using two-way data-binding about what keypath you're
+			// updating. Using it in lists is probably a recipe for confusion...
+			keypath = this.interpolator.keypath || this.interpolator.model.ref;
+			
+
+			// checkboxes and radio buttons
+			if ( node.type === 'checkbox' || node.type === 'radio' ) {
+				// We might have a situation like this: 
+				//
+				//     <input type='radio' name='{{colour}}' value='red'>
+				//     <input type='radio' name='{{colour}}' value='blue'>
+				//     <input type='radio' name='{{colour}}' value='green'>
+				//
+				// In this case we want to set `colour` to the value of whichever option
+				// is checked. (We assume that a value attribute has been supplied.)
+
+				if ( lowerCaseName === 'name' ) {
+					// replace actual name attribute
+					node.setAttribute( 'name', '{{' + keypath + '}}' );
+
+					this.updateViewModel = function () {
+						if ( node.checked ) {
+							viewmodel.set( keypath, node.value );
+						}
+					};
+				}
+
+
+				// Or, we might have a situation like this:
+				//
+				//     <input type='checkbox' value='{{active}}'>
+				//
+				// Here, we want to set `active` to true or false depending on whether
+				// the input is checked.
+
+				else if ( lowerCaseName === 'checked' ) {
+					this.updateViewModel = function () {
+						viewmodel.set( keypath, node.checked );
+					};
+				}
+			}
+
+			else {
+				// Otherwise we've probably got a situation like this:
+				//
+				//     <input value='{{name}}'>
+				//
+				// in which case we just want to set `name` whenever the user enters text.
+				// The same applies to selects and textareas 
+				this.updateViewModel = function () {
+					var value;
+
+					if ( self.interpolator.model.fmtrs ) {
+						value = self.root._format( node.value, self.interpolator.model.fmtrs );
+					} else {
+						value = node.value;
+					}
+
+					// special cases
+					if ( value === '0' ) {
+						value = 0;
+					}
+
+					else if ( value !== '' ) {
+						value = +value || value;
+					}
+
+					// Note: we're counting on `viewmodel.set` recognising that `value` is
+					// already what it wants it to be, and short circuiting the process.
+					// Rather than triggering an infinite loop...
+					viewmodel.set( keypath, value );
+				};
+			}
+			
+
+			// if we figured out how to bind changes to the viewmodel, add the event listeners
+			if ( this.updateViewModel ) {
+				this.twoway = true;
+
+				node.addEventListener( 'change', this.updateViewModel );
+				node.addEventListener( 'click', this.updateViewModel );
+				node.addEventListener( 'blur', this.updateViewModel );
+
+				if ( !lazy ) {
+					node.addEventListener( 'keyup', this.updateViewModel );
+					node.addEventListener( 'keydown', this.updateViewModel );
+					node.addEventListener( 'keypress', this.updateViewModel );
+					node.addEventListener( 'input', this.updateViewModel );
+				}
+			}
+		},
+
 		teardown: function () {
+			// remove the event listeners we added, if we added them
+			if ( this.updateViewModel ) {
+				this.node.removeEventListener( 'change', this.updateViewModel );
+				this.node.removeEventListener( 'click', this.updateViewModel );
+				this.node.removeEventListener( 'blur', this.updateViewModel );
+				this.node.removeEventListener( 'keyup', this.updateViewModel );
+				this.node.removeEventListener( 'keydown', this.updateViewModel );
+				this.node.removeEventListener( 'keypress', this.updateViewModel );
+				this.node.removeEventListener( 'input', this.updateViewModel );
+			}
+
 			// ignore non-dynamic attributes
 			if ( !this.children ) {
 				return;
@@ -2794,12 +2916,50 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		},
 
 		update: function () {
-			var prevValue = this.value;
+			var prevValue, lowerCaseName;
 
+			if ( this.twoway ) {
+				// TODO compare against previous?
+				
+				lowerCaseName = this.name.toLowerCase();
+				this.value = this.interpolator.value;
+
+				// special case - if we have an element like this:
+				//
+				//     <input type='radio' name='{{colour}}' value='red'>
+				//
+				// and `colour` has been set to 'red', we don't want to change the name attribute
+				// to red, we want to indicate that this is the selected option, by setting
+				// input.checked = true
+				if ( lowerCaseName === 'name' && ( this.parentNode.type === 'checkbox' || this.parentNode.type === 'radio' ) ) {
+					if ( this.value === this.parentNode.value ) {
+						this.parentNode.checked = true;
+					} else {
+						this.parentNode.checked = false;
+					}
+
+					return; 
+				}
+
+				// don't programmatically update focused element
+				if ( lowerCaseName === 'value' && doc.activeElement === this.parentNode ) {
+					return;
+				}
+
+				if ( this.value === undefined ) {
+					this.value = ''; // otherwise text fields will contain 'undefined' rather than their placeholder
+				}
+
+				this.parentNode[ lowerCaseName ] = this.value;
+				
+				return;
+			}
+			
 			if ( !this.ready ) {
 				return; // avoid items bubbling to the surface when we're still initialising
 			}
-			
+
+			prevValue = this.value;
 			this.value = this.fragment.toString();
 
 			if ( this.value !== prevValue ) {
@@ -2817,17 +2977,15 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	// Interpolator
-	Interpolator = function ( options ) {
+	Interpolator = function ( options, docFrag ) {
+		this.node = doc.createTextNode( '' );
+		docFrag.appendChild( this.node );
+
 		// extend Mustache
 		A._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
-		initialize: function () {
-			this.node = doc.createTextNode( '' );
-			this.parentNode.insertBefore( this.node, this.anchor || null );
-		},
-
 		teardown: function () {
 			if ( !this.observerRefs ) {
 				this.viewmodel.cancelKeypathResolution( this );
@@ -2835,7 +2993,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 				this.viewmodel.unobserveAll( this.observerRefs );
 			}
 
-			if ( elContains( this.root.el, this.node ) ) {
+			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -2854,19 +3012,21 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 
 	// Triple
-	Triple = function ( options ) {
+	Triple = function ( options, docFrag ) {
+		this.nodes = [];
+		this.docFrag = doc.createDocumentFragment();
+
+		this.initialising = true;
 		A._Mustache.call( this, options );
+		docFrag.appendChild( this.docFrag );
+		this.initialising = false;
 	};
 
 	Triple.prototype = {
-		initialize: function () {
-			this.nodes = [];
-		},
-
 		teardown: function () {
 
 			// remove child nodes from DOM
-			if ( elContains( this.root.el, this.parentNode ) ) {
+			if ( this.root.el.contains( this.parentNode ) ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -2889,8 +3049,6 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		},
 
 		update: function ( html ) {
-			var anchor;
-
 			if ( html === this.html ) {
 				return;
 			}
@@ -2902,26 +3060,31 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 				this.parentNode.removeChild( this.nodes.pop() );
 			}
 
-			anchor = this.anchor || this.parentFragment.findNextNode( this );
-
 			// get new nodes
-			this.nodes = insertHtml( html, this.parentNode, anchor );
+			this.nodes = insertHtml( html, this.docFrag );
+
+			if ( !this.initialising ) {
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
 		}
 	};
 
 
 
 	// Section
-	Section = function ( options ) {
+	Section = function ( options, docFrag ) {
+		this.fragments = [];
+		this.length = 0; // number of times this section is rendered
+
+		this.docFrag = doc.createDocumentFragment();
+		
+		this.initialising = true;
 		A._Mustache.call( this, options );
+		docFrag.appendChild( this.docFrag );
+		this.initialising = false;
 	};
 
 	Section.prototype = {
-		initialize: function () {
-			this.fragments = [];
-			this.length = 0; // number of times this section is rendered
-		},
-
 		teardown: function () {
 			this.unrender();
 
@@ -2954,10 +3117,22 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			}
 		},
 
-		update: A._sectionUpdate,
+		update: function ( value ) {
+			
+			A._sectionUpdate.call( this, value );
+
+			if ( !this.initialising ) {
+				// we need to insert the contents of our document fragment into the correct place
+				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
+			
+		},
 
 		createFragment: function ( options ) {
-			return new A.DomFragment( options );
+			var fragment = new A.DomFragment( options );
+			
+			this.docFrag.appendChild( fragment.docFrag );
+			return fragment;
 		}
 	};
 
@@ -2974,13 +3149,11 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	A.TextFragment = function ( options ) {
 		A._Fragment.call( this, options );
+
+		this.value = this.items.join('');
 	};
 
 	A.TextFragment.prototype = {
-		init: function () {
-			this.value = this.items.join('');
-		},
-
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options.model );
@@ -3065,15 +3238,13 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 
 	// Section
 	Section = function ( options ) {
+		this.fragments = [];
+		this.length = 0;
+
 		A._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
-		initialize: function () {
-			this.fragments = [];
-			this.length = 0;
-		},
-
 		teardown: function () {
 			this.unrender();
 
@@ -3559,6 +3730,8 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 	A.prototype.animate = function ( keypath, to, options ) {
 		var easing, from, duration, animation, i;
 
+		options = options || {};
+
 		// check from and to are both numeric
 		to = parseFloat( to );
 		if ( isNaN( to ) ) {
@@ -3579,7 +3752,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		}
 
 		// easing function
-		if ( options && options.easing ) {
+		if ( options.easing ) {
 			if ( typeof options.easing === 'function' ) {
 				easing = options.easing;
 			}
@@ -3600,7 +3773,7 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 		}
 
 		// duration
-		duration = ( !options || options.duration === undefined ? 400 : options.duration );
+		duration = ( options.duration === undefined ? 400 : options.duration );
 
 		animation = new Animation({
 			keypath: keypath,
@@ -3608,7 +3781,9 @@ var Ractive = Ractive || {}; // in case we're not using the runtime
 			to: to,
 			viewmodel: this.viewmodel,
 			duration: duration,
-			easing: easing
+			easing: easing,
+			step: options.step,
+			complete: options.complete
 		});
 
 		animationCollection.push( animation );
