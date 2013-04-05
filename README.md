@@ -1,7 +1,7 @@
 Ractive.js
 ==========
 
-Mustache-style declarative data binding for the sceptical developer
+Faster, easier, better interactive web development
 
 
 It's templating Jim, but not as we know it
@@ -18,41 +18,51 @@ element.innerHTML = render( template, data ); // '<p>Hello world!</p>'
 
 That's great, but what happens when `name` changes? Typically, you would have a view with a render method that re-created the HTML with the new data, then either updated `innerHTML`, or did the jQuery/Zepto/Ender equivalent.
 
-In other words, we just threw away a perfectly good `p` element!
+In other words, we just threw away a perfectly good `p` element! Depending on the complexity of your template, that can mean a lot of work for the browser, as that element now has to be [garbage collected](https://developer.mozilla.org/en-US/docs/JavaScript/Memory_Management). Unless your user is in an older browser, in which case they may suffer memory leaks instead.
 
-Ractive.js takes a different approach. It's **DOM manipulation with surgical precision**.
+Of course, rather than doing the quick-at-first-but-wasteful-thereafter `innerHTML` thing, you might prefer manual DOM manipulation:
+
+```html
+&lt;p&gt;Hello &lt;span id='name'&gt;&lt;/span&gt;!&lt;/p&gt;
+```
+
+```js
+$('#name').set( currentName );
+```
+
+But that's no solution. You've added needless complexity to your DOM structure (bad for performance) and made your template more verbose and harder to reason about. And worst of all, you've swapped extra work for the browser with extra work for yourself.
 
 
 
-Every node is sacred
---------------------
+Enter Ractive.js - surgical DOM manipulation
+--------------------------------------------
 
-Here's a basic Ractive.js setup:
+There is a better way. Here's a basic Ractive.js setup:
 
 ```js
 view = new Ractive({
-    el: element,
-    template: '<p>Hello {{name}}!</p>',
-    data: { name: world }
+  el: element,
+  template: '&lt;p&gt;Hello {{name}}!&lt;/p&gt;',
+  data: { name: world }
 });
-// renders <p>Hello world!</p> to our container element
- 
+// renders &lt;p&gt;Hello world!&lt;/p&gt; to our container element
+
 view.set( 'name', 'Jim' );
 // changes 'world' to 'Jim', leaves everything else untouched
 ```
 
-When Ractive.js renders the template, it stores references to the bits that contain dynamic data – splitting up text nodes if necessary – and updating them when the data changes. It's quicker than `el.innerHTML` (or `$(el).html()`), and gives you a much nicer API to deal with.
+When Ractive.js renders the template, it stores references to the bits that contain dynamic data &ndash; splitting up text nodes if necessary &ndash; and updates them when the data changes. It's quicker than `el.innerHTML` (or `$(el).html()`), and doesn't suffer from the many drawbacks of manual DOM manipulation.</p>
 
 
 
 Yeah, yeah. Heard of Ember? Knockout?
 -------------------------------------
 
-You're right – we've already got perfectly good data binding options. We've got frameworks like [Ember.js](http://emberjs.com/) and [Angular.js](http://angularjs.org/), made by brilliant developers and used in successful apps. I'd certainly recommend trying them.
+You're right &ndash; we've already got perfectly good tools for keeping views in sync with their models. We've got frameworks like [Ember.js](http://emberjs.com) and [Angular.js](http://angularjs.org/), made by brilliant developers and used in successful apps. I'd certainly recommend trying them.
 
-A lot of the time, though, you don't need the functionality of mega-frameworks, or the extra kilobytes (and learning curve) that go with them. And if you stray from the 'happy path' of anticipated use cases, be prepared to hack your way to a solution. Some developers become sceptical of the *magic* that goes on under the hood – if you can't understand it, you can't fix it when it goes wrong.
+A lot of the time, though, you don't need the functionality of mega-frameworks, or the extra kilobytes (and learning curve) that go with them. And if you stray from the 'happy path' of anticipated use cases, be prepared to hack your way to a solution. Some developers become sceptical of the *magic* that goes on under the hood &ndash; if you can't understand it, you can't fix it when it goes wrong.
 
-[Knockout.js](http://knockoutjs.com/) also deserves a special mention, for popularising the idea of declarative data binding, and doing so with a cracking library. Ractive.js is indebted to Knockout, from where it takes much inspiration.
+[Knockout.js](http://knockoutjs.com/) also deserves a special mention, for popularising the idea of *declarative data binding* in web apps, and doing so with a cracking library. Ractive.js is indebted to Knockout, from where it takes much inspiration.
 
 But [mustache syntax](http://mustache.github.com/) is arguably much nicer to deal with, and your non-developer colleagues can easily understand it.
 
@@ -81,7 +91,7 @@ There's more!
 * Extensibility: Use Ractive.extend to add your own logic
 * AMD support: including a [RequireJS loader plugin](https://github.com/Rich-Harris/require-ractive-plugin)
 
-Take a look at the [tutorials](http://rich-harris.github.com/Ractive/tutorials) and [examples](http://rich-harris.github.com/Ractive/examples) to see how Ractive.js can make your life as a web developer easier, then read the [API docs](wiki).
+Take a look at the [tutorials](http://rich-harris.github.com/Ractive/tutorials) to see how Ractive.js can make your life as a web developer easier, then read the [API docs](wiki).
 
 
 
@@ -91,3 +101,10 @@ Caveats and feedback
 This is a personal project in the early stages of development, albeit one I've used regularly in production code in my day job. YMMV! But if you end up using the library I'd love to hear from you – I'm [@rich_harris](http://twitter.com/rich_harris).
 
 [Bug reports and issues](https://github.com/Rich-Harris/Ractive/issues) are very welcome, as are pull requests. If you run into problems, I'll do my best to help.
+
+
+
+License
+-------
+
+Released under the MIT license.
