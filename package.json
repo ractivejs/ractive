@@ -1,7 +1,7 @@
 {
 	"name": "ractive",
 	"description": "Faster, easier, better interactive web development",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"homepage": "http://rich-harris.github.com/Ractive/",
     "main": "build/Ractive.js",
 	"keywords": [ "template", "templating", "data binding", "binding", "declarative", "view model" ],
