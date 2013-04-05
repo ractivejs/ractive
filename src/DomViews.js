@@ -505,6 +505,8 @@
 			var prevValue, lowerCaseName;
 
 			if ( this.twoway ) {
+				// TODO compare against previous?
+				
 				lowerCaseName = this.name.toLowerCase();
 				this.value = this.interpolator.value;
 
@@ -534,11 +536,8 @@
 					this.value = ''; // otherwise text fields will contain 'undefined' rather than their placeholder
 				}
 
-				//if ( this.parentNode[ lowerCaseName ] != this.value ) { // one of the rare cases where we want != rather than !==
-					console.log( lowerCaseName, this.value );
-					this.parentNode[ lowerCaseName ] = this.value;
-				//}
-
+				this.parentNode[ lowerCaseName ] = this.value;
+				
 				return;
 			}
 			
