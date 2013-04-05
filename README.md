@@ -23,7 +23,7 @@ In other words, we just threw away a perfectly good `p` element! Depending on th
 Of course, rather than doing the quick-at-first-but-wasteful-thereafter `innerHTML` thing, you might prefer manual DOM manipulation:
 
 ```html
-&lt;p&gt;Hello &lt;span id='name'&gt;&lt;/span&gt;!&lt;/p&gt;
+<p>Hello <span id='name'></span>!</p>
 ```
 
 ```js
@@ -42,10 +42,10 @@ There is a better way. Here's a basic Ractive.js setup:
 ```js
 view = new Ractive({
   el: element,
-  template: '&lt;p&gt;Hello {{name}}!&lt;/p&gt;',
+  template: '<p>Hello {{name}}!</p>',
   data: { name: world }
 });
-// renders &lt;p&gt;Hello world!&lt;/p&gt; to our container element
+// renders <p>Hello world!</p> to our container element
 
 view.set( 'name', 'Jim' );
 // changes 'world' to 'Jim', leaves everything else untouched
