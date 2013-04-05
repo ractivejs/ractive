@@ -19,3 +19,9 @@ Changelog
 	* Renamed project from Anglebars to Ractive
 	* Added support for animation
 	* A shed-load of bug fixes, and a big dollop of refactoring
+* 0.1.8
+	* Now using DOM fragments for better performance
+	* Better support for legacy browsers
+	* Vastly better two-way data binding
+	* set() and get() now accept arrays of keys, for edge cases involving keys with periods
+	* Bug fixes and refactoring
