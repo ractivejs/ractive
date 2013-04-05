@@ -142,7 +142,9 @@
 			namespace,
 			attr,
 			attrName,
-			attrValue;
+			attrValue,
+			twowayNameAttr,
+			i;
 
 		// stuff we'll need later
 		model = this.model = options.model;
@@ -181,10 +183,10 @@
 			else {
 				this.children = new A.DomFragment({
 					model:        model.frag,
-					root:    options.root,
+					root:         options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
-					parent:        this
+					parent:       this
 				});
 
 				this.node.appendChild( this.children.docFrag );
@@ -198,11 +200,10 @@
 			if ( model.attrs.hasOwnProperty( attrName ) ) {
 				attrValue = model.attrs[ attrName ];
 
-				
 				attr = new Attribute({
 					parent: this,
 					name: attrName,
-					value: attrValue,
+					value: ( attrValue === undefined ? null : attrValue ),
 					root: options.root,
 					parentNode: this.node,
 					contextStack: options.contextStack
@@ -210,8 +211,17 @@
 
 				this.attributes[ this.attributes.length ] = attr;
 
-				attr.update();
+				if ( attr.isTwowayNameAttr ) {
+					twowayNameAttr = attr;
+				} else {
+					attr.update();
+				}
 			}
+		}
+
+		if ( twowayNameAttr ) {
+			twowayNameAttr.updateViewModel();
+			twowayNameAttr.update();
 		}
 
 		docFrag.appendChild( this.node );
@@ -241,7 +251,7 @@
 	// Attribute
 	Attribute = function ( options ) {
 
-		var name, value, colonIndex, namespacePrefix, namespace, ancestor, tagName, bindingCandidate;
+		var name, value, colonIndex, namespacePrefix, namespace, ancestor, tagName, bindingCandidate, lowerCaseName;
 
 		name = options.name;
 		value = options.value;
@@ -280,8 +290,9 @@
 			}
 		}
 
-		// if it's just a straight key-value pair, with no mustache shenanigans, set the attribute accordingly
-		if ( typeof value === 'string' ) {
+		// if it's an empty attribute, or just a straight key-value pair, with no
+		// mustache shenanigans, set the attribute accordingly
+		if ( value === null || typeof value === 'string' ) {
 			
 			if ( namespace ) {
 				options.parentNode.setAttributeNS( namespace, name.replace( namespacePrefix + ':', '' ), value );
@@ -313,21 +324,33 @@
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
 			tagName = this.parent.model.tag.toLowerCase();
-			bindingCandidate = ( ( this.name === 'name' || this.name === 'value' || this.name === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
+			lowerCaseName = this.name.toLowerCase();
+			bindingCandidate = ( ( lowerCaseName === 'name' || lowerCaseName === 'value' || lowerCaseName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
 		}
 
 		if ( bindingCandidate ) {
-			this.bind( this.root.lazy );
+			this.bind( lowerCaseName, this.root.lazy );
+
+			// name attribute is a special case - it is the only two-way attribute that updates
+			// the viewmodel based on the value of another attribute. For that reason it must wait
+			// until the node has been initialised, and the viewmodel has had its first two-way
+			// update, before updating itself (otherwise it may disable a checkbox or radio that
+			// was enabled in the template)
+			if ( lowerCaseName === 'name' ) {
+				this.isTwowayNameAttr = true;
+			}
 		}
 
 
 		// manually trigger first update
 		this.ready = true;
-		//this.update();
+		if ( !this.isTwowayNameAttr ) {
+			this.update();
+		}
 	};
 
 	Attribute.prototype = {
-		bind: function ( lazy ) {
+		bind: function ( lowerCaseName, lazy ) {
 			// two-way binding logic should go here
 			var self = this, viewmodel = this.root.viewmodel, node = this.parentNode, setValue, keypath;
 
@@ -344,7 +367,6 @@
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
 			}
 
-			this.twoway = true;
 			this.interpolator = this.fragment.items[0];
 
 			// Hmmm. Not sure if this is the best way to handle this ambiguity...
@@ -368,10 +390,19 @@
 
 			// checkboxes and radio buttons
 			if ( node.type === 'checkbox' || node.type === 'radio' ) {
-				// replace actual name attribute
-				node.setAttribute( 'name', '{{' + keypath + '}}' );
+				// We might have a situation like this: 
+				//
+				//     <input type='radio' name='{{colour}}' value='red'>
+				//     <input type='radio' name='{{colour}}' value='blue'>
+				//     <input type='radio' name='{{colour}}' value='green'>
+				//
+				// In this case we want to set `colour` to the value of whichever option
+				// is checked. (We assume that a value attribute has been supplied.)
 
-				if ( this.name.toLowerCase() === 'name' ) {
+				if ( lowerCaseName === 'name' ) {
+					// replace actual name attribute
+					node.setAttribute( 'name', '{{' + keypath + '}}' );
+
 					this.updateViewModel = function () {
 						if ( node.checked ) {
 							viewmodel.set( keypath, node.value );
@@ -379,7 +410,15 @@
 					};
 				}
 
-				else {
+
+				// Or, we might have a situation like this:
+				//
+				//     <input type='checkbox' value='{{active}}'>
+				//
+				// Here, we want to set `active` to true or false depending on whether
+				// the input is checked.
+
+				else if ( lowerCaseName === 'checked' ) {
 					this.updateViewModel = function () {
 						viewmodel.set( keypath, node.checked );
 					};
@@ -387,6 +426,12 @@
 			}
 
 			else {
+				// Otherwise we've probably got a situation like this:
+				//
+				//     <input value='{{name}}'>
+				//
+				// in which case we just want to set `name` whenever the user enters text.
+				// The same applies to selects and textareas 
 				this.updateViewModel = function () {
 					var value;
 
@@ -413,26 +458,28 @@
 			}
 			
 
-			// set initial value
-			// TODO do we need to do this? this.updateViewModel();
+			// if we figured out how to bind changes to the viewmodel, add the event listeners
+			if ( this.updateViewModel ) {
+				this.twoway = true;
 
-			node.addEventListener( 'change', this.updateViewModel );
-			node.addEventListener( 'blur', this.updateViewModel );
+				node.addEventListener( 'change', this.updateViewModel );
+				node.addEventListener( 'click', this.updateViewModel );
+				node.addEventListener( 'blur', this.updateViewModel );
 
-			if ( !lazy ) {
-				node.addEventListener( 'keyup', this.updateViewModel );
-				node.addEventListener( 'keydown', this.updateViewModel );
-				node.addEventListener( 'keypress', this.updateViewModel );
-				node.addEventListener( 'input', this.updateViewModel );
+				if ( !lazy ) {
+					node.addEventListener( 'keyup', this.updateViewModel );
+					node.addEventListener( 'keydown', this.updateViewModel );
+					node.addEventListener( 'keypress', this.updateViewModel );
+					node.addEventListener( 'input', this.updateViewModel );
+				}
 			}
-
-			return true;
 		},
 
 		teardown: function () {
 			// remove the event listeners we added, if we added them
 			if ( this.updateViewModel ) {
 				this.node.removeEventListener( 'change', this.updateViewModel );
+				this.node.removeEventListener( 'click', this.updateViewModel );
 				this.node.removeEventListener( 'blur', this.updateViewModel );
 				this.node.removeEventListener( 'keyup', this.updateViewModel );
 				this.node.removeEventListener( 'keydown', this.updateViewModel );
@@ -461,10 +508,14 @@
 				lowerCaseName = this.name.toLowerCase();
 				this.value = this.interpolator.value;
 
+				// special case - if we have an element like this:
+				//
+				//     <input type='radio' name='{{colour}}' value='red'>
+				//
+				// and `colour` has been set to 'red', we don't want to change the name attribute
+				// to red, we want to indicate that this is the selected option, by setting
+				// input.checked = true
 				if ( lowerCaseName === 'name' && ( this.parentNode.type === 'checkbox' || this.parentNode.type === 'radio' ) ) {
-					// we don't actually want to update the name, it's just a reference.
-					// instead we want to see if the value of the reference matches the
-					// specified value
 					if ( this.value === this.parentNode.value ) {
 						this.parentNode.checked = true;
 					} else {
@@ -483,9 +534,10 @@
 					this.value = ''; // otherwise text fields will contain 'undefined' rather than their placeholder
 				}
 
-				if ( this.parentNode[ lowerCaseName ] != this.value ) { // one of the rare cases where we want != rather than !==
+				//if ( this.parentNode[ lowerCaseName ] != this.value ) { // one of the rare cases where we want != rather than !==
+					console.log( lowerCaseName, this.value );
 					this.parentNode[ lowerCaseName ] = this.value;
-				}
+				//}
 
 				return;
 			}
