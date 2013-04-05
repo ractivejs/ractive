@@ -66,11 +66,19 @@ tests = [
 	},
 	{
 		name: "Section with descendant attributes",
+		template: "{{#todos}}<li><label>{{todo}}</label><span class='{{status}}'>{{todo}}</span></li>{{/todos}}",
+		data: {
+			todos: [{todo:"debug Ractive",status:"complete"},{todo:"release Ractive",status:"incomplete"}]
+		},
+		result: "<li><label>debug Ractive</label><span class=\"complete\">debug Ractive</span></li><li><label>release Ractive</label><span class=\"incomplete\">release Ractive</span></li>"
+	},
+	{
+		name: "Section with descendant value attributes",
 		template: "{{#todos}}<li><label>{{todo}}</label><input value='{{todo}}'></li>{{/todos}}",
 		data: {
 			todos: [{todo:"debug Ractive"},{todo:"release Ractive"}]
 		},
-		result: "<li><label>debug Ractive</label><input value=\"debug Ractive\"></li><li><label>release Ractive</label><input value=\"release Ractive\"></li>"
+		result: "<li><label>debug Ractive</label><input></li><li><label>release Ractive</label><input></li>"
 	},
 	{
 		name: "Partials",
