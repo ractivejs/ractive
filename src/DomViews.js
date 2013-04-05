@@ -266,27 +266,13 @@
 			namespacePrefix = name.substr( 0, colonIndex );
 
 			// ...unless it's a namespace *declaration*
-			if ( namespacePrefix === 'xmlns' ) {
-				namespace = null;
-			}
+			if ( namespacePrefix !== 'xmlns' ) {
+				name = name.substring( colonIndex + 1 );
+				this.namespace = _private.namespaces[ namespacePrefix ];
 
-			else {
-
-				// we need to find an ancestor element that defines this prefix
-				ancestor = options.parentNode;
-
-				// continue searching until there's nowhere further to go, or we've found the declaration
-				while ( ancestor && !namespace ) {
-					namespace = ancestor.getAttribute( 'xmlns:' + namespacePrefix );
-
-					// continue searching possible ancestors
-					ancestor = ancestor.parentNode || options.parent.parentFragment.parent.node || options.parent.parentFragment.parent.parentNode;
+				if ( !this.namespace ) {
+					throw 'Unknown namespace ("' + namespacePrefix + '")';
 				}
-			}
-
-			// if we've found a namespace, make a note of it
-			if ( namespace ) {
-				this.namespace = namespace;
 			}
 		}
 
@@ -294,8 +280,8 @@
 		// mustache shenanigans, set the attribute accordingly
 		if ( value === null || typeof value === 'string' ) {
 			
-			if ( namespace ) {
-				options.parentNode.setAttributeNS( namespace, name.replace( namespacePrefix + ':', '' ), value );
+			if ( this.namespace ) {
+				options.parentNode.setAttributeNS( namespace, name, value );
 			} else {
 				options.parentNode.setAttribute( name, value );
 			}
