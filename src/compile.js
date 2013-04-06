@@ -34,7 +34,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		R.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
 		tokens = _private.tokenize( template );
-		fragmentStub = getFragmentStubFromTokens( tokens );
+		fragmentStub = getFragmentStubFromTokens( tokens, 0, options.preserveWhitespace );
 		
 		// TEMP
 		json = fragmentStub.toJson();
@@ -124,6 +124,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 	TextStub = function ( token ) {
+		this.type = types.TEXT;
 		this.text = token.value;
 	};
 
@@ -145,7 +146,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 	ElementStub = function ( token, parentFragment ) {
-		var items, attributes, numAttributes, i, attribute;
+		var items, attributes, numAttributes, i, attribute, preserveWhitespace;
 
 		this.type = types.ELEMENT;
 
@@ -168,11 +169,6 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				}
 
 				attributes[i] = attribute;
-
-				// attributes[i] = {
-				// 	name: items[i].name.value,
-				// 	value: getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
-				// };
 			}
 
 			this.attributes = attributes;
@@ -182,8 +178,12 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		if ( token.isSelfClosingTag || voidElementNames.indexOf( token.tag.toLowerCase() ) !== -1 ) {
 			return;
 		}
+
+		// preserve whitespace if parent fragment has preserveWhitespace flag, or
+		// if this is a <pre> element
+		preserveWhitespace = parentFragment.preserveWhitespace || this.tag.toLowerCase() === 'pre';
 		
-		this.fragment = new FragmentStub( this, parentFragment.priority + 1 );
+		this.fragment = new FragmentStub( this, parentFragment.priority + 1, preserveWhitespace );
 	};
 
 	ElementStub.prototype = {
@@ -318,7 +318,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.formatters = token.formatters;
 		this.i = token.i;
 
-		this.fragment = new FragmentStub( this, parentFragment.priority + 1 );
+		this.fragment = new FragmentStub( this, parentFragment.priority + 1, parentFragment.preserveWhitespace );
 	};
 
 	SectionStub.prototype = {
@@ -331,9 +331,12 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 			json = {
 				type: types.SECTION,
-				ref: this.ref,
-				frag: this.fragment.toJson( noStringify )
+				ref: this.ref
 			};
+
+			if ( this.fragment ) {
+				json.frag = this.fragment.toJson( noStringify );
+			}
 
 			if ( this.formatters && this.formatters.length ) {
 				json.fmtrs = this.formatters.map( getFormatter );
@@ -396,9 +399,11 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 
-	FragmentStub = function ( owner, priority ) {
+	FragmentStub = function ( owner, priority, preserveWhitespace ) {
 		this.owner = owner;
 		this.items = [];
+
+		this.preserveWhitespace = preserveWhitespace;
 
 		if ( owner ) {
 			this.parentElement = ( owner.type === types.ELEMENT ? owner : owner.parentElement );
@@ -569,13 +574,51 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		},
 
 		seal: function () {
+			var first, last, i, item;
+
 			this.sealed = true;
+
+			// if this is an element fragment, remove leading and trailing whitespace
+			if ( !this.preserveWhitespace ) {
+				if ( this.owner.type === types.ELEMENT ) {
+					first = this.items[0];
+
+					if ( first && first.type === types.TEXT ) {
+						first.text = first.text.replace( /^\s*/, '' );
+						if ( first.text === '' ) {
+							this.items.shift();
+						}
+					}
+
+					last = this.items[ this.items.length - 1 ];
+
+					if ( last && last.type === types.TEXT ) {
+						last.text = last.text.replace( /\s*$/, '' );
+						if ( last.text === '' ) {
+							this.items.pop();
+						}
+					}
+				}
+
+				// collapse multiple whitespace characters
+				i = this.items.length;
+				while ( i-- ) {
+					item = this.items[i];
+					if ( item.type === types.TEXT ) {
+						item.text = item.text.replace( /\s{2,}/g, ' ' );
+					}
+				}
+			}
+
+			if ( !this.items.length ) {
+				delete this.owner.fragment;
+			}
 		}
 	};
 
 
-	getFragmentStubFromTokens = function ( tokens, priority ) {
-		var fragStub = new FragmentStub( null, priority || 0 ), token;
+	getFragmentStubFromTokens = function ( tokens, priority, preserveWhitespace ) {
+		var fragStub = new FragmentStub( null, priority, preserveWhitespace ), token;
 
 		while ( tokens.length ) {
 			token = tokens.shift();

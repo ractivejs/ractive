@@ -829,10 +829,10 @@
 	};
 
 	stripStandalones = function ( tokens ) {
-		var i, current, backOne, backTwo, trailingLinebreak, leadingLinebreak;
+		var i, current, backOne, backTwo, leadingLinebreak, trailingLinebreak;
 
-		trailingLinebreak = /\n\s*$/;
-		leadingLinebreak = /^\s*\n/;
+		leadingLinebreak = /^\s*\r?\n/;
+		trailingLinebreak = /\r?\n\s*$/;
 
 		for ( i=2; i<tokens.length; i+=1 ) {
 			current = tokens[i];
@@ -844,7 +844,7 @@
 				// ... and the mustache is a standalone (i.e. line breaks either side)...
 				if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
 					// ... then we want to remove the whitespace after the first line break
-					// if the mustache wasn't a triple or interpolator
+					// if the mustache wasn't a triple or interpolator or partial
 					if ( backOne.type !== types.INTERPOLATOR && backOne.type !== types.TRIPLE ) {
 						backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
 					}
