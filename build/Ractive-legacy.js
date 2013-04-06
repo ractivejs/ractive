@@ -140,7 +140,7 @@
 
 }());
 
-/*! Ractive - v0.1.8 - 2013-04-05
+/*! Ractive - v0.1.8 - 2013-04-06
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -715,7 +715,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		R.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
 		tokens = _private.tokenize( template );
-		fragmentStub = getFragmentStubFromTokens( tokens );
+		fragmentStub = getFragmentStubFromTokens( tokens, 0, options.preserveWhitespace );
 		
 		// TEMP
 		json = fragmentStub.toJson();
@@ -805,6 +805,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 	TextStub = function ( token ) {
+		this.type = types.TEXT;
 		this.text = token.value;
 	};
 
@@ -826,7 +827,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 	ElementStub = function ( token, parentFragment ) {
-		var items, attributes, numAttributes, i, attribute;
+		var items, attributes, numAttributes, i, attribute, preserveWhitespace;
 
 		this.type = types.ELEMENT;
 
@@ -849,11 +850,6 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				}
 
 				attributes[i] = attribute;
-
-				// attributes[i] = {
-				// 	name: items[i].name.value,
-				// 	value: getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 )
-				// };
 			}
 
 			this.attributes = attributes;
@@ -863,8 +859,12 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		if ( token.isSelfClosingTag || voidElementNames.indexOf( token.tag.toLowerCase() ) !== -1 ) {
 			return;
 		}
+
+		// preserve whitespace if parent fragment has preserveWhitespace flag, or
+		// if this is a <pre> element
+		preserveWhitespace = parentFragment.preserveWhitespace || this.tag.toLowerCase() === 'pre';
 		
-		this.fragment = new FragmentStub( this, parentFragment.priority + 1 );
+		this.fragment = new FragmentStub( this, parentFragment.priority + 1, preserveWhitespace );
 	};
 
 	ElementStub.prototype = {
@@ -999,7 +999,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.formatters = token.formatters;
 		this.i = token.i;
 
-		this.fragment = new FragmentStub( this, parentFragment.priority + 1 );
+		this.fragment = new FragmentStub( this, parentFragment.priority + 1, parentFragment.preserveWhitespace );
 	};
 
 	SectionStub.prototype = {
@@ -1012,9 +1012,12 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 			json = {
 				type: types.SECTION,
-				ref: this.ref,
-				frag: this.fragment.toJson( noStringify )
+				ref: this.ref
 			};
+
+			if ( this.fragment ) {
+				json.frag = this.fragment.toJson( noStringify );
+			}
 
 			if ( this.formatters && this.formatters.length ) {
 				json.fmtrs = this.formatters.map( getFormatter );
@@ -1077,9 +1080,11 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 
-	FragmentStub = function ( owner, priority ) {
+	FragmentStub = function ( owner, priority, preserveWhitespace ) {
 		this.owner = owner;
 		this.items = [];
+
+		this.preserveWhitespace = preserveWhitespace;
 
 		if ( owner ) {
 			this.parentElement = ( owner.type === types.ELEMENT ? owner : owner.parentElement );
@@ -1250,13 +1255,51 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		},
 
 		seal: function () {
+			var first, last, i, item;
+
 			this.sealed = true;
+
+			// if this is an element fragment, remove leading and trailing whitespace
+			if ( !this.preserveWhitespace ) {
+				if ( this.owner.type === types.ELEMENT ) {
+					first = this.items[0];
+
+					if ( first && first.type === types.TEXT ) {
+						first.text = first.text.replace( /^\s*/, '' );
+						if ( first.text === '' ) {
+							this.items.shift();
+						}
+					}
+
+					last = this.items[ this.items.length - 1 ];
+
+					if ( last && last.type === types.TEXT ) {
+						last.text = last.text.replace( /\s*$/, '' );
+						if ( last.text === '' ) {
+							this.items.pop();
+						}
+					}
+				}
+
+				// collapse multiple whitespace characters
+				i = this.items.length;
+				while ( i-- ) {
+					item = this.items[i];
+					if ( item.type === types.TEXT ) {
+						item.text = item.text.replace( /\s{2,}/g, ' ' );
+					}
+				}
+			}
+
+			if ( !this.items.length ) {
+				delete this.owner.fragment;
+			}
 		}
 	};
 
 
-	getFragmentStubFromTokens = function ( tokens, priority ) {
-		var fragStub = new FragmentStub( null, priority || 0 ), token;
+	getFragmentStubFromTokens = function ( tokens, priority, preserveWhitespace ) {
+		var fragStub = new FragmentStub( null, priority, preserveWhitespace ), token;
 
 		while ( tokens.length ) {
 			token = tokens.shift();
@@ -1276,7 +1319,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		whitespace,
 
 		stripHtmlComments,
-
+		stripStandalones,
+		stripCommentTokens,
 		TokenStream,
 		MustacheBuffer,
 		
@@ -1300,7 +1344,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 	_private.tokenize = function ( template ) {
 		var stream = TokenStream.fromString( stripHtmlComments( template ) );
-		return stream.tokens;
+
+		return stripCommentTokens( stripStandalones( stream.tokens ) );
 	};
 	
 	
@@ -1314,15 +1359,15 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		read: function ( char ) {
 			var mustacheToken, bufferValue;
 
-			// if we're building a tag, send everything to it including delimiter characters
-			if ( this.currentToken && this.currentToken.type === types.TAG ) {
+			// if we're building a tag or mustache, send everything to it including delimiter characters
+			if ( this.currentToken && this.currentToken.type !== types.TEXT ) {
 				if ( this.currentToken.read( char ) ) {
 					return true;
 				}
 			}
 
 			// either we're not building a tag, or the character was rejected
-			
+
 			// send to buffer. if accepted, we don't need to do anything else
 			if ( this.buffer.read( char ) ) {
 				return true;
@@ -1518,12 +1563,16 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.value = '';
 		this.openingDelimiter = R.delimiters[0];
 		this.closingDelimiter = R.delimiters[1];
+
+		this.minLength = this.openingDelimiter.length + this.closingDelimiter.length;
 	};
 
 	TripleToken = function () {
 		this.value = '';
 		this.openingDelimiter = R.tripleDelimiters[0];
 		this.closingDelimiter = R.tripleDelimiters[1];
+
+		this.minLength = this.openingDelimiter.length + this.closingDelimiter.length;
 
 		this.type = types.TRIPLE;
 	};
@@ -1536,7 +1585,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 			this.value += char;
 
-			if ( this.value.substr( -this.closingDelimiter.length ) === this.closingDelimiter ) {
+			if ( ( this.value.length >= this.minLength ) && this.value.substr( -this.closingDelimiter.length ) === this.closingDelimiter ) {
 				this.seal();
 			}
 
@@ -1602,7 +1651,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		changeDelimiters: function ( str ) {
 			var delimiters, newDelimiters;
 
-			newDelimiters = /\=([^\s=]+)\s+([^\s=]+)=/.exec( str );
+			newDelimiters = /\=\s*([^\s=]+)\s+([^\s=]+)\s*=/.exec( str );
 			delimiters = ( this.type === types.TRIPLE ? R.tripleDelimiters : R.delimiters );
 
 			delimiters[0] = newDelimiters[1];
@@ -2090,6 +2139,71 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		}
 
 		return processed;
+	};
+
+	stripStandalones = function ( tokens ) {
+		var i, current, backOne, backTwo, leadingLinebreak, trailingLinebreak;
+
+		leadingLinebreak = /^\s*\r?\n/;
+		trailingLinebreak = /\r?\n\s*$/;
+
+		for ( i=2; i<tokens.length; i+=1 ) {
+			current = tokens[i];
+			backOne = tokens[i-1];
+			backTwo = tokens[i-2];
+
+			// if we're at the end of a [text][mustache][text] sequence...
+			if ( current.type === types.TEXT && ( backOne.type !== types.TAG ) && backTwo.type === types.TEXT ) {
+				// ... and the mustache is a standalone (i.e. line breaks either side)...
+				if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
+					// ... then we want to remove the whitespace after the first line break
+					// if the mustache wasn't a triple or interpolator or partial
+					if ( backOne.type !== types.INTERPOLATOR && backOne.type !== types.TRIPLE ) {
+						backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
+					}
+
+					// and the leading line break of the second text token
+					current.value = current.value.replace( leadingLinebreak, '' );
+
+					// if that means the current token is now empty, we should remove it
+					if ( current.value === '' ) {
+						tokens.splice( i--, 1 ); // splice and decrement
+					}
+				}
+			}
+		}
+
+		return tokens;
+	};
+
+	stripCommentTokens = function ( tokens ) {
+		var i, current, previous, next, removeNext;
+
+		for ( i=0; i<tokens.length; i+=1 ) {
+			current = tokens[i];
+			previous = tokens[i-1];
+			next = tokens[i+1];
+
+			// if the current token is a comment, remove it...
+			if ( current.type === types.COMMENT ) {
+				
+				tokens.splice( i, 1 ); // remove comment token
+
+				// ... and see if it has text nodes either side, in which case
+				// they can be concatenated
+				if ( previous && next ) {
+					if ( previous.type === types.TEXT && next.type === types.TEXT ) {
+						previous.value += next.value;
+						
+						tokens.splice( i, 1 ); // remove next token
+					}
+				}
+
+				i -= 1; // decrement i to account for the splice(s)
+			}
+		}
+
+		return tokens;
 	};
 
 	types = _private.types;
@@ -2818,27 +2932,13 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			namespacePrefix = name.substr( 0, colonIndex );
 
 			// ...unless it's a namespace *declaration*
-			if ( namespacePrefix === 'xmlns' ) {
-				namespace = null;
-			}
+			if ( namespacePrefix !== 'xmlns' ) {
+				name = name.substring( colonIndex + 1 );
+				this.namespace = _private.namespaces[ namespacePrefix ];
 
-			else {
-
-				// we need to find an ancestor element that defines this prefix
-				ancestor = options.parentNode;
-
-				// continue searching until there's nowhere further to go, or we've found the declaration
-				while ( ancestor && !namespace ) {
-					namespace = ancestor.getAttribute( 'xmlns:' + namespacePrefix );
-
-					// continue searching possible ancestors
-					ancestor = ancestor.parentNode || options.parent.parentFragment.parent.node || options.parent.parentFragment.parent.parentNode;
+				if ( !this.namespace ) {
+					throw 'Unknown namespace ("' + namespacePrefix + '")';
 				}
-			}
-
-			// if we've found a namespace, make a note of it
-			if ( namespace ) {
-				this.namespace = namespace;
 			}
 		}
 
@@ -2846,8 +2946,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		// mustache shenanigans, set the attribute accordingly
 		if ( value === null || typeof value === 'string' ) {
 			
-			if ( namespace ) {
-				options.parentNode.setAttributeNS( namespace, name.replace( namespacePrefix + ':', '' ), value );
+			if ( this.namespace ) {
+				options.parentNode.setAttributeNS( namespace, name, value );
 			} else {
 				options.parentNode.setAttribute( name, value );
 			}
@@ -3453,7 +3553,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		// extend child with specified methods, as long as they don't override Ractive.prototype methods
 		for ( key in childProps ) {
 			if ( childProps.hasOwnProperty( key ) ) {
-				if ( A.prototype.hasOwnProperty( key ) ) {
+				if ( R.prototype.hasOwnProperty( key ) ) {
 					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
 				}
 
@@ -3929,6 +4029,14 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 }( Ractive ));
+_private.namespaces = {
+	html: 'http://www.w3.org/1999/xhtml',
+	mathml: 'http://www.w3.org/1998/Math/MathML',
+	svg: 'http://www.w3.org/2000/svg',
+	xlink: 'http://www.w3.org/1999/xlink',
+	xml: 'http://www.w3.org/XML/1998/namespace',
+	xmlns: 'http://www.w3.org/2000/xmlns/'
+};
 
 // export
 if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS

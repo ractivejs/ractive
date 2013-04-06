@@ -1,4 +1,4 @@
-/*! Ractive - v0.1.8 - 2013-04-05
+/*! Ractive - v0.1.8 - 2013-04-06
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -1249,27 +1249,13 @@ _private.types = {
 			namespacePrefix = name.substr( 0, colonIndex );
 
 			// ...unless it's a namespace *declaration*
-			if ( namespacePrefix === 'xmlns' ) {
-				namespace = null;
-			}
+			if ( namespacePrefix !== 'xmlns' ) {
+				name = name.substring( colonIndex + 1 );
+				this.namespace = _private.namespaces[ namespacePrefix ];
 
-			else {
-
-				// we need to find an ancestor element that defines this prefix
-				ancestor = options.parentNode;
-
-				// continue searching until there's nowhere further to go, or we've found the declaration
-				while ( ancestor && !namespace ) {
-					namespace = ancestor.getAttribute( 'xmlns:' + namespacePrefix );
-
-					// continue searching possible ancestors
-					ancestor = ancestor.parentNode || options.parent.parentFragment.parent.node || options.parent.parentFragment.parent.parentNode;
+				if ( !this.namespace ) {
+					throw 'Unknown namespace ("' + namespacePrefix + '")';
 				}
-			}
-
-			// if we've found a namespace, make a note of it
-			if ( namespace ) {
-				this.namespace = namespace;
 			}
 		}
 
@@ -1277,8 +1263,8 @@ _private.types = {
 		// mustache shenanigans, set the attribute accordingly
 		if ( value === null || typeof value === 'string' ) {
 			
-			if ( namespace ) {
-				options.parentNode.setAttributeNS( namespace, name.replace( namespacePrefix + ':', '' ), value );
+			if ( this.namespace ) {
+				options.parentNode.setAttributeNS( namespace, name, value );
 			} else {
 				options.parentNode.setAttribute( name, value );
 			}
@@ -1884,7 +1870,7 @@ _private.types = {
 		// extend child with specified methods, as long as they don't override Ractive.prototype methods
 		for ( key in childProps ) {
 			if ( childProps.hasOwnProperty( key ) ) {
-				if ( A.prototype.hasOwnProperty( key ) ) {
+				if ( R.prototype.hasOwnProperty( key ) ) {
 					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
 				}
 
@@ -2360,6 +2346,14 @@ _private.types = {
 
 
 }( Ractive ));
+_private.namespaces = {
+	html: 'http://www.w3.org/1999/xhtml',
+	mathml: 'http://www.w3.org/1998/Math/MathML',
+	svg: 'http://www.w3.org/2000/svg',
+	xlink: 'http://www.w3.org/1999/xlink',
+	xml: 'http://www.w3.org/XML/1998/namespace',
+	xmlns: 'http://www.w3.org/2000/xmlns/'
+};
 
 // export
 if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS
