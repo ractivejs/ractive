@@ -39,7 +39,7 @@ module.exports = function(grunt) {
 					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
 					footer: '<%= meta.wrapper.end %>'
 				},
-				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
+				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js', 'src/namespaces.js' ],
 				dest: 'build/Ractive.runtime.js'
 			},
 			full: {
@@ -47,7 +47,7 @@ module.exports = function(grunt) {
 					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
 					footer: '<%= meta.wrapper.end %>'
 				},
-				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js' ],
+				src: [ 'src/Ractive.js', 'src/types.js', 'src/Views.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/ViewModel.js', 'src/DomViews.js', 'src/TextViews.js', 'src/extend.js', 'src/modifyArray.js', 'src/easing.js', 'src/animate.js', 'src/namespaces.js' ],
 				dest: 'build/Ractive.js'
 			},
 			runtime_legacy: {
