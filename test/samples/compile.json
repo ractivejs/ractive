@@ -20,9 +20,14 @@
 		"compiled": [{"type":3,"ref":"mustache"}]
 	},
 	{
-		"name": "Section",
+		"name": "Empty section",
 		"template": "{{#mustache}}{{/mustache}}",
-		"compiled": [{"frag":"","type":4,"ref":"mustache"}]
+		"compiled": [{"type":4,"ref":"mustache"}]
+	},
+	{
+		"name": "Section",
+		"template": "{{#mustache}}contents{{/mustache}}",
+		"compiled": [{"frag":"contents","type":4,"ref":"mustache"}]
 	},
 	{
 		"name": "Interpolator with preceding text",
