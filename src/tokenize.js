@@ -671,20 +671,27 @@
 						bufferValue = bufferValue.substring( 1 );
 					}
 
-					// still got something left over? create a new token
-					if ( bufferValue.length && bufferValue.charAt( 0 ) !== this.quoteMark ) {
+					// still got something left over?
+					if ( bufferValue.length ) {
+						// '>' - close tag token
+						if ( bufferValue.charAt( 0 ) === '>' ) {
+							this.seal();
+							return false;
+						}
+
+						// closing quoteMark - seal value
+						if ( bufferValue.charAt( 0 ) === this.quoteMark ) {
+							this.currentToken.seal();
+							this.seal();
+							return true;
+						}
+
+						// anything else - create a new token
 						this.currentToken = new AttributeValueToken( this.quoteMark );
 						this.currentToken.read( bufferValue.charAt( 0 ) );
 
 						this.tokens[ this.tokens.length ] = this.currentToken;
 						bufferValue = bufferValue.substring( 1 );
-					}
-
-					// closing quoteMark? seal value
-					if ( bufferValue.charAt( 0 ) === this.quoteMark ) {
-						this.currentToken.seal();
-						this.seal();
-						return true;
 					}
 				}
 
