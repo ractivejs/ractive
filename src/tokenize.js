@@ -7,6 +7,7 @@
 
 		stripHtmlComments,
 		stripStandalones,
+		stripCommentTokens,
 		TokenStream,
 		MustacheBuffer,
 		
@@ -31,7 +32,7 @@
 	_private.tokenize = function ( template ) {
 		var stream = TokenStream.fromString( stripHtmlComments( template ) );
 
-		return stripStandalones( stream.tokens );
+		return stripCommentTokens( stripStandalones( stream.tokens ) );
 	};
 	
 	
@@ -45,15 +46,15 @@
 		read: function ( char ) {
 			var mustacheToken, bufferValue;
 
-			// if we're building a tag, send everything to it including delimiter characters
-			if ( this.currentToken && this.currentToken.type === types.TAG ) {
+			// if we're building a tag or mustache, send everything to it including delimiter characters
+			if ( this.currentToken && this.currentToken.type !== types.TEXT ) {
 				if ( this.currentToken.read( char ) ) {
 					return true;
 				}
 			}
 
 			// either we're not building a tag, or the character was rejected
-			
+
 			// send to buffer. if accepted, we don't need to do anything else
 			if ( this.buffer.read( char ) ) {
 				return true;
@@ -249,12 +250,16 @@
 		this.value = '';
 		this.openingDelimiter = R.delimiters[0];
 		this.closingDelimiter = R.delimiters[1];
+
+		this.minLength = this.openingDelimiter.length + this.closingDelimiter.length;
 	};
 
 	TripleToken = function () {
 		this.value = '';
 		this.openingDelimiter = R.tripleDelimiters[0];
 		this.closingDelimiter = R.tripleDelimiters[1];
+
+		this.minLength = this.openingDelimiter.length + this.closingDelimiter.length;
 
 		this.type = types.TRIPLE;
 	};
@@ -267,7 +272,7 @@
 
 			this.value += char;
 
-			if ( this.value.substr( -this.closingDelimiter.length ) === this.closingDelimiter ) {
+			if ( ( this.value.length >= this.minLength ) && this.value.substr( -this.closingDelimiter.length ) === this.closingDelimiter ) {
 				this.seal();
 			}
 
@@ -333,7 +338,7 @@
 		changeDelimiters: function ( str ) {
 			var delimiters, newDelimiters;
 
-			newDelimiters = /\=([^\s=]+)\s+([^\s=]+)=/.exec( str );
+			newDelimiters = /\=\s*([^\s=]+)\s+([^\s=]+)\s*=/.exec( str );
 			delimiters = ( this.type === types.TRIPLE ? R.tripleDelimiters : R.delimiters );
 
 			delimiters[0] = newDelimiters[1];
@@ -824,13 +829,12 @@
 	};
 
 	stripStandalones = function ( tokens ) {
-		var i, len, current, backOne, backTwo, trailingLinebreak, leadingLinebreak;
+		var i, current, backOne, backTwo, trailingLinebreak, leadingLinebreak;
 
 		trailingLinebreak = /\n\s*$/;
 		leadingLinebreak = /^\s*\n/;
 
-		len = tokens.length;
-		for ( i=2; i<len; i+=1 ) {
+		for ( i=2; i<tokens.length; i+=1 ) {
 			current = tokens[i];
 			backOne = tokens[i-1];
 			backTwo = tokens[i-2];
@@ -840,11 +844,49 @@
 				// ... and the mustache is a standalone (i.e. line breaks either side)...
 				if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
 					// ... then we want to remove the whitespace after the first line break
-					backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
+					// if the mustache wasn't a triple or interpolator
+					if ( backOne.type !== types.INTERPOLATOR && backOne.type !== types.TRIPLE ) {
+						backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
+					}
 
 					// and the leading line break of the second text token
 					current.value = current.value.replace( leadingLinebreak, '' );
+
+					// if that means the current token is now empty, we should remove it
+					if ( current.value === '' ) {
+						tokens.splice( i--, 1 ); // splice and decrement
+					}
 				}
+			}
+		}
+
+		return tokens;
+	};
+
+	stripCommentTokens = function ( tokens ) {
+		var i, current, previous, next, removeNext;
+
+		for ( i=0; i<tokens.length; i+=1 ) {
+			current = tokens[i];
+			previous = tokens[i-1];
+			next = tokens[i+1];
+
+			// if the current token is a comment, remove it...
+			if ( current.type === types.COMMENT ) {
+				
+				tokens.splice( i, 1 ); // remove comment token
+
+				// ... and see if it has text nodes either side, in which case
+				// they can be concatenated
+				if ( previous && next ) {
+					if ( previous.type === types.TEXT && next.type === types.TEXT ) {
+						previous.value += next.value;
+						
+						tokens.splice( i, 1 ); // remove next token
+					}
+				}
+
+				i -= 1; // decrement i to account for the splice(s)
 			}
 		}
 
