@@ -82,6 +82,12 @@ var Ractive, _private = {};
 			this.template = Ractive.compile( this.template, this );
 		}
 
+		// If the template was an array with a single string member, that means
+		// we can use innerHTML - we just need to unpack it
+		if ( this.template && ( this.template.length === 1 ) && ( typeof this.template[0] === 'string' ) ) {
+			this.template = this.template[0];
+		}
+
 		// If passed an element, render immediately
 		if ( this.el ) {
 			this.render({ el: this.el, callback: this.callback, append: this.append });

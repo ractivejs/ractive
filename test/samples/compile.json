@@ -2,12 +2,12 @@
 	{
 		"name": "Empty string",
 		"template": "",
-		"compiled": ""
+		"compiled": [""]
 	},
 	{
 		"name": "Mustache-less text",
 		"template": "a string",
-		"compiled": "a string"
+		"compiled": ["a string"]
 	},
 	{
 		"name": "Interpolator",
@@ -48,5 +48,15 @@
 		"name": "Named index",
 		"template": "{{#items:i}}{{i}}: {{name}}{{/items}}",
 		"compiled": [{"frag":[{"p":1,"ref":"i","type":2},": ",{"p":1,"ref":"name","type":2}],"i":"i","ref":"items","type":4}]
+	},
+	{
+		"name": "Element with unquoted attributes",
+		"template": "<div class=test></div>",
+		"compiled": ["<div class=test></div>"]
+	},
+	{
+		"name": "Element with unquoted attributes and a mustache",
+		"template": "<div class=test>{{mustache}}</div>",
+		"compiled": [{"type":7,"tag":"div","attrs":{"class":"test"},"frag":[{"type":2,"ref":"mustache","p":1}]}]
 	}
 ]

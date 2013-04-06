@@ -36,10 +36,13 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		tokens = _private.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens, 0, options.preserveWhitespace );
 		
-		// TEMP
 		json = fragmentStub.toJson();
+
+		if ( typeof json === 'string' ) {
+			return [ json ]; // signal that this shouldn't be recompiled
+		}
 		
-		return fragmentStub.toJson();
+		return json;
 	};
 
 
