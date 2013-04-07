@@ -281,7 +281,7 @@
 		if ( value === null || typeof value === 'string' ) {
 			
 			if ( this.namespace ) {
-				options.parentNode.setAttributeNS( namespace, name, value );
+				options.parentNode.setAttributeNS( this.namespace, name, value );
 			} else {
 				options.parentNode.setAttribute( name, value );
 			}
