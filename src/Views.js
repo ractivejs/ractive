@@ -2,18 +2,6 @@
 
 	'use strict';
 
-	var isArray, isObject;
-
-	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-	isArray = function ( obj ) {
-		return Object.prototype.toString.call( obj ) === '[object Array]';
-	};
-
-	// TODO what about non-POJOs?
-	isObject = function ( obj ) {
-		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
-	};
-
 	_private._Mustache = function ( options ) {
 
 		this.root           = options.root;
@@ -100,7 +88,7 @@
 			fragmentOptions.anchor = this.parentFragment.findNextNode( this );
 		}
 
-		valueIsArray = isArray( value );
+		valueIsArray = _private.isArray( value );
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
@@ -181,7 +169,7 @@
 
 
 		// if value is a hash...
-		else if ( isObject( value ) ) {
+		else if ( _private.isObject( value ) ) {
 			// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 			// (if it is already rendered, then any children dependent on the context stack
 			// will update themselves without any prompting)
