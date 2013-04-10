@@ -1,4 +1,4 @@
-/*! Ractive - v0.1.8 - 2013-04-06
+/*! Ractive - v0.1.8 - 2013-04-10
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -12,7 +12,7 @@
 
 'use strict';
 
-var Ractive, _private = {};
+var Ractive;
 
 (function () {
 
@@ -96,6 +96,12 @@ var Ractive, _private = {};
 			this.template = Ractive.compile( this.template, this );
 		}
 
+		// If the template was an array with a single string member, that means
+		// we can use innerHTML - we just need to unpack it
+		if ( this.template && ( this.template.length === 1 ) && ( typeof this.template[0] === 'string' ) ) {
+			this.template = this.template[0];
+		}
+
 		// If passed an element, render immediately
 		if ( this.el ) {
 			this.render({ el: this.el, callback: this.callback, append: this.append });
@@ -154,6 +160,14 @@ var Ractive, _private = {};
 		update: function () {
 			this.viewmodel.update.apply( this.viewmodel, arguments );
 			return this;
+		},
+
+		link: function ( keypath ) {
+			var self = this;
+
+			return function ( value ) {
+				self.set( keypath, value );
+			};
 		},
 
 		// Internal method to format a value, using formatters passed in at initialization
@@ -232,6 +246,30 @@ var Ractive, _private = {};
 	return Ractive;
 
 }());
+var _private;
+
+(function () {
+
+	'use strict';
+
+	_private = {
+		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+		isArray: function ( obj ) {
+			return Object.prototype.toString.call( obj ) === '[object Array]';
+		},
+
+		// TODO what about non-POJOs?
+		isObject: function ( obj ) {
+			return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+		},
+
+		// http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
+		isNumeric: function ( n ) {
+			return !isNaN( parseFloat( n ) ) && isFinite( n );
+		}
+	};
+
+}());
 _private.types = {
 	TEXT:             1,
 	INTERPOLATOR:     2,
@@ -250,18 +288,6 @@ _private.types = {
 (function ( _private ) {
 
 	'use strict';
-
-	var isArray, isObject;
-
-	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-	isArray = function ( obj ) {
-		return Object.prototype.toString.call( obj ) === '[object Array]';
-	};
-
-	// TODO what about non-POJOs?
-	isObject = function ( obj ) {
-		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
-	};
 
 	_private._Mustache = function ( options ) {
 
@@ -349,7 +375,7 @@ _private.types = {
 			fragmentOptions.anchor = this.parentFragment.findNextNode( this );
 		}
 
-		valueIsArray = isArray( value );
+		valueIsArray = _private.isArray( value );
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
@@ -430,7 +456,7 @@ _private.types = {
 
 
 		// if value is a hash...
-		else if ( isObject( value ) ) {
+		else if ( _private.isObject( value ) ) {
 			// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 			// (if it is already rendered, then any children dependent on the context stack
 			// will update themselves without any prompting)
@@ -575,10 +601,13 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		tokens = _private.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens, 0, options.preserveWhitespace );
 		
-		// TEMP
 		json = fragmentStub.toJson();
+
+		if ( typeof json === 'string' ) {
+			return [ json ]; // signal that this shouldn't be recompiled
+		}
 		
-		return fragmentStub.toJson();
+		return json;
 	};
 
 
@@ -1842,20 +1871,27 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 						bufferValue = bufferValue.substring( 1 );
 					}
 
-					// still got something left over? create a new token
-					if ( bufferValue.length && bufferValue.charAt( 0 ) !== this.quoteMark ) {
+					// still got something left over?
+					if ( bufferValue.length ) {
+						// '>' - close tag token
+						if ( bufferValue.charAt( 0 ) === '>' ) {
+							this.seal();
+							return false;
+						}
+
+						// closing quoteMark - seal value
+						if ( bufferValue.charAt( 0 ) === this.quoteMark ) {
+							this.currentToken.seal();
+							this.seal();
+							return true;
+						}
+
+						// anything else - create a new token
 						this.currentToken = new AttributeValueToken( this.quoteMark );
 						this.currentToken.read( bufferValue.charAt( 0 ) );
 
 						this.tokens[ this.tokens.length ] = this.currentToken;
 						bufferValue = bufferValue.substring( 1 );
-					}
-
-					// closing quoteMark? seal value
-					if ( bufferValue.charAt( 0 ) === this.quoteMark ) {
-						this.currentToken.seal();
-						this.seal();
-						return true;
 					}
 				}
 
@@ -2805,7 +2841,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		if ( value === null || typeof value === 'string' ) {
 			
 			if ( this.namespace ) {
-				options.parentNode.setAttributeNS( namespace, name, value );
+				options.parentNode.setAttributeNS( this.namespace, name, value );
 			} else {
 				options.parentNode.setAttribute( name, value );
 			}
@@ -3694,7 +3730,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 	'use strict';
 
-	var Animation, animationCollection, global;
+	var Animation, animationCollection, global, interpolators;
 
 	global = ( typeof window !== 'undefined' ? window : {} );
 
@@ -3742,7 +3778,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			}
 		}
 
-		this.delta = this.to - this.from;
+		this.interpolator = R.interpolate( this.from, this.to );
 		this.running = true;
 	};
 
@@ -3803,7 +3839,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				}
 
 				t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
-				value = this.from + ( t * this.delta );
+				value = this.interpolator( t );
 
 				this.viewmodel.set( this.keypath, value );
 
@@ -3887,6 +3923,112 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 }( Ractive ));
+(function ( R, _p ) {
+
+	'use strict';
+
+	R.interpolate = function ( from, to ) {
+		if ( _p.isNumeric( from ) && _p.isNumeric( to ) ) {
+			return R.interpolators.number( +from, +to );
+		}
+
+		if ( _p.isArray( from ) && _p.isArray( to ) ) {
+			return R.interpolators.array( from, to );
+		}
+
+		if ( _p.isObject( from ) && _p.isObject( to ) ) {
+			return R.interpolators.object( from, to );
+		}
+
+		throw new Error( 'Could not interpolate values' );
+	};
+
+	R.interpolators = {
+		number: function ( from, to ) {
+			var delta = to - from;
+
+			if ( !delta ) {
+				return function () { return from; };
+			}
+
+			return function ( t ) {
+				return from + ( t * delta );
+			};
+		},
+
+		array: function ( from, to ) {
+			var intermediate, interpolators, len, i;
+
+			intermediate = [];
+			interpolators = [];
+
+			i = len = Math.min( from.length, to.length );
+			while ( i-- ) {
+				interpolators[i] = R.interpolate( from[i], to[i] );
+			}
+
+			// surplus values - don't interpolate, but don't exclude them either
+			for ( i=len; i<from.length; i+=1 ) {
+				intermediate[i] = from[i];
+			}
+
+			for ( i=len; i<to.length; i+=1 ) {
+				intermediate[i] = to[i];
+			}
+
+			return function ( t ) {
+				var i = len;
+
+				while ( i-- ) {
+					intermediate[i] = interpolators[i]( t );
+				}
+
+				return intermediate;
+			};
+		},
+
+		object: function ( from, to ) {
+			var properties = [], len, interpolators, intermediate, prop;
+
+			intermediate = {};
+			interpolators = {};
+
+			for ( prop in from ) {
+				if ( from.hasOwnProperty( prop ) ) {
+					if ( to.hasOwnProperty( prop ) ) {
+						properties[ properties.length ] = prop;
+						interpolators[ prop ] = R.interpolate( from[ prop ], to[ prop ] );
+					}
+
+					else {
+						intermediate[ prop ] = from[ prop ];
+					}
+				}
+			}
+
+			for ( prop in to ) {
+				if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
+					intermediate[ prop ] = to[ prop ];
+				}
+			}
+
+			len = properties.length;
+
+			return function ( t ) {
+				var i = len, prop;
+
+				while ( i-- ) {
+					prop = properties[i];
+
+					intermediate[ prop ] = interpolators[ prop ]( t );
+				}
+
+				return intermediate;
+			};
+		}
+	};
+
+}( Ractive, _private ));
 _private.namespaces = {
 	html: 'http://www.w3.org/1999/xhtml',
 	mathml: 'http://www.w3.org/1998/Math/MathML',
