@@ -306,6 +306,10 @@
 			contextStack: options.contextStack
 		});
 
+		if ( this.fragment.items.length === 1 ) {
+			this.selfUpdating = true;
+		}
+
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
@@ -484,7 +488,14 @@
 		},
 
 		bubble: function () {
-			this.update();
+			if ( this.selfUpdating ) {
+				this.update();
+			}
+
+			else if ( !this.updateDeferred ) {
+				this.root.deferredAttributes[ this.root.deferredAttributes.length ] = this;
+				this.updateDeferred = true;
+			}
 		},
 
 		update: function () {
@@ -510,12 +521,12 @@
 						this.parentNode.checked = false;
 					}
 
-					return; 
+					return this; 
 				}
 
 				// don't programmatically update focused element
 				if ( lowerCaseName === 'value' && doc.activeElement === this.parentNode ) {
-					return;
+					return this;
 				}
 
 				if ( this.value === undefined ) {
@@ -524,11 +535,11 @@
 
 				this.parentNode[ lowerCaseName ] = this.value;
 				
-				return;
+				return this;
 			}
 			
 			if ( !this.ready ) {
-				return; // avoid items bubbling to the surface when we're still initialising
+				return this; // avoid items bubbling to the surface when we're still initialising
 			}
 
 			prevValue = this.value;
@@ -541,6 +552,8 @@
 					this.parentNode.setAttribute( this.name, this.value );
 				}
 			}
+
+			return this;
 		}
 	};
 

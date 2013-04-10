@@ -46,6 +46,9 @@ var Ractive;
 		// Set up event bus
 		this._subs = {};
 
+		// Create an array for deferred attributes
+		this.deferredAttributes = [];
+
 		if ( this.viewmodel === undefined ) {
 			this.viewmodel = new Ractive.ViewModel();
 		}

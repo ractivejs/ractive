@@ -33,14 +33,23 @@
 
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
-		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath;
+		set: function ( keypath, value, multiple ) {
+			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath, rv;
 
 			// Allow multiple values to be set in one go
 			if ( isObject( keypath ) ) {
 				for ( k in keypath ) {
 					if ( keypath.hasOwnProperty( k ) ) {
-						this.set( k, keypath[k] );
+						this.set( k, keypath[k], true );
+					}
+				}
+
+				// update all deferred attributes
+				i = this.dependents.length;
+				while ( i-- ) {
+					rv = this.dependents[i];
+					while ( rv.deferredAttributes.length ) {
+						rv.deferredAttributes.pop().update().attributeDeferred = false;
 					}
 				}
 
@@ -100,6 +109,17 @@
 				// Otherwise add to the back of the queue (this is why we're working backwards)
 				else {
 					this.registerUnresolvedKeypath( unresolved );
+				}
+			}
+
+			if ( !multiple ) {
+				// update all deferred attributes
+				i = this.dependents.length;
+				while ( i-- ) {
+					rv = this.dependents[i];
+					while ( rv.deferredAttributes.length ) {
+						rv.deferredAttributes.pop().update().attributeDeferred = false;
+					}
 				}
 			}
 		},
