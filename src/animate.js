@@ -136,17 +136,6 @@
 
 		options = options || {};
 
-		// check from and to are both numeric
-		to = parseFloat( to );
-		if ( isNaN( to ) ) {
-			throw 'Cannot animate to a non-numeric property';
-		}
-
-		from = parseFloat( this.get( keypath ) );
-		if ( isNaN( to ) ) {
-			throw 'Cannot animate from a non-numeric property';
-		}
-
 		// cancel any existing animation
 		i = animationCollection.animations.length;
 		while ( i-- ) {
@@ -181,7 +170,7 @@
 
 		animation = new Animation({
 			keypath: keypath,
-			from: from,
+			from: this.get( keypath ),
 			to: to,
 			viewmodel: this.viewmodel,
 			duration: duration,
