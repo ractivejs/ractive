@@ -787,7 +787,7 @@ _private.types = {
 				while ( i-- ) {
 					rv = this.dependents[i];
 					while ( rv.deferredAttributes.length ) {
-						rv.deferredAttributes.pop().update().attributeDeferred = false;
+						rv.deferredAttributes.pop().update().updateDeferred = false;
 					}
 				}
 
@@ -856,7 +856,7 @@ _private.types = {
 				while ( i-- ) {
 					rv = this.dependents[i];
 					while ( rv.deferredAttributes.length ) {
-						rv.deferredAttributes.pop().update().attributeDeferred = false;
+						rv.deferredAttributes.pop().update().updateDeferred = false;
 					}
 				}
 			}

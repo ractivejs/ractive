@@ -2196,7 +2196,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				while ( i-- ) {
 					rv = this.dependents[i];
 					while ( rv.deferredAttributes.length ) {
-						rv.deferredAttributes.pop().update().attributeDeferred = false;
+						rv.deferredAttributes.pop().update().updateDeferred = false;
 					}
 				}
 
@@ -2265,7 +2265,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				while ( i-- ) {
 					rv = this.dependents[i];
 					while ( rv.deferredAttributes.length ) {
-						rv.deferredAttributes.pop().update().attributeDeferred = false;
+						rv.deferredAttributes.pop().update().updateDeferred = false;
 					}
 				}
 			}
