@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	var Animation, animationCollection, global;
+	var Animation, animationCollection, global, interpolators;
 
 	global = ( typeof window !== 'undefined' ? window : {} );
 
@@ -50,7 +50,7 @@
 			}
 		}
 
-		this.delta = this.to - this.from;
+		this.interpolator = R.interpolate( this.from, this.to );
 		this.running = true;
 	};
 
@@ -111,7 +111,7 @@
 				}
 
 				t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
-				value = this.from + ( t * this.delta );
+				value = this.interpolator( t );
 
 				this.viewmodel.set( this.keypath, value );
 
