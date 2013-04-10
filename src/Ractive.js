@@ -1,4 +1,4 @@
-var Ractive, _private = {};
+var Ractive;
 
 (function () {
 
@@ -146,6 +146,14 @@ var Ractive, _private = {};
 		update: function () {
 			this.viewmodel.update.apply( this.viewmodel, arguments );
 			return this;
+		},
+
+		link: function ( keypath ) {
+			var self = this;
+
+			return function ( value ) {
+				self.set( keypath, value );
+			};
 		},
 
 		// Internal method to format a value, using formatters passed in at initialization
