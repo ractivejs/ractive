@@ -60,6 +60,9 @@ var Ractive;
 		// Set up event bus
 		this._subs = {};
 
+		// Create an array for deferred attributes
+		this.deferredAttributes = [];
+
 		if ( this.viewmodel === undefined ) {
 			this.viewmodel = new Ractive.ViewModel();
 		}
@@ -626,14 +629,23 @@ _private.types = {
 
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
-		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath;
+		set: function ( keypath, value, multiple ) {
+			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath, rv;
 
 			// Allow multiple values to be set in one go
 			if ( isObject( keypath ) ) {
 				for ( k in keypath ) {
 					if ( keypath.hasOwnProperty( k ) ) {
-						this.set( k, keypath[k] );
+						this.set( k, keypath[k], true );
+					}
+				}
+
+				// update all deferred attributes
+				i = this.dependents.length;
+				while ( i-- ) {
+					rv = this.dependents[i];
+					while ( rv.deferredAttributes.length ) {
+						rv.deferredAttributes.pop().update().attributeDeferred = false;
 					}
 				}
 
@@ -693,6 +705,17 @@ _private.types = {
 				// Otherwise add to the back of the queue (this is why we're working backwards)
 				else {
 					this.registerUnresolvedKeypath( unresolved );
+				}
+			}
+
+			if ( !multiple ) {
+				// update all deferred attributes
+				i = this.dependents.length;
+				while ( i-- ) {
+					rv = this.dependents[i];
+					while ( rv.deferredAttributes.length ) {
+						rv.deferredAttributes.pop().update().attributeDeferred = false;
+					}
 				}
 			}
 		},
@@ -1315,6 +1338,10 @@ _private.types = {
 			contextStack: options.contextStack
 		});
 
+		if ( this.fragment.items.length === 1 ) {
+			this.selfUpdating = true;
+		}
+
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
@@ -1493,7 +1520,14 @@ _private.types = {
 		},
 
 		bubble: function () {
-			this.update();
+			if ( this.selfUpdating ) {
+				this.update();
+			}
+
+			else if ( !this.updateDeferred ) {
+				this.root.deferredAttributes[ this.root.deferredAttributes.length ] = this;
+				this.updateDeferred = true;
+			}
 		},
 
 		update: function () {
@@ -1519,12 +1553,12 @@ _private.types = {
 						this.parentNode.checked = false;
 					}
 
-					return; 
+					return this; 
 				}
 
 				// don't programmatically update focused element
 				if ( lowerCaseName === 'value' && doc.activeElement === this.parentNode ) {
-					return;
+					return this;
 				}
 
 				if ( this.value === undefined ) {
@@ -1533,11 +1567,11 @@ _private.types = {
 
 				this.parentNode[ lowerCaseName ] = this.value;
 				
-				return;
+				return this;
 			}
 			
 			if ( !this.ready ) {
-				return; // avoid items bubbling to the surface when we're still initialising
+				return this; // avoid items bubbling to the surface when we're still initialising
 			}
 
 			prevValue = this.value;
@@ -1550,6 +1584,8 @@ _private.types = {
 					this.parentNode.setAttribute( this.name, this.value );
 				}
 			}
+
+			return this;
 		}
 	};
 

@@ -60,6 +60,9 @@ var Ractive;
 		// Set up event bus
 		this._subs = {};
 
+		// Create an array for deferred attributes
+		this.deferredAttributes = [];
+
 		if ( this.viewmodel === undefined ) {
 			this.viewmodel = new Ractive.ViewModel();
 		}
@@ -2177,14 +2180,23 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 		// Update the `value` of `keypath`, and notify the observers of
 		// `keypath` and its descendants
-		set: function ( keypath, value ) {
-			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath;
+		set: function ( keypath, value, multiple ) {
+			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath, rv;
 
 			// Allow multiple values to be set in one go
 			if ( isObject( keypath ) ) {
 				for ( k in keypath ) {
 					if ( keypath.hasOwnProperty( k ) ) {
-						this.set( k, keypath[k] );
+						this.set( k, keypath[k], true );
+					}
+				}
+
+				// update all deferred attributes
+				i = this.dependents.length;
+				while ( i-- ) {
+					rv = this.dependents[i];
+					while ( rv.deferredAttributes.length ) {
+						rv.deferredAttributes.pop().update().attributeDeferred = false;
 					}
 				}
 
@@ -2244,6 +2256,17 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				// Otherwise add to the back of the queue (this is why we're working backwards)
 				else {
 					this.registerUnresolvedKeypath( unresolved );
+				}
+			}
+
+			if ( !multiple ) {
+				// update all deferred attributes
+				i = this.dependents.length;
+				while ( i-- ) {
+					rv = this.dependents[i];
+					while ( rv.deferredAttributes.length ) {
+						rv.deferredAttributes.pop().update().attributeDeferred = false;
+					}
 				}
 			}
 		},
@@ -2866,6 +2889,10 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			contextStack: options.contextStack
 		});
 
+		if ( this.fragment.items.length === 1 ) {
+			this.selfUpdating = true;
+		}
+
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
@@ -3044,7 +3071,14 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		},
 
 		bubble: function () {
-			this.update();
+			if ( this.selfUpdating ) {
+				this.update();
+			}
+
+			else if ( !this.updateDeferred ) {
+				this.root.deferredAttributes[ this.root.deferredAttributes.length ] = this;
+				this.updateDeferred = true;
+			}
 		},
 
 		update: function () {
@@ -3070,12 +3104,12 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 						this.parentNode.checked = false;
 					}
 
-					return; 
+					return this; 
 				}
 
 				// don't programmatically update focused element
 				if ( lowerCaseName === 'value' && doc.activeElement === this.parentNode ) {
-					return;
+					return this;
 				}
 
 				if ( this.value === undefined ) {
@@ -3084,11 +3118,11 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 				this.parentNode[ lowerCaseName ] = this.value;
 				
-				return;
+				return this;
 			}
 			
 			if ( !this.ready ) {
-				return; // avoid items bubbling to the surface when we're still initialising
+				return this; // avoid items bubbling to the surface when we're still initialising
 			}
 
 			prevValue = this.value;
@@ -3101,6 +3135,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 					this.parentNode.setAttribute( this.name, this.value );
 				}
 			}
+
+			return this;
 		}
 	};
 
