@@ -9,8 +9,6 @@
 
 	_private.TextFragment = function ( options ) {
 		_private._Fragment.call( this, options );
-
-		this.value = this.items.join('');
 	};
 
 	_private.TextFragment.prototype = {
@@ -30,7 +28,7 @@
 
 
 		bubble: function () {
-			this.value = this.items.join( '' );
+			this.value = this.getValue();
 			this.parent.bubble();
 		},
 
@@ -41,6 +39,19 @@
 			for ( i=0; i<numItems; i+=1 ) {
 				this.items[i].teardown();
 			}
+		},
+
+		getValue: function () {
+			var value;
+
+			if ( this.items.length === 1 ) {
+				value = this.items[0].value;
+				if ( value !== undefined ) {
+					return value;
+				}
+			}
+
+			return this.toString();
 		},
 
 		toString: function () {
