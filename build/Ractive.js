@@ -1,4 +1,4 @@
-/*! Ractive - v0.1.8 - 2013-04-10
+/*! Ractive - v0.1.8 - 2013-04-11
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -2585,10 +2585,34 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 	'use strict';
 
-	var types, insertHtml, doc,
+	var types, insertHtml, doc, propertyNames,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	types = _private.types;
+
+	// the property name equivalents for element attributes, where they differ
+	// from the lowercased attribute name
+	propertyNames = {
+		'accept-charset': 'acceptCharset',
+		accesskey: 'accessKey',
+		bgcolor: 'bgColor',
+		'class': 'className',
+		codebase: 'codeBase',
+		colspan: 'colSpan',
+		contenteditable: 'contentEditable',
+		datetime: 'dateTime',
+		dirname: 'dirName',
+		'for': 'htmlFor',
+		'http-equiv': 'httpEquiv',
+		ismap: 'isMap',
+		maxlength: 'maxLength',
+		novalidate: 'noValidate',
+		pubdate: 'pubDate',
+		readonly: 'readOnly',
+		rowspan: 'rowSpan',
+		tabindex: 'tabIndex',
+		usemap: 'useMap'
+	};
 
 	doc = ( typeof window !== 'undefined' ? window.document : null );
 
@@ -2726,6 +2750,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			attr,
 			attrName,
 			attrValue,
+			bindable,
 			twowayNameAttr,
 			i;
 
@@ -2779,6 +2804,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 		// set attributes
 		this.attributes = [];
+		bindable = []; // save these till the end
+
 		for ( attrName in model.attrs ) {
 			if ( model.attrs.hasOwnProperty( attrName ) ) {
 				attrValue = model.attrs[ attrName ];
@@ -2794,12 +2821,20 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 				this.attributes[ this.attributes.length ] = attr;
 
+				if ( attr.isBindable ) {
+					bindable.push( attr );
+				}
+
 				if ( attr.isTwowayNameAttr ) {
 					twowayNameAttr = attr;
 				} else {
 					attr.update();
 				}
 			}
+		}
+
+		while ( bindable.length ) {
+			bindable.pop().bind( this.root.lazy );
 		}
 
 		if ( twowayNameAttr ) {
@@ -2834,7 +2869,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	// Attribute
 	Attribute = function ( options ) {
 
-		var name, value, colonIndex, namespacePrefix, namespace, ancestor, tagName, bindingCandidate, lowerCaseName;
+		var name, value, colonIndex, namespacePrefix, namespace, ancestor, tagName, bindingCandidate, lowerCaseName, propertyName;
 
 		name = options.name;
 		value = options.value;
@@ -2879,6 +2914,22 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 		this.children = [];
 
+		// can we establish this attribute's property name equivalent?
+		if ( !this.namespace && options.parentNode.namespaceURI === _private.namespaces.html ) {
+			lowerCaseName = this.name.toLowerCase();
+			propertyName = ( propertyNames[ lowerCaseName ] ? propertyNames[ lowerCaseName ] : lowerCaseName );
+
+			if ( options.parentNode[ propertyName ] !== undefined ) {
+				this.propertyName = propertyName;
+			}
+
+			// is this a boolean attribute? If so we're better off doing e.g.
+			// node.selected = true rather than node.setAttribute( 'selected', '' )
+			if ( typeof options.parentNode[ propertyName ] === 'boolean' ) {
+				this.boolean = true;
+			}
+		}
+
 		// share parentFragment with parent element
 		this.parentFragment = this.parent.parentFragment;
 
@@ -2897,19 +2948,18 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
 			tagName = this.parent.model.tag.toLowerCase();
-			lowerCaseName = this.name.toLowerCase();
-			bindingCandidate = ( ( lowerCaseName === 'name' || lowerCaseName === 'value' || lowerCaseName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
+			bindingCandidate = ( ( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
 		}
 
 		if ( bindingCandidate ) {
-			this.bind( lowerCaseName, this.root.lazy );
+			this.isBindable = true;
 
 			// name attribute is a special case - it is the only two-way attribute that updates
 			// the viewmodel based on the value of another attribute. For that reason it must wait
 			// until the node has been initialised, and the viewmodel has had its first two-way
 			// update, before updating itself (otherwise it may disable a checkbox or radio that
 			// was enabled in the template)
-			if ( lowerCaseName === 'name' ) {
+			if ( propertyName === 'name' ) {
 				this.isTwowayNameAttr = true;
 			}
 		}
@@ -2923,7 +2973,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 
 	Attribute.prototype = {
-		bind: function ( lowerCaseName, lazy ) {
+		bind: function ( lazy ) {
 			// two-way binding logic should go here
 			var self = this, viewmodel = this.root.viewmodel, node = this.parentNode, setValue, keypath;
 
@@ -2960,7 +3010,6 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			// updating. Using it in lists is probably a recipe for confusion...
 			keypath = this.interpolator.keypath || this.interpolator.model.ref;
 			
-
 			// checkboxes and radio buttons
 			if ( node.type === 'checkbox' || node.type === 'radio' ) {
 				// We might have a situation like this: 
@@ -2972,9 +3021,9 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				// In this case we want to set `colour` to the value of whichever option
 				// is checked. (We assume that a value attribute has been supplied.)
 
-				if ( lowerCaseName === 'name' ) {
+				if ( this.propertyName === 'name' ) {
 					// replace actual name attribute
-					node.setAttribute( 'name', '{{' + keypath + '}}' );
+					node.name = '{{' + keypath + '}}';
 
 					this.updateViewModel = function () {
 						if ( node.checked ) {
@@ -2986,12 +3035,12 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 				// Or, we might have a situation like this:
 				//
-				//     <input type='checkbox' value='{{active}}'>
+				//     <input type='checkbox' checked='{{active}}'>
 				//
 				// Here, we want to set `active` to true or false depending on whether
 				// the input is checked.
 
-				else if ( lowerCaseName === 'checked' ) {
+				else if ( this.propertyName === 'checked' ) {
 					this.updateViewModel = function () {
 						viewmodel.set( keypath, node.checked );
 					};
@@ -3036,14 +3085,14 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				this.twoway = true;
 
 				node.addEventListener( 'change', this.updateViewModel );
-				node.addEventListener( 'click', this.updateViewModel );
-				node.addEventListener( 'blur', this.updateViewModel );
+				node.addEventListener( 'click',  this.updateViewModel );
+				node.addEventListener( 'blur',   this.updateViewModel );
 
 				if ( !lazy ) {
-					node.addEventListener( 'keyup', this.updateViewModel );
-					node.addEventListener( 'keydown', this.updateViewModel );
+					node.addEventListener( 'keyup',    this.updateViewModel );
+					node.addEventListener( 'keydown',  this.updateViewModel );
 					node.addEventListener( 'keypress', this.updateViewModel );
-					node.addEventListener( 'input', this.updateViewModel );
+					node.addEventListener( 'input',    this.updateViewModel );
 				}
 			}
 		},
@@ -3082,7 +3131,13 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		},
 
 		update: function () {
-			var prevValue, lowerCaseName;
+			var value, lowerCaseName;
+
+			if ( !this.ready ) {
+				return this; // avoid items bubbling to the surface when we're still initialising
+			}
+
+			// with boolean values, we use direct property access rather than 
 
 			if ( this.twoway ) {
 				// TODO compare against previous?
@@ -3108,33 +3163,28 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 				}
 
 				// don't programmatically update focused element
-				if ( lowerCaseName === 'value' && doc.activeElement === this.parentNode ) {
+				if ( doc.activeElement === this.parentNode ) {
 					return this;
 				}
-
-				if ( this.value === undefined ) {
-					this.value = ''; // otherwise text fields will contain 'undefined' rather than their placeholder
-				}
-
-				this.parentNode[ lowerCaseName ] = this.value;
-				
-				return this;
 			}
 			
-			if ( !this.ready ) {
-				return this; // avoid items bubbling to the surface when we're still initialising
+			value = this.fragment.getValue();
+
+			if ( value === undefined ) {
+				value = '';
 			}
 
-			prevValue = this.value;
-			this.value = this.fragment.toString();
-
-			if ( this.value !== prevValue ) {
-				if ( this.namespace ) {
-					this.parentNode.setAttributeNS( this.namespace, this.name, this.value );
-				} else {
-					this.parentNode.setAttribute( this.name, this.value );
-				}
+			if ( this.propertyName ) {
+				this.parentNode[ this.propertyName ] = value;
+				return this;
 			}
+
+			if ( this.namespace ) {
+				this.parentNode.setAttributeNS( this.namespace, this.name, value );
+				return this;
+			}
+
+			this.parentNode.setAttribute( this.name, value );
 
 			return this;
 		}
@@ -3317,8 +3367,6 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 	_private.TextFragment = function ( options ) {
 		_private._Fragment.call( this, options );
-
-		this.value = this.items.join('');
 	};
 
 	_private.TextFragment.prototype = {
@@ -3338,7 +3386,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 		bubble: function () {
-			this.value = this.items.join( '' );
+			this.value = this.getValue();
 			this.parent.bubble();
 		},
 
@@ -3349,6 +3397,19 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			for ( i=0; i<numItems; i+=1 ) {
 				this.items[i].teardown();
 			}
+		},
+
+		getValue: function () {
+			var value;
+
+			if ( this.items.length === 1 ) {
+				value = this.items[0].value;
+				if ( value !== undefined ) {
+					return value;
+				}
+			}
+
+			return this.toString();
 		},
 
 		toString: function () {
