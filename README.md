@@ -98,7 +98,7 @@ Take a look at the [tutorials](http://rich-harris.github.com/Ractive/tutorials) 
 Caveats and feedback
 --------------------
 
-This is a personal project in the early stages of development, albeit one I've used regularly in production code in my day job. YMMV! But if you end up using the library I'd love to hear from you – I'm [@rich_harris](http://twitter.com/rich_harris).
+This project is in the early stages of development, though I've used it regularly in production code in my day job. YMMV! But if you end up using the library I'd love to hear from you – I'm [@rich_harris](http://twitter.com/rich_harris).
 
 [Bug reports and issues](https://github.com/Rich-Harris/Ractive/issues) are very welcome, as are pull requests. If you run into problems, I'll do my best to help.
 
