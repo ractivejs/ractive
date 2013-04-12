@@ -58,5 +58,41 @@
 		"name": "Element with unquoted attributes and a mustache",
 		"template": "<div class=test>{{mustache}}</div>",
 		"compiled": [{"type":7,"tag":"div","attrs":{"class":"test"},"frag":[{"type":2,"ref":"mustache","p":1}]}]
+	},
+	{
+		"name": "Template with blacklisted elements (sanitize)",
+		"template": "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
+		"compiled": [""],
+		"sanitize": true
+	},
+	{
+		"name": "Template with blacklisted elements and mustaches (sanitize)",
+		"template": "<link rel='{{rel}}'>",
+		"compiled": [""],
+		"sanitize": true
+	},
+	{
+		"name": "Template with blacklisted elements (don't sanitize)",
+		"template": "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
+		"compiled": ["<style type=text/css>body { font-family: 'Comic Sans MS'; }</style>"],
+		"sanitize": false
+	},
+	{
+		"name": "Template with blacklisted elements and mustaches (don't sanitize)",
+		"template": "<link rel='{{rel}}'>",
+		"compiled": [{"attrs":{"rel":[{"p":1,"ref":"rel","type":2}]},"tag":"link","type":7}],
+		"sanitize": false
+	},
+	{
+		"name": "Element with an event attribute (sanitize)",
+		"template": "<p onclick='doSomething();'>{{text}}</p>",
+		"compiled": [{"attrs":{},"frag":[{"p":1,"ref":"text","type":2}],"tag":"p","type":7}],
+		"sanitize": true
+	},
+	{
+		"name": "Element with an event attribute (don't sanitize)",
+		"template": "<p onclick='doSomething();'>{{text}}</p>",
+		"compiled": [{"attrs":{"onclick":"doSomething();"},"frag":[{"p":1,"ref":"text","type":2}],"tag":"p","type":7}],
+		"sanitize": false
 	}
 ]

@@ -17,7 +17,10 @@ $.getJSON( 'samples/compile.json' ).done( function ( data ) {
 	_.each( data, function ( t ) {
 		test( t.name, function () {
 			console.group( t.template );
-			var compiled = Ractive.compile( t.template );
+			var compiled = Ractive.compile( t.template, {
+				sanitize: t.sanitize,
+				preserveWhitespace: t.preserveWhitespace
+			});
 			console.groupEnd();
 
 			deepEqual( compiled, t.compiled );
