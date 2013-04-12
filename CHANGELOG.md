@@ -25,3 +25,11 @@ Changelog
 	* Vastly better two-way data binding
 	* set() and get() now accept arrays of keys, for edge cases involving keys with periods
 	* Bug fixes and refactoring
+* 0.1.9
+	* More complete compliance with mustache test suite
+	* More efficient compilation (consecutive text nodes are concatenated, etc)
+	* Cleaned up public API, internal functions now kept private
+	* `.animate()` now interpolates between arrays, and between objects
+	* Complex element attributes wait until the end of a `.set()` cycle to update, to avoid repeatedly modifying the DOM unnecessarily
+	* Element property names are used instead of attributes wherever possible (e.g. we use `node.className='...'` instead of `node.setAttribute('class','...')` internally)
+	* Various bug fixes
