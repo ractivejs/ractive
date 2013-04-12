@@ -29,12 +29,20 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 		options = options || {};
 
+		if ( options.sanitize === true ) {
+			options.sanitize = {
+				// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
+				elements: [ 'applet', 'base', 'basefont', 'body', 'frame', 'frameset', 'head', 'html', 'isindex', 'link', 'meta', 'noframes', 'noscript', 'object', 'param', 'script', 'style', 'title' ],
+				eventAttributes: true
+			};
+		}
+
 		// If delimiters are specified use them, otherwise reset to defaults
 		R.delimiters = options.delimiters || [ '{{', '}}' ];
 		R.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
 		tokens = _private.tokenize( template );
-		fragmentStub = getFragmentStubFromTokens( tokens, 0, options.preserveWhitespace );
+		fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
 		
 		json = fragmentStub.toJson();
 
@@ -163,6 +171,13 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			attributes = [];
 			
 			for ( i=0; i<numAttributes; i+=1 ) {
+				// sanitize
+				if ( parentFragment.options.sanitize && parentFragment.options.sanitize.eventAttributes ) {
+					if ( items[i].name.value.toLowerCase().substr( 0, 2 ) === 'on' ) {
+						continue;
+					}
+				}
+
 				attribute = {
 					name: items[i].name.value
 				};
@@ -186,7 +201,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		// if this is a <pre> element
 		preserveWhitespace = parentFragment.preserveWhitespace || this.tag.toLowerCase() === 'pre';
 		
-		this.fragment = new FragmentStub( this, parentFragment.priority + 1, preserveWhitespace );
+		this.fragment = new FragmentStub( this, parentFragment.priority + 1, parentFragment.options, preserveWhitespace );
 	};
 
 	ElementStub.prototype = {
@@ -321,7 +336,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.formatters = token.formatters;
 		this.i = token.i;
 
-		this.fragment = new FragmentStub( this, parentFragment.priority + 1, parentFragment.preserveWhitespace );
+		this.fragment = new FragmentStub( this, parentFragment.priority + 1, parentFragment.options, parentFragment.preserveWhitespace );
 	};
 
 	SectionStub.prototype = {
@@ -402,9 +417,10 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 
-	FragmentStub = function ( owner, priority, preserveWhitespace ) {
+	FragmentStub = function ( owner, priority, options, preserveWhitespace ) {
 		this.owner = owner;
 		this.items = [];
+		this.options = options;
 
 		this.preserveWhitespace = preserveWhitespace;
 
@@ -463,7 +479,15 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 			// element?
 			if ( token.type === types.TAG ) {
+
 				this.currentChild = new ElementStub( token, this );
+
+				// sanitize
+				if ( this.options.sanitize && this.options.sanitize.elements && this.options.sanitize.elements.indexOf( token.tag.toLowerCase() ) !== -1 ) {
+					console.log( 'sanitizing %s', token.tag );
+					return true;
+				}
+
 				this.items[ this.items.length ] = this.currentChild;
 				return true;
 			}
@@ -620,8 +644,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 
 
-	getFragmentStubFromTokens = function ( tokens, priority, preserveWhitespace ) {
-		var fragStub = new FragmentStub( null, priority, preserveWhitespace ), token;
+	getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhitespace ) {
+		var fragStub = new FragmentStub( null, priority, options, preserveWhitespace ), token;
 
 		while ( tokens.length ) {
 			token = tokens.shift();
