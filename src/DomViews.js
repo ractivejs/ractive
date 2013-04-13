@@ -340,10 +340,10 @@
 				this.propertyName = propertyName;
 			}
 
-			// is this a boolean attribute? If so we're better off doing e.g.
+			// is this a boolean attribute or 'value'? If so we're better off doing e.g.
 			// node.selected = true rather than node.setAttribute( 'selected', '' )
-			if ( typeof options.parentNode[ propertyName ] === 'boolean' ) {
-				this.boolean = true;
+			if ( typeof options.parentNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				this.useProperty = true;
 			}
 		}
 
@@ -554,8 +554,6 @@
 				return this; // avoid items bubbling to the surface when we're still initialising
 			}
 
-			// with boolean values, we use direct property access rather than 
-
 			if ( this.twoway ) {
 				// TODO compare against previous?
 				
@@ -591,7 +589,7 @@
 				value = '';
 			}
 
-			if ( this.boolean ) {
+			if ( this.useProperty ) {
 				this.parentNode[ this.propertyName ] = value;
 				return this;
 			}
