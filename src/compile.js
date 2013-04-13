@@ -484,7 +484,6 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 				// sanitize
 				if ( this.options.sanitize && this.options.sanitize.elements && this.options.sanitize.elements.indexOf( token.tag.toLowerCase() ) !== -1 ) {
-					console.log( 'sanitizing %s', token.tag );
 					return true;
 				}
 
