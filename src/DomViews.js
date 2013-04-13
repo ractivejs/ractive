@@ -591,7 +591,7 @@
 				value = '';
 			}
 
-			if ( this.propertyName ) {
+			if ( this.boolean ) {
 				this.parentNode[ this.propertyName ] = value;
 				return this;
 			}
