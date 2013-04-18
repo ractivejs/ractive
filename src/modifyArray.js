@@ -4,13 +4,13 @@
 
 	var wrapMethods;
 
-	_private.modifyArray = function ( array, keypath, viewmodel ) {
+	_private.modifyArray = function ( array, keypath, root ) {
 
-		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
+		var roots, keypathsByIndex, rootIndex, keypaths;
 
 		if ( !array._ractive ) {
 			array._ractive = {
-				viewmodels: [ viewmodel ],
+				roots: [ root ],
 				keypathsByIndex: [ [ keypath ] ]
 			};
 
@@ -18,20 +18,20 @@
 		}
 
 		else {
-			viewmodels = array._ractive.viewmodels;
+			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			// see if this viewmodel is currently associated with this array
-			viewmodelIndex = viewmodels.indexOf( viewmodel );
+			// see if this root is currently associated with this array
+			rootIndex = roots.indexOf( root );
 
 			// if not, associate it
-			if ( viewmodelIndex === -1 ) {
-				viewmodelIndex = viewmodels.length;
-				viewmodels[ viewmodelIndex ] = viewmodel;
+			if ( rootIndex === -1 ) {
+				rootIndex = roots.length;
+				roots[ rootIndex ] = root;
 			}
 
-			// find keypaths that reference this array, on this viewmodel
-			keypaths = keypathsByIndex[ viewmodelIndex ];
+			// find keypaths that reference this array, on this root
+			keypaths = keypathsByIndex[ rootIndex ];
 
 			// if the current keypath isn't among them, add it
 			if ( keypaths.indexOf( keypath ) === -1 ) {
@@ -43,16 +43,16 @@
 
 	wrapMethods = function ( array ) {
 		var notifyDependents = function ( array ) {
-			var viewmodels, keypathsByIndex;
+			var roots, keypathsByIndex;
 
-			viewmodels = array._ractive.viewmodels;
+			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			viewmodels.forEach( function ( viewmodel, i ) {
+			roots.forEach( function ( root, i ) {
 				var keypaths = keypathsByIndex[i];
 
 				keypaths.forEach( function ( keypath ) {
-					viewmodel.set( keypath, array );
+					root.set( keypath, array );
 				});
 			});
 		};

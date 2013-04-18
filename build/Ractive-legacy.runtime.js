@@ -140,7 +140,7 @@
 
 }());
 
-/*! Ractive - v0.1.9 - 2013-04-13
+/*! Ractive - v0.1.9 - 2013-04-18
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -202,19 +202,20 @@ var Ractive;
 		// Set up event bus
 		this._subs = {};
 
+		// Set up cache
+		this._cache = {};
+		this._cacheMap = {};
+
+		// Set up observers
+		this.observers = {};
+		this.pendingResolution = [];
+
 		// Create an array for deferred attributes
 		this.deferredAttributes = [];
 
-		if ( this.viewmodel === undefined ) {
-			this.viewmodel = new Ractive.ViewModel();
-		}
-
-		// bind viewmodel to this ractive instance
-		this.viewmodel.dependents.push( this );
-
 		// Initialise (or update) viewmodel with data
 		if ( this.data ) {
-			this.viewmodel.set( this.data );
+			this.set( this.data );
 		}
 
 		// If we were given uncompiled partials, compile them
@@ -292,18 +293,176 @@ var Ractive;
 			this.rendered.teardown();
 		},
 
-		// Proxies for viewmodel `set`, `get`, `update`, `observe` and `unobserve` methods
-		set: function () {
-			this.viewmodel.set.apply( this.viewmodel, arguments );
-			return this;
+		set: function ( keypath, value ) {
+			if ( _private.isObject( keypath ) ) {
+				this._setMultiple( keypath );
+			} else {
+				this._setSingle( keypath, value );
+			}
+
+			while ( this.deferredAttributes.length ) {
+				this.deferredAttributes.pop().update().updateDeferred = false;
+			}
 		},
 
-		get: function () {
-			return this.viewmodel.get.apply( this.viewmodel, arguments );
+		_setSingle: function ( keypath, value ) {
+			var keys, key, obj, normalised, i, resolved, unresolved;
+
+			if ( _private.isArray( keypath ) ) {
+				keys = keypath.slice();
+			} else {
+				keys = _private.splitKeypath( keypath );
+			}
+
+			normalised = keys.join( '.' );
+
+			// clear cache
+			this._clearCache( normalised );
+
+			// update data
+			obj = this.data;
+			while ( keys.length > 1 ) {
+				key = keys.shift();
+
+				// if this branch doesn't exist yet, create a new one - if the next
+				// key matches /^[0-9]+$/, assume we want an array branch rather
+				// than an object
+				if ( !obj[ key ] ) {
+					obj[ key ] = ( /^[0-9]+$/.test( keys[0] ) ? [] : {} );
+				}
+
+				obj = obj[ key ];
+			}
+
+			key = keys[0];
+
+			obj[ key ] = value;
+
+			// fire set event
+			if ( !this.setting ) {
+				this.setting = true; // short-circuit any potential infinite loops
+				this.fire( 'set', normalised, value );
+				this.fire( 'set:' + normalised, value );
+				this.setting = false;
+			}
+
+			// Trigger updates of views that observe `keypaths` or its descendants
+			this._notifyObservers( normalised, value );
+
+			// See if we can resolve any of the unresolved keypaths (if such there be)
+			i = this.pendingResolution.length;
+			while ( i-- ) { // Work backwards, so we don't go in circles!
+				unresolved = this.pendingResolution.splice( i, 1 )[0];
+
+				resolved = this.resolveRef( unresolved.view.model.ref, unresolved.view.contextStack );
+
+				// If we were able to find a keypath, initialise the view
+				if ( resolved ) {
+					unresolved.callback( resolved.keypath, resolved.value );
+				}
+
+				// Otherwise add to the back of the queue (this is why we're working backwards)
+				else {
+					this.registerUnresolvedKeypath( unresolved );
+				}
+			}
+		},
+
+		_setMultiple: function ( map ) {
+			var keypath;
+
+			for ( keypath in map ) {
+				if ( map.hasOwnProperty( keypath ) ) {
+					this._setSingle( keypath, map[ keypath ] );
+				}
+			}
+		},
+
+		_clearCache: function ( keypath ) {
+			var children = this._cacheMap[ keypath ];
+
+			delete this._cache[ keypath ];
+
+			if ( !children ) {
+				return;
+			}
+
+			while ( children.length ) {
+				this._clearCache( children.pop() );
+			}
+		},
+
+		get: function ( keypath ) {
+			var keys, normalised, lastDotIndex, formula, match, parentKeypath, parentValue, propertyName, unformatted, unformattedKeypath, value, formatters;
+
+			if ( _private.isArray( keypath ) ) {
+				keys = keypath.slice(); // clone
+				normalised = keys.join( '.' );
+			}
+
+			else {
+				// cache hit? great
+				if ( keypath in this._cache ) {
+					return this._cache[ keypath ];
+				}
+
+				keys = _private.splitKeypath( keypath );
+				normalised = keys.join( '.' );
+			}
+
+			// we may have a cache hit now that it's been normalised
+			if ( normalised in this._cache ) {
+				return this._cache[ normalised ];
+			}
+
+			// otherwise it looks like we need to do some work
+			if ( keys.length > 1 ) {
+				formula = keys.pop();
+				parentValue = this.get( keys );
+			} else {
+				formula = keys.pop();
+				parentValue = this.data;
+			}
+
+			// is this a set of formatters?
+			if ( match = /^⭆(.+)⭅$/.exec( formula ) ) {
+				formatters = _private.getFormattersFromString( match[1] );
+				value = this._format( parentValue, formatters );
+			}
+
+			else {
+				if ( typeof parentValue !== 'object' ) {
+					return;
+				}
+
+				value = parentValue[ formula ];
+			}
+
+			// update cacheMap
+			if ( keys.length ) {
+				parentKeypath = keys.join( '.' );
+
+				if ( !this._cacheMap[ parentKeypath ] ) {
+					this._cacheMap[ parentKeypath ] = [];
+				}
+				this._cacheMap[ parentKeypath ].push( normalised );
+			}
+
+			// allow functions as values
+			// TODO allow arguments, same as formatters?
+			if ( typeof value === 'function' ) {
+				value = value();
+			}
+
+			// update cache
+			this._cache[ normalised ] = value;
+			
+			return value;
 		},
 
 		update: function () {
-			this.viewmodel.update.apply( this.viewmodel, arguments );
+			// TODO
+			throw new Error( 'not implemented yet!' );
 			return this;
 		},
 
@@ -313,6 +472,91 @@ var Ractive;
 			return function ( value ) {
 				self.set( keypath, value );
 			};
+		},
+
+		registerView: function ( view ) {
+			var self = this, resolved, initialUpdate, value, index;
+
+			if ( view.parentFragment && ( view.parentFragment.indexRefs.hasOwnProperty( view.model.ref ) ) ) {
+				// this isn't a real keypath, it's an index reference
+				index = view.parentFragment.indexRefs[ view.model.ref ];
+
+				value = ( view.model.fmtrs ? this._format( index, view.model.fmtrs ) : index );
+				view.update( value );
+
+				return; // this value will never change, and doesn't have a keypath
+			}
+
+			initialUpdate = function ( keypath, value ) {
+				if ( view.model.fmtrs ) {
+					view.keypath = keypath + '.' + _private.stringifyFormatters( view.model.fmtrs );
+				} else {
+					view.keypath = keypath;
+				}
+
+				// create observers
+				view.observerRefs = self.observe( view.model.p || 0, view );
+
+				view.update( self.get( view.keypath ) );
+			};
+
+			resolved = this.resolveRef( view.model.ref, view.contextStack );
+
+
+			if ( !resolved ) {
+				// we may still need to do an update, if the view has formatters
+				// that e.g. offer an alternative to undefined
+				if ( view.model.fmtrs ) {
+					view.update( this._format( undefined, view.model.fmtrs ) );
+				}
+
+				this.registerUnresolvedKeypath({
+					view: view,
+					callback: initialUpdate
+				});
+			} else {
+				initialUpdate( resolved.keypath, resolved.value );
+			}
+		},
+
+		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
+		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
+		resolveRef: function ( ref, contextStack ) {
+
+			var innerMost, keypath, value;
+
+			// Implicit iterators - i.e. {{.}} - are a special case
+			if ( ref === '.' ) {
+				keypath = contextStack[ contextStack.length - 1 ];
+				value = this.get( keypath );
+
+				return { keypath: keypath, value: value };
+			}
+
+			// Clone the context stack, so we don't mutate the original
+			contextStack = contextStack.concat();
+
+			// Take each context from the stack, working backwards from the innermost context
+			while ( contextStack.length ) {
+
+				innerMost = contextStack.pop();
+
+				keypath = innerMost + '.' + ref;
+				value = this.get( keypath );
+
+				if ( value !== undefined ) {
+					return { keypath: keypath, value: value };
+				}
+			}
+
+			value = this.get( ref );
+			if ( value !== undefined ) {
+				return { keypath: ref, value: value };
+			}
+		},
+
+		registerUnresolvedKeypath: function ( unresolved ) {
+			this.pendingResolution[ this.pendingResolution.length ] = unresolved;
 		},
 
 		// Internal method to format a value, using formatters passed in at initialization
@@ -341,6 +585,111 @@ var Ractive;
 			}
 
 			return value;
+		},
+
+
+
+
+		_notifyObservers: function ( keypath, value ) {
+			var self = this, observersGroupedByPriority = this.observers[ keypath ] || [], i, j, priorityGroup, observer, actualValue;
+
+			for ( i=0; i<observersGroupedByPriority.length; i+=1 ) {
+				priorityGroup = observersGroupedByPriority[i];
+
+				if ( priorityGroup ) {
+					for ( j=0; j<priorityGroup.length; j+=1 ) {
+						observer = priorityGroup[j];
+						observer.update( self.get( observer.keypath ) );
+					}
+				}
+			}
+		},
+
+		observe: function ( priority, view ) {
+
+			var self = this, keypath, originalKeypath = view.keypath, observerRefs = [], observe, keys;
+
+			if ( !originalKeypath ) {
+				return undefined;
+			}
+
+			observe = function ( keypath ) {
+				var observers, observer;
+
+				observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
+				observers = observers[ priority ] = observers[ priority ] || [];
+
+				observers[ observers.length ] = view;
+				observerRefs[ observerRefs.length ] = {
+					keypath: keypath,
+					priority: priority,
+					view: view
+				};
+			};
+
+			keys = _private.splitKeypath( view.keypath );
+			while ( keys.length > 1 ) {
+				observe( keys.join( '.' ) );
+
+				// remove the last item in the keypath, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
+				keys.pop();
+			}
+
+			observe( keys[0] );
+
+			return observerRefs;
+		},
+
+		unobserve: function ( observerRef ) {
+			var priorities, observers, index, i, len;
+
+			priorities = this.observers[ observerRef.keypath ];
+			if ( !priorities ) {
+				// nothing to unobserve
+				return;
+			}
+
+			observers = priorities[ observerRef.priority ];
+			if ( !observers ) {
+				// nothing to unobserve
+				return;
+			}
+
+			if ( observers.indexOf ) {
+				index = observers.indexOf( observerRef.observer );
+			} else {
+				// fuck you IE
+				for ( i=0, len=observers.length; i<len; i+=1 ) {
+					if ( observers[i] === observerRef.view ) {
+						index = i;
+						break;
+					}
+				}
+			}
+
+
+			if ( index === -1 ) {
+				// nothing to unobserve
+				return;
+			}
+
+			// remove the observer from the list...
+			observers.splice( index, 1 );
+
+			// ...then tidy up if necessary
+			if ( observers.length === 0 ) {
+				delete priorities[ observerRef.priority ];
+			}
+
+			if ( priorities.length === 0 ) {
+				delete this.observers[ observerRef.keypath ];
+			}
+		},
+
+		unobserveAll: function ( observerRefs ) {
+			while ( observerRefs.length ) {
+				this.unobserve( observerRefs.shift() );
+			}
 		}
 	};
 
@@ -397,6 +746,8 @@ var _private;
 
 	'use strict';
 
+	var formattersCache = {};
+
 	_private = {
 		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 		isArray: function ( obj ) {
@@ -411,6 +762,131 @@ var _private;
 		// http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
 		isNumeric: function ( n ) {
 			return !isNaN( parseFloat( n ) ) && isFinite( n );
+		},
+
+		// TODO this is a bit regex-heavy... could be optimised maybe?
+		splitKeypath: function ( keypath ) {
+			var result, hasEscapedDots, hasFormatters, formatters, split, i, replacer, index, startIndex, key, keys, remaining, blanked, part;
+
+			// if this string contains no escaped dots or formatters,
+			// we can just split on dots, after converting from array notation
+			if ( !( hasEscapedDots = /\\\./.test( keypath ) ) && !( hasFormatters = /⭆.+⭅/.test( keypath ) ) ) {
+				return keypath.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' );
+			}
+
+			keys = [];
+			remaining = keypath;
+			
+			// first, blank formatters in case they contain dots, but store them
+			// so we can reinstate them later
+			if ( hasFormatters ) {
+				formatters = [];
+				remaining = remaining.replace( /⭆(.+)⭅/g, function ( match, $1 ) {
+					var blanked, i;
+
+					formatters[ formatters.length ] = $1;
+					return '⭆x⭅';
+				});
+			}
+			
+
+			startIndex = 0;
+
+			// split into keys
+			while ( remaining.length ) {
+				// find next dot
+				index = remaining.indexOf( '.', startIndex );
+
+				// final part?
+				if ( index === -1 ) {
+					// TODO tidy up!
+					part = remaining;
+					remaining = '';
+				}
+
+				else {
+					// if this dot is preceded by a backslash, which isn't
+					// itself preceded by a backslash, we consider it escaped
+					if ( remaining.charAt( index - 1) === '\\' && remaining.charAt( index - 2 ) !== '\\' ) {
+						// we don't want to keep this part, we want to keep looking
+						// for the separator
+						startIndex = index + 1;
+						continue;
+					}
+
+					// otherwise, we have our next part
+					part = remaining.substr( 0, index );
+					startIndex = 0;
+				}
+
+				if ( /\[/.test( part ) ) {
+					keys = keys.concat( part.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' ) );
+				} else {
+					keys[ keys.length ] = part;
+				}
+				
+				remaining = remaining.substring( index + 1 );
+			}
+
+			
+			// then, reinstate formatters
+			if ( hasFormatters ) {
+				replacer = function ( match ) {
+					return '⭆' + formatters.pop() + '⭅';
+				};
+
+				i = keys.length;
+				while ( i-- ) {
+					if ( keys[i] === '⭆x⭅' ) {
+						keys[i] = '⭆' + formatters.pop() + '⭅';
+					}
+				}
+			}
+
+			return keys;
+		},
+
+		getFormattersFromString: function ( str ) {
+			var formatters, raw, remaining;
+
+			if ( formattersCache[ str ] ) {
+				return formattersCache[ str ];
+			}
+
+			raw = str.split( '⤋' );
+
+			formatters = raw.map( function ( str ) {
+				var index;
+
+				index = str.indexOf( '[' );
+
+				if ( index === -1 ) {
+					return {
+						name: str,
+						args: []
+					};
+				}
+
+				return {
+					name: str.substr( 0, index ),
+					args: JSON.parse( str.substring( index ) )
+				};
+			});
+
+			formattersCache[ str ] = formatters;
+			return formatters;
+		},
+
+		stringifyFormatters: function ( formatters ) {
+			var stringified = formatters.map( function ( formatter ) {
+				if ( formatter.args && formatter.args.length ) {
+					return formatter.name + JSON.stringify( formatter.args );
+				}
+
+				return formatter.name;
+			});
+
+			return '⭆' + stringified.join( '⤋' ) + '⭅';
 		}
 	};
 
@@ -438,7 +914,6 @@ _private.types = {
 
 		this.root           = options.root;
 		this.model          = options.model;
-		this.viewmodel      = options.root.viewmodel;
 		this.parent         = options.parent;
 		this.parentFragment = options.parentFragment;
 		this.contextStack   = options.contextStack || [];
@@ -452,7 +927,7 @@ _private.types = {
 
 		this.type = options.model.type;
 
-		this.viewmodel.registerView( this );
+		this.root.registerView( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
@@ -524,7 +999,7 @@ _private.types = {
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
-			_private.modifyArray( value, this.keypath, this.root.viewmodel );
+			_private.modifyArray( value, this.keypath, this.root );
 		}
 
 		// treat empty arrays as false values
@@ -736,442 +1211,6 @@ _private.types = {
 	};
 
 }( Ractive ));
-(function ( R ) {
-
-	'use strict';
-
-	var splitKeypath, keypathNormaliser, isArray, isObject;
-
-	// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-	isArray = function ( obj ) {
-		return Object.prototype.toString.call( obj ) === '[object Array]';
-	};
-
-	// TODO what about non-POJOs?
-	isObject = function ( obj ) {
-		return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
-	};
-
-	// ViewModel constructor
-	R.ViewModel = function ( data ) {
-		// Initialise with supplied data, or create an empty object
-		this.data = data || {};
-
-		// Create empty array for keypaths that can't be resolved initially
-		this.pendingResolution = [];
-
-		// Create empty object for observers
-		this.observers = {};
-
-		// Dependent Ractive instances
-		this.dependents = [];
-	};
-
-	R.ViewModel.prototype = {
-
-		// Update the `value` of `keypath`, and notify the observers of
-		// `keypath` and its descendants
-		set: function ( keypath, value, multiple ) {
-			var k, keys, key, obj, i, unresolved, resolved, normalisedKeypath, rv;
-
-			// Allow multiple values to be set in one go
-			if ( isObject( keypath ) ) {
-				for ( k in keypath ) {
-					if ( keypath.hasOwnProperty( k ) ) {
-						this.set( k, keypath[k], true );
-					}
-				}
-
-				// update all deferred attributes
-				i = this.dependents.length;
-				while ( i-- ) {
-					rv = this.dependents[i];
-					while ( rv.deferredAttributes.length ) {
-						rv.deferredAttributes.pop().update().updateDeferred = false;
-					}
-				}
-
-				return;
-			}
-
-			// fire events
-			this.dependents.forEach( function ( dep ) {
-				if ( dep.setting ) {
-					return; // short-circuit any potential infinite loops
-				}
-
-				dep.setting = true;
-				dep.fire( 'set', keypath, value );
-				dep.fire( 'set:' + keypath, value );
-				dep.setting = false;
-			});	
-
-
-			// Split key path into keys (e.g. `'foo.bar[0]'` -> `['foo','bar',0]`)
-			keys = ( isArray( keypath ) ? keypath.concat() : splitKeypath( keypath ) );
-			normalisedKeypath = keys.join( '.' );
-
-			obj = this.data;
-			while ( keys.length > 1 ) {
-				key = keys.shift();
-
-				// if this branch doesn't exist yet, create a new one - if the next
-				// key matches /^[0-9]+$/, assume we want an array branch rather
-				// than an object
-				if ( !obj[ key ] ) {
-					obj[ key ] = ( /^[0-9]+$/.test( keys[0] ) ? [] : {} );
-				}
-
-				obj = obj[ key ];
-			}
-
-			key = keys[0];
-
-			obj[ key ] = value;
-
-			// Trigger updates of views that observe `keypaths` or its descendants
-			this._notifyObservers( normalisedKeypath, value );
-
-			// See if we can resolve any of the unresolved keypaths (if such there be)
-			i = this.pendingResolution.length;
-			while ( i-- ) { // Work backwards, so we don't go in circles!
-				unresolved = this.pendingResolution.splice( i, 1 )[0];
-
-				resolved = this.resolveRef( unresolved.view.model.ref, unresolved.view.contextStack );
-
-				// If we were able to find a keypath, initialise the view
-				if ( resolved ) {
-					unresolved.callback( resolved.keypath, resolved.value );
-				}
-
-				// Otherwise add to the back of the queue (this is why we're working backwards)
-				else {
-					this.registerUnresolvedKeypath( unresolved );
-				}
-			}
-
-			if ( !multiple ) {
-				// update all deferred attributes
-				i = this.dependents.length;
-				while ( i-- ) {
-					rv = this.dependents[i];
-					while ( rv.deferredAttributes.length ) {
-						rv.deferredAttributes.pop().update().updateDeferred = false;
-					}
-				}
-			}
-		},
-
-		// Get the current value of `keypath`
-		get: function ( keypath ) {
-			var keys, result;
-
-			if ( !keypath ) {
-				return undefined;
-			}
-
-			keys = ( isArray( keypath ) ? keypath.concat() : splitKeypath( keypath ) );
-
-			result = this.data;
-			while ( keys.length ) {
-				if ( result ) {
-					result = result[ keys.shift() ];
-				}
-
-				if ( result === undefined ) {
-					return result;
-				}
-			}
-
-			if ( typeof result === 'function' ) {
-				return result.call( this, keypath );
-			}
-
-			return result;
-		},
-
-		// Force notify observers of `keypath` (useful if e.g. an array or object member
-		// was changed without calling `ractive.set()`)
-		update: function ( keypath ) {
-			var kp;
-
-			if ( keypath ) {
-				this._notifyObservers( keypath, this.get( keypath ) );
-			}
-
-			// no keypath? update all the things
-			else {
-				for ( kp in this.data ) {
-					if ( this.data.hasOwnProperty( kp ) ) {
-						this._notifyObservers( kp, this.get( kp ) );
-					}
-				}
-			}
-		},
-
-		registerView: function ( view ) {
-			var self = this, resolved, initialUpdate, value, index;
-
-			if ( view.parentFragment && ( view.parentFragment.indexRefs.hasOwnProperty( view.model.ref ) ) ) {
-				// this isn't a real keypath, it's an index reference
-				index = view.parentFragment.indexRefs[ view.model.ref ];
-
-				value = ( view.model.fmtrs ? view.root._format( index, view.model.fmtrs ) : index );
-				view.update( value );
-
-				return; // this value will never change, and doesn't have a keypath
-			}
-
-			initialUpdate = function ( keypath, value ) {
-				view.keypath = keypath;
-
-				// create observers
-				view.observerRefs = self.observe({
-					keypath: keypath,
-					priority: view.model.p || 0,
-					view: view
-				});
-
-				// pass value through formatters, if there are any
-				if ( view.model.fmtrs ) {
-					value = view.root._format( value, view.model.fmtrs );
-				}
-
-				view.update( value );
-			};
-
-			resolved = this.resolveRef( view.model.ref, view.contextStack );
-
-
-			if ( !resolved ) {
-				// we may still need to do an update, if the view has formatters
-				// that e.g. offer an alternative to undefined
-				if ( view.model.fmtrs ) {
-					view.update( view.root._format( undefined, view.model.fmtrs ) );
-				}
-
-				this.registerUnresolvedKeypath({
-					view: view,
-					callback: initialUpdate
-				});
-			} else {
-				initialUpdate( resolved.keypath, resolved.value );
-			}
-		},
-
-		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
-		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-		resolveRef: function ( ref, contextStack ) {
-
-			var innerMost, keypath, value;
-
-			// Implicit iterators - i.e. {{.}} - are a special case
-			if ( ref === '.' ) {
-				keypath = contextStack[ contextStack.length - 1 ];
-				value = this.get( keypath );
-
-				return { keypath: keypath, value: value };
-			}
-
-			// Clone the context stack, so we don't mutate the original
-			contextStack = contextStack.concat();
-
-			// Take each context from the stack, working backwards from the innermost context
-			while ( contextStack.length ) {
-
-				innerMost = contextStack.pop();
-
-				keypath = innerMost + '.' + ref;
-				value = this.get( keypath );
-
-				if ( value !== undefined ) {
-					return { keypath: keypath, value: value };
-				}
-			}
-
-			value = this.get( ref );
-			if ( value !== undefined ) {
-				return { keypath: ref, value: value };
-			}
-		},
-
-		registerUnresolvedKeypath: function ( unresolved ) {
-			this.pendingResolution[ this.pendingResolution.length ] = unresolved;
-		},
-
-		_notifyObservers: function ( keypath, value ) {
-			var self = this, observersGroupedByLevel = this.observers[ keypath ] || [], i, j, priority, observer, actualValue;
-
-			for ( i=0; i<observersGroupedByLevel.length; i+=1 ) {
-				priority = observersGroupedByLevel[i];
-
-				if ( priority ) {
-					for ( j=0; j<priority.length; j+=1 ) {
-						observer = priority[j];
-
-						if ( keypath !== observer.originalAddress ) {
-							actualValue = self.get( observer.originalAddress );
-						} else {
-							actualValue = value;
-						}
-
-						// apply formatters, if there are any
-						if ( observer.view.model.fmtrs ) {
-							actualValue = observer.view.root._format( actualValue, observer.view.model.fmtrs );
-						}
-
-						observer.view.update( actualValue );
-					}
-				}
-			}
-		},
-
-		observe: function ( options ) {
-
-			var self = this, keypath, originalAddress = options.keypath, priority = options.priority, observerRefs = [], observe;
-
-			// Allow `observe( keypath, callback )` syntax
-			if ( arguments.length === 2 && typeof arguments[0] === 'string' && typeof arguments[1] === 'function' ) {
-				return this.observe({ keypath: arguments[0], callback: arguments[1], priority: 0 });
-			}
-
-			if ( !options.keypath ) {
-				return undefined;
-			}
-
-			observe = function ( keypath ) {
-				var observers, observer;
-
-				observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
-				observers = observers[ priority ] = observers[ priority ] || [];
-
-				observer = {
-					originalAddress: originalAddress
-				};
-
-				// if we're given a view to update, add it to the observer - ditto callbacks
-				if ( options.view ) {
-					observer.view = options.view;
-				}
-
-				if ( options.callback ) {
-					observer.callback = options.callback;
-				}
-
-				observers[ observers.length ] = observer;
-				observerRefs[ observerRefs.length ] = {
-					keypath: keypath,
-					priority: priority,
-					observer: observer
-				};
-			};
-
-			keypath = options.keypath;
-			while ( keypath.lastIndexOf( '.' ) !== -1 ) {
-				observe( keypath );
-
-				// remove the last item in the keypath, so that data.set( 'parent', { child: 'newValue' } ) affects views dependent on parent.child
-				keypath = keypath.substr( 0, keypath.lastIndexOf( '.' ) );
-			}
-
-			observe( keypath );
-
-			return observerRefs;
-		},
-
-		unobserve: function ( observerRef ) {
-			var priorities, observers, index, i, len;
-
-			priorities = this.observers[ observerRef.keypath ];
-			if ( !priorities ) {
-				// nothing to unobserve
-				return;
-			}
-
-			observers = priorities[ observerRef.priority ];
-			if ( !observers ) {
-				// nothing to unobserve
-				return;
-			}
-
-			if ( observers.indexOf ) {
-				index = observers.indexOf( observerRef.observer );
-			} else {
-				// fuck you IE
-				for ( i=0, len=observers.length; i<len; i+=1 ) {
-					if ( observers[i] === observerRef.observer ) {
-						index = i;
-						break;
-					}
-				}
-			}
-
-
-			if ( index === -1 ) {
-				// nothing to unobserve
-				return;
-			}
-
-			// remove the observer from the list...
-			observers.splice( index, 1 );
-
-			// ...then tidy up if necessary
-			if ( observers.length === 0 ) {
-				delete priorities[ observerRef.priority ];
-			}
-
-			if ( priorities.length === 0 ) {
-				delete this.observers[ observerRef.keypath ];
-			}
-		},
-
-		unobserveAll: function ( observerRefs ) {
-			while ( observerRefs.length ) {
-				this.unobserve( observerRefs.shift() );
-			}
-		}
-	};
-
-
-	if ( Array.prototype.filter ) { // Browsers that aren't unredeemable pieces of shit
-		R.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
-			this.pendingResolution = this.pendingResolution.filter( function ( pending ) {
-				return pending.view !== view;
-			});
-		};
-	}
-
-	else { // Internet Exploder
-		R.ViewModel.prototype.cancelKeypathResolution = function ( view ) {
-			var i, filtered = [];
-
-			for ( i=0; i<this.pendingResolution.length; i+=1 ) {
-				if ( this.pendingResolution[i].view !== view ) {
-					filtered[ filtered.length ] = this.pendingResolution[i];
-				}
-			}
-
-			this.pendingResolution = filtered;
-		};
-	}
-
-
-
-	
-	keypathNormaliser = /\[\s*([0-9]+)\s*\]/g;
-	splitKeypath = function ( keypath ) {
-		var normalised;
-
-		// normalise keypath (e.g. 'foo[0]' becomes 'foo.0')
-		normalised = keypath.replace( keypathNormaliser, '.$1' );
-
-		return normalised.split( '.' );
-	};
-
-
-
-}( Ractive ));
-
 (function ( R, _private ) {
 
 	'use strict';
@@ -1348,7 +1387,6 @@ _private.types = {
 		// stuff we'll need later
 		model = this.model = options.model;
 		this.root = options.root;
-		this.viewmodel = options.root.viewmodel;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
@@ -1566,7 +1604,7 @@ _private.types = {
 	Attribute.prototype = {
 		bind: function ( lazy ) {
 			// two-way binding logic should go here
-			var self = this, viewmodel = this.root.viewmodel, node = this.parentNode, setValue, keypath;
+			var self = this, node = this.parentNode, setValue, keypath, index;
 
 			if ( !this.fragment ) {
 				return false; // report failure
@@ -1600,6 +1638,11 @@ _private.types = {
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
 			keypath = this.interpolator.keypath || this.interpolator.model.ref;
+
+			// if there are any formatters, we want to disregard them when setting
+			if ( ( index = keypath.indexOf( '.⭆' ) ) !== -1 ) {
+				keypath = keypath.substr( 0, index );
+			}
 			
 			// checkboxes and radio buttons
 			if ( node.type === 'checkbox' || node.type === 'radio' ) {
@@ -1618,7 +1661,7 @@ _private.types = {
 
 					this.updateViewModel = function () {
 						if ( node.checked ) {
-							viewmodel.set( keypath, node.value );
+							self.root.set( keypath, node.value );
 						}
 					};
 				}
@@ -1633,7 +1676,7 @@ _private.types = {
 
 				else if ( this.propertyName === 'checked' ) {
 					this.updateViewModel = function () {
-						viewmodel.set( keypath, node.checked );
+						self.root.set( keypath, node.checked );
 					};
 				}
 			}
@@ -1663,10 +1706,10 @@ _private.types = {
 						value = +value || value;
 					}
 
-					// Note: we're counting on `viewmodel.set` recognising that `value` is
+					// Note: we're counting on `this.root.set` recognising that `value` is
 					// already what it wants it to be, and short circuiting the process.
 					// Rather than triggering an infinite loop...
-					viewmodel.set( keypath, value );
+					self.root.set( keypath, value );
 				};
 			}
 			
@@ -1795,9 +1838,9 @@ _private.types = {
 	Interpolator.prototype = {
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 
 			if ( this.root.el.contains( this.node ) ) {
@@ -1841,9 +1884,9 @@ _private.types = {
 
 			// kill observer(s)
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -1896,9 +1939,9 @@ _private.types = {
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -2039,9 +2082,9 @@ _private.types = {
 
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -2067,9 +2110,9 @@ _private.types = {
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -2153,13 +2196,13 @@ _private.types = {
 
 	var wrapMethods;
 
-	_private.modifyArray = function ( array, keypath, viewmodel ) {
+	_private.modifyArray = function ( array, keypath, root ) {
 
-		var viewmodels, keypathsByIndex, viewmodelIndex, keypaths;
+		var roots, keypathsByIndex, rootIndex, keypaths;
 
 		if ( !array._ractive ) {
 			array._ractive = {
-				viewmodels: [ viewmodel ],
+				roots: [ root ],
 				keypathsByIndex: [ [ keypath ] ]
 			};
 
@@ -2167,20 +2210,20 @@ _private.types = {
 		}
 
 		else {
-			viewmodels = array._ractive.viewmodels;
+			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			// see if this viewmodel is currently associated with this array
-			viewmodelIndex = viewmodels.indexOf( viewmodel );
+			// see if this root is currently associated with this array
+			rootIndex = roots.indexOf( root );
 
 			// if not, associate it
-			if ( viewmodelIndex === -1 ) {
-				viewmodelIndex = viewmodels.length;
-				viewmodels[ viewmodelIndex ] = viewmodel;
+			if ( rootIndex === -1 ) {
+				rootIndex = roots.length;
+				roots[ rootIndex ] = root;
 			}
 
-			// find keypaths that reference this array, on this viewmodel
-			keypaths = keypathsByIndex[ viewmodelIndex ];
+			// find keypaths that reference this array, on this root
+			keypaths = keypathsByIndex[ rootIndex ];
 
 			// if the current keypath isn't among them, add it
 			if ( keypaths.indexOf( keypath ) === -1 ) {
@@ -2192,16 +2235,16 @@ _private.types = {
 
 	wrapMethods = function ( array ) {
 		var notifyDependents = function ( array ) {
-			var viewmodels, keypathsByIndex;
+			var roots, keypathsByIndex;
 
-			viewmodels = array._ractive.viewmodels;
+			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			viewmodels.forEach( function ( viewmodel, i ) {
+			roots.forEach( function ( root, i ) {
 				var keypaths = keypathsByIndex[i];
 
 				keypaths.forEach( function ( keypath ) {
-					viewmodel.set( keypath, array );
+					root.set( keypath, array );
 				});
 			});
 		};
@@ -2221,6 +2264,10 @@ _private.types = {
 	
 	'use strict';
 
+	// These are a subset of the easing equations found at
+	// https://raw.github.com/danro/easing-js - license info
+	// follows:
+
 	// --------------------------------------------------
 	// easing.js v0.5.4
 	// Generic set of easing functions with AMD support
@@ -2232,187 +2279,35 @@ _private.types = {
 	// Easing Equations (c) 2003 Robert Penner, BSD license
 	// https://raw.github.com/danro/easing-js/master/LICENSE
 	// --------------------------------------------------
+
+	// In that library, the functions named easeIn, easeOut, and
+	// easeInOut below are named easeInCubic, easeOutCubic, and
+	// (you guessed it) easeInOutCubic.
+
 	R.easing = {
-		easeInQuad: function(pos) {
-			return Math.pow(pos, 2);
+		linear: function ( pos ) {
+			return pos;
 		},
 
-		easeOutQuad: function(pos) {
-			return -(Math.pow((pos-1), 2) -1);
+		easeIn: function ( pos ) {
+			return Math.pow( pos, 3 );
 		},
 
-		easeInOutQuad: function(pos) {
-			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,2);
-			return -0.5 * ((pos-=2)*pos - 2);
+		easeOut: function ( pos ) {
+			return ( Math.pow( ( pos - 1 ), 3 ) + 1 );
 		},
 
-		easeInCubic: function(pos) {
-			return Math.pow(pos, 3);
-		},
-
-		easeOutCubic: function(pos) {
-			return (Math.pow((pos-1), 3) +1);
-		},
-
-		easeInOutCubic: function(pos) {
-			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,3);
-			return 0.5 * (Math.pow((pos-2),3) + 2);
-		},
-
-		easeInQuart: function(pos) {
-			return Math.pow(pos, 4);
-		},
-
-		easeOutQuart: function(pos) {
-			return -(Math.pow((pos-1), 4) -1);
-		},
-
-		easeInOutQuart: function(pos) {
-			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,4);
-			return -0.5 * ((pos-=2)*Math.pow(pos,3) - 2);
-		},
-
-		easeInQuint: function(pos) {
-			return Math.pow(pos, 5);
-		},
-
-		easeOutQuint: function(pos) {
-			return (Math.pow((pos-1), 5) +1);
-		},
-
-		easeInOutQuint: function(pos) {
-			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,5);
-			return 0.5 * (Math.pow((pos-2),5) + 2);
-		},
-
-		easeInSine: function(pos) {
-			return -Math.cos(pos * (Math.PI/2)) + 1;
-		},
-
-		easeOutSine: function(pos) {
-			return Math.sin(pos * (Math.PI/2));
-		},
-
-		easeInOutSine: function(pos) {
-			return (-0.5 * (Math.cos(Math.PI*pos) -1));
-		},
-
-		easeInExpo: function(pos) {
-			return (pos===0) ? 0 : Math.pow(2, 10 * (pos - 1));
-		},
-
-		easeOutExpo: function(pos) {
-			return (pos===1) ? 1 : -Math.pow(2, -10 * pos) + 1;
-		},
-
-		easeInOutExpo: function(pos) {
-			if(pos===0) return 0;
-			if(pos===1) return 1;
-			if((pos/=0.5) < 1) return 0.5 * Math.pow(2,10 * (pos-1));
-			return 0.5 * (-Math.pow(2, -10 * --pos) + 2);
-		},
-
-		easeInCirc: function(pos) {
-			return -(Math.sqrt(1 - (pos*pos)) - 1);
-		},
-
-		easeOutCirc: function(pos) {
-			return Math.sqrt(1 - Math.pow((pos-1), 2));
-		},
-
-		easeInOutCirc: function(pos) {
-			if((pos/=0.5) < 1) return -0.5 * (Math.sqrt(1 - pos*pos) - 1);
-			return 0.5 * (Math.sqrt(1 - (pos-=2)*pos) + 1);
-		},
-
-		easeOutBounce: function(pos) {
-			if ((pos) < (1/2.75)) {
-				return (7.5625*pos*pos);
-			} else if (pos < (2/2.75)) {
-				return (7.5625*(pos-=(1.5/2.75))*pos + 0.75);
-			} else if (pos < (2.5/2.75)) {
-				return (7.5625*(pos-=(2.25/2.75))*pos + 0.9375);
-			} else {
-				return (7.5625*(pos-=(2.625/2.75))*pos + 0.984375);
+		easeInOut: function ( pos ) {
+			if ( ( pos /= 0.5 ) < 1 ) {
+				return ( 0.5 * Math.pow( pos, 3 ) );
 			}
-		},
 
-		easeInBack: function(pos) {
-			var s = 1.70158;
-			return (pos)*pos*((s+1)*pos - s);
-		},
-
-		easeOutBack: function(pos) {
-			var s = 1.70158;
-			return (pos=pos-1)*pos*((s+1)*pos + s) + 1;
-		},
-
-		easeInOutBack: function(pos) {
-			var s = 1.70158;
-			if((pos/=0.5) < 1) return 0.5*(pos*pos*(((s*=(1.525))+1)*pos -s));
-			return 0.5*((pos-=2)*pos*(((s*=(1.525))+1)*pos +s) +2);
-		},
-
-		elastic: function(pos) {
-			return -1 * Math.pow(4,-8*pos) * Math.sin((pos*6-1)*(2*Math.PI)/2) + 1;
-		},
-
-		swingFromTo: function(pos) {
-			var s = 1.70158;
-			return ((pos/=0.5) < 1) ? 0.5*(pos*pos*(((s*=(1.525))+1)*pos - s)) :
-			0.5*((pos-=2)*pos*(((s*=(1.525))+1)*pos + s) + 2);
-		},
-
-		swingFrom: function(pos) {
-			var s = 1.70158;
-			return pos*pos*((s+1)*pos - s);
-		},
-
-		swingTo: function(pos) {
-			var s = 1.70158;
-			return (pos-=1)*pos*((s+1)*pos + s) + 1;
-		},
-
-		bounce: function(pos) {
-			if (pos < (1/2.75)) {
-				return (7.5625*pos*pos);
-			} else if (pos < (2/2.75)) {
-				return (7.5625*(pos-=(1.5/2.75))*pos + 0.75);
-			} else if (pos < (2.5/2.75)) {
-				return (7.5625*(pos-=(2.25/2.75))*pos + 0.9375);
-			} else {
-				return (7.5625*(pos-=(2.625/2.75))*pos + 0.984375);
-			}
-		},
-
-		bouncePast: function(pos) {
-			if (pos < (1/2.75)) {
-				return (7.5625*pos*pos);
-			} else if (pos < (2/2.75)) {
-				return 2 - (7.5625*(pos-=(1.5/2.75))*pos + 0.75);
-			} else if (pos < (2.5/2.75)) {
-				return 2 - (7.5625*(pos-=(2.25/2.75))*pos + 0.9375);
-			} else {
-				return 2 - (7.5625*(pos-=(2.625/2.75))*pos + 0.984375);
-			}
-		},
-
-		easeFromTo: function(pos) {
-			if ((pos/=0.5) < 1) return 0.5*Math.pow(pos,4);
-			return -0.5 * ((pos-=2)*Math.pow(pos,3) - 2);
-		},
-
-		easeFrom: function(pos) {
-			return Math.pow(pos,4);
-		},
-
-		easeTo: function(pos) {
-			return Math.pow(pos,0.25);
+			return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
 		}
 	};
 
 }( Ractive ));
-(function ( R ) {
+(function ( R, _p ) {
 
 	'use strict';
 
@@ -2452,22 +2347,6 @@ _private.types = {
 
 
 
-	Animation = function ( options ) {
-		var key;
-
-		this.startTime = Date.now();
-
-		// from and to
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				this[ key ] = options[ key ];
-			}
-		}
-
-		this.interpolator = R.interpolate( this.from, this.to );
-		this.running = true;
-	};
-
 	animationCollection = {
 		animations: [],
 
@@ -2505,6 +2384,24 @@ _private.types = {
 		}
 	};
 
+	
+
+	Animation = function ( options ) {
+		var key;
+
+		this.startTime = Date.now();
+
+		// from and to
+		for ( key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				this[ key ] = options[ key ];
+			}
+		}
+
+		this.interpolator = R.interpolate( this.from, this.to );
+		this.running = true;
+	};
+
 	Animation.prototype = {
 		tick: function () {
 			var elapsed, t, value, timeNow;
@@ -2514,7 +2411,7 @@ _private.types = {
 				elapsed = timeNow - this.startTime;
 
 				if ( elapsed >= this.duration ) {
-					this.viewmodel.set( this.keypath, this.to );
+					this.root.set( this.keys, this.to );
 
 					if ( this.complete ) {
 						this.complete( 1 );
@@ -2527,7 +2424,7 @@ _private.types = {
 				t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
 				value = this.interpolator( t );
 
-				this.viewmodel.set( this.keypath, value );
+				this.root.set( this.keys, value );
 
 				if ( this.step ) {
 					this.step( t, value );
@@ -2546,7 +2443,7 @@ _private.types = {
 
 
 	R.prototype.animate = function ( keypath, to, options ) {
-		var easing, from, duration, animation, i;
+		var easing, from, duration, animation, i, keys;
 
 		options = options || {};
 
@@ -2582,11 +2479,13 @@ _private.types = {
 		// duration
 		duration = ( options.duration === undefined ? 400 : options.duration );
 
+		keys = _p.splitKeypath( keypath );
+
 		animation = new Animation({
-			keypath: keypath,
-			from: this.get( keypath ),
+			keys: keys,
+			from: this.get( keys ),
 			to: to,
-			viewmodel: this.viewmodel,
+			root: this,
 			duration: duration,
 			easing: easing,
 			step: options.step,
@@ -2597,7 +2496,7 @@ _private.types = {
 	};
 
 
-}( Ractive ));
+}( Ractive, _private ));
 (function ( R, _p ) {
 
 	'use strict';

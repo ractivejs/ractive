@@ -6,7 +6,6 @@
 
 		this.root           = options.root;
 		this.model          = options.model;
-		this.viewmodel      = options.root.viewmodel;
 		this.parent         = options.parent;
 		this.parentFragment = options.parentFragment;
 		this.contextStack   = options.contextStack || [];
@@ -20,7 +19,7 @@
 
 		this.type = options.model.type;
 
-		this.viewmodel.registerView( this );
+		this.root.registerView( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
@@ -92,7 +91,7 @@
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
-			_private.modifyArray( value, this.keypath, this.root.viewmodel );
+			_private.modifyArray( value, this.keypath, this.root );
 		}
 
 		// treat empty arrays as false values

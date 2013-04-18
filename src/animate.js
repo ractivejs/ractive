@@ -1,4 +1,4 @@
-(function ( R ) {
+(function ( R, _p ) {
 
 	'use strict';
 
@@ -38,22 +38,6 @@
 
 
 
-	Animation = function ( options ) {
-		var key;
-
-		this.startTime = Date.now();
-
-		// from and to
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				this[ key ] = options[ key ];
-			}
-		}
-
-		this.interpolator = R.interpolate( this.from, this.to );
-		this.running = true;
-	};
-
 	animationCollection = {
 		animations: [],
 
@@ -91,6 +75,24 @@
 		}
 	};
 
+	
+
+	Animation = function ( options ) {
+		var key;
+
+		this.startTime = Date.now();
+
+		// from and to
+		for ( key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				this[ key ] = options[ key ];
+			}
+		}
+
+		this.interpolator = R.interpolate( this.from, this.to );
+		this.running = true;
+	};
+
 	Animation.prototype = {
 		tick: function () {
 			var elapsed, t, value, timeNow;
@@ -100,7 +102,7 @@
 				elapsed = timeNow - this.startTime;
 
 				if ( elapsed >= this.duration ) {
-					this.viewmodel.set( this.keypath, this.to );
+					this.root.set( this.keys, this.to );
 
 					if ( this.complete ) {
 						this.complete( 1 );
@@ -113,7 +115,7 @@
 				t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
 				value = this.interpolator( t );
 
-				this.viewmodel.set( this.keypath, value );
+				this.root.set( this.keys, value );
 
 				if ( this.step ) {
 					this.step( t, value );
@@ -132,7 +134,7 @@
 
 
 	R.prototype.animate = function ( keypath, to, options ) {
-		var easing, from, duration, animation, i;
+		var easing, from, duration, animation, i, keys;
 
 		options = options || {};
 
@@ -168,11 +170,13 @@
 		// duration
 		duration = ( options.duration === undefined ? 400 : options.duration );
 
+		keys = _p.splitKeypath( keypath );
+
 		animation = new Animation({
-			keypath: keypath,
-			from: this.get( keypath ),
+			keys: keys,
+			from: this.get( keys ),
 			to: to,
-			viewmodel: this.viewmodel,
+			root: this,
 			duration: duration,
 			easing: easing,
 			step: options.step,
@@ -183,4 +187,4 @@
 	};
 
 
-}( Ractive ));
+}( Ractive, _private ));

@@ -92,9 +92,9 @@
 
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -120,9 +120,9 @@
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 

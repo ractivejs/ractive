@@ -174,7 +174,6 @@
 		// stuff we'll need later
 		model = this.model = options.model;
 		this.root = options.root;
-		this.viewmodel = options.root.viewmodel;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
@@ -392,7 +391,7 @@
 	Attribute.prototype = {
 		bind: function ( lazy ) {
 			// two-way binding logic should go here
-			var self = this, viewmodel = this.root.viewmodel, node = this.parentNode, setValue, keypath;
+			var self = this, node = this.parentNode, setValue, keypath, index;
 
 			if ( !this.fragment ) {
 				return false; // report failure
@@ -426,6 +425,11 @@
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
 			keypath = this.interpolator.keypath || this.interpolator.model.ref;
+
+			// if there are any formatters, we want to disregard them when setting
+			if ( ( index = keypath.indexOf( '.⭆' ) ) !== -1 ) {
+				keypath = keypath.substr( 0, index );
+			}
 			
 			// checkboxes and radio buttons
 			if ( node.type === 'checkbox' || node.type === 'radio' ) {
@@ -444,7 +448,7 @@
 
 					this.updateViewModel = function () {
 						if ( node.checked ) {
-							viewmodel.set( keypath, node.value );
+							self.root.set( keypath, node.value );
 						}
 					};
 				}
@@ -459,7 +463,7 @@
 
 				else if ( this.propertyName === 'checked' ) {
 					this.updateViewModel = function () {
-						viewmodel.set( keypath, node.checked );
+						self.root.set( keypath, node.checked );
 					};
 				}
 			}
@@ -489,10 +493,10 @@
 						value = +value || value;
 					}
 
-					// Note: we're counting on `viewmodel.set` recognising that `value` is
+					// Note: we're counting on `this.root.set` recognising that `value` is
 					// already what it wants it to be, and short circuiting the process.
 					// Rather than triggering an infinite loop...
-					viewmodel.set( keypath, value );
+					self.root.set( keypath, value );
 				};
 			}
 			
@@ -621,9 +625,9 @@
 	Interpolator.prototype = {
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 
 			if ( this.root.el.contains( this.node ) ) {
@@ -667,9 +671,9 @@
 
 			// kill observer(s)
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -722,9 +726,9 @@
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.viewmodel.cancelKeypathResolution( this );
+				this.root.cancelKeypathResolution( this );
 			} else {
-				this.viewmodel.unobserveAll( this.observerRefs );
+				this.root.unobserveAll( this.observerRefs );
 			}
 		},
 
