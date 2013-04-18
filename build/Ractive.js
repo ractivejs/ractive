@@ -1,4 +1,4 @@
-/*! Ractive - v0.1.9 - 2013-04-18
+/*! Ractive - v0.2.0 - 2013-04-18
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/

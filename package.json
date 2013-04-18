@@ -1,7 +1,7 @@
 {
 	"name": "ractive",
 	"description": "Faster, easier, better interactive web development",
-	"version": "0.1.9",
+	"version": "0.2.0",
 	"homepage": "http://rich-harris.github.com/Ractive/",
     "main": "build/Ractive.js",
 	"keywords": [ "template", "templating", "data binding", "binding", "declarative", "view model" ],
@@ -17,8 +17,14 @@
         "main" : "Ractive.js",
         "include" : [
             "Ractive.js",
-            "Ractive.compile.js",
-            "Ractive.runtime.js",
+            "build/Ractive.js",
+            "build/Ractive.runtime.js",
+            "build/Ractive.min.js",
+            "build/Ractive.runtime.min.js",
+            "build/Ractive-legacy.js",
+            "build/Ractive-legacy.runtime.js",
+            "build/Ractive-legacy.min.js",
+            "build/Ractive-legacy.runtime.min.js",
             "README.md"
         ]
     },
