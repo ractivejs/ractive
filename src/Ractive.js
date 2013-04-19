@@ -290,9 +290,13 @@ var Ractive, _internal;
 			return value;
 		},
 
-		update: function () {
-			// TODO
-			throw new Error( 'not implemented yet!' );
+		update: function ( keypath ) {
+			this._clearCache( keypath );
+			this._notifyObservers( keypath );
+
+			this.fire( 'update:' + keypath );
+			this.fire( 'update', keypath );
+
 			return this;
 		},
 
