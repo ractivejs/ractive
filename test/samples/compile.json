@@ -60,6 +60,11 @@
 		"compiled": [{"type":7,"tag":"div","attrs":{"class":"test"},"frag":[{"type":2,"ref":"mustache","p":1}]}]
 	},
 	{
+		"name": "Element with unquoted mustache attributes",
+		"template": "<div class={{myClass}}>contents</div>",
+		"compiled": [{"attrs":{"class":[{"p":1,"ref":"myClass","type":2}]},"frag":"contents","tag":"div","type":7}]
+	},
+	{
 		"name": "Template with blacklisted elements (sanitize)",
 		"template": "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
 		"compiled": [""],
