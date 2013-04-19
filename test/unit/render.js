@@ -148,6 +148,30 @@ tests = [
 		result: '<div>before <strong>bold</strong> <em>italic</em> after</div>',
 		new_data: { triple: '<em>italic</em> <strong>bold</strong>' },
 		new_result: '<div>before <em>italic</em> <strong>bold</strong> after</div>'
+	},
+	{
+		name: 'SVG',
+		template: '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="{{x}}" cy="{{y}}" r="{{r}}"/></svg>',
+		data: { x: 50, y: 50, r: 50 },
+		result: '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50"></circle></svg>'
+	},
+	{
+		name: 'SVG with non-mustache text',
+		template: '<svg xmlns="http://www.w3.org/2000/svg"><text>some text</text></svg>',
+		data: {},
+		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>some text</text></svg>'
+	},
+	{
+		name: 'SVG with interpolator',
+		template: '<svg xmlns="http://www.w3.org/2000/svg"><text>{{hello}}</text></svg>',
+		data: { hello: 'Hello world!' },
+		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello world!</text></svg>'
+	},
+	{
+		name: 'SVG with interpolator and static text',
+		template: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello {{thing}}!</text></svg>',
+		data: { thing: 'world' },
+		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello world!</text></svg>'
 	}
 ];
 

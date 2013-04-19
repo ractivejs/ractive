@@ -94,5 +94,25 @@
 		"template": "<p onclick='doSomething();'>{{text}}</p>",
 		"compiled": [{"attrs":{"onclick":"doSomething();"},"frag":[{"p":1,"ref":"text","type":2}],"tag":"p","type":7}],
 		"sanitize": false
+	},
+	{
+		"name": "SVG",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"{{x}}\" cy=\"{{y}}\" r=\"{{r}}\"/></svg>",
+		"compiled": [{"attrs":{"xmlns":"http://www.w3.org/2000/svg"},"frag":[{"attrs":{"cx":[{"p":2,"ref":"x","type":2}],"cy":[{"p":2,"ref":"y","type":2}],"r":[{"p":2,"ref":"r","type":2}]},"tag":"circle","type":7}],"tag":"svg","type":7}]
+	},
+	{
+		"name": "SVG with non-mustache text",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>some text</text></svg>",
+		"compiled": [{"attrs":{"xmlns":"http://www.w3.org/2000/svg"},"frag":[{"frag":"some text","tag":"text","type":7}],"tag":"svg","type":7}]
+	},
+	{
+		"name": "SVG with interpolator",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>{{hello}}</text></svg>",
+		"compiled": [{"attrs":{"xmlns":"http://www.w3.org/2000/svg"},"frag":[{"frag":[{"p":2,"ref":"hello","type":2}],"tag":"text","type":7}],"tag":"svg","type":7}]
+	},
+	{
+		"name": "SVG with interpolator and static text",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>Hello {{thing}}!</text></svg>",
+		"compiled": [{"attrs":{"xmlns":"http://www.w3.org/2000/svg"},"frag":[{"frag":["Hello ",{"p":2,"ref":"thing","type":2},"!"],"tag":"text","type":7}],"tag":"svg","type":7}]
 	}
 ]

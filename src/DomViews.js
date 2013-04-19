@@ -197,7 +197,7 @@
 
 		// append children, if there are any
 		if ( model.frag ) {
-			if ( typeof model.frag === 'string' ) {
+			if ( typeof model.frag === 'string' && this.node.namespaceURI === _internal.namespaces.html ) {
 				// great! we can use innerHTML
 				this.node.innerHTML = model.frag;
 			}
