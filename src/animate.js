@@ -1,13 +1,13 @@
-(function ( R, _p ) {
+(function ( R, _i ) {
 
 	'use strict';
 
-	var Animation, animationCollection, global, interpolators;
+	var Animation, animationCollection, global;
 
 	global = ( typeof window !== 'undefined' ? window : {} );
 
 	// https://gist.github.com/paulirish/1579671
-	(function( vendors, lastTime, window ) {
+	(function( vendors, lastTime, global ) {
 		
 		var x;
 
@@ -134,7 +134,7 @@
 
 
 	R.prototype.animate = function ( keypath, to, options ) {
-		var easing, from, duration, animation, i, keys;
+		var easing, duration, animation, i, keys;
 
 		options = options || {};
 
@@ -170,7 +170,7 @@
 		// duration
 		duration = ( options.duration === undefined ? 400 : options.duration );
 
-		keys = _p.splitKeypath( keypath );
+		keys = _i.splitKeypath( keypath );
 
 		animation = new Animation({
 			keys: keys,
@@ -187,4 +187,4 @@
 	};
 
 
-}( Ractive, _private ));
+}( Ractive, _internal ));

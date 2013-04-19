@@ -1,18 +1,15 @@
-var _private;
-
 (function () {
 
 	'use strict';
 
-	var formattersCache = {};
+	var formattersCache = {}, keypathCache = {};
 
-	_private = {
+	_internal = {
 		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 		isArray: function ( obj ) {
 			return Object.prototype.toString.call( obj ) === '[object Array]';
 		},
 
-		// TODO what about non-POJOs?
 		isObject: function ( obj ) {
 			return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 		},
@@ -22,14 +19,20 @@ var _private;
 			return !isNaN( parseFloat( n ) ) && isFinite( n );
 		},
 
-		// TODO this is a bit regex-heavy... could be optimised maybe?
 		splitKeypath: function ( keypath ) {
-			var result, hasEscapedDots, hasFormatters, formatters, split, i, replacer, index, startIndex, key, keys, remaining, blanked, part;
+			var hasFormatters, formatters, i, index, startIndex, keys, remaining, part;
 
-			// if this string contains no escaped dots or formatters,
+			// We should only have to do all the heavy regex stuff once... caching FTW
+			if ( keypathCache[ keypath ] ) {
+				return keypathCache[ keypath ].concat();
+			}
+
+			// If this string contains no escaped dots or formatters,
 			// we can just split on dots, after converting from array notation
-			if ( !( hasEscapedDots = /\\\./.test( keypath ) ) && !( hasFormatters = /⭆.+⭅/.test( keypath ) ) ) {
-				return keypath.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' );
+			hasFormatters = /⭆.+⭅/.test( keypath );
+			if ( !( /\\\./.test( keypath ) ) && !hasFormatters ) {
+				keypathCache[ keypath ] = keypath.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' );
+				return keypathCache[ keypath ].concat();
 			}
 
 			keys = [];
@@ -40,8 +43,6 @@ var _private;
 			if ( hasFormatters ) {
 				formatters = [];
 				remaining = remaining.replace( /⭆(.+)⭅/g, function ( match, $1 ) {
-					var blanked, i;
-
 					formatters[ formatters.length ] = $1;
 					return '⭆x⭅';
 				});
@@ -50,20 +51,19 @@ var _private;
 
 			startIndex = 0;
 
-			// split into keys
+			// Split into keys
 			while ( remaining.length ) {
-				// find next dot
+				// Find next dot
 				index = remaining.indexOf( '.', startIndex );
 
-				// final part?
+				// Final part?
 				if ( index === -1 ) {
-					// TODO tidy up!
 					part = remaining;
 					remaining = '';
 				}
 
 				else {
-					// if this dot is preceded by a backslash, which isn't
+					// If this dot is preceded by a backslash, which isn't
 					// itself preceded by a backslash, we consider it escaped
 					if ( remaining.charAt( index - 1) === '\\' && remaining.charAt( index - 2 ) !== '\\' ) {
 						// we don't want to keep this part, we want to keep looking
@@ -72,7 +72,7 @@ var _private;
 						continue;
 					}
 
-					// otherwise, we have our next part
+					// Otherwise, we have our next part
 					part = remaining.substr( 0, index );
 					startIndex = 0;
 				}
@@ -87,12 +87,8 @@ var _private;
 			}
 
 			
-			// then, reinstate formatters
+			// Then, reinstate formatters
 			if ( hasFormatters ) {
-				replacer = function ( match ) {
-					return '⭆' + formatters.pop() + '⭅';
-				};
-
 				i = keys.length;
 				while ( i-- ) {
 					if ( keys[i] === '⭆x⭅' ) {
@@ -101,11 +97,12 @@ var _private;
 				}
 			}
 
-			return keys;
+			keypathCache[ keypath ] = keys;
+			return keys.concat();
 		},
 
 		getFormattersFromString: function ( str ) {
-			var formatters, raw, remaining;
+			var formatters, raw;
 
 			if ( formattersCache[ str ] ) {
 				return formattersCache[ str ];

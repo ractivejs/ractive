@@ -1,10 +1,10 @@
-(function ( _private ) {
+(function ( _internal ) {
 
 	'use strict';
 
 	var wrapMethods;
 
-	_private.modifyArray = function ( array, keypath, root ) {
+	_internal.modifyArray = function ( array, keypath, root ) {
 
 		var roots, keypathsByIndex, rootIndex, keypaths;
 
@@ -67,4 +67,4 @@
 		});
 	};
 
-}( _private ));
+}( _internal ));

@@ -1,11 +1,11 @@
-(function ( R, _private ) {
+(function ( _internal ) {
 
 	'use strict';
 
 	var types, insertHtml, doc, propertyNames,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
-	types = _private.types;
+	types = _internal.types;
 
 	// the property name equivalents for element attributes, where they differ
 	// from the lowercased attribute name
@@ -47,7 +47,7 @@
 		return nodes;
 	};
 
-	_private.DomFragment = function ( options ) {
+	_internal.DomFragment = function ( options ) {
 		this.docFrag = doc.createDocumentFragment();
 
 		// if we have an HTML string, our job is easy.
@@ -57,10 +57,10 @@
 		}
 
 		// otherwise we need to make a proper fragment
-		_private._Fragment.call( this, options );
+		_internal._Fragment.call( this, options );
 	};
 
-	_private.DomFragment.prototype = {
+	_internal.DomFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options, this.docFrag );
@@ -118,7 +118,7 @@
 
 	// Partials
 	Partial = function ( options, docFrag ) {
-		this.fragment = new _private.DomFragment({
+		this.fragment = new _internal.DomFragment({
 			model:        options.root.partials[ options.model.ref ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
@@ -161,15 +161,13 @@
 	// Element
 	Element = function ( options, docFrag ) {
 
-		var binding,
-			model,
+		var model,
 			namespace,
 			attr,
 			attrName,
 			attrValue,
 			bindable,
-			twowayNameAttr,
-			i;
+			twowayNameAttr;
 
 		// stuff we'll need later
 		model = this.model = options.model;
@@ -205,7 +203,7 @@
 			}
 
 			else {
-				this.children = new _private.DomFragment({
+				this.children = new _internal.DomFragment({
 					model:        model.frag,
 					root:         options.root,
 					parentNode:   this.node,
@@ -285,7 +283,7 @@
 	// Attribute
 	Attribute = function ( options ) {
 
-		var name, value, colonIndex, namespacePrefix, namespace, ancestor, tagName, bindingCandidate, lowerCaseName, propertyName;
+		var name, value, colonIndex, namespacePrefix, tagName, bindingCandidate, lowerCaseName, propertyName;
 
 		name = options.name;
 		value = options.value;
@@ -302,7 +300,7 @@
 			// ...unless it's a namespace *declaration*
 			if ( namespacePrefix !== 'xmlns' ) {
 				name = name.substring( colonIndex + 1 );
-				this.namespace = _private.namespaces[ namespacePrefix ];
+				this.namespace = _internal.namespaces[ namespacePrefix ];
 
 				if ( !this.namespace ) {
 					throw 'Unknown namespace ("' + namespacePrefix + '")';
@@ -331,9 +329,9 @@
 		this.children = [];
 
 		// can we establish this attribute's property name equivalent?
-		if ( !this.namespace && options.parentNode.namespaceURI === _private.namespaces.html ) {
+		if ( !this.namespace && options.parentNode.namespaceURI === _internal.namespaces.html ) {
 			lowerCaseName = this.name.toLowerCase();
-			propertyName = ( propertyNames[ lowerCaseName ] ? propertyNames[ lowerCaseName ] : lowerCaseName );
+			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
 
 			if ( options.parentNode[ propertyName ] !== undefined ) {
 				this.propertyName = propertyName;
@@ -349,7 +347,7 @@
 		// share parentFragment with parent element
 		this.parentFragment = this.parent.parentFragment;
 
-		this.fragment = new _private.TextFragment({
+		this.fragment = new _internal.TextFragment({
 			model: value,
 			root: this.root,
 			parent: this,
@@ -391,7 +389,7 @@
 	Attribute.prototype = {
 		bind: function ( lazy ) {
 			// two-way binding logic should go here
-			var self = this, node = this.parentNode, setValue, keypath, index;
+			var self = this, node = this.parentNode, keypath, index;
 
 			if ( !this.fragment ) {
 				return false; // report failure
@@ -401,7 +399,7 @@
 			// a single interpolator with no formatters
 			if (
 				this.fragment.items.length !== 1 ||
-				this.fragment.items[0].type !== _private.types.INTERPOLATOR
+				this.fragment.items[0].type !== _internal.types.INTERPOLATOR
 			) {
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
 			}
@@ -546,7 +544,7 @@
 			}
 
 			else if ( !this.updateDeferred ) {
-				this.root.deferredAttributes[ this.root.deferredAttributes.length ] = this;
+				this.root._deferredAttributes[ this.root._deferredAttributes.length ] = this;
 				this.updateDeferred = true;
 			}
 		},
@@ -619,7 +617,7 @@
 		docFrag.appendChild( this.node );
 
 		// extend Mustache
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -654,7 +652,7 @@
 		this.docFrag = doc.createDocumentFragment();
 
 		this.initialising = true;
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -716,7 +714,7 @@
 		this.docFrag = doc.createDocumentFragment();
 		
 		this.initialising = true;
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -756,7 +754,7 @@
 
 		update: function ( value ) {
 			
-			_private._sectionUpdate.call( this, value );
+			_internal._sectionUpdate.call( this, value );
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
@@ -766,11 +764,11 @@
 		},
 
 		createFragment: function ( options ) {
-			var fragment = new _private.DomFragment( options );
+			var fragment = new _internal.DomFragment( options );
 			
 			this.docFrag.appendChild( fragment.docFrag );
 			return fragment;
 		}
 	};
 
-}( Ractive, _private ));
+}( _internal ));

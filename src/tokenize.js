@@ -1,4 +1,4 @@
-(function ( R, _private ) {
+(function ( R, _internal ) {
 	
 	'use strict';
 
@@ -29,7 +29,7 @@
 
 
 
-	_private.tokenize = function ( template ) {
+	_internal.tokenize = function ( template ) {
 		var stream = TokenStream.fromString( stripHtmlComments( template ) );
 
 		return stripCommentTokens( stripStandalones( stream.tokens ) );
@@ -871,7 +871,7 @@
 	};
 
 	stripCommentTokens = function ( tokens ) {
-		var i, current, previous, next, removeNext;
+		var i, current, previous, next;
 
 		for ( i=0; i<tokens.length; i+=1 ) {
 			current = tokens[i];
@@ -900,7 +900,7 @@
 		return tokens;
 	};
 
-	types = _private.types;
+	types = _internal.types;
 	whitespace = /\s/;
 	mustacheTypes = {
 		'#': types.SECTION,
@@ -913,4 +913,4 @@
 	
 
 
-}( Ractive, _private ));
+}( Ractive, _internal ));

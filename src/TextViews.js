@@ -1,17 +1,17 @@
-(function ( _private ) {
+(function ( _internal ) {
 
 	'use strict';
 
 	var types,
 		Text, Interpolator, Triple, Section;
 
-	types = _private.types;
+	types = _internal.types;
 
-	_private.TextFragment = function ( options ) {
-		_private._Fragment.call( this, options );
+	_internal.TextFragment = function ( options ) {
+		_internal._Fragment.call( this, options );
 	};
 
-	_private.TextFragment.prototype = {
+	_internal.TextFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options.model );
@@ -81,7 +81,7 @@
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -112,7 +112,7 @@
 		this.fragments = [];
 		this.length = 0;
 
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
@@ -139,11 +139,11 @@
 		},
 
 		update: function ( value ) {
-			_private._sectionUpdate.call( this, value );
+			_internal._sectionUpdate.call( this, value );
 		},
 
 		createFragment: function ( options ) {
-			return new _private.TextFragment( options );
+			return new _internal.TextFragment( options );
 		},
 
 		postUpdate: function () {
@@ -157,4 +157,4 @@
 		}
 	};
 
-}( _private ));
+}( _internal ));

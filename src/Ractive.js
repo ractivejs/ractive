@@ -229,7 +229,7 @@ var Ractive, _internal;
 		},
 
 		get: function ( keypath ) {
-			var keys, normalised, formula, match, parentKeypath, parentValue, value, formatters;
+			var keys, normalised, key, match, parentKeypath, parentValue, value, formatters;
 
 			if ( _internal.isArray( keypath ) ) {
 				keys = keypath.slice(); // clone
@@ -252,26 +252,21 @@ var Ractive, _internal;
 			}
 
 			// otherwise it looks like we need to do some work
-			if ( keys.length > 1 ) {
-				formula = keys.pop();
-				parentValue = this.get( keys );
-			} else {
-				formula = keys.pop();
-				parentValue = this.data;
-			}
+			key = keys.pop();
+			parentValue = ( keys.length ? this.get( keys ) : this.data );
 
 			// is this a set of formatters?
-			if ( match = /^⭆(.+)⭅$/.exec( formula ) ) {
+			if ( match = /^⭆(.+)⭅$/.exec( key ) ) {
 				formatters = _internal.getFormattersFromString( match[1] );
 				value = this._format( parentValue, formatters );
 			}
 
 			else {
-				if ( typeof parentValue !== 'object' ) {
+				if ( typeof parentValue !== 'object' || !parentValue.hasOwnProperty( key ) ) {
 					return;
 				}
 
-				value = parentValue[ formula ];
+				value = parentValue[ key ];
 			}
 
 			// update cacheMap
@@ -342,7 +337,7 @@ var Ractive, _internal;
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 		resolveRef: function ( view ) {
 
-			var ref, contextStack, innerMost, keypath, context;
+			var ref, contextStack, keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
 
 			ref = view.model.ref;
 			contextStack = view.contextStack;
@@ -353,17 +348,22 @@ var Ractive, _internal;
 			}
 
 			else {
+				keys = _internal.splitKeypath( ref );
+				lastKey = keys.pop();
+
 				// Clone the context stack, so we don't mutate the original
 				contextStack = contextStack.concat();
 
 				// Take each context from the stack, working backwards from the innermost context
 				while ( contextStack.length ) {
 
-					innerMost = contextStack.pop();
-					context = this.get( innerMost );
+					innerMostContext = contextStack.pop();
+					contextKeys = _internal.splitKeypath( innerMostContext );
 
-					if ( context.hasOwnProperty( ref ) ) {
-						keypath = innerMost + '.' + ref;
+					parentValue = this.get( contextKeys.concat( keys ) );
+
+					if ( parentValue.hasOwnProperty( lastKey ) ) {
+						keypath = innerMostContext + '.' + ref;
 						break;
 					}
 				}

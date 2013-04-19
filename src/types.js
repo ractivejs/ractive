@@ -1,4 +1,4 @@
-_private.types = {
+_internal.types = {
 	TEXT:             1,
 	INTERPOLATOR:     2,
 	TRIPLE:           3,

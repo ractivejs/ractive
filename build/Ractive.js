@@ -1,4 +1,4 @@
-/*! Ractive - v0.2.0 - 2013-04-18
+/*! Ractive - v0.2.0 - 2013-04-19
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -12,7 +12,7 @@
 
 'use strict';
 
-var Ractive;
+var Ractive, _internal;
 
 (function () {
 
@@ -65,16 +65,11 @@ var Ractive;
 		this._cacheMap = {};
 
 		// Set up observers
-		this.observers = {};
-		this.pendingResolution = [];
+		this._observers = {};
+		this._pendingResolution = [];
 
 		// Create an array for deferred attributes
-		this.deferredAttributes = [];
-
-		// Initialise (or update) viewmodel with data
-		if ( this.data ) {
-			this.set( this.data );
-		}
+		this._deferredAttributes = [];
 
 		// If we were given uncompiled partials, compile them
 		if ( this.partials ) {
@@ -108,7 +103,7 @@ var Ractive;
 
 		// If passed an element, render immediately
 		if ( this.el ) {
-			this.render({ el: this.el, callback: this.callback, append: this.append });
+			this.render({ el: this.el, append: this.append });
 		}
 	};
 
@@ -136,7 +131,7 @@ var Ractive;
 			}
 
 			// Render our *root fragment*
-			this.rendered = new _private.DomFragment({
+			this.rendered = new _internal.DomFragment({
 				model: this.template,
 				root: this,
 				parentNode: el
@@ -152,29 +147,32 @@ var Ractive;
 		},
 
 		set: function ( keypath, value ) {
-			if ( _private.isObject( keypath ) ) {
+			if ( _internal.isObject( keypath ) ) {
 				this._setMultiple( keypath );
 			} else {
 				this._setSingle( keypath, value );
 			}
 
-			while ( this.deferredAttributes.length ) {
-				this.deferredAttributes.pop().update().updateDeferred = false;
+			// Attributes don't reflect changes automatically if there is a possibility
+			// that they will need to change again before the .set() cycle is complete
+			// - they defer their updates until all values have been set
+			while ( this._deferredAttributes.length ) {
+				this._deferredAttributes.pop().update().updateDeferred = false;
 			}
 		},
 
 		_setSingle: function ( keypath, value ) {
 			var keys, key, obj, normalised, i, resolved, unresolved;
 
-			if ( _private.isArray( keypath ) ) {
+			if ( _internal.isArray( keypath ) ) {
 				keys = keypath.slice();
 			} else {
-				keys = _private.splitKeypath( keypath );
+				keys = _internal.splitKeypath( keypath );
 			}
 
 			normalised = keys.join( '.' );
 
-			// clear cache
+			// Clear cache
 			this._clearCache( normalised );
 
 			// update data
@@ -182,7 +180,7 @@ var Ractive;
 			while ( keys.length > 1 ) {
 				key = keys.shift();
 
-				// if this branch doesn't exist yet, create a new one - if the next
+				// If this branch doesn't exist yet, create a new one - if the next
 				// key matches /^[0-9]+$/, assume we want an array branch rather
 				// than an object
 				if ( !obj[ key ] ) {
@@ -196,7 +194,7 @@ var Ractive;
 
 			obj[ key ] = value;
 
-			// fire set event
+			// Fire set event
 			if ( !this.setting ) {
 				this.setting = true; // short-circuit any potential infinite loops
 				this.fire( 'set', normalised, value );
@@ -208,20 +206,20 @@ var Ractive;
 			this._notifyObservers( normalised, value );
 
 			// See if we can resolve any of the unresolved keypaths (if such there be)
-			i = this.pendingResolution.length;
+			i = this._pendingResolution.length;
 			while ( i-- ) { // Work backwards, so we don't go in circles!
-				unresolved = this.pendingResolution.splice( i, 1 )[0];
+				unresolved = this._pendingResolution.splice( i, 1 )[0];
 
 				resolved = this.resolveRef( unresolved.view.model.ref, unresolved.view.contextStack );
 
 				// If we were able to find a keypath, initialise the view
 				if ( resolved ) {
-					unresolved.callback( resolved.keypath, resolved.value );
+					unresolved.callback( resolved );
 				}
 
 				// Otherwise add to the back of the queue (this is why we're working backwards)
 				else {
-					this.registerUnresolvedKeypath( unresolved );
+					this._pendingResolution[ this._pendingResolution.length ] = unresolved;
 				}
 			}
 		},
@@ -253,7 +251,7 @@ var Ractive;
 		get: function ( keypath ) {
 			var keys, normalised, lastDotIndex, formula, match, parentKeypath, parentValue, propertyName, unformatted, unformattedKeypath, value, formatters;
 
-			if ( _private.isArray( keypath ) ) {
+			if ( _internal.isArray( keypath ) ) {
 				keys = keypath.slice(); // clone
 				normalised = keys.join( '.' );
 			}
@@ -264,7 +262,7 @@ var Ractive;
 					return this._cache[ keypath ];
 				}
 
-				keys = _private.splitKeypath( keypath );
+				keys = _internal.splitKeypath( keypath );
 				normalised = keys.join( '.' );
 			}
 
@@ -284,7 +282,7 @@ var Ractive;
 
 			// is this a set of formatters?
 			if ( match = /^⭆(.+)⭅$/.exec( formula ) ) {
-				formatters = _private.getFormattersFromString( match[1] );
+				formatters = _internal.getFormattersFromString( match[1] );
 				value = this._format( parentValue, formatters );
 			}
 
@@ -336,44 +334,47 @@ var Ractive;
 			var self = this, resolved, initialUpdate, value, index;
 
 			if ( view.parentFragment && ( view.parentFragment.indexRefs.hasOwnProperty( view.model.ref ) ) ) {
-				// this isn't a real keypath, it's an index reference
+				// This isn't a real keypath, it's an index reference
 				index = view.parentFragment.indexRefs[ view.model.ref ];
 
 				value = ( view.model.fmtrs ? this._format( index, view.model.fmtrs ) : index );
 				view.update( value );
 
-				return; // this value will never change, and doesn't have a keypath
+				return; // This value will never change, and doesn't have a keypath
 			}
 
-			initialUpdate = function ( keypath, value ) {
+			// Set observer to its initial value
+			initialUpdate = function ( keypath ) {
 				if ( view.model.fmtrs ) {
-					view.keypath = keypath + '.' + _private.stringifyFormatters( view.model.fmtrs );
+					view.keypath = keypath + '.' + _internal.stringifyFormatters( view.model.fmtrs );
 				} else {
 					view.keypath = keypath;
 				}
 
 				// create observers
 				view.observerRefs = self.observe( view.model.p || 0, view );
-
 				view.update( self.get( view.keypath ) );
 			};
 
+			// See if we can resolve a keypath from this view's reference (e.g.
+			// does 'bar' in {{#foo}}{{bar}}{{/foo}} mean 'bar' or 'foo.bar'?)
 			resolved = this.resolveRef( view.model.ref, view.contextStack );
 
 
 			if ( !resolved ) {
-				// we may still need to do an update, if the view has formatters
-				// that e.g. offer an alternative to undefined
+				// We may still need to do an update, event with unresolved
+				// references, if the view has formatters that (for example)
+				// provide a fallback value from undefined
 				if ( view.model.fmtrs ) {
 					view.update( this._format( undefined, view.model.fmtrs ) );
 				}
 
-				this.registerUnresolvedKeypath({
+				this._pendingResolution[ this._pendingResolution.length ] = {
 					view: view,
 					callback: initialUpdate
-				});
+				};
 			} else {
-				initialUpdate( resolved.keypath, resolved.value );
+				initialUpdate( resolved );
 			}
 		},
 
@@ -381,14 +382,14 @@ var Ractive;
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 		resolveRef: function ( ref, contextStack ) {
 
-			var innerMost, keypath, value;
+			var innerMost, keypath, value, context;
 
 			// Implicit iterators - i.e. {{.}} - are a special case
 			if ( ref === '.' ) {
 				keypath = contextStack[ contextStack.length - 1 ];
 				value = this.get( keypath );
 
-				return { keypath: keypath, value: value };
+				return keypath;
 			}
 
 			// Clone the context stack, so we don't mutate the original
@@ -398,23 +399,17 @@ var Ractive;
 			while ( contextStack.length ) {
 
 				innerMost = contextStack.pop();
+				context = this.get( innerMost );
 
-				keypath = innerMost + '.' + ref;
-				value = this.get( keypath );
-
-				if ( value !== undefined ) {
-					return { keypath: keypath, value: value };
+				if ( context.hasOwnProperty( ref ) ) {
+					return innerMost + '.' + ref;
 				}
 			}
 
 			value = this.get( ref );
 			if ( value !== undefined ) {
-				return { keypath: ref, value: value };
+				return ref;
 			}
-		},
-
-		registerUnresolvedKeypath: function ( unresolved ) {
-			this.pendingResolution[ this.pendingResolution.length ] = unresolved;
 		},
 
 		// Internal method to format a value, using formatters passed in at initialization
@@ -449,7 +444,7 @@ var Ractive;
 
 
 		_notifyObservers: function ( keypath, value ) {
-			var self = this, observersGroupedByPriority = this.observers[ keypath ] || [], i, j, priorityGroup, observer, actualValue;
+			var self = this, observersGroupedByPriority = this._observers[ keypath ] || [], i, j, priorityGroup, observer, actualValue;
 
 			for ( i=0; i<observersGroupedByPriority.length; i+=1 ) {
 				priorityGroup = observersGroupedByPriority[i];
@@ -474,7 +469,7 @@ var Ractive;
 			observe = function ( keypath ) {
 				var observers, observer;
 
-				observers = self.observers[ keypath ] = self.observers[ keypath ] || [];
+				observers = self._observers[ keypath ] = self._observers[ keypath ] || [];
 				observers = observers[ priority ] = observers[ priority ] || [];
 
 				observers[ observers.length ] = view;
@@ -485,7 +480,7 @@ var Ractive;
 				};
 			};
 
-			keys = _private.splitKeypath( view.keypath );
+			keys = _internal.splitKeypath( view.keypath );
 			while ( keys.length > 1 ) {
 				observe( keys.join( '.' ) );
 
@@ -501,7 +496,7 @@ var Ractive;
 		unobserve: function ( observerRef ) {
 			var priorities, observers, index, i, len;
 
-			priorities = this.observers[ observerRef.keypath ];
+			priorities = this._observers[ observerRef.keypath ];
 			if ( !priorities ) {
 				// nothing to unobserve
 				return;
@@ -540,7 +535,7 @@ var Ractive;
 			}
 
 			if ( priorities.length === 0 ) {
-				delete this.observers[ observerRef.keypath ];
+				delete this._observers[ observerRef.keypath ];
 			}
 		},
 
@@ -598,7 +593,7 @@ var Ractive;
 	return Ractive;
 
 }());
-var _private;
+var _internal;
 
 (function () {
 
@@ -606,7 +601,7 @@ var _private;
 
 	var formattersCache = {};
 
-	_private = {
+	_internal = {
 		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 		isArray: function ( obj ) {
 			return Object.prototype.toString.call( obj ) === '[object Array]';
@@ -749,7 +744,7 @@ var _private;
 	};
 
 }());
-_private.types = {
+_internal.types = {
 	TEXT:             1,
 	INTERPOLATOR:     2,
 	TRIPLE:           3,
@@ -764,11 +759,11 @@ _private.types = {
 	TAG:              12,
 	ATTR_VALUE_TOKEN: 13
 };
-(function ( _private ) {
+(function ( _internal ) {
 
 	'use strict';
 
-	_private._Mustache = function ( options ) {
+	_internal._Mustache = function ( options ) {
 
 		this.root           = options.root;
 		this.model          = options.model;
@@ -796,7 +791,7 @@ _private.types = {
 	};
 
 
-	_private._Fragment = function ( options ) {
+	_internal._Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
 
@@ -838,7 +833,7 @@ _private.types = {
 	};
 
 
-	_private._sectionUpdate = function ( value ) {
+	_internal._sectionUpdate = function ( value ) {
 		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 		fragmentOptions = {
@@ -853,11 +848,11 @@ _private.types = {
 			fragmentOptions.anchor = this.parentFragment.findNextNode( this );
 		}
 
-		valueIsArray = _private.isArray( value );
+		valueIsArray = _internal.isArray( value );
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
-			_private.modifyArray( value, this.keypath, this.root );
+			_internal.modifyArray( value, this.keypath, this.root );
 		}
 
 		// treat empty arrays as false values
@@ -934,7 +929,7 @@ _private.types = {
 
 
 		// if value is a hash...
-		else if ( _private.isObject( value ) ) {
+		else if ( _internal.isObject( value ) ) {
 			// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 			// (if it is already rendered, then any children dependent on the context stack
 			// will update themselves without any prompting)
@@ -982,7 +977,7 @@ _private.types = {
 
 
 
-}( _private ));
+}( _internal ));
 (function ( proto ) {
 
 	'use strict';
@@ -1041,9 +1036,9 @@ _private.types = {
 	};
 
 }( Ractive.prototype ));
-var Ractive = Ractive || {}, _private = _private || {}; // in case we're not using the runtime
+var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not using the runtime
 
-(function ( R, _private ) {
+(function ( R, _internal ) {
 
 	'use strict';
 
@@ -1084,7 +1079,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		R.delimiters = options.delimiters || [ '{{', '}}' ];
 		R.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
-		tokens = _private.tokenize( template );
+		tokens = _internal.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
 		
 		json = fragmentStub.toJson();
@@ -1097,7 +1092,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 
 
-	types = _private.types;
+	types = _internal.types;
 
 	voidElementNames = [ 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
@@ -1698,8 +1693,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 	
 
-}( Ractive, _private ));
-(function ( R, _private ) {
+}( Ractive, _internal ));
+(function ( R, _internal ) {
 	
 	'use strict';
 
@@ -1730,7 +1725,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 
 
-	_private.tokenize = function ( template ) {
+	_internal.tokenize = function ( template ) {
 		var stream = TokenStream.fromString( stripHtmlComments( template ) );
 
 		return stripCommentTokens( stripStandalones( stream.tokens ) );
@@ -2601,7 +2596,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		return tokens;
 	};
 
-	types = _private.types;
+	types = _internal.types;
 	whitespace = /\s/;
 	mustacheTypes = {
 		'#': types.SECTION,
@@ -2614,7 +2609,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	
 
 
-}( Ractive, _private ));
+}( Ractive, _internal ));
 // Default formatters
 (function ( R ) {
 	
@@ -2643,14 +2638,14 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 
 }( Ractive ));
-(function ( R, _private ) {
+(function ( R, _internal ) {
 
 	'use strict';
 
 	var types, insertHtml, doc, propertyNames,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
-	types = _private.types;
+	types = _internal.types;
 
 	// the property name equivalents for element attributes, where they differ
 	// from the lowercased attribute name
@@ -2692,7 +2687,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		return nodes;
 	};
 
-	_private.DomFragment = function ( options ) {
+	_internal.DomFragment = function ( options ) {
 		this.docFrag = doc.createDocumentFragment();
 
 		// if we have an HTML string, our job is easy.
@@ -2702,10 +2697,10 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		}
 
 		// otherwise we need to make a proper fragment
-		_private._Fragment.call( this, options );
+		_internal._Fragment.call( this, options );
 	};
 
-	_private.DomFragment.prototype = {
+	_internal.DomFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options, this.docFrag );
@@ -2763,7 +2758,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 	// Partials
 	Partial = function ( options, docFrag ) {
-		this.fragment = new _private.DomFragment({
+		this.fragment = new _internal.DomFragment({
 			model:        options.root.partials[ options.model.ref ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
@@ -2850,7 +2845,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			}
 
 			else {
-				this.children = new _private.DomFragment({
+				this.children = new _internal.DomFragment({
 					model:        model.frag,
 					root:         options.root,
 					parentNode:   this.node,
@@ -2947,7 +2942,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			// ...unless it's a namespace *declaration*
 			if ( namespacePrefix !== 'xmlns' ) {
 				name = name.substring( colonIndex + 1 );
-				this.namespace = _private.namespaces[ namespacePrefix ];
+				this.namespace = _internal.namespaces[ namespacePrefix ];
 
 				if ( !this.namespace ) {
 					throw 'Unknown namespace ("' + namespacePrefix + '")';
@@ -2976,7 +2971,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.children = [];
 
 		// can we establish this attribute's property name equivalent?
-		if ( !this.namespace && options.parentNode.namespaceURI === _private.namespaces.html ) {
+		if ( !this.namespace && options.parentNode.namespaceURI === _internal.namespaces.html ) {
 			lowerCaseName = this.name.toLowerCase();
 			propertyName = ( propertyNames[ lowerCaseName ] ? propertyNames[ lowerCaseName ] : lowerCaseName );
 
@@ -2994,7 +2989,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		// share parentFragment with parent element
 		this.parentFragment = this.parent.parentFragment;
 
-		this.fragment = new _private.TextFragment({
+		this.fragment = new _internal.TextFragment({
 			model: value,
 			root: this.root,
 			parent: this,
@@ -3046,7 +3041,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			// a single interpolator with no formatters
 			if (
 				this.fragment.items.length !== 1 ||
-				this.fragment.items[0].type !== _private.types.INTERPOLATOR
+				this.fragment.items[0].type !== _internal.types.INTERPOLATOR
 			) {
 				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
 			}
@@ -3191,7 +3186,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 			}
 
 			else if ( !this.updateDeferred ) {
-				this.root.deferredAttributes[ this.root.deferredAttributes.length ] = this;
+				this.root._deferredAttributes[ this.root._deferredAttributes.length ] = this;
 				this.updateDeferred = true;
 			}
 		},
@@ -3264,7 +3259,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		docFrag.appendChild( this.node );
 
 		// extend Mustache
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -3299,7 +3294,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.docFrag = doc.createDocumentFragment();
 
 		this.initialising = true;
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -3361,7 +3356,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.docFrag = doc.createDocumentFragment();
 		
 		this.initialising = true;
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -3401,7 +3396,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 		update: function ( value ) {
 			
-			_private._sectionUpdate.call( this, value );
+			_internal._sectionUpdate.call( this, value );
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
@@ -3411,29 +3406,29 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		},
 
 		createFragment: function ( options ) {
-			var fragment = new _private.DomFragment( options );
+			var fragment = new _internal.DomFragment( options );
 			
 			this.docFrag.appendChild( fragment.docFrag );
 			return fragment;
 		}
 	};
 
-}( Ractive, _private ));
+}( Ractive, _internal ));
 
-(function ( _private ) {
+(function ( _internal ) {
 
 	'use strict';
 
 	var types,
 		Text, Interpolator, Triple, Section;
 
-	types = _private.types;
+	types = _internal.types;
 
-	_private.TextFragment = function ( options ) {
-		_private._Fragment.call( this, options );
+	_internal.TextFragment = function ( options ) {
+		_internal._Fragment.call( this, options );
 	};
 
-	_private.TextFragment.prototype = {
+	_internal.TextFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.model === 'string' ) {
 				return new Text( options.model );
@@ -3503,7 +3498,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -3534,7 +3529,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		this.fragments = [];
 		this.length = 0;
 
-		_private._Mustache.call( this, options );
+		_internal._Mustache.call( this, options );
 	};
 
 	Section.prototype = {
@@ -3561,11 +3556,11 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		},
 
 		update: function ( value ) {
-			_private._sectionUpdate.call( this, value );
+			_internal._sectionUpdate.call( this, value );
 		},
 
 		createFragment: function ( options ) {
-			return new _private.TextFragment( options );
+			return new _internal.TextFragment( options );
 		},
 
 		postUpdate: function () {
@@ -3579,7 +3574,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		}
 	};
 
-}( _private ));
+}( _internal ));
 (function ( R ) {
 
 	'use strict';
@@ -3622,13 +3617,13 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 
 }( Ractive ));
-(function ( _private ) {
+(function ( _internal ) {
 
 	'use strict';
 
 	var wrapMethods;
 
-	_private.modifyArray = function ( array, keypath, root ) {
+	_internal.modifyArray = function ( array, keypath, root ) {
 
 		var roots, keypathsByIndex, rootIndex, keypaths;
 
@@ -3691,7 +3686,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		});
 	};
 
-}( _private ));
+}( _internal ));
 (function ( R ) {
 	
 	'use strict';
@@ -3928,7 +3923,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 
 
-}( Ractive, _private ));
+}( Ractive, _internal ));
 (function ( R, _p ) {
 
 	'use strict';
@@ -4034,8 +4029,8 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		}
 	};
 
-}( Ractive, _private ));
-_private.namespaces = {
+}( Ractive, _internal ));
+_internal.namespaces = {
 	html: 'http://www.w3.org/1999/xhtml',
 	mathml: 'http://www.w3.org/1998/Math/MathML',
 	svg: 'http://www.w3.org/2000/svg',

@@ -1,8 +1,8 @@
-(function ( _private ) {
+(function ( _internal ) {
 
 	'use strict';
 
-	_private._Mustache = function ( options ) {
+	_internal._Mustache = function ( options ) {
 
 		this.root           = options.root;
 		this.model          = options.model;
@@ -30,7 +30,7 @@
 	};
 
 
-	_private._Fragment = function ( options ) {
+	_internal._Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
 
@@ -72,7 +72,7 @@
 	};
 
 
-	_private._sectionUpdate = function ( value ) {
+	_internal._sectionUpdate = function ( value ) {
 		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 		fragmentOptions = {
@@ -87,11 +87,11 @@
 			fragmentOptions.anchor = this.parentFragment.findNextNode( this );
 		}
 
-		valueIsArray = _private.isArray( value );
+		valueIsArray = _internal.isArray( value );
 
 		// modify the array to allow updates via push, pop etc
 		if ( valueIsArray && this.root.modifyArrays ) {
-			_private.modifyArray( value, this.keypath, this.root );
+			_internal.modifyArray( value, this.keypath, this.root );
 		}
 
 		// treat empty arrays as false values
@@ -168,7 +168,7 @@
 
 
 		// if value is a hash...
-		else if ( _private.isObject( value ) ) {
+		else if ( _internal.isObject( value ) ) {
 			// ...then if it isn't rendered, render it, adding this.keypath to the context stack
 			// (if it is already rendered, then any children dependent on the context stack
 			// will update themselves without any prompting)
@@ -216,4 +216,4 @@
 
 
 
-}( _private ));
+}( _internal ));

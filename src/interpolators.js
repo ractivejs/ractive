@@ -103,4 +103,4 @@
 		}
 	};
 
-}( Ractive, _private ));
+}( Ractive, _internal ));

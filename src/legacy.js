@@ -1,4 +1,4 @@
-(function () {
+(function ( doc ) {
 
 	'use strict';
 
@@ -8,13 +8,13 @@
 		Date.now = function () { return +new Date(); };
 	}
 
-	if ( !document.createElementNS ) {
-		document.createElementNS = function ( ns, type ) {
+	if ( !doc.createElementNS ) {
+		doc.createElementNS = function ( ns, type ) {
 			if ( ns !== null && ns !== 'http://www.w3.org/1999/xhtml' ) {
 				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
 			}
 
-			return document.createElement( type );
+			return doc.createElement( type );
 		};
 	}
 
@@ -57,7 +57,9 @@
 			};
 
 			WindowPrototype[removeEventListener] = DocumentPrototype[removeEventListener] = ElementPrototype[removeEventListener] = function (type, listener) {
-				for (var index = 0, register; register = registry[index]; ++index) {
+				var index, register;
+
+				for ( index = 0, register; register = registry[index]; ++index ) {
 					if ( register[0] === this && register[1] === type && register[2] === listener ) {
 						return this.detachEvent("on" + type, registry.splice(index, 1)[0][3]);
 					}
@@ -89,7 +91,7 @@
 			}
 
 			for ( len = this.length; i<len; i++ ) {
-				if ( i in this && this[i] === needle ) {
+				if ( this.hasOwnProperty( i ) && this[i] === needle ) {
 					return i;
 				}
 			}
@@ -103,7 +105,7 @@
 			var i, len;
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( i in this ) {
+				if ( this.hasOwnProperty( i ) ) {
 					callback.call( context, this[i], i, this );
 				}
 			}
@@ -115,7 +117,7 @@
 			var i, len, mapped = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( i in this ) {
+				if ( this.hasOwnProperty( i ) ) {
 					mapped[i] = mapper.call( context, this[i], i, this );
 				}
 			}
@@ -129,7 +131,7 @@
 			var i, len, filtered = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( i in this && filter.call( context, this[i], i, this ) ) {
+				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
 					filtered[ filtered.length ] = this[i];
 				}
 			}
@@ -138,4 +140,4 @@
 		};
 	}
 
-}());
+}( document ));

@@ -1,6 +1,6 @@
-var Ractive = Ractive || {}, _private = _private || {}; // in case we're not using the runtime
+var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not using the runtime
 
-(function ( R, _private ) {
+(function ( R, _internal ) {
 
 	'use strict';
 
@@ -41,7 +41,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 		R.delimiters = options.delimiters || [ '{{', '}}' ];
 		R.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
-		tokens = _private.tokenize( template );
+		tokens = _internal.tokenize( template );
 		fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
 		
 		json = fragmentStub.toJson();
@@ -54,7 +54,7 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 
 
-	types = _private.types;
+	types = _internal.types;
 
 	voidElementNames = [ 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
@@ -655,4 +655,4 @@ var Ractive = Ractive || {}, _private = _private || {}; // in case we're not usi
 	};
 	
 
-}( Ractive, _private ));
+}( Ractive, _internal ));
