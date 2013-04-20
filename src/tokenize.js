@@ -320,13 +320,13 @@
 				}
 			}
 
-			// get reference and any formatters
+			// get reference and any modifiers
 			identifiers = trimmed.split( '|' );
 
 			this.ref = identifiers.shift().trim();
 
 			if ( identifiers.length ) {
-				this.formatters = identifiers.map( function ( name ) {
+				this.modifiers = identifiers.map( function ( name ) {
 					return name.trim();
 				});
 			}

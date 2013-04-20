@@ -8,9 +8,10 @@
 
 		var roots, keypathsByIndex, rootIndex, keypaths;
 
+		// If this array hasn't been wrapped, wrap it
 		if ( !array._ractive ) {
 			array._ractive = {
-				roots: [ root ],
+				roots: [ root ], // there may be more than one Ractive instance depending on this
 				keypathsByIndex: [ [ keypath ] ]
 			};
 
@@ -21,19 +22,19 @@
 			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			// see if this root is currently associated with this array
+			// Does this Ractive instance currently depend on this array
 			rootIndex = roots.indexOf( root );
 
-			// if not, associate it
+			// If not, associate them
 			if ( rootIndex === -1 ) {
 				rootIndex = roots.length;
 				roots[ rootIndex ] = root;
 			}
 
-			// find keypaths that reference this array, on this root
+			// Find keypaths that reference this array, on this Ractive instance
 			keypaths = keypathsByIndex[ rootIndex ];
 
-			// if the current keypath isn't among them, add it
+			// If the current keypath isn't among them, add it
 			if ( keypaths.indexOf( keypath ) === -1 ) {
 				keypaths[ keypaths.length ] = keypath;
 			}
@@ -43,18 +44,21 @@
 
 	wrapMethods = function ( array ) {
 		var notifyDependents = function ( array ) {
-			var roots, keypathsByIndex;
+			var roots, keypathsByIndex, root, keypaths, i, j;
 
 			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			roots.forEach( function ( root, i ) {
-				var keypaths = keypathsByIndex[i];
+			i = roots.length;
+			while ( i-- ) {
+				root = roots[i];
+				keypaths = keypathsByIndex[i];
 
-				keypaths.forEach( function ( keypath ) {
-					root.set( keypath, array );
-				});
-			});
+				j = keypaths.length;
+				while ( j-- ) {
+					root.set( keypaths[j], array );
+				}
+			}
 		};
 
 		[ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ].forEach( function ( method ) {

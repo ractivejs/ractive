@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	var formattersCache = {}, keypathCache = {};
+	var modifiersCache = {}, keypathCache = {};
 
 	_internal = {
 		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
@@ -20,17 +20,17 @@
 		},
 
 		splitKeypath: function ( keypath ) {
-			var hasFormatters, formatters, i, index, startIndex, keys, remaining, part;
+			var hasModifiers, modifiers, i, index, startIndex, keys, remaining, part;
 
 			// We should only have to do all the heavy regex stuff once... caching FTW
 			if ( keypathCache[ keypath ] ) {
 				return keypathCache[ keypath ].concat();
 			}
 
-			// If this string contains no escaped dots or formatters,
+			// If this string contains no escaped dots or modifiers,
 			// we can just split on dots, after converting from array notation
-			hasFormatters = /⭆.+⭅/.test( keypath );
-			if ( !( /\\\./.test( keypath ) ) && !hasFormatters ) {
+			hasModifiers = /⭆.+⭅/.test( keypath );
+			if ( !( /\\\./.test( keypath ) ) && !hasModifiers ) {
 				keypathCache[ keypath ] = keypath.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' );
 				return keypathCache[ keypath ].concat();
 			}
@@ -38,12 +38,12 @@
 			keys = [];
 			remaining = keypath;
 			
-			// first, blank formatters in case they contain dots, but store them
+			// first, blank modifiers in case they contain dots, but store them
 			// so we can reinstate them later
-			if ( hasFormatters ) {
-				formatters = [];
+			if ( hasModifiers ) {
+				modifiers = [];
 				remaining = remaining.replace( /⭆(.+)⭅/g, function ( match, $1 ) {
-					formatters[ formatters.length ] = $1;
+					modifiers[ modifiers.length ] = $1;
 					return '⭆x⭅';
 				});
 			}
@@ -87,12 +87,12 @@
 			}
 
 			
-			// Then, reinstate formatters
-			if ( hasFormatters ) {
+			// Then, reinstate modifiers
+			if ( hasModifiers ) {
 				i = keys.length;
 				while ( i-- ) {
 					if ( keys[i] === '⭆x⭅' ) {
-						keys[i] = '⭆' + formatters.pop() + '⭅';
+						keys[i] = '⭆' + modifiers.pop() + '⭅';
 					}
 				}
 			}
@@ -101,44 +101,44 @@
 			return keys.concat();
 		},
 
-		getFormattersFromString: function ( str ) {
-			var formatters, raw;
+		getModifiersFromString: function ( str ) {
+			var modifiers, raw;
 
-			if ( formattersCache[ str ] ) {
-				return formattersCache[ str ];
+			if ( modifiersCache[ str ] ) {
+				return modifiersCache[ str ];
 			}
 
 			raw = str.split( '⤋' );
 
-			formatters = raw.map( function ( str ) {
+			modifiers = raw.map( function ( str ) {
 				var index;
 
 				index = str.indexOf( '[' );
 
 				if ( index === -1 ) {
 					return {
-						name: str,
-						args: []
+						d: str,
+						g: []
 					};
 				}
 
 				return {
-					name: str.substr( 0, index ),
-					args: JSON.parse( str.substring( index ) )
+					d: str.substr( 0, index ),
+					g: JSON.parse( str.substring( index ) )
 				};
 			});
 
-			formattersCache[ str ] = formatters;
-			return formatters;
+			modifiersCache[ str ] = modifiers;
+			return modifiers;
 		},
 
-		stringifyFormatters: function ( formatters ) {
-			var stringified = formatters.map( function ( formatter ) {
-				if ( formatter.args && formatter.args.length ) {
-					return formatter.name + JSON.stringify( formatter.args );
+		stringifyModifiers: function ( modifiers ) {
+			var stringified = modifiers.map( function ( modifier ) {
+				if ( modifier.g && modifier.g.length ) {
+					return modifier.d + JSON.stringify( modifier.g );
 				}
 
-				return formatter.name;
+				return modifier.d;
 			});
 
 			return '⭆' + stringified.join( '⤋' ) + '⭅';

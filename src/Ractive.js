@@ -25,7 +25,7 @@ var Ractive, _internal;
 			preserveWhitespace: false,
 			append: false,
 			twoway: true,
-			formatters: {},
+			modifiers: {},
 			modifyArrays: true,
 			data: {}
 		};
@@ -33,6 +33,14 @@ var Ractive, _internal;
 		for ( key in defaults ) {
 			if ( defaults.hasOwnProperty( key ) && this[ key ] === undefined ) {
 				this[ key ] = defaults[ key ];
+			}
+		}
+
+		// 'formatters' is deprecated, but support it for the time being
+		if ( options.formatters ) {
+			this.modifiers = options.formatters;
+			if ( typeof console !== 'undefined' ) {
+				console.warn( 'The \'formatters\' option is deprecated as of v0.2.2 and will be removed in a future version - use \'modifiers\' instead (same thing, more accurate name)' );
 			}
 		}
 
@@ -56,7 +64,7 @@ var Ractive, _internal;
 		this._pendingResolution = [];
 
 		// Create an array for deferred attributes
-		this._deferredAttributes = [];
+		this._defAttrs = [];
 
 		// If we were given uncompiled partials, compile them
 		if ( this.partials ) {
@@ -128,7 +136,7 @@ var Ractive, _internal;
 
 			// Render our *root fragment*
 			this.rendered = new _internal.DomFragment({
-				model: this.template,
+				descriptor: this.template,
 				root: this,
 				parentNode: el
 			});
@@ -152,8 +160,9 @@ var Ractive, _internal;
 			// Attributes don't reflect changes automatically if there is a possibility
 			// that they will need to change again before the .set() cycle is complete
 			// - they defer their updates until all values have been set
-			while ( this._deferredAttributes.length ) {
-				this._deferredAttributes.pop().update().updateDeferred = false;
+			while ( this._defAttrs.length ) {
+				// Update the attribute, then deflag it
+				this._defAttrs.pop().update().deferred = false;
 			}
 		},
 
@@ -239,7 +248,7 @@ var Ractive, _internal;
 		},
 
 		get: function ( keypath ) {
-			var keys, normalised, key, match, parentKeypath, parentValue, value, formatters;
+			var keys, normalised, key, match, parentKeypath, parentValue, value, modifiers;
 
 			if ( _internal.isArray( keypath ) ) {
 				keys = keypath.slice(); // clone
@@ -265,10 +274,10 @@ var Ractive, _internal;
 			key = keys.pop();
 			parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-			// is this a set of formatters?
+			// is this a set of modifiers?
 			if ( match = /^⭆(.+)⭅$/.exec( key ) ) {
-				formatters = _internal.getFormattersFromString( match[1] );
-				value = this._format( parentValue, formatters );
+				modifiers = _internal.getModifiersFromString( match[1] );
+				value = this._format( parentValue, modifiers );
 			}
 
 			else {
@@ -321,11 +330,11 @@ var Ractive, _internal;
 		registerMustache: function ( mustache ) {
 			var resolved, value, index;
 
-			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.model.ref ) ) ) {
+			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.descriptor.r ) ) ) {
 				// This isn't a real keypath, it's an index reference
-				index = mustache.parentFragment.indexRefs[ mustache.model.ref ];
+				index = mustache.parentFragment.indexRefs[ mustache.descriptor.r ];
 
-				value = ( mustache.model.fmtrs ? this._format( index, mustache.model.fmtrs ) : index );
+				value = ( mustache.descriptor.m ? this._format( index, mustache.descriptor.m ) : index );
 				mustache.update( value );
 
 				return; // This value will never change, and doesn't have a keypath
@@ -337,10 +346,10 @@ var Ractive, _internal;
 
 			if ( !resolved ) {
 				// We may still need to do an update, event with unresolved
-				// references, if the mustache has formatters that (for example)
+				// references, if the mustache has modifiers that (for example)
 				// provide a fallback value from undefined
-				if ( mustache.model.fmtrs ) {
-					mustache.update( this._format( undefined, mustache.model.fmtrs ) );
+				if ( mustache.descriptor.m ) {
+					mustache.update( this._format( undefined, mustache.descriptor.m ) );
 				}
 
 				this._pendingResolution[ this._pendingResolution.length ] = mustache;
@@ -353,7 +362,7 @@ var Ractive, _internal;
 
 			var ref, contextStack, keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
 
-			ref = mustache.model.ref;
+			ref = mustache.descriptor.r;
 			contextStack = mustache.contextStack;
 
 			// Implicit iterators - i.e. {{.}} - are a special case
@@ -387,9 +396,10 @@ var Ractive, _internal;
 				}
 			}
 
-			// If we have any formatters, we need to append them to the keypath
+			// If we have any modifiers, we need to append them to the keypath
 			if ( keypath ) {
-				mustache.keypath = ( mustache.model.fmtrs ? keypath + '.' + _internal.stringifyFormatters( mustache.model.fmtrs ) : keypath );
+				mustache.keypath = ( mustache.descriptor.m ? keypath + '.' + _internal.stringifyModifiers( mustache.descriptor.m ) : keypath );
+				mustache.keys = _internal.splitKeypath( mustache.keypath );
 
 				mustache.observerRefs = this.observe( mustache );
 				mustache.update( this.get( mustache.keypath ) );
@@ -400,25 +410,25 @@ var Ractive, _internal;
 			return false; // failure
 		},
 
-		// Internal method to format a value, using formatters passed in at initialization
-		_format: function ( value, formatters ) {
-			var i, numFormatters, formatter, name, args, fn;
+		// Internal method to format a value, using modifiers passed in at initialization
+		_format: function ( value, modifiers ) {
+			var i, numModifiers, modifier, name, args, fn;
 
-			// If there are no formatters, groovy - just return the value unchanged
-			if ( !formatters ) {
+			// If there are no modifiers, groovy - just return the value unchanged
+			if ( !modifiers ) {
 				return value;
 			}
 
 			// Otherwise go through each in turn, applying sequentially
-			numFormatters = formatters.length;
-			for ( i=0; i<numFormatters; i+=1 ) {
-				formatter = formatters[i];
-				name = formatter.name;
-				args = formatter.args || [];
+			numModifiers = modifiers.length;
+			for ( i=0; i<numModifiers; i+=1 ) {
+				modifier = modifiers[i];
+				name = modifier.d;
+				args = modifier.g || [];
 
-				// If a formatter was passed in, use it, otherwise see if there's a default
+				// If a modifier was passed in, use it, otherwise see if there's a default
 				// one with this name
-				fn = this.formatters[ name ] || Ractive.formatters[ name ];
+				fn = this.modifiers[ name ] || Ractive.modifiers[ name ];
 
 				if ( fn ) {
 					value = fn.apply( this, [ value ].concat( args ) );
@@ -427,9 +437,6 @@ var Ractive, _internal;
 
 			return value;
 		},
-
-
-
 
 		_notifyObservers: function ( keypath ) {
 			var self = this, observersGroupedByPriority = this._observers[ keypath ] || [], i, j, priorityGroup, observer;
@@ -440,7 +447,7 @@ var Ractive, _internal;
 				if ( priorityGroup ) {
 					for ( j=0; j<priorityGroup.length; j+=1 ) {
 						observer = priorityGroup[j];
-						observer.update( self.get( observer.keypath ) );
+						observer.update( self.get( observer.keys ) );
 					}
 				}
 			}
@@ -448,7 +455,7 @@ var Ractive, _internal;
 
 		observe: function ( mustache ) {
 
-			var self = this, observerRefs = [], observe, keys, priority = mustache.model.p || 0;
+			var self = this, observerRefs = [], observe, keys, priority = mustache.descriptor.p || 0;
 
 			observe = function ( keypath ) {
 				var observers;

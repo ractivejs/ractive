@@ -5,7 +5,7 @@
 	_internal.Mustache = function ( options ) {
 
 		this.root           = options.root;
-		this.model          = options.model;
+		this.descriptor          = options.descriptor;
 		this.parent         = options.parent;
 		this.parentFragment = options.parentFragment;
 		this.contextStack   = options.contextStack || [];
@@ -17,14 +17,14 @@
 			this.anchor = options.anchor;
 		}
 
-		this.type = options.model.type;
+		this.type = options.descriptor.t;
 
 		this.root.registerMustache( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
-		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
-			this.update( this.model.fmtrs ? this.root._format( false, this.model.fmtrs ) : false );
+		if ( !this.keypath && this.descriptor.n ) { // test both section-hood and inverticity in one go
+			this.update( this.descriptor.m ? this.root._format( false, this.descriptor.m ) : false );
 		}
 
 	};
@@ -60,9 +60,9 @@
 			contextStack: options.contextStack
 		};
 
-		numItems = ( options.model ? options.model.length : 0 );
+		numItems = ( options.descriptor ? options.descriptor.length : 0 );
 		for ( i=0; i<numItems; i+=1 ) {
-			itemOptions.model = options.model[i];
+			itemOptions.descriptor = options.descriptor[i];
 			itemOptions.index = i;
 			// this.items[ this.items.length ] = createView( itemOptions );
 
@@ -76,7 +76,7 @@
 		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 		fragmentOptions = {
-			model: this.model.frag,
+			descriptor: this.descriptor.f,
 			root: this.root,
 			parentNode: this.parentNode,
 			parent: this
@@ -102,7 +102,7 @@
 
 
 		// if section is inverted, only check for truthiness/falsiness
-		if ( this.model.inv ) {
+		if ( this.descriptor.n ) {
 			if ( value && !emptyArray ) {
 				if ( this.length ) {
 					this.unrender();
@@ -150,8 +150,8 @@
 						fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
 						fragmentOptions.index = i;
 
-						if ( this.model.i ) {
-							fragmentOptions.indexRef = this.model.i;
+						if ( this.descriptor.i ) {
+							fragmentOptions.indexRef = this.descriptor.i;
 						}
 
 						this.fragments[i] = this.createFragment( fragmentOptions );

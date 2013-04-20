@@ -13,11 +13,11 @@
 
 	_internal.TextFragment.prototype = {
 		createItem: function ( options ) {
-			if ( typeof options.model === 'string' ) {
-				return new Text( options.model );
+			if ( typeof options.descriptor === 'string' ) {
+				return new Text( options.descriptor );
 			}
 
-			switch ( options.model.type ) {
+			switch ( options.descriptor.t ) {
 				case types.INTERPOLATOR: return new Interpolator( options );
 				case types.TRIPLE: return new Triple( options );
 				case types.SECTION: return new Section( options );

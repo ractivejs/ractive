@@ -51,8 +51,8 @@
 		this.docFrag = doc.createDocumentFragment();
 
 		// if we have an HTML string, our job is easy.
-		if ( typeof options.model === 'string' ) {
-			this.nodes = insertHtml( options.model, this.docFrag );
+		if ( typeof options.descriptor === 'string' ) {
+			this.nodes = insertHtml( options.descriptor, this.docFrag );
 			return; // prevent the rest of the init sequence
 		}
 
@@ -62,11 +62,11 @@
 
 	_internal.DomFragment.prototype = {
 		createItem: function ( options ) {
-			if ( typeof options.model === 'string' ) {
+			if ( typeof options.descriptor === 'string' ) {
 				return new Text( options, this.docFrag );
 			}
 
-			switch ( options.model.type ) {
+			switch ( options.descriptor.t ) {
 				case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
 				case types.SECTION: return new Section( options, this.docFrag );
 				case types.TRIPLE: return new Triple( options, this.docFrag );
@@ -119,7 +119,7 @@
 	// Partials
 	Partial = function ( options, docFrag ) {
 		this.fragment = new _internal.DomFragment({
-			model:        options.root.partials[ options.model.ref ] || [],
+			descriptor:        options.root.partials[ options.descriptor.r ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
@@ -138,7 +138,7 @@
 
 	// Plain text
 	Text = function ( options, docFrag ) {
-		this.node = doc.createTextNode( options.model );
+		this.node = doc.createTextNode( options.descriptor );
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
@@ -161,7 +161,7 @@
 	// Element
 	Element = function ( options, docFrag ) {
 
-		var model,
+		var descriptor,
 			namespace,
 			attr,
 			attrName,
@@ -170,19 +170,19 @@
 			twowayNameAttr;
 
 		// stuff we'll need later
-		model = this.model = options.model;
+		descriptor = this.descriptor = options.descriptor;
 		this.root = options.root;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
 
 		// get namespace
-		if ( model.attrs && model.attrs.xmlns ) {
-			namespace = model.attrs.xmlns;
+		if ( descriptor.a && descriptor.a.xmlns ) {
+			namespace = descriptor.a.xmlns;
 
 			// check it's a string!
 			if ( typeof namespace !== 'string' ) {
-				throw 'Namespace attribute cannot contain mustaches';
+				throw new Error( 'Namespace attribute cannot contain mustaches' );
 			}
 		} else {
 			namespace = this.parentNode.namespaceURI;
@@ -190,21 +190,21 @@
 		
 
 		// create the DOM node
-		this.node = doc.createElementNS( namespace, model.tag );
+		this.node = doc.createElementNS( namespace, descriptor.e );
 
 
 		
 
 		// append children, if there are any
-		if ( model.frag ) {
-			if ( typeof model.frag === 'string' && this.node.namespaceURI === _internal.namespaces.html ) {
+		if ( descriptor.f ) {
+			if ( typeof descriptor.f === 'string' && this.node.namespaceURI === _internal.namespaces.html ) {
 				// great! we can use innerHTML
-				this.node.innerHTML = model.frag;
+				this.node.innerHTML = descriptor.f;
 			}
 
 			else {
 				this.children = new _internal.DomFragment({
-					model:        model.frag,
+					descriptor:        descriptor.f,
 					root:         options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
@@ -220,9 +220,9 @@
 		this.attributes = [];
 		bindable = []; // save these till the end
 
-		for ( attrName in model.attrs ) {
-			if ( model.attrs.hasOwnProperty( attrName ) ) {
-				attrValue = model.attrs[ attrName ];
+		for ( attrName in descriptor.a ) {
+			if ( descriptor.a.hasOwnProperty( attrName ) ) {
+				attrValue = descriptor.a[ attrName ];
 
 				attr = new Attribute({
 					parent: this,
@@ -348,7 +348,7 @@
 		this.parentFragment = this.parent.parentFragment;
 
 		this.fragment = new _internal.TextFragment({
-			model: value,
+			descriptor: value,
 			root: this.root,
 			parent: this,
 			contextStack: options.contextStack
@@ -361,7 +361,7 @@
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
-			tagName = this.parent.model.tag.toLowerCase();
+			tagName = this.parent.descriptor.e.toLowerCase();
 			bindingCandidate = ( ( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
 		}
 
@@ -396,7 +396,7 @@
 			}
 
 			// Check this is a suitable candidate for two-way binding - i.e. it is
-			// a single interpolator with no formatters
+			// a single interpolator with no modifiers
 			if (
 				this.fragment.items.length !== 1 ||
 				this.fragment.items[0].type !== _internal.types.INTERPOLATOR
@@ -422,9 +422,9 @@
 			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
-			keypath = this.interpolator.keypath || this.interpolator.model.ref;
+			keypath = this.interpolator.keypath || this.interpolator.descriptor.r;
 
-			// if there are any formatters, we want to disregard them when setting
+			// if there are any modifiers, we want to disregard them when setting
 			if ( ( index = keypath.indexOf( '.⭆' ) ) !== -1 ) {
 				keypath = keypath.substr( 0, index );
 			}
@@ -476,8 +476,8 @@
 				this.updateViewModel = function () {
 					var value;
 
-					if ( self.interpolator.model.fmtrs ) {
-						value = self.root._format( node.value, self.interpolator.model.fmtrs );
+					if ( self.interpolator.descriptor.m ) {
+						value = self.root._format( node.value, self.interpolator.descriptor.m );
 					} else {
 						value = node.value;
 					}
@@ -539,13 +539,18 @@
 		},
 
 		bubble: function () {
+			// If an attribute's text fragment contains a single item, we can
+			// update the DOM immediately...
 			if ( this.selfUpdating ) {
 				this.update();
 			}
 
-			else if ( !this.updateDeferred ) {
-				this.root._deferredAttributes[ this.root._deferredAttributes.length ] = this;
-				this.updateDeferred = true;
+			// otherwise we want to register it as a deferred attribute, to be
+			// updated once all the information is in, to prevent unnecessary
+			// DOM manipulation
+			else if ( !this.deferred ) {
+				this.root._defAttrs[ this.root._defAttrs.length ] = this;
+				this.deferred = true;
 			}
 		},
 

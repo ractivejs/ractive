@@ -142,7 +142,7 @@
 
 }( document ));
 
-/*! Ractive - v0.2.1 - 2013-04-20
+/*! Ractive - v0.2.1 - 2013-04-21
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -183,7 +183,7 @@ var Ractive, _internal;
 			preserveWhitespace: false,
 			append: false,
 			twoway: true,
-			formatters: {},
+			modifiers: {},
 			modifyArrays: true,
 			data: {}
 		};
@@ -191,6 +191,14 @@ var Ractive, _internal;
 		for ( key in defaults ) {
 			if ( defaults.hasOwnProperty( key ) && this[ key ] === undefined ) {
 				this[ key ] = defaults[ key ];
+			}
+		}
+
+		// 'formatters' is deprecated, but support it for the time being
+		if ( options.formatters ) {
+			this.modifiers = options.formatters;
+			if ( typeof console !== 'undefined' ) {
+				console.warn( 'The \'formatters\' option is deprecated as of v0.2.2 and will be removed in a future version - use \'modifiers\' instead (same thing, more accurate name)' );
 			}
 		}
 
@@ -214,7 +222,7 @@ var Ractive, _internal;
 		this._pendingResolution = [];
 
 		// Create an array for deferred attributes
-		this._deferredAttributes = [];
+		this._defAttrs = [];
 
 		// If we were given uncompiled partials, compile them
 		if ( this.partials ) {
@@ -286,7 +294,7 @@ var Ractive, _internal;
 
 			// Render our *root fragment*
 			this.rendered = new _internal.DomFragment({
-				model: this.template,
+				descriptor: this.template,
 				root: this,
 				parentNode: el
 			});
@@ -310,8 +318,9 @@ var Ractive, _internal;
 			// Attributes don't reflect changes automatically if there is a possibility
 			// that they will need to change again before the .set() cycle is complete
 			// - they defer their updates until all values have been set
-			while ( this._deferredAttributes.length ) {
-				this._deferredAttributes.pop().update().updateDeferred = false;
+			while ( this._defAttrs.length ) {
+				// Update the attribute, then deflag it
+				this._defAttrs.pop().update().deferred = false;
 			}
 		},
 
@@ -397,7 +406,7 @@ var Ractive, _internal;
 		},
 
 		get: function ( keypath ) {
-			var keys, normalised, key, match, parentKeypath, parentValue, value, formatters;
+			var keys, normalised, key, match, parentKeypath, parentValue, value, modifiers;
 
 			if ( _internal.isArray( keypath ) ) {
 				keys = keypath.slice(); // clone
@@ -423,10 +432,10 @@ var Ractive, _internal;
 			key = keys.pop();
 			parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-			// is this a set of formatters?
+			// is this a set of modifiers?
 			if ( match = /^⭆(.+)⭅$/.exec( key ) ) {
-				formatters = _internal.getFormattersFromString( match[1] );
-				value = this._format( parentValue, formatters );
+				modifiers = _internal.getModifiersFromString( match[1] );
+				value = this._format( parentValue, modifiers );
 			}
 
 			else {
@@ -479,11 +488,11 @@ var Ractive, _internal;
 		registerMustache: function ( mustache ) {
 			var resolved, value, index;
 
-			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.model.ref ) ) ) {
+			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.descriptor.r ) ) ) {
 				// This isn't a real keypath, it's an index reference
-				index = mustache.parentFragment.indexRefs[ mustache.model.ref ];
+				index = mustache.parentFragment.indexRefs[ mustache.descriptor.r ];
 
-				value = ( mustache.model.fmtrs ? this._format( index, mustache.model.fmtrs ) : index );
+				value = ( mustache.descriptor.m ? this._format( index, mustache.descriptor.m ) : index );
 				mustache.update( value );
 
 				return; // This value will never change, and doesn't have a keypath
@@ -495,10 +504,10 @@ var Ractive, _internal;
 
 			if ( !resolved ) {
 				// We may still need to do an update, event with unresolved
-				// references, if the mustache has formatters that (for example)
+				// references, if the mustache has modifiers that (for example)
 				// provide a fallback value from undefined
-				if ( mustache.model.fmtrs ) {
-					mustache.update( this._format( undefined, mustache.model.fmtrs ) );
+				if ( mustache.descriptor.m ) {
+					mustache.update( this._format( undefined, mustache.descriptor.m ) );
 				}
 
 				this._pendingResolution[ this._pendingResolution.length ] = mustache;
@@ -511,7 +520,7 @@ var Ractive, _internal;
 
 			var ref, contextStack, keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
 
-			ref = mustache.model.ref;
+			ref = mustache.descriptor.r;
 			contextStack = mustache.contextStack;
 
 			// Implicit iterators - i.e. {{.}} - are a special case
@@ -545,9 +554,10 @@ var Ractive, _internal;
 				}
 			}
 
-			// If we have any formatters, we need to append them to the keypath
+			// If we have any modifiers, we need to append them to the keypath
 			if ( keypath ) {
-				mustache.keypath = ( mustache.model.fmtrs ? keypath + '.' + _internal.stringifyFormatters( mustache.model.fmtrs ) : keypath );
+				mustache.keypath = ( mustache.descriptor.m ? keypath + '.' + _internal.stringifyModifiers( mustache.descriptor.m ) : keypath );
+				mustache.keys = _internal.splitKeypath( mustache.keypath );
 
 				mustache.observerRefs = this.observe( mustache );
 				mustache.update( this.get( mustache.keypath ) );
@@ -558,25 +568,25 @@ var Ractive, _internal;
 			return false; // failure
 		},
 
-		// Internal method to format a value, using formatters passed in at initialization
-		_format: function ( value, formatters ) {
-			var i, numFormatters, formatter, name, args, fn;
+		// Internal method to format a value, using modifiers passed in at initialization
+		_format: function ( value, modifiers ) {
+			var i, numModifiers, modifier, name, args, fn;
 
-			// If there are no formatters, groovy - just return the value unchanged
-			if ( !formatters ) {
+			// If there are no modifiers, groovy - just return the value unchanged
+			if ( !modifiers ) {
 				return value;
 			}
 
 			// Otherwise go through each in turn, applying sequentially
-			numFormatters = formatters.length;
-			for ( i=0; i<numFormatters; i+=1 ) {
-				formatter = formatters[i];
-				name = formatter.name;
-				args = formatter.args || [];
+			numModifiers = modifiers.length;
+			for ( i=0; i<numModifiers; i+=1 ) {
+				modifier = modifiers[i];
+				name = modifier.d;
+				args = modifier.g || [];
 
-				// If a formatter was passed in, use it, otherwise see if there's a default
+				// If a modifier was passed in, use it, otherwise see if there's a default
 				// one with this name
-				fn = this.formatters[ name ] || Ractive.formatters[ name ];
+				fn = this.modifiers[ name ] || Ractive.modifiers[ name ];
 
 				if ( fn ) {
 					value = fn.apply( this, [ value ].concat( args ) );
@@ -585,9 +595,6 @@ var Ractive, _internal;
 
 			return value;
 		},
-
-
-
 
 		_notifyObservers: function ( keypath ) {
 			var self = this, observersGroupedByPriority = this._observers[ keypath ] || [], i, j, priorityGroup, observer;
@@ -598,7 +605,7 @@ var Ractive, _internal;
 				if ( priorityGroup ) {
 					for ( j=0; j<priorityGroup.length; j+=1 ) {
 						observer = priorityGroup[j];
-						observer.update( self.get( observer.keypath ) );
+						observer.update( self.get( observer.keys ) );
 					}
 				}
 			}
@@ -606,7 +613,7 @@ var Ractive, _internal;
 
 		observe: function ( mustache ) {
 
-			var self = this, observerRefs = [], observe, keys, priority = mustache.model.p || 0;
+			var self = this, observerRefs = [], observe, keys, priority = mustache.descriptor.p || 0;
 
 			observe = function ( keypath ) {
 				var observers;
@@ -740,7 +747,7 @@ var Ractive, _internal;
 
 	'use strict';
 
-	var formattersCache = {}, keypathCache = {};
+	var modifiersCache = {}, keypathCache = {};
 
 	_internal = {
 		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
@@ -758,17 +765,17 @@ var Ractive, _internal;
 		},
 
 		splitKeypath: function ( keypath ) {
-			var hasFormatters, formatters, i, index, startIndex, keys, remaining, part;
+			var hasModifiers, modifiers, i, index, startIndex, keys, remaining, part;
 
 			// We should only have to do all the heavy regex stuff once... caching FTW
 			if ( keypathCache[ keypath ] ) {
 				return keypathCache[ keypath ].concat();
 			}
 
-			// If this string contains no escaped dots or formatters,
+			// If this string contains no escaped dots or modifiers,
 			// we can just split on dots, after converting from array notation
-			hasFormatters = /⭆.+⭅/.test( keypath );
-			if ( !( /\\\./.test( keypath ) ) && !hasFormatters ) {
+			hasModifiers = /⭆.+⭅/.test( keypath );
+			if ( !( /\\\./.test( keypath ) ) && !hasModifiers ) {
 				keypathCache[ keypath ] = keypath.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' );
 				return keypathCache[ keypath ].concat();
 			}
@@ -776,12 +783,12 @@ var Ractive, _internal;
 			keys = [];
 			remaining = keypath;
 			
-			// first, blank formatters in case they contain dots, but store them
+			// first, blank modifiers in case they contain dots, but store them
 			// so we can reinstate them later
-			if ( hasFormatters ) {
-				formatters = [];
+			if ( hasModifiers ) {
+				modifiers = [];
 				remaining = remaining.replace( /⭆(.+)⭅/g, function ( match, $1 ) {
-					formatters[ formatters.length ] = $1;
+					modifiers[ modifiers.length ] = $1;
 					return '⭆x⭅';
 				});
 			}
@@ -825,12 +832,12 @@ var Ractive, _internal;
 			}
 
 			
-			// Then, reinstate formatters
-			if ( hasFormatters ) {
+			// Then, reinstate modifiers
+			if ( hasModifiers ) {
 				i = keys.length;
 				while ( i-- ) {
 					if ( keys[i] === '⭆x⭅' ) {
-						keys[i] = '⭆' + formatters.pop() + '⭅';
+						keys[i] = '⭆' + modifiers.pop() + '⭅';
 					}
 				}
 			}
@@ -839,44 +846,44 @@ var Ractive, _internal;
 			return keys.concat();
 		},
 
-		getFormattersFromString: function ( str ) {
-			var formatters, raw;
+		getModifiersFromString: function ( str ) {
+			var modifiers, raw;
 
-			if ( formattersCache[ str ] ) {
-				return formattersCache[ str ];
+			if ( modifiersCache[ str ] ) {
+				return modifiersCache[ str ];
 			}
 
 			raw = str.split( '⤋' );
 
-			formatters = raw.map( function ( str ) {
+			modifiers = raw.map( function ( str ) {
 				var index;
 
 				index = str.indexOf( '[' );
 
 				if ( index === -1 ) {
 					return {
-						name: str,
-						args: []
+						d: str,
+						g: []
 					};
 				}
 
 				return {
-					name: str.substr( 0, index ),
-					args: JSON.parse( str.substring( index ) )
+					d: str.substr( 0, index ),
+					g: JSON.parse( str.substring( index ) )
 				};
 			});
 
-			formattersCache[ str ] = formatters;
-			return formatters;
+			modifiersCache[ str ] = modifiers;
+			return modifiers;
 		},
 
-		stringifyFormatters: function ( formatters ) {
-			var stringified = formatters.map( function ( formatter ) {
-				if ( formatter.args && formatter.args.length ) {
-					return formatter.name + JSON.stringify( formatter.args );
+		stringifyModifiers: function ( modifiers ) {
+			var stringified = modifiers.map( function ( modifier ) {
+				if ( modifier.g && modifier.g.length ) {
+					return modifier.d + JSON.stringify( modifier.g );
 				}
 
-				return formatter.name;
+				return modifier.d;
 			});
 
 			return '⭆' + stringified.join( '⤋' ) + '⭅';
@@ -906,7 +913,7 @@ _internal.types = {
 	_internal.Mustache = function ( options ) {
 
 		this.root           = options.root;
-		this.model          = options.model;
+		this.descriptor          = options.descriptor;
 		this.parent         = options.parent;
 		this.parentFragment = options.parentFragment;
 		this.contextStack   = options.contextStack || [];
@@ -918,14 +925,14 @@ _internal.types = {
 			this.anchor = options.anchor;
 		}
 
-		this.type = options.model.type;
+		this.type = options.descriptor.t;
 
 		this.root.registerMustache( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
-		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
-			this.update( this.model.fmtrs ? this.root._format( false, this.model.fmtrs ) : false );
+		if ( !this.keypath && this.descriptor.n ) { // test both section-hood and inverticity in one go
+			this.update( this.descriptor.m ? this.root._format( false, this.descriptor.m ) : false );
 		}
 
 	};
@@ -961,9 +968,9 @@ _internal.types = {
 			contextStack: options.contextStack
 		};
 
-		numItems = ( options.model ? options.model.length : 0 );
+		numItems = ( options.descriptor ? options.descriptor.length : 0 );
 		for ( i=0; i<numItems; i+=1 ) {
-			itemOptions.model = options.model[i];
+			itemOptions.descriptor = options.descriptor[i];
 			itemOptions.index = i;
 			// this.items[ this.items.length ] = createView( itemOptions );
 
@@ -977,7 +984,7 @@ _internal.types = {
 		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 		fragmentOptions = {
-			model: this.model.frag,
+			descriptor: this.descriptor.f,
 			root: this.root,
 			parentNode: this.parentNode,
 			parent: this
@@ -1003,7 +1010,7 @@ _internal.types = {
 
 
 		// if section is inverted, only check for truthiness/falsiness
-		if ( this.model.inv ) {
+		if ( this.descriptor.n ) {
 			if ( value && !emptyArray ) {
 				if ( this.length ) {
 					this.unrender();
@@ -1051,8 +1058,8 @@ _internal.types = {
 						fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
 						fragmentOptions.index = i;
 
-						if ( this.model.i ) {
-							fragmentOptions.indexRef = this.model.i;
+						if ( this.descriptor.i ) {
+							fragmentOptions.indexRef = this.descriptor.i;
 						}
 
 						this.fragments[i] = this.createFragment( fragmentOptions );
@@ -1163,34 +1170,6 @@ _internal.types = {
 	};
 
 }( Ractive.prototype ));
-// Default formatters
-(function ( R ) {
-	
-	'use strict';
-
-	R.formatters = {
-		equals: function ( a, b ) {
-			return a === b;
-		},
-
-		greaterThan: function ( a, b ) {
-			return a > b;
-		},
-
-		greaterThanEquals: function ( a, b ) {
-			return a >= b;
-		},
-
-		lessThan: function ( a, b ) {
-			return a < b;
-		},
-
-		lessThanEquals: function ( a, b ) {
-			return a <= b;
-		}
-	};
-
-}( Ractive ));
 (function ( _internal ) {
 
 	'use strict';
@@ -1244,8 +1223,8 @@ _internal.types = {
 		this.docFrag = doc.createDocumentFragment();
 
 		// if we have an HTML string, our job is easy.
-		if ( typeof options.model === 'string' ) {
-			this.nodes = insertHtml( options.model, this.docFrag );
+		if ( typeof options.descriptor === 'string' ) {
+			this.nodes = insertHtml( options.descriptor, this.docFrag );
 			return; // prevent the rest of the init sequence
 		}
 
@@ -1255,11 +1234,11 @@ _internal.types = {
 
 	_internal.DomFragment.prototype = {
 		createItem: function ( options ) {
-			if ( typeof options.model === 'string' ) {
+			if ( typeof options.descriptor === 'string' ) {
 				return new Text( options, this.docFrag );
 			}
 
-			switch ( options.model.type ) {
+			switch ( options.descriptor.t ) {
 				case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
 				case types.SECTION: return new Section( options, this.docFrag );
 				case types.TRIPLE: return new Triple( options, this.docFrag );
@@ -1312,7 +1291,7 @@ _internal.types = {
 	// Partials
 	Partial = function ( options, docFrag ) {
 		this.fragment = new _internal.DomFragment({
-			model:        options.root.partials[ options.model.ref ] || [],
+			descriptor:        options.root.partials[ options.descriptor.r ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
@@ -1331,7 +1310,7 @@ _internal.types = {
 
 	// Plain text
 	Text = function ( options, docFrag ) {
-		this.node = doc.createTextNode( options.model );
+		this.node = doc.createTextNode( options.descriptor );
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 
@@ -1354,7 +1333,7 @@ _internal.types = {
 	// Element
 	Element = function ( options, docFrag ) {
 
-		var model,
+		var descriptor,
 			namespace,
 			attr,
 			attrName,
@@ -1363,19 +1342,19 @@ _internal.types = {
 			twowayNameAttr;
 
 		// stuff we'll need later
-		model = this.model = options.model;
+		descriptor = this.descriptor = options.descriptor;
 		this.root = options.root;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
 
 		// get namespace
-		if ( model.attrs && model.attrs.xmlns ) {
-			namespace = model.attrs.xmlns;
+		if ( descriptor.a && descriptor.a.xmlns ) {
+			namespace = descriptor.a.xmlns;
 
 			// check it's a string!
 			if ( typeof namespace !== 'string' ) {
-				throw 'Namespace attribute cannot contain mustaches';
+				throw new Error( 'Namespace attribute cannot contain mustaches' );
 			}
 		} else {
 			namespace = this.parentNode.namespaceURI;
@@ -1383,21 +1362,21 @@ _internal.types = {
 		
 
 		// create the DOM node
-		this.node = doc.createElementNS( namespace, model.tag );
+		this.node = doc.createElementNS( namespace, descriptor.e );
 
 
 		
 
 		// append children, if there are any
-		if ( model.frag ) {
-			if ( typeof model.frag === 'string' && this.node.namespaceURI === _internal.namespaces.html ) {
+		if ( descriptor.f ) {
+			if ( typeof descriptor.f === 'string' && this.node.namespaceURI === _internal.namespaces.html ) {
 				// great! we can use innerHTML
-				this.node.innerHTML = model.frag;
+				this.node.innerHTML = descriptor.f;
 			}
 
 			else {
 				this.children = new _internal.DomFragment({
-					model:        model.frag,
+					descriptor:        descriptor.f,
 					root:         options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
@@ -1413,9 +1392,9 @@ _internal.types = {
 		this.attributes = [];
 		bindable = []; // save these till the end
 
-		for ( attrName in model.attrs ) {
-			if ( model.attrs.hasOwnProperty( attrName ) ) {
-				attrValue = model.attrs[ attrName ];
+		for ( attrName in descriptor.a ) {
+			if ( descriptor.a.hasOwnProperty( attrName ) ) {
+				attrValue = descriptor.a[ attrName ];
 
 				attr = new Attribute({
 					parent: this,
@@ -1541,7 +1520,7 @@ _internal.types = {
 		this.parentFragment = this.parent.parentFragment;
 
 		this.fragment = new _internal.TextFragment({
-			model: value,
+			descriptor: value,
 			root: this.root,
 			parent: this,
 			contextStack: options.contextStack
@@ -1554,7 +1533,7 @@ _internal.types = {
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
-			tagName = this.parent.model.tag.toLowerCase();
+			tagName = this.parent.descriptor.e.toLowerCase();
 			bindingCandidate = ( ( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
 		}
 
@@ -1589,7 +1568,7 @@ _internal.types = {
 			}
 
 			// Check this is a suitable candidate for two-way binding - i.e. it is
-			// a single interpolator with no formatters
+			// a single interpolator with no modifiers
 			if (
 				this.fragment.items.length !== 1 ||
 				this.fragment.items[0].type !== _internal.types.INTERPOLATOR
@@ -1615,9 +1594,9 @@ _internal.types = {
 			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
-			keypath = this.interpolator.keypath || this.interpolator.model.ref;
+			keypath = this.interpolator.keypath || this.interpolator.descriptor.r;
 
-			// if there are any formatters, we want to disregard them when setting
+			// if there are any modifiers, we want to disregard them when setting
 			if ( ( index = keypath.indexOf( '.⭆' ) ) !== -1 ) {
 				keypath = keypath.substr( 0, index );
 			}
@@ -1669,8 +1648,8 @@ _internal.types = {
 				this.updateViewModel = function () {
 					var value;
 
-					if ( self.interpolator.model.fmtrs ) {
-						value = self.root._format( node.value, self.interpolator.model.fmtrs );
+					if ( self.interpolator.descriptor.m ) {
+						value = self.root._format( node.value, self.interpolator.descriptor.m );
 					} else {
 						value = node.value;
 					}
@@ -1732,13 +1711,18 @@ _internal.types = {
 		},
 
 		bubble: function () {
+			// If an attribute's text fragment contains a single item, we can
+			// update the DOM immediately...
 			if ( this.selfUpdating ) {
 				this.update();
 			}
 
-			else if ( !this.updateDeferred ) {
-				this.root._deferredAttributes[ this.root._deferredAttributes.length ] = this;
-				this.updateDeferred = true;
+			// otherwise we want to register it as a deferred attribute, to be
+			// updated once all the information is in, to prevent unnecessary
+			// DOM manipulation
+			else if ( !this.deferred ) {
+				this.root._defAttrs[ this.root._defAttrs.length ] = this;
+				this.deferred = true;
 			}
 		},
 
@@ -1981,11 +1965,11 @@ _internal.types = {
 
 	_internal.TextFragment.prototype = {
 		createItem: function ( options ) {
-			if ( typeof options.model === 'string' ) {
-				return new Text( options.model );
+			if ( typeof options.descriptor === 'string' ) {
+				return new Text( options.descriptor );
 			}
 
-			switch ( options.model.type ) {
+			switch ( options.descriptor.t ) {
 				case types.INTERPOLATOR: return new Interpolator( options );
 				case types.TRIPLE: return new Triple( options );
 				case types.SECTION: return new Section( options );
@@ -2124,48 +2108,42 @@ _internal.types = {
 	};
 
 }( _internal ));
-(function ( R ) {
+Ractive.extend = function ( childProps ) {
 
-	'use strict';
+	var Parent, Child, key;
 
-	R.extend = function ( childProps ) {
+	Parent = this;
 
-		var Parent, Child, key;
+	Child = function () {
+		Ractive.apply( this, arguments );
 
-		Parent = this;
-
-		Child = function () {
-			R.apply( this, arguments );
-
-			if ( this.init ) {
-				this.init.apply( this, arguments );
-			}
-		};
-
-		// extend child with parent methods
-		for ( key in Parent.prototype ) {
-			if ( Parent.prototype.hasOwnProperty( key ) ) {
-				Child.prototype[ key ] = Parent.prototype[ key ];
-			}
+		if ( this.init ) {
+			this.init.apply( this, arguments );
 		}
-
-		// extend child with specified methods, as long as they don't override Ractive.prototype methods
-		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) ) {
-				if ( R.prototype.hasOwnProperty( key ) ) {
-					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
-				}
-
-				Child.prototype[ key ] = childProps[ key ];
-			}
-		}
-
-		Child.extend = Parent.extend;
-
-		return Child;
 	};
 
-}( Ractive ));
+	// extend child with parent methods
+	for ( key in Parent.prototype ) {
+		if ( Parent.prototype.hasOwnProperty( key ) ) {
+			Child.prototype[ key ] = Parent.prototype[ key ];
+		}
+	}
+
+	// extend child with specified methods, as long as they don't override Ractive.prototype methods
+	for ( key in childProps ) {
+		if ( childProps.hasOwnProperty( key ) ) {
+			if ( Ractive.prototype.hasOwnProperty( key ) ) {
+				throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
+			}
+
+			Child.prototype[ key ] = childProps[ key ];
+		}
+	}
+
+	Child.extend = Parent.extend;
+
+	return Child;
+};
 (function ( _internal ) {
 
 	'use strict';
@@ -2176,9 +2154,10 @@ _internal.types = {
 
 		var roots, keypathsByIndex, rootIndex, keypaths;
 
+		// If this array hasn't been wrapped, wrap it
 		if ( !array._ractive ) {
 			array._ractive = {
-				roots: [ root ],
+				roots: [ root ], // there may be more than one Ractive instance depending on this
 				keypathsByIndex: [ [ keypath ] ]
 			};
 
@@ -2189,19 +2168,19 @@ _internal.types = {
 			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			// see if this root is currently associated with this array
+			// Does this Ractive instance currently depend on this array
 			rootIndex = roots.indexOf( root );
 
-			// if not, associate it
+			// If not, associate them
 			if ( rootIndex === -1 ) {
 				rootIndex = roots.length;
 				roots[ rootIndex ] = root;
 			}
 
-			// find keypaths that reference this array, on this root
+			// Find keypaths that reference this array, on this Ractive instance
 			keypaths = keypathsByIndex[ rootIndex ];
 
-			// if the current keypath isn't among them, add it
+			// If the current keypath isn't among them, add it
 			if ( keypaths.indexOf( keypath ) === -1 ) {
 				keypaths[ keypaths.length ] = keypath;
 			}
@@ -2211,18 +2190,21 @@ _internal.types = {
 
 	wrapMethods = function ( array ) {
 		var notifyDependents = function ( array ) {
-			var roots, keypathsByIndex;
+			var roots, keypathsByIndex, root, keypaths, i, j;
 
 			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			roots.forEach( function ( root, i ) {
-				var keypaths = keypathsByIndex[i];
+			i = roots.length;
+			while ( i-- ) {
+				root = roots[i];
+				keypaths = keypathsByIndex[i];
 
-				keypaths.forEach( function ( keypath ) {
-					root.set( keypath, array );
-				});
-			});
+				j = keypaths.length;
+				while ( j-- ) {
+					root.set( keypaths[j], array );
+				}
+			}
 		};
 
 		[ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ].forEach( function ( method ) {
@@ -2236,53 +2218,38 @@ _internal.types = {
 	};
 
 }( _internal ));
-(function ( R ) {
-	
-	'use strict';
+// These are a subset of the easing equations found at
+// https://raw.github.com/danro/easing-js - license info
+// follows:
 
-	// These are a subset of the easing equations found at
-	// https://raw.github.com/danro/easing-js - license info
-	// follows:
+// --------------------------------------------------
+// easing.js v0.5.4
+// Generic set of easing functions with AMD support
+// https://github.com/danro/easing-js
+// This code may be freely distributed under the MIT license
+// http://danro.mit-license.org/
+// --------------------------------------------------
+// All functions adapted from Thomas Fuchs & Jeremy Kahn
+// Easing Equations (c) 2003 Robert Penner, BSD license
+// https://raw.github.com/danro/easing-js/master/LICENSE
+// --------------------------------------------------
 
-	// --------------------------------------------------
-	// easing.js v0.5.4
-	// Generic set of easing functions with AMD support
-	// https://github.com/danro/easing-js
-	// This code may be freely distributed under the MIT license
-	// http://danro.mit-license.org/
-	// --------------------------------------------------
-	// All functions adapted from Thomas Fuchs & Jeremy Kahn
-	// Easing Equations (c) 2003 Robert Penner, BSD license
-	// https://raw.github.com/danro/easing-js/master/LICENSE
-	// --------------------------------------------------
+// In that library, the functions named easeIn, easeOut, and
+// easeInOut below are named easeInCubic, easeOutCubic, and
+// (you guessed it) easeInOutCubic.
+//
+// You can add additional easing functions to this list, and they
+// will be globally available.
 
-	// In that library, the functions named easeIn, easeOut, and
-	// easeInOut below are named easeInCubic, easeOutCubic, and
-	// (you guessed it) easeInOutCubic.
-
-	R.easing = {
-		linear: function ( pos ) {
-			return pos;
-		},
-
-		easeIn: function ( pos ) {
-			return Math.pow( pos, 3 );
-		},
-
-		easeOut: function ( pos ) {
-			return ( Math.pow( ( pos - 1 ), 3 ) + 1 );
-		},
-
-		easeInOut: function ( pos ) {
-			if ( ( pos /= 0.5 ) < 1 ) {
-				return ( 0.5 * Math.pow( pos, 3 ) );
-			}
-
-			return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
-		}
-	};
-
-}( Ractive ));
+Ractive.easing = {
+	linear: function ( pos ) { return pos; },
+	easeIn: function ( pos ) { return Math.pow( pos, 3 ); },
+	easeOut: function ( pos ) { return ( Math.pow( ( pos - 1 ), 3 ) + 1 ); },
+	easeInOut: function ( pos ) {
+		if ( ( pos /= 0.5 ) < 1 ) { return ( 0.5 * Math.pow( pos, 3 ) ); }
+		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
+	}
+};
 (function ( R, _i ) {
 
 	'use strict';

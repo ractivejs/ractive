@@ -144,7 +144,7 @@ tests = [
 		template: "<p>Click headers to sort:</p><table><tr><th>#</th><th class='sort' data-col='name'>Superhero name</th><th class='sort' data-col='realname'>Real name</th><th class='sort' data-col='power'>Superpower</th></tr>{{#superheroes:i}}<tr data-id='{{i}}'><td>{{i | plus_one}}</td><td><a href='{{info}}'>{{name}}</a></td><td>{{realname}}</td><td>{{power}}</td></tr>{{/superheroes}}</table>",
 		data: { superheroes: [{ name: 'Nightcrawler', realname: 'Wagner, Kurt',     power: 'Teleportation', info: 'http://www.superherodb.com/Nightcrawler/10-107/' }, { name: 'Cyclops',      realname: 'Summers, Scott',   power: 'Optic blast',   info: 'http://www.superherodb.com/Cyclops/10-50/' }, { name: 'Mystique',     realname: 'Darkholme, Raven', power: 'Shapeshifting', info: 'http://www.superherodb.com/Mystique/10-817/' }, { name: 'Wolverine',    realname: 'Howlett, James',   power: 'Regeneration',  info: 'http://www.superherodb.com/Wolverine/10-161/' } ]},
 		result: '<p>Click headers to sort:</p><table><tr><th>#</th><th class="sort" data-col="name">Superhero name</th><th class="sort" data-col="realname">Real name</th><th class="sort" data-col="power">Superpower</th></tr><tr data-id="0"><td>1</td><td><a href="http://www.superherodb.com/Nightcrawler/10-107/">Nightcrawler</a></td><td>Wagner, Kurt</td><td>Teleportation</td></tr><tr data-id="1"><td>2</td><td><a href="http://www.superherodb.com/Cyclops/10-50/">Cyclops</a></td><td>Summers, Scott</td><td>Optic blast</td></tr><tr data-id="2"><td>3</td><td><a href="http://www.superherodb.com/Mystique/10-817/">Mystique</a></td><td>Darkholme, Raven</td><td>Shapeshifting</td></tr><tr data-id="3"><td>4</td><td><a href="http://www.superherodb.com/Wolverine/10-161/">Wolverine</a></td><td>Howlett, James</td><td>Regeneration</td></tr></table>',
-		formatters: {
+		modifiers: {
 			plus_one: function ( n ) { return n + 1; }
 		}
 	},
@@ -181,11 +181,11 @@ tests = [
 		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello world!</text></svg>'
 	},
 	{
-		name: 'Inverted section with formatters and failed lookup',
+		name: 'Inverted section with modifiers and failed lookup',
 		template: '{{^section | opposite}}should not appear{{/section}}',
 		data: {},
 		result: '',
-		formatters: {
+		modifiers: {
 			opposite: function ( val ) { return !val; }
 		}
 	}
@@ -201,7 +201,7 @@ _.each( tests, function ( t, i ) {
 			data: t.data,
 			template: t.template,
 			partials: t.partials,
-			formatters: t.formatters
+			modifiers: t.modifiers
 		});
 
 		equal( fixture.innerHTML, t.result );

@@ -1,3 +1,26 @@
+// Ractive.compile
+// ===============
+//
+// Takes in a string, and returns an object representing the compiled template.
+// A compiled template is an array of 1 or more 'descriptors', which in some
+// cases have children.
+//
+// The format is optimised for size, not readability, however for reference the
+// keys for each descriptor are as follows:
+//
+// * r - Reference, e.g. 'mustache' in {{mustache}}
+// * t - Type, as according to _internal.types (e.g. 1 is text, 2 is interpolator...)
+// * f - Fragment. Contains a descriptor's children
+// * e - Element name
+// * a - map of element Attributes
+// * n - indicates an iNverted section
+// * p - Priority. Higher priority items are updated before lower ones on model changes
+// * m - Modifiers
+// * d - moDifier name
+// * g - modifier arGuments
+// * i - index reference, e.g. 'num' in {{#section:num}}content{{/section}}
+
+
 var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not using the runtime
 
 (function ( R, _internal ) {
@@ -14,7 +37,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		decodeCharacterReferences,
 		htmlEntities,
 
-		getFormatter,
+		getModifier,
 
 		types,
 
@@ -32,7 +55,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		if ( options.sanitize === true ) {
 			options.sanitize = {
 				// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-				elements: [ 'applet', 'base', 'basefont', 'body', 'frame', 'frameset', 'head', 'html', 'isindex', 'link', 'meta', 'noframes', 'noscript', 'object', 'param', 'script', 'style', 'title' ],
+				elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
 				eventAttributes: true
 			};
 		}
@@ -56,17 +79,15 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 	types = _internal.types;
 
-	voidElementNames = [ 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
-
-	allElementNames = [ 'a', 'abbr', 'acronym', 'address', 'applet', 'area', 'b', 'base', 'basefont', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'dd', 'del', 'dfn', 'dir', 'div', 'dl', 'dt', 'em', 'fieldset', 'font', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'isindex', 'kbd', 'label', 'legend', 'li', 'link', 'map', 'menu', 'meta', 'noframes', 'noscript', 'object', 'ol', 'optgroup', 'option', 'p', 'param', 'pre', 'q', 's', 'samp', 'script', 'select', 'small', 'span', 'strike', 'strong', 'style', 'sub', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 'title', 'tr', 'tt', 'u', 'ul', 'var', 'article', 'aside', 'audio', 'bdi', 'canvas', 'command', 'data', 'datagrid', 'datalist', 'details', 'embed', 'eventsource', 'figcaption', 'figure', 'footer', 'header', 'hgroup', 'keygen', 'mark', 'meter', 'nav', 'output', 'progress', 'ruby', 'rp', 'rt', 'section', 'source', 'summary', 'time', 'track', 'video', 'wbr' ];
-
-	closedByParentClose = [ 'li', 'dd', 'rt', 'rp', 'optgroup', 'option', 'tbody', 'tfoot', 'tr', 'td', 'th' ];
+	voidElementNames = 'area base br col command embed hr img input keygen link meta param source track wbr'.split( ' ' );
+	allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol optgroup option p param pre q s samp script select small span strike strong style sub sup table tbody td textarea tfoot th thead title tr tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
+	closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
 
 	implicitClosersByTagName = {
 		li: [ 'li' ],
 		dt: [ 'dt', 'dd' ],
 		dd: [ 'dt', 'dd' ],
-		p: [ 'address', 'article', 'aside', 'blockquote', 'dir', 'div', 'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'ul' ],
+		p: 'address article aside blockquote dir div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr menu nav ol p pre section table ul'.split( ' ' ),
 		rt: [ 'rt', 'rp' ],
 		rp: [ 'rp', 'rt' ],
 		optgroup: [ 'optgroup' ],
@@ -78,7 +99,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		th: [ 'td', 'th' ]
 	};
 
-	getFormatter = function ( str ) {
+	getModifier = function ( str ) {
 		var name, argsStr, args, openIndex;
 
 		openIndex = str.indexOf( '[' );
@@ -93,13 +114,13 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			}
 
 			return {
-				name: name,
-				args: args
+				d: name,
+				g: args
 			};
 		}
 
 		return {
-			name: str
+			d: str
 		};
 	};
 
@@ -213,12 +234,12 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			var json, attrName, attrValue, str, i;
 
 			json = {
-				type: types.ELEMENT,
-				tag: this.tag
+				t: types.ELEMENT,
+				e: this.tag
 			};
 
 			if ( this.attributes ) {
-				json.attrs = {};
+				json.a = {};
 
 				for ( i=0; i<this.attributes.length; i+=1 ) {
 					attrName = this.attributes[i].name;
@@ -239,12 +260,12 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 						}
 					}
 
-					json.attrs[ attrName ] = attrValue;
+					json.a[ attrName ] = attrValue;
 				}
 			}
 
 			if ( this.fragment && this.fragment.items.length ) {
-				json.frag = this.fragment.toJson( noStringify );
+				json.f = this.fragment.toJson( noStringify );
 			}
 
 			return json;
@@ -333,7 +354,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 		this.ref = token.ref;
 		this.inverted = ( token.type === types.INVERTED );
-		this.formatters = token.formatters;
+		this.modifiers = token.modifiers;
 		this.i = token.i;
 
 		this.fragment = new FragmentStub( this, parentFragment.priority + 1, parentFragment.options, parentFragment.preserveWhitespace );
@@ -348,20 +369,20 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			var json;
 
 			json = {
-				type: types.SECTION,
-				ref: this.ref
+				t: types.SECTION,
+				r: this.ref
 			};
 
 			if ( this.fragment ) {
-				json.frag = this.fragment.toJson( noStringify );
+				json.f = this.fragment.toJson( noStringify );
 			}
 
-			if ( this.formatters && this.formatters.length ) {
-				json.fmtrs = this.formatters.map( getFormatter );
+			if ( this.modifiers && this.modifiers.length ) {
+				json.m = this.modifiers.map( getModifier );
 			}
 
 			if ( this.inverted ) {
-				json.inv = true;
+				json.n = true;
 			}
 
 			if ( this.priority ) {
@@ -387,18 +408,18 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		this.priority = priority;
 
 		this.ref = token.ref;
-		this.formatters = token.formatters;
+		this.modifiers = token.modifiers;
 	};
 
 	MustacheStub.prototype = {
 		toJson: function () {
 			var json = {
-				type: this.type,
-				ref: this.ref
+				t: this.type,
+				r: this.ref
 			};
 
-			if ( this.formatters ) {
-				json.fmtrs = this.formatters.map( getFormatter );
+			if ( this.modifiers ) {
+				json.m = this.modifiers.map( getModifier );
 			}
 
 			if ( this.priority ) {
