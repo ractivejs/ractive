@@ -8,7 +8,7 @@
 	types = _internal.types;
 
 	_internal.TextFragment = function ( options ) {
-		_internal._Fragment.call( this, options );
+		_internal.Fragment.call( this, options );
 	};
 
 	_internal.TextFragment.prototype = {
@@ -81,7 +81,7 @@
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
-		_internal._Mustache.call( this, options );
+		_internal.Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -112,7 +112,7 @@
 		this.fragments = [];
 		this.length = 0;
 
-		_internal._Mustache.call( this, options );
+		_internal.Mustache.call( this, options );
 	};
 
 	Section.prototype = {
@@ -139,16 +139,14 @@
 		},
 
 		update: function ( value ) {
-			_internal._sectionUpdate.call( this, value );
+			_internal.sectionUpdate.call( this, value );
+
+			this.value = this.fragments.join( '' );
+			this.parent.bubble();
 		},
 
 		createFragment: function ( options ) {
 			return new _internal.TextFragment( options );
-		},
-
-		postUpdate: function () {
-			this.value = this.fragments.join( '' );
-			this.parent.bubble();
 		},
 
 		toString: function () {

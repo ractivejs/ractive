@@ -57,7 +57,7 @@
 		}
 
 		// otherwise we need to make a proper fragment
-		_internal._Fragment.call( this, options );
+		_internal.Fragment.call( this, options );
 	};
 
 	_internal.DomFragment.prototype = {
@@ -617,7 +617,7 @@
 		docFrag.appendChild( this.node );
 
 		// extend Mustache
-		_internal._Mustache.call( this, options );
+		_internal.Mustache.call( this, options );
 	};
 
 	Interpolator.prototype = {
@@ -652,7 +652,7 @@
 		this.docFrag = doc.createDocumentFragment();
 
 		this.initialising = true;
-		_internal._Mustache.call( this, options );
+		_internal.Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -714,7 +714,7 @@
 		this.docFrag = doc.createDocumentFragment();
 		
 		this.initialising = true;
-		_internal._Mustache.call( this, options );
+		_internal.Mustache.call( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
@@ -754,7 +754,7 @@
 
 		update: function ( value ) {
 			
-			_internal._sectionUpdate.call( this, value );
+			_internal.sectionUpdate.call( this, value );
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place

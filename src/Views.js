@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	_internal._Mustache = function ( options ) {
+	_internal.Mustache = function ( options ) {
 
 		this.root           = options.root;
 		this.model          = options.model;
@@ -24,13 +24,13 @@
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
 		if ( !this.keypath && this.model.inv ) { // test both section-hood and inverticity in one go
-			this.update( false );
+			this.update( this.model.fmtrs ? this.root._format( false, this.model.fmtrs ) : false );
 		}
 
 	};
 
 
-	_internal._Fragment = function ( options ) {
+	_internal.Fragment = function ( options ) {
 
 		var numItems, i, itemOptions, parentRefs, ref;
 
@@ -72,7 +72,7 @@
 	};
 
 
-	_internal._sectionUpdate = function ( value ) {
+	_internal.sectionUpdate = function ( value ) {
 		var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 		fragmentOptions = {
@@ -120,10 +120,6 @@
 					this.length = 1;
 					return;
 				}
-			}
-
-			if ( this.postUpdate ) {
-				this.postUpdate();
 			}
 
 			return;
@@ -204,16 +200,7 @@
 				}
 			}
 		}
-
-
-		if ( this.postUpdate ) {
-			this.postUpdate();
-		}
-
-
 	};
-
-
 
 
 }( _internal ));
