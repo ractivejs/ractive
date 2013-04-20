@@ -40,7 +40,8 @@ var Ractive, _internal;
 			append: false,
 			twoway: true,
 			formatters: {},
-			modifyArrays: true
+			modifyArrays: true,
+			data: {}
 		};
 
 		for ( key in defaults ) {
