@@ -188,7 +188,7 @@ var Ractive, _internal;
 				this.setting = false;
 			}
 
-			// Trigger updates of views that observe `keypaths` or its descendants
+			// Trigger updates of mustaches that observe `keypaths` or its descendants
 			this._notifyObservers( normalised );
 
 			// See if we can resolve any of the unresolved keypaths (if such there be)
@@ -308,43 +308,43 @@ var Ractive, _internal;
 			};
 		},
 
-		registerView: function ( view ) {
+		registerMustache: function ( mustache ) {
 			var resolved, value, index;
 
-			if ( view.parentFragment && ( view.parentFragment.indexRefs.hasOwnProperty( view.model.ref ) ) ) {
+			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.model.ref ) ) ) {
 				// This isn't a real keypath, it's an index reference
-				index = view.parentFragment.indexRefs[ view.model.ref ];
+				index = mustache.parentFragment.indexRefs[ mustache.model.ref ];
 
-				value = ( view.model.fmtrs ? this._format( index, view.model.fmtrs ) : index );
-				view.update( value );
+				value = ( mustache.model.fmtrs ? this._format( index, mustache.model.fmtrs ) : index );
+				mustache.update( value );
 
 				return; // This value will never change, and doesn't have a keypath
 			}
 
-			// See if we can resolve a keypath from this view's reference (e.g.
+			// See if we can resolve a keypath from this mustache's reference (e.g.
 			// does 'bar' in {{#foo}}{{bar}}{{/foo}} mean 'bar' or 'foo.bar'?)
-			resolved = this.resolveRef( view );
+			resolved = this.resolveRef( mustache );
 
 			if ( !resolved ) {
 				// We may still need to do an update, event with unresolved
-				// references, if the view has formatters that (for example)
+				// references, if the mustache has formatters that (for example)
 				// provide a fallback value from undefined
-				if ( view.model.fmtrs ) {
-					view.update( this._format( undefined, view.model.fmtrs ) );
+				if ( mustache.model.fmtrs ) {
+					mustache.update( this._format( undefined, mustache.model.fmtrs ) );
 				}
 
-				this._pendingResolution[ this._pendingResolution.length ] = view;
+				this._pendingResolution[ this._pendingResolution.length ] = mustache;
 			}
 		},
 
 		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-		resolveRef: function ( view ) {
+		resolveRef: function ( mustache ) {
 
 			var ref, contextStack, keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
 
-			ref = view.model.ref;
-			contextStack = view.contextStack;
+			ref = mustache.model.ref;
+			contextStack = mustache.contextStack;
 
 			// Implicit iterators - i.e. {{.}} - are a special case
 			if ( ref === '.' ) {
@@ -379,10 +379,10 @@ var Ractive, _internal;
 
 			// If we have any formatters, we need to append them to the keypath
 			if ( keypath ) {
-				view.keypath = ( view.model.fmtrs ? keypath + '.' + _internal.stringifyFormatters( view.model.fmtrs ) : keypath );
+				mustache.keypath = ( mustache.model.fmtrs ? keypath + '.' + _internal.stringifyFormatters( mustache.model.fmtrs ) : keypath );
 
-				view.observerRefs = this.observe( view );
-				view.update( this.get( view.keypath ) );
+				mustache.observerRefs = this.observe( mustache );
+				mustache.update( this.get( mustache.keypath ) );
 
 				return true; // indicate success
 			}
@@ -436,9 +436,9 @@ var Ractive, _internal;
 			}
 		},
 
-		observe: function ( view ) {
+		observe: function ( mustache ) {
 
-			var self = this, observerRefs = [], observe, keys, priority = view.model.p || 0;
+			var self = this, observerRefs = [], observe, keys, priority = mustache.model.p || 0;
 
 			observe = function ( keypath ) {
 				var observers;
@@ -446,20 +446,20 @@ var Ractive, _internal;
 				observers = self._observers[ keypath ] = self._observers[ keypath ] || [];
 				observers = observers[ priority ] = observers[ priority ] || [];
 
-				observers[ observers.length ] = view;
+				observers[ observers.length ] = mustache;
 				observerRefs[ observerRefs.length ] = {
 					keypath: keypath,
 					priority: priority,
-					view: view
+					mustache: mustache
 				};
 			};
 
-			keys = _internal.splitKeypath( view.keypath );
+			keys = _internal.splitKeypath( mustache.keypath );
 			while ( keys.length > 1 ) {
 				observe( keys.join( '.' ) );
 
 				// remove the last item in the keypath, so that `data.set( 'parent', { child: 'newValue' } )`
-				// affects views dependent on `parent.child`
+				// affects mustaches dependent on `parent.child`
 				keys.pop();
 			}
 
@@ -488,7 +488,7 @@ var Ractive, _internal;
 			} else {
 				// fuck you IE
 				for ( i=0, len=observers.length; i<len; i+=1 ) {
-					if ( observers[i] === observerRef.view ) {
+					if ( observers[i] === observerRef.mustache ) {
 						index = i;
 						break;
 					}

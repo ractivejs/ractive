@@ -1,4 +1,4 @@
-/*! Ractive - v0.2.0 - 2013-04-19
+/*! Ractive - v0.2.0 - 2013-04-20
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -304,9 +304,13 @@ var Ractive, _internal;
 			return value;
 		},
 
-		update: function () {
-			// TODO
-			throw new Error( 'not implemented yet!' );
+		update: function ( keypath ) {
+			this._clearCache( keypath );
+			this._notifyObservers( keypath );
+
+			this.fire( 'update:' + keypath );
+			this.fire( 'update', keypath );
+
 			return this;
 		},
 
@@ -2819,7 +2823,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 		// append children, if there are any
 		if ( model.frag ) {
-			if ( typeof model.frag === 'string' ) {
+			if ( typeof model.frag === 'string' && this.node.namespaceURI === _internal.namespaces.html ) {
 				// great! we can use innerHTML
 				this.node.innerHTML = model.frag;
 			}

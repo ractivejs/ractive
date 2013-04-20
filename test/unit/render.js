@@ -172,6 +172,15 @@ tests = [
 		template: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello {{thing}}!</text></svg>',
 		data: { thing: 'world' },
 		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello world!</text></svg>'
+	},
+	{
+		name: 'Inverted section with formatters and failed lookup',
+		template: '{{^section | opposite}}should not appear{{/section}}',
+		data: {},
+		result: '',
+		formatters: {
+			opposite: function ( val ) { return !val; }
+		}
 	}
 ];
 
