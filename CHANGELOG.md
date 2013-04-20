@@ -36,3 +36,7 @@ Changelog
 * 0.2.0
 	* Major architectural overhaul. Data is now stored on the Ractive instance rather than on a separate viewmodel, allowing for cleaner and more efficient code (at the cost of the ability to share one viewmodel among many instances - a theoretical benefit at best). Data is flattened and cached, permitting lightning-fast lookups even with complex data.
 	* Templates can be sanitized at compile-time to remove script tags and other hypothetical security risks. In lieu of documentation see issue #12
+* 0.2.1
+	* Cleaned up some redundant code following 0.2.0 overhaul, some minor performance benefits
+	* Linting and refactoring
+	* Fixed bug where Ractive would attempt to use innerHTML with non-HTML elements (i.e. SVG text)
