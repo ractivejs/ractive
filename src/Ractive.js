@@ -366,7 +366,7 @@ var Ractive, _internal;
 
 					parentValue = this.get( contextKeys.concat( keys ) );
 
-					if ( parentValue.hasOwnProperty( lastKey ) ) {
+					if ( typeof parentValue === 'object' && parentValue.hasOwnProperty( lastKey ) ) {
 						keypath = innerMostContext + '.' + ref;
 						break;
 					}
