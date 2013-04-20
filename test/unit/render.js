@@ -92,6 +92,13 @@ tests = [
 		result: "<p>Item the first</p><p>Item the second</p><p>Item the third</p>"
 	},
 	{
+		name: 'Partials that compile as HTML',
+		template: '<div>{{>partial}}</div>',
+		data: { content: 'some text' },
+		partials: { partial: '<p>{{content}}</p>' },
+		result: '<div><p>some text</p></div>'
+	},
+	{
 		name: "Empty string attributes",
 		template: "<p class=\"\">test</p>",
 		result: "<p class=\"\">test</p>"
