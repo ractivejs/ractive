@@ -22,7 +22,7 @@ var Ractive, _internal;
 
 	Ractive = function ( options ) {
 
-		var defaults, key;
+		var defaults, key, partial;
 
 		// Options
 		// -------
@@ -76,13 +76,22 @@ var Ractive, _internal;
 		if ( this.partials ) {
 			for ( key in this.partials ) {
 				if ( this.partials.hasOwnProperty( key ) ) {
-					if ( typeof this.partials[ key ] === 'string' ) {
+					partial = this.partials[ key ];
+
+					if ( typeof partial === 'string' ) {
 						if ( !Ractive.compile ) {
 							throw new Error( 'Missing Ractive.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
 						}
 
-						this.partials[ key ] = Ractive.compile( this.partials[ key ], this ); // all compiler options are present on `this`, so just passing `this`
+						partial = Ractive.compile( partial, this ); // all compiler options are present on `this`, so just passing `this`
 					}
+
+					// If the partial was an array with a single string member, that means
+					// we can use innerHTML - we just need to unpack it
+					if ( partial.length === 1 && typeof partial[0] === 'string' ) {
+						partial = partial[0];
+					}
+					this.partials[ key ] = partial;
 				}
 			}
 		}
