@@ -277,7 +277,7 @@ var Ractive, _internal;
 			// is this a set of modifiers?
 			if ( match = /^⭆(.+)⭅$/.exec( key ) ) {
 				modifiers = _internal.getModifiersFromString( match[1] );
-				value = this._format( parentValue, modifiers );
+				value = this._modify( parentValue, modifiers );
 			}
 
 			else {
@@ -334,7 +334,7 @@ var Ractive, _internal;
 				// This isn't a real keypath, it's an index reference
 				index = mustache.parentFragment.indexRefs[ mustache.descriptor.r ];
 
-				value = ( mustache.descriptor.m ? this._format( index, mustache.descriptor.m ) : index );
+				value = ( mustache.descriptor.m ? this._modify( index, mustache.descriptor.m ) : index );
 				mustache.update( value );
 
 				return; // This value will never change, and doesn't have a keypath
@@ -349,7 +349,7 @@ var Ractive, _internal;
 				// references, if the mustache has modifiers that (for example)
 				// provide a fallback value from undefined
 				if ( mustache.descriptor.m ) {
-					mustache.update( this._format( undefined, mustache.descriptor.m ) );
+					mustache.update( this._modify( undefined, mustache.descriptor.m ) );
 				}
 
 				this._pendingResolution[ this._pendingResolution.length ] = mustache;
@@ -410,8 +410,8 @@ var Ractive, _internal;
 			return false; // failure
 		},
 
-		// Internal method to format a value, using modifiers passed in at initialization
-		_format: function ( value, modifiers ) {
+		// Internal method to modify a value, using modifiers passed in at initialization
+		_modify: function ( value, modifiers ) {
 			var i, numModifiers, modifier, name, args, fn;
 
 			// If there are no modifiers, groovy - just return the value unchanged

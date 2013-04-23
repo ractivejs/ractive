@@ -477,7 +477,7 @@
 					var value;
 
 					if ( self.interpolator.descriptor.m ) {
-						value = self.root._format( node.value, self.interpolator.descriptor.m );
+						value = self.root._modify( node.value, self.interpolator.descriptor.m );
 					} else {
 						value = node.value;
 					}

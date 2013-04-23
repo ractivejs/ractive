@@ -24,7 +24,7 @@
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
 		if ( !this.keypath && this.descriptor.n ) { // test both section-hood and inverticity in one go
-			this.update( this.descriptor.m ? this.root._format( false, this.descriptor.m ) : false );
+			this.update( this.descriptor.m ? this.root._modify( false, this.descriptor.m ) : false );
 		}
 
 	};
