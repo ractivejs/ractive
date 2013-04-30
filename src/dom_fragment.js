@@ -519,13 +519,13 @@
 		teardown: function () {
 			// remove the event listeners we added, if we added them
 			if ( this.updateViewModel ) {
-				this.node.removeEventListener( 'change', this.updateViewModel );
-				this.node.removeEventListener( 'click', this.updateViewModel );
-				this.node.removeEventListener( 'blur', this.updateViewModel );
-				this.node.removeEventListener( 'keyup', this.updateViewModel );
-				this.node.removeEventListener( 'keydown', this.updateViewModel );
-				this.node.removeEventListener( 'keypress', this.updateViewModel );
-				this.node.removeEventListener( 'input', this.updateViewModel );
+				this.parentNode.removeEventListener( 'change', this.updateViewModel );
+				this.parentNode.removeEventListener( 'click', this.updateViewModel );
+				this.parentNode.removeEventListener( 'blur', this.updateViewModel );
+				this.parentNode.removeEventListener( 'keyup', this.updateViewModel );
+				this.parentNode.removeEventListener( 'keydown', this.updateViewModel );
+				this.parentNode.removeEventListener( 'keypress', this.updateViewModel );
+				this.parentNode.removeEventListener( 'input', this.updateViewModel );
 			}
 
 			// ignore non-dynamic attributes
