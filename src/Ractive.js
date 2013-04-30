@@ -186,10 +186,10 @@ var Ractive, _internal;
 				key = keys.shift();
 
 				// If this branch doesn't exist yet, create a new one - if the next
-				// key matches /^[0-9]+$/, assume we want an array branch rather
+				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
 				// than an object
 				if ( !obj[ key ] ) {
-					obj[ key ] = ( /^[0-9]+$/.test( keys[0] ) ? [] : {} );
+					obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
 				}
 
 				obj = obj[ key ];
