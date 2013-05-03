@@ -217,7 +217,7 @@ var Ractive, _internal;
 
 				// If we can't resolve the reference, add to the back of
 				// the queue (this is why we're working backwards)
-				if ( !this.resolveRef( unresolved ) ) {
+				if ( !this._resolveRef( unresolved ) ) {
 					this._pendingResolution[ this._pendingResolution.length ] = unresolved;
 				}
 			}
@@ -327,7 +327,7 @@ var Ractive, _internal;
 			};
 		},
 
-		registerMustache: function ( mustache ) {
+		_registerMustache: function ( mustache ) {
 			var resolved, value, index;
 
 			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.descriptor.r ) ) ) {
@@ -342,7 +342,7 @@ var Ractive, _internal;
 
 			// See if we can resolve a keypath from this mustache's reference (e.g.
 			// does 'bar' in {{#foo}}{{bar}}{{/foo}} mean 'bar' or 'foo.bar'?)
-			resolved = this.resolveRef( mustache );
+			resolved = this._resolveRef( mustache );
 
 			if ( !resolved ) {
 				// We may still need to do an update, event with unresolved
@@ -358,7 +358,7 @@ var Ractive, _internal;
 
 		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-		resolveRef: function ( mustache ) {
+		_resolveRef: function ( mustache ) {
 
 			var ref, contextStack, keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
 
@@ -401,7 +401,7 @@ var Ractive, _internal;
 				mustache.keypath = ( mustache.descriptor.m ? keypath + '.' + _internal.stringifyModifiers( mustache.descriptor.m ) : keypath );
 				mustache.keys = _internal.splitKeypath( mustache.keypath );
 
-				mustache.observerRefs = this.observe( mustache );
+				mustache.observerRefs = this._observe( mustache );
 				mustache.update( this.get( mustache.keypath ) );
 
 				return true; // indicate success
@@ -461,7 +461,7 @@ var Ractive, _internal;
 			}
 		},
 
-		observe: function ( mustache ) {
+		_observe: function ( mustache ) {
 
 			var self = this, observerRefs = [], observe, keys, priority = mustache.descriptor.p || 0;
 
@@ -493,7 +493,7 @@ var Ractive, _internal;
 			return observerRefs;
 		},
 
-		unobserve: function ( observerRef ) {
+		_unobserve: function ( observerRef ) {
 			var priorityGroups, observers, index, i, len;
 
 			priorityGroups = this._observers[ observerRef.keypath ];
@@ -539,9 +539,9 @@ var Ractive, _internal;
 			}
 		},
 
-		unobserveAll: function ( observerRefs ) {
+		_unobserveAll: function ( observerRefs ) {
 			while ( observerRefs.length ) {
-				this.unobserve( observerRefs.shift() );
+				this._unobserve( observerRefs.shift() );
 			}
 		}
 	};

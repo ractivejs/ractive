@@ -630,7 +630,7 @@
 			if ( !this.observerRefs ) {
 				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 
 			if ( this.root.el.contains( this.node ) ) {
@@ -676,7 +676,7 @@
 			if ( !this.observerRefs ) {
 				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -731,7 +731,7 @@
 			if ( !this.observerRefs ) {
 				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 		},
 

@@ -19,7 +19,7 @@
 
 		this.type = options.descriptor.t;
 
-		this.root.registerMustache( this );
+		this.root._registerMustache( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
