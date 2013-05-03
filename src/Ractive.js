@@ -410,6 +410,14 @@ var Ractive, _internal;
 			return false; // failure
 		},
 
+		cancelKeypathResolution: function ( mustache ) {
+			var index = this._pendingResolution.indexOf( mustache );
+
+			if ( index !== -1 ) {
+				this._pendingResolution.splice( index, 1 );
+			}
+		},
+
 		// Internal method to modify a value, using modifiers passed in at initialization
 		_modify: function ( value, modifiers ) {
 			var i, numModifiers, modifier, name, args, fn;
