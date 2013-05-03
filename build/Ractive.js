@@ -1,4 +1,4 @@
-/*! Ractive - v0.2.1 - 2013-04-21
+/*! Ractive - v0.2.1 - 2013-05-03
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -200,10 +200,10 @@ var Ractive, _internal;
 				key = keys.shift();
 
 				// If this branch doesn't exist yet, create a new one - if the next
-				// key matches /^[0-9]+$/, assume we want an array branch rather
+				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
 				// than an object
 				if ( !obj[ key ] ) {
-					obj[ key ] = ( /^[0-9]+$/.test( keys[0] ) ? [] : {} );
+					obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
 				}
 
 				obj = obj[ key ];
@@ -231,7 +231,7 @@ var Ractive, _internal;
 
 				// If we can't resolve the reference, add to the back of
 				// the queue (this is why we're working backwards)
-				if ( !this.resolveRef( unresolved ) ) {
+				if ( !this._resolveRef( unresolved ) ) {
 					this._pendingResolution[ this._pendingResolution.length ] = unresolved;
 				}
 			}
@@ -291,7 +291,7 @@ var Ractive, _internal;
 			// is this a set of modifiers?
 			if ( match = /^⭆(.+)⭅$/.exec( key ) ) {
 				modifiers = _internal.getModifiersFromString( match[1] );
-				value = this._format( parentValue, modifiers );
+				value = this._modify( parentValue, modifiers );
 			}
 
 			else {
@@ -341,14 +341,14 @@ var Ractive, _internal;
 			};
 		},
 
-		registerMustache: function ( mustache ) {
+		_registerMustache: function ( mustache ) {
 			var resolved, value, index;
 
 			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.descriptor.r ) ) ) {
 				// This isn't a real keypath, it's an index reference
 				index = mustache.parentFragment.indexRefs[ mustache.descriptor.r ];
 
-				value = ( mustache.descriptor.m ? this._format( index, mustache.descriptor.m ) : index );
+				value = ( mustache.descriptor.m ? this._modify( index, mustache.descriptor.m ) : index );
 				mustache.update( value );
 
 				return; // This value will never change, and doesn't have a keypath
@@ -356,14 +356,14 @@ var Ractive, _internal;
 
 			// See if we can resolve a keypath from this mustache's reference (e.g.
 			// does 'bar' in {{#foo}}{{bar}}{{/foo}} mean 'bar' or 'foo.bar'?)
-			resolved = this.resolveRef( mustache );
+			resolved = this._resolveRef( mustache );
 
 			if ( !resolved ) {
 				// We may still need to do an update, event with unresolved
 				// references, if the mustache has modifiers that (for example)
 				// provide a fallback value from undefined
 				if ( mustache.descriptor.m ) {
-					mustache.update( this._format( undefined, mustache.descriptor.m ) );
+					mustache.update( this._modify( undefined, mustache.descriptor.m ) );
 				}
 
 				this._pendingResolution[ this._pendingResolution.length ] = mustache;
@@ -372,7 +372,7 @@ var Ractive, _internal;
 
 		// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 		// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-		resolveRef: function ( mustache ) {
+		_resolveRef: function ( mustache ) {
 
 			var ref, contextStack, keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
 
@@ -415,7 +415,7 @@ var Ractive, _internal;
 				mustache.keypath = ( mustache.descriptor.m ? keypath + '.' + _internal.stringifyModifiers( mustache.descriptor.m ) : keypath );
 				mustache.keys = _internal.splitKeypath( mustache.keypath );
 
-				mustache.observerRefs = this.observe( mustache );
+				mustache.observerRefs = this._observe( mustache );
 				mustache.update( this.get( mustache.keypath ) );
 
 				return true; // indicate success
@@ -424,8 +424,16 @@ var Ractive, _internal;
 			return false; // failure
 		},
 
-		// Internal method to format a value, using modifiers passed in at initialization
-		_format: function ( value, modifiers ) {
+		_cancelKeypathResolution: function ( mustache ) {
+			var index = this._pendingResolution.indexOf( mustache );
+
+			if ( index !== -1 ) {
+				this._pendingResolution.splice( index, 1 );
+			}
+		},
+
+		// Internal method to modify a value, using modifiers passed in at initialization
+		_modify: function ( value, modifiers ) {
 			var i, numModifiers, modifier, name, args, fn;
 
 			// If there are no modifiers, groovy - just return the value unchanged
@@ -467,7 +475,7 @@ var Ractive, _internal;
 			}
 		},
 
-		observe: function ( mustache ) {
+		_observe: function ( mustache ) {
 
 			var self = this, observerRefs = [], observe, keys, priority = mustache.descriptor.p || 0;
 
@@ -499,7 +507,7 @@ var Ractive, _internal;
 			return observerRefs;
 		},
 
-		unobserve: function ( observerRef ) {
+		_unobserve: function ( observerRef ) {
 			var priorityGroups, observers, index, i, len;
 
 			priorityGroups = this._observers[ observerRef.keypath ];
@@ -545,9 +553,9 @@ var Ractive, _internal;
 			}
 		},
 
-		unobserveAll: function ( observerRefs ) {
+		_unobserveAll: function ( observerRefs ) {
 			while ( observerRefs.length ) {
-				this.unobserve( observerRefs.shift() );
+				this._unobserve( observerRefs.shift() );
 			}
 		}
 	};
@@ -783,12 +791,12 @@ _internal.types = {
 
 		this.type = options.descriptor.t;
 
-		this.root.registerMustache( this );
+		this.root._registerMustache( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,
 		// we need to trigger this.update() so the contents are rendered
 		if ( !this.keypath && this.descriptor.n ) { // test both section-hood and inverticity in one go
-			this.update( this.descriptor.m ? this.root._format( false, this.descriptor.m ) : false );
+			this.update( this.descriptor.m ? this.root._modify( false, this.descriptor.m ) : false );
 		}
 
 	};
@@ -3100,7 +3108,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 					var value;
 
 					if ( self.interpolator.descriptor.m ) {
-						value = self.root._format( node.value, self.interpolator.descriptor.m );
+						value = self.root._modify( node.value, self.interpolator.descriptor.m );
 					} else {
 						value = node.value;
 					}
@@ -3142,13 +3150,13 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		teardown: function () {
 			// remove the event listeners we added, if we added them
 			if ( this.updateViewModel ) {
-				this.node.removeEventListener( 'change', this.updateViewModel );
-				this.node.removeEventListener( 'click', this.updateViewModel );
-				this.node.removeEventListener( 'blur', this.updateViewModel );
-				this.node.removeEventListener( 'keyup', this.updateViewModel );
-				this.node.removeEventListener( 'keydown', this.updateViewModel );
-				this.node.removeEventListener( 'keypress', this.updateViewModel );
-				this.node.removeEventListener( 'input', this.updateViewModel );
+				this.parentNode.removeEventListener( 'change', this.updateViewModel );
+				this.parentNode.removeEventListener( 'click', this.updateViewModel );
+				this.parentNode.removeEventListener( 'blur', this.updateViewModel );
+				this.parentNode.removeEventListener( 'keyup', this.updateViewModel );
+				this.parentNode.removeEventListener( 'keydown', this.updateViewModel );
+				this.parentNode.removeEventListener( 'keypress', this.updateViewModel );
+				this.parentNode.removeEventListener( 'input', this.updateViewModel );
 			}
 
 			// ignore non-dynamic attributes
@@ -3251,9 +3259,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 	Interpolator.prototype = {
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 
 			if ( this.root.el.contains( this.node ) ) {
@@ -3297,9 +3305,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 			// kill observer(s)
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -3352,9 +3360,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -3495,9 +3503,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 		},
 
@@ -3523,9 +3531,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
-				this.root.unobserveAll( this.observerRefs );
+				this.root._unobserveAll( this.observerRefs );
 			}
 		},
 
