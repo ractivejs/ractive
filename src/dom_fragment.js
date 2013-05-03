@@ -628,7 +628,7 @@
 	Interpolator.prototype = {
 		teardown: function () {
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
 				this.root.unobserveAll( this.observerRefs );
 			}
@@ -674,7 +674,7 @@
 
 			// kill observer(s)
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
 				this.root.unobserveAll( this.observerRefs );
 			}
@@ -729,7 +729,7 @@
 			this.unrender();
 
 			if ( !this.observerRefs ) {
-				this.root.cancelKeypathResolution( this );
+				this.root._cancelKeypathResolution( this );
 			} else {
 				this.root.unobserveAll( this.observerRefs );
 			}

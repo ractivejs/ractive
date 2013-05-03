@@ -410,7 +410,7 @@ var Ractive, _internal;
 			return false; // failure
 		},
 
-		cancelKeypathResolution: function ( mustache ) {
+		_cancelKeypathResolution: function ( mustache ) {
 			var index = this._pendingResolution.indexOf( mustache );
 
 			if ( index !== -1 ) {
