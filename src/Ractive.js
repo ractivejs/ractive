@@ -37,7 +37,7 @@ var Ractive, _internal;
 		}
 
 		// 'formatters' is deprecated, but support it for the time being
-		if ( options.formatters ) {
+		if ( options && options.formatters ) {
 			this.modifiers = options.formatters;
 			if ( typeof console !== 'undefined' ) {
 				console.warn( 'The \'formatters\' option is deprecated as of v0.2.2 and will be removed in a future version - use \'modifiers\' instead (same thing, more accurate name)' );
