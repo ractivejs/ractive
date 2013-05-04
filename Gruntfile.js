@@ -39,7 +39,7 @@ module.exports = function(grunt) {
 					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
 					footer: '<%= meta.wrapper.end %>'
 				},
-				src: [ 'src/Ractive.js', 'src/_internal.js', 'src/types.js', 'src/fragment_utils.js', 'src/events.js', 'src/formatters.js', 'src/dom_fragment.js', 'src/text_fragment.js', 'src/extend.js', 'src/modify_array.js', 'src/easing.js', 'src/animate.js', 'src/interpolators.js', 'src/namespaces.js' ],
+				src: [ 'src/Ractive.js', 'src/_internal.js', 'src/types.js', 'src/fragment_utils.js', 'src/events.js', 'src/define_event.js', 'src/formatters.js', 'src/dom_fragment.js', 'src/text_fragment.js', 'src/extend.js', 'src/modify_array.js', 'src/easing.js', 'src/animate.js', 'src/interpolators.js', 'src/namespaces.js' ],
 				dest: 'build/Ractive.runtime.js'
 			},
 			full: {
@@ -47,7 +47,7 @@ module.exports = function(grunt) {
 					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
 					footer: '<%= meta.wrapper.end %>'
 				},
-				src: [ 'src/Ractive.js', 'src/_internal.js', 'src/types.js', 'src/fragment_utils.js', 'src/events.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/dom_fragment.js', 'src/text_fragment.js', 'src/extend.js', 'src/modify_array.js', 'src/easing.js', 'src/animate.js', 'src/interpolators.js', 'src/namespaces.js' ],
+				src: [ 'src/Ractive.js', 'src/_internal.js', 'src/types.js', 'src/fragment_utils.js', 'src/events.js', 'src/define_event.js', 'src/compile.js', 'src/tokenize.js', 'src/formatters.js', 'src/dom_fragment.js', 'src/text_fragment.js', 'src/extend.js', 'src/modify_array.js', 'src/easing.js', 'src/animate.js', 'src/interpolators.js', 'src/namespaces.js' ],
 				dest: 'build/Ractive.js'
 			},
 			runtime_legacy: {
