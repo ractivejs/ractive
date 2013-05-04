@@ -142,7 +142,7 @@
 
 }( document ));
 
-/*! Ractive - v0.2.1 - 2013-05-03
+/*! Ractive - v0.2.1 - 2013-05-04
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -195,7 +195,7 @@ var Ractive, _internal;
 		}
 
 		// 'formatters' is deprecated, but support it for the time being
-		if ( options.formatters ) {
+		if ( options && options.formatters ) {
 			this.modifiers = options.formatters;
 			if ( typeof console !== 'undefined' ) {
 				console.warn( 'The \'formatters\' option is deprecated as of v0.2.2 and will be removed in a future version - use \'modifiers\' instead (same thing, more accurate name)' );
@@ -895,7 +895,9 @@ var Ractive, _internal;
 			});
 
 			return '⭆' + stringified.join( '⤋' ) + '⭅';
-		}
+		},
+
+		eventDefns: {}
 	};
 
 }());
@@ -1125,7 +1127,26 @@ _internal.types = {
 	'use strict';
 
 	proto.on = function ( eventName, callback ) {
-		var self = this;
+		var self = this, listeners, n;
+
+		// allow mutliple listeners to be bound in one go
+		if ( typeof eventName === 'object' ) {
+			listeners = [];
+
+			for ( n in eventName ) {
+				if ( eventName.hasOwnProperty( n ) ) {
+					listeners[ listeners.length ] = this.on( n, eventName[ n ] );
+				}
+			}
+
+			return {
+				cancel: function () {
+					while ( listeners.length ) {
+						listeners.pop().cancel();
+					}
+				}
+			};
+		}
 
 		if ( !this._subs[ eventName ] ) {
 			this._subs[ eventName ] = [ callback ];
@@ -1178,6 +1199,105 @@ _internal.types = {
 	};
 
 }( Ractive.prototype ));
+(function ( Ractive, _internal ) {
+
+	'use strict';
+
+	Ractive.defineEvent = function ( eventName, definition ) {
+		_internal.eventDefns[ eventName ] = definition;
+	};
+
+	Ractive.defineEvent( 'tap', function ( el, fire ) {
+		var mousedown, touchstart, distanceThreshold, timeThreshold;
+
+		distanceThreshold = 5; // maximum pixels pointer can move before cancel
+		timeThreshold = 400;   // maximum milliseconds between down and up before cancel
+
+		mousedown = function ( event ) {
+			var x, y, up, move, cancel;
+
+			x = event.clientX;
+			y = event.clientY;
+
+			up = function ( event ) {
+				fire( event );
+				cancel();
+			};
+
+			move = function ( event ) {
+				if ( ( Math.abs( event.clientX - x ) >= distanceThreshold ) || ( Math.abs( event.clientY - y ) >= distanceThreshold ) ) {
+					cancel();
+				}
+			};
+
+			cancel = function () {
+				window.removeEventListener( 'mousemove', move );
+				window.removeEventListener( 'mouseup', up );
+			};
+
+			window.addEventListener( 'mousemove', move );
+			window.addEventListener( 'mouseup', up );
+
+			setTimeout( cancel, timeThreshold );
+		};
+
+		el.addEventListener( 'mousedown', mousedown );
+
+
+		touchstart = function ( event ) {
+			var x, y, touch, finger, move, up, cancel;
+
+			if ( event.touches.length !== 1 ) {
+				return;
+			}
+
+			touch = event.touches[0];
+			finger = touch.identifier;
+
+			up = function ( event ) {
+				if ( event.changedTouches.length !== 1 || event.touches[0].identifier !== finger ) {
+					cancel();
+				} else {
+					fire( event );
+				}
+			};
+
+			move = function ( event ) {
+				var touch;
+
+				if ( event.touches.length !== 1 || event.touches[0].identifier !== finger ) {
+					cancel();
+				}
+
+				touch = event.touches[0];
+				if ( ( Math.abs( touch.clientX - x ) >= distanceThreshold ) || ( Math.abs( touch.clientY - y ) >= distanceThreshold ) ) {
+					cancel();
+				}
+			};
+
+			cancel = function ( event ) {
+				window.removeEventListener( 'touchmove', move );
+				window.removeEventListener( 'touchend', up );
+				window.removeEventListener( 'touchcancel', cancel );
+			};
+
+			window.addEventListener( 'touchmove', move );
+			window.addEventListener( 'touchend', up );
+			window.addEventListener( 'touchcancel', cancel );
+
+			setTimeout( cancel, timeThreshold );
+		};
+
+
+		return {
+			teardown: function () {
+				el.removeEventListener( 'mousedown', mousedown );
+				el.removeEventListener( 'touchstart', touchstart );
+			}
+		};
+	});
+
+}( Ractive, _internal ));
 (function ( _internal ) {
 
 	'use strict';
@@ -1343,6 +1463,7 @@ _internal.types = {
 
 		var descriptor,
 			namespace,
+			eventName,
 			attr,
 			attrName,
 			attrValue,
@@ -1355,6 +1476,9 @@ _internal.types = {
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
+
+		this.eventListeners = [];
+		this.customEventListeners = [];
 
 		// get namespace
 		if ( descriptor.a && descriptor.a.xmlns ) {
@@ -1392,6 +1516,16 @@ _internal.types = {
 				});
 
 				this.node.appendChild( this.children.docFrag );
+			}
+		}
+
+
+		// create event proxies
+		if ( descriptor.x ) {
+			for ( eventName in descriptor.x ) {
+				if ( descriptor.x.hasOwnProperty( eventName ) ) {
+					this.addEventProxy( eventName, descriptor.x[ eventName ] );
+				}
 			}
 		}
 
@@ -1440,7 +1574,42 @@ _internal.types = {
 	};
 
 	Element.prototype = {
+		addEventProxy: function ( eventName, proxy ) {
+			var self = this, listener, definition;
+
+			if ( typeof proxy !== 'string' ) {
+				throw new Error( 'You can only use strings as DOM event proxies' );
+			}
+
+			if ( definition = _internal.eventDefns[ eventName ] ) {
+				// Use custom event. Apply definition to this node
+				listener = definition( this.node, function ( event ) {
+					self.root.fire( proxy, event, self.node );
+				});
+
+				this.customEventListeners[ this.customEventListeners.length ] = listener;
+			}
+
+			else {
+				// use standard event, if it is valid
+				if ( this.node[ 'on' + eventName ] !== undefined ) {
+					listener = function ( event ) {
+						self.root.fire( proxy, event, self.node );
+					};
+
+					this.eventListeners[ this.eventListeners.length ] = {
+						n: eventName,
+						l: listener
+					};
+
+					this.node.addEventListener( eventName, listener );
+				}
+			}
+		},
+
 		teardown: function () {
+			var listener;
+
 			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
@@ -1451,6 +1620,15 @@ _internal.types = {
 
 			while ( this.attributes.length ) {
 				this.attributes.pop().teardown();
+			}
+
+			while ( this.eventListeners.length ) {
+				listener = this.eventListeners.pop();
+				this.node.removeEventListener( listener.n, listener.l );
+			}
+
+			while ( this.customEventListeners.length ) {
+				this.customEventListeners.pop().teardown();
 			}
 		},
 

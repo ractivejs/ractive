@@ -1,4 +1,4 @@
-/*! Ractive - v0.2.1 - 2013-05-03
+/*! Ractive - v0.2.1 - 2013-05-04
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -51,7 +51,7 @@ var Ractive, _internal;
 		}
 
 		// 'formatters' is deprecated, but support it for the time being
-		if ( options.formatters ) {
+		if ( options && options.formatters ) {
 			this.modifiers = options.formatters;
 			if ( typeof console !== 'undefined' ) {
 				console.warn( 'The \'formatters\' option is deprecated as of v0.2.2 and will be removed in a future version - use \'modifiers\' instead (same thing, more accurate name)' );
@@ -751,7 +751,9 @@ var Ractive, _internal;
 			});
 
 			return '⭆' + stringified.join( '⤋' ) + '⭅';
-		}
+		},
+
+		eventDefns: {}
 	};
 
 }());
@@ -981,7 +983,26 @@ _internal.types = {
 	'use strict';
 
 	proto.on = function ( eventName, callback ) {
-		var self = this;
+		var self = this, listeners, n;
+
+		// allow mutliple listeners to be bound in one go
+		if ( typeof eventName === 'object' ) {
+			listeners = [];
+
+			for ( n in eventName ) {
+				if ( eventName.hasOwnProperty( n ) ) {
+					listeners[ listeners.length ] = this.on( n, eventName[ n ] );
+				}
+			}
+
+			return {
+				cancel: function () {
+					while ( listeners.length ) {
+						listeners.pop().cancel();
+					}
+				}
+			};
+		}
 
 		if ( !this._subs[ eventName ] ) {
 			this._subs[ eventName ] = [ callback ];
@@ -1034,6 +1055,105 @@ _internal.types = {
 	};
 
 }( Ractive.prototype ));
+(function ( Ractive, _internal ) {
+
+	'use strict';
+
+	Ractive.defineEvent = function ( eventName, definition ) {
+		_internal.eventDefns[ eventName ] = definition;
+	};
+
+	Ractive.defineEvent( 'tap', function ( el, fire ) {
+		var mousedown, touchstart, distanceThreshold, timeThreshold;
+
+		distanceThreshold = 5; // maximum pixels pointer can move before cancel
+		timeThreshold = 400;   // maximum milliseconds between down and up before cancel
+
+		mousedown = function ( event ) {
+			var x, y, up, move, cancel;
+
+			x = event.clientX;
+			y = event.clientY;
+
+			up = function ( event ) {
+				fire( event );
+				cancel();
+			};
+
+			move = function ( event ) {
+				if ( ( Math.abs( event.clientX - x ) >= distanceThreshold ) || ( Math.abs( event.clientY - y ) >= distanceThreshold ) ) {
+					cancel();
+				}
+			};
+
+			cancel = function () {
+				window.removeEventListener( 'mousemove', move );
+				window.removeEventListener( 'mouseup', up );
+			};
+
+			window.addEventListener( 'mousemove', move );
+			window.addEventListener( 'mouseup', up );
+
+			setTimeout( cancel, timeThreshold );
+		};
+
+		el.addEventListener( 'mousedown', mousedown );
+
+
+		touchstart = function ( event ) {
+			var x, y, touch, finger, move, up, cancel;
+
+			if ( event.touches.length !== 1 ) {
+				return;
+			}
+
+			touch = event.touches[0];
+			finger = touch.identifier;
+
+			up = function ( event ) {
+				if ( event.changedTouches.length !== 1 || event.touches[0].identifier !== finger ) {
+					cancel();
+				} else {
+					fire( event );
+				}
+			};
+
+			move = function ( event ) {
+				var touch;
+
+				if ( event.touches.length !== 1 || event.touches[0].identifier !== finger ) {
+					cancel();
+				}
+
+				touch = event.touches[0];
+				if ( ( Math.abs( touch.clientX - x ) >= distanceThreshold ) || ( Math.abs( touch.clientY - y ) >= distanceThreshold ) ) {
+					cancel();
+				}
+			};
+
+			cancel = function ( event ) {
+				window.removeEventListener( 'touchmove', move );
+				window.removeEventListener( 'touchend', up );
+				window.removeEventListener( 'touchcancel', cancel );
+			};
+
+			window.addEventListener( 'touchmove', move );
+			window.addEventListener( 'touchend', up );
+			window.addEventListener( 'touchcancel', cancel );
+
+			setTimeout( cancel, timeThreshold );
+		};
+
+
+		return {
+			teardown: function () {
+				el.removeEventListener( 'mousedown', mousedown );
+				el.removeEventListener( 'touchstart', touchstart );
+			}
+		};
+	});
+
+}( Ractive, _internal ));
 // Ractive.compile
 // ===============
 //
@@ -1054,7 +1174,8 @@ _internal.types = {
 // * m - Modifiers
 // * d - moDifier name
 // * g - modifier arGuments
-// * i - index reference, e.g. 'num' in {{#section:num}}content{{/section}}
+// * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
+// * x - event proXies (i.e. when user e.g. clicks on a node, fire proxy event)
 
 
 var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not using the runtime
@@ -1080,7 +1201,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		voidElementNames,
 		allElementNames,
 		closedByParentClose,
-		implicitClosersByTagName;
+		implicitClosersByTagName,
+
+		proxyPattern;
 
 
 	R.compile = function ( template, options ) {
@@ -1213,8 +1336,10 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 	};
 
 
+	proxyPattern = /^proxy-([a-z]+)$/;
+
 	ElementStub = function ( token, parentFragment ) {
-		var items, attributes, numAttributes, i, attribute, preserveWhitespace;
+		var items, item, name, attributes, numAttributes, i, attribute, preserveWhitespace, match;
 
 		this.type = types.ELEMENT;
 
@@ -1228,22 +1353,41 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			attributes = [];
 			
 			for ( i=0; i<numAttributes; i+=1 ) {
+				item = items[i];
+				name = item.name.value;
+
 				// sanitize
 				if ( parentFragment.options.sanitize && parentFragment.options.sanitize.eventAttributes ) {
-					if ( items[i].name.value.toLowerCase().substr( 0, 2 ) === 'on' ) {
+					if ( name.toLowerCase().substr( 0, 2 ) === 'on' ) {
 						continue;
 					}
 				}
 
-				attribute = {
-					name: items[i].name.value
-				};
+				// event proxy?
+				if ( match = proxyPattern.exec( name ) ) {
+					if ( !this.proxies ) {
+						this.proxies = {};
+					}
 
-				if ( !items[i].value.isNull ) {
-					attribute.value = getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 );
+					if ( item.value.tokens.length !== 1 || item.value.tokens[0].type !== types.ATTR_VALUE_TOKEN ) {
+						throw new Error( 'Invalid event proxy - you cannot use mustaches' );
+					}
+
+					this.proxies[ match[1] ] = item.value.tokens[0].value;
+					
+					// skip the next bit
+					continue;
 				}
 
-				attributes[i] = attribute;
+				attribute = {
+					name: name
+				};
+
+				if ( !item.value.isNull ) {
+					attribute.value = getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 );
+				}
+
+				attributes[ attributes.length ] = attribute;
 			}
 
 			this.attributes = attributes;
@@ -1304,6 +1448,10 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 				json.f = this.fragment.toJson( noStringify );
 			}
 
+			if ( this.proxies ) {
+				json.x = this.proxies;
+			}
+
 			return json;
 		},
 
@@ -1319,6 +1467,11 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			// see if children can be stringified (i.e. don't contain mustaches)
 			fragStr = ( this.fragment ? this.fragment.toString() : '' );
 			if ( fragStr === false ) {
+				return false;
+			}
+
+			// do we have proxies? if so we can't use innerHTML
+			if ( this.proxies ) {
 				return false;
 			}
 
@@ -2794,6 +2947,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 		var descriptor,
 			namespace,
+			eventName,
 			attr,
 			attrName,
 			attrValue,
@@ -2806,6 +2960,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
+
+		this.eventListeners = [];
+		this.customEventListeners = [];
 
 		// get namespace
 		if ( descriptor.a && descriptor.a.xmlns ) {
@@ -2843,6 +3000,16 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 				});
 
 				this.node.appendChild( this.children.docFrag );
+			}
+		}
+
+
+		// create event proxies
+		if ( descriptor.x ) {
+			for ( eventName in descriptor.x ) {
+				if ( descriptor.x.hasOwnProperty( eventName ) ) {
+					this.addEventProxy( eventName, descriptor.x[ eventName ] );
+				}
 			}
 		}
 
@@ -2891,7 +3058,42 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 	};
 
 	Element.prototype = {
+		addEventProxy: function ( eventName, proxy ) {
+			var self = this, listener, definition;
+
+			if ( typeof proxy !== 'string' ) {
+				throw new Error( 'You can only use strings as DOM event proxies' );
+			}
+
+			if ( definition = _internal.eventDefns[ eventName ] ) {
+				// Use custom event. Apply definition to this node
+				listener = definition( this.node, function ( event ) {
+					self.root.fire( proxy, event, self.node );
+				});
+
+				this.customEventListeners[ this.customEventListeners.length ] = listener;
+			}
+
+			else {
+				// use standard event, if it is valid
+				if ( this.node[ 'on' + eventName ] !== undefined ) {
+					listener = function ( event ) {
+						self.root.fire( proxy, event, self.node );
+					};
+
+					this.eventListeners[ this.eventListeners.length ] = {
+						n: eventName,
+						l: listener
+					};
+
+					this.node.addEventListener( eventName, listener );
+				}
+			}
+		},
+
 		teardown: function () {
+			var listener;
+
 			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
@@ -2902,6 +3104,15 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 			while ( this.attributes.length ) {
 				this.attributes.pop().teardown();
+			}
+
+			while ( this.eventListeners.length ) {
+				listener = this.eventListeners.pop();
+				this.node.removeEventListener( listener.n, listener.l );
+			}
+
+			while ( this.customEventListeners.length ) {
+				this.customEventListeners.pop().teardown();
 			}
 		},
 
