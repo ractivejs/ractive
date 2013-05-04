@@ -18,7 +18,8 @@
 // * m - Modifiers
 // * d - moDifier name
 // * g - modifier arGuments
-// * i - index reference, e.g. 'num' in {{#section:num}}content{{/section}}
+// * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
+// * x - event proXies (i.e. when user e.g. clicks on a node, fire proxy event)
 
 
 var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not using the runtime
@@ -44,7 +45,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		voidElementNames,
 		allElementNames,
 		closedByParentClose,
-		implicitClosersByTagName;
+		implicitClosersByTagName,
+
+		proxyPattern;
 
 
 	R.compile = function ( template, options ) {
@@ -177,8 +180,10 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 	};
 
 
+	proxyPattern = /^proxy-([a-z]+)$/;
+
 	ElementStub = function ( token, parentFragment ) {
-		var items, attributes, numAttributes, i, attribute, preserveWhitespace;
+		var items, item, name, attributes, numAttributes, i, attribute, preserveWhitespace, match;
 
 		this.type = types.ELEMENT;
 
@@ -192,22 +197,41 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			attributes = [];
 			
 			for ( i=0; i<numAttributes; i+=1 ) {
+				item = items[i];
+				name = item.name.value;
+
 				// sanitize
 				if ( parentFragment.options.sanitize && parentFragment.options.sanitize.eventAttributes ) {
-					if ( items[i].name.value.toLowerCase().substr( 0, 2 ) === 'on' ) {
+					if ( name.toLowerCase().substr( 0, 2 ) === 'on' ) {
 						continue;
 					}
 				}
 
-				attribute = {
-					name: items[i].name.value
-				};
+				// event proxy?
+				if ( match = proxyPattern.exec( name ) ) {
+					if ( !this.proxies ) {
+						this.proxies = {};
+					}
 
-				if ( !items[i].value.isNull ) {
-					attribute.value = getFragmentStubFromTokens( items[i].value.tokens, this.parentFragment.priority + 1 );
+					if ( item.value.tokens.length !== 1 || item.value.tokens[0].type !== types.ATTR_VALUE_TOKEN ) {
+						throw new Error( 'Invalid event proxy - you cannot use mustaches' );
+					}
+
+					this.proxies[ match[1] ] = item.value.tokens[0].value;
+					
+					// skip the next bit
+					continue;
 				}
 
-				attributes[i] = attribute;
+				attribute = {
+					name: name
+				};
+
+				if ( !item.value.isNull ) {
+					attribute.value = getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 );
+				}
+
+				attributes[ attributes.length ] = attribute;
 			}
 
 			this.attributes = attributes;
@@ -268,6 +292,10 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 				json.f = this.fragment.toJson( noStringify );
 			}
 
+			if ( this.proxies ) {
+				json.x = this.proxies;
+			}
+
 			return json;
 		},
 
@@ -283,6 +311,11 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			// see if children can be stringified (i.e. don't contain mustaches)
 			fragStr = ( this.fragment ? this.fragment.toString() : '' );
 			if ( fragStr === false ) {
+				return false;
+			}
+
+			// do we have proxies? if so we can't use innerHTML
+			if ( this.proxies ) {
 				return false;
 			}
 

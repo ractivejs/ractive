@@ -163,6 +163,7 @@
 
 		var descriptor,
 			namespace,
+			eventName,
 			attr,
 			attrName,
 			attrValue,
@@ -175,6 +176,9 @@
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
+
+		this.eventListeners = [];
+		this.customEventListeners = [];
 
 		// get namespace
 		if ( descriptor.a && descriptor.a.xmlns ) {
@@ -212,6 +216,16 @@
 				});
 
 				this.node.appendChild( this.children.docFrag );
+			}
+		}
+
+
+		// create event proxies
+		if ( descriptor.x ) {
+			for ( eventName in descriptor.x ) {
+				if ( descriptor.x.hasOwnProperty( eventName ) ) {
+					this.addEventProxy( eventName, descriptor.x[ eventName ] );
+				}
 			}
 		}
 
@@ -260,7 +274,42 @@
 	};
 
 	Element.prototype = {
+		addEventProxy: function ( eventName, proxy ) {
+			var self = this, listener, definition;
+
+			if ( typeof proxy !== 'string' ) {
+				throw new Error( 'You can only use strings as DOM event proxies' );
+			}
+
+			if ( definition = _internal.eventDefns[ eventName ] ) {
+				// Use custom event. Apply definition to this node
+				listener = definition( this.node, function ( event ) {
+					self.root.fire( proxy, event, self.node );
+				});
+
+				this.customEventListeners[ this.customEventListeners.length ] = listener;
+			}
+
+			else {
+				// use standard event, if it is valid
+				if ( this.node[ 'on' + eventName ] !== undefined ) {
+					listener = function ( event ) {
+						self.root.fire( proxy, event, self.node );
+					};
+
+					this.eventListeners[ this.eventListeners.length ] = {
+						n: eventName,
+						l: listener
+					};
+
+					this.node.addEventListener( eventName, listener );
+				}
+			}
+		},
+
 		teardown: function () {
+			var listener;
+
 			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
@@ -271,6 +320,15 @@
 
 			while ( this.attributes.length ) {
 				this.attributes.pop().teardown();
+			}
+
+			while ( this.eventListeners.length ) {
+				listener = this.eventListeners.pop();
+				this.node.removeEventListener( listener.n, listener.l );
+			}
+
+			while ( this.customEventListeners.length ) {
+				this.customEventListeners.pop().teardown();
 			}
 		},
 

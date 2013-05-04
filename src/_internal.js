@@ -142,7 +142,9 @@
 			});
 
 			return '⭆' + stringified.join( '⤋' ) + '⭅';
-		}
+		},
+
+		eventDefns: {}
 	};
 
 }());
