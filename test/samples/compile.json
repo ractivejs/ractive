@@ -91,7 +91,7 @@
 	{
 		"name": "Element with an event attribute (sanitize)",
 		"template": "<p onclick='doSomething();'>{{text}}</p>",
-		"compiled": [{"a":{},"f":[{"p":1,"r":"text","t":2}],"e":"p","t":7}],
+		"compiled": [{"f":[{"p":1,"r":"text","t":2}],"e":"p","t":7}],
 		"sanitize": true
 	},
 	{
