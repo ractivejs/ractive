@@ -66,6 +66,9 @@ var Ractive, _internal;
 		// Create an array for deferred attributes
 		this._defAttrs = [];
 
+		// Cache proxy event handlers - allows efficient reuse
+		this._proxies = {};
+
 		// If we were given uncompiled partials, compile them
 		if ( this.partials ) {
 			for ( key in this.partials ) {

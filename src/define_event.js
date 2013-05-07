@@ -7,19 +7,20 @@
 	};
 
 	Ractive.defineEvent( 'tap', function ( el, fire ) {
-		var mousedown, touchstart, distanceThreshold, timeThreshold;
+		var mousedown, touchstart, distanceThreshold, timeThreshold, target;
 
 		distanceThreshold = 5; // maximum pixels pointer can move before cancel
 		timeThreshold = 400;   // maximum milliseconds between down and up before cancel
 
 		mousedown = function ( event ) {
-			var x, y, up, move, cancel;
+			var x, y, currentTarget, up, move, cancel;
 
 			x = event.clientX;
 			y = event.clientY;
+			currentTarget = this;
 
 			up = function ( event ) {
-				fire( event );
+				fire.call( currentTarget, event );
 				cancel();
 			};
 
@@ -44,7 +45,7 @@
 
 
 		touchstart = function ( event ) {
-			var x, y, touch, finger, move, up, cancel;
+			var x, y, touch, currentTarget, finger, move, up, cancel;
 
 			if ( event.touches.length !== 1 ) {
 				return;
@@ -53,12 +54,17 @@
 			touch = event.touches[0];
 			finger = touch.identifier;
 
+			currentTarget = this; // TODO verify `this` is the element the handler was attached to
+
 			up = function ( event ) {
-				if ( event.changedTouches.length !== 1 || event.touches[0].identifier !== finger ) {
+				var touch;
+
+				touch = event.changedTouches[0];
+				if ( touch.identifier !== finger ) {
 					cancel();
-				} else {
-					fire( event );
 				}
+
+				fire.call( touch.target, event );
 			};
 
 			move = function ( event ) {

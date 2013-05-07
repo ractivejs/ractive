@@ -275,13 +275,22 @@
 
 	Element.prototype = {
 		addEventProxy: function ( eventName, proxy, contextStack ) {
-			var self = this, definition, listener, fragment, handler;
+			var self = this, root = this.root, definition, listener, fragment, handler;
 
 			if ( typeof proxy === 'string' ) {
-				handler = function ( event ) {
-					self.root.fire( proxy, event, self.node );
-				};
-			} else {
+				// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
+				// we can reuse the handler. This eliminates the need for event delegation
+				if ( !root._proxies[ proxy ] ) {
+					root._proxies[ proxy ] = function ( event ) {
+						root.fire( proxy, event, this );
+					};
+				}
+
+				handler = root._proxies[ proxy ];
+			}
+
+			else {
+				// Otherwise we need to evalute the fragment each time the handler is called
 				fragment = new _internal.TextFragment({
 					descriptor: proxy,
 					root: this.root,
@@ -290,16 +299,18 @@
 				});
 
 				handler = function ( event ) {
-					self.root.fire( fragment.getValue(), event, self.node );
+					root.fire( fragment.getValue(), event, self.node );
 				};
 			}
 
+			// Is this a custom event, defined using `Ractive.defineEvent`?
 			if ( definition = _internal.eventDefns[ eventName ] ) {
 				// Use custom event. Apply definition to this node
 				listener = definition( this.node, handler );
 				this.customEventListeners[ this.customEventListeners.length ] = listener;
 			}
 
+			// If not, we just need to check it is a valid event for this element
 			else {
 				// use standard event, if it is valid
 				if ( this.node[ 'on' + eventName ] !== undefined ) {
@@ -309,6 +320,10 @@
 					};
 
 					this.node.addEventListener( eventName, handler );
+				} else {
+					if ( console && console.warn ) {
+						console.warn( 'Invalid event handler (' + eventName + ')' );
+					}
 				}
 			}
 		},
