@@ -183,7 +183,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 	proxyPattern = /^proxy-([a-z]+)$/;
 
 	ElementStub = function ( token, parentFragment ) {
-		var items, item, name, attributes, numAttributes, i, attribute, preserveWhitespace, match;
+		var items, item, name, attributes, numAttributes, i, attribute, proxies, proxy, preserveWhitespace, match;
 
 		this.type = types.ELEMENT;
 
@@ -192,11 +192,12 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		this.parentElement = parentFragment.parentElement;
 
 		items = token.attributes.items;
-		numAttributes = items.length;
-		if ( numAttributes ) {
+		i = items.length;
+		if ( i ) {
 			attributes = [];
+			proxies = [];
 			
-			for ( i=0; i<numAttributes; i+=1 ) {
+			while ( i-- ) {
 				item = items[i];
 				name = item.name.value;
 
@@ -209,32 +210,34 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 				// event proxy?
 				if ( match = proxyPattern.exec( name ) ) {
-					if ( !this.proxies ) {
-						this.proxies = {};
-					}
+					proxy = {
+						name: match[1],
+						value: getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 )
+					};
 
-					if ( item.value.tokens.length !== 1 || item.value.tokens[0].type !== types.ATTR_VALUE_TOKEN ) {
-						throw new Error( 'Invalid event proxy - you cannot use mustaches' );
-					}
-
-					this.proxies[ match[1] ] = item.value.tokens[0].value;
-					
-					// skip the next bit
-					continue;
+					proxies[ proxies.length ] = proxy;
 				}
 
-				attribute = {
-					name: name
-				};
+				else {
+					attribute = {
+						name: name
+					};
 
-				if ( !item.value.isNull ) {
-					attribute.value = getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 );
+					if ( !item.value.isNull ) {
+						attribute.value = getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 );
+					}
+
+					attributes[ attributes.length ] = attribute;
 				}
-
-				attributes[ attributes.length ] = attribute;
 			}
 
-			this.attributes = attributes;
+			if ( attributes.length ) {
+				this.attributes = attributes;
+			}
+
+			if ( proxies.length ) {
+				this.proxies = proxies;
+			}
 		}
 
 		// if this is a void element, or a self-closing tag, seal the element
@@ -255,7 +258,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		},
 
 		toJson: function ( noStringify ) {
-			var json, attrName, attrValue, str, i;
+			var json, attrName, attrValue, str, proxy, i;
 
 			json = {
 				t: types.ELEMENT,
@@ -265,7 +268,8 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			if ( this.attributes ) {
 				json.a = {};
 
-				for ( i=0; i<this.attributes.length; i+=1 ) {
+				i = this.attributes.length;
+				while ( i-- ) {
 					attrName = this.attributes[i].name;
 
 					// empty attributes (e.g. autoplay, checked)
@@ -293,7 +297,19 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			}
 
 			if ( this.proxies ) {
-				json.x = this.proxies;
+				json.x = {};
+
+				i = this.proxies.length;
+				while ( i-- ) {
+					proxy = this.proxies[i];
+
+					// can we stringify the value?
+					if ( str = proxy.value.toString() ) {
+						json.x[ proxy.name ] = str;
+					} else {
+						json.x[ proxy.name ] = proxy.value.toJson();
+					}
+				}
 			}
 
 			return json;

@@ -208,7 +208,7 @@
 
 			else {
 				this.children = new _internal.DomFragment({
-					descriptor:        descriptor.f,
+					descriptor:   descriptor.f,
 					root:         options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
@@ -224,7 +224,7 @@
 		if ( descriptor.x ) {
 			for ( eventName in descriptor.x ) {
 				if ( descriptor.x.hasOwnProperty( eventName ) ) {
-					this.addEventProxy( eventName, descriptor.x[ eventName ] );
+					this.addEventProxy( eventName, descriptor.x[ eventName ], options.contextStack );
 				}
 			}
 		}
@@ -274,35 +274,41 @@
 	};
 
 	Element.prototype = {
-		addEventProxy: function ( eventName, proxy ) {
-			var self = this, listener, definition;
+		addEventProxy: function ( eventName, proxy, contextStack ) {
+			var self = this, definition, listener, fragment, handler;
 
-			if ( typeof proxy !== 'string' ) {
-				throw new Error( 'You can only use strings as DOM event proxies' );
+			if ( typeof proxy === 'string' ) {
+				handler = function ( event ) {
+					self.root.fire( proxy, event, self.node );
+				};
+			} else {
+				fragment = new _internal.TextFragment({
+					descriptor: proxy,
+					root: this.root,
+					parent: this,
+					contextStack: contextStack
+				});
+
+				handler = function ( event ) {
+					self.root.fire( fragment.getValue(), event, self.node );
+				};
 			}
 
 			if ( definition = _internal.eventDefns[ eventName ] ) {
 				// Use custom event. Apply definition to this node
-				listener = definition( this.node, function ( event ) {
-					self.root.fire( proxy, event, self.node );
-				});
-
+				listener = definition( this.node, handler );
 				this.customEventListeners[ this.customEventListeners.length ] = listener;
 			}
 
 			else {
 				// use standard event, if it is valid
 				if ( this.node[ 'on' + eventName ] !== undefined ) {
-					listener = function ( event ) {
-						self.root.fire( proxy, event, self.node );
-					};
-
 					this.eventListeners[ this.eventListeners.length ] = {
 						n: eventName,
-						l: listener
+						h: handler
 					};
 
-					this.node.addEventListener( eventName, listener );
+					this.node.addEventListener( eventName, handler );
 				}
 			}
 		},
@@ -324,7 +330,7 @@
 
 			while ( this.eventListeners.length ) {
 				listener = this.eventListeners.pop();
-				this.node.removeEventListener( listener.n, listener.l );
+				this.node.removeEventListener( listener.n, listener.h );
 			}
 
 			while ( this.customEventListeners.length ) {
@@ -334,6 +340,10 @@
 
 		firstNode: function () {
 			return this.node;
+		},
+
+		bubble: function () {
+			// noop - just so event proxy fragments have something to call
 		}
 	};
 
