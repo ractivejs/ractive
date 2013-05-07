@@ -1,4 +1,4 @@
-/*! Ractive - v0.2.1 - 2013-05-04
+/*! Ractive - v0.2.2 - 2013-05-07
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -161,7 +161,24 @@ var Ractive, _internal;
 		// Teardown. This goes through the root fragment and all its children, removing observers
 		// and generally cleaning up after itself
 		teardown: function () {
+			var keypath;
+
 			this.rendered.teardown();
+
+			// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
+			// Once with keypaths that have dependents...
+			for ( keypath in this._cacheMap ) {
+				if ( this._cacheMap.hasOwnProperty( keypath ) ) {
+					this._clearCache( keypath );
+				}
+			}
+
+			// Then a second time to mop up the rest
+			for ( keypath in this._cache ) {
+				if ( this._cache.hasOwnProperty( keypath ) ) {
+					this._clearCache( keypath );
+				}
+			}
 		},
 
 		set: function ( keypath, value ) {
@@ -248,7 +265,16 @@ var Ractive, _internal;
 		},
 
 		_clearCache: function ( keypath ) {
-			var children = this._cacheMap[ keypath ];
+			var value, children = this._cacheMap[ keypath ];
+
+			// is this a modified array, which shouldn't fire set events on this keypath anymore?
+			if ( this.modifyArrays ) {
+				value = this._cache[ keypath ];
+				if ( _internal.isArray( value ) && !value._ractive.setting ) {
+					_internal.removeKeypath( value, keypath, this );
+				}
+			}
+			
 
 			delete this._cache[ keypath ];
 
@@ -315,6 +341,13 @@ var Ractive, _internal;
 			// Allow functions as values
 			if ( typeof value === 'function' ) {
 				value = value();
+			}
+
+			// Is this an array that needs to be wrapped?
+			else if ( this.modifyArrays ) {
+				if ( _internal.isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
+					_internal.addKeypath( value, normalised, this );
+				}
 			}
 
 			// Update cache
@@ -863,11 +896,6 @@ _internal.types = {
 
 		valueIsArray = _internal.isArray( value );
 
-		// modify the array to allow updates via push, pop etc
-		if ( valueIsArray && this.root.modifyArrays ) {
-			_internal.modifyArray( value, this.keypath, this.root );
-		}
-
 		// treat empty arrays as false values
 		if ( valueIsArray && value.length === 0 ) {
 			emptyArray = true;
@@ -1339,7 +1367,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 	proxyPattern = /^proxy-([a-z]+)$/;
 
 	ElementStub = function ( token, parentFragment ) {
-		var items, item, name, attributes, numAttributes, i, attribute, preserveWhitespace, match;
+		var items, item, name, attributes, numAttributes, i, attribute, proxies, proxy, preserveWhitespace, match;
 
 		this.type = types.ELEMENT;
 
@@ -1348,11 +1376,12 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		this.parentElement = parentFragment.parentElement;
 
 		items = token.attributes.items;
-		numAttributes = items.length;
-		if ( numAttributes ) {
+		i = items.length;
+		if ( i ) {
 			attributes = [];
+			proxies = [];
 			
-			for ( i=0; i<numAttributes; i+=1 ) {
+			while ( i-- ) {
 				item = items[i];
 				name = item.name.value;
 
@@ -1365,32 +1394,34 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 				// event proxy?
 				if ( match = proxyPattern.exec( name ) ) {
-					if ( !this.proxies ) {
-						this.proxies = {};
-					}
+					proxy = {
+						name: match[1],
+						value: getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 )
+					};
 
-					if ( item.value.tokens.length !== 1 || item.value.tokens[0].type !== types.ATTR_VALUE_TOKEN ) {
-						throw new Error( 'Invalid event proxy - you cannot use mustaches' );
-					}
-
-					this.proxies[ match[1] ] = item.value.tokens[0].value;
-					
-					// skip the next bit
-					continue;
+					proxies[ proxies.length ] = proxy;
 				}
 
-				attribute = {
-					name: name
-				};
+				else {
+					attribute = {
+						name: name
+					};
 
-				if ( !item.value.isNull ) {
-					attribute.value = getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 );
+					if ( !item.value.isNull ) {
+						attribute.value = getFragmentStubFromTokens( item.value.tokens, this.parentFragment.priority + 1 );
+					}
+
+					attributes[ attributes.length ] = attribute;
 				}
-
-				attributes[ attributes.length ] = attribute;
 			}
 
-			this.attributes = attributes;
+			if ( attributes.length ) {
+				this.attributes = attributes;
+			}
+
+			if ( proxies.length ) {
+				this.proxies = proxies;
+			}
 		}
 
 		// if this is a void element, or a self-closing tag, seal the element
@@ -1411,7 +1442,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		},
 
 		toJson: function ( noStringify ) {
-			var json, attrName, attrValue, str, i;
+			var json, attrName, attrValue, str, proxy, i;
 
 			json = {
 				t: types.ELEMENT,
@@ -1421,7 +1452,8 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			if ( this.attributes ) {
 				json.a = {};
 
-				for ( i=0; i<this.attributes.length; i+=1 ) {
+				i = this.attributes.length;
+				while ( i-- ) {
 					attrName = this.attributes[i].name;
 
 					// empty attributes (e.g. autoplay, checked)
@@ -1449,7 +1481,19 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 			}
 
 			if ( this.proxies ) {
-				json.x = this.proxies;
+				json.x = {};
+
+				i = this.proxies.length;
+				while ( i-- ) {
+					proxy = this.proxies[i];
+
+					// can we stringify the value?
+					if ( str = proxy.value.toString() ) {
+						json.x[ proxy.name ] = str;
+					} else {
+						json.x[ proxy.name ] = proxy.value.toJson();
+					}
+				}
 			}
 
 			return json;
@@ -2992,7 +3036,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 			else {
 				this.children = new _internal.DomFragment({
-					descriptor:        descriptor.f,
+					descriptor:   descriptor.f,
 					root:         options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
@@ -3008,7 +3052,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		if ( descriptor.x ) {
 			for ( eventName in descriptor.x ) {
 				if ( descriptor.x.hasOwnProperty( eventName ) ) {
-					this.addEventProxy( eventName, descriptor.x[ eventName ] );
+					this.addEventProxy( eventName, descriptor.x[ eventName ], options.contextStack );
 				}
 			}
 		}
@@ -3058,35 +3102,41 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 	};
 
 	Element.prototype = {
-		addEventProxy: function ( eventName, proxy ) {
-			var self = this, listener, definition;
+		addEventProxy: function ( eventName, proxy, contextStack ) {
+			var self = this, definition, listener, fragment, handler;
 
-			if ( typeof proxy !== 'string' ) {
-				throw new Error( 'You can only use strings as DOM event proxies' );
+			if ( typeof proxy === 'string' ) {
+				handler = function ( event ) {
+					self.root.fire( proxy, event, self.node );
+				};
+			} else {
+				fragment = new _internal.TextFragment({
+					descriptor: proxy,
+					root: this.root,
+					parent: this,
+					contextStack: contextStack
+				});
+
+				handler = function ( event ) {
+					self.root.fire( fragment.getValue(), event, self.node );
+				};
 			}
 
 			if ( definition = _internal.eventDefns[ eventName ] ) {
 				// Use custom event. Apply definition to this node
-				listener = definition( this.node, function ( event ) {
-					self.root.fire( proxy, event, self.node );
-				});
-
+				listener = definition( this.node, handler );
 				this.customEventListeners[ this.customEventListeners.length ] = listener;
 			}
 
 			else {
 				// use standard event, if it is valid
 				if ( this.node[ 'on' + eventName ] !== undefined ) {
-					listener = function ( event ) {
-						self.root.fire( proxy, event, self.node );
-					};
-
 					this.eventListeners[ this.eventListeners.length ] = {
 						n: eventName,
-						l: listener
+						h: handler
 					};
 
-					this.node.addEventListener( eventName, listener );
+					this.node.addEventListener( eventName, handler );
 				}
 			}
 		},
@@ -3108,7 +3158,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 			while ( this.eventListeners.length ) {
 				listener = this.eventListeners.pop();
-				this.node.removeEventListener( listener.n, listener.l );
+				this.node.removeEventListener( listener.n, listener.h );
 			}
 
 			while ( this.customEventListeners.length ) {
@@ -3118,6 +3168,10 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 		firstNode: function () {
 			return this.node;
+		},
+
+		bubble: function () {
+			// noop - just so event proxy fragments have something to call
 		}
 	};
 
@@ -3818,27 +3872,45 @@ Ractive.extend = function ( childProps ) {
 
 	'use strict';
 
-	var wrapMethods;
+	var define, notifyDependents, wrapArray, unwrapArray, WrappedArrayProto, testObj, mutatorMethods;
 
-	_internal.modifyArray = function ( array, keypath, root ) {
 
+	// just in case we don't have Object.defineProperty, we can use this - it doesn't
+	// allow us to set non-enumerable properties, but if you're doing for ... in loops on 
+	// an array then you deserve what's coming anyway
+	if ( !Object.defineProperty ) {
+		define = function ( obj, prop, desc ) {
+			obj[ prop ] = desc.value;
+		};
+	} else {
+		define = Object.defineProperty;
+	}
+	
+
+	// Register a keypath to this array. When any of this array's mutator methods are called,
+	// it will `set` that keypath on the given Ractive instance
+	_internal.addKeypath = function ( array, keypath, root ) {
 		var roots, keypathsByIndex, rootIndex, keypaths;
 
-		// If this array hasn't been wrapped, wrap it
+		// If this array hasn't been wrapped, we need to wrap it
 		if ( !array._ractive ) {
-			array._ractive = {
-				roots: [ root ], // there may be more than one Ractive instance depending on this
-				keypathsByIndex: [ [ keypath ] ]
-			};
+			define( array, '_ractive', {
+				value: {
+					roots: [ root ], // there may be more than one Ractive instance depending on this
+					keypathsByIndex: [ [ keypath ] ]
+				},
+				configurable: true
+			});
 
-			wrapMethods( array );
+			wrapArray( array );
 		}
 
 		else {
+		
 			roots = array._ractive.roots;
 			keypathsByIndex = array._ractive.keypathsByIndex;
 
-			// Does this Ractive instance currently depend on this array
+			// Does this Ractive instance currently depend on this array?
 			rootIndex = roots.indexOf( root );
 
 			// If not, associate them
@@ -3848,6 +3920,10 @@ Ractive.extend = function ( childProps ) {
 			}
 
 			// Find keypaths that reference this array, on this Ractive instance
+			if ( !keypathsByIndex[ rootIndex ] ) {
+				keypathsByIndex[ rootIndex ] = [];
+			}
+
 			keypaths = keypathsByIndex[ rootIndex ];
 
 			// If the current keypath isn't among them, add it
@@ -3855,37 +3931,127 @@ Ractive.extend = function ( childProps ) {
 				keypaths[ keypaths.length ] = keypath;
 			}
 		}
-
 	};
 
-	wrapMethods = function ( array ) {
-		var notifyDependents = function ( array ) {
-			var roots, keypathsByIndex, root, keypaths, i, j;
 
-			roots = array._ractive.roots;
-			keypathsByIndex = array._ractive.keypathsByIndex;
+	// Unregister keypath from array
+	_internal.removeKeypath = function ( array, keypath, root ) {
+		var roots, keypathsByIndex, rootIndex, keypaths, keypathIndex;
 
-			i = roots.length;
+		if ( !array._ractive ) {
+			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
+		}
+
+		roots = array._ractive.roots;
+		rootIndex = roots.indexOf( root );
+
+		if ( rootIndex === -1 ) {
+			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
+		}
+
+		keypathsByIndex = array._ractive.keypathsByIndex;
+		keypaths = keypathsByIndex[ rootIndex ];
+		keypathIndex = keypaths.indexOf( keypath );
+
+		if ( keypathIndex === -1 ) {
+			throw new Error( 'Attempted to unlink non-linked keypath from array. This error is unexpected - please send a bug report to @rich_harris' );
+		}
+
+		keypaths.splice( keypathIndex, 1 );
+
+		if ( !keypaths.length ) {
+			roots.splice( rootIndex, 1 );
+		}
+
+		if ( !roots.length ) {
+			unwrapArray( array ); // It's good to clean up after ourselves
+		}
+	};
+
+
+	// Call `set` on each dependent Ractive instance, for each dependent keypath
+	notifyDependents = function ( array ) {
+		var roots, keypathsByIndex, root, keypaths, i, j;
+
+		roots = array._ractive.roots;
+		keypathsByIndex = array._ractive.keypathsByIndex;
+
+		i = roots.length;
+		while ( i-- ) {
+			root = roots[i];
+			keypaths = keypathsByIndex[i];
+
+			j = keypaths.length;
+			while ( j-- ) {
+				root.set( keypaths[j], array );
+			}
+		}
+	};
+
+
+		
+	WrappedArrayProto = [];
+	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];
+
+	mutatorMethods.forEach( function ( methodName ) {
+		var method = function () {
+			var result = Array.prototype[ methodName ].apply( this, arguments );
+
+			this._ractive.setting = true;
+			notifyDependents( this );
+			this._ractive.setting = false;
+
+			return result;
+		};
+
+		define( WrappedArrayProto, methodName, {
+			value: method
+		});
+	});
+
+	
+	// can we use prototype chain injection?
+	// http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
+	testObj = {};
+	if ( testObj.__proto__ ) {
+		// yes, we can
+		wrapArray = function ( array ) {
+			array.__proto__ = WrappedArrayProto;
+		};
+
+		unwrapArray = function ( array ) {
+			delete array._ractive;
+			array.__proto__ = Array.prototype;
+		};
+	}
+
+	else {
+		// no, we can't
+		wrapArray = function ( array ) {
+			var i, methodName;
+
+			i = mutatorMethods.length;
 			while ( i-- ) {
-				root = roots[i];
-				keypaths = keypathsByIndex[i];
-
-				j = keypaths.length;
-				while ( j-- ) {
-					root.set( keypaths[j], array );
-				}
+				methodName = mutatorMethods[i];
+				define( array, methodName, {
+					value: WrappedArrayProto[ methodName ]
+				});
 			}
 		};
 
-		[ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ].forEach( function ( method ) {
-			array[ method ] = function () {
-				var result = Array.prototype[ method ].apply( this, arguments );
-				notifyDependents( array );
+		unwrapArray = function ( array ) {
+			var i;
 
-				return result;
-			};
-		});
-	};
+			i = mutatorMethods.length;
+			while ( i-- ) {
+				delete array[ mutatorMethods[i] ];
+			}
+
+			delete array._ractive;
+
+			console.log( 'unwrapped array', array );
+		};
+	}
 
 }( _internal ));
 // These are a subset of the easing equations found at
