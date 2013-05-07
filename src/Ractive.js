@@ -147,7 +147,24 @@ var Ractive, _internal;
 		// Teardown. This goes through the root fragment and all its children, removing observers
 		// and generally cleaning up after itself
 		teardown: function () {
+			var keypath;
+
 			this.rendered.teardown();
+
+			// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
+			// Once with keypaths that have dependents...
+			for ( keypath in this._cacheMap ) {
+				if ( this._cacheMap.hasOwnProperty( keypath ) ) {
+					this._clearCache( keypath );
+				}
+			}
+
+			// Then a second time to mop up the rest
+			for ( keypath in this._cache ) {
+				if ( this._cache.hasOwnProperty( keypath ) ) {
+					this._clearCache( keypath );
+				}
+			}
 		},
 
 		set: function ( keypath, value ) {
@@ -234,7 +251,16 @@ var Ractive, _internal;
 		},
 
 		_clearCache: function ( keypath ) {
-			var children = this._cacheMap[ keypath ];
+			var value, children = this._cacheMap[ keypath ];
+
+			// is this a modified array, which shouldn't fire set events on this keypath anymore?
+			if ( this.modifyArrays ) {
+				value = this._cache[ keypath ];
+				if ( _internal.isArray( value ) && !value._ractive.setting ) {
+					_internal.removeKeypath( value, keypath, this );
+				}
+			}
+			
 
 			delete this._cache[ keypath ];
 
@@ -301,6 +327,13 @@ var Ractive, _internal;
 			// Allow functions as values
 			if ( typeof value === 'function' ) {
 				value = value();
+			}
+
+			// Is this an array that needs to be wrapped?
+			else if ( this.modifyArrays ) {
+				if ( _internal.isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
+					_internal.addKeypath( value, normalised, this );
+				}
 			}
 
 			// Update cache

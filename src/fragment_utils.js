@@ -89,11 +89,6 @@
 
 		valueIsArray = _internal.isArray( value );
 
-		// modify the array to allow updates via push, pop etc
-		if ( valueIsArray && this.root.modifyArrays ) {
-			_internal.modifyArray( value, this.keypath, this.root );
-		}
-
 		// treat empty arrays as false values
 		if ( valueIsArray && value.length === 0 ) {
 			emptyArray = true;
