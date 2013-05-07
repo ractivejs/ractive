@@ -224,6 +224,9 @@ var Ractive, _internal;
 		// Create an array for deferred attributes
 		this._defAttrs = [];
 
+		// Cache proxy event handlers - allows efficient reuse
+		this._proxies = {};
+
 		// If we were given uncompiled partials, compile them
 		if ( this.partials ) {
 			for ( key in this.partials ) {
@@ -1236,19 +1239,20 @@ _internal.types = {
 	};
 
 	Ractive.defineEvent( 'tap', function ( el, fire ) {
-		var mousedown, touchstart, distanceThreshold, timeThreshold;
+		var mousedown, touchstart, distanceThreshold, timeThreshold, target;
 
 		distanceThreshold = 5; // maximum pixels pointer can move before cancel
 		timeThreshold = 400;   // maximum milliseconds between down and up before cancel
 
 		mousedown = function ( event ) {
-			var x, y, up, move, cancel;
+			var x, y, currentTarget, up, move, cancel;
 
 			x = event.clientX;
 			y = event.clientY;
+			currentTarget = this;
 
 			up = function ( event ) {
-				fire( event );
+				fire.call( currentTarget, event );
 				cancel();
 			};
 
@@ -1273,7 +1277,7 @@ _internal.types = {
 
 
 		touchstart = function ( event ) {
-			var x, y, touch, finger, move, up, cancel;
+			var x, y, touch, currentTarget, finger, move, up, cancel;
 
 			if ( event.touches.length !== 1 ) {
 				return;
@@ -1282,12 +1286,17 @@ _internal.types = {
 			touch = event.touches[0];
 			finger = touch.identifier;
 
+			currentTarget = this; // TODO verify `this` is the element the handler was attached to
+
 			up = function ( event ) {
-				if ( event.changedTouches.length !== 1 || event.touches[0].identifier !== finger ) {
+				var touch;
+
+				touch = event.changedTouches[0];
+				if ( touch.identifier !== finger ) {
 					cancel();
-				} else {
-					fire( event );
 				}
+
+				fire.call( touch.target, event );
 			};
 
 			move = function ( event ) {
@@ -3247,13 +3256,22 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 	Element.prototype = {
 		addEventProxy: function ( eventName, proxy, contextStack ) {
-			var self = this, definition, listener, fragment, handler;
+			var self = this, root = this.root, definition, listener, fragment, handler;
 
 			if ( typeof proxy === 'string' ) {
-				handler = function ( event ) {
-					self.root.fire( proxy, event, self.node );
-				};
-			} else {
+				// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
+				// we can reuse the handler. This eliminates the need for event delegation
+				if ( !root._proxies[ proxy ] ) {
+					root._proxies[ proxy ] = function ( event ) {
+						root.fire( proxy, event, this );
+					};
+				}
+
+				handler = root._proxies[ proxy ];
+			}
+
+			else {
+				// Otherwise we need to evalute the fragment each time the handler is called
 				fragment = new _internal.TextFragment({
 					descriptor: proxy,
 					root: this.root,
@@ -3262,16 +3280,18 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 				});
 
 				handler = function ( event ) {
-					self.root.fire( fragment.getValue(), event, self.node );
+					root.fire( fragment.getValue(), event, self.node );
 				};
 			}
 
+			// Is this a custom event, defined using `Ractive.defineEvent`?
 			if ( definition = _internal.eventDefns[ eventName ] ) {
 				// Use custom event. Apply definition to this node
 				listener = definition( this.node, handler );
 				this.customEventListeners[ this.customEventListeners.length ] = listener;
 			}
 
+			// If not, we just need to check it is a valid event for this element
 			else {
 				// use standard event, if it is valid
 				if ( this.node[ 'on' + eventName ] !== undefined ) {
@@ -3281,6 +3301,10 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 					};
 
 					this.node.addEventListener( eventName, handler );
+				} else {
+					if ( console && console.warn ) {
+						console.warn( 'Invalid event handler (' + eventName + ')' );
+					}
 				}
 			}
 		},
