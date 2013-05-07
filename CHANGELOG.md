@@ -40,3 +40,6 @@ Changelog
 	* Cleaned up some redundant code following 0.2.0 overhaul, some minor performance benefits
 	* Linting and refactoring
 	* Fixed bug where Ractive would attempt to use innerHTML with non-HTML elements (i.e. SVG text)
+* 0.2.2
+	* Added event proxies. In lieu of documentation, for now, see [#27](https://github.com/Rich-Harris/Ractive/issues/27)
+	* Made array modification more robust and performant
