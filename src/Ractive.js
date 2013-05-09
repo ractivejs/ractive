@@ -8,7 +8,7 @@ var Ractive, _internal;
 
 	Ractive = function ( options ) {
 
-		var defaults, key, partial;
+		var defaults, key, partial, i;
 
 		// Options
 		// -------
@@ -68,6 +68,18 @@ var Ractive, _internal;
 
 		// Cache proxy event handlers - allows efficient reuse
 		this._proxies = {};
+
+		// Set up bindings
+		this._bound = [];
+		if ( this.bindings ) {
+			if ( _internal.isArray( this.bindings ) ) {
+				for ( i=0; i<this.bindings.length; i+=1 ) {
+					this.bind( this.bindings[i] );
+				}
+			} else {
+				this.bind( this.bindings );
+			}
+		}
 
 		// If we were given uncompiled partials, compile them
 		if ( this.partials ) {
@@ -167,6 +179,11 @@ var Ractive, _internal;
 				if ( this._cache.hasOwnProperty( keypath ) ) {
 					this._clearCache( keypath );
 				}
+			}
+
+			// Teardown any bindings
+			while ( this._bound.length ) {
+				this.unbind( this._bound.pop() );
 			}
 		},
 
@@ -389,6 +406,26 @@ var Ractive, _internal;
 				}
 
 				this._pendingResolution[ this._pendingResolution.length ] = mustache;
+			}
+		},
+
+		bind: function ( adaptor ) {
+			var bound = this._bound;
+
+			if ( bound.indexOf( adaptor ) === -1 ) {
+				bound[ bound.length ] = adaptor;
+				adaptor.init( this );
+			}
+		},
+
+		unbind: function ( adaptor ) {
+			var bound = this._bound, index;
+
+			index = bound.indexOf( adaptor );
+
+			if ( index !== -1 ) {
+				bound.splice( index, 1 );
+				adaptor.teardown( this );
 			}
 		},
 
