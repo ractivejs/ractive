@@ -4,37 +4,81 @@
 
 	Ractive.adaptors = {};
 
-	Ractive.adaptors.Backbone = function ( model, twoway ) {
-		var settingModel, settingView, setModel, setView;
+	Ractive.adaptors.backbone = function ( model, path ) {
+		var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
 
-		twoway = ( twoway === false ? false : true ); // default to twoway binding
+		if ( path ) {
+			path += '.';
+			pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+			pathLength = path.length;
+		}
+
+		console.log( path );
+
 
 		return {
 			init: function ( view ) {
-				setView = function ( model ) {
-					if ( !settingModel ) {
-						settingView = true;
-						view.set( model.changed );
-						settingView = false;
-					}
-				};
-
-				setModel = function ( keypath, value ) {
-					if ( !settingView ) {
-						settingModel = true;
-						model.set( keypath, value );
-						settingModel = false;
-					}
-				};
-
-				model.on( 'change', setView );
 				
-				if ( twoway ) {
-					view.on( 'set', setModel );
+				// if no path specified...
+				if ( !path ) {
+					setView = function ( model ) {
+						if ( !settingModel ) {
+							settingView = true;
+							view.set( model.changed );
+							settingView = false;
+						}
+					};
+
+					setModel = function ( keypath, value ) {
+						if ( !settingView ) {
+							settingModel = true;
+							model.set( keypath, value );
+							settingModel = false;
+						}
+					};
 				}
 
+				else {
+					prefix = function ( attrs ) {
+						var attr, result;
+
+						result = {};
+
+						for ( attr in attrs ) {
+							if ( attrs.hasOwnProperty( attr ) ) {
+								result[ path + attr ] = attrs[ attr ];
+							}
+						}
+
+						return result;
+					};
+
+					setView = function ( model ) {
+						var changed, attr;
+
+						if ( !settingModel ) {
+							settingView = true;
+							view.set( prefix( model.changed ) );
+							settingView = false;
+						}
+					};
+
+					setModel = function ( keypath, value ) {
+						if ( !settingView ) {
+							if ( pathMatcher.test( keypath ) ) {
+								settingModel = true;
+								model.set( keypath.substring( pathLength ), value );
+								settingModel = false;
+							}
+						}
+					};
+				}
+
+				model.on( 'change', setView );
+				view.on( 'set', setModel );
+				
 				// initialise
-				view.set( model.attributes );
+				view.set( path ? prefix( model.attributes ) : model.attributes );
 			},
 
 			teardown: function ( view ) {
@@ -44,10 +88,10 @@
 		};
 	};
 
-	Ractive.adaptors.Statesman = function ( model, twoway ) {
+	Ractive.adaptors.statesman = function ( model, path ) {
 		var settingModel, settingView, setModel, setView;
 
-		twoway = ( twoway === false ? false : true ); // default to twoway binding
+		path = ( path ? path + '.' : '' );
 
 		return {
 			init: function ( view ) {
@@ -68,10 +112,7 @@
 				};
 
 				model.on( 'set', setView );
-				
-				if ( twoway ) {
-					view.on( 'set', setModel );
-				}
+				view.on( 'set', setModel );
 
 				// initialise
 				view.set( model.get() );
