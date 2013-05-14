@@ -142,7 +142,7 @@
 
 }( document ));
 
-/*! Ractive - v0.2.2 - 2013-05-07
+/*! Ractive - v0.2.2 - 2013-05-14
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -166,7 +166,7 @@ var Ractive, _internal;
 
 	Ractive = function ( options ) {
 
-		var defaults, key, partial;
+		var defaults, key, partial, i;
 
 		// Options
 		// -------
@@ -226,6 +226,18 @@ var Ractive, _internal;
 
 		// Cache proxy event handlers - allows efficient reuse
 		this._proxies = {};
+
+		// Set up bindings
+		this._bound = [];
+		if ( this.bindings ) {
+			if ( _internal.isArray( this.bindings ) ) {
+				for ( i=0; i<this.bindings.length; i+=1 ) {
+					this.bind( this.bindings[i] );
+				}
+			} else {
+				this.bind( this.bindings );
+			}
+		}
 
 		// If we were given uncompiled partials, compile them
 		if ( this.partials ) {
@@ -325,6 +337,11 @@ var Ractive, _internal;
 				if ( this._cache.hasOwnProperty( keypath ) ) {
 					this._clearCache( keypath );
 				}
+			}
+
+			// Teardown any bindings
+			while ( this._bound.length ) {
+				this.unbind( this._bound.pop() );
 			}
 		},
 
@@ -547,6 +564,26 @@ var Ractive, _internal;
 				}
 
 				this._pendingResolution[ this._pendingResolution.length ] = mustache;
+			}
+		},
+
+		bind: function ( adaptor ) {
+			var bound = this._bound;
+
+			if ( bound.indexOf( adaptor ) === -1 ) {
+				bound[ bound.length ] = adaptor;
+				adaptor.init( this );
+			}
+		},
+
+		unbind: function ( adaptor ) {
+			var bound = this._bound, index;
+
+			index = bound.indexOf( adaptor );
+
+			if ( index !== -1 ) {
+				bound.splice( index, 1 );
+				adaptor.teardown( this );
 			}
 		},
 
@@ -1335,6 +1372,16 @@ _internal.types = {
 	});
 
 }( Ractive, _internal ));
+// A few default modifiers. Add additional modifiers to this list (e.g. 
+// `Ractive.modifiers.uppercase = function ( s ) { return s.toUpperCase); }`)
+// and they will become available to all Ractive instances
+Ractive.modifiers = {
+	equals:            function ( a, b ) { return a === b; },
+	greaterThan:       function ( a, b ) { return a  >  b; },
+	greaterThanEquals: function ( a, b ) { return a  >= b; },
+	lessThan:          function ( a, b ) { return a  <  b; },
+	lessThanEquals:    function ( a, b ) { return a  <= b; }
+};
 (function ( _internal ) {
 
 	'use strict';
@@ -1505,7 +1552,8 @@ _internal.types = {
 			attrName,
 			attrValue,
 			bindable,
-			twowayNameAttr;
+			twowayNameAttr,
+			parentNode;
 
 		// stuff we'll need later
 		descriptor = this.descriptor = options.descriptor;
@@ -1809,7 +1857,7 @@ _internal.types = {
 	Attribute.prototype = {
 		bind: function ( lazy ) {
 			// two-way binding logic should go here
-			var self = this, node = this.parentNode, keypath, index;
+			var self = this, node = this.parentNode, keypath, index, options, option, i, len;
 
 			if ( !this.fragment ) {
 				return false; // report failure
@@ -1849,6 +1897,24 @@ _internal.types = {
 				keypath = keypath.substr( 0, index );
 			}
 			
+			
+			// select
+			if ( node.tagName === 'SELECT' && this.propertyName === 'value' ) {
+				// We need to know if one of the options was selected, so we
+				// can initialise the viewmodel. To do that we need to jump
+				// through a couple of hoops
+				options = node.getElementsByTagName( 'option' );
+
+				len = options.length;
+				for ( i=0; i<len; i+=1 ) {
+					option = options[i];
+					if ( option.hasAttribute( 'selected' ) ) { // not option.selected - won't work here
+						this.root.set( keypath, option.value );
+						break;
+					}
+				}
+			}
+
 			// checkboxes and radio buttons
 			if ( node.type === 'checkbox' || node.type === 'radio' ) {
 				// We might have a situation like this: 
@@ -2914,6 +2980,134 @@ _internal.namespaces = {
 	xml: 'http://www.w3.org/XML/1998/namespace',
 	xmlns: 'http://www.w3.org/2000/xmlns/'
 };
+(function ( Ractive ) {
+
+	'use strict';
+
+	Ractive.adaptors = {};
+
+	Ractive.adaptors.backbone = function ( model, path ) {
+		var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
+
+		if ( path ) {
+			path += '.';
+			pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+			pathLength = path.length;
+		}
+
+		console.log( path );
+
+
+		return {
+			init: function ( view ) {
+				
+				// if no path specified...
+				if ( !path ) {
+					setView = function ( model ) {
+						if ( !settingModel ) {
+							settingView = true;
+							view.set( model.changed );
+							settingView = false;
+						}
+					};
+
+					setModel = function ( keypath, value ) {
+						if ( !settingView ) {
+							settingModel = true;
+							model.set( keypath, value );
+							settingModel = false;
+						}
+					};
+				}
+
+				else {
+					prefix = function ( attrs ) {
+						var attr, result;
+
+						result = {};
+
+						for ( attr in attrs ) {
+							if ( attrs.hasOwnProperty( attr ) ) {
+								result[ path + attr ] = attrs[ attr ];
+							}
+						}
+
+						return result;
+					};
+
+					setView = function ( model ) {
+						var changed, attr;
+
+						if ( !settingModel ) {
+							settingView = true;
+							view.set( prefix( model.changed ) );
+							settingView = false;
+						}
+					};
+
+					setModel = function ( keypath, value ) {
+						if ( !settingView ) {
+							if ( pathMatcher.test( keypath ) ) {
+								settingModel = true;
+								model.set( keypath.substring( pathLength ), value );
+								settingModel = false;
+							}
+						}
+					};
+				}
+
+				model.on( 'change', setView );
+				view.on( 'set', setModel );
+				
+				// initialise
+				view.set( path ? prefix( model.attributes ) : model.attributes );
+			},
+
+			teardown: function ( view ) {
+				model.off( 'change', setView );
+				view.off( 'set', setModel );
+			}
+		};
+	};
+
+	Ractive.adaptors.statesman = function ( model, path ) {
+		var settingModel, settingView, setModel, setView;
+
+		path = ( path ? path + '.' : '' );
+
+		return {
+			init: function ( view ) {
+				setView = function ( keypath, value ) {
+					if ( !settingModel ) {
+						settingView = true;
+						view.set( keypath, value );
+						settingView = false;
+					}
+				};
+
+				setModel = function ( keypath, value ) {
+					if ( !settingView ) {
+						settingModel = true;
+						model.set( keypath, value );
+						settingModel = false;
+					}
+				};
+
+				model.on( 'set', setView );
+				view.on( 'set', setModel );
+
+				// initialise
+				view.set( model.get() );
+			},
+
+			teardown: function ( view ) {
+				model.off( 'change', setView );
+				view.off( 'set', setModel );
+			}
+		};
+	};
+
+}( Ractive ));
 
 // export
 if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS
