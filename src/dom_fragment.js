@@ -168,7 +168,8 @@
 			attrName,
 			attrValue,
 			bindable,
-			twowayNameAttr;
+			twowayNameAttr,
+			parentNode;
 
 		// stuff we'll need later
 		descriptor = this.descriptor = options.descriptor;
@@ -472,7 +473,7 @@
 	Attribute.prototype = {
 		bind: function ( lazy ) {
 			// two-way binding logic should go here
-			var self = this, node = this.parentNode, keypath, index;
+			var self = this, node = this.parentNode, keypath, index, options, option, i, len;
 
 			if ( !this.fragment ) {
 				return false; // report failure
@@ -512,6 +513,24 @@
 				keypath = keypath.substr( 0, index );
 			}
 			
+			
+			// select
+			if ( node.tagName === 'SELECT' && this.propertyName === 'value' ) {
+				// We need to know if one of the options was selected, so we
+				// can initialise the viewmodel. To do that we need to jump
+				// through a couple of hoops
+				options = node.getElementsByTagName( 'option' );
+
+				len = options.length;
+				for ( i=0; i<len; i+=1 ) {
+					option = options[i];
+					if ( option.hasAttribute( 'selected' ) ) { // not option.selected - won't work here
+						this.root.set( keypath, option.value );
+						break;
+					}
+				}
+			}
+
 			// checkboxes and radio buttons
 			if ( node.type === 'checkbox' || node.type === 'radio' ) {
 				// We might have a situation like this: 
