@@ -118,6 +118,8 @@
 
 	// Partials
 	Partial = function ( options, docFrag ) {
+		this.parentFragment = options.parentFragment;
+
 		this.fragment = new _internal.DomFragment({
 			descriptor:        options.root.partials[ options.descriptor.r ] || [],
 			root:         options.root,
