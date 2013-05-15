@@ -742,10 +742,14 @@
 			}
 		},
 
-		update: function ( text ) {
-			if ( text !== this.text ) {
-				this.text = text;
-				this.node.data = text;
+		update: function ( value ) {
+			if ( this.cond ) {
+				value = this.cond[ value ? 0 : 1 ];
+			}
+
+			if ( value !== this.value ) {
+				this.value = value;
+				this.node.data = value;
 			}
 		},
 

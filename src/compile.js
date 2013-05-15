@@ -20,6 +20,7 @@
 // * g - modifier arGuments
 // * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
 // * x - event proXies (i.e. when user e.g. clicks on a node, fire proxy event)
+// * c - Conditionals (e.g. ['yes', 'no'] in {{condition ? yes : no}})
 
 
 var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not using the runtime
@@ -456,6 +457,7 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 	MustacheStub = function ( token, priority ) {
 		this.type = token.type;
+		this.conditionals = token.conditionals;
 		this.priority = priority;
 
 		this.ref = token.ref;
@@ -475,6 +477,10 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 
 			if ( this.priority ) {
 				json.p = this.priority;
+			}
+
+			if ( this.conditionals ) {
+				json.c = this.conditionals;
 			}
 
 			return json;

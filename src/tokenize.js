@@ -280,7 +280,7 @@
 		},
 
 		seal: function () {
-			var trimmed, firstChar, identifiers, pattern, match;
+			var trimmed, firstChar, identifiers, pattern, conditionalPattern, match;
 
 			if ( this.sealed ) {
 				return;
@@ -325,6 +325,14 @@
 
 			this.ref = identifiers.shift().trim();
 
+			// Is this a conditional?
+			conditionalPattern = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\?\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)/;
+			if ( match = conditionalPattern.exec( this.ref ) ) {
+				this.ref = match[1];
+				this.conditionals = [ match[2], match[3] ];
+			}
+
+			// Still got some identifiers? They must be modifiers
 			if ( identifiers.length ) {
 				this.modifiers = identifiers.map( function ( name ) {
 					return name.trim();

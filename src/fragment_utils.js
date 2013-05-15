@@ -18,6 +18,11 @@
 
 		this.type = options.descriptor.t;
 
+		// Does the descriptor contain conditional values?
+		if ( options.descriptor.c ) {
+			this.cond = options.descriptor.c;
+		}
+
 		this.root._registerMustache( this );
 
 		// if we have a failed keypath lookup, and this is an inverted section,

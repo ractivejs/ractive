@@ -86,8 +86,14 @@
 
 	Interpolator.prototype = {
 		update: function ( value ) {
-			this.value = value;
-			this.parentFragment.bubble();
+			if ( this.cond ) {
+				value = this.cond[ value ? 0 : 1 ];
+			}
+
+			if ( value !== this.value ) {
+				this.value = value;
+				this.parentFragment.bubble();
+			}
 		},
 
 		teardown: function () {
