@@ -153,6 +153,7 @@ var Ractive, _internal;
 			this.rendered = new _internal.DomFragment({
 				descriptor: this.template,
 				root: this,
+				owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
 				parentNode: el
 			});
 
@@ -383,7 +384,7 @@ var Ractive, _internal;
 		_registerMustache: function ( mustache ) {
 			var resolved, value, index;
 
-			if ( mustache.parentFragment && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.descriptor.r ) ) ) {
+			if ( mustache.parentFragment.indexRefs && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.descriptor.r ) ) ) {
 				// This isn't a real keypath, it's an index reference
 				index = mustache.parentFragment.indexRefs[ mustache.descriptor.r ];
 

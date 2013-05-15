@@ -5,8 +5,7 @@
 	_internal.Mustache = function ( options ) {
 
 		this.root           = options.root;
-		this.descriptor          = options.descriptor;
-		this.parent         = options.parent;
+		this.descriptor     = options.descriptor;
 		this.parentFragment = options.parentFragment;
 		this.contextStack   = options.contextStack || [];
 		this.index          = options.index || 0;
@@ -34,37 +33,53 @@
 
 		var numItems, i, itemOptions, parentRefs, ref;
 
-		this.parent = options.parent;
-		this.index = options.index;
-		this.items = [];
+		// The item that owns this fragment - an element, section, partial, or attribute
+		this.owner = options.owner;
 
-		this.indexRefs = {};
-		if ( this.parent && this.parent.parentFragment ) {
-			parentRefs = this.parent.parentFragment.indexRefs;
-			for ( ref in parentRefs ) {
-				if ( parentRefs.hasOwnProperty( ref ) ) {
-					this.indexRefs[ ref ] = parentRefs[ ref ];
+		// If parent item is a section, this may not be the only fragment
+		// that belongs to it - we need to make a note of the index
+		if ( this.owner.type === _internal.types.SECTION ) {
+			this.index = options.index;
+		}
+
+		// index references (the 'i' in {{#section:i}}<!-- -->{{/section}}) need to cascade
+		// down the tree
+		if ( this.owner.parentFragment ) {
+			parentRefs = this.owner.parentFragment.indexRefs;
+
+			if ( parentRefs ) {
+				this.indexRefs = {};
+
+				for ( ref in parentRefs ) {
+					if ( parentRefs.hasOwnProperty( ref ) ) {
+						this.indexRefs[ ref ] = parentRefs[ ref ];
+					}
 				}
 			}
 		}
 
 		if ( options.indexRef ) {
+			if ( !this.indexRefs ) {
+				this.indexRefs = {};
+			}
+
 			this.indexRefs[ options.indexRef ] = options.index;
 		}
 
+		// Time to create this fragment's child items;
+		this.items = [];
+
 		itemOptions = {
-			root: options.root,
+			root:           options.root,
 			parentFragment: this,
-			parent: this,
 			parentNode:     options.parentNode,
-			contextStack: options.contextStack
+			contextStack:   options.contextStack
 		};
 
 		numItems = ( options.descriptor ? options.descriptor.length : 0 );
 		for ( i=0; i<numItems; i+=1 ) {
 			itemOptions.descriptor = options.descriptor[i];
 			itemOptions.index = i;
-			// this.items[ this.items.length ] = createView( itemOptions );
 
 			this.items[ this.items.length ] = this.createItem( itemOptions );
 		}
@@ -77,9 +92,9 @@
 
 		fragmentOptions = {
 			descriptor: this.descriptor.f,
-			root: this.root,
+			root:       this.root,
 			parentNode: this.parentNode,
-			parent: this
+			owner:      this
 		};
 
 		// TODO if DOM type, need to know anchor

@@ -73,7 +73,9 @@ var Ractive = Ractive || {}, _internal = _internal || {}; // in case we're not u
 		json = fragmentStub.toJson();
 
 		if ( typeof json === 'string' ) {
-			return [ json ]; // signal that this shouldn't be recompiled
+			// If we return it as a string, Ractive will attempt to recompile it!
+			// Instead we wrap it in an array. Ractive knows what to do then
+			return [ json ];
 		}
 		
 		return json;

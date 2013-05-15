@@ -29,7 +29,7 @@
 
 		bubble: function () {
 			this.value = this.getValue();
-			this.parent.bubble();
+			this.owner.bubble();
 		},
 
 		teardown: function () {
@@ -87,7 +87,7 @@
 	Interpolator.prototype = {
 		update: function ( value ) {
 			this.value = value;
-			this.parent.bubble();
+			this.parentFragment.bubble();
 		},
 
 		teardown: function () {
@@ -135,14 +135,14 @@
 
 		bubble: function () {
 			this.value = this.fragments.join( '' );
-			this.parent.bubble();
+			this.parentFragment.bubble();
 		},
 
 		update: function ( value ) {
 			_internal.sectionUpdate.call( this, value );
 
 			this.value = this.fragments.join( '' );
-			this.parent.bubble();
+			this.parentFragment.bubble();
 		},
 
 		createFragment: function ( options ) {

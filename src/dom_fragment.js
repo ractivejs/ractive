@@ -123,7 +123,7 @@
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
-			parent:        this
+			owner:        this
 		});
 
 		docFrag.appendChild( this.fragment.docFrag );
@@ -213,7 +213,7 @@
 					root:         options.root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
-					parent:       this
+					owner:        this
 				});
 
 				this.node.appendChild( this.children.docFrag );
@@ -240,7 +240,7 @@
 				attrValue = descriptor.a[ attrName ];
 
 				attr = new Attribute({
-					parent: this,
+					element: this,
 					name: attrName,
 					value: ( attrValue === undefined ? null : attrValue ),
 					root: options.root,
@@ -293,9 +293,9 @@
 			else {
 				// Otherwise we need to evalute the fragment each time the handler is called
 				fragment = new _internal.TextFragment({
-					descriptor: proxy,
-					root: this.root,
-					parent: this,
+					descriptor:   proxy,
+					root:         this.root,
+					owner:        this,
 					contextStack: contextStack
 				});
 
@@ -372,7 +372,7 @@
 		name = options.name;
 		value = options.value;
 
-		this.parent = options.parent; // the element this belongs to
+		this.element = options.element; // the element this belongs to
 
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
 		colonIndex = name.indexOf( ':' );
@@ -429,12 +429,12 @@
 		}
 
 		// share parentFragment with parent element
-		this.parentFragment = this.parent.parentFragment;
+		this.parentFragment = this.element.parentFragment;
 
 		this.fragment = new _internal.TextFragment({
-			descriptor: value,
-			root: this.root,
-			parent: this,
+			descriptor:   value,
+			root:         this.root,
+			owner:        this,
 			contextStack: options.contextStack
 		});
 
@@ -445,7 +445,7 @@
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
-			tagName = this.parent.descriptor.e.toLowerCase();
+			tagName = this.element.descriptor.e.toLowerCase();
 			bindingCandidate = ( ( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
 		}
 
