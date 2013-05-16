@@ -59,6 +59,9 @@ var Ractive, _internal;
 		this._cache = {};
 		this._cacheMap = {};
 
+		// Node registry
+		this.nodes = {};
+
 		// Set up observers
 		this._observers = {};
 		this._pendingResolution = [];

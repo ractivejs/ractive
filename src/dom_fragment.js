@@ -403,6 +403,10 @@
 			} else {
 				options.parentNode.setAttribute( name, value );
 			}
+
+			if ( name.toLowerCase() === 'id' ) {
+				options.root.nodes[ value ] = options.parentNode;
+			}
 			
 			return;
 		}
@@ -411,12 +415,13 @@
 		this.root = options.root;
 		this.parentNode = options.parentNode;
 		this.name = name;
+		this.lcName = name.toLowerCase();
 
 		this.children = [];
 
 		// can we establish this attribute's property name equivalent?
 		if ( !this.namespace && options.parentNode.namespaceURI === _internal.namespaces.html ) {
-			lowerCaseName = this.name.toLowerCase();
+			lowerCaseName = this.lcName;
 			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
 
 			if ( options.parentNode[ propertyName ] !== undefined ) {
@@ -665,10 +670,18 @@
 				return this; // avoid items bubbling to the surface when we're still initialising
 			}
 
+			if ( this.lcName === 'id' ) {
+				if ( this.id !== undefined ) {
+					delete this.root.nodes[ this.id ];
+				}
+
+				this.root.nodes[ this.id ] = this.parentNode;
+			}
+
 			if ( this.twoway ) {
 				// TODO compare against previous?
 				
-				lowerCaseName = this.name.toLowerCase();
+				lowerCaseName = this.lcName;
 				this.value = this.interpolator.value;
 
 				// special case - if we have an element like this:
