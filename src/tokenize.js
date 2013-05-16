@@ -326,7 +326,7 @@
 			this.ref = identifiers.shift().trim();
 
 			// Is this a conditional?
-			conditionalPattern = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\?\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)/;
+			conditionalPattern = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\?\s*([^\:\s]*)\s*:\s*([^\.\s]*)/;
 			if ( match = conditionalPattern.exec( this.ref ) ) {
 				this.ref = match[1];
 				this.conditionals = [ match[2], match[3] ];
