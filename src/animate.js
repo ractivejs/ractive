@@ -104,6 +104,10 @@
 				if ( elapsed >= this.duration ) {
 					this.root.set( this.keys, this.to );
 
+					if ( this.step ) {
+						this.step( t, value );
+					}
+
 					if ( this.complete ) {
 						this.complete( 1, this.to );
 					}
