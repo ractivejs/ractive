@@ -105,7 +105,7 @@
 					this.root.set( this.keys, this.to );
 
 					if ( this.complete ) {
-						this.complete( 1 );
+						this.complete( 1, this.to );
 					}
 
 					this.running = false;
