@@ -15,7 +15,7 @@
 			return R.interpolators.object( from, to );
 		}
 
-		throw new Error( 'Could not interpolate values' );
+		return function () { return to; };
 	};
 
 	R.interpolators = {
