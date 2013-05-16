@@ -82,6 +82,12 @@
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
 		_internal.Mustache.call( this, options );
+
+		// if this initialised without a keypath, and it's a conditional,
+		// we need to use the 'if false' value
+		if ( this.cond && !this.keypath ) {
+			this.update( false );
+		}
 	};
 
 	Interpolator.prototype = {
