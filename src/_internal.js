@@ -42,7 +42,7 @@
 			// so we can reinstate them later
 			if ( hasModifiers ) {
 				modifiers = [];
-				remaining = remaining.replace( /⭆(.+)⭅/g, function ( match, $1 ) {
+				remaining = remaining.replace( /⭆(.+?)⭅/g, function ( match, $1 ) {
 					modifiers[ modifiers.length ] = $1;
 					return '⭆x⭅';
 				});
