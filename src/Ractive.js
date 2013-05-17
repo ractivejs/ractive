@@ -339,14 +339,12 @@ var Ractive, _internal;
 			}
 
 			// update cacheMap
-			if ( keys.length ) {
-				parentKeypath = keys.join( '.' );
+			parentKeypath = keys.join( '.' );
 
-				if ( !this._cacheMap[ parentKeypath ] ) {
-					this._cacheMap[ parentKeypath ] = [];
-				}
-				this._cacheMap[ parentKeypath ].push( normalised );
+			if ( !this._cacheMap[ parentKeypath ] ) {
+				this._cacheMap[ parentKeypath ] = [];
 			}
+			this._cacheMap[ parentKeypath ].push( normalised );
 
 			// Allow functions as values
 			if ( typeof value === 'function' ) {
@@ -367,7 +365,7 @@ var Ractive, _internal;
 		},
 
 		update: function ( keypath ) {
-			this._clearCache( keypath );
+			this._clearCache( keypath || '' );
 			this._notifyObservers( keypath );
 
 			this.fire( 'update:' + keypath );
@@ -557,7 +555,7 @@ var Ractive, _internal;
 			};
 
 			keys = _internal.splitKeypath( mustache.keypath );
-			while ( keys.length > 1 ) {
+			while ( keys.length ) {
 				observe( keys.join( '.' ) );
 
 				// remove the last item in the keypath, so that `data.set( 'parent', { child: 'newValue' } )`
