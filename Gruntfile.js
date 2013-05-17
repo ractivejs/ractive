@@ -24,6 +24,15 @@ module.exports = function(grunt) {
 						'}( this ));'
 			}
 		},
+		watch: {
+			main: {
+				files: 'src/**/*.js',
+				tasks: 'concat',
+				options: {
+					interrupt: true
+				}
+			}
+		},
 		lint: {
 			files: ['grunt.js', 'src/**/*.js'] // TODO add tests
 		},
@@ -109,6 +118,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-concat' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
+	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	
 	// Default task.
 	grunt.registerTask('default', [ 'jshint', 'qunit', 'clean', 'concat', 'uglify' ]);
