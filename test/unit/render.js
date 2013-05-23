@@ -221,7 +221,7 @@ tests = [
 		data: { desc: 'Write more tests', done: true },
 		result: '<p class="complete">Write more tests</p>',
 		new_data: { done: false },
-		new_result: '<p class="complete">Write more tests (pending)</p>'
+		new_result: '<p class="incomplete">Write more tests (pending)</p>'
 	},
 	{
 		name: 'Invocation expression',

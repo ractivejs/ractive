@@ -128,11 +128,11 @@
 	{
 		"name": "Expression mustache",
 		"template": "{{( i + 1 )}}",
-		"compiled": ""
+		"compiled": [{"t":2,"x":{"r":["i"],"s":"â–0+1"}}]
 	},
 	{
 		"name": "Expression mustache with brackets",
 		"template": "{{( (i) + 1 )}}",
-		"compiled": ""
+		"compiled": [{"t":2,"x":{"r":["i"],"s":"(â–0)+1"}}]
 	}
 ]
