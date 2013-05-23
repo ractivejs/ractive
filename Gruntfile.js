@@ -24,9 +24,6 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		lint: {
-			files: ['grunt.js', 'src/**/*.js'] // TODO add tests
-		},
 		qunit: {
 			files: [ 'test/core.html', 'test/compile.html', 'test/render.html' ]
 		},
@@ -62,6 +59,7 @@ module.exports = function(grunt) {
 			tasks: ['concat','min']
 		},
 		jshint: {
+			files: [ '<%= concat.full_legacy.dest %>' ],
 			options: {
 				jshintrc: '.jshintrc'
 			}

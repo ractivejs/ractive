@@ -6,10 +6,6 @@ var Ractive,
 
 proto = {},
 
-tokens = {},
-expr = {},
-stubs = {},
-
 // properties of the public Ractive object
 adaptors = {},
 eventDefinitions = {},
@@ -19,8 +15,17 @@ interpolate,
 interpolators,
 
 
+// internal utils
+splitKeypath,
+isArray,
+isObject,
+isNumeric,
+isEqual,
+getEl,
+
+
 // internally used caches
-animationCollection,
+keypathCache = {},
 
 
 // internally used constructors
@@ -35,9 +40,33 @@ leadingWhitespace = /^\s+/,
 trailingWhitespace = /\s+$/,
 
 
+// other bits and pieces
+initMustache,
+updateMustache,
+resolveMustache,
+evaluateMustache,
+
+initFragment,
+updateSection,
+
+animationCollection,
+
+
 // array modification
 registerKeypathToArray,
 unregisterKeypathFromArray,
+
+
+// tokenizer
+getToken,
+
+tokens = {},
+expr = {},
+stubs = {},
+
+stripCommentTokens,
+stripHtmlComments,
+stripStandalones,
 
 
 // constants
@@ -68,9 +97,10 @@ GLOBAL            = 26,
 REFERENCE         = 30,
 REFINEMENT        = 31,
 MEMBER            = 32,
-PREFIX            = 33,
+PREFIX_OPERATOR   = 33,
 BRACKETED         = 34,
 CONDITIONAL       = 35,
+INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
 

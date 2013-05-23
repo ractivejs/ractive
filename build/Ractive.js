@@ -16,10 +16,6 @@ var Ractive,
 
 proto = {},
 
-tokens = {},
-expr = {},
-stubs = {},
-
 // properties of the public Ractive object
 adaptors = {},
 eventDefinitions = {},
@@ -29,8 +25,17 @@ interpolate,
 interpolators,
 
 
+// internal utils
+splitKeypath,
+isArray,
+isObject,
+isNumeric,
+isEqual,
+getEl,
+
+
 // internally used caches
-animationCollection,
+keypathCache = {},
 
 
 // internally used constructors
@@ -45,9 +50,33 @@ leadingWhitespace = /^\s+/,
 trailingWhitespace = /\s+$/,
 
 
+// other bits and pieces
+initMustache,
+updateMustache,
+resolveMustache,
+evaluateMustache,
+
+initFragment,
+updateSection,
+
+animationCollection,
+
+
 // array modification
 registerKeypathToArray,
 unregisterKeypathFromArray,
+
+
+// tokenizer
+getToken,
+
+tokens = {},
+expr = {},
+stubs = {},
+
+stripCommentTokens,
+stripHtmlComments,
+stripStandalones,
 
 
 // constants
@@ -78,9 +107,10 @@ GLOBAL            = 26,
 REFERENCE         = 30,
 REFINEMENT        = 31,
 MEMBER            = 32,
-PREFIX            = 33,
+PREFIX_OPERATOR   = 33,
 BRACKETED         = 34,
 CONDITIONAL       = 35,
+INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
 
@@ -627,8 +657,6 @@ adaptors.backbone = function ( model, path ) {
 		pathLength = path.length;
 	}
 
-	console.log( path );
-
 
 	return {
 		init: function ( view ) {
@@ -768,7 +796,7 @@ easing = {
 	}
 };
 eventDefinitions.tap = function ( el, fire ) {
-	var mousedown, touchstart, distanceThreshold, timeThreshold, target;
+	var mousedown, touchstart, distanceThreshold, timeThreshold;
 
 	distanceThreshold = 5; // maximum pixels pointer can move before cancel
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
@@ -1592,7 +1620,7 @@ animationCollection = {
 	};
 
 }({}, {}));
-var initFragment = function ( fragment, options ) {
+initFragment = function ( fragment, options ) {
 
 	var numItems, i, itemOptions, parentRefs, ref;
 
@@ -1648,8 +1676,6 @@ var initFragment = function ( fragment, options ) {
 	}
 
 };
-var initMustache, updateMustache, resolveMustache, evaluateMustache;
-
 initMustache = function ( mustache, options ) {
 
 	var keypath, index;
@@ -1738,7 +1764,7 @@ evaluateMustache = function () {
 
 	return this.evaluator.apply( null, args );
 };
-var updateSection = function ( section, value ) {
+updateSection = function ( section, value ) {
 	var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 	fragmentOptions = {
@@ -2917,10 +2943,6 @@ var updateSection = function ( section, value ) {
 	};
 
 }());
-var keypathCache, splitKeypath, isArray, isObject, isNumeric, isEqual, getEl;
-
-keypathCache = {};
-
 splitKeypath =  function ( keypath ) {
 	var index, startIndex, keys, remaining, part;
 
@@ -3045,9 +3067,6 @@ getEl = function ( input ) {
 
 	throw new Error( 'Could not find container element' );
 };
-var stripCommentTokens, stripHtmlComments, stripStandalones;
-
-
 stripCommentTokens = function ( tokens ) {
 	var i, current, previous, next;
 
@@ -3208,7 +3227,7 @@ getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhites
 		pos: 0,
 		tokens: tokens || [],
 		next: function () {
-			return parser.tokens[ parser.pos ]
+			return parser.tokens[ parser.pos ];
 		},
 		options: options
 	};
@@ -3280,7 +3299,7 @@ getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhites
 
 
 	ElementStub = function ( firstToken, parser, priority, preserveWhitespace ) {
-		var closed, next, i, len, attrs, proxies, attr, priority, getFrag, item;
+		var closed, next, i, len, attrs, proxies, attr, getFrag, item;
 
 		this.tag = firstToken.name;
 		this.lcTag = this.tag.toLowerCase();
@@ -3526,9 +3545,7 @@ getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhites
 		this.refs = [];
 
 		getRefs( token, this.refs );
-
 		this.str = stringify( token, this.refs );
-
 	};
 
 	ExpressionStub.prototype = {
@@ -3542,79 +3559,75 @@ getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhites
 
 
 
-	getRefs = function ( exprToken, refs ) {
+	getRefs = function ( token, refs ) {
 		var i;
 
-		if ( exprToken.type === REFERENCE ) {
-			if ( refs.indexOf( exprToken.name ) === -1 ) {
-				refs[ refs.length ] = exprToken.name;
+		if ( token.t === REFERENCE ) {
+			if ( refs.indexOf( token.n ) === -1 ) {
+				refs[ refs.length ] = token.n;
 			}
 		}
 
-		if ( exprToken.expressions ) {
-			i = exprToken.expressions.length;
+		if ( token.o ) {
+			i = token.o.length;
 			while ( i-- ) {
-				getRefs( exprToken.expressions[i], refs );
+				getRefs( token.o[i], refs );
 			}
 		}
 
-		if ( exprToken.expression ) {
-			getRefs( exprToken.expression, refs );
+		if ( token.x ) {
+			getRefs( token.x, refs );
 		}
 
-		if ( exprToken.parameters ) {
-			i = exprToken.parameters.length;
-			while ( i-- ) {
-				getRefs( exprToken.parameters[i], refs );
-			}
-		}
-
-		if ( exprToken.refinement ) {
-			getRefs( exprToken.refinement, refs );
+		if ( token.r ) {
+			getRefs( token.r, refs );
 		}
 	};
 
 
-	stringify = function ( exprToken, refs ) {
+	stringify = function ( token, refs ) {
 		var map = function ( item ) {
 			return stringify( item, refs );
 		};
 
-		switch ( exprToken.type ) {
+		switch ( token.t ) {
 			case BOOLEAN_LITERAL:
 			case GLOBAL:
 			case NUMBER_LITERAL:
-			return exprToken.value;
+			return token.v;
 
 			case STRING_LITERAL:
-			return '"' + exprToken.value.replace( /"/g, '\\"' ) + '"';
+			return '"' + token.v.replace( /"/g, '\\"' ) + '"';
 
 			case ARRAY_LITERAL:
-			return '[' + exprToken.expressions.map( map ).join( ',' ) + ']';
+			return '[' + token.m.map( map ).join( ',' ) + ']';
 
-			case PREFIX:
-			return exprToken.symbol + stringify( exprToken.expression, refs );
+			case PREFIX_OPERATOR:
+			return token.s + stringify( token.x, refs );
+
+			case INFIX_OPERATOR:
+			return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
 
 			case INVOCATION:
-			return stringify( exprToken.expression, refs ) + '(' + ( exprToken.parameters ? exprToken.parameters.map( map ).join( ',' ) : '' ) + ')';
+			return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
 
 			case BRACKETED:
-			return '(' + stringify( exprToken.expression, refs ) + ')';
+			return '(' + stringify( token.x, refs ) + ')';
 
 			case MEMBER:
-			return stringify( exprToken.expression, refs ) + stringify( exprToken.refinement, refs );
+			return stringify( token.x, refs ) + stringify( token.r, refs );
 
 			case REFINEMENT:
-			return ( exprToken.name ? '.' + exprToken.name : '[' + stringify( exprToken.expression, refs ) + ']' );
+			return ( token.n ? '.' + token.n : '[' + stringify( token.x, refs ) + ']' );
 
 			case CONDITIONAL:
-			return stringify( exprToken.expressions[0], refs ) + '?' + stringify( exprToken.expressions[1], refs ) + ':' + stringify( exprToken.expressions[2], refs );
+			return stringify( token.o[0], refs ) + '?' + stringify( token.o[1], refs ) + ':' + stringify( token.o[2], refs );
 
 			case REFERENCE:
-			return '❖' + refs.indexOf( exprToken.name );
+			return '❖' + refs.indexOf( token.n );
 
 			default:
-			return stringify( exprToken.expressions[0], refs ) + exprToken.symbol + stringify( exprToken.expressions[1], refs );
+			throw new Error( 'Could not stringify expression token. This error is unexpected' );
 		}
 	};
 
@@ -3911,7 +3924,7 @@ var stubUtils = {
 	}
 };
 var tokenize = function ( template, options ) {
-	var tokenizer, tokens;
+	var tokenizer, tokens, token, last20, next20;
 
 	options = options || {};
 
@@ -3925,60 +3938,156 @@ var tokenize = function ( template, options ) {
 		}
 	};
 
-	tokens = expr.start( tokenizer );
+	tokens = [];
+
+	while ( tokenizer.pos < tokenizer.str.length ) {
+		token = getToken( tokenizer );
+
+		if ( token === null && tokenizer.remaining() ) {
+			last20 = tokenizer.str.substr( 0, tokenizer.pos ).substr( -20 );
+			if ( last20.length === 20 ) {
+				last20 = '...' + last20;
+			}
+
+			next20 = tokenizer.remaining().substr( 0, 20 );
+			if ( next20.length === 20 ) {
+				next20 = next20 + '...';
+			}
+
+			throw new Error( 'Could not parse template: ' + ( last20 ? last20 + '<- ' : '' ) + 'failed at character ' + tokenizer.pos + ' ->' + next20 );
+		}
+
+		tokens[ tokens.length ] = token;
+	}
 
 	stripStandalones( tokens );
 	stripCommentTokens( tokens );
 	
 	return tokens;
 };
-expr.regex = function ( pattern ) {
-	return function ( tokenizer ) {
-		var match = pattern.exec( tokenizer.str.substring( tokenizer.pos ) );
+(function () {
+
+	var getStringMatch,
+	getRegexMatcher,
+	allowWhitespace,
+
+	getMustache,
+	getTriple,
+	getTag,
+	getText,
+	getExpression,
+
+	getDelimiter,
+	getDelimiterChange,
+	getName,
+	getMustacheRef,
+	getRefinement,
+	getDotRefinement,
+	getArrayRefinement,
+	getArrayMember,
+
+	getSingleQuotedString,
+	getUnescapedSingleQuotedChars,
+	getDoubleQuotedString,
+	getUnescapedDoubleQuotedChars,
+	getEscapedChars,
+	getEscapedChar,
+
+	fail;
+
+
+	getToken = function ( tokenizer ) {
+		var token = getMustache( tokenizer ) ||
+		        getTriple( tokenizer ) ||
+		        getTag( tokenizer ) ||
+		        getText( tokenizer );
+
+		return token;
+	};
+
+
+
+	// helpers
+	fail = function ( tokenizer, expected ) {
+		var remaining = tokenizer.remaining().substr( 0, 40 );
+		if ( remaining.length === 40 ) {
+			remaining += '...';
+		}
+		throw new Error( 'Tokenizer failed: unexpected string "' + remaining + '" (expected ' + expected + ')' );
+	};
+
+	getStringMatch = function ( tokenizer, string ) {
+		var substr;
+
+		substr = tokenizer.str.substr( tokenizer.pos, string.length );
+
+		if ( substr === string ) {
+			tokenizer.pos += string.length;
+			return string;
+		}
+
+		return null;
+	};
+
+	getRegexMatcher = function ( regex ) {
+		return function ( tokenizer ) {
+			var match = regex.exec( tokenizer.str.substring( tokenizer.pos ) );
+
+			if ( !match ) {
+				return null;
+			}
+
+			tokenizer.pos += match[0].length;
+			return match[1] || match[0];
+		};
+	};
+
+	allowWhitespace = function ( tokenizer ) {
+		var match = leadingWhitespace.exec( tokenizer.str.substring( tokenizer.pos ) );
 
 		if ( !match ) {
 			return null;
 		}
 
 		tokenizer.pos += match[0].length;
-		return match[1] || match[0];
+		return match[0];
 	};
-};
-(function ( expr ) {
 
-	var delimiter = expr.regex( /^[^\s=]+/ );
 
-	expr.delimiterChange = function ( tokenizer ) {
+	// shared
+	getDelimiter = getRegexMatcher( /^[^\s=]+/ );
+
+	getDelimiterChange = function ( tokenizer ) {
 		var start, opening, closing;
 
-		if ( !expr.generic( tokenizer, '=' ) ) {
+		if ( !getStringMatch( tokenizer, '=' ) ) {
 			return null;
 		}
 
 		start = tokenizer.pos;
 
 		// allow whitespace before new opening delimiter
-		expr.whitespace( tokenizer );
+		allowWhitespace( tokenizer );
 
-		opening = delimiter( tokenizer );
+		opening = getDelimiter( tokenizer );
 		if ( !opening ) {
 			tokenizer.pos = start;
 			return null;
 		}
 
 		// allow whitespace (in fact, it's necessary...)
-		expr.whitespace( tokenizer );
+		allowWhitespace( tokenizer );
 
-		closing = delimiter( tokenizer );
+		closing = getDelimiter( tokenizer );
 		if ( !closing ) {
 			tokenizer.pos = start;
 			return null;
 		}
 
 		// allow whitespace before closing '='
-		expr.whitespace( tokenizer );
+		allowWhitespace( tokenizer );
 
-		if ( !expr.generic( tokenizer, '=' ) ) {
+		if ( !getStringMatch( tokenizer, '=' ) ) {
 			tokenizer.pos = start;
 			return null;
 		}
@@ -3986,845 +4095,39 @@ expr.regex = function ( pattern ) {
 		return [ opening, closing ];
 	};
 
-}( expr ));
-expr.generic = function ( tokenizer, query ) {
-	var substr;
+	getName = getRegexMatcher( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
 
-	substr = tokenizer.str.substr( tokenizer.pos, query.length );
-
-	if ( substr === query ) {
-		tokenizer.pos += query.length;
-		return query;
-	}
-
-	return null;
-};
-expr.expressionList = function ( tokenizer ) {
-	var start, expressions, expression, next;
-
-	start = tokenizer.pos;
-
-	// allow whitespace before first expression
-	//expr.whitespace( tokenizer );
-
-	expression = expr.expression( tokenizer );
-
-	if ( expression === null ) {
-		return null;
-	}
-
-	expressions = [ expression ];
-
-	// allow whitespace between expression and ','
-	expr.whitespace( tokenizer );
-
-	if ( expr.generic( tokenizer, ',' ) ) {
-		next = expr.expressionList( tokenizer );
-		if ( next === null ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		expressions = expressions.concat( next );
-	}
-
-	return expressions;
-};
-
-expr.expression = function ( tokenizer ) {
-
-	var start, expression, fns, fn, i, len;
-
-	start = tokenizer.pos;
-
-	// allow whitespace
-	expr.whitespace( tokenizer );
-	
-	expression = typeof_( tokenizer )
-	          || unaryNegation( tokenizer )
-	          || unaryPlus( tokenizer )
-	          || bitwiseNot( tokenizer )
-	          || logicalNot( tokenizer )
-	          || conditional( tokenizer );
-
-	return expression;
-};
-
-
-var leftToRight = function ( symbol, fallthrough ) {
-	return function ( tokenizer ) {
-		var start, left, right;
-
-		left = fallthrough( tokenizer );
-		if ( !left ) {
-			return null;
-		}
-
-		start = tokenizer.pos;
-
-		expr.whitespace( tokenizer );
-
-		if ( !expr.generic( tokenizer, symbol ) ) {
-			tokenizer.pos = start;
-			return left;
-		}
-
-		expr.whitespace( tokenizer );
-
-		right = expr.expression( tokenizer );
-		if ( !right ) {
-			tokenizer.pos = start;
-			return left;
-		}
-
-		return {
-			symbol: symbol,
-			expressions: [ left, right ]
-		};
-	};
-};
-
-
-
-var bracketed = function ( tokenizer ) {
-	var start, expression;
-
-	start = tokenizer.pos;
-
-	if ( !expr.generic( tokenizer, '(' ) ) {
-		return null;
-	}
-
-	expr.whitespace( tokenizer );
-
-	expression = expr.expression( tokenizer );
-	if ( !expression ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, ')' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return {
-		type: BRACKETED,
-		expression: expression
-	};
-};
-
-
-var primary = function ( tokenizer ) {
-	var production = expr.literal( tokenizer )
-	              || expr.reference( tokenizer )
-	              || bracketed( tokenizer );
-
-	return production;
-};
-
-var member = function ( tokenizer ) {
-	var start, expression, name, refinement, member;
-
-	expression = primary( tokenizer );
-	if ( !expression ) {
-		return null;
-	}
-
-	refinement = expr.refinement( tokenizer );
-	if ( !refinement ) {
-		return expression;
-	}
-
-	while ( refinement !== null ) {
-		member = {
-			type: MEMBER,
-			expression: expression,
-			refinement: refinement
-		};
-
-		expression = member;
-		refinement = expr.refinement( tokenizer );
-	}
-
-	return member;
-};
-
-
-var invocation = function ( tokenizer ) {
-	var start, expression, expressionList, result;
-
-	expression = member( tokenizer );
-	if ( !expression ) {
-		return null;
-	}
-
-	start = tokenizer.pos;
-
-	if ( !expr.generic( tokenizer, '(' ) ) {
-		return expression;
-	}
-
-	expr.whitespace( tokenizer );
-	expressionList = expr.expressionList( tokenizer );
-
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, ')' ) ) {
-		tokenizer.pos = start;
-		return expression;
-	}
-
-	result = {
-		type: INVOCATION,
-		expression: expression
-	};
-
-	if ( expressionList ) {
-		result.parameters = expressionList;
-	}
-
-	return result;
-};
-
-
-
-var i, len, fn;
-var ltrOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
-
-var ltrOperatorFns = [];
-
-var prev = invocation;
-for ( i=0, len=ltrOperators.length; i<len; i+=1 ) {
-	fn = leftToRight( ltrOperators[i], prev );
-	prev = fn;
-}
-
-
-
-var logicalOr = prev;
-var conditional = function ( tokenizer ) {
-	var start, expression, ifTrue, ifFalse;
-
-	expression = logicalOr( tokenizer );
-	if ( !expression ) {
-		return null;
-	}
-
-	start = tokenizer.pos;
-
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, '?' ) ) {
-		tokenizer.pos = start;
-		return expression;
-	}
-
-	expr.whitespace( tokenizer );
-
-	ifTrue = expr.expression( tokenizer );
-	if ( !ifTrue ) {
-		tokenizer.pos = start;
-		return expression;
-	}
-
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, ':' ) ) {
-		tokenizer.pos = start;
-		return expression;
-	}
-
-	expr.whitespace( tokenizer );
-
-	ifFalse = expr.expression( tokenizer );
-	if ( !ifFalse ) {
-		tokenizer.pos = start;
-		return expression;
-	}
-
-	return {
-		type: CONDITIONAL,
-		expressions: [ expression, ifTrue, ifFalse ]
-	};
-};
-
-
-
-
-// right-to-left
-var rightToLeft = function ( symbol ) {
-	return function ( tokenizer ) {
-		var start, expression;
-
-		start = tokenizer.pos;
-
-		if ( !expr.generic( tokenizer, symbol ) ) {
-			return null;
-		}
-
-		expr.whitespace( tokenizer );
-
-		expression = expr.expression( tokenizer );
-		if ( !expression ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return {
-			symbol: symbol,
-			expression: expression,
-			type: PREFIX
-		};
-	};
-};
-
-
-var logicalNot = rightToLeft( '!' );
-var bitwiseNot = rightToLeft( '~' );
-var unaryPlus = rightToLeft( '+' );
-var unaryNegation = rightToLeft( '-' );
-var typeof_ = rightToLeft( 'typeof' );
-expr.arrayLiteral = function ( tokenizer ) {
-	var start, array, expressions;
-
-	start = tokenizer.pos;
-
-	// allow whitespace before '['
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, '[' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	expressions = expr.expressionList( tokenizer );
-
-	if ( !expr.generic( tokenizer, ']' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return {
-		type: ARRAY_LITERAL,
-		members: expressions
-	};
-};
-expr.booleanLiteral = function ( tokenizer ) {
-	var remaining = tokenizer.remaining();
-
-	if ( remaining.substr( 0, 4 ) === 'true' ) {
-		tokenizer.pos += 4;
-		return {
-			type: BOOLEAN_LITERAL,
-			value: 'true'
-		};
-	}
-
-	if ( remaining.substr( 0, 5 ) === 'false' ) {
-		tokenizer.pos += 5;
-		return {
-			type: BOOLEAN_LITERAL,
-			value: 'false'
-		};
-	}
-
-	return null;
-};
-(function ( expr ) {
-
-	var globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)/;
-
-	// Not strictly literals, but we can treat them as such because they
-	// never need to be dereferenced.
-
-	// Allowed globals:
-	// ----------------
-	//
-	// Array, Date, RegExp, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, isFinite, isNaN, parseFloat, parseInt, JSON, Math, NaN, undefined, null
-	expr.global = function ( tokenizer ) {
-		var start, name, match, global;
-
-		start = tokenizer.pos;
-		name = expr.name( tokenizer );
-
-		if ( !name ) {
-			return null;
-		}
-
-		match = globals.exec( name );
-		if ( match ) {
-			tokenizer.pos = start + match[0].length;
-			return {
-				type: GLOBAL,
-				value: match[0]
-			};
-		}
-
-		tokenizer.pos = start;
-		return null;
-	};
-
-}( expr ));
-
-
-// Any literal except function and regexp literals, which aren't supported (yet?)
-expr.literal = function ( tokenizer ) {
-	var literal = expr.numberLiteral( tokenizer )   ||
-	              expr.booleanLiteral( tokenizer )  ||
-	              expr.global( tokenizer )          ||
-	              expr.stringLiteral( tokenizer )   ||
-	              expr.objectLiteral( tokenizer )   ||
-	              expr.arrayLiteral( tokenizer );
-
-	return literal;
-};
-expr.numberLiteral = function ( tokenizer ) {
-	var start, result;
-
-	start = tokenizer.pos;
-
-	result = expr.integer( tokenizer );
-	if ( result === null ) {
-		return null;
-	}
-
-	result += expr.fraction( tokenizer ) || '';
-	result += expr.exponent( tokenizer ) || '';
-
-	return {
-		type: NUMBER_LITERAL,
-		value: +result
-	};
-};
-expr.objectLiteral = function ( tokenizer ) {
-	var start, object, keyValuePairs, i, pair;
-
-	start = tokenizer.pos;
-
-	// allow whitespace
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, '{' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	object = {};
-
-	keyValuePairs = expr.keyValuePairs( tokenizer );
-	if ( keyValuePairs ) {
-		i = keyValuePairs.length;
-		while ( i-- ) {
-			pair = keyValuePairs[i];
-
-			if ( object.hasOwnProperty( pair.key ) ) {
-				throw new Error( 'An object cannot have multiple keys with the same name' );
-			}
-
-			object[ pair.key ] = pair.value;
-		}
-	}
-
-	// allow whitespace between final value and '}'
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, '}' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return {
-		type: OBJECT_LITERAL,
-		value: object
-	};
-};
-
-expr.keyValuePairs = function ( tokenizer ) {
-	var start, pairs, pair, keyValuePairs;
-
-	start = tokenizer.pos;
-
-	pair = expr.keyValuePair( tokenizer );
-	if ( pair === null ) {
-		return null;
-	}
-
-	pairs = [ pair ];
-
-	if ( expr.generic( tokenizer, ',' ) ) {
-		keyValuePairs = expr.keyValuePairs( tokenizer );
-
-		if ( !keyValuePairs ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return pairs.concat( keyValuePairs );
-	}
-
-	return pairs;
-};
-
-expr.keyValuePair = function ( tokenizer ) {
-	var start, pair, key, value;
-
-	start = tokenizer.pos;
-
-	// allow whitespace between '{' and key
-	expr.whitespace( tokenizer );
-
-	key = expr.key( tokenizer );
-	if ( key === null ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// allow whitespace between key and ':'
-	expr.whitespace( tokenizer );
-
-	// next character must be ':'
-	if ( !expr.generic( tokenizer, ':' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// allow whitespace between ':' and value
-	expr.whitespace( tokenizer );
-
-	// next expression must be a, well... expression
-	value = expr.expression( tokenizer );
-
-	if ( value === null ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// workaround for null problem
-	if ( value === expr.nullSentinel ) {
-		value = null;
-	}
-
-	return { key: key, value: value };
-};
-
-// http://mathiasbynens.be/notes/javascript-properties
-// can be any name, string literal, or number literal
-expr.key = function ( tokenizer ) {
-	return expr.name( tokenizer ) || expr.stringLiteral( tokenizer ) || expr.numberLiteral( tokenizer );
-};
-expr.stringLiteral = function ( tokenizer ) {
-	var start, string;
-
-	start = tokenizer.pos;
-
-	if ( expr.generic( tokenizer, '"' ) ) {
-		string = expr.doubleQuotedString( tokenizer );
-	
-		if ( !expr.generic( tokenizer, '"' ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return {
-			type: STRING_LITERAL,
-			value: string
-		};
-	}
-
-	if ( expr.generic( tokenizer, "'" ) ) {
-		string = expr.singleQuotedString( tokenizer );
-
-		if ( !expr.generic( tokenizer, "'" ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return {
-			type: STRING_LITERAL,
-			value: string
-		};
-	}
-
-	return null;
-};
-
-expr.singleQuotedString = function ( tokenizer ) {
-	var start, string, escaped, unescaped, next;
-
-	start = tokenizer.pos;
-
-	string = '';
-
-	escaped = expr.escapedChars( tokenizer );
-	if ( escaped ) {
-		string += escaped;
-	}
-
-	unescaped = expr.unescapedSingleQuotedChars( tokenizer );
-	if ( unescaped ) {
-		string += unescaped;
-	}
-	if ( string ) {
-		next = expr.singleQuotedString( tokenizer );
-		while ( next ) {
-			string += next;
-			next = expr.singleQuotedString( tokenizer );
-		}
-	}
-
-	return string;
-};
-
-expr.unescapedSingleQuotedChars = expr.regex( /^[^\\']+/ );
-
-expr.doubleQuotedString = function ( tokenizer ) {
-	var start, string, escaped, unescaped, next;
-
-	start = tokenizer.pos;
-
-	string = '';
-
-	escaped = expr.escapedChars( tokenizer );
-	if ( escaped ) {
-		string += escaped;
-	}
-
-	unescaped = expr.unescapedDoubleQuotedChars( tokenizer );
-	if ( unescaped ) {
-		string += unescaped;
-	}
-
-	if ( !string ) {
-		return '';
-	}
-
-	next = expr.doubleQuotedString( tokenizer );
-	while ( next !== '' ) {
-		string += next;
-	}
-
-	return string;
-};
-
-expr.unescapedDoubleQuotedChars = expr.regex( /^[^\\"]+/ );
-
-expr.escapedChars = function ( tokenizer ) {
-	var chars = '', char;
-
-	char = expr.escapedChar( tokenizer );
-	while ( char ) {
-		chars += char;
-		char = expr.escapedChar( tokenizer );
-	}
-
-	return chars || null;
-};
-
-expr.escapedChar = function ( tokenizer ) {
-	var char;
-
-	if ( !expr.generic( tokenizer, '\\' ) ) {
-		return null;
-	}
-
-	char = tokenizer.str.charAt( tokenizer.pos );
-	tokenizer.pos += 1;
-
-	return char;
-};
-expr.digits = expr.regex( /^[0-9]+/ );
-expr.exponent = expr.regex( /^[eE][\-+]?[0-9]+/ );
-expr.fraction = expr.regex( /^\.[0-9]+/ );
-expr.integer = expr.regex( /^(0|[1-9][0-9]*)/ );
-expr.name = expr.regex( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
-expr.reference = function ( tokenizer ) {
-	var name = expr.name( tokenizer );
-
-	if ( name === null ) {
-		return null;
-	}
-
-	return {
-		type: REFERENCE,
-		name: name
-	};
-};
-expr.refinement = function ( tokenizer ) {
-	var start, refinement, name, expression;
-
-	start = tokenizer.pos;
-
-	// "." name
-	if ( expr.generic( tokenizer, '.' ) ) {
-		if ( name = expr.name( tokenizer ) ) {
-			return {
-				type: REFINEMENT,
-				name: name
-			};
-		}
-
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// "[" expression "]"
-	if ( expr.generic( tokenizer, '[' ) ) {
-		expression = expr.expression( tokenizer );
-		if ( !expression || !expr.generic( tokenizer, ']' ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return {
-			type: REFINEMENT,
-			expression: expression
-		};
-	}
-
-	return null;
-};
-expr.mustache = function ( tokenizer ) {
-	var start = tokenizer.pos, content;
-
-	if ( !expr.generic( tokenizer, tokenizer.delimiters[0] ) ) {
-		return null;
-	}
-
-	// delimiter change?
-	content = expr.delimiterChange( tokenizer );
-	if ( content ) {
-		// find closing delimiter or abort...
-		if ( !expr.generic( tokenizer, tokenizer.delimiters[1] ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		// ...then make the switch
-		tokenizer.delimiters = content;
-		return { type: MUSTACHE, mustacheType: DELIMCHANGE };
-	}
-
-	content = expr.mustacheContent( tokenizer );
-
-	if ( content === null ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// allow whitespace before closing delimiter
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, tokenizer.delimiters[1] ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return content;
-};
-
-expr.mustacheContent = function ( tokenizer ) {
-	var start, fail, mustache, type, expression, indexRef, remaining, index;
-
-	start = tokenizer.pos;
-
-	mustache = { type: MUSTACHE };
-
-	// mustache type
-	type = expr.mustacheType( tokenizer );
-	mustache.mustacheType = type || INTERPOLATOR; // default
-
-	// if it's a comment, allow any contents except '}}'
-	if ( type === COMMENT ) {
-		remaining = tokenizer.remaining();
-		index = remaining.indexOf( tokenizer.delimiters[1] );
-
-		if ( index !== -1 ) {
-			tokenizer.pos += index;
-			return mustache;
-		}
-	}
-
-	// allow whitespace
-	expr.whitespace( tokenizer );
-
-	// is this an expression?
-	if ( expr.generic( tokenizer, '(' ) ) {
-		
-		// looks like it...
-		expression = expr.expression( tokenizer );
-		// if ( !expression ) {
-		// 	tokenizer.pos = start;
-		// 	return null;
-		// }
-
-		expr.whitespace( tokenizer );
-
-		if ( !expr.generic( tokenizer, ')' ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		mustache.expression = expression;
-	}
-
-	else {
-		// mustache reference
-		mustache.ref = expr.mustacheRef( tokenizer );
-		if ( !mustache.ref ) {
-			tokenizer.pos = start;
-			return null;
-		}
-	}
-
-	
-
-	// optional index reference
-	indexRef = expr.indexRef( tokenizer );
-	if ( indexRef !== null ) {
-		mustache.indexRef = indexRef;
-	}
-
-	return mustache;
-};
-expr.indexRef = expr.regex( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ );
-(function ( expr ) {
-
-	var refinement, dotRefinement, arrayRefinement, arrayMember;
-
-	expr.mustacheRef = function ( tokenizer ) {
+	getMustacheRef = function ( tokenizer ) {
 		var start, ref, member;
 
 		start = tokenizer.pos;
 
-		if ( expr.generic( tokenizer, '.' ) ) {
+		if ( getStringMatch( tokenizer, '.' ) ) {
 			return '.';
 		}
 
-		ref = expr.name( tokenizer );
+		ref = getName( tokenizer );
 		if ( !ref ) {
 			return null;
 		}
 
-		member = refinement( tokenizer );
+		member = getRefinement( tokenizer );
 		while ( member !== null ) {
 			ref += member;
-			member = refinement( tokenizer );
+			member = getRefinement( tokenizer );
 		}
 
 		return ref;
 	};
 
-	refinement = function ( tokenizer ) {
-		return dotRefinement( tokenizer ) || arrayRefinement( tokenizer );
+	getRefinement = function ( tokenizer ) {
+		return getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer );
 	};
 
-	dotRefinement = expr.regex( /^\.[a-zA-Z_$][a-zA-Z_$0-9]*/ );
+	getDotRefinement = getRegexMatcher( /^\.[a-zA-Z_$][a-zA-Z_$0-9]*/ );
 
-	arrayRefinement = function ( tokenizer ) {
-		var num = arrayMember( tokenizer );
+	getArrayRefinement = function ( tokenizer ) {
+		var num = getArrayMember( tokenizer );
 
 		if ( num ) {
 			return '.' + num;
@@ -4833,448 +4136,1253 @@ expr.indexRef = expr.regex( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ );
 		return null;
 	};
 
-	arrayMember = expr.regex( /^\[(0|[1-9][0-9]*)\]/ );
+	getArrayMember = getRegexMatcher( /^\[(0|[1-9][0-9]*)\]/ );
 
-}( expr ));
-var mustacheTypes = {
-	'#': SECTION,
-	'^': INVERTED,
-	'/': CLOSING,
-	'>': PARTIAL,
-	'!': COMMENT,
-	'&': INTERPOLATOR
-};
-
-expr.mustacheType = function ( tokenizer ) {
-	var type = mustacheTypes[ tokenizer.str.charAt( tokenizer.pos ) ];
-
-	if ( !type ) {
-		return null;
-	}
-
-	tokenizer.pos += 1;
-	return type;
-};
-expr.start = function ( tokenizer ) {
-	var tokens = [], token;
-
-	while ( tokenizer.pos < tokenizer.str.length ) {
-		token = expr.mustache( tokenizer ) ||
-		        expr.triple( tokenizer ) ||
-		        expr.tag( tokenizer ) ||
-		        expr.text( tokenizer );
-
-		if ( token === null && tokenizer.remaining() ) {
-			throw new Error( 'Could not parse template' );
-		}
-
-		tokens[ tokens.length ] = token;
-	}
-
-	return tokens;
-};
-expr.tag = function ( tokenizer ) {
-	return ( expr.openingTag( tokenizer ) || expr.closingTag( tokenizer ) );
-};
-expr.attr = function ( tokenizer ) {
-	var attr, name, value;
-
-	name = expr.attrName( tokenizer );
-	if ( !name ) {
-		return null;
-	}
-
-	attr = {
-		name: name
-	};
-
-	value = expr.attrValue( tokenizer );
-	if ( value ) {
-		attr.value = value;
-	}
-
-	return attr;
-};
-(function ( expr ) {
-
-	var attrNamePattern = /^[^\s"'>\/=]+/;
-
-	expr.attrName = function ( tokenizer ) {
-		var start, match;
+	getSingleQuotedString = function ( tokenizer ) {
+		var start, string, escaped, unescaped, next;
 
 		start = tokenizer.pos;
 
-		// allow whitespace
-		expr.whitespace( tokenizer );
+		string = '';
 
-		match = attrNamePattern.exec( tokenizer.str.substring( tokenizer.pos ) );
-
-		if ( !match ) {
-			return null;
+		escaped = getEscapedChars( tokenizer );
+		if ( escaped ) {
+			string += escaped;
 		}
 
-		tokenizer.pos += match[0].length;
-		return match[0];
+		unescaped = getUnescapedSingleQuotedChars( tokenizer );
+		if ( unescaped ) {
+			string += unescaped;
+		}
+		if ( string ) {
+			next = getSingleQuotedString( tokenizer );
+			while ( next ) {
+				string += next;
+				next = getSingleQuotedString( tokenizer );
+			}
+		}
+
+		return string;
 	};
 
-}( expr ));
-expr.attrValue = function ( tokenizer ) {
-	var start, value;
+	getUnescapedSingleQuotedChars = getRegexMatcher( /^[^\\']+/ );
 
-	start = tokenizer.pos;
-
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, '=' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	value = expr.singleQuotedAttrValue( tokenizer ) || expr.doubleQuotedAttrValue( tokenizer ) || expr.unquotedAttrValue( tokenizer );
-
-	if ( value === null ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return value;
-};
-(function ( expr ) {
-
-	var doubleQuotedStringToken = function ( tokenizer ) {
-		var start, text, index;
+	getDoubleQuotedString = function ( tokenizer ) {
+		var start, string, escaped, unescaped, next;
 
 		start = tokenizer.pos;
 
-		text = expr.doubleQuotedString( tokenizer );
+		string = '';
 
-		if ( !text ) {
+		escaped = getEscapedChars( tokenizer );
+		if ( escaped ) {
+			string += escaped;
+		}
+
+		unescaped = getUnescapedDoubleQuotedChars( tokenizer );
+		if ( unescaped ) {
+			string += unescaped;
+		}
+
+		if ( !string ) {
+			return '';
+		}
+
+		next = getDoubleQuotedString( tokenizer );
+		while ( next !== '' ) {
+			string += next;
+		}
+
+		return string;
+	};
+
+	getUnescapedDoubleQuotedChars = getRegexMatcher( /^[^\\"]+/ );
+
+	getEscapedChars = function ( tokenizer ) {
+		var chars = '', character;
+
+		character = getEscapedChar( tokenizer );
+		while ( character ) {
+			chars += character;
+			character = getEscapedChar( tokenizer );
+		}
+
+		return chars || null;
+	};
+
+	getEscapedChar = function ( tokenizer ) {
+		var character;
+
+		if ( !getStringMatch( tokenizer, '\\' ) ) {
 			return null;
 		}
 
-		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-			text = text.substr( 0, index );
-			tokenizer.pos = start + text.length;
-		}
+		character = tokenizer.str.charAt( tokenizer.pos );
+		tokenizer.pos += 1;
 
-		return {
-			type: TEXT,
-			value: text
+		return character;
+	};
+
+	
+
+
+
+	// mustache
+	(function () {
+		var getMustacheContent,
+			getMustacheType,
+			getIndexRef,
+			mustacheTypes;
+
+		getMustache = function ( tokenizer ) {
+			var start = tokenizer.pos, content;
+
+			if ( !getStringMatch( tokenizer, tokenizer.delimiters[0] ) ) {
+				return null;
+			}
+
+			// delimiter change?
+			content = getDelimiterChange( tokenizer );
+			if ( content ) {
+				// find closing delimiter or abort...
+				if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				// ...then make the switch
+				tokenizer.delimiters = content;
+				return { type: MUSTACHE, mustacheType: DELIMCHANGE };
+			}
+
+			content = getMustacheContent( tokenizer );
+
+			if ( content === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// allow whitespace before closing delimiter
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+				fail( tokenizer, '"' + tokenizer.delimiters[1] + '"' );
+			}
+
+			return content;
 		};
-	};
 
-	expr.doubleQuotedAttrValue = function ( tokenizer ) {
-		var start, tokens, token;
+		getMustacheContent = function ( tokenizer ) {
+			var start, mustache, type, expr, i, remaining, index;
 
-		start = tokenizer.pos;
+			start = tokenizer.pos;
 
-		if ( !expr.generic( tokenizer, '"' ) ) {
+			mustache = { type: MUSTACHE };
+
+			// mustache type
+			type = getMustacheType( tokenizer );
+			mustache.mustacheType = type || INTERPOLATOR; // default
+
+			// if it's a comment, allow any contents except '}}'
+			if ( type === COMMENT ) {
+				remaining = tokenizer.remaining();
+				index = remaining.indexOf( tokenizer.delimiters[1] );
+
+				if ( index !== -1 ) {
+					tokenizer.pos += index;
+					return mustache;
+				}
+			}
+
+			// allow whitespace
+			allowWhitespace( tokenizer );
+
+			// is this an expression?
+			if ( getStringMatch( tokenizer, '(' ) ) {
+				
+				// looks like it...
+				allowWhitespace( tokenizer );
+
+				expr = getExpression( tokenizer );
+
+				allowWhitespace( tokenizer );
+
+				if ( !getStringMatch( tokenizer, ')' ) ) {
+					fail( tokenizer, '")"' );
+				}
+
+				mustache.expression = expr;
+			}
+
+			else {
+				// mustache reference
+				mustache.ref = getMustacheRef( tokenizer );
+				if ( !mustache.ref ) {
+					tokenizer.pos = start;
+					return null;
+				}
+			}
+
+			// optional index reference
+			i = getIndexRef( tokenizer );
+			if ( i !== null ) {
+				mustache.indexRef = i;
+			}
+
+			return mustache;
+		};
+
+		mustacheTypes = {
+			'#': SECTION,
+			'^': INVERTED,
+			'/': CLOSING,
+			'>': PARTIAL,
+			'!': COMMENT,
+			'&': INTERPOLATOR
+		};
+
+		getMustacheType = function ( tokenizer ) {
+			var type = mustacheTypes[ tokenizer.str.charAt( tokenizer.pos ) ];
+
+			if ( !type ) {
+				return null;
+			}
+
+			tokenizer.pos += 1;
+			return type;
+		};
+
+		getIndexRef = getRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ );
+	}());
+	
+
+	// triple
+	(function () {
+		getTriple = function ( tokenizer ) {
+			var start = tokenizer.pos, content;
+
+			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[0] ) ) {
+				return null;
+			}
+
+			// delimiter change?
+			content = getDelimiterChange( tokenizer );
+			if ( content ) {
+				// find closing delimiter or abort...
+				if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				// ...then make the switch
+				tokenizer.tripleDelimiters = content;
+				return { type: DELIMCHANGE };
+			}
+
+			// allow whitespace between opening delimiter and reference
+			allowWhitespace( tokenizer );
+
+			content = getMustacheRef( tokenizer );
+
+			if ( content === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// allow whitespace between reference and closing delimiter
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return {
+				type: TRIPLE,
+				ref: content
+			};
+		};
+	}());
+
+
+	// tag
+	(function () {
+		var getOpeningTag,
+		getClosingTag,
+		getTagName,
+		getAttributes,
+		getAttribute,
+		getAttributeName,
+		getAttributeValue,
+		getUnquotedAttributeValue,
+		getUnquotedAttributeValueToken,
+		getUnquotedAttributeValueText,
+		getSingleQuotedAttributeValue,
+		getSingleQuotedStringToken,
+		getDoubleQuotedAttributeValue,
+		getDoubleQuotedStringToken;
+
+		getTag = function ( tokenizer ) {
+			return ( getOpeningTag( tokenizer ) || getClosingTag( tokenizer ) );
+		};
+
+		getOpeningTag = function ( tokenizer ) {
+			var start, tag, attrs;
+
+			start = tokenizer.pos;
+
+			if ( !getStringMatch( tokenizer, '<' ) ) {
+				return null;
+			}
+
+			tag = {
+				type: TAG
+			};
+
+			// tag name
+			tag.name = getTagName( tokenizer );
+			if ( !tag.name ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// attributes
+			attrs = getAttributes( tokenizer );
+			if ( attrs ) {
+				tag.attrs = attrs;
+			}
+
+			// self-closing solidus?
+			if ( getStringMatch( tokenizer, '/' ) ) {
+				tag.selfClosing = true;
+			}
+
+			// closing angle bracket
+			if ( !getStringMatch( tokenizer, '>' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return tag;
+		};
+
+		getClosingTag = function ( tokenizer ) {
+			var start, tag;
+
+			start = tokenizer.pos;
+
+			if ( !getStringMatch( tokenizer, '<' ) ) {
+				return null;
+			}
+
+			tag = { type: TAG, closing: true };
+
+			// closing solidus
+			if ( !getStringMatch( tokenizer, '/' ) ) {
+				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected "/")' );
+			}
+
+			// tag name
+			tag.name = getTagName( tokenizer );
+			if ( !tag.name ) {
+				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected tag name)' );
+			}
+
+			// closing angle bracket
+			if ( !getStringMatch( tokenizer, '>' ) ) {
+				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ">")' );
+			}
+
+			return tag;
+		};
+
+		getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9]*/ );
+
+		getAttributes = function ( tokenizer ) {
+			var start, attrs, attr;
+
+			start = tokenizer.pos;
+
+			allowWhitespace( tokenizer );
+
+			attr = getAttribute( tokenizer );
+
+			if ( !attr ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			attrs = [];
+
+			while ( attr !== null ) {
+				attrs[ attrs.length ] = attr;
+
+				allowWhitespace( tokenizer );
+				attr = getAttribute( tokenizer );
+			}
+
+			return attrs;
+		};
+
+		getAttribute = function ( tokenizer ) {
+			var attr, name, value;
+
+			name = getAttributeName( tokenizer );
+			if ( !name ) {
+				return null;
+			}
+
+			attr = {
+				name: name
+			};
+
+			value = getAttributeValue( tokenizer );
+			if ( value ) {
+				attr.value = value;
+			}
+
+			return attr;
+		};
+
+		getAttributeName = getRegexMatcher( /^[^\s"'>\/=]+/ );
+
+		
+
+		getAttributeValue = function ( tokenizer ) {
+			var start, value;
+
+			start = tokenizer.pos;
+
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, '=' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			value = getSingleQuotedAttributeValue( tokenizer ) || getDoubleQuotedAttributeValue( tokenizer ) || getUnquotedAttributeValue( tokenizer );
+
+			if ( value === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return value;
+		};
+
+		getUnquotedAttributeValueText = getRegexMatcher( /^[^\s"'=<>`]+/ );
+
+		getUnquotedAttributeValueToken = function ( tokenizer ) {
+			var start, text, index;
+
+			start = tokenizer.pos;
+
+			text = getUnquotedAttributeValueText( tokenizer );
+
+			if ( !text ) {
+				return null;
+			}
+
+			if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
+				text = text.substr( 0, index );
+				tokenizer.pos = start + text.length;
+			}
+
+			return {
+				type: TEXT,
+				value: text
+			};
+		};
+
+		getUnquotedAttributeValue = function ( tokenizer ) {
+			var tokens, token;
+
+			tokens = [];
+
+			token = getMustache( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
+			while ( token !== null ) {
+				tokens[ tokens.length ] = token;
+				token = getMustache( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
+			}
+
+			if ( !tokens.length ) {
+				return null;
+			}
+
+			return tokens;
+		};
+
+
+		getSingleQuotedStringToken = function ( tokenizer ) {
+			var start, text, index;
+
+			start = tokenizer.pos;
+
+			text = getSingleQuotedString( tokenizer );
+
+			if ( !text ) {
+				return null;
+			}
+
+			if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
+				text = text.substr( 0, index );
+				tokenizer.pos = start + text.length;
+			}
+
+			return {
+				type: TEXT,
+				value: text
+			};
+		};
+
+		getSingleQuotedAttributeValue = function ( tokenizer ) {
+			var start, tokens, token;
+
+			start = tokenizer.pos;
+
+			if ( !getStringMatch( tokenizer, "'" ) ) {
+				return null;
+			}
+
+			tokens = [];
+
+			token = getMustache( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+			while ( token !== null ) {
+				tokens[ tokens.length ] = token;
+				token = getMustache( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+			}
+
+			if ( !getStringMatch( tokenizer, "'" ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return tokens;
+
+		};
+
+		getDoubleQuotedStringToken = function ( tokenizer ) {
+			var start, text, index;
+
+			start = tokenizer.pos;
+
+			text = getDoubleQuotedString( tokenizer );
+
+			if ( !text ) {
+				return null;
+			}
+
+			if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
+				text = text.substr( 0, index );
+				tokenizer.pos = start + text.length;
+			}
+
+			return {
+				type: TEXT,
+				value: text
+			};
+		};
+
+		getDoubleQuotedAttributeValue = function ( tokenizer ) {
+			var start, tokens, token;
+
+			start = tokenizer.pos;
+
+			if ( !getStringMatch( tokenizer, '"' ) ) {
+				return null;
+			}
+
+			tokens = [];
+
+			token = getMustache( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
+			while ( token !== null ) {
+				tokens[ tokens.length ] = token;
+				token = getMustache( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
+			}
+
+			if ( !getStringMatch( tokenizer, '"' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return tokens;
+
+		};
+	}());
+
+
+	// text
+	(function () {
+		getText = function ( tokenizer ) {
+			var minIndex, text;
+
+			minIndex = tokenizer.str.length;
+
+			// anything goes except opening delimiters or a '<'
+			[ tokenizer.delimiters[0], tokenizer.tripleDelimiters[0], '<' ].forEach( function ( substr ) {
+				var index = tokenizer.str.indexOf( substr, tokenizer.pos );
+
+				if ( index !== -1 ) {
+					minIndex = Math.min( index, minIndex );
+				}
+			});
+
+			if ( minIndex === tokenizer.pos ) {
+				return null;
+			}
+
+			text = tokenizer.str.substring( tokenizer.pos, minIndex );
+			tokenizer.pos = minIndex;
+
+			return {
+				type: TEXT,
+				value: text
+			};
+
+		};
+	}());
+
+
+	// expression
+	(function () {
+		var getExpressionList,
+		makePrefixSequenceMatcher,
+		makeInfixSequenceMatcher,
+		getRightToLeftSequenceMatcher,
+		getBracketedExpression,
+		getPrimary,
+		getMember,
+		getInvocation,
+		getTypeOf,
+		getLogicalOr,
+		getConditional,
+		
+		getDigits,
+		getExponent,
+		getFraction,
+		getInteger,
+		
+		getReference,
+		getRefinement,
+
+		getLiteral,
+		getArrayLiteral,
+		getBooleanLiteral,
+		getNumberLiteral,
+		getStringLiteral,
+		getObjectLiteral,
+		getGlobal,
+
+		getKeyValuePairs,
+		getKeyValuePair,
+		getKey,
+
+		globals;
+
+		getExpression = function ( tokenizer ) {
+
+			var start, expression, fns, fn, i, len;
+
+			start = tokenizer.pos;
+
+			// The conditional operator is the lowest precedence operator (except yield,
+			// assignment operators, and commas, none of which are supported), so we
+			// start there. If it doesn't match, it 'falls through' to progressively
+			// higher precedence operators, until it eventually matches (or fails to
+			// match) a 'primary' - a literal or a reference. This way, the abstract syntax
+			// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
+			expression = getConditional( tokenizer );
+
+			return expression;
+		};
+
+		getExpressionList = function ( tokenizer ) {
+			var start, expressions, expr, next;
+
+			start = tokenizer.pos;
+
+			allowWhitespace( tokenizer );
+
+			expr = getExpression( tokenizer );
+
+			if ( expr === null ) {
+				return null;
+			}
+
+			expressions = [ expr ];
+
+			// allow whitespace between expression and ','
+			allowWhitespace( tokenizer );
+
+			if ( getStringMatch( tokenizer, ',' ) ) {
+				next = getExpressionList( tokenizer );
+				if ( next === null ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				expressions = expressions.concat( next );
+			}
+
+			return expressions;
+		};
+
+		getBracketedExpression = function ( tokenizer ) {
+			var start, expr;
+
+			start = tokenizer.pos;
+
+			if ( !getStringMatch( tokenizer, '(' ) ) {
+				return null;
+			}
+
+			allowWhitespace( tokenizer );
+
+			expr = getExpression( tokenizer );
+			if ( !expr ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, ')' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return {
+				t: BRACKETED,
+				x: expr
+			};
+		};
+
+		getPrimary = function ( tokenizer ) {
+			return getLiteral( tokenizer )
+			    || getReference( tokenizer )
+			    || getBracketedExpression( tokenizer );
+		};
+
+		getMember = function ( tokenizer ) {
+			var start, expression, name, refinement, member;
+
+			expression = getPrimary( tokenizer );
+			if ( !expression ) {
+				return null;
+			}
+
+			refinement = getRefinement( tokenizer );
+			if ( !refinement ) {
+				return expression;
+			}
+
+			while ( refinement !== null ) {
+				member = {
+					t: MEMBER,
+					x: expression,
+					r: refinement
+				};
+
+				expression = member;
+				refinement = getRefinement( tokenizer );
+			}
+
+			return member;
+		};
+
+		getInvocation = function ( tokenizer ) {
+			var start, expression, expressionList, result;
+
+			expression = getMember( tokenizer );
+			if ( !expression ) {
+				return null;
+			}
+
+			start = tokenizer.pos;
+
+			if ( !getStringMatch( tokenizer, '(' ) ) {
+				return expression;
+			}
+
+			allowWhitespace( tokenizer );
+			expressionList = getExpressionList( tokenizer );
+
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, ')' ) ) {
+				tokenizer.pos = start;
+				return expression;
+			}
+
+			result = {
+				t: INVOCATION,
+				x: expression
+			};
+
+			if ( expressionList ) {
+				result.o = expressionList;
+			}
+
+			return result;
+		};
+
+		// right-to-left
+		makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
+			return function ( tokenizer ) {
+				var start, expression;
+
+				if ( !getStringMatch( tokenizer, symbol ) ) {
+					return fallthrough( tokenizer );
+				}
+
+				start = tokenizer.pos;
+
+				allowWhitespace( tokenizer );
+
+				expr = getExpression( tokenizer );
+				if ( !expression ) {
+					fail( tokenizer, 'an expression' );
+				}
+
+				return {
+					s: symbol,
+					o: expression,
+					t: PREFIX_OPERATOR
+				};
+			};
+		};
+
+		// create all prefix sequence matchers
+		(function () {
+			var i, len, matcher, prefixOperators, fallthrough;
+
+			prefixOperators = '! ~ + - typeof'.split( ' ' );
+
+			// An invocation operator is higher precedence than logical-not
+			fallthrough = getInvocation;
+			for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
+				matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
+				fallthrough = matcher;
+			}
+
+			// typeof operator is higher precedence than multiplication, so provides the
+			// fallthrough for the multiplication sequence matcher we're about to create
+			// (we're skipping void and delete)
+			getTypeOf = fallthrough;
+		}());
+
+
+		makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
+			return function ( tokenizer ) {
+				var start, left, right;
+
+				left = fallthrough( tokenizer );
+				if ( !left ) {
+					return null;
+				}
+
+				start = tokenizer.pos;
+
+				allowWhitespace( tokenizer );
+
+				if ( !getStringMatch( tokenizer, symbol ) ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				allowWhitespace( tokenizer );
+
+				right = getExpression( tokenizer );
+				if ( !right ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				return {
+					t: INFIX_OPERATOR,
+					s: symbol,
+					o: [ left, right ]
+				};
+			};
+		};
+
+		// create all infix sequence matchers
+		(function () {
+			var i, len, matcher, infixOperators, fallthrough;
+
+			// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
+			// Each sequence matcher will initially fall through to its higher precedence
+			// neighbour, and only attempt to match if one of the higher precedence operators
+			// (or, ultimately, a literal, reference, or bracketed expression) already matched
+			infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
+
+			// A typeof operator is higher precedence than multiplication
+			fallthrough = getTypeOf;
+			for ( i=0, len=infixOperators.length; i<len; i+=1 ) {
+				matcher = makeInfixSequenceMatcher( infixOperators[i], fallthrough );
+				fallthrough = matcher;
+			}
+
+			// Logical OR is the fallthrough for the conditional matcher
+			getLogicalOr = fallthrough;
+		}());
+		
+
+		// The conditional operator is the lowest precedence operator, so we start here
+		getConditional = function ( tokenizer ) {
+			var start, expression, ifTrue, ifFalse;
+
+			expression = getLogicalOr( tokenizer );
+			if ( !expression ) {
+				return null;
+			}
+
+			start = tokenizer.pos;
+
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, '?' ) ) {
+				tokenizer.pos = start;
+				return expression;
+			}
+
+			allowWhitespace( tokenizer );
+
+			ifTrue = getExpression( tokenizer );
+			if ( !ifTrue ) {
+				tokenizer.pos = start;
+				return expression;
+			}
+
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, ':' ) ) {
+				tokenizer.pos = start;
+				return expression;
+			}
+
+			allowWhitespace( tokenizer );
+
+			ifFalse = getExpression( tokenizer );
+			if ( !ifFalse ) {
+				tokenizer.pos = start;
+				return expression;
+			}
+
+			return {
+				t: CONDITIONAL,
+				o: [ expression, ifTrue, ifFalse ]
+			};
+		};
+		
+
+
+		getDigits = getRegexMatcher( /^[0-9]+/ );
+		getExponent = getRegexMatcher( /^[eE][\-+]?[0-9]+/ );
+		getFraction = getRegexMatcher( /^\.[0-9]+/ );
+		getInteger = getRegexMatcher( /^(0|[1-9][0-9]*)/ );
+
+
+		getReference = function ( tokenizer ) {
+			var name = getName( tokenizer );
+
+			if ( name === null ) {
+				return null;
+			}
+
+			return {
+				t: REFERENCE,
+				n: name
+			};
+		};
+
+		getRefinement = function ( tokenizer ) {
+			var start, refinement, name, expression;
+
+			start = tokenizer.pos;
+
+			// "." name
+			if ( getStringMatch( tokenizer, '.' ) ) {
+				if ( name = getName( tokenizer ) ) {
+					return {
+						t: REFINEMENT,
+						n: name
+					};
+				}
+
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// "[" expression "]"
+			if ( getStringMatch( tokenizer, '[' ) ) {
+				expr = getExpression( tokenizer );
+				if ( !expression || !getStringMatch( tokenizer, ']' ) ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				return {
+					t: REFINEMENT,
+					x: expression
+				};
+			}
+
 			return null;
-		}
+		};
 
-		tokens = [];
+		// Any literal except function and regexp literals, which aren't supported (yet?)
+		getLiteral = function ( tokenizer ) {
+			var literal = getNumberLiteral( tokenizer )   ||
+			              getBooleanLiteral( tokenizer )  ||
+			              getGlobal( tokenizer )          ||
+			              getStringLiteral( tokenizer )   ||
+			              getObjectLiteral( tokenizer )   ||
+			              getArrayLiteral( tokenizer );
 
-		token = expr.mustache( tokenizer ) || doubleQuotedStringToken( tokenizer );
-		while ( token !== null ) {
-			tokens[ tokens.length ] = token;
-			token = expr.mustache( tokenizer ) || doubleQuotedStringToken( tokenizer );
-		}
+			return literal;
+		};
 
-		if ( !expr.generic( tokenizer, '"' ) ) {
+		getArrayLiteral = function ( tokenizer ) {
+			var start, array, expressions;
+
+			start = tokenizer.pos;
+
+			// allow whitespace before '['
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, '[' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			expressions = expressionList( tokenizer );
+
+			if ( !getStringMatch( tokenizer, ']' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return {
+				t: ARRAY_LITERAL,
+				o: expressions
+			};
+		};
+
+		getBooleanLiteral = function ( tokenizer ) {
+			var remaining = tokenizer.remaining();
+
+			if ( remaining.substr( 0, 4 ) === 'true' ) {
+				tokenizer.pos += 4;
+				return {
+					t: BOOLEAN_LITERAL,
+					v: 'true'
+				};
+			}
+
+			if ( remaining.substr( 0, 5 ) === 'false' ) {
+				tokenizer.pos += 5;
+				return {
+					t: BOOLEAN_LITERAL,
+					v: 'false'
+				};
+			}
+
+			return null;
+		};
+
+		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)/;
+
+		// Not strictly literals, but we can treat them as such because they
+		// never need to be dereferenced.
+
+		// Allowed globals:
+		// ----------------
+		//
+		// Array, Date, RegExp, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, isFinite, isNaN, parseFloat, parseInt, JSON, Math, NaN, undefined, null
+		getGlobal = function ( tokenizer ) {
+			var start, name, match, global;
+
+			start = tokenizer.pos;
+			name = getName( tokenizer );
+
+			if ( !name ) {
+				return null;
+			}
+
+			match = globals.exec( name );
+			if ( match ) {
+				tokenizer.pos = start + match[0].length;
+				return {
+					t: GLOBAL,
+					v: match[0]
+				};
+			}
+
 			tokenizer.pos = start;
 			return null;
-		}
-
-		return tokens;
-
-	};
-
-}( expr ));
-(function ( expr ) {
-
-	var singleQuotedStringToken = function ( tokenizer ) {
-		var start, text, index;
-
-		start = tokenizer.pos;
-
-		text = expr.singleQuotedString( tokenizer );
-
-		if ( !text ) {
-			return null;
-		}
-
-		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-			text = text.substr( 0, index );
-			tokenizer.pos = start + text.length;
-		}
-
-		return {
-			type: TEXT,
-			value: text
 		};
-	};
 
-	expr.singleQuotedAttrValue = function ( tokenizer ) {
-		var start, tokens, token;
+		getNumberLiteral = function ( tokenizer ) {
+			var start, result;
 
-		start = tokenizer.pos;
+			start = tokenizer.pos;
 
-		if ( !expr.generic( tokenizer, "'" ) ) {
-			return null;
-		}
+			result = getInteger( tokenizer );
+			if ( result === null ) {
+				return null;
+			}
 
-		tokens = [];
+			result += getFraction( tokenizer ) || '';
+			result += getExponent( tokenizer ) || '';
 
-		token = expr.mustache( tokenizer ) || singleQuotedStringToken( tokenizer );
-		while ( token !== null ) {
-			tokens[ tokens.length ] = token;
-			token = expr.mustache( tokenizer ) || singleQuotedStringToken( tokenizer );
-		}
-
-		if ( !expr.generic( tokenizer, "'" ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return tokens;
-
-	};
-
-}( expr ));
-(function ( expr ) {
-
-	var unquotedAttrValueText = expr.regex( /^[^\s"'=<>`]+/ );
-
-	var unquotedAttrValueToken = function ( tokenizer ) {
-		var start, text, index;
-
-		start = tokenizer.pos;
-
-		text = unquotedAttrValueText( tokenizer );
-
-		if ( !text ) {
-			return null;
-		}
-
-		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-			text = text.substr( 0, index );
-			tokenizer.pos = start + text.length;
-		}
-
-		return {
-			type: TEXT,
-			value: text
+			return {
+				t: NUMBER_LITERAL,
+				v: result
+			};
 		};
-	};
 
-	expr.unquotedAttrValue = function ( tokenizer ) {
-		var tokens, token;
+		getObjectLiteral = function ( tokenizer ) {
+			var start, pairs, keyValuePairs, i, pair;
 
-		tokens = [];
+			start = tokenizer.pos;
 
-		token = expr.mustache( tokenizer ) || unquotedAttrValueToken( tokenizer );
-		while ( token !== null ) {
-			tokens[ tokens.length ] = token;
-			token = expr.mustache( tokenizer ) || unquotedAttrValueToken( tokenizer );
-		}
+			// allow whitespace
+			allowWhitespace( tokenizer );
 
-		if ( !tokens.length ) {
+			if ( !getStringMatch( tokenizer, '{' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			keyValuePairs = getKeyValuePairs( tokenizer );
+
+			// allow whitespace between final value and '}'
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, '}' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return {
+				t: OBJECT_LITERAL,
+				m: keyValuePairs
+			};
+		};
+
+		getKeyValuePairs = function ( tokenizer ) {
+			var start, pairs, pair, keyValuePairs;
+
+			start = tokenizer.pos;
+
+			pair = getKeyValuePair( tokenizer );
+			if ( pair === null ) {
+				return null;
+			}
+
+			pairs = [ pair ];
+
+			if ( getStringMatch( tokenizer, ',' ) ) {
+				keyValuePairs = getKeyValuePairs( tokenizer );
+
+				if ( !keyValuePairs ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				return pairs.concat( keyValuePairs );
+			}
+
+			return pairs;
+		};
+
+		getKeyValuePair = function ( tokenizer ) {
+			var start, pair, key, value;
+
+			start = tokenizer.pos;
+
+			// allow whitespace between '{' and key
+			allowWhitespace( tokenizer );
+
+			key = getKey( tokenizer );
+			if ( key === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// allow whitespace between key and ':'
+			allowWhitespace( tokenizer );
+
+			// next character must be ':'
+			if ( !getStringMatch( tokenizer, ':' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// allow whitespace between ':' and value
+			allowWhitespace( tokenizer );
+
+			// next expression must be a, well... expression
+			value = getExpression( tokenizer );
+			if ( value === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return {
+				t: KEY_VALUE_PAIR,
+				k: key,
+				v: value
+			};
+		};
+
+		// http://mathiasbynens.be/notes/javascript-properties
+		// can be any name, string literal, or number literal
+		getKey = function ( tokenizer ) {
+			return getName( tokenizer ) || getStringLiteral( tokenizer ) || getNumberLiteral( tokenizer );
+		};
+
+		getStringLiteral = function ( tokenizer ) {
+			var start, string;
+
+			start = tokenizer.pos;
+
+			if ( getStringMatch( tokenizer, '"' ) ) {
+				string = getDoubleQuotedString( tokenizer );
+			
+				if ( !getStringMatch( tokenizer, '"' ) ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				return {
+					t: STRING_LITERAL,
+					v: string
+				};
+			}
+
+			if ( getStringMatch( tokenizer, "'" ) ) {
+				string = getSingleQuotedString( tokenizer );
+
+				if ( !getStringMatch( tokenizer, "'" ) ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				return {
+					type: STRING_LITERAL,
+					value: string
+				};
+			}
+
 			return null;
-		}
+		};
+		
+	}());
 
-		return tokens;
-	};
 
-}( expr ));
-expr.attrs = function ( tokenizer ) {
-	var attrs, attr;
-
-	attr = expr.attr( tokenizer );
-
-	if ( !attr ) {
-		return null;
-	}
-
-	attrs = [];
-
-	while ( attr !== null ) {
-		attrs[ attrs.length ] = attr;
-		attr = expr.attr( tokenizer );
-	}
-
-	return attrs;
-};
-expr.closingTag = function ( tokenizer ) {
-	var start, tag;
-
-	start = tokenizer.pos;
-
-	if ( !expr.generic( tokenizer, '<' ) ) {
-		return null;
-	}
-
-	tag = { type: TAG, closing: true };
-
-	// closing solidus
-	if ( !expr.generic( tokenizer, '/' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// tag name
-	tag.name = expr.tagName( tokenizer );
-	if ( !tag.name ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// closing angle bracket
-	if ( !expr.generic( tokenizer, '>' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return tag;
-};
-expr.openingTag = function ( tokenizer ) {
-	var start, tag, attrs;
-
-	start = tokenizer.pos;
-
-	if ( !expr.generic( tokenizer, '<' ) ) {
-		return null;
-	}
-
-	tag = {
-		type: TAG
-	};
-
-	// tag name
-	tag.name = expr.tagName( tokenizer );
-	if ( !tag.name ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// attributes
-	attrs = expr.attrs( tokenizer );
-	if ( attrs ) {
-		tag.attrs = attrs;
-	}
-
-	// self-closing solidus?
-	if ( expr.generic( tokenizer, '/' ) ) {
-		tag.selfClosing = true;
-	}
-
-	// closing angle bracket
-	if ( !expr.generic( tokenizer, '>' ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return tag;
-};
-(function ( expr ) {
-
-	var tagNamePattern = /^[a-zA-Z][a-zA-Z0-9]*/;
-
-	expr.tagName = function ( tokenizer ) {
-		var match;
-
-		match = tagNamePattern.exec( tokenizer.str.substring( tokenizer.pos ) );
-
-		if ( !match ) {
-			return null;
-		}
-
-		tokenizer.pos += match[0].length;
-		return match[0];
-	};
-
-}( expr ));
-
-expr.text = function ( tokenizer ) {
-	var minIndex, text;
-
-	minIndex = tokenizer.str.length;
-
-	// anything goes except opening delimiters or a '<'
-	[ tokenizer.delimiters[0], tokenizer.tripleDelimiters[0], '<' ].forEach( function ( substr ) {
-		var index = tokenizer.str.indexOf( substr, tokenizer.pos );
-
-		if ( index !== -1 ) {
-			minIndex = Math.min( index, minIndex );
-		}
-	});
-
-	if ( minIndex === tokenizer.pos ) {
-		return null;
-	}
-
-	text = tokenizer.str.substring( tokenizer.pos, minIndex );
-	tokenizer.pos = minIndex;
-
-	return {
-		type: TEXT,
-		value: text
-	};
-
-};
-expr.triple = function ( tokenizer ) {
-	var start = tokenizer.pos, content;
-
-	if ( !expr.generic( tokenizer, tokenizer.tripleDelimiters[0] ) ) {
-		return null;
-	}
-
-	// delimiter change?
-	content = expr.delimiterChange( tokenizer );
-	if ( content ) {
-		// find closing delimiter or abort...
-		if ( !expr.generic( tokenizer, tokenizer.delimiters[1] ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		// ...then make the switch
-		tokenizer.tripleDelimiters = content;
-		return { type: DELIMCHANGE };
-	}
-
-	// allow whitespace between opening delimiter and reference
-	expr.whitespace( tokenizer );
-
-	content = expr.mustacheRef( tokenizer );
-
-	if ( content === null ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	// allow whitespace between reference and closing delimiter
-	expr.whitespace( tokenizer );
-
-	if ( !expr.generic( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
-		tokenizer.pos = start;
-		return null;
-	}
-
-	return {
-		type: TRIPLE,
-		ref: content
-	};
-};
-expr.whitespace = function ( tokenizer ) {
-	var match = leadingWhitespace.exec( tokenizer.str.substring( tokenizer.pos ) );
-
-	if ( !match ) {
-		return null;
-	}
-
-	tokenizer.pos += match[0].length;
-	return match[0];
-};
+}());
 Ractive.prototype = proto;
 
 Ractive.adaptors = adaptors;

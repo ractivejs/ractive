@@ -7,8 +7,6 @@ adaptors.backbone = function ( model, path ) {
 		pathLength = path.length;
 	}
 
-	console.log( path );
-
 
 	return {
 		init: function ( view ) {

@@ -1,5 +1,3 @@
-var initMustache, updateMustache, resolveMustache, evaluateMustache;
-
 initMustache = function ( mustache, options ) {
 
 	var keypath, index;

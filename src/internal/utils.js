@@ -1,7 +1,3 @@
-var keypathCache, splitKeypath, isArray, isObject, isNumeric, isEqual, getEl;
-
-keypathCache = {};
-
 splitKeypath =  function ( keypath ) {
 	var index, startIndex, keys, remaining, part;
 

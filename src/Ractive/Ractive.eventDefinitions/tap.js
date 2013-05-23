@@ -1,5 +1,5 @@
 eventDefinitions.tap = function ( el, fire ) {
-	var mousedown, touchstart, distanceThreshold, timeThreshold, target;
+	var mousedown, touchstart, distanceThreshold, timeThreshold;
 
 	distanceThreshold = 5; // maximum pixels pointer can move before cancel
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel

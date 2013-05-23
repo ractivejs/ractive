@@ -1,66 +1,76 @@
 {
-	"name": "ractive",
-	"description": "Faster, easier, better interactive web development",
-	"version": "0.3.0-alpha",
-	"homepage": "http://rich-harris.github.com/Ractive/",
-    "main": "build/Ractive.js",
-	"keywords": [ "template", "templating", "data binding", "binding", "declarative", "view model" ],
-	"author": {
-		"name": "Rich Harris"
-	},
-	"licenses": [
-		{
-			"type": "MIT"
-		}
-	],
-	"jam" : {
-        "main" : "Ractive.js",
-        "include" : [
-            "Ractive.js",
-            "build/Ractive.js",
-            "build/Ractive.runtime.js",
-            "build/Ractive.min.js",
-            "build/Ractive.runtime.min.js",
-            "build/Ractive-legacy.js",
-            "build/Ractive-legacy.runtime.js",
-            "build/Ractive-legacy.min.js",
-            "build/Ractive-legacy.runtime.min.js",
-            "README.md"
-        ]
-    },
-    "categories": [ "DOM", "Templating" ],
-    "bugs": {
-    	"web": "https://github.com/Rich-Harris/Ractive/issues"
-    },
-    "contributors": [
-    	{
-    		"name": "Max Ogden",
-    		"web": "https://github.com/maxogden"
-    	},
-    	{
-    		"name": "Ryan Ramage",
-    		"web": "https://github.com/ryanramage"
-    	},
-        {
-            "name": "Ayman Mackouly",
-            "web": "https://github.com/1N50MN14"
-        }
-    ],
-    "repositories": [
-    	{
-    		"type": "git",
-    		"url": "https://github.com/Rich-Harris/Ractive.git"
-    	}
-    ],
-    "github": "https://github.com/Rich-Harris/Ractive",
-    "devDependencies": {
-        "grunt": "~0.4.0",
-        "grunt-contrib-jshint": "~0.2.0",
-        "grunt-contrib-clean": "~0.4.0",
-        "grunt-contrib-qunit": "~0.2.0",
-        "grunt-contrib-concat": "~0.1.3",
-        "grunt-contrib-uglify": "~0.1.2",
-        "grunt-contrib-copy": "~0.4.0",
-        "grunt-contrib-watch": "~0.4.3"
+  "name": "ractive",
+  "description": "Faster, easier, better interactive web development",
+  "version": "0.3.0-alpha",
+  "homepage": "http://rich-harris.github.com/Ractive/",
+  "main": "build/Ractive.js",
+  "keywords": [
+    "template",
+    "templating",
+    "data binding",
+    "binding",
+    "declarative",
+    "view model"
+  ],
+  "author": {
+    "name": "Rich Harris"
+  },
+  "licenses": [
+    {
+      "type": "MIT"
     }
+  ],
+  "jam": {
+    "main": "Ractive.js",
+    "include": [
+      "Ractive.js",
+      "build/Ractive.js",
+      "build/Ractive.runtime.js",
+      "build/Ractive.min.js",
+      "build/Ractive.runtime.min.js",
+      "build/Ractive-legacy.js",
+      "build/Ractive-legacy.runtime.js",
+      "build/Ractive-legacy.min.js",
+      "build/Ractive-legacy.runtime.min.js",
+      "README.md"
+    ]
+  },
+  "categories": [
+    "DOM",
+    "Templating"
+  ],
+  "bugs": {
+    "web": "https://github.com/Rich-Harris/Ractive/issues"
+  },
+  "contributors": [
+    {
+      "name": "Max Ogden",
+      "web": "https://github.com/maxogden"
+    },
+    {
+      "name": "Ryan Ramage",
+      "web": "https://github.com/ryanramage"
+    },
+    {
+      "name": "Ayman Mackouly",
+      "web": "https://github.com/1N50MN14"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/Rich-Harris/Ractive.git"
+    }
+  ],
+  "github": "https://github.com/Rich-Harris/Ractive",
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "grunt-contrib-jshint": "~0.2.0",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt-contrib-qunit": "~0.2.0",
+    "grunt-contrib-concat": "~0.1.3",
+    "grunt-contrib-uglify": "~0.1.2",
+    "grunt-contrib-copy": "~0.4.0",
+    "grunt-contrib-watch": "~0.4.3"
+  }
 }

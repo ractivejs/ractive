@@ -58,7 +58,7 @@ getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhites
 		pos: 0,
 		tokens: tokens || [],
 		next: function () {
-			return parser.tokens[ parser.pos ]
+			return parser.tokens[ parser.pos ];
 		},
 		options: options
 	};

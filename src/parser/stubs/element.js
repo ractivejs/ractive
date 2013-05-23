@@ -61,7 +61,7 @@
 
 
 	ElementStub = function ( firstToken, parser, priority, preserveWhitespace ) {
-		var closed, next, i, len, attrs, proxies, attr, priority, getFrag, item;
+		var closed, next, i, len, attrs, proxies, attr, getFrag, item;
 
 		this.tag = firstToken.name;
 		this.lcTag = this.tag.toLowerCase();

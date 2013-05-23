@@ -158,10 +158,6 @@ var Ractive,
 
 proto = {},
 
-tokens = {},
-expr = {},
-stubs = {},
-
 // properties of the public Ractive object
 adaptors = {},
 eventDefinitions = {},
@@ -171,8 +167,17 @@ interpolate,
 interpolators,
 
 
+// internal utils
+splitKeypath,
+isArray,
+isObject,
+isNumeric,
+isEqual,
+getEl,
+
+
 // internally used caches
-animationCollection,
+keypathCache = {},
 
 
 // internally used constructors
@@ -187,9 +192,33 @@ leadingWhitespace = /^\s+/,
 trailingWhitespace = /\s+$/,
 
 
+// other bits and pieces
+initMustache,
+updateMustache,
+resolveMustache,
+evaluateMustache,
+
+initFragment,
+updateSection,
+
+animationCollection,
+
+
 // array modification
 registerKeypathToArray,
 unregisterKeypathFromArray,
+
+
+// tokenizer
+getToken,
+
+tokens = {},
+expr = {},
+stubs = {},
+
+stripCommentTokens,
+stripHtmlComments,
+stripStandalones,
 
 
 // constants
@@ -220,9 +249,10 @@ GLOBAL            = 26,
 REFERENCE         = 30,
 REFINEMENT        = 31,
 MEMBER            = 32,
-PREFIX            = 33,
+PREFIX_OPERATOR   = 33,
 BRACKETED         = 34,
 CONDITIONAL       = 35,
+INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
 
@@ -769,8 +799,6 @@ adaptors.backbone = function ( model, path ) {
 		pathLength = path.length;
 	}
 
-	console.log( path );
-
 
 	return {
 		init: function ( view ) {
@@ -910,7 +938,7 @@ easing = {
 	}
 };
 eventDefinitions.tap = function ( el, fire ) {
-	var mousedown, touchstart, distanceThreshold, timeThreshold, target;
+	var mousedown, touchstart, distanceThreshold, timeThreshold;
 
 	distanceThreshold = 5; // maximum pixels pointer can move before cancel
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
@@ -1734,7 +1762,7 @@ animationCollection = {
 	};
 
 }({}, {}));
-var initFragment = function ( fragment, options ) {
+initFragment = function ( fragment, options ) {
 
 	var numItems, i, itemOptions, parentRefs, ref;
 
@@ -1790,8 +1818,6 @@ var initFragment = function ( fragment, options ) {
 	}
 
 };
-var initMustache, updateMustache, resolveMustache, evaluateMustache;
-
 initMustache = function ( mustache, options ) {
 
 	var keypath, index;
@@ -1880,7 +1906,7 @@ evaluateMustache = function () {
 
 	return this.evaluator.apply( null, args );
 };
-var updateSection = function ( section, value ) {
+updateSection = function ( section, value ) {
 	var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 	fragmentOptions = {
@@ -3059,10 +3085,6 @@ var updateSection = function ( section, value ) {
 	};
 
 }());
-var keypathCache, splitKeypath, isArray, isObject, isNumeric, isEqual, getEl;
-
-keypathCache = {};
-
 splitKeypath =  function ( keypath ) {
 	var index, startIndex, keys, remaining, part;
 

@@ -1,6 +1,3 @@
-var stripCommentTokens, stripHtmlComments, stripStandalones;
-
-
 stripCommentTokens = function ( tokens ) {
 	var i, current, previous, next;
 

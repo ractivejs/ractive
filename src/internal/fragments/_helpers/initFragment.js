@@ -1,4 +1,4 @@
-var initFragment = function ( fragment, options ) {
+initFragment = function ( fragment, options ) {
 
 	var numItems, i, itemOptions, parentRefs, ref;
 

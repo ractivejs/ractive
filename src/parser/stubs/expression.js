@@ -10,9 +10,7 @@
 		this.refs = [];
 
 		getRefs( token, this.refs );
-
 		this.str = stringify( token, this.refs );
-
 	};
 
 	ExpressionStub.prototype = {
@@ -26,79 +24,75 @@
 
 
 
-	getRefs = function ( exprToken, refs ) {
+	getRefs = function ( token, refs ) {
 		var i;
 
-		if ( exprToken.type === REFERENCE ) {
-			if ( refs.indexOf( exprToken.name ) === -1 ) {
-				refs[ refs.length ] = exprToken.name;
+		if ( token.t === REFERENCE ) {
+			if ( refs.indexOf( token.n ) === -1 ) {
+				refs[ refs.length ] = token.n;
 			}
 		}
 
-		if ( exprToken.expressions ) {
-			i = exprToken.expressions.length;
+		if ( token.o ) {
+			i = token.o.length;
 			while ( i-- ) {
-				getRefs( exprToken.expressions[i], refs );
+				getRefs( token.o[i], refs );
 			}
 		}
 
-		if ( exprToken.expression ) {
-			getRefs( exprToken.expression, refs );
+		if ( token.x ) {
+			getRefs( token.x, refs );
 		}
 
-		if ( exprToken.parameters ) {
-			i = exprToken.parameters.length;
-			while ( i-- ) {
-				getRefs( exprToken.parameters[i], refs );
-			}
-		}
-
-		if ( exprToken.refinement ) {
-			getRefs( exprToken.refinement, refs );
+		if ( token.r ) {
+			getRefs( token.r, refs );
 		}
 	};
 
 
-	stringify = function ( exprToken, refs ) {
+	stringify = function ( token, refs ) {
 		var map = function ( item ) {
 			return stringify( item, refs );
 		};
 
-		switch ( exprToken.type ) {
+		switch ( token.t ) {
 			case BOOLEAN_LITERAL:
 			case GLOBAL:
 			case NUMBER_LITERAL:
-			return exprToken.value;
+			return token.v;
 
 			case STRING_LITERAL:
-			return '"' + exprToken.value.replace( /"/g, '\\"' ) + '"';
+			return '"' + token.v.replace( /"/g, '\\"' ) + '"';
 
 			case ARRAY_LITERAL:
-			return '[' + exprToken.expressions.map( map ).join( ',' ) + ']';
+			return '[' + token.m.map( map ).join( ',' ) + ']';
 
-			case PREFIX:
-			return exprToken.symbol + stringify( exprToken.expression, refs );
+			case PREFIX_OPERATOR:
+			return token.s + stringify( token.x, refs );
+
+			case INFIX_OPERATOR:
+			return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
 
 			case INVOCATION:
-			return stringify( exprToken.expression, refs ) + '(' + ( exprToken.parameters ? exprToken.parameters.map( map ).join( ',' ) : '' ) + ')';
+			return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
 
 			case BRACKETED:
-			return '(' + stringify( exprToken.expression, refs ) + ')';
+			return '(' + stringify( token.x, refs ) + ')';
 
 			case MEMBER:
-			return stringify( exprToken.expression, refs ) + stringify( exprToken.refinement, refs );
+			return stringify( token.x, refs ) + stringify( token.r, refs );
 
 			case REFINEMENT:
-			return ( exprToken.name ? '.' + exprToken.name : '[' + stringify( exprToken.expression, refs ) + ']' );
+			return ( token.n ? '.' + token.n : '[' + stringify( token.x, refs ) + ']' );
 
 			case CONDITIONAL:
-			return stringify( exprToken.expressions[0], refs ) + '?' + stringify( exprToken.expressions[1], refs ) + ':' + stringify( exprToken.expressions[2], refs );
+			return stringify( token.o[0], refs ) + '?' + stringify( token.o[1], refs ) + ':' + stringify( token.o[2], refs );
 
 			case REFERENCE:
-			return '❖' + refs.indexOf( exprToken.name );
+			return '❖' + refs.indexOf( token.n );
 
 			default:
-			return stringify( exprToken.expressions[0], refs ) + exprToken.symbol + stringify( exprToken.expressions[1], refs );
+			throw new Error( 'Could not stringify expression token. This error is unexpected' );
 		}
 	};
 

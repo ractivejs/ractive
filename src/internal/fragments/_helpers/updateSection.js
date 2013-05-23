@@ -1,4 +1,4 @@
-var updateSection = function ( section, value ) {
+updateSection = function ( section, value ) {
 	var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 	fragmentOptions = {
