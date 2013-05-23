@@ -1,0 +1,138 @@
+[
+	{
+		"name": "Empty string",
+		"template": "",
+		"parsed": [""]
+	},
+	{
+		"name": "Mustache-less text",
+		"template": "a string",
+		"parsed": ["a string"]
+	},
+	{
+		"name": "Interpolator",
+		"template": "{{mustache}}",
+		"parsed": [{"t":2,"r":"mustache"}]
+	},
+	{
+		"name": "Triple",
+		"template": "{{{mustache}}}",
+		"parsed": [{"t":3,"r":"mustache"}]
+	},
+	{
+		"name": "Empty section",
+		"template": "{{#mustache}}{{/mustache}}",
+		"parsed": [{"t":4,"r":"mustache"}]
+	},
+	{
+		"name": "Section",
+		"template": "{{#mustache}}contents{{/mustache}}",
+		"parsed": [{"f":"contents","t":4,"r":"mustache"}]
+	},
+	{
+		"name": "Interpolator with preceding text",
+		"template": "preceding text {{mustache}}",
+		"parsed": ["preceding text ",{"t":2,"r":"mustache"}]
+	},
+	{
+		"name": "Interpolator with following text",
+		"template": "{{mustache}} following text",
+		"parsed": [{"t":2,"r":"mustache"}," following text"]
+	},
+	{
+		"name": "Delimiter change",
+		"template": "{{=<% %>=}} <% mustache %>",
+		"parsed": [" ",{"t":2,"r":"mustache"}]
+	},
+	{
+		"name": "Named index",
+		"template": "{{#items:i}}{{i}}: {{name}}{{/items}}",
+		"parsed": [{"f":[{"p":1,"r":"i","t":2},": ",{"p":1,"r":"name","t":2}],"i":"i","r":"items","t":4}]
+	},
+	{
+		"name": "Element with unquoted attributes",
+		"template": "<div class=test></div>",
+		"parsed": ["<div class=test></div>"]
+	},
+	{
+		"name": "Element with unquoted attributes and a mustache",
+		"template": "<div class=test>{{mustache}}</div>",
+		"parsed": [{"t":7,"e":"div","a":{"class":"test"},"f":[{"t":2,"r":"mustache","p":1}]}]
+	},
+	{
+		"name": "Element with unquoted mustache attributes",
+		"template": "<div class={{myClass}}>contents</div>",
+		"parsed": [{"a":{"class":[{"p":1,"r":"myClass","t":2}]},"f":"contents","e":"div","t":7}]
+	},
+	{
+		"name": "Template with blacklisted elements (sanitize)",
+		"template": "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
+		"parsed": [""],
+		"sanitize": true
+	},
+	{
+		"name": "Template with blacklisted elements and mustaches (sanitize)",
+		"template": "<link rel='{{rel}}'>",
+		"parsed": [""],
+		"sanitize": true
+	},
+	{
+		"name": "Template with blacklisted elements (don't sanitize)",
+		"template": "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
+		"parsed": ["<style type=text/css>body { font-family: 'Comic Sans MS'; }</style>"],
+		"sanitize": false
+	},
+	{
+		"name": "Template with blacklisted elements and mustaches (don't sanitize)",
+		"template": "<link rel='{{rel}}'>",
+		"parsed": [{"a":{"rel":[{"p":1,"r":"rel","t":2}]},"e":"link","t":7}],
+		"sanitize": false
+	},
+	{
+		"name": "Element with an event attribute (sanitize)",
+		"template": "<p onclick='doSomething();'>{{text}}</p>",
+		"parsed": [{"f":[{"p":1,"r":"text","t":2}],"e":"p","t":7}],
+		"sanitize": true
+	},
+	{
+		"name": "Element with an event attribute (don't sanitize)",
+		"template": "<p onclick='doSomething();'>{{text}}</p>",
+		"parsed": [{"a":{"onclick":"doSomething();"},"f":[{"p":1,"r":"text","t":2}],"e":"p","t":7}],
+		"sanitize": false
+	},
+	{
+		"name": "SVG",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"{{x}}\" cy=\"{{y}}\" r=\"{{r}}\"/></svg>",
+		"parsed": [{"a":{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"a":{"cx":[{"p":2,"r":"x","t":2}],"cy":[{"p":2,"r":"y","t":2}],"r":[{"p":2,"r":"r","t":2}]},"e":"circle","t":7}],"e":"svg","t":7}]
+	},
+	{
+		"name": "SVG with non-mustache text",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>some text</text></svg>",
+		"parsed": [{"a":{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"f":"some text","e":"text","t":7}],"e":"svg","t":7}]
+	},
+	{
+		"name": "SVG with interpolator",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>{{hello}}</text></svg>",
+		"parsed": [{"a":{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"f":[{"p":2,"r":"hello","t":2}],"e":"text","t":7}],"e":"svg","t":7}]
+	},
+	{
+		"name": "SVG with interpolator and static text",
+		"template": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>Hello {{thing}}!</text></svg>",
+		"parsed": [{"a":{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"f":["Hello ",{"p":2,"r":"thing","t":2},"!"],"e":"text","t":7}],"e":"svg","t":7}]
+	},
+	{
+		"name": "Mixture of HTML-able and non-HTML-able elements in template",
+		"template": "<div><p>HTML</p><p>{{mustache}}</p></div>",
+		"parsed": [{"t":7,"e":"div","f":[{"t":7,"e":"p","f":"HTML"},{"t":7,"e":"p","f":[{"p":2,"t":2,"r":"mustache"}]}]}]
+	},
+	{
+		"name": "Expression mustache",
+		"template": "{{( i + 1 )}}",
+		"parsed": [{"t":2,"x":{"r":["i"],"s":"â–0+1"}}]
+	},
+	{
+		"name": "Expression mustache with brackets",
+		"template": "{{( (i) + 1 )}}",
+		"parsed": [{"t":2,"x":{"r":["i"],"s":"(â–0)+1"}}]
+	}
+]

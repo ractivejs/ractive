@@ -1,48 +1,4 @@
-var Ractive, utils, types, namespaces, tokens, expr, stubs;
-
-utils = {};
-types = {};
-namespaces = {};
-tokens = {};
-expr = {};
-stubs = {};
-
-// constants
-var TEXT          = 1,
-INTERPOLATOR      = 2,
-TRIPLE            = 3,
-SECTION           = 4,
-INVERTED          = 5,
-CLOSING           = 6,
-ELEMENT           = 7,
-PARTIAL           = 8,
-COMMENT           = 9,
-DELIMCHANGE       = 10,
-MUSTACHE          = 11,
-TAG               = 12,
-ATTR_VALUE_TOKEN  = 13,
-EXPRESSION        = 14,
-
-NUMBER_LITERAL    = 20,
-STRING_LITERAL    = 21,
-ARRAY_LITERAL     = 22,
-OBJECT_LITERAL    = 23,
-BOOLEAN_LITERAL   = 24,
-LITERAL           = 25,
-GLOBAL            = 26,
-
-
-REFERENCE         = 30,
-REFINEMENT        = 31,
-MEMBER            = 32,
-PREFIX            = 33,
-BRACKETED         = 34,
-CONDITIONAL       = 35,
-
-INVOCATION        = 40;
 (function ( doc ) {
-
-	'use strict';
 
 	// Shims for older browsers
 
@@ -184,7 +140,7 @@ INVOCATION        = 40;
 
 }( document ));
 
-/*! Ractive - v0.2.2 - 2013-05-23
+/*! Ractive - v0.3.0-alpha - 2013-05-23
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -198,17 +154,46 @@ INVOCATION        = 40;
 
 'use strict';
 
-var Ractive, utils, types, namespaces, tokens, expr, stubs;
+var Ractive,
 
-utils = {};
-types = {};
-namespaces = {};
-tokens = {};
-expr = {};
-stubs = {};
+proto = {},
+
+tokens = {},
+expr = {},
+stubs = {},
+
+// properties of the public Ractive object
+adaptors = {},
+eventDefinitions = {},
+easing,
+extend,
+interpolate,
+interpolators,
+
+
+// internally used caches
+animationCollection,
+
+
+// internally used constructors
+DomFragment,
+TextFragment,
+Evaluator,
+Animation,
+
+
+// internally used regexes
+leadingWhitespace = /^\s+/,
+trailingWhitespace = /\s+$/,
+
+
+// array modification
+registerKeypathToArray,
+unregisterKeypathFromArray,
+
 
 // constants
-var TEXT          = 1,
+TEXT              = 1,
 INTERPOLATOR      = 2,
 TRIPLE            = 3,
 SECTION           = 4,
@@ -239,128 +224,71 @@ PREFIX            = 33,
 BRACKETED         = 34,
 CONDITIONAL       = 35,
 
-INVOCATION        = 40;
-Ractive = function ( options ) {
-
-	var defaults, key, partial, i;
-
-	// Options
-	// -------
-
-	if ( options ) {
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				this[ key ] = options[ key ];
-			}
-		}
-	}
-
-	defaults = {
-		preserveWhitespace: false,
-		append: false,
-		twoway: true,
-		modifyArrays: true,
-		data: {}
-	};
-
-	for ( key in defaults ) {
-		if ( defaults.hasOwnProperty( key ) && this[ key ] === undefined ) {
-			this[ key ] = defaults[ key ];
-		}
-	}
+INVOCATION        = 40,
 
 
-	// Initialization
-	// --------------
-
-	if ( this.el !== undefined ) {
-		this.el = utils.getEl( this.el ); // turn ID string into DOM element
-	}
-
-	// Set up event bus
-	this._subs = {};
-
-	// Set up cache
-	this._cache = {};
-
-	// Set up dependants
-	this._deps = {};
-	this._depsMap = {};
-
-	// Node registry
-	this.nodes = {};
-
-	// Set up observers
-	this._observers = {};
-	this._pendingResolution = [];
-
-	// Create an array for deferred attributes
-	this._defAttrs = [];
-
-	// Cache proxy event handlers - allows efficient reuse
-	this._proxies = {};
-
-	// Set up bindings
-	this._bound = [];
-	if ( this.bindings ) {
-		if ( utils.isArray( this.bindings ) ) {
-			for ( i=0; i<this.bindings.length; i+=1 ) {
-				this.bind( this.bindings[i] );
-			}
-		} else {
-			this.bind( this.bindings );
-		}
-	}
-
-	// If we were given uncompiled partials, compile them
-	if ( this.partials ) {
-		for ( key in this.partials ) {
-			if ( this.partials.hasOwnProperty( key ) ) {
-				partial = this.partials[ key ];
-
-				if ( typeof partial === 'string' ) {
-					if ( !Ractive.compile ) {
-						throw new Error( 'Missing Ractive.compile - cannot compile partial "' + key + '". Either precompile or use the version that includes the compiler' );
-					}
-
-					partial = Ractive.compile( partial, this ); // all compiler options are present on `this`, so just passing `this`
-				}
-
-				// If the partial was an array with a single string member, that means
-				// we can use innerHTML - we just need to unpack it
-				if ( partial.length === 1 && typeof partial[0] === 'string' ) {
-					partial = partial[0];
-				}
-				this.partials[ key ] = partial;
-			}
-		}
-	}
-
-	// Compile template, if it hasn't been compiled already
-	if ( typeof this.template === 'string' ) {
-		if ( !Ractive.compile ) {
-			throw new Error( 'Missing Ractive.compile - cannot compile template. Either precompile or use the version that includes the compiler' );
-		}
-
-		this.template = Ractive.compile( this.template, this );
-	}
-
-	// If the template was an array with a single string member, that means
-	// we can use innerHTML - we just need to unpack it
-	if ( this.template && ( this.template.length === 1 ) && ( typeof this.template[0] === 'string' ) ) {
-		this.template = this.template[0];
-	}
-
-	// If passed an element, render immediately
-	if ( this.el ) {
-		this.render({ el: this.el, append: this.append });
-	}
+// namespaces
+namespaces = {
+	html:   'http://www.w3.org/1999/xhtml',
+	mathml: 'http://www.w3.org/1998/Math/MathML',
+	svg:    'http://www.w3.org/2000/svg',
+	xlink:  'http://www.w3.org/1999/xlink',
+	xml:    'http://www.w3.org/XML/1998/namespace',
+	xmlns:  'http://www.w3.org/2000/xmlns/'
 };
+proto.animate = function ( keypath, to, options ) {
+	var easing, duration, animation, i, keys;
 
-var proto = Ractive.prototype;
+	options = options || {};
 
-Ractive.adaptors = {};
-Ractive.eventDefinitions = {};
+	// cancel any existing animation
+	// TODO what about upstream/downstream keypaths?
+	i = animationCollection.animations.length;
+	while ( i-- ) {
+		if ( animationCollection.animations[ i ].keypath === keypath ) {
+			animationCollection.animations[ i ].stop();
+		}
+	}
+
+	// easing function
+	if ( options.easing ) {
+		if ( typeof options.easing === 'function' ) {
+			easing = options.easing;
+		}
+
+		else {
+			if ( this.easing && this.easing[ options.easing ] ) {
+				// use instance easing function first
+				easing = this.easing[ options.easing ];
+			} else {
+				// fallback to global easing functions
+				easing = Ractive.easing[ options.easing ];
+			}
+		}
+
+		if ( typeof easing !== 'function' ) {
+			easing = null;
+		}
+	}
+
+	// duration
+	duration = ( options.duration === undefined ? 400 : options.duration );
+
+	keys = splitKeypath( keypath );
+
+	animation = new Animation({
+		keys: keys,
+		from: this.get( keys ),
+		to: to,
+		root: this,
+		duration: duration,
+		easing: easing,
+		step: options.step,
+		complete: options.complete
+	});
+
+	animationCollection.push( animation );
+};
 proto.bind = function ( adaptor ) {
 	var bound = this._bound;
 
@@ -383,13 +311,13 @@ proto.fire = function ( eventName ) {
 	}
 };
 proto.get = function ( keypath, dontNormalise ) {
-	var keys, normalised, key, match, parentKeypath, parentValue, value;
+	var keys, normalised, key, parentKeypath, parentValue, value;
 
 	if ( !keypath ) {
 		return this.data;
 	}
 
-	if ( utils.isArray( keypath ) ) {
+	if ( isArray( keypath ) ) {
 		keys = keypath.slice(); // clone
 		normalised = keys.join( '.' );
 	}
@@ -400,7 +328,7 @@ proto.get = function ( keypath, dontNormalise ) {
 			return this._cache[ keypath ];
 		}
 
-		keys = utils.splitKeypath( keypath );
+		keys = splitKeypath( keypath );
 		normalised = keys.join( '.' );
 	}
 
@@ -433,8 +361,8 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// Is this an array that needs to be wrapped?
 	if ( this.modifyArrays ) {
-		if ( utils.isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
-			utils.addKeypath( value, normalised, this );
+		if ( isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
+			registerKeypathToArray( value, normalised, this );
 		}
 	}
 
@@ -442,6 +370,166 @@ proto.get = function ( keypath, dontNormalise ) {
 	this._cache[ normalised ] = value;
 	
 	return value;
+};
+var cancelKeypathResolution, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
+
+cancelKeypathResolution = function ( root, mustache ) {
+	var index = root._pendingResolution.indexOf( mustache );
+
+	if ( index !== -1 ) {
+		root._pendingResolution.splice( index, 1 );
+	}
+};
+
+clearCache = function ( root, keypath ) {
+	var value, dependants = root._depsMap[ keypath ], i;
+
+	// is this a modified array, which shouldn't fire set events on this keypath anymore?
+	if ( root.modifyArrays ) {
+		value = root._cache[ keypath ];
+		if ( isArray( value ) && !value._ractive.setting ) {
+			unregisterKeypathFromArray( value, keypath, root );
+		}
+	}
+	
+
+	delete root._cache[ keypath ];
+
+	if ( !dependants ) {
+		return;
+	}
+
+	i = dependants.length;
+	while ( i-- ) {
+		clearCache( root, dependants[i] );
+	}
+};
+
+
+
+registerDependant = function ( root, keypath, dependant, priority ) {
+	var deps;
+
+	if ( !root._deps[ keypath ] ) {
+		root._deps[ keypath ] = [];
+	}
+
+	deps = root._deps[ keypath ];
+	
+	if ( !deps[ priority ] ) {
+		deps[ priority ] = [ dependant ];
+		return;
+	}
+
+	deps = deps[ priority ];
+
+	if ( deps.indexOf( dependant ) === -1 ) {
+		deps[ deps.length ] = dependant;
+	}
+};
+
+
+unregisterDependant = function ( root, keypath, dependant, priority ) {
+	var deps, i, keep;
+
+	deps = root._deps[ keypath ][ priority ];
+	deps.splice( deps.indexOf( dependant ), 1 );
+
+	if ( !deps.length ) {
+		root._deps[ keypath ].splice( priority, 1 );
+	}
+
+	// can we forget this keypath altogether?
+	// TODO should we delete it? may be better to keep it, so we don't need to
+	// create again in future
+	i = root._deps[ keypath ].length;
+	while ( i-- ) {
+		if ( root._deps[ keypath ][i] ) {
+			keep = true;
+			break;
+		}
+	}
+
+	if ( !keep ) {
+		delete root._deps[ keypath ];
+	}
+};
+
+
+notifyDependants = function ( root, keypath ) {
+	var depsByPriority, deps, i, j, len, childDeps;
+
+	depsByPriority = root._deps[ keypath ];
+
+	if ( depsByPriority ) {
+		len = depsByPriority.length;
+		for ( i=0; i<len; i+=1 ) {
+			deps = depsByPriority[i];
+
+			if ( deps ) {
+				j = deps.length;
+				while ( j-- ) {
+					deps[j].update();
+				}
+			}
+		}
+	}
+
+	
+
+	// cascade
+	childDeps = root._depsMap[ keypath ];
+	
+	if ( childDeps ) {
+		i = childDeps.length;
+		while ( i-- ) {
+
+			notifyDependants( root, childDeps[i] );
+			
+			// TODO at some point, no-longer extant dependants need to be removed
+			// from the map. However a keypath can have no direct dependants yet
+			// still have downstream dependants, so it's not entirely straightforward
+		}
+	}
+};
+
+
+// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
+// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
+resolveRef = function ( root, ref, contextStack ) {
+
+	var keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
+
+	// Implicit iterators - i.e. {{.}} - are a special case
+	if ( ref === '.' ) {
+		return contextStack[ contextStack.length - 1 ];
+	}
+
+	keys = splitKeypath( ref );
+	lastKey = keys.pop();
+
+	// Clone the context stack, so we don't mutate the original
+	contextStack = contextStack.concat();
+
+	// Take each context from the stack, working backwards from the innermost context
+	while ( contextStack.length ) {
+
+		innerMostContext = contextStack.pop();
+		contextKeys = splitKeypath( innerMostContext );
+
+		parentValue = root.get( contextKeys.concat( keys ) );
+
+		if ( typeof parentValue === 'object' && parentValue.hasOwnProperty( lastKey ) ) {
+			keypath = innerMostContext + '.' + ref;
+			break;
+		}
+	}
+
+	if ( !keypath && root.get( ref ) !== undefined ) {
+		keypath = ref;
+	}
+
+	return keypath;
 };
 proto.link = function ( keypath ) {
 	var self = this;
@@ -508,7 +596,7 @@ proto.on = function ( eventName, callback ) {
 };
 // Render instance to element specified here or at initialization
 proto.render = function ( options ) {
-	var el = ( options.el ? utils.getEl( options.el ) : this.el );
+	var el = ( options.el ? getEl( options.el ) : this.el );
 
 	if ( !el ) {
 		throw new Error( 'You must specify a DOM element to render to' );
@@ -524,7 +612,7 @@ proto.render = function ( options ) {
 	}
 
 	// Render our *root fragment*
-	this.rendered = new utils.DomFragment({
+	this.rendered = new DomFragment({
 		descriptor: this.template,
 		root: this,
 		owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
@@ -540,16 +628,16 @@ proto.render = function ( options ) {
 	setSingle = function ( root, keypath, value ) {
 		var keys, key, obj, normalised, i, unresolved;
 
-		if ( utils.isArray( keypath ) ) {
+		if ( isArray( keypath ) ) {
 			keys = keypath.slice();
 		} else {
-			keys = utils.splitKeypath( keypath );
+			keys = splitKeypath( keypath );
 		}
 
 		normalised = keys.join( '.' );
 
 		// Clear cache
-		utils.clearCache( root, normalised );
+		clearCache( root, normalised );
 
 		// update data
 		obj = root.data;
@@ -579,7 +667,7 @@ proto.render = function ( options ) {
 		}
 
 		// Trigger updates of mustaches that observe `keypaths` or its descendants
-		utils.notifyDependants( root, normalised );
+		notifyDependants( root, normalised );
 
 		// See if we can resolve any of the unresolved keypaths (if such there be)
 		i = root._pendingResolution.length;
@@ -587,7 +675,7 @@ proto.render = function ( options ) {
 			unresolved = root._pendingResolution.splice( i, 1 )[0];
 
 			
-			if ( keypath = utils.resolveRef( root, unresolved.ref, unresolved.contextStack ) ) {
+			if ( keypath = resolveRef( root, unresolved.ref, unresolved.contextStack ) ) {
 				// If we've resolved the keypath, we can initialise this item
 				unresolved.resolve( keypath );
 
@@ -610,7 +698,7 @@ proto.render = function ( options ) {
 	};
 
 	proto.set = function ( keypath, value ) {
-		if ( utils.isObject( keypath ) ) {
+		if ( isObject( keypath ) ) {
 			setMultiple( this, keypath );
 		} else {
 			setSingle( this, keypath, value );
@@ -637,14 +725,14 @@ proto.teardown = function () {
 	// Once with keypaths that have dependents...
 	for ( keypath in this._depsMap ) {
 		if ( this._depsMap.hasOwnProperty( keypath ) ) {
-			utils.clearCache( this, keypath );
+			clearCache( this, keypath );
 		}
 	}
 
 	// Then a second time to mop up the rest
 	for ( keypath in this._cache ) {
 		if ( this._cache.hasOwnProperty( keypath ) ) {
-			utils.clearCache( this, keypath );
+			clearCache( this, keypath );
 		}
 	}
 
@@ -664,402 +752,634 @@ proto.unbind = function ( adaptor ) {
 	}
 };
 proto.update = function ( keypath ) {
-	utils.clearCache( this, keypath || '' );
-	utils.notifyDependants( this, keypath || '' );
+	clearCache( this, keypath || '' );
+	notifyDependants( this, keypath || '' );
 
 	this.fire( 'update:' + keypath );
 	this.fire( 'update', keypath );
 
 	return this;
 };
-utils.cancelKeypathResolution = function ( root, mustache ) {
-	var index = root._pendingResolution.indexOf( mustache );
+adaptors.backbone = function ( model, path ) {
+	var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
 
-	if ( index !== -1 ) {
-		root._pendingResolution.splice( index, 1 );
+	if ( path ) {
+		path += '.';
+		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+		pathLength = path.length;
+	}
+
+	console.log( path );
+
+
+	return {
+		init: function ( view ) {
+			
+			// if no path specified...
+			if ( !path ) {
+				setView = function ( model ) {
+					if ( !settingModel ) {
+						settingView = true;
+						view.set( model.changed );
+						settingView = false;
+					}
+				};
+
+				setModel = function ( keypath, value ) {
+					if ( !settingView ) {
+						settingModel = true;
+						model.set( keypath, value );
+						settingModel = false;
+					}
+				};
+			}
+
+			else {
+				prefix = function ( attrs ) {
+					var attr, result;
+
+					result = {};
+
+					for ( attr in attrs ) {
+						if ( attrs.hasOwnProperty( attr ) ) {
+							result[ path + attr ] = attrs[ attr ];
+						}
+					}
+
+					return result;
+				};
+
+				setView = function ( model ) {
+					if ( !settingModel ) {
+						settingView = true;
+						view.set( prefix( model.changed ) );
+						settingView = false;
+					}
+				};
+
+				setModel = function ( keypath, value ) {
+					if ( !settingView ) {
+						if ( pathMatcher.test( keypath ) ) {
+							settingModel = true;
+							model.set( keypath.substring( pathLength ), value );
+							settingModel = false;
+						}
+					}
+				};
+			}
+
+			model.on( 'change', setView );
+			view.on( 'set', setModel );
+			
+			// initialise
+			view.set( path ? prefix( model.attributes ) : model.attributes );
+		},
+
+		teardown: function ( view ) {
+			model.off( 'change', setView );
+			view.off( 'set', setModel );
+		}
+	};
+};
+adaptors.statesman = function ( model, path ) {
+	var settingModel, settingView, setModel, setView;
+
+	path = ( path ? path + '.' : '' );
+
+	return {
+		init: function ( view ) {
+			setView = function ( keypath, value ) {
+				if ( !settingModel ) {
+					settingView = true;
+					view.set( keypath, value );
+					settingView = false;
+				}
+			};
+
+			setModel = function ( keypath, value ) {
+				if ( !settingView ) {
+					settingModel = true;
+					model.set( keypath, value );
+					settingModel = false;
+				}
+			};
+
+			model.on( 'set', setView );
+			view.on( 'set', setModel );
+
+			// initialise
+			view.set( model.get() );
+		},
+
+		teardown: function ( view ) {
+			model.off( 'change', setView );
+			view.off( 'set', setModel );
+		}
+	};
+};
+// These are a subset of the easing equations found at
+// https://raw.github.com/danro/easing-js - license info
+// follows:
+
+// --------------------------------------------------
+// easing.js v0.5.4
+// Generic set of easing functions with AMD support
+// https://github.com/danro/easing-js
+// This code may be freely distributed under the MIT license
+// http://danro.mit-license.org/
+// --------------------------------------------------
+// All functions adapted from Thomas Fuchs & Jeremy Kahn
+// Easing Equations (c) 2003 Robert Penner, BSD license
+// https://raw.github.com/danro/easing-js/master/LICENSE
+// --------------------------------------------------
+
+// In that library, the functions named easeIn, easeOut, and
+// easeInOut below are named easeInCubic, easeOutCubic, and
+// (you guessed it) easeInOutCubic.
+//
+// You can add additional easing functions to this list, and they
+// will be globally available.
+
+easing = {
+	linear: function ( pos ) { return pos; },
+	easeIn: function ( pos ) { return Math.pow( pos, 3 ); },
+	easeOut: function ( pos ) { return ( Math.pow( ( pos - 1 ), 3 ) + 1 ); },
+	easeInOut: function ( pos ) {
+		if ( ( pos /= 0.5 ) < 1 ) { return ( 0.5 * Math.pow( pos, 3 ) ); }
+		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
 	}
 };
-utils.clearCache = function ( root, keypath ) {
-	var value, dependants = root._depsMap[ keypath ], i;
+eventDefinitions.tap = function ( el, fire ) {
+	var mousedown, touchstart, distanceThreshold, timeThreshold, target;
 
-	// is this a modified array, which shouldn't fire set events on this keypath anymore?
-	if ( root.modifyArrays ) {
-		value = root._cache[ keypath ];
-		if ( utils.isArray( value ) && !value._ractive.setting ) {
-			utils.removeKeypath( value, keypath, root );
+	distanceThreshold = 5; // maximum pixels pointer can move before cancel
+	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
+
+	mousedown = function ( event ) {
+		var x, y, currentTarget, up, move, cancel;
+
+		x = event.clientX;
+		y = event.clientY;
+		currentTarget = this;
+
+		up = function ( event ) {
+			fire.call( currentTarget, event );
+			cancel();
+		};
+
+		move = function ( event ) {
+			if ( ( Math.abs( event.clientX - x ) >= distanceThreshold ) || ( Math.abs( event.clientY - y ) >= distanceThreshold ) ) {
+				cancel();
+			}
+		};
+
+		cancel = function () {
+			window.removeEventListener( 'mousemove', move );
+			window.removeEventListener( 'mouseup', up );
+		};
+
+		window.addEventListener( 'mousemove', move );
+		window.addEventListener( 'mouseup', up );
+
+		setTimeout( cancel, timeThreshold );
+	};
+
+	el.addEventListener( 'mousedown', mousedown );
+
+
+	touchstart = function ( event ) {
+		var x, y, touch, finger, move, up, cancel;
+
+		if ( event.touches.length !== 1 ) {
+			return;
 		}
-	}
-	
 
-	delete root._cache[ keypath ];
+		touch = event.touches[0];
+		x = touch.clientX;
+		y = touch.clientY;
+		finger = touch.identifier;
 
-	if ( !dependants ) {
-		return;
-	}
+		up = function ( event ) {
+			var touch;
 
-	i = dependants.length;
-	while ( i-- ) {
-		utils.clearCache( root, dependants[i] );
-	}
+			touch = event.changedTouches[0];
+			if ( touch.identifier !== finger ) {
+				cancel();
+			}
+
+			fire.call( touch.target, event );
+		};
+
+		move = function ( event ) {
+			var touch;
+
+			if ( event.touches.length !== 1 || event.touches[0].identifier !== finger ) {
+				cancel();
+			}
+
+			touch = event.touches[0];
+			if ( ( Math.abs( touch.clientX - x ) >= distanceThreshold ) || ( Math.abs( touch.clientY - y ) >= distanceThreshold ) ) {
+				cancel();
+			}
+		};
+
+		cancel = function () {
+			window.removeEventListener( 'touchmove', move );
+			window.removeEventListener( 'touchend', up );
+			window.removeEventListener( 'touchcancel', cancel );
+		};
+
+		window.addEventListener( 'touchmove', move );
+		window.addEventListener( 'touchend', up );
+		window.addEventListener( 'touchcancel', cancel );
+
+		setTimeout( cancel, timeThreshold );
+	};
+
+
+	return {
+		teardown: function () {
+			el.removeEventListener( 'mousedown', mousedown );
+			el.removeEventListener( 'touchstart', touchstart );
+		}
+	};
 };
-utils.getEl = function ( input ) {
-	var output, doc;
+extend = function ( childProps ) {
 
-	if ( typeof window === 'undefined' ) {
-		return;
-	}
+	var Parent, Child, key;
 
-	doc = window.document;
+	Parent = this;
 
-	if ( !input ) {
-		throw new Error( 'No container element specified' );
-	}
+	Child = function () {
+		Ractive.apply( this, arguments );
 
-	// We already have a DOM node - no work to do
-	if ( input.tagName ) {
-		return input;
-	}
-
-	// Get node from string
-	if ( typeof input === 'string' ) {
-		// try ID first
-		output = doc.getElementById( input );
-
-		// then as selector, if possible
-		if ( !output && doc.querySelector ) {
-			output = doc.querySelector( input );
+		if ( this.init ) {
+			this.init.apply( this, arguments );
 		}
+	};
 
-		// did it work?
-		if ( output.tagName ) {
-			return output;
+	// extend child with parent methods
+	for ( key in Parent.prototype ) {
+		if ( Parent.prototype.hasOwnProperty( key ) ) {
+			Child.prototype[ key ] = Parent.prototype[ key ];
 		}
 	}
 
-	// If we've been given a collection (jQuery, Zepto etc), extract the first item
-	if ( input[0] && input[0].tagName ) {
-		return input[0];
+	// extend child with specified methods, as long as they don't override Ractive.prototype methods
+	for ( key in childProps ) {
+		if ( childProps.hasOwnProperty( key ) ) {
+			if ( Ractive.prototype.hasOwnProperty( key ) ) {
+				throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
+			}
+
+			Child.prototype[ key ] = childProps[ key ];
+		}
 	}
 
-	throw new Error( 'Could not find container element' );
+	Child.extend = Parent.extend;
+
+	return Child;
 };
-utils.notifyDependants = function ( root, keypath ) {
-	var depsByPriority, deps, i, j, len, childDeps;
+interpolate = function ( from, to ) {
+	if ( isNumeric( from ) && isNumeric( to ) ) {
+		return Ractive.interpolators.number( +from, +to );
+	}
 
-	depsByPriority = root._deps[ keypath ];
+	if ( isArray( from ) && isArray( to ) ) {
+		return Ractive.interpolators.array( from, to );
+	}
 
-	if ( depsByPriority ) {
-		len = depsByPriority.length;
-		for ( i=0; i<len; i+=1 ) {
-			deps = depsByPriority[i];
+	if ( isObject( from ) && isObject( to ) ) {
+		return Ractive.interpolators.object( from, to );
+	}
 
-			if ( deps ) {
-				j = deps.length;
-				while ( j-- ) {
-					deps[j].update();
+	return function () { return to; };
+};
+interpolators = {
+	number: function ( from, to ) {
+		var delta = to - from;
+
+		if ( !delta ) {
+			return function () { return from; };
+		}
+
+		return function ( t ) {
+			return from + ( t * delta );
+		};
+	},
+
+	array: function ( from, to ) {
+		var intermediate, interpolators, len, i;
+
+		intermediate = [];
+		interpolators = [];
+
+		i = len = Math.min( from.length, to.length );
+		while ( i-- ) {
+			interpolators[i] = Ractive.interpolate( from[i], to[i] );
+		}
+
+		// surplus values - don't interpolate, but don't exclude them either
+		for ( i=len; i<from.length; i+=1 ) {
+			intermediate[i] = from[i];
+		}
+
+		for ( i=len; i<to.length; i+=1 ) {
+			intermediate[i] = to[i];
+		}
+
+		return function ( t ) {
+			var i = len;
+
+			while ( i-- ) {
+				intermediate[i] = interpolators[i]( t );
+			}
+
+			return intermediate;
+		};
+	},
+
+	object: function ( from, to ) {
+		var properties = [], len, interpolators, intermediate, prop;
+
+		intermediate = {};
+		interpolators = {};
+
+		for ( prop in from ) {
+			if ( from.hasOwnProperty( prop ) ) {
+				if ( to.hasOwnProperty( prop ) ) {
+					properties[ properties.length ] = prop;
+					interpolators[ prop ] = Ractive.interpolate( from[ prop ], to[ prop ] );
+				}
+
+				else {
+					intermediate[ prop ] = from[ prop ];
 				}
 			}
 		}
-	}
 
-	
-
-	// cascade
-	childDeps = root._depsMap[ keypath ];
-	
-	if ( childDeps ) {
-		i = childDeps.length;
-		while ( i-- ) {
-
-			utils.notifyDependants( root, childDeps[i] );
-			
-			// TODO at some point, no-longer extant dependants need to be removed
-			// from the map. However a keypath can have no direct dependants yet
-			// still have downstream dependants, so it's not entirely straightforward
+		for ( prop in to ) {
+			if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
+				intermediate[ prop ] = to[ prop ];
+			}
 		}
+
+		len = properties.length;
+
+		return function ( t ) {
+			var i = len, prop;
+
+			while ( i-- ) {
+				prop = properties[i];
+
+				intermediate[ prop ] = interpolators[ prop ]( t );
+			}
+
+			return intermediate;
+		};
 	}
 };
-/*utils.notifyObservers = function ( root, keypath ) {
-	var observersGroupedByPriority = root._observers[ keypath ] || [], i, j, priorityGroup, observer;
+Ractive = function ( options ) {
 
-	for ( i=0; i<observersGroupedByPriority.length; i+=1 ) {
-		priorityGroup = observersGroupedByPriority[i];
+	var defaults, key, partial, i;
 
-		if ( priorityGroup ) {
-			for ( j=0; j<priorityGroup.length; j+=1 ) {
-				observer = priorityGroup[j];
-				observer.update( root.get( observer.keys ) );
+	// Options
+	// -------
+
+	if ( options ) {
+		for ( key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				this[ key ] = options[ key ];
 			}
 		}
 	}
-};*/
-/*utils.observe = function ( root, mustache ) {
 
-	var observerRefs = [], observe, keys, priority = mustache.descriptor.p || 0;
-
-	observe = function ( keypath ) {
-		var observers;
-
-		observers = root._observers[ keypath ] = root._observers[ keypath ] || [];
-		observers = observers[ priority ] = observers[ priority ] || [];
-
-		observers[ observers.length ] = mustache;
-		observerRefs[ observerRefs.length ] = {
-			keypath: keypath,
-			priority: priority,
-			mustache: mustache
-		};
+	defaults = {
+		preserveWhitespace: false,
+		append: false,
+		twoway: true,
+		modifyArrays: true,
+		data: {}
 	};
 
-	keys = utils.splitKeypath( mustache.keypath );
-	while ( keys.length ) {
-		observe( keys.join( '.' ) );
-
-		// remove the last item in the keypath, so that `data.set( 'parent', { child: 'newValue' } )`
-		// affects mustaches dependent on `parent.child`
-		keys.pop();
-	}
-
-	observe( keys[0] );
-
-	return observerRefs;
-};*/
-utils.registerDependant = function ( root, keypath, dependant, priority ) {
-	var deps, dependants;
-
-	if ( !root._deps[ keypath ] ) {
-		root._deps[ keypath ] = [];
-	}
-
-	deps = root._deps[ keypath ];
-	
-	if ( !deps[ priority ] ) {
-		deps[ priority ] = [ dependant ];
-		return;
-	}
-
-	deps = deps[ priority ];
-
-	if ( deps.indexOf( dependant ) === -1 ) {
-		deps[ deps.length ] = dependant;
-	}
-};
-/*utils.registerMustache = function ( root, mustache ) {
-	var resolved, value, index, keypath;
-
-	if ( mustache.parentFragment.indexRefs && ( mustache.parentFragment.indexRefs.hasOwnProperty( mustache.descriptor.r ) ) ) {
-		// This isn't a real keypath, it's an index reference
-		index = mustache.parentFragment.indexRefs[ mustache.descriptor.r ];
-		mustache.update( index );
-
-		return; // This value will never change, and doesn't have a keypath
-	}
-
-	// See if we can resolve a keypath from this mustache's reference (e.g.
-	// does 'bar' in {{#foo}}{{bar}}{{/foo}} mean 'bar' or 'foo.bar'?)
-	keypath = utils.resolveRef( root, mustache.descriptor.r, mustache.contextStack );
-
-	if ( keypath ) {
-		mustache.keypath = keypath;
-		mustache.keys = utils.splitKeypath( mustache.keypath );
-
-		mustache.observerRefs = utils.observe( root, mustache );
-		mustache.update( root.get( mustache.keypath ) );
-
-	} else {
-		root._pendingResolution[ root._pendingResolution.length ] = mustache;
-	}
-};*/
-// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
-// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-utils.resolveRef = function ( root, ref, contextStack ) {
-
-	var keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
-
-	// Implicit iterators - i.e. {{.}} - are a special case
-	if ( ref === '.' ) {
-		return contextStack[ contextStack.length - 1 ];
-	}
-
-	keys = utils.splitKeypath( ref );
-	lastKey = keys.pop();
-
-	// Clone the context stack, so we don't mutate the original
-	contextStack = contextStack.concat();
-
-	// Take each context from the stack, working backwards from the innermost context
-	while ( contextStack.length ) {
-
-		innerMostContext = contextStack.pop();
-		contextKeys = utils.splitKeypath( innerMostContext );
-
-		parentValue = root.get( contextKeys.concat( keys ) );
-
-		if ( typeof parentValue === 'object' && parentValue.hasOwnProperty( lastKey ) ) {
-			keypath = innerMostContext + '.' + ref;
-			break;
+	for ( key in defaults ) {
+		if ( defaults.hasOwnProperty( key ) && this[ key ] === undefined ) {
+			this[ key ] = defaults[ key ];
 		}
 	}
 
-	if ( !keypath && root.get( ref ) !== undefined ) {
-		keypath = ref;
+
+	// Initialization
+	// --------------
+
+	if ( this.el !== undefined ) {
+		this.el = getEl( this.el ); // turn ID string into DOM element
 	}
 
-	return keypath;
-};
+	// Set up event bus
+	this._subs = {};
 
+	// Set up cache
+	this._cache = {};
 
+	// Set up dependants
+	this._deps = {};
+	this._depsMap = {};
 
-// utils.resolveRef = function ( root, mustache ) {
+	// Node registry
+	this.nodes = {};
 
-// 	var ref, contextStack, keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
+	// Set up observers
+	this._observers = {};
+	this._pendingResolution = [];
 
-// 	ref = mustache.descriptor.r;
-// 	contextStack = mustache.contextStack;
+	// Create an array for deferred attributes
+	this._defAttrs = [];
 
-// 	// Implicit iterators - i.e. {{.}} - are a special case
-// 	if ( ref === '.' ) {
-// 		keypath = contextStack[ contextStack.length - 1 ];
-// 	}
+	// Cache proxy event handlers - allows efficient reuse
+	this._proxies = {};
 
-// 	else {
-// 		keys = utils.splitKeypath( ref );
-// 		lastKey = keys.pop();
-
-// 		// Clone the context stack, so we don't mutate the original
-// 		contextStack = contextStack.concat();
-
-// 		// Take each context from the stack, working backwards from the innermost context
-// 		while ( contextStack.length ) {
-
-// 			innerMostContext = contextStack.pop();
-// 			contextKeys = utils.splitKeypath( innerMostContext );
-
-// 			parentValue = root.get( contextKeys.concat( keys ) );
-
-// 			if ( typeof parentValue === 'object' && parentValue.hasOwnProperty( lastKey ) ) {
-// 				keypath = innerMostContext + '.' + ref;
-// 				break;
-// 			}
-// 		}
-
-// 		if ( !keypath && root.get( ref ) !== undefined ) {
-// 			keypath = ref;
-// 		}
-// 	}
-
-// 	if ( keypath ) {
-// 		mustache.keypath = keypath;
-// 		mustache.keys = utils.splitKeypath( mustache.keypath );
-
-// 		mustache.observerRefs = utils.observe( root, mustache );
-// 		mustache.update( root.get( mustache.keypath ) );
-
-// 		return true; // indicate success
-// 	}
-
-// 	return false; // failure
-// };
-/*utils.unobserve = function ( root, observerRef ) {
-	var priorityGroups, observers, index, i, len;
-
-	priorityGroups = root._observers[ observerRef.keypath ];
-	if ( !priorityGroups ) {
-		// nothing to unobserve
-		return;
+	// Set up bindings
+	this._bound = [];
+	if ( this.bindings ) {
+		if ( isArray( this.bindings ) ) {
+			for ( i=0; i<this.bindings.length; i+=1 ) {
+				this.bind( this.bindings[i] );
+			}
+		} else {
+			this.bind( this.bindings );
+		}
 	}
 
-	observers = priorityGroups[ observerRef.priority ];
-	if ( !observers ) {
-		// nothing to unobserve
-		return;
-	}
+	// If we were given unparsed partials, parse them
+	if ( this.partials ) {
+		for ( key in this.partials ) {
+			if ( this.partials.hasOwnProperty( key ) ) {
+				partial = this.partials[ key ];
 
-	if ( observers.indexOf ) {
-		index = observers.indexOf( observerRef.observer );
-	} else {
-		// fuck you IE
-		for ( i=0, len=observers.length; i<len; i+=1 ) {
-			if ( observers[i] === observerRef.mustache ) {
-				index = i;
-				break;
+				if ( typeof partial === 'string' ) {
+					if ( !Ractive.parse ) {
+						throw new Error( 'Missing Ractive.parse - cannot parse partial "' + key + '". Either preparse or use the version that includes the parser' );
+					}
+
+					partial = Ractive.parse( partial, this ); // all parser options are present on `this`, so just passing `this`
+				}
+
+				// If the partial was an array with a single string member, that means
+				// we can use innerHTML - we just need to unpack it
+				if ( partial.length === 1 && typeof partial[0] === 'string' ) {
+					partial = partial[0];
+				}
+				this.partials[ key ] = partial;
 			}
 		}
 	}
 
+	// Compile template, if it hasn't been parsed already
+	if ( typeof this.template === 'string' ) {
+		if ( !Ractive.parse ) {
+			throw new Error( 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' );
+		}
 
-	if ( index === -1 ) {
-		// nothing to unobserve
-		return;
+		this.template = Ractive.parse( this.template, this );
 	}
 
-	// remove the observer from the list...
-	observers.splice( index, 1 );
-
-	// ...then tidy up if necessary
-	if ( observers.length === 0 ) {
-		delete priorityGroups[ observerRef.priority ];
+	// If the template was an array with a single string member, that means
+	// we can use innerHTML - we just need to unpack it
+	if ( this.template && ( this.template.length === 1 ) && ( typeof this.template[0] === 'string' ) ) {
+		this.template = this.template[0];
 	}
 
-	if ( priorityGroups.length === 0 ) {
-		delete root._observers[ observerRef.keypath ];
+	// If passed an element, render immediately
+	if ( this.el ) {
+		this.render({ el: this.el, append: this.append });
 	}
-};*/
-/*utils.unobserveAll = function ( root, observerRefs ) {
-	while ( observerRefs.length ) {
-		utils.unobserve( root, observerRefs.shift() );
-	}
-};*/
-utils.unregisterDependant = function ( root, keypath, dependant, priority ) {
-	var deps, dependants, i, keep;
+};
 
-	deps = root._deps[ keypath ][ priority ];
-	deps.splice( deps.indexOf( dependant ), 1 );
+Animation = function ( options ) {
+	var key;
 
-	if ( !deps.length ) {
-		root._deps[ keypath ].splice( priority, 1 );
-	}
+	this.startTime = Date.now();
 
-	// can we forget this keypath altogether?
-	// TODO should we delete it? may be better to keep it, so we don't need to
-	// create again in future
-	i = root._deps[ keypath ].length;
-	while ( i-- ) {
-		if ( root._deps[ keypath ][i] ) {
-			keep = true;
-			break;
+	// from and to
+	for ( key in options ) {
+		if ( options.hasOwnProperty( key ) ) {
+			this[ key ] = options[ key ];
 		}
 	}
 
-	if ( !keep ) {
-		delete root._deps[ keypath ];
-	}
+	this.interpolator = Ractive.interpolate( this.from, this.to );
+	this.running = true;
 };
-// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-utils.isArray = function ( obj ) {
-	return Object.prototype.toString.call( obj ) === '[object Array]';
-};
-utils.isEqual = function ( a, b ) {
-	if ( a === null && b === null ) {
-		return true;
-	}
 
-	if ( typeof a === 'object' || typeof b === 'object' ) {
+Animation.prototype = {
+	tick: function () {
+		var elapsed, t, value, timeNow;
+
+		if ( this.running ) {
+			timeNow = Date.now();
+			elapsed = timeNow - this.startTime;
+
+			if ( elapsed >= this.duration ) {
+				this.root.set( this.keys, this.to );
+
+				if ( this.step ) {
+					this.step( 1, this.to );
+				}
+
+				if ( this.complete ) {
+					this.complete( 1, this.to );
+				}
+
+				this.running = false;
+				return false;
+			}
+
+			t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
+			value = this.interpolator( t );
+
+			this.root.set( this.keys, value );
+
+			if ( this.step ) {
+				this.step( t, value );
+			}
+
+			return true;
+		}
+
 		return false;
+	},
+
+	stop: function () {
+		this.running = false;
+	}
+};
+animationCollection = {
+	animations: [],
+
+	tick: function () {
+		var i, animation;
+
+		for ( i=0; i<this.animations.length; i+=1 ) {
+			animation = this.animations[i];
+
+			if ( !animation.tick() ) {
+				// animation is complete, remove it from the stack, and decrement i so we don't miss one
+				this.animations.splice( i--, 1 );
+			}
+		}
+
+		if ( this.animations.length ) {
+			global.requestAnimationFrame( this.boundTick );
+		} else {
+			this.running = false;
+		}
+	},
+
+	// bind method to animationCollection
+	boundTick: function () {
+		animationCollection.tick();
+	},
+
+	push: function ( animation ) {
+		this.animations[ this.animations.length ] = animation;
+
+		if ( !this.running ) {
+			this.running = true;
+			this.tick();
+		}
+	}
+};
+// https://gist.github.com/paulirish/1579671
+(function( vendors, lastTime, global ) {
+	
+	var x;
+
+	for ( x = 0; x < vendors.length && !global.requestAnimationFrame; ++x ) {
+		global.requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
+		global.cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
 	}
 
-	return a === b;
-};
-// http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
-utils.isNumeric = function ( n ) {
-	return !isNaN( parseFloat( n ) ) && isFinite( n );
-};
-utils.isObject = function ( obj ) {
-	return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
-};
-(function ( utils ) {
+	if ( !global.requestAnimationFrame ) {
+		global.requestAnimationFrame = function(callback) {
+			var currTime, timeToCall, id;
+			
+			currTime = Date.now();
+			timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
+			id = global.setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+			
+			lastTime = currTime + timeToCall;
+			return id;
+		};
+	}
 
-	'use strict';
+	if ( !global.cancelAnimationFrame ) {
+		global.cancelAnimationFrame = function( id ) {
+			global.clearTimeout( id );
+		};
+	}
+}( ['ms', 'moz', 'webkit', 'o'], 0, global ));
+(function () {
 
 	var define, notifyDependents, wrapArray, unwrapArray, WrappedArrayProto, testObj, mutatorMethods;
 
@@ -1078,7 +1398,7 @@ utils.isObject = function ( obj ) {
 
 	// Register a keypath to this array. When any of this array's mutator methods are called,
 	// it will `set` that keypath on the given Ractive instance
-	utils.addKeypath = function ( array, keypath, root ) {
+	registerKeypathToArray = function ( array, keypath, root ) {
 		var roots, keypathsByIndex, rootIndex, keypaths;
 
 		// If this array hasn't been wrapped, we need to wrap it
@@ -1124,7 +1444,7 @@ utils.isObject = function ( obj ) {
 
 
 	// Unregister keypath from array
-	utils.removeKeypath = function ( array, keypath, root ) {
+	unregisterKeypathFromArray = function ( array, keypath, root ) {
 		var roots, keypathsByIndex, rootIndex, keypaths, keypathIndex;
 
 		if ( !array._ractive ) {
@@ -1240,556 +1560,10 @@ utils.isObject = function ( obj ) {
 		};
 	}
 
-}( utils ));
-utils.namespaces = {
-	html: 'http://www.w3.org/1999/xhtml',
-	mathml: 'http://www.w3.org/1998/Math/MathML',
-	svg: 'http://www.w3.org/2000/svg',
-	xlink: 'http://www.w3.org/1999/xlink',
-	xml: 'http://www.w3.org/XML/1998/namespace',
-	xmlns: 'http://www.w3.org/2000/xmlns/'
-};
-(function ( utils, keypathCache ) {
-	
-	utils.splitKeypath =  function ( keypath ) {
-		var i, index, startIndex, keys, remaining, part;
+}());
+(function ( evaluators, functions ) {
 
-		// We should only have to do all the heavy regex stuff once... caching FTW
-		if ( keypathCache[ keypath ] ) {
-			return keypathCache[ keypath ].concat();
-		}
-
-		keys = [];
-		remaining = keypath;
-		
-		startIndex = 0;
-
-		// Split into keys
-		while ( remaining.length ) {
-			// Find next dot
-			index = remaining.indexOf( '.', startIndex );
-
-			// Final part?
-			if ( index === -1 ) {
-				part = remaining;
-				remaining = '';
-			}
-
-			else {
-				// If this dot is preceded by a backslash, which isn't
-				// itself preceded by a backslash, we consider it escaped
-				if ( remaining.charAt( index - 1) === '\\' && remaining.charAt( index - 2 ) !== '\\' ) {
-					// we don't want to keep this part, we want to keep looking
-					// for the separator
-					startIndex = index + 1;
-					continue;
-				}
-
-				// Otherwise, we have our next part
-				part = remaining.substr( 0, index );
-				startIndex = 0;
-			}
-
-			if ( /\[/.test( part ) ) {
-				keys = keys.concat( part.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' ) );
-			} else {
-				keys[ keys.length ] = part;
-			}
-			
-			remaining = remaining.substring( index + 1 );
-		}
-
-		
-		keypathCache[ keypath ] = keys;
-		return keys.concat();
-	};
-
-}( utils, {} ));
-// types = {
-// 	TEXT:             1,
-// 	INTERPOLATOR:     2,
-// 	TRIPLE:           3,
-// 	SECTION:          4,
-// 	INVERTED:         5,
-// 	CLOSING:          6,
-// 	ELEMENT:          7,
-// 	PARTIAL:          8,
-// 	COMMENT:          9,
-// 	DELIMCHANGE:      10,
-// 	MUSTACHE:         11,
-// 	TAG:              12,
-// 	ATTR_VALUE_TOKEN: 13
-// };
-Ractive.adaptors.backbone = function ( model, path ) {
-	var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
-
-	if ( path ) {
-		path += '.';
-		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
-		pathLength = path.length;
-	}
-
-	console.log( path );
-
-
-	return {
-		init: function ( view ) {
-			
-			// if no path specified...
-			if ( !path ) {
-				setView = function ( model ) {
-					if ( !settingModel ) {
-						settingView = true;
-						view.set( model.changed );
-						settingView = false;
-					}
-				};
-
-				setModel = function ( keypath, value ) {
-					if ( !settingView ) {
-						settingModel = true;
-						model.set( keypath, value );
-						settingModel = false;
-					}
-				};
-			}
-
-			else {
-				prefix = function ( attrs ) {
-					var attr, result;
-
-					result = {};
-
-					for ( attr in attrs ) {
-						if ( attrs.hasOwnProperty( attr ) ) {
-							result[ path + attr ] = attrs[ attr ];
-						}
-					}
-
-					return result;
-				};
-
-				setView = function ( model ) {
-					var changed, attr;
-
-					if ( !settingModel ) {
-						settingView = true;
-						view.set( prefix( model.changed ) );
-						settingView = false;
-					}
-				};
-
-				setModel = function ( keypath, value ) {
-					if ( !settingView ) {
-						if ( pathMatcher.test( keypath ) ) {
-							settingModel = true;
-							model.set( keypath.substring( pathLength ), value );
-							settingModel = false;
-						}
-					}
-				};
-			}
-
-			model.on( 'change', setView );
-			view.on( 'set', setModel );
-			
-			// initialise
-			view.set( path ? prefix( model.attributes ) : model.attributes );
-		},
-
-		teardown: function ( view ) {
-			model.off( 'change', setView );
-			view.off( 'set', setModel );
-		}
-	};
-};
-Ractive.adaptors.statesman = function ( model, path ) {
-	var settingModel, settingView, setModel, setView;
-
-	path = ( path ? path + '.' : '' );
-
-	return {
-		init: function ( view ) {
-			setView = function ( keypath, value ) {
-				if ( !settingModel ) {
-					settingView = true;
-					view.set( keypath, value );
-					settingView = false;
-				}
-			};
-
-			setModel = function ( keypath, value ) {
-				if ( !settingView ) {
-					settingModel = true;
-					model.set( keypath, value );
-					settingModel = false;
-				}
-			};
-
-			model.on( 'set', setView );
-			view.on( 'set', setModel );
-
-			// initialise
-			view.set( model.get() );
-		},
-
-		teardown: function ( view ) {
-			model.off( 'change', setView );
-			view.off( 'set', setModel );
-		}
-	};
-};
-proto.animate = function ( keypath, to, options ) {
-	var easing, duration, animation, i, keys;
-
-	options = options || {};
-
-	// cancel any existing animation
-	// TODO what about upstream/downstream keypaths?
-	i = animationCollection.animations.length;
-	while ( i-- ) {
-		if ( animationCollection.animations[ i ].keypath === keypath ) {
-			animationCollection.animations[ i ].stop();
-		}
-	}
-
-	// easing function
-	if ( options.easing ) {
-		if ( typeof options.easing === 'function' ) {
-			easing = options.easing;
-		}
-
-		else {
-			if ( this.easing && this.easing[ options.easing ] ) {
-				// use instance easing function first
-				easing = this.easing[ options.easing ];
-			} else {
-				// fallback to global easing functions
-				easing = Ractive.easing[ options.easing ];
-			}
-		}
-
-		if ( typeof easing !== 'function' ) {
-			easing = null;
-		}
-	}
-
-	// duration
-	duration = ( options.duration === undefined ? 400 : options.duration );
-
-	keys = utils.splitKeypath( keypath );
-
-	animation = new utils.Animation({
-		keys: keys,
-		from: this.get( keys ),
-		to: to,
-		root: this,
-		duration: duration,
-		easing: easing,
-		step: options.step,
-		complete: options.complete
-	});
-
-	animationCollection.push( animation );
-};
-// These are a subset of the easing equations found at
-// https://raw.github.com/danro/easing-js - license info
-// follows:
-
-// --------------------------------------------------
-// easing.js v0.5.4
-// Generic set of easing functions with AMD support
-// https://github.com/danro/easing-js
-// This code may be freely distributed under the MIT license
-// http://danro.mit-license.org/
-// --------------------------------------------------
-// All functions adapted from Thomas Fuchs & Jeremy Kahn
-// Easing Equations (c) 2003 Robert Penner, BSD license
-// https://raw.github.com/danro/easing-js/master/LICENSE
-// --------------------------------------------------
-
-// In that library, the functions named easeIn, easeOut, and
-// easeInOut below are named easeInCubic, easeOutCubic, and
-// (you guessed it) easeInOutCubic.
-//
-// You can add additional easing functions to this list, and they
-// will be globally available.
-
-Ractive.easing = {
-	linear: function ( pos ) { return pos; },
-	easeIn: function ( pos ) { return Math.pow( pos, 3 ); },
-	easeOut: function ( pos ) { return ( Math.pow( ( pos - 1 ), 3 ) + 1 ); },
-	easeInOut: function ( pos ) {
-		if ( ( pos /= 0.5 ) < 1 ) { return ( 0.5 * Math.pow( pos, 3 ) ); }
-		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
-	}
-};
-Ractive.interpolate = function ( from, to ) {
-	if ( utils.isNumeric( from ) && utils.isNumeric( to ) ) {
-		return Ractive.interpolators.number( +from, +to );
-	}
-
-	if ( utils.isArray( from ) && utils.isArray( to ) ) {
-		return Ractive.interpolators.array( from, to );
-	}
-
-	if ( utils.isObject( from ) && utils.isObject( to ) ) {
-		return Ractive.interpolators.object( from, to );
-	}
-
-	return function () { return to; };
-};
-Ractive.interpolators = {
-	number: function ( from, to ) {
-		var delta = to - from;
-
-		if ( !delta ) {
-			return function () { return from; };
-		}
-
-		return function ( t ) {
-			return from + ( t * delta );
-		};
-	},
-
-	array: function ( from, to ) {
-		var intermediate, interpolators, len, i;
-
-		intermediate = [];
-		interpolators = [];
-
-		i = len = Math.min( from.length, to.length );
-		while ( i-- ) {
-			interpolators[i] = Ractive.interpolate( from[i], to[i] );
-		}
-
-		// surplus values - don't interpolate, but don't exclude them either
-		for ( i=len; i<from.length; i+=1 ) {
-			intermediate[i] = from[i];
-		}
-
-		for ( i=len; i<to.length; i+=1 ) {
-			intermediate[i] = to[i];
-		}
-
-		return function ( t ) {
-			var i = len;
-
-			while ( i-- ) {
-				intermediate[i] = interpolators[i]( t );
-			}
-
-			return intermediate;
-		};
-	},
-
-	object: function ( from, to ) {
-		var properties = [], len, interpolators, intermediate, prop;
-
-		intermediate = {};
-		interpolators = {};
-
-		for ( prop in from ) {
-			if ( from.hasOwnProperty( prop ) ) {
-				if ( to.hasOwnProperty( prop ) ) {
-					properties[ properties.length ] = prop;
-					interpolators[ prop ] = Ractive.interpolate( from[ prop ], to[ prop ] );
-				}
-
-				else {
-					intermediate[ prop ] = from[ prop ];
-				}
-			}
-		}
-
-		for ( prop in to ) {
-			if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
-				intermediate[ prop ] = to[ prop ];
-			}
-		}
-
-		len = properties.length;
-
-		return function ( t ) {
-			var i = len, prop;
-
-			while ( i-- ) {
-				prop = properties[i];
-
-				intermediate[ prop ] = interpolators[ prop ]( t );
-			}
-
-			return intermediate;
-		};
-	}
-};
-utils.Animation = function ( options ) {
-	var key;
-
-	this.startTime = Date.now();
-
-	// from and to
-	for ( key in options ) {
-		if ( options.hasOwnProperty( key ) ) {
-			this[ key ] = options[ key ];
-		}
-	}
-
-	this.interpolator = Ractive.interpolate( this.from, this.to );
-	this.running = true;
-};
-
-utils.Animation.prototype = {
-	tick: function () {
-		var elapsed, t, value, timeNow;
-
-		if ( this.running ) {
-			timeNow = Date.now();
-			elapsed = timeNow - this.startTime;
-
-			if ( elapsed >= this.duration ) {
-				this.root.set( this.keys, this.to );
-
-				if ( this.step ) {
-					this.step( 1, this.to );
-				}
-
-				if ( this.complete ) {
-					this.complete( 1, this.to );
-				}
-
-				this.running = false;
-				return false;
-			}
-
-			t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
-			value = this.interpolator( t );
-
-			this.root.set( this.keys, value );
-
-			if ( this.step ) {
-				this.step( t, value );
-			}
-
-			return true;
-		}
-
-		return false;
-	},
-
-	stop: function () {
-		this.running = false;
-	}
-};
-var animationCollection = {
-	animations: [],
-
-	tick: function () {
-		var i, animation;
-
-		for ( i=0; i<this.animations.length; i+=1 ) {
-			animation = this.animations[i];
-
-			if ( !animation.tick() ) {
-				// animation is complete, remove it from the stack, and decrement i so we don't miss one
-				this.animations.splice( i--, 1 );
-			}
-		}
-
-		if ( this.animations.length ) {
-			global.requestAnimationFrame( this.boundTick );
-		} else {
-			this.running = false;
-		}
-	},
-
-	// bind method to animationCollection
-	boundTick: function () {
-		animationCollection.tick();
-	},
-
-	push: function ( animation ) {
-		this.animations[ this.animations.length ] = animation;
-
-		if ( !this.running ) {
-			this.running = true;
-			this.tick();
-		}
-	}
-};
-// https://gist.github.com/paulirish/1579671
-(function( vendors, lastTime, global ) {
-	
-	var x;
-
-	for ( x = 0; x < vendors.length && !global.requestAnimationFrame; ++x ) {
-		global.requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
-		global.cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
-	}
-
-	if ( !global.requestAnimationFrame ) {
-		global.requestAnimationFrame = function(callback) {
-			var currTime, timeToCall, id;
-			
-			currTime = Date.now();
-			timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
-			id = global.setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
-			
-			lastTime = currTime + timeToCall;
-			return id;
-		};
-	}
-
-	if ( !global.cancelAnimationFrame ) {
-		global.cancelAnimationFrame = function( id ) {
-			global.clearTimeout( id );
-		};
-	}
-}( ['ms', 'moz', 'webkit', 'o'], 0, global ));
-Ractive.extend = function ( childProps ) {
-
-	var Parent, Child, key;
-
-	Parent = this;
-
-	Child = function () {
-		Ractive.apply( this, arguments );
-
-		if ( this.init ) {
-			this.init.apply( this, arguments );
-		}
-	};
-
-	// extend child with parent methods
-	for ( key in Parent.prototype ) {
-		if ( Parent.prototype.hasOwnProperty( key ) ) {
-			Child.prototype[ key ] = Parent.prototype[ key ];
-		}
-	}
-
-	// extend child with specified methods, as long as they don't override Ractive.prototype methods
-	for ( key in childProps ) {
-		if ( childProps.hasOwnProperty( key ) ) {
-			if ( Ractive.prototype.hasOwnProperty( key ) ) {
-				throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
-			}
-
-			Child.prototype[ key ] = childProps[ key ];
-		}
-	}
-
-	Child.extend = Parent.extend;
-
-	return Child;
-};
-(function ( utils, evaluators, functions ) {
-
-	var Evaluator, Reference, getFn;
-
-	utils.getEvaluator = function ( root, mustache, contextStack, indexRefs, descriptor ) {
-		// TODO can we share evaluators between mustaches in some circumstances?
-		return new Evaluator( root, mustache, contextStack, indexRefs, descriptor );
-	};
+	var Reference, getFn;
 
 	getFn = function ( fnStr, refs ) {
 		var fn;
@@ -1904,7 +1678,7 @@ Ractive.extend = function ( childProps ) {
 				}
 			}
 
-			if ( !utils.isEqual( value, this._lastValue ) ) {
+			if ( !isEqual( value, this._lastValue ) ) {
 				this.root.set( this.keypath, value );
 
 				this._lastValue = value;
@@ -1926,7 +1700,7 @@ Ractive.extend = function ( childProps ) {
 		this.evaluator = evaluator;
 		this.argNum = argNum;
 
-		keypath = utils.resolveRef( root, ref, contextStack );
+		keypath = resolveRef( root, ref, contextStack );
 		if ( keypath ) {
 			this.resolve( keypath );
 		} else {
@@ -1942,7 +1716,7 @@ Ractive.extend = function ( childProps ) {
 
 			this.keypath = keypath;
 
-			utils.registerDependant( this.root, keypath, this, this.evaluator.priority );
+			registerDependant( this.root, keypath, this, this.evaluator.priority );
 			this.update();
 			this.evaluator.resolve( this.ref, this.argNum, keypath );
 		},
@@ -1950,7 +1724,7 @@ Ractive.extend = function ( childProps ) {
 		update: function () {
 			var value = this.root.get( this.keypath );
 
-			if ( !utils.isEqual( value, this._lastValue ) ) {
+			if ( !isEqual( value, this._lastValue ) ) {
 				this.evaluator.values[ this.argNum ] = value;
 				this.evaluator.update();
 
@@ -1959,50 +1733,50 @@ Ractive.extend = function ( childProps ) {
 		}
 	};
 
-}( utils, {}, {}));
-utils.Fragment = function ( options ) {
+}({}, {}));
+var initFragment = function ( fragment, options ) {
 
 	var numItems, i, itemOptions, parentRefs, ref;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
-	this.owner = options.owner;
+	fragment.owner = options.owner;
 
 	// If parent item is a section, this may not be the only fragment
 	// that belongs to it - we need to make a note of the index
-	if ( this.owner.type === SECTION ) {
-		this.index = options.index;
+	if ( fragment.owner.type === SECTION ) {
+		fragment.index = options.index;
 	}
 
 	// index references (the 'i' in {{#section:i}}<!-- -->{{/section}}) need to cascade
 	// down the tree
-	if ( this.owner.parentFragment ) {
-		parentRefs = this.owner.parentFragment.indexRefs;
+	if ( fragment.owner.parentFragment ) {
+		parentRefs = fragment.owner.parentFragment.indexRefs;
 
 		if ( parentRefs ) {
-			this.indexRefs = {};
+			fragment.indexRefs = {};
 
 			for ( ref in parentRefs ) {
 				if ( parentRefs.hasOwnProperty( ref ) ) {
-					this.indexRefs[ ref ] = parentRefs[ ref ];
+					fragment.indexRefs[ ref ] = parentRefs[ ref ];
 				}
 			}
 		}
 	}
 
 	if ( options.indexRef ) {
-		if ( !this.indexRefs ) {
-			this.indexRefs = {};
+		if ( !fragment.indexRefs ) {
+			fragment.indexRefs = {};
 		}
 
-		this.indexRefs[ options.indexRef ] = options.index;
+		fragment.indexRefs[ options.indexRef ] = options.index;
 	}
 
 	// Time to create this fragment's child items;
-	this.items = [];
+	fragment.items = [];
 
 	itemOptions = {
 		root:           options.root,
-		parentFragment: this,
+		parentFragment: fragment,
 		parentNode:     options.parentNode,
 		contextStack:   options.contextStack
 	};
@@ -2012,49 +1786,51 @@ utils.Fragment = function ( options ) {
 		itemOptions.descriptor = options.descriptor[i];
 		itemOptions.index = i;
 
-		this.items[ this.items.length ] = this.createItem( itemOptions );
+		fragment.items[ fragment.items.length ] = fragment.createItem( itemOptions );
 	}
 
 };
-utils.Mustache = function ( options ) {
+var initMustache, updateMustache, resolveMustache, evaluateMustache;
+
+initMustache = function ( mustache, options ) {
 
 	var keypath, index;
 
-	this.root           = options.root;
-	this.descriptor     = options.descriptor;
-	this.parentFragment = options.parentFragment;
-	this.contextStack   = options.contextStack || [];
-	this.index          = options.index || 0;
-	this.priority       = options.descriptor.p || 0;
+	mustache.root           = options.root;
+	mustache.descriptor     = options.descriptor;
+	mustache.parentFragment = options.parentFragment;
+	mustache.contextStack   = options.contextStack || [];
+	mustache.index          = options.index || 0;
+	mustache.priority       = options.descriptor.p || 0;
 
 	// DOM only
 	if ( options.parentNode || options.anchor ) {
-		this.parentNode = options.parentNode;
-		this.anchor = options.anchor;
+		mustache.parentNode = options.parentNode;
+		mustache.anchor = options.anchor;
 	}
 
-	this.type = options.descriptor.t;
+	mustache.type = options.descriptor.t;
 
 
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( options.descriptor.r ) {
-		if ( this.parentFragment.indexRefs && this.parentFragment.indexRefs.hasOwnProperty( options.descriptor.r ) ) {
-			index = this.parentFragment.indexRefs[ options.descriptor.r ];
-			this.render( index );
+		if ( mustache.parentFragment.indexRefs && mustache.parentFragment.indexRefs.hasOwnProperty( options.descriptor.r ) ) {
+			index = mustache.parentFragment.indexRefs[ options.descriptor.r ];
+			mustache.render( index );
 		}
 
 		else {
-			keypath = utils.resolveRef( this.root, options.descriptor.r, this.contextStack );
+			keypath = resolveRef( mustache.root, options.descriptor.r, mustache.contextStack );
 			if ( keypath ) {
-				this.resolve( keypath );
+				mustache.resolve( keypath );
 			} else {
-				this.ref = options.descriptor.r;
-				this.root._pendingResolution[ this.root._pendingResolution.length ] = this;
+				mustache.ref = options.descriptor.r;
+				mustache.root._pendingResolution[ mustache.root._pendingResolution.length ] = mustache;
 
 				// inverted section? initialise
-				if ( this.descriptor.n ) {
-					this.render( false );
+				if ( mustache.descriptor.n ) {
+					mustache.render( false );
 				}
 			}
 		}
@@ -2062,59 +1838,59 @@ utils.Mustache = function ( options ) {
 
 	// if it's an expression, we have a bit more work to do
 	if ( options.descriptor.x ) {
-		this.evaluator = utils.getEvaluator( this.root, this, this.contextStack, this.parentFragment.indexRefs, options.descriptor.x );
+		mustache.evaluator = new Evaluator( mustache.root, mustache, mustache.contextStack, mustache.parentFragment.indexRefs, options.descriptor.x );
 	}
 
 };
 
-utils.Mustache.prototype = {
-	update: function () {
-		var value;
 
-		if ( this.keypath ) {
-			value = this.root.get( this.keypath, true );
-		} else if ( this.expression ) {
-			value = this.evaluate();
-		}
+// methods to add to individual mustache prototypes
+updateMustache = function () {
+	var value;
 
-		if ( !utils.isEqual( value, this._lastValue ) ) {
-			this.render( value );
-			this._lastValue = value;
-		}
-	},
+	if ( this.keypath ) {
+		value = this.root.get( this.keypath, true );
+	} else if ( this.expression ) {
+		value = this.evaluate();
+	}
 
-	resolve: function ( keypath ) {
-		// TEMP
-		this.keypath = keypath;
-
-		utils.registerDependant( this.root, keypath, this, this.priority );
-		this.update();
-	},
-
-	evaluate: function () {
-		var args, i;
-
-		args = [];
-
-		i = this.refs.length;
-		while ( i-- ) {
-			args[i] = this.root.get( this.refs[i] );
-		}
-
-		return this.evaluator.apply( null, args );
+	if ( !isEqual( value, this._lastValue ) ) {
+		this.render( value );
+		this._lastValue = value;
 	}
 };
-utils.sectionUpdate = function ( value ) {
+
+resolveMustache = function ( keypath ) {
+	// TEMP
+	this.keypath = keypath;
+
+	registerDependant( this.root, keypath, this, this.priority );
+	this.update();
+};
+
+evaluateMustache = function () {
+	var args, i;
+
+	args = [];
+
+	i = this.refs.length;
+	while ( i-- ) {
+		args[i] = this.root.get( this.refs[i] );
+	}
+
+	return this.evaluator.apply( null, args );
+};
+var updateSection = function ( section, value ) {
 	var fragmentOptions, valueIsArray, emptyArray, i, itemsToRemove;
 
 	fragmentOptions = {
-		descriptor: this.descriptor.f,
-		root:       this.root,
-		parentNode: this.parentNode,
-		owner:      this
+		descriptor: section.descriptor.f,
+		root:       section.root,
+		parentNode: section.parentNode,
+		owner:      section
 	};
 
-	valueIsArray = utils.isArray( value );
+	valueIsArray = isArray( value );
 
 	// treat empty arrays as false values
 	if ( valueIsArray && value.length === 0 ) {
@@ -2124,22 +1900,22 @@ utils.sectionUpdate = function ( value ) {
 
 
 	// if section is inverted, only check for truthiness/falsiness
-	if ( this.descriptor.n ) {
+	if ( section.descriptor.n ) {
 		if ( value && !emptyArray ) {
-			if ( this.length ) {
-				this.unrender();
-				this.length = 0;
+			if ( section.length ) {
+				section.unrender();
+				section.length = 0;
 			}
 		}
 
 		else {
-			if ( !this.length ) {
+			if ( !section.length ) {
 				// no change to context stack in this situation
-				fragmentOptions.contextStack = this.contextStack;
+				fragmentOptions.contextStack = section.contextStack;
 				fragmentOptions.index = 0;
 
-				this.fragments[0] = this.createFragment( fragmentOptions );
-				this.length = 1;
+				section.fragments[0] = section.createFragment( fragmentOptions );
+				section.length = 1;
 				return;
 			}
 		}
@@ -2154,8 +1930,8 @@ utils.sectionUpdate = function ( value ) {
 	if ( valueIsArray ) {
 
 		// if the array is shorter than it was previously, remove items
-		if ( value.length < this.length ) {
-			itemsToRemove = this.fragments.splice( value.length, this.length - value.length );
+		if ( value.length < section.length ) {
+			itemsToRemove = section.fragments.splice( value.length, section.length - value.length );
 
 			while ( itemsToRemove.length ) {
 				itemsToRemove.pop().teardown();
@@ -2165,38 +1941,38 @@ utils.sectionUpdate = function ( value ) {
 		// otherwise...
 		else {
 
-			if ( value.length > this.length ) {
+			if ( value.length > section.length ) {
 				// add any new ones
-				for ( i=this.length; i<value.length; i+=1 ) {
+				for ( i=section.length; i<value.length; i+=1 ) {
 					// append list item to context stack
-					fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
 					fragmentOptions.index = i;
 
-					if ( this.descriptor.i ) {
-						fragmentOptions.indexRef = this.descriptor.i;
+					if ( section.descriptor.i ) {
+						fragmentOptions.indexRef = section.descriptor.i;
 					}
 
-					this.fragments[i] = this.createFragment( fragmentOptions );
+					section.fragments[i] = section.createFragment( fragmentOptions );
 				}
 			}
 		}
 
-		this.length = value.length;
+		section.length = value.length;
 	}
 
 
 	// if value is a hash...
-	else if ( utils.isObject( value ) ) {
-		// ...then if it isn't rendered, render it, adding this.keypath to the context stack
+	else if ( isObject( value ) ) {
+		// ...then if it isn't rendered, render it, adding section.keypath to the context stack
 		// (if it is already rendered, then any children dependent on the context stack
 		// will update themselves without any prompting)
-		if ( !this.length ) {
+		if ( !section.length ) {
 			// append this section to the context stack
-			fragmentOptions.contextStack = this.contextStack.concat( this.keypath );
+			fragmentOptions.contextStack = section.contextStack.concat( section.keypath );
 			fragmentOptions.index = 0;
 
-			this.fragments[0] = this.createFragment( fragmentOptions );
-			this.length = 1;
+			section.fragments[0] = section.createFragment( fragmentOptions );
+			section.length = 1;
 		}
 	}
 
@@ -2205,27 +1981,25 @@ utils.sectionUpdate = function ( value ) {
 	else {
 
 		if ( value && !emptyArray ) {
-			if ( !this.length ) {
+			if ( !section.length ) {
 				// no change to context stack
-				fragmentOptions.contextStack = this.contextStack;
+				fragmentOptions.contextStack = section.contextStack;
 				fragmentOptions.index = 0;
 
-				this.fragments[0] = this.createFragment( fragmentOptions );
-				this.length = 1;
+				section.fragments[0] = section.createFragment( fragmentOptions );
+				section.length = 1;
 			}
 		}
 
 		else {
-			if ( this.length ) {
-				this.unrender();
-				this.length = 0;
+			if ( section.length ) {
+				section.unrender();
+				section.length = 0;
 			}
 		}
 	}
 };
-(function ( utils ) {
-
-	'use strict';
+(function () {
 
 	var insertHtml, doc, propertyNames,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
@@ -2270,7 +2044,7 @@ utils.sectionUpdate = function ( value ) {
 		return nodes;
 	};
 
-	utils.DomFragment = function DomFragment ( options ) {
+	DomFragment = function ( options ) {
 		this.docFrag = doc.createDocumentFragment();
 
 		// if we have an HTML string, our job is easy.
@@ -2280,10 +2054,10 @@ utils.sectionUpdate = function ( value ) {
 		}
 
 		// otherwise we need to make a proper fragment
-		utils.Fragment.call( this, options );
+		initFragment( this, options );
 	};
 
-	utils.DomFragment.prototype = {
+	DomFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.descriptor === 'string' ) {
 				return new Text( options, this.docFrag );
@@ -2343,8 +2117,8 @@ utils.sectionUpdate = function ( value ) {
 	Partial = function ( options, docFrag ) {
 		this.parentFragment = options.parentFragment;
 
-		this.fragment = new utils.DomFragment({
-			descriptor:        options.root.partials[ options.descriptor.r ] || [],
+		this.fragment = new DomFragment({
+			descriptor:   options.root.partials[ options.descriptor.r ] || [],
 			root:         options.root,
 			parentNode:   options.parentNode,
 			contextStack: options.contextStack,
@@ -2427,13 +2201,13 @@ utils.sectionUpdate = function ( value ) {
 
 		// append children, if there are any
 		if ( descriptor.f ) {
-			if ( typeof descriptor.f === 'string' && this.node.namespaceURI === utils.namespaces.html ) {
+			if ( typeof descriptor.f === 'string' && this.node.namespaceURI === namespaces.html ) {
 				// great! we can use innerHTML
 				this.node.innerHTML = descriptor.f;
 			}
 
 			else {
-				this.children = new utils.DomFragment({
+				this.children = new DomFragment({
 					descriptor:   descriptor.f,
 					root:         options.root,
 					parentNode:   this.node,
@@ -2517,7 +2291,7 @@ utils.sectionUpdate = function ( value ) {
 
 			else {
 				// Otherwise we need to evalute the fragment each time the handler is called
-				fragment = new utils.TextFragment({
+				fragment = new TextFragment({
 					descriptor:   proxy,
 					root:         this.root,
 					owner:        this,
@@ -2609,7 +2383,7 @@ utils.sectionUpdate = function ( value ) {
 			// ...unless it's a namespace *declaration*
 			if ( namespacePrefix !== 'xmlns' ) {
 				name = name.substring( colonIndex + 1 );
-				this.namespace = utils.namespaces[ namespacePrefix ];
+				this.namespace = namespaces[ namespacePrefix ];
 
 				if ( !this.namespace ) {
 					throw 'Unknown namespace ("' + namespacePrefix + '")';
@@ -2643,7 +2417,7 @@ utils.sectionUpdate = function ( value ) {
 		this.children = [];
 
 		// can we establish this attribute's property name equivalent?
-		if ( !this.namespace && options.parentNode.namespaceURI === utils.namespaces.html ) {
+		if ( !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
 			lowerCaseName = this.lcName;
 			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
 
@@ -2661,7 +2435,7 @@ utils.sectionUpdate = function ( value ) {
 		// share parentFragment with parent element
 		this.parentFragment = this.element.parentFragment;
 
-		this.fragment = new utils.TextFragment({
+		this.fragment = new TextFragment({
 			descriptor:   value,
 			root:         this.root,
 			owner:        this,
@@ -2953,7 +2727,7 @@ utils.sectionUpdate = function ( value ) {
 		docFrag.appendChild( this.node );
 
 		// extend Mustache
-		utils.Mustache.call( this, options );
+		initMustache( this, options );
 
 		// if this initialised without a keypath, and it's a conditional,
 		// we need to use the 'if false' value
@@ -2963,15 +2737,15 @@ utils.sectionUpdate = function ( value ) {
 	};
 
 	Interpolator.prototype = {
-		update: utils.Mustache.prototype.update,
-		resolve: utils.Mustache.prototype.resolve,
-		evaluate: utils.Mustache.prototype.evaluate,
+		update: updateMustache,
+		resolve: resolveMustache,
+		evaluate: evaluateMustache,
 
 		teardown: function () {
 			if ( !this.keypath ) {
-				utils.cancelKeypathResolution( this.root, this );
+				cancelKeypathResolution( this.root, this );
 			} else {
-				utils.unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
+				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
 			}
 
 			if ( this.root.el.contains( this.node ) ) {
@@ -2995,15 +2769,15 @@ utils.sectionUpdate = function ( value ) {
 		this.docFrag = doc.createDocumentFragment();
 
 		this.initialising = true;
-		utils.Mustache.call( this, options );
+		initMustache( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
 
 	Triple.prototype = {
-		update: utils.Mustache.prototype.update,
-		resolve: utils.Mustache.prototype.resolve,
-		evaluate: utils.Mustache.prototype.evaluate,
+		update: updateMustache,
+		resolve: resolveMustache,
+		evaluate: evaluateMustache,
 
 		teardown: function () {
 
@@ -3015,10 +2789,10 @@ utils.sectionUpdate = function ( value ) {
 			}
 
 			// kill observer(s)
-			if ( !this.observerRefs ) {
-				utils.cancelKeypathResolution( this.root, this );
+			if ( !this.keypath ) {
+				cancelKeypathResolution( this.root, this );
 			} else {
-				utils.unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
+				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
 			}
 		},
 
@@ -3055,23 +2829,23 @@ utils.sectionUpdate = function ( value ) {
 		this.docFrag = doc.createDocumentFragment();
 		
 		this.initialising = true;
-		utils.Mustache.call( this, options );
+		initMustache( this, options );
 		docFrag.appendChild( this.docFrag );
 		this.initialising = false;
 	};
 
 	Section.prototype = {
-		update: utils.Mustache.prototype.update,
-		resolve: utils.Mustache.prototype.resolve,
-		evaluate: utils.Mustache.prototype.evaluate,
+		update: updateMustache,
+		resolve: resolveMustache,
+		evaluate: evaluateMustache,
 
 		teardown: function () {
 			this.unrender();
 
-			if ( !this.observerRefs ) {
-				utils.cancelKeypathResolution( this.root, this );
+			if ( !this.keypath ) {
+				cancelKeypathResolution( this.root, this );
 			} else {
-				utils.unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
+				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
 			}
 		},
 
@@ -3099,7 +2873,7 @@ utils.sectionUpdate = function ( value ) {
 
 		render: function ( value ) {
 			
-			utils.sectionUpdate.call( this, value );
+			updateSection( this, value );
 
 			if ( !this.initialising ) {
 				// we need to insert the contents of our document fragment into the correct place
@@ -3109,26 +2883,24 @@ utils.sectionUpdate = function ( value ) {
 		},
 
 		createFragment: function ( options ) {
-			var fragment = new utils.DomFragment( options );
+			var fragment = new DomFragment( options );
 			
 			this.docFrag.appendChild( fragment.docFrag );
 			return fragment;
 		}
 	};
 
-}( utils ));
+}());
 
-(function ( utils ) {
-
-	'use strict';
+(function () {
 
 	var Text, Interpolator, Triple, Section;
 
-	utils.TextFragment = function TextFragment ( options ) {
-		utils.Fragment.call( this, options );
+	TextFragment = function TextFragment ( options ) {
+		initFragment( this, options );
 	};
 
-	utils.TextFragment.prototype = {
+	TextFragment.prototype = {
 		createItem: function ( options ) {
 			if ( typeof options.descriptor === 'string' ) {
 				return new Text( options.descriptor );
@@ -3198,7 +2970,7 @@ utils.sectionUpdate = function ( value ) {
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
-		utils.Mustache.call( this, options );
+		initMustache( this, options );
 
 		// if this initialised without a keypath, and it's a conditional,
 		// we need to use the 'if false' value
@@ -3208,9 +2980,9 @@ utils.sectionUpdate = function ( value ) {
 	};
 
 	Interpolator.prototype = {
-		update: utils.Mustache.prototype.update,
-		resolve: utils.Mustache.prototype.resolve,
-		evaluate: utils.Mustache.prototype.evaluate,
+		update: updateMustache,
+		resolve: resolveMustache,
+		evaluate: evaluateMustache,
 
 		render: function ( value ) {
 			this.value = value;
@@ -3218,10 +2990,10 @@ utils.sectionUpdate = function ( value ) {
 		},
 
 		teardown: function () {
-			if ( !this.observerRefs ) {
-				utils.cancelKeypathResolution( this.root, this );
+			if ( !this.keypath ) {
+				cancelKeypathResolution( this.root, this );
 			} else {
-				utils.unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
+				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
 			}
 		},
 
@@ -3239,21 +3011,21 @@ utils.sectionUpdate = function ( value ) {
 		this.fragments = [];
 		this.length = 0;
 
-		utils.Mustache.call( this, options );
+		initMustache( this, options );
 	};
 
 	Section.prototype = {
-		update: utils.Mustache.prototype.update,
-		resolve: utils.Mustache.prototype.resolve,
-		evaluate: utils.Mustache.prototype.evaluate,
+		update: updateMustache,
+		resolve: resolveMustache,
+		evaluate: evaluateMustache,
 
 		teardown: function () {
 			this.unrender();
 
-			if ( !this.observerRefs ) {
-				utils.cancelKeypathResolution( this.root, this );
+			if ( !this.keypath ) {
+				cancelKeypathResolution( this.root, this );
 			} else {
-				utils.unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
+				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
 			}
 		},
 
@@ -3270,14 +3042,14 @@ utils.sectionUpdate = function ( value ) {
 		},
 
 		render: function ( value ) {
-			utils.sectionUpdate.call( this, value );
+			updateSection( this, value );
 
 			//this.value = this.fragments.join( '' );
 			this.parentFragment.bubble();
 		},
 
 		createFragment: function ( options ) {
-			return new utils.TextFragment( options );
+			return new TextFragment( options );
 		},
 
 		toString: function () {
@@ -3286,250 +3058,162 @@ utils.sectionUpdate = function ( value ) {
 		}
 	};
 
-}( utils ));
-(function ( doc ) {
+}());
+var keypathCache, splitKeypath, isArray, isObject, isNumeric, isEqual, getEl;
 
-	'use strict';
+keypathCache = {};
 
-	// Shims for older browsers
+splitKeypath =  function ( keypath ) {
+	var index, startIndex, keys, remaining, part;
 
-	if ( !Date.now ) {
-		Date.now = function () { return +new Date(); };
+	// We should only have to do all the heavy regex stuff once... caching FTW
+	if ( keypathCache[ keypath ] ) {
+		return keypathCache[ keypath ].concat();
 	}
 
-	if ( !doc.createElementNS ) {
-		doc.createElementNS = function ( ns, type ) {
-			if ( ns !== null && ns !== 'http://www.w3.org/1999/xhtml' ) {
-				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
-			}
+	keys = [];
+	remaining = keypath;
+	
+	startIndex = 0;
 
-			return doc.createElement( type );
-		};
-	}
+	// Split into keys
+	while ( remaining.length ) {
+		// Find next dot
+		index = remaining.indexOf( '.', startIndex );
 
-	if ( !Element.prototype.contains ) {
-		Element.prototype.contains = function ( el ) {
-			while ( el.parentNode ) {
-				if ( el.parentNode === this ) {
-					return true;
-				}
-
-				el = el.parentNode;
-			}
-
-			return false;
-		};
-	}
-
-	if ( !String.prototype.trim ) {
-		String.prototype.trim = function () {
-			return this.replace(/^\s+/, '').replace(/\s+$/, '');
-		};
-	}
-
-	// https://gist.github.com/jonathantneal/3748027
-	if ( !window.addEventListener ) {
-		(function ( WindowPrototype, DocumentPrototype, ElementPrototype, addEventListener, removeEventListener, dispatchEvent, registry ) {
-			WindowPrototype[addEventListener] = DocumentPrototype[addEventListener] = ElementPrototype[addEventListener] = function (type, listener) {
-				var target = this;
-
-				registry.unshift([target, type, listener, function (event) {
-					event.currentTarget = target;
-					event.preventDefault = function () { event.returnValue = false; };
-					event.stopPropagation = function () { event.cancelBubble = true; };
-					event.target = event.srcElement || target;
-
-					listener.call(target, event);
-				}]);
-
-				this.attachEvent("on" + type, registry[0][3]);
-			};
-
-			WindowPrototype[removeEventListener] = DocumentPrototype[removeEventListener] = ElementPrototype[removeEventListener] = function (type, listener) {
-				var index, register;
-
-				for ( index = 0, register; register = registry[index]; ++index ) {
-					if ( register[0] === this && register[1] === type && register[2] === listener ) {
-						return this.detachEvent("on" + type, registry.splice(index, 1)[0][3]);
-					}
-				}
-			};
-
-			WindowPrototype[dispatchEvent] = DocumentPrototype[dispatchEvent] = ElementPrototype[dispatchEvent] = function (eventObject) {
-				return this.fireEvent("on" + eventObject.type, eventObject);
-			};
-		}( Window.prototype, HTMLDocument.prototype, Element.prototype, "addEventListener", "removeEventListener", "dispatchEvent", [] ));
-	}
-
-
-	// Array extras
-	if ( !Array.prototype.indexOf ) {
-		Array.prototype.indexOf = function ( needle, i ) {
-			var len;
-
-			if ( i === undefined ) {
-				i = 0;
-			}
-
-			if ( i < 0 ) {
-				i+= this.length;
-			}
-
-			if ( i < 0 ) {
-				i = 0;
-			}
-
-			for ( len = this.length; i<len; i++ ) {
-				if ( this.hasOwnProperty( i ) && this[i] === needle ) {
-					return i;
-				}
-			}
-
-			return -1;
-		};
-	}
-
-	if ( !Array.prototype.forEach ) {
-		Array.prototype.forEach = function ( callback, context ) {
-			var i, len;
-
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
-					callback.call( context, this[i], i, this );
-				}
-			}
-		};
-	}
-
-	if ( !Array.prototype.map ) {
-		Array.prototype.map = function ( mapper, context ) {
-			var i, len, mapped = [];
-
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
-					mapped[i] = mapper.call( context, this[i], i, this );
-				}
-			}
-
-			return mapped;
-		};
-	}
-
-	if ( !Array.prototype.map ) {
-		Array.prototype.map = function ( filter, context ) {
-			var i, len, filtered = [];
-
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
-					filtered[ filtered.length ] = this[i];
-				}
-			}
-
-			return filtered;
-		};
-	}
-
-}( document ));
-
-Ractive.eventDefinitions.tap = function ( el, fire ) {
-	var mousedown, touchstart, distanceThreshold, timeThreshold, target;
-
-	distanceThreshold = 5; // maximum pixels pointer can move before cancel
-	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
-
-	mousedown = function ( event ) {
-		var x, y, currentTarget, up, move, cancel;
-
-		x = event.clientX;
-		y = event.clientY;
-		currentTarget = this;
-
-		up = function ( event ) {
-			fire.call( currentTarget, event );
-			cancel();
-		};
-
-		move = function ( event ) {
-			if ( ( Math.abs( event.clientX - x ) >= distanceThreshold ) || ( Math.abs( event.clientY - y ) >= distanceThreshold ) ) {
-				cancel();
-			}
-		};
-
-		cancel = function () {
-			window.removeEventListener( 'mousemove', move );
-			window.removeEventListener( 'mouseup', up );
-		};
-
-		window.addEventListener( 'mousemove', move );
-		window.addEventListener( 'mouseup', up );
-
-		setTimeout( cancel, timeThreshold );
-	};
-
-	el.addEventListener( 'mousedown', mousedown );
-
-
-	touchstart = function ( event ) {
-		var x, y, touch, currentTarget, finger, move, up, cancel;
-
-		if ( event.touches.length !== 1 ) {
-			return;
+		// Final part?
+		if ( index === -1 ) {
+			part = remaining;
+			remaining = '';
 		}
 
-		touch = event.touches[0];
-		finger = touch.identifier;
-
-		currentTarget = this; // TODO verify `this` is the element the handler was attached to
-
-		up = function ( event ) {
-			var touch;
-
-			touch = event.changedTouches[0];
-			if ( touch.identifier !== finger ) {
-				cancel();
+		else {
+			// If this dot is preceded by a backslash, which isn't
+			// itself preceded by a backslash, we consider it escaped
+			if ( remaining.charAt( index - 1) === '\\' && remaining.charAt( index - 2 ) !== '\\' ) {
+				// we don't want to keep this part, we want to keep looking
+				// for the separator
+				startIndex = index + 1;
+				continue;
 			}
 
-			fire.call( touch.target, event );
-		};
-
-		move = function ( event ) {
-			var touch;
-
-			if ( event.touches.length !== 1 || event.touches[0].identifier !== finger ) {
-				cancel();
-			}
-
-			touch = event.touches[0];
-			if ( ( Math.abs( touch.clientX - x ) >= distanceThreshold ) || ( Math.abs( touch.clientY - y ) >= distanceThreshold ) ) {
-				cancel();
-			}
-		};
-
-		cancel = function ( event ) {
-			window.removeEventListener( 'touchmove', move );
-			window.removeEventListener( 'touchend', up );
-			window.removeEventListener( 'touchcancel', cancel );
-		};
-
-		window.addEventListener( 'touchmove', move );
-		window.addEventListener( 'touchend', up );
-		window.addEventListener( 'touchcancel', cancel );
-
-		setTimeout( cancel, timeThreshold );
-	};
-
-
-	return {
-		teardown: function () {
-			el.removeEventListener( 'mousedown', mousedown );
-			el.removeEventListener( 'touchstart', touchstart );
+			// Otherwise, we have our next part
+			part = remaining.substr( 0, index );
+			startIndex = 0;
 		}
-	};
+
+		if ( /\[/.test( part ) ) {
+			keys = keys.concat( part.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' ) );
+		} else {
+			keys[ keys.length ] = part;
+		}
+		
+		remaining = remaining.substring( index + 1 );
+	}
+
+	
+	keypathCache[ keypath ] = keys;
+	return keys.concat();
 };
 
-// export
-if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS
-else if ( typeof define === "function" && define.amd ) define( function () { return Ractive } ) // AMD
-else { global.Ractive = Ractive }
+
+
+// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+isArray = function ( obj ) {
+	return Object.prototype.toString.call( obj ) === '[object Array]';
+};
+
+isEqual = function ( a, b ) {
+	if ( a === null && b === null ) {
+		return true;
+	}
+
+	if ( typeof a === 'object' || typeof b === 'object' ) {
+		return false;
+	}
+
+	return a === b;
+};
+
+// http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
+isNumeric = function ( n ) {
+	return !isNaN( parseFloat( n ) ) && isFinite( n );
+};
+
+isObject = function ( obj ) {
+	return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+};
+
+
+	
+getEl = function ( input ) {
+	var output, doc;
+
+	if ( typeof window === 'undefined' ) {
+		return;
+	}
+
+	doc = window.document;
+
+	if ( !input ) {
+		throw new Error( 'No container element specified' );
+	}
+
+	// We already have a DOM node - no work to do
+	if ( input.tagName ) {
+		return input;
+	}
+
+	// Get node from string
+	if ( typeof input === 'string' ) {
+		// try ID first
+		output = doc.getElementById( input );
+
+		// then as selector, if possible
+		if ( !output && doc.querySelector ) {
+			output = doc.querySelector( input );
+		}
+
+		// did it work?
+		if ( output.tagName ) {
+			return output;
+		}
+	}
+
+	// If we've been given a collection (jQuery, Zepto etc), extract the first item
+	if ( input[0] && input[0].tagName ) {
+		return input[0];
+	}
+
+	throw new Error( 'Could not find container element' );
+};
+Ractive.prototype = proto;
+
+Ractive.adaptors = adaptors;
+Ractive.eventDefinitions = eventDefinitions;
+
+Ractive.easing = easing;
+Ractive.extend = extend;
+Ractive.interpolate = interpolate;
+Ractive.interpolators = interpolators;
+Ractive.parse = parse;
+
+
+// export as Common JS module...
+if ( typeof module !== "undefined" && module.exports ) {
+	module.exports = Ractive;
+}
+
+// ... or as AMD module
+else if ( typeof define === "function" && define.amd ) {
+	define( function () {
+		return Ractive;
+	});
+}
+
+// ... or as browser global
+else {
+	global.Ractive = Ractive;
+}
 
 }( this ));

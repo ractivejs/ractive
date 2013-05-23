@@ -13,16 +13,7 @@ module.exports = function(grunt) {
 				'\n' +
 				'/*jslint eqeq: true, plusplus: true */\n' +
 				'/*global document, HTMLElement */\n' +
-				'\n\n',
-			wrapper: {
-				start: '(function ( global ) {\n\n' +
-						'\'use strict\';\n\n',
-				end: '\n\n// export\n' +
-						'if ( typeof module !== "undefined" && module.exports ) module.exports = Ractive // Common JS\n' +
-						'else if ( typeof define === "function" && define.amd ) define( function () { return Ractive } ) // AMD\n' +
-						'else { global.Ractive = Ractive }\n\n' +
-						'}( this ));'
-			}
+				'\n\n'
 		},
 		watch: {
 			main: {
@@ -45,26 +36,24 @@ module.exports = function(grunt) {
 		concat: {
 			runtime: {
 				options: {
-					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
-					footer: '<%= meta.wrapper.end %>'
+					banner: '<%= meta.banner %>'
 				},
-				src: [ 'src/_setup/**/*.js', 'src/core/**/*.js', 'src/utils/**/*.js', 'src/**/*.js', '!src/compile/**/*.js' ],
+				src: [ 'wrapper/begin.js', 'src/**/*.js', 'wrapper/end.js', '!src/_legacy.js', '!src/parser/**/*.js' ],
 				dest: 'build/Ractive.runtime.js'
 			},
 			full: {
 				options: {
-					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
-					footer: '<%= meta.wrapper.end %>'
+					banner: '<%= meta.banner %>'
 				},
-				src: [ 'src/_setup/**/*.js','src/core/**/*.js', 'src/utils/**/*.js', 'src/**/*.js'  ],
+				src: [ 'wrapper/begin.js', 'src/**/*.js', 'wrapper/end.js', '!src/_legacy.js'  ],
 				dest: 'build/Ractive.js'
 			},
 			runtime_legacy: {
-				src: [ 'src/_setup/**/*.js','src/legacy.js', '<%= concat.runtime.dest %>' ],
+				src: [ 'src/_legacy.js', '<%= concat.runtime.dest %>' ],
 				dest: 'build/Ractive-legacy.runtime.js'
 			},
 			full_legacy: {
-				src: [ 'src/_setup/**/*.js','src/legacy.js', '<%= concat.full.dest %>' ],
+				src: [ 'src/_legacy.js', '<%= concat.full.dest %>' ],
 				dest: 'build/Ractive-legacy.js'
 			}
 		},
@@ -79,19 +68,19 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			runtime: {
-				src: ['<%= concat.runtime.src %>'],
+				src: ['<%= concat.runtime.dest %>'],
 				dest: 'build/Ractive.runtime.min.js'
 			},
 			full: {
-				src: ['<%= concat.full.src %>'],
+				src: ['<%= concat.full.dest %>'],
 				dest: 'build/Ractive.min.js'
 			},
 			runtime_legacy: {
-				src: ['<%= concat.runtime_legacy.src %>'],
+				src: ['<%= concat.runtime_legacy.dest %>'],
 				dest: 'build/Ractive-legacy.runtime.min.js'
 			},
 			full_legacy: {
-				src: ['<%= concat.full_legacy.src %>'],
+				src: ['<%= concat.full_legacy.dest %>'],
 				dest: 'build/Ractive-legacy.min.js',
 				options: {
 					sourceMap: 'tmp/source-map.js'
