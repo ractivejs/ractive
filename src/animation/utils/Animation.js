@@ -1,4 +1,4 @@
-utils.Animation = function ( options ) {
+var Animation = function ( options ) {
 	var key;
 
 	this.startTime = Date.now();
@@ -14,7 +14,7 @@ utils.Animation = function ( options ) {
 	this.running = true;
 };
 
-utils.Animation.prototype = {
+Animation.prototype = {
 	tick: function () {
 		var elapsed, t, value, timeNow;
 

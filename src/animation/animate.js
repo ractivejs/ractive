@@ -38,7 +38,7 @@ proto.animate = function ( keypath, to, options ) {
 
 	keys = utils.splitKeypath( keypath );
 
-	animation = new utils.Animation({
+	animation = new Animation({
 		keys: keys,
 		from: this.get( keys ),
 		to: to,
