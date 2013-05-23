@@ -20,7 +20,7 @@
 // * c - Conditionals (e.g. ['yes', 'no'] in {{condition ? yes : no}})
 // * x - eXpressions
 
-var parse, getFragmentStubFromTokens;
+var parse;
 
 parse = function ( template, options ) {
 	var tokens, fragmentStub, json;
@@ -48,22 +48,4 @@ parse = function ( template, options ) {
 	}
 
 	return json;
-};
-
-
-getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhitespace ) {
-	var parser, stub;
-
-	parser = {
-		pos: 0,
-		tokens: tokens || [],
-		next: function () {
-			return parser.tokens[ parser.pos ];
-		},
-		options: options
-	};
-
-	stub = stubs.fragment( parser, priority, preserveWhitespace );
-
-	return stub;
 };

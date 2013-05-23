@@ -57,11 +57,10 @@ registerKeypathToArray,
 unregisterKeypathFromArray,
 
 
-// tokenizer
+// parser and tokenizer
+getStub,
 getToken,
 
-tokens = {},
-expr = {},
 stubs = {},
 
 stripCommentTokens,

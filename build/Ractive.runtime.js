@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.0-alpha - 2013-05-23
+/*! Ractive - v0.3.0-alpha - 2013-05-24
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -67,11 +67,10 @@ registerKeypathToArray,
 unregisterKeypathFromArray,
 
 
-// tokenizer
+// parser and tokenizer
+getStub,
 getToken,
 
-tokens = {},
-expr = {},
 stubs = {},
 
 stripCommentTokens,

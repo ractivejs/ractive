@@ -1,3 +1,5 @@
+var getToken;
+
 (function () {
 
 	var getStringMatch,
