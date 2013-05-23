@@ -705,7 +705,6 @@ var getFragmentStubFromTokens;
 				throw new Error( 'Could not stringify expression token. This error is unexpected' );
 			}
 		};
-
 	}());
 
 }());
