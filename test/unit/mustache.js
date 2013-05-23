@@ -50,24 +50,26 @@ startTests = function ( set, data ) {
 	module( set );
 
 	data.tests.forEach( function ( t ) {
-		var data, ractive, result, pattern;
+		test( t.name, function () {
+				var data, ractive, result, pattern;
 
-		console.group( ++testNum );
+			console.group( ++testNum );
 
-		testReport[ testNum ] = {
-			data: t.data,
-			template: t.template,
-			_expected: trim( t.expected ),
-			charCodes: {
-				_expected: charCodes( trim( t.expected ) )
+			console.log( t.template );
+
+			testReport[ testNum ] = {
+				data: t.data,
+				template: t.template,
+				_expected: trim( t.expected ),
+				charCodes: {
+					_expected: charCodes( trim( t.expected ) )
+				}
+			};
+
+			if ( t.partials ) {
+				testReport[ testNum ].partials = t.partials;
 			}
-		};
 
-		if ( t.partials ) {
-			testReport[ testNum ].partials = t.partials;
-		}
-
-		try {
 			ractive = new Ractive({
 				el: 'qunit-fixture',
 				template: t.template,
@@ -80,17 +82,11 @@ startTests = function ( set, data ) {
 
 			testReport[ testNum ].___result = result;
 			testReport[ testNum ].charCodes.___result = charCodes( trim( result ) );
-		} catch ( err ) {
-			console.error( err );
-			console.trace();
-		}
-
-
-		test( t.name, function () {
+		
 			equal( fudge( trim( result ) ), fudge( trim( t.expected ) ), t.desc + '\n' + t.template + '\n' );
-		});
 
-		console.groupEnd();
+			console.groupEnd();
+		});
 	});
 };
 

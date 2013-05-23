@@ -16,7 +16,7 @@ test( 'Ractive has a compile method', function () {
 $.getJSON( 'samples/compile.json' ).done( function ( data ) {
 	_.each( data, function ( t ) {
 		test( t.name, function () {
-			console.group( t.template );
+			console.groupCollapsed( t.template );
 			var compiled = Ractive.compile( t.template, {
 				sanitize: t.sanitize,
 				preserveWhitespace: t.preserveWhitespace

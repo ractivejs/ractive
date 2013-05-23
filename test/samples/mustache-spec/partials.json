@@ -43,11 +43,11 @@
                     }
                 ]
             },
-            "expected": "X<Y<>>",
+            "expected": "X(Y())",
             "template": "{{>node}}",
             "desc": "The greater-than operator should properly recurse.",
             "partials": {
-                "node": "{{content}}<{{#nodes}}{{>node}}{{/nodes}}>"
+                "node": "{{content}}({{#nodes}}{{>node}}{{/nodes}})"
             }
         },
         {

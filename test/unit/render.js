@@ -99,15 +99,16 @@ tests = [
 		result: '<div><p>some text</p></div>'
 	},
 	{
+		name: 'Partials inherit index references',
+		template: '<ul>{{#items:i}}{{>item}}{{/items}}</ul>',
+		data: { items: [ 'zero', 'one', 'two', 'three' ] },
+		partials: { item: '<li data-index="{{i}}">{{i}}: {{.}}</li>' },
+		result: '<ul><li data-index="0">0: zero</li><li data-index="1">1: one</li><li data-index="2">2: two</li><li data-index="3">3: three</li></ul>'
+	},
+	{
 		name: "Empty string attributes",
 		template: "<p class=\"\">test</p>",
 		result: "<p class=\"\">test</p>"
-	},
-	{
-		name: 'Function values',
-		template: '<p>{{message}}</p>',
-		data: { message: function () { return 'functions work'; } },
-		result: '<p>functions work</p>'
 	},
 	{
 		name: 'Attribute with sections',
@@ -138,15 +139,6 @@ tests = [
 		template: '{{^condition}}The condition is falsy{{/condition}}',
 		data: { condition: false },
 		result: 'The condition is falsy'
-	},
-	{
-		name: 'Table',
-		template: "<p>Click headers to sort:</p><table><tr><th>#</th><th class='sort' data-col='name'>Superhero name</th><th class='sort' data-col='realname'>Real name</th><th class='sort' data-col='power'>Superpower</th></tr>{{#superheroes:i}}<tr data-id='{{i}}'><td>{{i | plus_one}}</td><td><a href='{{info}}'>{{name}}</a></td><td>{{realname}}</td><td>{{power}}</td></tr>{{/superheroes}}</table>",
-		data: { superheroes: [{ name: 'Nightcrawler', realname: 'Wagner, Kurt',     power: 'Teleportation', info: 'http://www.superherodb.com/Nightcrawler/10-107/' }, { name: 'Cyclops',      realname: 'Summers, Scott',   power: 'Optic blast',   info: 'http://www.superherodb.com/Cyclops/10-50/' }, { name: 'Mystique',     realname: 'Darkholme, Raven', power: 'Shapeshifting', info: 'http://www.superherodb.com/Mystique/10-817/' }, { name: 'Wolverine',    realname: 'Howlett, James',   power: 'Regeneration',  info: 'http://www.superherodb.com/Wolverine/10-161/' } ]},
-		result: '<p>Click headers to sort:</p><table><tr><th>#</th><th data-col="name" class="sort">Superhero name</th><th data-col="realname" class="sort">Real name</th><th data-col="power" class="sort">Superpower</th></tr><tr data-id="0"><td>1</td><td><a href="http://www.superherodb.com/Nightcrawler/10-107/">Nightcrawler</a></td><td>Wagner, Kurt</td><td>Teleportation</td></tr><tr data-id="1"><td>2</td><td><a href="http://www.superherodb.com/Cyclops/10-50/">Cyclops</a></td><td>Summers, Scott</td><td>Optic blast</td></tr><tr data-id="2"><td>3</td><td><a href="http://www.superherodb.com/Mystique/10-817/">Mystique</a></td><td>Darkholme, Raven</td><td>Shapeshifting</td></tr><tr data-id="3"><td>4</td><td><a href="http://www.superherodb.com/Wolverine/10-161/">Wolverine</a></td><td>Howlett, James</td><td>Regeneration</td></tr></table>',
-		modifiers: {
-			plus_one: function ( n ) { return n + 1; }
-		}
 	},
 	{
 		name: 'Triple',
@@ -181,13 +173,70 @@ tests = [
 		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello world!</text></svg>'
 	},
 	{
-		name: 'Inverted section with modifiers and failed lookup',
-		template: '{{^section | opposite}}should not appear{{/section}}',
-		data: {},
+		name: 'Basic expression',
+		template: '{{( "test".toUpperCase() )}}',
+		result: 'TEST'
+	},
+	{
+		name: 'Expression with a single reference',
+		template: '{{( ref )}}',
+		data: { ref: 'success' },
+		result: 'success'
+	},
+	{
+		name: 'Arithmetic expression',
+		template: '{{( number * 2 )}}',
+		data: { number: 10 },
+		result: '20'
+	},
+	{
+		name: 'Arithmetic expression with update',
+		template: '{{( number * 2 )}}',
+		data: { number: 10 },
+		new_data: { number: 20 },
+		result: '20',
+		new_result: '40'
+	},
+	{
+		name: 'Arithmetic expression with missing data',
+		template: '{{( number * 2 )}}',
+		result: ''
+	},
+	{
+		name: 'Arithmetic expression with missing data and update',
+		template: '{{( number * 2 )}}',
+		new_data: { number: 20 },
 		result: '',
-		modifiers: {
-			opposite: function ( val ) { return !val; }
-		}
+		new_result: '40'
+	},
+	{
+		name: 'Arithmetic expression with index reference',
+		template: '<ul>{{#items:i}}<li>{{( i + 1 )}}: {{.}}</li>{{/items}}</ul>',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<ul><li>1: a</li><li>2: b</li><li>3: c</li></ul>'
+	},
+	{
+		name: 'Conditional expression',
+		template: '<p class="{{( done ? \"complete\" : \"incomplete\" )}}">{{desc}}{{( done ? "" : " (pending)" )}}</p>',
+		data: { desc: 'Write more tests', done: true },
+		result: '<p class="complete">Write more tests</p>',
+		new_data: { done: false },
+		new_result: '<p class="complete">Write more tests (pending)</p>'
+	},
+	{
+		name: 'Invocation expression',
+		template: '<p>The population of {{country}} is {{( format(population) )}}.</p>',
+		data: {
+			country: 'the UK',
+			population: 62641000,
+			format: function ( num ) {
+				if ( num > 1000000000 ) return ( num / 1000000000 ).toFixed( 1 ) + ' billion';
+				if ( num > 1000000 ) return ( num / 1000000 ).toFixed( 1 ) + ' million';
+				if ( num > 1000 ) return ( Math.floor( num / 1000 ) ) + ',' + ( num % 1000 );
+				return num;
+			}
+		},
+		result: '<p>The population of the UK is 62.6 million.</p>'
 	}
 ];
 
@@ -196,18 +245,19 @@ _.each( tests, function ( t, i ) {
 	test( t.name, function () {
 		console.group(i+1);
 
-		var ractive = new Ractive({
+		var view;
+
+		window.view = view = new Ractive({
 			el: fixture,
 			data: t.data,
 			template: t.template,
-			partials: t.partials,
-			modifiers: t.modifiers
+			partials: t.partials
 		});
 
 		equal( fixture.innerHTML, t.result );
 
 		if ( t.new_data ) {
-			ractive.set( t.new_data );
+			view.set( t.new_data );
 			equal( fixture.innerHTML, t.new_result );
 		}
 

@@ -48,7 +48,7 @@ module.exports = function(grunt) {
 					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
 					footer: '<%= meta.wrapper.end %>'
 				},
-				src: [ 'src/Ractive.js', 'src/_internal.js', 'src/types.js', 'src/fragment_utils.js', 'src/events.js', 'src/define_event.js', 'src/modifiers.js', 'src/dom_fragment.js', 'src/text_fragment.js', 'src/extend.js', 'src/modify_array.js', 'src/easing.js', 'src/animate.js', 'src/interpolators.js', 'src/namespaces.js', 'src/adaptors.js' ],
+				src: [ 'src/_setup/**/*.js', 'src/core/**/*.js', 'src/utils/**/*.js', 'src/**/*.js', '!src/compile/**/*.js' ],
 				dest: 'build/Ractive.runtime.js'
 			},
 			full: {
@@ -56,15 +56,15 @@ module.exports = function(grunt) {
 					banner: '<%= meta.banner %><%= meta.wrapper.start %>',
 					footer: '<%= meta.wrapper.end %>'
 				},
-				src: [ 'src/Ractive.js', 'src/_internal.js', 'src/types.js', 'src/fragment_utils.js', 'src/events.js', 'src/define_event.js', 'src/compile.js', 'src/tokenize.js', 'src/modifiers.js', 'src/dom_fragment.js', 'src/text_fragment.js', 'src/extend.js', 'src/modify_array.js', 'src/easing.js', 'src/animate.js', 'src/interpolators.js', 'src/namespaces.js', 'src/adaptors.js' ],
+				src: [ 'src/_setup/**/*.js','src/core/**/*.js', 'src/utils/**/*.js', 'src/**/*.js'  ],
 				dest: 'build/Ractive.js'
 			},
 			runtime_legacy: {
-				src: [ 'src/legacy.js', '<%= concat.runtime.dest %>' ],
+				src: [ 'src/_setup/**/*.js','src/legacy.js', '<%= concat.runtime.dest %>' ],
 				dest: 'build/Ractive-legacy.runtime.js'
 			},
 			full_legacy: {
-				src: [ 'src/legacy.js', '<%= concat.full.dest %>' ],
+				src: [ 'src/_setup/**/*.js','src/legacy.js', '<%= concat.full.dest %>' ],
 				dest: 'build/Ractive-legacy.js'
 			}
 		},
@@ -79,20 +79,23 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			runtime: {
-				src: ['<%= concat.runtime.dest %>'],
+				src: ['<%= concat.runtime.src %>'],
 				dest: 'build/Ractive.runtime.min.js'
 			},
 			full: {
-				src: ['<%= concat.full.dest %>'],
+				src: ['<%= concat.full.src %>'],
 				dest: 'build/Ractive.min.js'
 			},
 			runtime_legacy: {
-				src: ['<%= concat.runtime_legacy.dest %>'],
+				src: ['<%= concat.runtime_legacy.src %>'],
 				dest: 'build/Ractive-legacy.runtime.min.js'
 			},
 			full_legacy: {
-				src: ['<%= concat.full_legacy.dest %>'],
-				dest: 'build/Ractive-legacy.min.js'
+				src: ['<%= concat.full_legacy.src %>'],
+				dest: 'build/Ractive-legacy.min.js',
+				options: {
+					sourceMap: 'tmp/source-map.js'
+				}
 			}
 		},
 		copy: {
@@ -121,8 +124,8 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	
 	// Default task.
-	grunt.registerTask('default', [ 'jshint', 'qunit', 'clean', 'concat', 'uglify' ]);
+	grunt.registerTask('default', [ 'jshint', 'qunit', 'clean', 'concat' ]);
 
-	grunt.registerTask( 'release', [ 'default', 'copy' ] );
+	grunt.registerTask( 'release', [ 'default', 'uglify', 'copy' ] );
 
 };

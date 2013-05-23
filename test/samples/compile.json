@@ -121,13 +121,18 @@
 		"compiled": [{"a":{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"f":["Hello ",{"p":2,"r":"thing","t":2},"!"],"e":"text","t":7}],"e":"svg","t":7}]
 	},
 	{
-		"name": "Modifier",
-		"template": "{{text | uppercase}}",
-		"compiled": [{"m":[{"d":"uppercase"}],"r":"text","t":2}]
+		"name": "Mixture of HTML-able and non-HTML-able elements in template",
+		"template": "<div><p>HTML</p><p>{{mustache}}</p></div>",
+		"compiled": [{"t":7,"e":"div","f":[{"t":7,"e":"p","f":"HTML"},{"t":7,"e":"p","f":[{"p":2,"t":2,"r":"mustache"}]}]}]
 	},
 	{
-		"name": "Modifier with arguments",
-		"template": "{{value | clamp[0,100]}}",
-		"compiled": [{"m":[{"g":[0,100],"d":"clamp"}],"r":"value","t":2}]
+		"name": "Expression mustache",
+		"template": "{{( i + 1 )}}",
+		"compiled": ""
+	},
+	{
+		"name": "Expression mustache with brackets",
+		"template": "{{( (i) + 1 )}}",
+		"compiled": ""
 	}
 ]
