@@ -1,10 +1,21 @@
-var cancelKeypathResolution, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
+var teardown, cancelKeypathResolution, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
 
-cancelKeypathResolution = function ( root, mustache ) {
-	var index = root._pendingResolution.indexOf( mustache );
+teardown = function ( thing ) {
+	if ( !thing.keypath ) {
+		// this was on the 'unresolved' list, we need to remove it
+		var index = thing.root._pendingResolution.indexOf( thing );
 
-	if ( index !== -1 ) {
-		root._pendingResolution.splice( index, 1 );
+		if ( index !== -1 ) {
+			thing.root._pendingResolution.splice( index, 1 );
+		}
+
+	} else {
+		// this was registered as a dependency
+		unregisterDependant( thing.root, thing.keypath, thing, thing.priority || 0 );
+	}
+
+	if ( thing.evaluator ) {
+		thing.evaluator.teardown();
 	}
 };
 
@@ -82,7 +93,6 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 };
 
-
 notifyDependants = function ( root, keypath ) {
 	var depsByPriority, deps, i, j, len, childDeps;
 
@@ -110,7 +120,6 @@ notifyDependants = function ( root, keypath ) {
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-
 			notifyDependants( root, childDeps[i] );
 			
 			// TODO at some point, no-longer extant dependants need to be removed
