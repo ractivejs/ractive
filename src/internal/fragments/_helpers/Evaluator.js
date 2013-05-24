@@ -1,17 +1,23 @@
-(function ( evaluators, functions ) {
+(function ( evaluators, functionCache ) {
 
-	var Reference, getFn;
+	var Reference, getFunctionFromString;
 
-	getFn = function ( fnStr, refs ) {
-		var fn;
+	getFunctionFromString = function ( functionString, i ) {
+		var fn, args;
 
-		if ( functions[ fnStr ] ) {
-			return functions[ fnStr ];
+		if ( functionCache[ functionString ] ) {
+			console.log( 'cache hit: ', functionString );
+			return functionCache[ functionString ];
 		}
 
-		fn = new Function( refs ? refs.join( ',' ) : '', 'return(' + fnStr + ')' );
+		args = [];
+		while ( i-- ) {
+			args[i] = '_' + i;
+		}
 
-		functions[ fnStr ] = fn;
+		fn = new Function( args.join( ',' ), 'return(' + functionString + ')' );
+
+		functionCache[ functionString ] = fn;
 		return fn;
 	};
 
@@ -36,6 +42,7 @@
 		else {
 			this.unresolved = descriptor.r.length;
 			this.refs = descriptor.r.slice();
+			this.resolvers = [];
 
 			i = descriptor.r.length;
 			while ( i-- ) {
@@ -46,8 +53,16 @@
 				}
 
 				else {
-					new Reference( root, descriptor.r[i], contextStack, i, this );
+					this.resolvers[ this.resolvers.length ] = new Reference( root, descriptor.r[i], contextStack, i, this );
 				}
+			}
+
+			// if this only has one reference (and therefore only one dependency) it can
+			// update its mustache whenever that dependency changes. Otherwise, it should
+			// wait until all the information is in before re-evaluating (same principle
+			// as element attributes)
+			if ( this.resolvers.length <= 1 ) {
+				this.selfUpdating = true;
 			}
 
 			// if we have no unresolved references, but we haven't initialised (because
@@ -62,29 +77,37 @@
 		// TODO teardown
 
 		init: function () {
-			var self = this;
+			var self = this, functionString;
 
 			// we're ready!
 			this.resolved = true;
 
-			this.keypath = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+			this.keypath = '(' + this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
 				if ( self.override.hasOwnProperty( $1 ) ) {
 					return self.override[ $1 ];
 				}
 
 				return self.keypaths[ $1 ];
+			}) + ')';
+
+			functionString = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+				return '_' + $1;
 			});
 
-			this.fnStr = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
-				return self.refs[ $1 ];
-			});
-
-			this.fn = getFn( this.fnStr, this.refs );
+			this.fn = getFunctionFromString( functionString, ( this.refs ? this.refs.length : 0 ) );
 
 			this.update();
 			this.mustache.resolve( this.keypath );
 
 			// TODO some cleanup, delete unneeded bits
+		},
+
+		teardown: function () {
+			if ( this.resolvers ) {
+				while ( this.resolvers.length ) {
+					this.resolvers.pop().teardown();
+				}
+			}
 		},
 
 		resolve: function ( ref, argNum, keypath ) {
@@ -98,11 +121,26 @@
 			}
 		},
 
+		bubble: function () {
+			// If we only have one reference, we can update immediately...
+			if ( this.selfUpdating ) {
+				this.update();
+			}
+
+			// ...otherwise we want to register it as a deferred item, to be
+			// updated once all the information is in, to prevent unnecessary
+			// cascading
+			else if ( !this.deferred ) {
+				this.root._def[ this.root._def.length ] = this;
+				this.deferred = true;
+			}
+		},
+
 		update: function () {
 			var value;
 
 			if ( !this.resolved ) {
-				return;
+				return this;
 			}
 
 			try {
@@ -116,10 +154,13 @@
 			}
 
 			if ( !isEqual( value, this._lastValue ) ) {
-				this.root.set( this.keypath, value );
+				this.root._cache[ this.keypath ] = value;
+				notifyDependants( this.root, this.keypath );
 
 				this._lastValue = value;
 			}
+
+			return this;
 		},
 
 		getter: function () {
@@ -147,7 +188,9 @@
 	};
 
 	Reference.prototype = {
-		// TODO teardown
+		teardown: function () {
+			teardown( this );
+		},
 
 		resolve: function ( keypath ) {
 
@@ -163,7 +206,7 @@
 
 			if ( !isEqual( value, this._lastValue ) ) {
 				this.evaluator.values[ this.argNum ] = value;
-				this.evaluator.update();
+				this.evaluator.bubble();
 
 				this._lastValue = value;
 			}
