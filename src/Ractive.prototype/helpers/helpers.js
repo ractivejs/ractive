@@ -1,4 +1,4 @@
-var teardown, cancelKeypathResolution, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
+var teardown, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
 
 teardown = function ( thing ) {
 	if ( !thing.keypath ) {
@@ -93,7 +93,7 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 };
 
-notifyDependants = function ( root, keypath ) {
+notifyDependants = function ( root, keypath, onlyDirect ) {
 	var depsByPriority, deps, i, j, len, childDeps;
 
 	depsByPriority = root._deps[ keypath ];
@@ -112,6 +112,11 @@ notifyDependants = function ( root, keypath ) {
 		}
 	}
 
+	// If we're only notifying direct dependants, not dependants
+	// of downstream keypaths, then YOU SHALL NOT PASS
+	if ( onlyDirect ) {
+		return;
+	}
 	
 
 	// cascade

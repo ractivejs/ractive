@@ -128,8 +128,8 @@
 
 			// ...otherwise we want to register it as a deferred item, to be
 			// updated once all the information is in, to prevent unnecessary
-			// cascading
-			else if ( !this.deferred ) {
+			// cascading. Only if we're already resovled, obviously
+			else if ( !this.deferred && this.resolved ) {
 				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
 			}
