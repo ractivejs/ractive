@@ -1,3 +1,5 @@
+// TODO use dontNormalise
+
 proto.get = function ( keypath, dontNormalise ) {
 	var keys, normalised, key, parentKeypath, parentValue, value;
 
