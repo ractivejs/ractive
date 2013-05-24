@@ -6,7 +6,6 @@
 		var fn, args;
 
 		if ( functionCache[ functionString ] ) {
-			console.log( 'cache hit: ', functionString );
 			return functionCache[ functionString ];
 		}
 
