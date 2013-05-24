@@ -237,6 +237,23 @@ tests = [
 			}
 		},
 		result: '<p>The population of the UK is 62.6 million.</p>'
+	},
+	{
+		name: 'Responding to downstream changes',
+		template: '<p>Total: {{( total( numbers ) )}}</p>',
+		data: {
+			numbers: [ 1, 2, 3, 4 ],
+			total: function ( numbers ) {
+				return numbers.reduce( function ( prev, curr ) {
+					return prev + curr;
+				});
+			}
+		},
+		result: '<p>Total: 10</p>',
+		new_data: {
+			'numbers[4]': 5
+		},
+		new_result: '<p>Total: 15</p>'
 	}
 ];
 
