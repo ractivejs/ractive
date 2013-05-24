@@ -53,7 +53,7 @@ Ractive = function ( options ) {
 	this._pendingResolution = [];
 
 	// Create an array for deferred attributes
-	this._defAttrs = [];
+	this._def = [];
 
 	// Cache proxy event handlers - allows efficient reuse
 	this._proxies = {};
