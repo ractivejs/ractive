@@ -645,7 +645,7 @@
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred ) {
-				this.root._defAttrs[ this.root._defAttrs.length ] = this;
+				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
 			}
 		},
@@ -741,12 +741,8 @@
 		evaluate: evaluateMustache,
 
 		teardown: function () {
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
-
+			teardown( this );
+			
 			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
@@ -787,12 +783,7 @@
 				}
 			}
 
-			// kill observer(s)
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		firstNode: function () {
@@ -841,11 +832,7 @@
 		teardown: function () {
 			this.unrender();
 
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		firstNode: function () {
