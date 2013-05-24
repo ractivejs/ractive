@@ -79,10 +79,7 @@ module.exports = function(grunt) {
 			},
 			full_legacy: {
 				src: ['<%= concat.full_legacy.dest %>'],
-				dest: 'build/Ractive-legacy.min.js',
-				options: {
-					sourceMap: 'tmp/source-map.js'
-				}
+				dest: 'build/Ractive-legacy.min.js'
 			}
 		},
 		copy: {
