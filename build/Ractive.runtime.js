@@ -255,7 +255,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	
 	return value;
 };
-var teardown, cancelKeypathResolution, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
+var teardown, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
 
 teardown = function ( thing ) {
 	if ( !thing.keypath ) {
@@ -350,7 +350,7 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 };
 
-notifyDependants = function ( root, keypath ) {
+notifyDependants = function ( root, keypath, onlyDirect ) {
 	var depsByPriority, deps, i, j, len, childDeps;
 
 	depsByPriority = root._deps[ keypath ];
@@ -369,6 +369,11 @@ notifyDependants = function ( root, keypath ) {
 		}
 	}
 
+	// If we're only notifying direct dependants, not dependants
+	// of downstream keypaths, then YOU SHALL NOT PASS
+	if ( onlyDirect ) {
+		return;
+	}
 	
 
 	// cascade
@@ -431,6 +436,74 @@ proto.link = function ( keypath ) {
 		self.set( keypath, value );
 	};
 };
+(function ( proto ) {
+
+	var observe, updateObserver;
+
+	proto.observe = function ( keypath, callback, options ) {
+
+		var observers = [], k;
+
+		if ( typeof keypath === 'object' ) {
+			options = callback;
+
+			for ( k in keypath ) {
+				if ( keypath.hasOwnProperty( k ) ) {
+					callback = keypath[k];
+					observers[ observers.length ] = observe( this, k, callback, options );
+				}
+			}
+
+			return {
+				cancel: function () {
+					while ( observers.length ) {
+						observers.pop().cancel();
+					}
+				}
+			};
+		}
+
+		return observe( this, keypath, callback, options );
+
+	};
+
+
+	observe = function ( root, keypath, callback, options ) {
+		var observer, lastValue, context;
+
+		options = options || {};
+		context = options.context || root;
+
+		observer = {
+			update: function () {
+				var value;
+
+				// TODO create, and use, an internal get method instead - we can skip checks
+				value = root.get( keypath, true );
+
+				if ( !isEqual( value, lastValue ) ) {
+					callback.call( context, value, lastValue );
+					lastValue = value;
+				}
+			},
+
+			cancel: function () {
+				unregisterDependant( root, keypath, observer, 0 );
+			}
+		};
+
+		if ( options.init !== false ) {
+			observer.update();
+		}
+
+		registerDependant( root, keypath, observer, 0 );
+
+		return observer;
+	};
+
+}( proto ));
+
+
 proto.off = function ( eventName, callback ) {
 	var subscribers, index;
 
@@ -518,12 +591,74 @@ proto.render = function ( options ) {
 
 	var set, attemptKeypathResolution;
 
+	// TODO notify direct dependants of upstream keypaths
+	proto.set = function ( keypath, value ) {
+		var notificationQueue, upstreamQueue, k, normalised, keys, previous;
+
+		if ( !this.setting ) {
+			this.setting = true; // short-circuit any potential infinite loops
+			this.fire( 'set', keypath, value );
+			this.setting = false;
+		}
+
+		upstreamQueue = [];
+		notificationQueue = [];
+
+		// setting multiple values in one go
+		if ( isObject( keypath ) ) {
+			for ( k in keypath ) {
+				if ( keypath.hasOwnProperty( k ) ) {
+					keys = splitKeypath( k );
+					normalised = keys.join( '.' );
+					value = keypath[k];
+
+					set( this, normalised, keys, value, notificationQueue, upstreamQueue );
+				}
+			}
+		}
+
+		// setting a single value
+		else {
+			keys = splitKeypath( keypath );
+			normalised = keys.join( '.' );
+
+			set( this, normalised, keys, value, notificationQueue, upstreamQueue );
+		}
+
+		// if anything has changed, notify dependants and attempt to resolve
+		// any unresolved keypaths
+		if ( notificationQueue.length ) {
+			while ( notificationQueue.length ) {
+				notifyDependants( this, notificationQueue.pop() );
+			}
+
+			attemptKeypathResolution( this );
+		}
+
+		// notify direct descendants of upstream keypaths
+		while ( upstreamQueue.length ) {
+			notifyDependants( this, upstreamQueue.pop(), true );
+		}
+
+		// Attributes don't reflect changes automatically if there is a possibility
+		// that they will need to change again before the .set() cycle is complete
+		// - they defer their updates until all values have been set
+		while ( this._def.length ) {
+			// Update the attribute, then deflag it
+			this._def.pop().update().deferred = false;
+		}
+	};
+
+
+
 	// TODO fire change events as well as set events
 	// (cascade at this point, so we can identify all change events, and
 	// kill off the dependants map?)
 
-	set = function ( root, keypath, keys, value, queue ) {
-		var previous, key, obj;
+	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
+		var previous, key, obj, keysClone;
+
+		keysClone = keys.slice();
 
 		previous = root.get( keypath );
 
@@ -560,25 +695,18 @@ proto.render = function ( options ) {
 		// Clear cache
 		clearCache( root, keypath );
 
-		// if we're queueing, add this keypath to the queue
-		if ( queue ) {
-			queue[ queue.length ] = keypath;
-		}
+		// add this keypath to the notification queue
+		queue[ queue.length ] = keypath;
 
-		// otherwise notify dependants immediately
-		else {
-			notifyDependants( root, keypath );
-			attemptKeypathResolution( root );
-		}
-		
 
-		// TODO fire the right events at the right times
-		// Fire set event
-		if ( !root.setting ) {
-			root.setting = true; // short-circuit any potential infinite loops
-			root.fire( 'set', keypath, value );
-			root.fire( 'set:' + keypath, value );
-			root.setting = false;
+		// add upstream keypaths to the upstream notification queue
+		while ( keysClone.length ) {
+			keysClone.pop();
+			keypath = keysClone.join( '.' );
+
+			if ( upstreamQueue.indexOf( keypath ) === -1 ) {
+				upstreamQueue[ upstreamQueue.length ] = keypath;
+			}
 		}
 		
 	};
@@ -601,55 +729,6 @@ proto.render = function ( options ) {
 				// the queue (this is why we're working backwards)
 				root._pendingResolution[ root._pendingResolution.length ] = unresolved;
 			}
-		}
-	};
-
-	
-
-
-	// TODO notify direct dependants of upstream keypaths
-	proto.set = function ( keypath, value ) {
-		var notificationQueue, k, normalised, keys, previous;
-
-		// setting multiple values in one go
-		if ( isObject( keypath ) ) {
-			notificationQueue = [];
-
-			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
-					keys = splitKeypath( k );
-					normalised = keys.join( '.' );
-					value = keypath[k];
-
-					set( this, normalised, keys, value, notificationQueue );
-				}
-			}
-
-			// if anything has changed, notify dependants and attempt to resolve
-			// any unresolved keypaths
-			if ( notificationQueue.length ) {
-				while ( notificationQueue.length ) {
-					notifyDependants( this, notificationQueue.pop() );
-				}
-
-				attemptKeypathResolution( this );
-			}
-		}
-
-		// setting a single value
-		else {
-			keys = splitKeypath( keypath );
-			normalised = keys.join( '.' );
-
-			set( this, normalised, keys, value );
-		}
-
-		// Attributes don't reflect changes automatically if there is a possibility
-		// that they will need to change again before the .set() cycle is complete
-		// - they defer their updates until all values have been set
-		while ( this._def.length ) {
-			// Update the attribute, then deflag it
-			this._def.pop().update().deferred = false;
 		}
 	};
 
@@ -1629,8 +1708,8 @@ animationCollection = {
 
 			// ...otherwise we want to register it as a deferred item, to be
 			// updated once all the information is in, to prevent unnecessary
-			// cascading
-			else if ( !this.deferred ) {
+			// cascading. Only if we're already resovled, obviously
+			else if ( !this.deferred && this.resolved ) {
 				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
 			}
