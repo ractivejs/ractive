@@ -58,11 +58,6 @@ unregisterKeypathFromArray,
 
 
 // parser and tokenizer
-getStub,
-getToken,
-
-stubs = {},
-
 stripCommentTokens,
 stripHtmlComments,
 stripStandalones,
