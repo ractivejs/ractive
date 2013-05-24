@@ -1132,7 +1132,7 @@ var getToken;
 		};
 
 		getRefinement = function ( tokenizer ) {
-			var start, refinement, name, expression;
+			var start, refinement, name, expr;
 
 			start = tokenizer.pos;
 
@@ -1152,14 +1152,14 @@ var getToken;
 			// "[" expression "]"
 			if ( getStringMatch( tokenizer, '[' ) ) {
 				expr = getExpression( tokenizer );
-				if ( !expression || !getStringMatch( tokenizer, ']' ) ) {
+				if ( !expr || !getStringMatch( tokenizer, ']' ) ) {
 					tokenizer.pos = start;
 					return null;
 				}
 
 				return {
 					t: REFINEMENT,
-					x: expression
+					x: expr
 				};
 			}
 
