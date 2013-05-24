@@ -96,11 +96,7 @@
 		},
 
 		teardown: function () {
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		toString: function () {
@@ -128,11 +124,7 @@
 		teardown: function () {
 			this.unrender();
 
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		unrender: function () {
