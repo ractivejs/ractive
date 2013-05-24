@@ -68,11 +68,6 @@ unregisterKeypathFromArray,
 
 
 // parser and tokenizer
-getStub,
-getToken,
-
-stubs = {},
-
 stripCommentTokens,
 stripHtmlComments,
 stripStandalones,
@@ -197,6 +192,8 @@ proto.fire = function ( eventName ) {
 		subscribers[i].apply( this, args );
 	}
 };
+// TODO use dontNormalise
+
 proto.get = function ( keypath, dontNormalise ) {
 	var keys, normalised, key, parentKeypath, parentValue, value;
 
@@ -258,13 +255,24 @@ proto.get = function ( keypath, dontNormalise ) {
 	
 	return value;
 };
-var cancelKeypathResolution, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
+var teardown, cancelKeypathResolution, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
 
-cancelKeypathResolution = function ( root, mustache ) {
-	var index = root._pendingResolution.indexOf( mustache );
+teardown = function ( thing ) {
+	if ( !thing.keypath ) {
+		// this was on the 'unresolved' list, we need to remove it
+		var index = thing.root._pendingResolution.indexOf( thing );
 
-	if ( index !== -1 ) {
-		root._pendingResolution.splice( index, 1 );
+		if ( index !== -1 ) {
+			thing.root._pendingResolution.splice( index, 1 );
+		}
+
+	} else {
+		// this was registered as a dependency
+		unregisterDependant( thing.root, thing.keypath, thing, thing.priority || 0 );
+	}
+
+	if ( thing.evaluator ) {
+		thing.evaluator.teardown();
 	}
 };
 
@@ -342,7 +350,6 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 };
 
-
 notifyDependants = function ( root, keypath ) {
 	var depsByPriority, deps, i, j, len, childDeps;
 
@@ -370,7 +377,6 @@ notifyDependants = function ( root, keypath ) {
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-
 			notifyDependants( root, childDeps[i] );
 			
 			// TODO at some point, no-longer extant dependants need to be removed
@@ -510,51 +516,75 @@ proto.render = function ( options ) {
 };
 (function ( proto ) {
 
-	var setSingle, setMultiple;
+	var set, attemptKeypathResolution;
 
-	setSingle = function ( root, keypath, value ) {
-		var keys, key, obj, normalised, i, unresolved;
+	// TODO fire change events as well as set events
+	// (cascade at this point, so we can identify all change events, and
+	// kill off the dependants map?)
 
-		if ( isArray( keypath ) ) {
-			keys = keypath.slice();
-		} else {
-			keys = splitKeypath( keypath );
-		}
+	set = function ( root, keypath, keys, value, queue ) {
+		var previous, key, obj;
 
-		normalised = keys.join( '.' );
+		previous = root.get( keypath );
 
-		// Clear cache
-		clearCache( root, normalised );
+		// update the model, if necessary
+		if ( previous !== value ) {
+			// update data
+			obj = root.data;
+			while ( keys.length > 1 ) {
+				key = keys.shift();
 
-		// update data
-		obj = root.data;
-		while ( keys.length > 1 ) {
-			key = keys.shift();
+				// If this branch doesn't exist yet, create a new one - if the next
+				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
+				// than an object
+				if ( !obj[ key ] ) {
+					obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
+				}
 
-			// If this branch doesn't exist yet, create a new one - if the next
-			// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
-			// than an object
-			if ( !obj[ key ] ) {
-				obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
+				obj = obj[ key ];
 			}
 
-			obj = obj[ key ];
+			key = keys[0];
+
+			obj[ key ] = value;
 		}
 
-		key = keys[0];
+		else {
+			// if value is a primitive, we don't need to do anything else
+			if ( typeof value !== 'object' ) {
+				return;
+			}
+		}
 
-		obj[ key ] = value;
 
+		// Clear cache
+		clearCache( root, keypath );
+
+		// if we're queueing, add this keypath to the queue
+		if ( queue ) {
+			queue[ queue.length ] = keypath;
+		}
+
+		// otherwise notify dependants immediately
+		else {
+			notifyDependants( root, keypath );
+			attemptKeypathResolution( root );
+		}
+		
+
+		// TODO fire the right events at the right times
 		// Fire set event
 		if ( !root.setting ) {
 			root.setting = true; // short-circuit any potential infinite loops
-			root.fire( 'set', normalised, value );
-			root.fire( 'set:' + normalised, value );
+			root.fire( 'set', keypath, value );
+			root.fire( 'set:' + keypath, value );
 			root.setting = false;
 		}
+		
+	};
 
-		// Trigger updates of mustaches that observe `keypaths` or its descendants
-		notifyDependants( root, normalised );
+	attemptKeypathResolution = function ( root ) {
+		var i, unresolved, keypath;
 
 		// See if we can resolve any of the unresolved keypaths (if such there be)
 		i = root._pendingResolution.length;
@@ -574,29 +604,52 @@ proto.render = function ( options ) {
 		}
 	};
 
-	setMultiple = function ( root, map ) {
-		var keypath;
+	
 
-		for ( keypath in map ) {
-			if ( map.hasOwnProperty( keypath ) ) {
-				setSingle( root, keypath, map[ keypath ] );
+
+	// TODO notify direct dependants of upstream keypaths
+	proto.set = function ( keypath, value ) {
+		var notificationQueue, k, normalised, keys, previous;
+
+		// setting multiple values in one go
+		if ( isObject( keypath ) ) {
+			notificationQueue = [];
+
+			for ( k in keypath ) {
+				if ( keypath.hasOwnProperty( k ) ) {
+					keys = splitKeypath( k );
+					normalised = keys.join( '.' );
+					value = keypath[k];
+
+					set( this, normalised, keys, value, notificationQueue );
+				}
+			}
+
+			// if anything has changed, notify dependants and attempt to resolve
+			// any unresolved keypaths
+			if ( notificationQueue.length ) {
+				while ( notificationQueue.length ) {
+					notifyDependants( this, notificationQueue.pop() );
+				}
+
+				attemptKeypathResolution( this );
 			}
 		}
-	};
 
-	proto.set = function ( keypath, value ) {
-		if ( isObject( keypath ) ) {
-			setMultiple( this, keypath );
-		} else {
-			setSingle( this, keypath, value );
+		// setting a single value
+		else {
+			keys = splitKeypath( keypath );
+			normalised = keys.join( '.' );
+
+			set( this, normalised, keys, value );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
 		// that they will need to change again before the .set() cycle is complete
 		// - they defer their updates until all values have been set
-		while ( this._defAttrs.length ) {
+		while ( this._def.length ) {
 			// Update the attribute, then deflag it
-			this._defAttrs.pop().update().deferred = false;
+			this._def.pop().update().deferred = false;
 		}
 	};
 
@@ -1079,7 +1132,7 @@ Ractive = function ( options ) {
 	this._pendingResolution = [];
 
 	// Create an array for deferred attributes
-	this._defAttrs = [];
+	this._def = [];
 
 	// Cache proxy event handlers - allows efficient reuse
 	this._proxies = {};
@@ -1446,20 +1499,25 @@ animationCollection = {
 	}
 
 }());
-(function ( evaluators, functions ) {
+(function ( evaluators, functionCache ) {
 
-	var Reference, getFn;
+	var Reference, getFunctionFromString;
 
-	getFn = function ( fnStr, refs ) {
-		var fn;
+	getFunctionFromString = function ( functionString, i ) {
+		var fn, args;
 
-		if ( functions[ fnStr ] ) {
-			return functions[ fnStr ];
+		if ( functionCache[ functionString ] ) {
+			return functionCache[ functionString ];
 		}
 
-		fn = new Function( refs ? refs.join( ',' ) : '', 'return(' + fnStr + ')' );
+		args = [];
+		while ( i-- ) {
+			args[i] = '_' + i;
+		}
 
-		functions[ fnStr ] = fn;
+		fn = new Function( args.join( ',' ), 'return(' + functionString + ')' );
+
+		functionCache[ functionString ] = fn;
 		return fn;
 	};
 
@@ -1484,6 +1542,7 @@ animationCollection = {
 		else {
 			this.unresolved = descriptor.r.length;
 			this.refs = descriptor.r.slice();
+			this.resolvers = [];
 
 			i = descriptor.r.length;
 			while ( i-- ) {
@@ -1494,8 +1553,16 @@ animationCollection = {
 				}
 
 				else {
-					new Reference( root, descriptor.r[i], contextStack, i, this );
+					this.resolvers[ this.resolvers.length ] = new Reference( root, descriptor.r[i], contextStack, i, this );
 				}
+			}
+
+			// if this only has one reference (and therefore only one dependency) it can
+			// update its mustache whenever that dependency changes. Otherwise, it should
+			// wait until all the information is in before re-evaluating (same principle
+			// as element attributes)
+			if ( this.resolvers.length <= 1 ) {
+				this.selfUpdating = true;
 			}
 
 			// if we have no unresolved references, but we haven't initialised (because
@@ -1510,29 +1577,37 @@ animationCollection = {
 		// TODO teardown
 
 		init: function () {
-			var self = this;
+			var self = this, functionString;
 
 			// we're ready!
 			this.resolved = true;
 
-			this.keypath = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+			this.keypath = '(' + this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
 				if ( self.override.hasOwnProperty( $1 ) ) {
 					return self.override[ $1 ];
 				}
 
 				return self.keypaths[ $1 ];
+			}) + ')';
+
+			functionString = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+				return '_' + $1;
 			});
 
-			this.fnStr = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
-				return self.refs[ $1 ];
-			});
-
-			this.fn = getFn( this.fnStr, this.refs );
+			this.fn = getFunctionFromString( functionString, ( this.refs ? this.refs.length : 0 ) );
 
 			this.update();
 			this.mustache.resolve( this.keypath );
 
 			// TODO some cleanup, delete unneeded bits
+		},
+
+		teardown: function () {
+			if ( this.resolvers ) {
+				while ( this.resolvers.length ) {
+					this.resolvers.pop().teardown();
+				}
+			}
 		},
 
 		resolve: function ( ref, argNum, keypath ) {
@@ -1546,11 +1621,26 @@ animationCollection = {
 			}
 		},
 
+		bubble: function () {
+			// If we only have one reference, we can update immediately...
+			if ( this.selfUpdating ) {
+				this.update();
+			}
+
+			// ...otherwise we want to register it as a deferred item, to be
+			// updated once all the information is in, to prevent unnecessary
+			// cascading
+			else if ( !this.deferred ) {
+				this.root._def[ this.root._def.length ] = this;
+				this.deferred = true;
+			}
+		},
+
 		update: function () {
 			var value;
 
 			if ( !this.resolved ) {
-				return;
+				return this;
 			}
 
 			try {
@@ -1564,10 +1654,13 @@ animationCollection = {
 			}
 
 			if ( !isEqual( value, this._lastValue ) ) {
-				this.root.set( this.keypath, value );
+				this.root._cache[ this.keypath ] = value;
+				notifyDependants( this.root, this.keypath );
 
 				this._lastValue = value;
 			}
+
+			return this;
 		},
 
 		getter: function () {
@@ -1595,7 +1688,9 @@ animationCollection = {
 	};
 
 	Reference.prototype = {
-		// TODO teardown
+		teardown: function () {
+			teardown( this );
+		},
 
 		resolve: function ( keypath ) {
 
@@ -1611,7 +1706,7 @@ animationCollection = {
 
 			if ( !isEqual( value, this._lastValue ) ) {
 				this.evaluator.values[ this.argNum ] = value;
-				this.evaluator.update();
+				this.evaluator.bubble();
 
 				this._lastValue = value;
 			}
@@ -2529,7 +2624,7 @@ updateSection = function ( section, value ) {
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred ) {
-				this.root._defAttrs[ this.root._defAttrs.length ] = this;
+				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
 			}
 		},
@@ -2625,12 +2720,8 @@ updateSection = function ( section, value ) {
 		evaluate: evaluateMustache,
 
 		teardown: function () {
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
-
+			teardown( this );
+			
 			if ( this.root.el.contains( this.node ) ) {
 				this.parentNode.removeChild( this.node );
 			}
@@ -2671,12 +2762,7 @@ updateSection = function ( section, value ) {
 				}
 			}
 
-			// kill observer(s)
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		firstNode: function () {
@@ -2725,11 +2811,7 @@ updateSection = function ( section, value ) {
 		teardown: function () {
 			this.unrender();
 
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		firstNode: function () {
@@ -2873,11 +2955,7 @@ updateSection = function ( section, value ) {
 		},
 
 		teardown: function () {
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		toString: function () {
@@ -2905,11 +2983,7 @@ updateSection = function ( section, value ) {
 		teardown: function () {
 			this.unrender();
 
-			if ( !this.keypath ) {
-				cancelKeypathResolution( this.root, this );
-			} else {
-				unregisterDependant( this.root, this.keypath, this, this.descriptor.p || 0 );
-			}
+			teardown( this );
 		},
 
 		unrender: function () {
