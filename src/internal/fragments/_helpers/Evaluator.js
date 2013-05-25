@@ -175,6 +175,7 @@
 		this.ref = ref;
 		this.root = root;
 		this.evaluator = evaluator;
+		this.priority = evaluator.priority;
 		this.argNum = argNum;
 
 		keypath = resolveRef( root, ref, contextStack );
@@ -192,10 +193,10 @@
 		},
 
 		resolve: function ( keypath ) {
-
 			this.keypath = keypath;
 
-			registerDependant( this.root, keypath, this, this.evaluator.priority );
+			registerDependant( this.root, keypath, this, this.priority );
+			
 			this.update();
 			this.evaluator.resolve( this.ref, this.argNum, keypath );
 		},
