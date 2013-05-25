@@ -24,9 +24,11 @@ clearCache = function ( root, keypath ) {
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( root.modifyArrays ) {
-		value = root._cache[ keypath ];
-		if ( isArray( value ) && !value._ractive.setting ) {
-			unregisterKeypathFromArray( value, keypath, root );
+		if ( keypath.charAt( 0 ) !== '(' ) { // expressions don't get wrapped
+			value = root._cache[ keypath ];
+			if ( isArray( value ) && !value._ractive.setting ) {
+				unregisterKeypathFromArray( value, keypath, root );
+			}
 		}
 	}
 	

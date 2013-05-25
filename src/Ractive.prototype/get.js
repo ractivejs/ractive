@@ -51,7 +51,8 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// Is this an array that needs to be wrapped?
 	if ( this.modifyArrays ) {
-		if ( isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
+		// if it's not an expression, is an array, and we're not here because it sent us here, wrap it
+		if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
 			registerKeypathToArray( value, normalised, this );
 		}
 	}
