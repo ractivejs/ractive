@@ -276,11 +276,16 @@ var getFragmentStubFromTokens;
 			this.items = [];
 			next = parser.next();
 
-			// TODO how do we close expression sections?!
 			while ( next ) {
-				if ( next.mustacheType === CLOSING && ( ( next.ref === this.ref ) || ( next.expr && this.expr ) ) ) {
-					parser.pos += 1;
-					break;
+				if ( next.mustacheType === CLOSING ) {
+					if ( ( next.ref === this.ref ) || ( next.expr && this.expr ) ) {
+						parser.pos += 1;
+						break;
+					}
+
+					else {
+						throw new Error( 'Could not parse template: Illegal closing section' );
+					}
 				}
 
 				this.items[ this.items.length ] = getItem( parser, this.priority + 1, preserveWhitespace );
