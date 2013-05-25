@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.0-alpha1 - 2013-05-24
+/*! Ractive - v0.3.0-alpha1 - 2013-05-25
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -245,7 +245,8 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// Is this an array that needs to be wrapped?
 	if ( this.modifyArrays ) {
-		if ( isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
+		// if it's not an expression, is an array, and we're not here because it sent us here, wrap it
+		if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
 			registerKeypathToArray( value, normalised, this );
 		}
 	}
@@ -281,9 +282,11 @@ clearCache = function ( root, keypath ) {
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( root.modifyArrays ) {
-		value = root._cache[ keypath ];
-		if ( isArray( value ) && !value._ractive.setting ) {
-			unregisterKeypathFromArray( value, keypath, root );
+		if ( keypath.charAt( 0 ) !== '(' ) { // expressions don't get wrapped
+			value = root._cache[ keypath ];
+			if ( isArray( value ) && !value._ractive.setting ) {
+				unregisterKeypathFromArray( value, keypath, root );
+			}
 		}
 	}
 	
@@ -1733,6 +1736,7 @@ animationCollection = {
 			}
 
 			if ( !isEqual( value, this._lastValue ) ) {
+				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
 				notifyDependants( this.root, this.keypath );
 
@@ -1755,6 +1759,7 @@ animationCollection = {
 		this.ref = ref;
 		this.root = root;
 		this.evaluator = evaluator;
+		this.priority = evaluator.priority;
 		this.argNum = argNum;
 
 		keypath = resolveRef( root, ref, contextStack );
@@ -1772,10 +1777,10 @@ animationCollection = {
 		},
 
 		resolve: function ( keypath ) {
-
 			this.keypath = keypath;
 
-			registerDependant( this.root, keypath, this, this.evaluator.priority );
+			registerDependant( this.root, keypath, this, this.priority );
+			
 			this.update();
 			this.evaluator.resolve( this.ref, this.argNum, keypath );
 		},
@@ -3597,11 +3602,16 @@ var getFragmentStubFromTokens;
 			this.items = [];
 			next = parser.next();
 
-			// TODO how do we close expression sections?!
 			while ( next ) {
-				if ( next.mustacheType === CLOSING && ( ( next.ref === this.ref ) || ( next.expr && this.expr ) ) ) {
-					parser.pos += 1;
-					break;
+				if ( next.mustacheType === CLOSING ) {
+					if ( ( next.ref === this.ref ) || ( next.expr && this.expr ) ) {
+						parser.pos += 1;
+						break;
+					}
+
+					else {
+						throw new Error( 'Could not parse template: Illegal closing section' );
+					}
 				}
 
 				this.items[ this.items.length ] = getItem( parser, this.priority + 1, preserveWhitespace );
@@ -5167,8 +5177,12 @@ var getToken;
 
 			start = tokenizer.pos;
 
+			allowWhitespace( tokenizer );
+
 			// "." name
 			if ( getStringMatch( tokenizer, '.' ) ) {
+				allowWhitespace( tokenizer );
+
 				if ( name = getName( tokenizer ) ) {
 					return {
 						t: REFINEMENT,
@@ -5176,16 +5190,22 @@ var getToken;
 					};
 				}
 
-				tokenizer.pos = start;
-				return null;
+				fail( 'a property name' );
 			}
 
 			// "[" expression "]"
 			if ( getStringMatch( tokenizer, '[' ) ) {
+				allowWhitespace( tokenizer );
+
 				expr = getExpression( tokenizer );
-				if ( !expr || !getStringMatch( tokenizer, ']' ) ) {
-					tokenizer.pos = start;
-					return null;
+				if ( !expr ) {
+					fail( 'an expression' );
+				}
+
+				allowWhitespace( tokenizer );
+
+				if ( !getStringMatch( tokenizer, ']' ) ) {
+					fail( '"]"' );
 				}
 
 				return {
