@@ -153,6 +153,7 @@
 			}
 
 			if ( !isEqual( value, this._lastValue ) ) {
+				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
 				notifyDependants( this.root, this.keypath );
 
