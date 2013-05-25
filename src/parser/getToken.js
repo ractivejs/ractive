@@ -1136,8 +1136,12 @@ var getToken;
 
 			start = tokenizer.pos;
 
+			allowWhitespace( tokenizer );
+
 			// "." name
 			if ( getStringMatch( tokenizer, '.' ) ) {
+				allowWhitespace( tokenizer );
+
 				if ( name = getName( tokenizer ) ) {
 					return {
 						t: REFINEMENT,
@@ -1145,16 +1149,22 @@ var getToken;
 					};
 				}
 
-				tokenizer.pos = start;
-				return null;
+				fail( 'a property name' );
 			}
 
 			// "[" expression "]"
 			if ( getStringMatch( tokenizer, '[' ) ) {
+				allowWhitespace( tokenizer );
+
 				expr = getExpression( tokenizer );
-				if ( !expr || !getStringMatch( tokenizer, ']' ) ) {
-					tokenizer.pos = start;
-					return null;
+				if ( !expr ) {
+					fail( 'an expression' );
+				}
+
+				allowWhitespace( tokenizer );
+
+				if ( !getStringMatch( tokenizer, ']' ) ) {
+					fail( '"]"' );
 				}
 
 				return {
