@@ -76,7 +76,7 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	deps.splice( deps.indexOf( dependant ), 1 );
 
 	if ( !deps.length ) {
-		root._deps[ keypath ].splice( priority, 1 );
+		root._deps[ keypath ][ priority ] = null;
 	}
 
 	// can we forget this keypath altogether?
