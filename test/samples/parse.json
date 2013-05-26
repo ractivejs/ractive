@@ -42,7 +42,7 @@
 	{
 		"name": "Delimiter change",
 		"template": "{{=<% %>=}} <% mustache %>",
-		"parsed": [" ",{"t":2,"r":"mustache"}]
+		"parsed": [{"t":2,"r":"mustache"}]
 	},
 	{
 		"name": "Named index",
