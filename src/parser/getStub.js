@@ -400,6 +400,12 @@ var getFragmentStubFromTokens;
 
 			next = parser.next();
 			while ( next ) {
+
+				// section closing mustache should also close this element, e.g.
+				// <ul>{{#items}}<li>{{content}}{{/items}}</ul>
+				if ( next.mustacheType === CLOSING ) {
+					break;
+				}
 				
 				if ( next.type === TAG ) {
 
