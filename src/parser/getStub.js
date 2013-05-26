@@ -355,7 +355,6 @@ var getFragmentStubFromTokens;
 			// if this is a <pre> element, preserve whitespace within
 			preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
 
-			// TODO proxy events
 			if ( firstToken.attrs ) {
 				attrs = firstToken.attrs.filter( onlyAttrs );
 				proxies = firstToken.attrs.filter( onlyProxies );

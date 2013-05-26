@@ -44,7 +44,6 @@ proto.get = function ( keypath, dontNormalise ) {
 		this._depsMap[ parentKeypath ] = [];
 	}
 
-	// TODO is this check necessary each time?
 	if ( this._depsMap[ parentKeypath ].indexOf( normalised ) === -1 ) {
 		this._depsMap[ parentKeypath ].push( normalised );
 	}

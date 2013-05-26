@@ -80,8 +80,6 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 
 	// can we forget this keypath altogether?
-	// TODO should we delete it? may be better to keep it, so we don't need to
-	// create again in future
 	i = root._deps[ keypath ].length;
 	while ( i-- ) {
 		if ( root._deps[ keypath ][i] ) {
@@ -91,7 +89,8 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 
 	if ( !keep ) {
-		delete root._deps[ keypath ];
+		// yes, we can forget it
+		root._deps[ keypath ] = null;
 	}
 };
 

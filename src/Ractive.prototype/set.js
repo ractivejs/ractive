@@ -2,7 +2,6 @@
 
 	var set, attemptKeypathResolution;
 
-	// TODO notify direct dependants of upstream keypaths
 	proto.set = function ( keypath, value ) {
 		var notificationQueue, upstreamQueue, k, normalised, keys, previous;
 
@@ -60,11 +59,6 @@
 		}
 	};
 
-
-
-	// TODO fire change events as well as set events
-	// (cascade at this point, so we can identify all change events, and
-	// kill off the dependants map?)
 
 	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
 		var previous, key, obj, keysClone;

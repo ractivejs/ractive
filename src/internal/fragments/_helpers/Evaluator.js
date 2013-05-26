@@ -39,11 +39,10 @@
 		}
 
 		else {
-			this.unresolved = descriptor.r.length;
-			this.refs = descriptor.r.slice();
+			
 			this.resolvers = [];
-
-			i = descriptor.r.length;
+			this.unresolved = this.numRefs = i = descriptor.r.length;
+			
 			while ( i-- ) {
 				// index ref?
 				if ( indexRefs && indexRefs.hasOwnProperty( descriptor.r[i] ) ) {
@@ -73,8 +72,6 @@
 	};
 
 	Evaluator.prototype = {
-		// TODO teardown
-
 		init: function () {
 			var self = this, functionString;
 
@@ -93,12 +90,10 @@
 				return '_' + $1;
 			});
 
-			this.fn = getFunctionFromString( functionString, ( this.refs ? this.refs.length : 0 ) );
+			this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
 
 			this.update();
 			this.mustache.resolve( this.keypath );
-
-			// TODO some cleanup, delete unneeded bits
 		},
 
 		teardown: function () {
