@@ -254,6 +254,51 @@ tests = [
 			'numbers[4]': 5
 		},
 		new_result: '<p>Total: 15</p>'
+	},
+	{
+		name: 'Attribute with nested mustaches',
+		template: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="{{#viewBox}}{{x}} {{y}} {{width}} {{height}}{{/viewBox}}">{{#rect}}<rect x="{{x}}" y="{{y}}" width="{{width}}" height="{{height}}"/>{{/rect}}</svg>',
+		data: {
+			viewBox: { x: 0,  y: 0,  width: 100, height: 100 },
+			rect:    { x: 10, y: 10, width: 80,  height: 80  }
+		},
+		result: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80"></rect></svg>',
+		new_data: {
+			viewBox: { x: 50,  y: 50,  width: 350, height: 350 },
+			rect:    { x: 20,  y: 20,  width: 200, height: 100 }
+		},
+		new_result: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 50 350 350"><rect x="20" y="20" width="200" height="100"></rect></svg>'
+	},
+	{
+		name: 'List section with non-self-updating attributes',
+		template: '<ul>{{#items}}<li data-info="{{#info}}{{a}} {{b}} {{c}}{{/info}}"></li>{{/items}}</ul>',
+		data: {
+			items: [{ info: { a: 1, b: 2, c: 3 } }]
+		},
+		result: '<ul><li data-info="1 2 3"></li></ul>',
+		new_data: {
+			items: [{ info: { a: 1, b: 2, c: 3 } }, { info: { a: 4, b: 5, c: 6 } }]
+		},
+		new_result: '<ul><li data-info="1 2 3"></li><li data-info="4 5 6"></li></ul>'
+	},
+	{
+		name: 'Section with non-explicitly-closed element',
+		template: '<ul>{{#items}}<li>{{.}}{{/items}}</ul>',
+		data: { items: [ 'a', 'b', 'c' ]},
+		result: '<ul><li>a</li><li>b</li><li>c</li></ul>',
+		new_data: { items: [ 'd', 'e', 'f' ]},
+		new_result: '<ul><li>d</li><li>e</li><li>f</li></ul>'
+	},
+	{
+		name: 'Whitespace is stripped from start and end of templates',
+		template: '     <p>{{content}}</p>      ',
+		data: { content: 'test' },
+		result: '<p>test</p>'
+	},
+	{
+		name: 'Whitespace is stripped from start and end of templates without mustaches',
+		template: '     <p>test</p>      ',
+		result: '<p>test</p>'
 	}
 ];
 
