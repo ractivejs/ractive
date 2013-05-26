@@ -1,6 +1,6 @@
 Ractive = function ( options ) {
 
-	var defaults, key, partial, i;
+	var defaults, key, partial, i, templateEl;
 
 	// Options
 	// -------
@@ -100,7 +100,21 @@ Ractive = function ( options ) {
 			throw new Error( 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' );
 		}
 
-		this.template = Ractive.parse( this.template, this );
+		if ( this.template.charAt( 0 ) === '#' ) {
+			// assume this is an ID of a <script type='text/template'> tag
+			templateEl = document.getElementById( this.template.substring( 1 ) );
+			if ( templateEl ) {
+				this.template = Ractive.parse( templateEl.innerHTML, this );
+			}
+
+			else {
+				throw new Error( 'Could not find template element (' + this.template + ')' );
+			}
+		}
+
+		else {
+			this.template = Ractive.parse( this.template, this );
+		}
 	}
 
 	// If the template was an array with a single string member, that means
