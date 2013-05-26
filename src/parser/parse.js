@@ -23,9 +23,11 @@
 var parse;
 
 parse = function ( template, options ) {
-	var tokens, fragmentStub, json;
+	var tokens, fragmentStub, json, token, onlyWhitespace;
 
 	options = options || {};
+
+	onlyWhitespace = /^\s*$/;
 
 	if ( options.sanitize === true ) {
 		options.sanitize = {
@@ -36,6 +38,20 @@ parse = function ( template, options ) {
 	}
 
 	tokens = tokenize( template, options );
+
+	if ( !options.preserveWhitespace ) {
+		// remove first token if it only contains whitespace
+		token = tokens[0];
+		if ( token && ( token.type === TEXT ) && onlyWhitespace.test( token.value ) ) {
+			tokens.shift();
+		}
+
+		// ditto last token
+		token = tokens[ tokens.length - 1 ];
+		if ( token && ( token.type === TEXT ) && onlyWhitespace.test( token.value ) ) {
+			tokens.pop();
+		}
+	}
 	
 	fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
 	
