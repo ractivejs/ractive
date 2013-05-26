@@ -206,7 +206,7 @@
 			}
 
 			else {
-				this.children = new DomFragment({
+				this.fragment = new DomFragment({
 					descriptor:   descriptor.f,
 					root:         options.root,
 					parentNode:   this.node,
@@ -214,7 +214,7 @@
 					owner:        this
 				});
 
-				this.node.appendChild( this.children.docFrag );
+				this.node.appendChild( this.fragment.docFrag );
 			}
 		}
 
@@ -254,7 +254,9 @@
 
 				if ( attr.isTwowayNameAttr ) {
 					twowayNameAttr = attr;
-				} else {
+				} else if ( attr.selfUpdating ) {
+					// non self-updating attributes will be updated in a moment
+					// TODO: OR WILL THEY? what about elements created after initial render?
 					attr.update();
 				}
 			}
@@ -298,7 +300,7 @@
 				});
 
 				handler = function ( event ) {
-					root.fire( fragment.getValue(), event, self.node );
+					root.fire( fragment.toString(), event, self.node );
 				};
 			}
 
@@ -334,8 +336,8 @@
 				this.parentNode.removeChild( this.node );
 			}
 
-			if ( this.children ) {
-				this.children.teardown();
+			if ( this.fragment ) {
+				this.fragment.teardown();
 			}
 
 			while ( this.attributes.length ) {
@@ -365,7 +367,17 @@
 	// Attribute
 	Attribute = function ( options ) {
 
-		var name, value, colonIndex, namespacePrefix, tagName, bindingCandidate, lowerCaseName, propertyName;
+		var name,
+			value,
+			colonIndex,
+			namespacePrefix,
+			tagName,
+			bindingCandidate,
+			lowerCaseName,
+			propertyName,
+			i,
+			item,
+			containsInterpolator;
 
 		name = options.name;
 		value = options.value;
@@ -413,8 +425,6 @@
 		this.name = name;
 		this.lcName = name.toLowerCase();
 
-		this.children = [];
-
 		// can we establish this attribute's property name equivalent?
 		if ( !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
 			lowerCaseName = this.lcName;
@@ -441,8 +451,32 @@
 			contextStack: options.contextStack
 		});
 
-		if ( this.fragment.items.length === 1 ) {
-			this.selfUpdating = true;
+
+		// determine whether this attribute can be marked as self-updating
+		this.selfUpdating = true;
+
+		i = this.fragment.items.length;
+		while ( i-- ) {
+			item = this.fragment.items[i];
+			if ( item.type === TEXT ) {
+				continue;
+			}
+
+			// we can only have one interpolator and still be self-updating
+			if ( item.type === INTERPOLATOR ) {
+				if ( containsInterpolator ) {
+					this.selfUpdating = false;
+					break;
+				} else {
+					containsInterpolator = true;
+					continue;
+				}
+			}
+
+			// anything that isn't text or an interpolator (i.e. a section)
+			// and we can't self-update
+			this.selfUpdating = false;
+			break;
 		}
 
 
@@ -466,11 +500,8 @@
 		}
 
 
-		// manually trigger first update
+		// mark as ready
 		this.ready = true;
-		if ( !this.isTwowayNameAttr ) {
-			this.update();
-		}
 	};
 
 	Attribute.prototype = {
@@ -625,12 +656,8 @@
 			}
 
 			// ignore non-dynamic attributes
-			if ( !this.children ) {
-				return;
-			}
-
-			while ( this.children.length ) {
-				this.children.pop().teardown();
+			if ( this.fragment ) {
+				this.fragment.teardown();
 			}
 		},
 
@@ -694,23 +721,27 @@
 				}
 			}
 			
-			value = this.fragment.getValue();
+			value = this.fragment.toString();
 
 			if ( value === undefined ) {
 				value = '';
 			}
 
-			if ( this.useProperty ) {
-				this.parentNode[ this.propertyName ] = value;
-				return this;
-			}
+			if ( value !== this.value ) {
+				if ( this.useProperty ) {
+					this.parentNode[ this.propertyName ] = value;
+					return this;
+				}
 
-			if ( this.namespace ) {
-				this.parentNode.setAttributeNS( this.namespace, this.name, value );
-				return this;
-			}
+				if ( this.namespace ) {
+					this.parentNode.setAttributeNS( this.namespace, this.name, value );
+					return this;
+				}
 
-			this.parentNode.setAttribute( this.name, value );
+				this.parentNode.setAttribute( this.name, value );
+
+				this.value = value;
+			}
 
 			return this;
 		}
