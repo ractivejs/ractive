@@ -265,8 +265,8 @@
             "data": {
                 "boolean": true
             },
-            "expected": "#\n/\n",
-            "template": "#{{#boolean}}\n/\n  {{/boolean}}",
+            "expected": ":\n/\n",
+            "template": ":{{#boolean}}\n/\n  {{/boolean}}",
             "desc": "Standalone tags should not require a newline to follow them."
         },
         {
