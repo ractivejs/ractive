@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.0-alpha1 - 2013-05-25
+/*! Ractive - v0.3.0 - 2013-05-27
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -238,7 +238,6 @@ proto.get = function ( keypath, dontNormalise ) {
 		this._depsMap[ parentKeypath ] = [];
 	}
 
-	// TODO is this check necessary each time?
 	if ( this._depsMap[ parentKeypath ].indexOf( normalised ) === -1 ) {
 		this._depsMap[ parentKeypath ].push( normalised );
 	}
@@ -334,12 +333,10 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	deps.splice( deps.indexOf( dependant ), 1 );
 
 	if ( !deps.length ) {
-		root._deps[ keypath ].splice( priority, 1 );
+		root._deps[ keypath ][ priority ] = null;
 	}
 
 	// can we forget this keypath altogether?
-	// TODO should we delete it? may be better to keep it, so we don't need to
-	// create again in future
 	i = root._deps[ keypath ].length;
 	while ( i-- ) {
 		if ( root._deps[ keypath ][i] ) {
@@ -349,7 +346,8 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 
 	if ( !keep ) {
-		delete root._deps[ keypath ];
+		// yes, we can forget it
+		root._deps[ keypath ] = null;
 	}
 };
 
@@ -594,7 +592,6 @@ proto.render = function ( options ) {
 
 	var set, attemptKeypathResolution;
 
-	// TODO notify direct dependants of upstream keypaths
 	proto.set = function ( keypath, value ) {
 		var notificationQueue, upstreamQueue, k, normalised, keys, previous;
 
@@ -652,11 +649,6 @@ proto.render = function ( options ) {
 		}
 	};
 
-
-
-	// TODO fire change events as well as set events
-	// (cascade at this point, so we can identify all change events, and
-	// kill off the dependants map?)
 
 	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
 		var previous, key, obj, keysClone;
@@ -1161,7 +1153,7 @@ interpolators = {
 };
 Ractive = function ( options ) {
 
-	var defaults, key, partial, i;
+	var defaults, key, partial, i, templateEl;
 
 	// Options
 	// -------
@@ -1261,7 +1253,21 @@ Ractive = function ( options ) {
 			throw new Error( 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' );
 		}
 
-		this.template = Ractive.parse( this.template, this );
+		if ( this.template.charAt( 0 ) === '#' ) {
+			// assume this is an ID of a <script type='text/template'> tag
+			templateEl = document.getElementById( this.template.substring( 1 ) );
+			if ( templateEl ) {
+				this.template = Ractive.parse( templateEl.innerHTML, this );
+			}
+
+			else {
+				throw new Error( 'Could not find template element (' + this.template + ')' );
+			}
+		}
+
+		else {
+			this.template = Ractive.parse( this.template, this );
+		}
 	}
 
 	// If the template was an array with a single string member, that means
@@ -1622,11 +1628,10 @@ animationCollection = {
 		}
 
 		else {
-			this.unresolved = descriptor.r.length;
-			this.refs = descriptor.r.slice();
+			
 			this.resolvers = [];
-
-			i = descriptor.r.length;
+			this.unresolved = this.numRefs = i = descriptor.r.length;
+			
 			while ( i-- ) {
 				// index ref?
 				if ( indexRefs && indexRefs.hasOwnProperty( descriptor.r[i] ) ) {
@@ -1656,8 +1661,6 @@ animationCollection = {
 	};
 
 	Evaluator.prototype = {
-		// TODO teardown
-
 		init: function () {
 			var self = this, functionString;
 
@@ -1676,12 +1679,10 @@ animationCollection = {
 				return '_' + $1;
 			});
 
-			this.fn = getFunctionFromString( functionString, ( this.refs ? this.refs.length : 0 ) );
+			this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
 
 			this.update();
 			this.mustache.resolve( this.keypath );
-
-			// TODO some cleanup, delete unneeded bits
 		},
 
 		teardown: function () {
@@ -2269,7 +2270,7 @@ updateSection = function ( section, value ) {
 			}
 
 			else {
-				this.children = new DomFragment({
+				this.fragment = new DomFragment({
 					descriptor:   descriptor.f,
 					root:         options.root,
 					parentNode:   this.node,
@@ -2277,7 +2278,7 @@ updateSection = function ( section, value ) {
 					owner:        this
 				});
 
-				this.node.appendChild( this.children.docFrag );
+				this.node.appendChild( this.fragment.docFrag );
 			}
 		}
 
@@ -2361,7 +2362,7 @@ updateSection = function ( section, value ) {
 				});
 
 				handler = function ( event ) {
-					root.fire( fragment.getValue(), event, self.node );
+					root.fire( fragment.toString(), event, self.node );
 				};
 			}
 
@@ -2397,8 +2398,8 @@ updateSection = function ( section, value ) {
 				this.parentNode.removeChild( this.node );
 			}
 
-			if ( this.children ) {
-				this.children.teardown();
+			if ( this.fragment ) {
+				this.fragment.teardown();
 			}
 
 			while ( this.attributes.length ) {
@@ -2428,7 +2429,17 @@ updateSection = function ( section, value ) {
 	// Attribute
 	Attribute = function ( options ) {
 
-		var name, value, colonIndex, namespacePrefix, tagName, bindingCandidate, lowerCaseName, propertyName;
+		var name,
+			value,
+			colonIndex,
+			namespacePrefix,
+			tagName,
+			bindingCandidate,
+			lowerCaseName,
+			propertyName,
+			i,
+			item,
+			containsInterpolator;
 
 		name = options.name;
 		value = options.value;
@@ -2476,8 +2487,6 @@ updateSection = function ( section, value ) {
 		this.name = name;
 		this.lcName = name.toLowerCase();
 
-		this.children = [];
-
 		// can we establish this attribute's property name equivalent?
 		if ( !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
 			lowerCaseName = this.lcName;
@@ -2504,8 +2513,32 @@ updateSection = function ( section, value ) {
 			contextStack: options.contextStack
 		});
 
-		if ( this.fragment.items.length === 1 ) {
-			this.selfUpdating = true;
+
+		// determine whether this attribute can be marked as self-updating
+		this.selfUpdating = true;
+
+		i = this.fragment.items.length;
+		while ( i-- ) {
+			item = this.fragment.items[i];
+			if ( item.type === TEXT ) {
+				continue;
+			}
+
+			// we can only have one interpolator and still be self-updating
+			if ( item.type === INTERPOLATOR ) {
+				if ( containsInterpolator ) {
+					this.selfUpdating = false;
+					break;
+				} else {
+					containsInterpolator = true;
+					continue;
+				}
+			}
+
+			// anything that isn't text or an interpolator (i.e. a section)
+			// and we can't self-update
+			this.selfUpdating = false;
+			break;
 		}
 
 
@@ -2529,11 +2562,8 @@ updateSection = function ( section, value ) {
 		}
 
 
-		// manually trigger first update
+		// mark as ready
 		this.ready = true;
-		if ( !this.isTwowayNameAttr ) {
-			this.update();
-		}
 	};
 
 	Attribute.prototype = {
@@ -2688,12 +2718,8 @@ updateSection = function ( section, value ) {
 			}
 
 			// ignore non-dynamic attributes
-			if ( !this.children ) {
-				return;
-			}
-
-			while ( this.children.length ) {
-				this.children.pop().teardown();
+			if ( this.fragment ) {
+				this.fragment.teardown();
 			}
 		},
 
@@ -2707,7 +2733,7 @@ updateSection = function ( section, value ) {
 			// otherwise we want to register it as a deferred attribute, to be
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
-			else if ( !this.deferred ) {
+			else if ( !this.deferred && this.ready ) {
 				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
 			}
@@ -2757,23 +2783,27 @@ updateSection = function ( section, value ) {
 				}
 			}
 			
-			value = this.fragment.getValue();
+			value = this.fragment.toString();
 
 			if ( value === undefined ) {
 				value = '';
 			}
 
-			if ( this.useProperty ) {
-				this.parentNode[ this.propertyName ] = value;
-				return this;
-			}
+			if ( value !== this.value ) {
+				if ( this.useProperty ) {
+					this.parentNode[ this.propertyName ] = value;
+					return this;
+				}
 
-			if ( this.namespace ) {
-				this.parentNode.setAttributeNS( this.namespace, this.name, value );
-				return this;
-			}
+				if ( this.namespace ) {
+					this.parentNode.setAttributeNS( this.namespace, this.name, value );
+					return this;
+				}
 
-			this.parentNode.setAttribute( this.name, value );
+				this.parentNode.setAttribute( this.name, value );
+
+				this.value = value;
+			}
 
 			return this;
 		}
@@ -2966,7 +2996,8 @@ updateSection = function ( section, value ) {
 
 
 		bubble: function () {
-			this.value = this.getValue();
+			// TODO should we set value here?
+			//this.value = this.items.join( '' );
 			this.owner.bubble();
 		},
 
@@ -2977,19 +3008,6 @@ updateSection = function ( section, value ) {
 			for ( i=0; i<numItems; i+=1 ) {
 				this.items[i].teardown();
 			}
-		},
-
-		getValue: function () {
-			var value;
-
-			if ( this.items.length === 1 ) {
-				value = this.items[0].value;
-				if ( value !== undefined ) {
-					return value;
-				}
-			}
-
-			return this.toString();
 		},
 
 		toString: function () {
@@ -3681,7 +3699,6 @@ var getFragmentStubFromTokens;
 			// if this is a <pre> element, preserve whitespace within
 			preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
 
-			// TODO proxy events
 			if ( firstToken.attrs ) {
 				attrs = firstToken.attrs.filter( onlyAttrs );
 				proxies = firstToken.attrs.filter( onlyProxies );
@@ -3726,6 +3743,12 @@ var getFragmentStubFromTokens;
 
 			next = parser.next();
 			while ( next ) {
+
+				// section closing mustache should also close this element, e.g.
+				// <ul>{{#items}}<li>{{content}}{{/items}}</ul>
+				if ( next.mustacheType === CLOSING ) {
+					break;
+				}
 				
 				if ( next.type === TAG ) {
 
@@ -5494,9 +5517,11 @@ var getToken;
 var parse;
 
 parse = function ( template, options ) {
-	var tokens, fragmentStub, json;
+	var tokens, fragmentStub, json, token, onlyWhitespace;
 
 	options = options || {};
+
+	onlyWhitespace = /^\s*$/;
 
 	if ( options.sanitize === true ) {
 		options.sanitize = {
@@ -5507,6 +5532,20 @@ parse = function ( template, options ) {
 	}
 
 	tokens = tokenize( template, options );
+
+	if ( !options.preserveWhitespace ) {
+		// remove first token if it only contains whitespace
+		token = tokens[0];
+		if ( token && ( token.type === TEXT ) && onlyWhitespace.test( token.value ) ) {
+			tokens.shift();
+		}
+
+		// ditto last token
+		token = tokens[ tokens.length - 1 ];
+		if ( token && ( token.type === TEXT ) && onlyWhitespace.test( token.value ) ) {
+			tokens.pop();
+		}
+	}
 	
 	fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
 	
