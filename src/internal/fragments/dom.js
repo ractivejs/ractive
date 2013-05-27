@@ -254,9 +254,7 @@
 
 				if ( attr.isTwowayNameAttr ) {
 					twowayNameAttr = attr;
-				} else if ( attr.selfUpdating ) {
-					// non self-updating attributes will be updated in a moment
-					// TODO: OR WILL THEY? what about elements created after initial render?
+				} else {
 					attr.update();
 				}
 			}
@@ -671,7 +669,7 @@
 			// otherwise we want to register it as a deferred attribute, to be
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
-			else if ( !this.deferred ) {
+			else if ( !this.deferred && this.ready ) {
 				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
 			}

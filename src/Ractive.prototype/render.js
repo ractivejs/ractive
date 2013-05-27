@@ -23,10 +23,5 @@ proto.render = function ( options ) {
 		parentNode: el
 	});
 
-	// if we have any deferred attributes or evaluators, update them now
-	while ( this._def.length ) {
-		this._def.pop().update().deferred = false;
-	}
-
 	el.appendChild( this.rendered.docFrag );
 };
