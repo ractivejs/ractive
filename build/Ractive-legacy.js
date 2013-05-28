@@ -140,7 +140,7 @@
 
 }( document ));
 
-/*! Ractive - v0.3.0 - 2013-05-27
+/*! Ractive - v0.3.0 - 2013-05-28
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -4018,6 +4018,12 @@ var getFragmentStubFromTokens;
 						
 						// does this look like a namespaced attribute? if so we can't stringify it
 						if ( this.attributes[i].name.indexOf( ':' ) !== -1 ) {
+							return ( this.str = false );
+						}
+
+						// if this element has an id attribute, it can't be stringified (since references are stored
+						// in ractive.nodes)
+						if ( this.attributes[i].name.toLowerCase() === 'id' ) {
 							return ( this.str = false );
 						}
 
