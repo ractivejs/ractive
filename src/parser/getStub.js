@@ -535,6 +535,12 @@ var getFragmentStubFromTokens;
 							return ( this.str = false );
 						}
 
+						// if this element has an id attribute, it can't be stringified (since references are stored
+						// in ractive.nodes)
+						if ( this.attributes[i].name.toLowerCase() === 'id' ) {
+							return ( this.str = false );
+						}
+
 						attrStr = ' ' + this.attributes[i].name;
 
 						// empty attributes
