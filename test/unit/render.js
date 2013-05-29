@@ -299,6 +299,14 @@ tests = [
 		name: 'Whitespace is stripped from start and end of templates without mustaches',
 		template: '     <p>test</p>      ',
 		result: '<p>test</p>'
+	},
+	{
+		name: 'Expression with implicit iterator',
+		template: '<ul>{{#items}}<li>{{( uppercase( . ) )}}</li>{{/items}}</ul>',
+		data: { items: [ 'a', 'b', 'c' ], uppercase: function ( str ) { return str.toUpperCase(); } },
+		result: '<ul><li>A</li><li>B</li><li>C</li></ul>',
+		new_data: { items: [ 'd', 'e', 'f' ]},
+		new_result: '<ul><li>D</li><li>E</li><li>F</li></ul>'
 	}
 ];
 
