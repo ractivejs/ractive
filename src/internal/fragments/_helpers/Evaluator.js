@@ -86,13 +86,24 @@
 				return self.keypaths[ $1 ];
 			}) + ')';
 
-			functionString = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
-				return '_' + $1;
-			});
+			// is this the first of its kind?
+			if ( this.root._expressions.indexOf( this.keypath ) === -1 ) {
+				// yes
+				functionString = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+					return '_' + $1;
+				});
 
-			this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
+				this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
 
-			this.update();
+				this.update();
+
+				this.root._expressions.push( this.keypath );
+			} else {
+				// no. tear it down! our mustache will be taken care of by the other expression
+				// with the same virtual keypath
+				this.teardown();
+			}
+			
 			this.mustache.resolve( this.keypath );
 		},
 

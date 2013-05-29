@@ -49,6 +49,9 @@ Ractive = function ( options ) {
 	// Cache proxy event handlers - allows efficient reuse
 	this._proxies = {};
 
+	// Keep a list of used expressions, so we don't duplicate them
+	this._expressions = [];
+
 	// Set up bindings
 	this._bound = [];
 	if ( options.bindings ) {
@@ -64,7 +67,7 @@ Ractive = function ( options ) {
 	// If we were given unparsed partials, parse them
 	if ( options.partials ) {
 		this.partials = {};
-		
+
 		for ( key in options.partials ) {
 			if ( options.partials.hasOwnProperty( key ) ) {
 				partial = options.partials[ key ];
