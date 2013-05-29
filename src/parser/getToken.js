@@ -1122,6 +1122,15 @@ var getToken;
 			var name = getName( tokenizer );
 
 			if ( name === null ) {
+				
+				// could be an implicit iterator?
+				if ( getStringMatch( tokenizer, '.' ) ) {
+					return {
+						t: REFERENCE,
+						n: '.'
+					};
+				}
+
 				return null;
 			}
 
