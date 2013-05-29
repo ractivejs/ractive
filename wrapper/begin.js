@@ -63,6 +63,10 @@ stripHtmlComments,
 stripStandalones,
 
 
+// error messages
+missingParser = 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser',
+
+
 // constants
 TEXT              = 1,
 INTERPOLATOR      = 2,
