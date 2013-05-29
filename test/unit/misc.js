@@ -29,7 +29,6 @@ tests = [
 
 			equal( fixture.innerHTML, '1 2' );
 			deepEqual( instance.get(), { foo: 1, bar: 2 });
-			deepEqual( Subclass.prototype.data, { foo: 1 });
 		}
 	}
 ];
