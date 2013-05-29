@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.0 - 2013-05-28
+/*! Ractive - v0.3.0 - 2013-05-29
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -71,6 +71,10 @@ unregisterKeypathFromArray,
 stripCommentTokens,
 stripHtmlComments,
 stripStandalones,
+
+
+// error messages
+missingParser = 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser',
 
 
 // constants
@@ -1016,17 +1020,95 @@ eventDefinitions.tap = function ( el, fire ) {
 		}
 	};
 };
+var fillGaps = function ( target, source ) {
+	var key;
+
+	for ( key in source ) {
+		if ( source.hasOwnProperty( key ) && !target.hasOwnProperty( key ) ) {
+			target[ key ] = source[ key ];
+		}
+	}
+};
+
 extend = function ( childProps ) {
 
-	var Parent, Child, key;
+	var Parent, Child, key, inheritedOptions, blacklist, template, partials, partial;
 
 	Parent = this;
 
-	Child = function () {
-		Ractive.apply( this, arguments );
+	inheritedOptions = [ 'el', 'preserveWhitespace', 'append', 'twoway', 'modifyArrays' ];
+	blacklist = inheritedOptions.concat( 'data', 'template' );
+
+	// Parse template
+	if ( childProps.template ) {
+		if ( typeof childProps.template === 'string' ) {
+			if ( !Ractive.parse ) {
+				throw new Error( missingParser );
+			}
+
+			template = Ractive.parse( childProps.template );
+		} else {
+			template = childProps.template;
+		}
+	}
+
+	// Parse partials, if necessary
+	if ( childProps.partials ) {
+		partials = {};
+
+		for ( key in childProps.partials ) {
+			if ( childProps.partials.hasOwnProperty( key ) ) {
+				if ( typeof childProps.partials[ key ] === 'string' ) {
+					if ( !Ractive.parse ) {
+						throw new Error( missingParser );
+					}
+
+					partial = Ractive.parse( childProps.partials[ key ], childProps );
+				} else {
+					partial = childProps.partials[ key ];
+				}
+
+				partials[ key ] = partial;
+			}
+		}
+	}
+
+	Child = function ( options ) {
+		var key, i, optionName;
+
+		// Add template to options, if necessary
+		if ( !options.template && template ) {
+			options.template = template;
+		}
+
+		// Extend subclass data with instance data
+		if ( !options.data ) {
+			options.data = {};
+		}
+
+		fillGaps( options.data, childProps.data );
+
+		// Add in preparsed partials
+		if ( partials ) {
+			if ( !options.partials ) {
+				options.partials = {};
+			}
+
+			fillGaps( options.partials, partials );
+		}
+
+		i = inheritedOptions.length;
+		while ( i-- ) {
+			optionName = inheritedOptions[i];
+			if ( !options.hasOwnProperty( optionName ) && childProps.hasOwnProperty( optionName ) ) {
+				options[ optionName ] = childProps[ optionName ];
+			}
+		}
+
+		Ractive.call( this, options );
 
 		if ( this.init ) {
-			this.init.apply( this, arguments );
+			this.init.call( this, options );
 		}
 	};
 
@@ -1037,9 +1119,10 @@ extend = function ( childProps ) {
 		}
 	}
 
-	// extend child with specified methods, as long as they don't override Ractive.prototype methods
+	// Extend child with specified methods, as long as they don't override Ractive.prototype methods.
+	// Blacklisted properties don't extend the child, as they are part of the initialisation options
 	for ( key in childProps ) {
-		if ( childProps.hasOwnProperty( key ) ) {
+		if ( childProps.hasOwnProperty( key ) && blacklist.indexOf( key ) === -1 ) {
 			if ( Ractive.prototype.hasOwnProperty( key ) ) {
 				throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
 			}
@@ -1151,32 +1234,23 @@ interpolators = {
 		};
 	}
 };
+var defaultOptions = {
+	preserveWhitespace: false,
+	append: false,
+	twoway: true,
+	modifyArrays: true,
+	data: {}
+};
+
 Ractive = function ( options ) {
 
-	var defaults, key, partial, i, templateEl;
+	var key, partial, i, template, templateEl;
 
 	// Options
 	// -------
-
-	if ( options ) {
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				this[ key ] = options[ key ];
-			}
-		}
-	}
-
-	defaults = {
-		preserveWhitespace: false,
-		append: false,
-		twoway: true,
-		modifyArrays: true,
-		data: {}
-	};
-
-	for ( key in defaults ) {
-		if ( defaults.hasOwnProperty( key ) && this[ key ] === undefined ) {
-			this[ key ] = defaults[ key ];
+	for ( key in defaultOptions ) {
+		if ( defaultOptions.hasOwnProperty( key ) && !options.hasOwnProperty( key ) ) {
+			options[ key ] = defaultOptions[ key ];
 		}
 	}
 
@@ -1184,9 +1258,10 @@ Ractive = function ( options ) {
 	// Initialization
 	// --------------
 
-	if ( this.el !== undefined ) {
-		this.el = getEl( this.el ); // turn ID string into DOM element
-	}
+	this.el = getEl( options.el );
+
+	// add data
+	this.data = options.data || {};
 
 	// Set up event bus
 	this._subs = {};
@@ -1202,7 +1277,6 @@ Ractive = function ( options ) {
 	this.nodes = {};
 
 	// Set up observers
-	this._observers = {};
 	this._pendingResolution = [];
 
 	// Create an array for deferred attributes
@@ -1213,28 +1287,30 @@ Ractive = function ( options ) {
 
 	// Set up bindings
 	this._bound = [];
-	if ( this.bindings ) {
-		if ( isArray( this.bindings ) ) {
-			for ( i=0; i<this.bindings.length; i+=1 ) {
-				this.bind( this.bindings[i] );
+	if ( options.bindings ) {
+		if ( isArray( options.bindings ) ) {
+			for ( i=0; i<options.bindings.length; i+=1 ) {
+				this.bind( options.bindings[i] );
 			}
 		} else {
-			this.bind( this.bindings );
+			this.bind( options.bindings );
 		}
 	}
 
 	// If we were given unparsed partials, parse them
-	if ( this.partials ) {
-		for ( key in this.partials ) {
-			if ( this.partials.hasOwnProperty( key ) ) {
-				partial = this.partials[ key ];
+	if ( options.partials ) {
+		this.partials = {};
+		
+		for ( key in options.partials ) {
+			if ( options.partials.hasOwnProperty( key ) ) {
+				partial = options.partials[ key ];
 
 				if ( typeof partial === 'string' ) {
 					if ( !Ractive.parse ) {
-						throw new Error( 'Missing Ractive.parse - cannot parse partial "' + key + '". Either preparse or use the version that includes the parser' );
+						throw new Error( missingParser );
 					}
 
-					partial = Ractive.parse( partial, this ); // all parser options are present on `this`, so just passing `this`
+					partial = Ractive.parse( partial, options );
 				}
 
 				// If the partial was an array with a single string member, that means
@@ -1248,37 +1324,41 @@ Ractive = function ( options ) {
 	}
 
 	// Compile template, if it hasn't been parsed already
-	if ( typeof this.template === 'string' ) {
+	template = options.template;
+
+	if ( typeof template === 'string' ) {
 		if ( !Ractive.parse ) {
-			throw new Error( 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' );
+			throw new Error( missingParser );
 		}
 
-		if ( this.template.charAt( 0 ) === '#' ) {
+		if ( template.charAt( 0 ) === '#' ) {
 			// assume this is an ID of a <script type='text/template'> tag
-			templateEl = document.getElementById( this.template.substring( 1 ) );
+			templateEl = document.getElementById( template.substring( 1 ) );
 			if ( templateEl ) {
-				this.template = Ractive.parse( templateEl.innerHTML, this );
+				this.template = Ractive.parse( templateEl.innerHTML, options );
 			}
 
 			else {
-				throw new Error( 'Could not find template element (' + this.template + ')' );
+				throw new Error( 'Could not find template element (' + template + ')' );
 			}
 		}
 
 		else {
-			this.template = Ractive.parse( this.template, this );
+			template = Ractive.parse( template, options );
 		}
 	}
 
 	// If the template was an array with a single string member, that means
 	// we can use innerHTML - we just need to unpack it
-	if ( this.template && ( this.template.length === 1 ) && ( typeof this.template[0] === 'string' ) ) {
-		this.template = this.template[0];
+	if ( template && ( template.length === 1 ) && ( typeof template[0] === 'string' ) ) {
+		this.template = template[0];
+	} else {
+		this.template = template;
 	}
 
 	// If passed an element, render immediately
 	if ( this.el ) {
-		this.render({ el: this.el, append: this.append });
+		this.render({ el: this.el, append: options.append });
 	}
 };
 
@@ -5192,6 +5272,15 @@ var getToken;
 			var name = getName( tokenizer );
 
 			if ( name === null ) {
+				
+				// could be an implicit iterator?
+				if ( getStringMatch( tokenizer, '.' ) ) {
+					return {
+						t: REFERENCE,
+						n: '.'
+					};
+				}
+
 				return null;
 			}
 
