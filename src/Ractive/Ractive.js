@@ -1,29 +1,20 @@
+var defaultOptions = {
+	preserveWhitespace: false,
+	append: false,
+	twoway: true,
+	modifyArrays: true,
+	data: {}
+};
+
 Ractive = function ( options ) {
 
-	var defaults, key, partial, i, templateEl;
+	var key, partial, i, template, templateEl;
 
 	// Options
 	// -------
-
-	if ( options ) {
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				this[ key ] = options[ key ];
-			}
-		}
-	}
-
-	defaults = {
-		preserveWhitespace: false,
-		append: false,
-		twoway: true,
-		modifyArrays: true,
-		data: {}
-	};
-
-	for ( key in defaults ) {
-		if ( defaults.hasOwnProperty( key ) && this[ key ] === undefined ) {
-			this[ key ] = defaults[ key ];
+	for ( key in defaultOptions ) {
+		if ( defaultOptions.hasOwnProperty( key ) && !options.hasOwnProperty( key ) ) {
+			options[ key ] = defaultOptions[ key ];
 		}
 	}
 
@@ -31,9 +22,10 @@ Ractive = function ( options ) {
 	// Initialization
 	// --------------
 
-	if ( this.el !== undefined ) {
-		this.el = getEl( this.el ); // turn ID string into DOM element
-	}
+	this.el = getEl( options.el );
+
+	// add data
+	this.data = options.data || {};
 
 	// Set up event bus
 	this._subs = {};
@@ -49,7 +41,6 @@ Ractive = function ( options ) {
 	this.nodes = {};
 
 	// Set up observers
-	this._observers = {};
 	this._pendingResolution = [];
 
 	// Create an array for deferred attributes
@@ -60,28 +51,30 @@ Ractive = function ( options ) {
 
 	// Set up bindings
 	this._bound = [];
-	if ( this.bindings ) {
-		if ( isArray( this.bindings ) ) {
-			for ( i=0; i<this.bindings.length; i+=1 ) {
-				this.bind( this.bindings[i] );
+	if ( options.bindings ) {
+		if ( isArray( options.bindings ) ) {
+			for ( i=0; i<options.bindings.length; i+=1 ) {
+				this.bind( options.bindings[i] );
 			}
 		} else {
-			this.bind( this.bindings );
+			this.bind( options.bindings );
 		}
 	}
 
 	// If we were given unparsed partials, parse them
-	if ( this.partials ) {
-		for ( key in this.partials ) {
-			if ( this.partials.hasOwnProperty( key ) ) {
-				partial = this.partials[ key ];
+	if ( options.partials ) {
+		this.partials = {};
+		
+		for ( key in options.partials ) {
+			if ( options.partials.hasOwnProperty( key ) ) {
+				partial = options.partials[ key ];
 
 				if ( typeof partial === 'string' ) {
 					if ( !Ractive.parse ) {
-						throw new Error( 'Missing Ractive.parse - cannot parse partial "' + key + '". Either preparse or use the version that includes the parser' );
+						throw new Error( missingParser );
 					}
 
-					partial = Ractive.parse( partial, this ); // all parser options are present on `this`, so just passing `this`
+					partial = Ractive.parse( partial, options );
 				}
 
 				// If the partial was an array with a single string member, that means
@@ -95,36 +88,40 @@ Ractive = function ( options ) {
 	}
 
 	// Compile template, if it hasn't been parsed already
-	if ( typeof this.template === 'string' ) {
+	template = options.template;
+
+	if ( typeof template === 'string' ) {
 		if ( !Ractive.parse ) {
-			throw new Error( 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' );
+			throw new Error( missingParser );
 		}
 
-		if ( this.template.charAt( 0 ) === '#' ) {
+		if ( template.charAt( 0 ) === '#' ) {
 			// assume this is an ID of a <script type='text/template'> tag
-			templateEl = document.getElementById( this.template.substring( 1 ) );
+			templateEl = document.getElementById( template.substring( 1 ) );
 			if ( templateEl ) {
-				this.template = Ractive.parse( templateEl.innerHTML, this );
+				this.template = Ractive.parse( templateEl.innerHTML, options );
 			}
 
 			else {
-				throw new Error( 'Could not find template element (' + this.template + ')' );
+				throw new Error( 'Could not find template element (' + template + ')' );
 			}
 		}
 
 		else {
-			this.template = Ractive.parse( this.template, this );
+			template = Ractive.parse( template, options );
 		}
 	}
 
 	// If the template was an array with a single string member, that means
 	// we can use innerHTML - we just need to unpack it
-	if ( this.template && ( this.template.length === 1 ) && ( typeof this.template[0] === 'string' ) ) {
-		this.template = this.template[0];
+	if ( template && ( template.length === 1 ) && ( typeof template[0] === 'string' ) ) {
+		this.template = template[0];
+	} else {
+		this.template = template;
 	}
 
 	// If passed an element, render immediately
 	if ( this.el ) {
-		this.render({ el: this.el, append: this.append });
+		this.render({ el: this.el, append: options.append });
 	}
 };
