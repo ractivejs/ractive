@@ -1,6 +1,6 @@
 (function ( evaluators, functionCache ) {
 
-	var Reference, getFunctionFromString;
+	var Resolver, getFunctionFromString;
 
 	getFunctionFromString = function ( functionString, i ) {
 		var fn, args;
@@ -51,7 +51,9 @@
 				}
 
 				else {
-					this.resolvers[ this.resolvers.length ] = new Reference( root, descriptor.r[i], contextStack, i, this );
+					// TODO the resolver is resolving, and initiating teardown, before it's even been added
+					// to resolvers!
+					this.resolvers[ this.resolvers.length ] = new Resolver( root, descriptor.r[i], contextStack, i, this );
 				}
 			}
 
@@ -61,6 +63,11 @@
 			// as element attributes)
 			if ( this.resolvers.length <= 1 ) {
 				this.selfUpdating = true;
+			}
+
+			this.ready;
+			if ( this.redundant ) {
+				this.teardown();
 			}
 
 			// if we have no unresolved references, but we haven't initialised (because
@@ -93,6 +100,9 @@
 					return '_' + $1;
 				});
 
+				// TODO can we use the index ref in the compiled function string rather
+				// than devoting an argument to it?
+
 				this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
 
 				this.update();
@@ -101,7 +111,14 @@
 			} else {
 				// no. tear it down! our mustache will be taken care of by the other expression
 				// with the same virtual keypath
-				this.teardown();
+				if ( this.ready ) {
+					this.teardown();
+				} else {
+					// if we resolved everything before the constructor finished its work, we
+					// let it complete (don't teardown) but mark this as redundant so it can be
+					// torn down at the earliest opportunity
+					this.redundant = true;
+				}
 			}
 			
 			this.mustache.resolve( this.keypath );
@@ -134,7 +151,7 @@
 
 			// ...otherwise we want to register it as a deferred item, to be
 			// updated once all the information is in, to prevent unnecessary
-			// cascading. Only if we're already resovled, obviously
+			// cascading. Only if we're already resolved, obviously
 			else if ( !this.deferred && this.resolved ) {
 				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
@@ -176,7 +193,7 @@
 
 
 
-	Reference = function ( root, ref, contextStack, argNum, evaluator ) {
+	Resolver = function ( root, ref, contextStack, argNum, evaluator ) {
 		var keypath;
 
 		this.ref = ref;
@@ -194,7 +211,7 @@
 		}
 	};
 
-	Reference.prototype = {
+	Resolver.prototype = {
 		teardown: function () {
 			teardown( this );
 		},
