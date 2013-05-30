@@ -3,7 +3,8 @@ var defaultOptions = {
 	append: false,
 	twoway: true,
 	modifyArrays: true,
-	data: {}
+	data: {},
+	lazy: false
 };
 
 Ractive = function ( options ) {
@@ -21,6 +22,11 @@ Ractive = function ( options ) {
 
 	// Initialization
 	// --------------
+
+	// options
+	this.modifyArrays = options.modifyArrays;
+	this.twoway = options.twoway;
+	this.lazy = options.lazy;
 
 	this.el = getEl( options.el );
 
