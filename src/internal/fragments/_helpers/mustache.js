@@ -54,11 +54,7 @@ initMustache = function ( mustache, options ) {
 updateMustache = function () {
 	var value;
 
-	if ( this.keypath ) {
-		value = this.root.get( this.keypath, true );
-	} else if ( this.expression ) {
-		value = this.evaluate();
-	}
+	value = this.root.get( this.keypath, true );
 
 	if ( !isEqual( value, this._lastValue ) ) {
 		this.render( value );
