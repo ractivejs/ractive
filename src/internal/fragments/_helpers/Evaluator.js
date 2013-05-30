@@ -65,7 +65,7 @@
 				this.selfUpdating = true;
 			}
 
-			this.ready;
+			this.ready = true;
 			if ( this.redundant ) {
 				this.teardown();
 			}
