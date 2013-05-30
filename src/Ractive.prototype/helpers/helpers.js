@@ -13,10 +13,6 @@ teardown = function ( thing ) {
 		// this was registered as a dependency
 		unregisterDependant( thing.root, thing.keypath, thing, thing.priority || 0 );
 	}
-
-	if ( thing.evaluator ) {
-		thing.evaluator.teardown();
-	}
 };
 
 clearCache = function ( root, keypath ) {
