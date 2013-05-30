@@ -140,7 +140,7 @@
 
 }( document ));
 
-/*! Ractive - v0.3.0 - 2013-05-29
+/*! Ractive - v0.3.0 - 2013-05-30
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -1427,6 +1427,9 @@ Ractive = function ( options ) {
 	// Cache proxy event handlers - allows efficient reuse
 	this._proxies = {};
 
+	// Keep a list of used expressions, so we don't duplicate them
+	this._expressions = [];
+
 	// Set up bindings
 	this._bound = [];
 	if ( options.bindings ) {
@@ -1442,7 +1445,7 @@ Ractive = function ( options ) {
 	// If we were given unparsed partials, parse them
 	if ( options.partials ) {
 		this.partials = {};
-		
+
 		for ( key in options.partials ) {
 			if ( options.partials.hasOwnProperty( key ) ) {
 				partial = options.partials[ key ];
@@ -1897,13 +1900,24 @@ animationCollection = {
 				return self.keypaths[ $1 ];
 			}) + ')';
 
-			functionString = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
-				return '_' + $1;
-			});
+			// is this the first of its kind?
+			if ( this.root._expressions.indexOf( this.keypath ) === -1 ) {
+				// yes
+				functionString = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+					return '_' + $1;
+				});
 
-			this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
+				this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
 
-			this.update();
+				this.update();
+
+				this.root._expressions.push( this.keypath );
+			} else {
+				// no. tear it down! our mustache will be taken care of by the other expression
+				// with the same virtual keypath
+				this.teardown();
+			}
+			
 			this.mustache.resolve( this.keypath );
 		},
 
