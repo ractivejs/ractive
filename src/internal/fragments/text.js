@@ -24,6 +24,7 @@
 
 		bubble: function () {
 			// TODO should we set value here?
+			this.value = this.getValue();
 			//this.value = this.items.join( '' );
 			this.owner.bubble();
 		},
@@ -35,6 +36,20 @@
 			for ( i=0; i<numItems; i+=1 ) {
 				this.items[i].teardown();
 			}
+		},
+
+		getValue: function () {
+			var value;
+			
+			// Accommodate boolean attributes
+			if ( this.items.length === 1 && this.items[0].type === INTERPOLATOR ) {
+				value = this.items[0].value;
+				if ( value !== undefined ) {
+					return value;
+				}
+			}
+			
+			return this.toString();
 		},
 
 		toString: function () {

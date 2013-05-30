@@ -694,7 +694,7 @@
 
 			if ( this.twoway ) {
 				// TODO compare against previous?
-				
+
 				lowerCaseName = this.lcName;
 				this.value = this.interpolator.value;
 
@@ -720,8 +720,8 @@
 					return this;
 				}
 			}
-			
-			value = this.fragment.toString();
+
+			value = this.fragment.getValue();
 
 			if ( value === undefined ) {
 				value = '';
