@@ -416,10 +416,6 @@ teardown = function ( thing ) {
 		// this was registered as a dependency
 		unregisterDependant( thing.root, thing.keypath, thing, thing.priority || 0 );
 	}
-
-	if ( thing.evaluator ) {
-		thing.evaluator.teardown();
-	}
 };
 
 clearCache = function ( root, keypath ) {
@@ -1381,7 +1377,9 @@ var defaultOptions = {
 	append: false,
 	twoway: true,
 	modifyArrays: true,
-	data: {}
+	data: {},
+	lazy: false,
+	debug: false
 };
 
 Ractive = function ( options ) {
@@ -1399,6 +1397,21 @@ Ractive = function ( options ) {
 
 	// Initialization
 	// --------------
+
+	// Generate a unique identifier, for places where you'd use a weak map if it
+	// existed
+	this.guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r, v;
+
+		r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		return v.toString(16);
+	});
+
+	// options
+	this.modifyArrays = options.modifyArrays;
+	this.twoway = options.twoway;
+	this.lazy = options.lazy;
+	this.debug = options.debug;
 
 	this.el = getEl( options.el );
 
@@ -1650,43 +1663,38 @@ animationCollection = {
 	// Register a keypath to this array. When any of this array's mutator methods are called,
 	// it will `set` that keypath on the given Ractive instance
 	registerKeypathToArray = function ( array, keypath, root ) {
-		var roots, keypathsByIndex, rootIndex, keypaths;
+		var roots, keypathsByGuid, rootIndex, keypaths;
 
 		// If this array hasn't been wrapped, we need to wrap it
 		if ( !array._ractive ) {
 			define( array, '_ractive', {
 				value: {
 					roots: [ root ], // there may be more than one Ractive instance depending on this
-					keypathsByIndex: [ [ keypath ] ]
+					keypathsByGuid: {}
 				},
 				configurable: true
 			});
+
+			array._ractive.keypathsByGuid[ root.guid ] = [ keypath ];
 
 			wrapArray( array );
 		}
 
 		else {
-		
 			roots = array._ractive.roots;
-			keypathsByIndex = array._ractive.keypathsByIndex;
+			keypathsByGuid = array._ractive.keypathsByGuid;
 
 			// Does this Ractive instance currently depend on this array?
-			rootIndex = roots.indexOf( root );
-
 			// If not, associate them
-			if ( rootIndex === -1 ) {
-				rootIndex = roots.length;
-				roots[ rootIndex ] = root;
+			if ( !keypathsByGuid[ root.guid ] ) {
+				roots[ roots.length ] = root;
+				keypathsByGuid[ root.guid ] = [];
 			}
 
-			// Find keypaths that reference this array, on this Ractive instance
-			if ( !keypathsByIndex[ rootIndex ] ) {
-				keypathsByIndex[ rootIndex ] = [];
-			}
-
-			keypaths = keypathsByIndex[ rootIndex ];
+			keypaths = keypathsByGuid[ root.guid ];
 
 			// If the current keypath isn't among them, add it
+			// TODO to be honest, it probably shoudln't be... can we skip this check?
 			if ( keypaths.indexOf( keypath ) === -1 ) {
 				keypaths[ keypaths.length ] = keypath;
 			}
@@ -1696,21 +1704,20 @@ animationCollection = {
 
 	// Unregister keypath from array
 	unregisterKeypathFromArray = function ( array, keypath, root ) {
-		var roots, keypathsByIndex, rootIndex, keypaths, keypathIndex;
+		var roots, keypathsByGuid, rootIndex, keypaths, keypathIndex;
 
 		if ( !array._ractive ) {
 			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
 		}
 
 		roots = array._ractive.roots;
-		rootIndex = roots.indexOf( root );
+		keypathsByGuid = array._ractive.keypathsByGuid;
 
-		if ( rootIndex === -1 ) {
+		if ( !keypathsByGuid[ root.guid ] ) {
 			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
 		}
 
-		keypathsByIndex = array._ractive.keypathsByIndex;
-		keypaths = keypathsByIndex[ rootIndex ];
+		keypaths = keypathsByGuid[ root.guid ];
 		keypathIndex = keypaths.indexOf( keypath );
 
 		if ( keypathIndex === -1 ) {
@@ -1720,7 +1727,8 @@ animationCollection = {
 		keypaths.splice( keypathIndex, 1 );
 
 		if ( !keypaths.length ) {
-			roots.splice( rootIndex, 1 );
+			roots.splice( roots.indexOf( root ), 1 );
+			keypathsByGuid[ root.guid ] = null;
 		}
 
 		if ( !roots.length ) {
@@ -1731,15 +1739,15 @@ animationCollection = {
 
 	// Call `set` on each dependent Ractive instance, for each dependent keypath
 	notifyDependents = function ( array ) {
-		var roots, keypathsByIndex, root, keypaths, i, j;
+		var roots, keypathsByGuid, root, keypaths, i, j;
 
 		roots = array._ractive.roots;
-		keypathsByIndex = array._ractive.keypathsByIndex;
+		keypathsByGuid = array._ractive.keypathsByGuid;
 
 		i = roots.length;
 		while ( i-- ) {
 			root = roots[i];
-			keypaths = keypathsByIndex[i];
+			keypaths = keypathsByGuid[ root.guid ];
 
 			j = keypaths.length;
 			while ( j-- ) {
@@ -1814,7 +1822,7 @@ animationCollection = {
 }());
 (function ( evaluators, functionCache ) {
 
-	var Reference, getFunctionFromString;
+	var Resolver, getFunctionFromString;
 
 	getFunctionFromString = function ( functionString, i ) {
 		var fn, args;
@@ -1865,7 +1873,9 @@ animationCollection = {
 				}
 
 				else {
-					this.resolvers[ this.resolvers.length ] = new Reference( root, descriptor.r[i], contextStack, i, this );
+					// TODO the resolver is resolving, and initiating teardown, before it's even been added
+					// to resolvers!
+					this.resolvers[ this.resolvers.length ] = new Resolver( root, descriptor.r[i], contextStack, i, this );
 				}
 			}
 
@@ -1875,6 +1885,11 @@ animationCollection = {
 			// as element attributes)
 			if ( this.resolvers.length <= 1 ) {
 				this.selfUpdating = true;
+			}
+
+			this.ready = true;
+			if ( this.redundant ) {
+				this.teardown();
 			}
 
 			// if we have no unresolved references, but we haven't initialised (because
@@ -1907,6 +1922,9 @@ animationCollection = {
 					return '_' + $1;
 				});
 
+				// TODO can we use the index ref in the compiled function string rather
+				// than devoting an argument to it?
+
 				this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
 
 				this.update();
@@ -1915,7 +1933,14 @@ animationCollection = {
 			} else {
 				// no. tear it down! our mustache will be taken care of by the other expression
 				// with the same virtual keypath
-				this.teardown();
+				if ( this.ready ) {
+					this.teardown();
+				} else {
+					// if we resolved everything before the constructor finished its work, we
+					// let it complete (don't teardown) but mark this as redundant so it can be
+					// torn down at the earliest opportunity
+					this.redundant = true;
+				}
 			}
 			
 			this.mustache.resolve( this.keypath );
@@ -1948,7 +1973,7 @@ animationCollection = {
 
 			// ...otherwise we want to register it as a deferred item, to be
 			// updated once all the information is in, to prevent unnecessary
-			// cascading. Only if we're already resovled, obviously
+			// cascading. Only if we're already resolved, obviously
 			else if ( !this.deferred && this.resolved ) {
 				this.root._def[ this.root._def.length ] = this;
 				this.deferred = true;
@@ -1990,7 +2015,7 @@ animationCollection = {
 
 
 
-	Reference = function ( root, ref, contextStack, argNum, evaluator ) {
+	Resolver = function ( root, ref, contextStack, argNum, evaluator ) {
 		var keypath;
 
 		this.ref = ref;
@@ -2008,7 +2033,7 @@ animationCollection = {
 		}
 	};
 
-	Reference.prototype = {
+	Resolver.prototype = {
 		teardown: function () {
 			teardown( this );
 		},
@@ -2147,11 +2172,7 @@ initMustache = function ( mustache, options ) {
 updateMustache = function () {
 	var value;
 
-	if ( this.keypath ) {
-		value = this.root.get( this.keypath, true );
-	} else if ( this.expression ) {
-		value = this.evaluate();
-	}
+	value = this.root.get( this.keypath, true );
 
 	if ( !isEqual( value, this._lastValue ) ) {
 		this.render( value );
@@ -2680,8 +2701,6 @@ updateSection = function ( section, value ) {
 		name = options.name;
 		value = options.value;
 
-		this.element = options.element; // the element this belongs to
-
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
 		colonIndex = name.indexOf( ':' );
 		if ( colonIndex !== -1 ) {
@@ -2713,12 +2732,16 @@ updateSection = function ( section, value ) {
 			if ( name.toLowerCase() === 'id' ) {
 				options.root.nodes[ value ] = options.parentNode;
 			}
+
+			this.name = name;
+			this.value = value;
 			
 			return;
 		}
 
 		// otherwise we need to do some work
 		this.root = options.root;
+		this.element = options.element;
 		this.parentNode = options.parentNode;
 		this.name = name;
 		this.lcName = name.toLowerCase();
@@ -2992,7 +3015,7 @@ updateSection = function ( section, value ) {
 
 			if ( this.twoway ) {
 				// TODO compare against previous?
-				
+
 				lowerCaseName = this.lcName;
 				this.value = this.interpolator.value;
 
@@ -3018,8 +3041,8 @@ updateSection = function ( section, value ) {
 					return this;
 				}
 			}
-			
-			value = this.fragment.toString();
+
+			value = this.fragment.getValue();
 
 			if ( value === undefined ) {
 				value = '';
@@ -3233,6 +3256,7 @@ updateSection = function ( section, value ) {
 
 		bubble: function () {
 			// TODO should we set value here?
+			this.value = this.getValue();
 			//this.value = this.items.join( '' );
 			this.owner.bubble();
 		},
@@ -3244,6 +3268,20 @@ updateSection = function ( section, value ) {
 			for ( i=0; i<numItems; i+=1 ) {
 				this.items[i].teardown();
 			}
+		},
+
+		getValue: function () {
+			var value;
+			
+			// Accommodate boolean attributes
+			if ( this.items.length === 1 && this.items[0].type === INTERPOLATOR ) {
+				value = this.items[0].value;
+				if ( value !== undefined ) {
+					return value;
+				}
+			}
+			
+			return this.toString();
 		},
 
 		toString: function () {
