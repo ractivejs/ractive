@@ -380,8 +380,6 @@
 		name = options.name;
 		value = options.value;
 
-		this.element = options.element; // the element this belongs to
-
 		// are we dealing with a namespaced attribute, e.g. xlink:href?
 		colonIndex = name.indexOf( ':' );
 		if ( colonIndex !== -1 ) {
@@ -413,12 +411,16 @@
 			if ( name.toLowerCase() === 'id' ) {
 				options.root.nodes[ value ] = options.parentNode;
 			}
+
+			this.name = name;
+			this.value = value;
 			
 			return;
 		}
 
 		// otherwise we need to do some work
 		this.root = options.root;
+		this.element = options.element;
 		this.parentNode = options.parentNode;
 		this.name = name;
 		this.lcName = name.toLowerCase();
