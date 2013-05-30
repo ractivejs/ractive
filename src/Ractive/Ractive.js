@@ -4,7 +4,8 @@ var defaultOptions = {
 	twoway: true,
 	modifyArrays: true,
 	data: {},
-	lazy: false
+	lazy: false,
+	debug: false
 };
 
 Ractive = function ( options ) {
@@ -23,10 +24,20 @@ Ractive = function ( options ) {
 	// Initialization
 	// --------------
 
+	// Generate a unique identifier, for places where you'd use a weak map if it
+	// existed
+	this.guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r, v;
+
+		r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		return v.toString(16);
+	});
+
 	// options
 	this.modifyArrays = options.modifyArrays;
 	this.twoway = options.twoway;
 	this.lazy = options.lazy;
+	this.debug = options.debug;
 
 	this.el = getEl( options.el );
 
