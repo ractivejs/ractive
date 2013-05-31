@@ -19,7 +19,7 @@
 
 	hyphenate = function ( str ) {
 		return str.replace( /[A-Z]/g, function ( match ) {
-			return '-' + match.toLowerCase()
+			return '-' + match.toLowerCase();
 		});
 	};
 
