@@ -16,20 +16,6 @@
 		};
 	}
 
-	if ( !Element.prototype.contains ) {
-		Element.prototype.contains = function ( el ) {
-			while ( el.parentNode ) {
-				if ( el.parentNode === this ) {
-					return true;
-				}
-
-				el = el.parentNode;
-			}
-
-			return false;
-		};
-	}
-
 	if ( !String.prototype.trim ) {
 		String.prototype.trim = function () {
 			return this.replace(/^\s+/, '').replace(/\s+$/, '');
@@ -909,7 +895,7 @@ proto.teardown = function ( callback ) {
 		this._transitionManager = transitionManager = makeTransitionManager( callback );
 	}
 
-	this.fragment.teardown();
+	this.fragment.teardown( true );
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	// Once with keypaths that have dependents...
@@ -1540,7 +1526,7 @@ Ractive = function ( options ) {
 			// assume this is an ID of a <script type='text/template'> tag
 			templateEl = document.getElementById( template.substring( 1 ) );
 			if ( templateEl ) {
-				this.template = Ractive.parse( templateEl.innerHTML, options );
+				template = Ractive.parse( templateEl.innerHTML, options );
 			}
 
 			else {
@@ -1639,14 +1625,14 @@ Ractive = function ( options ) {
 			property: 'opacity',
 			from: 0,
 			to: 1,
-			duration: 4000,
+			duration: 400,
 			easing: 'linear'
 		}),
 		fadeOut: makeTransition({
 			property: 'opacity',
 			from: 1,
 			to: 0,
-			duration: 4000,
+			duration: 400,
 			easing: 'linear'
 		})
 	};
@@ -2356,7 +2342,7 @@ updateSection = function ( section, value ) {
 	if ( section.descriptor.n ) {
 		if ( value && !emptyArray ) {
 			if ( section.length ) {
-				section.unrender();
+				section.teardownFragments();
 				section.length = 0;
 			}
 		}
@@ -2387,7 +2373,7 @@ updateSection = function ( section, value ) {
 			itemsToRemove = section.fragments.splice( value.length, section.length - value.length );
 
 			while ( itemsToRemove.length ) {
-				itemsToRemove.pop().teardown();
+				itemsToRemove.pop().teardown( true );
 			}
 		}
 
@@ -2446,7 +2432,7 @@ updateSection = function ( section, value ) {
 
 		else {
 			if ( section.length ) {
-				section.unrender();
+				section.teardownFragments();
 				section.length = 0;
 			}
 		}
@@ -2528,11 +2514,11 @@ updateSection = function ( section, value ) {
 			}
 		},
 
-		teardown: function () {
+		teardown: function ( detach ) {
 			var node;
 
 			// if this was built from HTML, we just need to remove the nodes
-			if ( this.nodes ) {
+			if ( detach && this.nodes ) {
 				while ( this.nodes.length ) {
 					node = this.nodes.pop();
 					node.parentNode.removeChild( node );
@@ -2542,7 +2528,7 @@ updateSection = function ( section, value ) {
 
 			// otherwise we need to do a proper teardown
 			while ( this.items.length ) {
-				this.items.pop().teardown();
+				this.items.pop().teardown( detach );
 			}
 		},
 
@@ -2582,8 +2568,8 @@ updateSection = function ( section, value ) {
 	};
 
 	Partial.prototype = {
-		teardown: function () {
-			this.fragment.teardown();
+		teardown: function ( detach ) {
+			this.fragment.teardown( detach );
 		}
 	};
 
@@ -2598,8 +2584,8 @@ updateSection = function ( section, value ) {
 	};
 
 	Text.prototype = {
-		teardown: function () {
-			if ( this.root.el.contains( this.node ) ) {
+		teardown: function ( detach ) {
+			if ( detach ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -2809,37 +2795,27 @@ updateSection = function ( section, value ) {
 			}
 		},
 
-		teardown: function () {
+		teardown: function ( detach ) {
 			var self = this, tearThisDown, transitionManager, outro;
 
-			tearThisDown = function () {
-				if ( self.root.el.contains( self.node ) ) {
-					self.parentNode.removeChild( self.node );
-				}
+			// Children first. that way, any transitions on child elements will be
+			// handled by the current transitionManager
+			if ( self.fragment ) {
+				self.fragment.teardown( false );
+			}
 
-				if ( self.fragment ) {
-					self.fragment.teardown();
-				}
+			while ( self.attributes.length ) {
+				self.attributes.pop().teardown();
+			}
 
-				while ( self.attributes.length ) {
-					self.attributes.pop().teardown();
-				}
+			while ( self.eventListeners.length ) {
+				listener = self.eventListeners.pop();
+				self.node.removeEventListener( listener.n, listener.h );
+			}
 
-				while ( self.eventListeners.length ) {
-					listener = self.eventListeners.pop();
-					self.node.removeEventListener( listener.n, listener.h );
-				}
-
-				while ( self.customEventListeners.length ) {
-					self.customEventListeners.pop().teardown();
-				}
-			};
-
-			// TODO problem - what if child elements have their own transitions?
-			// by the time this outro completes, we'll have a different transition
-			// manager... really don't want to have to cascade it. Can we cascade
-			// the teardown instruction immediately but only remove nodes from the
-			// DOM when transitions are complete?
+			while ( self.customEventListeners.length ) {
+				self.customEventListeners.pop().teardown();
+			}
 
 			if ( this.outro ) {
 				outro = this.root.transitions[ this.outro ] || Ractive.transitions[ this.outro ];
@@ -2852,12 +2828,17 @@ updateSection = function ( section, value ) {
 					}
 
 					outro.call( this.root, this.node, function () {
-						tearThisDown();
+						if ( detach ) {
+							self.parentNode.removeChild( self.node );
+						}
+
 						if ( transitionManager ) {
 							transitionManager.pop();
 						}
 					});
 				}
+			} else if ( detach ) {
+				self.parentNode.removeChild( self.node );
 			}
 		},
 
@@ -3280,10 +3261,10 @@ updateSection = function ( section, value ) {
 		resolve: resolveMustache,
 		evaluate: evaluateMustache,
 
-		teardown: function () {
+		teardown: function ( detach ) {
 			teardown( this );
 			
-			if ( this.root.el.contains( this.node ) ) {
+			if ( detach ) {
 				this.parentNode.removeChild( this.node );
 			}
 		},
@@ -3314,10 +3295,10 @@ updateSection = function ( section, value ) {
 		resolve: resolveMustache,
 		evaluate: evaluateMustache,
 
-		teardown: function () {
+		teardown: function ( detach ) {
 
 			// remove child nodes from DOM
-			if ( this.root.el.contains( this.parentNode ) ) {
+			if ( detach ) {
 				while ( this.nodes.length ) {
 					this.parentNode.removeChild( this.nodes.pop() );
 				}
@@ -3369,8 +3350,8 @@ updateSection = function ( section, value ) {
 		resolve: resolveMustache,
 		evaluate: evaluateMustache,
 
-		teardown: function () {
-			this.unrender();
+		teardown: function ( detach ) {
+			this.teardownFragments( detach );
 
 			teardown( this );
 		},
@@ -3391,9 +3372,9 @@ updateSection = function ( section, value ) {
 			return this.parentFragment.findNextNode( this );
 		},
 
-		unrender: function () {
+		teardownFragments: function ( detach ) {
 			while ( this.fragments.length ) {
-				this.fragments.shift().teardown();
+				this.fragments.shift().teardown( detach );
 			}
 		},
 
@@ -3545,12 +3526,12 @@ updateSection = function ( section, value ) {
 		evaluate: evaluateMustache,
 
 		teardown: function () {
-			this.unrender();
+			this.teardownFragments();
 
 			teardown( this );
 		},
 
-		unrender: function () {
+		teardownFragments: function () {
 			while ( this.fragments.length ) {
 				this.fragments.shift().teardown();
 			}
