@@ -123,7 +123,7 @@ Ractive = function ( options ) {
 			// assume this is an ID of a <script type='text/template'> tag
 			templateEl = document.getElementById( template.substring( 1 ) );
 			if ( templateEl ) {
-				this.template = Ractive.parse( templateEl.innerHTML, options );
+				template = Ractive.parse( templateEl.innerHTML, options );
 			}
 
 			else {
