@@ -499,7 +499,7 @@ var getFragmentStubFromTokens;
 			},
 
 			toString: function () {
-				var str, i, len, attrStr, attrValueStr, fragStr, isVoid;
+				var str, i, len, attrStr, lcName, attrValueStr, fragStr, isVoid;
 
 				if ( this.str !== undefined ) {
 					return this.str;
@@ -529,15 +529,17 @@ var getFragmentStubFromTokens;
 				
 				if ( this.attributes ) {
 					for ( i=0, len=this.attributes.length; i<len; i+=1 ) {
+
+						lcName = this.attributes[i].name.toLowerCase();
 						
 						// does this look like a namespaced attribute? if so we can't stringify it
-						if ( this.attributes[i].name.indexOf( ':' ) !== -1 ) {
+						if ( lcName.indexOf( ':' ) !== -1 ) {
 							return ( this.str = false );
 						}
 
 						// if this element has an id attribute, it can't be stringified (since references are stored
-						// in ractive.nodes)
-						if ( this.attributes[i].name.toLowerCase() === 'id' ) {
+						// in ractive.nodes). Similarly, intro and outro transitions
+						if ( lcName === 'id' || lcName === 'intro' || lcName === 'outro' ) {
 							return ( this.str = false );
 						}
 

@@ -164,14 +164,18 @@
 			eventName,
 			attr,
 			attrName,
+			lcName,
 			attrValue,
 			bindable,
 			twowayNameAttr,
-			parentNode;
+			parentNode,
+			root,
+			transitionManager,
+			intro;
 
 		// stuff we'll need later
 		descriptor = this.descriptor = options.descriptor;
-		this.root = options.root;
+		this.root = root = options.root;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
@@ -208,7 +212,7 @@
 			else {
 				this.fragment = new DomFragment({
 					descriptor:   descriptor.f,
-					root:         options.root,
+					root:         root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
 					owner:        this
@@ -237,25 +241,34 @@
 			if ( descriptor.a.hasOwnProperty( attrName ) ) {
 				attrValue = descriptor.a[ attrName ];
 
-				attr = new Attribute({
-					element: this,
-					name: attrName,
-					value: ( attrValue === undefined ? null : attrValue ),
-					root: options.root,
-					parentNode: this.node,
-					contextStack: options.contextStack
-				});
-
-				this.attributes[ this.attributes.length ] = attr;
-
-				if ( attr.isBindable ) {
-					bindable.push( attr );
+				// are we dealing with transitions?
+				lcName = attrName.toLowerCase();
+				if ( lcName === 'intro' || lcName === 'outro' ) {
+					this[ lcName ] = attrValue;
+					// TODO allow mustaches as transition names?
 				}
 
-				if ( attr.isTwowayNameAttr ) {
-					twowayNameAttr = attr;
-				} else {
-					attr.update();
+				else {
+					attr = new Attribute({
+						element:      this,
+						name:         attrName,
+						value:        ( attrValue === undefined ? null : attrValue ),
+						root:         root,
+						parentNode:   this.node,
+						contextStack: options.contextStack
+					});
+
+					this.attributes[ this.attributes.length ] = attr;
+
+					if ( attr.isBindable ) {
+						bindable.push( attr );
+					}
+
+					if ( attr.isTwowayNameAttr ) {
+						twowayNameAttr = attr;
+					} else {
+						attr.update();
+					}
 				}
 			}
 		}
@@ -270,6 +283,21 @@
 		}
 
 		docFrag.appendChild( this.node );
+
+		// trigger intro transition
+		if ( this.intro ) {
+			intro = root.transitions[ this.intro ] || Ractive.transitions[ this.intro ];
+
+			if ( intro ) {
+				transitionManager = root._transitionManager;
+
+				if ( transitionManager ) {
+					transitionManager.push();
+				}
+
+				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ) );
+			}
+		}
 	};
 
 	Element.prototype = {
@@ -328,27 +356,54 @@
 		},
 
 		teardown: function () {
-			var listener;
+			var self = this, tearThisDown, transitionManager, outro;
 
-			if ( this.root.el.contains( this.node ) ) {
-				this.parentNode.removeChild( this.node );
-			}
+			tearThisDown = function () {
+				if ( self.root.el.contains( self.node ) ) {
+					self.parentNode.removeChild( self.node );
+				}
 
-			if ( this.fragment ) {
-				this.fragment.teardown();
-			}
+				if ( self.fragment ) {
+					self.fragment.teardown();
+				}
 
-			while ( this.attributes.length ) {
-				this.attributes.pop().teardown();
-			}
+				while ( self.attributes.length ) {
+					self.attributes.pop().teardown();
+				}
 
-			while ( this.eventListeners.length ) {
-				listener = this.eventListeners.pop();
-				this.node.removeEventListener( listener.n, listener.h );
-			}
+				while ( self.eventListeners.length ) {
+					listener = self.eventListeners.pop();
+					self.node.removeEventListener( listener.n, listener.h );
+				}
 
-			while ( this.customEventListeners.length ) {
-				this.customEventListeners.pop().teardown();
+				while ( self.customEventListeners.length ) {
+					self.customEventListeners.pop().teardown();
+				}
+			};
+
+			// TODO problem - what if child elements have their own transitions?
+			// by the time this outro completes, we'll have a different transition
+			// manager... really don't want to have to cascade it. Can we cascade
+			// the teardown instruction immediately but only remove nodes from the
+			// DOM when transitions are complete?
+
+			if ( this.outro ) {
+				outro = this.root.transitions[ this.outro ] || Ractive.transitions[ this.outro ];
+
+				if ( outro ) {
+					transitionManager = this.root._transitionManager;
+					
+					if ( transitionManager ) {
+						transitionManager.push();
+					}
+
+					outro.call( this.root, this.node, function () {
+						tearThisDown();
+						if ( transitionManager ) {
+							transitionManager.pop();
+						}
+					});
+				}
 			}
 		},
 

@@ -9,6 +9,9 @@ Ractive.interpolate = interpolate;
 Ractive.interpolators = interpolators;
 Ractive.parse = parse;
 
+// TODO add some more transitions
+Ractive.transitions = transitions;
+
 
 // export as Common JS module...
 if ( typeof module !== "undefined" && module.exports ) {

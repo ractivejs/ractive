@@ -13,6 +13,7 @@ easing,
 extend,
 interpolate,
 interpolators,
+transitions,
 
 
 // internal utils
@@ -22,6 +23,7 @@ isObject,
 isNumeric,
 isEqual,
 getEl,
+noop = function () {},
 
 
 // internally used caches

@@ -1,9 +1,13 @@
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
-proto.teardown = function () {
-	var keypath;
+proto.teardown = function ( callback ) {
+	var keypath, transitionManager;
 
-	this.rendered.teardown();
+	if ( callback ) {
+		this._transitionManager = transitionManager = makeTransitionManager( callback );
+	}
+
+	this.fragment.teardown();
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	// Once with keypaths that have dependents...
@@ -23,5 +27,14 @@ proto.teardown = function () {
 	// Teardown any bindings
 	while ( this._bound.length ) {
 		this.unbind( this._bound.pop() );
+	}
+
+	if ( callback ) {
+		this._transitionManager = null;
+
+		transitionManager.ready = true;
+		if ( !transitionManager.active ) {
+			callback();
+		}		
 	}
 };

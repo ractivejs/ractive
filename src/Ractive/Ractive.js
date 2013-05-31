@@ -5,7 +5,8 @@ var defaultOptions = {
 	modifyArrays: true,
 	data: {},
 	lazy: false,
-	debug: false
+	debug: false,
+	transitions: {} // TODO transitions on subclasses
 };
 
 Ractive = function ( options ) {
@@ -68,6 +69,9 @@ Ractive = function ( options ) {
 
 	// Keep a list of used expressions, so we don't duplicate them
 	this._expressions = [];
+
+	// Transition registry
+	this.transitions = options.transitions;
 
 	// Set up bindings
 	this._bound = [];
@@ -142,6 +146,6 @@ Ractive = function ( options ) {
 
 	// If passed an element, render immediately
 	if ( this.el ) {
-		this.render({ el: this.el, append: options.append });
+		this.render({ el: this.el, append: options.append, complete: options.complete });
 	}
 };

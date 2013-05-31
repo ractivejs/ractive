@@ -307,6 +307,12 @@ tests = [
 		result: '<ul><li>A</li><li>B</li><li>C</li></ul>',
 		new_data: { items: [ 'd', 'e', 'f' ]},
 		new_result: '<ul><li>D</li><li>E</li><li>F</li></ul>'
+	},
+	{
+		name: 'Element with transitions',
+		template: '<div intro="slideIn" outro="slideOut">{{content}}</div>',
+		data: { content: 'test' },
+		result: '<div>test</div>'
 	}
 ];
 

@@ -2,8 +2,8 @@
 
 	var set, attemptKeypathResolution;
 
-	proto.set = function ( keypath, value ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previous;
+	proto.set = function ( keypath, value, callback ) {
+		var notificationQueue, upstreamQueue, k, normalised, keys, previous, transitionManager;
 
 		if ( !this.setting ) {
 			this.setting = true; // short-circuit any potential infinite loops
@@ -13,6 +13,11 @@
 
 		upstreamQueue = [];
 		notificationQueue = [];
+
+		// manage transitions
+		if ( callback ) {
+			this._transitionManager = transitionManager = makeTransitionManager( callback );
+		}
 
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
@@ -57,6 +62,17 @@
 			// Update the attribute, then deflag it
 			this._def.pop().update().deferred = false;
 		}
+
+		if ( callback ) {
+			this._transitionManager = null;
+
+			transitionManager.ready = true;
+			if ( !transitionManager.active ) {
+				callback();
+			}
+		}
+
+		return this;
 	};
 
 
