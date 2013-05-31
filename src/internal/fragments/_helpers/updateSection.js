@@ -21,7 +21,7 @@ updateSection = function ( section, value ) {
 	if ( section.descriptor.n ) {
 		if ( value && !emptyArray ) {
 			if ( section.length ) {
-				section.unrender();
+				section.teardownFragments();
 				section.length = 0;
 			}
 		}
@@ -52,7 +52,7 @@ updateSection = function ( section, value ) {
 			itemsToRemove = section.fragments.splice( value.length, section.length - value.length );
 
 			while ( itemsToRemove.length ) {
-				itemsToRemove.pop().teardown();
+				itemsToRemove.pop().teardown( true );
 			}
 		}
 
@@ -111,7 +111,7 @@ updateSection = function ( section, value ) {
 
 		else {
 			if ( section.length ) {
-				section.unrender();
+				section.teardownFragments();
 				section.length = 0;
 			}
 		}

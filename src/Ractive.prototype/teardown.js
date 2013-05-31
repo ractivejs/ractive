@@ -7,7 +7,7 @@ proto.teardown = function ( callback ) {
 		this._transitionManager = transitionManager = makeTransitionManager( callback );
 	}
 
-	this.fragment.teardown();
+	this.fragment.teardown( true );
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	// Once with keypaths that have dependents...

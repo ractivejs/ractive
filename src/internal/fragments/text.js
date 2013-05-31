@@ -125,12 +125,12 @@
 		evaluate: evaluateMustache,
 
 		teardown: function () {
-			this.unrender();
+			this.teardownFragments();
 
 			teardown( this );
 		},
 
-		unrender: function () {
+		teardownFragments: function () {
 			while ( this.fragments.length ) {
 				this.fragments.shift().teardown();
 			}
