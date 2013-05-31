@@ -140,7 +140,7 @@
 
 }( document ));
 
-/*! Ractive - v0.3.0 - 2013-05-30
+/*! Ractive - v0.3.0 - 2013-05-31
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -165,6 +165,7 @@ easing,
 extend,
 interpolate,
 interpolators,
+transitions,
 
 
 // internal utils
@@ -174,6 +175,7 @@ isObject,
 isNumeric,
 isEqual,
 getEl,
+noop = function () {},
 
 
 // internally used caches
@@ -705,7 +707,9 @@ proto.on = function ( eventName, callback ) {
 };
 // Render instance to element specified here or at initialization
 proto.render = function ( options ) {
-	var el = ( options.el ? getEl( options.el ) : this.el );
+	var el, transitionManager;
+
+	el = ( options.el ? getEl( options.el ) : this.el );
 
 	if ( !el ) {
 		throw new Error( 'You must specify a DOM element to render to' );
@@ -716,26 +720,36 @@ proto.render = function ( options ) {
 		el.innerHTML = '';
 	}
 
-	if ( options.callback ) {
-		this.callback = options.callback;
+	if ( options.complete ) {
+		this._transitionManager = transitionManager = makeTransitionManager( options.complete );
 	}
 
 	// Render our *root fragment*
-	this.rendered = new DomFragment({
+	this.fragment = new DomFragment({
 		descriptor: this.template,
 		root: this,
 		owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
 		parentNode: el
 	});
 
-	el.appendChild( this.rendered.docFrag );
+	el.appendChild( this.fragment.docFrag );
+	this.ready = true;
+
+	if ( options.complete ) {
+		this._transitionManager = null;
+
+		transitionManager.ready = true;
+		if ( !transitionManager.active ) {
+			options.complete();
+		}		
+	}
 };
 (function ( proto ) {
 
 	var set, attemptKeypathResolution;
 
-	proto.set = function ( keypath, value ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previous;
+	proto.set = function ( keypath, value, callback ) {
+		var notificationQueue, upstreamQueue, k, normalised, keys, previous, transitionManager;
 
 		if ( !this.setting ) {
 			this.setting = true; // short-circuit any potential infinite loops
@@ -745,6 +759,11 @@ proto.render = function ( options ) {
 
 		upstreamQueue = [];
 		notificationQueue = [];
+
+		// manage transitions
+		if ( callback ) {
+			this._transitionManager = transitionManager = makeTransitionManager( callback );
+		}
 
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
@@ -789,6 +808,17 @@ proto.render = function ( options ) {
 			// Update the attribute, then deflag it
 			this._def.pop().update().deferred = false;
 		}
+
+		if ( callback ) {
+			this._transitionManager = null;
+
+			transitionManager.ready = true;
+			if ( !transitionManager.active ) {
+				callback();
+			}
+		}
+
+		return this;
 	};
 
 
@@ -872,10 +902,14 @@ proto.render = function ( options ) {
 }( proto ));
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
-proto.teardown = function () {
-	var keypath;
+proto.teardown = function ( callback ) {
+	var keypath, transitionManager;
 
-	this.rendered.teardown();
+	if ( callback ) {
+		this._transitionManager = transitionManager = makeTransitionManager( callback );
+	}
+
+	this.fragment.teardown();
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	// Once with keypaths that have dependents...
@@ -895,6 +929,15 @@ proto.teardown = function () {
 	// Teardown any bindings
 	while ( this._bound.length ) {
 		this.unbind( this._bound.pop() );
+	}
+
+	if ( callback ) {
+		this._transitionManager = null;
+
+		transitionManager.ready = true;
+		if ( !transitionManager.active ) {
+			callback();
+		}		
 	}
 };
 proto.unbind = function ( adaptor ) {
@@ -1379,7 +1422,8 @@ var defaultOptions = {
 	modifyArrays: true,
 	data: {},
 	lazy: false,
-	debug: false
+	debug: false,
+	transitions: {} // TODO transitions on subclasses
 };
 
 Ractive = function ( options ) {
@@ -1442,6 +1486,9 @@ Ractive = function ( options ) {
 
 	// Keep a list of used expressions, so we don't duplicate them
 	this._expressions = [];
+
+	// Transition registry
+	this.transitions = options.transitions;
 
 	// Set up bindings
 	this._bound = [];
@@ -1516,10 +1563,96 @@ Ractive = function ( options ) {
 
 	// If passed an element, render immediately
 	if ( this.el ) {
-		this.render({ el: this.el, append: options.append });
+		this.render({ el: this.el, append: options.append, complete: options.complete });
 	}
 };
 
+(function () {
+
+	var transitionsEnabled, transition, transitionend, testDiv, hyphenate, makeTransition;
+
+	testDiv = document.createElement( 'div' );
+
+	if ( testDiv.style.transition !== undefined ) {
+		transition = 'transition';
+		transitionend = 'transitionend';
+		transitionsEnabled = true;
+	} else if ( testDiv.style.webkitTransition !== undefined ) {
+		transition = 'webkitTransition';
+		transitionend = 'webkitTransitionEnd';
+		transitionsEnabled = true;
+	} else {
+		transitionsEnabled = false;
+	}
+
+
+	hyphenate = function ( str ) {
+		return str.replace( /[A-Z]/g, function ( match ) {
+			return '-' + match.toLowerCase();
+		});
+	};
+
+	
+
+
+	if ( transitionsEnabled ) {
+		makeTransition = function ( options ) {
+			return function ( el, complete ) {
+				var transitionEndHandler, transitionStyle, duration;
+
+				duration = options.duration || 400;
+				easing = hyphenate( options.easing || 'linear' );
+
+				// the existing transition style, to which we'll shortly revert
+				transitionStyle = el.style[ transition ];
+
+				// starting style
+				el.style[ options.property ] = options.from;
+
+				setTimeout( function () {
+					el.style[ transition ] = ( duration / 1000 ) + 's ' + options.property + ' ' + easing;
+
+					transitionEndHandler = function ( event ) {
+						el.removeEventListener( transitionend, transitionEndHandler );
+						el.style.transition = transitionStyle;
+
+						complete();
+					};
+					
+					el.addEventListener( transitionend, transitionEndHandler );
+					el.style[ options.property ] = options.to;
+				}, 0 );
+			};
+		};
+	} else {
+		// TODO!
+		makeTransition = function () {
+			return function ( el, complete ) {
+				complete();
+			};
+		};
+	}
+
+
+	transitions = {
+		fadeIn: makeTransition({
+			property: 'opacity',
+			from: 0,
+			to: 1,
+			duration: 4000,
+			easing: 'linear'
+		}),
+		fadeOut: makeTransition({
+			property: 'opacity',
+			from: 1,
+			to: 0,
+			duration: 4000,
+			easing: 'linear'
+		})
+	};
+
+
+}());
 Animation = function ( options ) {
 	var key;
 
@@ -2485,14 +2618,18 @@ updateSection = function ( section, value ) {
 			eventName,
 			attr,
 			attrName,
+			lcName,
 			attrValue,
 			bindable,
 			twowayNameAttr,
-			parentNode;
+			parentNode,
+			root,
+			transitionManager,
+			intro;
 
 		// stuff we'll need later
 		descriptor = this.descriptor = options.descriptor;
-		this.root = options.root;
+		this.root = root = options.root;
 		this.parentFragment = options.parentFragment;
 		this.parentNode = options.parentNode;
 		this.index = options.index;
@@ -2529,7 +2666,7 @@ updateSection = function ( section, value ) {
 			else {
 				this.fragment = new DomFragment({
 					descriptor:   descriptor.f,
-					root:         options.root,
+					root:         root,
 					parentNode:   this.node,
 					contextStack: options.contextStack,
 					owner:        this
@@ -2558,25 +2695,34 @@ updateSection = function ( section, value ) {
 			if ( descriptor.a.hasOwnProperty( attrName ) ) {
 				attrValue = descriptor.a[ attrName ];
 
-				attr = new Attribute({
-					element: this,
-					name: attrName,
-					value: ( attrValue === undefined ? null : attrValue ),
-					root: options.root,
-					parentNode: this.node,
-					contextStack: options.contextStack
-				});
-
-				this.attributes[ this.attributes.length ] = attr;
-
-				if ( attr.isBindable ) {
-					bindable.push( attr );
+				// are we dealing with transitions?
+				lcName = attrName.toLowerCase();
+				if ( lcName === 'intro' || lcName === 'outro' ) {
+					this[ lcName ] = attrValue;
+					// TODO allow mustaches as transition names?
 				}
 
-				if ( attr.isTwowayNameAttr ) {
-					twowayNameAttr = attr;
-				} else {
-					attr.update();
+				else {
+					attr = new Attribute({
+						element:      this,
+						name:         attrName,
+						value:        ( attrValue === undefined ? null : attrValue ),
+						root:         root,
+						parentNode:   this.node,
+						contextStack: options.contextStack
+					});
+
+					this.attributes[ this.attributes.length ] = attr;
+
+					if ( attr.isBindable ) {
+						bindable.push( attr );
+					}
+
+					if ( attr.isTwowayNameAttr ) {
+						twowayNameAttr = attr;
+					} else {
+						attr.update();
+					}
 				}
 			}
 		}
@@ -2591,6 +2737,21 @@ updateSection = function ( section, value ) {
 		}
 
 		docFrag.appendChild( this.node );
+
+		// trigger intro transition
+		if ( this.intro ) {
+			intro = root.transitions[ this.intro ] || Ractive.transitions[ this.intro ];
+
+			if ( intro ) {
+				transitionManager = root._transitionManager;
+
+				if ( transitionManager ) {
+					transitionManager.push();
+				}
+
+				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ) );
+			}
+		}
 	};
 
 	Element.prototype = {
@@ -2649,27 +2810,54 @@ updateSection = function ( section, value ) {
 		},
 
 		teardown: function () {
-			var listener;
+			var self = this, tearThisDown, transitionManager, outro;
 
-			if ( this.root.el.contains( this.node ) ) {
-				this.parentNode.removeChild( this.node );
-			}
+			tearThisDown = function () {
+				if ( self.root.el.contains( self.node ) ) {
+					self.parentNode.removeChild( self.node );
+				}
 
-			if ( this.fragment ) {
-				this.fragment.teardown();
-			}
+				if ( self.fragment ) {
+					self.fragment.teardown();
+				}
 
-			while ( this.attributes.length ) {
-				this.attributes.pop().teardown();
-			}
+				while ( self.attributes.length ) {
+					self.attributes.pop().teardown();
+				}
 
-			while ( this.eventListeners.length ) {
-				listener = this.eventListeners.pop();
-				this.node.removeEventListener( listener.n, listener.h );
-			}
+				while ( self.eventListeners.length ) {
+					listener = self.eventListeners.pop();
+					self.node.removeEventListener( listener.n, listener.h );
+				}
 
-			while ( this.customEventListeners.length ) {
-				this.customEventListeners.pop().teardown();
+				while ( self.customEventListeners.length ) {
+					self.customEventListeners.pop().teardown();
+				}
+			};
+
+			// TODO problem - what if child elements have their own transitions?
+			// by the time this outro completes, we'll have a different transition
+			// manager... really don't want to have to cascade it. Can we cascade
+			// the teardown instruction immediately but only remove nodes from the
+			// DOM when transitions are complete?
+
+			if ( this.outro ) {
+				outro = this.root.transitions[ this.outro ] || Ractive.transitions[ this.outro ];
+
+				if ( outro ) {
+					transitionManager = this.root._transitionManager;
+					
+					if ( transitionManager ) {
+						transitionManager.push();
+					}
+
+					outro.call( this.root, this.node, function () {
+						tearThisDown();
+						if ( transitionManager ) {
+							transitionManager.pop();
+						}
+					});
+				}
 			}
 		},
 
@@ -3392,6 +3580,24 @@ updateSection = function ( section, value ) {
 	};
 
 }());
+var makeTransitionManager = function ( callback ) {
+	var transitionManager;
+
+	transitionManager = {
+		active: 0,
+		push: function () {
+			transitionManager.active += 1;
+		},
+		pop: function () {
+			transitionManager.active -= 1;
+			if ( !transitionManager.active && transitionManager.ready ) {
+				callback();
+			}
+		}
+	};
+
+	return transitionManager;
+};
 splitKeypath =  function ( keypath ) {
 	var index, startIndex, keys, remaining, part;
 
@@ -4117,7 +4323,7 @@ var getFragmentStubFromTokens;
 			},
 
 			toString: function () {
-				var str, i, len, attrStr, attrValueStr, fragStr, isVoid;
+				var str, i, len, attrStr, lcName, attrValueStr, fragStr, isVoid;
 
 				if ( this.str !== undefined ) {
 					return this.str;
@@ -4147,15 +4353,17 @@ var getFragmentStubFromTokens;
 				
 				if ( this.attributes ) {
 					for ( i=0, len=this.attributes.length; i<len; i+=1 ) {
+
+						lcName = this.attributes[i].name.toLowerCase();
 						
 						// does this look like a namespaced attribute? if so we can't stringify it
-						if ( this.attributes[i].name.indexOf( ':' ) !== -1 ) {
+						if ( lcName.indexOf( ':' ) !== -1 ) {
 							return ( this.str = false );
 						}
 
 						// if this element has an id attribute, it can't be stringified (since references are stored
-						// in ractive.nodes)
-						if ( this.attributes[i].name.toLowerCase() === 'id' ) {
+						// in ractive.nodes). Similarly, intro and outro transitions
+						if ( lcName === 'id' || lcName === 'intro' || lcName === 'outro' ) {
 							return ( this.str = false );
 						}
 
@@ -5900,6 +6108,9 @@ Ractive.extend = extend;
 Ractive.interpolate = interpolate;
 Ractive.interpolators = interpolators;
 Ractive.parse = parse;
+
+// TODO add some more transitions
+Ractive.transitions = transitions;
 
 
 // export as Common JS module...
