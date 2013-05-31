@@ -70,14 +70,14 @@
 			property: 'opacity',
 			from: 0,
 			to: 1,
-			duration: 4000,
+			duration: 400,
 			easing: 'linear'
 		}),
 		fadeOut: makeTransition({
 			property: 'opacity',
 			from: 1,
 			to: 0,
-			duration: 4000,
+			duration: 400,
 			easing: 'linear'
 		})
 	};
