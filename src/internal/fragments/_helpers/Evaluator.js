@@ -1,149 +1,45 @@
-(function ( evaluators, functionCache ) {
+var Evaluator;
 
-	var Resolver, getFunctionFromString;
+(function ( cache ) {
 
-	getFunctionFromString = function ( functionString, i ) {
-		var fn, args;
+	var Reference, getFunctionFromString;
 
-		if ( functionCache[ functionString ] ) {
-			return functionCache[ functionString ];
-		}
-
-		args = [];
-		while ( i-- ) {
-			args[i] = '_' + i;
-		}
-
-		fn = new Function( args.join( ',' ), 'return(' + functionString + ')' );
-
-		functionCache[ functionString ] = fn;
-		return fn;
-	};
-
-	Evaluator = function ( root, mustache, contextStack, indexRefs, descriptor ) {
-
-		var i;
+	Evaluator = function ( root, keypath, functionStr, args, priority ) {
+		var i, arg;
 
 		this.root = root;
-		this.mustache = mustache;
-		this.priority = mustache.priority;
+		this.keypath = keypath;
 
-		this.str = descriptor.s;
-		this.keypaths = [];
-		this.override = []; // need to override index refs when creating a keypath
+		this.fn = getFunctionFromString( functionStr, args.length );
 		this.values = [];
+		this.refs = [];
 
-		if ( !descriptor.r ) {
-			// no references - we can init immediately
-			this.init();
-		}
+		i = args.length;
+		while ( i-- ) {
+			arg = args[i];
 
-		else {
-			
-			this.resolvers = [];
-			this.unresolved = this.numRefs = i = descriptor.r.length;
-			
-			while ( i-- ) {
-				// index ref?
-				if ( indexRefs && indexRefs.hasOwnProperty( descriptor.r[i] ) ) {
-					this.values[i] = this.override[i] = indexRefs[ descriptor.r[i] ];
-					this.unresolved -= 1; // because we don't need to resolve the reference
-				}
-
-				else {
-					// TODO the resolver is resolving, and initiating teardown, before it's even been added
-					// to resolvers!
-					this.resolvers[ this.resolvers.length ] = new Resolver( root, descriptor.r[i], contextStack, i, this );
-				}
+			if ( arg[0] ) {
+				// this is an index ref... we don't need to register a dependant
+				this.values[i] = arg[1];
 			}
 
-			// if this only has one reference (and therefore only one dependency) it can
-			// update its mustache whenever that dependency changes. Otherwise, it should
-			// wait until all the information is in before re-evaluating (same principle
-			// as element attributes)
-			if ( this.resolvers.length <= 1 ) {
-				this.selfUpdating = true;
-			}
-
-			this.ready = true;
-			if ( this.redundant ) {
-				this.teardown();
-			}
-
-			// if we have no unresolved references, but we haven't initialised (because
-			// one or more of the references were index references), initialise now
-			if ( !this.unresolved && !this.resolved ) {
-				this.init();
+			else {
+				this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
 			}
 		}
+
+		this.selfUpdating = ( this.refs.length <= 1 );
+
+		this.update();
 	};
 
 	Evaluator.prototype = {
-		init: function () {
-			var self = this, functionString;
-
-			// we're ready!
-			this.resolved = true;
-
-			this.keypath = '(' + this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
-				if ( self.override.hasOwnProperty( $1 ) ) {
-					return self.override[ $1 ];
-				}
-
-				return self.keypaths[ $1 ];
-			}) + ')';
-
-			// is this the first of its kind?
-			if ( this.root._expressions.indexOf( this.keypath ) === -1 ) {
-				// yes
-				functionString = this.str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
-					return '_' + $1;
-				});
-
-				// TODO can we use the index ref in the compiled function string rather
-				// than devoting an argument to it?
-
-				this.fn = getFunctionFromString( functionString, this.numRefs || 0 );
-
-				this.update();
-
-				this.root._expressions.push( this.keypath );
-			} else {
-				// no. tear it down! our mustache will be taken care of by the other expression
-				// with the same virtual keypath
-				if ( this.ready ) {
-					this.teardown();
-				} else {
-					// if we resolved everything before the constructor finished its work, we
-					// let it complete (don't teardown) but mark this as redundant so it can be
-					// torn down at the earliest opportunity
-					this.redundant = true;
-				}
-			}
-			
-			this.mustache.resolve( this.keypath );
-		},
-
-		teardown: function () {
-			if ( this.resolvers ) {
-				while ( this.resolvers.length ) {
-					this.resolvers.pop().teardown();
-				}
-			}
-		},
-
-		resolve: function ( ref, argNum, keypath ) {
-			var self = this;
-
-			this.keypaths[ argNum ] = keypath;
-
-			this.unresolved -= 1;
-			if ( !this.unresolved ) {
-				this.init();
-			}
-		},
-
 		bubble: function () {
+			// TODO If no-one is listening, abort
+			if ( !this.root._deps[ this.keypath ].length ) {
+				console.log( 'aborting...' );
+			}
+
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
 				this.update();
@@ -152,8 +48,8 @@
 			// ...otherwise we want to register it as a deferred item, to be
 			// updated once all the information is in, to prevent unnecessary
 			// cascading. Only if we're already resolved, obviously
-			else if ( !this.deferred && this.resolved ) {
-				this.root._def[ this.root._def.length ] = this;
+			else if ( !this.deferred ) {
+				this.root._defEvals[ this.root._defEvals.length ] = this;
 				this.deferred = true;
 			}
 		},
@@ -161,12 +57,8 @@
 		update: function () {
 			var value;
 
-			if ( !this.resolved ) {
-				return this;
-			}
-
 			try {
-				value = this.getter();
+				value = this.fn.apply( null, this.values );
 			} catch ( err ) {
 				if ( this.root.debug ) {
 					throw err;
@@ -175,66 +67,79 @@
 				}
 			}
 
-			if ( !isEqual( value, this._lastValue ) ) {
+			if ( !isEqual( value, this.value ) ) {
 				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
 				notifyDependants( this.root, this.keypath );
 
-				this._lastValue = value;
+				this.value = value;
 			}
 
 			return this;
 		},
 
-		getter: function () {
-			return this.fn.apply( null, this.values );
-		}
-	};
-
-
-
-	Resolver = function ( root, ref, contextStack, argNum, evaluator ) {
-		var keypath;
-
-		this.ref = ref;
-		this.root = root;
-		this.evaluator = evaluator;
-		this.priority = evaluator.priority;
-		this.argNum = argNum;
-
-		keypath = resolveRef( root, ref, contextStack );
-		if ( keypath ) {
-			this.resolve( keypath );
-		} else {
-			this.contextStack = contextStack;
-			root._pendingResolution[ root._pendingResolution.length ] = this;
-		}
-	};
-
-	Resolver.prototype = {
 		teardown: function () {
-			teardown( this );
-		},
+			while ( this.refs.length ) {
+				this.refs.pop().teardown();
+			}
 
-		resolve: function ( keypath ) {
-			this.keypath = keypath;
+			clearCache( this.root, this.keypath );
+			this.root._evaluators[ this.keypath ] = null;
+		}
+	};
 
-			registerDependant( this.root, keypath, this, this.priority );
-			
-			this.update();
-			this.evaluator.resolve( this.ref, this.argNum, keypath );
-		},
 
+	Reference = function ( root, keypath, evaluator, argNum, priority ) {
+		this.evaluator = evaluator;
+		this.keypath = keypath;
+		this.root = root;
+		this.argNum = argNum;
+		this.type = REFERENCE;
+		this.priority = priority;
+
+		this.value = evaluator.values[ argNum ] = root.get( keypath );
+
+		registerDependant( root, keypath, this, priority );
+	};
+
+	Reference.prototype = {
 		update: function () {
 			var value = this.root.get( this.keypath );
 
-			if ( !isEqual( value, this._lastValue ) ) {
+			if ( !isEqual( value, this.value ) ) {
 				this.evaluator.values[ this.argNum ] = value;
 				this.evaluator.bubble();
 
-				this._lastValue = value;
+				this.value = value;
 			}
+		},
+
+		teardown: function () {
+			unregisterDependant( this.root, this.keypath, this, this.priority );
 		}
 	};
 
-}({}, {}));
+
+	getFunctionFromString = function ( str, i ) {
+		var fn, args;
+
+		str = str.replace( /❖/g, '_' );
+
+		if ( cache[ str ] ) {
+			return cache[ str ];
+		}
+
+		args = [];
+		while ( i-- ) {
+			args[i] = '_' + i;
+		}
+
+		fn = new Function( args.join( ',' ), 'return(' + str + ')' );
+
+		cache[ str ] = fn;
+		return fn;
+	};
+
+
+
+}({}));

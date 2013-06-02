@@ -63,6 +63,7 @@
 
 	// Plain text
 	Text = function ( text ) {
+		this.type = TEXT;
 		this.text = text;
 	};
 
@@ -79,19 +80,14 @@
 
 	// Interpolator or Triple
 	Interpolator = function ( options ) {
+		this.type = INTERPOLATOR;
 		initMustache( this, options );
-
-		// if this initialised without a keypath, and it's a conditional,
-		// we need to use the 'if false' value
-		if ( this.cond && !this.keypath ) {
-			this.update( false );
-		}
 	};
 
 	Interpolator.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		evaluate: evaluateMustache,
+		// reassign: reassignMustache,
 
 		render: function ( value ) {
 			this.value = value;
@@ -113,8 +109,11 @@
 
 	// Section
 	Section = function ( options ) {
+		this.type = SECTION;
 		this.fragments = [];
 		this.length = 0;
+
+		this.type === SECTION;
 
 		initMustache( this, options );
 	};
@@ -122,7 +121,7 @@
 	Section.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		evaluate: evaluateMustache,
+		// reassign: reassignMustache,
 
 		teardown: function () {
 			this.teardownFragments();

@@ -5,6 +5,11 @@ initFragment = function ( fragment, options ) {
 	// The item that owns this fragment - an element, section, partial, or attribute
 	fragment.owner = options.owner;
 
+	// inherited properties
+	fragment.root = options.root;
+	fragment.parentNode = options.parentNode;
+	fragment.contextStack = options.contextStack || [];
+
 	// If parent item is a section, this may not be the only fragment
 	// that belongs to it - we need to make a note of the index
 	if ( fragment.owner.type === SECTION ) {
@@ -32,17 +37,17 @@ initFragment = function ( fragment, options ) {
 			fragment.indexRefs = {};
 		}
 
-		fragment.indexRefs[ options.indexRef ] = options.index;
+		fragment.indexRefs[ options.indexRef ] = {
+			index: options.index,
+			keypath: options.owner.keypath
+		};
 	}
 
 	// Time to create this fragment's child items;
 	fragment.items = [];
 
 	itemOptions = {
-		root:           options.root,
-		parentFragment: fragment,
-		parentNode:     options.parentNode,
-		contextStack:   options.contextStack
+		parentFragment: fragment
 	};
 
 	numItems = ( options.descriptor ? options.descriptor.length : 0 );

@@ -974,7 +974,7 @@ var getToken;
 
 				allowWhitespace( tokenizer );
 
-				expr = getExpression( tokenizer );
+				expression = getExpression( tokenizer );
 				if ( !expression ) {
 					fail( tokenizer, 'an expression' );
 				}

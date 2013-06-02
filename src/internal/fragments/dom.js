@@ -87,6 +87,10 @@
 			}
 
 			// otherwise we need to do a proper teardown
+			if ( !this.items ) {
+				return;
+			}
+
 			while ( this.items.length ) {
 				this.items.pop().teardown( detach );
 			}
@@ -114,13 +118,15 @@
 
 	// Partials
 	Partial = function ( options, docFrag ) {
-		this.parentFragment = options.parentFragment;
+		var parentFragment = this.parentFragment = options.parentFragment;
+
+		this.type = PARTIAL;
 
 		this.fragment = new DomFragment({
-			descriptor:   options.root.partials[ options.descriptor.r ] || [],
-			root:         options.root,
-			parentNode:   options.parentNode,
-			contextStack: options.contextStack,
+			descriptor:   parentFragment.root.partials[ options.descriptor.r ] || [],
+			root:         parentFragment.root,
+			parentNode:   parentFragment.parentNode,
+			contextStack: parentFragment.contextStack,
 			owner:        this
 		});
 
@@ -136,9 +142,10 @@
 
 	// Plain text
 	Text = function ( options, docFrag ) {
+		this.type = TEXT;
+
 		this.node = doc.createTextNode( options.descriptor );
-		this.root = options.root;
-		this.parentNode = options.parentNode;
+		this.parentNode = options.parentFragment.parentNode;
 
 		docFrag.appendChild( this.node );
 	};
@@ -159,7 +166,8 @@
 	// Element
 	Element = function ( options, docFrag ) {
 
-		var descriptor,
+		var parentFragment,
+			descriptor,
 			namespace,
 			eventName,
 			attr,
@@ -173,11 +181,14 @@
 			transitionManager,
 			intro;
 
+		this.type = ELEMENT;
+
 		// stuff we'll need later
+		parentFragment = this.parentFragment = options.parentFragment;
 		descriptor = this.descriptor = options.descriptor;
-		this.root = root = options.root;
-		this.parentFragment = options.parentFragment;
-		this.parentNode = options.parentNode;
+
+		this.root = root = parentFragment.root;
+		this.parentNode = parentFragment.parentNode;
 		this.index = options.index;
 
 		this.eventListeners = [];
@@ -214,7 +225,7 @@
 					descriptor:   descriptor.f,
 					root:         root,
 					parentNode:   this.node,
-					contextStack: options.contextStack,
+					contextStack: parentFragment.contextStack,
 					owner:        this
 				});
 
@@ -227,7 +238,7 @@
 		if ( descriptor.v ) {
 			for ( eventName in descriptor.v ) {
 				if ( descriptor.v.hasOwnProperty( eventName ) ) {
-					this.addEventProxy( eventName, descriptor.v[ eventName ], options.contextStack );
+					this.addEventProxy( eventName, descriptor.v[ eventName ], parentFragment.contextStack );
 				}
 			}
 		}
@@ -255,7 +266,7 @@
 						value:        ( attrValue === undefined ? null : attrValue ),
 						root:         root,
 						parentNode:   this.node,
-						contextStack: options.contextStack
+						contextStack: parentFragment.contextStack
 					});
 
 					this.attributes[ this.attributes.length ] = attr;
@@ -295,7 +306,7 @@
 					transitionManager.push();
 				}
 
-				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ) );
+				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionManager.i );
 			}
 		}
 	};
@@ -356,7 +367,7 @@
 		},
 
 		teardown: function ( detach ) {
-			var self = this, tearThisDown, transitionManager, outro;
+			var self = this, tearThisDown, transitionManager, listener, outro;
 
 			// Children first. that way, any transitions on child elements will be
 			// handled by the current transitionManager
@@ -378,6 +389,8 @@
 			}
 
 			if ( this.outro ) {
+				// TODO don't outro elements that have already been detached from the DOM
+
 				outro = this.root.transitions[ this.outro ] || Ractive.transitions[ this.outro ];
 
 				if ( outro ) {
@@ -395,7 +408,7 @@
 						if ( transitionManager ) {
 							transitionManager.pop();
 						}
-					});
+					}, transitionManager.i );
 				}
 			} else if ( detach ) {
 				self.parentNode.removeChild( self.node );
@@ -556,8 +569,7 @@
 
 	Attribute.prototype = {
 		bind: function ( lazy ) {
-			// two-way binding logic should go here
-			var self = this, node = this.parentNode, keypath, index, options, option, i, len;
+			var self = this, node = this.parentNode, interpolator, keypath, index, options, option, i, len;
 
 			if ( !this.fragment ) {
 				return false; // report failure
@@ -590,7 +602,7 @@
 			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
-			keypath = this.interpolator.keypath || this.interpolator.descriptor.r;
+			this.keypath = this.interpolator.keypath || this.interpolator.descriptor.r;
 			
 			
 			// select
@@ -604,7 +616,7 @@
 				for ( i=0; i<len; i+=1 ) {
 					option = options[i];
 					if ( option.hasAttribute( 'selected' ) ) { // not option.selected - won't work here
-						this.root.set( keypath, option.value );
+						this.root.set( this.keypath, option.value );
 						break;
 					}
 				}
@@ -623,11 +635,11 @@
 
 				if ( this.propertyName === 'name' ) {
 					// replace actual name attribute
-					node.name = '{{' + keypath + '}}';
+					node.name = '{{' + this.keypath + '}}';
 
 					this.updateViewModel = function () {
 						if ( node.checked ) {
-							self.root.set( keypath, node.value );
+							self.root.set( self.keypath, node.value );
 						}
 					};
 				}
@@ -642,7 +654,7 @@
 
 				else if ( this.propertyName === 'checked' ) {
 					this.updateViewModel = function () {
-						self.root.set( keypath, node.checked );
+						self.root.set( self.keypath, node.checked );
 					};
 				}
 			}
@@ -671,7 +683,7 @@
 					// Note: we're counting on `this.root.set` recognising that `value` is
 					// already what it wants it to be, and short circuiting the process.
 					// Rather than triggering an infinite loop...
-					self.root.set( keypath, value );
+					self.root.set( self.keypath, value );
 				};
 			}
 			
@@ -690,6 +702,19 @@
 					node.addEventListener( 'keypress', this.updateViewModel );
 					node.addEventListener( 'input',    this.updateViewModel );
 				}
+			}
+		},
+
+		updateBindings: function () {
+			// if the fragment this attribute belongs to gets reassigned (as a result of
+			// as section being updated via an array shift, unshift or splice), this
+			// attribute needs to recognise that its keypath has changed
+			this.keypath = this.interpolator.keypath || this.interpolator.r;
+
+			// if we encounter the special case described above, update the name attribute
+			if ( this.propertyName === 'name' ) {
+				// replace actual name attribute
+				this.parentNode.name = '{{' + this.keypath + '}}';
 			}
 		},
 
@@ -722,7 +747,7 @@
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred && this.ready ) {
-				this.root._def[ this.root._def.length ] = this;
+				this.root._defAttrs[ this.root._defAttrs.length ] = this;
 				this.deferred = true;
 			}
 		},
@@ -803,23 +828,19 @@
 
 	// Interpolator
 	Interpolator = function ( options, docFrag ) {
+		this.type = INTERPOLATOR;
+
 		this.node = doc.createTextNode( '' );
 		docFrag.appendChild( this.node );
 
 		// extend Mustache
 		initMustache( this, options );
-
-		// if this initialised without a keypath, and it's a conditional,
-		// we need to use the 'if false' value
-		if ( this.cond && !this.keypath ) {
-			this.update( false );
-		}
 	};
 
 	Interpolator.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		evaluate: evaluateMustache,
+		//reassign: reassignMustache,
 
 		teardown: function ( detach ) {
 			teardown( this );
@@ -841,6 +862,8 @@
 
 	// Triple
 	Triple = function ( options, docFrag ) {
+		this.type = TRIPLE;
+
 		this.nodes = [];
 		this.docFrag = doc.createDocumentFragment();
 
@@ -853,7 +876,7 @@
 	Triple.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		evaluate: evaluateMustache,
+		// reassign: reassignMustache,
 
 		teardown: function ( detach ) {
 
@@ -894,6 +917,8 @@
 
 	// Section
 	Section = function ( options, docFrag ) {
+		this.type = SECTION;
+
 		this.fragments = [];
 		this.length = 0; // number of times this section is rendered
 
@@ -908,7 +933,135 @@
 	Section.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		evaluate: evaluateMustache,
+		// reassign: reassignMustache,
+
+		smartUpdate: function ( methodName, args ) {
+			var fragmentOptions, i;
+
+			fragmentOptions = {
+				descriptor: this.descriptor.f,
+				root:       this.root,
+				parentNode: this.parentNode,
+				owner:      this
+			};
+
+			if ( this.descriptor.i ) {
+				fragmentOptions.indexRef = this.descriptor.i;
+			}
+
+			// push, pop, shift, unshift, reverse, splice, sort
+
+			// TODO - all methods should be present??? or just the sideways shifters?
+			if ( this[ methodName ] ) {
+				this[ methodName ]( fragmentOptions, args );
+			}
+		},
+
+		pop: function () {
+			// teardown last fragment
+			if ( this.length ) {
+				this.fragments.pop().teardown( true );
+				this.length -= 1;
+			}
+		},
+
+		push: function ( fragmentOptions, args ) {
+			var start, end, i;
+
+			// append list item to context stack
+			start = this.length;
+			end = start + args.length;
+			
+			for ( i=start; i<end; i+=1 ) {
+				fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+				fragmentOptions.index = i;
+
+				this.fragments[i] = this.createFragment( fragmentOptions );
+			}
+			
+			this.length += args.length;
+
+			// append docfrag in front of next node
+			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+		},
+
+		shift: function ( fragmentOptions ) {
+			this.splice( fragmentOptions, [ 0, 1 ] );
+		},
+
+		unshift: function ( fragmentOptions, args ) {
+			this.splice( fragmentOptions, [ 0, 0 ].concat( new Array( args.length ) ) );
+		},
+
+		splice: function ( fragmentOptions, args ) {
+			var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart, reassignEnd, reassignBy;
+
+			if ( !args.length ) {
+				return;
+			}
+
+			// figure out where the changes started...
+			start = +( args[0] < 0 ? this.length + args[0] : args[0] );
+
+			// ...and how many items were added to or removed from the array
+			addedItems = Math.max( 0, args.length - 2 );
+			removedItems = ( args[1] !== undefined ? args[1] : this.length - start );
+
+			balance = addedItems - removedItems;
+
+			if ( !balance ) {
+				// The array length hasn't changed - we don't need to add or remove anything
+				return;
+			}
+
+
+			
+
+
+			// If more items were removed than added, we need to remove some things from the DOM
+			if ( balance < 0 ) {
+				end = start - balance;
+
+				for ( i=start; i<end; i+=1 ) {
+					this.fragments[i].teardown( true );
+				}
+
+				// Keep in sync
+				this.fragments.splice( start, -balance );
+			}
+
+			// Otherwise we need to add some things to the DOM
+			else {
+				end = start + balance;
+
+				// Figure out where these new nodes need to be inserted
+				insertionPoint = ( this.fragments[ start ] ? this.fragments[ start ].firstNode() : this.parentFragment.findNextNode( this ) );
+
+				// Make room for the new fragments. (Just trust me, this works...)
+				spliceArgs = [ start, 0 ].concat( new Array( balance ) );
+				this.fragments.splice.apply( this.fragments, spliceArgs );
+
+				for ( i=start; i<end; i+=1 ) {
+					fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+					fragmentOptions.index = i;
+
+					this.fragments[i] = this.createFragment( fragmentOptions );
+				}
+
+				// Append docfrag in front of insertion point
+				this.parentNode.insertBefore( this.docFrag, insertionPoint );
+			}
+
+			this.length += balance;
+
+
+			// Reassign existing fragments (e.g. items.4 -> items.3)
+			reassignStart = ( start + addedItems );
+
+			console.group( 'reassigning fragments', reassignStart, this.length, balance );
+			reassignAffectedFragments( this.root, this, reassignStart, this.length, balance );
+			console.groupEnd();
+		},
 
 		teardown: function ( detach ) {
 			this.teardownFragments( detach );
@@ -954,6 +1107,133 @@
 			
 			this.docFrag.appendChild( fragment.docFrag );
 			return fragment;
+		}
+	};
+
+
+	var reassignAffectedFragments = function ( root, section, start, end, by ) {
+		var fragmentsToReassign, i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
+
+		indexRef = section.descriptor.i;
+
+		for ( i=start; i<end; i+=1 ) {
+			fragment = section.fragments[i];
+
+			oldIndex = i - by;
+			newIndex = i;
+
+			oldKeypath = section.keypath + '.' + ( i - by );
+			newKeypath = section.keypath + '.' + i;
+
+			// change the fragment index
+			fragment.index += by;
+
+			reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+		}
+
+		processDeferredUpdates( root );
+	};
+
+	var reassignFragment = function ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
+		var i, j, item, context;
+
+		if ( fragment.indexRefs && fragment.indexRefs.hasOwnProperty( indexRef ) ) {
+			fragment.indexRefs[ indexRef ].index = newIndex;
+		}
+
+		// fix context stack
+		i = fragment.contextStack.length;
+		while ( i-- ) {
+			context = fragment.contextStack[i];
+			if ( context.substr( 0, oldKeypath.length ) === oldKeypath ) {
+				fragment.contextStack[i] = context.replace( oldKeypath, newKeypath );
+			}
+		}
+
+		i = fragment.items.length;
+		while ( i-- ) {
+			item = fragment.items[i];
+
+			switch ( item.type ) {
+				case ELEMENT:
+				reassignElement( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				break;
+
+				case PARTIAL:
+				reassignPartial( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				break;
+
+				case SECTION:
+				case INTERPOLATOR:
+				case TRIPLE:
+				reassignMustache( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				break;
+			}
+		}
+	};
+
+	var reassignElement = function ( element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
+		var i, attribute;
+
+		i = element.attributes.length;
+		while ( i-- ) {
+			attribute = element.attributes[i];
+
+			if ( attribute.fragment ) {
+				reassignFragment( attribute.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+
+				if ( attribute.twoway ) {
+					attribute.updateBindings();
+				}
+			}
+		}
+
+		// reassign children
+		if ( element.fragment ) {
+			reassignFragment( element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+		}
+	};
+
+	var reassignPartial = function ( partial, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
+		// TODO
+		console.warn( 'reassigning partial TODO!' );
+	};
+
+	var reassignMustache = function ( mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
+		var i;
+
+		// expression mustache?
+		if ( mustache.descriptor.x ) {
+			unregisterDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+			new ExpressionResolver( mustache );
+		}
+
+		// normal keypath mustache?
+		else if ( mustache.keypath ) {
+			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+				unregisterDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+
+				mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
+				registerDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+			}
+		}
+
+		// index ref mustache?
+		else if ( mustache.refIndex ) {
+			console.log( 'index ref mustache', mustache, mustache.refIndex, newIndex );
+			mustache.refIndex = newIndex;
+			mustache.render( newIndex );
+		}
+
+		// otherwise, it's an unresolved reference. the context stack has been updated
+		// so it will take care of itself
+
+		// if it's a section mustache, we need to go through any children
+		if ( mustache.fragments ) {
+			i = mustache.fragments.length;
+			while ( i-- ) {
+				reassignFragment( mustache.fragments[i], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+			}
 		}
 	};
 

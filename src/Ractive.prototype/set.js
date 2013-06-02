@@ -15,9 +15,7 @@
 		notificationQueue = [];
 
 		// manage transitions
-		if ( callback ) {
-			this._transitionManager = transitionManager = makeTransitionManager( callback );
-		}
+		this._transitionManager = transitionManager = makeTransitionManager( callback );
 
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
@@ -58,18 +56,13 @@
 		// Attributes don't reflect changes automatically if there is a possibility
 		// that they will need to change again before the .set() cycle is complete
 		// - they defer their updates until all values have been set
-		while ( this._def.length ) {
-			// Update the attribute, then deflag it
-			this._def.pop().update().deferred = false;
-		}
+		processDeferredUpdates( this );
 
-		if ( callback ) {
-			this._transitionManager = null;
-
-			transitionManager.ready = true;
-			if ( !transitionManager.active ) {
-				callback();
-			}
+		// transition manager has finished its work
+		this._transitionManager = null;
+		transitionManager.ready = true;
+		if ( callback && !transitionManager.active ) {
+			callback();
 		}
 
 		return this;
@@ -140,7 +133,6 @@
 		while ( i-- ) { // Work backwards, so we don't go in circles!
 			unresolved = root._pendingResolution.splice( i, 1 )[0];
 
-			
 			if ( keypath = resolveRef( root, unresolved.ref, unresolved.contextStack ) ) {
 				// If we've resolved the keypath, we can initialise this item
 				unresolved.resolve( keypath );

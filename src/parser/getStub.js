@@ -657,7 +657,7 @@ var getFragmentStubFromTokens;
 
 			if ( token.t === REFERENCE ) {
 				if ( refs.indexOf( token.n ) === -1 ) {
-					refs[ refs.length ] = token.n;
+					refs.unshift( token.n );
 				}
 			}
 

@@ -27,6 +27,13 @@ proto.get = function ( keypath, dontNormalise ) {
 		return this._cache[ normalised ];
 	}
 
+	// is this an uncached evaluator value?
+	if ( this._evaluators[ normalised ] ) {
+		value = this._evaluators[ normalised ].value;
+		this._cache[ normalised ] = value;
+		return value;
+	}
+
 	// otherwise it looks like we need to do some work
 	key = keys.pop();
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
@@ -36,17 +43,6 @@ proto.get = function ( keypath, dontNormalise ) {
 	}
 
 	value = parentValue[ key ];
-
-	// update map of dependants
-	parentKeypath = keys.join( '.' );
-
-	if ( !this._depsMap[ parentKeypath ] ) {
-		this._depsMap[ parentKeypath ] = [];
-	}
-
-	if ( this._depsMap[ parentKeypath ].indexOf( normalised ) === -1 ) {
-		this._depsMap[ parentKeypath ].push( normalised );
-	}
 
 	// Is this an array that needs to be wrapped?
 	if ( this.modifyArrays ) {

@@ -1,9 +1,19 @@
-var teardown, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
+var teardown,
+	clearCache,
+	registerDependant,
+	unregisterDependant,
+	notifyDependants,
+	registerIndexRef,
+	unregisterIndexRef,
+	resolveRef,
+	processDeferredUpdates;
 
 teardown = function ( thing ) {
 	if ( !thing.keypath ) {
 		// this was on the 'unresolved' list, we need to remove it
 		var index = thing.root._pendingResolution.indexOf( thing );
+
+		// TODO unless it was an index ref???
 
 		if ( index !== -1 ) {
 			thing.root._pendingResolution.splice( index, 1 );
@@ -16,11 +26,11 @@ teardown = function ( thing ) {
 };
 
 clearCache = function ( root, keypath ) {
-	var value, dependants = root._depsMap[ keypath ], i;
+	var value, cachedChildProperties = root._depsMap[ keypath ], i;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( root.modifyArrays ) {
-		if ( keypath.charAt( 0 ) !== '(' ) { // expressions don't get wrapped
+		if ( keypath.charAt( 0 ) !== '(' ) { // expressions don't get wrapped (TODO nor should their children!!)
 			value = root._cache[ keypath ];
 			if ( isArray( value ) && !value._ractive.setting ) {
 				unregisterKeypathFromArray( value, keypath, root );
@@ -28,65 +38,103 @@ clearCache = function ( root, keypath ) {
 		}
 	}
 	
-
+	// TODO set to undefined or null instead of deleting? more performant,
+	// but means we can't use hasOwnProperty check. If a value is undefined
+	// 'deliberately', it could trip us up...
 	delete root._cache[ keypath ];
 
-	if ( !dependants ) {
-		return;
-	}
-
-	i = dependants.length;
-	while ( i-- ) {
-		clearCache( root, dependants[i] );
+	// TODO can we do this without enumeration? deps map is not a solution
+	var len, kp;
+	len = keypath.length;
+	for ( kp in root._cache ) {
+		if ( kp.substr( 0, len ) === keypath ) {
+			delete root._cache[ kp ];
+		}
 	}
 };
 
 
 
 registerDependant = function ( root, keypath, dependant, priority ) {
-	var deps;
+	var depsByPriority, deps, keys, parentKeypath, _keypath, map;
 
 	if ( !root._deps[ keypath ] ) {
 		root._deps[ keypath ] = [];
 	}
 
-	deps = root._deps[ keypath ];
+	depsByPriority = root._deps[ keypath ];
 	
-	if ( !deps[ priority ] ) {
-		deps[ priority ] = [ dependant ];
-		return;
+	if ( !( deps = depsByPriority[ priority ] ) ) {
+		depsByPriority[ priority ] = [ dependant ];
+	} else {
+		deps[ deps.length ] = dependant;
 	}
 
-	deps = deps[ priority ];
 
-	if ( deps.indexOf( dependant ) === -1 ) {
-		deps[ deps.length ] = dependant;
+	// update dependants map
+	keys = splitKeypath( keypath );
+	
+	while ( keys.length ) {
+		keys.pop();
+		parentKeypath = keys.join( '.' );
+	
+		if ( !root._depsMap[ parentKeypath ] ) {
+			root._depsMap[ parentKeypath ] = [];
+		}
+
+		map = root._depsMap[ parentKeypath ];
+
+		// prevent array from treating this as an integer
+		// TODO is this necessary? could this ever be an integer?
+		_keypath = '_' + keypath;
+
+		if ( !map.hasOwnProperty( _keypath ) ) {
+			map[ _keypath ] = 0;
+			map[ map.length ] = keypath;
+		}
+
+		map[ _keypath ] += 1;
+
+		keypath = parentKeypath;
 	}
 };
 
 
 unregisterDependant = function ( root, keypath, dependant, priority ) {
-	var deps, i, keep;
+	var deps, i, keep, keys, parentKeypath, _keypath, map;
 
 	deps = root._deps[ keypath ][ priority ];
 	deps.splice( deps.indexOf( dependant ), 1 );
 
-	if ( !deps.length ) {
-		root._deps[ keypath ][ priority ] = null;
-	}
+	
+	// update dependants map
+	keys = splitKeypath( keypath );
+	
+	while ( keys.length ) {
+		keys.pop();
+		parentKeypath = keys.join( '.' );
+	
+		map = root._depsMap[ parentKeypath ];
 
-	// can we forget this keypath altogether?
-	i = root._deps[ keypath ].length;
-	while ( i-- ) {
-		if ( root._deps[ keypath ][i] ) {
-			keep = true;
-			break;
+		// prevent array from treating this as an integer
+		// TODO is this necessary? could this ever be an integer?
+		_keypath = '_' + keypath;
+
+		map.splice( map.indexOf( keypath ), 1 );
+		map[ _keypath ] -= 1;
+
+		if ( !map[ _keypath ] ) {
+			if ( root._deps[ keypath ] ) {
+				root._deps[ keypath ] = null;
+			}
+			
+			if ( root._evaluators[ keypath ] ) {
+				// we have an evaluator we don't need anymore
+				root._evaluators[ keypath ].teardown();
+			}
 		}
-	}
 
-	if ( !keep ) {
-		// yes, we can forget it
-		root._deps[ keypath ] = null;
+		keypath = parentKeypath;
 	}
 };
 
@@ -168,4 +216,19 @@ resolveRef = function ( root, ref, contextStack ) {
 	}
 
 	return keypath;
+};
+
+
+processDeferredUpdates = function ( root ) {
+	var evaluator, attribute;
+
+	while ( root._defEvals.length ) {
+		 evaluator = root._defEvals.pop();
+		 evaluator.update().deferred = false;
+	}
+
+	while ( root._defAttrs.length ) {
+		attribute = root._defAttrs.pop();
+		attribute.update().deferred = false;
+	}
 };

@@ -3,14 +3,12 @@
 proto.teardown = function ( callback ) {
 	var keypath, transitionManager;
 
-	if ( callback ) {
-		this._transitionManager = transitionManager = makeTransitionManager( callback );
-	}
+	this._transitionManager = transitionManager = makeTransitionManager( callback );
 
 	this.fragment.teardown( true );
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
-	// Once with keypaths that have dependents...
+	/*// Once with keypaths that have dependents...
 	for ( keypath in this._depsMap ) {
 		if ( this._depsMap.hasOwnProperty( keypath ) ) {
 			clearCache( this, keypath );
@@ -22,6 +20,9 @@ proto.teardown = function ( callback ) {
 		if ( this._cache.hasOwnProperty( keypath ) ) {
 			clearCache( this, keypath );
 		}
+	}*/
+	for ( keypath in this._cache ) {
+		clearCache( this, keypath ); // TODO inherit cache from null so we don't need hasOwnProperty
 	}
 
 	// Teardown any bindings
@@ -29,12 +30,12 @@ proto.teardown = function ( callback ) {
 		this.unbind( this._bound.pop() );
 	}
 
-	if ( callback ) {
-		this._transitionManager = null;
+	// TODO other stuff... evaluators etc
 
-		transitionManager.ready = true;
-		if ( !transitionManager.active ) {
-			callback();
-		}		
+	// transition manager has finished its work
+	this._transitionManager = null;
+	transitionManager.ready = true;
+	if ( callback && !transitionManager.active ) {
+		callback();
 	}
 };

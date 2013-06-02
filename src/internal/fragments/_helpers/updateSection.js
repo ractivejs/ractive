@@ -21,7 +21,7 @@ updateSection = function ( section, value ) {
 	if ( section.descriptor.n ) {
 		if ( value && !emptyArray ) {
 			if ( section.length ) {
-				section.teardownFragments();
+				section.teardownFragments( true );
 				section.length = 0;
 			}
 		}
@@ -111,7 +111,7 @@ updateSection = function ( section, value ) {
 
 		else {
 			if ( section.length ) {
-				section.teardownFragments();
+				section.teardownFragments( true );
 				section.length = 0;
 			}
 		}

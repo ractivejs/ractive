@@ -13,9 +13,7 @@ proto.render = function ( options ) {
 		el.innerHTML = '';
 	}
 
-	if ( options.complete ) {
-		this._transitionManager = transitionManager = makeTransitionManager( options.complete );
-	}
+	this._transitionManager = transitionManager = makeTransitionManager( options.complete );
 
 	// Render our *root fragment*
 	this.fragment = new DomFragment({
@@ -28,12 +26,10 @@ proto.render = function ( options ) {
 	el.appendChild( this.fragment.docFrag );
 	this.ready = true;
 
-	if ( options.complete ) {
-		this._transitionManager = null;
-
-		transitionManager.ready = true;
-		if ( !transitionManager.active ) {
-			options.complete();
-		}		
+	// transition manager has finished its work
+	this._transitionManager = null;
+	transitionManager.ready = true;
+	if ( options.complete && !transitionManager.active ) {
+		options.complete();
 	}
 };

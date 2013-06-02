@@ -51,9 +51,10 @@ Ractive = function ( options ) {
 	// Set up cache
 	this._cache = {};
 
-	// Set up dependants
+	// Set up dependants and index refs
 	this._deps = {};
 	this._depsMap = {};
+	this._indexRefs = {};
 
 	// Node registry
 	this.nodes = {};
@@ -61,14 +62,15 @@ Ractive = function ( options ) {
 	// Set up observers
 	this._pendingResolution = [];
 
-	// Create an array for deferred attributes
-	this._def = [];
+	// Create arrays for deferred attributes and evaluators
+	this._defAttrs = [];
+	this._defEvals = [];
 
 	// Cache proxy event handlers - allows efficient reuse
 	this._proxies = {};
 
-	// Keep a list of used expressions, so we don't duplicate them
-	this._expressions = [];
+	// Keep a list of used evaluators, so we don't duplicate them
+	this._evaluators = {};
 
 	// Transition registry
 	this.transitions = options.transitions;

@@ -1,18 +1,19 @@
 initMustache = function ( mustache, options ) {
 
-	var keypath, index;
+	var keypath, index, indexRef, parentFragment;
 
-	mustache.root           = options.root;
+	parentFragment = mustache.parentFragment = options.parentFragment;
+
+	mustache.root           = parentFragment.root;
+	mustache.contextStack   = parentFragment.contextStack;
+	
 	mustache.descriptor     = options.descriptor;
-	mustache.parentFragment = options.parentFragment;
-	mustache.contextStack   = options.contextStack || [];
 	mustache.index          = options.index || 0;
 	mustache.priority       = options.descriptor.p || 0;
 
 	// DOM only
-	if ( options.parentNode || options.anchor ) {
-		mustache.parentNode = options.parentNode;
-		mustache.anchor = options.anchor;
+	if ( parentFragment.parentNode ) {
+		mustache.parentNode = parentFragment.parentNode;
 	}
 
 	mustache.type = options.descriptor.t;
@@ -21,9 +22,15 @@ initMustache = function ( mustache, options ) {
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( options.descriptor.r ) {
-		if ( mustache.parentFragment.indexRefs && mustache.parentFragment.indexRefs.hasOwnProperty( options.descriptor.r ) ) {
-			index = mustache.parentFragment.indexRefs[ options.descriptor.r ];
-			mustache.render( index );
+		if ( parentFragment.indexRefs && parentFragment.indexRefs.hasOwnProperty( options.descriptor.r ) ) {
+			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
+
+			// mustache.indexRefKeypath = indexRef.keypath;
+			// mustache.value = indexRef.index;
+
+			// registerIndexRef( mustache.root, indexRef.keypath, indexRef.index, mustache );
+			mustache.refIndex = indexRef.index;
+			mustache.render( mustache.refIndex );
 		}
 
 		else {
@@ -44,7 +51,7 @@ initMustache = function ( mustache, options ) {
 
 	// if it's an expression, we have a bit more work to do
 	if ( options.descriptor.x ) {
-		mustache.evaluator = new Evaluator( mustache.root, mustache, mustache.contextStack, mustache.parentFragment.indexRefs, options.descriptor.x );
+		new ExpressionResolver( mustache );
 	}
 
 };
@@ -56,9 +63,9 @@ updateMustache = function () {
 
 	value = this.root.get( this.keypath, true );
 
-	if ( !isEqual( value, this._lastValue ) ) {
+	if ( !isEqual( value, this.value ) ) {
 		this.render( value );
-		this._lastValue = value;
+		this.value = value;
 	}
 };
 
@@ -68,17 +75,4 @@ resolveMustache = function ( keypath ) {
 
 	registerDependant( this.root, keypath, this, this.priority );
 	this.update();
-};
-
-evaluateMustache = function () {
-	var args, i;
-
-	args = [];
-
-	i = this.refs.length;
-	while ( i-- ) {
-		args[i] = this.root.get( this.refs[i] );
-	}
-
-	return this.evaluator.apply( null, args );
 };

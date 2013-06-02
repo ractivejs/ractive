@@ -70,16 +70,32 @@
 			property: 'opacity',
 			from: 0,
 			to: 1,
-			duration: 400,
+			duration: 300,
 			easing: 'linear'
 		}),
 		fadeOut: makeTransition({
 			property: 'opacity',
 			from: 1,
 			to: 0,
-			duration: 400,
+			duration: 300,
 			easing: 'linear'
-		})
+		}),
+		staggeredFadeIn: function ( el, complete, i ) {
+			var delay = i * 200;
+
+			el.style.opacity = 0;
+			
+			setTimeout( function () {
+				transitions.fadeIn( el, complete );
+			}, delay );
+		},
+		staggeredFadeOut: function ( el, complete, i ) {
+			var delay = i * 200;
+
+			setTimeout( function () {
+				transitions.fadeOut( el, complete );
+			}, delay );
+		}
 	};
 
 
