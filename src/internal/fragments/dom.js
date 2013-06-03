@@ -771,7 +771,7 @@
 				// TODO compare against previous?
 
 				lowerCaseName = this.lcName;
-				this.value = this.interpolator.value;
+				value = this.interpolator.value;
 
 				// special case - if we have an element like this:
 				//
@@ -781,7 +781,7 @@
 				// to red, we want to indicate that this is the selected option, by setting
 				// input.checked = true
 				if ( lowerCaseName === 'name' && ( this.parentNode.type === 'checkbox' || this.parentNode.type === 'radio' ) ) {
-					if ( this.value === this.parentNode.value ) {
+					if ( value === this.parentNode.value ) {
 						this.parentNode.checked = true;
 					} else {
 						this.parentNode.checked = false;
@@ -1014,10 +1014,6 @@
 				return;
 			}
 
-
-			
-
-
 			// If more items were removed than added, we need to remove some things from the DOM
 			if ( balance < 0 ) {
 				end = start - balance;
@@ -1055,12 +1051,11 @@
 			this.length += balance;
 
 
-			// Reassign existing fragments (e.g. items.4 -> items.3)
+			// Now we need to reassign existing fragments (e.g. items.4 -> items.3 - the keypaths,
+			// context stacks and index refs will have changed)
 			reassignStart = ( start + addedItems );
 
-			console.group( 'reassigning fragments', reassignStart, this.length, balance );
 			reassignAffectedFragments( this.root, this, reassignStart, this.length, balance );
-			console.groupEnd();
 		},
 
 		teardown: function ( detach ) {
@@ -1220,7 +1215,6 @@
 
 		// index ref mustache?
 		else if ( mustache.refIndex ) {
-			console.log( 'index ref mustache', mustache, mustache.refIndex, newIndex );
 			mustache.refIndex = newIndex;
 			mustache.render( newIndex );
 		}
