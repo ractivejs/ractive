@@ -15,7 +15,7 @@ extend = function ( childProps ) {
 	Parent = this;
 
 	inheritedOptions = [ 'el', 'preserveWhitespace', 'append', 'twoway', 'modifyArrays' ];
-	blacklist = inheritedOptions.concat( 'data', 'template' );
+	blacklist = inheritedOptions.concat( 'data', 'template', 'partials', 'transitions' );
 
 	// Parse template
 	if ( childProps.template ) {
@@ -65,6 +65,13 @@ extend = function ( childProps ) {
 		}
 
 		fillGaps( options.data, childProps.data );
+
+		// Transitions
+		if ( !options.transitions ) {
+			options.transitions = {};
+		}
+
+		fillGaps( options.transitions, childProps.transitions );
 
 		// Add in preparsed partials
 		if ( partials ) {
