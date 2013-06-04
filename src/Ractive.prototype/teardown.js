@@ -3,6 +3,8 @@
 proto.teardown = function ( callback ) {
 	var keypath, transitionManager;
 
+	this.fire( 'teardown' );
+
 	this._transitionManager = transitionManager = makeTransitionManager( callback );
 
 	this.fragment.teardown( true );
