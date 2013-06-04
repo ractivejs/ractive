@@ -121,9 +121,9 @@ Ractive = function ( options ) {
 			throw new Error( missingParser );
 		}
 
-		if ( template.charAt( 0 ) === '#' ) {
+		if ( doc && template.charAt( 0 ) === '#' ) {
 			// assume this is an ID of a <script type='text/template'> tag
-			templateEl = document.getElementById( template.substring( 1 ) );
+			templateEl = doc.getElementById( template.substring( 1 ) );
 			if ( templateEl ) {
 				template = Ractive.parse( templateEl.innerHTML, options );
 			}

@@ -1,6 +1,6 @@
 (function () {
 
-	var insertHtml, doc, propertyNames,
+	var insertHtml, propertyNames,
 		Text, Element, Partial, Attribute, Interpolator, Triple, Section;
 
 	// the property name equivalents for element attributes, where they differ
@@ -26,8 +26,6 @@
 		tabindex: 'tabIndex',
 		usemap: 'useMap'
 	};
-
-	doc = ( typeof window !== 'undefined' ? window.document : null );
 
 	insertHtml = function ( html, docFrag ) {
 		var div, nodes = [];
@@ -97,8 +95,10 @@
 		},
 
 		firstNode: function () {
-			if ( this.items[0] ) {
+			if ( this.items && this.items[0] ) {
 				return this.items[0].firstNode();
+			} else if ( this.nodes ) {
+				return this.nodes[0] || null;
 			}
 
 			return null;

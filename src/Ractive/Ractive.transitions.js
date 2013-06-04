@@ -2,7 +2,11 @@
 
 	var transitionsEnabled, transition, transitionend, testDiv, hyphenate, makeTransition;
 
-	testDiv = document.createElement( 'div' );
+	if ( !doc ) {
+		return;
+	}
+
+	testDiv = doc.createElement( 'div' );
 
 	if ( testDiv.style.transition !== undefined ) {
 		transition = 'transition';
@@ -68,7 +72,7 @@
 	transitions = {
 		fadeIn: makeTransition({
 			property: 'opacity',
-			from: 0,
+			from: 0.01,
 			to: 1,
 			duration: 300,
 			easing: 'linear'
@@ -76,7 +80,7 @@
 		fadeOut: makeTransition({
 			property: 'opacity',
 			from: 1,
-			to: 0,
+			to: 0.01,
 			duration: 300,
 			easing: 'linear'
 		}),

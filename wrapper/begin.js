@@ -4,6 +4,8 @@
 
 var Ractive,
 
+doc = global.document || null,
+
 proto = {},
 
 // properties of the public Ractive object

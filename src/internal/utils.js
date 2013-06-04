@@ -82,13 +82,11 @@ isObject = function ( obj ) {
 
 	
 getEl = function ( input ) {
-	var output, doc;
+	var output;
 
 	if ( typeof window === 'undefined' ) {
 		return;
 	}
-
-	doc = window.document;
 
 	if ( !input ) {
 		throw new Error( 'No container element specified' );
