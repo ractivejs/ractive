@@ -759,14 +759,6 @@
 				return this; // avoid items bubbling to the surface when we're still initialising
 			}
 
-			if ( this.lcName === 'id' ) {
-				if ( this.id !== undefined ) {
-					delete this.root.nodes[ this.id ];
-				}
-
-				this.root.nodes[ this.id ] = this.parentNode;
-			}
-
 			if ( this.twoway ) {
 				// TODO compare against previous?
 
@@ -811,6 +803,14 @@
 				if ( this.namespace ) {
 					this.parentNode.setAttributeNS( this.namespace, this.name, value );
 					return this;
+				}
+
+				if ( this.lcName === 'id' ) {
+					if ( this.value !== undefined ) {
+						delete this.root.nodes[ this.value ];
+					}
+
+					this.root.nodes[ value ] = this.parentNode;
 				}
 
 				this.parentNode.setAttribute( this.name, value );
