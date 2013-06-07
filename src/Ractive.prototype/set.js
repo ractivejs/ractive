@@ -14,6 +14,10 @@
 		upstreamQueue = [];
 		notificationQueue = [];
 
+		if ( isObject( keypath ) ) {
+			callback = value;
+		}
+
 		// manage transitions
 		this._transitionManager = transitionManager = makeTransitionManager( callback );
 
