@@ -2,6 +2,7 @@ Ractive.prototype = proto;
 
 Ractive.adaptors = adaptors;
 Ractive.eventDefinitions = eventDefinitions;
+Ractive.partials = {};
 
 Ractive.easing = easing;
 Ractive.extend = extend;

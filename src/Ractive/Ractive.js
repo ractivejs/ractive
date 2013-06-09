@@ -11,7 +11,7 @@ var defaultOptions = {
 
 Ractive = function ( options ) {
 
-	var key, partial, i, template, templateEl;
+	var key, partial, i, template, templateEl, parsedTemplate;
 
 	// Options
 	// -------
@@ -87,9 +87,52 @@ Ractive = function ( options ) {
 		}
 	}
 
+
+	// Parse template, if necessary
+	template = options.template;
+
+	if ( typeof template === 'string' ) {
+		if ( !Ractive.parse ) {
+			throw new Error( missingParser );
+		}
+
+		if ( template.charAt( 0 ) === '#' ) {
+			// assume this is an ID of a <script type='text/ractive'> tag
+			templateEl = doc.getElementById( template.substring( 1 ) );
+			if ( templateEl ) {
+				parsedTemplate = Ractive.parse( templateEl.innerHTML, options );
+			}
+
+			else {
+				throw new Error( 'Could not find template element (' + template + ')' );
+			}
+		}
+
+		else {
+			parsedTemplate = Ractive.parse( template, options );
+		}
+	} else {
+		// If the template was an array with a single string member, that means
+		// we can use innerHTML - we just need to unpack it
+		if ( template && ( template.length === 1 ) && ( typeof template[0] === 'string' ) ) {
+			parsedTemplate = template[0];
+		} else {
+			parsedTemplate = template;
+		}
+	}
+
+	// deal with compound template
+	if ( isObject( parsedTemplate ) ) {
+		this.partials = parsedTemplate.partials;
+		parsedTemplate = parsedTemplate.template;
+	}
+
+	this.template = parsedTemplate;
+
+
 	// If we were given unparsed partials, parse them
 	if ( options.partials ) {
-		this.partials = {};
+		this.partials = ( this.partials || {} ); // in case we had a compound template
 
 		for ( key in options.partials ) {
 			if ( options.partials.hasOwnProperty( key ) ) {
@@ -113,38 +156,6 @@ Ractive = function ( options ) {
 		}
 	}
 
-	// Compile template, if it hasn't been parsed already
-	template = options.template;
-
-	if ( typeof template === 'string' ) {
-		if ( !Ractive.parse ) {
-			throw new Error( missingParser );
-		}
-
-		if ( doc && template.charAt( 0 ) === '#' ) {
-			// assume this is an ID of a <script type='text/template'> tag
-			templateEl = doc.getElementById( template.substring( 1 ) );
-			if ( templateEl ) {
-				template = Ractive.parse( templateEl.innerHTML, options );
-			}
-
-			else {
-				throw new Error( 'Could not find template element (' + template + ')' );
-			}
-		}
-
-		else {
-			template = Ractive.parse( template, options );
-		}
-	}
-
-	// If the template was an array with a single string member, that means
-	// we can use innerHTML - we just need to unpack it
-	if ( template && ( template.length === 1 ) && ( typeof template[0] === 'string' ) ) {
-		this.template = template[0];
-	} else {
-		this.template = template;
-	}
 
 	// If passed an element, render immediately
 	if ( this.el ) {

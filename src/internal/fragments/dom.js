@@ -118,12 +118,14 @@
 
 	// Partials
 	Partial = function ( options, docFrag ) {
-		var parentFragment = this.parentFragment = options.parentFragment;
+		var parentFragment = this.parentFragment = options.parentFragment, descriptor;
 
 		this.type = PARTIAL;
 
+		descriptor = getPartialDescriptor( parentFragment.root, options.descriptor.r );
+
 		this.fragment = new DomFragment({
-			descriptor:   parentFragment.root.partials[ options.descriptor.r ] || [],
+			descriptor:   descriptor,
 			root:         parentFragment.root,
 			parentNode:   parentFragment.parentNode,
 			contextStack: parentFragment.contextStack,
