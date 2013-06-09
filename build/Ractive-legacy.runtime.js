@@ -1189,15 +1189,18 @@ eventDefinitions.tap = function ( el, fire ) {
 
 
 	touchstart = function ( event ) {
-		var x, y, touch, finger, move, up, cancel;
+		var x, y, touch, finger, move, up, cancel, currentTarget;
 
 		if ( event.touches.length !== 1 ) {
 			return;
 		}
 
 		touch = event.touches[0];
+
 		x = touch.clientX;
 		y = touch.clientY;
+		currentTarget = this;
+
 		finger = touch.identifier;
 
 		up = function ( event ) {
@@ -1209,7 +1212,7 @@ eventDefinitions.tap = function ( el, fire ) {
 			}
 
 			event.preventDefault();  // prevent compatibility mouse event
-			fire.call( touch.target, event );
+			fire.call( currentTarget, event );
 			cancel();
 		};
 
@@ -1626,7 +1629,7 @@ Ractive = function ( options ) {
 
 	// Unpack string-based partials, if necessary
 	for ( key in this.partials ) {
-		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ] === 'string' ) {
+		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
 			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}
@@ -3596,7 +3599,7 @@ updateSection = function ( section, value ) {
 		},
 
 		render: function ( value ) {
-			this.node.data = value;
+			this.node.data = ( value === undefined ? '' : value );
 		},
 
 		firstNode: function () {
@@ -3647,6 +3650,11 @@ updateSection = function ( section, value ) {
 			// remove existing nodes
 			while ( this.nodes.length ) {
 				this.parentNode.removeChild( this.nodes.pop() );
+			}
+
+			if ( html === undefined ) {
+				this.nodes = [];
+				return;
 			}
 
 			// get new nodes
