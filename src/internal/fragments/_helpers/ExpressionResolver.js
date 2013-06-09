@@ -35,9 +35,19 @@ var ExpressionResolver;
 			}
 		}
 
+		if ( !this.unresolved ) {
+			this.init();
+		}
 	};
 
 	ExpressionResolver.prototype = {
+		init: function () {
+			this.keypath = getKeypath( this.str, this.args );
+			this.createEvaluator();
+
+			this.mustache.resolve( this.keypath );
+		},
+
 		resolveRef: function ( argNum, isIndexRef, value ) {
 			this.args[ argNum ] = [ isIndexRef, value ];
 
@@ -47,24 +57,8 @@ var ExpressionResolver;
 				return;
 			}
 
-			this.keypath = getKeypath( this.str, this.args );
-			this.createEvaluator();
-
-			this.mustache.resolve( this.keypath );
+			this.init();
 		},
-
-		/*updateIndexRef: function ( argNum, value ) {
-			this.args[ argNum ][1] = value;
-			this.keypath = getKeypath( this.str, this.args );
-
-			this.createEvaluator();
-			
-			this.mustache.reassign( this.keypath );
-			// TODO should mustaches be updated, or will they do that themselves?
-			this.mustache.update();
-			
-			// TODO expression section children... how do we deal with that brainfuck?
-		},*/
 
 		createEvaluator: function () {
 			// only if it doesn't exist yet!
