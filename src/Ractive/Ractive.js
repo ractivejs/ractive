@@ -154,7 +154,7 @@ Ractive = function ( options ) {
 
 	// Unpack string-based partials, if necessary
 	for ( key in this.partials ) {
-		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ] === 'string' ) {
+		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
 			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}
