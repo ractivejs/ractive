@@ -72,6 +72,9 @@ Ractive = function ( options ) {
 	// Keep a list of used evaluators, so we don't duplicate them
 	this._evaluators = {};
 
+	// Partials registry
+	this.partials = {};
+
 	// Transition registry
 	this.transitions = options.transitions;
 
@@ -112,13 +115,7 @@ Ractive = function ( options ) {
 			parsedTemplate = Ractive.parse( template, options );
 		}
 	} else {
-		// If the template was an array with a single string member, that means
-		// we can use innerHTML - we just need to unpack it
-		if ( template && ( template.length === 1 ) && ( typeof template[0] === 'string' ) ) {
-			parsedTemplate = template[0];
-		} else {
-			parsedTemplate = template;
-		}
+		parsedTemplate = template;
 	}
 
 	// deal with compound template
@@ -127,13 +124,17 @@ Ractive = function ( options ) {
 		parsedTemplate = parsedTemplate.template;
 	}
 
+	// If the template was an array with a single string member, that means
+	// we can use innerHTML - we just need to unpack it
+	if ( parsedTemplate && ( parsedTemplate.length === 1 ) && ( typeof parsedTemplate[0] === 'string' ) ) {
+		parsedTemplate = parsedTemplate[0];
+	}
+
 	this.template = parsedTemplate;
 
 
 	// If we were given unparsed partials, parse them
 	if ( options.partials ) {
-		this.partials = ( this.partials || {} ); // in case we had a compound template
-
 		for ( key in options.partials ) {
 			if ( options.partials.hasOwnProperty( key ) ) {
 				partial = options.partials[ key ];
@@ -146,13 +147,15 @@ Ractive = function ( options ) {
 					partial = Ractive.parse( partial, options );
 				}
 
-				// If the partial was an array with a single string member, that means
-				// we can use innerHTML - we just need to unpack it
-				if ( partial.length === 1 && typeof partial[0] === 'string' ) {
-					partial = partial[0];
-				}
 				this.partials[ key ] = partial;
 			}
+		}
+	}
+
+	// Unpack string-based partials, if necessary
+	for ( key in this.partials ) {
+		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ] === 'string' ) {
+			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}
 
