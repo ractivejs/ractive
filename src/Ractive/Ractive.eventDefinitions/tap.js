@@ -37,15 +37,18 @@ eventDefinitions.tap = function ( el, fire ) {
 
 
 	touchstart = function ( event ) {
-		var x, y, touch, finger, move, up, cancel;
+		var x, y, touch, finger, move, up, cancel, currentTarget;
 
 		if ( event.touches.length !== 1 ) {
 			return;
 		}
 
 		touch = event.touches[0];
+
 		x = touch.clientX;
 		y = touch.clientY;
+		currentTarget = this;
+
 		finger = touch.identifier;
 
 		up = function ( event ) {
@@ -57,7 +60,7 @@ eventDefinitions.tap = function ( el, fire ) {
 			}
 
 			event.preventDefault();  // prevent compatibility mouse event
-			fire.call( touch.target, event );
+			fire.call( currentTarget, event );
 			cancel();
 		};
 
