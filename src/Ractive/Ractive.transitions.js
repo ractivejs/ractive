@@ -85,7 +85,7 @@
 			easing: 'linear'
 		}),
 		staggeredFadeIn: function ( el, complete, i ) {
-			var delay = i * 200;
+			var delay = i * 20;
 
 			el.style.opacity = 0;
 			
