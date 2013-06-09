@@ -853,7 +853,7 @@
 		},
 
 		render: function ( value ) {
-			this.node.data = value;
+			this.node.data = ( value === undefined ? '' : value );
 		},
 
 		firstNode: function () {
@@ -904,6 +904,11 @@
 			// remove existing nodes
 			while ( this.nodes.length ) {
 				this.parentNode.removeChild( this.nodes.pop() );
+			}
+
+			if ( html === undefined ) {
+				this.nodes = [];
+				return;
 			}
 
 			// get new nodes
