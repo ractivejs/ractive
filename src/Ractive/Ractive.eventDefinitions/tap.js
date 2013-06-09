@@ -56,7 +56,9 @@ eventDefinitions.tap = function ( el, fire ) {
 				cancel();
 			}
 
+			event.preventDefault();  // prevent compatibility mouse event
 			fire.call( touch.target, event );
+			cancel();
 		};
 
 		move = function ( event ) {
@@ -84,6 +86,8 @@ eventDefinitions.tap = function ( el, fire ) {
 
 		setTimeout( cancel, timeThreshold );
 	};
+
+	el.addEventListener( 'touchstart', touchstart );
 
 
 	return {
