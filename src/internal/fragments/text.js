@@ -113,8 +113,6 @@
 		this.fragments = [];
 		this.length = 0;
 
-		this.type === SECTION;
-
 		initMustache( this, options );
 	};
 

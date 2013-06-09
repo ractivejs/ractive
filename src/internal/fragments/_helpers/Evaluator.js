@@ -1,5 +1,3 @@
-var Evaluator;
-
 (function ( cache ) {
 
 	var Reference, getFunctionFromString;
