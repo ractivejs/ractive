@@ -26,9 +26,7 @@
 		}
 
 		return observe( this, keypath, callback, options );
-
 	};
-
 
 	observe = function ( root, keypath, callback, options ) {
 		var observer, lastValue, context;
@@ -47,10 +45,6 @@
 					callback.call( context, value, lastValue );
 					lastValue = value;
 				}
-			},
-
-			cancel: function () {
-				unregisterDependant( root, keypath, observer, 0 );
 			}
 		};
 
@@ -60,7 +54,11 @@
 
 		registerDependant( root, keypath, observer, 0 );
 
-		return observer;
+		return {
+			cancel: function () {
+				unregisterDependant( root, keypath, observer, 0 );
+			}
+		};
 	};
 
 }( proto ));
