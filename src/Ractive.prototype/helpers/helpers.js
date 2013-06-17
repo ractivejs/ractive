@@ -106,6 +106,11 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	deps = root._deps[ keypath ][ priority ];
 	deps.splice( deps.indexOf( dependant ), 1 );
 
+	if ( root._evaluators[ keypath ] ) {
+		// we have an evaluator we don't need anymore
+		root._evaluators[ keypath ].teardown();
+	}
+
 	
 	// update dependants map
 	keys = splitKeypath( keypath );
@@ -120,18 +125,11 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 		// TODO is this necessary? could this ever be an integer?
 		_keypath = '_' + keypath;
 
-		map.splice( map.indexOf( keypath ), 1 );
 		map[ _keypath ] -= 1;
 
 		if ( !map[ _keypath ] ) {
-			if ( root._deps[ keypath ] ) {
-				root._deps[ keypath ] = null;
-			}
-			
-			if ( root._evaluators[ keypath ] ) {
-				// we have an evaluator we don't need anymore
-				root._evaluators[ keypath ].teardown();
-			}
+			// remove from parent deps map
+			map.splice( map.indexOf( keypath ), 1 );
 		}
 
 		keypath = parentKeypath;
