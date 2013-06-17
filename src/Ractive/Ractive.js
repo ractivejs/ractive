@@ -1,13 +1,15 @@
-var defaultOptions = {
-	preserveWhitespace: false,
-	append: false,
-	twoway: true,
-	modifyArrays: true,
-	data: {},
-	lazy: false,
-	debug: false,
-	transitions: {} // TODO transitions on subclasses
-};
+var defaultOptions = createFromNull();
+
+defineProperties( defaultOptions, {
+	preserveWhitespace: { enumerable: true, value: false },
+	append:             { enumerable: true, value: false },
+	twoway:             { enumerable: true, value: true  },
+	modifyArrays:       { enumerable: true, value: true  },
+	data:               { enumerable: true, value: {}    },
+	lazy:               { enumerable: true, value: false },
+	debug:              { enumerable: true, value: false },
+	transitions:        { enumerable: true, value: {}    } // TODO transitions on subclasses
+});
 
 Ractive = function ( options ) {
 
@@ -16,7 +18,7 @@ Ractive = function ( options ) {
 	// Options
 	// -------
 	for ( key in defaultOptions ) {
-		if ( defaultOptions.hasOwnProperty( key ) && !options.hasOwnProperty( key ) ) {
+		if ( !options.hasOwnProperty( key ) ) {
 			options[ key ] = defaultOptions[ key ];
 		}
 	}
@@ -42,7 +44,7 @@ Ractive = function ( options ) {
 		_subs: { value: createFromNull() },
 
 		// cache
-		_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null,
+		_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null
 
 		// dependency graph
 		_deps: { value: createFromNull() },
