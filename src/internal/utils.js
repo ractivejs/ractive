@@ -120,17 +120,3 @@ getEl = function ( input ) {
 
 	throw new Error( 'Could not find container element' );
 };
-
-
-try {
-	Object.create( null );
-
-	createFromNull = function () {
-		return Object.create( null );
-	};
-} catch ( err ) {
-	// sigh
-	createFromNull = function () {
-		return {}; // hope you're not modifying the Object prototype
-	}
-}
