@@ -1,11 +1,13 @@
 // TODO use dontNormalise
 
 proto.get = function ( keypath, dontNormalise ) {
-	var keys, normalised, key, parentKeypath, parentValue, value;
+	var cache, keys, normalised, key, parentKeypath, parentValue, value;
 
 	if ( !keypath ) {
 		return this.data;
 	}
+
+	cache = this._cache;
 
 	if ( isArray( keypath ) ) {
 		keys = keypath.slice(); // clone
@@ -14,8 +16,8 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	else {
 		// cache hit? great
-		if ( this._cache.hasOwnProperty( keypath ) ) {
-			return this._cache[ keypath ];
+		if ( cache.hasOwnProperty( keypath ) && cache[ keypath ] !== UNSET ) {
+			return cache[ keypath ];
 		}
 
 		keys = splitKeypath( keypath );
@@ -23,14 +25,14 @@ proto.get = function ( keypath, dontNormalise ) {
 	}
 
 	// we may have a cache hit now that it's been normalised
-	if ( this._cache.hasOwnProperty( normalised ) ) {
-		return this._cache[ normalised ];
+	if ( cache.hasOwnProperty( normalised ) && cache[ normalised ] !== UNSET ) {
+		return cache[ normalised ];
 	}
 
 	// is this an uncached evaluator value?
 	if ( this._evaluators[ normalised ] ) {
 		value = this._evaluators[ normalised ].value;
-		this._cache[ normalised ] = value;
+		cache[ normalised ] = value;
 		return value;
 	}
 
@@ -38,7 +40,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	key = keys.pop();
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-	if ( parentValue === null || typeof parentValue !== 'object' || !parentValue.hasOwnProperty( key ) ) {
+	if ( parentValue === null || typeof parentValue !== 'object' || parentValue === UNSET ) {
 		return;
 	}
 
@@ -53,7 +55,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	}
 
 	// Update cache
-	this._cache[ normalised ] = value;
+	cache[ normalised ] = value;
 	
 	return value;
 };

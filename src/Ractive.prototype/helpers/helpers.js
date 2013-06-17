@@ -41,14 +41,14 @@ clearCache = function ( root, keypath ) {
 	// TODO set to undefined or null instead of deleting? more performant,
 	// but means we can't use hasOwnProperty check. If a value is undefined
 	// 'deliberately', it could trip us up...
-	delete root._cache[ keypath ];
+	root._cache[ keypath ] = UNSET;
 
 	// TODO can we do this without enumeration? deps map is not a solution
 	var len, kp;
 	len = keypath.length;
 	for ( kp in root._cache ) {
 		if ( kp.substr( 0, len ) === keypath ) {
-			delete root._cache[ kp ];
+			root._cache[ kp ] = UNSET;
 		}
 	}
 };
