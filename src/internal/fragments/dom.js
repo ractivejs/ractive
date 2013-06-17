@@ -121,6 +121,7 @@
 		var parentFragment = this.parentFragment = options.parentFragment, descriptor;
 
 		this.type = PARTIAL;
+		this.name = options.descriptor.r;
 
 		descriptor = getPartialDescriptor( parentFragment.root, options.descriptor.r );
 
@@ -577,13 +578,20 @@
 				return false; // report failure
 			}
 
+			// TODO refactor this?
 			// Check this is a suitable candidate for two-way binding - i.e. it is
-			// a single interpolator
+			// a single interpolator, which isn't an expression
 			if (
 				this.fragment.items.length !== 1 ||
-				this.fragment.items[0].type !== INTERPOLATOR
+				this.fragment.items[0].type !== INTERPOLATOR ||
+				( !this.fragment.items[0].keypath && !this.fragment.items[0].ref )
 			) {
-				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
+				if ( this.root.debug ) {
+					if ( console && console.warn ) {
+						console.warn( 'Not a valid two-way data binding candidate - must be a single interpolator:', this.fragment.items );
+					}
+				}
+				return false; // report failure
 			}
 
 			this.interpolator = this.fragment.items[0];
