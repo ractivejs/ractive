@@ -52,6 +52,9 @@
 			// TODO to be honest, it probably shoudln't be... can we skip this check?
 			if ( keypaths.indexOf( keypath ) === -1 ) {
 				keypaths[ keypaths.length ] = keypath;
+			} else {
+				// TEMP - see if we ever reach this. If not, we can remove the indexOf check
+				console && console.warn && console.warn( 'Keypath already exists on array' );
 			}
 		}
 	};
