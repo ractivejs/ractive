@@ -54,7 +54,9 @@
 				keypaths[ keypaths.length ] = keypath;
 			} else {
 				// TEMP - see if we ever reach this. If not, we can remove the indexOf check
-				console && console.warn && console.warn( 'Keypath already exists on array' );
+				if ( console && console.warn ) {
+					console.warn( 'Keypath already exists on array' );
+				}
 			}
 		}
 	};
