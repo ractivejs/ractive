@@ -7,6 +7,7 @@
 
 		if ( !this.setting ) {
 			this.setting = true; // short-circuit any potential infinite loops
+			// TODO only include callback if this is a single set (as opposed to multiple set)
 			this.fire( 'set', keypath, value );
 			this.setting = false;
 		}
@@ -66,7 +67,7 @@
 		this._transitionManager = null;
 		transitionManager.ready = true;
 		if ( callback && !transitionManager.active ) {
-			callback();
+			callback.call( this );
 		}
 
 		return this;

@@ -30,6 +30,6 @@ proto.render = function ( options ) {
 	this._transitionManager = null;
 	transitionManager.ready = true;
 	if ( options.complete && !transitionManager.active ) {
-		options.complete();
+		options.complete.call( this );
 	}
 };
