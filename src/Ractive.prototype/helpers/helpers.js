@@ -56,7 +56,7 @@ clearCache = function ( root, keypath ) {
 
 
 registerDependant = function ( root, keypath, dependant, priority ) {
-	var depsByPriority, deps, keys, parentKeypath, _keypath, map;
+	var depsByPriority, deps, keys, parentKeypath, map;
 
 	if ( !root._deps[ keypath ] ) {
 		root._deps[ keypath ] = [];
@@ -84,16 +84,12 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 
 		map = root._depsMap[ parentKeypath ];
 
-		// prevent array from treating this as an integer
-		// TODO is this necessary? could this ever be an integer?
-		_keypath = '_' + keypath;
-
-		if ( !map.hasOwnProperty( _keypath ) ) {
-			map[ _keypath ] = 0;
+		if ( !map.hasOwnProperty( keypath ) ) {
+			map[ keypath ] = 0;
 			map[ map.length ] = keypath;
 		}
 
-		map[ _keypath ] += 1;
+		map[ keypath ] += 1;
 
 		keypath = parentKeypath;
 	}
@@ -101,7 +97,7 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 
 
 unregisterDependant = function ( root, keypath, dependant, priority ) {
-	var deps, i, keep, keys, parentKeypath, _keypath, map;
+	var deps, i, keep, keys, parentKeypath, map;
 
 	deps = root._deps[ keypath ][ priority ];
 	deps.splice( deps.indexOf( dependant ), 1 );
@@ -121,13 +117,9 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	
 		map = root._depsMap[ parentKeypath ];
 
-		// prevent array from treating this as an integer
-		// TODO is this necessary? could this ever be an integer?
-		_keypath = '_' + keypath;
+		map[ keypath ] -= 1;
 
-		map[ _keypath ] -= 1;
-
-		if ( !map[ _keypath ] ) {
+		if ( !map[ keypath ] ) {
 			// remove from parent deps map
 			map.splice( map.indexOf( keypath ), 1 );
 		}
