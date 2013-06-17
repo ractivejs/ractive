@@ -110,6 +110,8 @@ INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
 
+UNSET             = {},
+
 
 // namespaces
 namespaces = {
