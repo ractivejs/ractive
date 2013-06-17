@@ -25,7 +25,7 @@ var ExpressionResolver;
 			ref = expression.r[i];
 			
 			// is this an index ref?
-			if ( indexRefs && indexRefs.hasOwnProperty( ref ) ) {
+			if ( indexRefs && indexRefs[ ref ] !== undefined ) {
 				new IndexRefScout( this, indexRefs[ ref ], i );
 			}
 

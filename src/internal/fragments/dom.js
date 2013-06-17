@@ -1147,7 +1147,7 @@
 	var reassignFragment = function ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
 		var i, j, item, context;
 
-		if ( fragment.indexRefs && fragment.indexRefs.hasOwnProperty( indexRef ) ) {
+		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
 			fragment.indexRefs[ indexRef ].index = newIndex;
 		}
 

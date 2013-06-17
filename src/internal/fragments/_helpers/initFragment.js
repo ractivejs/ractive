@@ -22,12 +22,10 @@ initFragment = function ( fragment, options ) {
 		parentRefs = fragment.owner.parentFragment.indexRefs;
 
 		if ( parentRefs ) {
-			fragment.indexRefs = {};
+			fragment.indexRefs = createFromNull(); // avoids need for hasOwnProperty
 
 			for ( ref in parentRefs ) {
-				if ( parentRefs.hasOwnProperty( ref ) ) {
-					fragment.indexRefs[ ref ] = parentRefs[ ref ];
-				}
+				fragment.indexRefs[ ref ] = parentRefs[ ref ];
 			}
 		}
 	}

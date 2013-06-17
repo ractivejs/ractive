@@ -22,13 +22,9 @@ initMustache = function ( mustache, options ) {
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( options.descriptor.r ) {
-		if ( parentFragment.indexRefs && parentFragment.indexRefs.hasOwnProperty( options.descriptor.r ) ) {
+		if ( parentFragment.indexRefs && parentFragment.indexRefs[ options.descriptor.r ] !== undefined ) {
 			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
 
-			// mustache.indexRefKeypath = indexRef.keypath;
-			// mustache.value = indexRef.index;
-
-			// registerIndexRef( mustache.root, indexRef.keypath, indexRef.index, mustache );
 			mustache.refIndex = indexRef.index;
 			mustache.render( mustache.refIndex );
 		}
