@@ -38,7 +38,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	key = keys.pop();
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-	if ( typeof parentValue !== 'object' || !parentValue.hasOwnProperty( key ) ) {
+	if ( parentValue === null || typeof parentValue !== 'object' || !parentValue.hasOwnProperty( key ) ) {
 		return;
 	}
 

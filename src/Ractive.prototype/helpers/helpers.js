@@ -205,7 +205,7 @@ resolveRef = function ( root, ref, contextStack ) {
 
 		parentValue = root.get( contextKeys.concat( keys ) );
 
-		if ( typeof parentValue === 'object' && parentValue.hasOwnProperty( lastKey ) ) {
+		if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
 			keypath = innerMostContext + '.' + ref;
 			break;
 		}
