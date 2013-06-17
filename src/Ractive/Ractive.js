@@ -25,13 +25,50 @@ Ractive = function ( options ) {
 	// Initialization
 	// --------------
 
-	// Generate a unique identifier, for places where you'd use a weak map if it
-	// existed
-	this.guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r, v;
+	// We use Object.defineProperties (where possible) as these should be read-only
+	defineProperties( this, {
+		// Generate a unique identifier, for places where you'd use a weak map if it
+		// existed
+		_guid: {
+			value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+				var r, v;
 
-		r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-		return v.toString(16);
+				r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+				return v.toString(16);
+			})
+		},
+
+		// events
+		_subs: { value: createFromNull() },
+
+		// cache
+		_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null,
+
+		// dependency graph
+		_deps: { value: createFromNull() },
+		_depsMap: { value: createFromNull() },
+
+		// unresolved dependants
+		_pendingResolution: { value: [] },
+
+		// Create arrays for deferred attributes and evaluators
+		_defAttrs: { value: [] },
+		_defEvals: { value: [] },
+
+		// Cache proxy event handlers - allows efficient reuse
+		_proxies: { value: {} },
+
+		// Keep a list of used evaluators, so we don't duplicate them
+		_evaluators: { value: {} },
+
+		// bindings
+		_bound: { value: [] },
+
+		// transition manager
+		_transitionManager: { value: null, writable: true },
+
+		// nodes registry
+		nodes: { value: {} }
 	});
 
 	// options
@@ -44,33 +81,7 @@ Ractive = function ( options ) {
 
 	// add data
 	this.data = options.data || {};
-
-	// Set up event bus
-	this._subs = {};
-
-	// Set up cache
-	this._cache = {};
-
-	// Set up dependants and index refs
-	this._deps = {};
-	this._depsMap = {};
-	this._indexRefs = {};
-
-	// Node registry
-	this.nodes = {};
-
-	// Set up observers
-	this._pendingResolution = [];
-
-	// Create arrays for deferred attributes and evaluators
-	this._defAttrs = [];
-	this._defEvals = [];
-
-	// Cache proxy event handlers - allows efficient reuse
-	this._proxies = {};
-
-	// Keep a list of used evaluators, so we don't duplicate them
-	this._evaluators = {};
+	
 
 	// Partials registry
 	this.partials = {};
@@ -79,7 +90,6 @@ Ractive = function ( options ) {
 	this.transitions = options.transitions;
 
 	// Set up bindings
-	this._bound = [];
 	if ( options.bindings ) {
 		if ( isArray( options.bindings ) ) {
 			for ( i=0; i<options.bindings.length; i+=1 ) {
@@ -158,7 +168,6 @@ Ractive = function ( options ) {
 			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}
-
 
 	// If passed an element, render immediately
 	if ( this.el ) {

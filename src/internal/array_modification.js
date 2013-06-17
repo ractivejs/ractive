@@ -1,8 +1,6 @@
 (function () {
 
-	var defineProperty,
-		
-		notifyArrayDependants,
+	var notifyArrayDependants,
 		
 		reassignDependants,
 		sidewaysShift,
@@ -16,18 +14,6 @@
 		testObj,
 		mutatorMethods;
 
-
-	// just in case we don't have Object.defineProperty, we can use this - it doesn't
-	// allow us to set non-enumerable properties, but if you're doing for ... in loops on 
-	// an array then you deserve what's coming anyway
-	if ( !Object.defineProperty ) {
-		defineProperty = function ( obj, prop, desc ) {
-			obj[ prop ] = desc.value;
-		};
-	} else {
-		defineProperty = Object.defineProperty;
-	}
-	
 
 	// Register a keypath to this array. When any of this array's mutator methods are called,
 	// it will `set` that keypath on the given Ractive instance
@@ -44,7 +30,7 @@
 				configurable: true
 			});
 
-			array._ractive.keypathsByGuid[ root.guid ] = [ keypath ];
+			array._ractive.keypathsByGuid[ root._guid ] = [ keypath ];
 
 			wrapArray( array );
 		}
@@ -55,12 +41,12 @@
 
 			// Does this Ractive instance currently depend on this array?
 			// If not, associate them
-			if ( !keypathsByGuid[ root.guid ] ) {
+			if ( !keypathsByGuid[ root._guid ] ) {
 				roots[ roots.length ] = root;
-				keypathsByGuid[ root.guid ] = [];
+				keypathsByGuid[ root._guid ] = [];
 			}
 
-			keypaths = keypathsByGuid[ root.guid ];
+			keypaths = keypathsByGuid[ root._guid ];
 
 			// If the current keypath isn't among them, add it
 			// TODO to be honest, it probably shoudln't be... can we skip this check?
@@ -82,11 +68,11 @@
 		roots = array._ractive.roots;
 		keypathsByGuid = array._ractive.keypathsByGuid;
 
-		if ( !keypathsByGuid[ root.guid ] ) {
+		if ( !keypathsByGuid[ root._guid ] ) {
 			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
 		}
 
-		keypaths = keypathsByGuid[ root.guid ];
+		keypaths = keypathsByGuid[ root._guid ];
 		keypathIndex = keypaths.indexOf( keypath );
 
 		if ( keypathIndex === -1 ) {
@@ -97,7 +83,7 @@
 
 		if ( !keypaths.length ) {
 			roots.splice( roots.indexOf( root ), 1 );
-			keypathsByGuid[ root.guid ] = null;
+			keypathsByGuid[ root._guid ] = null;
 		}
 
 		if ( !roots.length ) {
@@ -126,7 +112,7 @@
 
 		processRoot = function ( root ) {
 			root._transitionManager = makeTransitionManager( noop ); // TODO fire event on complete?
-			processKeypaths( root, keypathsByGuid[ root.guid ] );
+			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = null;
 		};
 
