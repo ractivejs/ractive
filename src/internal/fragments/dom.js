@@ -817,7 +817,7 @@
 
 				if ( this.lcName === 'id' ) {
 					if ( this.value !== undefined ) {
-						delete this.root.nodes[ this.value ];
+						this.root.nodes[ this.value ] = undefined;
 					}
 
 					this.root.nodes[ value ] = this.parentNode;
