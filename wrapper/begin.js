@@ -162,5 +162,5 @@ try {
 	// sigh
 	createFromNull = function () {
 		return {}; // hope you're not modifying the Object prototype
-	}
+	};
 }
