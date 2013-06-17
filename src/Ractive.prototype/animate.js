@@ -50,4 +50,10 @@ proto.animate = function ( keypath, to, options ) {
 	});
 
 	animationCollection.push( animation );
+
+	return {
+		stop: function () {
+			animation.stop();
+		}
+	};
 };
