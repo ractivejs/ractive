@@ -30,7 +30,7 @@ clearCache = function ( root, keypath ) {
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( root.modifyArrays ) {
-		if ( keypath.charAt( 0 ) !== '(' ) { // expressions don't get wrapped (TODO nor should their children!!)
+		if ( keypath.charAt( 0 ) !== '(' ) { // expressions (and their children) don't get wrapped
 			value = root._cache[ keypath ];
 			if ( isArray( value ) && !value._ractive.setting ) {
 				unregisterKeypathFromArray( value, keypath, root );
@@ -38,9 +38,6 @@ clearCache = function ( root, keypath ) {
 		}
 	}
 	
-	// TODO set to undefined or null instead of deleting? more performant,
-	// but means we can't use hasOwnProperty check. If a value is undefined
-	// 'deliberately', it could trip us up...
 	root._cache[ keypath ] = UNSET;
 
 	// TODO can we do this without enumeration? deps map is not a solution
