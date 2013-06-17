@@ -1425,8 +1425,8 @@ var getToken;
 				}
 
 				return {
-					type: STRING_LITERAL,
-					value: string
+					t: STRING_LITERAL,
+					v: string
 				};
 			}
 

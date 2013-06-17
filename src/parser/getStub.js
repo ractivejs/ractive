@@ -651,7 +651,7 @@ var getFragmentStubFromTokens;
 		};
 
 
-
+		// TODO maybe refactor this?
 		getRefs = function ( token, refs ) {
 			var i;
 
@@ -662,9 +662,13 @@ var getFragmentStubFromTokens;
 			}
 
 			if ( token.o ) {
-				i = token.o.length;
-				while ( i-- ) {
-					getRefs( token.o[i], refs );
+				if ( isObject( token.o ) ) {
+					getRefs( token.o, refs );
+				} else {
+					i = token.o.length;
+					while ( i-- ) {
+						getRefs( token.o[i], refs );
+					}
 				}
 			}
 
@@ -690,13 +694,13 @@ var getFragmentStubFromTokens;
 				return token.v;
 
 				case STRING_LITERAL:
-				return '"' + token.v.replace( /"/g, '\\"' ) + '"';
+				return "'" + token.v.replace( /'/g, "\\'" ) + "'";
 
 				case ARRAY_LITERAL:
 				return '[' + token.m.map( map ).join( ',' ) + ']';
 
 				case PREFIX_OPERATOR:
-				return token.s + stringify( token.x, refs );
+				return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
 
 				case INFIX_OPERATOR:
 				return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
