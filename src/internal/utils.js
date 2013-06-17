@@ -52,10 +52,11 @@ splitKeypath =  function ( keypath ) {
 };
 
 
+toString = Object.prototype.toString;
 
 // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 isArray = function ( obj ) {
-	return Object.prototype.toString.call( obj ) === '[object Array]';
+	return toString.call( obj ) === '[object Array]';
 };
 
 isEqual = function ( a, b ) {
@@ -76,7 +77,7 @@ isNumeric = function ( n ) {
 };
 
 isObject = function ( obj ) {
-	return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	return ( toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 };
 
 

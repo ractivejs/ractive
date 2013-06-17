@@ -20,6 +20,7 @@ transitions,
 
 // internal utils
 splitKeypath,
+toString,
 isArray,
 isObject,
 isNumeric,
