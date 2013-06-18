@@ -1170,7 +1170,7 @@
 				break;
 
 				case PARTIAL:
-				reassignPartial( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignFragment( item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
 				break;
 
 				case SECTION:
@@ -1202,11 +1202,6 @@
 		if ( element.fragment ) {
 			reassignFragment( element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
 		}
-	};
-
-	var reassignPartial = function ( partial, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		// TODO
-		console.warn( 'reassigning partial TODO!' );
 	};
 
 	var reassignMustache = function ( mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
