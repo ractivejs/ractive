@@ -5,13 +5,6 @@
 	proto.set = function ( keypath, value, callback ) {
 		var notificationQueue, upstreamQueue, k, normalised, keys, previous, transitionManager;
 
-		if ( !this.setting ) {
-			this.setting = true; // short-circuit any potential infinite loops
-			// TODO only include callback if this is a single set (as opposed to multiple set)
-			this.fire( 'set', keypath, value );
-			this.setting = false;
-		}
-
 		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];
 
@@ -67,6 +60,19 @@
 		transitionManager.ready = true;
 		if ( callback && !transitionManager.active ) {
 			callback.call( this );
+		}
+
+		// fire event
+		if ( !this.setting ) {
+			this.setting = true; // short-circuit any potential infinite loops
+			
+			if ( typeof keypath === 'object' ) {
+				this.fire( 'set', keypath );
+			} else {
+				this.fire( 'set', keypath, value );
+			}
+			
+			this.setting = false;
 		}
 
 		return this;
