@@ -53,18 +53,22 @@
 					}
 					lastValue = value;
 				}
-			}
+			},
+
+			keypath: keypath,
+			root: root,
+			priority: 0
 		};
 
 		if ( options.init !== false ) {
 			observer.update();
 		}
 
-		registerDependant( root, keypath, observer, 0 );
+		registerDependant( observer );
 
 		return {
 			cancel: function () {
-				unregisterDependant( root, keypath, observer, 0 );
+				unregisterDependant( observer );
 			}
 		};
 	};

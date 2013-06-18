@@ -1244,17 +1244,17 @@
 
 		// expression mustache?
 		if ( mustache.descriptor.x ) {
-			unregisterDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+			unregisterDependant( mustache );
 			new ExpressionResolver( mustache );
 		}
 
 		// normal keypath mustache?
 		else if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				unregisterDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+				unregisterDependant( mustache );
 
 				mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
-				registerDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+				registerDependant( mustache );
 			}
 		}
 

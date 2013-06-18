@@ -94,7 +94,7 @@
 
 		this.value = evaluator.values[ argNum ] = root.get( keypath );
 
-		registerDependant( root, keypath, this, priority );
+		registerDependant( this );
 	};
 
 	Reference.prototype = {
@@ -110,7 +110,7 @@
 		},
 
 		teardown: function () {
-			unregisterDependant( this.root, this.keypath, this, this.priority );
+			unregisterDependant( this );
 		}
 	};
 

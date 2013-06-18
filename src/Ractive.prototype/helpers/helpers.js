@@ -13,15 +13,13 @@ teardown = function ( thing ) {
 		// this was on the 'unresolved' list, we need to remove it
 		var index = thing.root._pendingResolution.indexOf( thing );
 
-		// TODO unless it was an index ref???
-
 		if ( index !== -1 ) {
 			thing.root._pendingResolution.splice( index, 1 );
 		}
 
 	} else {
-		// this was registered as a dependency
-		unregisterDependant( thing.root, thing.keypath, thing, thing.priority || 0 );
+		// this was registered as a dependant
+		unregisterDependant( thing );
 	}
 };
 
@@ -52,8 +50,12 @@ clearCache = function ( root, keypath ) {
 
 
 
-registerDependant = function ( root, keypath, dependant, priority ) {
-	var depsByKeypath, deps, keys, parentKeypath, map;
+registerDependant = function ( dependant ) {
+	var depsByKeypath, deps, keys, parentKeypath, map, root, keypath, priority;
+
+	root = dependant.root;
+	keypath = dependant.keypath;
+	priority = dependant.priority;
 
 	if ( !root._deps[ priority ] ) {
 		root._deps[ priority ] = {};
@@ -100,8 +102,12 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 };
 
 
-unregisterDependant = function ( root, keypath, dependant, priority ) {
-	var deps, i, keep, keys, parentKeypath, map, evaluator;
+unregisterDependant = function ( dependant ) {
+	var deps, i, keep, keys, parentKeypath, map, evaluator, root, keypath, priority;
+
+	root = dependant.root;
+	keypath = dependant.keypath;
+	priority = dependant.priority;
 
 	deps = root._deps[ priority ][ keypath ];
 	deps.splice( deps.indexOf( dependant ), 1 );

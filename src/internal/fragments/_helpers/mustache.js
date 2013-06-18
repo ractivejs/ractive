@@ -69,6 +69,6 @@ resolveMustache = function ( keypath ) {
 	// TEMP
 	this.keypath = keypath;
 
-	registerDependant( this.root, keypath, this, this.priority );
+	registerDependant( this );
 	this.update();
 };
