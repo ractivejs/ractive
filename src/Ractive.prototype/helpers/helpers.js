@@ -69,6 +69,11 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 
 	deps[ deps.length ] = dependant;
 
+	// if this is an evaluator keypath, let the evaluator know about the dependant
+	if ( root._evaluators[ keypath ] ) {
+		root._evaluators[ keypath ].deps += 1;
+	}
+
 
 	// update dependants map
 	keys = splitKeypath( keypath );
@@ -96,14 +101,19 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 
 
 unregisterDependant = function ( root, keypath, dependant, priority ) {
-	var deps, i, keep, keys, parentKeypath, map;
+	var deps, i, keep, keys, parentKeypath, map, evaluator;
 
 	deps = root._deps[ priority ][ keypath ];
 	deps.splice( deps.indexOf( dependant ), 1 );
 
-	if ( root._evaluators[ keypath ] ) {
-		// we have an evaluator we don't need anymore
-		root._evaluators[ keypath ].teardown();
+	// if this is an evaluator keypath, let the evaluator know about the dependant
+	if ( evaluator = root._evaluators[ keypath ] ) {
+		evaluator.deps -= 1;
+
+		if ( !evaluator.deps ) {
+			// we have an evaluator we don't need anymore
+			evaluator.teardown();
+		}
 	}
 
 	

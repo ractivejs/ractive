@@ -12,6 +12,8 @@
 		this.values = [];
 		this.refs = [];
 
+		this.deps = 0; // keep track of how many dependants this has
+
 		i = args.length;
 		while ( i-- ) {
 			arg = args[i];
@@ -33,11 +35,6 @@
 
 	Evaluator.prototype = {
 		bubble: function () {
-			// TODO If no-one is listening, abort
-			/*if ( !this.root._deps[ this.keypath ].length ) {
-				console.log( 'aborting...' );
-			}*/
-
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
 				this.update();
