@@ -44,11 +44,10 @@ tests = [
 			
 			equal( fixture.innerHTML, '3 3 3' );
 
-			equal( ractive._deps.a.length, 1 );
-			equal( ractive._deps.a[0].length, 1 );
+			equal( ractive._deps.length, 1 );
+			equal( ractive._deps[0].a.length, 1 );
 
-			equal( ractive._deps.b.length, 1 );
-			equal( ractive._deps.b[0].length, 1 );
+			equal( ractive._deps[0].b.length, 1 );
 		}
 	},
 	{
