@@ -42,7 +42,15 @@
 				value = root.get( keypath, true );
 
 				if ( !isEqual( value, lastValue ) ) {
-					callback.call( context, value, lastValue );
+					// wrap the callback in a try-catch block, and only throw error in
+					// debug mode
+					try {
+						callback.call( context, value, lastValue );
+					} catch ( err ) {
+						if ( root.debug ) {
+							throw err;
+						}
+					}
 					lastValue = value;
 				}
 			}
