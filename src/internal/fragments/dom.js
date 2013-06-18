@@ -181,6 +181,9 @@
 			twowayNameAttr,
 			parentNode,
 			root,
+			transition,
+			transitionName,
+			transitionParams,
 			transitionManager,
 			intro;
 
@@ -257,9 +260,19 @@
 
 				// are we dealing with transitions?
 				lcName = attrName.toLowerCase();
-				if ( lcName === 'intro' || lcName === 'outro' ) {
-					this[ lcName ] = attrValue;
-					// TODO allow mustaches as transition names?
+				if ( lcName === 'intro' || lcName === 'outro' || lcName === 'intro-params' || lcName === 'outro-params' ) {
+					lcName = lcName.replace( '-params', 'Params' );
+
+					if ( typeof	attrValue === 'string' ) {
+						this[ lcName ] = attrValue;
+					} else {
+						this[ lcName ] = new TextFragment({
+							descriptor: attrValue,
+							root: root,
+							owner: this,
+							contextStack: parentFragment.contextStack
+						});
+					}
 				}
 
 				else {
@@ -300,7 +313,8 @@
 
 		// trigger intro transition
 		if ( this.intro ) {
-			intro = root.transitions[ this.intro ] || Ractive.transitions[ this.intro ];
+			transitionName = this.intro.toString();
+			intro = root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
 
 			if ( intro ) {
 				transitionManager = root._transitionManager;
@@ -309,7 +323,17 @@
 					transitionManager.push();
 				}
 
-				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionManager.i );
+				if ( this.introParams ) {
+					transitionParams = this.introParams.toString();
+
+					try {
+						transitionParams = JSON.parse( transitionParams );
+					} catch ( err ) {
+						// nothing, just treat it as a string
+					}
+				}
+
+				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionParams, transitionManager.i, transitionManager );
 			}
 		}
 	};
@@ -370,7 +394,7 @@
 		},
 
 		teardown: function ( detach ) {
-			var self = this, tearThisDown, transitionManager, listener, outro;
+			var self = this, tearThisDown, transitionManager, transitionName, transitionParams, listener, outro;
 
 			// Children first. that way, any transitions on child elements will be
 			// handled by the current transitionManager
@@ -394,13 +418,24 @@
 			if ( this.outro ) {
 				// TODO don't outro elements that have already been detached from the DOM
 
-				outro = this.root.transitions[ this.outro ] || Ractive.transitions[ this.outro ];
+				transitionName = this.outro.toString();
+				outro = this.root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
 
 				if ( outro ) {
 					transitionManager = this.root._transitionManager;
 					
 					if ( transitionManager ) {
 						transitionManager.push();
+					}
+
+					if ( this.outroParams ) {
+						transitionParams = this.outroParams.toString();
+
+						try {
+							transitionParams = JSON.parse( transitionParams );
+						} catch ( err ) {
+							// nothing, just treat it as a string
+						}
 					}
 
 					outro.call( this.root, this.node, function () {
@@ -411,7 +446,7 @@
 						if ( transitionManager ) {
 							transitionManager.pop();
 						}
-					}, transitionManager.i );
+					}, transitionParams, transitionManager.i, transitionManager );
 				}
 			} else if ( detach ) {
 				self.parentNode.removeChild( self.node );
@@ -423,7 +458,7 @@
 		},
 
 		bubble: function () {
-			// noop - just so event proxy fragments have something to call
+			// noop - just so event proxy and transition fragments have something to call!
 		}
 	};
 
@@ -578,7 +613,7 @@
 				return false; // report failure
 			}
 
-			// TODO refactor this?
+			// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
 			// Check this is a suitable candidate for two-way binding - i.e. it is
 			// a single interpolator, which isn't an expression
 			if (

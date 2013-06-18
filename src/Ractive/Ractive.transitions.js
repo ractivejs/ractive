@@ -84,8 +84,18 @@
 			duration: 300,
 			easing: 'linear'
 		}),
-		staggeredFadeIn: function ( el, complete, i ) {
-			var delay = i * 20;
+		staggeredFadeIn: function ( el, complete, params, i, transitionManager ) {
+			var delay, stagger;
+
+			if ( params ) {
+				stagger = params.stagger;
+			}
+
+			if ( stagger === undefined ) {
+				stagger = 20;
+			}
+
+			delay = i * stagger;
 
 			el.style.opacity = 0;
 			
@@ -93,8 +103,18 @@
 				transitions.fadeIn( el, complete );
 			}, delay );
 		},
-		staggeredFadeOut: function ( el, complete, i ) {
-			var delay = i * 200;
+		staggeredFadeOut: function ( el, complete, params, i, transitionManager ) {
+			var delay, stagger;
+
+			if ( params ) {
+				stagger = params.stagger;
+			}
+
+			if ( stagger === undefined ) {
+				stagger = 20;
+			}
+
+			delay = i * stagger;
 
 			setTimeout( function () {
 				transitions.fadeOut( el, complete );
