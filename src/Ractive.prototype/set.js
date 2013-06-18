@@ -2,18 +2,18 @@
 
 	var set, attemptKeypathResolution;
 
-	proto.set = function ( keypath, value, callback ) {
+	proto.set = function ( keypath, value, complete ) {
 		var notificationQueue, upstreamQueue, k, normalised, keys, previous, transitionManager;
 
 		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];
 
 		if ( isObject( keypath ) ) {
-			callback = value;
+			complete = value;
 		}
 
 		// manage transitions
-		this._transitionManager = transitionManager = makeTransitionManager( callback );
+		this._transitionManager = transitionManager = makeTransitionManager( complete );
 
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
@@ -58,8 +58,8 @@
 		// transition manager has finished its work
 		this._transitionManager = null;
 		transitionManager.ready = true;
-		if ( callback && !transitionManager.active ) {
-			callback.call( this );
+		if ( complete && !transitionManager.active ) {
+			complete.call( this );
 		}
 
 		// fire event
@@ -71,7 +71,7 @@
 			} else {
 				this.fire( 'set', keypath, value );
 			}
-			
+
 			this.setting = false;
 		}
 
