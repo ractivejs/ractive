@@ -5,13 +5,14 @@ eventDefinitions.tap = function ( el, fire ) {
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
 
 	mousedown = function ( event ) {
-		var x, y, up, move, cancel;
+		var currentTarget, x, y, up, move, cancel;
 
 		x = event.clientX;
 		y = event.clientY;
+		currentTarget = this;
 
 		up = function ( event ) {
-			fire( event );
+			fire.call( currentTarget, event );
 			cancel();
 		};
 
@@ -36,7 +37,7 @@ eventDefinitions.tap = function ( el, fire ) {
 
 
 	touchstart = function ( event ) {
-		var x, y, touch, finger, move, up, cancel;
+		var currentTarget, x, y, touch, finger, move, up, cancel;
 
 		if ( event.touches.length !== 1 ) {
 			return;
@@ -46,6 +47,7 @@ eventDefinitions.tap = function ( el, fire ) {
 
 		x = touch.clientX;
 		y = touch.clientY;
+		currentTarget = this;
 
 		finger = touch.identifier;
 
@@ -58,7 +60,7 @@ eventDefinitions.tap = function ( el, fire ) {
 			}
 
 			event.preventDefault();  // prevent compatibility mouse event
-			fire( event );
+			fire.call( currentTarget, event );
 			cancel();
 		};
 

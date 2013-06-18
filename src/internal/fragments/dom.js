@@ -323,7 +323,7 @@
 				// we can reuse the handler. This eliminates the need for event delegation
 				if ( !root._proxies[ proxy ] ) {
 					root._proxies[ proxy ] = function ( event ) {
-						root.fire( proxy, event, self.node );
+						root.fire( proxy, event, this );
 					};
 				}
 
