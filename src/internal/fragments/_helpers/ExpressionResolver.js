@@ -21,6 +21,10 @@ var ExpressionResolver;
 		// send out scouts for each reference
 		len = this.unresolved = ( expression.r ? expression.r.length : 0 );
 
+		if ( !len ) {
+			this.init(); // some expressions don't have references. edge case, but, yeah.
+		}
+
 		for ( i=0; i<len; i+=1 ) {
 			ref = expression.r[i];
 			
