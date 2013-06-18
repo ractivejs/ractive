@@ -53,19 +53,21 @@ clearCache = function ( root, keypath ) {
 
 
 registerDependant = function ( root, keypath, dependant, priority ) {
-	var depsByPriority, deps, keys, parentKeypath, map;
+	var depsByKeypath, deps, keys, parentKeypath, map;
 
-	if ( !root._deps[ keypath ] ) {
-		root._deps[ keypath ] = [];
+	if ( !root._deps[ priority ] ) {
+		root._deps[ priority ] = {};
 	}
 
-	depsByPriority = root._deps[ keypath ];
-	
-	if ( !( deps = depsByPriority[ priority ] ) ) {
-		depsByPriority[ priority ] = [ dependant ];
-	} else {
-		deps[ deps.length ] = dependant;
+	depsByKeypath = root._deps[ priority ];
+
+	if ( !depsByKeypath[ keypath ] ) {
+		depsByKeypath[ keypath ] = [];
 	}
+
+	deps = depsByKeypath[ keypath ];
+
+	deps[ deps.length ] = dependant;
 
 
 	// update dependants map
@@ -96,7 +98,7 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 unregisterDependant = function ( root, keypath, dependant, priority ) {
 	var deps, i, keep, keys, parentKeypath, map;
 
-	deps = root._deps[ keypath ][ priority ];
+	deps = root._deps[ priority ][ keypath ];
 	deps.splice( deps.indexOf( dependant ), 1 );
 
 	if ( root._evaluators[ keypath ] ) {
@@ -126,21 +128,28 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 };
 
 notifyDependants = function ( root, keypath, onlyDirect ) {
-	var depsByPriority, deps, i, j, len, childDeps;
+	var i;
 
-	depsByPriority = root._deps[ keypath ];
+	for ( i=0; i<root._deps.length; i+=1 ) { // can't cache root._deps.length, it may change
+		notifyDependantsByPriority( root, keypath, i, onlyDirect );
+	}
+};
 
-	if ( depsByPriority ) {
-		len = depsByPriority.length;
-		for ( i=0; i<len; i+=1 ) {
-			deps = depsByPriority[i];
+var notifyDependantsByPriority = function ( root, keypath, priority, onlyDirect ) {
+	var depsByKeypath, deps, i, len, childDeps;
 
-			if ( deps ) {
-				j = deps.length;
-				while ( j-- ) {
-					deps[j].update();
-				}
-			}
+	depsByKeypath = root._deps[ priority ];
+
+	if ( !depsByKeypath ) {
+		return;
+	}
+
+	deps = depsByKeypath[ keypath ];
+
+	if ( deps ) {
+		i = deps.length;
+		while ( i-- ) {
+			deps[i].update();
 		}
 	}
 
@@ -157,11 +166,26 @@ notifyDependants = function ( root, keypath, onlyDirect ) {
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-			notifyDependants( root, childDeps[i] );
+			notifyDependantsByPriority( root, childDeps[i], priority );
 			
 			// TODO at some point, no-longer extant dependants need to be removed
 			// from the map. However a keypath can have no direct dependants yet
 			// still have downstream dependants, so it's not entirely straightforward
+		}
+	}
+};
+
+var notifyMultipleDependants = function ( root, keypaths, onlyDirect ) {
+	var depsByKeypath, i, j, len;
+
+	len = keypaths.length;
+
+	for ( i=0; i<root._deps.length; i+=1 ) {
+		depsByKeypath = root._deps[i];
+
+		j = len;
+		while ( j-- ) {
+			notifyDependantsByPriority( root, keypaths[j], i, onlyDirect );
 		}
 	}
 };

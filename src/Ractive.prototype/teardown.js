@@ -11,7 +11,7 @@ proto.teardown = function ( complete ) {
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	for ( keypath in this._cache ) {
-		clearCache( this, keypath ); // TODO inherit cache from null so we don't need hasOwnProperty
+		clearCache( this, keypath );
 	}
 
 	// Teardown any bindings

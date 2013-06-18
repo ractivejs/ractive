@@ -12,7 +12,7 @@
 			this.setting = false;
 		}
 
-		upstreamQueue = [];
+		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];
 
 		if ( isObject( keypath ) ) {
@@ -43,19 +43,18 @@
 			set( this, normalised, keys, value, notificationQueue, upstreamQueue );
 		}
 
-		// if anything has changed, notify dependants and attempt to resolve
-		// any unresolved keypaths
+		// if anything has changed, attempt to resolve any unresolved keypaths...
 		if ( notificationQueue.length ) {
-			while ( notificationQueue.length ) {
-				notifyDependants( this, notificationQueue.pop() );
-			}
-
 			attemptKeypathResolution( this );
 		}
 
-		// notify direct descendants of upstream keypaths
-		while ( upstreamQueue.length ) {
-			notifyDependants( this, upstreamQueue.pop(), true );
+		// ...and notify dependants
+		if ( upstreamQueue.length ) {
+			notifyMultipleDependants( this, upstreamQueue, true );
+		}
+
+		if ( notificationQueue.length ) {
+			notifyMultipleDependants( this, notificationQueue );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
@@ -119,7 +118,7 @@
 
 
 		// add upstream keypaths to the upstream notification queue
-		while ( keysClone.length ) {
+		while ( keysClone.length > 1 ) {
 			keysClone.pop();
 			keypath = keysClone.join( '.' );
 

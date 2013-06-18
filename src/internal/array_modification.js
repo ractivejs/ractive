@@ -129,7 +129,7 @@
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByPriority, keys, smartUpdateQueue, dumbUpdateQueue, i, item;
+			var depsByKeypath, keys, smartUpdateQueue, dumbUpdateQueue, i, item;
 
 			smartUpdateQueue = [];
 			dumbUpdateQueue = [];
@@ -139,6 +139,8 @@
 			// are removed from the right place. But we do need to clear the cache
 			clearCache( root, keypath );
 
+
+			// TODO shurely we need to start at the top first, rather than going up?
 
 			// First, notify direct dependants of upstream keypaths...
 			keys = splitKeypath( keypath );
@@ -157,9 +159,40 @@
 
 
 
-			// find dependencies. If any are DOM sections, we do a smart update
+			// find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
-			depsByPriority = root._deps[ keypath ];
+
+			for ( i=0; i<root._deps.length; i+=1 ) { // we can't cache root._deps.length as it may change!
+				depsByKeypath = root._deps[i];
+
+				if ( depsByKeypath ) {
+					deps = depsByKeypath[ keypath ];
+				}
+
+				if ( deps ) {
+					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
+
+					// we may have some deferred evaluators to process
+					processDeferredUpdates( root );
+
+					
+					j = dumbUpdateQueue.length;
+					while ( j-- ) {
+						dumbUpdateQueue[j].update();
+					}
+					
+					j = smartUpdateQueue.length;
+					while ( j-- ) {
+						smartUpdateQueue[j].smartUpdate( methodName, args );
+					}
+				}
+			}
+
+			// we may have some deferred attributes to process
+			processDeferredUpdates( root );
+
+
+			/*depsByPriority = root._deps[ keypath ];
 			if ( depsByPriority ) {
 				queueAllDependants( root, keypath, depsByPriority, smartUpdateQueue, dumbUpdateQueue );
 
@@ -183,20 +216,7 @@
 
 
 			// we may have some deferred attributes to process
-			processDeferredUpdates( root );
-		};
-
-		queueAllDependants = function ( root, keypath, depsByPriority, smartUpdateQueue, dumbUpdateQueue ) {
-			var len, p, deps;
-
-			len = depsByPriority.length;
-			for ( p=0; p<len; p+=1 ) {
-				deps = depsByPriority[p];
-
-				if ( deps ) {
-					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
-				}
-			}
+			processDeferredUpdates( root );*/
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
@@ -207,7 +227,7 @@
 			while ( k-- ) {
 				dependant = deps[k];
 
-				// references need to get process before mustaches
+				// references need to get processed before mustaches
 				if ( dependant.type === REFERENCE ) {
 					dependant.update();
 				}

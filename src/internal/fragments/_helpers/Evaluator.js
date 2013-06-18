@@ -34,9 +34,9 @@
 	Evaluator.prototype = {
 		bubble: function () {
 			// TODO If no-one is listening, abort
-			if ( !this.root._deps[ this.keypath ].length ) {
+			/*if ( !this.root._deps[ this.keypath ].length ) {
 				console.log( 'aborting...' );
-			}
+			}*/
 
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
