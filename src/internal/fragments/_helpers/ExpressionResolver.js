@@ -34,10 +34,6 @@ var ExpressionResolver;
 				new ReferenceScout( this, ref, mustache.contextStack, i );
 			}
 		}
-
-		if ( !this.unresolved ) {
-			this.init();
-		}
 	};
 
 	ExpressionResolver.prototype = {
