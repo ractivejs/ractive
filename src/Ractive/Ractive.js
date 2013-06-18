@@ -45,6 +45,7 @@ Ractive = function ( options ) {
 
 		// cache
 		_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null
+		_cacheMap: { value: createFromNull() },
 
 		// dependency graph
 		_deps: { value: [] },

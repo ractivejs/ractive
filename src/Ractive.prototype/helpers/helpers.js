@@ -24,7 +24,7 @@ teardown = function ( thing ) {
 };
 
 clearCache = function ( root, keypath ) {
-	var value, cachedChildProperties = root._depsMap[ keypath ], i;
+	var value, len, kp, cacheMap;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( root.modifyArrays ) {
@@ -38,12 +38,9 @@ clearCache = function ( root, keypath ) {
 	
 	root._cache[ keypath ] = UNSET;
 
-	// TODO can we do this without enumeration? deps map is not a solution
-	var len, kp;
-	len = keypath.length;
-	for ( kp in root._cache ) {
-		if ( kp.substr( 0, len ) === keypath ) {
-			root._cache[ kp ] = UNSET;
+	if ( cacheMap = root._cacheMap[ keypath ] ) {
+		while ( cacheMap.length ) {
+			clearCache( root, cacheMap.pop() );
 		}
 	}
 };
@@ -183,10 +180,6 @@ var notifyDependantsByPriority = function ( root, keypath, priority, onlyDirect 
 		i = childDeps.length;
 		while ( i-- ) {
 			notifyDependantsByPriority( root, childDeps[i], priority );
-			
-			// TODO at some point, no-longer extant dependants need to be removed
-			// from the map. However a keypath can have no direct dependants yet
-			// still have downstream dependants, so it's not entirely straightforward
 		}
 	}
 };

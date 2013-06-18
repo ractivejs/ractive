@@ -1,7 +1,7 @@
 // TODO use dontNormalise
 
 proto.get = function ( keypath, dontNormalise ) {
-	var cache, keys, normalised, key, parentKeypath, parentValue, value;
+	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value;
 
 	if ( !keypath ) {
 		return this.data;
@@ -38,10 +38,20 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// otherwise it looks like we need to do some work
 	key = keys.pop();
+	parentKeypath = keys.join( '.' );
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
 	if ( parentValue === null || typeof parentValue !== 'object' || parentValue === UNSET ) {
 		return;
+	}
+
+	// update cache map
+	if ( !( cacheMap = this._cacheMap[ parentKeypath ] ) ) {
+		this._cacheMap[ parentKeypath ] = [ normalised ];
+	} else {
+		if ( cacheMap.indexOf( normalised ) === -1 ) {
+			cacheMap[ cacheMap.length ] = normalised;
+		}
 	}
 
 	value = parentValue[ key ];
