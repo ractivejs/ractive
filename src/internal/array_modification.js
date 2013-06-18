@@ -116,7 +116,7 @@
 		};
 
 		processRoot = function ( root ) {
-			root._transitionManager = makeTransitionManager( noop ); // TODO fire event on complete?
+			root._transitionManager = makeTransitionManager( noop );
 			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = null;
 		};
@@ -129,10 +129,10 @@
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByKeypath, keys, smartUpdateQueue, dumbUpdateQueue, i, item;
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
 
-			smartUpdateQueue = [];
-			dumbUpdateQueue = [];
+			upstreamQueue = [];
+			
 
 			// We don't do root.set(), because we don't want to update DOM sections
 			// using the normal method - we want to do a smart update whereby elements
@@ -140,17 +140,17 @@
 			clearCache( root, keypath );
 
 
-			// TODO shurely we need to start at the top first, rather than going up?
-
 			// First, notify direct dependants of upstream keypaths...
 			keys = splitKeypath( keypath );
 			while ( keys.length ) {
 				keys.pop();
-				notifyDependants( root, keys.join( '.' ), true );
+				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
 			}
 
 			// ...and length property!
-			notifyDependants( root, keypath + '.length', true );
+			upstreamQueue[ upstreamQueue.length ] = keypath + '.length';
+
+			notifyMultipleDependants( root, upstreamQueue, true );
 			
 
 			// we probably need to reassign a whole bunch of dependants
@@ -161,62 +161,36 @@
 
 			// find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
+			smartUpdateQueue = [];
+			dumbUpdateQueue = [];
 
 			for ( i=0; i<root._deps.length; i+=1 ) { // we can't cache root._deps.length as it may change!
 				depsByKeypath = root._deps[i];
 
-				if ( depsByKeypath ) {
-					deps = depsByKeypath[ keypath ];
+				if ( !depsByKeypath ) {
+					continue;
 				}
 
+				deps = depsByKeypath[ keypath ];
+				
 				if ( deps ) {
 					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
 					// we may have some deferred evaluators to process
 					processDeferredUpdates( root );
-
 					
-					j = dumbUpdateQueue.length;
-					while ( j-- ) {
-						dumbUpdateQueue[j].update();
+					while ( smartUpdateQueue.length ) {
+						smartUpdateQueue.pop().smartUpdate( methodName, args );
 					}
-					
-					j = smartUpdateQueue.length;
-					while ( j-- ) {
-						smartUpdateQueue[j].smartUpdate( methodName, args );
+
+					while ( dumbUpdateQueue.length ) {
+						dumbUpdateQueue.pop().update();
 					}
 				}
 			}
 
 			// we may have some deferred attributes to process
 			processDeferredUpdates( root );
-
-
-			/*depsByPriority = root._deps[ keypath ];
-			if ( depsByPriority ) {
-				queueAllDependants( root, keypath, depsByPriority, smartUpdateQueue, dumbUpdateQueue );
-
-				
-
-				// we may have some deferred evaluators to process
-				processDeferredUpdates( root );
-
-				
-				i = dumbUpdateQueue.length;
-				while ( i-- ) {
-					dumbUpdateQueue[i].update();
-				}
-				
-				i = smartUpdateQueue.length;
-				while ( i-- ) {
-					smartUpdateQueue[i].smartUpdate( methodName, args );
-				}
-			}
-
-
-
-			// we may have some deferred attributes to process
-			processDeferredUpdates( root );*/
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
