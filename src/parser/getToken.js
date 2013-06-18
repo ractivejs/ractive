@@ -133,12 +133,22 @@ var getToken;
 	getName = getRegexMatcher( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
 
 	getMustacheRef = function ( tokenizer ) {
-		var start, ref, member;
+		var start, ref, member, dot, name;
 
 		start = tokenizer.pos;
 
-		ref = getName( tokenizer ) || ''; // we allow non-names because some references begin with a '.'
-		
+		dot = getStringMatch( tokenizer, '.' ) || '';
+		name = getName( tokenizer ) || '';
+
+		if ( dot && !name ) {
+			return dot;
+		}
+
+		ref = dot + name;
+		if ( !ref ) {
+			return null;
+		}
+
 		member = getRefinement( tokenizer );
 		while ( member !== null ) {
 			ref += member;
