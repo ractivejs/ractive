@@ -137,15 +137,8 @@ var getToken;
 
 		start = tokenizer.pos;
 
-		if ( getStringMatch( tokenizer, '.' ) ) {
-			return '.';
-		}
-
-		ref = getName( tokenizer );
-		if ( !ref ) {
-			return null;
-		}
-
+		ref = getName( tokenizer ) || ''; // we allow non-names because some references begin with a '.'
+		
 		member = getRefinement( tokenizer );
 		while ( member !== null ) {
 			ref += member;
@@ -1119,24 +1112,22 @@ var getToken;
 
 
 		getReference = function ( tokenizer ) {
-			var name = getName( tokenizer );
+			var name, dot, combo;
 
-			if ( name === null ) {
-				
-				// could be an implicit iterator?
-				if ( getStringMatch( tokenizer, '.' ) ) {
-					return {
-						t: REFERENCE,
-						n: '.'
-					};
-				}
+			// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
+			// standard reference ('name')
+			dot = getStringMatch( tokenizer, '.' ) || '';
+			name = getName( tokenizer ) || '';
 
+			combo = dot + name;
+
+			if ( !combo ) {
 				return null;
 			}
 
 			return {
 				t: REFERENCE,
-				n: name
+				n: combo
 			};
 		};
 
@@ -1281,6 +1272,15 @@ var getToken;
 			var start, result;
 
 			start = tokenizer.pos;
+
+			// special case - we may have a decimal without a literal zero (because
+			// some programmers are plonkers)
+			if ( result = getFraction( tokenizer ) ) {
+				return {
+					t: NUMBER_LITERAL,
+					v: result
+				};
+			}
 
 			result = getInteger( tokenizer );
 			if ( result === null ) {

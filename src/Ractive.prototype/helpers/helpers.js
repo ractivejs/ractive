@@ -202,6 +202,11 @@ resolveRef = function ( root, ref, contextStack ) {
 		return contextStack[ contextStack.length - 1 ];
 	}
 
+	// References prepended with '.' are another special case
+	if ( ref.charAt( 0 ) === '.' ) {
+		return contextStack[ contextStack.length - 1 ] + ref;
+	}
+
 	keys = splitKeypath( ref );
 	lastKey = keys.pop();
 
