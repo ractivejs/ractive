@@ -49,14 +49,8 @@
 			keypaths = keypathsByGuid[ root._guid ];
 
 			// If the current keypath isn't among them, add it
-			// TODO to be honest, it probably shoudln't be... can we skip this check?
 			if ( keypaths.indexOf( keypath ) === -1 ) {
 				keypaths[ keypaths.length ] = keypath;
-			} else {
-				// TEMP - see if we ever reach this. If not, we can remove the indexOf check
-				if ( console && console.warn ) {
-					console.warn( 'Keypath already exists on array' );
-				}
 			}
 		}
 	};

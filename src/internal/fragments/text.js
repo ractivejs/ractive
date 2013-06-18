@@ -23,9 +23,6 @@
 
 
 		bubble: function () {
-			// TODO should we set value here?
-			this.value = this.getValue();
-			//this.value = this.items.join( '' );
 			this.owner.bubble();
 		},
 
@@ -53,8 +50,6 @@
 		},
 
 		toString: function () {
-			// TODO refactor this... value should already have been calculated? or maybe not. Top-level items skip the fragment and bubble straight to the attribute...
-			// argh, it's confusing me
 			return this.items.join( '' );
 		}
 	};
@@ -87,7 +82,6 @@
 	Interpolator.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		render: function ( value ) {
 			this.value = value;
@@ -119,7 +113,6 @@
 	Section.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		teardown: function () {
 			this.teardownFragments();
@@ -141,8 +134,6 @@
 
 		render: function ( value ) {
 			updateSection( this, value );
-
-			//this.value = this.fragments.join( '' );
 			this.parentFragment.bubble();
 		},
 
@@ -152,7 +143,6 @@
 
 		toString: function () {
 			return this.fragments.join( '' );
-			//return ( this.value === undefined ? '' : this.value );
 		}
 	};
 

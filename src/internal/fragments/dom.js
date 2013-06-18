@@ -885,7 +885,6 @@
 	Interpolator.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		//reassign: reassignMustache,
 
 		teardown: function ( detach ) {
 			teardown( this );
@@ -921,7 +920,6 @@
 	Triple.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		teardown: function ( detach ) {
 
@@ -983,26 +981,24 @@
 	Section.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		smartUpdate: function ( methodName, args ) {
 			var fragmentOptions, i;
 
-			fragmentOptions = {
-				descriptor: this.descriptor.f,
-				root:       this.root,
-				parentNode: this.parentNode,
-				owner:      this
-			};
+			if ( methodName === 'push' || methodName === 'unshift' || methodName === 'splice' ) {
+				fragmentOptions = {
+					descriptor: this.descriptor.f,
+					root:       this.root,
+					parentNode: this.parentNode,
+					owner:      this
+				};
 
-			if ( this.descriptor.i ) {
-				fragmentOptions.indexRef = this.descriptor.i;
+				if ( this.descriptor.i ) {
+					fragmentOptions.indexRef = this.descriptor.i;
+				}
 			}
 
-			// push, pop, shift, unshift, reverse, splice, sort
-
-			// TODO - all methods should be present??? or just the sideways shifters?
-			if ( this[ methodName ] ) {
+			if ( this[ methodName ] ) { // if not, it's sort or reverse, which doesn't affect us (i.e. our length)
 				this[ methodName ]( fragmentOptions, args );
 			}
 		},
@@ -1035,8 +1031,8 @@
 			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 		},
 
-		shift: function ( fragmentOptions ) {
-			this.splice( fragmentOptions, [ 0, 1 ] );
+		shift: function () {
+			this.splice( null, [ 0, 1 ] );
 		},
 
 		unshift: function ( fragmentOptions, args ) {
