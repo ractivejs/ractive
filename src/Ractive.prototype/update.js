@@ -1,5 +1,6 @@
 proto.update = function ( keypath, complete ) {
-	
+	var transitionManager;
+
 	if ( typeof keypath === 'function' ) {
 		complete = keypath;
 	}
