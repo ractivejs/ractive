@@ -19,8 +19,6 @@ proto.teardown = function ( complete ) {
 		this.unbind( this._bound.pop() );
 	}
 
-	// TODO other stuff... evaluators etc?
-
 	// transition manager has finished its work
 	this._transitionManager = null;
 	transitionManager.ready = true;
