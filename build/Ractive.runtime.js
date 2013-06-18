@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.0 - 2013-06-09
+/*! Ractive - v0.3.0 - 2013-06-18
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -30,11 +30,15 @@ transitions,
 
 // internal utils
 splitKeypath,
+toString,
 isArray,
 isObject,
 isNumeric,
 isEqual,
 getEl,
+defineProperty,
+defineProperties,
+createFromNull,
 noop = function () {},
 
 
@@ -116,6 +120,8 @@ INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
 
+UNSET             = {},
+
 
 // namespaces
 namespaces = {
@@ -126,6 +132,51 @@ namespaces = {
 	xml:    'http://www.w3.org/XML/1998/namespace',
 	xmlns:  'http://www.w3.org/2000/xmlns/'
 };
+
+
+
+// we're creating a defineProperty function here - we don't want to add
+// this to _legacy.js since it's not a polyfill. It won't allow us to set
+// non-enumerable properties. That shouldn't be a problem, unless you're
+// using for...in on a (modified) array, in which case you deserve what's
+// coming anyway
+try {
+	Object.defineProperty({}, 'test', { value: 0 });
+	Object.defineProperties({}, { test: { value: 0 } });
+
+	defineProperty = Object.defineProperty;
+	defineProperties = Object.defineProperties;
+} catch ( err ) {
+	// Object.defineProperty doesn't exist, or we're in IE8 where you can
+	// only use it with DOM objects (what the fuck were you smoking, MSFT?)
+	defineProperty = function ( obj, prop, desc ) {
+		obj[ prop ] = desc.value;
+	};
+
+	defineProperties = function ( obj, props ) {
+		var prop;
+
+		for ( prop in props ) {
+			if ( props.hasOwnProperty( prop ) ) {
+				defineProperty( obj, prop, props[ prop ] );
+			}
+		}
+	};
+}
+
+
+try {
+	Object.create( null );
+
+	createFromNull = function () {
+		return Object.create( null );
+	};
+} catch ( err ) {
+	// sigh
+	createFromNull = function () {
+		return {}; // hope you're not modifying the Object prototype
+	};
+}
 proto.animate = function ( keypath, to, options ) {
 	var easing, duration, animation, i, keys;
 
@@ -178,6 +229,12 @@ proto.animate = function ( keypath, to, options ) {
 	});
 
 	animationCollection.push( animation );
+
+	return {
+		stop: function () {
+			animation.stop();
+		}
+	};
 };
 proto.bind = function ( adaptor ) {
 	var bound = this._bound;
@@ -203,11 +260,13 @@ proto.fire = function ( eventName ) {
 // TODO use dontNormalise
 
 proto.get = function ( keypath, dontNormalise ) {
-	var keys, normalised, key, parentKeypath, parentValue, value;
+	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value;
 
 	if ( !keypath ) {
 		return this.data;
 	}
+
+	cache = this._cache;
 
 	if ( isArray( keypath ) ) {
 		keys = keypath.slice(); // clone
@@ -216,8 +275,8 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	else {
 		// cache hit? great
-		if ( this._cache.hasOwnProperty( keypath ) ) {
-			return this._cache[ keypath ];
+		if ( cache.hasOwnProperty( keypath ) && cache[ keypath ] !== UNSET ) {
+			return cache[ keypath ];
 		}
 
 		keys = splitKeypath( keypath );
@@ -225,23 +284,33 @@ proto.get = function ( keypath, dontNormalise ) {
 	}
 
 	// we may have a cache hit now that it's been normalised
-	if ( this._cache.hasOwnProperty( normalised ) ) {
-		return this._cache[ normalised ];
+	if ( cache.hasOwnProperty( normalised ) && cache[ normalised ] !== UNSET ) {
+		return cache[ normalised ];
 	}
 
 	// is this an uncached evaluator value?
 	if ( this._evaluators[ normalised ] ) {
 		value = this._evaluators[ normalised ].value;
-		this._cache[ normalised ] = value;
+		cache[ normalised ] = value;
 		return value;
 	}
 
 	// otherwise it looks like we need to do some work
 	key = keys.pop();
+	parentKeypath = keys.join( '.' );
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-	if ( typeof parentValue !== 'object' || !parentValue.hasOwnProperty( key ) ) {
+	if ( parentValue === null || typeof parentValue !== 'object' || parentValue === UNSET ) {
 		return;
+	}
+
+	// update cache map
+	if ( !( cacheMap = this._cacheMap[ parentKeypath ] ) ) {
+		this._cacheMap[ parentKeypath ] = [ normalised ];
+	} else {
+		if ( cacheMap.indexOf( normalised ) === -1 ) {
+			cacheMap[ cacheMap.length ] = normalised;
+		}
 	}
 
 	value = parentValue[ key ];
@@ -249,13 +318,13 @@ proto.get = function ( keypath, dontNormalise ) {
 	// Is this an array that needs to be wrapped?
 	if ( this.modifyArrays ) {
 		// if it's not an expression, is an array, and we're not here because it sent us here, wrap it
-		if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value.ractive || !value._ractive.setting ) ) {
+		if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value._ractive || !value._ractive.setting ) ) {
 			registerKeypathToArray( value, normalised, this );
 		}
 	}
 
 	// Update cache
-	this._cache[ normalised ] = value;
+	cache[ normalised ] = value;
 	
 	return value;
 };
@@ -274,24 +343,22 @@ teardown = function ( thing ) {
 		// this was on the 'unresolved' list, we need to remove it
 		var index = thing.root._pendingResolution.indexOf( thing );
 
-		// TODO unless it was an index ref???
-
 		if ( index !== -1 ) {
 			thing.root._pendingResolution.splice( index, 1 );
 		}
 
 	} else {
-		// this was registered as a dependency
-		unregisterDependant( thing.root, thing.keypath, thing, thing.priority || 0 );
+		// this was registered as a dependant
+		unregisterDependant( thing );
 	}
 };
 
 clearCache = function ( root, keypath ) {
-	var value, cachedChildProperties = root._depsMap[ keypath ], i;
+	var value, len, kp, cacheMap;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( root.modifyArrays ) {
-		if ( keypath.charAt( 0 ) !== '(' ) { // expressions don't get wrapped (TODO nor should their children!!)
+		if ( keypath.charAt( 0 ) !== '(' ) { // expressions (and their children) don't get wrapped
 			value = root._cache[ keypath ];
 			if ( isArray( value ) && !value._ractive.setting ) {
 				unregisterKeypathFromArray( value, keypath, root );
@@ -299,36 +366,41 @@ clearCache = function ( root, keypath ) {
 		}
 	}
 	
-	// TODO set to undefined or null instead of deleting? more performant,
-	// but means we can't use hasOwnProperty check. If a value is undefined
-	// 'deliberately', it could trip us up...
-	delete root._cache[ keypath ];
+	root._cache[ keypath ] = UNSET;
 
-	// TODO can we do this without enumeration? deps map is not a solution
-	var len, kp;
-	len = keypath.length;
-	for ( kp in root._cache ) {
-		if ( kp.substr( 0, len ) === keypath ) {
-			delete root._cache[ kp ];
+	if ( cacheMap = root._cacheMap[ keypath ] ) {
+		while ( cacheMap.length ) {
+			clearCache( root, cacheMap.pop() );
 		}
 	}
 };
 
 
 
-registerDependant = function ( root, keypath, dependant, priority ) {
-	var depsByPriority, deps, keys, parentKeypath, _keypath, map;
+registerDependant = function ( dependant ) {
+	var depsByKeypath, deps, keys, parentKeypath, map, root, keypath, priority;
 
-	if ( !root._deps[ keypath ] ) {
-		root._deps[ keypath ] = [];
+	root = dependant.root;
+	keypath = dependant.keypath;
+	priority = dependant.priority;
+
+	if ( !root._deps[ priority ] ) {
+		root._deps[ priority ] = {};
 	}
 
-	depsByPriority = root._deps[ keypath ];
-	
-	if ( !( deps = depsByPriority[ priority ] ) ) {
-		depsByPriority[ priority ] = [ dependant ];
-	} else {
-		deps[ deps.length ] = dependant;
+	depsByKeypath = root._deps[ priority ];
+
+	if ( !depsByKeypath[ keypath ] ) {
+		depsByKeypath[ keypath ] = [];
+	}
+
+	deps = depsByKeypath[ keypath ];
+
+	deps[ deps.length ] = dependant;
+
+	// if this is an evaluator keypath, let the evaluator know about the dependant
+	if ( root._evaluators[ keypath ] ) {
+		root._evaluators[ keypath ].deps += 1;
 	}
 
 
@@ -345,27 +417,37 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 
 		map = root._depsMap[ parentKeypath ];
 
-		// prevent array from treating this as an integer
-		// TODO is this necessary? could this ever be an integer?
-		_keypath = '_' + keypath;
-
-		if ( !map.hasOwnProperty( _keypath ) ) {
-			map[ _keypath ] = 0;
+		if ( !map.hasOwnProperty( keypath ) ) {
+			map[ keypath ] = 0;
 			map[ map.length ] = keypath;
 		}
 
-		map[ _keypath ] += 1;
+		map[ keypath ] += 1;
 
 		keypath = parentKeypath;
 	}
 };
 
 
-unregisterDependant = function ( root, keypath, dependant, priority ) {
-	var deps, i, keep, keys, parentKeypath, _keypath, map;
+unregisterDependant = function ( dependant ) {
+	var deps, i, keep, keys, parentKeypath, map, evaluator, root, keypath, priority;
 
-	deps = root._deps[ keypath ][ priority ];
+	root = dependant.root;
+	keypath = dependant.keypath;
+	priority = dependant.priority;
+
+	deps = root._deps[ priority ][ keypath ];
 	deps.splice( deps.indexOf( dependant ), 1 );
+
+	// if this is an evaluator keypath, let the evaluator know about the dependant
+	if ( evaluator = root._evaluators[ keypath ] ) {
+		evaluator.deps -= 1;
+
+		if ( !evaluator.deps ) {
+			// we have an evaluator we don't need anymore
+			evaluator.teardown();
+		}
+	}
 
 	
 	// update dependants map
@@ -377,22 +459,11 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	
 		map = root._depsMap[ parentKeypath ];
 
-		// prevent array from treating this as an integer
-		// TODO is this necessary? could this ever be an integer?
-		_keypath = '_' + keypath;
+		map[ keypath ] -= 1;
 
-		map.splice( map.indexOf( keypath ), 1 );
-		map[ _keypath ] -= 1;
-
-		if ( !map[ _keypath ] ) {
-			if ( root._deps[ keypath ] ) {
-				root._deps[ keypath ] = null;
-			}
-			
-			if ( root._evaluators[ keypath ] ) {
-				// we have an evaluator we don't need anymore
-				root._evaluators[ keypath ].teardown();
-			}
+		if ( !map[ keypath ] ) {
+			// remove from parent deps map
+			map.splice( map.indexOf( keypath ), 1 );
 		}
 
 		keypath = parentKeypath;
@@ -400,21 +471,28 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 };
 
 notifyDependants = function ( root, keypath, onlyDirect ) {
-	var depsByPriority, deps, i, j, len, childDeps;
+	var i;
 
-	depsByPriority = root._deps[ keypath ];
+	for ( i=0; i<root._deps.length; i+=1 ) { // can't cache root._deps.length, it may change
+		notifyDependantsByPriority( root, keypath, i, onlyDirect );
+	}
+};
 
-	if ( depsByPriority ) {
-		len = depsByPriority.length;
-		for ( i=0; i<len; i+=1 ) {
-			deps = depsByPriority[i];
+var notifyDependantsByPriority = function ( root, keypath, priority, onlyDirect ) {
+	var depsByKeypath, deps, i, len, childDeps;
 
-			if ( deps ) {
-				j = deps.length;
-				while ( j-- ) {
-					deps[j].update();
-				}
-			}
+	depsByKeypath = root._deps[ priority ];
+
+	if ( !depsByKeypath ) {
+		return;
+	}
+
+	deps = depsByKeypath[ keypath ];
+
+	if ( deps ) {
+		i = deps.length;
+		while ( i-- ) {
+			deps[i].update();
 		}
 	}
 
@@ -431,11 +509,22 @@ notifyDependants = function ( root, keypath, onlyDirect ) {
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-			notifyDependants( root, childDeps[i] );
-			
-			// TODO at some point, no-longer extant dependants need to be removed
-			// from the map. However a keypath can have no direct dependants yet
-			// still have downstream dependants, so it's not entirely straightforward
+			notifyDependantsByPriority( root, childDeps[i], priority );
+		}
+	}
+};
+
+var notifyMultipleDependants = function ( root, keypaths, onlyDirect ) {
+	var depsByKeypath, i, j, len;
+
+	len = keypaths.length;
+
+	for ( i=0; i<root._deps.length; i+=1 ) {
+		depsByKeypath = root._deps[i];
+
+		j = len;
+		while ( j-- ) {
+			notifyDependantsByPriority( root, keypaths[j], i, onlyDirect );
 		}
 	}
 };
@@ -452,6 +541,11 @@ resolveRef = function ( root, ref, contextStack ) {
 		return contextStack[ contextStack.length - 1 ];
 	}
 
+	// References prepended with '.' are another special case
+	if ( ref.charAt( 0 ) === '.' ) {
+		return contextStack[ contextStack.length - 1 ] + ref;
+	}
+
 	keys = splitKeypath( ref );
 	lastKey = keys.pop();
 
@@ -466,7 +560,7 @@ resolveRef = function ( root, ref, contextStack ) {
 
 		parentValue = root.get( contextKeys.concat( keys ) );
 
-		if ( typeof parentValue === 'object' && parentValue.hasOwnProperty( lastKey ) ) {
+		if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
 			keypath = innerMostContext + '.' + ref;
 			break;
 		}
@@ -528,9 +622,7 @@ proto.link = function ( keypath ) {
 		}
 
 		return observe( this, keypath, callback, options );
-
 	};
-
 
 	observe = function ( root, keypath, callback, options ) {
 		var observer, lastValue, context;
@@ -546,23 +638,35 @@ proto.link = function ( keypath ) {
 				value = root.get( keypath, true );
 
 				if ( !isEqual( value, lastValue ) ) {
-					callback.call( context, value, lastValue );
+					// wrap the callback in a try-catch block, and only throw error in
+					// debug mode
+					try {
+						callback.call( context, value, lastValue );
+					} catch ( err ) {
+						if ( root.debug ) {
+							throw err;
+						}
+					}
 					lastValue = value;
 				}
 			},
 
-			cancel: function () {
-				unregisterDependant( root, keypath, observer, 0 );
-			}
+			keypath: keypath,
+			root: root,
+			priority: 0
 		};
 
 		if ( options.init !== false ) {
 			observer.update();
 		}
 
-		registerDependant( root, keypath, observer, 0 );
+		registerDependant( observer );
 
-		return observer;
+		return {
+			cancel: function () {
+				unregisterDependant( observer );
+			}
+		};
 	};
 
 }( proto ));
@@ -656,31 +760,25 @@ proto.render = function ( options ) {
 	this._transitionManager = null;
 	transitionManager.ready = true;
 	if ( options.complete && !transitionManager.active ) {
-		options.complete();
+		options.complete.call( this );
 	}
 };
 (function ( proto ) {
 
 	var set, attemptKeypathResolution;
 
-	proto.set = function ( keypath, value, callback ) {
+	proto.set = function ( keypath, value, complete ) {
 		var notificationQueue, upstreamQueue, k, normalised, keys, previous, transitionManager;
 
-		if ( !this.setting ) {
-			this.setting = true; // short-circuit any potential infinite loops
-			this.fire( 'set', keypath, value );
-			this.setting = false;
-		}
-
-		upstreamQueue = [];
+		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];
 
 		if ( isObject( keypath ) ) {
-			callback = value;
+			complete = value;
 		}
 
 		// manage transitions
-		this._transitionManager = transitionManager = makeTransitionManager( callback );
+		this._transitionManager = transitionManager = makeTransitionManager( complete );
 
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
@@ -703,19 +801,18 @@ proto.render = function ( options ) {
 			set( this, normalised, keys, value, notificationQueue, upstreamQueue );
 		}
 
-		// if anything has changed, notify dependants and attempt to resolve
-		// any unresolved keypaths
+		// if anything has changed, attempt to resolve any unresolved keypaths...
 		if ( notificationQueue.length ) {
-			while ( notificationQueue.length ) {
-				notifyDependants( this, notificationQueue.pop() );
-			}
-
 			attemptKeypathResolution( this );
 		}
 
-		// notify direct descendants of upstream keypaths
-		while ( upstreamQueue.length ) {
-			notifyDependants( this, upstreamQueue.pop(), true );
+		// ...and notify dependants
+		if ( upstreamQueue.length ) {
+			notifyMultipleDependants( this, upstreamQueue, true );
+		}
+
+		if ( notificationQueue.length ) {
+			notifyMultipleDependants( this, notificationQueue );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
@@ -726,8 +823,21 @@ proto.render = function ( options ) {
 		// transition manager has finished its work
 		this._transitionManager = null;
 		transitionManager.ready = true;
-		if ( callback && !transitionManager.active ) {
-			callback();
+		if ( complete && !transitionManager.active ) {
+			complete.call( this );
+		}
+
+		// fire event
+		if ( !this.setting ) {
+			this.setting = true; // short-circuit any potential infinite loops
+			
+			if ( typeof keypath === 'object' ) {
+				this.fire( 'set', keypath );
+			} else {
+				this.fire( 'set', keypath, value );
+			}
+
+			this.setting = false;
 		}
 
 		return this;
@@ -779,7 +889,7 @@ proto.render = function ( options ) {
 
 
 		// add upstream keypaths to the upstream notification queue
-		while ( keysClone.length ) {
+		while ( keysClone.length > 1 ) {
 			keysClone.pop();
 			keypath = keysClone.join( '.' );
 
@@ -813,31 +923,18 @@ proto.render = function ( options ) {
 }( proto ));
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
-proto.teardown = function ( callback ) {
+proto.teardown = function ( complete ) {
 	var keypath, transitionManager;
 
 	this.fire( 'teardown' );
 
-	this._transitionManager = transitionManager = makeTransitionManager( callback );
+	this._transitionManager = transitionManager = makeTransitionManager( complete );
 
 	this.fragment.teardown( true );
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
-	/*// Once with keypaths that have dependents...
-	for ( keypath in this._depsMap ) {
-		if ( this._depsMap.hasOwnProperty( keypath ) ) {
-			clearCache( this, keypath );
-		}
-	}
-
-	// Then a second time to mop up the rest
 	for ( keypath in this._cache ) {
-		if ( this._cache.hasOwnProperty( keypath ) ) {
-			clearCache( this, keypath );
-		}
-	}*/
-	for ( keypath in this._cache ) {
-		clearCache( this, keypath ); // TODO inherit cache from null so we don't need hasOwnProperty
+		clearCache( this, keypath );
 	}
 
 	// Teardown any bindings
@@ -845,13 +942,11 @@ proto.teardown = function ( callback ) {
 		this.unbind( this._bound.pop() );
 	}
 
-	// TODO other stuff... evaluators etc
-
 	// transition manager has finished its work
 	this._transitionManager = null;
 	transitionManager.ready = true;
-	if ( callback && !transitionManager.active ) {
-		callback();
+	if ( complete && !transitionManager.active ) {
+		complete.call( this );
 	}
 };
 proto.unbind = function ( adaptor ) {
@@ -864,14 +959,33 @@ proto.unbind = function ( adaptor ) {
 		adaptor.teardown( this );
 	}
 };
-proto.update = function ( keypath ) {
+proto.update = function ( keypath, complete ) {
+	var transitionManager;
+
+	if ( typeof keypath === 'function' ) {
+		complete = keypath;
+	}
+
+	// manage transitions
+	this._transitionManager = transitionManager = makeTransitionManager( complete );
+
 	clearCache( this, keypath || '' );
 	notifyDependants( this, keypath || '' );
 
 	processDeferredUpdates( this );
 
-	this.fire( 'update:' + keypath );
-	this.fire( 'update', keypath );
+	// transition manager has finished its work
+	this._transitionManager = null;
+	transitionManager.ready = true;
+	if ( complete && !transitionManager.active ) {
+		complete.call( this );
+	}
+
+	if ( typeof keypath === 'string' ) {
+		this.fire( 'update', keypath );
+	} else {
+		this.fire( 'update' );
+	}
 
 	return this;
 };
@@ -1029,7 +1143,7 @@ eventDefinitions.tap = function ( el, fire ) {
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
 
 	mousedown = function ( event ) {
-		var x, y, currentTarget, up, move, cancel;
+		var currentTarget, x, y, up, move, cancel;
 
 		x = event.clientX;
 		y = event.clientY;
@@ -1061,7 +1175,7 @@ eventDefinitions.tap = function ( el, fire ) {
 
 
 	touchstart = function ( event ) {
-		var x, y, touch, finger, move, up, cancel, currentTarget;
+		var currentTarget, x, y, touch, finger, move, up, cancel;
 
 		if ( event.touches.length !== 1 ) {
 			return;
@@ -1345,16 +1459,18 @@ interpolators = {
 		};
 	}
 };
-var defaultOptions = {
-	preserveWhitespace: false,
-	append: false,
-	twoway: true,
-	modifyArrays: true,
-	data: {},
-	lazy: false,
-	debug: false,
-	transitions: {} // TODO transitions on subclasses
-};
+var defaultOptions = createFromNull();
+
+defineProperties( defaultOptions, {
+	preserveWhitespace: { enumerable: true, value: false },
+	append:             { enumerable: true, value: false },
+	twoway:             { enumerable: true, value: true  },
+	modifyArrays:       { enumerable: true, value: true  },
+	data:               { enumerable: true, value: {}    },
+	lazy:               { enumerable: true, value: false },
+	debug:              { enumerable: true, value: false },
+	transitions:        { enumerable: true, value: {}    }
+});
 
 Ractive = function ( options ) {
 
@@ -1363,7 +1479,7 @@ Ractive = function ( options ) {
 	// Options
 	// -------
 	for ( key in defaultOptions ) {
-		if ( defaultOptions.hasOwnProperty( key ) && !options.hasOwnProperty( key ) ) {
+		if ( !options.hasOwnProperty( key ) ) {
 			options[ key ] = defaultOptions[ key ];
 		}
 	}
@@ -1372,13 +1488,51 @@ Ractive = function ( options ) {
 	// Initialization
 	// --------------
 
-	// Generate a unique identifier, for places where you'd use a weak map if it
-	// existed
-	this.guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r, v;
+	// We use Object.defineProperties (where possible) as these should be read-only
+	defineProperties( this, {
+		// Generate a unique identifier, for places where you'd use a weak map if it
+		// existed
+		_guid: {
+			value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+				var r, v;
 
-		r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-		return v.toString(16);
+				r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+				return v.toString(16);
+			})
+		},
+
+		// events
+		_subs: { value: createFromNull() },
+
+		// cache
+		_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null
+		_cacheMap: { value: createFromNull() },
+
+		// dependency graph
+		_deps: { value: [] },
+		_depsMap: { value: createFromNull() },
+
+		// unresolved dependants
+		_pendingResolution: { value: [] },
+
+		// Create arrays for deferred attributes and evaluators
+		_defAttrs: { value: [] },
+		_defEvals: { value: [] },
+
+		// Cache proxy event handlers - allows efficient reuse
+		_proxies: { value: {} },
+
+		// Keep a list of used evaluators, so we don't duplicate them
+		_evaluators: { value: {} },
+
+		// bindings
+		_bound: { value: [] },
+
+		// transition manager
+		_transitionManager: { value: null, writable: true },
+
+		// nodes registry
+		nodes: { value: {} }
 	});
 
 	// options
@@ -1391,33 +1545,7 @@ Ractive = function ( options ) {
 
 	// add data
 	this.data = options.data || {};
-
-	// Set up event bus
-	this._subs = {};
-
-	// Set up cache
-	this._cache = {};
-
-	// Set up dependants and index refs
-	this._deps = {};
-	this._depsMap = {};
-	this._indexRefs = {};
-
-	// Node registry
-	this.nodes = {};
-
-	// Set up observers
-	this._pendingResolution = [];
-
-	// Create arrays for deferred attributes and evaluators
-	this._defAttrs = [];
-	this._defEvals = [];
-
-	// Cache proxy event handlers - allows efficient reuse
-	this._proxies = {};
-
-	// Keep a list of used evaluators, so we don't duplicate them
-	this._evaluators = {};
+	
 
 	// Partials registry
 	this.partials = {};
@@ -1426,7 +1554,6 @@ Ractive = function ( options ) {
 	this.transitions = options.transitions;
 
 	// Set up bindings
-	this._bound = [];
 	if ( options.bindings ) {
 		if ( isArray( options.bindings ) ) {
 			for ( i=0; i<options.bindings.length; i+=1 ) {
@@ -1505,7 +1632,6 @@ Ractive = function ( options ) {
 			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}
-
 
 	// If passed an element, render immediately
 	if ( this.el ) {
@@ -1599,8 +1725,18 @@ Ractive = function ( options ) {
 			duration: 300,
 			easing: 'linear'
 		}),
-		staggeredFadeIn: function ( el, complete, i ) {
-			var delay = i * 20;
+		staggeredFadeIn: function ( el, complete, params, i, transitionManager ) {
+			var delay, stagger;
+
+			if ( params ) {
+				stagger = params.stagger;
+			}
+
+			if ( stagger === undefined ) {
+				stagger = 20;
+			}
+
+			delay = i * stagger;
 
 			el.style.opacity = 0;
 			
@@ -1608,8 +1744,18 @@ Ractive = function ( options ) {
 				transitions.fadeIn( el, complete );
 			}, delay );
 		},
-		staggeredFadeOut: function ( el, complete, i ) {
-			var delay = i * 200;
+		staggeredFadeOut: function ( el, complete, params, i, transitionManager ) {
+			var delay, stagger;
+
+			if ( params ) {
+				stagger = params.stagger;
+			}
+
+			if ( stagger === undefined ) {
+				stagger = 20;
+			}
+
+			delay = i * stagger;
 
 			setTimeout( function () {
 				transitions.fadeOut( el, complete );
@@ -1744,9 +1890,7 @@ animationCollection = {
 }( ['ms', 'moz', 'webkit', 'o'], 0, global ));
 (function () {
 
-	var defineProperty,
-		
-		notifyArrayDependants,
+	var notifyArrayDependants,
 		
 		reassignDependants,
 		sidewaysShift,
@@ -1760,18 +1904,6 @@ animationCollection = {
 		testObj,
 		mutatorMethods;
 
-
-	// just in case we don't have Object.defineProperty, we can use this - it doesn't
-	// allow us to set non-enumerable properties, but if you're doing for ... in loops on 
-	// an array then you deserve what's coming anyway
-	if ( !Object.defineProperty ) {
-		defineProperty = function ( obj, prop, desc ) {
-			obj[ prop ] = desc.value;
-		};
-	} else {
-		defineProperty = Object.defineProperty;
-	}
-	
 
 	// Register a keypath to this array. When any of this array's mutator methods are called,
 	// it will `set` that keypath on the given Ractive instance
@@ -1788,7 +1920,7 @@ animationCollection = {
 				configurable: true
 			});
 
-			array._ractive.keypathsByGuid[ root.guid ] = [ keypath ];
+			array._ractive.keypathsByGuid[ root._guid ] = [ keypath ];
 
 			wrapArray( array );
 		}
@@ -1799,15 +1931,14 @@ animationCollection = {
 
 			// Does this Ractive instance currently depend on this array?
 			// If not, associate them
-			if ( !keypathsByGuid[ root.guid ] ) {
+			if ( !keypathsByGuid[ root._guid ] ) {
 				roots[ roots.length ] = root;
-				keypathsByGuid[ root.guid ] = [];
+				keypathsByGuid[ root._guid ] = [];
 			}
 
-			keypaths = keypathsByGuid[ root.guid ];
+			keypaths = keypathsByGuid[ root._guid ];
 
 			// If the current keypath isn't among them, add it
-			// TODO to be honest, it probably shoudln't be... can we skip this check?
 			if ( keypaths.indexOf( keypath ) === -1 ) {
 				keypaths[ keypaths.length ] = keypath;
 			}
@@ -1826,11 +1957,11 @@ animationCollection = {
 		roots = array._ractive.roots;
 		keypathsByGuid = array._ractive.keypathsByGuid;
 
-		if ( !keypathsByGuid[ root.guid ] ) {
+		if ( !keypathsByGuid[ root._guid ] ) {
 			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
 		}
 
-		keypaths = keypathsByGuid[ root.guid ];
+		keypaths = keypathsByGuid[ root._guid ];
 		keypathIndex = keypaths.indexOf( keypath );
 
 		if ( keypathIndex === -1 ) {
@@ -1841,7 +1972,7 @@ animationCollection = {
 
 		if ( !keypaths.length ) {
 			roots.splice( roots.indexOf( root ), 1 );
-			keypathsByGuid[ root.guid ] = null;
+			keypathsByGuid[ root._guid ] = null;
 		}
 
 		if ( !roots.length ) {
@@ -1869,8 +2000,8 @@ animationCollection = {
 		};
 
 		processRoot = function ( root ) {
-			root._transitionManager = makeTransitionManager( noop ); // TODO fire event on complete?
-			processKeypaths( root, keypathsByGuid[ root.guid ] );
+			root._transitionManager = makeTransitionManager( noop );
+			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = null;
 		};
 
@@ -1882,10 +2013,10 @@ animationCollection = {
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByPriority, keys, smartUpdateQueue, dumbUpdateQueue, i, item;
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
 
-			smartUpdateQueue = [];
-			dumbUpdateQueue = [];
+			upstreamQueue = [];
+			
 
 			// We don't do root.set(), because we don't want to update DOM sections
 			// using the normal method - we want to do a smart update whereby elements
@@ -1897,11 +2028,13 @@ animationCollection = {
 			keys = splitKeypath( keypath );
 			while ( keys.length ) {
 				keys.pop();
-				notifyDependants( root, keys.join( '.' ), true );
+				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
 			}
 
 			// ...and length property!
-			notifyDependants( root, keypath + '.length', true );
+			upstreamQueue[ upstreamQueue.length ] = keypath + '.length';
+
+			notifyMultipleDependants( root, upstreamQueue, true );
 			
 
 			// we probably need to reassign a whole bunch of dependants
@@ -1910,46 +2043,38 @@ animationCollection = {
 
 
 
-			// find dependencies. If any are DOM sections, we do a smart update
+			// find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
-			depsByPriority = root._deps[ keypath ];
-			if ( depsByPriority ) {
-				queueAllDependants( root, keypath, depsByPriority, smartUpdateQueue, dumbUpdateQueue );
+			smartUpdateQueue = [];
+			dumbUpdateQueue = [];
 
-				
+			for ( i=0; i<root._deps.length; i+=1 ) { // we can't cache root._deps.length as it may change!
+				depsByKeypath = root._deps[i];
 
-				// we may have some deferred evaluators to process
-				processDeferredUpdates( root );
-
-				
-				i = dumbUpdateQueue.length;
-				while ( i-- ) {
-					dumbUpdateQueue[i].update();
+				if ( !depsByKeypath ) {
+					continue;
 				}
+
+				deps = depsByKeypath[ keypath ];
 				
-				i = smartUpdateQueue.length;
-				while ( i-- ) {
-					smartUpdateQueue[i].smartUpdate( methodName, args );
+				if ( deps ) {
+					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
+
+					// we may have some deferred evaluators to process
+					processDeferredUpdates( root );
+					
+					while ( smartUpdateQueue.length ) {
+						smartUpdateQueue.pop().smartUpdate( methodName, args );
+					}
+
+					while ( dumbUpdateQueue.length ) {
+						dumbUpdateQueue.pop().update();
+					}
 				}
 			}
-
-
 
 			// we may have some deferred attributes to process
 			processDeferredUpdates( root );
-		};
-
-		queueAllDependants = function ( root, keypath, depsByPriority, smartUpdateQueue, dumbUpdateQueue ) {
-			var len, p, deps;
-
-			len = depsByPriority.length;
-			for ( p=0; p<len; p+=1 ) {
-				deps = depsByPriority[p];
-
-				if ( deps ) {
-					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
-				}
-			}
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
@@ -1960,7 +2085,7 @@ animationCollection = {
 			while ( k-- ) {
 				dependant = deps[k];
 
-				// references need to get process before mustaches
+				// references need to get processed before mustaches
 				if ( dependant.type === REFERENCE ) {
 					dependant.update();
 				}
@@ -2059,6 +2184,8 @@ animationCollection = {
 		this.values = [];
 		this.refs = [];
 
+		this.deps = 0; // keep track of how many dependants this has
+
 		i = args.length;
 		while ( i-- ) {
 			arg = args[i];
@@ -2080,11 +2207,6 @@ animationCollection = {
 
 	Evaluator.prototype = {
 		bubble: function () {
-			// TODO If no-one is listening, abort
-			if ( !this.root._deps[ this.keypath ].length ) {
-				console.log( 'aborting...' );
-			}
-
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
 				this.update();
@@ -2144,7 +2266,7 @@ animationCollection = {
 
 		this.value = evaluator.values[ argNum ] = root.get( keypath );
 
-		registerDependant( root, keypath, this, priority );
+		registerDependant( this );
 	};
 
 	Reference.prototype = {
@@ -2160,7 +2282,7 @@ animationCollection = {
 		},
 
 		teardown: function () {
-			unregisterDependant( this.root, this.keypath, this, this.priority );
+			unregisterDependant( this );
 		}
 	};
 
@@ -2192,7 +2314,7 @@ var ExpressionResolver;
 
 (function () {
 
-	var IndexRefScout, ReferenceScout, getKeypath;
+	var ReferenceScout, getKeypath;
 
 	ExpressionResolver = function ( mustache ) {
 
@@ -2211,22 +2333,22 @@ var ExpressionResolver;
 		// send out scouts for each reference
 		len = this.unresolved = ( expression.r ? expression.r.length : 0 );
 
+		if ( !len ) {
+			this.init(); // some expressions don't have references. edge case, but, yeah.
+		}
+
 		for ( i=0; i<len; i+=1 ) {
 			ref = expression.r[i];
 			
 			// is this an index ref?
-			if ( indexRefs && indexRefs.hasOwnProperty( ref ) ) {
-				new IndexRefScout( this, indexRefs[ ref ], i );
+			if ( indexRefs && indexRefs[ ref ] !== undefined ) {
+				this.resolveRef( i, true, indexRefs[ ref ].index );
 			}
 
 			else {
 				this.numRefs += 1;
 				new ReferenceScout( this, ref, mustache.contextStack, i );
 			}
-		}
-
-		if ( !this.unresolved ) {
-			this.init();
 		}
 	};
 
@@ -2256,15 +2378,6 @@ var ExpressionResolver;
 				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
 			}
 		}
-	};
-
-
-	// TODO this is absurd
-	IndexRefScout = function ( resolver, indexRef, argNum ) {
-		this.resolver = resolver;
-		this.argNum = argNum;
-
-		resolver.resolveRef( argNum, true, indexRef.index );
 	};
 
 
@@ -2382,12 +2495,10 @@ initFragment = function ( fragment, options ) {
 		parentRefs = fragment.owner.parentFragment.indexRefs;
 
 		if ( parentRefs ) {
-			fragment.indexRefs = {};
+			fragment.indexRefs = createFromNull(); // avoids need for hasOwnProperty
 
 			for ( ref in parentRefs ) {
-				if ( parentRefs.hasOwnProperty( ref ) ) {
-					fragment.indexRefs[ ref ] = parentRefs[ ref ];
-				}
+				fragment.indexRefs[ ref ] = parentRefs[ ref ];
 			}
 		}
 	}
@@ -2443,13 +2554,9 @@ initMustache = function ( mustache, options ) {
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( options.descriptor.r ) {
-		if ( parentFragment.indexRefs && parentFragment.indexRefs.hasOwnProperty( options.descriptor.r ) ) {
+		if ( parentFragment.indexRefs && parentFragment.indexRefs[ options.descriptor.r ] !== undefined ) {
 			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
 
-			// mustache.indexRefKeypath = indexRef.keypath;
-			// mustache.value = indexRef.index;
-
-			// registerIndexRef( mustache.root, indexRef.keypath, indexRef.index, mustache );
 			mustache.refIndex = indexRef.index;
 			mustache.render( mustache.refIndex );
 		}
@@ -2494,7 +2601,7 @@ resolveMustache = function ( keypath ) {
 	// TEMP
 	this.keypath = keypath;
 
-	registerDependant( this.root, keypath, this, this.priority );
+	registerDependant( this );
 	this.update();
 };
 updateSection = function ( section, value ) {
@@ -2739,6 +2846,7 @@ updateSection = function ( section, value ) {
 		var parentFragment = this.parentFragment = options.parentFragment, descriptor;
 
 		this.type = PARTIAL;
+		this.name = options.descriptor.r;
 
 		descriptor = getPartialDescriptor( parentFragment.root, options.descriptor.r );
 
@@ -2798,6 +2906,9 @@ updateSection = function ( section, value ) {
 			twowayNameAttr,
 			parentNode,
 			root,
+			transition,
+			transitionName,
+			transitionParams,
 			transitionManager,
 			intro;
 
@@ -2874,9 +2985,19 @@ updateSection = function ( section, value ) {
 
 				// are we dealing with transitions?
 				lcName = attrName.toLowerCase();
-				if ( lcName === 'intro' || lcName === 'outro' ) {
-					this[ lcName ] = attrValue;
-					// TODO allow mustaches as transition names?
+				if ( lcName === 'intro' || lcName === 'outro' || lcName === 'intro-params' || lcName === 'outro-params' ) {
+					lcName = lcName.replace( '-params', 'Params' );
+
+					if ( typeof	attrValue === 'string' ) {
+						this[ lcName ] = attrValue;
+					} else {
+						this[ lcName ] = new TextFragment({
+							descriptor: attrValue,
+							root: root,
+							owner: this,
+							contextStack: parentFragment.contextStack
+						});
+					}
 				}
 
 				else {
@@ -2917,7 +3038,8 @@ updateSection = function ( section, value ) {
 
 		// trigger intro transition
 		if ( this.intro ) {
-			intro = root.transitions[ this.intro ] || Ractive.transitions[ this.intro ];
+			transitionName = this.intro.toString();
+			intro = root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
 
 			if ( intro ) {
 				transitionManager = root._transitionManager;
@@ -2926,7 +3048,17 @@ updateSection = function ( section, value ) {
 					transitionManager.push();
 				}
 
-				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionManager.i );
+				if ( this.introParams ) {
+					transitionParams = this.introParams.toString();
+
+					try {
+						transitionParams = JSON.parse( transitionParams );
+					} catch ( err ) {
+						// nothing, just treat it as a string
+					}
+				}
+
+				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionParams, transitionManager.i, transitionManager );
 			}
 		}
 	};
@@ -2987,7 +3119,7 @@ updateSection = function ( section, value ) {
 		},
 
 		teardown: function ( detach ) {
-			var self = this, tearThisDown, transitionManager, listener, outro;
+			var self = this, tearThisDown, transitionManager, transitionName, transitionParams, listener, outro;
 
 			// Children first. that way, any transitions on child elements will be
 			// handled by the current transitionManager
@@ -3011,13 +3143,24 @@ updateSection = function ( section, value ) {
 			if ( this.outro ) {
 				// TODO don't outro elements that have already been detached from the DOM
 
-				outro = this.root.transitions[ this.outro ] || Ractive.transitions[ this.outro ];
+				transitionName = this.outro.toString();
+				outro = this.root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
 
 				if ( outro ) {
 					transitionManager = this.root._transitionManager;
 					
 					if ( transitionManager ) {
 						transitionManager.push();
+					}
+
+					if ( this.outroParams ) {
+						transitionParams = this.outroParams.toString();
+
+						try {
+							transitionParams = JSON.parse( transitionParams );
+						} catch ( err ) {
+							// nothing, just treat it as a string
+						}
 					}
 
 					outro.call( this.root, this.node, function () {
@@ -3028,7 +3171,7 @@ updateSection = function ( section, value ) {
 						if ( transitionManager ) {
 							transitionManager.pop();
 						}
-					}, transitionManager.i );
+					}, transitionParams, transitionManager.i, transitionManager );
 				}
 			} else if ( detach ) {
 				self.parentNode.removeChild( self.node );
@@ -3040,7 +3183,7 @@ updateSection = function ( section, value ) {
 		},
 
 		bubble: function () {
-			// noop - just so event proxy fragments have something to call
+			// noop - just so event proxy and transition fragments have something to call!
 		}
 	};
 
@@ -3195,13 +3338,20 @@ updateSection = function ( section, value ) {
 				return false; // report failure
 			}
 
+			// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
 			// Check this is a suitable candidate for two-way binding - i.e. it is
-			// a single interpolator
+			// a single interpolator, which isn't an expression
 			if (
 				this.fragment.items.length !== 1 ||
-				this.fragment.items[0].type !== INTERPOLATOR
+				this.fragment.items[0].type !== INTERPOLATOR ||
+				( !this.fragment.items[0].keypath && !this.fragment.items[0].ref )
 			) {
-				throw 'Not a valid two-way data binding candidate - must be a single interpolator';
+				if ( this.root.debug ) {
+					if ( console && console.warn ) {
+						console.warn( 'Not a valid two-way data binding candidate - must be a single interpolator:', this.fragment.items );
+					}
+				}
+				return false; // report failure
 			}
 
 			this.interpolator = this.fragment.items[0];
@@ -3427,7 +3577,7 @@ updateSection = function ( section, value ) {
 
 				if ( this.lcName === 'id' ) {
 					if ( this.value !== undefined ) {
-						delete this.root.nodes[ this.value ];
+						this.root.nodes[ this.value ] = undefined;
 					}
 
 					this.root.nodes[ value ] = this.parentNode;
@@ -3460,7 +3610,6 @@ updateSection = function ( section, value ) {
 	Interpolator.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		//reassign: reassignMustache,
 
 		teardown: function ( detach ) {
 			teardown( this );
@@ -3496,7 +3645,6 @@ updateSection = function ( section, value ) {
 	Triple.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		teardown: function ( detach ) {
 
@@ -3558,26 +3706,24 @@ updateSection = function ( section, value ) {
 	Section.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		smartUpdate: function ( methodName, args ) {
 			var fragmentOptions, i;
 
-			fragmentOptions = {
-				descriptor: this.descriptor.f,
-				root:       this.root,
-				parentNode: this.parentNode,
-				owner:      this
-			};
+			if ( methodName === 'push' || methodName === 'unshift' || methodName === 'splice' ) {
+				fragmentOptions = {
+					descriptor: this.descriptor.f,
+					root:       this.root,
+					parentNode: this.parentNode,
+					owner:      this
+				};
 
-			if ( this.descriptor.i ) {
-				fragmentOptions.indexRef = this.descriptor.i;
+				if ( this.descriptor.i ) {
+					fragmentOptions.indexRef = this.descriptor.i;
+				}
 			}
 
-			// push, pop, shift, unshift, reverse, splice, sort
-
-			// TODO - all methods should be present??? or just the sideways shifters?
-			if ( this[ methodName ] ) {
+			if ( this[ methodName ] ) { // if not, it's sort or reverse, which doesn't affect us (i.e. our length)
 				this[ methodName ]( fragmentOptions, args );
 			}
 		},
@@ -3610,8 +3756,8 @@ updateSection = function ( section, value ) {
 			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 		},
 
-		shift: function ( fragmentOptions ) {
-			this.splice( fragmentOptions, [ 0, 1 ] );
+		shift: function () {
+			this.splice( null, [ 0, 1 ] );
 		},
 
 		unshift: function ( fragmentOptions, args ) {
@@ -3757,7 +3903,7 @@ updateSection = function ( section, value ) {
 	var reassignFragment = function ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
 		var i, j, item, context;
 
-		if ( fragment.indexRefs && fragment.indexRefs.hasOwnProperty( indexRef ) ) {
+		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
 			fragment.indexRefs[ indexRef ].index = newIndex;
 		}
 
@@ -3780,7 +3926,7 @@ updateSection = function ( section, value ) {
 				break;
 
 				case PARTIAL:
-				reassignPartial( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignFragment( item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
 				break;
 
 				case SECTION:
@@ -3814,27 +3960,22 @@ updateSection = function ( section, value ) {
 		}
 	};
 
-	var reassignPartial = function ( partial, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		// TODO
-		console.warn( 'reassigning partial TODO!' );
-	};
-
 	var reassignMustache = function ( mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
 		var i;
 
 		// expression mustache?
 		if ( mustache.descriptor.x ) {
-			unregisterDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+			unregisterDependant( mustache );
 			new ExpressionResolver( mustache );
 		}
 
 		// normal keypath mustache?
 		else if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				unregisterDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+				unregisterDependant( mustache );
 
 				mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
-				registerDependant( mustache.root, mustache.keypath, mustache, mustache.priority );
+				registerDependant( mustache );
 			}
 		}
 
@@ -3883,9 +4024,6 @@ updateSection = function ( section, value ) {
 
 
 		bubble: function () {
-			// TODO should we set value here?
-			this.value = this.getValue();
-			//this.value = this.items.join( '' );
 			this.owner.bubble();
 		},
 
@@ -3913,8 +4051,6 @@ updateSection = function ( section, value ) {
 		},
 
 		toString: function () {
-			// TODO refactor this... value should already have been calculated? or maybe not. Top-level items skip the fragment and bubble straight to the attribute...
-			// argh, it's confusing me
 			return this.items.join( '' );
 		}
 	};
@@ -3947,7 +4083,6 @@ updateSection = function ( section, value ) {
 	Interpolator.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		render: function ( value ) {
 			this.value = value;
@@ -3979,7 +4114,6 @@ updateSection = function ( section, value ) {
 	Section.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-		// reassign: reassignMustache,
 
 		teardown: function () {
 			this.teardownFragments();
@@ -4001,8 +4135,6 @@ updateSection = function ( section, value ) {
 
 		render: function ( value ) {
 			updateSection( this, value );
-
-			//this.value = this.fragments.join( '' );
 			this.parentFragment.bubble();
 		},
 
@@ -4012,7 +4144,6 @@ updateSection = function ( section, value ) {
 
 		toString: function () {
 			return this.fragments.join( '' );
-			//return ( this.value === undefined ? '' : this.value );
 		}
 	};
 
@@ -4091,10 +4222,11 @@ splitKeypath =  function ( keypath ) {
 };
 
 
+toString = Object.prototype.toString;
 
 // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 isArray = function ( obj ) {
-	return Object.prototype.toString.call( obj ) === '[object Array]';
+	return toString.call( obj ) === '[object Array]';
 };
 
 isEqual = function ( a, b ) {
@@ -4115,7 +4247,7 @@ isNumeric = function ( n ) {
 };
 
 isObject = function ( obj ) {
-	return ( Object.prototype.toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	return ( toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
 };
 
 
