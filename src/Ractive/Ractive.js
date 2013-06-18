@@ -8,7 +8,7 @@ defineProperties( defaultOptions, {
 	data:               { enumerable: true, value: {}    },
 	lazy:               { enumerable: true, value: false },
 	debug:              { enumerable: true, value: false },
-	transitions:        { enumerable: true, value: {}    } // TODO transitions on subclasses
+	transitions:        { enumerable: true, value: {}    }
 });
 
 Ractive = function ( options ) {

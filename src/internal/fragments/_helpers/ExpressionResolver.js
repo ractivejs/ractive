@@ -2,7 +2,7 @@ var ExpressionResolver;
 
 (function () {
 
-	var IndexRefScout, ReferenceScout, getKeypath;
+	var ReferenceScout, getKeypath;
 
 	ExpressionResolver = function ( mustache ) {
 
@@ -30,7 +30,7 @@ var ExpressionResolver;
 			
 			// is this an index ref?
 			if ( indexRefs && indexRefs[ ref ] !== undefined ) {
-				new IndexRefScout( this, indexRefs[ ref ], i );
+				this.resolveRef( i, true, indexRefs[ ref ].index );
 			}
 
 			else {
@@ -66,15 +66,6 @@ var ExpressionResolver;
 				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
 			}
 		}
-	};
-
-
-	// TODO this is absurd
-	IndexRefScout = function ( resolver, indexRef, argNum ) {
-		this.resolver = resolver;
-		this.argNum = argNum;
-
-		resolver.resolveRef( argNum, true, indexRef.index );
 	};
 
 
