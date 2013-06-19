@@ -3,10 +3,10 @@ var makeTransitionManager = function ( callback ) {
 
 	transitionManager = {
 		active: 0,
-		i: 0,
+		info: { i: 0 },
 		push: function () {
 			transitionManager.active += 1;
-			transitionManager.i += 1;
+			transitionManager.info.i += 1;
 		},
 		pop: function () {
 			transitionManager.active -= 1;
