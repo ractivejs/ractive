@@ -333,43 +333,60 @@
 					}
 				}
 
-				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionParams, transitionManager.i, transitionManager );
+				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionParams, transitionManager.info, true );
 			}
 		}
 	};
 
 	Element.prototype = {
 		addEventProxy: function ( eventName, proxy, contextStack ) {
-			var self = this, root = this.root, definition, listener, fragment, handler;
+			var self = this, root = this.root, proxyName, reuseable, definition, listener, fragment, handler;
 
 			if ( typeof proxy === 'string' ) {
-				// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
-				// we can reuse the handler. This eliminates the need for event delegation
-				if ( !root._proxies[ proxy ] ) {
-					root._proxies[ proxy ] = function ( event ) {
-						root.fire( proxy, event, this );
-					};
-				}
-
-				handler = root._proxies[ proxy ];
-			}
-
-			else {
-				// Otherwise we need to evalute the fragment each time the handler is called
-				fragment = new TextFragment({
+				proxyName = proxy;
+				reuseable = true;
+			} else {
+				proxyName = new TextFragment({
 					descriptor:   proxy,
 					root:         this.root,
 					owner:        this,
 					contextStack: contextStack
 				});
-
-				handler = function ( event ) {
-					root.fire( fragment.toString(), event, self.node );
-				};
 			}
 
 			// Is this a custom event?
 			if ( definition = Ractive.eventDefinitions[ eventName ] ) {
+				if ( reuseable ) {
+					// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
+					// we can reuse the handler. This eliminates the need for event delegation
+					if ( !root._proxies[ proxy ] ) {
+						root._proxies[ proxy ] = function () {
+							if ( arguments.length ) {
+								Array.prototype.unshift.call( arguments, proxyName );
+								root.fire.apply( root, arguments );
+							} else {
+								root.fire( proxyName );
+							}
+						};
+					}
+
+					handler = root._proxies[ proxy ];
+				}
+
+				else {
+					// If it's not a string - in other words, it could change - we can't
+					// reuse the handler. We have to recompute the proxy event name
+					// each time the event fires
+					handler = function () {
+						if ( arguments.length ) {
+							Array.prototype.unshift.call( arguments, proxyName.toString() );
+							root.fire.apply( root, arguments );
+						} else {
+							root.fire( proxyName.toString() );
+						}
+					};
+				}
+
 				// Use custom event. Apply definition to this node
 				listener = definition( this.node, handler );
 				this.customEventListeners[ this.customEventListeners.length ] = listener;
@@ -377,19 +394,34 @@
 
 			// If not, we just need to check it is a valid event for this element
 			else {
-				// use standard event, if it is valid
-				if ( this.node[ 'on' + eventName ] !== undefined ) {
-					this.eventListeners[ this.eventListeners.length ] = {
-						n: eventName,
-						h: handler
-					};
-
-					this.node.addEventListener( eventName, handler );
-				} else {
+				
+				// warn about invalid event handlers, if we're in debug mode
+				if ( this.node[ 'on' + eventName ] !== undefined && root.debug ) {
 					if ( console && console.warn ) {
 						console.warn( 'Invalid event handler (' + eventName + ')' );
 					}
 				}
+
+				if ( reuseable ) {
+					if ( !root._proxies[ proxy ] ) {
+						root._proxies[ proxy ] = function ( event) {
+							root.fire( proxyName, this, event );
+						};
+					}
+
+					handler = root._proxies[ proxy ];
+				} else {
+					handler = function ( event ) {
+						root.fire( proxyName.toString(), this, event );
+					};
+				}
+
+				this.eventListeners[ this.eventListeners.length ] = {
+					n: eventName,
+					h: handler
+				};
+
+				this.node.addEventListener( eventName, handler );
 			}
 		},
 
@@ -446,7 +478,7 @@
 						if ( transitionManager ) {
 							transitionManager.pop();
 						}
-					}, transitionParams, transitionManager.i, transitionManager );
+					}, transitionParams, transitionManager.info );
 				}
 			} else if ( detach ) {
 				self.parentNode.removeChild( self.node );
