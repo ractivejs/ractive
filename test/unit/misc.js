@@ -32,6 +32,35 @@ tests = [
 		}
 	},
 	{
+		name: 'Subclasses of subclasses inherit data, partials and transitions',
+		test: function () {
+			var Subclass, SubSubclass, wiggled, shimmied, instance;
+
+			Subclass = Ractive.extend({
+				template: '<div intro="wiggle">{{>foo}}{{>bar}}{{>baz}}</div><div intro="shimmy">{{foo}}{{bar}}{{baz}}</div>',
+				data: { foo: 1 },
+				partials: { foo: 'fooPartial' },
+				transitions: { wiggle: function () { wiggled = true; } }
+			});
+
+			SubSubclass = Subclass.extend({
+				data: { bar: 2 },
+				partials: { bar: 'barPartial' },
+				transitions: { shimmy: function () { shimmied = true; } }
+			});
+
+			instance = new SubSubclass({
+				el: fixture,
+				data: { baz: 3 },
+				partials: { baz: 'bazPartial' }
+			});
+
+			equal( fixture.innerHTML, '<div>fooPartialbarPartialbazPartial</div><div>123</div>' );
+			ok( wiggled );
+			ok( shimmied );
+		}
+	},
+	{
 		name: 'Multiple identical evaluators merge',
 		test: function () {
 			var ractive;
