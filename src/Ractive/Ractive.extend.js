@@ -5,6 +5,7 @@
 		augment,
 
 		inheritFromParent,
+		wrapMethod,
 		inheritFromChildProps,
 		conditionallyParseTemplate,
 		extractInlinePartials,
@@ -17,25 +18,20 @@
 
 	extend = function ( childProps ) {
 
-		var Parent, Child, key, template, partials, partial;
+		var Parent, Child, key, template, partials, partial, member;
 
 		Parent = this;
 
 		// create Child constructor
 		Child = function ( options ) {
-			initChildInstance( this, Child, options );
+			initChildInstance( this, Child, options || {});
 		};
+
+		Child.prototype = create( Parent.prototype );
 
 		// inherit options from parent, if we're extending a subclass
 		if ( Parent !== Ractive ) {
 			inheritFromParent( Child, Parent );
-		}
-
-		// extend child with parent methods
-		for ( key in Parent.prototype ) {
-			if ( Parent.prototype.hasOwnProperty( key ) ) {
-				Child.prototype[ key ] = Parent.prototype[ key ];
-			}
 		}
 
 		// apply childProps
@@ -45,7 +41,7 @@
 		conditionallyParseTemplate( Child );
 		extractInlinePartials( Child );
 		conditionallyParsePartials( Child );
-
+		
 		Child.extend = Parent.extend;
 
 		return Child;
@@ -69,8 +65,25 @@
 		});
 	};
 
+	wrapMethod = function ( method, superMethod ) {
+		if ( /_super/.test( method ) ) {
+			return function () {
+				var _super = this._super;
+				this._super = superMethod;
+
+				method.apply( this, arguments );
+
+				this._super = _super;
+			};
+		}
+
+		else {
+			return method;
+		}
+	};
+
 	inheritFromChildProps = function ( Child, childProps ) {
-		var key;
+		var key, member;
 
 		extendable.forEach( function ( property ) {
 			var value = childProps[ property ];
@@ -92,26 +105,40 @@
 			}
 		});
 
-		// Extend child with specified methods, as long as they don't override Ractive.prototype methods.
 		// Blacklisted properties don't extend the child, as they are part of the initialisation options
 		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) && blacklist.indexOf( key ) === -1 ) {
-				if ( Ractive.prototype.hasOwnProperty( key ) ) {
-					throw new Error( 'Cannot override "' + key + '" method or property of Ractive prototype' );
-				}
+			if ( childProps.hasOwnProperty( key ) && !Child.prototype.hasOwnProperty( key ) && blacklist.indexOf( key ) === -1 ) {
+				member = childProps[ key ];
 
-				Child.prototype[ key ] = childProps[ key ];
+				// if this is a method that overwrites a prototype method, we may need
+				// to wrap it
+				if ( typeof member === 'function' && typeof Child.prototype[ key ] === 'function' ) {
+					Child.prototype[ key ] = wrapMethod( member, Child.prototype[ key ] );
+				} else {
+					Child.prototype[ key ] = member;
+				}
 			}
 		}
 	};
 
 	conditionallyParseTemplate = function ( Child ) {
+		var templateEl;
+
 		if ( typeof Child.template === 'string' ) {
 			if ( !Ractive.parse ) {
 				throw new Error( missingParser );
 			}
 
-			Child.template = Ractive.parse( Child.template, Child ); // all the relevant options are on Child
+			if ( Child.template.charAt( 0 ) === '#' ) {
+				templateEl = document.getElementById( Child.template.substring( 1 ) );
+				if ( templateEl && templateEl.tagName === 'SCRIPT' ) {
+					Child.template = Ractive.parse( templateEl.innerHTML, Child );
+				} else {
+					throw new Error( 'Could not find template element (' + Child.template + ')' );
+				}
+			} else {
+				Child.template = Ractive.parse( Child.template, Child ); // all the relevant options are on Child
+			}
 		}
 	};
 
