@@ -28,6 +28,7 @@ isEqual,
 getEl,
 defineProperty,
 defineProperties,
+create,
 createFromNull,
 noop = function () {},
 
@@ -158,11 +159,30 @@ try {
 try {
 	Object.create( null );
 
+	create = Object.create;
+
 	createFromNull = function () {
 		return Object.create( null );
 	};
 } catch ( err ) {
 	// sigh
+	create = (function () {
+		var F = function () {};
+
+		return function ( proto, props ) {
+			var obj;
+
+			F.prototype = proto;
+			obj = new F();
+
+			if ( props ) {
+				Object.defineProperties( obj, props );
+			}
+
+			return obj;
+		};
+	}());
+
 	createFromNull = function () {
 		return {}; // hope you're not modifying the Object prototype
 	};
