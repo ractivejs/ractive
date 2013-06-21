@@ -209,7 +209,7 @@
 				throw new Error( 'Namespace attribute cannot contain mustaches' );
 			}
 		} else {
-			namespace = this.parentNode.namespaceURI;
+			namespace = ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : this.parentNode.namespaceURI );
 		}
 		
 
