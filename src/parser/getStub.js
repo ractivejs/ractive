@@ -351,7 +351,7 @@ var getFragmentStubFromTokens;
 
 			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
 			// that should be camelcased, camelcase it
-			this.tag = ( svgCamelCaseElements[ this.lcTag ] ? svgCamelCaseElements[ this.lcTag ] : this.lcTag );
+			this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
 
 			parser.pos += 1;
 
