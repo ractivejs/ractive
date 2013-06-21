@@ -9,6 +9,11 @@ proto.teardown = function ( complete ) {
 
 	this.fragment.teardown( true );
 
+	// Cancel any animations in progress
+	while ( this._animations[0] ) {
+		this._animations[0].stop(); // it will remove itself from the index
+	}
+
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	for ( keypath in this._cache ) {
 		clearCache( this, keypath );

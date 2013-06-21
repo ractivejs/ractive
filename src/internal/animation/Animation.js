@@ -16,7 +16,7 @@ Animation = function ( options ) {
 
 Animation.prototype = {
 	tick: function () {
-		var elapsed, t, value, timeNow;
+		var elapsed, t, value, timeNow, index;
 
 		if ( this.running ) {
 			timeNow = Date.now();
@@ -32,6 +32,15 @@ Animation.prototype = {
 				if ( this.complete ) {
 					this.complete( 1, this.to );
 				}
+
+				index = this.root._animations.indexOf( this );
+
+				// TODO remove this check, once we're satisifed this never happens!
+				if ( index === -1 && console && console.warn ) {
+					console.warn( 'Animation was not found' );
+				}
+
+				this.root._animations.splice( index, 1 );
 
 				this.running = false;
 				return false;
@@ -53,6 +62,17 @@ Animation.prototype = {
 	},
 
 	stop: function () {
+		var index;
+
 		this.running = false;
+
+		index = this.root._animations.indexOf( this );
+
+		// TODO remove this check, once we're satisifed this never happens!
+		if ( index === -1 && console && console.warn ) {
+			console.warn( 'Animation was not found' );
+		}
+
+		this.root._animations.splice( index, 1 );
 	}
 };

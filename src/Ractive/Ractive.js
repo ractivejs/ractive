@@ -70,6 +70,9 @@ Ractive = function ( options ) {
 		// transition manager
 		_transitionManager: { value: null, writable: true },
 
+		// animations (so we can stop any in progress at teardown)
+		_animations: { value: [] },
+
 		// nodes registry
 		nodes: { value: {} }
 	});

@@ -51,6 +51,8 @@ proto.animate = function ( keypath, to, options ) {
 
 	animationCollection.push( animation );
 
+	this._animations[ this._animations.length ] = animation;
+
 	return {
 		stop: function () {
 			animation.stop();
