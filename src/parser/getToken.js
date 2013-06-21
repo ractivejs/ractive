@@ -265,7 +265,7 @@ var getToken;
 
 
 
-	// mustache
+	// mustache / triple
 	(function () {
 		var getMustacheContent,
 			getMustacheType,
@@ -310,25 +310,69 @@ var getToken;
 			return content;
 		};
 
-		getMustacheContent = function ( tokenizer ) {
+		getTriple = function ( tokenizer ) {
+			var start = tokenizer.pos, content;
+
+			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[0] ) ) {
+				return null;
+			}
+
+			// delimiter change?
+			content = getDelimiterChange( tokenizer );
+			if ( content ) {
+				// find closing delimiter or abort...
+				if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+					tokenizer.pos = start;
+					return null;
+				}
+
+				// ...then make the switch
+				tokenizer.tripleDelimiters = content;
+				return { type: DELIMCHANGE };
+			}
+
+			// allow whitespace between opening delimiter and reference
+			allowWhitespace( tokenizer );
+
+			content = getMustacheContent( tokenizer, true );
+
+			if ( content === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// allow whitespace between reference and closing delimiter
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return content;
+		};
+
+		getMustacheContent = function ( tokenizer, isTriple ) {
 			var start, mustache, type, expr, i, remaining, index;
 
 			start = tokenizer.pos;
 
-			mustache = { type: MUSTACHE };
+			mustache = { type: isTriple ? TRIPLE : MUSTACHE };
 
 			// mustache type
-			type = getMustacheType( tokenizer );
-			mustache.mustacheType = type || INTERPOLATOR; // default
+			if ( !isTriple ) {
+				type = getMustacheType( tokenizer );
+				mustache.mustacheType = type || INTERPOLATOR; // default
 
-			// if it's a comment, allow any contents except '}}'
-			if ( type === COMMENT ) {
-				remaining = tokenizer.remaining();
-				index = remaining.indexOf( tokenizer.delimiters[1] );
+				// if it's a comment, allow any contents except '}}'
+				if ( type === COMMENT ) {
+					remaining = tokenizer.remaining();
+					index = remaining.indexOf( tokenizer.delimiters[1] );
 
-				if ( index !== -1 ) {
-					tokenizer.pos += index;
-					return mustache;
+					if ( index !== -1 ) {
+						tokenizer.pos += index;
+						return mustache;
+					}
 				}
 			}
 
@@ -391,55 +435,6 @@ var getToken;
 		};
 
 		getIndexRef = getRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ );
-	}());
-	
-
-	// triple
-	(function () {
-		getTriple = function ( tokenizer ) {
-			var start = tokenizer.pos, content;
-
-			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[0] ) ) {
-				return null;
-			}
-
-			// delimiter change?
-			content = getDelimiterChange( tokenizer );
-			if ( content ) {
-				// find closing delimiter or abort...
-				if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
-					tokenizer.pos = start;
-					return null;
-				}
-
-				// ...then make the switch
-				tokenizer.tripleDelimiters = content;
-				return { type: DELIMCHANGE };
-			}
-
-			// allow whitespace between opening delimiter and reference
-			allowWhitespace( tokenizer );
-
-			content = getMustacheRef( tokenizer );
-
-			if ( content === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			// allow whitespace between reference and closing delimiter
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return {
-				type: TRIPLE,
-				ref: content
-			};
-		};
 	}());
 
 
