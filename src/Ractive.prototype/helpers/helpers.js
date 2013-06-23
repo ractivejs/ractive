@@ -54,17 +54,8 @@ registerDependant = function ( dependant ) {
 	keypath = dependant.keypath;
 	priority = dependant.priority;
 
-	if ( !root._deps[ priority ] ) {
-		root._deps[ priority ] = {};
-	}
-
-	depsByKeypath = root._deps[ priority ];
-
-	if ( !depsByKeypath[ keypath ] ) {
-		depsByKeypath[ keypath ] = [];
-	}
-
-	deps = depsByKeypath[ keypath ];
+	depsByKeypath = root._deps[ priority ] || ( root._deps[ priority ] = {} );
+	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 	deps[ deps.length ] = dependant;
 
@@ -81,13 +72,9 @@ registerDependant = function ( dependant ) {
 		keys.pop();
 		parentKeypath = keys.join( '.' );
 	
-		if ( !root._depsMap[ parentKeypath ] ) {
-			root._depsMap[ parentKeypath ] = [];
-		}
+		map = root._depsMap[ parentKeypath ] || ( root._depsMap[ parentKeypath ] = [] );
 
-		map = root._depsMap[ parentKeypath ];
-
-		if ( !map.hasOwnProperty( keypath ) ) {
+		if ( map[ keypath ] === undefined ) {
 			map[ keypath ] = 0;
 			map[ map.length ] = keypath;
 		}
@@ -134,6 +121,7 @@ unregisterDependant = function ( dependant ) {
 		if ( !map[ keypath ] ) {
 			// remove from parent deps map
 			map.splice( map.indexOf( keypath ), 1 );
+			map[ keypath ] = undefined;
 		}
 
 		keypath = parentKeypath;
@@ -185,16 +173,16 @@ var notifyDependantsByPriority = function ( root, keypath, priority, onlyDirect 
 };
 
 var notifyMultipleDependants = function ( root, keypaths, onlyDirect ) {
-	var depsByKeypath, i, j, len;
+	var  i, j, len;
 
 	len = keypaths.length;
 
 	for ( i=0; i<root._deps.length; i+=1 ) {
-		depsByKeypath = root._deps[i];
-
-		j = len;
-		while ( j-- ) {
-			notifyDependantsByPriority( root, keypaths[j], i, onlyDirect );
+		if ( root._deps[i] ) {
+			j = len;
+			while ( j-- ) {
+				notifyDependantsByPriority( root, keypaths[j], i, onlyDirect );
+			}
 		}
 	}
 };
