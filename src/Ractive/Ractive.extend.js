@@ -39,7 +39,7 @@
 
 		// parse template and any partials that need it
 		conditionallyParseTemplate( Child );
-		extractInlinePartials( Child );
+		extractInlinePartials( Child, childProps );
 		conditionallyParsePartials( Child );
 		
 		Child.extend = Parent.extend;
@@ -142,7 +142,7 @@
 		}
 	};
 
-	extractInlinePartials = function ( Child ) {
+	extractInlinePartials = function ( Child, childProps ) {
 		// does our template contain inline partials?
 		if ( isObject( Child.template ) ) {
 			if ( !Child.partials ) {
