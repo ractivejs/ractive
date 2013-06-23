@@ -59,10 +59,11 @@ Ractive = function ( options ) {
 		_defEvals: { value: [] },
 
 		// Cache proxy event handlers - allows efficient reuse
-		_proxies: { value: {} },
+		_proxies: { value: createFromNull() },
+		_customProxies: { value: createFromNull() },
 
 		// Keep a list of used evaluators, so we don't duplicate them
-		_evaluators: { value: {} },
+		_evaluators: { value: createFromNull() },
 
 		// bindings
 		_bound: { value: [] },
