@@ -15,7 +15,7 @@ easing,
 extend,
 interpolate,
 interpolators,
-transitions,
+transitions = {},
 
 
 // internal utils
@@ -111,7 +111,7 @@ INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
 
-UNSET             = {},
+UNSET             = { unset: true },
 
 
 // namespaces
@@ -187,3 +187,38 @@ try {
 		return {}; // hope you're not modifying the Object prototype
 	};
 }
+
+
+
+var hyphenate = function ( str ) {
+	return str.replace( /[A-Z]/g, function ( match ) {
+		return '-' + match.toLowerCase();
+	});
+};
+
+// determine some facts about our environment
+var cssTransitionsEnabled, transition, transitionend;
+
+(function () {
+
+	var testDiv;
+
+	if ( !doc ) {
+		return;
+	}
+
+	testDiv = doc.createElement( 'div' );
+
+	if ( testDiv.style.transition !== undefined ) {
+		transition = 'transition';
+		transitionend = 'transitionend';
+		cssTransitionsEnabled = true;
+	} else if ( testDiv.style.webkitTransition !== undefined ) {
+		transition = 'webkitTransition';
+		transitionend = 'webkitTransitionEnd';
+		cssTransitionsEnabled = true;
+	} else {
+		cssTransitionsEnabled = false;
+	}
+
+}());
