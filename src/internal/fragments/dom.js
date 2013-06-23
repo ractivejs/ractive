@@ -359,8 +359,8 @@
 				if ( reuseable ) {
 					// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
 					// we can reuse the handler. This eliminates the need for event delegation
-					if ( !root._proxies[ proxy ] ) {
-						root._proxies[ proxy ] = function () {
+					if ( !root._customProxies[ proxyName ] ) {
+						root._customProxies[ proxyName ] = function () {
 							if ( arguments.length ) {
 								Array.prototype.unshift.call( arguments, proxyName );
 								root.fire.apply( root, arguments );
@@ -370,7 +370,7 @@
 						};
 					}
 
-					handler = root._proxies[ proxy ];
+					handler = root._customProxies[ proxyName ];
 				}
 
 				else {
@@ -390,39 +390,38 @@
 				// Use custom event. Apply definition to this node
 				listener = definition( this.node, handler );
 				this.customEventListeners[ this.customEventListeners.length ] = listener;
+
+				return;
 			}
 
 			// If not, we just need to check it is a valid event for this element
-			else {
-				
-				// warn about invalid event handlers, if we're in debug mode
-				if ( this.node[ 'on' + eventName ] !== undefined && root.debug ) {
-					if ( console && console.warn ) {
-						console.warn( 'Invalid event handler (' + eventName + ')' );
-					}
+			// warn about invalid event handlers, if we're in debug mode
+			if ( this.node[ 'on' + eventName ] !== undefined && root.debug ) {
+				if ( console && console.warn ) {
+					console.warn( 'Invalid event handler (' + eventName + ')' );
 				}
+			}
 
-				if ( reuseable ) {
-					if ( !root._proxies[ proxy ] ) {
-						root._proxies[ proxy ] = function ( event) {
-							root.fire( proxyName, this, event );
-						};
-					}
-
-					handler = root._proxies[ proxy ];
-				} else {
-					handler = function ( event ) {
-						root.fire( proxyName.toString(), this, event );
+			if ( reuseable ) {
+				if ( !root._proxies[ proxyName ] ) {
+					root._proxies[ proxyName ] = function ( event ) {
+						root.fire( proxyName, this, event );
 					};
 				}
 
-				this.eventListeners[ this.eventListeners.length ] = {
-					n: eventName,
-					h: handler
+				handler = root._proxies[ proxyName ];
+			} else {
+				handler = function ( event ) {
+					root.fire( proxyName.toString(), this, event );
 				};
-
-				this.node.addEventListener( eventName, handler );
 			}
+
+			this.eventListeners[ this.eventListeners.length ] = {
+				n: eventName,
+				h: handler
+			};
+
+			this.node.addEventListener( eventName, handler );
 		},
 
 		teardown: function ( detach ) {
