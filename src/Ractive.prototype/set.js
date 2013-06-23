@@ -37,7 +37,7 @@
 		}
 
 		// if anything has changed, attempt to resolve any unresolved keypaths...
-		if ( notificationQueue.length ) {
+		if ( notificationQueue.length && this._pendingResolution.length ) {
 			attemptKeypathResolution( this );
 		}
 
