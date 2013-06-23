@@ -111,7 +111,13 @@
 				return this.items[ index + 1 ].firstNode();
 			}
 
-			return null;
+			// if this is the root fragment, and there are no more items,
+			// it means we're at the end
+			if ( this.owner === this.root ) {
+				return null;
+			}
+
+			return this.owner.findNextNode( this );
 		}
 	};
 
@@ -137,6 +143,10 @@
 	};
 
 	Partial.prototype = {
+		findNextNode: function () {
+			return this.parentFragment.findNextNode( this );
+		},
+
 		teardown: function ( detach ) {
 			this.fragment.teardown( detach );
 		}
@@ -486,6 +496,10 @@
 
 		firstNode: function () {
 			return this.node;
+		},
+
+		findNextNode: function ( fragment ) {
+			return null;
 		},
 
 		bubble: function () {
@@ -1171,7 +1185,6 @@
 				// we need to insert the contents of our document fragment into the correct place
 				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
-			
 		},
 
 		createFragment: function ( options ) {
