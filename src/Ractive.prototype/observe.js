@@ -1,6 +1,6 @@
 (function ( proto ) {
 
-	var observe, updateObserver;
+	var observe, Observer, updateObserver;
 
 	proto.observe = function ( keypath, callback, options ) {
 
@@ -29,38 +29,11 @@
 	};
 
 	observe = function ( root, keypath, callback, options ) {
-		var observer, lastValue, context;
+		var observer;
 
-		options = options || {};
-		context = options.context || root;
+		observer = new Observer( root, keypath, callback, options );
 
-		observer = {
-			update: function () {
-				var value;
-
-				// TODO create, and use, an internal get method instead - we can skip checks
-				value = root.get( keypath, true );
-
-				if ( !isEqual( value, lastValue ) ) {
-					// wrap the callback in a try-catch block, and only throw error in
-					// debug mode
-					try {
-						callback.call( context, value, lastValue );
-					} catch ( err ) {
-						if ( root.debug ) {
-							throw err;
-						}
-					}
-					lastValue = value;
-				}
-			},
-
-			keypath: keypath,
-			root: root,
-			priority: 0
-		};
-
-		if ( options.init !== false ) {
+		if ( !options || options.init !== false ) {
 			observer.update();
 		}
 
@@ -72,6 +45,40 @@
 			}
 		};
 	};
+
+	Observer = function ( root, keypath, callback, options ) {
+		this.type = OBSERVER;
+
+		this.root = root;
+		this.keypath = keypath
+		this.callback = callback;
+		this.priority = 0; // observers get top priority
+
+		// default to root as context, but allow it to be overridden
+		this.context = ( options && options.context ? options.context : root );
+	};
+
+	Observer.prototype = {
+		update: function () {
+			var value;
+
+			// TODO create, and use, an internal get method instead - we can skip checks
+			value = this.root.get( this.keypath, true );
+
+			if ( !isEqual( value, this.value ) ) {
+				// wrap the callback in a try-catch block, and only throw error in
+				// debug mode
+				try {
+					this.callback.call( this.context, value, this.value );
+				} catch ( err ) {
+					if ( root.debug ) {
+						throw err;
+					}
+				}
+				this.value = value;
+			}
+		}
+	}
 
 }( proto ));
 
