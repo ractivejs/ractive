@@ -54,7 +54,7 @@
 		}
 
 		return function ( el, complete, params, info, isIntro ) {
-			var transitionEndHandler, transitionStyle, computedStyle, original, startTransition, originalStyle, originalOpacity, targetOpacity, duration, start, end, source, target;
+			var transitionEndHandler, transitionStyle, computedStyle, original, startTransition, originalStyle, originalOpacity, targetOpacity, duration, start, end, source, target, positionStyle;
 
 			params = parseTransitionParams( params );
 
@@ -69,6 +69,8 @@
 			// if this is an intro, we need to transition TO the original styles
 			if ( isIntro ) {
 				// hide, to avoid flashes
+				positionStyle = el.style.position;
+				el.style.position = 'absolute';
 				el.style.visibility = 'hidden';
 
 				// we need to wait a beat before we can actually get values from computedStyle.
@@ -82,6 +84,7 @@
 					end = augment( original, inside );
 
 					// starting style
+					el.style.position = positionStyle;
 					setStyle( el, properties, start, params );
 					el.style.visibility = 'visible';
 
@@ -141,16 +144,16 @@
 		'borderTopWidth',
 		'borderBottomWidth',
 		'paddingTop',
-		'paddingBottom'/*,
-		'overflowY'*/
-	], { duration: 400, easing: 'easeInOut' }, { overflowY: 'hidden' });
+		'paddingBottom',
+		'overflowY'
+	], { duration: 400, easing: 'easeInOut' }, { overflowY: 'hidden' }, { overflowY: 'hidden' });
 
 	transitions.fade = makeTransition( 'opacity', {
 		duration: 300,
 		easing: 'linear'
 	});
 
-	// get prefixed transform property name
+	/*// get prefixed transform property name
 	(function ( propertyNames ) {
 		var i = propertyNames.length, testDiv = document.createElement( 'div' );
 		while ( i-- ) {
@@ -160,31 +163,10 @@
 				break;
 			}
 		}
-	}([ 'OTransform', 'msTransform', 'MozTransform', 'webkitTransform', 'transform' ]));
+	}([ 'OTransform', 'msTransform', 'MozTransform', 'webkitTransform', 'transform' ]));*/
 
-	if ( transformsEnabled ) {
-		outside = {};
-		outside[ transform ] = function ( params ) {
-			var transformStr = 'translate(' +
-				( params.x !== undefined ? params.x : 400 ) + 'px,' +
-				( params.y !== undefined ? params.y : 0 ) + 'px)';
-
-			return transformStr;
-		};
-
-		inside = {};
-		inside[ transform ] = 'translate(0,0)';
-
-		transitions.fly = makeTransition([ 'opacity', transform ], {
-			duration: 400, easing: 'easeOut'
-		}, outside, inside );
-
-
-		transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
-			duration: 400, easing: 'easeOut'
-		}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 })
-	} else {
-		// TODO
-	}
+	transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
+		duration: 400, easing: 'easeOut'
+	}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 });
 
 }());
