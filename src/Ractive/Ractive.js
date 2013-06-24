@@ -8,7 +8,8 @@ defineProperties( defaultOptions, {
 	data:               { enumerable: true, value: {}    },
 	lazy:               { enumerable: true, value: false },
 	debug:              { enumerable: true, value: false },
-	transitions:        { enumerable: true, value: {}    }
+	transitions:        { enumerable: true, value: {}    },
+	eventDefinitions:   { enumerable: true, value: {}    }
 });
 
 Ractive = function ( options ) {
@@ -19,7 +20,7 @@ Ractive = function ( options ) {
 	// -------
 	for ( key in defaultOptions ) {
 		if ( !options.hasOwnProperty( key ) ) {
-			options[ key ] = defaultOptions[ key ];
+			options[ key ] = ( typeof defaultOptions[ key ] === 'object' ? {} : defaultOptions[ key ] );
 		}
 	}
 
@@ -95,6 +96,9 @@ Ractive = function ( options ) {
 
 	// Transition registry
 	this.transitions = options.transitions;
+
+	// Instance-specific event definitions registry
+	this.eventDefinitions = options.eventDefinitions;
 
 	// Set up bindings
 	if ( options.bindings ) {
