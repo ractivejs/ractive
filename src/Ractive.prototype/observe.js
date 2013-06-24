@@ -47,8 +47,6 @@
 	};
 
 	Observer = function ( root, keypath, callback, options ) {
-		this.type = OBSERVER;
-
 		this.root = root;
 		this.keypath = keypath
 		this.callback = callback;
