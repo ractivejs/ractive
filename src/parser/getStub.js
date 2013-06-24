@@ -341,10 +341,10 @@ var getFragmentStubFromTokens;
 
 	// element
 	(function () {
-		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies;
+		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, proxyPattern;
 
 		Element = function ( firstToken, parser, priority, preserveWhitespace ) {
-			var closed, next, i, len, attrs, proxies, attr, getFrag, item;
+			var closed, next, i, len, attrs, proxies, attr, getFrag, processProxy, item;
 
 			this.lcTag = firstToken.name.toLowerCase();
 			this.priority = priority = priority || 0;
@@ -376,12 +376,68 @@ var getFragmentStubFromTokens;
 					};
 				};
 
+				processProxy = function ( proxy ) {
+					var processed, domEventName, match, tokens, proxyName, proxyArgs, colonIndex, throwError;
+
+					throwError = function () {
+						throw new Error( 'Illegal proxy event' );
+					};
+
+					if ( !proxy.name || !proxy.value ) {
+						throwError();
+					}
+
+					processed = { domEventName: proxy.name };
+
+					tokens = proxy.value;
+
+					// proxy event names must start with a string (no mustaches)
+					if ( tokens[0].type !== TEXT ) {
+						throwError();
+					}
+
+					colonIndex = tokens[0].value.indexOf( ':' );
+					
+					// if no arguments are specified...
+					if ( colonIndex === -1 ) {
+						
+						// ...the proxy name must be string-only (no mustaches)
+						if ( tokens.length > 1 ) {
+							throwError();
+						}
+
+						processed.name = tokens[0].value;
+					}
+
+					else {
+						processed.name = tokens[0].value.substr( 0, colonIndex );
+						tokens[0].value = tokens[0].value.substring( colonIndex + 1 );
+
+						if ( !tokens[0].value ) {
+							tokens.shift();
+						}
+
+						// can we parse it yet?
+						if ( tokens.length === 1 && tokens[0].type === TEXT ) {
+							try {
+								processed.args = JSON.parse( tokens[0].value );
+							} catch ( err ) {
+								processed.args = tokens[0].value;
+							}
+						}
+
+						processed.dynamicArgs = getFragmentStubFromTokens( tokens, priority + 1 );
+					}
+
+					return processed;
+				};
+
 				if ( attrs.length ) {
 					this.attributes = attrs.map( getFrag );
 				}
 
 				if ( proxies.length ) {
-					this.proxies = proxies.map( getFrag );
+					this.proxies = proxies.map( processProxy );
 				}
 			}
 
@@ -458,7 +514,7 @@ var getFragmentStubFromTokens;
 
 		Element.prototype = {
 			toJson: function ( noStringify ) {
-				var json, name, value, str, itemStr, proxy, i, len;
+				var json, name, value, str, itemStr, proxy, match, i, len;
 
 				json = {
 					t: ELEMENT,
@@ -492,10 +548,23 @@ var getFragmentStubFromTokens;
 
 					len = this.proxies.length;
 					for ( i=0; i<len; i+=1 ) {
-						name = this.proxies[i].name;
-						value = jsonify( this.proxies[i].value.items, noStringify );
+						proxy = this.proxies[i];
 
-						json.v[ name ] = value;
+						if ( proxy.args ) {
+							json.v[ proxy.domEventName ] = {
+								n: proxy.name,
+								a: proxy.args
+							};
+						} else if ( proxy.dynamicArgs ) {
+							json.v[ proxy.domEventName ] = {
+								n: proxy.name,
+								d: jsonify( proxy.dynamicArgs.items, noStringify )
+							};
+						} else {
+							json.v[ proxy.domEventName ] = proxy.name;
+						}
+
+						console.log( json.v[ proxy.domEventName ] );
 					}
 				}
 
@@ -645,6 +714,8 @@ var getFragmentStubFromTokens;
 			}
 			return false;
 		};
+
+		proxyPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)(?::(.+))?$/;
 	}());
 
 

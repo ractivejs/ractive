@@ -12,7 +12,11 @@ eventDefinitions.tap = function ( el, fire ) {
 		currentTarget = this;
 
 		up = function ( event ) {
-			fire( currentTarget, event );
+			fire({
+				el: currentTarget,
+				original: event
+			});
+
 			cancel();
 		};
 
@@ -60,7 +64,11 @@ eventDefinitions.tap = function ( el, fire ) {
 			}
 
 			event.preventDefault();  // prevent compatibility mouse event
-			fire( currentTarget, event );
+			fire({
+				el: currentTarget,
+				original: event
+			});
+			
 			cancel();
 		};
 

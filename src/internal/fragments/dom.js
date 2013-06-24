@@ -183,6 +183,8 @@
 			descriptor,
 			namespace,
 			eventName,
+			eventNames,
+			i,
 			attr,
 			attrName,
 			lcName,
@@ -254,7 +256,12 @@
 		if ( descriptor.v ) {
 			for ( eventName in descriptor.v ) {
 				if ( descriptor.v.hasOwnProperty( eventName ) ) {
-					this.addEventProxy( eventName, descriptor.v[ eventName ], parentFragment.contextStack );
+					eventNames = eventName.split( '-' );
+					i = eventNames.length;
+
+					while ( i-- ) {
+						this.addEventProxy( eventNames[i], descriptor.v[ eventName ], parentFragment.contextStack );
+					}
 				}
 			}
 		}
@@ -349,53 +356,83 @@
 	};
 
 	Element.prototype = {
-		addEventProxy: function ( eventName, proxy, contextStack ) {
-			var self = this, root = this.root, proxyName, reuseable, definition, listener, fragment, handler;
+		addEventProxy: function ( triggerEventName, proxyDescriptor, contextStack ) {
+			var self = this, root = this.root, proxyName, proxyArgs, dynamicArgs, reuseable, definition, listener, fragment, handler, comboKey;
 
-			if ( typeof proxy === 'string' ) {
-				proxyName = proxy;
-				reuseable = true;
+			// Note the current context - this can be useful with event handlers
+			if ( !this.node._ractive ) {
+				defineProperty( this.node, '_ractive', { value: {
+					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' )
+				} });
+			}
+
+			if ( typeof proxyDescriptor === 'string' ) {
+				proxyName = proxyDescriptor;
 			} else {
-				proxyName = new TextFragment({
-					descriptor:   proxy,
+				proxyName = proxyDescriptor.n
+			}
+
+			// This key uniquely identifies this trigger+proxy name combo on this element
+			comboKey = triggerEventName + '=' + proxyName;
+			
+			if ( proxyDescriptor.a ) {
+				proxyArgs = proxyDescriptor.a;
+			}
+
+			else if ( proxyDescriptor.d ) {
+				dynamicArgs = true;
+
+				proxyArgs = new TextFragment({
+					descriptor:   proxyDescriptor.d,
 					root:         this.root,
 					owner:        this,
 					contextStack: contextStack
 				});
+
+				if ( !this.proxyFrags ) {
+					this.proxyFrags = [];
+				}
+				this.proxyFrags[ this.proxyFrags.length ] = proxyArgs;
+			}
+
+			if ( proxyArgs !== undefined ) {
+				// store arguments on the element, so we can reuse the same handler
+				// with multiple elements
+				if ( this.node._ractive[ comboKey ] ) {
+					throw new Error( 'You cannot have two proxy events with the same trigger event (' + comboKey + ')' );
+				}
+
+				this.node._ractive[ comboKey ] = {
+					dynamic: dynamicArgs,
+					payload: proxyArgs
+				};
 			}
 
 			// Is this a custom event?
-			if ( definition = Ractive.eventDefinitions[ eventName ] ) {
-				if ( reuseable ) {
-					// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
-					// we can reuse the handler. This eliminates the need for event delegation
-					if ( !root._customProxies[ proxyName ] ) {
-						root._customProxies[ proxyName ] = function () {
-							if ( arguments.length ) {
-								Array.prototype.unshift.call( arguments, proxyName );
-								root.fire.apply( root, arguments );
-							} else {
-								root.fire( proxyName );
-							}
-						};
-					}
+			if ( definition = Ractive.eventDefinitions[ triggerEventName ] ) {
+				// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
+				// we can reuse the handler. This eliminates the need for event delegation
+				if ( !root._customProxies[ comboKey ] ) {
+					root._customProxies[ comboKey ] = function ( proxyEvent ) {
+						var args, payload;
 
-					handler = root._customProxies[ proxyName ];
-				}
-
-				else {
-					// If it's not a string - in other words, it could change - we can't
-					// reuse the handler. We have to recompute the proxy event name
-					// each time the event fires
-					handler = function () {
-						if ( arguments.length ) {
-							Array.prototype.unshift.call( arguments, proxyName.toString() );
-							root.fire.apply( root, arguments );
-						} else {
-							root.fire( proxyName.toString() );
+						if ( !proxyEvent.el ) {
+							throw new Error( 'Proxy event definitions must fire events with an `el` property' );
 						}
+
+						proxyEvent.keypath = proxyEvent.el._ractive.keypath;
+						proxyEvent.context = root.get( proxyEvent.keypath );
+
+						if ( proxyEvent.el._ractive[ comboKey ] ) {
+							args = proxyEvent.el._ractive[ comboKey ];
+							payload = args.dynamic ? args.payload.toJson() : args.payload;
+						}
+
+						root.fire( proxyName, proxyEvent, payload );
 					};
 				}
+
+				handler = root._customProxies[ comboKey ];
 
 				// Use custom event. Apply definition to this node
 				listener = definition( this.node, handler );
@@ -406,32 +443,38 @@
 
 			// If not, we just need to check it is a valid event for this element
 			// warn about invalid event handlers, if we're in debug mode
-			if ( this.node[ 'on' + eventName ] !== undefined && root.debug ) {
+			if ( this.node[ 'on' + triggerEventName ] !== undefined && root.debug ) {
 				if ( console && console.warn ) {
-					console.warn( 'Invalid event handler (' + eventName + ')' );
+					console.warn( 'Invalid event handler (' + triggerEventName + ')' );
 				}
 			}
 
-			if ( reuseable ) {
-				if ( !root._proxies[ proxyName ] ) {
-					root._proxies[ proxyName ] = function ( event ) {
-						root.fire( proxyName, this, event );
+			if ( !root._proxies[ comboKey ] ) {
+				root._proxies[ comboKey ] = function ( event ) {
+					var args, payload, proxyEvent = {
+						el: this,
+						original: event,
+						keypath: this._ractive.keypath,
+						context: root.get( this._ractive.keypath )
 					};
-				}
 
-				handler = root._proxies[ proxyName ];
-			} else {
-				handler = function ( event ) {
-					root.fire( proxyName.toString(), this, event );
+					if ( this._ractive && this._ractive[ comboKey ] ) {
+						args = this._ractive[ comboKey ];
+						payload = args.dynamic ? args.payload.toJson() : args.payload;
+					}
+
+					root.fire( proxyName, proxyEvent, payload );
 				};
 			}
 
+			handler = root._proxies[ comboKey ];
+
 			this.eventListeners[ this.eventListeners.length ] = {
-				n: eventName,
+				n: triggerEventName,
 				h: handler
 			};
 
-			this.node.addEventListener( eventName, handler );
+			this.node.addEventListener( triggerEventName, handler );
 		},
 
 		teardown: function ( detach ) {
@@ -454,6 +497,12 @@
 
 			while ( self.customEventListeners.length ) {
 				self.customEventListeners.pop().teardown();
+			}
+
+			if ( this.proxyFrags ) {
+				while ( this.proxyFrags.length ) {
+					this.proxyFrags.pop().teardown();
+				}
 			}
 
 			if ( this.outro ) {
@@ -1273,6 +1322,22 @@
 			}
 		}
 
+		// reassign proxy argument fragments TODO and intro/outro param fragments
+		if ( element.proxyFrags ) {
+			i = element.proxyFrags.length;
+			while ( i-- ) {
+				reassignFragment( element.proxyFrags[i], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+			}
+		}
+
+		if ( element.node._ractive ) {
+			if ( element.node._ractive.keypath ) {
+				if ( element.node._ractive.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+					element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
+				}
+			}
+		}
+
 		// reassign children
 		if ( element.fragment ) {
 			reassignFragment( element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
@@ -1283,9 +1348,9 @@
 		var i;
 
 		// expression mustache?
-		if ( mustache.descriptor.x ) {
-			unregisterDependant( mustache );
-			new ExpressionResolver( mustache );
+		if ( mustache.expressionResolver ) {
+			mustache.expressionResolver.teardown();
+			mustache.expressionResolver = new ExpressionResolver( mustache );
 		}
 
 		// normal keypath mustache?
