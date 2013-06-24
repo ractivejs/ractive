@@ -73,6 +73,7 @@
 			return this;
 		},
 
+		// TODO should evaluators ever get torn down?
 		teardown: function () {
 			while ( this.refs.length ) {
 				this.refs.pop().teardown();
@@ -80,6 +81,15 @@
 
 			clearCache( this.root, this.keypath );
 			this.root._evaluators[ this.keypath ] = null;
+		},
+
+		// This method forces the evaluator to sync with the current model
+		// in the case of a smart update
+		refresh: function () {
+			var i = this.refs.length;
+			while ( i-- ) {
+				this.refs[i].update();
+			}
 		}
 	};
 
