@@ -110,9 +110,11 @@
 		};
 
 		processRoot = function ( root ) {
+			var previousTransitionManager = root._transitionManager;
+
 			root._transitionManager = makeTransitionManager( noop );
 			processKeypaths( root, keypathsByGuid[ root._guid ] );
-			root._transitionManager = null;
+			root._transitionManager = previousTransitionManager;
 		};
 
 		processKeypaths = function ( root, keypaths ) {
@@ -125,34 +127,11 @@
 		processKeypath = function ( root, keypath ) {
 			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
 
-			upstreamQueue = [];
-			
-
 			// We don't do root.set(), because we don't want to update DOM sections
 			// using the normal method - we want to do a smart update whereby elements
 			// are removed from the right place. But we do need to clear the cache
 			clearCache( root, keypath );
-
-
-			// First, notify direct dependants of upstream keypaths...
-			keys = splitKeypath( keypath );
-			while ( keys.length ) {
-				keys.pop();
-				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
-			}
-
-			// ...and length property!
-			upstreamQueue[ upstreamQueue.length ] = keypath + '.length';
-
-			notifyMultipleDependants( root, upstreamQueue, true );
 			
-
-			// we probably need to reassign a whole bunch of dependants
-			// (e.g. 'items.4' becomes 'items.3' if we're shifting)
-			//reassignDependants( root, keypath, array, methodName, args );
-
-
-
 			// find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
@@ -185,6 +164,20 @@
 
 			// we may have some deferred attributes to process
 			processDeferredUpdates( root );
+
+			// Finally, notify direct dependants of upstream keypaths...
+			upstreamQueue = [];
+
+			keys = splitKeypath( keypath );
+			while ( keys.length ) {
+				keys.pop();
+				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
+			}
+
+			// ...and length property!
+			upstreamQueue[ upstreamQueue.length ] = keypath + '.length';
+
+			notifyMultipleDependants( root, upstreamQueue, true );
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
@@ -198,6 +191,7 @@
 				// references need to get processed before mustaches
 				if ( dependant.type === REFERENCE ) {
 					dependant.update();
+					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
 				}
 
 				// is this a DOM section?
@@ -205,7 +199,7 @@
 					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
 
 				} else {
-					dumbUpdateQueue = dependant;
+					dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
 				}
 			}
 		};
