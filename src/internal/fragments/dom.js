@@ -369,7 +369,7 @@
 			if ( typeof proxyDescriptor === 'string' ) {
 				proxyName = proxyDescriptor;
 			} else {
-				proxyName = proxyDescriptor.n
+				proxyName = proxyDescriptor.n;
 			}
 
 			// This key uniquely identifies this trigger+proxy name combo on this element
@@ -409,7 +409,7 @@
 			}
 
 			// Is this a custom event?
-			if ( definition = Ractive.eventDefinitions[ triggerEventName ] ) {
+			if ( definition = ( root.eventDefinitions[ triggerEventName ] || Ractive.eventDefinitions[ triggerEventName ] ) ) {
 				// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
 				// we can reuse the handler. This eliminates the need for event delegation
 				if ( !root._customProxies[ comboKey ] ) {
@@ -1069,6 +1069,7 @@
 		this.initialising = true;
 		initMustache( this, options );
 		docFrag.appendChild( this.docFrag );
+
 		this.initialising = false;
 	};
 
@@ -1111,7 +1112,7 @@
 			// append list item to context stack
 			start = this.length;
 			end = start + args.length;
-			
+
 			for ( i=start; i<end; i+=1 ) {
 				fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
 				fragmentOptions.index = i;
@@ -1348,13 +1349,20 @@
 		var i;
 
 		// expression mustache?
-		if ( mustache.expressionResolver ) {
-			mustache.expressionResolver.teardown();
+		if ( mustache.descriptor.x ) {
+			if ( mustache.keypath ) {
+				unregisterDependant( mustache );
+			}
+			
+			if ( mustache.expressionResolver ) {
+				mustache.expressionResolver.teardown();
+			}
+
 			mustache.expressionResolver = new ExpressionResolver( mustache );
 		}
 
 		// normal keypath mustache?
-		else if ( mustache.keypath ) {
+		if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
 				unregisterDependant( mustache );
 
