@@ -10,8 +10,8 @@ var ExpressionResolver;
 
 		this.root = mustache.root;
 		this.mustache = mustache;
-		this.numRefs = 0;
 		this.args = [];
+		this.scouts = [];
 
 		expression = mustache.descriptor.x;
 		indexRefs = mustache.parentFragment.indexRefs;
@@ -34,8 +34,7 @@ var ExpressionResolver;
 			}
 
 			else {
-				this.numRefs += 1;
-				new ReferenceScout( this, ref, mustache.contextStack, i );
+				this.scouts[ this.scouts.length ] = new ReferenceScout( this, ref, mustache.contextStack, i );
 			}
 		}
 	};
@@ -46,6 +45,12 @@ var ExpressionResolver;
 			this.createEvaluator();
 
 			this.mustache.resolve( this.keypath );
+		},
+
+		teardown: function () {
+			while ( this.scouts.length ) {
+				this.scouts.pop().teardown();
+			}
 		},
 
 		resolveRef: function ( argNum, isIndexRef, value ) {
@@ -72,7 +77,7 @@ var ExpressionResolver;
 	ReferenceScout = function ( resolver, ref, contextStack, argNum ) {
 		var keypath, root;
 
-		root = resolver.root;
+		root = this.root = resolver.root;
 
 		keypath = resolveRef( root, ref, contextStack );
 		if ( keypath ) {
@@ -89,7 +94,16 @@ var ExpressionResolver;
 
 	ReferenceScout.prototype = {
 		resolve: function ( keypath ) {
+			this.keypath = keypath;
 			this.resolver.resolveRef( this.argNum, false, keypath );
+		},
+
+		teardown: function () {
+			// if we haven't found a keypath yet, we can
+			// stop the search now
+			if ( !this.keypath ) {
+				teardown( this );
+			}
 		}
 	};
 
