@@ -48,7 +48,7 @@
 
 	Observer = function ( root, keypath, callback, options ) {
 		this.root = root;
-		this.keypath = keypath
+		this.keypath = keypath;
 		this.callback = callback;
 		this.priority = 0; // observers get top priority
 
@@ -76,7 +76,7 @@
 				this.value = value;
 			}
 		}
-	}
+	};
 
 }( proto ));
 
