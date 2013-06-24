@@ -12,8 +12,6 @@
 		this.values = [];
 		this.refs = [];
 
-		this.deps = 0; // keep track of how many dependants this has
-
 		i = args.length;
 		while ( i-- ) {
 			arg = args[i];
