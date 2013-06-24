@@ -47,7 +47,7 @@
 		return Child;
 	};
 
-	extendable = [ 'data', 'partials', 'transitions' ];
+	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions' ];
 	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize' ];
 	blacklist = extendable.concat( inheritable );
 
