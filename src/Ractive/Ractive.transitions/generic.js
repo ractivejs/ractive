@@ -13,21 +13,21 @@
 		return original;
 	};
 
-	setStyle = function ( el, properties, map, params ) {
+	setStyle = function ( node, properties, map, params ) {
 		var i = properties.length, prop;
 
 		while ( i-- ) {
 			prop = properties[i];
 			if ( map && map[ prop ] ) {
 				if ( typeof map[ prop ] === 'function' ) {
-					el.style[ prop ] = map[ prop ]( params );
+					node.style[ prop ] = map[ prop ]( params );
 				} else {
-					el.style[ prop ] = map[ prop ];
+					node.style[ prop ] = map[ prop ];
 				}
 			}
 
 			else {
-				el.style[ prop ] = 0;
+				node.style[ prop ] = 0;
 			}
 		}
 	};
@@ -53,43 +53,47 @@
 			properties = [ properties ];
 		}
 
-		return function ( el, complete, params, info, isIntro ) {
-			var transitionEndHandler, transitionStyle, computedStyle, original, startTransition, originalStyle, originalOpacity, targetOpacity, duration, start, end, source, target, positionStyle;
+		return function ( node, complete, params, info, isIntro ) {
+			var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
 
 			params = parseTransitionParams( params );
 
 			duration = params.duration || defaults.duration;
 			easing = hyphenate( params.easing || defaults.easing );
+			delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
 
 			start = ( isIntro ? outside : inside );
 			end = ( isIntro ? inside : outside );
 
-			computedStyle = window.getComputedStyle( el );
+			computedStyle = window.getComputedStyle( node );
+			originalStyle = node.getAttribute( 'style' );
 
 			// if this is an intro, we need to transition TO the original styles
 			if ( isIntro ) {
 				// hide, to avoid flashes
-				positionStyle = el.style.position;
-				el.style.position = 'absolute';
-				el.style.visibility = 'hidden';
+				positionStyle = node.style.position;
+				visibilityStyle = node.style.visibility;
+				node.style.position = 'absolute';
+				node.style.visibility = 'hidden';
 
 				// we need to wait a beat before we can actually get values from computedStyle.
 				// Yeah, I know, WTF browsers
 				setTimeout( function () {
 					var i, prop;
 
-					original = getOriginalComputedStyles( computedStyle, properties );
-
+					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
+					
 					start = outside;
-					end = augment( original, inside );
+					end = augment( originalComputedStyles, inside );
 
 					// starting style
-					el.style.position = positionStyle;
-					setStyle( el, properties, start, params );
-					el.style.visibility = 'visible';
+					node.style.position = positionStyle;
+					node.style.visibility = visibilityStyle;
+					
+					setStyle( node, properties, start, params );
 
 					setTimeout( startTransition, 0 );
-				}, 0 );
+				}, delay );
 			}
 
 			// otherwise we need to transition FROM them
@@ -97,44 +101,38 @@
 				setTimeout( function () {
 					var i, prop;
 
-					original = getOriginalComputedStyles( computedStyle, properties );
+					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 
-					start = augment( original, inside );
+					start = augment( originalComputedStyles, inside );
 					end = outside;
 
 					// ending style
-					setStyle( el, properties, start, params );
+					setStyle( node, properties, start, params );
 
 					setTimeout( startTransition, 0 );
-				}, 0 );
+				}, delay );
 			}
 
 			startTransition = function () {
 				var i, prop;
 
-				el.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
-				el.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
-				el.style[ transition + 'TimingFunction' ] = easing;
+				node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
+				node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
+				node.style[ transition + 'TimingFunction' ] = easing;
 
 				transitionEndHandler = function ( event ) {
-					el.removeEventListener( transitionend, transitionEndHandler );
+					node.removeEventListener( transitionend, transitionEndHandler );
 
 					if ( isIntro ) {
-						setTimeout( function () {
-							if ( originalStyle ) {
-								el.setAttribute( 'style', originalStyle );
-							} else {
-								el.removeAttribute( 'style' );
-							}
-						}, 0 );
+						node.setAttribute( 'style', originalStyle );
 					}
 
 					complete();
 				};
 				
-				el.addEventListener( transitionend, transitionEndHandler );
+				node.addEventListener( transitionend, transitionEndHandler );
 
-				setStyle( el, properties, end, params );
+				setStyle( node, properties, end, params );
 			};
 		};
 	};
