@@ -51,6 +51,20 @@
 
 		toString: function () {
 			return this.items.join( '' );
+		},
+
+		toJson: function () {
+			var str, json;
+
+			str = this.toString();
+
+			try {
+				json = JSON.parse( str );
+			} catch ( err ) {
+				json = str;
+			}
+
+			return json;
 		}
 	};
 
