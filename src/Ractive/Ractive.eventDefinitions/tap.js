@@ -1,4 +1,4 @@
-eventDefinitions.tap = function ( el, fire ) {
+eventDefinitions.tap = function ( node, fire ) {
 	var mousedown, touchstart, distanceThreshold, timeThreshold;
 
 	distanceThreshold = 5; // maximum pixels pointer can move before cancel
@@ -13,7 +13,7 @@ eventDefinitions.tap = function ( el, fire ) {
 
 		up = function ( event ) {
 			fire({
-				el: currentTarget,
+				node: currentTarget,
 				original: event
 			});
 
@@ -37,7 +37,7 @@ eventDefinitions.tap = function ( el, fire ) {
 		setTimeout( cancel, timeThreshold );
 	};
 
-	el.addEventListener( 'mousedown', mousedown );
+	node.addEventListener( 'mousedown', mousedown );
 
 
 	touchstart = function ( event ) {
@@ -65,7 +65,7 @@ eventDefinitions.tap = function ( el, fire ) {
 
 			event.preventDefault();  // prevent compatibility mouse event
 			fire({
-				el: currentTarget,
+				node: currentTarget,
 				original: event
 			});
 			
@@ -98,13 +98,13 @@ eventDefinitions.tap = function ( el, fire ) {
 		setTimeout( cancel, timeThreshold );
 	};
 
-	el.addEventListener( 'touchstart', touchstart );
+	node.addEventListener( 'touchstart', touchstart );
 
 
 	return {
 		teardown: function () {
-			el.removeEventListener( 'mousedown', mousedown );
-			el.removeEventListener( 'touchstart', touchstart );
+			node.removeEventListener( 'mousedown', mousedown );
+			node.removeEventListener( 'touchstart', touchstart );
 		}
 	};
 };

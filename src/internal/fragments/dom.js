@@ -416,15 +416,15 @@
 					root._customProxies[ comboKey ] = function ( proxyEvent ) {
 						var args, payload;
 
-						if ( !proxyEvent.el ) {
-							throw new Error( 'Proxy event definitions must fire events with an `el` property' );
+						if ( !proxyEvent.node ) {
+							throw new Error( 'Proxy event definitions must fire events with a `node` property' );
 						}
 
-						proxyEvent.keypath = proxyEvent.el._ractive.keypath;
+						proxyEvent.keypath = proxyEvent.node._ractive.keypath;
 						proxyEvent.context = root.get( proxyEvent.keypath );
 
-						if ( proxyEvent.el._ractive[ comboKey ] ) {
-							args = proxyEvent.el._ractive[ comboKey ];
+						if ( proxyEvent.node._ractive[ comboKey ] ) {
+							args = proxyEvent.node._ractive[ comboKey ];
 							payload = args.dynamic ? args.payload.toJson() : args.payload;
 						}
 
@@ -452,7 +452,7 @@
 			if ( !root._proxies[ comboKey ] ) {
 				root._proxies[ comboKey ] = function ( event ) {
 					var args, payload, proxyEvent = {
-						el: this,
+						node: this,
 						original: event,
 						keypath: this._ractive.keypath,
 						context: root.get( this._ractive.keypath )
