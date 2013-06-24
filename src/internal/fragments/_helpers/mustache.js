@@ -47,7 +47,7 @@ initMustache = function ( mustache, options ) {
 
 	// if it's an expression, we have a bit more work to do
 	if ( options.descriptor.x ) {
-		new ExpressionResolver( mustache );
+		mustache.expressionResolver = new ExpressionResolver( mustache );
 	}
 
 };
@@ -71,4 +71,8 @@ resolveMustache = function ( keypath ) {
 
 	registerDependant( this );
 	this.update();
+
+	if ( this.expressionResolver ) {
+		this.expressionResolver = null;
+	}
 };
