@@ -70,6 +70,13 @@ var ExpressionResolver;
 			if ( !this.root._evaluators[ this.keypath ] ) {
 				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
 			}
+
+			else {
+				// we need to trigger a refresh of the evaluator, since it
+				// will have become de-synced from the model if we're in a
+				// reassignment cycle
+				this.root._evaluators[ this.keypath ].refresh();
+			}
 		}
 	};
 
