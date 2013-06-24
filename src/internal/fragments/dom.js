@@ -362,7 +362,8 @@
 			// Note the current context - this can be useful with event handlers
 			if ( !this.node._ractive ) {
 				defineProperty( this.node, '_ractive', { value: {
-					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' )
+					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
+					index: this.parentFragment.indexRefs
 				} });
 			}
 
@@ -422,6 +423,7 @@
 
 						proxyEvent.keypath = proxyEvent.node._ractive.keypath;
 						proxyEvent.context = root.get( proxyEvent.keypath );
+						proxyEvent.index = proxyEvent.node._ractive.index;
 
 						if ( proxyEvent.node._ractive[ comboKey ] ) {
 							args = proxyEvent.node._ractive[ comboKey ];
@@ -455,7 +457,8 @@
 						node: this,
 						original: event,
 						keypath: this._ractive.keypath,
-						context: root.get( this._ractive.keypath )
+						context: root.get( this._ractive.keypath ),
+						index: this._ractive.index
 					};
 
 					if ( this._ractive && this._ractive[ comboKey ] ) {
@@ -1273,7 +1276,7 @@
 		var i, j, item, context;
 
 		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
-			fragment.indexRefs[ indexRef ].index = newIndex;
+			fragment.indexRefs[ indexRef ] = newIndex;
 		}
 
 		// fix context stack
@@ -1332,11 +1335,11 @@
 		}
 
 		if ( element.node._ractive ) {
-			if ( element.node._ractive.keypath ) {
-				if ( element.node._ractive.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-					element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
-				}
+			if ( element.node._ractive.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+				element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
 			}
+
+			element.node._ractive.index[ indexRef ] = newIndex;
 		}
 
 		// reassign children
@@ -1372,7 +1375,7 @@
 		}
 
 		// index ref mustache?
-		else if ( mustache.refIndex ) {
+		else if ( mustache.indexRef === indexRef ) {
 			mustache.refIndex = newIndex;
 			mustache.render( newIndex );
 		}
