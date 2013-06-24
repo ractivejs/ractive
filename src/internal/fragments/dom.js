@@ -510,34 +510,34 @@
 
 				transitionName = this.outro.toString();
 				outro = this.root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
+			}
 
-				if ( outro ) {
-					transitionManager = this.root._transitionManager;
-					
-					if ( transitionManager ) {
-						transitionManager.push();
-					}
-
-					if ( this.outroParams ) {
-						transitionParams = this.outroParams.toString();
-
-						try {
-							transitionParams = JSON.parse( transitionParams );
-						} catch ( err ) {
-							// nothing, just treat it as a string
-						}
-					}
-
-					outro.call( this.root, this.node, function () {
-						if ( detach ) {
-							self.parentNode.removeChild( self.node );
-						}
-
-						if ( transitionManager ) {
-							transitionManager.pop();
-						}
-					}, transitionParams, transitionManager.info );
+			if ( outro ) {
+				transitionManager = this.root._transitionManager;
+				
+				if ( transitionManager ) {
+					transitionManager.push();
 				}
+
+				if ( this.outroParams ) {
+					transitionParams = this.outroParams.toString();
+
+					try {
+						transitionParams = JSON.parse( transitionParams );
+					} catch ( err ) {
+						// nothing, just treat it as a string
+					}
+				}
+
+				outro.call( this.root, this.node, function () {
+					if ( detach ) {
+						self.parentNode.removeChild( self.node );
+					}
+
+					if ( transitionManager ) {
+						transitionManager.pop();
+					}
+				}, transitionParams, transitionManager.info );
 			} else if ( detach ) {
 				self.parentNode.removeChild( self.node );
 			}
