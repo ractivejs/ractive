@@ -1,10 +1,11 @@
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
 proto.teardown = function ( complete ) {
-	var keypath, transitionManager;
+	var keypath, transitionManager, previousTransitionManager;
 
 	this.fire( 'teardown' );
 
+	previousTransitionManager = this._transitionManager;
 	this._transitionManager = transitionManager = makeTransitionManager( complete );
 
 	this.fragment.teardown( true );
@@ -25,7 +26,7 @@ proto.teardown = function ( complete ) {
 	}
 
 	// transition manager has finished its work
-	this._transitionManager = null;
+	this._transitionManager = previousTransitionManager;
 	transitionManager.ready = true;
 	if ( complete && !transitionManager.active ) {
 		complete.call( this );

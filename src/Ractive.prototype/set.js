@@ -3,7 +3,7 @@
 	var set, attemptKeypathResolution;
 
 	proto.set = function ( keypath, value, complete ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previous, transitionManager;
+		var notificationQueue, upstreamQueue, k, normalised, keys, previous, previousTransitionManager, transitionManager;
 
 		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];
@@ -13,6 +13,7 @@
 		}
 
 		// manage transitions
+		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( complete );
 
 		// setting multiple values in one go
@@ -56,7 +57,7 @@
 		processDeferredUpdates( this );
 
 		// transition manager has finished its work
-		this._transitionManager = null;
+		this._transitionManager = previousTransitionManager;
 		transitionManager.ready = true;
 		if ( complete && !transitionManager.active ) {
 			complete.call( this );

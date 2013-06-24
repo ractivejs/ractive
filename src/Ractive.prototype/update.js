@@ -1,11 +1,12 @@
 proto.update = function ( keypath, complete ) {
-	var transitionManager;
+	var transitionManager, previousTransitionManager;
 
 	if ( typeof keypath === 'function' ) {
 		complete = keypath;
 	}
 
 	// manage transitions
+	previousTransitionManager = this._transitionManager;
 	this._transitionManager = transitionManager = makeTransitionManager( complete );
 
 	clearCache( this, keypath || '' );
@@ -14,7 +15,7 @@ proto.update = function ( keypath, complete ) {
 	processDeferredUpdates( this );
 
 	// transition manager has finished its work
-	this._transitionManager = null;
+	this._transitionManager = previousTransitionManager;
 	transitionManager.ready = true;
 	if ( complete && !transitionManager.active ) {
 		complete.call( this );
