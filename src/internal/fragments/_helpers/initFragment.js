@@ -35,10 +35,7 @@ initFragment = function ( fragment, options ) {
 			fragment.indexRefs = {};
 		}
 
-		fragment.indexRefs[ options.indexRef ] = {
-			index: options.index,
-			keypath: options.owner.keypath
-		};
+		fragment.indexRefs[ options.indexRef ] = options.index;
 	}
 
 	// Time to create this fragment's child items;

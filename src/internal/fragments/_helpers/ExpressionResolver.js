@@ -30,7 +30,7 @@ var ExpressionResolver;
 			
 			// is this an index ref?
 			if ( indexRefs && indexRefs[ ref ] !== undefined ) {
-				this.resolveRef( i, true, indexRefs[ ref ].index );
+				this.resolveRef( i, true, indexRefs[ ref ] );
 			}
 
 			else {
