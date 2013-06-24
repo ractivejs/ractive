@@ -563,8 +563,6 @@ var getFragmentStubFromTokens;
 						} else {
 							json.v[ proxy.domEventName ] = proxy.name;
 						}
-
-						console.log( json.v[ proxy.domEventName ] );
 					}
 				}
 
