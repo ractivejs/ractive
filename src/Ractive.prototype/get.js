@@ -1,7 +1,8 @@
 // TODO use dontNormalise
+// TODO refactor this shitball
 
 proto.get = function ( keypath, dontNormalise ) {
-	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value;
+	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
 
 	if ( !keypath ) {
 		return this.data;
@@ -10,8 +11,14 @@ proto.get = function ( keypath, dontNormalise ) {
 	cache = this._cache;
 
 	if ( isArray( keypath ) ) {
+		if ( !keypath.length ) {
+			return this.data;
+		}
+
 		keys = keypath.slice(); // clone
 		normalised = keys.join( '.' );
+
+		ignoreUndefined = true; // because this should be a branch, sod the cache
 	}
 
 	else {
@@ -26,7 +33,11 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// we may have a cache hit now that it's been normalised
 	if ( cache.hasOwnProperty( normalised ) && cache[ normalised ] !== UNSET ) {
-		return cache[ normalised ];
+		if ( cache[ normalised ] === undefined && ignoreUndefined ) {
+			// continue
+		} else {
+			return cache[ normalised ];
+		}
 	}
 
 	// is this an uncached evaluator value?
@@ -66,6 +77,6 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// Update cache
 	cache[ normalised ] = value;
-	
+
 	return value;
 };
