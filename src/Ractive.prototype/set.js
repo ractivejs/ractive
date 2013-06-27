@@ -14,7 +14,7 @@
 
 		// manage transitions
 		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( complete );
+		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {

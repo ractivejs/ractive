@@ -6,7 +6,7 @@ proto.teardown = function ( complete ) {
 	this.fire( 'teardown' );
 
 	previousTransitionManager = this._transitionManager;
-	this._transitionManager = transitionManager = makeTransitionManager( complete );
+	this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 	this.fragment.teardown( true );
 

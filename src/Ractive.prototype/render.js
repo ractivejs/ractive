@@ -13,7 +13,7 @@ proto.render = function ( options ) {
 		el.innerHTML = '';
 	}
 
-	this._transitionManager = transitionManager = makeTransitionManager( options.complete );
+	this._transitionManager = transitionManager = makeTransitionManager( this, options.complete );
 
 	// Render our *root fragment*
 	this.fragment = new DomFragment({

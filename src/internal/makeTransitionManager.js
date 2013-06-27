@@ -1,4 +1,4 @@
-var makeTransitionManager = function ( callback ) {
+var makeTransitionManager = function ( root, callback ) {
 	var transitionManager;
 
 	transitionManager = {
@@ -11,7 +11,7 @@ var makeTransitionManager = function ( callback ) {
 		pop: function () {
 			transitionManager.active -= 1;
 			if ( callback && !transitionManager.active && transitionManager.ready ) {
-				callback();
+				callback.call( root );
 			}
 		}
 	};

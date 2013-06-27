@@ -7,7 +7,7 @@ proto.update = function ( keypath, complete ) {
 
 	// manage transitions
 	previousTransitionManager = this._transitionManager;
-	this._transitionManager = transitionManager = makeTransitionManager( complete );
+	this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 	clearCache( this, keypath || '' );
 	notifyDependants( this, keypath || '' );

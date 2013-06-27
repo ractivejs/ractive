@@ -112,7 +112,7 @@
 		processRoot = function ( root ) {
 			var previousTransitionManager = root._transitionManager;
 
-			root._transitionManager = makeTransitionManager( noop );
+			root._transitionManager = makeTransitionManager( root, noop );
 			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = previousTransitionManager;
 		};
