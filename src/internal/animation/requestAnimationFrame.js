@@ -3,13 +3,19 @@
 	
 	var x;
 
-	for ( x = 0; x < vendors.length && !global.requestAnimationFrame; ++x ) {
-		global.requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
-		global.cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
+	if ( global.requestAnimationFrame ) {
+		requestAnimationFrame = global.requestAnimationFrame;
+		cancelAnimationFrame = global.cancelAnimationFrame;
+		return;
 	}
 
-	if ( !global.requestAnimationFrame ) {
-		global.requestAnimationFrame = function(callback) {
+	for ( x = 0; x < vendors.length && !requestAnimationFrame; ++x ) {
+		requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
+		cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
+	}
+
+	if ( !requestAnimationFrame ) {
+		requestAnimationFrame = function(callback) {
 			var currTime, timeToCall, id;
 			
 			currTime = Date.now();
@@ -21,8 +27,8 @@
 		};
 	}
 
-	if ( !global.cancelAnimationFrame ) {
-		global.cancelAnimationFrame = function( id ) {
+	if ( !cancelAnimationFrame ) {
+		cancelAnimationFrame = function( id ) {
 			global.clearTimeout( id );
 		};
 	}
