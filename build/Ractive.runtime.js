@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.0 - 2013-06-24
+/*! Ractive - v0.3.0 - 2013-07-04
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -36,6 +36,8 @@ isObject,
 isNumeric,
 isEqual,
 getEl,
+requestAnimationFrame,
+cancelAnimationFrame,
 defineProperty,
 defineProperties,
 create,
@@ -285,17 +287,15 @@ var cssTransitionsEnabled, transition, transitionend;
 }( proto ));
 (function ( proto ) {
 
-	var animate;
+	var animate, noAnimation;
 
 	proto.animate = function ( keypath, to, options ) {
 		
 		var k, animation, animations;
 
-		options = options || {};
-
 		// animate multiple properties
 		if ( typeof keypath === 'object' ) {
-			options = to;
+			options = to || {};
 			animations = [];
 
 			for ( k in keypath ) {
@@ -313,6 +313,8 @@ var cssTransitionsEnabled, transition, transitionend;
 			};
 		}
 
+		options = options || {};
+
 		animation = animate( this, keypath, to, options );
 
 		return {
@@ -322,8 +324,19 @@ var cssTransitionsEnabled, transition, transitionend;
 		};
 	};
 
+	noAnimation = {
+		stop: noop
+	};
+
 	animate = function ( root, keypath, to, options ) {
-		var easing, duration, animation, i, keys;
+		var easing, duration, animation, i, keys, from;
+
+		from = root.get( keypath );
+		
+		// don't bother animating values that stay the same
+		if ( isEqual( from, to ) ) {
+			return noAnimation;
+		}
 
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?
@@ -358,11 +371,12 @@ var cssTransitionsEnabled, transition, transitionend;
 		// duration
 		duration = ( options.duration === undefined ? 400 : options.duration );
 
-		keys = splitKeypath( keypath );
+		// TODO store keys, use an internal set method
+		//keys = splitKeypath( keypath );
 
 		animation = new Animation({
-			keys: keys,
-			from: root.get( keys ),
+			keypath: keypath,
+			from: from,
 			to: to,
 			root: root,
 			duration: duration,
@@ -403,9 +417,10 @@ proto.fire = function ( eventName ) {
 	}
 };
 // TODO use dontNormalise
+// TODO refactor this shitball
 
 proto.get = function ( keypath, dontNormalise ) {
-	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value;
+	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
 
 	if ( !keypath ) {
 		return this.data;
@@ -414,8 +429,14 @@ proto.get = function ( keypath, dontNormalise ) {
 	cache = this._cache;
 
 	if ( isArray( keypath ) ) {
+		if ( !keypath.length ) {
+			return this.data;
+		}
+
 		keys = keypath.slice(); // clone
 		normalised = keys.join( '.' );
+
+		ignoreUndefined = true; // because this should be a branch, sod the cache
 	}
 
 	else {
@@ -430,7 +451,11 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// we may have a cache hit now that it's been normalised
 	if ( cache.hasOwnProperty( normalised ) && cache[ normalised ] !== UNSET ) {
-		return cache[ normalised ];
+		if ( cache[ normalised ] === undefined && ignoreUndefined ) {
+			// continue
+		} else {
+			return cache[ normalised ];
+		}
 	}
 
 	// is this an uncached evaluator value?
@@ -470,7 +495,7 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	// Update cache
 	cache[ normalised ] = value;
-	
+
 	return value;
 };
 var teardown,
@@ -781,7 +806,7 @@ proto.link = function ( keypath ) {
 				try {
 					this.callback.call( this.context, value, this.value );
 				} catch ( err ) {
-					if ( root.debug ) {
+					if ( this.root.debug ) {
 						throw err;
 					}
 				}
@@ -864,7 +889,7 @@ proto.render = function ( options ) {
 		el.innerHTML = '';
 	}
 
-	this._transitionManager = transitionManager = makeTransitionManager( options.complete );
+	this._transitionManager = transitionManager = makeTransitionManager( this, options.complete );
 
 	// Render our *root fragment*
 	this.fragment = new DomFragment({
@@ -880,8 +905,8 @@ proto.render = function ( options ) {
 	// transition manager has finished its work
 	this._transitionManager = null;
 	transitionManager.ready = true;
-	if ( options.complete && !transitionManager.active ) {
-		options.complete.call( this );
+	if ( !transitionManager.active ) {
+		transitionManager.complete();
 	}
 };
 proto.requestFullscreen = function () {
@@ -903,7 +928,7 @@ proto.requestFullscreen = function () {
 
 		// manage transitions
 		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( complete );
+		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
@@ -948,8 +973,8 @@ proto.requestFullscreen = function () {
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;
 		transitionManager.ready = true;
-		if ( complete && !transitionManager.active ) {
-			complete.call( this );
+		if ( !transitionManager.active ) {
+			transitionManager.complete();
 		}
 
 		// fire event
@@ -1054,7 +1079,7 @@ proto.teardown = function ( complete ) {
 	this.fire( 'teardown' );
 
 	previousTransitionManager = this._transitionManager;
-	this._transitionManager = transitionManager = makeTransitionManager( complete );
+	this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 	this.fragment.teardown( true );
 
@@ -1076,8 +1101,8 @@ proto.teardown = function ( complete ) {
 	// transition manager has finished its work
 	this._transitionManager = previousTransitionManager;
 	transitionManager.ready = true;
-	if ( complete && !transitionManager.active ) {
-		complete.call( this );
+	if ( !transitionManager.active ) {
+		transitionManager.complete();
 	}
 };
 proto.toggleFullscreen = function () {
@@ -1106,7 +1131,7 @@ proto.update = function ( keypath, complete ) {
 
 	// manage transitions
 	previousTransitionManager = this._transitionManager;
-	this._transitionManager = transitionManager = makeTransitionManager( complete );
+	this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 	clearCache( this, keypath || '' );
 	notifyDependants( this, keypath || '' );
@@ -1116,8 +1141,8 @@ proto.update = function ( keypath, complete ) {
 	// transition manager has finished its work
 	this._transitionManager = previousTransitionManager;
 	transitionManager.ready = true;
-	if ( complete && !transitionManager.active ) {
-		complete.call( this );
+	if ( !transitionManager.active ) {
+		transitionManager.complete();
 	}
 
 	if ( typeof keypath === 'string' ) {
@@ -1208,33 +1233,104 @@ adaptors.backbone = function ( model, path ) {
 	};
 };
 adaptors.statesman = function ( model, path ) {
-	var settingModel, settingView, setModel, setView;
+	var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
 
-	path = ( path ? path + '.' : '' );
+	if ( path ) {
+		path += '.';
+		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+		pathLength = path.length;
+
+		prefix = function ( attrs ) {
+			var attr, result;
+
+			if ( !attrs ) {
+				return;
+			}
+
+			result = {};
+
+			for ( attr in attrs ) {
+				if ( attrs.hasOwnProperty( attr ) ) {
+					result[ path + attr ] = attrs[ attr ];
+				}
+			}
+
+			return result;
+		};
+	}
+
 
 	return {
 		init: function ( view ) {
-			setView = function ( keypath, value ) {
-				if ( !settingModel ) {
-					settingView = true;
-					view.set( keypath, value );
-					settingView = false;
+			
+			var data;
+
+			// if no path specified...
+			if ( !path ) {
+				setView = function ( keypath, value ) {
+					if ( !settingModel ) {
+						settingView = true;
+						if ( typeof keypath === 'object' ) {
+							view.set( keypath );
+						} else {
+							view.set( keypath, value );
+						}
+						settingView = false;
+					}
+				};
+
+				if ( view.twoway ) {
+					setModel = function ( keypath, value ) {
+						if ( !settingView ) {
+							settingModel = true;
+							model.set( keypath, value );
+							settingModel = false;
+						}
+					};
 				}
-			};
+			}
 
-			setModel = function ( keypath, value ) {
-				if ( !settingView ) {
-					settingModel = true;
-					model.set( keypath, value );
-					settingModel = false;
+			else {
+				setView = function ( keypath, value ) {
+					var data;
+
+					if ( !settingModel ) {
+						settingView = true;
+						if ( typeof keypath === 'object' ) {
+							data = prefix( keypath );
+							view.set( data );
+						} else {
+							view.set( path + keypath, value );
+						}
+						settingView = false;
+					}
+				};
+
+				if ( view.twoway ) {
+					setModel = function ( keypath, value ) {
+						if ( !settingView ) {
+							if ( pathMatcher.test( keypath ) ) {
+								settingModel = true;
+								model.set( keypath.substring( pathLength ), value );
+								settingModel = false;
+							}
+						}
+					};
 				}
-			};
+			}
 
-			model.on( 'set', setView );
-			view.on( 'set', setModel );
-
+			model.on( 'change', setView );
+	
+			if ( view.twoway ) {
+				view.on( 'set', setModel );
+			}
+			
 			// initialise
-			view.set( model.get() );
+			data = ( path ? prefix( model.get() ) : model.get() );
+
+			if ( data ) {
+				view.set( path ? prefix( model.get() ) : model.get() );
+			}
 		},
 
 		teardown: function ( view ) {
@@ -1275,7 +1371,7 @@ easing = {
 		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
 	}
 };
-eventDefinitions.tap = function ( el, fire ) {
+eventDefinitions.tap = function ( node, fire ) {
 	var mousedown, touchstart, distanceThreshold, timeThreshold;
 
 	distanceThreshold = 5; // maximum pixels pointer can move before cancel
@@ -1290,7 +1386,7 @@ eventDefinitions.tap = function ( el, fire ) {
 
 		up = function ( event ) {
 			fire({
-				el: currentTarget,
+				node: currentTarget,
 				original: event
 			});
 
@@ -1314,7 +1410,7 @@ eventDefinitions.tap = function ( el, fire ) {
 		setTimeout( cancel, timeThreshold );
 	};
 
-	el.addEventListener( 'mousedown', mousedown );
+	node.addEventListener( 'mousedown', mousedown );
 
 
 	touchstart = function ( event ) {
@@ -1342,7 +1438,7 @@ eventDefinitions.tap = function ( el, fire ) {
 
 			event.preventDefault();  // prevent compatibility mouse event
 			fire({
-				el: currentTarget,
+				node: currentTarget,
 				original: event
 			});
 			
@@ -1375,13 +1471,13 @@ eventDefinitions.tap = function ( el, fire ) {
 		setTimeout( cancel, timeThreshold );
 	};
 
-	el.addEventListener( 'touchstart', touchstart );
+	node.addEventListener( 'touchstart', touchstart );
 
 
 	return {
 		teardown: function () {
-			el.removeEventListener( 'mousedown', mousedown );
-			el.removeEventListener( 'touchstart', touchstart );
+			node.removeEventListener( 'mousedown', mousedown );
+			node.removeEventListener( 'touchstart', touchstart );
 		}
 	};
 };
@@ -1636,6 +1732,7 @@ eventDefinitions.tap = function ( el, fire ) {
 	};
 
 }());
+// TODO short circuit values that stay the same
 interpolate = function ( from, to ) {
 	if ( isNumeric( from ) && isNumeric( to ) ) {
 		return Ractive.interpolators.number( +from, +to );
@@ -1938,21 +2035,21 @@ Ractive = function ( options ) {
 		return original;
 	};
 
-	setStyle = function ( el, properties, map, params ) {
+	setStyle = function ( node, properties, map, params ) {
 		var i = properties.length, prop;
 
 		while ( i-- ) {
 			prop = properties[i];
 			if ( map && map[ prop ] ) {
 				if ( typeof map[ prop ] === 'function' ) {
-					el.style[ prop ] = map[ prop ]( params );
+					node.style[ prop ] = map[ prop ]( params );
 				} else {
-					el.style[ prop ] = map[ prop ];
+					node.style[ prop ] = map[ prop ];
 				}
 			}
 
 			else {
-				el.style[ prop ] = 0;
+				node.style[ prop ] = 0;
 			}
 		}
 	};
@@ -1978,43 +2075,47 @@ Ractive = function ( options ) {
 			properties = [ properties ];
 		}
 
-		return function ( el, complete, params, info, isIntro ) {
-			var transitionEndHandler, transitionStyle, computedStyle, original, startTransition, originalStyle, originalOpacity, targetOpacity, duration, start, end, source, target, positionStyle;
+		return function ( node, complete, params, info, isIntro ) {
+			var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
 
 			params = parseTransitionParams( params );
-
+			
 			duration = params.duration || defaults.duration;
 			easing = hyphenate( params.easing || defaults.easing );
+			delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
 
 			start = ( isIntro ? outside : inside );
 			end = ( isIntro ? inside : outside );
 
-			computedStyle = window.getComputedStyle( el );
+			computedStyle = window.getComputedStyle( node );
+			originalStyle = node.getAttribute( 'style' );
 
 			// if this is an intro, we need to transition TO the original styles
 			if ( isIntro ) {
 				// hide, to avoid flashes
-				positionStyle = el.style.position;
-				el.style.position = 'absolute';
-				el.style.visibility = 'hidden';
+				positionStyle = node.style.position;
+				visibilityStyle = node.style.visibility;
+				node.style.position = 'absolute';
+				node.style.visibility = 'hidden';
 
 				// we need to wait a beat before we can actually get values from computedStyle.
 				// Yeah, I know, WTF browsers
 				setTimeout( function () {
 					var i, prop;
 
-					original = getOriginalComputedStyles( computedStyle, properties );
-
+					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
+					
 					start = outside;
-					end = augment( original, inside );
+					end = augment( originalComputedStyles, inside );
 
 					// starting style
-					el.style.position = positionStyle;
-					setStyle( el, properties, start, params );
-					el.style.visibility = 'visible';
+					node.style.position = positionStyle;
+					node.style.visibility = visibilityStyle;
+					
+					setStyle( node, properties, start, params );
 
 					setTimeout( startTransition, 0 );
-				}, 0 );
+				}, delay );
 			}
 
 			// otherwise we need to transition FROM them
@@ -2022,44 +2123,38 @@ Ractive = function ( options ) {
 				setTimeout( function () {
 					var i, prop;
 
-					original = getOriginalComputedStyles( computedStyle, properties );
+					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 
-					start = augment( original, inside );
+					start = augment( originalComputedStyles, inside );
 					end = outside;
 
 					// ending style
-					setStyle( el, properties, start, params );
+					setStyle( node, properties, start, params );
 
 					setTimeout( startTransition, 0 );
-				}, 0 );
+				}, delay );
 			}
 
 			startTransition = function () {
 				var i, prop;
 
-				el.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
-				el.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
-				el.style[ transition + 'TimingFunction' ] = easing;
+				node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
+				node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
+				node.style[ transition + 'TimingFunction' ] = easing;
 
 				transitionEndHandler = function ( event ) {
-					el.removeEventListener( transitionend, transitionEndHandler );
+					node.removeEventListener( transitionend, transitionEndHandler );
 
 					if ( isIntro ) {
-						setTimeout( function () {
-							if ( originalStyle ) {
-								el.setAttribute( 'style', originalStyle );
-							} else {
-								el.removeAttribute( 'style' );
-							}
-						}, 0 );
+						node.setAttribute( 'style', originalStyle || '' );
 					}
 
 					complete();
 				};
 				
-				el.addEventListener( transitionend, transitionEndHandler );
+				node.addEventListener( transitionend, transitionEndHandler );
 
-				setStyle( el, properties, end, params );
+				setStyle( node, properties, end, params );
 			};
 		};
 	};
@@ -2110,6 +2205,123 @@ var parseTransitionParams = function ( params ) {
 
 	return params || {};
 };
+(function ( transitions ) {
+
+	var typewriter, typewriteNode, typewriteTextNode;
+
+	typewriteNode = function ( node, complete, interval ) {
+		var children, next, hideData;
+
+		if ( node.nodeType === 3 ) {
+			typewriteTextNode( node, complete, interval );
+			return;
+		}
+
+		children = Array.prototype.slice.call( node.childNodes );
+
+		next = function () {
+			if ( !children.length ) {
+				complete();
+				return;
+			}
+
+			typewriteNode( children.shift(), next, interval );
+		};
+
+		next();
+	};
+
+	typewriteTextNode = function ( node, complete, interval ) {
+		var str, len, loop, i;
+
+		// text node
+		str = node._hiddenData;
+		len = str.length;
+
+		if ( !len ) {
+			complete();
+			return;
+		}
+
+		i = 0;
+
+		loop = setInterval( function () {
+			var substr, remaining, match, remainingNonWhitespace, filler;
+
+			substr = str.substr( 0, i );
+			remaining = str.substring( i );
+
+			match = /^[^\s]+/.exec( remaining );
+			remainingNonWhitespace = ( match ? match[0].length : 0 );
+
+			filler = new Array( remainingNonWhitespace + 1 ).join( '\u00a0' );
+
+
+			node.data = substr + filler;
+			if ( i === len ) {
+				clearInterval( loop );
+				delete node._hiddenData;
+				complete();
+			}
+
+			i += 1;
+		}, interval );
+	};
+
+	typewriter = function ( node, complete, params, info, isIntro ) {
+		var interval, style, computedStyle, hideData;
+
+		params = parseTransitionParams( params );
+
+		interval = params.interval || ( params.speed ? 1000 / params.speed : ( params.duration ? node.textContent.length / params.duration : 15 ) );
+		
+		style = node.getAttribute( 'style' );
+		computedStyle = window.getComputedStyle( node );
+
+		node.style.visibility = 'hidden';
+
+		setTimeout( function () {
+			var computedHeight, computedWidth, computedVisibility;
+
+			computedWidth = computedStyle.width;
+			computedHeight = computedStyle.height;
+			computedVisibility = computedStyle.visibility;
+
+			hideData( node );
+
+			setTimeout( function () {
+				node.style.width = computedWidth;
+				node.style.height = computedHeight;
+				node.style.visibility = 'visible';
+
+				typewriteNode( node, function () {
+					node.setAttribute( 'style', style || '' );
+					complete();
+				}, interval );
+			}, params.delay || 0 );
+		});
+
+		hideData = function ( node ) {
+			var children, i;
+
+			if ( node.nodeType === 3 ) {
+				node._hiddenData = '' + node.data;
+				node.data = '';
+				
+				return;
+			}
+
+			children = Array.prototype.slice.call( node.childNodes );
+			i = children.length;
+			while ( i-- ) {
+				hideData( children[i] );
+			}
+		};
+	};
+
+	transitions.typewriter = typewriter;
+
+}( transitions ));
 (function ( Ractive ) {
 
 	var requestFullscreen, cancelFullscreen, fullscreenElement, testDiv;
@@ -2194,7 +2406,7 @@ Animation.prototype = {
 			elapsed = timeNow - this.startTime;
 
 			if ( elapsed >= this.duration ) {
-				this.root.set( this.keys, this.to );
+				this.root.set( this.keypath, this.to );
 
 				if ( this.step ) {
 					this.step( 1, this.to );
@@ -2220,7 +2432,7 @@ Animation.prototype = {
 			t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
 			value = this.interpolator( t );
 
-			this.root.set( this.keys, value );
+			this.root.set( this.keypath, value );
 
 			if ( this.step ) {
 				this.step( t, value );
@@ -2288,13 +2500,19 @@ animationCollection = {
 	
 	var x;
 
-	for ( x = 0; x < vendors.length && !global.requestAnimationFrame; ++x ) {
-		global.requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
-		global.cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
+	if ( global.requestAnimationFrame ) {
+		requestAnimationFrame = global.requestAnimationFrame;
+		cancelAnimationFrame = global.cancelAnimationFrame;
+		return;
 	}
 
-	if ( !global.requestAnimationFrame ) {
-		global.requestAnimationFrame = function(callback) {
+	for ( x = 0; x < vendors.length && !requestAnimationFrame; ++x ) {
+		requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
+		cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
+	}
+
+	if ( !requestAnimationFrame ) {
+		requestAnimationFrame = function(callback) {
 			var currTime, timeToCall, id;
 			
 			currTime = Date.now();
@@ -2306,8 +2524,8 @@ animationCollection = {
 		};
 	}
 
-	if ( !global.cancelAnimationFrame ) {
-		global.cancelAnimationFrame = function( id ) {
+	if ( !cancelAnimationFrame ) {
+		cancelAnimationFrame = function( id ) {
 			global.clearTimeout( id );
 		};
 	}
@@ -2426,7 +2644,7 @@ animationCollection = {
 		processRoot = function ( root ) {
 			var previousTransitionManager = root._transitionManager;
 
-			root._transitionManager = makeTransitionManager( noop );
+			root._transitionManager = makeTransitionManager( root, noop );
 			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = previousTransitionManager;
 		};
@@ -2674,9 +2892,18 @@ animationCollection = {
 		// This method forces the evaluator to sync with the current model
 		// in the case of a smart update
 		refresh: function () {
+			if ( !this.selfUpdating ) {
+				this.deferred = true;
+			}
+
 			var i = this.refs.length;
 			while ( i-- ) {
 				this.refs[i].update();
+			}
+
+			if ( this.deferred ) {
+				this.update();
+				this.deferred = false;
 			}
 		}
 	};
@@ -2768,7 +2995,7 @@ var ExpressionResolver;
 			
 			// is this an index ref?
 			if ( indexRefs && indexRefs[ ref ] !== undefined ) {
-				this.resolveRef( i, true, indexRefs[ ref ].index );
+				this.resolveRef( i, true, indexRefs[ ref ] );
 			}
 
 			else {
@@ -2866,6 +3093,38 @@ var ExpressionResolver;
 	};
 
 }());
+var executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
+	var transitionName, transitionParams, fragment, transitionManager, transition;
+
+	if ( typeof descriptor === 'string' ) {
+		transitionName = descriptor;
+	} else {
+		transitionName = descriptor.n;
+
+		if ( descriptor.a ) {
+			transitionParams = descriptor.a;
+		} else if ( descriptor.d ) {
+			fragment = new TextFragment({
+				descriptor:   descriptor.d,
+				root:         root,
+				owner:        owner,
+				contextStack: parentFragment.contextStack
+			});
+
+			transitionParams = fragment.toJson();
+			fragment.teardown();
+		}
+	}
+
+	transition = root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
+
+	if ( transition ) {
+		transitionManager = root._transitionManager;
+
+		transitionManager.push();
+		transition.call( root, owner.node, transitionManager.pop, transitionParams, transitionManager.info, isIntro );
+	}
+};
 var getPartialDescriptor;
 
 (function () {
@@ -2973,10 +3232,7 @@ initFragment = function ( fragment, options ) {
 			fragment.indexRefs = {};
 		}
 
-		fragment.indexRefs[ options.indexRef ] = {
-			index: options.index,
-			keypath: options.owner.keypath
-		};
+		fragment.indexRefs[ options.indexRef ] = options.index;
 	}
 
 	// Time to create this fragment's child items;
@@ -3022,7 +3278,8 @@ initMustache = function ( mustache, options ) {
 		if ( parentFragment.indexRefs && parentFragment.indexRefs[ options.descriptor.r ] !== undefined ) {
 			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
 
-			mustache.refIndex = indexRef.index;
+			mustache.indexRef = options.descriptor.r;
+			mustache.refIndex = indexRef;
 			mustache.render( mustache.refIndex );
 		}
 
@@ -3474,45 +3731,26 @@ resolveMustache = function ( keypath ) {
 		for ( attrName in descriptor.a ) {
 			if ( descriptor.a.hasOwnProperty( attrName ) ) {
 				attrValue = descriptor.a[ attrName ];
+				
+				attr = new Attribute({
+					element:      this,
+					name:         attrName,
+					value:        ( attrValue === undefined ? null : attrValue ),
+					root:         root,
+					parentNode:   this.node,
+					contextStack: parentFragment.contextStack
+				});
 
-				// are we dealing with transitions?
-				lcName = attrName.toLowerCase();
-				if ( lcName === 'intro' || lcName === 'outro' || lcName === 'intro-params' || lcName === 'outro-params' ) {
-					lcName = lcName.replace( '-params', 'Params' );
+				this.attributes[ this.attributes.length ] = attr;
 
-					if ( typeof	attrValue === 'string' ) {
-						this[ lcName ] = attrValue;
-					} else {
-						this[ lcName ] = new TextFragment({
-							descriptor: attrValue,
-							root: root,
-							owner: this,
-							contextStack: parentFragment.contextStack
-						});
-					}
+				if ( attr.isBindable ) {
+					bindable.push( attr );
 				}
 
-				else {
-					attr = new Attribute({
-						element:      this,
-						name:         attrName,
-						value:        ( attrValue === undefined ? null : attrValue ),
-						root:         root,
-						parentNode:   this.node,
-						contextStack: parentFragment.contextStack
-					});
-
-					this.attributes[ this.attributes.length ] = attr;
-
-					if ( attr.isBindable ) {
-						bindable.push( attr );
-					}
-
-					if ( attr.isTwowayNameAttr ) {
-						twowayNameAttr = attr;
-					} else {
-						attr.update();
-					}
+				if ( attr.isTwowayNameAttr ) {
+					twowayNameAttr = attr;
+				} else {
+					attr.update();
 				}
 			}
 		}
@@ -3529,29 +3767,8 @@ resolveMustache = function ( keypath ) {
 		docFrag.appendChild( this.node );
 
 		// trigger intro transition
-		if ( this.intro ) {
-			transitionName = this.intro.toString();
-			intro = root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
-
-			if ( intro ) {
-				transitionManager = root._transitionManager;
-
-				if ( transitionManager ) {
-					transitionManager.push();
-				}
-
-				if ( this.introParams ) {
-					transitionParams = this.introParams.toString();
-
-					try {
-						transitionParams = JSON.parse( transitionParams );
-					} catch ( err ) {
-						// nothing, just treat it as a string
-					}
-				}
-
-				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionParams, transitionManager.info, true );
-			}
+		if ( descriptor.t1 ) {
+			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
 		}
 	};
 
@@ -3562,7 +3779,8 @@ resolveMustache = function ( keypath ) {
 			// Note the current context - this can be useful with event handlers
 			if ( !this.node._ractive ) {
 				defineProperty( this.node, '_ractive', { value: {
-					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' )
+					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
+					index: this.parentFragment.indexRefs
 				} });
 			}
 
@@ -3616,15 +3834,16 @@ resolveMustache = function ( keypath ) {
 					root._customProxies[ comboKey ] = function ( proxyEvent ) {
 						var args, payload;
 
-						if ( !proxyEvent.el ) {
-							throw new Error( 'Proxy event definitions must fire events with an `el` property' );
+						if ( !proxyEvent.node ) {
+							throw new Error( 'Proxy event definitions must fire events with a `node` property' );
 						}
 
-						proxyEvent.keypath = proxyEvent.el._ractive.keypath;
+						proxyEvent.keypath = proxyEvent.node._ractive.keypath;
 						proxyEvent.context = root.get( proxyEvent.keypath );
+						proxyEvent.index = proxyEvent.node._ractive.index;
 
-						if ( proxyEvent.el._ractive[ comboKey ] ) {
-							args = proxyEvent.el._ractive[ comboKey ];
+						if ( proxyEvent.node._ractive[ comboKey ] ) {
+							args = proxyEvent.node._ractive[ comboKey ];
 							payload = args.dynamic ? args.payload.toJson() : args.payload;
 						}
 
@@ -3652,10 +3871,11 @@ resolveMustache = function ( keypath ) {
 			if ( !root._proxies[ comboKey ] ) {
 				root._proxies[ comboKey ] = function ( event ) {
 					var args, payload, proxyEvent = {
-						el: this,
+						node: this,
 						original: event,
 						keypath: this._ractive.keypath,
-						context: root.get( this._ractive.keypath )
+						context: root.get( this._ractive.keypath ),
+						index: this._ractive.index
 					};
 
 					if ( this._ractive && this._ractive[ comboKey ] ) {
@@ -3705,41 +3925,12 @@ resolveMustache = function ( keypath ) {
 				}
 			}
 
-			if ( this.outro ) {
-				// TODO don't outro elements that have already been detached from the DOM
+			if ( this.descriptor.t2 ) {
+				executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
+			}
 
-				transitionName = this.outro.toString();
-				outro = this.root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
-
-				if ( outro ) {
-					transitionManager = this.root._transitionManager;
-					
-					if ( transitionManager ) {
-						transitionManager.push();
-					}
-
-					if ( this.outroParams ) {
-						transitionParams = this.outroParams.toString();
-
-						try {
-							transitionParams = JSON.parse( transitionParams );
-						} catch ( err ) {
-							// nothing, just treat it as a string
-						}
-					}
-
-					outro.call( this.root, this.node, function () {
-						if ( detach ) {
-							self.parentNode.removeChild( self.node );
-						}
-
-						if ( transitionManager ) {
-							transitionManager.pop();
-						}
-					}, transitionParams, transitionManager.info );
-				}
-			} else if ( detach ) {
-				self.parentNode.removeChild( self.node );
+			if ( detach ) {
+				this.root._transitionManager.nodesToDetach.push( this.node );
 			}
 		},
 
@@ -4473,7 +4664,7 @@ resolveMustache = function ( keypath ) {
 		var i, j, item, context;
 
 		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
-			fragment.indexRefs[ indexRef ].index = newIndex;
+			fragment.indexRefs[ indexRef ] = newIndex;
 		}
 
 		// fix context stack
@@ -4532,11 +4723,11 @@ resolveMustache = function ( keypath ) {
 		}
 
 		if ( element.node._ractive ) {
-			if ( element.node._ractive.keypath ) {
-				if ( element.node._ractive.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-					element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
-				}
+			if ( element.node._ractive.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+				element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
 			}
+
+			element.node._ractive.index[ indexRef ] = newIndex;
 		}
 
 		// reassign children
@@ -4572,7 +4763,7 @@ resolveMustache = function ( keypath ) {
 		}
 
 		// index ref mustache?
-		else if ( mustache.refIndex ) {
+		else if ( mustache.indexRef === indexRef ) {
 			mustache.refIndex = newIndex;
 			mustache.render( newIndex );
 		}
@@ -4754,7 +4945,7 @@ resolveMustache = function ( keypath ) {
 	};
 
 }());
-var makeTransitionManager = function ( callback ) {
+var makeTransitionManager = function ( root, callback ) {
 	var transitionManager;
 
 	transitionManager = {
@@ -4765,11 +4956,27 @@ var makeTransitionManager = function ( callback ) {
 			transitionManager.info.i += 1;
 		},
 		pop: function () {
+			var i, node;
+
 			transitionManager.active -= 1;
-			if ( callback && !transitionManager.active && transitionManager.ready ) {
-				callback();
+			if ( !transitionManager.active && transitionManager.ready ) {
+				transitionManager.complete();
 			}
-		}
+		},
+		complete: function () {
+			var i, node;
+
+			i = transitionManager.nodesToDetach.length;
+			while ( i-- ) {
+				node = transitionManager.nodesToDetach.pop();
+				node.parentNode.removeChild( node );
+			}
+
+			if ( callback ) {
+				callback.call( root );
+			}
+		},
+		nodesToDetach: []
 	};
 
 	return transitionManager;
