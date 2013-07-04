@@ -274,45 +274,26 @@
 		for ( attrName in descriptor.a ) {
 			if ( descriptor.a.hasOwnProperty( attrName ) ) {
 				attrValue = descriptor.a[ attrName ];
+				
+				attr = new Attribute({
+					element:      this,
+					name:         attrName,
+					value:        ( attrValue === undefined ? null : attrValue ),
+					root:         root,
+					parentNode:   this.node,
+					contextStack: parentFragment.contextStack
+				});
 
-				// are we dealing with transitions?
-				lcName = attrName.toLowerCase();
-				if ( lcName === 'intro' || lcName === 'outro' || lcName === 'intro-params' || lcName === 'outro-params' ) {
-					lcName = lcName.replace( '-params', 'Params' );
+				this.attributes[ this.attributes.length ] = attr;
 
-					if ( typeof	attrValue === 'string' ) {
-						this[ lcName ] = attrValue;
-					} else {
-						this[ lcName ] = new TextFragment({
-							descriptor: attrValue,
-							root: root,
-							owner: this,
-							contextStack: parentFragment.contextStack
-						});
-					}
+				if ( attr.isBindable ) {
+					bindable.push( attr );
 				}
 
-				else {
-					attr = new Attribute({
-						element:      this,
-						name:         attrName,
-						value:        ( attrValue === undefined ? null : attrValue ),
-						root:         root,
-						parentNode:   this.node,
-						contextStack: parentFragment.contextStack
-					});
-
-					this.attributes[ this.attributes.length ] = attr;
-
-					if ( attr.isBindable ) {
-						bindable.push( attr );
-					}
-
-					if ( attr.isTwowayNameAttr ) {
-						twowayNameAttr = attr;
-					} else {
-						attr.update();
-					}
+				if ( attr.isTwowayNameAttr ) {
+					twowayNameAttr = attr;
+				} else {
+					attr.update();
 				}
 			}
 		}
@@ -329,29 +310,8 @@
 		docFrag.appendChild( this.node );
 
 		// trigger intro transition
-		if ( this.intro ) {
-			transitionName = this.intro.toString();
-			intro = root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
-
-			if ( intro ) {
-				transitionManager = root._transitionManager;
-
-				if ( transitionManager ) {
-					transitionManager.push();
-				}
-
-				if ( this.introParams ) {
-					transitionParams = this.introParams.toString();
-
-					try {
-						transitionParams = JSON.parse( transitionParams );
-					} catch ( err ) {
-						// nothing, just treat it as a string
-					}
-				}
-
-				intro.call( root, this.node, ( transitionManager ? transitionManager.pop : noop ), transitionParams, transitionManager.info, true );
-			}
+		if ( descriptor.t1 ) {
+			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
 		}
 	};
 
@@ -508,41 +468,12 @@
 				}
 			}
 
-			if ( this.outro ) {
-				// TODO don't outro elements that have already been detached from the DOM
-
-				transitionName = this.outro.toString();
-				outro = this.root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
+			if ( this.descriptor.t2 ) {
+				executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
 			}
 
-			if ( outro ) {
-				transitionManager = this.root._transitionManager;
-				
-				if ( transitionManager ) {
-					transitionManager.push();
-				}
-
-				if ( this.outroParams ) {
-					transitionParams = this.outroParams.toString();
-
-					try {
-						transitionParams = JSON.parse( transitionParams );
-					} catch ( err ) {
-						// nothing, just treat it as a string
-					}
-				}
-
-				outro.call( this.root, this.node, function () {
-					if ( detach ) {
-						self.parentNode.removeChild( self.node );
-					}
-
-					if ( transitionManager ) {
-						transitionManager.pop();
-					}
-				}, transitionParams, transitionManager.info );
-			} else if ( detach ) {
-				self.parentNode.removeChild( self.node );
+			if ( detach ) {
+				this.root._transitionManager.nodesToDetach.push( this.node );
 			}
 		},
 
