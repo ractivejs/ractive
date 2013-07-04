@@ -19,7 +19,7 @@
 			}
 
 			typewriteNode( children.shift(), next, interval );
-		}
+		};
 
 		next();
 	};
