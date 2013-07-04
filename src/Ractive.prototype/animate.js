@@ -1,16 +1,14 @@
 (function ( proto ) {
 
-	var animate;
+	var animate, noAnimation;
 
 	proto.animate = function ( keypath, to, options ) {
 		
 		var k, animation, animations;
 
-		options = options || {};
-
 		// animate multiple properties
 		if ( typeof keypath === 'object' ) {
-			options = to;
+			options = to || {};
 			animations = [];
 
 			for ( k in keypath ) {
@@ -28,6 +26,8 @@
 			};
 		}
 
+		options = options || {};
+
 		animation = animate( this, keypath, to, options );
 
 		return {
@@ -37,8 +37,19 @@
 		};
 	};
 
+	noAnimation = {
+		stop: noop
+	};
+
 	animate = function ( root, keypath, to, options ) {
-		var easing, duration, animation, i, keys;
+		var easing, duration, animation, i, keys, from;
+
+		from = root.get( keypath );
+		
+		// don't bother animating values that stay the same
+		if ( isEqual( from, to ) ) {
+			return noAnimation;
+		}
 
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?
@@ -73,11 +84,12 @@
 		// duration
 		duration = ( options.duration === undefined ? 400 : options.duration );
 
-		keys = splitKeypath( keypath );
+		// TODO store keys, use an internal set method
+		//keys = splitKeypath( keypath );
 
 		animation = new Animation({
-			keys: keys,
-			from: root.get( keys ),
+			keypath: keypath,
+			from: from,
 			to: to,
 			root: root,
 			duration: duration,
