@@ -23,7 +23,7 @@ Animation.prototype = {
 			elapsed = timeNow - this.startTime;
 
 			if ( elapsed >= this.duration ) {
-				this.root.set( this.keys, this.to );
+				this.root.set( this.keypath, this.to );
 
 				if ( this.step ) {
 					this.step( 1, this.to );
@@ -49,7 +49,7 @@ Animation.prototype = {
 			t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
 			value = this.interpolator( t );
 
-			this.root.set( this.keys, value );
+			this.root.set( this.keypath, value );
 
 			if ( this.step ) {
 				this.step( t, value );
