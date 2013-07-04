@@ -69,7 +69,7 @@
 				try {
 					this.callback.call( this.context, value, this.value );
 				} catch ( err ) {
-					if ( root.debug ) {
+					if ( this.root.debug ) {
 						throw err;
 					}
 				}
