@@ -12,13 +12,16 @@
 // * t - Type code (e.g. 1 is text, 2 is interpolator...)
 // * f - Fragment. Contains a descriptor's children
 // * e - Element name
-// * a - map of element Attributes
+// * a - map of element Attributes, or proxy event/transition Arguments
+// * d - Dynamic proxy event/transition arguments
 // * n - indicates an iNverted section
 // * p - Priority. Higher priority items are updated before lower ones on model changes
 // * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
 // * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 // * c - Conditionals (e.g. ['yes', 'no'] in {{condition ? yes : no}})
 // * x - eXpressions
+// * t1 - intro Transition
+// * t2 - outro Transition
 
 var parse;
 

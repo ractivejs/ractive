@@ -341,10 +341,10 @@ var getFragmentStubFromTokens;
 
 	// element
 	(function () {
-		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, proxyPattern;
+		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, filterAttrs, proxyPattern;
 
 		Element = function ( firstToken, parser, priority, preserveWhitespace ) {
-			var closed, next, i, len, attrs, proxies, attr, getFrag, processProxy, item;
+			var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
 
 			this.lcTag = firstToken.name.toLowerCase();
 			this.priority = priority = priority || 0;
@@ -359,8 +359,10 @@ var getFragmentStubFromTokens;
 			preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
 
 			if ( firstToken.attrs ) {
-				attrs = firstToken.attrs.filter( onlyAttrs );
-				proxies = firstToken.attrs.filter( onlyProxies );
+				filtered = filterAttrs( firstToken.attrs );
+				
+				attrs = filtered.attrs;
+				proxies = filtered.proxies;
 
 				// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
 				if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
@@ -438,6 +440,15 @@ var getFragmentStubFromTokens;
 
 				if ( proxies.length ) {
 					this.proxies = proxies.map( processProxy );
+				}
+
+				// TODO rename this helper function
+				if ( filtered.intro ) {
+					this.intro = processProxy( filtered.intro );
+				}
+
+				if ( filtered.outro ) {
+					this.outro = processProxy( filtered.outro );
 				}
 			}
 
@@ -528,6 +539,10 @@ var getFragmentStubFromTokens;
 					for ( i=0; i<len; i+=1 ) {
 						name = this.attributes[i].name;
 
+						if ( json.a[ name ] ) {
+							throw new Error( 'You cannot have multiple elements with the same name' );
+						}
+
 						// empty attributes (e.g. autoplay, checked)
 						if( this.attributes[i].value === undefined ) {
 							value = null;
@@ -550,6 +565,7 @@ var getFragmentStubFromTokens;
 					for ( i=0; i<len; i+=1 ) {
 						proxy = this.proxies[i];
 
+						// TODO rename domEventName, since transitions use the same mechanism
 						if ( proxy.args ) {
 							json.v[ proxy.domEventName ] = {
 								n: proxy.name,
@@ -563,6 +579,38 @@ var getFragmentStubFromTokens;
 						} else {
 							json.v[ proxy.domEventName ] = proxy.name;
 						}
+					}
+				}
+
+				if ( this.intro ) {
+					if ( this.intro.args ) {
+						json.t1 = {
+							n: this.intro.name,
+							a: this.intro.args
+						};
+					} else if ( this.intro.dynamicArgs ) {
+						json.t1 = {
+							n: this.intro.name,
+							d: jsonify( this.intro.dynamicArgs.items, noStringify )
+						};
+					} else {
+						json.t1 = this.intro.name;
+					}
+				}
+
+				if ( this.outro ) {
+					if ( this.outro.args ) {
+						json.t2 = {
+							n: this.outro.name,
+							a: this.outro.args
+						};
+					} else if ( this.outro.dynamicArgs ) {
+						json.t2 = {
+							n: this.outro.name,
+							d: jsonify( this.outro.dynamicArgs.items, noStringify )
+						};
+					} else {
+						json.t2 = this.outro.name;
 					}
 				}
 
@@ -589,8 +637,8 @@ var getFragmentStubFromTokens;
 					return ( this.str = false );
 				}
 
-				// do we have proxies? if so we can't use innerHTML
-				if ( this.proxies ) {
+				// do we have proxies or transitions? if so we can't use innerHTML
+				if ( this.proxies || this.intro || this.outro ) {
 					return ( this.str = false );
 				}
 
@@ -711,6 +759,50 @@ var getFragmentStubFromTokens;
 				return true;
 			}
 			return false;
+		};
+
+		filterAttrs = function ( items ) {
+			var attrs, proxies, filtered, i, len, item;
+
+			filtered = {};
+			attrs = [];
+			proxies = [];
+
+			len = items.length;
+			for ( i=0; i<len; i+=1 ) {
+				item = items[i];
+
+				// Transition?
+				if ( item.name === 'intro' ) {
+					if ( filtered.intro ) {
+						throw new Error( 'An element can only have one intro transition' );
+					}
+
+					filtered.intro = item;
+				} else if ( item.name === 'outro' ) {
+					if ( filtered.outro ) {
+						throw new Error( 'An element can only have one outro transition' );
+					}
+
+					filtered.outro = item;
+				}
+
+				// Proxy?
+				else if ( item.name.substr( 0, 6 ) === 'proxy-' ) {
+					item.name = item.name.substring( 6 );
+					proxies[ proxies.length ] = item;
+				}
+
+				// Attribute?
+				else {
+					attrs[ attrs.length ] = item;
+				}
+			}
+
+			filtered.attrs = attrs;
+			filtered.proxies = proxies;
+
+			return filtered;
 		};
 
 		proxyPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)(?::(.+))?$/;
