@@ -29,7 +29,7 @@ proto.render = function ( options ) {
 	// transition manager has finished its work
 	this._transitionManager = null;
 	transitionManager.ready = true;
-	if ( options.complete && !transitionManager.active ) {
-		options.complete.call( this );
+	if ( !transitionManager.active ) {
+		transitionManager.complete();
 	}
 };

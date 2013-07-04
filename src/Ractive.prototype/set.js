@@ -59,8 +59,8 @@
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;
 		transitionManager.ready = true;
-		if ( complete && !transitionManager.active ) {
-			complete.call( this );
+		if ( !transitionManager.active ) {
+			transitionManager.complete();
 		}
 
 		// fire event
