@@ -139,5 +139,10 @@
 		"name": "Nodes with id attributes and no mustaches don't get stringified",
 		"template": "<div id=test>plain old text</div>",
 		"parsed": [{"t":7,"e":"div","a":{"id":"test"},"f":"plain old text"}]
+	},
+	{
+		"name": "Mustache references can have numeric keys",
+		"template": "{{todos.0.content}}",
+		"parsed": [{"r":"todos.0.content","t":2}]
 	}
 ]
