@@ -42,11 +42,18 @@
 	};
 
 	DomFragment = function ( options ) {
-		this.docFrag = doc.createDocumentFragment();
+		if ( options.parentNode ) {
+			this.docFrag = doc.createDocumentFragment();
+		}
 
 		// if we have an HTML string, our job is easy.
 		if ( typeof options.descriptor === 'string' ) {
-			this.nodes = insertHtml( options.descriptor, this.docFrag );
+			this.html = options.descriptor;
+
+			if ( this.docFrag ) {
+				this.nodes = insertHtml( options.descriptor, this.docFrag );
+			}
+			
 			return; // prevent the rest of the init sequence
 		}
 
@@ -118,6 +125,29 @@
 			}
 
 			return this.owner.findNextNode( this );
+		},
+
+		toString: function () {
+			var html, i, len, item;
+			
+			if ( this.html ) {
+				return this.html;
+			}
+
+			html = '';
+
+			if ( !this.items ) {
+				return html;
+			}
+
+			len = this.items.length;
+
+			for ( i=0; i<len; i+=1 ) {
+				item = this.items[i];
+				html += item.toString();
+			}
+
+			return html;
 		}
 	};
 
@@ -139,7 +169,9 @@
 			owner:        this
 		});
 
-		docFrag.appendChild( this.fragment.docFrag );
+		if ( docFrag ) {
+			docFrag.appendChild( this.fragment.docFrag );
+		}
 	};
 
 	Partial.prototype = {
@@ -149,6 +181,10 @@
 
 		teardown: function ( detach ) {
 			this.fragment.teardown( detach );
+		},
+
+		toString: function () {
+			return this.fragment.toString();
 		}
 	};
 
@@ -156,11 +192,14 @@
 	// Plain text
 	Text = function ( options, docFrag ) {
 		this.type = TEXT;
+		this.descriptor = options.descriptor;
 
-		this.node = doc.createTextNode( options.descriptor );
-		this.parentNode = options.parentFragment.parentNode;
+		if ( docFrag ) {
+			this.node = doc.createTextNode( options.descriptor );
+			this.parentNode = options.parentFragment.parentNode;
 
-		docFrag.appendChild( this.node );
+			docFrag.appendChild( this.node );
+		}
 	};
 
 	Text.prototype = {
@@ -172,6 +211,10 @@
 
 		firstNode: function () {
 			return this.node;
+		},
+
+		toString: function () {
+			return ( '' + this.descriptor ).replace( '<', '&lt;' ).replace( '>', '&gt;' );
 		}
 	};
 
@@ -212,30 +255,36 @@
 		this.eventListeners = [];
 		this.customEventListeners = [];
 
-		// get namespace
-		if ( descriptor.a && descriptor.a.xmlns ) {
-			namespace = descriptor.a.xmlns;
+		// get namespace, if we're actually rendering (not server-side stringifying)
+		if ( this.parentNode ) {
+			if ( descriptor.a && descriptor.a.xmlns ) {
+				namespace = descriptor.a.xmlns;
 
-			// check it's a string!
-			if ( typeof namespace !== 'string' ) {
-				throw new Error( 'Namespace attribute cannot contain mustaches' );
+				// check it's a string!
+				if ( typeof namespace !== 'string' ) {
+					throw new Error( 'Namespace attribute cannot contain mustaches' );
+				}
+			} else {
+				namespace = ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : this.parentNode.namespaceURI );
 			}
-		} else {
-			namespace = ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : this.parentNode.namespaceURI );
-		}
-		
+			
 
-		// create the DOM node
-		this.node = doc.createElementNS( namespace, descriptor.e );
+			// create the DOM node
+			this.node = doc.createElementNS( namespace, descriptor.e );
+		}
 
 
 		
 
 		// append children, if there are any
 		if ( descriptor.f ) {
-			if ( typeof descriptor.f === 'string' && this.node.namespaceURI === namespaces.html ) {
+			if ( typeof descriptor.f === 'string' && ( !this.node || this.node.namespaceURI === namespaces.html ) ) {
 				// great! we can use innerHTML
-				this.node.innerHTML = descriptor.f;
+				this.html = descriptor.f;
+
+				if ( docFrag ) {
+					this.node.innerHTML = this.html;
+				}
 			}
 
 			else {
@@ -247,13 +296,15 @@
 					owner:        this
 				});
 
-				this.node.appendChild( this.fragment.docFrag );
+				if ( docFrag ) {
+					this.node.appendChild( this.fragment.docFrag );
+				}
 			}
 		}
 
 
 		// create event proxies
-		if ( descriptor.v ) {
+		if ( docFrag && descriptor.v ) {
 			for ( eventName in descriptor.v ) {
 				if ( descriptor.v.hasOwnProperty( eventName ) ) {
 					eventNames = eventName.split( '-' );
@@ -298,20 +349,23 @@
 			}
 		}
 
-		while ( bindable.length ) {
-			bindable.pop().bind( this.root.lazy );
-		}
+		// if we're actually rendering (i.e. not server-side stringifying), proceed
+		if ( docFrag ) {
+			while ( bindable.length ) {
+				bindable.pop().bind( this.root.lazy );
+			}
 
-		if ( twowayNameAttr ) {
-			twowayNameAttr.updateViewModel();
-			twowayNameAttr.update();
-		}
+			if ( twowayNameAttr ) {
+				twowayNameAttr.updateViewModel();
+				twowayNameAttr.update();
+			}
 
-		docFrag.appendChild( this.node );
+			docFrag.appendChild( this.node );
 
-		// trigger intro transition
-		if ( descriptor.t1 ) {
-			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
+			// trigger intro transition
+			if ( descriptor.t1 ) {
+				executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
+			}
 		}
 	};
 
@@ -487,6 +541,31 @@
 
 		bubble: function () {
 			// noop - just so event proxy and transition fragments have something to call!
+		},
+
+		toString: function () {
+			var str, i, len, attr;
+
+			// TODO void tags
+			str = '' +
+				'<' + this.descriptor.e;
+
+			len = this.attributes.length;
+			for ( i=0; i<len; i+=1 ) {
+				str += ' ' + this.attributes[i].toString();
+			}
+
+			str += '>';
+
+			if ( this.html ) {
+				str += this.html;
+			} else if ( this.fragment ) {
+				str += this.fragment.toString();
+			}
+
+			str += '</' + this.descriptor.e + '>';
+
+			return str;
 		}
 	};
 
@@ -531,14 +610,16 @@
 		// mustache shenanigans, set the attribute accordingly
 		if ( value === null || typeof value === 'string' ) {
 			
-			if ( this.namespace ) {
-				options.parentNode.setAttributeNS( this.namespace, name, value );
-			} else {
-				options.parentNode.setAttribute( name, value );
-			}
+			if ( options.parentNode ) {
+				if ( this.namespace ) {
+					options.parentNode.setAttributeNS( this.namespace, name, value );
+				} else {
+					options.parentNode.setAttribute( name, value );
+				}
 
-			if ( name.toLowerCase() === 'id' ) {
-				options.root.nodes[ value ] = options.parentNode;
+				if ( name.toLowerCase() === 'id' ) {
+					options.root.nodes[ value ] = options.parentNode;
+				}
 			}
 
 			this.name = name;
@@ -554,8 +635,25 @@
 		this.name = name;
 		this.lcName = name.toLowerCase();
 
+		// share parentFragment with parent element
+		this.parentFragment = this.element.parentFragment;
+
+		this.fragment = new TextFragment({
+			descriptor:   value,
+			root:         this.root,
+			owner:        this,
+			contextStack: options.contextStack
+		});
+
+
+		// if we're not rendering (i.e. we're just stringifying), we can stop here
+		if ( !this.parentNode ) {
+			return;
+		}
+
+
 		// can we establish this attribute's property name equivalent?
-		if ( !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
+		if ( this.parentNode && !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
 			lowerCaseName = this.lcName;
 			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
 
@@ -570,17 +668,7 @@
 			}
 		}
 
-		// share parentFragment with parent element
-		this.parentFragment = this.element.parentFragment;
-
-		this.fragment = new TextFragment({
-			descriptor:   value,
-			root:         this.root,
-			owner:        this,
-			contextStack: options.contextStack
-		});
-
-
+		
 		// determine whether this attribute can be marked as self-updating
 		this.selfUpdating = true;
 
@@ -892,6 +980,25 @@
 			}
 
 			return this;
+		},
+
+		toString: function () {
+			var str;
+
+			if ( this.value === null ) {
+				return this.name;
+			}
+
+			// TODO don't use JSON.stringify?
+
+			if ( !this.fragment ) {
+				return this.name + '=' + JSON.stringify( this.value );
+			}
+
+			// TODO deal with boolean attributes correctly
+			str = this.fragment.toString();
+			
+			return this.name + '=' + JSON.stringify( str );
 		}
 	};
 
@@ -903,8 +1010,10 @@
 	Interpolator = function ( options, docFrag ) {
 		this.type = INTERPOLATOR;
 
-		this.node = doc.createTextNode( '' );
-		docFrag.appendChild( this.node );
+		if ( docFrag ) {
+			this.node = doc.createTextNode( '' );
+			docFrag.appendChild( this.node );
+		}
 
 		// extend Mustache
 		initMustache( this, options );
@@ -923,11 +1032,18 @@
 		},
 
 		render: function ( value ) {
-			this.node.data = ( value === undefined ? '' : value );
+			if ( this.node ) {
+				this.node.data = ( value === undefined ? '' : value );
+			}
 		},
 
 		firstNode: function () {
 			return this.node;
+		},
+
+		toString: function () {
+			var value = ( this.value !== undefined ? '' + this.value : '' );
+			return value.replace( '<', '&lt;' ).replace( '>', '&gt;' );
 		}
 	};
 
@@ -936,12 +1052,16 @@
 	Triple = function ( options, docFrag ) {
 		this.type = TRIPLE;
 
-		this.nodes = [];
-		this.docFrag = doc.createDocumentFragment();
+		if ( docFrag ) {
+			this.nodes = [];
+			this.docFrag = doc.createDocumentFragment();
+		}
 
 		this.initialising = true;
 		initMustache( this, options );
-		docFrag.appendChild( this.docFrag );
+		if ( docFrag ) {
+			docFrag.appendChild( this.docFrag );
+		}
 		this.initialising = false;
 	};
 
@@ -986,6 +1106,10 @@
 			if ( !this.initialising ) {
 				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
+		},
+
+		toString: function () {
+			return ( this.value !== undefined ? this.value : '' );
 		}
 	};
 
@@ -998,11 +1122,16 @@
 		this.fragments = [];
 		this.length = 0; // number of times this section is rendered
 
-		this.docFrag = doc.createDocumentFragment();
+		if ( docFrag ) {
+			this.docFrag = doc.createDocumentFragment();
+		}
 		
 		this.initialising = true;
 		initMustache( this, options );
-		docFrag.appendChild( this.docFrag );
+
+		if ( docFrag ) {
+			docFrag.appendChild( this.docFrag );
+		}
 
 		this.initialising = false;
 	};
@@ -1174,8 +1303,26 @@
 		createFragment: function ( options ) {
 			var fragment = new DomFragment( options );
 			
-			this.docFrag.appendChild( fragment.docFrag );
+			if ( this.docFrag ) {
+				this.docFrag.appendChild( fragment.docFrag );
+			}
+
 			return fragment;
+		},
+
+		toString: function () {
+			var str, i, len;
+
+			str = '';
+
+			i = 0;
+			len = this.length;
+
+			for ( i=0; i<len; i+=1 ) {
+				str += this.fragments[i].toString();
+			}
+
+			return str;
 		}
 	};
 
@@ -1307,7 +1454,7 @@
 
 		// index ref mustache?
 		else if ( mustache.indexRef === indexRef ) {
-			mustache.refIndex = newIndex;
+			mustache.value = newIndex;
 			mustache.render( newIndex );
 		}
 
