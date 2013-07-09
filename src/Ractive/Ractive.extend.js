@@ -129,8 +129,8 @@
 				throw new Error( missingParser );
 			}
 
-			if ( Child.template.charAt( 0 ) === '#' ) {
-				templateEl = document.getElementById( Child.template.substring( 1 ) );
+			if ( Child.template.charAt( 0 ) === '#' && doc ) {
+				templateEl = doc.getElementById( Child.template.substring( 1 ) );
 				if ( templateEl && templateEl.tagName === 'SCRIPT' ) {
 					Child.template = Ractive.parse( templateEl.innerHTML, Child );
 				} else {
