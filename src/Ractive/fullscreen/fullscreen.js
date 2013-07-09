@@ -13,7 +13,7 @@
 		return;
 	}
 
-	testDiv = document.createElement( 'div' );
+	testDiv = doc.createElement( 'div' );
 
 	// get prefixed name of requestFullscreen method
 	if ( testDiv.requestFullscreen ) {
@@ -46,9 +46,9 @@
 	// get prefixed name of fullscreenElement property
 	if ( doc.fullscreenElement !== undefined ) {
 		fullscreenElement = 'fullscreenElement';
-	} else if ( document.mozFullScreenElement !== undefined ) {
+	} else if ( doc.mozFullScreenElement !== undefined ) {
 		fullscreenElement = 'mozFullScreenElement';
-	} else if ( document.webkitFullscreenElement !== undefined ) {
+	} else if ( doc.webkitFullscreenElement !== undefined ) {
 		fullscreenElement = 'webkitFullscreenElement';
 	}
 
