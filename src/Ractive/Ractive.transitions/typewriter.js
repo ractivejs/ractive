@@ -44,11 +44,12 @@
 			substr = str.substr( 0, i );
 			remaining = str.substring( i );
 
-			match = /^[^\s]+/.exec( remaining );
+			match = /^\w+/.exec( remaining );
 			remainingNonWhitespace = ( match ? match[0].length : 0 );
 
+			// add some non-breaking whitespace corresponding to the remaining length of the
+			// current word (only really works with monospace fonts, but better than nothing)
 			filler = new Array( remainingNonWhitespace + 1 ).join( '\u00a0' );
-
 
 			node.data = substr + filler;
 			if ( i === len ) {
@@ -66,7 +67,7 @@
 
 		params = parseTransitionParams( params );
 
-		interval = params.interval || ( params.speed ? 1000 / params.speed : ( params.duration ? node.textContent.length / params.duration : 15 ) );
+		interval = params.interval || ( params.speed ? 1000 / params.speed : ( params.duration ? node.textContent.length / params.duration : 4 ) );
 		
 		style = node.getAttribute( 'style' );
 		computedStyle = window.getComputedStyle( node );
