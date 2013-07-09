@@ -162,7 +162,7 @@ var getToken;
 		return getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer );
 	};
 
-	getDotRefinement = getRegexMatcher( /^\.[a-zA-Z_$][a-zA-Z_$0-9]*/ );
+	getDotRefinement = getRegexMatcher( /^\.[a-zA-Z_$0-9]+/ );
 
 	getArrayRefinement = function ( tokenizer ) {
 		var num = getArrayMember( tokenizer );
