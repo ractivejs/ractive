@@ -26,8 +26,8 @@ initMustache = function ( mustache, options ) {
 			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
 
 			mustache.indexRef = options.descriptor.r;
-			mustache.refIndex = indexRef;
-			mustache.render( mustache.refIndex );
+			mustache.value = indexRef;
+			mustache.render( mustache.value );
 		}
 
 		else {
