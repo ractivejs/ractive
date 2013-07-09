@@ -18,13 +18,15 @@ var getPartialDescriptor;
 		}
 
 		// Does it exist on the page as a script tag?
-		el = doc.getElementById( name );
-		if ( el && el.tagName === 'SCRIPT' ) {
-			if ( !Ractive.parse ) {
-				throw new Error( missingParser );
-			}
+		if ( doc ) {
+			el = doc.getElementById( name );
+			if ( el && el.tagName === 'SCRIPT' ) {
+				if ( !Ractive.parse ) {
+					throw new Error( missingParser );
+				}
 
-			Ractive.partials[ name ] = Ractive.parse( el.innerHTML );
+				Ractive.partials[ name ] = Ractive.parse( el.innerHTML );
+			}
 		}
 
 		partial = Ractive.partials[ name ];
