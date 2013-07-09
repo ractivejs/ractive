@@ -85,16 +85,12 @@ isObject = function ( obj ) {
 getEl = function ( input ) {
 	var output;
 
-	if ( typeof window === 'undefined' ) {
-		return;
-	}
-
-	if ( !input ) {
-		throw new Error( 'No container element specified' );
+	if ( typeof window === 'undefined' || !doc || !input ) {
+		return null;
 	}
 
 	// We already have a DOM node - no work to do
-	if ( input.tagName ) {
+	if ( input.nodeType ) {
 		return input;
 	}
 
@@ -109,15 +105,15 @@ getEl = function ( input ) {
 		}
 
 		// did it work?
-		if ( output.tagName ) {
+		if ( output.nodeType ) {
 			return output;
 		}
 	}
 
 	// If we've been given a collection (jQuery, Zepto etc), extract the first item
-	if ( input[0] && input[0].tagName ) {
+	if ( input[0] && input[0].nodeType ) {
 		return input[0];
 	}
 
-	throw new Error( 'Could not find container element' );
+	return null;
 };
