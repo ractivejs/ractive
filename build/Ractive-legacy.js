@@ -6,7 +6,7 @@
 		Date.now = function () { return +new Date(); };
 	}
 
-	if ( !doc.createElementNS ) {
+	if ( doc && !doc.createElementNS ) {
 		doc.createElementNS = function ( ns, type ) {
 			if ( ns !== null && ns !== 'http://www.w3.org/1999/xhtml' ) {
 				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
@@ -126,7 +126,7 @@
 
 }( document ));
 
-/*! Ractive - v0.3.0 - 2013-07-04
+/*! Ractive - v0.3.0 - 2013-07-09
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -190,6 +190,8 @@ trailingWhitespace = /\s+$/,
 
 
 // other bits and pieces
+render,
+
 initMustache,
 updateMustache,
 resolveMustache,
@@ -856,6 +858,40 @@ processDeferredUpdates = function ( root ) {
 		attribute.update().deferred = false;
 	}
 };
+// Render instance to element specified here or at initialization
+render = function ( ractive, options ) {
+	var el, transitionManager;
+
+	el = ( options.el ? getEl( options.el ) : ractive.el );
+
+	// Clear the element, unless `append` is `true`
+	if ( el && !options.append ) {
+		el.innerHTML = '';
+	}
+
+	ractive._transitionManager = transitionManager = makeTransitionManager( ractive, options.complete );
+
+	// Render our *root fragment*
+	ractive.fragment = new DomFragment({
+		descriptor: ractive.template,
+		root: ractive,
+		owner: ractive, // saves doing `if ( ractive.parent ) { /*...*/ }` later on
+		parentNode: el
+	});
+
+	if ( el ) {
+		el.appendChild( ractive.fragment.docFrag );
+	}
+	
+	ractive.ready = true;
+
+	// transition manager has finished its work
+	ractive._transitionManager = null;
+	transitionManager.ready = true;
+	if ( !transitionManager.active ) {
+		transitionManager.complete();
+	}
+};
 proto.link = function ( keypath ) {
 	var self = this;
 
@@ -1002,40 +1038,9 @@ proto.on = function ( eventName, callback ) {
 		}
 	};
 };
-// Render instance to element specified here or at initialization
-proto.render = function ( options ) {
-	var el, transitionManager;
-
-	el = ( options.el ? getEl( options.el ) : this.el );
-
-	if ( !el ) {
-		throw new Error( 'You must specify a DOM element to render to' );
-	}
-
-	// Clear the element, unless `append` is `true`
-	if ( !options.append ) {
-		el.innerHTML = '';
-	}
-
-	this._transitionManager = transitionManager = makeTransitionManager( this, options.complete );
-
-	// Render our *root fragment*
-	this.fragment = new DomFragment({
-		descriptor: this.template,
-		root: this,
-		owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
-		parentNode: el
-	});
-
-	el.appendChild( this.fragment.docFrag );
-	this.ready = true;
-
-	// transition manager has finished its work
-	this._transitionManager = null;
-	transitionManager.ready = true;
-	if ( !transitionManager.active ) {
-		transitionManager.complete();
-	}
+proto.renderHTML = function () {
+	console.log( this.fragment );
+	return this.fragment.toString();
 };
 proto.requestFullscreen = function () {
 	Ractive.requestFullscreen( this.el );
@@ -1395,14 +1400,12 @@ adaptors.statesman = function ( model, path ) {
 
 			// if no path specified...
 			if ( !path ) {
-				setView = function ( keypath, value ) {
+				setView = function ( change ) {
 					if ( !settingModel ) {
 						settingView = true;
-						if ( typeof keypath === 'object' ) {
-							view.set( keypath );
-						} else {
-							view.set( keypath, value );
-						}
+						
+						view.set( change );
+						
 						settingView = false;
 					}
 				};
@@ -1419,17 +1422,13 @@ adaptors.statesman = function ( model, path ) {
 			}
 
 			else {
-				setView = function ( keypath, value ) {
-					var data;
-
+				setView = function ( change ) {
 					if ( !settingModel ) {
 						settingView = true;
-						if ( typeof keypath === 'object' ) {
-							data = prefix( keypath );
-							view.set( data );
-						} else {
-							view.set( path + keypath, value );
-						}
+						
+						change = prefix( change );
+						view.set( change );
+						
 						settingView = false;
 					}
 				};
@@ -1740,8 +1739,8 @@ eventDefinitions.tap = function ( node, fire ) {
 				throw new Error( missingParser );
 			}
 
-			if ( Child.template.charAt( 0 ) === '#' ) {
-				templateEl = document.getElementById( Child.template.substring( 1 ) );
+			if ( Child.template.charAt( 0 ) === '#' && doc ) {
+				templateEl = doc.getElementById( Child.template.substring( 1 ) );
 				if ( templateEl && templateEl.tagName === 'SCRIPT' ) {
 					Child.template = Ractive.parse( templateEl.innerHTML, Child );
 				} else {
@@ -2047,7 +2046,12 @@ Ractive = function ( options ) {
 	this.lazy = options.lazy;
 	this.debug = options.debug;
 
-	this.el = getEl( options.el );
+	if ( options.el ) {
+		this.el = getEl( options.el );
+		if ( !this.el && this.debug ) {
+			throw new Error( 'Could not find container element' );
+		}
+	}
 
 	// add data
 	this.data = options.data || {};
@@ -2082,7 +2086,7 @@ Ractive = function ( options ) {
 			throw new Error( missingParser );
 		}
 
-		if ( template.charAt( 0 ) === '#' ) {
+		if ( template.charAt( 0 ) === '#' && doc ) {
 			// assume this is an ID of a <script type='text/ractive'> tag
 			templateEl = doc.getElementById( template.substring( 1 ) );
 			if ( templateEl ) {
@@ -2142,15 +2146,17 @@ Ractive = function ( options ) {
 		}
 	}
 
-	// If passed an element, render immediately
-	if ( this.el ) {
-		this.render({ el: this.el, append: options.append, complete: options.complete });
-	}
+	render( this, { el: this.el, append: options.append, complete: options.complete });
 };
 
 (function () {
 
 	var getOriginalComputedStyles, setStyle, augment, makeTransition, transform, transformsEnabled, inside, outside;
+
+	// no point executing this code on the server
+	if ( !doc ) {
+		return;
+	}
 
 	getOriginalComputedStyles = function ( computedStyle, properties ) {
 		var original = {}, i;
@@ -2303,7 +2309,7 @@ Ractive = function ( options ) {
 
 	/*// get prefixed transform property name
 	(function ( propertyNames ) {
-		var i = propertyNames.length, testDiv = document.createElement( 'div' );
+		var i = propertyNames.length, testDiv = doc.createElement( 'div' );
 		while ( i-- ) {
 			if ( testDiv.style[ propertyNames[i] ] !== undefined ) {
 				transform = propertyNames[i];
@@ -2336,6 +2342,10 @@ var parseTransitionParams = function ( params ) {
 (function ( transitions ) {
 
 	var typewriter, typewriteNode, typewriteTextNode;
+
+	if ( !doc ) {
+		return;
+	}
 
 	typewriteNode = function ( node, complete, interval ) {
 		var children, next, hideData;
@@ -2379,11 +2389,12 @@ var parseTransitionParams = function ( params ) {
 			substr = str.substr( 0, i );
 			remaining = str.substring( i );
 
-			match = /^[^\s]+/.exec( remaining );
+			match = /^\w+/.exec( remaining );
 			remainingNonWhitespace = ( match ? match[0].length : 0 );
 
+			// add some non-breaking whitespace corresponding to the remaining length of the
+			// current word (only really works with monospace fonts, but better than nothing)
 			filler = new Array( remainingNonWhitespace + 1 ).join( '\u00a0' );
-
 
 			node.data = substr + filler;
 			if ( i === len ) {
@@ -2401,7 +2412,7 @@ var parseTransitionParams = function ( params ) {
 
 		params = parseTransitionParams( params );
 
-		interval = params.interval || ( params.speed ? 1000 / params.speed : ( params.duration ? node.textContent.length / params.duration : 15 ) );
+		interval = params.interval || ( params.speed ? 1000 / params.speed : ( params.duration ? node.textContent.length / params.duration : 4 ) );
 		
 		style = node.getAttribute( 'style' );
 		computedStyle = window.getComputedStyle( node );
@@ -2465,7 +2476,7 @@ var parseTransitionParams = function ( params ) {
 		return;
 	}
 
-	testDiv = document.createElement( 'div' );
+	testDiv = doc.createElement( 'div' );
 
 	// get prefixed name of requestFullscreen method
 	if ( testDiv.requestFullscreen ) {
@@ -2498,9 +2509,9 @@ var parseTransitionParams = function ( params ) {
 	// get prefixed name of fullscreenElement property
 	if ( doc.fullscreenElement !== undefined ) {
 		fullscreenElement = 'fullscreenElement';
-	} else if ( document.mozFullScreenElement !== undefined ) {
+	} else if ( doc.mozFullScreenElement !== undefined ) {
 		fullscreenElement = 'mozFullScreenElement';
-	} else if ( document.webkitFullscreenElement !== undefined ) {
+	} else if ( doc.webkitFullscreenElement !== undefined ) {
 		fullscreenElement = 'webkitFullscreenElement';
 	}
 
@@ -3273,13 +3284,15 @@ var getPartialDescriptor;
 		}
 
 		// Does it exist on the page as a script tag?
-		el = doc.getElementById( name );
-		if ( el && el.tagName === 'SCRIPT' ) {
-			if ( !Ractive.parse ) {
-				throw new Error( missingParser );
-			}
+		if ( doc ) {
+			el = doc.getElementById( name );
+			if ( el && el.tagName === 'SCRIPT' ) {
+				if ( !Ractive.parse ) {
+					throw new Error( missingParser );
+				}
 
-			Ractive.partials[ name ] = Ractive.parse( el.innerHTML );
+				Ractive.partials[ name ] = Ractive.parse( el.innerHTML );
+			}
 		}
 
 		partial = Ractive.partials[ name ];
@@ -3407,8 +3420,8 @@ initMustache = function ( mustache, options ) {
 			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
 
 			mustache.indexRef = options.descriptor.r;
-			mustache.refIndex = indexRef;
-			mustache.render( mustache.refIndex );
+			mustache.value = indexRef;
+			mustache.render( mustache.value );
 		}
 
 		else {
@@ -3627,11 +3640,18 @@ resolveMustache = function ( keypath ) {
 	};
 
 	DomFragment = function ( options ) {
-		this.docFrag = doc.createDocumentFragment();
+		if ( options.parentNode ) {
+			this.docFrag = doc.createDocumentFragment();
+		}
 
 		// if we have an HTML string, our job is easy.
 		if ( typeof options.descriptor === 'string' ) {
-			this.nodes = insertHtml( options.descriptor, this.docFrag );
+			this.html = options.descriptor;
+
+			if ( this.docFrag ) {
+				this.nodes = insertHtml( options.descriptor, this.docFrag );
+			}
+			
 			return; // prevent the rest of the init sequence
 		}
 
@@ -3703,6 +3723,29 @@ resolveMustache = function ( keypath ) {
 			}
 
 			return this.owner.findNextNode( this );
+		},
+
+		toString: function () {
+			var html, i, len, item;
+			
+			if ( this.html ) {
+				return this.html;
+			}
+
+			html = '';
+
+			if ( !this.items ) {
+				return html;
+			}
+
+			len = this.items.length;
+
+			for ( i=0; i<len; i+=1 ) {
+				item = this.items[i];
+				html += item.toString();
+			}
+
+			return html;
 		}
 	};
 
@@ -3724,7 +3767,9 @@ resolveMustache = function ( keypath ) {
 			owner:        this
 		});
 
-		docFrag.appendChild( this.fragment.docFrag );
+		if ( docFrag ) {
+			docFrag.appendChild( this.fragment.docFrag );
+		}
 	};
 
 	Partial.prototype = {
@@ -3734,6 +3779,10 @@ resolveMustache = function ( keypath ) {
 
 		teardown: function ( detach ) {
 			this.fragment.teardown( detach );
+		},
+
+		toString: function () {
+			return this.fragment.toString();
 		}
 	};
 
@@ -3741,11 +3790,14 @@ resolveMustache = function ( keypath ) {
 	// Plain text
 	Text = function ( options, docFrag ) {
 		this.type = TEXT;
+		this.descriptor = options.descriptor;
 
-		this.node = doc.createTextNode( options.descriptor );
-		this.parentNode = options.parentFragment.parentNode;
+		if ( docFrag ) {
+			this.node = doc.createTextNode( options.descriptor );
+			this.parentNode = options.parentFragment.parentNode;
 
-		docFrag.appendChild( this.node );
+			docFrag.appendChild( this.node );
+		}
 	};
 
 	Text.prototype = {
@@ -3757,6 +3809,10 @@ resolveMustache = function ( keypath ) {
 
 		firstNode: function () {
 			return this.node;
+		},
+
+		toString: function () {
+			return ( '' + this.descriptor ).replace( '<', '&lt;' ).replace( '>', '&gt;' );
 		}
 	};
 
@@ -3797,30 +3853,36 @@ resolveMustache = function ( keypath ) {
 		this.eventListeners = [];
 		this.customEventListeners = [];
 
-		// get namespace
-		if ( descriptor.a && descriptor.a.xmlns ) {
-			namespace = descriptor.a.xmlns;
+		// get namespace, if we're actually rendering (not server-side stringifying)
+		if ( this.parentNode ) {
+			if ( descriptor.a && descriptor.a.xmlns ) {
+				namespace = descriptor.a.xmlns;
 
-			// check it's a string!
-			if ( typeof namespace !== 'string' ) {
-				throw new Error( 'Namespace attribute cannot contain mustaches' );
+				// check it's a string!
+				if ( typeof namespace !== 'string' ) {
+					throw new Error( 'Namespace attribute cannot contain mustaches' );
+				}
+			} else {
+				namespace = ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : this.parentNode.namespaceURI );
 			}
-		} else {
-			namespace = ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : this.parentNode.namespaceURI );
-		}
-		
+			
 
-		// create the DOM node
-		this.node = doc.createElementNS( namespace, descriptor.e );
+			// create the DOM node
+			this.node = doc.createElementNS( namespace, descriptor.e );
+		}
 
 
 		
 
 		// append children, if there are any
 		if ( descriptor.f ) {
-			if ( typeof descriptor.f === 'string' && this.node.namespaceURI === namespaces.html ) {
+			if ( typeof descriptor.f === 'string' && ( !this.node || this.node.namespaceURI === namespaces.html ) ) {
 				// great! we can use innerHTML
-				this.node.innerHTML = descriptor.f;
+				this.html = descriptor.f;
+
+				if ( docFrag ) {
+					this.node.innerHTML = this.html;
+				}
 			}
 
 			else {
@@ -3832,13 +3894,15 @@ resolveMustache = function ( keypath ) {
 					owner:        this
 				});
 
-				this.node.appendChild( this.fragment.docFrag );
+				if ( docFrag ) {
+					this.node.appendChild( this.fragment.docFrag );
+				}
 			}
 		}
 
 
 		// create event proxies
-		if ( descriptor.v ) {
+		if ( docFrag && descriptor.v ) {
 			for ( eventName in descriptor.v ) {
 				if ( descriptor.v.hasOwnProperty( eventName ) ) {
 					eventNames = eventName.split( '-' );
@@ -3883,20 +3947,23 @@ resolveMustache = function ( keypath ) {
 			}
 		}
 
-		while ( bindable.length ) {
-			bindable.pop().bind( this.root.lazy );
-		}
+		// if we're actually rendering (i.e. not server-side stringifying), proceed
+		if ( docFrag ) {
+			while ( bindable.length ) {
+				bindable.pop().bind( this.root.lazy );
+			}
 
-		if ( twowayNameAttr ) {
-			twowayNameAttr.updateViewModel();
-			twowayNameAttr.update();
-		}
+			if ( twowayNameAttr ) {
+				twowayNameAttr.updateViewModel();
+				twowayNameAttr.update();
+			}
 
-		docFrag.appendChild( this.node );
+			docFrag.appendChild( this.node );
 
-		// trigger intro transition
-		if ( descriptor.t1 ) {
-			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
+			// trigger intro transition
+			if ( descriptor.t1 ) {
+				executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
+			}
 		}
 	};
 
@@ -4072,6 +4139,31 @@ resolveMustache = function ( keypath ) {
 
 		bubble: function () {
 			// noop - just so event proxy and transition fragments have something to call!
+		},
+
+		toString: function () {
+			var str, i, len, attr;
+
+			// TODO void tags
+			str = '' +
+				'<' + this.descriptor.e;
+
+			len = this.attributes.length;
+			for ( i=0; i<len; i+=1 ) {
+				str += ' ' + this.attributes[i].toString();
+			}
+
+			str += '>';
+
+			if ( this.html ) {
+				str += this.html;
+			} else if ( this.fragment ) {
+				str += this.fragment.toString();
+			}
+
+			str += '</' + this.descriptor.e + '>';
+
+			return str;
 		}
 	};
 
@@ -4116,14 +4208,16 @@ resolveMustache = function ( keypath ) {
 		// mustache shenanigans, set the attribute accordingly
 		if ( value === null || typeof value === 'string' ) {
 			
-			if ( this.namespace ) {
-				options.parentNode.setAttributeNS( this.namespace, name, value );
-			} else {
-				options.parentNode.setAttribute( name, value );
-			}
+			if ( options.parentNode ) {
+				if ( this.namespace ) {
+					options.parentNode.setAttributeNS( this.namespace, name, value );
+				} else {
+					options.parentNode.setAttribute( name, value );
+				}
 
-			if ( name.toLowerCase() === 'id' ) {
-				options.root.nodes[ value ] = options.parentNode;
+				if ( name.toLowerCase() === 'id' ) {
+					options.root.nodes[ value ] = options.parentNode;
+				}
 			}
 
 			this.name = name;
@@ -4139,8 +4233,25 @@ resolveMustache = function ( keypath ) {
 		this.name = name;
 		this.lcName = name.toLowerCase();
 
+		// share parentFragment with parent element
+		this.parentFragment = this.element.parentFragment;
+
+		this.fragment = new TextFragment({
+			descriptor:   value,
+			root:         this.root,
+			owner:        this,
+			contextStack: options.contextStack
+		});
+
+
+		// if we're not rendering (i.e. we're just stringifying), we can stop here
+		if ( !this.parentNode ) {
+			return;
+		}
+
+
 		// can we establish this attribute's property name equivalent?
-		if ( !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
+		if ( this.parentNode && !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
 			lowerCaseName = this.lcName;
 			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
 
@@ -4155,17 +4266,7 @@ resolveMustache = function ( keypath ) {
 			}
 		}
 
-		// share parentFragment with parent element
-		this.parentFragment = this.element.parentFragment;
-
-		this.fragment = new TextFragment({
-			descriptor:   value,
-			root:         this.root,
-			owner:        this,
-			contextStack: options.contextStack
-		});
-
-
+		
 		// determine whether this attribute can be marked as self-updating
 		this.selfUpdating = true;
 
@@ -4477,6 +4578,25 @@ resolveMustache = function ( keypath ) {
 			}
 
 			return this;
+		},
+
+		toString: function () {
+			var str;
+
+			if ( this.value === null ) {
+				return this.name;
+			}
+
+			// TODO don't use JSON.stringify?
+
+			if ( !this.fragment ) {
+				return this.name + '=' + JSON.stringify( this.value );
+			}
+
+			// TODO deal with boolean attributes correctly
+			str = this.fragment.toString();
+			
+			return this.name + '=' + JSON.stringify( str );
 		}
 	};
 
@@ -4488,8 +4608,10 @@ resolveMustache = function ( keypath ) {
 	Interpolator = function ( options, docFrag ) {
 		this.type = INTERPOLATOR;
 
-		this.node = doc.createTextNode( '' );
-		docFrag.appendChild( this.node );
+		if ( docFrag ) {
+			this.node = doc.createTextNode( '' );
+			docFrag.appendChild( this.node );
+		}
 
 		// extend Mustache
 		initMustache( this, options );
@@ -4508,11 +4630,18 @@ resolveMustache = function ( keypath ) {
 		},
 
 		render: function ( value ) {
-			this.node.data = ( value === undefined ? '' : value );
+			if ( this.node ) {
+				this.node.data = ( value === undefined ? '' : value );
+			}
 		},
 
 		firstNode: function () {
 			return this.node;
+		},
+
+		toString: function () {
+			var value = ( this.value !== undefined ? '' + this.value : '' );
+			return value.replace( '<', '&lt;' ).replace( '>', '&gt;' );
 		}
 	};
 
@@ -4521,12 +4650,16 @@ resolveMustache = function ( keypath ) {
 	Triple = function ( options, docFrag ) {
 		this.type = TRIPLE;
 
-		this.nodes = [];
-		this.docFrag = doc.createDocumentFragment();
+		if ( docFrag ) {
+			this.nodes = [];
+			this.docFrag = doc.createDocumentFragment();
+		}
 
 		this.initialising = true;
 		initMustache( this, options );
-		docFrag.appendChild( this.docFrag );
+		if ( docFrag ) {
+			docFrag.appendChild( this.docFrag );
+		}
 		this.initialising = false;
 	};
 
@@ -4571,6 +4704,10 @@ resolveMustache = function ( keypath ) {
 			if ( !this.initialising ) {
 				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
+		},
+
+		toString: function () {
+			return ( this.value !== undefined ? this.value : '' );
 		}
 	};
 
@@ -4583,11 +4720,16 @@ resolveMustache = function ( keypath ) {
 		this.fragments = [];
 		this.length = 0; // number of times this section is rendered
 
-		this.docFrag = doc.createDocumentFragment();
+		if ( docFrag ) {
+			this.docFrag = doc.createDocumentFragment();
+		}
 		
 		this.initialising = true;
 		initMustache( this, options );
-		docFrag.appendChild( this.docFrag );
+
+		if ( docFrag ) {
+			docFrag.appendChild( this.docFrag );
+		}
 
 		this.initialising = false;
 	};
@@ -4759,8 +4901,26 @@ resolveMustache = function ( keypath ) {
 		createFragment: function ( options ) {
 			var fragment = new DomFragment( options );
 			
-			this.docFrag.appendChild( fragment.docFrag );
+			if ( this.docFrag ) {
+				this.docFrag.appendChild( fragment.docFrag );
+			}
+
 			return fragment;
+		},
+
+		toString: function () {
+			var str, i, len;
+
+			str = '';
+
+			i = 0;
+			len = this.length;
+
+			for ( i=0; i<len; i+=1 ) {
+				str += this.fragments[i].toString();
+			}
+
+			return str;
 		}
 	};
 
@@ -4892,7 +5052,7 @@ resolveMustache = function ( keypath ) {
 
 		// index ref mustache?
 		else if ( mustache.indexRef === indexRef ) {
-			mustache.refIndex = newIndex;
+			mustache.value = newIndex;
 			mustache.render( newIndex );
 		}
 
@@ -5196,16 +5356,12 @@ isObject = function ( obj ) {
 getEl = function ( input ) {
 	var output;
 
-	if ( typeof window === 'undefined' ) {
-		return;
-	}
-
-	if ( !input ) {
-		throw new Error( 'No container element specified' );
+	if ( typeof window === 'undefined' || !doc || !input ) {
+		return null;
 	}
 
 	// We already have a DOM node - no work to do
-	if ( input.tagName ) {
+	if ( input.nodeType ) {
 		return input;
 	}
 
@@ -5220,17 +5376,17 @@ getEl = function ( input ) {
 		}
 
 		// did it work?
-		if ( output.tagName ) {
+		if ( output.nodeType ) {
 			return output;
 		}
 	}
 
 	// If we've been given a collection (jQuery, Zepto etc), extract the first item
-	if ( input[0] && input[0].tagName ) {
+	if ( input[0] && input[0].nodeType ) {
 		return input[0];
 	}
 
-	throw new Error( 'Could not find container element' );
+	return null;
 };
 stripCommentTokens = function ( tokens ) {
 	var i, current, previous, next;
