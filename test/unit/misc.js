@@ -93,6 +93,32 @@ tests = [
 			equal( ractive.nodes.one.checked, false );
 			equal( ractive.nodes.two.checked, true );
 		}
+	},
+	{
+		name: 'Instances can be created without an element',
+		test: function () {
+			var ractive;
+
+			ractive = new Ractive({
+				template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
+				data: { items: [ 'a', 'b', 'c' ] }
+			});
+
+			ok( ractive );
+		}
+	},
+	{
+		name: 'Instances without an element can render HTML',
+		test: function () {
+			var ractive;
+
+			ractive = new Ractive({
+				template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
+				data: { items: [ 'a', 'b', 'c' ] }
+			});
+
+			equal( ractive.renderHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' );
+		}
 	}
 
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.

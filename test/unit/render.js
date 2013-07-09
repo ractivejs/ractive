@@ -331,10 +331,12 @@ _.each( tests, function ( t, i ) {
 		});
 
 		equal( fixture.innerHTML, t.result );
+		equal( view.renderHTML(), t.result );
 
 		if ( t.new_data ) {
 			view.set( t.new_data );
 			equal( fixture.innerHTML, t.new_result );
+			equal( view.renderHTML(), t.new_result );
 		}
 
 		console.groupEnd();
