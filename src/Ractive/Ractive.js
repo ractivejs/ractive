@@ -85,7 +85,12 @@ Ractive = function ( options ) {
 	this.lazy = options.lazy;
 	this.debug = options.debug;
 
-	this.el = getEl( options.el );
+	if ( options.el ) {
+		this.el = getEl( options.el );
+		if ( !this.el && this.debug ) {
+			throw new Error( 'Could not find container element' );
+		}
+	}
 
 	// add data
 	this.data = options.data || {};
@@ -120,7 +125,7 @@ Ractive = function ( options ) {
 			throw new Error( missingParser );
 		}
 
-		if ( template.charAt( 0 ) === '#' ) {
+		if ( template.charAt( 0 ) === '#' && doc ) {
 			// assume this is an ID of a <script type='text/ractive'> tag
 			templateEl = doc.getElementById( template.substring( 1 ) );
 			if ( templateEl ) {
@@ -180,8 +185,5 @@ Ractive = function ( options ) {
 		}
 	}
 
-	// If passed an element, render immediately
-	if ( this.el ) {
-		this.render({ el: this.el, append: options.append, complete: options.complete });
-	}
+	render( this, { el: this.el, append: options.append, complete: options.complete });
 };
