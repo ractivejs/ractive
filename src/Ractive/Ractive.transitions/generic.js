@@ -2,6 +2,11 @@
 
 	var getOriginalComputedStyles, setStyle, augment, makeTransition, transform, transformsEnabled, inside, outside;
 
+	// no point executing this code on the server
+	if ( !doc ) {
+		return;
+	}
+
 	getOriginalComputedStyles = function ( computedStyle, properties ) {
 		var original = {}, i;
 
@@ -153,7 +158,7 @@
 
 	/*// get prefixed transform property name
 	(function ( propertyNames ) {
-		var i = propertyNames.length, testDiv = document.createElement( 'div' );
+		var i = propertyNames.length, testDiv = doc.createElement( 'div' );
 		while ( i-- ) {
 			if ( testDiv.style[ propertyNames[i] ] !== undefined ) {
 				transform = propertyNames[i];

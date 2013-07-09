@@ -2,6 +2,10 @@
 
 	var typewriter, typewriteNode, typewriteTextNode;
 
+	if ( !doc ) {
+		return;
+	}
+
 	typewriteNode = function ( node, complete, interval ) {
 		var children, next, hideData;
 
