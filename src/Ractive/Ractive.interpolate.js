@@ -1,3 +1,4 @@
+// TODO short circuit values that stay the same
 interpolate = function ( from, to ) {
 	if ( isNumeric( from ) && isNumeric( to ) ) {
 		return Ractive.interpolators.number( +from, +to );
