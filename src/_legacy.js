@@ -6,7 +6,7 @@
 		Date.now = function () { return +new Date(); };
 	}
 
-	if ( !doc.createElementNS ) {
+	if ( doc && !doc.createElementNS ) {
 		doc.createElementNS = function ( ns, type ) {
 			if ( ns !== null && ns !== 'http://www.w3.org/1999/xhtml' ) {
 				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
