@@ -52,6 +52,8 @@ trailingWhitespace = /\s+$/,
 
 
 // other bits and pieces
+render,
+
 initMustache,
 updateMustache,
 resolveMustache,
