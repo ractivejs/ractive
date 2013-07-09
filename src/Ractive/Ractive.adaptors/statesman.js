@@ -33,14 +33,12 @@ adaptors.statesman = function ( model, path ) {
 
 			// if no path specified...
 			if ( !path ) {
-				setView = function ( keypath, value ) {
+				setView = function ( change ) {
 					if ( !settingModel ) {
 						settingView = true;
-						if ( typeof keypath === 'object' ) {
-							view.set( keypath );
-						} else {
-							view.set( keypath, value );
-						}
+						
+						view.set( change );
+						
 						settingView = false;
 					}
 				};
@@ -57,17 +55,13 @@ adaptors.statesman = function ( model, path ) {
 			}
 
 			else {
-				setView = function ( keypath, value ) {
-					var data;
-
+				setView = function ( change ) {
 					if ( !settingModel ) {
 						settingView = true;
-						if ( typeof keypath === 'object' ) {
-							data = prefix( keypath );
-							view.set( data );
-						} else {
-							view.set( path + keypath, value );
-						}
+						
+						change = prefix( change );
+						view.set( change );
+						
 						settingView = false;
 					}
 				};
