@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Faster, easier, better interactive web development",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "homepage": "http://rich-harris.github.com/Ractive/",
   "main": "build/Ractive.js",
   "keywords": [
