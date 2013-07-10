@@ -11,8 +11,6 @@ DomInterpolator = function ( options, docFrag ) {
 	initMustache( this, options );
 };
 
-console.log( 'using updateMustache' );
-
 DomInterpolator.prototype = {
 	update: updateMustache,
 	resolve: resolveMustache,
