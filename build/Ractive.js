@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.0 - 2013-07-10
+/*! Ractive - v0.3.1 - 2013-07-10
 * Faster, easier, better interactive web development
 
 * http://rich-harris.github.com/Ractive/
@@ -376,7 +376,6 @@ initMustache = function ( mustache, options ) {
 
 
 // methods to add to individual mustache prototypes
-console.log( 'defining updateMustache' );
 updateMustache = function () {
 	var value;
 
@@ -4662,8 +4661,6 @@ DomInterpolator = function ( options, docFrag ) {
 	// extend Mustache
 	initMustache( this, options );
 };
-
-console.log( 'using updateMustache' );
 
 DomInterpolator.prototype = {
 	update: updateMustache,
