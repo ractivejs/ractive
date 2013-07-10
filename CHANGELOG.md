@@ -43,3 +43,22 @@ Changelog
 * 0.2.2
 	* Added event proxies. In lieu of documentation, for now, see [#27](https://github.com/Rich-Harris/Ractive/issues/27)
 	* Made array modification more robust and performant
+* 0.3.0
+	* Major overhaul, particularly of the parser
+	* Expressions - JS-like expressions within templates, with robust tracking of multiple dependencies. These replace formatters
+	* Renamed Ractive.compile -> Ractive.parse
+	* Added adaptors (e.g. Backbone Model adaptors)
+	* Various performance enhancements and bug fixes
+* 0.3.1
+	* Transitions - fine-grained control over how elements are rendered and torn down
+	* Inline partials
+	* ractive.observe() method
+	* Smart updates when using array mutator methods, reducing the amount of DOM manipulation that happens
+	* Changed proxy event and event definition API (BREAKING CHANGE!)
+	* Improved Ractive.extend
+	* SVG elements no longer require the xmlns='http://www.w3.org/2000/svg' attribute - it is assumed, as it is in browsers
+	* ractive.animate() can accept a map of keypaths to values
+	* fullscreen convenience methods
+	* removed ractive.render() method
+	* added ractive.renderHTML() method, for rendering template+data (in browser or server environment)
+
