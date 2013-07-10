@@ -55,6 +55,7 @@ initMustache = function ( mustache, options ) {
 
 
 // methods to add to individual mustache prototypes
+console.log( 'defining updateMustache' );
 updateMustache = function () {
 	var value;
 

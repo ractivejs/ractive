@@ -1,5 +1,3 @@
-var ExpressionResolver;
-
 (function () {
 
 	var ReferenceScout, getKeypath;

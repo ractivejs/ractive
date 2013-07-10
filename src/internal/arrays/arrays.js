@@ -1,12 +1,6 @@
 (function () {
 
 	var notifyArrayDependants,
-		
-		reassignDependants,
-		sidewaysShift,
-		queueReassignments,
-		dispatchReassignmentQueue,
-		dispatchIndexRefReassignmentQueue,
 
 		wrapArray,
 		unwrapArray,

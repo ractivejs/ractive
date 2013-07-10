@@ -1,4 +1,4 @@
-var tokenize = function ( template, options ) {
+tokenize = function ( template, options ) {
 	var tokenizer, tokens, token, last20, next20;
 
 	options = options || {};

@@ -1,4 +1,4 @@
-var executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
+executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
 	var transitionName, transitionParams, fragment, transitionManager, transition;
 
 	if ( typeof descriptor === 'string' ) {

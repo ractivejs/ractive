@@ -1,5 +1,3 @@
-var getFragmentStubFromTokens;
-
 (function () {
 
 	var getItem,

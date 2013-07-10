@@ -1,4 +1,7 @@
-var makeTransitionManager = function ( root, callback ) {
+// We're not using a constructor here because it's convenient (and more
+// efficient) to pass e.g. transitionManager.pop as a callback, rather
+// than wrapping a prototype method in an anonymous function each time
+makeTransitionManager = function ( root, callback ) {
 	var transitionManager;
 
 	transitionManager = {

@@ -1,5 +1,3 @@
-var getPartialDescriptor;
-
 (function () {
 
 	var getPartialFromRegistry, unpack;

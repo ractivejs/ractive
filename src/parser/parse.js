@@ -23,8 +23,6 @@
 // * t1 - intro Transition
 // * t2 - outro Transition
 
-var parse;
-
 (function () {
 
 	var onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
