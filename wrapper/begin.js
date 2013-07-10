@@ -6,6 +6,7 @@ var Ractive,
 
 doc = global.document || null,
 
+// Ractive prototype
 proto = {},
 
 // properties of the public Ractive object
@@ -13,9 +14,24 @@ adaptors = {},
 eventDefinitions = {},
 easing,
 extend,
+parse,
 interpolate,
 interpolators,
 transitions = {},
+
+
+// internal utils - instance-specific
+teardown,
+clearCache,
+registerDependant,
+unregisterDependant,
+notifyDependants,
+notifyMultipleDependants,
+notifyDependantsByPriority,
+registerIndexRef,
+unregisterIndexRef,
+resolveRef,
+processDeferredUpdates,
 
 
 // internal utils
@@ -26,6 +42,11 @@ isObject,
 isNumeric,
 isEqual,
 getEl,
+insertHtml,
+reassignFragments,
+executeTransition,
+getPartialDescriptor,
+makeTransitionManager,
 requestAnimationFrame,
 cancelAnimationFrame,
 defineProperty,
@@ -41,7 +62,21 @@ keypathCache = {},
 
 // internally used constructors
 DomFragment,
-TextFragment,
+DomElement,
+DomAttribute,
+DomPartial,
+DomInterpolator,
+DomTriple,
+DomSection,
+DomText,
+
+StringFragment,
+StringPartial,
+StringInterpolator,
+StringSection,
+StringText,
+
+ExpressionResolver,
 Evaluator,
 Animation,
 
@@ -71,6 +106,9 @@ unregisterKeypathFromArray,
 
 
 // parser and tokenizer
+getFragmentStubFromTokens,
+getToken,
+tokenize,
 stripCommentTokens,
 stripHtmlComments,
 stripStandalones,

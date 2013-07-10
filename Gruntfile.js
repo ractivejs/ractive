@@ -35,22 +35,22 @@ module.exports = function(grunt) {
 				options: {
 					banner: '<%= meta.banner %>'
 				},
-				src: [ 'wrapper/begin.js', 'src/**/*.js', 'wrapper/end.js', '!src/_legacy.js', '!src/parser/**/*.js' ],
+				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js', '!src/parser/**/*.js' ],
 				dest: 'build/Ractive.runtime.js'
 			},
 			full: {
 				options: {
 					banner: '<%= meta.banner %>'
 				},
-				src: [ 'wrapper/begin.js', 'src/**/*.js', 'wrapper/end.js', '!src/_legacy.js'  ],
+				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js'  ],
 				dest: 'build/Ractive.js'
 			},
 			runtime_legacy: {
-				src: [ 'src/_legacy.js', '<%= concat.runtime.dest %>' ],
+				src: [ 'src/legacy.js', '<%= concat.runtime.dest %>' ],
 				dest: 'build/Ractive-legacy.runtime.js'
 			},
 			full_legacy: {
-				src: [ 'src/_legacy.js', '<%= concat.full.dest %>' ],
+				src: [ 'src/legacy.js', '<%= concat.full.dest %>' ],
 				dest: 'build/Ractive-legacy.js'
 			}
 		},
