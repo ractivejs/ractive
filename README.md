@@ -1,7 +1,7 @@
 Ractive.js
 ==========
 
-Faster, easier, better interactive web development
+Next-generation DOM manipulation
 
 
 It's templating Jim, but not as we know it

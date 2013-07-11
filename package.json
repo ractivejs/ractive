@@ -1,6 +1,6 @@
 {
   "name": "ractive",
-  "description": "Faster, easier, better interactive web development",
+  "description": "Next-generation DOM manipulation",
   "version": "0.3.1",
   "homepage": "http://rich-harris.github.com/Ractive/",
   "main": "build/Ractive.js",
