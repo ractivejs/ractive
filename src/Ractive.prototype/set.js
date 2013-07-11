@@ -81,9 +81,10 @@
 
 
 	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
-		var previous, key, obj, keysClone;
+		var previous, key, obj, keysClone, accumulated, keypathToClear;
 
 		keysClone = keys.slice();
+		accumulated = [];
 
 		previous = root.get( keypath );
 
@@ -92,12 +93,19 @@
 			// update data
 			obj = root.data;
 			while ( keys.length > 1 ) {
-				key = keys.shift();
+				key = accumulated[ accumulated.length ] = keys.shift();
 
 				// If this branch doesn't exist yet, create a new one - if the next
 				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
 				// than an object
 				if ( !obj[ key ] ) {
+					
+					// if we're creating a new branch, we may need to clear the upstream
+					// keypath
+					if ( !keypathToClear ) {
+						keypathToClear = accumulated.join( '.' );
+					}
+
 					obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
 				}
 
@@ -118,7 +126,7 @@
 
 
 		// Clear cache
-		clearCache( root, keypath );
+		clearCache( root, keypathToClear || keypath );
 
 		// add this keypath to the notification queue
 		queue[ queue.length ] = keypath;
