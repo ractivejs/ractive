@@ -2,43 +2,73 @@
 // efficient) to pass e.g. transitionManager.pop as a callback, rather
 // than wrapping a prototype method in an anonymous function each time
 makeTransitionManager = function ( root, callback ) {
-	var transitionManager;
+	var transitionManager, nodesToDetach, detachNodes, detachNodeIfPossible;
+
+	nodesToDetach = [];
+
+	// detach any nodes which a) need to be detached and b) have no child nodes
+	// which are actively transitioning. This will be called each time a
+	// transition completes
+	detachNodes = function () {
+		var i;
+
+		i = nodesToDetach.length;
+		while ( i-- ) {
+			// see if this node can be detached yet
+			detachNodeIfPossible( nodesToDetach[i] );
+		}
+	};
+
+	detachNodeIfPossible = function ( node ) {
+		var i, candidate;
+
+		i = transitionManager.active.length;
+		while ( i-- ) {
+			candidate = transitionManager.active[i];
+
+			if ( node.contains( candidate ) ) {
+				// fail as soon as possible
+				return;
+			}
+		}
+
+		// if we've run the gauntlet, we can safely detach this node
+		node.parentNode.removeChild( node );
+		nodesToDetach.pop();
+	};
 
 	transitionManager = {
-		active: 0,
+		active: [],
 		info: { i: 0 },
-		push: function () {
-			transitionManager.active += 1;
+		push: function ( node ) {
+			transitionManager.active[ transitionManager.active.length ] = node;
 			transitionManager.info.i += 1;
 		},
-		pop: function () {
-			var i, node;
+		pop: function ( node ) {
+			transitionManager.active.splice( transitionManager.active.indexOf( node ), 1 );
+			
+			detachNodes();
 
-			transitionManager.active -= 1;
-			if ( !transitionManager.active && transitionManager._ready ) {
+			if ( !transitionManager.active.length && transitionManager._ready ) {
 				transitionManager.complete();
 			}
 		},
 		complete: function () {
-			var i, node;
-
-			i = transitionManager.nodesToDetach.length;
-			while ( i-- ) {
-				node = transitionManager.nodesToDetach.pop();
-				node.parentNode.removeChild( node );
-			}
-
 			if ( callback ) {
 				callback.call( root );
 			}
 		},
 		ready: function () {
+			detachNodes();
+
 			transitionManager._ready = true;
-			if ( !transitionManager.active ) {
+			if ( !transitionManager.active.length ) {
 				transitionManager.complete();
 			}
 		},
-		nodesToDetach: []
+		detachWhenReady: function ( node ) {
+			nodesToDetach[ nodesToDetach.length ] = node;
+		}
 	};
 
 	return transitionManager;

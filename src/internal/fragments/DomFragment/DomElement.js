@@ -306,7 +306,7 @@ DomElement.prototype = {
 		}
 
 		if ( detach ) {
-			this.root._transitionManager.nodesToDetach.push( this.node );
+			this.root._transitionManager.detachWhenReady( this.node );
 		}
 	},
 

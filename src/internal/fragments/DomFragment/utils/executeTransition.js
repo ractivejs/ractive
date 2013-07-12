@@ -26,7 +26,9 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 	if ( transition ) {
 		transitionManager = root._transitionManager;
 
-		transitionManager.push();
-		transition.call( root, owner.node, transitionManager.pop, transitionParams, transitionManager.info, isIntro );
+		transitionManager.push( owner.node );
+		transition.call( root, owner.node, function () {
+			transitionManager.pop( owner.node );
+		}, transitionParams, transitionManager.info, isIntro );
 	}
 };
