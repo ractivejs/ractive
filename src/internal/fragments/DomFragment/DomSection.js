@@ -142,7 +142,7 @@ DomSection.prototype = {
 		// context stacks and index refs will have changed)
 		reassignStart = ( start + addedItems );
 
-		reassignAffectedFragments( this.root, this, reassignStart, this.length, balance );
+		reassignFragments( this.root, this, reassignStart, this.length, balance );
 	},
 
 	teardown: function ( detach ) {

@@ -104,11 +104,16 @@
 		};
 
 		processRoot = function ( root ) {
-			var previousTransitionManager = root._transitionManager;
+			var previousTransitionManager = root._transitionManager, transitionManager;
 
-			root._transitionManager = makeTransitionManager( root, noop );
+			root._transitionManager = transitionManager = makeTransitionManager( root, noop );
 			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = previousTransitionManager;
+
+			transitionManager.ready = true;
+			if ( !transitionManager.active ) {
+				transitionManager.complete();
+			}
 		};
 
 		processKeypaths = function ( root, keypaths ) {
