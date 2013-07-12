@@ -58,10 +58,7 @@
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;
-		transitionManager.ready = true;
-		if ( !transitionManager.active ) {
-			transitionManager.complete();
-		}
+		transitionManager.ready();
 
 		// fire event
 		if ( !this.setting ) {

@@ -16,10 +16,7 @@ proto.update = function ( keypath, complete ) {
 
 	// transition manager has finished its work
 	this._transitionManager = previousTransitionManager;
-	transitionManager.ready = true;
-	if ( !transitionManager.active ) {
-		transitionManager.complete();
-	}
+	transitionManager.ready();
 
 	if ( typeof keypath === 'string' ) {
 		this.fire( 'update', keypath );

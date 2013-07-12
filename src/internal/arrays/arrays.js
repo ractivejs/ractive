@@ -110,10 +110,7 @@
 			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = previousTransitionManager;
 
-			transitionManager.ready = true;
-			if ( !transitionManager.active ) {
-				transitionManager.complete();
-			}
+			transitionManager.ready();
 		};
 
 		processKeypaths = function ( root, keypaths ) {

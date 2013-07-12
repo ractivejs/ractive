@@ -15,7 +15,7 @@ makeTransitionManager = function ( root, callback ) {
 			var i, node;
 
 			transitionManager.active -= 1;
-			if ( !transitionManager.active && transitionManager.ready ) {
+			if ( !transitionManager.active && transitionManager._ready ) {
 				transitionManager.complete();
 			}
 		},
@@ -30,6 +30,12 @@ makeTransitionManager = function ( root, callback ) {
 
 			if ( callback ) {
 				callback.call( root );
+			}
+		},
+		ready: function () {
+			transitionManager._ready = true;
+			if ( !transitionManager.active ) {
+				transitionManager.complete();
 			}
 		},
 		nodesToDetach: []
