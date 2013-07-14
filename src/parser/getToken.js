@@ -1115,7 +1115,7 @@
 
 
 		getReference = function ( tokenizer ) {
-			var name, dot, combo;
+			var name, dot, combo, refinement;
 
 			// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
 			// standard reference ('name')
@@ -1126,6 +1126,10 @@
 
 			if ( !combo ) {
 				return null;
+			}
+
+			while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
+				combo += refinement;
 			}
 
 			return {
