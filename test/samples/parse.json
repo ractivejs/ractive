@@ -144,5 +144,10 @@
 		"name": "Mustache references can have numeric keys",
 		"template": "{{todos.0.content}}",
 		"parsed": [{"r":"todos.0.content","t":2}]
+	},
+	{
+		"name": "Expression with keypath like foo.0.bar",
+		"template": "{{( process( foo.0.bar ) )}}",
+		"parsed": [{"t":2,"x":{"r":["process","foo.0.bar"],"s":"â–0(â–1)"}}]
 	}
 ]
