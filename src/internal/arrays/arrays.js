@@ -252,7 +252,8 @@
 			while ( i-- ) {
 				methodName = mutatorMethods[i];
 				defineProperty( array, methodName, {
-					value: WrappedArrayProto[ methodName ]
+					value: WrappedArrayProto[ methodName ],
+					configurable: true
 				});
 			}
 		};
