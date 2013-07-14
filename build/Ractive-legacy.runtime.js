@@ -126,8 +126,8 @@
 
 }( document ));
 
-/*! Ractive - v0.3.1 - 2013-07-11
-* Faster, easier, better interactive web development
+/*! Ractive - v0.3.1 - 2013-07-14
+* Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
 * Copyright (c) 2013 Rich Harris; Licensed MIT */
@@ -430,8 +430,10 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 	if ( transition ) {
 		transitionManager = root._transitionManager;
 
-		transitionManager.push();
-		transition.call( root, owner.node, transitionManager.pop, transitionParams, transitionManager.info, isIntro );
+		transitionManager.push( owner.node );
+		transition.call( root, owner.node, function () {
+			transitionManager.pop( owner.node );
+		}, transitionParams, transitionManager.info, isIntro );
 	}
 };
 insertHtml = function ( html, docFrag ) {
@@ -1620,14 +1622,9 @@ render = function ( ractive, options ) {
 		el.appendChild( ractive.fragment.docFrag );
 	}
 	
-	ractive.ready = true;
-
 	// transition manager has finished its work
 	ractive._transitionManager = null;
-	transitionManager.ready = true;
-	if ( !transitionManager.active ) {
-		transitionManager.complete();
-	}
+	transitionManager.ready();
 };
 // Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 // `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
@@ -1928,10 +1925,7 @@ proto.requestFullscreen = function () {
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;
-		transitionManager.ready = true;
-		if ( !transitionManager.active ) {
-			transitionManager.complete();
-		}
+		transitionManager.ready();
 
 		// fire event
 		if ( !this.setting ) {
@@ -2064,10 +2058,7 @@ proto.teardown = function ( complete ) {
 
 	// transition manager has finished its work
 	this._transitionManager = previousTransitionManager;
-	transitionManager.ready = true;
-	if ( !transitionManager.active ) {
-		transitionManager.complete();
-	}
+	transitionManager.ready();
 };
 proto.toggleFullscreen = function () {
 	if ( Ractive.isFullscreen( this.el ) ) {
@@ -2104,10 +2095,7 @@ proto.update = function ( keypath, complete ) {
 
 	// transition manager has finished its work
 	this._transitionManager = previousTransitionManager;
-	transitionManager.ready = true;
-	if ( !transitionManager.active ) {
-		transitionManager.complete();
-	}
+	transitionManager.ready();
 
 	if ( typeof keypath === 'string' ) {
 		this.fire( 'update', keypath );
@@ -3606,11 +3594,13 @@ animationCollection = {
 		};
 
 		processRoot = function ( root ) {
-			var previousTransitionManager = root._transitionManager;
+			var previousTransitionManager = root._transitionManager, transitionManager;
 
-			root._transitionManager = makeTransitionManager( root, noop );
+			root._transitionManager = transitionManager = makeTransitionManager( root, noop );
 			processKeypaths( root, keypathsByGuid[ root._guid ] );
 			root._transitionManager = previousTransitionManager;
+
+			transitionManager.ready();
 		};
 
 		processKeypaths = function ( root, keypaths ) {
@@ -4539,7 +4529,7 @@ DomElement.prototype = {
 		}
 
 		if ( detach ) {
-			this.root._transitionManager.nodesToDetach.push( this.node );
+			this.root._transitionManager.detachWhenReady( this.node );
 		}
 	},
 
@@ -4908,7 +4898,7 @@ DomSection.prototype = {
 		// context stacks and index refs will have changed)
 		reassignStart = ( start + addedItems );
 
-		reassignAffectedFragments( this.root, this, reassignStart, this.length, balance );
+		reassignFragments( this.root, this, reassignStart, this.length, balance );
 	},
 
 	teardown: function ( detach ) {
@@ -5277,37 +5267,73 @@ isObject = function ( obj ) {
 // efficient) to pass e.g. transitionManager.pop as a callback, rather
 // than wrapping a prototype method in an anonymous function each time
 makeTransitionManager = function ( root, callback ) {
-	var transitionManager;
+	var transitionManager, nodesToDetach, detachNodes, detachNodeIfPossible;
+
+	nodesToDetach = [];
+
+	// detach any nodes which a) need to be detached and b) have no child nodes
+	// which are actively transitioning. This will be called each time a
+	// transition completes
+	detachNodes = function () {
+		var i;
+
+		i = nodesToDetach.length;
+		while ( i-- ) {
+			// see if this node can be detached yet
+			detachNodeIfPossible( nodesToDetach[i] );
+		}
+	};
+
+	detachNodeIfPossible = function ( node ) {
+		var i, candidate;
+
+		i = transitionManager.active.length;
+		while ( i-- ) {
+			candidate = transitionManager.active[i];
+
+			if ( node.contains( candidate ) ) {
+				// fail as soon as possible
+				return;
+			}
+		}
+
+		// if we've run the gauntlet, we can safely detach this node
+		node.parentNode.removeChild( node );
+		nodesToDetach.pop();
+	};
 
 	transitionManager = {
-		active: 0,
+		active: [],
 		info: { i: 0 },
-		push: function () {
-			transitionManager.active += 1;
+		push: function ( node ) {
+			transitionManager.active[ transitionManager.active.length ] = node;
 			transitionManager.info.i += 1;
 		},
-		pop: function () {
-			var i, node;
+		pop: function ( node ) {
+			transitionManager.active.splice( transitionManager.active.indexOf( node ), 1 );
+			
+			detachNodes();
 
-			transitionManager.active -= 1;
-			if ( !transitionManager.active && transitionManager.ready ) {
+			if ( !transitionManager.active.length && transitionManager._ready ) {
 				transitionManager.complete();
 			}
 		},
 		complete: function () {
-			var i, node;
-
-			i = transitionManager.nodesToDetach.length;
-			while ( i-- ) {
-				node = transitionManager.nodesToDetach.pop();
-				node.parentNode.removeChild( node );
-			}
-
 			if ( callback ) {
 				callback.call( root );
 			}
 		},
-		nodesToDetach: []
+		ready: function () {
+			detachNodes();
+
+			transitionManager._ready = true;
+			if ( !transitionManager.active.length ) {
+				transitionManager.complete();
+			}
+		},
+		detachWhenReady: function ( node ) {
+			nodesToDetach[ nodesToDetach.length ] = node;
+		}
 	};
 
 	return transitionManager;
