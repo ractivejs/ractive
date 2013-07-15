@@ -624,7 +624,9 @@
 				}
 
 				// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
-				// element is to use with innerHTML, and SVG doesn't support that method
+				// element is to use with innerHTML, and SVG doesn't support that method.
+				// Note: table elements are excluded from this, because IE (of course) fucks up when you use
+				// innerHTML with tables
 				if ( allElementNames.indexOf( this.tag.toLowerCase() ) === -1 ) {
 					return ( this.str = false );
 				}
@@ -710,7 +712,7 @@
 
 
 		voidElementNames = 'area base br col command embed hr img input keygen link meta param source track wbr'.split( ' ' );
-		allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol optgroup option p param pre q s samp script select small span strike strong style sub sup table tbody td textarea tfoot th thead title tr tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
+		allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol optgroup option p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
 		closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
 
 		svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split( ' ' );
