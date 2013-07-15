@@ -149,8 +149,8 @@
 		};
 	}
 
-	if ( !Array.prototype.map ) {
-		Array.prototype.map = function ( filter, context ) {
+	if ( !Array.prototype.filter ) {
+		Array.prototype.filter = function ( filter, context ) {
 			var i, len, filtered = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
