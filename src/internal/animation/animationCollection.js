@@ -14,7 +14,7 @@ animationCollection = {
 		}
 
 		if ( this.animations.length ) {
-			global.requestAnimationFrame( this.boundTick );
+			requestAnimationFrame( this.boundTick );
 		} else {
 			this.running = false;
 		}
