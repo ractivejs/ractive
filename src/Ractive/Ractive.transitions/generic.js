@@ -53,123 +53,115 @@
 		return target;
 	};
 
-	makeTransition = function ( properties, defaults, outside, inside ) {
-		if ( typeof properties === 'string' ) {
-			properties = [ properties ];
-		}
-
-		return function ( node, complete, params, info, isIntro ) {
-			var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
-
-			params = parseTransitionParams( params );
-			
-			duration = params.duration || defaults.duration;
-			easing = hyphenate( params.easing || defaults.easing );
-			delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
-
-			start = ( isIntro ? outside : inside );
-			end = ( isIntro ? inside : outside );
-
-			computedStyle = window.getComputedStyle( node );
-			originalStyle = node.getAttribute( 'style' );
-
-			// if this is an intro, we need to transition TO the original styles
-			if ( isIntro ) {
-				// hide, to avoid flashes
-				positionStyle = node.style.position;
-				visibilityStyle = node.style.visibility;
-				node.style.position = 'absolute';
-				node.style.visibility = 'hidden';
-
-				// we need to wait a beat before we can actually get values from computedStyle.
-				// Yeah, I know, WTF browsers
-				setTimeout( function () {
-					var i, prop;
-
-					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
-					
-					start = outside;
-					end = augment( originalComputedStyles, inside );
-
-					// starting style
-					node.style.position = positionStyle;
-					node.style.visibility = visibilityStyle;
-					
-					setStyle( node, properties, start, params );
-
-					setTimeout( startTransition, 0 );
-				}, delay );
+	if ( cssTransitionsEnabled ) {
+		makeTransition = function ( properties, defaults, outside, inside ) {
+			if ( typeof properties === 'string' ) {
+				properties = [ properties ];
 			}
 
-			// otherwise we need to transition FROM them
-			else {
-				setTimeout( function () {
-					var i, prop;
+			return function ( node, complete, params, info, isIntro ) {
+				var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
 
-					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
-
-					start = augment( originalComputedStyles, inside );
-					end = outside;
-
-					// ending style
-					setStyle( node, properties, start, params );
-
-					setTimeout( startTransition, 0 );
-				}, delay );
-			}
-
-			startTransition = function () {
-				var i, prop;
-
-				node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
-				node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
-				node.style[ transition + 'TimingFunction' ] = easing;
-
-				transitionEndHandler = function ( event ) {
-					node.removeEventListener( transitionend, transitionEndHandler );
-
-					if ( isIntro ) {
-						node.setAttribute( 'style', originalStyle || '' );
-					}
-
-					complete();
-				};
+				params = parseTransitionParams( params );
 				
-				node.addEventListener( transitionend, transitionEndHandler );
+				duration = params.duration || defaults.duration;
+				easing = hyphenate( params.easing || defaults.easing );
+				delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
 
-				setStyle( node, properties, end, params );
+				start = ( isIntro ? outside : inside );
+				end = ( isIntro ? inside : outside );
+
+				computedStyle = window.getComputedStyle( node );
+				originalStyle = node.getAttribute( 'style' );
+
+				// if this is an intro, we need to transition TO the original styles
+				if ( isIntro ) {
+					// hide, to avoid flashes
+					positionStyle = node.style.position;
+					visibilityStyle = node.style.visibility;
+					node.style.position = 'absolute';
+					node.style.visibility = 'hidden';
+
+					// we need to wait a beat before we can actually get values from computedStyle.
+					// Yeah, I know, WTF browsers
+					setTimeout( function () {
+						var i, prop;
+
+						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
+						
+						start = outside;
+						end = augment( originalComputedStyles, inside );
+
+						// starting style
+						node.style.position = positionStyle;
+						node.style.visibility = visibilityStyle;
+						
+						setStyle( node, properties, start, params );
+
+						setTimeout( startTransition, 0 );
+					}, delay );
+				}
+
+				// otherwise we need to transition FROM them
+				else {
+					setTimeout( function () {
+						var i, prop;
+
+						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
+
+						start = augment( originalComputedStyles, inside );
+						end = outside;
+
+						// ending style
+						setStyle( node, properties, start, params );
+
+						setTimeout( startTransition, 0 );
+					}, delay );
+				}
+
+				startTransition = function () {
+					var i, prop;
+
+					node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
+					node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
+					node.style[ transition + 'TimingFunction' ] = easing;
+
+					transitionEndHandler = function ( event ) {
+						node.removeEventListener( transitionend, transitionEndHandler );
+
+						if ( isIntro ) {
+							node.setAttribute( 'style', originalStyle || '' );
+						}
+
+						complete();
+					};
+					
+					node.addEventListener( transitionend, transitionEndHandler );
+
+					setStyle( node, properties, end, params );
+				};
 			};
 		};
-	};
 
-	transitions.slide = makeTransition([
-		'height',
-		'borderTopWidth',
-		'borderBottomWidth',
-		'paddingTop',
-		'paddingBottom',
-		'overflowY'
-	], { duration: 400, easing: 'easeInOut' }, { overflowY: 'hidden' }, { overflowY: 'hidden' });
+		transitions.slide = makeTransition([
+			'height',
+			'borderTopWidth',
+			'borderBottomWidth',
+			'paddingTop',
+			'paddingBottom',
+			'overflowY'
+		], { duration: 400, easing: 'easeInOut' }, { overflowY: 'hidden' }, { overflowY: 'hidden' });
 
-	transitions.fade = makeTransition( 'opacity', {
-		duration: 300,
-		easing: 'linear'
-	});
+		transitions.fade = makeTransition( 'opacity', {
+			duration: 300,
+			easing: 'linear'
+		});
 
-	/*// get prefixed transform property name
-	(function ( propertyNames ) {
-		var i = propertyNames.length, testDiv = doc.createElement( 'div' );
-		while ( i-- ) {
-			if ( testDiv.style[ propertyNames[i] ] !== undefined ) {
-				transform = propertyNames[i];
-				transformsEnabled = true;
-				break;
-			}
-		}
-	}([ 'OTransform', 'msTransform', 'MozTransform', 'webkitTransform', 'transform' ]));*/
+		transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
+			duration: 400, easing: 'easeOut'
+		}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 });
+	}
 
-	transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
-		duration: 400, easing: 'easeOut'
-	}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 });
+	
 
 }());
