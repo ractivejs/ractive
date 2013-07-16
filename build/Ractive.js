@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.1 - 2013-07-16
+/*! Ractive - v0.3.2 - 2013-07-16
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
