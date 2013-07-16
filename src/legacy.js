@@ -90,6 +90,7 @@
 		};
 	}
 
+	// https://gist.github.com/jonathantneal/2869388
 	// addEventListener polyfill IE6+
 	!window.addEventListener && (function (window, document) {
 		function Event(e, element) {
