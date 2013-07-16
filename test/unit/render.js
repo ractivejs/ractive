@@ -150,27 +150,27 @@ tests = [
 	},
 	{
 		name: 'SVG',
-		template: '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="{{x}}" cy="{{y}}" r="{{r}}"/></svg>',
+		template: '<svg><circle cx="{{x}}" cy="{{y}}" r="{{r}}"/></svg>',
 		data: { x: 50, y: 50, r: 50 },
-		result: '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50"></circle></svg>'
+		result: '<svg><circle cx="50" cy="50" r="50"></circle></svg>'
 	},
 	{
 		name: 'SVG with non-mustache text',
-		template: '<svg xmlns="http://www.w3.org/2000/svg"><text>some text</text></svg>',
+		template: '<svg><text>some text</text></svg>',
 		data: {},
-		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>some text</text></svg>'
+		result: '<svg><text>some text</text></svg>'
 	},
 	{
 		name: 'SVG with interpolator',
-		template: '<svg xmlns="http://www.w3.org/2000/svg"><text>{{hello}}</text></svg>',
+		template: '<svg><text>{{hello}}</text></svg>',
 		data: { hello: 'Hello world!' },
-		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello world!</text></svg>'
+		result: '<svg><text>Hello world!</text></svg>'
 	},
 	{
 		name: 'SVG with interpolator and static text',
-		template: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello {{thing}}!</text></svg>',
+		template: '<svg><text>Hello {{thing}}!</text></svg>',
 		data: { thing: 'world' },
-		result: '<svg xmlns="http://www.w3.org/2000/svg"><text>Hello world!</text></svg>'
+		result: '<svg><text>Hello world!</text></svg>'
 	},
 	{
 		name: 'Basic expression',
@@ -257,17 +257,17 @@ tests = [
 	},
 	{
 		name: 'Attribute with nested mustaches',
-		template: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="{{#viewBox}}{{x}} {{y}} {{width}} {{height}}{{/viewBox}}">{{#rect}}<rect x="{{x}}" y="{{y}}" width="{{width}}" height="{{height}}"/>{{/rect}}</svg>',
+		template: '<svg viewBox="{{#viewBox}}{{x}} {{y}} {{width}} {{height}}{{/viewBox}}">{{#rect}}<rect x="{{x}}" y="{{y}}" width="{{width}}" height="{{height}}"/>{{/rect}}</svg>',
 		data: {
 			viewBox: { x: 0,  y: 0,  width: 100, height: 100 },
 			rect:    { x: 10, y: 10, width: 80,  height: 80  }
 		},
-		result: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80"></rect></svg>',
+		result: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80"></rect></svg>',
 		new_data: {
 			viewBox: { x: 50,  y: 50,  width: 350, height: 350 },
 			rect:    { x: 20,  y: 20,  width: 200, height: 100 }
 		},
-		new_result: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 50 350 350"><rect x="20" y="20" width="200" height="100"></rect></svg>'
+		new_result: '<svg viewBox="50 50 350 350"><rect x="20" y="20" width="200" height="100"></rect></svg>'
 	},
 	{
 		name: 'List section with non-self-updating attributes',
@@ -321,7 +321,7 @@ _.each( tests, function ( t, i ) {
 	test( t.name, function () {
 		console.group(i+1);
 
-		var view;
+		var view, normalise;
 
 		window.view = view = new Ractive({
 			el: fixture,
@@ -330,12 +330,16 @@ _.each( tests, function ( t, i ) {
 			partials: t.partials
 		});
 
-		equal( fixture.innerHTML, t.result );
+		normalise = function ( str ) {
+			return str.toLowerCase().replace( /\r\n/g, '' );
+		};
+
+		equal( normalise( fixture.innerHTML ), normalise( t.result ) );
 		//equal( view.renderHTML(), t.result );
 
 		if ( t.new_data ) {
 			view.set( t.new_data );
-			equal( fixture.innerHTML, t.new_result );
+			equal( normalise( fixture.innerHTML ), normalise( t.new_result ) );
 			//equal( view.renderHTML(), t.new_result );
 		}
 
