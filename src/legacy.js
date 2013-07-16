@@ -1,4 +1,10 @@
-(function ( win, doc ) {
+(function ( win ) {
+
+	var doc = win.document;
+
+	if ( !doc ) {
+		return;
+	}
 
 	// Shims for older browsers
 
@@ -163,4 +169,4 @@
 		}( win, doc ));
 	}
 
-}( window, document ));
+}( this ));
