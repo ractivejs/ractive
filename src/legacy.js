@@ -90,7 +90,7 @@
 		};
 	}
 
-	// https://gist.github.com/jonathantneal/2869388
+	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
 		(function ( win, doc ) {
