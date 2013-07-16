@@ -1,0 +1,15 @@
+{
+	"name": "ractive",
+	"version": "0.3.2",
+	"main": "Ractive.js",
+	"ignore": [
+		"**/.*",
+		"node_modules",
+		"release",
+		"sandbox",
+		"src",
+		"test",
+		"wrapper",
+		"Gruntfile.js"
+	]
+}
