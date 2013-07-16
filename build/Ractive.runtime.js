@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.1 - 2013-07-14
+/*! Ractive - v0.3.1 - 2013-07-16
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -58,7 +58,6 @@ executeTransition,
 getPartialDescriptor,
 makeTransitionManager,
 requestAnimationFrame,
-cancelAnimationFrame,
 defineProperty,
 defineProperties,
 create,
@@ -1143,7 +1142,7 @@ initFragment = function ( fragment, options ) {
 		
 		var k, animation, animations;
 
-		// animate multiple properties
+		// animate multiple keypaths
 		if ( typeof keypath === 'object' ) {
 			options = to || {};
 			animations = [];
@@ -1163,6 +1162,7 @@ initFragment = function ( fragment, options ) {
 			};
 		}
 
+		// animate a single keypath
 		options = options || {};
 
 		animation = animate( this, keypath, to, options );
@@ -1183,11 +1183,6 @@ initFragment = function ( fragment, options ) {
 
 		from = root.get( keypath );
 		
-		// don't bother animating values that stay the same
-		if ( isEqual( from, to ) ) {
-			return noAnimation;
-		}
-
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?
 		i = animationCollection.animations.length;
@@ -1195,6 +1190,15 @@ initFragment = function ( fragment, options ) {
 			if ( animationCollection.animations[ i ].keypath === keypath ) {
 				animationCollection.animations[ i ].stop();
 			}
+		}
+
+		// don't bother animating values that stay the same
+		if ( isEqual( from, to ) ) {
+			if ( options.complete ) {
+				options.complete( 1, options.to );
+			}
+
+			return noAnimation;
 		}
 
 		// easing function
@@ -1493,7 +1497,7 @@ render = function ( ractive, options ) {
 	if ( el ) {
 		el.appendChild( ractive.fragment.docFrag );
 	}
-	
+
 	// transition manager has finished its work
 	ractive._transitionManager = null;
 	transitionManager.ready();
@@ -1627,7 +1631,7 @@ proto.link = function ( keypath ) {
 		observer = new Observer( root, keypath, callback, options );
 
 		if ( !options || options.init !== false ) {
-			observer.update();
+			observer.update( true );
 		}
 
 		registerDependant( observer );
@@ -1650,13 +1654,13 @@ proto.link = function ( keypath ) {
 	};
 
 	Observer.prototype = {
-		update: function () {
+		update: function ( init ) {
 			var value;
 
 			// TODO create, and use, an internal get method instead - we can skip checks
 			value = this.root.get( this.keypath, true );
 
-			if ( !isEqual( value, this.value ) ) {
+			if ( !isEqual( value, this.value ) || init ) {
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
@@ -2218,12 +2222,12 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
-			window.removeEventListener( 'mousemove', move );
-			window.removeEventListener( 'mouseup', up );
+			doc.removeEventListener( 'mousemove', move );
+			doc.removeEventListener( 'mouseup', up );
 		};
 
-		window.addEventListener( 'mousemove', move );
-		window.addEventListener( 'mouseup', up );
+		doc.addEventListener( 'mousemove', move );
+		doc.addEventListener( 'mouseup', up );
 
 		setTimeout( cancel, timeThreshold );
 	};
@@ -2895,124 +2899,116 @@ Ractive = function ( options ) {
 		return target;
 	};
 
-	makeTransition = function ( properties, defaults, outside, inside ) {
-		if ( typeof properties === 'string' ) {
-			properties = [ properties ];
-		}
-
-		return function ( node, complete, params, info, isIntro ) {
-			var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
-
-			params = parseTransitionParams( params );
-			
-			duration = params.duration || defaults.duration;
-			easing = hyphenate( params.easing || defaults.easing );
-			delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
-
-			start = ( isIntro ? outside : inside );
-			end = ( isIntro ? inside : outside );
-
-			computedStyle = window.getComputedStyle( node );
-			originalStyle = node.getAttribute( 'style' );
-
-			// if this is an intro, we need to transition TO the original styles
-			if ( isIntro ) {
-				// hide, to avoid flashes
-				positionStyle = node.style.position;
-				visibilityStyle = node.style.visibility;
-				node.style.position = 'absolute';
-				node.style.visibility = 'hidden';
-
-				// we need to wait a beat before we can actually get values from computedStyle.
-				// Yeah, I know, WTF browsers
-				setTimeout( function () {
-					var i, prop;
-
-					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
-					
-					start = outside;
-					end = augment( originalComputedStyles, inside );
-
-					// starting style
-					node.style.position = positionStyle;
-					node.style.visibility = visibilityStyle;
-					
-					setStyle( node, properties, start, params );
-
-					setTimeout( startTransition, 0 );
-				}, delay );
+	if ( cssTransitionsEnabled ) {
+		makeTransition = function ( properties, defaults, outside, inside ) {
+			if ( typeof properties === 'string' ) {
+				properties = [ properties ];
 			}
 
-			// otherwise we need to transition FROM them
-			else {
-				setTimeout( function () {
-					var i, prop;
+			return function ( node, complete, params, info, isIntro ) {
+				var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
 
-					originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
-
-					start = augment( originalComputedStyles, inside );
-					end = outside;
-
-					// ending style
-					setStyle( node, properties, start, params );
-
-					setTimeout( startTransition, 0 );
-				}, delay );
-			}
-
-			startTransition = function () {
-				var i, prop;
-
-				node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
-				node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
-				node.style[ transition + 'TimingFunction' ] = easing;
-
-				transitionEndHandler = function ( event ) {
-					node.removeEventListener( transitionend, transitionEndHandler );
-
-					if ( isIntro ) {
-						node.setAttribute( 'style', originalStyle || '' );
-					}
-
-					complete();
-				};
+				params = parseTransitionParams( params );
 				
-				node.addEventListener( transitionend, transitionEndHandler );
+				duration = params.duration || defaults.duration;
+				easing = hyphenate( params.easing || defaults.easing );
+				delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
 
-				setStyle( node, properties, end, params );
+				start = ( isIntro ? outside : inside );
+				end = ( isIntro ? inside : outside );
+
+				computedStyle = window.getComputedStyle( node );
+				originalStyle = node.getAttribute( 'style' );
+
+				// if this is an intro, we need to transition TO the original styles
+				if ( isIntro ) {
+					// hide, to avoid flashes
+					positionStyle = node.style.position;
+					visibilityStyle = node.style.visibility;
+					node.style.position = 'absolute';
+					node.style.visibility = 'hidden';
+
+					// we need to wait a beat before we can actually get values from computedStyle.
+					// Yeah, I know, WTF browsers
+					setTimeout( function () {
+						var i, prop;
+
+						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
+						
+						start = outside;
+						end = augment( originalComputedStyles, inside );
+
+						// starting style
+						node.style.position = positionStyle;
+						node.style.visibility = visibilityStyle;
+						
+						setStyle( node, properties, start, params );
+
+						setTimeout( startTransition, 0 );
+					}, delay );
+				}
+
+				// otherwise we need to transition FROM them
+				else {
+					setTimeout( function () {
+						var i, prop;
+
+						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
+
+						start = augment( originalComputedStyles, inside );
+						end = outside;
+
+						// ending style
+						setStyle( node, properties, start, params );
+
+						setTimeout( startTransition, 0 );
+					}, delay );
+				}
+
+				startTransition = function () {
+					var i, prop;
+
+					node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
+					node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
+					node.style[ transition + 'TimingFunction' ] = easing;
+
+					transitionEndHandler = function ( event ) {
+						node.removeEventListener( transitionend, transitionEndHandler );
+
+						if ( isIntro ) {
+							node.setAttribute( 'style', originalStyle || '' );
+						}
+
+						complete();
+					};
+					
+					node.addEventListener( transitionend, transitionEndHandler );
+
+					setStyle( node, properties, end, params );
+				};
 			};
 		};
-	};
 
-	transitions.slide = makeTransition([
-		'height',
-		'borderTopWidth',
-		'borderBottomWidth',
-		'paddingTop',
-		'paddingBottom',
-		'overflowY'
-	], { duration: 400, easing: 'easeInOut' }, { overflowY: 'hidden' }, { overflowY: 'hidden' });
+		transitions.slide = makeTransition([
+			'height',
+			'borderTopWidth',
+			'borderBottomWidth',
+			'paddingTop',
+			'paddingBottom',
+			'overflowY'
+		], { duration: 400, easing: 'easeInOut' }, { overflowY: 'hidden' }, { overflowY: 'hidden' });
 
-	transitions.fade = makeTransition( 'opacity', {
-		duration: 300,
-		easing: 'linear'
-	});
+		transitions.fade = makeTransition( 'opacity', {
+			duration: 300,
+			easing: 'linear'
+		});
 
-	/*// get prefixed transform property name
-	(function ( propertyNames ) {
-		var i = propertyNames.length, testDiv = doc.createElement( 'div' );
-		while ( i-- ) {
-			if ( testDiv.style[ propertyNames[i] ] !== undefined ) {
-				transform = propertyNames[i];
-				transformsEnabled = true;
-				break;
-			}
-		}
-	}([ 'OTransform', 'msTransform', 'MozTransform', 'webkitTransform', 'transform' ]));*/
+		transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
+			duration: 400, easing: 'easeOut'
+		}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 });
+	}
 
-	transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
-		duration: 400, easing: 'easeOut'
-	}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 });
+	
 
 }());
 var parseTransitionParams = function ( params ) {
@@ -3305,7 +3301,7 @@ animationCollection = {
 		}
 
 		if ( this.animations.length ) {
-			global.requestAnimationFrame( this.boundTick );
+			requestAnimationFrame( this.boundTick );
 		} else {
 			this.running = false;
 		}
@@ -3328,37 +3324,32 @@ animationCollection = {
 // https://gist.github.com/paulirish/1579671
 (function( vendors, lastTime, global ) {
 	
-	var x;
+	var x, setTimeout;
 
 	if ( global.requestAnimationFrame ) {
 		requestAnimationFrame = global.requestAnimationFrame;
-		cancelAnimationFrame = global.cancelAnimationFrame;
 		return;
 	}
 
 	for ( x = 0; x < vendors.length && !requestAnimationFrame; ++x ) {
 		requestAnimationFrame = global[vendors[x]+'RequestAnimationFrame'];
-		cancelAnimationFrame = global[vendors[x]+'CancelAnimationFrame'] || global[vendors[x]+'CancelRequestAnimationFrame'];
 	}
 
 	if ( !requestAnimationFrame ) {
+		setTimeout = global.setTimeout;
+
 		requestAnimationFrame = function(callback) {
 			var currTime, timeToCall, id;
 			
 			currTime = Date.now();
 			timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
-			id = global.setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+			id = setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
 			
 			lastTime = currTime + timeToCall;
 			return id;
 		};
 	}
-
-	if ( !cancelAnimationFrame ) {
-		cancelAnimationFrame = function( id ) {
-			global.clearTimeout( id );
-		};
-	}
+	
 }( ['ms', 'moz', 'webkit', 'o'], 0, global ));
 (function () {
 
@@ -3614,7 +3605,8 @@ animationCollection = {
 			while ( i-- ) {
 				methodName = mutatorMethods[i];
 				defineProperty( array, methodName, {
-					value: WrappedArrayProto[ methodName ]
+					value: WrappedArrayProto[ methodName ],
+					configurable: true
 				});
 			}
 		};
@@ -3743,7 +3735,7 @@ animationCollection = {
 
 
 		// can we establish this attribute's property name equivalent?
-		if ( this.parentNode && !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
+		if ( this.parentNode && !this.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
 			lowerCaseName = this.lcName;
 			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
 
@@ -3786,6 +3778,7 @@ animationCollection = {
 			break;
 		}
 
+		
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
@@ -3944,14 +3937,18 @@ animationCollection = {
 				this.twoway = true;
 
 				node.addEventListener( 'change', this.updateViewModel );
-				node.addEventListener( 'click',  this.updateViewModel );
+				node.addEventListener( 'click',  this.updateViewModel ); // TODO only in IE?
 				node.addEventListener( 'blur',   this.updateViewModel );
 
 				if ( !lazy ) {
-					node.addEventListener( 'keyup',    this.updateViewModel );
-					node.addEventListener( 'keydown',  this.updateViewModel );
-					node.addEventListener( 'keypress', this.updateViewModel );
 					node.addEventListener( 'input',    this.updateViewModel );
+
+					// this is a hack to see if we're in IE - if so, we probably need to add
+					// a keyup listener as well, since in IE8 the input event doesn't fire,
+					// and in IE9 it doesn't fire when text is deleted
+					if ( node.attachEvent ) {
+						node.addEventListener( 'keyup',    this.updateViewModel );
+					}
 				}
 			}
 		},
@@ -3970,14 +3967,13 @@ animationCollection = {
 		},
 
 		teardown: function () {
-			// remove the event listeners we added, if we added them
+			// remove the event listeners we added, if we added them (no need to check,
+			// it will fail silently if they weren't there in the first place)
 			if ( this.updateViewModel ) {
 				this.parentNode.removeEventListener( 'change', this.updateViewModel );
 				this.parentNode.removeEventListener( 'click', this.updateViewModel );
 				this.parentNode.removeEventListener( 'blur', this.updateViewModel );
 				this.parentNode.removeEventListener( 'keyup', this.updateViewModel );
-				this.parentNode.removeEventListener( 'keydown', this.updateViewModel );
-				this.parentNode.removeEventListener( 'keypress', this.updateViewModel );
 				this.parentNode.removeEventListener( 'input', this.updateViewModel );
 			}
 
@@ -4148,11 +4144,9 @@ DomElement = function ( options, docFrag ) {
 	}
 
 
-	
-
 	// append children, if there are any
 	if ( descriptor.f ) {
-		if ( typeof descriptor.f === 'string' && ( !this.node || this.node.namespaceURI === namespaces.html ) ) {
+		if ( typeof descriptor.f === 'string' && ( !this.node || ( !this.node.namespaceURI || this.node.namespaceURI === namespaces.html ) ) ) {
 			// great! we can use innerHTML
 			this.html = descriptor.f;
 
@@ -4162,16 +4156,34 @@ DomElement = function ( options, docFrag ) {
 		}
 
 		else {
-			this.fragment = new DomFragment({
-				descriptor:   descriptor.f,
-				root:         root,
-				parentNode:   this.node,
-				contextStack: parentFragment.contextStack,
-				owner:        this
-			});
+			// once again, everyone has to suffer because of IE bloody 8
+			if ( descriptor.e === 'style' && this.node.styleSheet !== undefined ) {
+				this.fragment = new StringFragment({
+					descriptor:   descriptor.f,
+					root:         root,
+					contextStack: parentFragment.contextStack,
+					owner:        this
+				});
 
-			if ( docFrag ) {
-				this.node.appendChild( this.fragment.docFrag );
+				if ( docFrag ) {
+					this.bubble = function () {
+						this.node.styleSheet.cssText = this.fragment.toString();
+					};
+				}
+			}
+
+			else {
+				this.fragment = new DomFragment({
+					descriptor:   descriptor.f,
+					root:         root,
+					parentNode:   this.node,
+					contextStack: parentFragment.contextStack,
+					owner:        this
+				});
+
+				if ( docFrag ) {
+					this.node.appendChild( this.fragment.docFrag );
+				}
 			}
 		}
 	}
@@ -4476,7 +4488,7 @@ DomFragment.prototype = {
 			case ELEMENT: return new DomElement( options, this.docFrag );
 			case PARTIAL: return new DomPartial( options, this.docFrag );
 
-			default: throw 'WTF? not sure what happened here...';
+			default: throw new Error( 'WTF? not sure what happened here...' );
 		}
 	},
 
@@ -5133,7 +5145,7 @@ isNumeric = function ( n ) {
 };
 
 isObject = function ( obj ) {
-	return ( toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	return ( typeof obj === 'object' && toString.call( obj ) === '[object Object]' );
 };
 // We're not using a constructor here because it's convenient (and more
 // efficient) to pass e.g. transitionManager.pop as a callback, rather

@@ -22,7 +22,7 @@ render = function ( ractive, options ) {
 	if ( el ) {
 		el.appendChild( ractive.fragment.docFrag );
 	}
-	
+
 	// transition manager has finished its work
 	ractive._transitionManager = null;
 	transitionManager.ready();
