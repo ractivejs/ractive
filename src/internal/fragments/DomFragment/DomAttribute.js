@@ -109,7 +109,7 @@
 
 
 		// can we establish this attribute's property name equivalent?
-		if ( this.parentNode && !this.namespace && options.parentNode.namespaceURI === namespaces.html ) {
+		if ( this.parentNode && !this.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
 			lowerCaseName = this.lcName;
 			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
 
@@ -152,6 +152,7 @@
 			break;
 		}
 
+		
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		if ( this.root.twoway ) {
@@ -310,14 +311,18 @@
 				this.twoway = true;
 
 				node.addEventListener( 'change', this.updateViewModel );
-				node.addEventListener( 'click',  this.updateViewModel );
+				node.addEventListener( 'click',  this.updateViewModel ); // TODO only in IE?
 				node.addEventListener( 'blur',   this.updateViewModel );
 
 				if ( !lazy ) {
-					node.addEventListener( 'keyup',    this.updateViewModel );
-					node.addEventListener( 'keydown',  this.updateViewModel );
-					node.addEventListener( 'keypress', this.updateViewModel );
 					node.addEventListener( 'input',    this.updateViewModel );
+
+					// this is a hack to see if we're in IE - if so, we probably need to add
+					// a keyup listener as well, since in IE8 the input event doesn't fire,
+					// and in IE9 it doesn't fire when text is deleted
+					if ( node.attachEvent ) {
+						node.addEventListener( 'keyup',    this.updateViewModel );
+					}
 				}
 			}
 		},
@@ -336,14 +341,13 @@
 		},
 
 		teardown: function () {
-			// remove the event listeners we added, if we added them
+			// remove the event listeners we added, if we added them (no need to check,
+			// it will fail silently if they weren't there in the first place)
 			if ( this.updateViewModel ) {
 				this.parentNode.removeEventListener( 'change', this.updateViewModel );
 				this.parentNode.removeEventListener( 'click', this.updateViewModel );
 				this.parentNode.removeEventListener( 'blur', this.updateViewModel );
 				this.parentNode.removeEventListener( 'keyup', this.updateViewModel );
-				this.parentNode.removeEventListener( 'keydown', this.updateViewModel );
-				this.parentNode.removeEventListener( 'keypress', this.updateViewModel );
 				this.parentNode.removeEventListener( 'input', this.updateViewModel );
 			}
 
