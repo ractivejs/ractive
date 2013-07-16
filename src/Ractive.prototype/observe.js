@@ -34,7 +34,7 @@
 		observer = new Observer( root, keypath, callback, options );
 
 		if ( !options || options.init !== false ) {
-			observer.update();
+			observer.update( true );
 		}
 
 		registerDependant( observer );
@@ -57,13 +57,13 @@
 	};
 
 	Observer.prototype = {
-		update: function () {
+		update: function ( init ) {
 			var value;
 
 			// TODO create, and use, an internal get method instead - we can skip checks
 			value = this.root.get( this.keypath, true );
 
-			if ( !isEqual( value, this.value ) ) {
+			if ( !isEqual( value, this.value ) || init ) {
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
