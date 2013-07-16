@@ -6,7 +6,7 @@
 		
 		var k, animation, animations;
 
-		// animate multiple properties
+		// animate multiple keypaths
 		if ( typeof keypath === 'object' ) {
 			options = to || {};
 			animations = [];
@@ -26,6 +26,7 @@
 			};
 		}
 
+		// animate a single keypath
 		options = options || {};
 
 		animation = animate( this, keypath, to, options );
@@ -46,11 +47,6 @@
 
 		from = root.get( keypath );
 		
-		// don't bother animating values that stay the same
-		if ( isEqual( from, to ) ) {
-			return noAnimation;
-		}
-
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?
 		i = animationCollection.animations.length;
@@ -58,6 +54,15 @@
 			if ( animationCollection.animations[ i ].keypath === keypath ) {
 				animationCollection.animations[ i ].stop();
 			}
+		}
+
+		// don't bother animating values that stay the same
+		if ( isEqual( from, to ) ) {
+			if ( options.complete ) {
+				options.complete( 1, options.to );
+			}
+
+			return noAnimation;
 		}
 
 		// easing function
