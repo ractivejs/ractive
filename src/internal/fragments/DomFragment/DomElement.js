@@ -53,11 +53,9 @@ DomElement = function ( options, docFrag ) {
 	}
 
 
-	
-
 	// append children, if there are any
 	if ( descriptor.f ) {
-		if ( typeof descriptor.f === 'string' && ( !this.node || this.node.namespaceURI === namespaces.html ) ) {
+		if ( typeof descriptor.f === 'string' && ( !this.node || ( !this.node.namespaceURI || this.node.namespaceURI === namespaces.html ) ) ) {
 			// great! we can use innerHTML
 			this.html = descriptor.f;
 
@@ -67,16 +65,34 @@ DomElement = function ( options, docFrag ) {
 		}
 
 		else {
-			this.fragment = new DomFragment({
-				descriptor:   descriptor.f,
-				root:         root,
-				parentNode:   this.node,
-				contextStack: parentFragment.contextStack,
-				owner:        this
-			});
+			// once again, everyone has to suffer because of IE bloody 8
+			if ( descriptor.e === 'style' && this.node.styleSheet !== undefined ) {
+				this.fragment = new StringFragment({
+					descriptor:   descriptor.f,
+					root:         root,
+					contextStack: parentFragment.contextStack,
+					owner:        this
+				});
 
-			if ( docFrag ) {
-				this.node.appendChild( this.fragment.docFrag );
+				if ( docFrag ) {
+					this.bubble = function () {
+						this.node.styleSheet.cssText = this.fragment.toString();
+					};
+				}
+			}
+
+			else {
+				this.fragment = new DomFragment({
+					descriptor:   descriptor.f,
+					root:         root,
+					parentNode:   this.node,
+					contextStack: parentFragment.contextStack,
+					owner:        this
+				});
+
+				if ( docFrag ) {
+					this.node.appendChild( this.fragment.docFrag );
+				}
 			}
 		}
 	}
