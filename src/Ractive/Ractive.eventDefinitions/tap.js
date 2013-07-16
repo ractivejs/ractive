@@ -27,12 +27,12 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
-			window.removeEventListener( 'mousemove', move );
-			window.removeEventListener( 'mouseup', up );
+			doc.removeEventListener( 'mousemove', move );
+			doc.removeEventListener( 'mouseup', up );
 		};
 
-		window.addEventListener( 'mousemove', move );
-		window.addEventListener( 'mouseup', up );
+		doc.addEventListener( 'mousemove', move );
+		doc.addEventListener( 'mouseup', up );
 
 		setTimeout( cancel, timeThreshold );
 	};
