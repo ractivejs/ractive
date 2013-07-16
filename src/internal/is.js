@@ -23,5 +23,5 @@ isNumeric = function ( n ) {
 };
 
 isObject = function ( obj ) {
-	return ( toString.call( obj ) === '[object Object]' ) && ( typeof obj !== 'function' );
+	return ( typeof obj === 'object' && toString.call( obj ) === '[object Object]' );
 };
