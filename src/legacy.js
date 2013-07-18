@@ -47,7 +47,7 @@
 			}
 
 			for ( len = this.length; i<len; i++ ) {
-				if ( this.hasOwnProperty( i ) && this[i] === needle ) {
+				if ( hasOwn.call( this, i ) && this[i] === needle ) {
 					return i;
 				}
 			}
@@ -61,7 +61,7 @@
 			var i, len;
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
+				if ( hasOwn.call( this, i ) ) {
 					callback.call( context, this[i], i, this );
 				}
 			}
@@ -73,7 +73,7 @@
 			var i, len, mapped = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
+				if ( hasOwn.call( this,  i ) ) {
 					mapped[i] = mapper.call( context, this[i], i, this );
 				}
 			}
@@ -87,7 +87,7 @@
 			var i, len, filtered = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
+				if ( hasOwn.call( this, i ) && filter.call( context, this[i], i, this ) ) {
 					filtered[ filtered.length ] = this[i];
 				}
 			}

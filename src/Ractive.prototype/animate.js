@@ -12,7 +12,7 @@
 			animations = [];
 
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					animations[ animations.length ] = animate( this, k, keypath[k], options );
 				}
 			}

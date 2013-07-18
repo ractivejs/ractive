@@ -19,7 +19,7 @@
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					keys = splitKeypath( k );
 					normalised = keys.join( '.' );
 					value = keypath[k];

@@ -10,7 +10,7 @@
 			options = callback;
 
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					callback = keypath[k];
 					observers[ observers.length ] = observe( this, k, callback, options );
 				}

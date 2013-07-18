@@ -45,7 +45,7 @@
 		}
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}

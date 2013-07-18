@@ -6,7 +6,7 @@ proto.on = function ( eventName, callback ) {
 		listeners = [];
 
 		for ( n in eventName ) {
-			if ( eventName.hasOwnProperty( n ) ) {
+			if ( hasOwn.call( eventName, n ) ) {
 				listeners[ listeners.length ] = this.on( n, eventName[ n ] );
 			}
 		}

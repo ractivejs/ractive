@@ -16,7 +16,7 @@ adaptors.statesman = function ( model, path ) {
 			result = {};
 
 			for ( attr in attrs ) {
-				if ( attrs.hasOwnProperty( attr ) ) {
+				if ( hasOwn.call( attrs, attr ) ) {
 					result[ path + attr ] = attrs[ attr ];
 				}
 			}

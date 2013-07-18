@@ -28,7 +28,7 @@ resolveRef = function ( ractive, ref, contextStack ) {
 
 		parentValue = ractive.get( contextKeys.concat( keys ) );
 
-		if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
+		if ( typeof parentValue === 'object' && parentValue !== null && hasOwn.call( parentValue, lastKey ) ) {
 			keypath = innerMostContext + '.' + ref;
 			break;
 		}

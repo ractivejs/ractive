@@ -19,7 +19,7 @@ Ractive = function ( options ) {
 	// Options
 	// -------
 	for ( key in defaultOptions ) {
-		if ( !options.hasOwnProperty( key ) ) {
+		if ( !hasOwn.call( options, key ) ) {
 			options[ key ] = ( typeof defaultOptions[ key ] === 'object' ? {} : defaultOptions[ key ] );
 		}
 	}
@@ -162,7 +162,7 @@ Ractive = function ( options ) {
 	// If we were given unparsed partials, parse them
 	if ( options.partials ) {
 		for ( key in options.partials ) {
-			if ( options.partials.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( options.partials, key ) ) {
 				partial = options.partials[ key ];
 
 				if ( typeof partial === 'string' ) {
@@ -180,7 +180,7 @@ Ractive = function ( options ) {
 
 	// Unpack string-based partials, if necessary
 	for ( key in this.partials ) {
-		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
+		if ( hasOwn.call( this.partials, key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
 			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}

@@ -49,8 +49,8 @@ interpolators = {
 		interpolators = {};
 
 		for ( prop in from ) {
-			if ( from.hasOwnProperty( prop ) ) {
-				if ( to.hasOwnProperty( prop ) ) {
+			if ( hasOwn.call( from, prop ) ) {
+				if ( hasOwn.call( to, prop ) ) {
 					properties[ properties.length ] = prop;
 					interpolators[ prop ] = Ractive.interpolate( from[ prop ], to[ prop ] );
 				}
@@ -62,7 +62,7 @@ interpolators = {
 		}
 
 		for ( prop in to ) {
-			if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
+			if ( hasOwn.call( to, prop ) && !hasOwn.call( from, prop ) ) {
 				intermediate[ prop ] = to[ prop ];
 			}
 		}

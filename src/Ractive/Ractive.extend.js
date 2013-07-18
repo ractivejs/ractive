@@ -107,7 +107,7 @@
 
 		// Blacklisted properties don't extend the child, as they are part of the initialisation options
 		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) && !Child.prototype.hasOwnProperty( key ) && blacklist.indexOf( key ) === -1 ) {
+			if ( hasOwn.call( childProps, key ) && !hasOwn.call( Child.prototype, key ) && blacklist.indexOf( key ) === -1 ) {
 				member = childProps[ key ];
 
 				// if this is a method that overwrites a prototype method, we may need
@@ -168,7 +168,7 @@
 		// Parse partials, if necessary
 		if ( Child.partials ) {
 			for ( key in Child.partials ) {
-				if ( Child.partials.hasOwnProperty( key ) ) {
+				if ( hasOwn.call( Child.partials, key ) ) {
 					if ( typeof Child.partials[ key ] === 'string' ) {
 						if ( !Ractive.parse ) {
 							throw new Error( missingParser );
@@ -220,7 +220,7 @@
 		var key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) && !target.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) && !hasOwn.call( target, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -230,7 +230,7 @@
 		var target = {}, key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -242,7 +242,7 @@
 		var key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}

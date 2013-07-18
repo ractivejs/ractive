@@ -23,7 +23,7 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	else {
 		// cache hit? great
-		if ( cache.hasOwnProperty( keypath ) && cache[ keypath ] !== UNSET ) {
+		if ( hasOwn.call( cache, keypath ) && cache[ keypath ] !== UNSET ) {
 			return cache[ keypath ];
 		}
 
@@ -32,7 +32,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	}
 
 	// we may have a cache hit now that it's been normalised
-	if ( cache.hasOwnProperty( normalised ) && cache[ normalised ] !== UNSET ) {
+	if ( hasOwn.call( cache, normalised ) && cache[ normalised ] !== UNSET ) {
 		if ( cache[ normalised ] === undefined && ignoreUndefined ) {
 			// continue
 		} else {
