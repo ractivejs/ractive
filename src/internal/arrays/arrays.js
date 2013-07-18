@@ -127,7 +127,7 @@
 			// using the normal method - we want to do a smart update whereby elements
 			// are removed from the right place. But we do need to clear the cache
 			clearCache( root, keypath );
-			
+
 			// find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
@@ -170,10 +170,14 @@
 				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
 			}
 
-			// ...and length property!
-			upstreamQueue[ upstreamQueue.length ] = keypath + '.length';
-
 			notifyMultipleDependants( root, upstreamQueue, true );
+
+			// length property has changed - notify dependants
+			// TODO in some cases (e.g. todo list example, when marking all as complete, then
+			// adding a new item (which should deactivate the 'all complete' checkbox
+			// but doesn't) this needs to happen before other updates. But doing so causes
+			// other mental problems. not sure what's going on...
+			notifyDependants( root, keypath + '.length', true );
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
