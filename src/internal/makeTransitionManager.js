@@ -2,7 +2,7 @@
 // efficient) to pass e.g. transitionManager.pop as a callback, rather
 // than wrapping a prototype method in an anonymous function each time
 makeTransitionManager = function ( root, callback ) {
-	var transitionManager, nodesToDetach, detachNodes, detachNodeIfPossible;
+	var transitionManager, nodesToDetach, detachNodes, nodeHasNoTransitioningChildren;
 
 	nodesToDetach = [];
 
@@ -10,16 +10,21 @@ makeTransitionManager = function ( root, callback ) {
 	// which are actively transitioning. This will be called each time a
 	// transition completes
 	detachNodes = function () {
-		var i;
+		var i, node;
 
 		i = nodesToDetach.length;
 		while ( i-- ) {
+			node = nodesToDetach[i];
+
 			// see if this node can be detached yet
-			detachNodeIfPossible( nodesToDetach[i] );
+			if ( nodeHasNoTransitioningChildren( node ) ) {
+				node.parentNode.removeChild( node );
+				nodesToDetach.splice( i, 1 );
+			}
 		}
 	};
 
-	detachNodeIfPossible = function ( node ) {
+	nodeHasNoTransitioningChildren = function ( node ) {
 		var i, candidate;
 
 		i = transitionManager.active.length;
@@ -28,13 +33,11 @@ makeTransitionManager = function ( root, callback ) {
 
 			if ( node.contains( candidate ) ) {
 				// fail as soon as possible
-				return;
+				return false;
 			}
 		}
 
-		// if we've run the gauntlet, we can safely detach this node
-		node.parentNode.removeChild( node );
-		nodesToDetach.pop();
+		return true;
 	};
 
 	transitionManager = {
