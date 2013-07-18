@@ -5,7 +5,7 @@ Animation = function ( options ) {
 
 	// from and to
 	for ( key in options ) {
-		if ( options.hasOwnProperty( key ) ) {
+		if ( hasOwn.call( options, key ) ) {
 			this[ key ] = options[ key ];
 		}
 	}

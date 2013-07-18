@@ -101,7 +101,7 @@ DomElement = function ( options, docFrag ) {
 	// create event proxies
 	if ( docFrag && descriptor.v ) {
 		for ( eventName in descriptor.v ) {
-			if ( descriptor.v.hasOwnProperty( eventName ) ) {
+			if ( hasOwn.call( descriptor.v, eventName ) ) {
 				eventNames = eventName.split( '-' );
 				i = eventNames.length;
 
@@ -118,7 +118,7 @@ DomElement = function ( options, docFrag ) {
 	bindable = []; // save these till the end
 
 	for ( attrName in descriptor.a ) {
-		if ( descriptor.a.hasOwnProperty( attrName ) ) {
+		if ( hasOwn.call( descriptor.a, attrName ) ) {
 			attrValue = descriptor.a[ attrName ];
 			
 			attr = new DomAttribute({
