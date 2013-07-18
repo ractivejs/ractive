@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.2 - 2013-07-16
+/*! Ractive - v0.3.2 - 2013-07-19
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -62,6 +62,7 @@ defineProperty,
 defineProperties,
 create,
 createFromNull,
+hasOwn = {}.hasOwnProperty,
 noop = function () {},
 
 
@@ -319,85 +320,6 @@ insertHtml = function ( html, docFrag ) {
 	}
 
 	return nodes;
-};
-initMustache = function ( mustache, options ) {
-
-	var keypath, index, indexRef, parentFragment;
-
-	parentFragment = mustache.parentFragment = options.parentFragment;
-
-	mustache.root           = parentFragment.root;
-	mustache.contextStack   = parentFragment.contextStack;
-	
-	mustache.descriptor     = options.descriptor;
-	mustache.index          = options.index || 0;
-	mustache.priority       = options.descriptor.p || 0;
-
-	// DOM only
-	if ( parentFragment.parentNode ) {
-		mustache.parentNode = parentFragment.parentNode;
-	}
-
-	mustache.type = options.descriptor.t;
-
-
-	// if this is a simple mustache, with a reference, we just need to resolve
-	// the reference to a keypath
-	if ( options.descriptor.r ) {
-		if ( parentFragment.indexRefs && parentFragment.indexRefs[ options.descriptor.r ] !== undefined ) {
-			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
-
-			mustache.indexRef = options.descriptor.r;
-			mustache.value = indexRef;
-			mustache.render( mustache.value );
-		}
-
-		else {
-			keypath = resolveRef( mustache.root, options.descriptor.r, mustache.contextStack );
-			if ( keypath ) {
-				mustache.resolve( keypath );
-			} else {
-				mustache.ref = options.descriptor.r;
-				mustache.root._pendingResolution[ mustache.root._pendingResolution.length ] = mustache;
-
-				// inverted section? initialise
-				if ( mustache.descriptor.n ) {
-					mustache.render( false );
-				}
-			}
-		}
-	}
-
-	// if it's an expression, we have a bit more work to do
-	if ( options.descriptor.x ) {
-		mustache.expressionResolver = new ExpressionResolver( mustache );
-	}
-
-};
-
-
-// methods to add to individual mustache prototypes
-updateMustache = function () {
-	var value;
-
-	value = this.root.get( this.keypath, true );
-
-	if ( !isEqual( value, this.value ) ) {
-		this.render( value );
-		this.value = value;
-	}
-};
-
-resolveMustache = function ( keypath ) {
-	// TEMP
-	this.keypath = keypath;
-
-	registerDependant( this );
-	this.update();
-
-	if ( this.expressionResolver ) {
-		this.expressionResolver = null;
-	}
 };
 (function () {
 
@@ -958,6 +880,85 @@ initFragment = function ( fragment, options ) {
 	}
 
 };
+initMustache = function ( mustache, options ) {
+
+	var keypath, index, indexRef, parentFragment;
+
+	parentFragment = mustache.parentFragment = options.parentFragment;
+
+	mustache.root           = parentFragment.root;
+	mustache.contextStack   = parentFragment.contextStack;
+	
+	mustache.descriptor     = options.descriptor;
+	mustache.index          = options.index || 0;
+	mustache.priority       = options.descriptor.p || 0;
+
+	// DOM only
+	if ( parentFragment.parentNode ) {
+		mustache.parentNode = parentFragment.parentNode;
+	}
+
+	mustache.type = options.descriptor.t;
+
+
+	// if this is a simple mustache, with a reference, we just need to resolve
+	// the reference to a keypath
+	if ( options.descriptor.r ) {
+		if ( parentFragment.indexRefs && parentFragment.indexRefs[ options.descriptor.r ] !== undefined ) {
+			indexRef = parentFragment.indexRefs[ options.descriptor.r ];
+
+			mustache.indexRef = options.descriptor.r;
+			mustache.value = indexRef;
+			mustache.render( mustache.value );
+		}
+
+		else {
+			keypath = resolveRef( mustache.root, options.descriptor.r, mustache.contextStack );
+			if ( keypath ) {
+				mustache.resolve( keypath );
+			} else {
+				mustache.ref = options.descriptor.r;
+				mustache.root._pendingResolution[ mustache.root._pendingResolution.length ] = mustache;
+
+				// inverted section? initialise
+				if ( mustache.descriptor.n ) {
+					mustache.render( false );
+				}
+			}
+		}
+	}
+
+	// if it's an expression, we have a bit more work to do
+	if ( options.descriptor.x ) {
+		mustache.expressionResolver = new ExpressionResolver( mustache );
+	}
+
+};
+
+
+// methods to add to individual mustache prototypes
+updateMustache = function () {
+	var value;
+
+	value = this.root.get( this.keypath, true );
+
+	if ( !isEqual( value, this.value ) ) {
+		this.render( value );
+		this.value = value;
+	}
+};
+
+resolveMustache = function ( keypath ) {
+	// TEMP
+	this.keypath = keypath;
+
+	registerDependant( this );
+	this.update();
+
+	if ( this.expressionResolver ) {
+		this.expressionResolver = null;
+	}
+};
 (function () {
 
 	var updateInvertedSection, updateListSection, updateContextSection, updateConditionalSection;
@@ -1148,7 +1149,7 @@ initFragment = function ( fragment, options ) {
 			animations = [];
 
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					animations[ animations.length ] = animate( this, k, keypath[k], options );
 				}
 			}
@@ -1295,7 +1296,7 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	else {
 		// cache hit? great
-		if ( cache.hasOwnProperty( keypath ) && cache[ keypath ] !== UNSET ) {
+		if ( hasOwn.call( cache, keypath ) && cache[ keypath ] !== UNSET ) {
 			return cache[ keypath ];
 		}
 
@@ -1304,7 +1305,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	}
 
 	// we may have a cache hit now that it's been normalised
-	if ( cache.hasOwnProperty( normalised ) && cache[ normalised ] !== UNSET ) {
+	if ( hasOwn.call( cache, normalised ) && cache[ normalised ] !== UNSET ) {
 		if ( cache[ normalised ] === undefined && ignoreUndefined ) {
 			// continue
 		} else {
@@ -1532,7 +1533,7 @@ resolveRef = function ( ractive, ref, contextStack ) {
 
 		parentValue = ractive.get( contextKeys.concat( keys ) );
 
-		if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
+		if ( typeof parentValue === 'object' && parentValue !== null && hasOwn.call( parentValue, lastKey ) ) {
 			keypath = innerMostContext + '.' + ref;
 			break;
 		}
@@ -1607,7 +1608,7 @@ proto.link = function ( keypath ) {
 			options = callback;
 
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					callback = keypath[k];
 					observers[ observers.length ] = observe( this, k, callback, options );
 				}
@@ -1708,7 +1709,7 @@ proto.on = function ( eventName, callback ) {
 		listeners = [];
 
 		for ( n in eventName ) {
-			if ( eventName.hasOwnProperty( n ) ) {
+			if ( hasOwn.call( eventName, n ) ) {
 				listeners[ listeners.length ] = this.on( n, eventName[ n ] );
 			}
 		}
@@ -1735,7 +1736,6 @@ proto.on = function ( eventName, callback ) {
 	};
 };
 proto.renderHTML = function () {
-	console.log( this.fragment );
 	return this.fragment.toString();
 };
 proto.requestFullscreen = function () {
@@ -1762,7 +1762,7 @@ proto.requestFullscreen = function () {
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					keys = splitKeypath( k );
 					normalised = keys.join( '.' );
 					value = keypath[k];
@@ -2020,7 +2020,7 @@ adaptors.backbone = function ( model, path ) {
 					result = {};
 
 					for ( attr in attrs ) {
-						if ( attrs.hasOwnProperty( attr ) ) {
+						if ( hasOwn.call( attrs, attr ) ) {
 							result[ path + attr ] = attrs[ attr ];
 						}
 					}
@@ -2078,7 +2078,7 @@ adaptors.statesman = function ( model, path ) {
 			result = {};
 
 			for ( attr in attrs ) {
-				if ( attrs.hasOwnProperty( attr ) ) {
+				if ( hasOwn.call( attrs, attr ) ) {
 					result[ path + attr ] = attrs[ attr ];
 				}
 			}
@@ -2193,6 +2193,68 @@ easing = {
 		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
 	}
 };
+eventDefinitions.hover = function ( node, fire ) {
+	var mouseoverHandler, mouseoutHandler;
+
+	mouseoverHandler = function ( event ) {
+		fire({
+			node: node,
+			original: event,
+			hover: true
+		});
+	};
+
+	mouseoutHandler = function ( event ) {
+		fire({
+			node: node,
+			original: event,
+			hover: false
+		});
+	};
+
+	node.addEventListener( 'mouseover', mouseoverHandler );
+	node.addEventListener( 'mouseout', mouseoutHandler );
+
+	return {
+		teardown: function () {
+			node.removeEventListener( 'mouseover', mouseoverHandler );
+			node.removeEventListener( 'mouseout', mouseoutHandler );
+		}
+	};
+};
+(function () {
+
+	var makeKeyDefinition = function ( code ) {
+		return function ( node, fire ) {
+			var keydownHandler;
+
+			node.addEventListener( 'keydown', keydownHandler = function ( event ) {
+				var which = event.which || event.keyCode;
+
+				if ( which === code ) {
+					event.preventDefault();
+
+					fire({
+						node: node,
+						original: event
+					});
+				}
+			});
+
+			return {
+				teardown: function () {
+					node.removeEventListener( keydownHandler );
+				}
+			};
+		};
+	};
+
+	eventDefinitions.enter = makeKeyDefinition( 13 );
+	eventDefinitions.tab = makeKeyDefinition( 9 );
+	eventDefinitions.escape = makeKeyDefinition( 27 );
+	eventDefinitions.space = makeKeyDefinition( 32 );
+
+}());
 eventDefinitions.tap = function ( node, fire ) {
 	var mousedown, touchstart, distanceThreshold, timeThreshold;
 
@@ -2412,7 +2474,7 @@ eventDefinitions.tap = function ( node, fire ) {
 
 		// Blacklisted properties don't extend the child, as they are part of the initialisation options
 		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) && !Child.prototype.hasOwnProperty( key ) && blacklist.indexOf( key ) === -1 ) {
+			if ( hasOwn.call( childProps, key ) && !hasOwn.call( Child.prototype, key ) && blacklist.indexOf( key ) === -1 ) {
 				member = childProps[ key ];
 
 				// if this is a method that overwrites a prototype method, we may need
@@ -2473,7 +2535,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		// Parse partials, if necessary
 		if ( Child.partials ) {
 			for ( key in Child.partials ) {
-				if ( Child.partials.hasOwnProperty( key ) ) {
+				if ( hasOwn.call( Child.partials, key ) ) {
 					if ( typeof Child.partials[ key ] === 'string' ) {
 						if ( !Ractive.parse ) {
 							throw new Error( missingParser );
@@ -2525,7 +2587,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		var key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) && !target.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) && !hasOwn.call( target, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -2535,7 +2597,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		var target = {}, key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -2547,7 +2609,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		var key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -2621,8 +2683,8 @@ interpolators = {
 		interpolators = {};
 
 		for ( prop in from ) {
-			if ( from.hasOwnProperty( prop ) ) {
-				if ( to.hasOwnProperty( prop ) ) {
+			if ( hasOwn.call( from, prop ) ) {
+				if ( hasOwn.call( to, prop ) ) {
 					properties[ properties.length ] = prop;
 					interpolators[ prop ] = Ractive.interpolate( from[ prop ], to[ prop ] );
 				}
@@ -2634,7 +2696,7 @@ interpolators = {
 		}
 
 		for ( prop in to ) {
-			if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
+			if ( hasOwn.call( to, prop ) && !hasOwn.call( from, prop ) ) {
 				intermediate[ prop ] = to[ prop ];
 			}
 		}
@@ -2675,7 +2737,7 @@ Ractive = function ( options ) {
 	// Options
 	// -------
 	for ( key in defaultOptions ) {
-		if ( !options.hasOwnProperty( key ) ) {
+		if ( !hasOwn.call( options, key ) ) {
 			options[ key ] = ( typeof defaultOptions[ key ] === 'object' ? {} : defaultOptions[ key ] );
 		}
 	}
@@ -2818,7 +2880,7 @@ Ractive = function ( options ) {
 	// If we were given unparsed partials, parse them
 	if ( options.partials ) {
 		for ( key in options.partials ) {
-			if ( options.partials.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( options.partials, key ) ) {
 				partial = options.partials[ key ];
 
 				if ( typeof partial === 'string' ) {
@@ -2836,7 +2898,7 @@ Ractive = function ( options ) {
 
 	// Unpack string-based partials, if necessary
 	for ( key in this.partials ) {
-		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
+		if ( hasOwn.call( this.partials, key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
 			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}
@@ -2891,7 +2953,7 @@ Ractive = function ( options ) {
 		}
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -3214,7 +3276,7 @@ Animation = function ( options ) {
 
 	// from and to
 	for ( key in options ) {
-		if ( options.hasOwnProperty( key ) ) {
+		if ( hasOwn.call( options, key ) ) {
 			this[ key ] = options[ key ];
 		}
 	}
@@ -3480,7 +3542,7 @@ animationCollection = {
 			// using the normal method - we want to do a smart update whereby elements
 			// are removed from the right place. But we do need to clear the cache
 			clearCache( root, keypath );
-			
+
 			// find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
@@ -3523,10 +3585,14 @@ animationCollection = {
 				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
 			}
 
-			// ...and length property!
-			upstreamQueue[ upstreamQueue.length ] = keypath + '.length';
-
 			notifyMultipleDependants( root, upstreamQueue, true );
+
+			// length property has changed - notify dependants
+			// TODO in some cases (e.g. todo list example, when marking all as complete, then
+			// adding a new item (which should deactivate the 'all complete' checkbox
+			// but doesn't) this needs to happen before other updates. But doing so causes
+			// other mental problems. not sure what's going on...
+			notifyDependants( root, keypath + '.length', true );
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
@@ -4192,7 +4258,7 @@ DomElement = function ( options, docFrag ) {
 	// create event proxies
 	if ( docFrag && descriptor.v ) {
 		for ( eventName in descriptor.v ) {
-			if ( descriptor.v.hasOwnProperty( eventName ) ) {
+			if ( hasOwn.call( descriptor.v, eventName ) ) {
 				eventNames = eventName.split( '-' );
 				i = eventNames.length;
 
@@ -4209,7 +4275,7 @@ DomElement = function ( options, docFrag ) {
 	bindable = []; // save these till the end
 
 	for ( attrName in descriptor.a ) {
-		if ( descriptor.a.hasOwnProperty( attrName ) ) {
+		if ( hasOwn.call( descriptor.a, attrName ) ) {
 			attrValue = descriptor.a[ attrName ];
 			
 			attr = new DomAttribute({
@@ -5151,7 +5217,7 @@ isObject = function ( obj ) {
 // efficient) to pass e.g. transitionManager.pop as a callback, rather
 // than wrapping a prototype method in an anonymous function each time
 makeTransitionManager = function ( root, callback ) {
-	var transitionManager, nodesToDetach, detachNodes, detachNodeIfPossible;
+	var transitionManager, nodesToDetach, detachNodes, nodeHasNoTransitioningChildren;
 
 	nodesToDetach = [];
 
@@ -5159,16 +5225,21 @@ makeTransitionManager = function ( root, callback ) {
 	// which are actively transitioning. This will be called each time a
 	// transition completes
 	detachNodes = function () {
-		var i;
+		var i, node;
 
 		i = nodesToDetach.length;
 		while ( i-- ) {
+			node = nodesToDetach[i];
+
 			// see if this node can be detached yet
-			detachNodeIfPossible( nodesToDetach[i] );
+			if ( nodeHasNoTransitioningChildren( node ) ) {
+				node.parentNode.removeChild( node );
+				nodesToDetach.splice( i, 1 );
+			}
 		}
 	};
 
-	detachNodeIfPossible = function ( node ) {
+	nodeHasNoTransitioningChildren = function ( node ) {
 		var i, candidate;
 
 		i = transitionManager.active.length;
@@ -5177,13 +5248,11 @@ makeTransitionManager = function ( root, callback ) {
 
 			if ( node.contains( candidate ) ) {
 				// fail as soon as possible
-				return;
+				return false;
 			}
 		}
 
-		// if we've run the gauntlet, we can safely detach this node
-		node.parentNode.removeChild( node );
-		nodesToDetach.pop();
+		return true;
 	};
 
 	transitionManager = {
