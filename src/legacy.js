@@ -169,4 +169,4 @@
 		}( win, doc ));
 	}
 
-}( this ));
+}( global ));
