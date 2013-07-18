@@ -149,5 +149,15 @@
 		"name": "Expression with keypath like foo.0.bar",
 		"template": "{{( process( foo.0.bar ) )}}",
 		"parsed": [{"t":2,"x":{"r":["process","foo.0.bar"],"s":"â–0(â–1)"}}]
+	},
+	{
+		"name": "Expression with method",
+		"template": "{{( one.two.three() )}}",
+		"parsed": [{"t":2,"x":{"r":["one.two"],"s":"â–0.three()"}}]
+	},
+	{
+		"name": "Expression with indirectly-identified method",
+		"template": "{{( one.two[ three ]() )}}",
+		"parsed": [{"t":2,"x":{"r":["three","one.two"],"s":"â–1[â–0]()"}}]
 	}
 ]

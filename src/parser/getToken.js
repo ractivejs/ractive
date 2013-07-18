@@ -1115,7 +1115,9 @@
 
 
 		getReference = function ( tokenizer ) {
-			var name, dot, combo, refinement, pos, invocation;
+			var startPos, name, dot, combo, refinement, lastDotIndex;
+
+			startPos = tokenizer.pos;
 
 			// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
 			// standard reference ('name')
@@ -1128,20 +1130,21 @@
 				return null;
 			}
 
-			pos = tokenizer.pos;
-
-			if ( invocation = getInvocation( tokenizer ) ) {
-				tokenizer.pos = pos;
+			while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
+				combo += refinement;
 			}
 
-			while ( !invocation && ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) ) {
-				combo += refinement;
-				pos = tokenizer.pos;
-
-				// if the next token is an invocation, don't accept it - methods need to have the
-				// proper context, and including the method name in the reference will break things
-				if ( invocation = getInvocation( tokenizer ) ) {
-					tokenizer.pos = pos;
+			if ( getStringMatch( tokenizer, '(' ) ) {
+				
+				// if this is a method invocation (as opposed to a function) we need
+				// to strip the method name from the reference combo, else the context
+				// will be wrong
+				lastDotIndex = combo.lastIndexOf( '.' );
+				if ( lastDotIndex !== -1 ) {
+					combo = combo.substr( 0, lastDotIndex );
+					tokenizer.pos = startPos + combo.length;
+				} else {
+					tokenizer.pos -= 1;
 				}
 			}
 
@@ -1169,7 +1172,7 @@
 					};
 				}
 
-				fail( 'a property name' );
+				fail( tokenizer, 'a property name' );
 			}
 
 			// "[" expression "]"
@@ -1178,13 +1181,13 @@
 
 				expr = getExpression( tokenizer );
 				if ( !expr ) {
-					fail( 'an expression' );
+					fail( tokenizer, 'an expression' );
 				}
 
 				allowWhitespace( tokenizer );
 
 				if ( !getStringMatch( tokenizer, ']' ) ) {
-					fail( '"]"' );
+					fail( tokenizer, '"]"' );
 				}
 
 				return {
