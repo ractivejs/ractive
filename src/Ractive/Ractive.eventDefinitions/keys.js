@@ -22,7 +22,7 @@
 					node.removeEventListener( keydownHandler );
 				}
 			};
-		}
+		};
 	};
 
 	eventDefinitions.enter = makeKeyDefinition( 13 );
@@ -31,5 +31,3 @@
 	eventDefinitions.space = makeKeyDefinition( 32 );
 
 }());
-
-enter: 
