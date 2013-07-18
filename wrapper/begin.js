@@ -52,6 +52,7 @@ defineProperty,
 defineProperties,
 create,
 createFromNull,
+hasOwn = {}.hasOwnProperty,
 noop = function () {},
 
 
