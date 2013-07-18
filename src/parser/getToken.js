@@ -1115,7 +1115,7 @@
 
 
 		getReference = function ( tokenizer ) {
-			var name, dot, combo, refinement;
+			var name, dot, combo, refinement, pos, invocation;
 
 			// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
 			// standard reference ('name')
@@ -1128,8 +1128,21 @@
 				return null;
 			}
 
-			while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
+			pos = tokenizer.pos;
+
+			if ( invocation = getInvocation( tokenizer ) ) {
+				tokenizer.pos = pos;
+			}
+
+			while ( !invocation && ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) ) {
 				combo += refinement;
+				pos = tokenizer.pos;
+
+				// if the next token is an invocation, don't accept it - methods need to have the
+				// proper context, and including the method name in the reference will break things
+				if ( invocation = getInvocation( tokenizer ) ) {
+					tokenizer.pos = pos;
+				}
 			}
 
 			return {
@@ -1196,7 +1209,7 @@
 		};
 
 		getArrayLiteral = function ( tokenizer ) {
-			var start, array, expressions;
+			var start, array, expressionList;
 
 			start = tokenizer.pos;
 
@@ -1208,7 +1221,7 @@
 				return null;
 			}
 
-			expressions = expressionList( tokenizer );
+			expressionList = getExpressionList( tokenizer );
 
 			if ( !getStringMatch( tokenizer, ']' ) ) {
 				tokenizer.pos = start;
@@ -1217,7 +1230,7 @@
 
 			return {
 				t: ARRAY_LITERAL,
-				o: expressions
+				o: expressionList
 			};
 		};
 
