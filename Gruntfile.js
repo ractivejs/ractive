@@ -46,11 +46,11 @@ module.exports = function(grunt) {
 				dest: 'build/Ractive.js'
 			},
 			runtime_legacy: {
-				src: [ 'src/legacy.js', '<%= concat.runtime.dest %>' ],
+				src: [ 'wrapper/begin.js', 'src/legacy.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/parser/**/*.js' ],
 				dest: 'build/Ractive-legacy.runtime.js'
 			},
 			full_legacy: {
-				src: [ 'src/legacy.js', '<%= concat.full.dest %>' ],
+				src: [ 'wrapper/begin.js', 'src/legacy.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js' ],
 				dest: 'build/Ractive-legacy.js'
 			}
 		},
