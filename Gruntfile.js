@@ -31,6 +31,11 @@ module.exports = function(grunt) {
 			files: [ 'build/**/*' ]
 		},
 		concat: {
+			options: {
+				process: {
+					data: { version: '<%= pkg.version %>' }
+				}
+			},
 			runtime: {
 				options: {
 					banner: '<%= meta.banner %>'

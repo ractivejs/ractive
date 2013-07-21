@@ -13,6 +13,8 @@ Ractive.parse = parse;
 // TODO add some more transitions
 Ractive.transitions = transitions;
 
+Ractive.VERSION = VERSION;
+
 
 // export as Common JS module...
 if ( typeof module !== "undefined" && module.exports ) {
