@@ -28,6 +28,11 @@ initFragment = function ( fragment, options ) {
 				fragment.indexRefs[ ref ] = parentRefs[ ref ];
 			}
 		}
+
+		// while we're in this branch, inherit priority
+		fragment.priority = fragment.owner.parentFragment.priority + 1;
+	} else {
+		fragment.priority = 0;
 	}
 
 	if ( options.indexRef ) {

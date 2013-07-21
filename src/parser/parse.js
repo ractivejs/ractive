@@ -15,7 +15,6 @@
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * d - Dynamic proxy event/transition arguments
 // * n - indicates an iNverted section
-// * p - Priority. Higher priority items are updated before lower ones on model changes
 // * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
 // * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 // * c - Conditionals (e.g. ['yes', 'no'] in {{condition ? yes : no}})
@@ -67,7 +66,7 @@
 			}
 		}
 		
-		fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
+		fragmentStub = getFragmentStubFromTokens( tokens, options, options.preserveWhitespace );
 		
 		json = fragmentStub.toJson();
 

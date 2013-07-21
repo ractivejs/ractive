@@ -16,7 +16,7 @@
 	jsonify;
 
 
-	getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhitespace ) {
+	getFragmentStubFromTokens = function ( tokens, options, preserveWhitespace ) {
 		var parser, stub;
 
 		parser = {
@@ -28,19 +28,19 @@
 			options: options
 		};
 
-		stub = new Fragment( parser, priority, preserveWhitespace );
+		stub = new Fragment( parser, preserveWhitespace );
 
 		return stub;
 	};
 
-	getItem = function ( parser, priority, preserveWhitespace ) {
+	getItem = function ( parser, preserveWhitespace ) {
 		if ( !parser.next() ) {
 			return null;
 		}
 
 		return getText( parser, preserveWhitespace )
-		    || getMustache( parser, priority, preserveWhitespace )
-		    || getElement( parser, priority, preserveWhitespace );
+		    || getMustache( parser, preserveWhitespace )
+		    || getElement( parser, preserveWhitespace );
 	};
 
 	getText = function ( parser, preserveWhitespace ) {
@@ -54,25 +54,25 @@
 		return null;
 	};
 
-	getMustache = function ( parser, priority, preserveWhitespace ) {
+	getMustache = function ( parser, preserveWhitespace ) {
 		var next = parser.next();
 
 		if ( next.type === MUSTACHE || next.type === TRIPLE ) {
 			if ( next.mustacheType === SECTION || next.mustacheType === INVERTED ) {
-				return new Section( next, parser, priority, preserveWhitespace );				
+				return new Section( next, parser, preserveWhitespace );				
 			}
 
-			return new Mustache( next, parser, priority );
+			return new Mustache( next, parser );
 		}
 
 		return null;
 	};
 
-	getElement = function ( parser, priority, preserveWhitespace ) {
+	getElement = function ( parser, preserveWhitespace ) {
 		var next = parser.next(), stub;
 
 		if ( next.type === TAG ) {
-			stub = new Element( next, parser, priority, preserveWhitespace );
+			stub = new Element( next, parser, preserveWhitespace );
 
 			// sanitize			
 			if ( parser.options.sanitize && parser.options.sanitize.elements ) {
@@ -126,15 +126,15 @@
 
 
 
-	Fragment = function ( parser, priority, preserveWhitespace ) {
+	Fragment = function ( parser, preserveWhitespace ) {
 		var items, item;
 
 		items = this.items = [];
 
-		item = getItem( parser, priority, preserveWhitespace );
+		item = getItem( parser, preserveWhitespace );
 		while ( item !== null ) {
 			items[ items.length ] = item;
-			item = getItem( parser, priority, preserveWhitespace );
+			item = getItem( parser, preserveWhitespace );
 		}
 	};
 
@@ -205,7 +205,7 @@
 
 	// mustache
 	(function () {
-		Mustache = function ( token, parser, priority ) {
+		Mustache = function ( token, parser ) {
 			this.type = ( token.type === TRIPLE ? TRIPLE : token.mustacheType );
 
 			if ( token.ref ) {
@@ -215,8 +215,6 @@
 			if ( token.expression ) {
 				this.expr = new Expression( token.expression );
 			}
-			
-			this.priority = priority;
 
 			parser.pos += 1;
 		};
@@ -241,10 +239,6 @@
 					json.x = this.expr.toJson();
 				}
 
-				if ( this.priority ) {
-					json.p = this.priority;
-				}
-
 				this.json = json;
 				return json;
 			},
@@ -256,12 +250,11 @@
 		};
 
 
-		Section = function ( firstToken, parser, priority, preserveWhitespace ) {
+		Section = function ( firstToken, parser, preserveWhitespace ) {
 			var next;
 
 			this.ref = firstToken.ref;
 			this.indexRef = firstToken.indexRef;
-			this.priority = priority || 0;
 
 			this.inverted = ( firstToken.mustacheType === INVERTED );
 
@@ -286,7 +279,7 @@
 					}
 				}
 
-				this.items[ this.items.length ] = getItem( parser, this.priority + 1, preserveWhitespace );
+				this.items[ this.items.length ] = getItem( parser, preserveWhitespace );
 				next = parser.next();
 			}
 		};
@@ -321,10 +314,6 @@
 					json.f = jsonify( this.items, noStringify );
 				}
 
-				if ( this.priority ) {
-					json.p = this.priority;
-				}
-
 				this.json = json;
 				return json;
 			},
@@ -341,11 +330,10 @@
 	(function () {
 		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, filterAttrs, proxyPattern;
 
-		Element = function ( firstToken, parser, priority, preserveWhitespace ) {
+		Element = function ( firstToken, parser, preserveWhitespace ) {
 			var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
 
 			this.lcTag = firstToken.name.toLowerCase();
-			this.priority = priority = priority || 0;
 
 			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
 			// that should be camelcased, camelcase it
@@ -372,7 +360,7 @@
 
 					return {
 						name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
-						value: getFragmentStubFromTokens( attr.value, priority + 1 )
+						value: getFragmentStubFromTokens( attr.value )
 					};
 				};
 
@@ -426,7 +414,7 @@
 							}
 						}
 
-						processed.dynamicArgs = getFragmentStubFromTokens( tokens, priority + 1 );
+						processed.dynamicArgs = getFragmentStubFromTokens( tokens );
 					}
 
 					return processed;
@@ -495,7 +483,7 @@
 					
 				}
 
-				this.items[ this.items.length ] = getItem( parser, this.priority + 1 );
+				this.items[ this.items.length ] = getItem( parser );
 
 				next = parser.next();
 			}

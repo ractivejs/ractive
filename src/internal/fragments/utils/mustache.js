@@ -9,7 +9,7 @@ initMustache = function ( mustache, options ) {
 	
 	mustache.descriptor     = options.descriptor;
 	mustache.index          = options.index || 0;
-	mustache.priority       = options.descriptor.p || 0;
+	mustache.priority       = parentFragment.priority;
 
 	// DOM only
 	if ( parentFragment.parentNode ) {
