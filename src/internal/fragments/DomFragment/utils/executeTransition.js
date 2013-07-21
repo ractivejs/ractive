@@ -1,6 +1,10 @@
 executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
 	var transitionName, transitionParams, fragment, transitionManager, transition;
 
+	if ( !root.transitionsEnabled ) {
+		return;
+	}
+
 	if ( typeof descriptor === 'string' ) {
 		transitionName = descriptor;
 	} else {

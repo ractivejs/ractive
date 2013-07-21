@@ -48,7 +48,7 @@
 	};
 
 	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions' ];
-	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize' ];
+	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize', 'noIntro', 'transitionsEnabled' ];
 	blacklist = extendable.concat( inheritable );
 
 	inheritFromParent = function ( Child, Parent ) {

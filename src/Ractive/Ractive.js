@@ -9,7 +9,9 @@ defineProperties( defaultOptions, {
 	lazy:               { enumerable: true, value: false },
 	debug:              { enumerable: true, value: false },
 	transitions:        { enumerable: true, value: {}    },
-	eventDefinitions:   { enumerable: true, value: {}    }
+	eventDefinitions:   { enumerable: true, value: {}    },
+	noIntro:            { enumerable: true, value: false },
+	transitionsEnabled: { enumerable: true, value: true  }
 });
 
 Ractive = function ( options ) {
@@ -185,5 +187,11 @@ Ractive = function ( options ) {
 		}
 	}
 
+	// temporarily disable transitions, if noIntro flag is set
+	this.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
+
 	render( this, { el: this.el, append: options.append, complete: options.complete });
+
+	// reset transitionsEnabled
+	this.transitionsEnabled = options.transitionsEnabled;
 };
