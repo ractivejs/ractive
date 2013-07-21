@@ -63,3 +63,5 @@ Changelog
 	* added ractive.renderHTML() method, for rendering template+data (in browser or server environment)
 * 0.3.2
 	* IE8 support!
+* 0.3.3
+	* Maintenance and bugfixes
