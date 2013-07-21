@@ -1,6 +1,6 @@
 (function () {
 
-	var propertyNames;
+	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName, isAttributeSelfUpdating, isAttributeBindable;
 
 	// the property name equivalents for element attributes, where they differ
 	// from the lowercased attribute name
@@ -29,58 +29,12 @@
 	// Attribute
 	DomAttribute = function ( options ) {
 
-		var name,
-			value,
-			colonIndex,
-			namespacePrefix,
-			tagName,
-			bindingCandidate,
-			lowerCaseName,
-			propertyName,
-			i,
-			item,
-			containsInterpolator;
-
-		name = options.name;
-		value = options.value;
-
-		// are we dealing with a namespaced attribute, e.g. xlink:href?
-		colonIndex = name.indexOf( ':' );
-		if ( colonIndex !== -1 ) {
-
-			// looks like we are, yes...
-			namespacePrefix = name.substr( 0, colonIndex );
-
-			// ...unless it's a namespace *declaration*
-			if ( namespacePrefix !== 'xmlns' ) {
-				name = name.substring( colonIndex + 1 );
-				this.namespace = namespaces[ namespacePrefix ];
-
-				if ( !this.namespace ) {
-					throw 'Unknown namespace ("' + namespacePrefix + '")';
-				}
-			}
-		}
+		determineNameAndNamespace( this, options.name );
 
 		// if it's an empty attribute, or just a straight key-value pair, with no
-		// mustache shenanigans, set the attribute accordingly
-		if ( value === null || typeof value === 'string' ) {
-			
-			if ( options.parentNode ) {
-				if ( this.namespace ) {
-					options.parentNode.setAttributeNS( this.namespace, name, value );
-				} else {
-					options.parentNode.setAttribute( name, value );
-				}
-
-				if ( name.toLowerCase() === 'id' ) {
-					options.root.nodes[ value ] = options.parentNode;
-				}
-			}
-
-			this.name = name;
-			this.value = value;
-			
+		// mustache shenanigans, set the attribute accordingly and go home
+		if ( options.value === null || typeof options.value === 'string' ) {
+			setStaticAttribute( this, options );
 			return;
 		}
 
@@ -88,14 +42,13 @@
 		this.root = options.root;
 		this.element = options.element;
 		this.parentNode = options.parentNode;
-		this.name = name;
-		this.lcName = name.toLowerCase();
+		this.lcName = this.name.toLowerCase();
 
 		// share parentFragment with parent element
 		this.parentFragment = this.element.parentFragment;
 
 		this.fragment = new StringFragment({
-			descriptor:   value,
+			descriptor:   options.value,
 			root:         this.root,
 			owner:        this,
 			contextStack: options.contextStack
@@ -109,70 +62,22 @@
 
 
 		// can we establish this attribute's property name equivalent?
-		if ( this.parentNode && !this.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
-			lowerCaseName = this.lcName;
-			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
-
-			if ( options.parentNode[ propertyName ] !== undefined ) {
-				this.propertyName = propertyName;
-			}
-
-			// is this a boolean attribute or 'value'? If so we're better off doing e.g.
-			// node.selected = true rather than node.setAttribute( 'selected', '' )
-			if ( typeof options.parentNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
-				this.useProperty = true;
-			}
-		}
-
+		determinePropertyName( this, options );
 		
 		// determine whether this attribute can be marked as self-updating
-		this.selfUpdating = true;
-
-		i = this.fragment.items.length;
-		while ( i-- ) {
-			item = this.fragment.items[i];
-			if ( item.type === TEXT ) {
-				continue;
-			}
-
-			// we can only have one interpolator and still be self-updating
-			if ( item.type === INTERPOLATOR ) {
-				if ( containsInterpolator ) {
-					this.selfUpdating = false;
-					break;
-				} else {
-					containsInterpolator = true;
-					continue;
-				}
-			}
-
-			// anything that isn't text or an interpolator (i.e. a section)
-			// and we can't self-update
-			this.selfUpdating = false;
-			break;
-		}
-
-		
+		this.selfUpdating = isAttributeSelfUpdating( this );
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-		if ( this.root.twoway ) {
-			tagName = this.element.descriptor.e.toLowerCase();
-			bindingCandidate = ( ( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
-		}
+		this.isBindable = isAttributeBindable( this );
 
-		if ( bindingCandidate ) {
-			this.isBindable = true;
-
+		if ( this.isBindable && this.propertyName === 'name' ) {
 			// name attribute is a special case - it is the only two-way attribute that updates
 			// the viewmodel based on the value of another attribute. For that reason it must wait
 			// until the node has been initialised, and the viewmodel has had its first two-way
 			// update, before updating itself (otherwise it may disable a checkbox or radio that
 			// was enabled in the template)
-			if ( propertyName === 'name' ) {
-				this.isTwowayNameAttr = true;
-			}
+			this.isTwowayNameAttr = true;
 		}
-
 
 		// mark as ready
 		this.ready = true;
@@ -310,19 +215,22 @@
 			if ( this.updateViewModel ) {
 				this.twoway = true;
 
-				node.addEventListener( 'change', this.updateViewModel );
-				node.addEventListener( 'click',  this.updateViewModel ); // TODO only in IE?
-				node.addEventListener( 'blur',   this.updateViewModel );
+				this.boundEvents = [ 'change', 'click', 'blur' ]; // TODO click only in IE?
 
 				if ( !lazy ) {
-					node.addEventListener( 'input',    this.updateViewModel );
+					this.boundEvents[3] = 'input';
 
 					// this is a hack to see if we're in IE - if so, we probably need to add
 					// a keyup listener as well, since in IE8 the input event doesn't fire,
 					// and in IE9 it doesn't fire when text is deleted
 					if ( node.attachEvent ) {
-						node.addEventListener( 'keyup',    this.updateViewModel );
+						this.boundEvents[4] = 'keyup';
 					}
+				}
+
+				i = this.boundEvents.length;
+				while ( i-- ) {
+					node.addEventListener( this.boundEvents[i], this.updateViewModel );
 				}
 			}
 		},
@@ -341,14 +249,14 @@
 		},
 
 		teardown: function () {
-			// remove the event listeners we added, if we added them (no need to check,
-			// it will fail silently if they weren't there in the first place)
-			if ( this.updateViewModel ) {
-				this.parentNode.removeEventListener( 'change', this.updateViewModel );
-				this.parentNode.removeEventListener( 'click', this.updateViewModel );
-				this.parentNode.removeEventListener( 'blur', this.updateViewModel );
-				this.parentNode.removeEventListener( 'keyup', this.updateViewModel );
-				this.parentNode.removeEventListener( 'input', this.updateViewModel );
+			var i;
+
+			if ( this.boundEvents ) {
+				i = this.boundEvents.length;
+
+				while ( i-- ) {
+					this.parentNode.removeEventListener( this.boundEvents[i], this.updateViewModel );
+				}
 			}
 
 			// ignore non-dynamic attributes
@@ -460,6 +368,116 @@
 			
 			return this.name + '=' + JSON.stringify( str );
 		}
+	};
+
+
+	// Helper functions
+	determineNameAndNamespace = function ( attribute, name ) {
+		var colonIndex, namespacePrefix;
+
+		// are we dealing with a namespaced attribute, e.g. xlink:href?
+		colonIndex = name.indexOf( ':' );
+		if ( colonIndex !== -1 ) {
+
+			// looks like we are, yes...
+			namespacePrefix = name.substr( 0, colonIndex );
+
+			// ...unless it's a namespace *declaration*, which we ignore (on the assumption
+			// that only valid namespaces will be used)
+			if ( namespacePrefix !== 'xmlns' ) {
+				name = name.substring( colonIndex + 1 );
+
+				attribute.name = name;
+				attribute.namespace = namespaces[ namespacePrefix ];
+
+				if ( !attribute.namespace ) {
+					throw 'Unknown namespace ("' + namespacePrefix + '")';
+				}
+
+				return;
+			}
+		}
+
+		attribute.name = name;
+	};
+
+	setStaticAttribute = function ( attribute, options ) {
+		if ( options.parentNode ) {
+			if ( attribute.namespace ) {
+				options.parentNode.setAttributeNS( attribute.namespace, options.name, options.value );
+			} else {
+				options.parentNode.setAttribute( options.name, options.value );
+			}
+
+			if ( options.name.toLowerCase() === 'id' ) {
+				options.root.nodes[ options.value ] = options.parentNode;
+			}
+		}
+
+		attribute.value = options.value;
+	};
+
+	determinePropertyName = function ( attribute, options ) {
+		var lowerCaseName, propertyName;
+
+		if ( attribute.parentNode && !attribute.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
+			lowerCaseName = attribute.lcName;
+			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
+
+			if ( options.parentNode[ propertyName ] !== undefined ) {
+				attribute.propertyName = propertyName;
+			}
+
+			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
+			// node.selected = true rather than node.setAttribute( 'selected', '' )
+			if ( typeof options.parentNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				attribute.useProperty = true;
+			}
+		}
+	};
+
+	isAttributeSelfUpdating = function ( attribute ) {
+		var i, item, containsInterpolator;
+
+		i = attribute.fragment.items.length;
+		while ( i-- ) {
+			item = attribute.fragment.items[i];
+			if ( item.type === TEXT ) {
+				continue;
+			}
+
+			// we can only have one interpolator and still be self-updating
+			if ( item.type === INTERPOLATOR ) {
+				if ( containsInterpolator ) {
+					return false;
+				} else {
+					containsInterpolator = true;
+					continue;
+				}
+			}
+
+			// anything that isn't text or an interpolator (i.e. a section)
+			// and we can't self-update
+			return false;
+		}
+
+		return true;
+	};
+
+	isAttributeBindable = function ( attribute ) {
+		var tagName, propertyName;
+
+		if ( !attribute.root.twoway ) {
+			return false;
+		}
+
+		tagName = attribute.element.descriptor.e.toLowerCase();
+		propertyName = attribute.propertyName;
+
+		return (
+			( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) &&
+			( tagName === 'input' || tagName === 'textarea' || tagName === 'select' )
+		);
 	};
 
 }());
