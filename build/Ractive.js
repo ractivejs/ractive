@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.2 - 2013-07-19
+/*! Ractive - v0.3.3 - 2013-07-21
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -174,7 +174,11 @@ namespaces = {
 	xlink:  'http://www.w3.org/1999/xlink',
 	xml:    'http://www.w3.org/XML/1998/namespace',
 	xmlns:  'http://www.w3.org/2000/xmlns/'
-};
+},
+
+
+// current version
+VERSION = '0.3.3';
 
 
 
@@ -276,6 +280,10 @@ var cssTransitionsEnabled, transition, transitionend;
 }());
 executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
 	var transitionName, transitionParams, fragment, transitionManager, transition;
+
+	if ( !root.transitionsEnabled ) {
+		return;
+	}
 
 	if ( typeof descriptor === 'string' ) {
 		transitionName = descriptor;
@@ -854,6 +862,11 @@ initFragment = function ( fragment, options ) {
 				fragment.indexRefs[ ref ] = parentRefs[ ref ];
 			}
 		}
+
+		// while we're in this branch, inherit priority
+		fragment.priority = fragment.owner.parentFragment.priority + 1;
+	} else {
+		fragment.priority = 0;
 	}
 
 	if ( options.indexRef ) {
@@ -891,7 +904,7 @@ initMustache = function ( mustache, options ) {
 	
 	mustache.descriptor     = options.descriptor;
 	mustache.index          = options.index || 0;
-	mustache.priority       = options.descriptor.p || 0;
+	mustache.priority       = parentFragment.priority;
 
 	// DOM only
 	if ( parentFragment.parentNode ) {
@@ -2511,7 +2524,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	};
 
 	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions' ];
-	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize' ];
+	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize', 'noIntro', 'transitionsEnabled' ];
 	blacklist = extendable.concat( inheritable );
 
 	inheritFromParent = function ( Child, Parent ) {
@@ -2823,7 +2836,9 @@ defineProperties( defaultOptions, {
 	lazy:               { enumerable: true, value: false },
 	debug:              { enumerable: true, value: false },
 	transitions:        { enumerable: true, value: {}    },
-	eventDefinitions:   { enumerable: true, value: {}    }
+	eventDefinitions:   { enumerable: true, value: {}    },
+	noIntro:            { enumerable: true, value: false },
+	transitionsEnabled: { enumerable: true, value: true  }
 });
 
 Ractive = function ( options ) {
@@ -2999,7 +3014,13 @@ Ractive = function ( options ) {
 		}
 	}
 
+	// temporarily disable transitions, if noIntro flag is set
+	this.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
+
 	render( this, { el: this.el, append: options.append, complete: options.complete });
+
+	// reset transitionsEnabled
+	this.transitionsEnabled = options.transitionsEnabled;
 };
 
 (function () {
@@ -3788,7 +3809,7 @@ animationCollection = {
 }());
 (function () {
 
-	var propertyNames;
+	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName, isAttributeSelfUpdating, isAttributeBindable;
 
 	// the property name equivalents for element attributes, where they differ
 	// from the lowercased attribute name
@@ -3817,58 +3838,12 @@ animationCollection = {
 	// Attribute
 	DomAttribute = function ( options ) {
 
-		var name,
-			value,
-			colonIndex,
-			namespacePrefix,
-			tagName,
-			bindingCandidate,
-			lowerCaseName,
-			propertyName,
-			i,
-			item,
-			containsInterpolator;
-
-		name = options.name;
-		value = options.value;
-
-		// are we dealing with a namespaced attribute, e.g. xlink:href?
-		colonIndex = name.indexOf( ':' );
-		if ( colonIndex !== -1 ) {
-
-			// looks like we are, yes...
-			namespacePrefix = name.substr( 0, colonIndex );
-
-			// ...unless it's a namespace *declaration*
-			if ( namespacePrefix !== 'xmlns' ) {
-				name = name.substring( colonIndex + 1 );
-				this.namespace = namespaces[ namespacePrefix ];
-
-				if ( !this.namespace ) {
-					throw 'Unknown namespace ("' + namespacePrefix + '")';
-				}
-			}
-		}
+		determineNameAndNamespace( this, options.name );
 
 		// if it's an empty attribute, or just a straight key-value pair, with no
-		// mustache shenanigans, set the attribute accordingly
-		if ( value === null || typeof value === 'string' ) {
-			
-			if ( options.parentNode ) {
-				if ( this.namespace ) {
-					options.parentNode.setAttributeNS( this.namespace, name, value );
-				} else {
-					options.parentNode.setAttribute( name, value );
-				}
-
-				if ( name.toLowerCase() === 'id' ) {
-					options.root.nodes[ value ] = options.parentNode;
-				}
-			}
-
-			this.name = name;
-			this.value = value;
-			
+		// mustache shenanigans, set the attribute accordingly and go home
+		if ( options.value === null || typeof options.value === 'string' ) {
+			setStaticAttribute( this, options );
 			return;
 		}
 
@@ -3876,14 +3851,13 @@ animationCollection = {
 		this.root = options.root;
 		this.element = options.element;
 		this.parentNode = options.parentNode;
-		this.name = name;
-		this.lcName = name.toLowerCase();
+		this.lcName = this.name.toLowerCase();
 
 		// share parentFragment with parent element
 		this.parentFragment = this.element.parentFragment;
 
 		this.fragment = new StringFragment({
-			descriptor:   value,
+			descriptor:   options.value,
 			root:         this.root,
 			owner:        this,
 			contextStack: options.contextStack
@@ -3897,70 +3871,22 @@ animationCollection = {
 
 
 		// can we establish this attribute's property name equivalent?
-		if ( this.parentNode && !this.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
-			lowerCaseName = this.lcName;
-			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
-
-			if ( options.parentNode[ propertyName ] !== undefined ) {
-				this.propertyName = propertyName;
-			}
-
-			// is this a boolean attribute or 'value'? If so we're better off doing e.g.
-			// node.selected = true rather than node.setAttribute( 'selected', '' )
-			if ( typeof options.parentNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
-				this.useProperty = true;
-			}
-		}
-
+		determinePropertyName( this, options );
 		
 		// determine whether this attribute can be marked as self-updating
-		this.selfUpdating = true;
-
-		i = this.fragment.items.length;
-		while ( i-- ) {
-			item = this.fragment.items[i];
-			if ( item.type === TEXT ) {
-				continue;
-			}
-
-			// we can only have one interpolator and still be self-updating
-			if ( item.type === INTERPOLATOR ) {
-				if ( containsInterpolator ) {
-					this.selfUpdating = false;
-					break;
-				} else {
-					containsInterpolator = true;
-					continue;
-				}
-			}
-
-			// anything that isn't text or an interpolator (i.e. a section)
-			// and we can't self-update
-			this.selfUpdating = false;
-			break;
-		}
-
-		
+		this.selfUpdating = isAttributeSelfUpdating( this );
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-		if ( this.root.twoway ) {
-			tagName = this.element.descriptor.e.toLowerCase();
-			bindingCandidate = ( ( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) && ( tagName === 'input' || tagName === 'textarea' || tagName === 'select' ) );
-		}
+		this.isBindable = isAttributeBindable( this );
 
-		if ( bindingCandidate ) {
-			this.isBindable = true;
-
+		if ( this.isBindable && this.propertyName === 'name' ) {
 			// name attribute is a special case - it is the only two-way attribute that updates
 			// the viewmodel based on the value of another attribute. For that reason it must wait
 			// until the node has been initialised, and the viewmodel has had its first two-way
 			// update, before updating itself (otherwise it may disable a checkbox or radio that
 			// was enabled in the template)
-			if ( propertyName === 'name' ) {
-				this.isTwowayNameAttr = true;
-			}
+			this.isTwowayNameAttr = true;
 		}
-
 
 		// mark as ready
 		this.ready = true;
@@ -4098,19 +4024,22 @@ animationCollection = {
 			if ( this.updateViewModel ) {
 				this.twoway = true;
 
-				node.addEventListener( 'change', this.updateViewModel );
-				node.addEventListener( 'click',  this.updateViewModel ); // TODO only in IE?
-				node.addEventListener( 'blur',   this.updateViewModel );
+				this.boundEvents = [ 'change', 'click', 'blur' ]; // TODO click only in IE?
 
 				if ( !lazy ) {
-					node.addEventListener( 'input',    this.updateViewModel );
+					this.boundEvents[3] = 'input';
 
 					// this is a hack to see if we're in IE - if so, we probably need to add
 					// a keyup listener as well, since in IE8 the input event doesn't fire,
 					// and in IE9 it doesn't fire when text is deleted
 					if ( node.attachEvent ) {
-						node.addEventListener( 'keyup',    this.updateViewModel );
+						this.boundEvents[4] = 'keyup';
 					}
+				}
+
+				i = this.boundEvents.length;
+				while ( i-- ) {
+					node.addEventListener( this.boundEvents[i], this.updateViewModel );
 				}
 			}
 		},
@@ -4129,14 +4058,14 @@ animationCollection = {
 		},
 
 		teardown: function () {
-			// remove the event listeners we added, if we added them (no need to check,
-			// it will fail silently if they weren't there in the first place)
-			if ( this.updateViewModel ) {
-				this.parentNode.removeEventListener( 'change', this.updateViewModel );
-				this.parentNode.removeEventListener( 'click', this.updateViewModel );
-				this.parentNode.removeEventListener( 'blur', this.updateViewModel );
-				this.parentNode.removeEventListener( 'keyup', this.updateViewModel );
-				this.parentNode.removeEventListener( 'input', this.updateViewModel );
+			var i;
+
+			if ( this.boundEvents ) {
+				i = this.boundEvents.length;
+
+				while ( i-- ) {
+					this.parentNode.removeEventListener( this.boundEvents[i], this.updateViewModel );
+				}
 			}
 
 			// ignore non-dynamic attributes
@@ -4248,6 +4177,116 @@ animationCollection = {
 			
 			return this.name + '=' + JSON.stringify( str );
 		}
+	};
+
+
+	// Helper functions
+	determineNameAndNamespace = function ( attribute, name ) {
+		var colonIndex, namespacePrefix;
+
+		// are we dealing with a namespaced attribute, e.g. xlink:href?
+		colonIndex = name.indexOf( ':' );
+		if ( colonIndex !== -1 ) {
+
+			// looks like we are, yes...
+			namespacePrefix = name.substr( 0, colonIndex );
+
+			// ...unless it's a namespace *declaration*, which we ignore (on the assumption
+			// that only valid namespaces will be used)
+			if ( namespacePrefix !== 'xmlns' ) {
+				name = name.substring( colonIndex + 1 );
+
+				attribute.name = name;
+				attribute.namespace = namespaces[ namespacePrefix ];
+
+				if ( !attribute.namespace ) {
+					throw 'Unknown namespace ("' + namespacePrefix + '")';
+				}
+
+				return;
+			}
+		}
+
+		attribute.name = name;
+	};
+
+	setStaticAttribute = function ( attribute, options ) {
+		if ( options.parentNode ) {
+			if ( attribute.namespace ) {
+				options.parentNode.setAttributeNS( attribute.namespace, options.name, options.value );
+			} else {
+				options.parentNode.setAttribute( options.name, options.value );
+			}
+
+			if ( options.name.toLowerCase() === 'id' ) {
+				options.root.nodes[ options.value ] = options.parentNode;
+			}
+		}
+
+		attribute.value = options.value;
+	};
+
+	determinePropertyName = function ( attribute, options ) {
+		var lowerCaseName, propertyName;
+
+		if ( attribute.parentNode && !attribute.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
+			lowerCaseName = attribute.lcName;
+			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
+
+			if ( options.parentNode[ propertyName ] !== undefined ) {
+				attribute.propertyName = propertyName;
+			}
+
+			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
+			// node.selected = true rather than node.setAttribute( 'selected', '' )
+			if ( typeof options.parentNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				attribute.useProperty = true;
+			}
+		}
+	};
+
+	isAttributeSelfUpdating = function ( attribute ) {
+		var i, item, containsInterpolator;
+
+		i = attribute.fragment.items.length;
+		while ( i-- ) {
+			item = attribute.fragment.items[i];
+			if ( item.type === TEXT ) {
+				continue;
+			}
+
+			// we can only have one interpolator and still be self-updating
+			if ( item.type === INTERPOLATOR ) {
+				if ( containsInterpolator ) {
+					return false;
+				} else {
+					containsInterpolator = true;
+					continue;
+				}
+			}
+
+			// anything that isn't text or an interpolator (i.e. a section)
+			// and we can't self-update
+			return false;
+		}
+
+		return true;
+	};
+
+	isAttributeBindable = function ( attribute ) {
+		var tagName, propertyName;
+
+		if ( !attribute.root.twoway ) {
+			return false;
+		}
+
+		tagName = attribute.element.descriptor.e.toLowerCase();
+		propertyName = attribute.propertyName;
+
+		return (
+			( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) &&
+			( tagName === 'input' || tagName === 'textarea' || tagName === 'select' )
+		);
 	};
 
 }());
@@ -5457,7 +5496,7 @@ splitKeypath =  function ( keypath ) {
 	jsonify;
 
 
-	getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhitespace ) {
+	getFragmentStubFromTokens = function ( tokens, options, preserveWhitespace ) {
 		var parser, stub;
 
 		parser = {
@@ -5469,19 +5508,19 @@ splitKeypath =  function ( keypath ) {
 			options: options
 		};
 
-		stub = new Fragment( parser, priority, preserveWhitespace );
+		stub = new Fragment( parser, preserveWhitespace );
 
 		return stub;
 	};
 
-	getItem = function ( parser, priority, preserveWhitespace ) {
+	getItem = function ( parser, preserveWhitespace ) {
 		if ( !parser.next() ) {
 			return null;
 		}
 
 		return getText( parser, preserveWhitespace )
-		    || getMustache( parser, priority, preserveWhitespace )
-		    || getElement( parser, priority, preserveWhitespace );
+		    || getMustache( parser, preserveWhitespace )
+		    || getElement( parser, preserveWhitespace );
 	};
 
 	getText = function ( parser, preserveWhitespace ) {
@@ -5495,25 +5534,25 @@ splitKeypath =  function ( keypath ) {
 		return null;
 	};
 
-	getMustache = function ( parser, priority, preserveWhitespace ) {
+	getMustache = function ( parser, preserveWhitespace ) {
 		var next = parser.next();
 
 		if ( next.type === MUSTACHE || next.type === TRIPLE ) {
 			if ( next.mustacheType === SECTION || next.mustacheType === INVERTED ) {
-				return new Section( next, parser, priority, preserveWhitespace );				
+				return new Section( next, parser, preserveWhitespace );				
 			}
 
-			return new Mustache( next, parser, priority );
+			return new Mustache( next, parser );
 		}
 
 		return null;
 	};
 
-	getElement = function ( parser, priority, preserveWhitespace ) {
+	getElement = function ( parser, preserveWhitespace ) {
 		var next = parser.next(), stub;
 
 		if ( next.type === TAG ) {
-			stub = new Element( next, parser, priority, preserveWhitespace );
+			stub = new Element( next, parser, preserveWhitespace );
 
 			// sanitize			
 			if ( parser.options.sanitize && parser.options.sanitize.elements ) {
@@ -5567,15 +5606,15 @@ splitKeypath =  function ( keypath ) {
 
 
 
-	Fragment = function ( parser, priority, preserveWhitespace ) {
+	Fragment = function ( parser, preserveWhitespace ) {
 		var items, item;
 
 		items = this.items = [];
 
-		item = getItem( parser, priority, preserveWhitespace );
+		item = getItem( parser, preserveWhitespace );
 		while ( item !== null ) {
 			items[ items.length ] = item;
-			item = getItem( parser, priority, preserveWhitespace );
+			item = getItem( parser, preserveWhitespace );
 		}
 	};
 
@@ -5646,7 +5685,7 @@ splitKeypath =  function ( keypath ) {
 
 	// mustache
 	(function () {
-		Mustache = function ( token, parser, priority ) {
+		Mustache = function ( token, parser ) {
 			this.type = ( token.type === TRIPLE ? TRIPLE : token.mustacheType );
 
 			if ( token.ref ) {
@@ -5656,8 +5695,6 @@ splitKeypath =  function ( keypath ) {
 			if ( token.expression ) {
 				this.expr = new Expression( token.expression );
 			}
-			
-			this.priority = priority;
 
 			parser.pos += 1;
 		};
@@ -5682,10 +5719,6 @@ splitKeypath =  function ( keypath ) {
 					json.x = this.expr.toJson();
 				}
 
-				if ( this.priority ) {
-					json.p = this.priority;
-				}
-
 				this.json = json;
 				return json;
 			},
@@ -5697,12 +5730,11 @@ splitKeypath =  function ( keypath ) {
 		};
 
 
-		Section = function ( firstToken, parser, priority, preserveWhitespace ) {
+		Section = function ( firstToken, parser, preserveWhitespace ) {
 			var next;
 
 			this.ref = firstToken.ref;
 			this.indexRef = firstToken.indexRef;
-			this.priority = priority || 0;
 
 			this.inverted = ( firstToken.mustacheType === INVERTED );
 
@@ -5727,7 +5759,7 @@ splitKeypath =  function ( keypath ) {
 					}
 				}
 
-				this.items[ this.items.length ] = getItem( parser, this.priority + 1, preserveWhitespace );
+				this.items[ this.items.length ] = getItem( parser, preserveWhitespace );
 				next = parser.next();
 			}
 		};
@@ -5762,10 +5794,6 @@ splitKeypath =  function ( keypath ) {
 					json.f = jsonify( this.items, noStringify );
 				}
 
-				if ( this.priority ) {
-					json.p = this.priority;
-				}
-
 				this.json = json;
 				return json;
 			},
@@ -5782,11 +5810,10 @@ splitKeypath =  function ( keypath ) {
 	(function () {
 		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, filterAttrs, proxyPattern;
 
-		Element = function ( firstToken, parser, priority, preserveWhitespace ) {
+		Element = function ( firstToken, parser, preserveWhitespace ) {
 			var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
 
 			this.lcTag = firstToken.name.toLowerCase();
-			this.priority = priority = priority || 0;
 
 			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
 			// that should be camelcased, camelcase it
@@ -5813,7 +5840,7 @@ splitKeypath =  function ( keypath ) {
 
 					return {
 						name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
-						value: getFragmentStubFromTokens( attr.value, priority + 1 )
+						value: getFragmentStubFromTokens( attr.value )
 					};
 				};
 
@@ -5867,7 +5894,7 @@ splitKeypath =  function ( keypath ) {
 							}
 						}
 
-						processed.dynamicArgs = getFragmentStubFromTokens( tokens, priority + 1 );
+						processed.dynamicArgs = getFragmentStubFromTokens( tokens );
 					}
 
 					return processed;
@@ -5936,7 +5963,7 @@ splitKeypath =  function ( keypath ) {
 					
 				}
 
-				this.items[ this.items.length ] = getItem( parser, this.priority + 1 );
+				this.items[ this.items.length ] = getItem( parser );
 
 				next = parser.next();
 			}
@@ -7830,7 +7857,6 @@ splitKeypath =  function ( keypath ) {
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * d - Dynamic proxy event/transition arguments
 // * n - indicates an iNverted section
-// * p - Priority. Higher priority items are updated before lower ones on model changes
 // * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
 // * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 // * c - Conditionals (e.g. ['yes', 'no'] in {{condition ? yes : no}})
@@ -7882,7 +7908,7 @@ splitKeypath =  function ( keypath ) {
 			}
 		}
 		
-		fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
+		fragmentStub = getFragmentStubFromTokens( tokens, options, options.preserveWhitespace );
 		
 		json = fragmentStub.toJson();
 
@@ -7984,6 +8010,8 @@ Ractive.parse = parse;
 
 // TODO add some more transitions
 Ractive.transitions = transitions;
+
+Ractive.VERSION = VERSION;
 
 
 // export as Common JS module...
