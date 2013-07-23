@@ -1,6 +1,6 @@
 (function ( Ractive ) {
 
-	var requestFullscreen, cancelFullscreen, fullscreenElement, testDiv;
+	var requestFullscreen, cancelFullscreen, fullscreenElement;
 
 	if ( !doc ) {
 		return;
@@ -12,8 +12,6 @@
 		Ractive.requestFullscreen = Ractive.cancelFullscreen = noop;
 		return;
 	}
-
-	testDiv = doc.createElement( 'div' );
 
 	// get prefixed name of requestFullscreen method
 	if ( testDiv.requestFullscreen ) {
