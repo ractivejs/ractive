@@ -155,6 +155,8 @@ INVOCATION        = 40,
 
 UNSET             = { unset: true },
 
+testDiv = ( doc ? doc.createElement( 'div' ) : null ),
+
 
 // namespaces
 namespaces = {
@@ -180,6 +182,11 @@ VERSION = '0.3.3';
 try {
 	Object.defineProperty({}, 'test', { value: 0 });
 	Object.defineProperties({}, { test: { value: 0 } });
+
+	if ( doc ) {
+		Object.defineProperty( testDiv, 'test', { value: 0 });
+		Object.defineProperties( testDiv, { test: { value: 0 } });
+	}
 
 	defineProperty = Object.defineProperty;
 	defineProperties = Object.defineProperties;
@@ -247,13 +254,9 @@ var cssTransitionsEnabled, transition, transitionend;
 
 (function () {
 
-	var testDiv;
-
 	if ( !doc ) {
 		return;
 	}
-
-	testDiv = doc.createElement( 'div' );
 
 	if ( testDiv.style.transition !== undefined ) {
 		transition = 'transition';
@@ -3492,7 +3495,7 @@ var parseTransitionParams = function ( params ) {
 }( transitions ));
 (function ( Ractive ) {
 
-	var requestFullscreen, cancelFullscreen, fullscreenElement, testDiv;
+	var requestFullscreen, cancelFullscreen, fullscreenElement;
 
 	if ( !doc ) {
 		return;
@@ -3504,8 +3507,6 @@ var parseTransitionParams = function ( params ) {
 		Ractive.requestFullscreen = Ractive.cancelFullscreen = noop;
 		return;
 	}
-
-	testDiv = doc.createElement( 'div' );
 
 	// get prefixed name of requestFullscreen method
 	if ( testDiv.requestFullscreen ) {
