@@ -3,6 +3,8 @@ Ractive.js
 
 Next-generation DOM manipulation
 
+tl;dr - See the [project homepage](http://ractivejs.org), [tutorials](http://learn.ractivejs.org) and [examples](http://ractivejs.org/examples), or try the [60 second setup](https://github.com/Rich-Harris/Ractive/wiki/60-second-setup).
+
 
 It's templating Jim, but not as we know it
 ------------------------------------------
@@ -101,6 +103,13 @@ Caveats and feedback
 This project is in the early stages of development, though I've used it regularly in production code in my day job. YMMV! But if you end up using the library I'd love to hear from you – I'm [@rich_harris](http://twitter.com/rich_harris).
 
 [Bug reports and issues](https://github.com/Rich-Harris/Ractive/issues) are very welcome, as are pull requests. If you run into problems, I'll do my best to help.
+
+
+
+Browser support
+---------------
+
+Tested successfully in IE8+ and all modern browsers. If your experience differs please let me know!
 
 
 
