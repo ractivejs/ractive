@@ -91,7 +91,7 @@ There's more!
 * Extensibility: Use Ractive.extend to add your own logic
 * AMD support: including a [RequireJS loader plugin](https://github.com/Rich-Harris/require-ractive-plugin)
 
-Take a look at the [tutorials](http://rich-harris.github.com/Ractive/tutorials) to see how Ractive.js can make your life as a web developer easier, then read the [API docs](wiki).
+Take a look at the [tutorials](http://learn.ractivejs.org/) to see how Ractive.js can make your life as a web developer easier, then read the [API docs](https://github.com/rich-harris/Ractive/wiki).
 
 
 
