@@ -70,15 +70,6 @@
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		this.isBindable = isAttributeBindable( this );
 
-		if ( this.isBindable && this.propertyName === 'name' ) {
-			// name attribute is a special case - it is the only two-way attribute that updates
-			// the viewmodel based on the value of another attribute. For that reason it must wait
-			// until the node has been initialised, and the viewmodel has had its first two-way
-			// update, before updating itself (otherwise it may disable a checkbox or radio that
-			// was enabled in the template)
-			this.isTwowayNameAttr = true;
-		}
-
 		// mark as ready
 		this.ready = true;
 	};

@@ -313,6 +313,12 @@ tests = [
 		template: '<div intro="slideIn" outro="slideOut">{{content}}</div>',
 		data: { content: 'test' },
 		result: '<div>test</div>'
+	},
+	{
+		name: 'Input with dynamic (but not two-way) name attribute',
+		template: '{{#list:i}}<input name="test{{i}}">{{/list}}',
+		data: { list: [ 'a', 'b', 'c' ] },
+		result: '<input name="test0"><input name="test1"><input name="test2">'
 	}
 ];
 

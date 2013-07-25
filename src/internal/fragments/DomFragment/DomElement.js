@@ -132,11 +132,17 @@ DomElement = function ( options, docFrag ) {
 
 			this.attributes[ this.attributes.length ] = attr;
 
+			// TODO why is this an array? Shurely an element can only have one two-way attribute?
 			if ( attr.isBindable ) {
 				bindable.push( attr );
 			}
 
-			if ( attr.isTwowayNameAttr ) {
+			// The name attribute is a special case - it is the only two-way attribute that updates
+			// the viewmodel based on the value of another attribute. For that reason it must wait
+			// until the node has been initialised, and the viewmodel has had its first two-way
+			// update, before updating itself (otherwise it may disable a checkbox or radio that
+			// was enabled in the template)
+			if ( attr.isBindable && attr.propertyName === 'name' ) {
 				twowayNameAttr = attr;
 			} else {
 				attr.update();
@@ -151,7 +157,9 @@ DomElement = function ( options, docFrag ) {
 		}
 
 		if ( twowayNameAttr ) {
-			twowayNameAttr.updateViewModel();
+			if ( twowayNameAttr.updateViewModel ) {
+				twowayNameAttr.updateViewModel();
+			}
 			twowayNameAttr.update();
 		}
 
