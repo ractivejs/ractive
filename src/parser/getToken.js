@@ -483,6 +483,9 @@
 				tag.attrs = attrs;
 			}
 
+			// allow whitespace before closing solidus
+			allowWhitespace( tokenizer );
+
 			// self-closing solidus?
 			if ( getStringMatch( tokenizer, '/' ) ) {
 				tag.selfClosing = true;

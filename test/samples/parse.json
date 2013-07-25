@@ -159,5 +159,10 @@
 		"name": "Expression with indirectly-identified method",
 		"template": "{{( one.two[ three ]() )}}",
 		"parsed": [{"t":2,"x":{"r":["three","one.two"],"s":"â–1[â–0]()"}}]
+	},
+	{
+		"name": "Void tag with spaces",
+		"template": "<hr />{{foo}}",
+		"parsed": [{"e":"hr","t":7},{"r":"foo","t":2}]
 	}
 ]
