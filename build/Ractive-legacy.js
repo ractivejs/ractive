@@ -1000,10 +1000,11 @@ insertHtml = function ( html, docFrag ) {
 }());
 initFragment = function ( fragment, options ) {
 
-	var numItems, i, itemOptions, parentRefs, ref;
+	var numItems, i, itemOptions, parentFragment, parentRefs, ref;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
 	fragment.owner = options.owner;
+	parentFragment = fragment.owner.parentFragment;
 
 	// inherited properties
 	fragment.root = options.root;
@@ -1018,8 +1019,8 @@ initFragment = function ( fragment, options ) {
 
 	// index references (the 'i' in {{#section:i}}<!-- -->{{/section}}) need to cascade
 	// down the tree
-	if ( fragment.owner.parentFragment ) {
-		parentRefs = fragment.owner.parentFragment.indexRefs;
+	if ( parentFragment ) {
+		parentRefs = parentFragment.indexRefs;
 
 		if ( parentRefs ) {
 			fragment.indexRefs = createFromNull(); // avoids need for hasOwnProperty
@@ -1028,12 +1029,10 @@ initFragment = function ( fragment, options ) {
 				fragment.indexRefs[ ref ] = parentRefs[ ref ];
 			}
 		}
-
-		// while we're in this branch, inherit priority
-		fragment.priority = fragment.owner.parentFragment.priority + 1;
-	} else {
-		fragment.priority = 0;
 	}
+
+	// inherit priority
+	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 0 );
 
 	if ( options.indexRef ) {
 		if ( !fragment.indexRefs ) {
@@ -1128,10 +1127,10 @@ updateMustache = function () {
 };
 
 resolveMustache = function ( keypath ) {
-	// TEMP
 	this.keypath = keypath;
 
 	registerDependant( this );
+	
 	this.update();
 
 	if ( this.expressionResolver ) {
@@ -1716,6 +1715,16 @@ processDeferredUpdates = function ( ractive ) {
 	while ( ractive._defAttrs.length ) {
 		attribute = ractive._defAttrs.pop();
 		attribute.update().deferred = false;
+	}
+
+	while ( ractive._defSelectValues.length ) {
+		attribute = ractive._defSelectValues.pop();
+
+		attribute.parentNode.value = attribute.value;
+
+		// value may not be what we think it should be, if the relevant <option>
+		// element doesn't exist!
+		attribute.value = attribute.parentNode.value;
 	}
 };
 registerDependant = function ( dependant ) {
@@ -3053,6 +3062,7 @@ Ractive = function ( options ) {
 		// Create arrays for deferred attributes and evaluators
 		_defAttrs: { value: [] },
 		_defEvals: { value: [] },
+		_defSelectValues: { value: [] },
 
 		// Cache proxy event handlers - allows efficient reuse
 		_proxies: { value: createFromNull() },
@@ -4043,15 +4053,6 @@ animationCollection = {
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		this.isBindable = isAttributeBindable( this );
 
-		if ( this.isBindable && this.propertyName === 'name' ) {
-			// name attribute is a special case - it is the only two-way attribute that updates
-			// the viewmodel based on the value of another attribute. For that reason it must wait
-			// until the node has been initialised, and the viewmodel has had its first two-way
-			// update, before updating itself (otherwise it may disable a checkbox or radio that
-			// was enabled in the template)
-			this.isTwowayNameAttr = true;
-		}
-
 		// mark as ready
 		this.ready = true;
 	};
@@ -4298,12 +4299,27 @@ animationCollection = {
 
 			if ( value !== this.value ) {
 				if ( this.useProperty ) {
+					
+					// Special case - <select> element value attributes. If its value is set at the same
+					// time as data which causes options to be added, removed, or changed, things can go
+					// awry. For that reason, this attribute needs to get updated after everything else
+					if ( this.element.descriptor.e === 'select' && this.propertyName === 'value' ) {
+						this.value = value;
+						this.root._defSelectValues.push( this );
+						
+						return this;
+					}
+
 					this.parentNode[ this.propertyName ] = value;
+					this.value = value;
+
 					return this;
 				}
 
 				if ( this.namespace ) {
 					this.parentNode.setAttributeNS( this.namespace, this.name, value );
+					this.value = value;
+
 					return this;
 				}
 
@@ -4588,11 +4604,17 @@ DomElement = function ( options, docFrag ) {
 
 			this.attributes[ this.attributes.length ] = attr;
 
+			// TODO why is this an array? Shurely an element can only have one two-way attribute?
 			if ( attr.isBindable ) {
 				bindable.push( attr );
 			}
 
-			if ( attr.isTwowayNameAttr ) {
+			// The name attribute is a special case - it is the only two-way attribute that updates
+			// the viewmodel based on the value of another attribute. For that reason it must wait
+			// until the node has been initialised, and the viewmodel has had its first two-way
+			// update, before updating itself (otherwise it may disable a checkbox or radio that
+			// was enabled in the template)
+			if ( attr.isBindable && attr.propertyName === 'name' ) {
 				twowayNameAttr = attr;
 			} else {
 				attr.update();
@@ -4607,7 +4629,9 @@ DomElement = function ( options, docFrag ) {
 		}
 
 		if ( twowayNameAttr ) {
-			twowayNameAttr.updateViewModel();
+			if ( twowayNameAttr.updateViewModel ) {
+				twowayNameAttr.updateViewModel();
+			}
 			twowayNameAttr.update();
 		}
 
@@ -7026,6 +7050,9 @@ splitKeypath =  function ( keypath ) {
 			if ( attrs ) {
 				tag.attrs = attrs;
 			}
+
+			// allow whitespace before closing solidus
+			allowWhitespace( tokenizer );
 
 			// self-closing solidus?
 			if ( getStringMatch( tokenizer, '/' ) ) {
