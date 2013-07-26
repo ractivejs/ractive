@@ -316,12 +316,27 @@
 
 			if ( value !== this.value ) {
 				if ( this.useProperty ) {
+					
+					// Special case - <select> element value attributes. If its value is set at the same
+					// time as data which causes options to be added, removed, or changed, things can go
+					// awry. For that reason, this attribute needs to get updated after everything else
+					if ( this.element.descriptor.e === 'select' && this.propertyName === 'value' ) {
+						this.value = value;
+						this.root._defSelectValues.push( this );
+						
+						return this;
+					}
+
 					this.parentNode[ this.propertyName ] = value;
+					this.value = value;
+
 					return this;
 				}
 
 				if ( this.namespace ) {
 					this.parentNode.setAttributeNS( this.namespace, this.name, value );
+					this.value = value;
+
 					return this;
 				}
 

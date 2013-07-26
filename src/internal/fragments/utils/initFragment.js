@@ -1,9 +1,10 @@
 initFragment = function ( fragment, options ) {
 
-	var numItems, i, itemOptions, parentRefs, ref;
+	var numItems, i, itemOptions, parentFragment, parentRefs, ref;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
 	fragment.owner = options.owner;
+	parentFragment = fragment.owner.parentFragment;
 
 	// inherited properties
 	fragment.root = options.root;
@@ -18,8 +19,8 @@ initFragment = function ( fragment, options ) {
 
 	// index references (the 'i' in {{#section:i}}<!-- -->{{/section}}) need to cascade
 	// down the tree
-	if ( fragment.owner.parentFragment ) {
-		parentRefs = fragment.owner.parentFragment.indexRefs;
+	if ( parentFragment ) {
+		parentRefs = parentFragment.indexRefs;
 
 		if ( parentRefs ) {
 			fragment.indexRefs = createFromNull(); // avoids need for hasOwnProperty
@@ -28,12 +29,10 @@ initFragment = function ( fragment, options ) {
 				fragment.indexRefs[ ref ] = parentRefs[ ref ];
 			}
 		}
-
-		// while we're in this branch, inherit priority
-		fragment.priority = fragment.owner.parentFragment.priority + 1;
-	} else {
-		fragment.priority = 0;
 	}
+
+	// inherit priority
+	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 0 );
 
 	if ( options.indexRef ) {
 		if ( !fragment.indexRefs ) {

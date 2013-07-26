@@ -60,6 +60,7 @@ Ractive = function ( options ) {
 		// Create arrays for deferred attributes and evaluators
 		_defAttrs: { value: [] },
 		_defEvals: { value: [] },
+		_defSelectValues: { value: [] },
 
 		// Cache proxy event handlers - allows efficient reuse
 		_proxies: { value: createFromNull() },

@@ -67,10 +67,10 @@ updateMustache = function () {
 };
 
 resolveMustache = function ( keypath ) {
-	// TEMP
 	this.keypath = keypath;
 
 	registerDependant( this );
+	
 	this.update();
 
 	if ( this.expressionResolver ) {
