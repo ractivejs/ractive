@@ -116,7 +116,7 @@
 		var unique;
 
 		// get string that is unique to this expression
-		unique = str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+		unique = str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
 			return args[ $1 ][1];
 		});
 

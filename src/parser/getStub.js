@@ -900,7 +900,7 @@
 				return stringify( token.o[0], refs ) + '?' + stringify( token.o[1], refs ) + ':' + stringify( token.o[2], refs );
 
 				case REFERENCE:
-				return '❖' + refs.indexOf( token.n );
+				return '${' + refs.indexOf( token.n ) + '}';
 
 				default:
 				console.log( token );
