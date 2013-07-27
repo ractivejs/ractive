@@ -164,5 +164,10 @@
 		"name": "Void tag with spaces",
 		"template": "<hr />{{foo}}",
 		"parsed": [{"e":"hr","t":7},{"r":"foo","t":2}]
+	},
+	{
+		"name": "Expression with JSON object",
+		"template": "{{( fn({ foo: 1, 'bar': 2, '0foo': 3, '0bar': { baz: 'test', arr: [ 1, 2, 3 ] } }) )}}",
+		"parsed": [{"t":2,"x":{"r":["fn"],"s":"â–0({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:'test',arr:[1,2,3]}})"}}]
 	}
 ]

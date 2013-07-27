@@ -1236,7 +1236,7 @@
 
 			return {
 				t: ARRAY_LITERAL,
-				o: expressionList
+				m: expressionList
 			};
 		};
 
