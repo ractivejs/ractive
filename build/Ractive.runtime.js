@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.3 - 2013-07-26
+/*! Ractive - v0.3.3 - 2013-07-27
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -151,6 +151,7 @@ OBJECT_LITERAL    = 23,
 BOOLEAN_LITERAL   = 24,
 LITERAL           = 25,
 GLOBAL            = 26,
+KEY_VALUE_PAIR    = 27,
 
 
 REFERENCE         = 30,

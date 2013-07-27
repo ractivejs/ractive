@@ -141,6 +141,7 @@ OBJECT_LITERAL    = 23,
 BOOLEAN_LITERAL   = 24,
 LITERAL           = 25,
 GLOBAL            = 26,
+KEY_VALUE_PAIR    = 27,
 
 
 REFERENCE         = 30,
