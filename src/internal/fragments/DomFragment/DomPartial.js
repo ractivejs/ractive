@@ -21,6 +21,10 @@ DomPartial = function ( options, docFrag ) {
 };
 
 DomPartial.prototype = {
+	firstNode: function () {
+		return this.fragment.firstNode();
+	},
+
 	findNextNode: function () {
 		return this.parentFragment.findNextNode( this );
 	},
