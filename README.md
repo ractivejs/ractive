@@ -45,7 +45,7 @@ There is a better way. Here's a basic Ractive.js setup:
 view = new Ractive({
   el: element,
   template: '<p>Hello {{name}}!</p>',
-  data: { name: world }
+  data: { name: 'world' }
 });
 // renders <p>Hello world!</p> to our container element
 
