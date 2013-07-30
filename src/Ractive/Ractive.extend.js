@@ -71,7 +71,7 @@
 				var _super = this._super;
 				this._super = superMethod;
 
-				method.apply( this, arguments );
+				return method.apply( this, arguments );
 
 				this._super = _super;
 			};
