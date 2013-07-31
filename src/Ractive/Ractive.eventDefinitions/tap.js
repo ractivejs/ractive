@@ -28,11 +28,11 @@ eventDefinitions.tap = function ( node, fire ) {
 
 		cancel = function () {
 			doc.removeEventListener( 'mousemove', move );
-			doc.removeEventListener( 'mouseup', up );
+			doc.removeEventListener( 'click', up );
 		};
 
 		doc.addEventListener( 'mousemove', move );
-		doc.addEventListener( 'mouseup', up );
+		doc.addEventListener( 'click', up );
 
 		setTimeout( cancel, timeThreshold );
 	};
