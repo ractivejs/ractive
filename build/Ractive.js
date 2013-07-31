@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.3 - 2013-07-27
+/*! Ractive - v0.3.3 - 2013-07-31
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -618,7 +618,7 @@ insertHtml = function ( html, docFrag ) {
 	getFunctionFromString = function ( str, i ) {
 		var fn, args;
 
-		str = str.replace( /❖/g, '_' );
+		str = str.replace( /\$\{([0-9]+)\}/g, '_$1' );
 
 		if ( cache[ str ] ) {
 			return cache[ str ];
@@ -756,7 +756,7 @@ insertHtml = function ( html, docFrag ) {
 		var unique;
 
 		// get string that is unique to this expression
-		unique = str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+		unique = str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
 			return args[ $1 ][1];
 		});
 
@@ -1369,6 +1369,20 @@ proto.bind = function ( adaptor ) {
 };
 proto.cancelFullscreen = function () {
 	Ractive.cancelFullscreen( this.el );
+};
+proto.find = function ( selector ) {
+	if ( !this.el ) {
+		return null;
+	}
+
+	return this.el.querySelector( selector );
+};
+proto.findAll = function ( selector ) {
+	if ( !this.el ) {
+		return [];
+	}
+
+	return this.el.querySelectorAll( selector );
 };
 proto.fire = function ( eventName ) {
 	var args, i, len, subscribers = this._subs[ eventName ];
@@ -2407,11 +2421,11 @@ eventDefinitions.tap = function ( node, fire ) {
 
 		cancel = function () {
 			doc.removeEventListener( 'mousemove', move );
-			doc.removeEventListener( 'mouseup', up );
+			doc.removeEventListener( 'click', up );
 		};
 
 		doc.addEventListener( 'mousemove', move );
-		doc.addEventListener( 'mouseup', up );
+		doc.addEventListener( 'click', up );
 
 		setTimeout( cancel, timeThreshold );
 	};
@@ -2557,12 +2571,13 @@ eventDefinitions.tap = function ( node, fire ) {
 	wrapMethod = function ( method, superMethod ) {
 		if ( /_super/.test( method ) ) {
 			return function () {
-				var _super = this._super;
+				var _super = this._super, result;
 				this._super = superMethod;
 
-				method.apply( this, arguments );
+				result = method.apply( this, arguments );
 
 				this._super = _super;
+				return result;
 			};
 		}
 
@@ -4853,6 +4868,10 @@ DomPartial = function ( options, docFrag ) {
 };
 
 DomPartial.prototype = {
+	firstNode: function () {
+		return this.fragment.firstNode();
+	},
+
 	findNextNode: function () {
 		return this.parentFragment.findNextNode( this );
 	},
@@ -6406,7 +6425,7 @@ splitKeypath =  function ( keypath ) {
 				return stringify( token.o[0], refs ) + '?' + stringify( token.o[1], refs ) + ':' + stringify( token.o[2], refs );
 
 				case REFERENCE:
-				return '❖' + refs.indexOf( token.n );
+				return '${' + refs.indexOf( token.n ) + '}';
 
 				default:
 				console.log( token );
