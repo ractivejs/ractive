@@ -144,6 +144,40 @@
 				equal( ractive.get( 'selected' ), 'c' );
 				equal( ractive.nodes.select.value, 'c' );
 			}
+		},
+		{
+			name: 'Passing in alternative delimiters',
+			test: function () {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '[[ greeting ]], [[recipient]]! [[[ triple ]]]',
+					data: {
+						greeting: 'Hello',
+						recipient: 'world',
+						triple: '<p>here is some HTML</p>'
+					},
+					delimiters: [ '[[', ']]' ],
+					tripleDelimiters: [ '[[[', ']]]' ]
+				});
+
+				equal( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
+			}
+		},
+		{
+			name: 'Using alternative delimiters in template',
+			test: function () {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{=[[ ]]=}} {{{=<% %>=}}} [[ greeting ]], [[recipient]]! <% triple %>',
+					data: {
+						greeting: 'Hello',
+						recipient: 'world',
+						triple: '<p>here is some HTML</p>'
+					}
+				});
+
+				equal( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
+			}
 		}
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
