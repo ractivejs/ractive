@@ -12,6 +12,12 @@
 	<script src='vendor/underscore.js'></script>
 	<script src='vendor/qunit.js'></script>
 
+	<!-- QUnit Tap (for Testling integration via TAP) -->
+	<script src='vendor/qunit-tap.js'></script>
+	<script>
+		qunitTap(QUnit, function() { console.log.apply(console, arguments); });
+	</script>
+
 	<script src='../build/Ractive-legacy.js'></script>
 
 	<!-- load test modules -->
