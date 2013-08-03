@@ -15,6 +15,7 @@
 
 	fixture = document.getElementById( 'qunit-fixture' );
 
+	module( 'Miscellaneous' );
 
 
 	test( 'Subclass instance data extends prototype data', function ( t ) {

@@ -1216,7 +1216,7 @@
 	runModule = function ( theModule ) {
 		var i, theTest;
 
-		module( theModule.name );
+		module( 'Mustache compliance (' + theModule.name + ')' );
 
 		for ( i=0; i<theModule.tests.length; i+=1 ) {
 			theTest = theModule.tests[i];

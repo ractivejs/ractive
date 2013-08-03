@@ -13,6 +13,8 @@
 
 	var fixture = document.getElementById( 'qunit-fixture' ), tests;
 
+	module ( 'Render' );
+
 	tests = [
 		{
 			name: "Empty model",

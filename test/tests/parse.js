@@ -7,6 +7,8 @@
 
 	QUnit.config.reorder = false;
 
+	module( 'Parse' );
+
 	tests = [
 		{
 			name: "Empty string",
