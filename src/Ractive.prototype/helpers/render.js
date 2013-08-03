@@ -19,6 +19,8 @@ render = function ( ractive, options ) {
 		parentNode: el
 	});
 
+	processDeferredUpdates( ractive );
+
 	if ( el ) {
 		el.appendChild( ractive.fragment.docFrag );
 	}

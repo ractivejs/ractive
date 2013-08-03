@@ -134,6 +134,8 @@
 						break;
 					}
 				}
+
+				this.isMultipleSelect = node.multiple;
 			}
 
 			// checkboxes and radio buttons
@@ -174,31 +176,61 @@
 			}
 
 			else {
+				if ( this.isMultipleSelect ) {
+					this.updateViewModel = function ( event ) {
+						var value, selectedOptions, i, previousValue, changed;
+
+						window.attr = self;
+						previousValue = self.value || [];
+
+						value = [];
+						selectedOptions = node.querySelectorAll( 'option:checked' );
+						len = selectedOptions.length;
+
+						for ( i=0; i<len; i+=1 ) {
+							value[ value.length ] = selectedOptions[i].value;
+						}
+
+						// has the selection changed?
+						changed = ( len !== previousValue.length );
+						i = value.length;
+						while ( i-- ) {
+							if ( value[i] !== previousValue[i] ) {
+								changed = true;
+							}
+						}
+
+						if ( changed = true ) {
+							self.value = value;
+							self.root.set( self.keypath, value );
+						}
+					};
+				}
+
 				// Otherwise we've probably got a situation like this:
 				//
 				//     <input value='{{name}}'>
 				//
 				// in which case we just want to set `name` whenever the user enters text.
 				// The same applies to selects and textareas 
-				this.updateViewModel = function () {
-					var value;
+				else {
+					this.updateViewModel = function () {
+						var value;
 
-					value = node.value;
+						value = node.value;
 
-					// special cases
-					if ( value === '0' ) {
-						value = 0;
-					}
+						// special cases
+						if ( value === '0' ) {
+							value = 0;
+						}
 
-					else if ( value !== '' ) {
-						value = +value || value;
-					}
+						else if ( value !== '' ) {
+							value = +value || value;
+						}
 
-					// Note: we're counting on `this.root.set` recognising that `value` is
-					// already what it wants it to be, and short circuiting the process.
-					// Rather than triggering an infinite loop...
-					self.root.set( self.keypath, value );
-				};
+						self.root.set( self.keypath, value );
+					};
+				}
 			}
 			
 
@@ -206,17 +238,23 @@
 			if ( this.updateViewModel ) {
 				this.twoway = true;
 
-				this.boundEvents = [ 'change', 'click', 'blur' ]; // TODO click only in IE?
+				this.boundEvents = [ 'change' ];
 
 				if ( !lazy ) {
-					this.boundEvents[3] = 'input';
+					this.boundEvents.push( 'input' );
 
 					// this is a hack to see if we're in IE - if so, we probably need to add
 					// a keyup listener as well, since in IE8 the input event doesn't fire,
 					// and in IE9 it doesn't fire when text is deleted
 					if ( node.attachEvent ) {
-						this.boundEvents[4] = 'keyup';
+						this.boundEvents.push( 'keyup' );
 					}
+				}
+
+				// Another IE fix, this time with checkboxes that don't fire change events
+				// until they blur
+				if ( node.attachEvent && node.type === 'checkbox' ) {
+					this.boundEvents.push( 'click' );
 				}
 
 				i = this.boundEvents.length;
@@ -273,10 +311,32 @@
 		},
 
 		update: function () {
-			var value, lowerCaseName;
+			var value, lowerCaseName, options, i;
 
 			if ( !this.ready ) {
 				return this; // avoid items bubbling to the surface when we're still initialising
+			}
+
+			// special case - <select multiple>
+			if ( this.isMultipleSelect ) {
+				value = this.fragment.getValue();
+
+				if ( typeof value === 'string' ) {
+					value = [ value ];
+				}
+				
+				if ( isArray( value ) ) {
+					options = this.parentNode.querySelectorAll( 'option' );
+					i = options.length;
+
+					while ( i-- ) {
+						options[i].selected = ( value.indexOf( options[i].value ) !== -1 );
+					}
+				}
+
+				this.value = value;
+
+				return this;
 			}
 
 			if ( this.twoway ) {
@@ -300,11 +360,6 @@
 					}
 
 					return this; 
-				}
-
-				// don't programmatically update focused element
-				if ( doc.activeElement === this.parentNode ) {
-					return this;
 				}
 			}
 
