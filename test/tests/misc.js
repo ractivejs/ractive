@@ -11,9 +11,21 @@
 
 	QUnit.config.reorder = false;
 
-	var fixture, tests, i, len, runTest;
+	var fixture, tests, i, len, runTest, compareHTML, testDiv;
 
 	fixture = document.getElementById( 'qunit-fixture' );
+	testDiv = document.createElement( 'div' );
+
+	// necessary because IE is a goddamned nuisance
+	compareHTML = function ( actual, expected ) {
+		testDiv.innerHTML = actual;
+		actual = testDiv.innerHTML;
+
+		testDiv.innerHTML = expected;
+		expected = testDiv.innerHTML;
+
+		return actual === expected;
+	};
 
 	module( 'Miscellaneous' );
 
@@ -31,7 +43,7 @@
 			data: { bar: 2 }
 		});
 
-		t.equal( fixture.innerHTML, '1 2' );
+		t.ok( compareHTML( fixture.innerHTML, '1 2' ) );
 		t.deepEqual( instance.get(), { foo: 1, bar: 2 });
 	});
 
@@ -57,7 +69,7 @@
 			partials: { baz: 'bazPartial' }
 		});
 
-		t.equal( fixture.innerHTML, '<div>fooPartialbarPartialbazPartial</div><div>123</div>' );
+		t.ok( compareHTML( fixture.innerHTML, '<div>fooPartialbarPartialbazPartial</div><div>123</div>' ) );
 		t.ok( wiggled );
 		t.ok( shimmied );
 	});
@@ -71,7 +83,7 @@
 			data: { a: 1, b: 2 }
 		});
 		
-		t.equal( fixture.innerHTML, '3 3 3' );
+		t.ok( compareHTML( fixture.innerHTML, '3 3 3' ) );
 
 		t.equal( ractive._deps.length, 1 );
 		t.equal( ractive._deps[0].a.length, 1 );
@@ -111,7 +123,7 @@
 			data: { items: [ 'a', 'b', 'c' ] }
 		});
 
-		t.equal( ractive.renderHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' );
+		t.ok( compareHTML( ractive.renderHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' ) );
 	});
 
 	test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', function ( t ) {
@@ -122,7 +134,7 @@
 			template: '<select id="select" value="{{selected}}">{{#options}}<option value="{{.}}">{{.}}</option>{{/options}}</select>'
 		});
 		
-		t.equal( fixture.innerHTML, '<select id="select"></select>' );
+		t.ok( compareHTML( fixture.innerHTML, '<select id="select"></select>' ) );
 
 		ractive.set({
 			selected: 'c',
@@ -146,7 +158,7 @@
 			tripleDelimiters: [ '[[[', ']]]' ]
 		});
 
-		t.equal( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
+		t.ok( compareHTML( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' ) );
 	});
 
 	/*test( 'Using alternative delimiters in template', function ( t ) {

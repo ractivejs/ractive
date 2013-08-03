@@ -11,10 +11,10 @@ stripStandalones = function ( tokens ) {
 
 		// if we're at the end of a [text][mustache][text] sequence...
 		if ( current.type === TEXT && ( backOne.type === MUSTACHE ) && backTwo.type === TEXT ) {
-			
+
 			// ... and the mustache is a standalone (i.e. line breaks either side)...
 			if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
-			
+
 				// ... then we want to remove the whitespace after the first line break
 				// if the mustache wasn't a triple or interpolator or partial
 				if ( backOne.mustacheType !== INTERPOLATOR && backOne.mustacheType !== TRIPLE ) {
