@@ -74,7 +74,7 @@
     "grunt-contrib-watch": "~0.4.3"
   },
   "testling": {
-    "html": [ "test/parse.html", "test/render.html", "test/mustache.html", "test/misc.html" ],
+    "html": "test/*.html",
     "browsers": [
       "iexplore/6.0",
       "iexplore/7.0",
