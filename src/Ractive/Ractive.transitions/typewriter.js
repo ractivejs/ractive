@@ -7,7 +7,11 @@
 	}
 
 	typewriteNode = function ( node, complete, interval ) {
-		var children, next, hideData;
+		var children, next, hide;
+
+		if ( node.nodeType === 1 ) {
+			node.style.display = node._display;
+		}
 
 		if ( node.nodeType === 3 ) {
 			typewriteTextNode( node, complete, interval );
@@ -18,6 +22,10 @@
 
 		next = function () {
 			if ( !children.length ) {
+				if ( node.nodeType === 1 ) {
+					node.setAttribute( 'style', node._style || '' );
+				}
+
 				complete();
 				return;
 			}
@@ -67,7 +75,7 @@
 	};
 
 	typewriter = function ( node, complete, params, info, isIntro ) {
-		var interval, style, computedStyle, hideData;
+		var interval, style, computedStyle, hide;
 
 		params = parseTransitionParams( params );
 
@@ -85,7 +93,7 @@
 			computedHeight = computedStyle.height;
 			computedVisibility = computedStyle.visibility;
 
-			hideData( node );
+			hide( node );
 
 			setTimeout( function () {
 				node.style.width = computedWidth;
@@ -99,8 +107,15 @@
 			}, params.delay || 0 );
 		});
 
-		hideData = function ( node ) {
+		hide = function ( node ) {
 			var children, i;
+
+			if ( node.nodeType === 1 ) {
+				node._style = node.getAttribute( 'style' );
+				node._display = window.getComputedStyle( node ).display;
+
+				node.style.display = 'none';
+			}
 
 			if ( node.nodeType === 3 ) {
 				node._hiddenData = '' + node.data;
@@ -112,7 +127,7 @@
 			children = Array.prototype.slice.call( node.childNodes );
 			i = children.length;
 			while ( i-- ) {
-				hideData( children[i] );
+				hide( children[i] );
 			}
 		};
 	};
