@@ -210,6 +210,10 @@
 			}
 		});
 
+		if ( child.beforeInit ) {
+			child.beforeInit.call( child, options );
+		}
+
 		Ractive.call( child, options );
 
 		if ( child.init ) {
