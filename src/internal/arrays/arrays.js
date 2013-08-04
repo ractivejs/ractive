@@ -123,9 +123,14 @@
 		processKeypath = function ( root, keypath ) {
 			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
 
-			// We don't do root.set(), because we don't want to update DOM sections
-			// using the normal method - we want to do a smart update whereby elements
-			// are removed from the right place. But we do need to clear the cache
+			// If this is a sort or reverse, we just do root.set()...
+			if ( methodName === 'sort' || methodName === 'reverse' ) {
+				root.set( keypath, array );
+				return;
+			}
+
+			// otherwise we do a smart update whereby elements are added/removed
+			// in the right place. But we do need to clear the cache
 			clearCache( root, keypath );
 
 			// find dependants. If any are DOM sections, we do a smart update
