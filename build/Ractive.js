@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.3 - 2013-07-31
+/*! Ractive - v0.3.3 - 2013-08-04
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -1173,10 +1173,10 @@ stripStandalones = function ( tokens ) {
 
 		// if we're at the end of a [text][mustache][text] sequence...
 		if ( current.type === TEXT && ( backOne.type === MUSTACHE ) && backTwo.type === TEXT ) {
-			
+
 			// ... and the mustache is a standalone (i.e. line breaks either side)...
 			if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
-			
+
 				// ... then we want to remove the whitespace after the first line break
 				// if the mustache wasn't a triple or interpolator or partial
 				if ( backOne.mustacheType !== INTERPOLATOR && backOne.mustacheType !== TRIPLE ) {
@@ -1630,6 +1630,8 @@ render = function ( ractive, options ) {
 		owner: ractive, // saves doing `if ( ractive.parent ) { /*...*/ }` later on
 		parentNode: el
 	});
+
+	processDeferredUpdates( ractive );
 
 	if ( el ) {
 		el.appendChild( ractive.fragment.docFrag );
@@ -2400,6 +2402,10 @@ eventDefinitions.tap = function ( node, fire ) {
 	mousedown = function ( event ) {
 		var currentTarget, x, y, up, move, cancel;
 
+		if ( event.which != 1) {
+			return;
+		}
+
 		x = event.clientX;
 		y = event.clientY;
 		currentTarget = this;
@@ -2501,6 +2507,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		}
 	};
 };
+
 (function () {
 
 	var fillGaps,
@@ -2712,6 +2719,10 @@ eventDefinitions.tap = function ( node, fire ) {
 				options[ property ] = Child[ property ];
 			}
 		});
+
+		if ( child.beforeInit ) {
+			child.beforeInit.call( child, options );
+		}
 
 		Ractive.call( child, options );
 
@@ -3243,7 +3254,11 @@ var parseTransitionParams = function ( params ) {
 	}
 
 	typewriteNode = function ( node, complete, interval ) {
-		var children, next, hideData;
+		var children, next, hide;
+
+		if ( node.nodeType === 1 ) {
+			node.style.display = node._display;
+		}
 
 		if ( node.nodeType === 3 ) {
 			typewriteTextNode( node, complete, interval );
@@ -3254,6 +3269,10 @@ var parseTransitionParams = function ( params ) {
 
 		next = function () {
 			if ( !children.length ) {
+				if ( node.nodeType === 1 ) {
+					node.setAttribute( 'style', node._style || '' );
+				}
+
 				complete();
 				return;
 			}
@@ -3303,7 +3322,7 @@ var parseTransitionParams = function ( params ) {
 	};
 
 	typewriter = function ( node, complete, params, info, isIntro ) {
-		var interval, style, computedStyle, hideData;
+		var interval, style, computedStyle, hide;
 
 		params = parseTransitionParams( params );
 
@@ -3321,7 +3340,7 @@ var parseTransitionParams = function ( params ) {
 			computedHeight = computedStyle.height;
 			computedVisibility = computedStyle.visibility;
 
-			hideData( node );
+			hide( node );
 
 			setTimeout( function () {
 				node.style.width = computedWidth;
@@ -3335,8 +3354,15 @@ var parseTransitionParams = function ( params ) {
 			}, params.delay || 0 );
 		});
 
-		hideData = function ( node ) {
+		hide = function ( node ) {
 			var children, i;
+
+			if ( node.nodeType === 1 ) {
+				node._style = node.getAttribute( 'style' );
+				node._display = window.getComputedStyle( node ).display;
+
+				node.style.display = 'none';
+			}
 
 			if ( node.nodeType === 3 ) {
 				node._hiddenData = '' + node.data;
@@ -3348,7 +3374,7 @@ var parseTransitionParams = function ( params ) {
 			children = Array.prototype.slice.call( node.childNodes );
 			i = children.length;
 			while ( i-- ) {
-				hideData( children[i] );
+				hide( children[i] );
 			}
 		};
 	};
@@ -3682,9 +3708,14 @@ animationCollection = {
 		processKeypath = function ( root, keypath ) {
 			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
 
-			// We don't do root.set(), because we don't want to update DOM sections
-			// using the normal method - we want to do a smart update whereby elements
-			// are removed from the right place. But we do need to clear the cache
+			// If this is a sort or reverse, we just do root.set()...
+			if ( methodName === 'sort' || methodName === 'reverse' ) {
+				root.set( keypath, array );
+				return;
+			}
+
+			// otherwise we do a smart update whereby elements are added/removed
+			// in the right place. But we do need to clear the cache
 			clearCache( root, keypath );
 
 			// find dependants. If any are DOM sections, we do a smart update
@@ -3970,6 +4001,8 @@ animationCollection = {
 						break;
 					}
 				}
+
+				this.isMultipleSelect = node.multiple;
 			}
 
 			// checkboxes and radio buttons
@@ -4010,31 +4043,61 @@ animationCollection = {
 			}
 
 			else {
+				if ( this.isMultipleSelect ) {
+					this.updateViewModel = function ( event ) {
+						var value, selectedOptions, i, previousValue, changed;
+
+						window.attr = self;
+						previousValue = self.value || [];
+
+						value = [];
+						selectedOptions = node.querySelectorAll( 'option:checked' );
+						len = selectedOptions.length;
+
+						for ( i=0; i<len; i+=1 ) {
+							value[ value.length ] = selectedOptions[i].value;
+						}
+
+						// has the selection changed?
+						changed = ( len !== previousValue.length );
+						i = value.length;
+						while ( i-- ) {
+							if ( value[i] !== previousValue[i] ) {
+								changed = true;
+							}
+						}
+
+						if ( changed = true ) {
+							self.value = value;
+							self.root.set( self.keypath, value );
+						}
+					};
+				}
+
 				// Otherwise we've probably got a situation like this:
 				//
 				//     <input value='{{name}}'>
 				//
 				// in which case we just want to set `name` whenever the user enters text.
 				// The same applies to selects and textareas 
-				this.updateViewModel = function () {
-					var value;
+				else {
+					this.updateViewModel = function () {
+						var value;
 
-					value = node.value;
+						value = node.value;
 
-					// special cases
-					if ( value === '0' ) {
-						value = 0;
-					}
+						// special cases
+						if ( value === '0' ) {
+							value = 0;
+						}
 
-					else if ( value !== '' ) {
-						value = +value || value;
-					}
+						else if ( value !== '' ) {
+							value = +value || value;
+						}
 
-					// Note: we're counting on `this.root.set` recognising that `value` is
-					// already what it wants it to be, and short circuiting the process.
-					// Rather than triggering an infinite loop...
-					self.root.set( self.keypath, value );
-				};
+						self.root.set( self.keypath, value );
+					};
+				}
 			}
 			
 
@@ -4042,17 +4105,23 @@ animationCollection = {
 			if ( this.updateViewModel ) {
 				this.twoway = true;
 
-				this.boundEvents = [ 'change', 'click', 'blur' ]; // TODO click only in IE?
+				this.boundEvents = [ 'change' ];
 
 				if ( !lazy ) {
-					this.boundEvents[3] = 'input';
+					this.boundEvents.push( 'input' );
 
 					// this is a hack to see if we're in IE - if so, we probably need to add
 					// a keyup listener as well, since in IE8 the input event doesn't fire,
 					// and in IE9 it doesn't fire when text is deleted
 					if ( node.attachEvent ) {
-						this.boundEvents[4] = 'keyup';
+						this.boundEvents.push( 'keyup' );
 					}
+				}
+
+				// Another IE fix, this time with checkboxes that don't fire change events
+				// until they blur
+				if ( node.attachEvent && node.type === 'checkbox' ) {
+					this.boundEvents.push( 'click' );
 				}
 
 				i = this.boundEvents.length;
@@ -4109,10 +4178,32 @@ animationCollection = {
 		},
 
 		update: function () {
-			var value, lowerCaseName;
+			var value, lowerCaseName, options, i;
 
 			if ( !this.ready ) {
 				return this; // avoid items bubbling to the surface when we're still initialising
+			}
+
+			// special case - <select multiple>
+			if ( this.isMultipleSelect ) {
+				value = this.fragment.getValue();
+
+				if ( typeof value === 'string' ) {
+					value = [ value ];
+				}
+				
+				if ( isArray( value ) ) {
+					options = this.parentNode.querySelectorAll( 'option' );
+					i = options.length;
+
+					while ( i-- ) {
+						options[i].selected = ( value.indexOf( options[i].value ) !== -1 );
+					}
+				}
+
+				this.value = value;
+
+				return this;
 			}
 
 			if ( this.twoway ) {
@@ -4136,11 +4227,6 @@ animationCollection = {
 					}
 
 					return this; 
-				}
-
-				// don't programmatically update focused element
-				if ( doc.activeElement === this.parentNode ) {
-					return this;
 				}
 			}
 
@@ -6138,20 +6224,20 @@ splitKeypath =  function ( keypath ) {
 
 				// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
 				// element is to use with innerHTML, and SVG doesn't support that method.
-				// Note: table elements are excluded from this, because IE (of course) fucks up when you use
-				// innerHTML with tables
+				// Note: table elements and select children are excluded from this, because IE (of course)
+				// fucks up when you use innerHTML with them
 				if ( allElementNames.indexOf( this.tag.toLowerCase() ) === -1 ) {
+					return ( this.str = false );
+				}
+
+				// do we have proxies or transitions? if so we can't use innerHTML
+				if ( this.proxies || this.intro || this.outro ) {
 					return ( this.str = false );
 				}
 
 				// see if children can be stringified (i.e. don't contain mustaches)
 				fragStr = stringify( this.items );
 				if ( fragStr === false ) {
-					return ( this.str = false );
-				}
-
-				// do we have proxies or transitions? if so we can't use innerHTML
-				if ( this.proxies || this.intro || this.outro ) {
 					return ( this.str = false );
 				}
 
@@ -6225,7 +6311,7 @@ splitKeypath =  function ( keypath ) {
 
 
 		voidElementNames = 'area base br col command embed hr img input keygen link meta param source track wbr'.split( ' ' );
-		allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol optgroup option p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
+		allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
 		closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
 
 		svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split( ' ' );
