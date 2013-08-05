@@ -76,12 +76,9 @@
   "testling": {
     "html": "test/index.html",
     "browsers": [
-      "iexplore/6.0",
-      "iexplore/7.0",
       "iexplore/8.0",
       "iexplore/9.0",
       "iexplore/10.0",
-      "chrome/4.0",
       "chrome/10.0",
       "chrome/15.0",
       "chrome/23.0",
