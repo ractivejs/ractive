@@ -373,21 +373,19 @@
 		var i, aChildren, bChildren;
 
 		if ( a.textContent !== b.textContent ) {
-			console.error( 'mismatched text content' );
+			return false;
 		}
 
 		aChildren = ( a.children ? a.children : getElements( a.childNodes ) );
 		bChildren = ( b.children ? b.children : getElements( b.childNodes ) );
 
 		if ( aChildren.length !== bChildren.length ) {
-			console.error( 'mismatched length' );
 			return false;
 		}
 
 		i = aChildren.length;
 		while ( i-- ) {
 			if ( !compareNode( aChildren[i], bChildren[i] ) ) {
-				console.error( 'mismatched child' );
 				return false;
 			}
 		}
@@ -399,12 +397,10 @@
 		var i, attrName;
 
 		if ( a.nodeType !== b.nodeType ) {
-			console.error( 'mismatched nodeType' );
 			return false;
 		}
 
 		if ( a.nodeType === 3 ) {
-			console.error( 'mismatched text content' );
 			if ( a.data !== b.data ) {
 				return false;
 			}
@@ -413,13 +409,11 @@
 		}
 
 		if ( a.tagName !== b.tagName ) {
-			console.error( 'mismatched tagName' );
 			return false;
 		}
 
 		// compare attributes
 		if ( a.attributes.length !== b.attributes.length ) {
-			console.error( 'mismatched attributes.length' );
 			return false;
 		}
 
@@ -428,7 +422,6 @@
 			attrName = a.attributes[i].name;
 
 			if ( !b.hasAttribute( attrName ) || b.getAttribute( attrName ) !== a.getAttribute( attrName ) ) {
-				console.error( 'mismatched attribute' );
 				return false;
 			}
 		}
