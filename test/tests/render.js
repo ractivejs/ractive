@@ -408,7 +408,7 @@
 			return true;
 		}
 
-		if ( a.tagName !== b.tagName ) {
+		if ( a.tagName.toLowerCase() !== b.tagName.toLowerCase() ) {
 			return false;
 		}
 
