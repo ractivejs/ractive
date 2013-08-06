@@ -31,12 +31,12 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
+			node.removeEventListener( 'click', up, false );
 			doc.removeEventListener( 'mousemove', move, false );
-			doc.removeEventListener( 'click', up, false );
 		};
 
+		node.addEventListener( 'click', up, false );
 		doc.addEventListener( 'mousemove', move, false );
-		doc.addEventListener( 'click', up, false );
 
 		setTimeout( cancel, timeThreshold );
 	};
@@ -90,13 +90,13 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
+			node.removeEventListener( 'touchend', up, false );
 			window.removeEventListener( 'touchmove', move, false );
-			window.removeEventListener( 'touchend', up, false );
 			window.removeEventListener( 'touchcancel', cancel, false );
 		};
 
+		node.addEventListener( 'touchend', up, false );
 		window.addEventListener( 'touchmove', move, false );
-		window.addEventListener( 'touchend', up, false );
 		window.addEventListener( 'touchcancel', cancel, false );
 
 		setTimeout( cancel, timeThreshold );
