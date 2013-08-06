@@ -65,3 +65,8 @@ Changelog
 	* IE8 support!
 * 0.3.3
 	* Maintenance and bugfixes
+* 0.3.4
+    * `ractive.find()` and `ractive.findAll()` convenience methods (equivalent to `ractive.el.querySelector()` and `ractive.el.querySelectorAll()`)
+    * Subclasses created with `Ractive.extend()` can now have a `beforeInit` method that will be called before rendering
+    * Expressions no longer need to be wrapped in parentheses. Section closing mustaches for expression sections can have any content
+    * Various minor bugfixes and improvements
