@@ -140,13 +140,23 @@
 
 	Fragment.prototype = {
 		toJson: function ( noStringify ) {
-			var json = jsonify( this.items, noStringify );
+			var json;
+
+			if ( this[ 'json_' + noStringify ] ) {
+				return this[ 'json_' + noStringify ];
+			}
+
+			json = this[ 'json_' + noStringify ] = jsonify( this.items, noStringify );
 			return json;
 		},
 
 		toString: function () {
-			var str = stringify( this.items );
-			return str;
+			if ( this.str !== undefined ) {
+				return this.str;
+			}
+
+			this.str = stringify( this.items );
+			return this.str;
 		}
 	};
 
@@ -524,6 +534,10 @@
 			toJson: function ( noStringify ) {
 				var json, name, value, str, itemStr, proxy, match, i, len;
 
+				if ( this[ 'json_' + noStringify ] ) {
+					return this[ 'json_' + noStringify ];
+				}
+
 				json = {
 					t: ELEMENT,
 					e: this.tag
@@ -611,7 +625,7 @@
 					}
 				}
 
-				this.json = json;
+				this[ 'json_' + noStringify ] = json;
 				return json;
 			},
 
@@ -816,10 +830,16 @@
 
 		Expression.prototype = {
 			toJson: function () {
-				return {
+				if ( this.json ) {
+					return this.json;
+				}
+				
+				this.json = {
 					r: this.refs,
 					s: this.str
 				};
+
+				return this.json;
 			}
 		};
 
