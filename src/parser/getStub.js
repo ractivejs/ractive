@@ -269,7 +269,7 @@
 
 			while ( next ) {
 				if ( next.mustacheType === CLOSING ) {
-					if ( ( next.ref === this.ref ) || ( next.expr && this.expr ) ) {
+					if ( ( next.ref.trim() === this.ref ) || this.expr ) {
 						parser.pos += 1;
 						break;
 					}

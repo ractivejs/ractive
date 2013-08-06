@@ -4,8 +4,7 @@
 	getRegexMatcher,
 	allowWhitespace,
 
-	getMustache,
-	getTriple,
+	getMustacheOrTriple,
 	getTag,
 	getText,
 	getExpression,
@@ -30,8 +29,7 @@
 
 
 	getToken = function ( tokenizer ) {
-		var token = getMustache( tokenizer ) ||
-		        getTriple( tokenizer ) ||
+		var token = getMustacheOrTriple( tokenizer ) ||
 		        getTag( tokenizer ) ||
 		        getText( tokenizer );
 
@@ -265,10 +263,24 @@
 
 	// mustache / triple
 	(function () {
-		var getMustacheContent,
+		var getMustache,
+			getTriple,
+			getMustacheContent,
 			getMustacheType,
 			getIndexRef,
 			mustacheTypes;
+
+		getMustacheOrTriple = function ( tokenizer ) {
+			// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
+			// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
+			// we will get a false positive if the mustache delimiter is a substring of the
+			// triple delimiter, as in the default case
+			if ( tokenizer.tripleDelimiters[0].length > tokenizer.delimiters[0].length ) {
+				return getTriple( tokenizer ) || getMustache( tokenizer );
+			}
+
+			return getMustache( tokenizer ) || getTriple( tokenizer );
+		};
 
 		getMustache = function ( tokenizer ) {
 			var start = tokenizer.pos, content;
@@ -362,12 +374,13 @@
 				type = getMustacheType( tokenizer );
 				mustache.mustacheType = type || INTERPOLATOR; // default
 
-				// if it's a comment, allow any contents except '}}'
-				if ( type === COMMENT ) {
+				// if it's a comment or a section closer, allow any contents except '}}'
+				if ( type === COMMENT || type === CLOSING ) {
 					remaining = tokenizer.remaining();
 					index = remaining.indexOf( tokenizer.delimiters[1] );
 
 					if ( index !== -1 ) {
+						mustache.ref = remaining.substr( 0, index );
 						tokenizer.pos += index;
 						return mustache;
 					}
@@ -377,30 +390,17 @@
 			// allow whitespace
 			allowWhitespace( tokenizer );
 
-			// is this an expression?
-			if ( getStringMatch( tokenizer, '(' ) ) {
-				
-				// looks like it...
-				allowWhitespace( tokenizer );
+			// get expression
+			expr = getExpression( tokenizer );
 
-				expr = getExpression( tokenizer );
-
-				allowWhitespace( tokenizer );
-
-				if ( !getStringMatch( tokenizer, ')' ) ) {
-					fail( tokenizer, '")"' );
-				}
-
-				mustache.expression = expr;
+			while ( expr.t === BRACKETED && expr.x ) {
+				expr = expr.x;
 			}
 
-			else {
-				// mustache reference
-				mustache.ref = getMustacheRef( tokenizer );
-				if ( !mustache.ref ) {
-					tokenizer.pos = start;
-					return null;
-				}
+			if ( expr.t === REFERENCE ) {
+				mustache.ref = expr.n;
+			} else {
+				mustache.expression = expr;
 			}
 
 			// optional index reference
@@ -633,10 +633,10 @@
 
 			tokens = [];
 
-			token = getMustache( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
+			token = getMustacheOrTriple( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
 			while ( token !== null ) {
 				tokens[ tokens.length ] = token;
-				token = getMustache( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
+				token = getMustacheOrTriple( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
 			}
 
 			if ( !tokens.length ) {
@@ -680,10 +680,10 @@
 
 			tokens = [];
 
-			token = getMustache( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+			token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
 			while ( token !== null ) {
 				tokens[ tokens.length ] = token;
-				token = getMustache( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+				token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
 			}
 
 			if ( !getStringMatch( tokenizer, "'" ) ) {
@@ -728,10 +728,10 @@
 
 			tokens = [];
 
-			token = getMustache( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
+			token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
 			while ( token !== null ) {
 				tokens[ tokens.length ] = token;
-				token = getMustache( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
+				token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
 			}
 
 			if ( !getStringMatch( tokenizer, '"' ) ) {
