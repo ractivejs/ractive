@@ -328,7 +328,18 @@
 
 	// element
 	(function () {
-		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, filterAttrs, proxyPattern;
+		var voidElementNames,
+			allElementNames,
+			mapToLowerCase,
+			svgCamelCaseElements,
+			svgCamelCaseElementsMap,
+			svgCamelCaseAttributes,
+			svgCamelCaseAttributesMap,
+			closedByParentClose,
+			siblingsByTagName,
+			onPattern,
+			sanitize,
+			filterAttrs;
 
 		Element = function ( firstToken, parser, preserveWhitespace ) {
 			var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
@@ -733,20 +744,11 @@
 			th: [ 'td', 'th' ]
 		};
 
+		onPattern = /^on[a-zA-Z]/;
+
 		sanitize = function ( attr ) {
-			return attr.name.substr( 0, 2 ) !== 'on';
-		};
-
-		onlyAttrs = function ( attr ) {
-			return attr.name.substr( 0, 6 ) !== 'proxy-';
-		};
-
-		onlyProxies = function ( attr ) {
-			if ( attr.name.substr( 0, 6 ) === 'proxy-' ) {
-				attr.name = attr.name.substring( 6 );
-				return true;
-			}
-			return false;
+			var valid = !onPattern.test( attr.name );
+			return valid;
 		};
 
 		filterAttrs = function ( items ) {
@@ -781,6 +783,11 @@
 					proxies[ proxies.length ] = item;
 				}
 
+				else if ( item.name.substr( 0, 3 ) === 'on-' ) {
+					item.name = item.name.substring( 3 );
+					proxies[ proxies.length ] = item;
+				}
+
 				// Attribute?
 				else {
 					attrs[ attrs.length ] = item;
@@ -792,8 +799,6 @@
 
 			return filtered;
 		};
-
-		proxyPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)(?::(.+))?$/;
 	}());
 
 
