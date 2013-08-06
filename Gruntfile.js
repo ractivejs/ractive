@@ -25,7 +25,7 @@ module.exports = function(grunt) {
 			}
 		},
 		qunit: {
-			files: [ 'test/core.html', 'test/parse.html', 'test/render.html', 'test/misc.html' ]
+			files: [ 'test/index.html' ]
 		},
 		clean: {
 			files: [ 'build/**/*' ]
