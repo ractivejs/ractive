@@ -172,7 +172,7 @@
 			}
 		});
 
-		t.equal( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
+		t.ok( compareHTML( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' ) );
 	});
 
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
