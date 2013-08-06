@@ -175,7 +175,11 @@
 					template: "[ {{>include}} ]\n[ .{{value}}.  .|value|. ]\n",
 					desc: "Delimiters set in a partial should not affect the parent template.",
 					partials: {
-						include: ".{{value}}. {{= | | =}} .|value|."
+						// Note: the original test looked like this:
+						//     include: ".{{value}}. {{= | | =}} .|value|."
+						// This breaks in Ractive because the | is assumed to be part of the
+						// expression
+						include: ".{{value}}. {{= <% %> =}} .<%value%>."
 					},
 					oldIe: true
 				},
