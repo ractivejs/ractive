@@ -161,10 +161,10 @@
 		t.ok( compareHTML( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' ) );
 	});
 
-	/*test( 'Using alternative delimiters in template', function ( t ) {
+	test( 'Using alternative delimiters in template', function ( t ) {
 		var ractive = new Ractive({
 			el: fixture,
-			template: '{{=[[ ]]=}} {{{=<% %>=}}} [[ greeting ]], [[recipient]]! <% triple %>',
+			template: '{{=[[ ]]=}} {{{=[[[ ]]]=}}} [[ greeting ]], [[recipient]]! [[[ triple ]]]',
 			data: {
 				greeting: 'Hello',
 				recipient: 'world',
@@ -173,7 +173,7 @@
 		});
 
 		t.equal( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
-	});*/
+	});
 
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting

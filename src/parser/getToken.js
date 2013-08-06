@@ -331,14 +331,14 @@
 			content = getDelimiterChange( tokenizer );
 			if ( content ) {
 				// find closing delimiter or abort...
-				if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+				if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
 					tokenizer.pos = start;
 					return null;
 				}
 
 				// ...then make the switch
 				tokenizer.tripleDelimiters = content;
-				return { type: DELIMCHANGE };
+				return { type: MUSTACHE, mustacheType: DELIMCHANGE };
 			}
 
 			// allow whitespace between opening delimiter and reference

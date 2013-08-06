@@ -37,6 +37,6 @@ tokenize = function ( template, options ) {
 
 	stripStandalones( tokens );
 	stripCommentTokens( tokens );
-	
+
 	return tokens;
 };
