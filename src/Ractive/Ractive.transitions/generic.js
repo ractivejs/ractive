@@ -127,7 +127,7 @@
 					node.style[ transition + 'TimingFunction' ] = easing;
 
 					transitionEndHandler = function ( event ) {
-						node.removeEventListener( transitionend, transitionEndHandler );
+						node.removeEventListener( transitionend, transitionEndHandler, false );
 
 						if ( isIntro ) {
 							node.setAttribute( 'style', originalStyle || '' );
@@ -136,7 +136,7 @@
 						complete();
 					};
 					
-					node.addEventListener( transitionend, transitionEndHandler );
+					node.addEventListener( transitionend, transitionEndHandler, false );
 
 					setStyle( node, properties, end, params );
 				};

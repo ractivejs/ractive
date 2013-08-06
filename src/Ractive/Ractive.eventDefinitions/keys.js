@@ -15,11 +15,11 @@
 						original: event
 					});
 				}
-			});
+			}, false );
 
 			return {
 				teardown: function () {
-					node.removeEventListener( keydownHandler );
+					node.removeEventListener( 'keydown', keydownHandler, false );
 				}
 			};
 		};

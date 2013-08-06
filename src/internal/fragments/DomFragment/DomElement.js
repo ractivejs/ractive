@@ -294,7 +294,7 @@ DomElement.prototype = {
 			h: handler
 		};
 
-		this.node.addEventListener( triggerEventName, handler );
+		this.node.addEventListener( triggerEventName, handler, false );
 	},
 
 	teardown: function ( detach ) {
@@ -312,7 +312,7 @@ DomElement.prototype = {
 
 		while ( self.eventListeners.length ) {
 			listener = self.eventListeners.pop();
-			self.node.removeEventListener( listener.n, listener.h );
+			self.node.removeEventListener( listener.n, listener.h, false );
 		}
 
 		while ( self.customEventListeners.length ) {

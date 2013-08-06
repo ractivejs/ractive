@@ -31,17 +31,17 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
-			doc.removeEventListener( 'mousemove', move );
-			doc.removeEventListener( 'click', up );
+			doc.removeEventListener( 'mousemove', move, false );
+			doc.removeEventListener( 'click', up, false );
 		};
 
-		doc.addEventListener( 'mousemove', move );
-		doc.addEventListener( 'click', up );
+		doc.addEventListener( 'mousemove', move, false );
+		doc.addEventListener( 'click', up, false );
 
 		setTimeout( cancel, timeThreshold );
 	};
 
-	node.addEventListener( 'mousedown', mousedown );
+	node.addEventListener( 'mousedown', mousedown, false );
 
 
 	touchstart = function ( event ) {
@@ -90,25 +90,25 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
-			window.removeEventListener( 'touchmove', move );
-			window.removeEventListener( 'touchend', up );
-			window.removeEventListener( 'touchcancel', cancel );
+			window.removeEventListener( 'touchmove', move, false );
+			window.removeEventListener( 'touchend', up, false );
+			window.removeEventListener( 'touchcancel', cancel, false );
 		};
 
-		window.addEventListener( 'touchmove', move );
-		window.addEventListener( 'touchend', up );
-		window.addEventListener( 'touchcancel', cancel );
+		window.addEventListener( 'touchmove', move, false );
+		window.addEventListener( 'touchend', up, false );
+		window.addEventListener( 'touchcancel', cancel, false );
 
 		setTimeout( cancel, timeThreshold );
 	};
 
-	node.addEventListener( 'touchstart', touchstart );
+	node.addEventListener( 'touchstart', touchstart, false );
 
 
 	return {
 		teardown: function () {
-			node.removeEventListener( 'mousedown', mousedown );
-			node.removeEventListener( 'touchstart', touchstart );
+			node.removeEventListener( 'mousedown', mousedown, false );
+			node.removeEventListener( 'touchstart', touchstart, false );
 		}
 	};
 };

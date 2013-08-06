@@ -17,13 +17,13 @@ eventDefinitions.hover = function ( node, fire ) {
 		});
 	};
 
-	node.addEventListener( 'mouseover', mouseoverHandler );
-	node.addEventListener( 'mouseout', mouseoutHandler );
+	node.addEventListener( 'mouseover', mouseoverHandler, false );
+	node.addEventListener( 'mouseout', mouseoutHandler, false );
 
 	return {
 		teardown: function () {
-			node.removeEventListener( 'mouseover', mouseoverHandler );
-			node.removeEventListener( 'mouseout', mouseoutHandler );
+			node.removeEventListener( 'mouseover', mouseoverHandler, false );
+			node.removeEventListener( 'mouseout', mouseoutHandler, false );
 		}
 	};
 };

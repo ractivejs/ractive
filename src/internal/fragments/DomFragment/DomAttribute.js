@@ -259,7 +259,7 @@
 
 				i = this.boundEvents.length;
 				while ( i-- ) {
-					node.addEventListener( this.boundEvents[i], this.updateViewModel );
+					node.addEventListener( this.boundEvents[i], this.updateViewModel, false );
 				}
 			}
 		},
@@ -284,7 +284,7 @@
 				i = this.boundEvents.length;
 
 				while ( i-- ) {
-					this.parentNode.removeEventListener( this.boundEvents[i], this.updateViewModel );
+					this.parentNode.removeEventListener( this.boundEvents[i], this.updateViewModel, false );
 				}
 			}
 
