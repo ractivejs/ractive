@@ -381,7 +381,7 @@
 
 					return {
 						name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
-						value: getFragmentStubFromTokens( attr.value )
+						value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
 					};
 				};
 
@@ -538,10 +538,17 @@
 					return this[ 'json_' + noStringify ];
 				}
 
-				json = {
-					t: ELEMENT,
-					e: this.tag
-				};
+				if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
+					json = {
+						t: COMPONENT,
+						e: this.tag.substr( 3 )
+					};
+				} else {
+					json = {
+						t: ELEMENT,
+						e: this.tag
+					};
+				}
 
 				if ( this.attributes && this.attributes.length ) {
 					json.a = {};
@@ -555,11 +562,11 @@
 						}
 
 						// empty attributes (e.g. autoplay, checked)
-						if( this.attributes[i].value === undefined ) {
+						if( this.attributes[i].value === null ) {
 							value = null;
+						} else {
+							value = jsonify( this.attributes[i].value.items, noStringify );	
 						}
-
-						value = jsonify( this.attributes[i].value.items, noStringify );
 
 						json.a[ name ] = value;
 					}

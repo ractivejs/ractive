@@ -102,6 +102,9 @@ Ractive = function ( options ) {
 	// Partials registry
 	this.partials = {};
 
+	// Components registry
+	this.components = options.components || {};
+
 	// Transition registry
 	this.transitions = options.transitions;
 
@@ -150,7 +153,7 @@ Ractive = function ( options ) {
 	// deal with compound template
 	if ( isObject( parsedTemplate ) ) {
 		this.partials = parsedTemplate.partials;
-		parsedTemplate = parsedTemplate.template;
+		parsedTemplate = parsedTemplate.main;
 	}
 
 	// If the template was an array with a single string member, that means

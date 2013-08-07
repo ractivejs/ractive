@@ -1,6 +1,6 @@
 initFragment = function ( fragment, options ) {
 
-	var numItems, i, itemOptions, parentFragment, parentRefs, ref;
+	var numItems, i, parentFragment, parentRefs, ref;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
 	fragment.owner = options.owner;
@@ -45,16 +45,13 @@ initFragment = function ( fragment, options ) {
 	// Time to create this fragment's child items;
 	fragment.items = [];
 
-	itemOptions = {
-		parentFragment: fragment
-	};
-
 	numItems = ( options.descriptor ? options.descriptor.length : 0 );
 	for ( i=0; i<numItems; i+=1 ) {
-		itemOptions.descriptor = options.descriptor[i];
-		itemOptions.index = i;
-
-		fragment.items[ fragment.items.length ] = fragment.createItem( itemOptions );
+		fragment.items[ fragment.items.length ] = fragment.createItem({
+			parentFragment: fragment,
+			descriptor: options.descriptor[i],
+			index: i
+		});
 	}
 
 };

@@ -530,7 +530,7 @@
 			return tag;
 		};
 
-		getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9]*/ );
+		getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9\-]*/ );
 
 		getAttributes = function ( tokenizer ) {
 			var start, attrs, attr;

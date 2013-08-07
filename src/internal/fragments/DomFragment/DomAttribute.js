@@ -1,6 +1,6 @@
 (function () {
 
-	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName, isAttributeSelfUpdating, isAttributeBindable;
+	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName, isAttributeBindable;
 
 	// the property name equivalents for element attributes, where they differ
 	// from the lowercased attribute name
@@ -65,7 +65,7 @@
 		determinePropertyName( this, options );
 		
 		// determine whether this attribute can be marked as self-updating
-		this.selfUpdating = isAttributeSelfUpdating( this );
+		this.selfUpdating = isStringFragmentSimple( this.fragment );
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		this.isBindable = isAttributeBindable( this );
@@ -495,34 +495,6 @@
 				attribute.useProperty = true;
 			}
 		}
-	};
-
-	isAttributeSelfUpdating = function ( attribute ) {
-		var i, item, containsInterpolator;
-
-		i = attribute.fragment.items.length;
-		while ( i-- ) {
-			item = attribute.fragment.items[i];
-			if ( item.type === TEXT ) {
-				continue;
-			}
-
-			// we can only have one interpolator and still be self-updating
-			if ( item.type === INTERPOLATOR ) {
-				if ( containsInterpolator ) {
-					return false;
-				} else {
-					containsInterpolator = true;
-					continue;
-				}
-			}
-
-			// anything that isn't text or an interpolator (i.e. a section)
-			// and we can't self-update
-			return false;
-		}
-
-		return true;
 	};
 
 	isAttributeBindable = function ( attribute ) {

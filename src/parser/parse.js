@@ -106,7 +106,7 @@
 		}
 
 		return {
-			template: parse( mainTemplate, options ),
+			main: parse( mainTemplate, options ),
 			partials: partials
 		};
 	};
