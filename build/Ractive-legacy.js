@@ -49,6 +49,8 @@ insertHtml,
 reassignFragments,
 executeTransition,
 getPartialDescriptor,
+getComponentConstructor,
+isStringFragmentSimple,
 makeTransitionManager,
 requestAnimationFrame,
 defineProperty,
@@ -68,6 +70,7 @@ DomFragment,
 DomElement,
 DomAttribute,
 DomPartial,
+DomComponent,
 DomInterpolator,
 DomTriple,
 DomSection,
@@ -136,6 +139,7 @@ MUSTACHE          = 11,
 TAG               = 12,
 ATTR_VALUE_TOKEN  = 13,
 EXPRESSION        = 14,
+COMPONENT         = 15,
 
 NUMBER_LITERAL    = 20,
 STRING_LITERAL    = 21,
@@ -479,8 +483,12 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 		transitionManager.push( owner.node );
 		transition.call( root, owner.node, function () {
 			transitionManager.pop( owner.node );
-		}, transitionParams, transitionManager.info, isIntro );
+		}, transitionParams, isIntro );
 	}
+};
+getComponentConstructor = function ( root, name ) {
+	// TODO... write this properly!
+	return root.components[ name ];
 };
 insertHtml = function ( html, docFrag ) {
 	var div, nodes = [];
@@ -1000,7 +1008,7 @@ insertHtml = function ( html, docFrag ) {
 }());
 initFragment = function ( fragment, options ) {
 
-	var numItems, i, itemOptions, parentFragment, parentRefs, ref;
+	var numItems, i, parentFragment, parentRefs, ref;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
 	fragment.owner = options.owner;
@@ -1045,18 +1053,42 @@ initFragment = function ( fragment, options ) {
 	// Time to create this fragment's child items;
 	fragment.items = [];
 
-	itemOptions = {
-		parentFragment: fragment
-	};
-
 	numItems = ( options.descriptor ? options.descriptor.length : 0 );
 	for ( i=0; i<numItems; i+=1 ) {
-		itemOptions.descriptor = options.descriptor[i];
-		itemOptions.index = i;
-
-		fragment.items[ fragment.items.length ] = fragment.createItem( itemOptions );
+		fragment.items[ fragment.items.length ] = fragment.createItem({
+			parentFragment: fragment,
+			descriptor: options.descriptor[i],
+			index: i
+		});
 	}
 
+};
+isStringFragmentSimple = function ( fragment ) {
+	var i, item, containsInterpolator;
+
+	i = fragment.items.length;
+	while ( i-- ) {
+		item = fragment.items[i];
+		if ( item.type === TEXT ) {
+			continue;
+		}
+
+		// we can only have one interpolator and still be self-updating
+		if ( item.type === INTERPOLATOR ) {
+			if ( containsInterpolator ) {
+				return false;
+			} else {
+				containsInterpolator = true;
+				continue;
+			}
+		}
+
+		// anything that isn't text or an interpolator (i.e. a section)
+		// and we can't self-update
+		return false;
+	}
+
+	return true;
 };
 initMustache = function ( mustache, options ) {
 
@@ -1462,8 +1494,10 @@ stripStandalones = function ( tokens ) {
 		// TODO what about upstream/downstream keypaths?
 		i = animationCollection.animations.length;
 		while ( i-- ) {
-			if ( animationCollection.animations[ i ].keypath === keypath ) {
-				animationCollection.animations[ i ].stop();
+			animation = animationCollection.animations[i];
+
+			if ( animation.root === root && animation.keypath === keypath ) {
+				animation.stop();
 			}
 		}
 
@@ -2719,7 +2753,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		return Child;
 	};
 
-	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions' ];
+	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions', 'components' ];
 	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize', 'noIntro', 'transitionsEnabled' ];
 	blacklist = extendable.concat( inheritable );
 
@@ -3130,6 +3164,9 @@ Ractive = function ( options ) {
 	// Partials registry
 	this.partials = {};
 
+	// Components registry
+	this.components = options.components || {};
+
 	// Transition registry
 	this.transitions = options.transitions;
 
@@ -3178,7 +3215,7 @@ Ractive = function ( options ) {
 	// deal with compound template
 	if ( isObject( parsedTemplate ) ) {
 		this.partials = parsedTemplate.partials;
-		parsedTemplate = parsedTemplate.template;
+		parsedTemplate = parsedTemplate.main;
 	}
 
 	// If the template was an array with a single string member, that means
@@ -3286,14 +3323,14 @@ Ractive = function ( options ) {
 				properties = [ properties ];
 			}
 
-			return function ( node, complete, params, info, isIntro ) {
+			return function ( node, complete, params, isIntro ) {
 				var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
 
 				params = parseTransitionParams( params );
 				
 				duration = params.duration || defaults.duration;
 				easing = hyphenate( params.easing || defaults.easing );
-				delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
+				delay = params.delay || 0;
 
 				start = ( isIntro ? outside : inside );
 				end = ( isIntro ? inside : outside );
@@ -3483,7 +3520,7 @@ var parseTransitionParams = function ( params ) {
 		}, interval );
 	};
 
-	typewriter = function ( node, complete, params, info, isIntro ) {
+	typewriter = function ( node, complete, params, isIntro ) {
 		var interval, style, computedStyle, hide;
 
 		params = parseTransitionParams( params );
@@ -4029,7 +4066,7 @@ animationCollection = {
 }());
 (function () {
 
-	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName, isAttributeSelfUpdating, isAttributeBindable;
+	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName, isAttributeBindable;
 
 	// the property name equivalents for element attributes, where they differ
 	// from the lowercased attribute name
@@ -4094,7 +4131,7 @@ animationCollection = {
 		determinePropertyName( this, options );
 		
 		// determine whether this attribute can be marked as self-updating
-		this.selfUpdating = isAttributeSelfUpdating( this );
+		this.selfUpdating = isStringFragmentSimple( this.fragment );
 
 		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
 		this.isBindable = isAttributeBindable( this );
@@ -4526,34 +4563,6 @@ animationCollection = {
 		}
 	};
 
-	isAttributeSelfUpdating = function ( attribute ) {
-		var i, item, containsInterpolator;
-
-		i = attribute.fragment.items.length;
-		while ( i-- ) {
-			item = attribute.fragment.items[i];
-			if ( item.type === TEXT ) {
-				continue;
-			}
-
-			// we can only have one interpolator and still be self-updating
-			if ( item.type === INTERPOLATOR ) {
-				if ( containsInterpolator ) {
-					return false;
-				} else {
-					containsInterpolator = true;
-					continue;
-				}
-			}
-
-			// anything that isn't text or an interpolator (i.e. a section)
-			// and we can't self-update
-			return false;
-		}
-
-		return true;
-	};
-
 	isAttributeBindable = function ( attribute ) {
 		var tagName, propertyName;
 
@@ -4569,6 +4578,238 @@ animationCollection = {
 			( tagName === 'input' || tagName === 'textarea' || tagName === 'select' )
 		);
 	};
+
+}());
+(function () {
+
+	var ComponentParameter;
+
+	DomComponent = function ( options, docFrag ) {
+		var self = this,
+			parentFragment = this.parentFragment = options.parentFragment,
+			root,
+			Component,
+			twoway,
+			partials,
+			instance,
+			keypath,
+			data,
+			mappings,
+			i,
+			pair,
+			observeParent,
+			observeChild,
+			settingParent,
+			settingChild,
+			key,
+			initFalse,
+			processKeyValuePair,
+			eventName,
+			propagateEvent;
+
+		root = parentFragment.root;
+
+		this.type = COMPONENT;
+		this.name = options.descriptor.r;
+
+		Component = getComponentConstructor( parentFragment.root, options.descriptor.e );
+		twoway = ( Component.twoway !== false );
+
+		data = {};
+		mappings = [];
+
+		this.complexParameters = [];
+
+		processKeyValuePair = function ( key, value ) {
+			var fragment, parameter;
+
+			// if this is a static value, great
+			if ( typeof value === 'string' ) {
+				try {
+					data[ key ] = JSON.parse( value );
+				} catch ( err ) {
+					data[ key ] = value;
+				}
+				return;
+			}
+
+			// if null, we treat is as a boolean attribute (i.e. true)
+			if ( value === null ) {
+				data[ key ] = true;
+				return;
+			}
+
+			// if a regular interpolator, we bind to it
+			if ( value.length === 1 && value[0].t === INTERPOLATOR && value[0].r ) {
+				
+				// is it an index reference?
+				if ( parentFragment.indexRefs && parentFragment.indexRefs[ value[0].r ] !== undefined ) {
+					data[ key ] = parentFragment.indexRefs[ value[0].r ];
+					return;
+				}
+
+				keypath = resolveRef( root, value[0].r, parentFragment.contextStack ) || value[0].r;
+
+				data[ key ] = root.get( keypath );
+				mappings[ mappings.length ] = [ key, keypath ];
+				return;
+			}
+
+			parameter = new ComponentParameter( root, self, key, value, parentFragment.contextStack );
+			self.complexParameters[ self.complexParameters.length ] = parameter;
+
+			data[ key ] = parameter.value;
+		};
+
+		if ( options.descriptor.a ) {
+			for ( key in options.descriptor.a ) {
+				if ( options.descriptor.a.hasOwnProperty( key ) ) {
+					processKeyValuePair( key, options.descriptor.a[ key ] );
+				}
+			}
+		}
+
+		partials = {};
+		if ( options.descriptor.f ) {
+			partials.content = options.descriptor.f;
+		}
+
+		instance = this.instance = new Component({
+			append: true,
+			el: parentFragment.parentNode,
+			data: data,
+			partials: partials
+		});
+
+		self.observers = [];
+		initFalse = { init: false };
+
+		observeParent = function ( pair ) {
+			var observer = root.observe( pair[1], function ( value ) {
+				if ( !settingParent ) {
+					settingChild = true;
+					instance.set( pair[0], value );
+					settingChild = false;
+				}
+			}, initFalse );
+
+			self.observers[ self.observers.length ] = observer;
+		};
+
+		if ( twoway ) {
+			observeChild = function ( pair ) {
+				var observer = instance.observe( pair[0], function ( value ) {
+					if ( !settingChild ) {
+						settingParent = true;
+						root.set( pair[1], value );
+						settingParent = false;
+					}
+				}, initFalse );
+
+				self.observers[ self.observers.length ] = observer;
+			};
+		}
+		
+
+		i = mappings.length;
+		while ( i-- ) {
+			pair = mappings[i];
+
+			observeParent( pair );
+
+			if ( twoway ) {
+				observeChild( pair );
+			}
+		}
+
+
+		// proxy events
+		propagateEvent = function ( eventName, proxy ) {
+			instance.on( eventName, function () {
+				var args = Array.prototype.slice.call( arguments );
+				args.unshift( proxy );
+
+				root.fire.apply( root, args );
+			});
+		};
+
+		if ( options.descriptor.v ) {
+			for ( eventName in options.descriptor.v ) {
+				if ( options.descriptor.v.hasOwnProperty( eventName ) ) {
+					propagateEvent( eventName, options.descriptor.v[ eventName ] );
+				}
+			}
+		}
+	};
+
+	DomComponent.prototype = {
+		firstNode: function () {
+			return this.instance.fragment.firstNode();
+		},
+
+		findNextNode: function () {
+			return this.parentFragment.findNextNode( this );
+		},
+
+		teardown: function ( detach ) {
+			while ( this.complexParameters.length ) {
+				this.complexParameters.pop().teardown();
+			}
+
+			while ( this.observers.length ) {
+				this.observers.pop().cancel();
+			}
+			
+			this.instance.teardown();
+		},
+
+		toString: function () {
+			return this.instance.fragment.toString();
+		}
+	};
+
+
+	ComponentParameter = function ( root, component, key, value, contextStack ) {
+		
+		this.parentFragment = component.parentFragment;
+		this.component = component;
+		this.key = key;
+
+		this.fragment = new StringFragment({
+			descriptor:   value,
+			root:         root,
+			owner:        this,
+			contextStack: contextStack
+		});
+
+		this.selfUpdating = isStringFragmentSimple( this.fragment );
+		this.value = this.fragment.getValue();
+	};
+
+	ComponentParameter.prototype = {
+		bubble: function () {
+			// If there's a single item, we can update the component immediately...
+			if ( this.selfUpdating ) {
+				this.update();
+			}
+
+			// otherwise we want to register it as a deferred component, to be
+			// updated once all the information is in, to prevent unnecessary
+			// DOM manipulation
+			else if ( !this.deferred && this.ready ) {
+				this.root._defAttrs[ this.root._defAttrs.length ] = this;
+				this.deferred = true;
+			}
+		},
+
+		update: function () {
+			var value = this.fragment.getValue();
+
+			this.component.set( this.key, value );
+			this.value = value;
+		}
+	};
+
 
 }());
 // Element
@@ -4972,11 +5213,12 @@ DomFragment.prototype = {
 
 		switch ( options.descriptor.t ) {
 			case INTERPOLATOR: return new DomInterpolator( options, this.docFrag );
-			case SECTION: return new DomSection( options, this.docFrag );
-			case TRIPLE: return new DomTriple( options, this.docFrag );
+			case SECTION:      return new DomSection( options, this.docFrag );
+			case TRIPLE:       return new DomTriple( options, this.docFrag );
 
-			case ELEMENT: return new DomElement( options, this.docFrag );
-			case PARTIAL: return new DomPartial( options, this.docFrag );
+			case ELEMENT:      return new DomElement( options, this.docFrag );
+			case PARTIAL:      return new DomPartial( options, this.docFrag );
+			case COMPONENT:    return new DomComponent( options, this.docFrag );
 
 			default: throw new Error( 'WTF? not sure what happened here...' );
 		}
@@ -5685,10 +5927,8 @@ makeTransitionManager = function ( root, callback ) {
 
 	transitionManager = {
 		active: [],
-		info: { i: 0 },
 		push: function ( node ) {
 			transitionManager.active[ transitionManager.active.length ] = node;
-			transitionManager.info.i += 1;
 		},
 		pop: function ( node ) {
 			transitionManager.active.splice( transitionManager.active.indexOf( node ), 1 );
@@ -6154,7 +6394,7 @@ splitKeypath =  function ( keypath ) {
 
 					return {
 						name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
-						value: getFragmentStubFromTokens( attr.value )
+						value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
 					};
 				};
 
@@ -6311,10 +6551,17 @@ splitKeypath =  function ( keypath ) {
 					return this[ 'json_' + noStringify ];
 				}
 
-				json = {
-					t: ELEMENT,
-					e: this.tag
-				};
+				if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
+					json = {
+						t: COMPONENT,
+						e: this.tag.substr( 3 )
+					};
+				} else {
+					json = {
+						t: ELEMENT,
+						e: this.tag
+					};
+				}
 
 				if ( this.attributes && this.attributes.length ) {
 					json.a = {};
@@ -6328,11 +6575,11 @@ splitKeypath =  function ( keypath ) {
 						}
 
 						// empty attributes (e.g. autoplay, checked)
-						if( this.attributes[i].value === undefined ) {
+						if( this.attributes[i].value === null ) {
 							value = null;
+						} else {
+							value = jsonify( this.attributes[i].value.items, noStringify );	
 						}
-
-						value = jsonify( this.attributes[i].value.items, noStringify );
 
 						json.a[ name ] = value;
 					}
@@ -7255,7 +7502,7 @@ splitKeypath =  function ( keypath ) {
 			return tag;
 		};
 
-		getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9]*/ );
+		getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9\-]*/ );
 
 		getAttributes = function ( tokenizer ) {
 			var start, attrs, attr;
@@ -8296,7 +8543,7 @@ splitKeypath =  function ( keypath ) {
 		}
 
 		return {
-			template: parse( mainTemplate, options ),
+			main: parse( mainTemplate, options ),
 			partials: partials
 		};
 	};
