@@ -51,8 +51,10 @@
 		// TODO what about upstream/downstream keypaths?
 		i = animationCollection.animations.length;
 		while ( i-- ) {
-			if ( animationCollection.animations[ i ].keypath === keypath ) {
-				animationCollection.animations[ i ].stop();
+			animation = animationCollection.animations[i];
+
+			if ( animation.root === root && animation.keypath === keypath ) {
+				animation.stop();
 			}
 		}
 
