@@ -74,7 +74,7 @@
 		}, interval );
 	};
 
-	typewriter = function ( node, complete, params, info, isIntro ) {
+	typewriter = function ( node, complete, params, isIntro ) {
 		var interval, style, computedStyle, hide;
 
 		params = parseTransitionParams( params );

@@ -42,10 +42,8 @@ makeTransitionManager = function ( root, callback ) {
 
 	transitionManager = {
 		active: [],
-		info: { i: 0 },
 		push: function ( node ) {
 			transitionManager.active[ transitionManager.active.length ] = node;
-			transitionManager.info.i += 1;
 		},
 		pop: function ( node ) {
 			transitionManager.active.splice( transitionManager.active.indexOf( node ), 1 );

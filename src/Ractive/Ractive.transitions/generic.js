@@ -59,14 +59,14 @@
 				properties = [ properties ];
 			}
 
-			return function ( node, complete, params, info, isIntro ) {
+			return function ( node, complete, params, isIntro ) {
 				var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
 
 				params = parseTransitionParams( params );
 				
 				duration = params.duration || defaults.duration;
 				easing = hyphenate( params.easing || defaults.easing );
-				delay = ( params.delay || defaults.delay || 0 ) + ( ( params.stagger || defaults.stagger || 0 ) * info.i );
+				delay = params.delay || 0;
 
 				start = ( isIntro ? outside : inside );
 				end = ( isIntro ? inside : outside );
