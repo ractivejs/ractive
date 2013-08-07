@@ -33,6 +33,6 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 		transitionManager.push( owner.node );
 		transition.call( root, owner.node, function () {
 			transitionManager.pop( owner.node );
-		}, transitionParams, transitionManager.info, isIntro );
+		}, transitionParams, isIntro );
 	}
 };
