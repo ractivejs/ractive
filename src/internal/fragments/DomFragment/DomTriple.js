@@ -20,11 +20,13 @@ DomTriple.prototype = {
 	resolve: resolveMustache,
 
 	teardown: function ( detach ) {
+		var node;
 
 		// remove child nodes from DOM
 		if ( detach ) {
 			while ( this.nodes.length ) {
-				this.parentNode.removeChild( this.nodes.pop() );
+				node = this.nodes.pop();
+				node.parentNode.removeChild( node );
 			}
 		}
 
@@ -40,9 +42,12 @@ DomTriple.prototype = {
 	},
 
 	render: function ( html ) {
+		var node;
+
 		// remove existing nodes
 		while ( this.nodes.length ) {
-			this.parentNode.removeChild( this.nodes.pop() );
+			node = this.nodes.pop();
+			node.parentNode.removeChild( node );
 		}
 
 		if ( html === undefined ) {

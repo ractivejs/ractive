@@ -19,7 +19,7 @@ DomInterpolator.prototype = {
 		teardown( this );
 		
 		if ( detach ) {
-			this.parentNode.removeChild( this.node );
+			this.node.parentNode.removeChild( this.node );
 		}
 	},
 

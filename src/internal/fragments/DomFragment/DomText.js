@@ -14,7 +14,7 @@ DomText = function ( options, docFrag ) {
 DomText.prototype = {
 	teardown: function ( detach ) {
 		if ( detach ) {
-			this.parentNode.removeChild( this.node );
+			this.node.parentNode.removeChild( this.node );
 		}
 	},
 
