@@ -192,6 +192,11 @@
 			name: "Expression with JSON object",
 			template: "{{( fn({ foo: 1, 'bar': 2, '0foo': 3, '0bar': { baz: 'test', arr: [ 1, 2, 3 ] } }) )}}",
 			parsed: [{"t":2,"x":{"r":["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:'test',arr:[1,2,3]}})"}}]
+		},
+		{
+			name: 'Invocation refinements',
+			template: '{{ array.filter( someFilter ).length }}',
+			parsed: [{"t":2,"x":{"r":["array","someFilter"],"s":"${0}.filter(${1}).length"}}]
 		}
 	];
 

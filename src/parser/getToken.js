@@ -787,6 +787,7 @@
 		getPrimary,
 		getMember,
 		getInvocation,
+		getInvocationRefinement,
 		getTypeOf,
 		getLogicalOr,
 		getConditional,
@@ -960,6 +961,37 @@
 			return result;
 		};
 
+		getInvocationRefinement = function ( tokenizer ) {
+			var start, expression, name, refinement, member;
+
+			expression = getInvocation( tokenizer );
+			if ( !expression ) {
+				return null;
+			}
+
+			if ( expression.t !== INVOCATION ) {
+				return expression;
+			}
+
+			refinement = getRefinement( tokenizer );
+			if ( !refinement ) {
+				return expression;
+			}
+
+			while ( refinement !== null ) {
+				member = {
+					t: MEMBER,
+					x: expression,
+					r: refinement
+				};
+
+				expression = member;
+				refinement = getRefinement( tokenizer );
+			}
+
+			return member;
+		};
+
 		// right-to-left
 		makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 			return function ( tokenizer ) {
@@ -992,8 +1024,8 @@
 
 			prefixOperators = '! ~ + - typeof'.split( ' ' );
 
-			// An invocation operator is higher precedence than logical-not
-			fallthrough = getInvocation;
+			// An invocation refinement is higher precedence than logical-not
+			fallthrough = getInvocationRefinement;
 			for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
 				matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
 				fallthrough = matcher;
