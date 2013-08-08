@@ -62,7 +62,7 @@
   },
   "github": "https://github.com/Rich-Harris/Ractive",
   "devDependencies": {
-    "grunt": "~0.4.0",
+    "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.2.0",
     "grunt-contrib-clean": "~0.4.0",
     "grunt-contrib-qunit": "~0.2.0",
