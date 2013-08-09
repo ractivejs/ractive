@@ -27,8 +27,6 @@
 		}
 
 		this.selfUpdating = ( this.refs.length <= 1 );
-
-		this.update();
 	};
 
 	Evaluator.prototype = {
@@ -50,6 +48,13 @@
 		update: function () {
 			var value;
 
+			// prevent infinite loops
+			if ( this.evaluating ) {
+				return this;
+			}
+
+			this.evaluating = true;
+				
 			try {
 				value = this.fn.apply( null, this.values );
 			} catch ( err ) {
@@ -67,6 +72,8 @@
 
 				this.value = value;
 			}
+
+			this.evaluating = false;
 
 			return this;
 		},
@@ -151,7 +158,5 @@
 		cache[ str ] = fn;
 		return fn;
 	};
-
-
 
 }({}));

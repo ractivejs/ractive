@@ -174,12 +174,44 @@ DomSection.prototype = {
 	},
 
 	render: function ( value ) {
-		
-		updateSection( this, value );
+		var next;
 
+		// prevent sections from rendering multiple times (happens if
+		// evaluators evaluate while update is happening)
+		if ( this.rendering ) {
+			return;
+		}
+
+		this.rendering = true;
+		updateSection( this, value );
+		this.rendering = false;
+
+		// if we have no new nodes to insert (i.e. the section length stayed the
+		// same, or shrank), we don't need to go any further
+		if ( this.docFrag && !this.docFrag.childNodes.length ) {
+			return;
+		}
+
+		// if this isn't the initial render, we need to insert any new nodes in
+		// the right place
 		if ( !this.initialising ) {
-			// we need to insert the contents of our document fragment into the correct place
-			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			
+			// Normally this is just a case of finding the next node, and inserting
+			// items before it...
+			next = this.parentFragment.findNextNode( this );
+
+			if ( next && ( next.parentNode === this.parentNode ) ) {
+				this.parentNode.insertBefore( this.docFrag, next );
+			}
+
+			// ...but in some edge cases the next node will not have been attached to
+			// the DOM yet, in which case we append to the end of the parent node
+			else {
+				// TODO could there be a situation in which later nodes could have
+				// been attached to the parent node, i.e. we need to find a sibling
+				// to insert before?
+				this.parentNode.appendChild( this.docFrag );
+			}
 		}
 	},
 

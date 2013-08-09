@@ -67,6 +67,9 @@
 			// only if it doesn't exist yet!
 			if ( !this.root._evaluators[ this.keypath ] ) {
 				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
+
+				// initialise
+				this.root._evaluators[ this.keypath ].update();
 			}
 
 			else {
