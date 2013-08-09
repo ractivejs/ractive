@@ -1,6 +1,6 @@
 (function ( cache ) {
 
-	var Reference, getFunctionFromString;
+	var Reference, getFunctionFromString, thisPattern, wrapFunction;
 
 	Evaluator = function ( root, keypath, functionStr, args, priority ) {
 		var i, arg;
@@ -109,6 +109,8 @@
 
 
 	Reference = function ( root, keypath, evaluator, argNum, priority ) {
+		var value;
+
 		this.evaluator = evaluator;
 		this.keypath = keypath;
 		this.root = root;
@@ -116,7 +118,13 @@
 		this.type = REFERENCE;
 		this.priority = priority;
 
-		this.value = evaluator.values[ argNum ] = root.get( keypath );
+		value = root.get( keypath );
+
+		if ( typeof value === 'function' ) {
+			value = value._wrapped || wrapFunction( value, root );
+		}
+
+		this.value = evaluator.values[ argNum ] = value;
 
 		registerDependant( this );
 	};
@@ -124,6 +132,10 @@
 	Reference.prototype = {
 		update: function () {
 			var value = this.root.get( this.keypath );
+
+			if ( typeof value === 'function' ) {
+				value = value._wrapped || wrapFunction( value, this.root );
+			}
 
 			if ( !isEqual( value, this.value ) ) {
 				this.evaluator.values[ this.argNum ] = value;
@@ -157,6 +169,18 @@
 
 		cache[ str ] = fn;
 		return fn;
+	};
+
+	thisPattern = /this/;
+
+	wrapFunction = function ( fn, ractive ) {
+		if ( !thisPattern.test( fn.toString() ) ) {
+			return fn._wrapped = fn;
+		}
+
+		return fn._wrapped = function () {
+			return fn.apply( ractive, arguments );
+		};
 	};
 
 }({}));
