@@ -432,7 +432,7 @@
 
 	runTest = function ( theTest ) {
 		test( theTest.name, function ( t ) {
-			var view, expected, result;
+			var view, expected, result, same;
 
 			// necessary for IE
 			testDiv.innerHTML = theTest.result;
@@ -445,13 +445,15 @@
 				partials: theTest.partials
 			});
 
-			t.ok( compareContents( fixture, testDiv ) );
+			same = compareContents( fixture, testDiv );
+			t.ok( same );
 
 			if ( theTest.new_data ) {
 				view.set( theTest.new_data );
 				testDiv.innerHTML = theTest.new_result;
 
-				t.ok( compareContents( fixture, testDiv ) );
+				same = compareContents( fixture, testDiv );
+				t.ok( same );
 			}
 		});
 	};

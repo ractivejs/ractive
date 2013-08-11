@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.4 - 2013-08-07
+/*! Ractive - v0.3.5 - 2013-08-11
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -15,7 +15,7 @@
 var Ractive,
 
 // current version
-VERSION = '0.3.4',
+VERSION = '0.3.5',
 
 doc = global.document || null,
 
@@ -490,7 +490,7 @@ insertHtml = function ( html, docFrag ) {
 }());
 (function ( cache ) {
 
-	var Reference, getFunctionFromString;
+	var Reference, getFunctionFromString, thisPattern, wrapFunction;
 
 	Evaluator = function ( root, keypath, functionStr, args, priority ) {
 		var i, arg;
@@ -517,8 +517,6 @@ insertHtml = function ( html, docFrag ) {
 		}
 
 		this.selfUpdating = ( this.refs.length <= 1 );
-
-		this.update();
 	};
 
 	Evaluator.prototype = {
@@ -540,6 +538,13 @@ insertHtml = function ( html, docFrag ) {
 		update: function () {
 			var value;
 
+			// prevent infinite loops
+			if ( this.evaluating ) {
+				return this;
+			}
+
+			this.evaluating = true;
+				
 			try {
 				value = this.fn.apply( null, this.values );
 			} catch ( err ) {
@@ -557,6 +562,8 @@ insertHtml = function ( html, docFrag ) {
 
 				this.value = value;
 			}
+
+			this.evaluating = false;
 
 			return this;
 		},
@@ -592,6 +599,8 @@ insertHtml = function ( html, docFrag ) {
 
 
 	Reference = function ( root, keypath, evaluator, argNum, priority ) {
+		var value;
+
 		this.evaluator = evaluator;
 		this.keypath = keypath;
 		this.root = root;
@@ -599,7 +608,13 @@ insertHtml = function ( html, docFrag ) {
 		this.type = REFERENCE;
 		this.priority = priority;
 
-		this.value = evaluator.values[ argNum ] = root.get( keypath );
+		value = root.get( keypath );
+
+		if ( typeof value === 'function' ) {
+			value = value._wrapped || wrapFunction( value, root );
+		}
+
+		this.value = evaluator.values[ argNum ] = value;
 
 		registerDependant( this );
 	};
@@ -607,6 +622,10 @@ insertHtml = function ( html, docFrag ) {
 	Reference.prototype = {
 		update: function () {
 			var value = this.root.get( this.keypath );
+
+			if ( typeof value === 'function' ) {
+				value = value._wrapped || wrapFunction( value, this.root );
+			}
 
 			if ( !isEqual( value, this.value ) ) {
 				this.evaluator.values[ this.argNum ] = value;
@@ -642,7 +661,17 @@ insertHtml = function ( html, docFrag ) {
 		return fn;
 	};
 
+	thisPattern = /this/;
 
+	wrapFunction = function ( fn, ractive ) {
+		if ( !thisPattern.test( fn.toString() ) ) {
+			return fn._wrapped = fn;
+		}
+
+		return fn._wrapped = function () {
+			return fn.apply( ractive, arguments );
+		};
+	};
 
 }({}));
 (function () {
@@ -714,6 +743,9 @@ insertHtml = function ( html, docFrag ) {
 			// only if it doesn't exist yet!
 			if ( !this.root._evaluators[ this.keypath ] ) {
 				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
+
+				// initialise
+				this.root._evaluators[ this.keypath ].update();
 			}
 
 			else {
@@ -5153,7 +5185,7 @@ DomInterpolator.prototype = {
 		teardown( this );
 		
 		if ( detach ) {
-			this.parentNode.removeChild( this.node );
+			this.node.parentNode.removeChild( this.node );
 		}
 	},
 
@@ -5387,12 +5419,44 @@ DomSection.prototype = {
 	},
 
 	render: function ( value ) {
-		
-		updateSection( this, value );
+		var next;
 
+		// prevent sections from rendering multiple times (happens if
+		// evaluators evaluate while update is happening)
+		if ( this.rendering ) {
+			return;
+		}
+
+		this.rendering = true;
+		updateSection( this, value );
+		this.rendering = false;
+
+		// if we have no new nodes to insert (i.e. the section length stayed the
+		// same, or shrank), we don't need to go any further
+		if ( this.docFrag && !this.docFrag.childNodes.length ) {
+			return;
+		}
+
+		// if this isn't the initial render, we need to insert any new nodes in
+		// the right place
 		if ( !this.initialising ) {
-			// we need to insert the contents of our document fragment into the correct place
-			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			
+			// Normally this is just a case of finding the next node, and inserting
+			// items before it...
+			next = this.parentFragment.findNextNode( this );
+
+			if ( next && ( next.parentNode === this.parentNode ) ) {
+				this.parentNode.insertBefore( this.docFrag, next );
+			}
+
+			// ...but in some edge cases the next node will not have been attached to
+			// the DOM yet, in which case we append to the end of the parent node
+			else {
+				// TODO could there be a situation in which later nodes could have
+				// been attached to the parent node, i.e. we need to find a sibling
+				// to insert before?
+				this.parentNode.appendChild( this.docFrag );
+			}
 		}
 	},
 
@@ -5437,7 +5501,7 @@ DomText = function ( options, docFrag ) {
 DomText.prototype = {
 	teardown: function ( detach ) {
 		if ( detach ) {
-			this.parentNode.removeChild( this.node );
+			this.node.parentNode.removeChild( this.node );
 		}
 	},
 
@@ -5471,11 +5535,13 @@ DomTriple.prototype = {
 	resolve: resolveMustache,
 
 	teardown: function ( detach ) {
+		var node;
 
 		// remove child nodes from DOM
 		if ( detach ) {
 			while ( this.nodes.length ) {
-				this.parentNode.removeChild( this.nodes.pop() );
+				node = this.nodes.pop();
+				node.parentNode.removeChild( node );
 			}
 		}
 
@@ -5491,9 +5557,12 @@ DomTriple.prototype = {
 	},
 
 	render: function ( html ) {
+		var node;
+
 		// remove existing nodes
 		while ( this.nodes.length ) {
-			this.parentNode.removeChild( this.nodes.pop() );
+			node = this.nodes.pop();
+			node.parentNode.removeChild( node );
 		}
 
 		if ( html === undefined ) {
@@ -7596,6 +7665,7 @@ splitKeypath =  function ( keypath ) {
 		getPrimary,
 		getMember,
 		getInvocation,
+		getInvocationRefinement,
 		getTypeOf,
 		getLogicalOr,
 		getConditional,
@@ -7769,6 +7839,37 @@ splitKeypath =  function ( keypath ) {
 			return result;
 		};
 
+		getInvocationRefinement = function ( tokenizer ) {
+			var start, expression, name, refinement, member;
+
+			expression = getInvocation( tokenizer );
+			if ( !expression ) {
+				return null;
+			}
+
+			if ( expression.t !== INVOCATION ) {
+				return expression;
+			}
+
+			refinement = getRefinement( tokenizer );
+			if ( !refinement ) {
+				return expression;
+			}
+
+			while ( refinement !== null ) {
+				member = {
+					t: MEMBER,
+					x: expression,
+					r: refinement
+				};
+
+				expression = member;
+				refinement = getRefinement( tokenizer );
+			}
+
+			return member;
+		};
+
 		// right-to-left
 		makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 			return function ( tokenizer ) {
@@ -7801,8 +7902,8 @@ splitKeypath =  function ( keypath ) {
 
 			prefixOperators = '! ~ + - typeof'.split( ' ' );
 
-			// An invocation operator is higher precedence than logical-not
-			fallthrough = getInvocation;
+			// An invocation refinement is higher precedence than logical-not
+			fallthrough = getInvocationRefinement;
 			for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
 				matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
 				fallthrough = matcher;
@@ -7935,6 +8036,11 @@ splitKeypath =  function ( keypath ) {
 			// standard reference ('name')
 			dot = getStringMatch( tokenizer, '.' ) || '';
 			name = getName( tokenizer ) || '';
+
+			// allow the use of `this`
+			if ( name === 'this' ) {
+				name = '.';
+			}
 
 			combo = dot + name;
 
