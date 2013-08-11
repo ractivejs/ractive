@@ -1,0 +1,14 @@
+{
+  "name": "Ractive",
+  "repo": "Rich-Harris/Ractive",
+  "description": "Next-generation DOM manipulation",
+  "version": "0.3.4",
+  "keywords": [],
+  "dependencies": {},
+  "development": {},
+  "license": "MIT",
+  "main": "build/Ractive.js",
+  "scripts": [
+    "build/Ractive.js"
+  ]
+}
