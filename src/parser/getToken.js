@@ -1159,6 +1159,11 @@
 			dot = getStringMatch( tokenizer, '.' ) || '';
 			name = getName( tokenizer ) || '';
 
+			// allow the use of `this`
+			if ( name === 'this' ) {
+				name = '.';
+			}
+
 			combo = dot + name;
 
 			if ( !combo ) {
