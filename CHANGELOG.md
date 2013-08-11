@@ -70,3 +70,8 @@ Changelog
     * Subclasses created with `Ractive.extend()` can now have a `beforeInit` method that will be called before rendering
     * Expressions no longer need to be wrapped in parentheses. Section closing mustaches for expression sections can have any content
     * Various minor bugfixes and improvements
+* 0.3.5
+    * Experimental support for components - see [this thread](https://github.com/Rich-Harris/Ractive/issues/74) for details
+    * Support for [component](https://github.com/component/component) - thanks [CamShaft](https://github.com/CamShaft)
+    * Option to use `on-click` style event binding (as opposed to `proxy-click`)
+    * Bug fixes
