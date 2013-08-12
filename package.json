@@ -2,7 +2,7 @@
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
   "version": "0.3.5",
-  "homepage": "http://rich-harris.github.com/Ractive/",
+  "homepage": "http://ractivejs.org",
   "main": "build/Ractive.js",
   "keywords": [
     "template",
