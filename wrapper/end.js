@@ -33,4 +33,4 @@ else {
 	global.Ractive = Ractive;
 }
 
-}( this ));
+}( typeof window !== 'undefined' ? window : this ));
