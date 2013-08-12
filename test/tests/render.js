@@ -11,9 +11,10 @@
 
 	QUnit.config.reorder = false;
 
-	var fixture = document.getElementById( 'qunit-fixture' ), tests, runTest, theTest, hasSvg, testDiv, getElements, compareContents, compareNode;
+	var fixture = document.getElementById( 'qunit-fixture' ), tests, runTest, theTest, hasSvg, testDiv, testDiv2, getElements, compareContents, compareNode;
 
 	testDiv = document.createElement( 'div' );
+	testDiv2 = document.createElement( 'div' );
 
 	module ( 'Render' );
 
@@ -445,14 +446,23 @@
 				partials: theTest.partials
 			});
 
+			testDiv2.innerHTML = view.renderHTML();
+
 			same = compareContents( fixture, testDiv );
+			t.ok( same );
+
+			same = compareContents( testDiv2, testDiv );
 			t.ok( same );
 
 			if ( theTest.new_data ) {
 				view.set( theTest.new_data );
 				testDiv.innerHTML = theTest.new_result;
+				testDiv2.innerHTML = view.renderHTML();
 
 				same = compareContents( fixture, testDiv );
+				t.ok( same );
+
+				same = compareContents( testDiv2, testDiv );
 				t.ok( same );
 			}
 		});

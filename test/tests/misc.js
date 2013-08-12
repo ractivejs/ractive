@@ -126,6 +126,17 @@
 		t.ok( compareHTML( ractive.renderHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' ) );
 	});
 
+	test( 'Triples work with renderHTML', function ( t ) {
+		var ractive;
+
+		ractive = new Ractive({
+			template: '{{{ triple }}}',
+			data: { triple: '<p>test</p>' }
+		});
+
+		t.ok( compareHTML( ractive.renderHTML(), '<p>test</p>' ) );
+	});
+
 	test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', function ( t ) {
 		var ractive;
 
