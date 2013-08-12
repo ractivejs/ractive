@@ -5626,6 +5626,12 @@ DomTriple.prototype = {
 	render: function ( html ) {
 		var node;
 
+		if ( !this.nodes ) {
+			// looks like we're in a server environment...
+			// nothing to see here, move along
+			return;
+		}
+
 		// remove existing nodes
 		while ( this.nodes.length ) {
 			node = this.nodes.pop();
@@ -6019,4 +6025,4 @@ else {
 	global.Ractive = Ractive;
 }
 
-}( this ));
+}( typeof window !== 'undefined' ? window : this ));

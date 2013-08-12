@@ -1,7 +1,7 @@
-/*! Ractive - v0.3.5 - 2013-08-11
+/*! Ractive - v0.3.5 - 2013-08-12
 * Next-generation DOM manipulation
 
-* http://rich-harris.github.com/Ractive/
+* http://ractivejs.org
 * Copyright (c) 2013 Rich Harris; Licensed MIT */
 
 /*jslint eqeq: true, plusplus: true */
@@ -5559,6 +5559,12 @@ DomTriple.prototype = {
 	render: function ( html ) {
 		var node;
 
+		if ( !this.nodes ) {
+			// looks like we're in a server environment...
+			// nothing to see here, move along
+			return;
+		}
+
 		// remove existing nodes
 		while ( this.nodes.length ) {
 			node = this.nodes.pop();
@@ -8569,4 +8575,4 @@ else {
 	global.Ractive = Ractive;
 }
 
-}( this ));
+}( typeof window !== 'undefined' ? window : this ));
