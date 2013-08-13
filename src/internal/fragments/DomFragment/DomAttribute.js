@@ -60,6 +60,10 @@
 			return;
 		}
 
+		// special case - <input type='file' value='{{value}}'>
+		if ( this.parentNode.tagName === 'INPUT' && this.lcName === 'value' ) {
+			this.isFileInputValue = true;
+		}
 
 		// can we establish this attribute's property name equivalent?
 		determinePropertyName( this, options );
@@ -175,9 +179,15 @@
 				}
 			}
 
+			else if ( this.isFileInputValue ) {
+				this.updateViewModel = function () {
+					self.root.set( self.keypath, node.files );
+				};
+			}
+
 			else {
 				if ( this.isMultipleSelect ) {
-					this.updateViewModel = function ( event ) {
+					this.updateViewModel = function () {
 						var value, selectedOptions, i, previousValue, changed;
 
 						window.attr = self;
@@ -337,6 +347,11 @@
 				this.value = value;
 
 				return this;
+			}
+
+			// special case - <input type='file' value='{{fileList}}'>
+			if ( this.isFileInputValue ) {
+				return; // otherwise we'll get an InvalidStateError
 			}
 
 			if ( this.twoway ) {
