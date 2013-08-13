@@ -1,16 +1,16 @@
-registerDependant = function ( dependant ) {
+registerDependent = function ( dependent ) {
 	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
 
-	ractive = dependant.root;
-	keypath = dependant.keypath;
-	priority = dependant.priority;
+	ractive = dependent.root;
+	keypath = dependent.keypath;
+	priority = dependent.priority;
 
 	depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
-	deps[ deps.length ] = dependant;
+	deps[ deps.length ] = dependent;
 
-	// update dependants map
+	// update dependents map
 	keys = splitKeypath( keypath );
 	
 	while ( keys.length ) {

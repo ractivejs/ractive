@@ -26,11 +26,11 @@ transitions = {},
 // internal utils - instance-specific
 teardown,
 clearCache,
-registerDependant,
-unregisterDependant,
-notifyDependants,
-notifyMultipleDependants,
-notifyDependantsByPriority,
+registerDependent,
+unregisterDependent,
+notifyDependents,
+notifyMultipleDependents,
+notifyDependentsByPriority,
 registerIndexRef,
 unregisterIndexRef,
 resolveRef,
@@ -604,7 +604,7 @@ insertHtml = function ( html, docFrag ) {
 		// expression mustache?
 		if ( mustache.descriptor.x ) {
 			if ( mustache.keypath ) {
-				unregisterDependant( mustache );
+				unregisterDependent( mustache );
 			}
 			
 			if ( mustache.expressionResolver ) {
@@ -617,10 +617,10 @@ insertHtml = function ( html, docFrag ) {
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				unregisterDependant( mustache );
+				unregisterDependent( mustache );
 
 				mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
-				registerDependant( mustache );
+				registerDependent( mustache );
 			}
 		}
 
@@ -662,7 +662,7 @@ insertHtml = function ( html, docFrag ) {
 			arg = args[i];
 
 			if ( arg[0] ) {
-				// this is an index ref... we don't need to register a dependant
+				// this is an index ref... we don't need to register a dependent
 				this.values[i] = arg[1];
 			}
 
@@ -708,7 +708,7 @@ insertHtml = function ( html, docFrag ) {
 			if ( !isEqual( value, this.value ) ) {
 				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
-				notifyDependants( this.root, this.keypath );
+				notifyDependents( this.root, this.keypath );
 
 				this.value = value;
 			}
@@ -756,7 +756,7 @@ insertHtml = function ( html, docFrag ) {
 
 		this.value = evaluator.values[ argNum ] = root.get( keypath );
 
-		registerDependant( this );
+		registerDependent( this );
 	};
 
 	Reference.prototype = {
@@ -772,7 +772,7 @@ insertHtml = function ( html, docFrag ) {
 		},
 
 		teardown: function () {
-			unregisterDependant( this );
+			unregisterDependent( this );
 		}
 	};
 
@@ -1129,7 +1129,7 @@ updateMustache = function () {
 resolveMustache = function ( keypath ) {
 	this.keypath = keypath;
 
-	registerDependant( this );
+	registerDependent( this );
 	
 	this.update();
 
@@ -1662,14 +1662,14 @@ clearCache = function ( ractive, keypath ) {
 		}
 	}
 };
-notifyDependants = function ( ractive, keypath, onlyDirect ) {
+notifyDependents = function ( ractive, keypath, onlyDirect ) {
 	var i;
 
 	for ( i=0; i<ractive._deps.length; i+=1 ) { // can't cache ractive._deps.length, it may change
-		notifyDependantsByPriority( ractive, keypath, i, onlyDirect );
+		notifyDependentsByPriority( ractive, keypath, i, onlyDirect );
 	}
 };
-notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect ) {
+notifyDependentsByPriority = function ( ractive, keypath, priority, onlyDirect ) {
 	var depsByKeypath, deps, i, len, childDeps;
 
 	depsByKeypath = ractive._deps[ priority ];
@@ -1687,7 +1687,7 @@ notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect )
 		}
 	}
 
-	// If we're only notifying direct dependants, not dependants
+	// If we're only notifying direct dependents, not dependents
 	// of downstream keypaths, then YOU SHALL NOT PASS
 	if ( onlyDirect ) {
 		return;
@@ -1700,11 +1700,11 @@ notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect )
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-			notifyDependantsByPriority( ractive, childDeps[i], priority );
+			notifyDependentsByPriority( ractive, childDeps[i], priority );
 		}
 	}
 };
-notifyMultipleDependants = function ( ractive, keypaths, onlyDirect ) {
+notifyMultipleDependents = function ( ractive, keypaths, onlyDirect ) {
 	var  i, j, len;
 
 	len = keypaths.length;
@@ -1713,7 +1713,7 @@ notifyMultipleDependants = function ( ractive, keypaths, onlyDirect ) {
 		if ( ractive._deps[i] ) {
 			j = len;
 			while ( j-- ) {
-				notifyDependantsByPriority( ractive, keypaths[j], i, onlyDirect );
+				notifyDependentsByPriority( ractive, keypaths[j], i, onlyDirect );
 			}
 		}
 	}
@@ -1741,19 +1741,19 @@ processDeferredUpdates = function ( ractive ) {
 		attribute.value = attribute.parentNode.value;
 	}
 };
-registerDependant = function ( dependant ) {
+registerDependent = function ( dependent ) {
 	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
 
-	ractive = dependant.root;
-	keypath = dependant.keypath;
-	priority = dependant.priority;
+	ractive = dependent.root;
+	keypath = dependent.keypath;
+	priority = dependent.priority;
 
 	depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
-	deps[ deps.length ] = dependant;
+	deps[ deps.length ] = dependent;
 
-	// update dependants map
+	// update dependents map
 	keys = splitKeypath( keypath );
 	
 	while ( keys.length ) {
@@ -1855,21 +1855,21 @@ teardown = function ( thing ) {
 		}
 
 	} else {
-		// this was registered as a dependant
-		unregisterDependant( thing );
+		// this was registered as a dependent
+		unregisterDependent( thing );
 	}
 };
-unregisterDependant = function ( dependant ) {
+unregisterDependent = function ( dependent ) {
 	var deps, i, keep, keys, parentKeypath, map, evaluator, ractive, keypath, priority;
 
-	ractive = dependant.root;
-	keypath = dependant.keypath;
-	priority = dependant.priority;
+	ractive = dependent.root;
+	keypath = dependent.keypath;
+	priority = dependent.priority;
 
 	deps = ractive._deps[ priority ][ keypath ];
-	deps.splice( deps.indexOf( dependant ), 1 );
+	deps.splice( deps.indexOf( dependent ), 1 );
 
-	// update dependants map
+	// update dependents map
 	keys = splitKeypath( keypath );
 	
 	while ( keys.length ) {
@@ -1935,11 +1935,11 @@ proto.link = function ( keypath ) {
 			observer.update( true );
 		}
 
-		registerDependant( observer );
+		registerDependent( observer );
 
 		return {
 			cancel: function () {
-				unregisterDependant( observer );
+				unregisterDependent( observer );
 			}
 		};
 	};
@@ -2085,13 +2085,13 @@ proto.requestFullscreen = function () {
 			attemptKeypathResolution( this );
 		}
 
-		// ...and notify dependants
+		// ...and notify dependents
 		if ( upstreamQueue.length ) {
-			notifyMultipleDependants( this, upstreamQueue, true );
+			notifyMultipleDependents( this, upstreamQueue, true );
 		}
 
 		if ( notificationQueue.length ) {
-			notifyMultipleDependants( this, notificationQueue );
+			notifyMultipleDependents( this, notificationQueue );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
@@ -2265,7 +2265,7 @@ proto.update = function ( keypath, complete ) {
 	this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 	clearCache( this, keypath || '' );
-	notifyDependants( this, keypath || '' );
+	notifyDependents( this, keypath || '' );
 
 	processDeferredUpdates( this );
 
@@ -3082,7 +3082,7 @@ Ractive = function ( options ) {
 		_deps: { value: [] },
 		_depsMap: { value: createFromNull() },
 
-		// unresolved dependants
+		// unresolved dependents
 		_pendingResolution: { value: [] },
 
 		// Create arrays for deferred attributes and evaluators
@@ -3747,7 +3747,7 @@ animationCollection = {
 }( ['ms', 'moz', 'webkit', 'o'], 0, global ));
 (function () {
 
-	var notifyArrayDependants,
+	var notifyArrayDependents,
 
 		wrapArray,
 		unwrapArray,
@@ -3832,13 +3832,13 @@ animationCollection = {
 	};
 
 
-	notifyArrayDependants = function ( array, methodName, args ) {
+	notifyArrayDependents = function ( array, methodName, args ) {
 		var processRoots,
 			processRoot,
 			processKeypaths,
 			processKeypath,
-			queueAllDependants,
-			queueDependants,
+			queueAllDependents,
+			queueDependents,
 			keypathsByGuid;
 
 		keypathsByGuid = array._ractive.keypathsByGuid;
@@ -3880,7 +3880,7 @@ animationCollection = {
 			// in the right place. But we do need to clear the cache
 			clearCache( root, keypath );
 
-			// find dependants. If any are DOM sections, we do a smart update
+			// find dependents. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
 			dumbUpdateQueue = [];
@@ -3895,7 +3895,7 @@ animationCollection = {
 				deps = depsByKeypath[ keypath ];
 				
 				if ( deps ) {
-					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
+					queueDependents( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
 					// we may have some deferred evaluators to process
 					processDeferredUpdates( root );
@@ -3913,7 +3913,7 @@ animationCollection = {
 			// we may have some deferred attributes to process
 			processDeferredUpdates( root );
 
-			// Finally, notify direct dependants of upstream keypaths...
+			// Finally, notify direct dependents of upstream keypaths...
 			upstreamQueue = [];
 
 			keys = splitKeypath( keypath );
@@ -3922,36 +3922,36 @@ animationCollection = {
 				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
 			}
 
-			notifyMultipleDependants( root, upstreamQueue, true );
+			notifyMultipleDependents( root, upstreamQueue, true );
 
-			// length property has changed - notify dependants
+			// length property has changed - notify dependents
 			// TODO in some cases (e.g. todo list example, when marking all as complete, then
 			// adding a new item (which should deactivate the 'all complete' checkbox
 			// but doesn't) this needs to happen before other updates. But doing so causes
 			// other mental problems. not sure what's going on...
-			notifyDependants( root, keypath + '.length', true );
+			notifyDependents( root, keypath + '.length', true );
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
-		queueDependants = function ( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
-			var k, dependant;
+		queueDependents = function ( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
+			var k, dependent;
 
 			k = deps.length;
 			while ( k-- ) {
-				dependant = deps[k];
+				dependent = deps[k];
 
 				// references need to get processed before mustaches
-				if ( dependant.type === REFERENCE ) {
-					dependant.update();
-					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
+				if ( dependent.type === REFERENCE ) {
+					dependent.update();
+					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependent;
 				}
 
 				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === SECTION /*&& dependant.parentNode*/ ) {
-					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
+				else if ( dependent.keypath === keypath && dependent.type === SECTION /*&& dependent.parentNode*/ ) {
+					smartUpdateQueue[ smartUpdateQueue.length ] = dependent;
 
 				} else {
-					dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
+					dumbUpdateQueue[ dumbUpdateQueue.length ] = dependent;
 				}
 			}
 		};
@@ -3972,7 +3972,7 @@ animationCollection = {
 			var result = Array.prototype[ methodName ].apply( this, arguments );
 
 			this._ractive.setting = true;
-			notifyArrayDependants( this, methodName, arguments );
+			notifyArrayDependents( this, methodName, arguments );
 			this._ractive.setting = false;
 
 			return result;

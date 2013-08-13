@@ -1,14 +1,14 @@
-unregisterDependant = function ( dependant ) {
+unregisterDependent = function ( dependent ) {
 	var deps, i, keep, keys, parentKeypath, map, evaluator, ractive, keypath, priority;
 
-	ractive = dependant.root;
-	keypath = dependant.keypath;
-	priority = dependant.priority;
+	ractive = dependent.root;
+	keypath = dependent.keypath;
+	priority = dependent.priority;
 
 	deps = ractive._deps[ priority ][ keypath ];
-	deps.splice( deps.indexOf( dependant ), 1 );
+	deps.splice( deps.indexOf( dependent ), 1 );
 
-	// update dependants map
+	// update dependents map
 	keys = splitKeypath( keypath );
 	
 	while ( keys.length ) {

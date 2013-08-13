@@ -17,7 +17,7 @@
 			arg = args[i];
 
 			if ( arg[0] ) {
-				// this is an index ref... we don't need to register a dependant
+				// this is an index ref... we don't need to register a dependent
 				this.values[i] = arg[1];
 			}
 
@@ -68,7 +68,7 @@
 			if ( !isEqual( value, this.value ) ) {
 				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
-				notifyDependants( this.root, this.keypath );
+				notifyDependents( this.root, this.keypath );
 
 				this.value = value;
 			}
@@ -126,7 +126,7 @@
 
 		this.value = evaluator.values[ argNum ] = value;
 
-		registerDependant( this );
+		registerDependent( this );
 	};
 
 	Reference.prototype = {
@@ -146,7 +146,7 @@
 		},
 
 		teardown: function () {
-			unregisterDependant( this );
+			unregisterDependent( this );
 		}
 	};
 

@@ -377,7 +377,7 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	value = parentValue[ key ];
 
-	// update map of dependants
+	// update map of dependents
 	parentKeypath = keys.join( '.' );
 
 	if ( !this._depsMap[ parentKeypath ] ) {
@@ -401,7 +401,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	
 	return value;
 };
-var teardown, clearCache, registerDependant, unregisterDependant, notifyDependants, resolveRef;
+var teardown, clearCache, registerDependent, unregisterDependent, notifyDependents, resolveRef;
 
 teardown = function ( thing ) {
 	if ( !thing.keypath ) {
@@ -414,7 +414,7 @@ teardown = function ( thing ) {
 
 	} else {
 		// this was registered as a dependency
-		unregisterDependant( thing.root, thing.keypath, thing, thing.priority || 0 );
+		unregisterDependent( thing.root, thing.keypath, thing, thing.priority || 0 );
 	}
 
 	if ( thing.evaluator ) {
@@ -423,7 +423,7 @@ teardown = function ( thing ) {
 };
 
 clearCache = function ( root, keypath ) {
-	var value, dependants = root._depsMap[ keypath ], i;
+	var value, dependents = root._depsMap[ keypath ], i;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( root.modifyArrays ) {
@@ -438,19 +438,19 @@ clearCache = function ( root, keypath ) {
 
 	delete root._cache[ keypath ];
 
-	if ( !dependants ) {
+	if ( !dependents ) {
 		return;
 	}
 
-	i = dependants.length;
+	i = dependents.length;
 	while ( i-- ) {
-		clearCache( root, dependants[i] );
+		clearCache( root, dependents[i] );
 	}
 };
 
 
 
-registerDependant = function ( root, keypath, dependant, priority ) {
+registerDependent = function ( root, keypath, dependent, priority ) {
 	var deps;
 
 	if ( !root._deps[ keypath ] ) {
@@ -460,23 +460,23 @@ registerDependant = function ( root, keypath, dependant, priority ) {
 	deps = root._deps[ keypath ];
 	
 	if ( !deps[ priority ] ) {
-		deps[ priority ] = [ dependant ];
+		deps[ priority ] = [ dependent ];
 		return;
 	}
 
 	deps = deps[ priority ];
 
-	if ( deps.indexOf( dependant ) === -1 ) {
-		deps[ deps.length ] = dependant;
+	if ( deps.indexOf( dependent ) === -1 ) {
+		deps[ deps.length ] = dependent;
 	}
 };
 
 
-unregisterDependant = function ( root, keypath, dependant, priority ) {
+unregisterDependent = function ( root, keypath, dependent, priority ) {
 	var deps, i, keep;
 
 	deps = root._deps[ keypath ][ priority ];
-	deps.splice( deps.indexOf( dependant ), 1 );
+	deps.splice( deps.indexOf( dependent ), 1 );
 
 	if ( !deps.length ) {
 		root._deps[ keypath ][ priority ] = null;
@@ -497,7 +497,7 @@ unregisterDependant = function ( root, keypath, dependant, priority ) {
 	}
 };
 
-notifyDependants = function ( root, keypath, onlyDirect ) {
+notifyDependents = function ( root, keypath, onlyDirect ) {
 	var depsByPriority, deps, i, j, len, childDeps;
 
 	depsByPriority = root._deps[ keypath ];
@@ -516,7 +516,7 @@ notifyDependants = function ( root, keypath, onlyDirect ) {
 		}
 	}
 
-	// If we're only notifying direct dependants, not dependants
+	// If we're only notifying direct dependents, not dependents
 	// of downstream keypaths, then YOU SHALL NOT PASS
 	if ( onlyDirect ) {
 		return;
@@ -529,11 +529,11 @@ notifyDependants = function ( root, keypath, onlyDirect ) {
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-			notifyDependants( root, childDeps[i] );
+			notifyDependents( root, childDeps[i] );
 			
-			// TODO at some point, no-longer extant dependants need to be removed
-			// from the map. However a keypath can have no direct dependants yet
-			// still have downstream dependants, so it's not entirely straightforward
+			// TODO at some point, no-longer extant dependents need to be removed
+			// from the map. However a keypath can have no direct dependents yet
+			// still have downstream dependents, so it's not entirely straightforward
 		}
 	}
 };
@@ -635,7 +635,7 @@ proto.link = function ( keypath ) {
 			},
 
 			cancel: function () {
-				unregisterDependant( root, keypath, observer, 0 );
+				unregisterDependent( root, keypath, observer, 0 );
 			}
 		};
 
@@ -643,7 +643,7 @@ proto.link = function ( keypath ) {
 			observer.update();
 		}
 
-		registerDependant( root, keypath, observer, 0 );
+		registerDependent( root, keypath, observer, 0 );
 
 		return observer;
 	};
@@ -771,11 +771,11 @@ proto.render = function ( options ) {
 			set( this, normalised, keys, value, notificationQueue, upstreamQueue );
 		}
 
-		// if anything has changed, notify dependants and attempt to resolve
+		// if anything has changed, notify dependents and attempt to resolve
 		// any unresolved keypaths
 		if ( notificationQueue.length ) {
 			while ( notificationQueue.length ) {
-				notifyDependants( this, notificationQueue.pop() );
+				notifyDependents( this, notificationQueue.pop() );
 			}
 
 			attemptKeypathResolution( this );
@@ -783,7 +783,7 @@ proto.render = function ( options ) {
 
 		// notify direct descendants of upstream keypaths
 		while ( upstreamQueue.length ) {
-			notifyDependants( this, upstreamQueue.pop(), true );
+			notifyDependents( this, upstreamQueue.pop(), true );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
@@ -913,7 +913,7 @@ proto.unbind = function ( adaptor ) {
 };
 proto.update = function ( keypath ) {
 	clearCache( this, keypath || '' );
-	notifyDependants( this, keypath || '' );
+	notifyDependents( this, keypath || '' );
 
 	this.fire( 'update:' + keypath );
 	this.fire( 'update', keypath );
@@ -1411,7 +1411,7 @@ Ractive = function ( options ) {
 	// Set up cache
 	this._cache = {};
 
-	// Set up dependants
+	// Set up dependents
 	this._deps = {};
 	this._depsMap = {};
 
@@ -1975,7 +1975,7 @@ animationCollection = {
 			if ( !isEqual( value, this._lastValue ) ) {
 				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
-				notifyDependants( this.root, this.keypath );
+				notifyDependents( this.root, this.keypath );
 
 				this._lastValue = value;
 			}
@@ -2016,7 +2016,7 @@ animationCollection = {
 		resolve: function ( keypath ) {
 			this.keypath = keypath;
 
-			registerDependant( this.root, keypath, this, this.priority );
+			registerDependent( this.root, keypath, this, this.priority );
 			
 			this.update();
 			this.evaluator.resolve( this.ref, this.argNum, keypath );
@@ -2163,7 +2163,7 @@ resolveMustache = function ( keypath ) {
 	// TEMP
 	this.keypath = keypath;
 
-	registerDependant( this.root, keypath, this, this.priority );
+	registerDependent( this.root, keypath, this, this.priority );
 	this.update();
 };
 

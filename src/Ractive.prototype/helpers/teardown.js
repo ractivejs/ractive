@@ -8,7 +8,7 @@ teardown = function ( thing ) {
 		}
 
 	} else {
-		// this was registered as a dependant
-		unregisterDependant( thing );
+		// this was registered as a dependent
+		unregisterDependent( thing );
 	}
 };

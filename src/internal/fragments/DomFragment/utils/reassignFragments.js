@@ -109,7 +109,7 @@
 		// expression mustache?
 		if ( mustache.descriptor.x ) {
 			if ( mustache.keypath ) {
-				unregisterDependant( mustache );
+				unregisterDependent( mustache );
 			}
 			
 			if ( mustache.expressionResolver ) {
@@ -122,10 +122,10 @@
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				unregisterDependant( mustache );
+				unregisterDependent( mustache );
 
 				mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
-				registerDependant( mustache );
+				registerDependent( mustache );
 			}
 		}
 
