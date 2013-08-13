@@ -686,7 +686,7 @@
 						attrStr = ' ' + this.attributes[i].name;
 
 						// empty attributes
-						if ( this.attributes[i].value !== undefined ) {
+						if ( this.attributes[i].value !== null ) {
 							attrValueStr = this.attributes[i].value.toString();
 
 							if ( attrValueStr === false ) {
