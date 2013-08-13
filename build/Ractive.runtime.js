@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.5 - 2013-08-12
+/*! Ractive - v0.3.5 - 2013-08-13
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -434,7 +434,9 @@ insertHtml = function ( html, docFrag ) {
 				element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
 			}
 
-			element.node._ractive.index[ indexRef ] = newIndex;
+			if ( indexRef !== undefined ) {
+				element.node._ractive.index[ indexRef ] = newIndex;
+			}
 		}
 
 		// reassign children

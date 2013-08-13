@@ -597,7 +597,9 @@ insertHtml = function ( html, docFrag ) {
 				element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
 			}
 
-			element.node._ractive.index[ indexRef ] = newIndex;
+			if ( indexRef !== undefined ) {
+				element.node._ractive.index[ indexRef ] = newIndex;
+			}
 		}
 
 		// reassign children
@@ -6774,7 +6776,7 @@ splitKeypath =  function ( keypath ) {
 						attrStr = ' ' + this.attributes[i].name;
 
 						// empty attributes
-						if ( this.attributes[i].value !== undefined ) {
+						if ( this.attributes[i].value !== null ) {
 							attrValueStr = this.attributes[i].value.toString();
 
 							if ( attrValueStr === false ) {
