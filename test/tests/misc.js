@@ -186,6 +186,20 @@
 		t.ok( compareHTML( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' ) );
 	});
 
+	test( '.unshift() works with proxy event handlers, without index references', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '{{#items}}<button proxy-tap="bla">Level1: {{ title }}</button>{{/items}}',
+			data: {
+				items: [{ title: 'Title1', }],
+			}
+		});
+
+		ractive.get('items').unshift({title: 'Title0'});
+
+		t.ok( compareHTML( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' ) );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build
