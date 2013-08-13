@@ -92,7 +92,9 @@
 				element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
 			}
 
-			element.node._ractive.index[ indexRef ] = newIndex;
+			if ( indexRef !== undefined ) {
+				element.node._ractive.index[ indexRef ] = newIndex;
+			}
 		}
 
 		// reassign children
