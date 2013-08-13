@@ -197,6 +197,11 @@
 			name: 'Invocation refinements',
 			template: '{{ array.filter( someFilter ).length }}',
 			parsed: [{"t":2,"x":{"r":["array","someFilter"],"s":"${0}.filter(${1}).length"}}]
+		},
+		{
+			name: 'Boolean attributes',
+			template: '<input value="{{value}}" autofocus>',
+			parsed: [{"t":7,"e":"input","a":{"autofocus":null,"value":[{"t":2,"r":"value"}]}}]
 		}
 	];
 
