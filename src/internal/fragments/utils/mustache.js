@@ -69,7 +69,7 @@ updateMustache = function () {
 resolveMustache = function ( keypath ) {
 	this.keypath = keypath;
 
-	registerDependant( this );
+	registerDependent( this );
 	
 	this.update();
 

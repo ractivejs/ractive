@@ -10,7 +10,7 @@ proto.update = function ( keypath, complete ) {
 	this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 	clearCache( this, keypath || '' );
-	notifyDependants( this, keypath || '' );
+	notifyDependents( this, keypath || '' );
 
 	processDeferredUpdates( this );
 

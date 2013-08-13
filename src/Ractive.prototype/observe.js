@@ -37,11 +37,11 @@
 			observer.update( true );
 		}
 
-		registerDependant( observer );
+		registerDependent( observer );
 
 		return {
 			cancel: function () {
-				unregisterDependant( observer );
+				unregisterDependent( observer );
 			}
 		};
 	};

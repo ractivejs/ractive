@@ -54,7 +54,7 @@ Ractive = function ( options ) {
 		_deps: { value: [] },
 		_depsMap: { value: createFromNull() },
 
-		// unresolved dependants
+		// unresolved dependents
 		_pendingResolution: { value: [] },
 
 		// Create arrays for deferred attributes and evaluators

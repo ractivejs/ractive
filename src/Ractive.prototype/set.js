@@ -42,13 +42,13 @@
 			attemptKeypathResolution( this );
 		}
 
-		// ...and notify dependants
+		// ...and notify dependents
 		if ( upstreamQueue.length ) {
-			notifyMultipleDependants( this, upstreamQueue, true );
+			notifyMultipleDependents( this, upstreamQueue, true );
 		}
 
 		if ( notificationQueue.length ) {
-			notifyMultipleDependants( this, notificationQueue );
+			notifyMultipleDependents( this, notificationQueue );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility

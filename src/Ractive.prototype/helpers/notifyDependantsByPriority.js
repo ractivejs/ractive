@@ -1,4 +1,4 @@
-notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect ) {
+notifyDependentsByPriority = function ( ractive, keypath, priority, onlyDirect ) {
 	var depsByKeypath, deps, i, len, childDeps;
 
 	depsByKeypath = ractive._deps[ priority ];
@@ -16,7 +16,7 @@ notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect )
 		}
 	}
 
-	// If we're only notifying direct dependants, not dependants
+	// If we're only notifying direct dependents, not dependents
 	// of downstream keypaths, then YOU SHALL NOT PASS
 	if ( onlyDirect ) {
 		return;
@@ -29,7 +29,7 @@ notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect )
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-			notifyDependantsByPriority( ractive, childDeps[i], priority );
+			notifyDependentsByPriority( ractive, childDeps[i], priority );
 		}
 	}
 };

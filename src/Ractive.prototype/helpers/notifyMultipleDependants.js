@@ -1,4 +1,4 @@
-notifyMultipleDependants = function ( ractive, keypaths, onlyDirect ) {
+notifyMultipleDependents = function ( ractive, keypaths, onlyDirect ) {
 	var  i, j, len;
 
 	len = keypaths.length;
@@ -7,7 +7,7 @@ notifyMultipleDependants = function ( ractive, keypaths, onlyDirect ) {
 		if ( ractive._deps[i] ) {
 			j = len;
 			while ( j-- ) {
-				notifyDependantsByPriority( ractive, keypaths[j], i, onlyDirect );
+				notifyDependentsByPriority( ractive, keypaths[j], i, onlyDirect );
 			}
 		}
 	}

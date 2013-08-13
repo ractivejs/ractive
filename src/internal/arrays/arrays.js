@@ -1,6 +1,6 @@
 (function () {
 
-	var notifyArrayDependants,
+	var notifyArrayDependents,
 
 		wrapArray,
 		unwrapArray,
@@ -85,13 +85,13 @@
 	};
 
 
-	notifyArrayDependants = function ( array, methodName, args ) {
+	notifyArrayDependents = function ( array, methodName, args ) {
 		var processRoots,
 			processRoot,
 			processKeypaths,
 			processKeypath,
-			queueAllDependants,
-			queueDependants,
+			queueAllDependents,
+			queueDependents,
 			keypathsByGuid;
 
 		keypathsByGuid = array._ractive.keypathsByGuid;
@@ -133,7 +133,7 @@
 			// in the right place. But we do need to clear the cache
 			clearCache( root, keypath );
 
-			// find dependants. If any are DOM sections, we do a smart update
+			// find dependents. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
 			dumbUpdateQueue = [];
@@ -148,7 +148,7 @@
 				deps = depsByKeypath[ keypath ];
 				
 				if ( deps ) {
-					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
+					queueDependents( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
 					// we may have some deferred evaluators to process
 					processDeferredUpdates( root );
@@ -166,7 +166,7 @@
 			// we may have some deferred attributes to process
 			processDeferredUpdates( root );
 
-			// Finally, notify direct dependants of upstream keypaths...
+			// Finally, notify direct dependents of upstream keypaths...
 			upstreamQueue = [];
 
 			keys = splitKeypath( keypath );
@@ -175,36 +175,36 @@
 				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
 			}
 
-			notifyMultipleDependants( root, upstreamQueue, true );
+			notifyMultipleDependents( root, upstreamQueue, true );
 
-			// length property has changed - notify dependants
+			// length property has changed - notify dependents
 			// TODO in some cases (e.g. todo list example, when marking all as complete, then
 			// adding a new item (which should deactivate the 'all complete' checkbox
 			// but doesn't) this needs to happen before other updates. But doing so causes
 			// other mental problems. not sure what's going on...
-			notifyDependants( root, keypath + '.length', true );
+			notifyDependents( root, keypath + '.length', true );
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
-		queueDependants = function ( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
-			var k, dependant;
+		queueDependents = function ( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
+			var k, dependent;
 
 			k = deps.length;
 			while ( k-- ) {
-				dependant = deps[k];
+				dependent = deps[k];
 
 				// references need to get processed before mustaches
-				if ( dependant.type === REFERENCE ) {
-					dependant.update();
-					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
+				if ( dependent.type === REFERENCE ) {
+					dependent.update();
+					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependent;
 				}
 
 				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === SECTION /*&& dependant.parentNode*/ ) {
-					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
+				else if ( dependent.keypath === keypath && dependent.type === SECTION /*&& dependent.parentNode*/ ) {
+					smartUpdateQueue[ smartUpdateQueue.length ] = dependent;
 
 				} else {
-					dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
+					dumbUpdateQueue[ dumbUpdateQueue.length ] = dependent;
 				}
 			}
 		};
@@ -225,7 +225,7 @@
 			var result = Array.prototype[ methodName ].apply( this, arguments );
 
 			this._ractive.setting = true;
-			notifyArrayDependants( this, methodName, arguments );
+			notifyArrayDependents( this, methodName, arguments );
 			this._ractive.setting = false;
 
 			return result;
