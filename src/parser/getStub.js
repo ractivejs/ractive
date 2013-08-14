@@ -637,7 +637,7 @@
 			},
 
 			toString: function () {
-				var str, i, len, attrStr, lcName, attrValueStr, fragStr, isVoid;
+				var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
 
 				if ( this.str !== undefined ) {
 					return this.str;
@@ -670,20 +670,20 @@
 				if ( this.attributes ) {
 					for ( i=0, len=this.attributes.length; i<len; i+=1 ) {
 
-						lcName = this.attributes[i].name.toLowerCase();
+						name = this.attributes[i].name;
 						
 						// does this look like a namespaced attribute? if so we can't stringify it
-						if ( lcName.indexOf( ':' ) !== -1 ) {
+						if ( name.indexOf( ':' ) !== -1 ) {
 							return ( this.str = false );
 						}
 
 						// if this element has an id attribute, it can't be stringified (since references are stored
 						// in ractive.nodes). Similarly, intro and outro transitions
-						if ( lcName === 'id' || lcName === 'intro' || lcName === 'outro' ) {
+						if ( name === 'id' || name === 'intro' || name === 'outro' ) {
 							return ( this.str = false );
 						}
 
-						attrStr = ' ' + this.attributes[i].name;
+						attrStr = ' ' + name;
 
 						// empty attributes
 						if ( this.attributes[i].value !== null ) {
