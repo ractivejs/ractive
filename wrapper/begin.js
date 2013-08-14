@@ -59,6 +59,14 @@ create,
 createFromNull,
 hasOwn = {}.hasOwnProperty,
 noop = function () {},
+addEventProxies,
+addEventProxy,
+appendElementChildren,
+bindElement,
+createElementAttributes,
+getElementNamespace,
+updateAttribute,
+bindAttribute,
 
 
 // internally used caches
