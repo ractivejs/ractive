@@ -159,7 +159,7 @@
 			}
 
 			// move template to where it belongs
-			Child.template = Child.template.template;
+			Child.template = Child.template.main;
 		}
 	};
 
