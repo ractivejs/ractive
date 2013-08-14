@@ -59,6 +59,14 @@ create,
 createFromNull,
 hasOwn = {}.hasOwnProperty,
 noop = function () {},
+addEventProxies,
+addEventProxy,
+appendElementChildren,
+bindElement,
+createElementAttributes,
+getElementNamespace,
+updateAttribute,
+bindAttribute,
 
 
 // internally used caches
@@ -448,6 +456,945 @@ var cssTransitionsEnabled, transition, transitionend;
 
 }( global ));
 
+(function () {
+
+	var getInterpolator,
+		updateModel,
+		getBinding,
+		inheritProperties,
+		arrayContentsMatch,
+		MultipleSelectBinding,
+		SelectBinding,
+		RadioNameBinding,
+		CheckboxNameBinding,
+		CheckedBinding,
+		FileListBinding,
+		GenericBinding;
+
+	bindAttribute = function ( lazy ) {
+		var node = this.parentNode, interpolator, keypath, index, options, option, i, len, binding;
+
+		if ( !this.fragment ) {
+			return false; // report failure
+		}
+
+		interpolator = getInterpolator( this );
+
+		if ( !interpolator ) {
+			return false; // report failure
+		}
+
+		this.interpolator = interpolator;
+
+		// Hmmm. Not sure if this is the best way to handle this ambiguity...
+		//
+		// Let's say we were given `value="{{bar}}"`. If the context stack was
+		// context stack was `["foo"]`, and `foo.bar` *wasn't* `undefined`, the
+		// keypath would be `foo.bar`. Then, any user input would result in
+		// `foo.bar` being updated.
+		//
+		// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
+		// left with an unresolved partial keypath - so we are forced to make an
+		// assumption. That assumption is that the input in question should
+		// be forced to resolve to `bar`, and any user input would affect `bar`
+		// and not `foo.bar`.
+		//
+		// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
+		// be explicit when using two-way data-binding about what keypath you're
+		// updating. Using it in lists is probably a recipe for confusion...
+		this.keypath = interpolator.keypath || interpolator.descriptor.r;
+
+		//this.updateModel = getUpdater( this );
+		binding = getBinding( this );
+
+		if ( !binding ) {
+			return false;
+		}
+
+		node._ractive.binding = binding;
+		this.twoway = true;
+
+		this.boundEvents = [ 'change' ];
+
+		if ( !lazy ) {
+			this.boundEvents.push( 'input' );
+
+			// this is a hack to see if we're in IE - if so, we probably need to add
+			// a keyup listener as well, since in IE8 the input event doesn't fire,
+			// and in IE9 it doesn't fire when text is deleted
+			if ( node.attachEvent ) {
+				this.boundEvents.push( 'keyup' );
+			}
+		}
+
+		// Another IE fix, this time with checkboxes that don't fire change events
+		// until they blur
+		if ( node.attachEvent && node.type === 'checkbox' ) {
+			this.boundEvents.push( 'click' );
+		}
+
+		i = this.boundEvents.length;
+		while ( i-- ) {
+			node.addEventListener( this.boundEvents[i], updateModel, false );
+		}
+
+		return true;
+	};
+
+	updateModel = function () {
+		this._ractive.binding.update();
+	};
+
+	getInterpolator = function ( attribute ) {
+		var item;
+
+		// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
+		// Check this is a suitable candidate for two-way binding - i.e. it is
+		// a single interpolator, which isn't an expression
+		if ( attribute.fragment.items.length !== 1 ) {
+			return null;
+		}
+
+		item = attribute.fragment.items[0];
+			
+		if ( item.type !== INTERPOLATOR ) {
+			return null;
+		}
+
+		if ( !item.keypath && !item.ref ) {
+			return null;
+		}
+
+		return item;
+	};
+
+	// we need to create a function that updates the model on change events.
+	// this will differ depending on the type of binding
+	/*getUpdater = function ( attribute ) {
+		var node = attribute.parentNode, updater;
+
+		// checkboxes and radio buttons
+		if ( node.type === 'checkbox' || node.type === 'radio' ) {
+			// We might have a situation like this: 
+			//
+			//     <input type='radio' name='{{colour}}' value='red'>
+			//     <input type='radio' name='{{colour}}' value='blue'>
+			//     <input type='radio' name='{{colour}}' value='green'>
+			//
+			// In this case we want to set `colour` to the value of whichever option
+			// is checked. (We assume that a value attribute has been supplied.)
+
+			if ( attribute.propertyName === 'name' ) {
+				// replace actual name attribute
+				node.name = '{{' + attribute.keypath + '}}';
+
+				return function () {
+					if ( node.checked ) {
+						attribute.root.set( attribute.keypath, node._ractive ? node._ractive.value : node.value );
+					}
+				};
+			}
+
+
+			// Or, we might have a situation like this:
+			//
+			//     <input type='checkbox' checked='{{active}}'>
+			//
+			// Here, we want to set `active` to true or false depending on whether
+			// the input is checked.
+
+			if ( attribute.propertyName === 'checked' ) {
+				return function () {
+					attribute.root.set( attribute.keypath, node.checked );
+				};
+			}
+		}
+
+		if ( attribute.isFileInputValue ) {
+			return function () {
+				attribute.root.set( attribute.keypath, node.files );
+			};
+		}
+
+		if ( node.tagName === 'SELECT' ) {
+			if ( node.multiple ) {
+				return function () {
+					var value, selectedOptions, i, previousValue, changed;
+
+					previousValue = attribute.value || [];
+
+					value = [];
+					selectedOptions = node.querySelectorAll( 'option:checked' );
+					len = selectedOptions.length;
+
+					for ( i=0; i<len; i+=1 ) {
+						value[ value.length ] = selectedOptions[i].value;
+					}
+
+					// has the selection changed?
+					changed = ( len !== previousValue.length );
+					i = value.length;
+					while ( i-- ) {
+						if ( value[i] !== previousValue[i] ) {
+							changed = true;
+						}
+					}
+
+					if ( changed = true ) {
+						attribute.value = value;
+						attribute.root.set( attribute.keypath, value );
+					}
+				};
+			}
+
+			return function () {
+				var selectedOption, value;
+
+				selectedOption = node.querySelector( 'option:checked' );
+
+				if ( !selectedOption ) {
+					return;
+				}
+
+				value = selectedOption._ractive.value;
+
+				attribute.value = value;
+				attribute.root.set( attribute.keypath, value );
+			};
+		}
+
+		// Otherwise we've probably got a situation like this:
+		//
+		//     <input value='{{name}}'>
+		//
+		// in which case we just want to set `name` whenever the user enters text.
+		// The same applies to selects and textareas 
+		return function () {
+			var value = node.value;
+
+			// so that we can do +value || value below
+			if ( value === '0' ) {
+				value = 0;
+			}
+
+			else if ( value !== '' ) {
+				value = +value || value;
+			}
+
+			attribute.root.set( attribute.keypath, value );
+		};
+	};*/
+
+	getBinding = function ( attribute ) {
+		var node = attribute.parentNode, updater;
+
+		if ( node.tagName === 'SELECT' ) {
+			return ( node.multiple ? new MultipleSelectBinding( attribute, node ) : new SelectBinding( attribute, node ) );
+		}
+
+		if ( node.type === 'checkbox' || node.type === 'radio' ) {
+			if ( attribute.propertyName === 'name' ) {
+				if ( node.type === 'checkbox' ) {
+					return new CheckboxNameBinding( attribute, node );
+				}
+
+				if ( node.type === 'radio' ) {
+					return new RadioNameBinding( attribute, node );
+				}
+			}
+
+			if ( attribute.propertyName === 'check' ) {
+				return new CheckedBinding( attribute, node );
+			}
+
+			return null;
+		}
+
+		if ( attribute.propertyName !== 'value' ) {
+			console.warn( 'This is... odd' );
+		}
+
+		if ( attribute.parentNode.type === 'file' ) {
+			return new FileListBinding( attribute, node );
+		}
+
+		return new GenericBinding( attribute, node );
+	};
+
+	MultipleSelectBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+		node.addEventListener( 'change', updateModel, false );
+	};
+
+	MultipleSelectBinding.prototype = {
+		update: function () {
+			var attribute, value, selectedOptions, i, previousValue, changed, len;
+
+			attribute = this.attr;
+			previousValue = attribute.value || [];
+
+			value = [];
+			selectedOptions = this.node.querySelectorAll( 'option:checked' );
+			len = selectedOptions.length;
+
+			for ( i=0; i<len; i+=1 ) {
+				value[ value.length ] = selectedOptions[i]._ractive.value;
+			}
+
+			// has the selection changed?
+			changed = ( len !== previousValue.length );
+			i = value.length;
+			while ( i-- ) {
+				if ( value[i] !== previousValue[i] ) {
+					changed = true;
+				}
+			}
+
+			if ( changed = true ) {
+				attribute.value = value;
+				this.root.set( this.keypath, value );
+			}
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+		}
+	};
+
+	SelectBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+		node.addEventListener( 'change', updateModel, false );
+	};
+
+	SelectBinding.prototype = {
+		update: function () {
+			var selectedOption, value;
+
+			selectedOption = this.node.querySelector( 'option:checked' );
+
+			if ( !selectedOption ) {
+				return;
+			}
+
+			value = selectedOption._ractive.value;
+
+			this.attr.value = value;
+			this.root.set( this.keypath, value );
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+		}
+	};
+
+	RadioNameBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.name = '{{' + attribute.keypath + '}}';
+
+		node.addEventListener( 'change', updateModel, false );
+
+		if ( node.attachEvent ) {
+			node.addEventListener( 'click', updateModel, false );
+		}
+	};
+
+	RadioNameBinding.prototype = {
+		update: function () {
+			var node = this.node;
+
+			if ( node.checked ) {
+				this.root.set( this.keypath, node._ractive ? node._ractive.value : node.value );
+			}
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'click', updateModel, false );
+		}
+	};
+
+	CheckboxNameBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.name = '{{' + this.keypath + '}}';
+		this.query = 'input[type="checkbox"][name="' + node.name + '"]';
+
+		node.addEventListener( 'change', updateModel, false );
+
+		if ( node.attachEvent ) {
+			node.addEventListener( 'click', updateModel, false );
+		}
+	};
+
+	CheckboxNameBinding.prototype = {
+		update: function () {
+			var previousValue, value, checkboxes, len, i, checkbox;
+
+			previousValue = this.root.get( this.keypath );
+
+			// TODO is this overkill?
+			checkboxes = this.root.el.querySelectorAll( this.query );
+
+			len = checkboxes.length;
+			value = [];
+
+			for ( i=0; i<len; i+=1 ) {
+				checkbox = checkboxes[i];
+
+				if ( checkbox.checked ) {
+					value[ value.length ] = checkbox._ractive.value;
+				}
+			}
+
+			if ( !arrayContentsMatch( previousValue, value ) ) {
+				this.root.set( this.keypath, value );
+			}
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'click', updateModel, false );
+		}
+	};
+
+	CheckedBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.addEventListener( 'change', updateModel, false );
+
+		if ( node.attachEvent ) {
+			node.addEventListener( 'click', updateModel, false );
+		}
+	};
+
+	CheckedBinding.prototype = {
+		update: function () {
+			this.root.set( this.keypath, this.node.checked );
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'click', updateModel, false );
+		}
+	};
+
+	FileListBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.addEventListener( 'change', updateModel, false );
+	};
+
+	FileListBinding.prototype = {
+		update: function () {
+			this.attr.root.set( this.attr.keypath, this.attr.parentNode.files );
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+		}
+	};
+
+	GenericBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.addEventListener( 'change', updateModel, false );
+
+		if ( !this.root.lazy ) {
+			node.addEventListener( 'input', updateModel, false );
+		}
+
+		if ( node.attachEvent ) {
+			node.addEventListener( 'keyup', updateModel, false );
+		}
+	};
+
+	GenericBinding.prototype = {
+		update: function () {
+			var attribute = this.attr, value = attribute.parentNode.value;
+
+			// so that we can do +value || value below
+			if ( value === '0' ) {
+				value = 0;
+			}
+
+			else if ( value !== '' ) {
+				value = +value || value;
+			}
+
+			attribute.root.set( attribute.keypath, value );
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'input', updateModel, false );
+			this.node.removeEventListener( 'keyup', updateModel, false );
+		}
+	};
+
+	inheritProperties = function ( binding, attribute, node ) {
+		binding.attr = attribute;
+		binding.node = node;
+		binding.root = attribute.root;
+		binding.keypath = attribute.keypath;
+	};
+
+	arrayContentsMatch = function ( a, b ) {
+		var i;
+
+		if ( !isArray( a ) || !isArray( b ) ) {
+			return false;
+		}
+
+		if ( a.length !== b.length ) {
+			return false;
+		}
+
+		i = a.length;
+		while ( i-- ) {
+			if ( a[i] !== b[i] ) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+}());
+(function () {
+
+	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse;
+
+	// There are a few special cases when it comes to updating attributes. For this reason,
+	// the prototype .update() method points to updateAttribute, which waits until the
+	// attribute has finished initialising, then replaces the prototype method with a more
+	// suitable one. That way, we save ourselves doing a bunch of tests on each call
+	updateAttribute = function () {
+		var value, lowerCaseName, options, i, node;
+
+		if ( !this.ready ) {
+			return this; // avoid items bubbling to the surface when we're still initialising
+		}
+
+		node = this.parentNode;
+
+		// special case - selects
+		if ( node.tagName === 'SELECT' && this.name === 'value' ) {
+			this.update = deferSelect;
+			this.deferredUpdate = initSelect; // we don't know yet if it's a select-one or select-multiple
+
+			return this.update();
+		}
+
+		// special case - <input type='file' value='{{fileList}}'>
+		if ( this.isFileInputValue ) {
+			this.update = updateFileInputValue; // save ourselves the trouble next time
+			return this;
+		}
+
+		// special case - <input type='radio' name='{{twoway}}' value='foo'>
+		if ( this.twoway && this.name === 'name' ) {
+			if ( node.type === 'radio' ) {
+				this.update = updateRadioName;
+				return this.update();
+			}
+
+			if ( node.type === 'checkbox' ) {
+				this.update = updateCheckboxName;
+				return this.update();
+			}
+		}
+
+		this.update = updateEverythingElse;
+		return this.update();
+	};
+
+	updateFileInputValue = function () {
+		return this; // noop - file inputs are readonly
+	};
+
+	initSelect = function () {
+		// we're now in a position to decide whether this is a select-one or select-multiple
+		this.deferredUpdate = ( this.parentNode.multiple ? updateMultipleSelect : updateSelect );
+		this.deferredUpdate();
+	};
+
+	deferSelect = function () {
+		// because select values depend partly on the values of their children, and their
+		// children may be entering and leaving the DOM, we wait until updates are
+		// complete before updating
+		this.root._defSelectValues.push( this );
+		return this;
+	};
+
+	updateSelect = function () {
+		var value = this.fragment.getValue(), options, option, i;
+
+		this.value = value;
+
+		options = this.parentNode.querySelectorAll( 'option' );
+		i = options.length;
+
+		while ( i-- ) {
+			option = options[i];
+
+			if ( option._ractive.value === value ) {
+				option.selected = true;
+				return this;
+			}
+		}
+
+		// if we're still here, it means the new value didn't match any of the options...
+		// TODO figure out what to do in this situation
+		
+		return this;
+	};
+
+	updateMultipleSelect = function () {
+		var value = this.fragment.getValue(), options, i;
+
+		if ( !isArray( value ) ) {
+			value = [ value ];
+		}
+
+		options = this.parentNode.querySelectorAll( 'option' );
+		i = options.length;
+
+		while ( i-- ) {
+			options[i].selected = ( value.indexOf( options[i]._ractive.value ) !== -1 );
+		}
+
+		this.value = value;
+
+		return this;
+	};
+
+	updateRadioName = function () {
+		var node, value;
+
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		node.checked = ( value === node._ractive.value );
+
+		return this;
+	};
+
+	updateCheckboxName = function () {
+		var node, value;
+
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if ( !isArray( value ) ) {
+			node.checked = ( value === node._ractive.value );
+			return this;
+		}
+
+		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
+
+		return this;
+	};
+
+	updateEverythingElse = function () {
+		var node, value;
+
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		// store actual value, so it doesn't get coerced to a string
+		if ( this.isValueAttribute ) {
+			node._ractive.value = value;
+		}
+
+		if ( value === undefined ) {
+			value = '';
+		}
+
+		if ( value !== this.value ) {
+			if ( this.useProperty ) {
+				
+				node[ this.propertyName ] = value;
+				this.value = value;
+
+				return this;
+			}
+
+			if ( this.namespace ) {
+				node.setAttributeNS( this.namespace, this.name, value );
+				this.value = value;
+
+				return this;
+			}
+
+			if ( this.name === 'id' ) {
+				if ( this.value !== undefined ) {
+					this.root.nodes[ this.value ] = undefined;
+				}
+
+				this.root.nodes[ value ] = node;
+			}
+
+			node.setAttribute( this.name, value );
+
+			this.value = value;
+		}
+
+		return this;
+	};
+
+}());
+addEventProxies = function ( element, proxies ) {
+	var i, eventName, eventNames;
+
+	for ( eventName in proxies ) {
+		if ( hasOwn.call( proxies, eventName ) ) {
+			eventNames = eventName.split( '-' );
+			i = eventNames.length;
+
+			while ( i-- ) {
+				addEventProxy( element, eventNames[i], proxies[ eventName ], element.parentFragment.contextStack );
+			}
+		}
+	}
+};
+addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack ) {
+	var root = element.root, proxyName, proxyArgs, dynamicArgs, reuseable, definition, listener, fragment, handler, comboKey;
+
+	element.ractify();
+
+	if ( typeof proxyDescriptor === 'string' ) {
+		proxyName = proxyDescriptor;
+	} else {
+		proxyName = proxyDescriptor.n;
+	}
+
+	// This key uniquely identifies this trigger+proxy name combo on this element
+	comboKey = triggerEventName + '=' + proxyName;
+	
+	if ( proxyDescriptor.a ) {
+		proxyArgs = proxyDescriptor.a;
+	}
+
+	else if ( proxyDescriptor.d ) {
+		dynamicArgs = true;
+
+		proxyArgs = new StringFragment({
+			descriptor:   proxyDescriptor.d,
+			root:         this.root,
+			owner:        this,
+			contextStack: contextStack
+		});
+
+		if ( !element.proxyFrags ) {
+			element.proxyFrags = [];
+		}
+		element.proxyFrags[ element.proxyFrags.length ] = proxyArgs;
+	}
+
+	if ( proxyArgs !== undefined ) {
+		// store arguments on the element, so we can reuse the same handler
+		// with multiple elements
+		if ( element.node._ractive[ comboKey ] ) {
+			throw new Error( 'You cannot have two proxy events with the same trigger event (' + comboKey + ')' );
+		}
+
+		element.node._ractive[ comboKey ] = {
+			dynamic: dynamicArgs,
+			payload: proxyArgs
+		};
+	}
+
+	// Is this a custom event?
+	if ( definition = ( root.eventDefinitions[ triggerEventName ] || Ractive.eventDefinitions[ triggerEventName ] ) ) {
+		// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
+		// we can reuse the handler. This eliminates the need for event delegation
+		if ( !root._customProxies[ comboKey ] ) {
+			root._customProxies[ comboKey ] = function ( proxyEvent ) {
+				var args, payload;
+
+				if ( !proxyEvent.node ) {
+					throw new Error( 'Proxy event definitions must fire events with a `node` property' );
+				}
+
+				proxyEvent.keypath = proxyEvent.node._ractive.keypath;
+				proxyEvent.context = root.get( proxyEvent.keypath );
+				proxyEvent.index = proxyEvent.node._ractive.index;
+
+				if ( proxyEvent.node._ractive[ comboKey ] ) {
+					args = proxyEvent.node._ractive[ comboKey ];
+					payload = args.dynamic ? args.payload.toJson() : args.payload;
+				}
+
+				root.fire( proxyName, proxyEvent, payload );
+			};
+		}
+
+		handler = root._customProxies[ comboKey ];
+
+		// Use custom event. Apply definition to this node
+		listener = definition( element.node, handler );
+		element.customEventListeners[ element.customEventListeners.length ] = listener;
+
+		return;
+	}
+
+	// If not, we just need to check it is a valid event for this element
+	// warn about invalid event handlers, if we're in debug mode
+	if ( element.node[ 'on' + triggerEventName ] !== undefined && root.debug ) {
+		if ( console && console.warn ) {
+			console.warn( 'Invalid event handler (' + triggerEventName + ')' );
+		}
+	}
+
+	if ( !root._proxies[ comboKey ] ) {
+		root._proxies[ comboKey ] = function ( event ) {
+			var args, payload, proxyEvent = {
+				node: element,
+				original: event,
+				keypath: element._ractive.keypath,
+				context: root.get( element._ractive.keypath ),
+				index: element._ractive.index
+			};
+
+			if ( element._ractive && element._ractive[ comboKey ] ) {
+				args = element._ractive[ comboKey ];
+				payload = args.dynamic ? args.payload.toJson() : args.payload;
+			}
+
+			root.fire( proxyName, proxyEvent, payload );
+		};
+	}
+
+	handler = root._proxies[ comboKey ];
+
+	element.eventListeners[ element.eventListeners.length ] = {
+		n: triggerEventName,
+		h: handler
+	};
+
+	element.node.addEventListener( triggerEventName, handler, false );
+};
+appendElementChildren = function ( element, node, descriptor, docFrag ) {
+	if ( typeof descriptor.f === 'string' && ( !node || ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) ) {
+		// great! we can use innerHTML
+		element.html = descriptor.f;
+
+		if ( docFrag ) {
+			node.innerHTML = element.html;
+		}
+	}
+
+	else {
+		// once again, everyone has to suffer because of IE bloody 8
+		if ( descriptor.e === 'style' && node.styleSheet !== undefined ) {
+			element.fragment = new StringFragment({
+				descriptor:   descriptor.f,
+				root:         element.root,
+				contextStack: element.parentFragment.contextStack,
+				owner:        element
+			});
+
+			if ( docFrag ) {
+				element.bubble = function () {
+					node.styleSheet.cssText = element.fragment.toString();
+				};
+			}
+		}
+
+		else {
+			element.fragment = new DomFragment({
+				descriptor:   descriptor.f,
+				root:         element.root,
+				parentNode:   node,
+				contextStack: element.parentFragment.contextStack,
+				owner:        element
+			});
+
+			if ( docFrag ) {
+				node.appendChild( element.fragment.docFrag );
+			}
+		}
+	}
+};
+bindElement = function ( element, attributes ) {
+	element.ractify();
+
+	// an element can only have one two-way attribute
+	switch ( element.descriptor.e ) {
+		case 'select':
+		case 'textarea':
+		if ( attributes.value ) {
+			attributes.value.bind();
+		}
+		return;
+
+		case 'input':
+
+		if ( element.node.type === 'radio' || element.node.type === 'checkbox' ) {
+			// we can either bind the name attribute, or the checked attribute - not both
+			if ( attributes.name && attributes.name.bind() ) {
+				element.node._ractive.binding.update();
+				return;
+			}
+
+			if ( attributes.checked && attributes.checked.bind() ) {
+				return;
+			}
+		}
+
+		if ( attributes.value && attributes.value.bind() ) {
+			return;
+		}
+	}
+};
+createElementAttributes = function ( element, attributes ) {
+	var attrName, attrValue, attr;
+
+	element.attributes = [];
+
+	for ( attrName in attributes ) {
+		if ( hasOwn.call( attributes, attrName ) ) {
+			attrValue = attributes[ attrName ];
+
+			attr = new DomAttribute({
+				element:      element,
+				name:         attrName,
+				value:        attrValue,
+				root:         element.root,
+				parentNode:   element.node,
+				contextStack: element.parentFragment.contextStack
+			});
+
+			element.attributes[ element.attributes.length ] = attr;
+
+			// name, value and checked attributes are potentially bindable
+			if ( attrName === 'value' || attrName === 'name' || attrName === 'checked' ) {
+				element.attributes[ attrName ] = attr;
+			}
+
+			// The name attribute is a special case - it is the only two-way attribute that updates
+			// the viewmodel based on the value of another attribute. For that reason it must wait
+			// until the node has been initialised, and the viewmodel has had its first two-way
+			// update, before updating itself (otherwise it may disable a checkbox or radio that
+			// was enabled in the template)
+			if ( attrName !== 'name' ) {
+				attr.update();
+			}
+		}
+	}
+
+	return element.attributes;
+};
+getElementNamespace = function ( descriptor, parentNode ) {
+	// if the element has an xmlns attribute, use that
+	if ( descriptor.a && descriptor.a.xmlns ) {
+		return descriptor.a.xmlns;
+	}
+
+	// otherwise, use the svg namespace if this is an svg element, or inherit namespace from parent
+	return ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : parentNode.namespaceURI );
+};
 executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
 	var transitionName, transitionParams, fragment, transitionManager, transition;
 
@@ -1704,13 +2651,7 @@ processDeferredUpdates = function ( ractive ) {
 	}
 
 	while ( ractive._defSelectValues.length ) {
-		attribute = ractive._defSelectValues.pop();
-
-		attribute.parentNode.value = attribute.value;
-
-		// value may not be what we think it should be, if the relevant <option>
-		// element doesn't exist!
-		attribute.value = attribute.parentNode.value;
+		ractive._defSelectValues.pop().deferredUpdate();
 	}
 };
 registerDependant = function ( dependant ) {
@@ -2803,7 +3744,7 @@ eventDefinitions.tap = function ( node, fire ) {
 			}
 
 			// move template to where it belongs
-			Child.template = Child.template.template;
+			Child.template = Child.template.main;
 		}
 	};
 
@@ -4004,7 +4945,7 @@ animationCollection = {
 }());
 (function () {
 
-	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName, isAttributeBindable;
+	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
 
 	// the property name equivalents for element attributes, where they differ
 	// from the lowercased attribute name
@@ -4046,7 +4987,6 @@ animationCollection = {
 		this.root = options.root;
 		this.element = options.element;
 		this.parentNode = options.parentNode;
-		this.lcName = this.name.toLowerCase();
 
 		// share parentFragment with parent element
 		this.parentFragment = this.element.parentFragment;
@@ -4064,6 +5004,23 @@ animationCollection = {
 			return;
 		}
 
+		// special cases
+		if ( this.name === 'value' ) {
+			
+			// in some cases we will need to store the node's intended value, as node.value
+			// is always a string. For that, we need to add a place to store it
+			options.element.ractify();
+
+			this.isValueAttribute = true;
+
+			// TODO need to wait until afterwards to determine type, in case we
+			// haven't initialised that attribute yet
+			// <input type='file' value='{{value}}'>
+			if ( this.parentNode.tagName === 'INPUT' && this.parentNode.type === 'file' ) {
+				this.isFileInputValue = true;
+			}
+		} 
+		
 
 		// can we establish this attribute's property name equivalent?
 		determinePropertyName( this, options );
@@ -4071,208 +5028,19 @@ animationCollection = {
 		// determine whether this attribute can be marked as self-updating
 		this.selfUpdating = isStringFragmentSimple( this.fragment );
 
-		// if two-way binding is enabled, and we've got a dynamic `value` attribute, and this is an input or textarea, set up two-way binding
-		this.isBindable = isAttributeBindable( this );
-
 		// mark as ready
 		this.ready = true;
 	};
 
 	DomAttribute.prototype = {
-		bind: function ( lazy ) {
-			var self = this, node = this.parentNode, interpolator, keypath, index, options, option, i, len;
-
-			if ( !this.fragment ) {
-				return false; // report failure
-			}
-
-			// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
-			// Check this is a suitable candidate for two-way binding - i.e. it is
-			// a single interpolator, which isn't an expression
-			if (
-				this.fragment.items.length !== 1 ||
-				this.fragment.items[0].type !== INTERPOLATOR ||
-				( !this.fragment.items[0].keypath && !this.fragment.items[0].ref )
-			) {
-				if ( this.root.debug ) {
-					if ( console && console.warn ) {
-						console.warn( 'Not a valid two-way data binding candidate - must be a single interpolator:', this.fragment.items );
-					}
-				}
-				return false; // report failure
-			}
-
-			this.interpolator = this.fragment.items[0];
-
-			// Hmmm. Not sure if this is the best way to handle this ambiguity...
-			//
-			// Let's say we were given `value="{{bar}}"`. If the context stack was
-			// context stack was `["foo"]`, and `foo.bar` *wasn't* `undefined`, the
-			// keypath would be `foo.bar`. Then, any user input would result in
-			// `foo.bar` being updated.
-			//
-			// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
-			// left with an unresolved partial keypath - so we are forced to make an
-			// assumption. That assumption is that the input in question should
-			// be forced to resolve to `bar`, and any user input would affect `bar`
-			// and not `foo.bar`.
-			//
-			// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
-			// be explicit when using two-way data-binding about what keypath you're
-			// updating. Using it in lists is probably a recipe for confusion...
-			this.keypath = this.interpolator.keypath || this.interpolator.descriptor.r;
-			
-			
-			// select
-			if ( node.tagName === 'SELECT' && this.propertyName === 'value' ) {
-				// We need to know if one of the options was selected, so we
-				// can initialise the viewmodel. To do that we need to jump
-				// through a couple of hoops
-				options = node.getElementsByTagName( 'option' );
-
-				len = options.length;
-				for ( i=0; i<len; i+=1 ) {
-					option = options[i];
-					if ( option.hasAttribute( 'selected' ) ) { // not option.selected - won't work here
-						this.root.set( this.keypath, option.value );
-						break;
-					}
-				}
-
-				this.isMultipleSelect = node.multiple;
-			}
-
-			// checkboxes and radio buttons
-			if ( node.type === 'checkbox' || node.type === 'radio' ) {
-				// We might have a situation like this: 
-				//
-				//     <input type='radio' name='{{colour}}' value='red'>
-				//     <input type='radio' name='{{colour}}' value='blue'>
-				//     <input type='radio' name='{{colour}}' value='green'>
-				//
-				// In this case we want to set `colour` to the value of whichever option
-				// is checked. (We assume that a value attribute has been supplied.)
-
-				if ( this.propertyName === 'name' ) {
-					// replace actual name attribute
-					node.name = '{{' + this.keypath + '}}';
-
-					this.updateViewModel = function () {
-						if ( node.checked ) {
-							self.root.set( self.keypath, node.value );
-						}
-					};
-				}
-
-
-				// Or, we might have a situation like this:
-				//
-				//     <input type='checkbox' checked='{{active}}'>
-				//
-				// Here, we want to set `active` to true or false depending on whether
-				// the input is checked.
-
-				else if ( this.propertyName === 'checked' ) {
-					this.updateViewModel = function () {
-						self.root.set( self.keypath, node.checked );
-					};
-				}
-			}
-
-			else {
-				if ( this.isMultipleSelect ) {
-					this.updateViewModel = function ( event ) {
-						var value, selectedOptions, i, previousValue, changed;
-
-						window.attr = self;
-						previousValue = self.value || [];
-
-						value = [];
-						selectedOptions = node.querySelectorAll( 'option:checked' );
-						len = selectedOptions.length;
-
-						for ( i=0; i<len; i+=1 ) {
-							value[ value.length ] = selectedOptions[i].value;
-						}
-
-						// has the selection changed?
-						changed = ( len !== previousValue.length );
-						i = value.length;
-						while ( i-- ) {
-							if ( value[i] !== previousValue[i] ) {
-								changed = true;
-							}
-						}
-
-						if ( changed = true ) {
-							self.value = value;
-							self.root.set( self.keypath, value );
-						}
-					};
-				}
-
-				// Otherwise we've probably got a situation like this:
-				//
-				//     <input value='{{name}}'>
-				//
-				// in which case we just want to set `name` whenever the user enters text.
-				// The same applies to selects and textareas 
-				else {
-					this.updateViewModel = function () {
-						var value;
-
-						value = node.value;
-
-						// special cases
-						if ( value === '0' ) {
-							value = 0;
-						}
-
-						else if ( value !== '' ) {
-							value = +value || value;
-						}
-
-						self.root.set( self.keypath, value );
-					};
-				}
-			}
-			
-
-			// if we figured out how to bind changes to the viewmodel, add the event listeners
-			if ( this.updateViewModel ) {
-				this.twoway = true;
-
-				this.boundEvents = [ 'change' ];
-
-				if ( !lazy ) {
-					this.boundEvents.push( 'input' );
-
-					// this is a hack to see if we're in IE - if so, we probably need to add
-					// a keyup listener as well, since in IE8 the input event doesn't fire,
-					// and in IE9 it doesn't fire when text is deleted
-					if ( node.attachEvent ) {
-						this.boundEvents.push( 'keyup' );
-					}
-				}
-
-				// Another IE fix, this time with checkboxes that don't fire change events
-				// until they blur
-				if ( node.attachEvent && node.type === 'checkbox' ) {
-					this.boundEvents.push( 'click' );
-				}
-
-				i = this.boundEvents.length;
-				while ( i-- ) {
-					node.addEventListener( this.boundEvents[i], this.updateViewModel, false );
-				}
-			}
-		},
+		bind: bindAttribute,
+		update: updateAttribute,
 
 		updateBindings: function () {
 			// if the fragment this attribute belongs to gets reassigned (as a result of
 			// as section being updated via an array shift, unshift or splice), this
 			// attribute needs to recognise that its keypath has changed
-			this.keypath = this.interpolator.keypath || this.interpolator.r;
+			this.keypath = this.interpolator.keypath || this.interpolator.r; // TODO is this right? .r?
 
 			// if we encounter the special case described above, update the name attribute
 			if ( this.propertyName === 'name' ) {
@@ -4288,7 +5056,7 @@ animationCollection = {
 				i = this.boundEvents.length;
 
 				while ( i-- ) {
-					this.parentNode.removeEventListener( this.boundEvents[i], this.updateViewModel, false );
+					this.parentNode.removeEventListener( this.boundEvents[i], this.updateModel, false );
 				}
 			}
 
@@ -4312,107 +5080,6 @@ animationCollection = {
 				this.root._defAttrs[ this.root._defAttrs.length ] = this;
 				this.deferred = true;
 			}
-		},
-
-		update: function () {
-			var value, lowerCaseName, options, i;
-
-			if ( !this.ready ) {
-				return this; // avoid items bubbling to the surface when we're still initialising
-			}
-
-			// special case - <select multiple>
-			if ( this.isMultipleSelect ) {
-				value = this.fragment.getValue();
-
-				if ( typeof value === 'string' ) {
-					value = [ value ];
-				}
-				
-				if ( isArray( value ) ) {
-					options = this.parentNode.querySelectorAll( 'option' );
-					i = options.length;
-
-					while ( i-- ) {
-						options[i].selected = ( value.indexOf( options[i].value ) !== -1 );
-					}
-				}
-
-				this.value = value;
-
-				return this;
-			}
-
-			if ( this.twoway ) {
-				// TODO compare against previous?
-
-				lowerCaseName = this.lcName;
-				value = this.interpolator.value;
-
-				// special case - if we have an element like this:
-				//
-				//     <input type='radio' name='{{colour}}' value='red'>
-				//
-				// and `colour` has been set to 'red', we don't want to change the name attribute
-				// to red, we want to indicate that this is the selected option, by setting
-				// input.checked = true
-				if ( lowerCaseName === 'name' && ( this.parentNode.type === 'checkbox' || this.parentNode.type === 'radio' ) ) {
-					if ( value === this.parentNode.value ) {
-						this.parentNode.checked = true;
-					} else {
-						this.parentNode.checked = false;
-					}
-
-					return this; 
-				}
-			}
-
-			value = this.fragment.getValue();
-
-			if ( value === undefined ) {
-				value = '';
-			}
-
-			if ( value !== this.value ) {
-				if ( this.useProperty ) {
-					
-					// Special case - <select> element value attributes. If its value is set at the same
-					// time as data which causes options to be added, removed, or changed, things can go
-					// awry. For that reason, this attribute needs to get updated after everything else
-					if ( this.element.descriptor.e === 'select' && this.propertyName === 'value' ) {
-						this.value = value;
-						this.root._defSelectValues.push( this );
-						
-						return this;
-					}
-
-					this.parentNode[ this.propertyName ] = value;
-					this.value = value;
-
-					return this;
-				}
-
-				if ( this.namespace ) {
-					this.parentNode.setAttributeNS( this.namespace, this.name, value );
-					this.value = value;
-
-					return this;
-				}
-
-				if ( this.lcName === 'id' ) {
-					if ( this.value !== undefined ) {
-						this.root.nodes[ this.value ] = undefined;
-					}
-
-					this.root.nodes[ value ] = this.parentNode;
-				}
-
-				this.parentNode.setAttribute( this.name, value );
-
-				this.value = value;
-			}
-
-			return this;
 		},
 
 		toString: function () {
@@ -4474,8 +5141,12 @@ animationCollection = {
 				options.parentNode.setAttribute( options.name, options.value );
 			}
 
-			if ( options.name.toLowerCase() === 'id' ) {
+			if ( attribute.name === 'id' ) {
 				options.root.nodes[ options.value ] = options.parentNode;
+			}
+
+			if ( attribute.name === 'value' ) {
+				options.parentNode._ractive.value = options.value;
 			}
 		}
 
@@ -4483,11 +5154,10 @@ animationCollection = {
 	};
 
 	determinePropertyName = function ( attribute, options ) {
-		var lowerCaseName, propertyName;
+		var propertyName;
 
 		if ( attribute.parentNode && !attribute.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
-			lowerCaseName = attribute.lcName;
-			propertyName = propertyNames[ lowerCaseName ] || lowerCaseName;
+			propertyName = propertyNames[ attribute.name ] || attribute.name;
 
 			if ( options.parentNode[ propertyName ] !== undefined ) {
 				attribute.propertyName = propertyName;
@@ -4499,22 +5169,6 @@ animationCollection = {
 				attribute.useProperty = true;
 			}
 		}
-	};
-
-	isAttributeBindable = function ( attribute ) {
-		var tagName, propertyName;
-
-		if ( !attribute.root.twoway ) {
-			return false;
-		}
-
-		tagName = attribute.element.descriptor.e.toLowerCase();
-		propertyName = attribute.propertyName;
-
-		return (
-			( propertyName === 'name' || propertyName === 'value' || propertyName === 'checked' ) &&
-			( tagName === 'input' || tagName === 'textarea' || tagName === 'select' )
-		);
 	};
 
 }());
@@ -4756,22 +5410,9 @@ DomElement = function ( options, docFrag ) {
 	var parentFragment,
 		descriptor,
 		namespace,
-		eventName,
-		eventNames,
-		i,
-		attr,
-		attrName,
-		lcName,
-		attrValue,
-		bindable,
-		twowayNameAttr,
+		attributes,
 		parentNode,
-		root,
-		transition,
-		transitionName,
-		transitionParams,
-		transitionManager,
-		intro;
+		root;
 
 	this.type = ELEMENT;
 
@@ -4788,17 +5429,7 @@ DomElement = function ( options, docFrag ) {
 
 	// get namespace, if we're actually rendering (not server-side stringifying)
 	if ( this.parentNode ) {
-		if ( descriptor.a && descriptor.a.xmlns ) {
-			namespace = descriptor.a.xmlns;
-
-			// check it's a string!
-			if ( typeof namespace !== 'string' ) {
-				throw new Error( 'Namespace attribute cannot contain mustaches' );
-			}
-		} else {
-			namespace = ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : this.parentNode.namespaceURI );
-		}
-		
+		namespace = getElementNamespace( descriptor, this.parentNode );
 
 		// create the DOM node
 		this.node = doc.createElementNS( namespace, descriptor.e );
@@ -4807,112 +5438,29 @@ DomElement = function ( options, docFrag ) {
 
 	// append children, if there are any
 	if ( descriptor.f ) {
-		if ( typeof descriptor.f === 'string' && ( !this.node || ( !this.node.namespaceURI || this.node.namespaceURI === namespaces.html ) ) ) {
-			// great! we can use innerHTML
-			this.html = descriptor.f;
-
-			if ( docFrag ) {
-				this.node.innerHTML = this.html;
-			}
-		}
-
-		else {
-			// once again, everyone has to suffer because of IE bloody 8
-			if ( descriptor.e === 'style' && this.node.styleSheet !== undefined ) {
-				this.fragment = new StringFragment({
-					descriptor:   descriptor.f,
-					root:         root,
-					contextStack: parentFragment.contextStack,
-					owner:        this
-				});
-
-				if ( docFrag ) {
-					this.bubble = function () {
-						this.node.styleSheet.cssText = this.fragment.toString();
-					};
-				}
-			}
-
-			else {
-				this.fragment = new DomFragment({
-					descriptor:   descriptor.f,
-					root:         root,
-					parentNode:   this.node,
-					contextStack: parentFragment.contextStack,
-					owner:        this
-				});
-
-				if ( docFrag ) {
-					this.node.appendChild( this.fragment.docFrag );
-				}
-			}
-		}
+		appendElementChildren( this, this.node, descriptor, docFrag );
 	}
 
 
 	// create event proxies
 	if ( docFrag && descriptor.v ) {
-		for ( eventName in descriptor.v ) {
-			if ( hasOwn.call( descriptor.v, eventName ) ) {
-				eventNames = eventName.split( '-' );
-				i = eventNames.length;
-
-				while ( i-- ) {
-					this.addEventProxy( eventNames[i], descriptor.v[ eventName ], parentFragment.contextStack );
-				}
-			}
-		}
+		addEventProxies( this, descriptor.v );
 	}
-
 
 	// set attributes
-	this.attributes = [];
-	bindable = []; // save these till the end
+	attributes = createElementAttributes( this, descriptor.a );
 
-	for ( attrName in descriptor.a ) {
-		if ( hasOwn.call( descriptor.a, attrName ) ) {
-			attrValue = descriptor.a[ attrName ];
-			
-			attr = new DomAttribute({
-				element:      this,
-				name:         attrName,
-				value:        ( attrValue === undefined ? null : attrValue ),
-				root:         root,
-				parentNode:   this.node,
-				contextStack: parentFragment.contextStack
-			});
-
-			this.attributes[ this.attributes.length ] = attr;
-
-			// TODO why is this an array? Shurely an element can only have one two-way attribute?
-			if ( attr.isBindable ) {
-				bindable.push( attr );
-			}
-
-			// The name attribute is a special case - it is the only two-way attribute that updates
-			// the viewmodel based on the value of another attribute. For that reason it must wait
-			// until the node has been initialised, and the viewmodel has had its first two-way
-			// update, before updating itself (otherwise it may disable a checkbox or radio that
-			// was enabled in the template)
-			if ( attr.isBindable && attr.propertyName === 'name' ) {
-				twowayNameAttr = attr;
-			} else {
-				attr.update();
-			}
-		}
-	}
 
 	// if we're actually rendering (i.e. not server-side stringifying), proceed
 	if ( docFrag ) {
-		while ( bindable.length ) {
-			bindable.pop().bind( this.root.lazy );
+		// deal with two-way bindings
+		if ( root.twoway ) {
+			bindElement( this, attributes );
 		}
 
-		if ( twowayNameAttr ) {
-			if ( twowayNameAttr.updateViewModel ) {
-				twowayNameAttr.updateViewModel();
-			}
-			twowayNameAttr.update();
+		// name attributes are deferred, because they're a special case
+		if ( attributes.name ) {
+			attributes.name.update();
 		}
 
 		docFrag.appendChild( this.node );
@@ -4925,130 +5473,6 @@ DomElement = function ( options, docFrag ) {
 };
 
 DomElement.prototype = {
-	addEventProxy: function ( triggerEventName, proxyDescriptor, contextStack ) {
-		var self = this, root = this.root, proxyName, proxyArgs, dynamicArgs, reuseable, definition, listener, fragment, handler, comboKey;
-
-		// Note the current context - this can be useful with event handlers
-		if ( !this.node._ractive ) {
-			defineProperty( this.node, '_ractive', { value: {
-				keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
-				index: this.parentFragment.indexRefs
-			} });
-		}
-
-		if ( typeof proxyDescriptor === 'string' ) {
-			proxyName = proxyDescriptor;
-		} else {
-			proxyName = proxyDescriptor.n;
-		}
-
-		// This key uniquely identifies this trigger+proxy name combo on this element
-		comboKey = triggerEventName + '=' + proxyName;
-		
-		if ( proxyDescriptor.a ) {
-			proxyArgs = proxyDescriptor.a;
-		}
-
-		else if ( proxyDescriptor.d ) {
-			dynamicArgs = true;
-
-			proxyArgs = new StringFragment({
-				descriptor:   proxyDescriptor.d,
-				root:         this.root,
-				owner:        this,
-				contextStack: contextStack
-			});
-
-			if ( !this.proxyFrags ) {
-				this.proxyFrags = [];
-			}
-			this.proxyFrags[ this.proxyFrags.length ] = proxyArgs;
-		}
-
-		if ( proxyArgs !== undefined ) {
-			// store arguments on the element, so we can reuse the same handler
-			// with multiple elements
-			if ( this.node._ractive[ comboKey ] ) {
-				throw new Error( 'You cannot have two proxy events with the same trigger event (' + comboKey + ')' );
-			}
-
-			this.node._ractive[ comboKey ] = {
-				dynamic: dynamicArgs,
-				payload: proxyArgs
-			};
-		}
-
-		// Is this a custom event?
-		if ( definition = ( root.eventDefinitions[ triggerEventName ] || Ractive.eventDefinitions[ triggerEventName ] ) ) {
-			// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
-			// we can reuse the handler. This eliminates the need for event delegation
-			if ( !root._customProxies[ comboKey ] ) {
-				root._customProxies[ comboKey ] = function ( proxyEvent ) {
-					var args, payload;
-
-					if ( !proxyEvent.node ) {
-						throw new Error( 'Proxy event definitions must fire events with a `node` property' );
-					}
-
-					proxyEvent.keypath = proxyEvent.node._ractive.keypath;
-					proxyEvent.context = root.get( proxyEvent.keypath );
-					proxyEvent.index = proxyEvent.node._ractive.index;
-
-					if ( proxyEvent.node._ractive[ comboKey ] ) {
-						args = proxyEvent.node._ractive[ comboKey ];
-						payload = args.dynamic ? args.payload.toJson() : args.payload;
-					}
-
-					root.fire( proxyName, proxyEvent, payload );
-				};
-			}
-
-			handler = root._customProxies[ comboKey ];
-
-			// Use custom event. Apply definition to this node
-			listener = definition( this.node, handler );
-			this.customEventListeners[ this.customEventListeners.length ] = listener;
-
-			return;
-		}
-
-		// If not, we just need to check it is a valid event for this element
-		// warn about invalid event handlers, if we're in debug mode
-		if ( this.node[ 'on' + triggerEventName ] !== undefined && root.debug ) {
-			if ( console && console.warn ) {
-				console.warn( 'Invalid event handler (' + triggerEventName + ')' );
-			}
-		}
-
-		if ( !root._proxies[ comboKey ] ) {
-			root._proxies[ comboKey ] = function ( event ) {
-				var args, payload, proxyEvent = {
-					node: this,
-					original: event,
-					keypath: this._ractive.keypath,
-					context: root.get( this._ractive.keypath ),
-					index: this._ractive.index
-				};
-
-				if ( this._ractive && this._ractive[ comboKey ] ) {
-					args = this._ractive[ comboKey ];
-					payload = args.dynamic ? args.payload.toJson() : args.payload;
-				}
-
-				root.fire( proxyName, proxyEvent, payload );
-			};
-		}
-
-		handler = root._proxies[ comboKey ];
-
-		this.eventListeners[ this.eventListeners.length ] = {
-			n: triggerEventName,
-			h: handler
-		};
-
-		this.node.addEventListener( triggerEventName, handler, false );
-	},
-
 	teardown: function ( detach ) {
 		var self = this, tearThisDown, transitionManager, transitionName, transitionParams, listener, outro;
 
@@ -5094,9 +5518,7 @@ DomElement.prototype = {
 		return null;
 	},
 
-	bubble: function () {
-		// noop - just so event proxy and transition fragments have something to call!
-	},
+	bubble: noop, // just so event proxy and transition fragments have something to call!
 
 	toString: function () {
 		var str, i, len, attr;
@@ -5121,6 +5543,19 @@ DomElement.prototype = {
 		str += '</' + this.descriptor.e + '>';
 
 		return str;
+	},
+
+	ractify: function () {
+		var contextStack = this.parentFragment.contextStack;
+
+		if ( !this.node._ractive ) {
+			defineProperty( this.node, '_ractive', {
+				value: {
+					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
+					index: this.parentFragment.indexRefs
+				}
+			});
+		}
 	}
 };
 DomFragment = function ( options ) {
