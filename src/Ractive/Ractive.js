@@ -95,8 +95,13 @@ Ractive = function ( options ) {
 		}
 	}
 
-	// add data
-	this.data = options.data || {};
+	// shallow clone data
+	this.data = {};
+	for ( key in options.data ) {
+		if ( hasOwn.call( options.data, key ) ) {
+			this.data[ key ] = options.data[ key ];
+		}
+	}
 	
 
 	// Partials registry
