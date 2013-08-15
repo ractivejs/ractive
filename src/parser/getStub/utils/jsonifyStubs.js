@@ -9,7 +9,7 @@ var jsonifyStubs = function ( items, noStringify ) {
 	}
 
 	json = items.map( function ( item ) {
-		return item.toJson( noStringify );
+		return item.toJSON( noStringify );
 	});
 
 	return json;

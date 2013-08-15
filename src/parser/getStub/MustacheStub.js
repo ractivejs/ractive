@@ -13,7 +13,7 @@ var MustacheStub = function ( token, parser ) {
 };
 
 MustacheStub.prototype = {
-	toJson: function () {
+	toJSON: function () {
 		var json;
 
 		if ( this.json ) {
@@ -29,7 +29,7 @@ MustacheStub.prototype = {
 		}
 
 		if ( this.expr ) {
-			json.x = this.expr.toJson();
+			json.x = this.expr.toJSON();
 		}
 
 		this.json = json;

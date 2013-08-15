@@ -195,7 +195,7 @@ var ElementStub;
 	};
 
 	ElementStub.prototype = {
-		toJson: function ( noStringify ) {
+		toJSON: function ( noStringify ) {
 			var json, name, value, proxy, i, len;
 
 			if ( this[ 'json_' + noStringify ] ) {

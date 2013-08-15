@@ -68,7 +68,7 @@
 		
 		fragmentStub = getFragmentStubFromTokens( tokens, options, options.preserveWhitespace );
 		
-		json = fragmentStub.toJson();
+		json = fragmentStub.toJSON();
 
 		if ( typeof json === 'string' ) {
 			// If we return it as a string, Ractive will attempt to reparse it!

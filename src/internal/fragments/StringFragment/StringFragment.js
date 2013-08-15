@@ -49,7 +49,7 @@ StringFragment.prototype = {
 		return this.items.join( '' );
 	},
 
-	toJson: function () {
+	toJSON: function () {
 		var str, json;
 
 		str = this.toString();

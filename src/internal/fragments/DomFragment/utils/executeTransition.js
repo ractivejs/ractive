@@ -20,7 +20,7 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 				contextStack: owner.parentFragment.contextStack
 			});
 
-			transitionParams = fragment.toJson();
+			transitionParams = fragment.toJSON();
 			fragment.teardown();
 		}
 	}

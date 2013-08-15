@@ -12,7 +12,7 @@ var ExpressionStub;
 	};
 
 	ExpressionStub.prototype = {
-		toJson: function () {
+		toJSON: function () {
 			if ( this.json ) {
 				return this.json;
 			}

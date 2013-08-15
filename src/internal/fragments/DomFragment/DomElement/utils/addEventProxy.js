@@ -63,7 +63,7 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 
 				if ( proxyEvent.node._ractive[ comboKey ] ) {
 					args = proxyEvent.node._ractive[ comboKey ];
-					payload = args.dynamic ? args.payload.toJson() : args.payload;
+					payload = args.dynamic ? args.payload.toJSON() : args.payload;
 				}
 
 				root.fire( proxyName, proxyEvent, payload );
@@ -99,7 +99,7 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 
 			if ( element._ractive && element._ractive[ comboKey ] ) {
 				args = element._ractive[ comboKey ];
-				payload = args.dynamic ? args.payload.toJson() : args.payload;
+				payload = args.dynamic ? args.payload.toJSON() : args.payload;
 			}
 
 			root.fire( proxyName, proxyEvent, payload );

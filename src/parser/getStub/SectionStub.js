@@ -33,7 +33,7 @@ var SectionStub = function ( firstToken, parser, preserveWhitespace ) {
 };
 
 SectionStub.prototype = {
-	toJson: function ( noStringify ) {
+	toJSON: function ( noStringify ) {
 		var json;
 
 		if ( this.json ) {
@@ -55,7 +55,7 @@ SectionStub.prototype = {
 		}
 
 		if ( this.expr ) {
-			json.x = this.expr.toJson();
+			json.x = this.expr.toJSON();
 		}
 
 		if ( this.items.length ) {

@@ -10,7 +10,7 @@ var TextStub;
 	};
 
 	TextStub.prototype = {
-		toJson: function () {
+		toJSON: function () {
 			// this will be used within HTML, so we need to decode things like &amp;
 			return this.decoded || ( this.decoded = decodeCharacterReferences( this.text) );
 		},

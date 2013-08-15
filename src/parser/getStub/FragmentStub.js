@@ -11,7 +11,7 @@ var FragmentStub = function ( parser, preserveWhitespace ) {
 };
 
 FragmentStub.prototype = {
-	toJson: function ( noStringify ) {
+	toJSON: function ( noStringify ) {
 		var json;
 
 		if ( this[ 'json_' + noStringify ] ) {
