@@ -6,11 +6,19 @@ resolveRef = function ( ractive, ref, contextStack ) {
 
 	// Implicit iterators - i.e. {{.}} - are a special case
 	if ( ref === '.' ) {
+		if ( !contextStack.length ) {
+			return '';
+		}
+
 		return contextStack[ contextStack.length - 1 ];
 	}
 
 	// References prepended with '.' are another special case
 	if ( ref.charAt( 0 ) === '.' ) {
+		if ( !contextStack.length ) {
+			return ref.substring( 1 );
+		}
+		
 		return contextStack[ contextStack.length - 1 ] + ref;
 	}
 
