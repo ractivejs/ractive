@@ -3,5 +3,12 @@
 	"smarttabs": true,
 	"boss": true,
 	"evil": true,
-	"laxbreak": true
+	"laxbreak": true,
+	"undef": true,
+	"unused": true,
+	"globals": {
+		"Element": true,
+		"window": true,
+		"setTimeout": true
+	}
 }
