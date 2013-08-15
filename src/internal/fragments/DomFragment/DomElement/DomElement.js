@@ -5,7 +5,6 @@ DomElement = function ( options, docFrag ) {
 		descriptor,
 		namespace,
 		attributes,
-		parentNode,
 		root;
 
 	this.type = ELEMENT;
@@ -68,7 +67,7 @@ DomElement = function ( options, docFrag ) {
 
 DomElement.prototype = {
 	teardown: function ( detach ) {
-		var self = this, tearThisDown, transitionManager, transitionName, transitionParams, listener, outro;
+		var self = this, listener;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
@@ -108,14 +107,14 @@ DomElement.prototype = {
 		return this.node;
 	},
 
-	findNextNode: function ( fragment ) {
+	findNextNode: function () {
 		return null;
 	},
 
 	bubble: noop, // just so event proxy and transition fragments have something to call!
 
 	toString: function () {
-		var str, i, len, attr;
+		var str, i, len;
 
 		// TODO void tags
 		str = '' +

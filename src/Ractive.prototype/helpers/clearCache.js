@@ -1,5 +1,5 @@
 clearCache = function ( ractive, keypath ) {
-	var value, len, kp, cacheMap;
+	var value, cacheMap;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( ractive.modifyArrays ) {

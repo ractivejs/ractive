@@ -17,7 +17,7 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 				descriptor:   descriptor.d,
 				root:         root,
 				owner:        owner,
-				contextStack: parentFragment.contextStack
+				contextStack: owner.parentFragment.contextStack
 			});
 
 			transitionParams = fragment.toJson();

@@ -43,7 +43,7 @@
 	};
 
 	animate = function ( root, keypath, to, options ) {
-		var easing, duration, animation, i, keys, from;
+		var easing, duration, animation, i, from;
 
 		from = root.get( keypath );
 		

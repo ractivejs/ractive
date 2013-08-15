@@ -1,7 +1,7 @@
 // TODO use dontNormalise
 // TODO refactor this shitball
 
-proto.get = function ( keypath, dontNormalise ) {
+proto.get = function ( keypath ) {
 	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
 
 	if ( !keypath ) {

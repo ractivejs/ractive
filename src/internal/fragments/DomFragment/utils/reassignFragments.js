@@ -3,7 +3,7 @@
 	var reassignFragment, reassignElement, reassignMustache;
 
 	reassignFragments = function ( root, section, start, end, by ) {
-		var fragmentsToReassign, i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
+		var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
 
 		indexRef = section.descriptor.i;
 
@@ -26,7 +26,7 @@
 	};
 
 	reassignFragment = function ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, j, item, context;
+		var i, item, context;
 
 		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
 			fragment.indexRefs[ indexRef ] = newIndex;

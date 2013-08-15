@@ -3,7 +3,7 @@
 	var set, attemptKeypathResolution;
 
 	proto.set = function ( keypath, value, complete ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previous, previousTransitionManager, transitionManager;
+		var notificationQueue, upstreamQueue, k, normalised, keys, previousTransitionManager, transitionManager;
 
 		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];

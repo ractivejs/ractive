@@ -14,7 +14,7 @@
 		GenericBinding;
 
 	bindAttribute = function ( lazy ) {
-		var node = this.parentNode, interpolator, keypath, index, options, option, i, len, binding;
+		var node = this.parentNode, interpolator, i, binding;
 
 		if ( !this.fragment ) {
 			return false; // report failure
@@ -110,125 +110,8 @@
 		return item;
 	};
 
-	// we need to create a function that updates the model on change events.
-	// this will differ depending on the type of binding
-	/*getUpdater = function ( attribute ) {
-		var node = attribute.parentNode, updater;
-
-		// checkboxes and radio buttons
-		if ( node.type === 'checkbox' || node.type === 'radio' ) {
-			// We might have a situation like this: 
-			//
-			//     <input type='radio' name='{{colour}}' value='red'>
-			//     <input type='radio' name='{{colour}}' value='blue'>
-			//     <input type='radio' name='{{colour}}' value='green'>
-			//
-			// In this case we want to set `colour` to the value of whichever option
-			// is checked. (We assume that a value attribute has been supplied.)
-
-			if ( attribute.propertyName === 'name' ) {
-				// replace actual name attribute
-				node.name = '{{' + attribute.keypath + '}}';
-
-				return function () {
-					if ( node.checked ) {
-						attribute.root.set( attribute.keypath, node._ractive ? node._ractive.value : node.value );
-					}
-				};
-			}
-
-
-			// Or, we might have a situation like this:
-			//
-			//     <input type='checkbox' checked='{{active}}'>
-			//
-			// Here, we want to set `active` to true or false depending on whether
-			// the input is checked.
-
-			if ( attribute.propertyName === 'checked' ) {
-				return function () {
-					attribute.root.set( attribute.keypath, node.checked );
-				};
-			}
-		}
-
-		if ( attribute.isFileInputValue ) {
-			return function () {
-				attribute.root.set( attribute.keypath, node.files );
-			};
-		}
-
-		if ( node.tagName === 'SELECT' ) {
-			if ( node.multiple ) {
-				return function () {
-					var value, selectedOptions, i, previousValue, changed;
-
-					previousValue = attribute.value || [];
-
-					value = [];
-					selectedOptions = node.querySelectorAll( 'option:checked' );
-					len = selectedOptions.length;
-
-					for ( i=0; i<len; i+=1 ) {
-						value[ value.length ] = selectedOptions[i].value;
-					}
-
-					// has the selection changed?
-					changed = ( len !== previousValue.length );
-					i = value.length;
-					while ( i-- ) {
-						if ( value[i] !== previousValue[i] ) {
-							changed = true;
-						}
-					}
-
-					if ( changed = true ) {
-						attribute.value = value;
-						attribute.root.set( attribute.keypath, value );
-					}
-				};
-			}
-
-			return function () {
-				var selectedOption, value;
-
-				selectedOption = node.querySelector( 'option:checked' );
-
-				if ( !selectedOption ) {
-					return;
-				}
-
-				value = selectedOption._ractive.value;
-
-				attribute.value = value;
-				attribute.root.set( attribute.keypath, value );
-			};
-		}
-
-		// Otherwise we've probably got a situation like this:
-		//
-		//     <input value='{{name}}'>
-		//
-		// in which case we just want to set `name` whenever the user enters text.
-		// The same applies to selects and textareas 
-		return function () {
-			var value = node.value;
-
-			// so that we can do +value || value below
-			if ( value === '0' ) {
-				value = 0;
-			}
-
-			else if ( value !== '' ) {
-				value = +value || value;
-			}
-
-			attribute.root.set( attribute.keypath, value );
-		};
-	};*/
-
 	getBinding = function ( attribute ) {
-		var node = attribute.parentNode, updater;
+		var node = attribute.parentNode;
 
 		if ( node.tagName === 'SELECT' ) {
 			return ( node.multiple ? new MultipleSelectBinding( attribute, node ) : new SelectBinding( attribute, node ) );

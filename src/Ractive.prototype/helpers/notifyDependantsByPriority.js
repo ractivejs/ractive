@@ -1,5 +1,5 @@
 notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect ) {
-	var depsByKeypath, deps, i, len, childDeps;
+	var depsByKeypath, deps, i, childDeps;
 
 	depsByKeypath = ractive._deps[ priority ];
 

@@ -7,7 +7,7 @@
 	// attribute has finished initialising, then replaces the prototype method with a more
 	// suitable one. That way, we save ourselves doing a bunch of tests on each call
 	updateAttribute = function () {
-		var value, lowerCaseName, options, i, node;
+		var node;
 
 		if ( !this.ready ) {
 			return this; // avoid items bubbling to the surface when we're still initialising

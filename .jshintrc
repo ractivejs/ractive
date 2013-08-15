@@ -9,6 +9,10 @@
 	"globals": {
 		"Element": true,
 		"window": true,
-		"setTimeout": true
+		"setTimeout": true,
+		"setInterval": true,
+		"clearInterval": true,
+		"module": true,
+		"define": true
 	}
 }

@@ -2,7 +2,8 @@
 
 	var ComponentParameter;
 
-	DomComponent = function ( options, docFrag ) {
+	// TODO support server environments
+	DomComponent = function ( options ) {
 		var self = this,
 			parentFragment = this.parentFragment = options.parentFragment,
 			root,
@@ -39,7 +40,7 @@
 		this.complexParameters = [];
 
 		processKeyValuePair = function ( key, value ) {
-			var fragment, parameter;
+			var parameter;
 
 			// if this is a static value, great
 			if ( typeof value === 'string' ) {
@@ -169,7 +170,7 @@
 			return this.parentFragment.findNextNode( this );
 		},
 
-		teardown: function ( detach ) {
+		teardown: function () {
 			while ( this.complexParameters.length ) {
 				this.complexParameters.pop().teardown();
 			}

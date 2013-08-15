@@ -24,7 +24,7 @@ DomSection.prototype = {
 	resolve: resolveMustache,
 
 	smartUpdate: function ( methodName, args ) {
-		var fragmentOptions, i;
+		var fragmentOptions;
 
 		if ( methodName === 'push' || methodName === 'unshift' || methodName === 'splice' ) {
 			fragmentOptions = {
@@ -81,7 +81,7 @@ DomSection.prototype = {
 	},
 
 	splice: function ( fragmentOptions, args ) {
-		var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart, reassignEnd, reassignBy;
+		var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart;
 
 		if ( !args.length ) {
 			return;

@@ -1,6 +1,6 @@
 (function ( proto ) {
 
-	var observe, Observer, updateObserver;
+	var observe, Observer;
 
 	proto.observe = function ( keypath, callback, options ) {
 

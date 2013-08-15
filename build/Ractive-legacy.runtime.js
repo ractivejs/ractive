@@ -31,8 +31,6 @@ unregisterDependant,
 notifyDependants,
 notifyMultipleDependants,
 notifyDependantsByPriority,
-registerIndexRef,
-unregisterIndexRef,
 resolveRef,
 processDeferredUpdates,
 
@@ -67,6 +65,7 @@ createElementAttributes,
 getElementNamespace,
 updateAttribute,
 bindAttribute,
+console = global.console || { log: noop, warn: noop },
 
 
 // internally used caches
@@ -85,7 +84,6 @@ DomSection,
 DomText,
 
 StringFragment,
-StringPartial,
 StringInterpolator,
 StringSection,
 StringText,
@@ -106,7 +104,6 @@ render,
 initMustache,
 updateMustache,
 resolveMustache,
-evaluateMustache,
 
 initFragment,
 updateSection,
@@ -145,8 +142,7 @@ COMMENT           = 9,
 DELIMCHANGE       = 10,
 MUSTACHE          = 11,
 TAG               = 12,
-ATTR_VALUE_TOKEN  = 13,
-EXPRESSION        = 14,
+
 COMPONENT         = 15,
 
 NUMBER_LITERAL    = 20,
@@ -154,7 +150,7 @@ STRING_LITERAL    = 21,
 ARRAY_LITERAL     = 22,
 OBJECT_LITERAL    = 23,
 BOOLEAN_LITERAL   = 24,
-LITERAL           = 25,
+
 GLOBAL            = 26,
 KEY_VALUE_PAIR    = 27,
 
@@ -421,7 +417,7 @@ var cssTransitionsEnabled, transition, transitionend;
 			};
 
 			removeEventListener = function ( type, listener ) {
-				var element = this, listeners, len, index;
+				var element = this, listeners, i;
 
 				if ( !element.listeners ) {
 					return;
@@ -472,7 +468,7 @@ var cssTransitionsEnabled, transition, transitionend;
 		GenericBinding;
 
 	bindAttribute = function ( lazy ) {
-		var node = this.parentNode, interpolator, keypath, index, options, option, i, len, binding;
+		var node = this.parentNode, interpolator, i, binding;
 
 		if ( !this.fragment ) {
 			return false; // report failure
@@ -568,125 +564,8 @@ var cssTransitionsEnabled, transition, transitionend;
 		return item;
 	};
 
-	// we need to create a function that updates the model on change events.
-	// this will differ depending on the type of binding
-	/*getUpdater = function ( attribute ) {
-		var node = attribute.parentNode, updater;
-
-		// checkboxes and radio buttons
-		if ( node.type === 'checkbox' || node.type === 'radio' ) {
-			// We might have a situation like this: 
-			//
-			//     <input type='radio' name='{{colour}}' value='red'>
-			//     <input type='radio' name='{{colour}}' value='blue'>
-			//     <input type='radio' name='{{colour}}' value='green'>
-			//
-			// In this case we want to set `colour` to the value of whichever option
-			// is checked. (We assume that a value attribute has been supplied.)
-
-			if ( attribute.propertyName === 'name' ) {
-				// replace actual name attribute
-				node.name = '{{' + attribute.keypath + '}}';
-
-				return function () {
-					if ( node.checked ) {
-						attribute.root.set( attribute.keypath, node._ractive ? node._ractive.value : node.value );
-					}
-				};
-			}
-
-
-			// Or, we might have a situation like this:
-			//
-			//     <input type='checkbox' checked='{{active}}'>
-			//
-			// Here, we want to set `active` to true or false depending on whether
-			// the input is checked.
-
-			if ( attribute.propertyName === 'checked' ) {
-				return function () {
-					attribute.root.set( attribute.keypath, node.checked );
-				};
-			}
-		}
-
-		if ( attribute.isFileInputValue ) {
-			return function () {
-				attribute.root.set( attribute.keypath, node.files );
-			};
-		}
-
-		if ( node.tagName === 'SELECT' ) {
-			if ( node.multiple ) {
-				return function () {
-					var value, selectedOptions, i, previousValue, changed;
-
-					previousValue = attribute.value || [];
-
-					value = [];
-					selectedOptions = node.querySelectorAll( 'option:checked' );
-					len = selectedOptions.length;
-
-					for ( i=0; i<len; i+=1 ) {
-						value[ value.length ] = selectedOptions[i].value;
-					}
-
-					// has the selection changed?
-					changed = ( len !== previousValue.length );
-					i = value.length;
-					while ( i-- ) {
-						if ( value[i] !== previousValue[i] ) {
-							changed = true;
-						}
-					}
-
-					if ( changed = true ) {
-						attribute.value = value;
-						attribute.root.set( attribute.keypath, value );
-					}
-				};
-			}
-
-			return function () {
-				var selectedOption, value;
-
-				selectedOption = node.querySelector( 'option:checked' );
-
-				if ( !selectedOption ) {
-					return;
-				}
-
-				value = selectedOption._ractive.value;
-
-				attribute.value = value;
-				attribute.root.set( attribute.keypath, value );
-			};
-		}
-
-		// Otherwise we've probably got a situation like this:
-		//
-		//     <input value='{{name}}'>
-		//
-		// in which case we just want to set `name` whenever the user enters text.
-		// The same applies to selects and textareas 
-		return function () {
-			var value = node.value;
-
-			// so that we can do +value || value below
-			if ( value === '0' ) {
-				value = 0;
-			}
-
-			else if ( value !== '' ) {
-				value = +value || value;
-			}
-
-			attribute.root.set( attribute.keypath, value );
-		};
-	};*/
-
 	getBinding = function ( attribute ) {
-		var node = attribute.parentNode, updater;
+		var node = attribute.parentNode;
 
 		if ( node.tagName === 'SELECT' ) {
 			return ( node.multiple ? new MultipleSelectBinding( attribute, node ) : new SelectBinding( attribute, node ) );
@@ -970,7 +849,7 @@ var cssTransitionsEnabled, transition, transitionend;
 	// attribute has finished initialising, then replaces the prototype method with a more
 	// suitable one. That way, we save ourselves doing a bunch of tests on each call
 	updateAttribute = function () {
-		var value, lowerCaseName, options, i, node;
+		var node;
 
 		if ( !this.ready ) {
 			return this; // avoid items bubbling to the surface when we're still initialising
@@ -1159,7 +1038,7 @@ addEventProxies = function ( element, proxies ) {
 	}
 };
 addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack ) {
-	var root = element.root, proxyName, proxyArgs, dynamicArgs, reuseable, definition, listener, fragment, handler, comboKey;
+	var root = element.root, proxyName, proxyArgs, dynamicArgs, definition, listener, handler, comboKey;
 
 	element.ractify();
 
@@ -1410,11 +1289,11 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 		if ( descriptor.a ) {
 			transitionParams = descriptor.a;
 		} else if ( descriptor.d ) {
-			fragment = new TextFragment({
+			fragment = new StringFragment({
 				descriptor:   descriptor.d,
 				root:         root,
 				owner:        owner,
-				contextStack: parentFragment.contextStack
+				contextStack: owner.parentFragment.contextStack
 			});
 
 			transitionParams = fragment.toJson();
@@ -1455,7 +1334,7 @@ insertHtml = function ( html, docFrag ) {
 	var reassignFragment, reassignElement, reassignMustache;
 
 	reassignFragments = function ( root, section, start, end, by ) {
-		var fragmentsToReassign, i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
+		var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
 
 		indexRef = section.descriptor.i;
 
@@ -1478,7 +1357,7 @@ insertHtml = function ( html, docFrag ) {
 	};
 
 	reassignFragment = function ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, j, item, context;
+		var i, item, context;
 
 		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
 			fragment.indexRefs[ indexRef ] = newIndex;
@@ -1792,7 +1671,7 @@ insertHtml = function ( html, docFrag ) {
 
 	ExpressionResolver = function ( mustache ) {
 
-		var expression, i, len, ref, indexRefs, args;
+		var expression, i, len, ref, indexRefs;
 
 		this.root = mustache.root;
 		this.mustache = mustache;
@@ -2073,7 +1952,7 @@ isStringFragmentSimple = function ( fragment ) {
 };
 initMustache = function ( mustache, options ) {
 
-	var keypath, index, indexRef, parentFragment;
+	var keypath, indexRef, parentFragment;
 
 	parentFragment = mustache.parentFragment = options.parentFragment;
 
@@ -2152,7 +2031,7 @@ resolveMustache = function ( keypath ) {
 };
 (function () {
 
-	var updateInvertedSection, updateListSection, updateContextSection, updateConditionalSection;
+	var updateListSection, updateContextSection, updateConditionalSection;
 
 	updateSection = function ( section, value ) {
 		var fragmentOptions;
@@ -2371,7 +2250,7 @@ resolveMustache = function ( keypath ) {
 	};
 
 	animate = function ( root, keypath, to, options ) {
-		var easing, duration, animation, i, keys, from;
+		var easing, duration, animation, i, from;
 
 		from = root.get( keypath );
 		
@@ -2481,7 +2360,7 @@ proto.fire = function ( eventName ) {
 // TODO use dontNormalise
 // TODO refactor this shitball
 
-proto.get = function ( keypath, dontNormalise ) {
+proto.get = function ( keypath ) {
 	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
 
 	if ( !keypath ) {
@@ -2561,7 +2440,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	return value;
 };
 clearCache = function ( ractive, keypath ) {
-	var value, len, kp, cacheMap;
+	var value, cacheMap;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( ractive.modifyArrays ) {
@@ -2589,7 +2468,7 @@ notifyDependants = function ( ractive, keypath, onlyDirect ) {
 	}
 };
 notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect ) {
-	var depsByKeypath, deps, i, len, childDeps;
+	var depsByKeypath, deps, i, childDeps;
 
 	depsByKeypath = ractive._deps[ priority ];
 
@@ -2773,7 +2652,7 @@ teardown = function ( thing ) {
 	}
 };
 unregisterDependant = function ( dependant ) {
-	var deps, i, keep, keys, parentKeypath, map, evaluator, ractive, keypath, priority;
+	var deps, keys, parentKeypath, map, ractive, keypath, priority;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -2811,7 +2690,7 @@ proto.link = function ( keypath ) {
 };
 (function ( proto ) {
 
-	var observe, Observer, updateObserver;
+	var observe, Observer;
 
 	proto.observe = function ( keypath, callback, options ) {
 
@@ -2959,7 +2838,7 @@ proto.requestFullscreen = function () {
 	var set, attemptKeypathResolution;
 
 	proto.set = function ( keypath, value, complete ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previous, previousTransitionManager, transitionManager;
+		var notificationQueue, upstreamQueue, k, normalised, keys, previousTransitionManager, transitionManager;
 
 		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];
@@ -3603,9 +3482,7 @@ eventDefinitions.tap = function ( node, fire ) {
 
 	extend = function ( childProps ) {
 
-		var Parent, Child, key, template, partials, partial, member;
-
-		Parent = this;
+		var Parent = this, Child;
 
 		// create Child constructor
 		Child = function ( options ) {
@@ -3772,8 +3649,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	};
 
 	initChildInstance = function ( child, Child, options ) {
-		var key, i, optionName;
-
+		
 		// Add template to options, if necessary
 		if ( !options.template && Child.template ) {
 			options.template = Child.template;
@@ -4036,8 +3912,13 @@ Ractive = function ( options ) {
 		}
 	}
 
-	// add data
-	this.data = options.data || {};
+	// shallow clone data
+	this.data = {};
+	for ( key in options.data ) {
+		if ( hasOwn.call( options.data, key ) ) {
+			this.data[ key ] = options.data[ key ];
+		}
+	}
 	
 
 	// Partials registry
@@ -4143,7 +4024,7 @@ Ractive = function ( options ) {
 
 (function () {
 
-	var getOriginalComputedStyles, setStyle, augment, makeTransition, transform, transformsEnabled, inside, outside;
+	var getOriginalComputedStyles, setStyle, augment, makeTransition;
 
 	// no point executing this code on the server
 	if ( !doc ) {
@@ -4203,7 +4084,17 @@ Ractive = function ( options ) {
 			}
 
 			return function ( node, complete, params, isIntro ) {
-				var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
+				var transitionEndHandler,
+					computedStyle,
+					originalComputedStyles,
+					startTransition,
+					originalStyle,
+					duration,
+					delay,
+					start,
+					end,
+					positionStyle,
+					visibilityStyle;
 
 				params = parseTransitionParams( params );
 				
@@ -4228,8 +4119,6 @@ Ractive = function ( options ) {
 					// we need to wait a beat before we can actually get values from computedStyle.
 					// Yeah, I know, WTF browsers
 					setTimeout( function () {
-						var i, prop;
-
 						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 						
 						start = outside;
@@ -4248,8 +4137,6 @@ Ractive = function ( options ) {
 				// otherwise we need to transition FROM them
 				else {
 					setTimeout( function () {
-						var i, prop;
-
 						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 
 						start = augment( originalComputedStyles, inside );
@@ -4263,13 +4150,11 @@ Ractive = function ( options ) {
 				}
 
 				startTransition = function () {
-					var i, prop;
-
 					node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
 					node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
 					node.style[ transition + 'TimingFunction' ] = easing;
 
-					transitionEndHandler = function ( event ) {
+					transitionEndHandler = function () {
 						node.removeEventListener( transitionend, transitionEndHandler, false );
 
 						if ( isIntro ) {
@@ -4332,7 +4217,7 @@ var parseTransitionParams = function ( params ) {
 	}
 
 	typewriteNode = function ( node, complete, interval ) {
-		var children, next, hide;
+		var children, next;
 
 		if ( node.nodeType === 1 ) {
 			node.style.display = node._display;
@@ -4399,7 +4284,8 @@ var parseTransitionParams = function ( params ) {
 		}, interval );
 	};
 
-	typewriter = function ( node, complete, params, isIntro ) {
+	// TODO differentiate between intro and outro
+	typewriter = function ( node, complete, params ) {
 		var interval, style, computedStyle, hide;
 
 		params = parseTransitionParams( params );
@@ -4675,7 +4561,7 @@ animationCollection = {
 	// Register a keypath to this array. When any of this array's mutator methods are called,
 	// it will `set` that keypath on the given Ractive instance
 	registerKeypathToArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, rootIndex, keypaths;
+		var roots, keypathsByGuid, keypaths;
 
 		// If this array hasn't been wrapped, we need to wrap it
 		if ( !array._ractive ) {
@@ -4715,7 +4601,7 @@ animationCollection = {
 
 	// Unregister keypath from array
 	unregisterKeypathFromArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, rootIndex, keypaths, keypathIndex;
+		var roots, keypathsByGuid, keypaths, keypathIndex;
 
 		if ( !array._ractive ) {
 			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
@@ -4753,7 +4639,6 @@ animationCollection = {
 			processRoot,
 			processKeypaths,
 			processKeypath,
-			queueAllDependants,
 			queueDependants,
 			keypathsByGuid;
 
@@ -4784,7 +4669,7 @@ animationCollection = {
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i;
 
 			// If this is a sort or reverse, we just do root.set()...
 			if ( methodName === 'sort' || methodName === 'reverse' ) {
@@ -5176,7 +5061,8 @@ animationCollection = {
 
 	var ComponentParameter;
 
-	DomComponent = function ( options, docFrag ) {
+	// TODO support server environments
+	DomComponent = function ( options ) {
 		var self = this,
 			parentFragment = this.parentFragment = options.parentFragment,
 			root,
@@ -5213,7 +5099,7 @@ animationCollection = {
 		this.complexParameters = [];
 
 		processKeyValuePair = function ( key, value ) {
-			var fragment, parameter;
+			var parameter;
 
 			// if this is a static value, great
 			if ( typeof value === 'string' ) {
@@ -5343,7 +5229,7 @@ animationCollection = {
 			return this.parentFragment.findNextNode( this );
 		},
 
-		teardown: function ( detach ) {
+		teardown: function () {
 			while ( this.complexParameters.length ) {
 				this.complexParameters.pop().teardown();
 			}
@@ -5411,7 +5297,6 @@ DomElement = function ( options, docFrag ) {
 		descriptor,
 		namespace,
 		attributes,
-		parentNode,
 		root;
 
 	this.type = ELEMENT;
@@ -5474,7 +5359,7 @@ DomElement = function ( options, docFrag ) {
 
 DomElement.prototype = {
 	teardown: function ( detach ) {
-		var self = this, tearThisDown, transitionManager, transitionName, transitionParams, listener, outro;
+		var self = this, listener;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
@@ -5514,14 +5399,14 @@ DomElement.prototype = {
 		return this.node;
 	},
 
-	findNextNode: function ( fragment ) {
+	findNextNode: function () {
 		return null;
 	},
 
 	bubble: noop, // just so event proxy and transition fragments have something to call!
 
 	toString: function () {
-		var str, i, len, attr;
+		var str, i, len;
 
 		// TODO void tags
 		str = '' +
@@ -5773,7 +5658,7 @@ DomSection.prototype = {
 	resolve: resolveMustache,
 
 	smartUpdate: function ( methodName, args ) {
-		var fragmentOptions, i;
+		var fragmentOptions;
 
 		if ( methodName === 'push' || methodName === 'unshift' || methodName === 'splice' ) {
 			fragmentOptions = {
@@ -5830,7 +5715,7 @@ DomSection.prototype = {
 	},
 
 	splice: function ( fragmentOptions, args ) {
-		var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart, reassignEnd, reassignBy;
+		var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart;
 
 		if ( !args.length ) {
 			return;

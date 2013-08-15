@@ -5,7 +5,6 @@ var getExpression;
 	var getExpressionList,
 	makePrefixSequenceMatcher,
 	makeInfixSequenceMatcher,
-	getRightToLeftSequenceMatcher,
 	getBracketedExpression,
 	getPrimary,
 	getMember,
@@ -417,7 +416,7 @@ var getExpression;
 	};
 
 	getRefinement = function ( tokenizer ) {
-		var start, refinement, name, expr;
+		var start, name, expr;
 
 		start = tokenizer.pos;
 
@@ -474,7 +473,7 @@ var getExpression;
 	};
 
 	getArrayLiteral = function ( tokenizer ) {
-		var start, array, expressionList;
+		var start, expressionList;
 
 		start = tokenizer.pos;
 
@@ -531,7 +530,7 @@ var getExpression;
 	//
 	// Array, Date, RegExp, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, isFinite, isNaN, parseFloat, parseInt, JSON, Math, NaN, undefined, null
 	getGlobal = function ( tokenizer ) {
-		var start, name, match, global;
+		var start, name, match;
 
 		start = tokenizer.pos;
 		name = getName( tokenizer );
@@ -582,7 +581,7 @@ var getExpression;
 	};
 
 	getObjectLiteral = function ( tokenizer ) {
-		var start, pairs, keyValuePairs, i, pair;
+		var start, keyValuePairs;
 
 		start = tokenizer.pos;
 
@@ -637,7 +636,7 @@ var getExpression;
 	};
 
 	getKeyValuePair = function ( tokenizer ) {
-		var start, pair, key, value;
+		var start, key, value;
 
 		start = tokenizer.pos;
 

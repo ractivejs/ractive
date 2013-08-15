@@ -12,7 +12,7 @@
 	// Register a keypath to this array. When any of this array's mutator methods are called,
 	// it will `set` that keypath on the given Ractive instance
 	registerKeypathToArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, rootIndex, keypaths;
+		var roots, keypathsByGuid, keypaths;
 
 		// If this array hasn't been wrapped, we need to wrap it
 		if ( !array._ractive ) {
@@ -52,7 +52,7 @@
 
 	// Unregister keypath from array
 	unregisterKeypathFromArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, rootIndex, keypaths, keypathIndex;
+		var roots, keypathsByGuid, keypaths, keypathIndex;
 
 		if ( !array._ractive ) {
 			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
@@ -90,7 +90,6 @@
 			processRoot,
 			processKeypaths,
 			processKeypath,
-			queueAllDependants,
 			queueDependants,
 			keypathsByGuid;
 
@@ -121,7 +120,7 @@
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i;
 
 			// If this is a sort or reverse, we just do root.set()...
 			if ( methodName === 'sort' || methodName === 'reverse' ) {

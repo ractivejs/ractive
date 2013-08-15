@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.5 - 2013-08-14
+/*! Ractive - v0.3.5 - 2013-08-15
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -41,8 +41,6 @@ unregisterDependant,
 notifyDependants,
 notifyMultipleDependants,
 notifyDependantsByPriority,
-registerIndexRef,
-unregisterIndexRef,
 resolveRef,
 processDeferredUpdates,
 
@@ -77,6 +75,7 @@ createElementAttributes,
 getElementNamespace,
 updateAttribute,
 bindAttribute,
+console = global.console || { log: noop, warn: noop },
 
 
 // internally used caches
@@ -95,7 +94,6 @@ DomSection,
 DomText,
 
 StringFragment,
-StringPartial,
 StringInterpolator,
 StringSection,
 StringText,
@@ -116,7 +114,6 @@ render,
 initMustache,
 updateMustache,
 resolveMustache,
-evaluateMustache,
 
 initFragment,
 updateSection,
@@ -155,8 +152,7 @@ COMMENT           = 9,
 DELIMCHANGE       = 10,
 MUSTACHE          = 11,
 TAG               = 12,
-ATTR_VALUE_TOKEN  = 13,
-EXPRESSION        = 14,
+
 COMPONENT         = 15,
 
 NUMBER_LITERAL    = 20,
@@ -164,7 +160,7 @@ STRING_LITERAL    = 21,
 ARRAY_LITERAL     = 22,
 OBJECT_LITERAL    = 23,
 BOOLEAN_LITERAL   = 24,
-LITERAL           = 25,
+
 GLOBAL            = 26,
 KEY_VALUE_PAIR    = 27,
 
@@ -309,7 +305,7 @@ var cssTransitionsEnabled, transition, transitionend;
 		GenericBinding;
 
 	bindAttribute = function ( lazy ) {
-		var node = this.parentNode, interpolator, keypath, index, options, option, i, len, binding;
+		var node = this.parentNode, interpolator, i, binding;
 
 		if ( !this.fragment ) {
 			return false; // report failure
@@ -405,125 +401,8 @@ var cssTransitionsEnabled, transition, transitionend;
 		return item;
 	};
 
-	// we need to create a function that updates the model on change events.
-	// this will differ depending on the type of binding
-	/*getUpdater = function ( attribute ) {
-		var node = attribute.parentNode, updater;
-
-		// checkboxes and radio buttons
-		if ( node.type === 'checkbox' || node.type === 'radio' ) {
-			// We might have a situation like this: 
-			//
-			//     <input type='radio' name='{{colour}}' value='red'>
-			//     <input type='radio' name='{{colour}}' value='blue'>
-			//     <input type='radio' name='{{colour}}' value='green'>
-			//
-			// In this case we want to set `colour` to the value of whichever option
-			// is checked. (We assume that a value attribute has been supplied.)
-
-			if ( attribute.propertyName === 'name' ) {
-				// replace actual name attribute
-				node.name = '{{' + attribute.keypath + '}}';
-
-				return function () {
-					if ( node.checked ) {
-						attribute.root.set( attribute.keypath, node._ractive ? node._ractive.value : node.value );
-					}
-				};
-			}
-
-
-			// Or, we might have a situation like this:
-			//
-			//     <input type='checkbox' checked='{{active}}'>
-			//
-			// Here, we want to set `active` to true or false depending on whether
-			// the input is checked.
-
-			if ( attribute.propertyName === 'checked' ) {
-				return function () {
-					attribute.root.set( attribute.keypath, node.checked );
-				};
-			}
-		}
-
-		if ( attribute.isFileInputValue ) {
-			return function () {
-				attribute.root.set( attribute.keypath, node.files );
-			};
-		}
-
-		if ( node.tagName === 'SELECT' ) {
-			if ( node.multiple ) {
-				return function () {
-					var value, selectedOptions, i, previousValue, changed;
-
-					previousValue = attribute.value || [];
-
-					value = [];
-					selectedOptions = node.querySelectorAll( 'option:checked' );
-					len = selectedOptions.length;
-
-					for ( i=0; i<len; i+=1 ) {
-						value[ value.length ] = selectedOptions[i].value;
-					}
-
-					// has the selection changed?
-					changed = ( len !== previousValue.length );
-					i = value.length;
-					while ( i-- ) {
-						if ( value[i] !== previousValue[i] ) {
-							changed = true;
-						}
-					}
-
-					if ( changed = true ) {
-						attribute.value = value;
-						attribute.root.set( attribute.keypath, value );
-					}
-				};
-			}
-
-			return function () {
-				var selectedOption, value;
-
-				selectedOption = node.querySelector( 'option:checked' );
-
-				if ( !selectedOption ) {
-					return;
-				}
-
-				value = selectedOption._ractive.value;
-
-				attribute.value = value;
-				attribute.root.set( attribute.keypath, value );
-			};
-		}
-
-		// Otherwise we've probably got a situation like this:
-		//
-		//     <input value='{{name}}'>
-		//
-		// in which case we just want to set `name` whenever the user enters text.
-		// The same applies to selects and textareas 
-		return function () {
-			var value = node.value;
-
-			// so that we can do +value || value below
-			if ( value === '0' ) {
-				value = 0;
-			}
-
-			else if ( value !== '' ) {
-				value = +value || value;
-			}
-
-			attribute.root.set( attribute.keypath, value );
-		};
-	};*/
-
 	getBinding = function ( attribute ) {
-		var node = attribute.parentNode, updater;
+		var node = attribute.parentNode;
 
 		if ( node.tagName === 'SELECT' ) {
 			return ( node.multiple ? new MultipleSelectBinding( attribute, node ) : new SelectBinding( attribute, node ) );
@@ -807,7 +686,7 @@ var cssTransitionsEnabled, transition, transitionend;
 	// attribute has finished initialising, then replaces the prototype method with a more
 	// suitable one. That way, we save ourselves doing a bunch of tests on each call
 	updateAttribute = function () {
-		var value, lowerCaseName, options, i, node;
+		var node;
 
 		if ( !this.ready ) {
 			return this; // avoid items bubbling to the surface when we're still initialising
@@ -996,7 +875,7 @@ addEventProxies = function ( element, proxies ) {
 	}
 };
 addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack ) {
-	var root = element.root, proxyName, proxyArgs, dynamicArgs, reuseable, definition, listener, fragment, handler, comboKey;
+	var root = element.root, proxyName, proxyArgs, dynamicArgs, definition, listener, handler, comboKey;
 
 	element.ractify();
 
@@ -1247,11 +1126,11 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 		if ( descriptor.a ) {
 			transitionParams = descriptor.a;
 		} else if ( descriptor.d ) {
-			fragment = new TextFragment({
+			fragment = new StringFragment({
 				descriptor:   descriptor.d,
 				root:         root,
 				owner:        owner,
-				contextStack: parentFragment.contextStack
+				contextStack: owner.parentFragment.contextStack
 			});
 
 			transitionParams = fragment.toJson();
@@ -1292,7 +1171,7 @@ insertHtml = function ( html, docFrag ) {
 	var reassignFragment, reassignElement, reassignMustache;
 
 	reassignFragments = function ( root, section, start, end, by ) {
-		var fragmentsToReassign, i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
+		var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
 
 		indexRef = section.descriptor.i;
 
@@ -1315,7 +1194,7 @@ insertHtml = function ( html, docFrag ) {
 	};
 
 	reassignFragment = function ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, j, item, context;
+		var i, item, context;
 
 		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
 			fragment.indexRefs[ indexRef ] = newIndex;
@@ -1629,7 +1508,7 @@ insertHtml = function ( html, docFrag ) {
 
 	ExpressionResolver = function ( mustache ) {
 
-		var expression, i, len, ref, indexRefs, args;
+		var expression, i, len, ref, indexRefs;
 
 		this.root = mustache.root;
 		this.mustache = mustache;
@@ -1910,7 +1789,7 @@ isStringFragmentSimple = function ( fragment ) {
 };
 initMustache = function ( mustache, options ) {
 
-	var keypath, index, indexRef, parentFragment;
+	var keypath, indexRef, parentFragment;
 
 	parentFragment = mustache.parentFragment = options.parentFragment;
 
@@ -1989,7 +1868,7 @@ resolveMustache = function ( keypath ) {
 };
 (function () {
 
-	var updateInvertedSection, updateListSection, updateContextSection, updateConditionalSection;
+	var updateListSection, updateContextSection, updateConditionalSection;
 
 	updateSection = function ( section, value ) {
 		var fragmentOptions;
@@ -2112,6 +1991,145 @@ resolveMustache = function ( keypath ) {
 	};
 
 }());
+var getItem;
+
+(function () {
+
+	var getText, getMustache, getElement;
+
+	getItem = function ( parser, preserveWhitespace ) {
+		if ( !parser.next() ) {
+			return null;
+		}
+
+		return getText( parser, preserveWhitespace )
+		    || getMustache( parser, preserveWhitespace )
+		    || getElement( parser, preserveWhitespace );
+	};
+
+	getText = function ( parser, preserveWhitespace ) {
+		var next = parser.next();
+
+		if ( next.type === TEXT ) {
+			parser.pos += 1;
+			return new TextStub( next, preserveWhitespace );
+		}
+
+		return null;
+	};
+
+	getMustache = function ( parser, preserveWhitespace ) {
+		var next = parser.next();
+
+		if ( next.type === MUSTACHE || next.type === TRIPLE ) {
+			if ( next.mustacheType === SECTION || next.mustacheType === INVERTED ) {
+				return new SectionStub( next, parser, preserveWhitespace );				
+			}
+
+			return new MustacheStub( next, parser );
+		}
+
+		return null;
+	};
+
+	getElement = function ( parser, preserveWhitespace ) {
+		var next = parser.next(), stub;
+
+		if ( next.type === TAG ) {
+			stub = new ElementStub( next, parser, preserveWhitespace );
+
+			// sanitize			
+			if ( parser.options.sanitize && parser.options.sanitize.elements ) {
+				if ( parser.options.sanitize.elements.indexOf( stub.lcTag ) !== -1 ) {
+					return null;
+				}
+			}
+
+			return stub;
+		}
+
+		return null;
+	};
+
+}());
+var jsonifyStubs = function ( items, noStringify ) {
+	var str, json;
+
+	if ( !noStringify ) {
+		str = stringifyStubs( items );
+		if ( str !== false ) {
+			return str;
+		}
+	}
+
+	json = items.map( function ( item ) {
+		return item.toJson( noStringify );
+	});
+
+	return json;
+};
+var stringifyStubs = function ( items ) {
+	var str = '', itemStr, i, len;
+
+	if ( !items ) {
+		return '';
+	}
+
+	for ( i=0, len=items.length; i<len; i+=1 ) {
+		itemStr = items[i].toString();
+		
+		if ( itemStr === false ) {
+			return false;
+		}
+
+		str += itemStr;
+	}
+
+	return str;
+};
+var allowWhitespace = function ( tokenizer ) {
+	var match = leadingWhitespace.exec( tokenizer.str.substring( tokenizer.pos ) );
+
+	if ( !match ) {
+		return null;
+	}
+
+	tokenizer.pos += match[0].length;
+	return match[0];
+};
+// TODO give this a less conflicty name
+var fail = function ( tokenizer, expected ) {
+	var remaining = tokenizer.remaining().substr( 0, 40 );
+	if ( remaining.length === 40 ) {
+		remaining += '...';
+	}
+	throw new Error( 'Tokenizer failed: unexpected string "' + remaining + '" (expected ' + expected + ')' );
+};
+var getRegexMatcher = function ( regex ) {
+	return function ( tokenizer ) {
+		var match = regex.exec( tokenizer.str.substring( tokenizer.pos ) );
+
+		if ( !match ) {
+			return null;
+		}
+
+		tokenizer.pos += match[0].length;
+		return match[1] || match[0];
+	};
+};
+
+var getStringMatch = function ( tokenizer, string ) {
+	var substr;
+
+	substr = tokenizer.str.substr( tokenizer.pos, string.length );
+
+	if ( substr === string ) {
+		tokenizer.pos += string.length;
+		return string;
+	}
+
+	return null;
+};
 stripCommentTokens = function ( tokens ) {
 	var i, current, previous, next;
 
@@ -2304,7 +2322,7 @@ stripStandalones = function ( tokens ) {
 	};
 
 	animate = function ( root, keypath, to, options ) {
-		var easing, duration, animation, i, keys, from;
+		var easing, duration, animation, i, from;
 
 		from = root.get( keypath );
 		
@@ -2414,7 +2432,7 @@ proto.fire = function ( eventName ) {
 // TODO use dontNormalise
 // TODO refactor this shitball
 
-proto.get = function ( keypath, dontNormalise ) {
+proto.get = function ( keypath ) {
 	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
 
 	if ( !keypath ) {
@@ -2494,7 +2512,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	return value;
 };
 clearCache = function ( ractive, keypath ) {
-	var value, len, kp, cacheMap;
+	var value, cacheMap;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( ractive.modifyArrays ) {
@@ -2522,7 +2540,7 @@ notifyDependants = function ( ractive, keypath, onlyDirect ) {
 	}
 };
 notifyDependantsByPriority = function ( ractive, keypath, priority, onlyDirect ) {
-	var depsByKeypath, deps, i, len, childDeps;
+	var depsByKeypath, deps, i, childDeps;
 
 	depsByKeypath = ractive._deps[ priority ];
 
@@ -2706,7 +2724,7 @@ teardown = function ( thing ) {
 	}
 };
 unregisterDependant = function ( dependant ) {
-	var deps, i, keep, keys, parentKeypath, map, evaluator, ractive, keypath, priority;
+	var deps, keys, parentKeypath, map, ractive, keypath, priority;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -2744,7 +2762,7 @@ proto.link = function ( keypath ) {
 };
 (function ( proto ) {
 
-	var observe, Observer, updateObserver;
+	var observe, Observer;
 
 	proto.observe = function ( keypath, callback, options ) {
 
@@ -2892,7 +2910,7 @@ proto.requestFullscreen = function () {
 	var set, attemptKeypathResolution;
 
 	proto.set = function ( keypath, value, complete ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previous, previousTransitionManager, transitionManager;
+		var notificationQueue, upstreamQueue, k, normalised, keys, previousTransitionManager, transitionManager;
 
 		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
 		notificationQueue = [];
@@ -3536,9 +3554,7 @@ eventDefinitions.tap = function ( node, fire ) {
 
 	extend = function ( childProps ) {
 
-		var Parent, Child, key, template, partials, partial, member;
-
-		Parent = this;
+		var Parent = this, Child;
 
 		// create Child constructor
 		Child = function ( options ) {
@@ -3705,8 +3721,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	};
 
 	initChildInstance = function ( child, Child, options ) {
-		var key, i, optionName;
-
+		
 		// Add template to options, if necessary
 		if ( !options.template && Child.template ) {
 			options.template = Child.template;
@@ -3969,8 +3984,13 @@ Ractive = function ( options ) {
 		}
 	}
 
-	// add data
-	this.data = options.data || {};
+	// shallow clone data
+	this.data = {};
+	for ( key in options.data ) {
+		if ( hasOwn.call( options.data, key ) ) {
+			this.data[ key ] = options.data[ key ];
+		}
+	}
 	
 
 	// Partials registry
@@ -4076,7 +4096,7 @@ Ractive = function ( options ) {
 
 (function () {
 
-	var getOriginalComputedStyles, setStyle, augment, makeTransition, transform, transformsEnabled, inside, outside;
+	var getOriginalComputedStyles, setStyle, augment, makeTransition;
 
 	// no point executing this code on the server
 	if ( !doc ) {
@@ -4136,7 +4156,17 @@ Ractive = function ( options ) {
 			}
 
 			return function ( node, complete, params, isIntro ) {
-				var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
+				var transitionEndHandler,
+					computedStyle,
+					originalComputedStyles,
+					startTransition,
+					originalStyle,
+					duration,
+					delay,
+					start,
+					end,
+					positionStyle,
+					visibilityStyle;
 
 				params = parseTransitionParams( params );
 				
@@ -4161,8 +4191,6 @@ Ractive = function ( options ) {
 					// we need to wait a beat before we can actually get values from computedStyle.
 					// Yeah, I know, WTF browsers
 					setTimeout( function () {
-						var i, prop;
-
 						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 						
 						start = outside;
@@ -4181,8 +4209,6 @@ Ractive = function ( options ) {
 				// otherwise we need to transition FROM them
 				else {
 					setTimeout( function () {
-						var i, prop;
-
 						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 
 						start = augment( originalComputedStyles, inside );
@@ -4196,13 +4222,11 @@ Ractive = function ( options ) {
 				}
 
 				startTransition = function () {
-					var i, prop;
-
 					node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
 					node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
 					node.style[ transition + 'TimingFunction' ] = easing;
 
-					transitionEndHandler = function ( event ) {
+					transitionEndHandler = function () {
 						node.removeEventListener( transitionend, transitionEndHandler, false );
 
 						if ( isIntro ) {
@@ -4265,7 +4289,7 @@ var parseTransitionParams = function ( params ) {
 	}
 
 	typewriteNode = function ( node, complete, interval ) {
-		var children, next, hide;
+		var children, next;
 
 		if ( node.nodeType === 1 ) {
 			node.style.display = node._display;
@@ -4332,7 +4356,8 @@ var parseTransitionParams = function ( params ) {
 		}, interval );
 	};
 
-	typewriter = function ( node, complete, params, isIntro ) {
+	// TODO differentiate between intro and outro
+	typewriter = function ( node, complete, params ) {
 		var interval, style, computedStyle, hide;
 
 		params = parseTransitionParams( params );
@@ -4608,7 +4633,7 @@ animationCollection = {
 	// Register a keypath to this array. When any of this array's mutator methods are called,
 	// it will `set` that keypath on the given Ractive instance
 	registerKeypathToArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, rootIndex, keypaths;
+		var roots, keypathsByGuid, keypaths;
 
 		// If this array hasn't been wrapped, we need to wrap it
 		if ( !array._ractive ) {
@@ -4648,7 +4673,7 @@ animationCollection = {
 
 	// Unregister keypath from array
 	unregisterKeypathFromArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, rootIndex, keypaths, keypathIndex;
+		var roots, keypathsByGuid, keypaths, keypathIndex;
 
 		if ( !array._ractive ) {
 			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
@@ -4686,7 +4711,6 @@ animationCollection = {
 			processRoot,
 			processKeypaths,
 			processKeypath,
-			queueAllDependants,
 			queueDependants,
 			keypathsByGuid;
 
@@ -4717,7 +4741,7 @@ animationCollection = {
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, j, item;
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i;
 
 			// If this is a sort or reverse, we just do root.set()...
 			if ( methodName === 'sort' || methodName === 'reverse' ) {
@@ -5109,7 +5133,8 @@ animationCollection = {
 
 	var ComponentParameter;
 
-	DomComponent = function ( options, docFrag ) {
+	// TODO support server environments
+	DomComponent = function ( options ) {
 		var self = this,
 			parentFragment = this.parentFragment = options.parentFragment,
 			root,
@@ -5146,7 +5171,7 @@ animationCollection = {
 		this.complexParameters = [];
 
 		processKeyValuePair = function ( key, value ) {
-			var fragment, parameter;
+			var parameter;
 
 			// if this is a static value, great
 			if ( typeof value === 'string' ) {
@@ -5276,7 +5301,7 @@ animationCollection = {
 			return this.parentFragment.findNextNode( this );
 		},
 
-		teardown: function ( detach ) {
+		teardown: function () {
 			while ( this.complexParameters.length ) {
 				this.complexParameters.pop().teardown();
 			}
@@ -5344,7 +5369,6 @@ DomElement = function ( options, docFrag ) {
 		descriptor,
 		namespace,
 		attributes,
-		parentNode,
 		root;
 
 	this.type = ELEMENT;
@@ -5407,7 +5431,7 @@ DomElement = function ( options, docFrag ) {
 
 DomElement.prototype = {
 	teardown: function ( detach ) {
-		var self = this, tearThisDown, transitionManager, transitionName, transitionParams, listener, outro;
+		var self = this, listener;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
@@ -5447,14 +5471,14 @@ DomElement.prototype = {
 		return this.node;
 	},
 
-	findNextNode: function ( fragment ) {
+	findNextNode: function () {
 		return null;
 	},
 
 	bubble: noop, // just so event proxy and transition fragments have something to call!
 
 	toString: function () {
-		var str, i, len, attr;
+		var str, i, len;
 
 		// TODO void tags
 		str = '' +
@@ -5706,7 +5730,7 @@ DomSection.prototype = {
 	resolve: resolveMustache,
 
 	smartUpdate: function ( methodName, args ) {
-		var fragmentOptions, i;
+		var fragmentOptions;
 
 		if ( methodName === 'push' || methodName === 'unshift' || methodName === 'splice' ) {
 			fragmentOptions = {
@@ -5763,7 +5787,7 @@ DomSection.prototype = {
 	},
 
 	splice: function ( fragmentOptions, args ) {
-		var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart, reassignEnd, reassignBy;
+		var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart;
 
 		if ( !args.length ) {
 			return;
@@ -6360,1053 +6384,1757 @@ splitKeypath =  function ( keypath ) {
 	keypathCache[ keypath ] = keys;
 	return keys.concat();
 };
+var ElementStub;
+
 (function () {
 
-	var getItem,
-	getText,
-	getMustache,
-	getElement,
+	var voidElementNames,
+		allElementNames,
+		mapToLowerCase,
+		svgCamelCaseElements,
+		svgCamelCaseElementsMap,
+		svgCamelCaseAttributes,
+		svgCamelCaseAttributesMap,
+		closedByParentClose,
+		siblingsByTagName,
+		onPattern,
+		sanitize,
+		filterAttrs;
 
-	Fragment,
-	Text,
-	Mustache,
-	Section,
-	Element,
-	Expression,
+	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
+		var next, attrs, filtered, proxies, getFrag, processProxy, item;
 
-	stringify,
-	jsonify;
+		this.lcTag = firstToken.name.toLowerCase();
 
+		// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
+		// that should be camelcased, camelcase it
+		this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
 
-	getFragmentStubFromTokens = function ( tokens, options, preserveWhitespace ) {
-		var parser, stub;
+		parser.pos += 1;
 
-		parser = {
-			pos: 0,
-			tokens: tokens || [],
-			next: function () {
-				return parser.tokens[ parser.pos ];
-			},
-			options: options
-		};
+		// if this is a <pre> element, preserve whitespace within
+		preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
 
-		stub = new Fragment( parser, preserveWhitespace );
+		if ( firstToken.attrs ) {
+			filtered = filterAttrs( firstToken.attrs );
+			
+			attrs = filtered.attrs;
+			proxies = filtered.proxies;
 
-		return stub;
-	};
-
-	getItem = function ( parser, preserveWhitespace ) {
-		if ( !parser.next() ) {
-			return null;
-		}
-
-		return getText( parser, preserveWhitespace )
-		    || getMustache( parser, preserveWhitespace )
-		    || getElement( parser, preserveWhitespace );
-	};
-
-	getText = function ( parser, preserveWhitespace ) {
-		var next = parser.next();
-
-		if ( next.type === TEXT ) {
-			parser.pos += 1;
-			return new Text( next, preserveWhitespace );
-		}
-
-		return null;
-	};
-
-	getMustache = function ( parser, preserveWhitespace ) {
-		var next = parser.next();
-
-		if ( next.type === MUSTACHE || next.type === TRIPLE ) {
-			if ( next.mustacheType === SECTION || next.mustacheType === INVERTED ) {
-				return new Section( next, parser, preserveWhitespace );				
+			// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
+			if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
+				attrs = attrs.filter( sanitize );
 			}
 
-			return new Mustache( next, parser );
+			getFrag = function ( attr ) {
+				var lcName = attr.name.toLowerCase();
+
+				return {
+					name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
+					value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
+				};
+			};
+
+			processProxy = function ( proxy ) {
+				var processed, tokens, colonIndex, throwError;
+
+				throwError = function () {
+					throw new Error( 'Illegal proxy event' );
+				};
+
+				if ( !proxy.name || !proxy.value ) {
+					throwError();
+				}
+
+				processed = { domEventName: proxy.name };
+
+				tokens = proxy.value;
+
+				// proxy event names must start with a string (no mustaches)
+				if ( tokens[0].type !== TEXT ) {
+					throwError();
+				}
+
+				colonIndex = tokens[0].value.indexOf( ':' );
+				
+				// if no arguments are specified...
+				if ( colonIndex === -1 ) {
+					
+					// ...the proxy name must be string-only (no mustaches)
+					if ( tokens.length > 1 ) {
+						throwError();
+					}
+
+					processed.name = tokens[0].value;
+				}
+
+				else {
+					processed.name = tokens[0].value.substr( 0, colonIndex );
+					tokens[0].value = tokens[0].value.substring( colonIndex + 1 );
+
+					if ( !tokens[0].value ) {
+						tokens.shift();
+					}
+
+					// can we parse it yet?
+					if ( tokens.length === 1 && tokens[0].type === TEXT ) {
+						try {
+							processed.args = JSON.parse( tokens[0].value );
+						} catch ( err ) {
+							processed.args = tokens[0].value;
+						}
+					}
+
+					processed.dynamicArgs = getFragmentStubFromTokens( tokens );
+				}
+
+				return processed;
+			};
+
+			if ( attrs.length ) {
+				this.attributes = attrs.map( getFrag );
+			}
+
+			if ( proxies.length ) {
+				this.proxies = proxies.map( processProxy );
+			}
+
+			// TODO rename this helper function
+			if ( filtered.intro ) {
+				this.intro = processProxy( filtered.intro );
+			}
+
+			if ( filtered.outro ) {
+				this.outro = processProxy( filtered.outro );
+			}
 		}
 
-		return null;
-	};
+		if ( firstToken.selfClosing ) {
+			this.selfClosing = true;
+		}
 
-	getElement = function ( parser, preserveWhitespace ) {
-		var next = parser.next(), stub;
+		if ( voidElementNames.indexOf( this.lcTag ) !== -1 ) {
+			this.isVoid = true;
+		}
 
-		if ( next.type === TAG ) {
-			stub = new Element( next, parser, preserveWhitespace );
+		// if self-closing or a void element, close
+		if ( this.selfClosing || this.isVoid ) {
+			return;
+		}
 
-			// sanitize			
-			if ( parser.options.sanitize && parser.options.sanitize.elements ) {
-				if ( parser.options.sanitize.elements.indexOf( stub.lcTag ) !== -1 ) {
-					return null;
+		this.siblings = siblingsByTagName[ this.lcTag ];
+
+		this.items = [];
+
+		next = parser.next();
+		while ( next ) {
+
+			// section closing mustache should also close this element, e.g.
+			// <ul>{{#items}}<li>{{content}}{{/items}}</ul>
+			if ( next.mustacheType === CLOSING ) {
+				break;
+			}
+			
+			if ( next.type === TAG ) {
+
+				// closing tag
+				if ( next.closing ) {
+					// it's a closing tag, which means this element is closed...
+					if ( next.name.toLowerCase() === this.lcTag ) {
+						parser.pos += 1;
+					}
+
+					break;
+				}
+
+				// sibling element, which closes this element implicitly
+				else if ( this.siblings && ( this.siblings.indexOf( next.name.toLowerCase() ) !== -1 ) ) {
+					break;
+				}
+				
+			}
+
+			this.items[ this.items.length ] = getItem( parser );
+
+			next = parser.next();
+		}
+
+
+		// if we're not preserving whitespace, we can eliminate inner leading and trailing whitespace
+		if ( !preserveWhitespace ) {
+			item = this.items[0];
+			if ( item && item.type === TEXT ) {
+				item.text = item.text.replace( leadingWhitespace, '' );
+				if ( !item.text ) {
+					this.items.shift();
 				}
 			}
 
-			return stub;
-		}
-
-		return null;
-	};
-
-	stringify = function ( items ) {
-		var str = '', itemStr, i, len;
-
-		if ( !items ) {
-			return '';
-		}
-
-		for ( i=0, len=items.length; i<len; i+=1 ) {
-			itemStr = items[i].toString();
-			
-			if ( itemStr === false ) {
-				return false;
-			}
-
-			str += itemStr;
-		}
-
-		return str;
-	};
-
-	jsonify = function ( items, noStringify ) {
-		var str, json;
-
-		if ( !noStringify ) {
-			str = stringify( items );
-			if ( str !== false ) {
-				return str;
+			item = this.items[ this.items.length - 1 ];
+			if ( item && item.type === TEXT ) {
+				item.text = item.text.replace( trailingWhitespace, '' );
+				if ( !item.text ) {
+					this.items.pop();
+				}
 			}
 		}
-
-		json = items.map( function ( item ) {
-			return item.toJson( noStringify );
-		});
-
-		return json;
 	};
 
-
-
-	Fragment = function ( parser, preserveWhitespace ) {
-		var items, item;
-
-		items = this.items = [];
-
-		item = getItem( parser, preserveWhitespace );
-		while ( item !== null ) {
-			items[ items.length ] = item;
-			item = getItem( parser, preserveWhitespace );
-		}
-	};
-
-	Fragment.prototype = {
+	ElementStub.prototype = {
 		toJson: function ( noStringify ) {
-			var json;
+			var json, name, value, proxy, i, len;
 
 			if ( this[ 'json_' + noStringify ] ) {
 				return this[ 'json_' + noStringify ];
 			}
 
-			json = this[ 'json_' + noStringify ] = jsonify( this.items, noStringify );
+			if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
+				json = {
+					t: COMPONENT,
+					e: this.tag.substr( 3 )
+				};
+			} else {
+				json = {
+					t: ELEMENT,
+					e: this.tag
+				};
+			}
+
+			if ( this.attributes && this.attributes.length ) {
+				json.a = {};
+
+				len = this.attributes.length;
+				for ( i=0; i<len; i+=1 ) {
+					name = this.attributes[i].name;
+
+					if ( json.a[ name ] ) {
+						throw new Error( 'You cannot have multiple elements with the same name' );
+					}
+
+					// empty attributes (e.g. autoplay, checked)
+					if( this.attributes[i].value === null ) {
+						value = null;
+					} else {
+						value = jsonifyStubs( this.attributes[i].value.items, noStringify );	
+					}
+
+					json.a[ name ] = value;
+				}
+			}
+
+			if ( this.items && this.items.length ) {
+				json.f = jsonifyStubs( this.items, noStringify );
+			}
+
+			if ( this.proxies && this.proxies.length ) {
+				json.v = {};
+
+				len = this.proxies.length;
+				for ( i=0; i<len; i+=1 ) {
+					proxy = this.proxies[i];
+
+					// TODO rename domEventName, since transitions use the same mechanism
+					if ( proxy.args ) {
+						json.v[ proxy.domEventName ] = {
+							n: proxy.name,
+							a: proxy.args
+						};
+					} else if ( proxy.dynamicArgs ) {
+						json.v[ proxy.domEventName ] = {
+							n: proxy.name,
+							d: jsonifyStubs( proxy.dynamicArgs.items, noStringify )
+						};
+					} else {
+						json.v[ proxy.domEventName ] = proxy.name;
+					}
+				}
+			}
+
+			if ( this.intro ) {
+				if ( this.intro.args ) {
+					json.t1 = {
+						n: this.intro.name,
+						a: this.intro.args
+					};
+				} else if ( this.intro.dynamicArgs ) {
+					json.t1 = {
+						n: this.intro.name,
+						d: jsonifyStubs( this.intro.dynamicArgs.items, noStringify )
+					};
+				} else {
+					json.t1 = this.intro.name;
+				}
+			}
+
+			if ( this.outro ) {
+				if ( this.outro.args ) {
+					json.t2 = {
+						n: this.outro.name,
+						a: this.outro.args
+					};
+				} else if ( this.outro.dynamicArgs ) {
+					json.t2 = {
+						n: this.outro.name,
+						d: jsonifyStubs( this.outro.dynamicArgs.items, noStringify )
+					};
+				} else {
+					json.t2 = this.outro.name;
+				}
+			}
+
+			this[ 'json_' + noStringify ] = json;
 			return json;
 		},
 
 		toString: function () {
+			var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
+
 			if ( this.str !== undefined ) {
 				return this.str;
 			}
 
-			this.str = stringify( this.items );
-			return this.str;
+			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
+			// element is to use with innerHTML, and SVG doesn't support that method.
+			// Note: table elements and select children are excluded from this, because IE (of course)
+			// fucks up when you use innerHTML with them
+			if ( allElementNames.indexOf( this.tag.toLowerCase() ) === -1 ) {
+				return ( this.str = false );
+			}
+
+			// do we have proxies or transitions? if so we can't use innerHTML
+			if ( this.proxies || this.intro || this.outro ) {
+				return ( this.str = false );
+			}
+
+			// see if children can be stringified (i.e. don't contain mustaches)
+			fragStr = stringifyStubs( this.items );
+			if ( fragStr === false ) {
+				return ( this.str = false );
+			}
+
+			// is this a void element?
+			isVoid = ( voidElementNames.indexOf( this.tag.toLowerCase() ) !== -1 );
+
+			str = '<' + this.tag;
+			
+			if ( this.attributes ) {
+				for ( i=0, len=this.attributes.length; i<len; i+=1 ) {
+
+					name = this.attributes[i].name;
+					
+					// does this look like a namespaced attribute? if so we can't stringify it
+					if ( name.indexOf( ':' ) !== -1 ) {
+						return ( this.str = false );
+					}
+
+					// if this element has an id attribute, it can't be stringified (since references are stored
+					// in ractive.nodes). Similarly, intro and outro transitions
+					if ( name === 'id' || name === 'intro' || name === 'outro' ) {
+						return ( this.str = false );
+					}
+
+					attrStr = ' ' + name;
+
+					// empty attributes
+					if ( this.attributes[i].value !== null ) {
+						attrValueStr = this.attributes[i].value.toString();
+
+						if ( attrValueStr === false ) {
+							return ( this.str = false );
+						}
+
+						if ( attrValueStr !== '' ) {
+							attrStr += '=';
+
+							// does it need to be quoted?
+							if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
+								attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
+							} else {
+								attrStr += attrValueStr;
+							}
+						}
+					}
+
+					str += attrStr;
+				}
+			}
+
+			// if this isn't a void tag, but is self-closing, add a solidus. Aaaaand, we're done
+			if ( this.selfClosing && !isVoid ) {
+				str += '/>';
+				return ( this.str = str );
+			}
+
+			str += '>';
+
+			// void element? we're done
+			if ( isVoid ) {
+				return ( this.str = str );
+			}
+
+			// if this has children, add them
+			str += fragStr;
+
+			str += '</' + this.tag + '>';
+			return ( this.str = str );
 		}
 	};
 
 
-	// text
-	(function () {
-		var htmlEntities, decodeCharacterReferences, whitespace;
-
-		Text = function ( token, preserveWhitespace ) {
-			this.type = TEXT;
-			this.text = ( preserveWhitespace ? token.value : token.value.replace( whitespace, ' ' ) );
-		};
-
-		Text.prototype = {
-			toJson: function () {
-				// this will be used as text, so we need to decode things like &amp;
-				return this.decoded || ( this.decoded = decodeCharacterReferences( this.text) );
-			},
-
-			toString: function () {
-				// this will be used as straight text
-				return this.text;
-			}
-		};
-
-		htmlEntities = { quot: 34, amp: 38, apos: 39, lt: 60, gt: 62, nbsp: 160, iexcl: 161, cent: 162, pound: 163, curren: 164, yen: 165, brvbar: 166, sect: 167, uml: 168, copy: 169, ordf: 170, laquo: 171, not: 172, shy: 173, reg: 174, macr: 175, deg: 176, plusmn: 177, sup2: 178, sup3: 179, acute: 180, micro: 181, para: 182, middot: 183, cedil: 184, sup1: 185, ordm: 186, raquo: 187, frac14: 188, frac12: 189, frac34: 190, iquest: 191, Agrave: 192, Aacute: 193, Acirc: 194, Atilde: 195, Auml: 196, Aring: 197, AElig: 198, Ccedil: 199, Egrave: 200, Eacute: 201, Ecirc: 202, Euml: 203, Igrave: 204, Iacute: 205, Icirc: 206, Iuml: 207, ETH: 208, Ntilde: 209, Ograve: 210, Oacute: 211, Ocirc: 212, Otilde: 213, Ouml: 214, times: 215, Oslash: 216, Ugrave: 217, Uacute: 218, Ucirc: 219, Uuml: 220, Yacute: 221, THORN: 222, szlig: 223, agrave: 224, aacute: 225, acirc: 226, atilde: 227, auml: 228, aring: 229, aelig: 230, ccedil: 231, egrave: 232, eacute: 233, ecirc: 234, euml: 235, igrave: 236, iacute: 237, icirc: 238, iuml: 239, eth: 240, ntilde: 241, ograve: 242, oacute: 243, ocirc: 244, otilde: 245, ouml: 246, divide: 247, oslash: 248, ugrave: 249, uacute: 250, ucirc: 251, uuml: 252, yacute: 253, thorn: 254, yuml: 255, OElig: 338, oelig: 339, Scaron: 352, scaron: 353, Yuml: 376, fnof: 402, circ: 710, tilde: 732, Alpha: 913, Beta: 914, Gamma: 915, Delta: 916, Epsilon: 917, Zeta: 918, Eta: 919, Theta: 920, Iota: 921, Kappa: 922, Lambda: 923, Mu: 924, Nu: 925, Xi: 926, Omicron: 927, Pi: 928, Rho: 929, Sigma: 931, Tau: 932, Upsilon: 933, Phi: 934, Chi: 935, Psi: 936, Omega: 937, alpha: 945, beta: 946, gamma: 947, delta: 948, epsilon: 949, zeta: 950, eta: 951, theta: 952, iota: 953, kappa: 954, lambda: 955, mu: 956, nu: 957, xi: 958, omicron: 959, pi: 960, rho: 961, sigmaf: 962, sigma: 963, tau: 964, upsilon: 965, phi: 966, chi: 967, psi: 968, omega: 969, thetasym: 977, upsih: 978, piv: 982, ensp: 8194, emsp: 8195, thinsp: 8201, zwnj: 8204, zwj: 8205, lrm: 8206, rlm: 8207, ndash: 8211, mdash: 8212, lsquo: 8216, rsquo: 8217, sbquo: 8218, ldquo: 8220, rdquo: 8221, bdquo: 8222, dagger: 8224, Dagger: 8225, bull: 8226, hellip: 8230, permil: 8240, prime: 8242, Prime: 8243, lsaquo: 8249, rsaquo: 8250, oline: 8254, frasl: 8260, euro: 8364, image: 8465, weierp: 8472, real: 8476, trade: 8482, alefsym: 8501, larr: 8592, uarr: 8593, rarr: 8594, darr: 8595, harr: 8596, crarr: 8629, lArr: 8656, uArr: 8657, rArr: 8658, dArr: 8659, hArr: 8660, forall: 8704, part: 8706, exist: 8707, empty: 8709, nabla: 8711, isin: 8712, notin: 8713, ni: 8715, prod: 8719, sum: 8721, minus: 8722, lowast: 8727, radic: 8730, prop: 8733, infin: 8734, ang: 8736, and: 8743, or: 8744, cap: 8745, cup: 8746, 'int': 8747, there4: 8756, sim: 8764, cong: 8773, asymp: 8776, ne: 8800, equiv: 8801, le: 8804, ge: 8805, sub: 8834, sup: 8835, nsub: 8836, sube: 8838, supe: 8839, oplus: 8853, otimes: 8855, perp: 8869, sdot: 8901, lceil: 8968, rceil: 8969, lfloor: 8970, rfloor: 8971, lang: 9001, rang: 9002, loz: 9674, spades: 9824, clubs: 9827, hearts: 9829, diams: 9830	};
-
-		decodeCharacterReferences = function ( html ) {
-			var result;
-
-			// named entities
-			result = html.replace( /&([a-zA-Z]+);/, function ( match, name ) {
-				if ( htmlEntities[ name ] ) {
-					return String.fromCharCode( htmlEntities[ name ] );
-				}
-
-				return match;
-			});
-
-			// hex references
-			result = result.replace( /&#x([0-9]+);/, function ( match, hex ) {
-				return String.fromCharCode( parseInt( hex, 16 ) );
-			});
-
-			// decimal references
-			result = result.replace( /&#([0-9]+);/, function ( match, num ) {
-				return String.fromCharCode( num );
-			});
-
-			return result;
-		};
-
-		whitespace = /\s+/g;
-	}());
-
-
-	// mustache
-	(function () {
-		Mustache = function ( token, parser ) {
-			this.type = ( token.type === TRIPLE ? TRIPLE : token.mustacheType );
-
-			if ( token.ref ) {
-				this.ref = token.ref;
-			}
-			
-			if ( token.expression ) {
-				this.expr = new Expression( token.expression );
-			}
-
-			parser.pos += 1;
-		};
-
-		Mustache.prototype = {
-			toJson: function () {
-				var json;
-
-				if ( this.json ) {
-					return this.json;
-				}
-
-				json = {
-					t: this.type
-				};
-
-				if ( this.ref ) {
-					json.r = this.ref;
-				}
-
-				if ( this.expr ) {
-					json.x = this.expr.toJson();
-				}
-
-				this.json = json;
-				return json;
-			},
-
-			toString: function () {
-				// mustaches cannot be stringified
-				return false;
-			}
-		};
-
-
-		Section = function ( firstToken, parser, preserveWhitespace ) {
-			var next;
-
-			this.ref = firstToken.ref;
-			this.indexRef = firstToken.indexRef;
-
-			this.inverted = ( firstToken.mustacheType === INVERTED );
-
-			if ( firstToken.expression ) {
-				this.expr = new Expression( firstToken.expression );
-			}
-
-			parser.pos += 1;
-
-			this.items = [];
-			next = parser.next();
-
-			while ( next ) {
-				if ( next.mustacheType === CLOSING ) {
-					if ( ( next.ref.trim() === this.ref ) || this.expr ) {
-						parser.pos += 1;
-						break;
-					}
-
-					else {
-						throw new Error( 'Could not parse template: Illegal closing section' );
-					}
-				}
-
-				this.items[ this.items.length ] = getItem( parser, preserveWhitespace );
-				next = parser.next();
-			}
-		};
-
-		Section.prototype = {
-			toJson: function ( noStringify ) {
-				var json, str, i, len, itemStr;
-
-				if ( this.json ) {
-					return this.json;
-				}
-
-				json = { t: SECTION };
-
-				if ( this.ref ) {
-					json.r = this.ref;
-				}
-
-				if ( this.indexRef ) {
-					json.i = this.indexRef;
-				}
-
-				if ( this.inverted ) {
-					json.n = true;
-				}
-
-				if ( this.expr ) {
-					json.x = this.expr.toJson();
-				}
-
-				if ( this.items.length ) {
-					json.f = jsonify( this.items, noStringify );
-				}
-
-				this.json = json;
-				return json;
-			},
-
-			toString: function () {
-				// sections cannot be stringified
-				return false;
-			}
-		};
-	}());
-
-
-	// element
-	(function () {
-		var voidElementNames,
-			allElementNames,
-			mapToLowerCase,
-			svgCamelCaseElements,
-			svgCamelCaseElementsMap,
-			svgCamelCaseAttributes,
-			svgCamelCaseAttributesMap,
-			closedByParentClose,
-			siblingsByTagName,
-			onPattern,
-			sanitize,
-			filterAttrs;
-
-		Element = function ( firstToken, parser, preserveWhitespace ) {
-			var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
-
-			this.lcTag = firstToken.name.toLowerCase();
-
-			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
-			// that should be camelcased, camelcase it
-			this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
-
-			parser.pos += 1;
-
-			// if this is a <pre> element, preserve whitespace within
-			preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
-
-			if ( firstToken.attrs ) {
-				filtered = filterAttrs( firstToken.attrs );
-				
-				attrs = filtered.attrs;
-				proxies = filtered.proxies;
-
-				// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
-				if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
-					attrs = attrs.filter( sanitize );
-				}
-
-				getFrag = function ( attr ) {
-					var lcName = attr.name.toLowerCase();
-
-					return {
-						name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
-						value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
-					};
-				};
-
-				processProxy = function ( proxy ) {
-					var processed, domEventName, match, tokens, proxyName, proxyArgs, colonIndex, throwError;
-
-					throwError = function () {
-						throw new Error( 'Illegal proxy event' );
-					};
-
-					if ( !proxy.name || !proxy.value ) {
-						throwError();
-					}
-
-					processed = { domEventName: proxy.name };
-
-					tokens = proxy.value;
-
-					// proxy event names must start with a string (no mustaches)
-					if ( tokens[0].type !== TEXT ) {
-						throwError();
-					}
-
-					colonIndex = tokens[0].value.indexOf( ':' );
-					
-					// if no arguments are specified...
-					if ( colonIndex === -1 ) {
-						
-						// ...the proxy name must be string-only (no mustaches)
-						if ( tokens.length > 1 ) {
-							throwError();
-						}
-
-						processed.name = tokens[0].value;
-					}
-
-					else {
-						processed.name = tokens[0].value.substr( 0, colonIndex );
-						tokens[0].value = tokens[0].value.substring( colonIndex + 1 );
-
-						if ( !tokens[0].value ) {
-							tokens.shift();
-						}
-
-						// can we parse it yet?
-						if ( tokens.length === 1 && tokens[0].type === TEXT ) {
-							try {
-								processed.args = JSON.parse( tokens[0].value );
-							} catch ( err ) {
-								processed.args = tokens[0].value;
-							}
-						}
-
-						processed.dynamicArgs = getFragmentStubFromTokens( tokens );
-					}
-
-					return processed;
-				};
-
-				if ( attrs.length ) {
-					this.attributes = attrs.map( getFrag );
-				}
-
-				if ( proxies.length ) {
-					this.proxies = proxies.map( processProxy );
-				}
-
-				// TODO rename this helper function
+	voidElementNames = 'area base br col command embed hr img input keygen link meta param source track wbr'.split( ' ' );
+	allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
+	closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
+
+	svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split( ' ' );
+	svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef glyphRef gradientTransform gradientTransform gradientUnits gradientUnits kernelMatrix kernelUnitLength kernelUnitLength kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent specularExponent spreadMethod spreadMethod startOffset stdDeviation stitchTiles surfaceScale surfaceScale systemLanguage tableValues targetX targetY textLength textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split( ' ' );
+	
+	mapToLowerCase = function ( items ) {
+		var map = {}, i = items.length;
+		while ( i-- ) {
+			map[ items[i].toLowerCase() ] = items[i];
+		}
+		return map;
+	};
+
+	svgCamelCaseElementsMap = mapToLowerCase( svgCamelCaseElements );
+	svgCamelCaseAttributesMap = mapToLowerCase( svgCamelCaseAttributes );
+
+	siblingsByTagName = {
+		li: [ 'li' ],
+		dt: [ 'dt', 'dd' ],
+		dd: [ 'dt', 'dd' ],
+		p: 'address article aside blockquote dir div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr menu nav ol p pre section table ul'.split( ' ' ),
+		rt: [ 'rt', 'rp' ],
+		rp: [ 'rp', 'rt' ],
+		optgroup: [ 'optgroup' ],
+		option: [ 'option', 'optgroup' ],
+		thead: [ 'tbody', 'tfoot' ],
+		tbody: [ 'tbody', 'tfoot' ],
+		tr: [ 'tr' ],
+		td: [ 'td', 'th' ],
+		th: [ 'td', 'th' ]
+	};
+
+	onPattern = /^on[a-zA-Z]/;
+
+	sanitize = function ( attr ) {
+		var valid = !onPattern.test( attr.name );
+		return valid;
+	};
+
+	filterAttrs = function ( items ) {
+		var attrs, proxies, filtered, i, len, item;
+
+		filtered = {};
+		attrs = [];
+		proxies = [];
+
+		len = items.length;
+		for ( i=0; i<len; i+=1 ) {
+			item = items[i];
+
+			// Transition?
+			if ( item.name === 'intro' ) {
 				if ( filtered.intro ) {
-					this.intro = processProxy( filtered.intro );
+					throw new Error( 'An element can only have one intro transition' );
 				}
 
+				filtered.intro = item;
+			} else if ( item.name === 'outro' ) {
 				if ( filtered.outro ) {
-					this.outro = processProxy( filtered.outro );
+					throw new Error( 'An element can only have one outro transition' );
 				}
+
+				filtered.outro = item;
 			}
 
-			if ( firstToken.selfClosing ) {
-				this.selfClosing = true;
+			// Proxy?
+			else if ( item.name.substr( 0, 6 ) === 'proxy-' ) {
+				item.name = item.name.substring( 6 );
+				proxies[ proxies.length ] = item;
 			}
 
-			if ( voidElementNames.indexOf( this.lcTag ) !== -1 ) {
-				this.isVoid = true;
+			else if ( item.name.substr( 0, 3 ) === 'on-' ) {
+				item.name = item.name.substring( 3 );
+				proxies[ proxies.length ] = item;
 			}
 
-			// if self-closing or a void element, close
-			if ( this.selfClosing || this.isVoid ) {
-				return;
+			// Attribute?
+			else {
+				attrs[ attrs.length ] = item;
 			}
+		}
 
-			this.siblings = siblingsByTagName[ this.lcTag ];
+		filtered.attrs = attrs;
+		filtered.proxies = proxies;
 
-			this.items = [];
-
-			next = parser.next();
-			while ( next ) {
-
-				// section closing mustache should also close this element, e.g.
-				// <ul>{{#items}}<li>{{content}}{{/items}}</ul>
-				if ( next.mustacheType === CLOSING ) {
-					break;
-				}
-				
-				if ( next.type === TAG ) {
-
-					// closing tag
-					if ( next.closing ) {
-						// it's a closing tag, which means this element is closed...
-						if ( next.name.toLowerCase() === this.lcTag ) {
-							parser.pos += 1;
-						}
-
-						break;
-					}
-
-					// sibling element, which closes this element implicitly
-					else if ( this.siblings && ( this.siblings.indexOf( next.name.toLowerCase() ) !== -1 ) ) {
-						break;
-					}
-					
-				}
-
-				this.items[ this.items.length ] = getItem( parser );
-
-				next = parser.next();
-			}
-
-
-			// if we're not preserving whitespace, we can eliminate inner leading and trailing whitespace
-			if ( !preserveWhitespace ) {
-				item = this.items[0];
-				if ( item && item.type === TEXT ) {
-					item.text = item.text.replace( leadingWhitespace, '' );
-					if ( !item.text ) {
-						this.items.shift();
-					}
-				}
-
-				item = this.items[ this.items.length - 1 ];
-				if ( item && item.type === TEXT ) {
-					item.text = item.text.replace( trailingWhitespace, '' );
-					if ( !item.text ) {
-						this.items.pop();
-					}
-				}
-			}
-		};
-
-		Element.prototype = {
-			toJson: function ( noStringify ) {
-				var json, name, value, str, itemStr, proxy, match, i, len;
-
-				if ( this[ 'json_' + noStringify ] ) {
-					return this[ 'json_' + noStringify ];
-				}
-
-				if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
-					json = {
-						t: COMPONENT,
-						e: this.tag.substr( 3 )
-					};
-				} else {
-					json = {
-						t: ELEMENT,
-						e: this.tag
-					};
-				}
-
-				if ( this.attributes && this.attributes.length ) {
-					json.a = {};
-
-					len = this.attributes.length;
-					for ( i=0; i<len; i+=1 ) {
-						name = this.attributes[i].name;
-
-						if ( json.a[ name ] ) {
-							throw new Error( 'You cannot have multiple elements with the same name' );
-						}
-
-						// empty attributes (e.g. autoplay, checked)
-						if( this.attributes[i].value === null ) {
-							value = null;
-						} else {
-							value = jsonify( this.attributes[i].value.items, noStringify );	
-						}
-
-						json.a[ name ] = value;
-					}
-				}
-
-				if ( this.items && this.items.length ) {
-					json.f = jsonify( this.items, noStringify );
-				}
-
-				if ( this.proxies && this.proxies.length ) {
-					json.v = {};
-
-					len = this.proxies.length;
-					for ( i=0; i<len; i+=1 ) {
-						proxy = this.proxies[i];
-
-						// TODO rename domEventName, since transitions use the same mechanism
-						if ( proxy.args ) {
-							json.v[ proxy.domEventName ] = {
-								n: proxy.name,
-								a: proxy.args
-							};
-						} else if ( proxy.dynamicArgs ) {
-							json.v[ proxy.domEventName ] = {
-								n: proxy.name,
-								d: jsonify( proxy.dynamicArgs.items, noStringify )
-							};
-						} else {
-							json.v[ proxy.domEventName ] = proxy.name;
-						}
-					}
-				}
-
-				if ( this.intro ) {
-					if ( this.intro.args ) {
-						json.t1 = {
-							n: this.intro.name,
-							a: this.intro.args
-						};
-					} else if ( this.intro.dynamicArgs ) {
-						json.t1 = {
-							n: this.intro.name,
-							d: jsonify( this.intro.dynamicArgs.items, noStringify )
-						};
-					} else {
-						json.t1 = this.intro.name;
-					}
-				}
-
-				if ( this.outro ) {
-					if ( this.outro.args ) {
-						json.t2 = {
-							n: this.outro.name,
-							a: this.outro.args
-						};
-					} else if ( this.outro.dynamicArgs ) {
-						json.t2 = {
-							n: this.outro.name,
-							d: jsonify( this.outro.dynamicArgs.items, noStringify )
-						};
-					} else {
-						json.t2 = this.outro.name;
-					}
-				}
-
-				this[ 'json_' + noStringify ] = json;
-				return json;
-			},
-
-			toString: function () {
-				var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
-
-				if ( this.str !== undefined ) {
-					return this.str;
-				}
-
-				// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
-				// element is to use with innerHTML, and SVG doesn't support that method.
-				// Note: table elements and select children are excluded from this, because IE (of course)
-				// fucks up when you use innerHTML with them
-				if ( allElementNames.indexOf( this.tag.toLowerCase() ) === -1 ) {
-					return ( this.str = false );
-				}
-
-				// do we have proxies or transitions? if so we can't use innerHTML
-				if ( this.proxies || this.intro || this.outro ) {
-					return ( this.str = false );
-				}
-
-				// see if children can be stringified (i.e. don't contain mustaches)
-				fragStr = stringify( this.items );
-				if ( fragStr === false ) {
-					return ( this.str = false );
-				}
-
-				// is this a void element?
-				isVoid = ( voidElementNames.indexOf( this.tag.toLowerCase() ) !== -1 );
-
-				str = '<' + this.tag;
-				
-				if ( this.attributes ) {
-					for ( i=0, len=this.attributes.length; i<len; i+=1 ) {
-
-						name = this.attributes[i].name;
-						
-						// does this look like a namespaced attribute? if so we can't stringify it
-						if ( name.indexOf( ':' ) !== -1 ) {
-							return ( this.str = false );
-						}
-
-						// if this element has an id attribute, it can't be stringified (since references are stored
-						// in ractive.nodes). Similarly, intro and outro transitions
-						if ( name === 'id' || name === 'intro' || name === 'outro' ) {
-							return ( this.str = false );
-						}
-
-						attrStr = ' ' + name;
-
-						// empty attributes
-						if ( this.attributes[i].value !== null ) {
-							attrValueStr = this.attributes[i].value.toString();
-
-							if ( attrValueStr === false ) {
-								return ( this.str = false );
-							}
-
-							if ( attrValueStr !== '' ) {
-								attrStr += '=';
-
-								// does it need to be quoted?
-								if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
-									attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
-								} else {
-									attrStr += attrValueStr;
-								}
-							}
-						}
-
-						str += attrStr;
-					}
-				}
-
-				// if this isn't a void tag, but is self-closing, add a solidus. Aaaaand, we're done
-				if ( this.selfClosing && !isVoid ) {
-					str += '/>';
-					return ( this.str = str );
-				}
-
-				str += '>';
-
-				// void element? we're done
-				if ( isVoid ) {
-					return ( this.str = str );
-				}
-
-				// if this has children, add them
-				str += fragStr;
-
-				str += '</' + this.tag + '>';
-				return ( this.str = str );
-			}
-		};
-
-
-		voidElementNames = 'area base br col command embed hr img input keygen link meta param source track wbr'.split( ' ' );
-		allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
-		closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
-
-		svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split( ' ' );
-		svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef glyphRef gradientTransform gradientTransform gradientUnits gradientUnits kernelMatrix kernelUnitLength kernelUnitLength kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent specularExponent spreadMethod spreadMethod startOffset stdDeviation stitchTiles surfaceScale surfaceScale systemLanguage tableValues targetX targetY textLength textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split( ' ' );
-		
-		mapToLowerCase = function ( items ) {
-			var map = {}, i = items.length;
-			while ( i-- ) {
-				map[ items[i].toLowerCase() ] = items[i];
-			}
-			return map;
-		};
-
-		svgCamelCaseElementsMap = mapToLowerCase( svgCamelCaseElements );
-		svgCamelCaseAttributesMap = mapToLowerCase( svgCamelCaseAttributes );
-
-		siblingsByTagName = {
-			li: [ 'li' ],
-			dt: [ 'dt', 'dd' ],
-			dd: [ 'dt', 'dd' ],
-			p: 'address article aside blockquote dir div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr menu nav ol p pre section table ul'.split( ' ' ),
-			rt: [ 'rt', 'rp' ],
-			rp: [ 'rp', 'rt' ],
-			optgroup: [ 'optgroup' ],
-			option: [ 'option', 'optgroup' ],
-			thead: [ 'tbody', 'tfoot' ],
-			tbody: [ 'tbody', 'tfoot' ],
-			tr: [ 'tr' ],
-			td: [ 'td', 'th' ],
-			th: [ 'td', 'th' ]
-		};
-
-		onPattern = /^on[a-zA-Z]/;
-
-		sanitize = function ( attr ) {
-			var valid = !onPattern.test( attr.name );
-			return valid;
-		};
-
-		filterAttrs = function ( items ) {
-			var attrs, proxies, filtered, i, len, item;
-
-			filtered = {};
-			attrs = [];
-			proxies = [];
-
-			len = items.length;
-			for ( i=0; i<len; i+=1 ) {
-				item = items[i];
-
-				// Transition?
-				if ( item.name === 'intro' ) {
-					if ( filtered.intro ) {
-						throw new Error( 'An element can only have one intro transition' );
-					}
-
-					filtered.intro = item;
-				} else if ( item.name === 'outro' ) {
-					if ( filtered.outro ) {
-						throw new Error( 'An element can only have one outro transition' );
-					}
-
-					filtered.outro = item;
-				}
-
-				// Proxy?
-				else if ( item.name.substr( 0, 6 ) === 'proxy-' ) {
-					item.name = item.name.substring( 6 );
-					proxies[ proxies.length ] = item;
-				}
-
-				else if ( item.name.substr( 0, 3 ) === 'on-' ) {
-					item.name = item.name.substring( 3 );
-					proxies[ proxies.length ] = item;
-				}
-
-				// Attribute?
-				else {
-					attrs[ attrs.length ] = item;
-				}
-			}
-
-			filtered.attrs = attrs;
-			filtered.proxies = proxies;
-
-			return filtered;
-		};
-	}());
-
-
-	// expression
-	(function () {
-
-		var getRefs, stringify, stringifyKey, identifier;
-
-		Expression = function ( token ) {
-			this.refs = [];
-
-			getRefs( token, this.refs );
-			this.str = stringify( token, this.refs );
-		};
-
-		Expression.prototype = {
-			toJson: function () {
-				if ( this.json ) {
-					return this.json;
-				}
-				
-				this.json = {
-					r: this.refs,
-					s: this.str
-				};
-
-				return this.json;
-			}
-		};
-
-
-		// TODO maybe refactor this?
-		getRefs = function ( token, refs ) {
-			var i, list;
-
-			if ( token.t === REFERENCE ) {
-				if ( refs.indexOf( token.n ) === -1 ) {
-					refs.unshift( token.n );
-				}
-			}
-
-			list = token.o || token.m;
-			if ( list ) {
-				if ( isObject( list ) ) {
-					getRefs( list, refs );
-				} else {
-					i = list.length;
-					while ( i-- ) {
-						getRefs( list[i], refs );
-					}
-				}
-			}
-
-			if ( token.x ) {
-				getRefs( token.x, refs );
-			}
-
-			if ( token.r ) {
-				getRefs( token.r, refs );
-			}
-
-			if ( token.v ) {
-				getRefs( token.v, refs );
-			}
-		};
-
-
-		stringify = function ( token, refs ) {
-			var map = function ( item ) {
-				return stringify( item, refs );
-			};
-
-			switch ( token.t ) {
-				case BOOLEAN_LITERAL:
-				case GLOBAL:
-				case NUMBER_LITERAL:
-				return token.v;
-
-				case STRING_LITERAL:
-				return "'" + token.v.replace( /'/g, "\\'" ) + "'";
-
-				case ARRAY_LITERAL:
-				return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
-
-				case OBJECT_LITERAL:
-				return '{' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + '}';
-
-				case KEY_VALUE_PAIR:
-				return stringifyKey( token.k ) + ':' + stringify( token.v, refs );
-
-				case PREFIX_OPERATOR:
-				return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
-
-				case INFIX_OPERATOR:
-				return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
-
-				case INVOCATION:
-				return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
-
-				case BRACKETED:
-				return '(' + stringify( token.x, refs ) + ')';
-
-				case MEMBER:
-				return stringify( token.x, refs ) + stringify( token.r, refs );
-
-				case REFINEMENT:
-				return ( token.n ? '.' + token.n : '[' + stringify( token.x, refs ) + ']' );
-
-				case CONDITIONAL:
-				return stringify( token.o[0], refs ) + '?' + stringify( token.o[1], refs ) + ':' + stringify( token.o[2], refs );
-
-				case REFERENCE:
-				return '${' + refs.indexOf( token.n ) + '}';
-
-				default:
-				console.log( token );
-				throw new Error( 'Could not stringify expression token. This error is unexpected' );
-			}
-		};
-
-		stringifyKey = function ( key ) {
-			if ( key.t === STRING_LITERAL ) {
-				return identifier.test( key.v ) ? key.v : '"' + key.v.replace( /"/g, '\\"' ) + '"';
-			}
-
-			if ( key.t === NUMBER_LITERAL ) {
-				return key.v;
-			}
-
-			return key;
-		};
-
-		identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
-
-	}());
-
+		return filtered;
+	};
 }());
+var ExpressionStub;
+
 (function () {
 
-	var getStringMatch,
-	getRegexMatcher,
-	allowWhitespace,
+	var getRefs, stringify, stringifyKey, identifier;
 
-	getMustacheOrTriple,
-	getTag,
-	getText,
-	getExpression,
+	ExpressionStub = function ( token ) {
+		this.refs = [];
 
-	getDelimiter,
-	getDelimiterChange,
-	getName,
-	getMustacheRef,
+		getRefs( token, this.refs );
+		this.str = stringify( token, this.refs );
+	};
+
+	ExpressionStub.prototype = {
+		toJson: function () {
+			if ( this.json ) {
+				return this.json;
+			}
+			
+			this.json = {
+				r: this.refs,
+				s: this.str
+			};
+
+			return this.json;
+		}
+	};
+
+
+	// TODO maybe refactor this?
+	getRefs = function ( token, refs ) {
+		var i, list;
+
+		if ( token.t === REFERENCE ) {
+			if ( refs.indexOf( token.n ) === -1 ) {
+				refs.unshift( token.n );
+			}
+		}
+
+		list = token.o || token.m;
+		if ( list ) {
+			if ( isObject( list ) ) {
+				getRefs( list, refs );
+			} else {
+				i = list.length;
+				while ( i-- ) {
+					getRefs( list[i], refs );
+				}
+			}
+		}
+
+		if ( token.x ) {
+			getRefs( token.x, refs );
+		}
+
+		if ( token.r ) {
+			getRefs( token.r, refs );
+		}
+
+		if ( token.v ) {
+			getRefs( token.v, refs );
+		}
+	};
+
+
+	stringify = function ( token, refs ) {
+		var map = function ( item ) {
+			return stringify( item, refs );
+		};
+
+		switch ( token.t ) {
+			case BOOLEAN_LITERAL:
+			case GLOBAL:
+			case NUMBER_LITERAL:
+			return token.v;
+
+			case STRING_LITERAL:
+			return "'" + token.v.replace( /'/g, "\\'" ) + "'";
+
+			case ARRAY_LITERAL:
+			return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
+
+			case OBJECT_LITERAL:
+			return '{' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + '}';
+
+			case KEY_VALUE_PAIR:
+			return stringifyKey( token.k ) + ':' + stringify( token.v, refs );
+
+			case PREFIX_OPERATOR:
+			return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
+
+			case INFIX_OPERATOR:
+			return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
+
+			case INVOCATION:
+			return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
+
+			case BRACKETED:
+			return '(' + stringify( token.x, refs ) + ')';
+
+			case MEMBER:
+			return stringify( token.x, refs ) + stringify( token.r, refs );
+
+			case REFINEMENT:
+			return ( token.n ? '.' + token.n : '[' + stringify( token.x, refs ) + ']' );
+
+			case CONDITIONAL:
+			return stringify( token.o[0], refs ) + '?' + stringify( token.o[1], refs ) + ':' + stringify( token.o[2], refs );
+
+			case REFERENCE:
+			return '${' + refs.indexOf( token.n ) + '}';
+
+			default:
+			console.log( token );
+			throw new Error( 'Could not stringify expression token. This error is unexpected' );
+		}
+	};
+
+	stringifyKey = function ( key ) {
+		if ( key.t === STRING_LITERAL ) {
+			return identifier.test( key.v ) ? key.v : '"' + key.v.replace( /"/g, '\\"' ) + '"';
+		}
+
+		if ( key.t === NUMBER_LITERAL ) {
+			return key.v;
+		}
+
+		return key;
+	};
+
+	identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+
+}());
+var FragmentStub = function ( parser, preserveWhitespace ) {
+	var items, item;
+
+	items = this.items = [];
+
+	item = getItem( parser, preserveWhitespace );
+	while ( item !== null ) {
+		items[ items.length ] = item;
+		item = getItem( parser, preserveWhitespace );
+	}
+};
+
+FragmentStub.prototype = {
+	toJson: function ( noStringify ) {
+		var json;
+
+		if ( this[ 'json_' + noStringify ] ) {
+			return this[ 'json_' + noStringify ];
+		}
+
+		json = this[ 'json_' + noStringify ] = jsonifyStubs( this.items, noStringify );
+		return json;
+	},
+
+	toString: function () {
+		if ( this.str !== undefined ) {
+			return this.str;
+		}
+
+		this.str = stringifyStubs( this.items );
+		return this.str;
+	}
+};
+var MustacheStub = function ( token, parser ) {
+	this.type = ( token.type === TRIPLE ? TRIPLE : token.mustacheType );
+
+	if ( token.ref ) {
+		this.ref = token.ref;
+	}
+	
+	if ( token.expression ) {
+		this.expr = new ExpressionStub( token.expression );
+	}
+
+	parser.pos += 1;
+};
+
+MustacheStub.prototype = {
+	toJson: function () {
+		var json;
+
+		if ( this.json ) {
+			return this.json;
+		}
+
+		json = {
+			t: this.type
+		};
+
+		if ( this.ref ) {
+			json.r = this.ref;
+		}
+
+		if ( this.expr ) {
+			json.x = this.expr.toJson();
+		}
+
+		this.json = json;
+		return json;
+	},
+
+	toString: function () {
+		// mustaches cannot be stringified
+		return false;
+	}
+};
+var SectionStub = function ( firstToken, parser, preserveWhitespace ) {
+	var next;
+
+	this.ref = firstToken.ref;
+	this.indexRef = firstToken.indexRef;
+
+	this.inverted = ( firstToken.mustacheType === INVERTED );
+
+	if ( firstToken.expression ) {
+		this.expr = new ExpressionStub( firstToken.expression );
+	}
+
+	parser.pos += 1;
+
+	this.items = [];
+	next = parser.next();
+
+	while ( next ) {
+		if ( next.mustacheType === CLOSING ) {
+			if ( ( next.ref.trim() === this.ref ) || this.expr ) {
+				parser.pos += 1;
+				break;
+			}
+
+			else {
+				throw new Error( 'Could not parse template: Illegal closing section' );
+			}
+		}
+
+		this.items[ this.items.length ] = getItem( parser, preserveWhitespace );
+		next = parser.next();
+	}
+};
+
+SectionStub.prototype = {
+	toJson: function ( noStringify ) {
+		var json;
+
+		if ( this.json ) {
+			return this.json;
+		}
+
+		json = { t: SECTION };
+
+		if ( this.ref ) {
+			json.r = this.ref;
+		}
+
+		if ( this.indexRef ) {
+			json.i = this.indexRef;
+		}
+
+		if ( this.inverted ) {
+			json.n = true;
+		}
+
+		if ( this.expr ) {
+			json.x = this.expr.toJson();
+		}
+
+		if ( this.items.length ) {
+			json.f = jsonifyStubs( this.items, noStringify );
+		}
+
+		this.json = json;
+		return json;
+	},
+
+	toString: function () {
+		// sections cannot be stringified
+		return false;
+	}
+};
+var TextStub;
+
+(function () {
+	
+	var htmlEntities, decodeCharacterReferences, whitespace;
+
+	TextStub = function ( token, preserveWhitespace ) {
+		this.type = TEXT;
+		this.text = ( preserveWhitespace ? token.value : token.value.replace( whitespace, ' ' ) );
+	};
+
+	TextStub.prototype = {
+		toJson: function () {
+			// this will be used within HTML, so we need to decode things like &amp;
+			return this.decoded || ( this.decoded = decodeCharacterReferences( this.text) );
+		},
+
+		toString: function () {
+			// this will be used as straight text
+			return this.text;
+		}
+	};
+
+	htmlEntities = { quot: 34, amp: 38, apos: 39, lt: 60, gt: 62, nbsp: 160, iexcl: 161, cent: 162, pound: 163, curren: 164, yen: 165, brvbar: 166, sect: 167, uml: 168, copy: 169, ordf: 170, laquo: 171, not: 172, shy: 173, reg: 174, macr: 175, deg: 176, plusmn: 177, sup2: 178, sup3: 179, acute: 180, micro: 181, para: 182, middot: 183, cedil: 184, sup1: 185, ordm: 186, raquo: 187, frac14: 188, frac12: 189, frac34: 190, iquest: 191, Agrave: 192, Aacute: 193, Acirc: 194, Atilde: 195, Auml: 196, Aring: 197, AElig: 198, Ccedil: 199, Egrave: 200, Eacute: 201, Ecirc: 202, Euml: 203, Igrave: 204, Iacute: 205, Icirc: 206, Iuml: 207, ETH: 208, Ntilde: 209, Ograve: 210, Oacute: 211, Ocirc: 212, Otilde: 213, Ouml: 214, times: 215, Oslash: 216, Ugrave: 217, Uacute: 218, Ucirc: 219, Uuml: 220, Yacute: 221, THORN: 222, szlig: 223, agrave: 224, aacute: 225, acirc: 226, atilde: 227, auml: 228, aring: 229, aelig: 230, ccedil: 231, egrave: 232, eacute: 233, ecirc: 234, euml: 235, igrave: 236, iacute: 237, icirc: 238, iuml: 239, eth: 240, ntilde: 241, ograve: 242, oacute: 243, ocirc: 244, otilde: 245, ouml: 246, divide: 247, oslash: 248, ugrave: 249, uacute: 250, ucirc: 251, uuml: 252, yacute: 253, thorn: 254, yuml: 255, OElig: 338, oelig: 339, Scaron: 352, scaron: 353, Yuml: 376, fnof: 402, circ: 710, tilde: 732, Alpha: 913, Beta: 914, Gamma: 915, Delta: 916, Epsilon: 917, Zeta: 918, Eta: 919, Theta: 920, Iota: 921, Kappa: 922, Lambda: 923, Mu: 924, Nu: 925, Xi: 926, Omicron: 927, Pi: 928, Rho: 929, Sigma: 931, Tau: 932, Upsilon: 933, Phi: 934, Chi: 935, Psi: 936, Omega: 937, alpha: 945, beta: 946, gamma: 947, delta: 948, epsilon: 949, zeta: 950, eta: 951, theta: 952, iota: 953, kappa: 954, lambda: 955, mu: 956, nu: 957, xi: 958, omicron: 959, pi: 960, rho: 961, sigmaf: 962, sigma: 963, tau: 964, upsilon: 965, phi: 966, chi: 967, psi: 968, omega: 969, thetasym: 977, upsih: 978, piv: 982, ensp: 8194, emsp: 8195, thinsp: 8201, zwnj: 8204, zwj: 8205, lrm: 8206, rlm: 8207, ndash: 8211, mdash: 8212, lsquo: 8216, rsquo: 8217, sbquo: 8218, ldquo: 8220, rdquo: 8221, bdquo: 8222, dagger: 8224, Dagger: 8225, bull: 8226, hellip: 8230, permil: 8240, prime: 8242, Prime: 8243, lsaquo: 8249, rsaquo: 8250, oline: 8254, frasl: 8260, euro: 8364, image: 8465, weierp: 8472, real: 8476, trade: 8482, alefsym: 8501, larr: 8592, uarr: 8593, rarr: 8594, darr: 8595, harr: 8596, crarr: 8629, lArr: 8656, uArr: 8657, rArr: 8658, dArr: 8659, hArr: 8660, forall: 8704, part: 8706, exist: 8707, empty: 8709, nabla: 8711, isin: 8712, notin: 8713, ni: 8715, prod: 8719, sum: 8721, minus: 8722, lowast: 8727, radic: 8730, prop: 8733, infin: 8734, ang: 8736, and: 8743, or: 8744, cap: 8745, cup: 8746, 'int': 8747, there4: 8756, sim: 8764, cong: 8773, asymp: 8776, ne: 8800, equiv: 8801, le: 8804, ge: 8805, sub: 8834, sup: 8835, nsub: 8836, sube: 8838, supe: 8839, oplus: 8853, otimes: 8855, perp: 8869, sdot: 8901, lceil: 8968, rceil: 8969, lfloor: 8970, rfloor: 8971, lang: 9001, rang: 9002, loz: 9674, spades: 9824, clubs: 9827, hearts: 9829, diams: 9830	};
+
+	decodeCharacterReferences = function ( html ) {
+		var result;
+
+		// named entities
+		result = html.replace( /&([a-zA-Z]+);/, function ( match, name ) {
+			if ( htmlEntities[ name ] ) {
+				return String.fromCharCode( htmlEntities[ name ] );
+			}
+
+			return match;
+		});
+
+		// hex references
+		result = result.replace( /&#x([0-9]+);/, function ( match, hex ) {
+			return String.fromCharCode( parseInt( hex, 16 ) );
+		});
+
+		// decimal references
+		result = result.replace( /&#([0-9]+);/, function ( match, num ) {
+			return String.fromCharCode( num );
+		});
+
+		return result;
+	};
+
+	whitespace = /\s+/g;
+
+}());
+getFragmentStubFromTokens = function ( tokens, options, preserveWhitespace ) {
+	var parser, stub;
+
+	parser = {
+		pos: 0,
+		tokens: tokens || [],
+		next: function () {
+			return parser.tokens[ parser.pos ];
+		},
+		options: options
+	};
+
+	stub = new FragmentStub( parser, preserveWhitespace );
+
+	return stub;
+};
+var getExpression;
+
+// expression
+(function () {
+	var getExpressionList,
+	makePrefixSequenceMatcher,
+	makeInfixSequenceMatcher,
+	getBracketedExpression,
+	getPrimary,
+	getMember,
+	getInvocation,
+	getInvocationRefinement,
+	getTypeOf,
+	getLogicalOr,
+	getConditional,
+	
+	getDigits,
+	getExponent,
+	getFraction,
+	getInteger,
+	
+	getReference,
 	getRefinement,
+
+	getLiteral,
+	getArrayLiteral,
+	getBooleanLiteral,
+	getNumberLiteral,
+	getStringLiteral,
+	getObjectLiteral,
+	getGlobal,
+
+	getKeyValuePairs,
+	getKeyValuePair,
+	getKey,
+
+	getName,
+
 	getDotRefinement,
 	getArrayRefinement,
 	getArrayMember,
 
-	getSingleQuotedString,
-	getUnescapedSingleQuotedChars,
-	getDoubleQuotedString,
-	getUnescapedDoubleQuotedChars,
-	getEscapedChars,
-	getEscapedChar,
+	globals;
 
-	fail;
-
-
-	getToken = function ( tokenizer ) {
-		var token = getMustacheOrTriple( tokenizer ) ||
-		        getTag( tokenizer ) ||
-		        getText( tokenizer );
-
-		return token;
+	getExpression = function ( tokenizer ) {
+		// The conditional operator is the lowest precedence operator (except yield,
+		// assignment operators, and commas, none of which are supported), so we
+		// start there. If it doesn't match, it 'falls through' to progressively
+		// higher precedence operators, until it eventually matches (or fails to
+		// match) a 'primary' - a literal or a reference. This way, the abstract syntax
+		// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
+		return getConditional( tokenizer );
 	};
 
+	getExpressionList = function ( tokenizer ) {
+		var start, expressions, expr, next;
 
+		start = tokenizer.pos;
 
-	// helpers
-	fail = function ( tokenizer, expected ) {
-		var remaining = tokenizer.remaining().substr( 0, 40 );
-		if ( remaining.length === 40 ) {
-			remaining += '...';
+		allowWhitespace( tokenizer );
+
+		expr = getExpression( tokenizer );
+
+		if ( expr === null ) {
+			return null;
 		}
-		throw new Error( 'Tokenizer failed: unexpected string "' + remaining + '" (expected ' + expected + ')' );
+
+		expressions = [ expr ];
+
+		// allow whitespace between expression and ','
+		allowWhitespace( tokenizer );
+
+		if ( getStringMatch( tokenizer, ',' ) ) {
+			next = getExpressionList( tokenizer );
+			if ( next === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			expressions = expressions.concat( next );
+		}
+
+		return expressions;
 	};
 
-	getStringMatch = function ( tokenizer, string ) {
-		var substr;
+	getBracketedExpression = function ( tokenizer ) {
+		var start, expr;
 
-		substr = tokenizer.str.substr( tokenizer.pos, string.length );
+		start = tokenizer.pos;
 
-		if ( substr === string ) {
-			tokenizer.pos += string.length;
-			return string;
+		if ( !getStringMatch( tokenizer, '(' ) ) {
+			return null;
+		}
+
+		allowWhitespace( tokenizer );
+
+		expr = getExpression( tokenizer );
+		if ( !expr ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, ')' ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return {
+			t: BRACKETED,
+			x: expr
+		};
+	};
+
+	getPrimary = function ( tokenizer ) {
+		return getLiteral( tokenizer )
+		    || getReference( tokenizer )
+		    || getBracketedExpression( tokenizer );
+	};
+
+	getMember = function ( tokenizer ) {
+		var expression, refinement, member;
+
+		expression = getPrimary( tokenizer );
+		if ( !expression ) {
+			return null;
+		}
+
+		refinement = getRefinement( tokenizer );
+		if ( !refinement ) {
+			return expression;
+		}
+
+		while ( refinement !== null ) {
+			member = {
+				t: MEMBER,
+				x: expression,
+				r: refinement
+			};
+
+			expression = member;
+			refinement = getRefinement( tokenizer );
+		}
+
+		return member;
+	};
+
+	getInvocation = function ( tokenizer ) {
+		var start, expression, expressionList, result;
+
+		expression = getMember( tokenizer );
+		if ( !expression ) {
+			return null;
+		}
+
+		start = tokenizer.pos;
+
+		if ( !getStringMatch( tokenizer, '(' ) ) {
+			return expression;
+		}
+
+		allowWhitespace( tokenizer );
+		expressionList = getExpressionList( tokenizer );
+
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, ')' ) ) {
+			tokenizer.pos = start;
+			return expression;
+		}
+
+		result = {
+			t: INVOCATION,
+			x: expression
+		};
+
+		if ( expressionList ) {
+			result.o = expressionList;
+		}
+
+		return result;
+	};
+
+	getInvocationRefinement = function ( tokenizer ) {
+		var expression, refinement, member;
+
+		expression = getInvocation( tokenizer );
+		if ( !expression ) {
+			return null;
+		}
+
+		if ( expression.t !== INVOCATION ) {
+			return expression;
+		}
+
+		refinement = getRefinement( tokenizer );
+		if ( !refinement ) {
+			return expression;
+		}
+
+		while ( refinement !== null ) {
+			member = {
+				t: MEMBER,
+				x: expression,
+				r: refinement
+			};
+
+			expression = member;
+			refinement = getRefinement( tokenizer );
+		}
+
+		return member;
+	};
+
+	// right-to-left
+	makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
+		return function ( tokenizer ) {
+			var start, expression;
+
+			if ( !getStringMatch( tokenizer, symbol ) ) {
+				return fallthrough( tokenizer );
+			}
+
+			start = tokenizer.pos;
+
+			allowWhitespace( tokenizer );
+
+			expression = getExpression( tokenizer );
+			if ( !expression ) {
+				fail( tokenizer, 'an expression' );
+			}
+
+			return {
+				s: symbol,
+				o: expression,
+				t: PREFIX_OPERATOR
+			};
+		};
+	};
+
+	// create all prefix sequence matchers
+	(function () {
+		var i, len, matcher, prefixOperators, fallthrough;
+
+		prefixOperators = '! ~ + - typeof'.split( ' ' );
+
+		// An invocation refinement is higher precedence than logical-not
+		fallthrough = getInvocationRefinement;
+		for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
+			matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
+			fallthrough = matcher;
+		}
+
+		// typeof operator is higher precedence than multiplication, so provides the
+		// fallthrough for the multiplication sequence matcher we're about to create
+		// (we're skipping void and delete)
+		getTypeOf = fallthrough;
+	}());
+
+
+	makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
+		return function ( tokenizer ) {
+			var start, left, right;
+
+			left = fallthrough( tokenizer );
+			if ( !left ) {
+				return null;
+			}
+
+			start = tokenizer.pos;
+
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, symbol ) ) {
+				tokenizer.pos = start;
+				return left;
+			}
+
+			allowWhitespace( tokenizer );
+
+			right = getExpression( tokenizer );
+			if ( !right ) {
+				tokenizer.pos = start;
+				return left;
+			}
+
+			return {
+				t: INFIX_OPERATOR,
+				s: symbol,
+				o: [ left, right ]
+			};
+		};
+	};
+
+	// create all infix sequence matchers
+	(function () {
+		var i, len, matcher, infixOperators, fallthrough;
+
+		// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
+		// Each sequence matcher will initially fall through to its higher precedence
+		// neighbour, and only attempt to match if one of the higher precedence operators
+		// (or, ultimately, a literal, reference, or bracketed expression) already matched
+		infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
+
+		// A typeof operator is higher precedence than multiplication
+		fallthrough = getTypeOf;
+		for ( i=0, len=infixOperators.length; i<len; i+=1 ) {
+			matcher = makeInfixSequenceMatcher( infixOperators[i], fallthrough );
+			fallthrough = matcher;
+		}
+
+		// Logical OR is the fallthrough for the conditional matcher
+		getLogicalOr = fallthrough;
+	}());
+	
+
+	// The conditional operator is the lowest precedence operator, so we start here
+	getConditional = function ( tokenizer ) {
+		var start, expression, ifTrue, ifFalse;
+
+		expression = getLogicalOr( tokenizer );
+		if ( !expression ) {
+			return null;
+		}
+
+		start = tokenizer.pos;
+
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, '?' ) ) {
+			tokenizer.pos = start;
+			return expression;
+		}
+
+		allowWhitespace( tokenizer );
+
+		ifTrue = getExpression( tokenizer );
+		if ( !ifTrue ) {
+			tokenizer.pos = start;
+			return expression;
+		}
+
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, ':' ) ) {
+			tokenizer.pos = start;
+			return expression;
+		}
+
+		allowWhitespace( tokenizer );
+
+		ifFalse = getExpression( tokenizer );
+		if ( !ifFalse ) {
+			tokenizer.pos = start;
+			return expression;
+		}
+
+		return {
+			t: CONDITIONAL,
+			o: [ expression, ifTrue, ifFalse ]
+		};
+	};
+	
+
+
+	getDigits = getRegexMatcher( /^[0-9]+/ );
+	getExponent = getRegexMatcher( /^[eE][\-+]?[0-9]+/ );
+	getFraction = getRegexMatcher( /^\.[0-9]+/ );
+	getInteger = getRegexMatcher( /^(0|[1-9][0-9]*)/ );
+
+
+	getReference = function ( tokenizer ) {
+		var startPos, name, dot, combo, refinement, lastDotIndex;
+
+		startPos = tokenizer.pos;
+
+		// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
+		// standard reference ('name')
+		dot = getStringMatch( tokenizer, '.' ) || '';
+		name = getName( tokenizer ) || '';
+
+		// allow the use of `this`
+		if ( name === 'this' ) {
+			name = '.';
+		}
+
+		combo = dot + name;
+
+		if ( !combo ) {
+			return null;
+		}
+
+		while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
+			combo += refinement;
+		}
+
+		if ( getStringMatch( tokenizer, '(' ) ) {
+			
+			// if this is a method invocation (as opposed to a function) we need
+			// to strip the method name from the reference combo, else the context
+			// will be wrong
+			lastDotIndex = combo.lastIndexOf( '.' );
+			if ( lastDotIndex !== -1 ) {
+				combo = combo.substr( 0, lastDotIndex );
+				tokenizer.pos = startPos + combo.length;
+			} else {
+				tokenizer.pos -= 1;
+			}
+		}
+
+		return {
+			t: REFERENCE,
+			n: combo
+		};
+	};
+
+	getRefinement = function ( tokenizer ) {
+		var start, name, expr;
+
+		start = tokenizer.pos;
+
+		allowWhitespace( tokenizer );
+
+		// "." name
+		if ( getStringMatch( tokenizer, '.' ) ) {
+			allowWhitespace( tokenizer );
+
+			if ( name = getName( tokenizer ) ) {
+				return {
+					t: REFINEMENT,
+					n: name
+				};
+			}
+
+			fail( tokenizer, 'a property name' );
+		}
+
+		// "[" expression "]"
+		if ( getStringMatch( tokenizer, '[' ) ) {
+			allowWhitespace( tokenizer );
+
+			expr = getExpression( tokenizer );
+			if ( !expr ) {
+				fail( tokenizer, 'an expression' );
+			}
+
+			allowWhitespace( tokenizer );
+
+			if ( !getStringMatch( tokenizer, ']' ) ) {
+				fail( tokenizer, '"]"' );
+			}
+
+			return {
+				t: REFINEMENT,
+				x: expr
+			};
 		}
 
 		return null;
 	};
 
-	getRegexMatcher = function ( regex ) {
-		return function ( tokenizer ) {
-			var match = regex.exec( tokenizer.str.substring( tokenizer.pos ) );
+	// Any literal except function and regexp literals, which aren't supported (yet?)
+	getLiteral = function ( tokenizer ) {
+		var literal = getNumberLiteral( tokenizer )   ||
+		              getBooleanLiteral( tokenizer )  ||
+		              getGlobal( tokenizer )          ||
+		              getStringLiteral( tokenizer )   ||
+		              getObjectLiteral( tokenizer )   ||
+		              getArrayLiteral( tokenizer );
 
-			if ( !match ) {
-				return null;
-			}
-
-			tokenizer.pos += match[0].length;
-			return match[1] || match[0];
-		};
+		return literal;
 	};
 
-	allowWhitespace = function ( tokenizer ) {
-		var match = leadingWhitespace.exec( tokenizer.str.substring( tokenizer.pos ) );
+	getArrayLiteral = function ( tokenizer ) {
+		var start, expressionList;
 
-		if ( !match ) {
+		start = tokenizer.pos;
+
+		// allow whitespace before '['
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, '[' ) ) {
+			tokenizer.pos = start;
 			return null;
 		}
 
-		tokenizer.pos += match[0].length;
-		return match[0];
+		expressionList = getExpressionList( tokenizer );
+
+		if ( !getStringMatch( tokenizer, ']' ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return {
+			t: ARRAY_LITERAL,
+			m: expressionList
+		};
 	};
 
+	getBooleanLiteral = function ( tokenizer ) {
+		var remaining = tokenizer.remaining();
 
-	// shared
+		if ( remaining.substr( 0, 4 ) === 'true' ) {
+			tokenizer.pos += 4;
+			return {
+				t: BOOLEAN_LITERAL,
+				v: 'true'
+			};
+		}
+
+		if ( remaining.substr( 0, 5 ) === 'false' ) {
+			tokenizer.pos += 5;
+			return {
+				t: BOOLEAN_LITERAL,
+				v: 'false'
+			};
+		}
+
+		return null;
+	};
+
+	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)/;
+
+	// Not strictly literals, but we can treat them as such because they
+	// never need to be dereferenced.
+
+	// Allowed globals:
+	// ----------------
+	//
+	// Array, Date, RegExp, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, isFinite, isNaN, parseFloat, parseInt, JSON, Math, NaN, undefined, null
+	getGlobal = function ( tokenizer ) {
+		var start, name, match;
+
+		start = tokenizer.pos;
+		name = getName( tokenizer );
+
+		if ( !name ) {
+			return null;
+		}
+
+		match = globals.exec( name );
+		if ( match ) {
+			tokenizer.pos = start + match[0].length;
+			return {
+				t: GLOBAL,
+				v: match[0]
+			};
+		}
+
+		tokenizer.pos = start;
+		return null;
+	};
+
+	getNumberLiteral = function ( tokenizer ) {
+		var start, result;
+
+		start = tokenizer.pos;
+
+		// special case - we may have a decimal without a literal zero (because
+		// some programmers are plonkers)
+		if ( result = getFraction( tokenizer ) ) {
+			return {
+				t: NUMBER_LITERAL,
+				v: result
+			};
+		}
+
+		result = getInteger( tokenizer );
+		if ( result === null ) {
+			return null;
+		}
+
+		result += getFraction( tokenizer ) || '';
+		result += getExponent( tokenizer ) || '';
+
+		return {
+			t: NUMBER_LITERAL,
+			v: result
+		};
+	};
+
+	getObjectLiteral = function ( tokenizer ) {
+		var start, keyValuePairs;
+
+		start = tokenizer.pos;
+
+		// allow whitespace
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, '{' ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		keyValuePairs = getKeyValuePairs( tokenizer );
+
+		// allow whitespace between final value and '}'
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, '}' ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return {
+			t: OBJECT_LITERAL,
+			m: keyValuePairs
+		};
+	};
+
+	getKeyValuePairs = function ( tokenizer ) {
+		var start, pairs, pair, keyValuePairs;
+
+		start = tokenizer.pos;
+
+		pair = getKeyValuePair( tokenizer );
+		if ( pair === null ) {
+			return null;
+		}
+
+		pairs = [ pair ];
+
+		if ( getStringMatch( tokenizer, ',' ) ) {
+			keyValuePairs = getKeyValuePairs( tokenizer );
+
+			if ( !keyValuePairs ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return pairs.concat( keyValuePairs );
+		}
+
+		return pairs;
+	};
+
+	getKeyValuePair = function ( tokenizer ) {
+		var start, key, value;
+
+		start = tokenizer.pos;
+
+		// allow whitespace between '{' and key
+		allowWhitespace( tokenizer );
+
+		key = getKey( tokenizer );
+		if ( key === null ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		// allow whitespace between key and ':'
+		allowWhitespace( tokenizer );
+
+		// next character must be ':'
+		if ( !getStringMatch( tokenizer, ':' ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		// allow whitespace between ':' and value
+		allowWhitespace( tokenizer );
+
+		// next expression must be a, well... expression
+		value = getExpression( tokenizer );
+		if ( value === null ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return {
+			t: KEY_VALUE_PAIR,
+			k: key,
+			v: value
+		};
+	};
+
+	// http://mathiasbynens.be/notes/javascript-properties
+	// can be any name, string literal, or number literal
+	getKey = function ( tokenizer ) {
+		return getName( tokenizer ) || getStringLiteral( tokenizer ) || getNumberLiteral( tokenizer );
+	};
+
+	getStringLiteral = function ( tokenizer ) {
+		var start, string;
+
+		start = tokenizer.pos;
+
+		if ( getStringMatch( tokenizer, '"' ) ) {
+			string = getDoubleQuotedString( tokenizer );
+		
+			if ( !getStringMatch( tokenizer, '"' ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return {
+				t: STRING_LITERAL,
+				v: string
+			};
+		}
+
+		if ( getStringMatch( tokenizer, "'" ) ) {
+			string = getSingleQuotedString( tokenizer );
+
+			if ( !getStringMatch( tokenizer, "'" ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			return {
+				t: STRING_LITERAL,
+				v: string
+			};
+		}
+
+		return null;
+	};
+
+	getName = getRegexMatcher( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
+
+	getDotRefinement = getRegexMatcher( /^\.[a-zA-Z_$0-9]+/ );
+
+	getArrayRefinement = function ( tokenizer ) {
+		var num = getArrayMember( tokenizer );
+
+		if ( num ) {
+			return '.' + num;
+		}
+
+		return null;
+	};
+
+	getArrayMember = getRegexMatcher( /^\[(0|[1-9][0-9]*)\]/ );
+	
+}());
+var getMustacheOrTriple;
+
+// mustache / triple
+(function () {
+	var getMustache,
+		getTriple,
+		getMustacheContent,
+		getMustacheType,
+		getIndexRef,
+		mustacheTypes,
+		getDelimiter,
+		getDelimiterChange;
+
+	getMustacheOrTriple = function ( tokenizer ) {
+		// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
+		// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
+		// we will get a false positive if the mustache delimiter is a substring of the
+		// triple delimiter, as in the default case
+		if ( tokenizer.tripleDelimiters[0].length > tokenizer.delimiters[0].length ) {
+			return getTriple( tokenizer ) || getMustache( tokenizer );
+		}
+
+		return getMustache( tokenizer ) || getTriple( tokenizer );
+	};
+
+	getMustache = function ( tokenizer ) {
+		var start = tokenizer.pos, content;
+
+		if ( !getStringMatch( tokenizer, tokenizer.delimiters[0] ) ) {
+			return null;
+		}
+
+		// delimiter change?
+		content = getDelimiterChange( tokenizer );
+		if ( content ) {
+			// find closing delimiter or abort...
+			if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// ...then make the switch
+			tokenizer.delimiters = content;
+			return { type: MUSTACHE, mustacheType: DELIMCHANGE };
+		}
+
+		content = getMustacheContent( tokenizer );
+
+		if ( content === null ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		// allow whitespace before closing delimiter
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+			fail( tokenizer, '"' + tokenizer.delimiters[1] + '"' );
+		}
+
+		return content;
+	};
+
+	getTriple = function ( tokenizer ) {
+		var start = tokenizer.pos, content;
+
+		if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[0] ) ) {
+			return null;
+		}
+
+		// delimiter change?
+		content = getDelimiterChange( tokenizer );
+		if ( content ) {
+			// find closing delimiter or abort...
+			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			// ...then make the switch
+			tokenizer.tripleDelimiters = content;
+			return { type: MUSTACHE, mustacheType: DELIMCHANGE };
+		}
+
+		// allow whitespace between opening delimiter and reference
+		allowWhitespace( tokenizer );
+
+		content = getMustacheContent( tokenizer, true );
+
+		if ( content === null ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		// allow whitespace between reference and closing delimiter
+		allowWhitespace( tokenizer );
+
+		if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return content;
+	};
+
+	getMustacheContent = function ( tokenizer, isTriple ) {
+		var start, mustache, type, expr, i, remaining, index;
+
+		start = tokenizer.pos;
+
+		mustache = { type: isTriple ? TRIPLE : MUSTACHE };
+
+		// mustache type
+		if ( !isTriple ) {
+			type = getMustacheType( tokenizer );
+			mustache.mustacheType = type || INTERPOLATOR; // default
+
+			// if it's a comment or a section closer, allow any contents except '}}'
+			if ( type === COMMENT || type === CLOSING ) {
+				remaining = tokenizer.remaining();
+				index = remaining.indexOf( tokenizer.delimiters[1] );
+
+				if ( index !== -1 ) {
+					mustache.ref = remaining.substr( 0, index );
+					tokenizer.pos += index;
+					return mustache;
+				}
+			}
+		}
+
+		// allow whitespace
+		allowWhitespace( tokenizer );
+
+		// get expression
+		expr = getExpression( tokenizer );
+
+		while ( expr.t === BRACKETED && expr.x ) {
+			expr = expr.x;
+		}
+
+		if ( expr.t === REFERENCE ) {
+			mustache.ref = expr.n;
+		} else {
+			mustache.expression = expr;
+		}
+
+		// optional index reference
+		i = getIndexRef( tokenizer );
+		if ( i !== null ) {
+			mustache.indexRef = i;
+		}
+
+		return mustache;
+	};
+
+	mustacheTypes = {
+		'#': SECTION,
+		'^': INVERTED,
+		'/': CLOSING,
+		'>': PARTIAL,
+		'!': COMMENT,
+		'&': INTERPOLATOR
+	};
+
+	getMustacheType = function ( tokenizer ) {
+		var type = mustacheTypes[ tokenizer.str.charAt( tokenizer.pos ) ];
+
+		if ( !type ) {
+			return null;
+		}
+
+		tokenizer.pos += 1;
+		return type;
+	};
+
+	getIndexRef = getRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ );
+
 	getDelimiter = getRegexMatcher( /^[^\s=]+/ );
 
 	getDelimiterChange = function ( tokenizer ) {
@@ -7447,1380 +8175,430 @@ splitKeypath =  function ( keypath ) {
 		return [ opening, closing ];
 	};
 
-	getName = getRegexMatcher( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
+}());
+var getTag;
 
-	getMustacheRef = function ( tokenizer ) {
-		var start, ref, member, dot, name;
+(function () {
+	var getOpeningTag,
+	getClosingTag,
+	getTagName,
+	getAttributes,
+	getAttribute,
+	getAttributeName,
+	getAttributeValue,
+	getUnquotedAttributeValue,
+	getUnquotedAttributeValueToken,
+	getUnquotedAttributeValueText,
+	getSingleQuotedAttributeValue,
+	getSingleQuotedStringToken,
+	getDoubleQuotedAttributeValue,
+	getDoubleQuotedStringToken;
+
+	getTag = function ( tokenizer ) {
+		return ( getOpeningTag( tokenizer ) || getClosingTag( tokenizer ) );
+	};
+
+	getOpeningTag = function ( tokenizer ) {
+		var start, tag, attrs;
 
 		start = tokenizer.pos;
 
-		dot = getStringMatch( tokenizer, '.' ) || '';
-		name = getName( tokenizer ) || '';
-
-		if ( dot && !name ) {
-			return dot;
-		}
-
-		ref = dot + name;
-		if ( !ref ) {
+		if ( !getStringMatch( tokenizer, '<' ) ) {
 			return null;
 		}
 
-		member = getRefinement( tokenizer );
-		while ( member !== null ) {
-			ref += member;
-			member = getRefinement( tokenizer );
-		}
+		tag = {
+			type: TAG
+		};
 
-		return ref;
-	};
-
-	getRefinement = function ( tokenizer ) {
-		return getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer );
-	};
-
-	getDotRefinement = getRegexMatcher( /^\.[a-zA-Z_$0-9]+/ );
-
-	getArrayRefinement = function ( tokenizer ) {
-		var num = getArrayMember( tokenizer );
-
-		if ( num ) {
-			return '.' + num;
-		}
-
-		return null;
-	};
-
-	getArrayMember = getRegexMatcher( /^\[(0|[1-9][0-9]*)\]/ );
-
-	getSingleQuotedString = function ( tokenizer ) {
-		var start, string, escaped, unescaped, next;
-
-		start = tokenizer.pos;
-
-		string = '';
-
-		escaped = getEscapedChars( tokenizer );
-		if ( escaped ) {
-			string += escaped;
-		}
-
-		unescaped = getUnescapedSingleQuotedChars( tokenizer );
-		if ( unescaped ) {
-			string += unescaped;
-		}
-		if ( string ) {
-			next = getSingleQuotedString( tokenizer );
-			while ( next ) {
-				string += next;
-				next = getSingleQuotedString( tokenizer );
-			}
-		}
-
-		return string;
-	};
-
-	getUnescapedSingleQuotedChars = getRegexMatcher( /^[^\\']+/ );
-
-	getDoubleQuotedString = function ( tokenizer ) {
-		var start, string, escaped, unescaped, next;
-
-		start = tokenizer.pos;
-
-		string = '';
-
-		escaped = getEscapedChars( tokenizer );
-		if ( escaped ) {
-			string += escaped;
-		}
-
-		unescaped = getUnescapedDoubleQuotedChars( tokenizer );
-		if ( unescaped ) {
-			string += unescaped;
-		}
-
-		if ( !string ) {
-			return '';
-		}
-
-		next = getDoubleQuotedString( tokenizer );
-		while ( next !== '' ) {
-			string += next;
-		}
-
-		return string;
-	};
-
-	getUnescapedDoubleQuotedChars = getRegexMatcher( /^[^\\"]+/ );
-
-	getEscapedChars = function ( tokenizer ) {
-		var chars = '', character;
-
-		character = getEscapedChar( tokenizer );
-		while ( character ) {
-			chars += character;
-			character = getEscapedChar( tokenizer );
-		}
-
-		return chars || null;
-	};
-
-	getEscapedChar = function ( tokenizer ) {
-		var character;
-
-		if ( !getStringMatch( tokenizer, '\\' ) ) {
+		// tag name
+		tag.name = getTagName( tokenizer );
+		if ( !tag.name ) {
+			tokenizer.pos = start;
 			return null;
 		}
 
-		character = tokenizer.str.charAt( tokenizer.pos );
-		tokenizer.pos += 1;
+		// attributes
+		attrs = getAttributes( tokenizer );
+		if ( attrs ) {
+			tag.attrs = attrs;
+		}
 
-		return character;
+		// allow whitespace before closing solidus
+		allowWhitespace( tokenizer );
+
+		// self-closing solidus?
+		if ( getStringMatch( tokenizer, '/' ) ) {
+			tag.selfClosing = true;
+		}
+
+		// closing angle bracket
+		if ( !getStringMatch( tokenizer, '>' ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return tag;
 	};
+
+	getClosingTag = function ( tokenizer ) {
+		var start, tag;
+
+		start = tokenizer.pos;
+
+		if ( !getStringMatch( tokenizer, '<' ) ) {
+			return null;
+		}
+
+		tag = { type: TAG, closing: true };
+
+		// closing solidus
+		if ( !getStringMatch( tokenizer, '/' ) ) {
+			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected "/")' );
+		}
+
+		// tag name
+		tag.name = getTagName( tokenizer );
+		if ( !tag.name ) {
+			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected tag name)' );
+		}
+
+		// closing angle bracket
+		if ( !getStringMatch( tokenizer, '>' ) ) {
+			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ">")' );
+		}
+
+		return tag;
+	};
+
+	getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9\-]*/ );
+
+	getAttributes = function ( tokenizer ) {
+		var start, attrs, attr;
+
+		start = tokenizer.pos;
+
+		allowWhitespace( tokenizer );
+
+		attr = getAttribute( tokenizer );
+
+		if ( !attr ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		attrs = [];
+
+		while ( attr !== null ) {
+			attrs[ attrs.length ] = attr;
+
+			allowWhitespace( tokenizer );
+			attr = getAttribute( tokenizer );
+		}
+
+		return attrs;
+	};
+
+	getAttribute = function ( tokenizer ) {
+		var attr, name, value;
+
+		name = getAttributeName( tokenizer );
+		if ( !name ) {
+			return null;
+		}
+
+		attr = {
+			name: name
+		};
+
+		value = getAttributeValue( tokenizer );
+		if ( value ) {
+			attr.value = value;
+		}
+
+		return attr;
+	};
+
+	getAttributeName = getRegexMatcher( /^[^\s"'>\/=]+/ );
 
 	
 
+	getAttributeValue = function ( tokenizer ) {
+		var start, value;
 
+		start = tokenizer.pos;
 
-	// mustache / triple
-	(function () {
-		var getMustache,
-			getTriple,
-			getMustacheContent,
-			getMustacheType,
-			getIndexRef,
-			mustacheTypes;
+		allowWhitespace( tokenizer );
 
-		getMustacheOrTriple = function ( tokenizer ) {
-			// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
-			// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
-			// we will get a false positive if the mustache delimiter is a substring of the
-			// triple delimiter, as in the default case
-			if ( tokenizer.tripleDelimiters[0].length > tokenizer.delimiters[0].length ) {
-				return getTriple( tokenizer ) || getMustache( tokenizer );
-			}
-
-			return getMustache( tokenizer ) || getTriple( tokenizer );
-		};
-
-		getMustache = function ( tokenizer ) {
-			var start = tokenizer.pos, content;
-
-			if ( !getStringMatch( tokenizer, tokenizer.delimiters[0] ) ) {
-				return null;
-			}
-
-			// delimiter change?
-			content = getDelimiterChange( tokenizer );
-			if ( content ) {
-				// find closing delimiter or abort...
-				if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
-					tokenizer.pos = start;
-					return null;
-				}
-
-				// ...then make the switch
-				tokenizer.delimiters = content;
-				return { type: MUSTACHE, mustacheType: DELIMCHANGE };
-			}
-
-			content = getMustacheContent( tokenizer );
-
-			if ( content === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			// allow whitespace before closing delimiter
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
-				fail( tokenizer, '"' + tokenizer.delimiters[1] + '"' );
-			}
-
-			return content;
-		};
-
-		getTriple = function ( tokenizer ) {
-			var start = tokenizer.pos, content;
-
-			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[0] ) ) {
-				return null;
-			}
-
-			// delimiter change?
-			content = getDelimiterChange( tokenizer );
-			if ( content ) {
-				// find closing delimiter or abort...
-				if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
-					tokenizer.pos = start;
-					return null;
-				}
-
-				// ...then make the switch
-				tokenizer.tripleDelimiters = content;
-				return { type: MUSTACHE, mustacheType: DELIMCHANGE };
-			}
-
-			// allow whitespace between opening delimiter and reference
-			allowWhitespace( tokenizer );
-
-			content = getMustacheContent( tokenizer, true );
-
-			if ( content === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			// allow whitespace between reference and closing delimiter
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return content;
-		};
-
-		getMustacheContent = function ( tokenizer, isTriple ) {
-			var start, mustache, type, expr, i, remaining, index;
-
-			start = tokenizer.pos;
-
-			mustache = { type: isTriple ? TRIPLE : MUSTACHE };
-
-			// mustache type
-			if ( !isTriple ) {
-				type = getMustacheType( tokenizer );
-				mustache.mustacheType = type || INTERPOLATOR; // default
-
-				// if it's a comment or a section closer, allow any contents except '}}'
-				if ( type === COMMENT || type === CLOSING ) {
-					remaining = tokenizer.remaining();
-					index = remaining.indexOf( tokenizer.delimiters[1] );
-
-					if ( index !== -1 ) {
-						mustache.ref = remaining.substr( 0, index );
-						tokenizer.pos += index;
-						return mustache;
-					}
-				}
-			}
-
-			// allow whitespace
-			allowWhitespace( tokenizer );
-
-			// get expression
-			expr = getExpression( tokenizer );
-
-			while ( expr.t === BRACKETED && expr.x ) {
-				expr = expr.x;
-			}
-
-			if ( expr.t === REFERENCE ) {
-				mustache.ref = expr.n;
-			} else {
-				mustache.expression = expr;
-			}
-
-			// optional index reference
-			i = getIndexRef( tokenizer );
-			if ( i !== null ) {
-				mustache.indexRef = i;
-			}
-
-			return mustache;
-		};
-
-		mustacheTypes = {
-			'#': SECTION,
-			'^': INVERTED,
-			'/': CLOSING,
-			'>': PARTIAL,
-			'!': COMMENT,
-			'&': INTERPOLATOR
-		};
-
-		getMustacheType = function ( tokenizer ) {
-			var type = mustacheTypes[ tokenizer.str.charAt( tokenizer.pos ) ];
-
-			if ( !type ) {
-				return null;
-			}
-
-			tokenizer.pos += 1;
-			return type;
-		};
-
-		getIndexRef = getRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ );
-	}());
-
-
-	// tag
-	(function () {
-		var getOpeningTag,
-		getClosingTag,
-		getTagName,
-		getAttributes,
-		getAttribute,
-		getAttributeName,
-		getAttributeValue,
-		getUnquotedAttributeValue,
-		getUnquotedAttributeValueToken,
-		getUnquotedAttributeValueText,
-		getSingleQuotedAttributeValue,
-		getSingleQuotedStringToken,
-		getDoubleQuotedAttributeValue,
-		getDoubleQuotedStringToken;
-
-		getTag = function ( tokenizer ) {
-			return ( getOpeningTag( tokenizer ) || getClosingTag( tokenizer ) );
-		};
-
-		getOpeningTag = function ( tokenizer ) {
-			var start, tag, attrs;
-
-			start = tokenizer.pos;
-
-			if ( !getStringMatch( tokenizer, '<' ) ) {
-				return null;
-			}
-
-			tag = {
-				type: TAG
-			};
-
-			// tag name
-			tag.name = getTagName( tokenizer );
-			if ( !tag.name ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			// attributes
-			attrs = getAttributes( tokenizer );
-			if ( attrs ) {
-				tag.attrs = attrs;
-			}
-
-			// allow whitespace before closing solidus
-			allowWhitespace( tokenizer );
-
-			// self-closing solidus?
-			if ( getStringMatch( tokenizer, '/' ) ) {
-				tag.selfClosing = true;
-			}
-
-			// closing angle bracket
-			if ( !getStringMatch( tokenizer, '>' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return tag;
-		};
-
-		getClosingTag = function ( tokenizer ) {
-			var start, tag;
-
-			start = tokenizer.pos;
-
-			if ( !getStringMatch( tokenizer, '<' ) ) {
-				return null;
-			}
-
-			tag = { type: TAG, closing: true };
-
-			// closing solidus
-			if ( !getStringMatch( tokenizer, '/' ) ) {
-				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected "/")' );
-			}
-
-			// tag name
-			tag.name = getTagName( tokenizer );
-			if ( !tag.name ) {
-				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected tag name)' );
-			}
-
-			// closing angle bracket
-			if ( !getStringMatch( tokenizer, '>' ) ) {
-				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ">")' );
-			}
-
-			return tag;
-		};
-
-		getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9\-]*/ );
-
-		getAttributes = function ( tokenizer ) {
-			var start, attrs, attr;
-
-			start = tokenizer.pos;
-
-			allowWhitespace( tokenizer );
-
-			attr = getAttribute( tokenizer );
-
-			if ( !attr ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			attrs = [];
-
-			while ( attr !== null ) {
-				attrs[ attrs.length ] = attr;
-
-				allowWhitespace( tokenizer );
-				attr = getAttribute( tokenizer );
-			}
-
-			return attrs;
-		};
-
-		getAttribute = function ( tokenizer ) {
-			var attr, name, value;
-
-			name = getAttributeName( tokenizer );
-			if ( !name ) {
-				return null;
-			}
-
-			attr = {
-				name: name
-			};
-
-			value = getAttributeValue( tokenizer );
-			if ( value ) {
-				attr.value = value;
-			}
-
-			return attr;
-		};
-
-		getAttributeName = getRegexMatcher( /^[^\s"'>\/=]+/ );
-
-		
-
-		getAttributeValue = function ( tokenizer ) {
-			var start, value;
-
-			start = tokenizer.pos;
-
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, '=' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			value = getSingleQuotedAttributeValue( tokenizer ) || getDoubleQuotedAttributeValue( tokenizer ) || getUnquotedAttributeValue( tokenizer );
-
-			if ( value === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return value;
-		};
-
-		getUnquotedAttributeValueText = getRegexMatcher( /^[^\s"'=<>`]+/ );
-
-		getUnquotedAttributeValueToken = function ( tokenizer ) {
-			var start, text, index;
-
-			start = tokenizer.pos;
-
-			text = getUnquotedAttributeValueText( tokenizer );
-
-			if ( !text ) {
-				return null;
-			}
-
-			if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-				text = text.substr( 0, index );
-				tokenizer.pos = start + text.length;
-			}
-
-			return {
-				type: TEXT,
-				value: text
-			};
-		};
-
-		getUnquotedAttributeValue = function ( tokenizer ) {
-			var tokens, token;
-
-			tokens = [];
-
-			token = getMustacheOrTriple( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
-			while ( token !== null ) {
-				tokens[ tokens.length ] = token;
-				token = getMustacheOrTriple( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
-			}
-
-			if ( !tokens.length ) {
-				return null;
-			}
-
-			return tokens;
-		};
-
-
-		getSingleQuotedStringToken = function ( tokenizer ) {
-			var start, text, index;
-
-			start = tokenizer.pos;
-
-			text = getSingleQuotedString( tokenizer );
-
-			if ( !text ) {
-				return null;
-			}
-
-			if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-				text = text.substr( 0, index );
-				tokenizer.pos = start + text.length;
-			}
-
-			return {
-				type: TEXT,
-				value: text
-			};
-		};
-
-		getSingleQuotedAttributeValue = function ( tokenizer ) {
-			var start, tokens, token;
-
-			start = tokenizer.pos;
-
-			if ( !getStringMatch( tokenizer, "'" ) ) {
-				return null;
-			}
-
-			tokens = [];
-
-			token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
-			while ( token !== null ) {
-				tokens[ tokens.length ] = token;
-				token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
-			}
-
-			if ( !getStringMatch( tokenizer, "'" ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return tokens;
-
-		};
-
-		getDoubleQuotedStringToken = function ( tokenizer ) {
-			var start, text, index;
-
-			start = tokenizer.pos;
-
-			text = getDoubleQuotedString( tokenizer );
-
-			if ( !text ) {
-				return null;
-			}
-
-			if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-				text = text.substr( 0, index );
-				tokenizer.pos = start + text.length;
-			}
-
-			return {
-				type: TEXT,
-				value: text
-			};
-		};
-
-		getDoubleQuotedAttributeValue = function ( tokenizer ) {
-			var start, tokens, token;
-
-			start = tokenizer.pos;
-
-			if ( !getStringMatch( tokenizer, '"' ) ) {
-				return null;
-			}
-
-			tokens = [];
-
-			token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
-			while ( token !== null ) {
-				tokens[ tokens.length ] = token;
-				token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
-			}
-
-			if ( !getStringMatch( tokenizer, '"' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return tokens;
-
-		};
-	}());
-
-
-	// text
-	(function () {
-		getText = function ( tokenizer ) {
-			var minIndex, text;
-
-			minIndex = tokenizer.str.length;
-
-			// anything goes except opening delimiters or a '<'
-			[ tokenizer.delimiters[0], tokenizer.tripleDelimiters[0], '<' ].forEach( function ( substr ) {
-				var index = tokenizer.str.indexOf( substr, tokenizer.pos );
-
-				if ( index !== -1 ) {
-					minIndex = Math.min( index, minIndex );
-				}
-			});
-
-			if ( minIndex === tokenizer.pos ) {
-				return null;
-			}
-
-			text = tokenizer.str.substring( tokenizer.pos, minIndex );
-			tokenizer.pos = minIndex;
-
-			return {
-				type: TEXT,
-				value: text
-			};
-
-		};
-	}());
-
-
-	// expression
-	(function () {
-		var getExpressionList,
-		makePrefixSequenceMatcher,
-		makeInfixSequenceMatcher,
-		getRightToLeftSequenceMatcher,
-		getBracketedExpression,
-		getPrimary,
-		getMember,
-		getInvocation,
-		getInvocationRefinement,
-		getTypeOf,
-		getLogicalOr,
-		getConditional,
-		
-		getDigits,
-		getExponent,
-		getFraction,
-		getInteger,
-		
-		getReference,
-		getRefinement,
-
-		getLiteral,
-		getArrayLiteral,
-		getBooleanLiteral,
-		getNumberLiteral,
-		getStringLiteral,
-		getObjectLiteral,
-		getGlobal,
-
-		getKeyValuePairs,
-		getKeyValuePair,
-		getKey,
-
-		globals;
-
-		getExpression = function ( tokenizer ) {
-
-			var start, expression, fns, fn, i, len;
-
-			start = tokenizer.pos;
-
-			// The conditional operator is the lowest precedence operator (except yield,
-			// assignment operators, and commas, none of which are supported), so we
-			// start there. If it doesn't match, it 'falls through' to progressively
-			// higher precedence operators, until it eventually matches (or fails to
-			// match) a 'primary' - a literal or a reference. This way, the abstract syntax
-			// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-			expression = getConditional( tokenizer );
-
-			return expression;
-		};
-
-		getExpressionList = function ( tokenizer ) {
-			var start, expressions, expr, next;
-
-			start = tokenizer.pos;
-
-			allowWhitespace( tokenizer );
-
-			expr = getExpression( tokenizer );
-
-			if ( expr === null ) {
-				return null;
-			}
-
-			expressions = [ expr ];
-
-			// allow whitespace between expression and ','
-			allowWhitespace( tokenizer );
-
-			if ( getStringMatch( tokenizer, ',' ) ) {
-				next = getExpressionList( tokenizer );
-				if ( next === null ) {
-					tokenizer.pos = start;
-					return null;
-				}
-
-				expressions = expressions.concat( next );
-			}
-
-			return expressions;
-		};
-
-		getBracketedExpression = function ( tokenizer ) {
-			var start, expr;
-
-			start = tokenizer.pos;
-
-			if ( !getStringMatch( tokenizer, '(' ) ) {
-				return null;
-			}
-
-			allowWhitespace( tokenizer );
-
-			expr = getExpression( tokenizer );
-			if ( !expr ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, ')' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return {
-				t: BRACKETED,
-				x: expr
-			};
-		};
-
-		getPrimary = function ( tokenizer ) {
-			return getLiteral( tokenizer )
-			    || getReference( tokenizer )
-			    || getBracketedExpression( tokenizer );
-		};
-
-		getMember = function ( tokenizer ) {
-			var start, expression, name, refinement, member;
-
-			expression = getPrimary( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-
-			refinement = getRefinement( tokenizer );
-			if ( !refinement ) {
-				return expression;
-			}
-
-			while ( refinement !== null ) {
-				member = {
-					t: MEMBER,
-					x: expression,
-					r: refinement
-				};
-
-				expression = member;
-				refinement = getRefinement( tokenizer );
-			}
-
-			return member;
-		};
-
-		getInvocation = function ( tokenizer ) {
-			var start, expression, expressionList, result;
-
-			expression = getMember( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-
-			start = tokenizer.pos;
-
-			if ( !getStringMatch( tokenizer, '(' ) ) {
-				return expression;
-			}
-
-			allowWhitespace( tokenizer );
-			expressionList = getExpressionList( tokenizer );
-
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, ')' ) ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-
-			result = {
-				t: INVOCATION,
-				x: expression
-			};
-
-			if ( expressionList ) {
-				result.o = expressionList;
-			}
-
-			return result;
-		};
-
-		getInvocationRefinement = function ( tokenizer ) {
-			var start, expression, name, refinement, member;
-
-			expression = getInvocation( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-
-			if ( expression.t !== INVOCATION ) {
-				return expression;
-			}
-
-			refinement = getRefinement( tokenizer );
-			if ( !refinement ) {
-				return expression;
-			}
-
-			while ( refinement !== null ) {
-				member = {
-					t: MEMBER,
-					x: expression,
-					r: refinement
-				};
-
-				expression = member;
-				refinement = getRefinement( tokenizer );
-			}
-
-			return member;
-		};
-
-		// right-to-left
-		makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
-			return function ( tokenizer ) {
-				var start, expression;
-
-				if ( !getStringMatch( tokenizer, symbol ) ) {
-					return fallthrough( tokenizer );
-				}
-
-				start = tokenizer.pos;
-
-				allowWhitespace( tokenizer );
-
-				expression = getExpression( tokenizer );
-				if ( !expression ) {
-					fail( tokenizer, 'an expression' );
-				}
-
-				return {
-					s: symbol,
-					o: expression,
-					t: PREFIX_OPERATOR
-				};
-			};
-		};
-
-		// create all prefix sequence matchers
-		(function () {
-			var i, len, matcher, prefixOperators, fallthrough;
-
-			prefixOperators = '! ~ + - typeof'.split( ' ' );
-
-			// An invocation refinement is higher precedence than logical-not
-			fallthrough = getInvocationRefinement;
-			for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
-				matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
-				fallthrough = matcher;
-			}
-
-			// typeof operator is higher precedence than multiplication, so provides the
-			// fallthrough for the multiplication sequence matcher we're about to create
-			// (we're skipping void and delete)
-			getTypeOf = fallthrough;
-		}());
-
-
-		makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
-			return function ( tokenizer ) {
-				var start, left, right;
-
-				left = fallthrough( tokenizer );
-				if ( !left ) {
-					return null;
-				}
-
-				start = tokenizer.pos;
-
-				allowWhitespace( tokenizer );
-
-				if ( !getStringMatch( tokenizer, symbol ) ) {
-					tokenizer.pos = start;
-					return left;
-				}
-
-				allowWhitespace( tokenizer );
-
-				right = getExpression( tokenizer );
-				if ( !right ) {
-					tokenizer.pos = start;
-					return left;
-				}
-
-				return {
-					t: INFIX_OPERATOR,
-					s: symbol,
-					o: [ left, right ]
-				};
-			};
-		};
-
-		// create all infix sequence matchers
-		(function () {
-			var i, len, matcher, infixOperators, fallthrough;
-
-			// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
-			// Each sequence matcher will initially fall through to its higher precedence
-			// neighbour, and only attempt to match if one of the higher precedence operators
-			// (or, ultimately, a literal, reference, or bracketed expression) already matched
-			infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
-
-			// A typeof operator is higher precedence than multiplication
-			fallthrough = getTypeOf;
-			for ( i=0, len=infixOperators.length; i<len; i+=1 ) {
-				matcher = makeInfixSequenceMatcher( infixOperators[i], fallthrough );
-				fallthrough = matcher;
-			}
-
-			// Logical OR is the fallthrough for the conditional matcher
-			getLogicalOr = fallthrough;
-		}());
-		
-
-		// The conditional operator is the lowest precedence operator, so we start here
-		getConditional = function ( tokenizer ) {
-			var start, expression, ifTrue, ifFalse;
-
-			expression = getLogicalOr( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-
-			start = tokenizer.pos;
-
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, '?' ) ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-
-			allowWhitespace( tokenizer );
-
-			ifTrue = getExpression( tokenizer );
-			if ( !ifTrue ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, ':' ) ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-
-			allowWhitespace( tokenizer );
-
-			ifFalse = getExpression( tokenizer );
-			if ( !ifFalse ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-
-			return {
-				t: CONDITIONAL,
-				o: [ expression, ifTrue, ifFalse ]
-			};
-		};
-		
-
-
-		getDigits = getRegexMatcher( /^[0-9]+/ );
-		getExponent = getRegexMatcher( /^[eE][\-+]?[0-9]+/ );
-		getFraction = getRegexMatcher( /^\.[0-9]+/ );
-		getInteger = getRegexMatcher( /^(0|[1-9][0-9]*)/ );
-
-
-		getReference = function ( tokenizer ) {
-			var startPos, name, dot, combo, refinement, lastDotIndex;
-
-			startPos = tokenizer.pos;
-
-			// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
-			// standard reference ('name')
-			dot = getStringMatch( tokenizer, '.' ) || '';
-			name = getName( tokenizer ) || '';
-
-			// allow the use of `this`
-			if ( name === 'this' ) {
-				name = '.';
-			}
-
-			combo = dot + name;
-
-			if ( !combo ) {
-				return null;
-			}
-
-			while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
-				combo += refinement;
-			}
-
-			if ( getStringMatch( tokenizer, '(' ) ) {
-				
-				// if this is a method invocation (as opposed to a function) we need
-				// to strip the method name from the reference combo, else the context
-				// will be wrong
-				lastDotIndex = combo.lastIndexOf( '.' );
-				if ( lastDotIndex !== -1 ) {
-					combo = combo.substr( 0, lastDotIndex );
-					tokenizer.pos = startPos + combo.length;
-				} else {
-					tokenizer.pos -= 1;
-				}
-			}
-
-			return {
-				t: REFERENCE,
-				n: combo
-			};
-		};
-
-		getRefinement = function ( tokenizer ) {
-			var start, refinement, name, expr;
-
-			start = tokenizer.pos;
-
-			allowWhitespace( tokenizer );
-
-			// "." name
-			if ( getStringMatch( tokenizer, '.' ) ) {
-				allowWhitespace( tokenizer );
-
-				if ( name = getName( tokenizer ) ) {
-					return {
-						t: REFINEMENT,
-						n: name
-					};
-				}
-
-				fail( tokenizer, 'a property name' );
-			}
-
-			// "[" expression "]"
-			if ( getStringMatch( tokenizer, '[' ) ) {
-				allowWhitespace( tokenizer );
-
-				expr = getExpression( tokenizer );
-				if ( !expr ) {
-					fail( tokenizer, 'an expression' );
-				}
-
-				allowWhitespace( tokenizer );
-
-				if ( !getStringMatch( tokenizer, ']' ) ) {
-					fail( tokenizer, '"]"' );
-				}
-
-				return {
-					t: REFINEMENT,
-					x: expr
-				};
-			}
-
-			return null;
-		};
-
-		// Any literal except function and regexp literals, which aren't supported (yet?)
-		getLiteral = function ( tokenizer ) {
-			var literal = getNumberLiteral( tokenizer )   ||
-			              getBooleanLiteral( tokenizer )  ||
-			              getGlobal( tokenizer )          ||
-			              getStringLiteral( tokenizer )   ||
-			              getObjectLiteral( tokenizer )   ||
-			              getArrayLiteral( tokenizer );
-
-			return literal;
-		};
-
-		getArrayLiteral = function ( tokenizer ) {
-			var start, array, expressionList;
-
-			start = tokenizer.pos;
-
-			// allow whitespace before '['
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, '[' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			expressionList = getExpressionList( tokenizer );
-
-			if ( !getStringMatch( tokenizer, ']' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return {
-				t: ARRAY_LITERAL,
-				m: expressionList
-			};
-		};
-
-		getBooleanLiteral = function ( tokenizer ) {
-			var remaining = tokenizer.remaining();
-
-			if ( remaining.substr( 0, 4 ) === 'true' ) {
-				tokenizer.pos += 4;
-				return {
-					t: BOOLEAN_LITERAL,
-					v: 'true'
-				};
-			}
-
-			if ( remaining.substr( 0, 5 ) === 'false' ) {
-				tokenizer.pos += 5;
-				return {
-					t: BOOLEAN_LITERAL,
-					v: 'false'
-				};
-			}
-
-			return null;
-		};
-
-		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)/;
-
-		// Not strictly literals, but we can treat them as such because they
-		// never need to be dereferenced.
-
-		// Allowed globals:
-		// ----------------
-		//
-		// Array, Date, RegExp, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, isFinite, isNaN, parseFloat, parseInt, JSON, Math, NaN, undefined, null
-		getGlobal = function ( tokenizer ) {
-			var start, name, match, global;
-
-			start = tokenizer.pos;
-			name = getName( tokenizer );
-
-			if ( !name ) {
-				return null;
-			}
-
-			match = globals.exec( name );
-			if ( match ) {
-				tokenizer.pos = start + match[0].length;
-				return {
-					t: GLOBAL,
-					v: match[0]
-				};
-			}
-
+		if ( !getStringMatch( tokenizer, '=' ) ) {
 			tokenizer.pos = start;
 			return null;
-		};
+		}
 
-		getNumberLiteral = function ( tokenizer ) {
-			var start, result;
+		value = getSingleQuotedAttributeValue( tokenizer ) || getDoubleQuotedAttributeValue( tokenizer ) || getUnquotedAttributeValue( tokenizer );
 
-			start = tokenizer.pos;
-
-			// special case - we may have a decimal without a literal zero (because
-			// some programmers are plonkers)
-			if ( result = getFraction( tokenizer ) ) {
-				return {
-					t: NUMBER_LITERAL,
-					v: result
-				};
-			}
-
-			result = getInteger( tokenizer );
-			if ( result === null ) {
-				return null;
-			}
-
-			result += getFraction( tokenizer ) || '';
-			result += getExponent( tokenizer ) || '';
-
-			return {
-				t: NUMBER_LITERAL,
-				v: result
-			};
-		};
-
-		getObjectLiteral = function ( tokenizer ) {
-			var start, pairs, keyValuePairs, i, pair;
-
-			start = tokenizer.pos;
-
-			// allow whitespace
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, '{' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			keyValuePairs = getKeyValuePairs( tokenizer );
-
-			// allow whitespace between final value and '}'
-			allowWhitespace( tokenizer );
-
-			if ( !getStringMatch( tokenizer, '}' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return {
-				t: OBJECT_LITERAL,
-				m: keyValuePairs
-			};
-		};
-
-		getKeyValuePairs = function ( tokenizer ) {
-			var start, pairs, pair, keyValuePairs;
-
-			start = tokenizer.pos;
-
-			pair = getKeyValuePair( tokenizer );
-			if ( pair === null ) {
-				return null;
-			}
-
-			pairs = [ pair ];
-
-			if ( getStringMatch( tokenizer, ',' ) ) {
-				keyValuePairs = getKeyValuePairs( tokenizer );
-
-				if ( !keyValuePairs ) {
-					tokenizer.pos = start;
-					return null;
-				}
-
-				return pairs.concat( keyValuePairs );
-			}
-
-			return pairs;
-		};
-
-		getKeyValuePair = function ( tokenizer ) {
-			var start, pair, key, value;
-
-			start = tokenizer.pos;
-
-			// allow whitespace between '{' and key
-			allowWhitespace( tokenizer );
-
-			key = getKey( tokenizer );
-			if ( key === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			// allow whitespace between key and ':'
-			allowWhitespace( tokenizer );
-
-			// next character must be ':'
-			if ( !getStringMatch( tokenizer, ':' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			// allow whitespace between ':' and value
-			allowWhitespace( tokenizer );
-
-			// next expression must be a, well... expression
-			value = getExpression( tokenizer );
-			if ( value === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-
-			return {
-				t: KEY_VALUE_PAIR,
-				k: key,
-				v: value
-			};
-		};
-
-		// http://mathiasbynens.be/notes/javascript-properties
-		// can be any name, string literal, or number literal
-		getKey = function ( tokenizer ) {
-			return getName( tokenizer ) || getStringLiteral( tokenizer ) || getNumberLiteral( tokenizer );
-		};
-
-		getStringLiteral = function ( tokenizer ) {
-			var start, string;
-
-			start = tokenizer.pos;
-
-			if ( getStringMatch( tokenizer, '"' ) ) {
-				string = getDoubleQuotedString( tokenizer );
-			
-				if ( !getStringMatch( tokenizer, '"' ) ) {
-					tokenizer.pos = start;
-					return null;
-				}
-
-				return {
-					t: STRING_LITERAL,
-					v: string
-				};
-			}
-
-			if ( getStringMatch( tokenizer, "'" ) ) {
-				string = getSingleQuotedString( tokenizer );
-
-				if ( !getStringMatch( tokenizer, "'" ) ) {
-					tokenizer.pos = start;
-					return null;
-				}
-
-				return {
-					t: STRING_LITERAL,
-					v: string
-				};
-			}
-
+		if ( value === null ) {
+			tokenizer.pos = start;
 			return null;
+		}
+
+		return value;
+	};
+
+	getUnquotedAttributeValueText = getRegexMatcher( /^[^\s"'=<>`]+/ );
+
+	getUnquotedAttributeValueToken = function ( tokenizer ) {
+		var start, text, index;
+
+		start = tokenizer.pos;
+
+		text = getUnquotedAttributeValueText( tokenizer );
+
+		if ( !text ) {
+			return null;
+		}
+
+		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
+			text = text.substr( 0, index );
+			tokenizer.pos = start + text.length;
+		}
+
+		return {
+			type: TEXT,
+			value: text
 		};
-		
-	}());
+	};
+
+	getUnquotedAttributeValue = function ( tokenizer ) {
+		var tokens, token;
+
+		tokens = [];
+
+		token = getMustacheOrTriple( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
+		while ( token !== null ) {
+			tokens[ tokens.length ] = token;
+			token = getMustacheOrTriple( tokenizer ) || getUnquotedAttributeValueToken( tokenizer );
+		}
+
+		if ( !tokens.length ) {
+			return null;
+		}
+
+		return tokens;
+	};
 
 
+	getSingleQuotedStringToken = function ( tokenizer ) {
+		var start, text, index;
+
+		start = tokenizer.pos;
+
+		text = getSingleQuotedString( tokenizer );
+
+		if ( !text ) {
+			return null;
+		}
+
+		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
+			text = text.substr( 0, index );
+			tokenizer.pos = start + text.length;
+		}
+
+		return {
+			type: TEXT,
+			value: text
+		};
+	};
+
+	getSingleQuotedAttributeValue = function ( tokenizer ) {
+		var start, tokens, token;
+
+		start = tokenizer.pos;
+
+		if ( !getStringMatch( tokenizer, "'" ) ) {
+			return null;
+		}
+
+		tokens = [];
+
+		token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+		while ( token !== null ) {
+			tokens[ tokens.length ] = token;
+			token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+		}
+
+		if ( !getStringMatch( tokenizer, "'" ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return tokens;
+
+	};
+
+	getDoubleQuotedStringToken = function ( tokenizer ) {
+		var start, text, index;
+
+		start = tokenizer.pos;
+
+		text = getDoubleQuotedString( tokenizer );
+
+		if ( !text ) {
+			return null;
+		}
+
+		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
+			text = text.substr( 0, index );
+			tokenizer.pos = start + text.length;
+		}
+
+		return {
+			type: TEXT,
+			value: text
+		};
+	};
+
+	getDoubleQuotedAttributeValue = function ( tokenizer ) {
+		var start, tokens, token;
+
+		start = tokenizer.pos;
+
+		if ( !getStringMatch( tokenizer, '"' ) ) {
+			return null;
+		}
+
+		tokens = [];
+
+		token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
+		while ( token !== null ) {
+			tokens[ tokens.length ] = token;
+			token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
+		}
+
+		if ( !getStringMatch( tokenizer, '"' ) ) {
+			tokenizer.pos = start;
+			return null;
+		}
+
+		return tokens;
+
+	};
 }());
+var getText = function ( tokenizer ) {
+	var minIndex, text;
+
+	minIndex = tokenizer.str.length;
+
+	// anything goes except opening delimiters or a '<'
+	[ tokenizer.delimiters[0], tokenizer.tripleDelimiters[0], '<' ].forEach( function ( substr ) {
+		var index = tokenizer.str.indexOf( substr, tokenizer.pos );
+
+		if ( index !== -1 ) {
+			minIndex = Math.min( index, minIndex );
+		}
+	});
+
+	if ( minIndex === tokenizer.pos ) {
+		return null;
+	}
+
+	text = tokenizer.str.substring( tokenizer.pos, minIndex );
+	tokenizer.pos = minIndex;
+
+	return {
+		type: TEXT,
+		value: text
+	};
+
+};
+getToken = function ( tokenizer ) {
+	var token = getMustacheOrTriple( tokenizer ) ||
+	        getTag( tokenizer ) ||
+	        getText( tokenizer );
+
+	return token;
+};
+var getDoubleQuotedString = function ( tokenizer ) {
+	var start, string, escaped, unescaped, next;
+
+	start = tokenizer.pos;
+
+	string = '';
+
+	escaped = getEscapedChars( tokenizer );
+	if ( escaped ) {
+		string += escaped;
+	}
+
+	unescaped = getUnescapedDoubleQuotedChars( tokenizer );
+	if ( unescaped ) {
+		string += unescaped;
+	}
+
+	if ( !string ) {
+		return '';
+	}
+
+	next = getDoubleQuotedString( tokenizer );
+	while ( next !== '' ) {
+		string += next;
+	}
+
+	return string;
+};
+
+var getUnescapedDoubleQuotedChars = getRegexMatcher( /^[^\\"]+/ );
+var getEscapedChar = function ( tokenizer ) {
+	var character;
+
+	if ( !getStringMatch( tokenizer, '\\' ) ) {
+		return null;
+	}
+
+	character = tokenizer.str.charAt( tokenizer.pos );
+	tokenizer.pos += 1;
+
+	return character;
+};
+var getEscapedChars = function ( tokenizer ) {
+	var chars = '', character;
+
+	character = getEscapedChar( tokenizer );
+	while ( character ) {
+		chars += character;
+		character = getEscapedChar( tokenizer );
+	}
+
+	return chars || null;
+};
+var getSingleQuotedString = function ( tokenizer ) {
+	var start, string, escaped, unescaped, next;
+
+	start = tokenizer.pos;
+
+	string = '';
+
+	escaped = getEscapedChars( tokenizer );
+	if ( escaped ) {
+		string += escaped;
+	}
+
+	unescaped = getUnescapedSingleQuotedChars( tokenizer );
+	if ( unescaped ) {
+		string += unescaped;
+	}
+	if ( string ) {
+		next = getSingleQuotedString( tokenizer );
+		while ( next ) {
+			string += next;
+			next = getSingleQuotedString( tokenizer );
+		}
+	}
+
+	return string;
+};
+
+var getUnescapedSingleQuotedChars = getRegexMatcher( /^[^\\']+/ );
 // Ractive.parse
 // ===============
 //

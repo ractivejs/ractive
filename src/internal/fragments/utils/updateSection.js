@@ -1,6 +1,6 @@
 (function () {
 
-	var updateInvertedSection, updateListSection, updateContextSection, updateConditionalSection;
+	var updateListSection, updateContextSection, updateConditionalSection;
 
 	updateSection = function ( section, value ) {
 		var fragmentOptions;

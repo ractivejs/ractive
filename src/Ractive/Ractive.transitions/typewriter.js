@@ -7,7 +7,7 @@
 	}
 
 	typewriteNode = function ( node, complete, interval ) {
-		var children, next, hide;
+		var children, next;
 
 		if ( node.nodeType === 1 ) {
 			node.style.display = node._display;
@@ -74,7 +74,8 @@
 		}, interval );
 	};
 
-	typewriter = function ( node, complete, params, isIntro ) {
+	// TODO differentiate between intro and outro
+	typewriter = function ( node, complete, params ) {
 		var interval, style, computedStyle, hide;
 
 		params = parseTransitionParams( params );

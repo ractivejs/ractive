@@ -16,7 +16,7 @@ var ElementStub;
 		filterAttrs;
 
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
-		var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
+		var next, attrs, filtered, proxies, getFrag, processProxy, item;
 
 		this.lcTag = firstToken.name.toLowerCase();
 
@@ -50,7 +50,7 @@ var ElementStub;
 			};
 
 			processProxy = function ( proxy ) {
-				var processed, domEventName, match, tokens, proxyName, proxyArgs, colonIndex, throwError;
+				var processed, tokens, colonIndex, throwError;
 
 				throwError = function () {
 					throw new Error( 'Illegal proxy event' );
@@ -196,7 +196,7 @@ var ElementStub;
 
 	ElementStub.prototype = {
 		toJson: function ( noStringify ) {
-			var json, name, value, str, itemStr, proxy, match, i, len;
+			var json, name, value, proxy, i, len;
 
 			if ( this[ 'json_' + noStringify ] ) {
 				return this[ 'json_' + noStringify ];

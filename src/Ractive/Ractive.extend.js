@@ -18,9 +18,7 @@
 
 	extend = function ( childProps ) {
 
-		var Parent, Child, key, template, partials, partial, member;
-
-		Parent = this;
+		var Parent = this, Child;
 
 		// create Child constructor
 		Child = function ( options ) {
@@ -187,8 +185,7 @@
 	};
 
 	initChildInstance = function ( child, Child, options ) {
-		var key, i, optionName;
-
+		
 		// Add template to options, if necessary
 		if ( !options.template && Child.template ) {
 			options.template = Child.template;

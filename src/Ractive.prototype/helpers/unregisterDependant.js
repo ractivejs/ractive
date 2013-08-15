@@ -1,5 +1,5 @@
 unregisterDependant = function ( dependant ) {
-	var deps, i, keep, keys, parentKeypath, map, evaluator, ractive, keypath, priority;
+	var deps, keys, parentKeypath, map, ractive, keypath, priority;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;

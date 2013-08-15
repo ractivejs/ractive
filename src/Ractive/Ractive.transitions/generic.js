@@ -1,6 +1,6 @@
 (function () {
 
-	var getOriginalComputedStyles, setStyle, augment, makeTransition, transform, transformsEnabled, inside, outside;
+	var getOriginalComputedStyles, setStyle, augment, makeTransition;
 
 	// no point executing this code on the server
 	if ( !doc ) {
@@ -60,7 +60,17 @@
 			}
 
 			return function ( node, complete, params, isIntro ) {
-				var transitionEndHandler, transitionStyle, computedStyle, originalComputedStyles, startTransition, originalStyle, originalOpacity, targetOpacity, duration, delay, start, end, source, target, positionStyle, visibilityStyle, stylesToRemove;
+				var transitionEndHandler,
+					computedStyle,
+					originalComputedStyles,
+					startTransition,
+					originalStyle,
+					duration,
+					delay,
+					start,
+					end,
+					positionStyle,
+					visibilityStyle;
 
 				params = parseTransitionParams( params );
 				
@@ -85,8 +95,6 @@
 					// we need to wait a beat before we can actually get values from computedStyle.
 					// Yeah, I know, WTF browsers
 					setTimeout( function () {
-						var i, prop;
-
 						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 						
 						start = outside;
@@ -105,8 +113,6 @@
 				// otherwise we need to transition FROM them
 				else {
 					setTimeout( function () {
-						var i, prop;
-
 						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
 
 						start = augment( originalComputedStyles, inside );
@@ -120,13 +126,11 @@
 				}
 
 				startTransition = function () {
-					var i, prop;
-
 					node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
 					node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
 					node.style[ transition + 'TimingFunction' ] = easing;
 
-					transitionEndHandler = function ( event ) {
+					transitionEndHandler = function () {
 						node.removeEventListener( transitionend, transitionEndHandler, false );
 
 						if ( isIntro ) {

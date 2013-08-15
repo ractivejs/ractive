@@ -34,7 +34,7 @@ var SectionStub = function ( firstToken, parser, preserveWhitespace ) {
 
 SectionStub.prototype = {
 	toJson: function ( noStringify ) {
-		var json, str, i, len, itemStr;
+		var json;
 
 		if ( this.json ) {
 			return this.json;

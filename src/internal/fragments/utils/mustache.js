@@ -1,6 +1,6 @@
 initMustache = function ( mustache, options ) {
 
-	var keypath, index, indexRef, parentFragment;
+	var keypath, indexRef, parentFragment;
 
 	parentFragment = mustache.parentFragment = options.parentFragment;
 

@@ -4,7 +4,7 @@
 
 	ExpressionResolver = function ( mustache ) {
 
-		var expression, i, len, ref, indexRefs, args;
+		var expression, i, len, ref, indexRefs;
 
 		this.root = mustache.root;
 		this.mustache = mustache;

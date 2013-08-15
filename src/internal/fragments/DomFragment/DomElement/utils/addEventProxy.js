@@ -1,5 +1,5 @@
 addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack ) {
-	var root = element.root, proxyName, proxyArgs, dynamicArgs, reuseable, definition, listener, fragment, handler, comboKey;
+	var root = element.root, proxyName, proxyArgs, dynamicArgs, definition, listener, handler, comboKey;
 
 	element.ractify();
 
