@@ -136,7 +136,7 @@
 			};
 
 			removeEventListener = function ( type, listener ) {
-				var element = this, listeners, len, index;
+				var element = this, listeners, i;
 
 				if ( !element.listeners ) {
 					return;

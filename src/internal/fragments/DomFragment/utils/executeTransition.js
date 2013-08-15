@@ -13,7 +13,7 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 		if ( descriptor.a ) {
 			transitionParams = descriptor.a;
 		} else if ( descriptor.d ) {
-			fragment = new TextFragment({
+			fragment = new StringFragment({
 				descriptor:   descriptor.d,
 				root:         root,
 				owner:        owner,

@@ -44,20 +44,13 @@ var getExpression;
 	globals;
 
 	getExpression = function ( tokenizer ) {
-
-		var start, expression, fns, fn, i, len;
-
-		start = tokenizer.pos;
-
 		// The conditional operator is the lowest precedence operator (except yield,
 		// assignment operators, and commas, none of which are supported), so we
 		// start there. If it doesn't match, it 'falls through' to progressively
 		// higher precedence operators, until it eventually matches (or fails to
 		// match) a 'primary' - a literal or a reference. This way, the abstract syntax
 		// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-		expression = getConditional( tokenizer );
-
-		return expression;
+		return getConditional( tokenizer );
 	};
 
 	getExpressionList = function ( tokenizer ) {
@@ -128,7 +121,7 @@ var getExpression;
 	};
 
 	getMember = function ( tokenizer ) {
-		var start, expression, name, refinement, member;
+		var expression, refinement, member;
 
 		expression = getPrimary( tokenizer );
 		if ( !expression ) {
@@ -191,7 +184,7 @@ var getExpression;
 	};
 
 	getInvocationRefinement = function ( tokenizer ) {
-		var start, expression, name, refinement, member;
+		var expression, refinement, member;
 
 		expression = getInvocation( tokenizer );
 		if ( !expression ) {

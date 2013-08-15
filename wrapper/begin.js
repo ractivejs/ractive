@@ -67,6 +67,7 @@ createElementAttributes,
 getElementNamespace,
 updateAttribute,
 bindAttribute,
+console = global.console || { log: noop, warn: noop },
 
 
 // internally used caches
