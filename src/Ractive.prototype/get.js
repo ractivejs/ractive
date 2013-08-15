@@ -52,7 +52,7 @@ proto.get = function ( keypath ) {
 	parentKeypath = keys.join( '.' );
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-	if ( parentValue === null || typeof parentValue !== 'object' || parentValue === UNSET ) {
+	if ( parentValue === null || parentValue === undefined || parentValue === UNSET ) {
 		return;
 	}
 
