@@ -87,31 +87,37 @@
 
 		// update the model, if necessary
 		if ( previous !== value ) {
-			// update data
-			obj = root.data;
-			while ( keys.length > 1 ) {
-				key = accumulated[ accumulated.length ] = keys.shift();
+			if ( !root.magicSet ) {
+				root.muggleSet = true;
 
-				// If this branch doesn't exist yet, create a new one - if the next
-				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
-				// than an object
-				if ( !obj[ key ] ) {
-					
-					// if we're creating a new branch, we may need to clear the upstream
-					// keypath
-					if ( !keypathToClear ) {
-						keypathToClear = accumulated.join( '.' );
+				// update data
+				obj = root.data;
+				while ( keys.length > 1 ) {
+					key = accumulated[ accumulated.length ] = keys.shift();
+
+					// If this branch doesn't exist yet, create a new one - if the next
+					// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
+					// than an object
+					if ( !obj[ key ] ) {
+						
+						// if we're creating a new branch, we may need to clear the upstream
+						// keypath
+						if ( !keypathToClear ) {
+							keypathToClear = accumulated.join( '.' );
+						}
+
+						obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
 					}
 
-					obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
+					obj = obj[ key ];
 				}
 
-				obj = obj[ key ];
+				key = keys[0];
+
+				obj[ key ] = value;
+
+				root.muggleSet = false;
 			}
-
-			key = keys[0];
-
-			obj[ key ] = value;
 		}
 
 		else {

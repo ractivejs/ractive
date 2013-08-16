@@ -168,6 +168,7 @@ INVOCATION        = 40,
 UNSET             = { unset: true },
 
 testDiv = ( doc ? doc.createElement( 'div' ) : null ),
+noMagic,
 
 
 // namespaces
@@ -214,6 +215,8 @@ try {
 			}
 		}
 	};
+
+	noMagic = true;
 }
 
 

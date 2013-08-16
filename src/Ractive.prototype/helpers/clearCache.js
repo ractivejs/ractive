@@ -1,5 +1,5 @@
 clearCache = function ( ractive, keypath ) {
-	var value, cacheMap;
+	var value, cacheMap, childKeypath, wrappedProperty;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( ractive.modifyArrays ) {
@@ -15,7 +15,18 @@ clearCache = function ( ractive, keypath ) {
 
 	if ( cacheMap = ractive._cacheMap[ keypath ] ) {
 		while ( cacheMap.length ) {
-			clearCache( ractive, cacheMap.pop() );
+			childKeypath = cacheMap.pop();
+
+			clearCache( ractive, childKeypath );
+
+			// unwrap properties
+			wrappedProperty = ractive._wrapped[ childKeypath ];
+
+			if ( wrappedProperty ) {
+				wrappedProperty.teardown();
+			}
+
+			ractive._wrapped[ childKeypath ] = null;
 		}
 	}
 };

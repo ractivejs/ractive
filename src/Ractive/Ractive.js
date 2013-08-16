@@ -11,7 +11,8 @@ defineProperties( defaultOptions, {
 	transitions:        { enumerable: true, value: {}    },
 	eventDefinitions:   { enumerable: true, value: {}    },
 	noIntro:            { enumerable: true, value: false },
-	transitionsEnabled: { enumerable: true, value: true  }
+	transitionsEnabled: { enumerable: true, value: true  },
+	magic:              { enumerable: true, value: false }
 });
 
 Ractive = function ( options ) {
@@ -62,10 +63,6 @@ Ractive = function ( options ) {
 		_defEvals: { value: [] },
 		_defSelectValues: { value: [] },
 
-		// Cache proxy event handlers - allows efficient reuse
-		_proxies: { value: createFromNull() },
-		_customProxies: { value: createFromNull() },
-
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
 
@@ -79,14 +76,22 @@ Ractive = function ( options ) {
 		_animations: { value: [] },
 
 		// nodes registry
-		nodes: { value: {} }
+		nodes: { value: {} },
+
+		// property wrappers
+		_wrapped: { value: createFromNull() }
 	});
 
 	// options
 	this.modifyArrays = options.modifyArrays;
+	this.magic = options.magic;
 	this.twoway = options.twoway;
 	this.lazy = options.lazy;
 	this.debug = options.debug;
+
+	if ( this.magic && noMagic ) {
+		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+	}
 
 	if ( options.el ) {
 		this.el = getEl( options.el );

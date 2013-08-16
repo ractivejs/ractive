@@ -168,6 +168,7 @@ INVOCATION        = 40,
 UNSET             = { unset: true },
 
 testDiv = ( doc ? doc.createElement( 'div' ) : null ),
+noMagic,
 
 
 // namespaces
@@ -214,6 +215,8 @@ try {
 			}
 		}
 	};
+
+	noMagic = true;
 }
 
 
@@ -2634,87 +2637,177 @@ proto.fire = function ( eventName ) {
 // TODO use dontNormalise
 // TODO refactor this shitball
 
-proto.get = function ( keypath ) {
-	var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
+(function ( proto ) {
 
-	if ( !keypath ) {
-		return this.data;
-	}
+	var wrapProperty;
 
-	cache = this._cache;
+	proto.get = function ( keypath ) {
+		var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
 
-	if ( isArray( keypath ) ) {
-		if ( !keypath.length ) {
+		if ( !keypath ) {
 			return this.data;
 		}
 
-		keys = keypath.slice(); // clone
-		normalised = keys.join( '.' );
+		cache = this._cache;
 
-		ignoreUndefined = true; // because this should be a branch, sod the cache
-	}
+		if ( isArray( keypath ) ) {
+			if ( !keypath.length ) {
+				return this.data;
+			}
 
-	else {
-		// cache hit? great
-		if ( hasOwn.call( cache, keypath ) && cache[ keypath ] !== UNSET ) {
-			return cache[ keypath ];
+			keys = keypath.slice(); // clone
+			normalised = keys.join( '.' );
+
+			ignoreUndefined = true; // because this should be a branch, sod the cache
 		}
 
-		keys = splitKeypath( keypath );
-		normalised = keys.join( '.' );
-	}
+		else {
+			// cache hit? great
+			if ( hasOwn.call( cache, keypath ) && cache[ keypath ] !== UNSET ) {
+				return cache[ keypath ];
+			}
 
-	// we may have a cache hit now that it's been normalised
-	if ( hasOwn.call( cache, normalised ) && cache[ normalised ] !== UNSET ) {
-		if ( cache[ normalised ] === undefined && ignoreUndefined ) {
-			// continue
+			keys = splitKeypath( keypath );
+			normalised = keys.join( '.' );
+		}
+
+		// we may have a cache hit now that it's been normalised
+		if ( hasOwn.call( cache, normalised ) && cache[ normalised ] !== UNSET ) {
+			if ( cache[ normalised ] === undefined && ignoreUndefined ) {
+				// continue
+			} else {
+				return cache[ normalised ];
+			}
+		}
+
+		// is this an uncached evaluator value?
+		if ( this._evaluators[ normalised ] ) {
+			value = this._evaluators[ normalised ].value;
+			cache[ normalised ] = value;
+			return value;
+		}
+
+		// otherwise it looks like we need to do some work
+		key = keys.pop();
+		parentKeypath = keys.join( '.' );
+		parentValue = ( keys.length ? this.get( keys ) : this.data );
+
+		if ( parentValue === null || parentValue === undefined || parentValue === UNSET ) {
+			return;
+		}
+
+		// if we're in magic mode, wrap values if necessary
+		if ( this.magic && typeof parentValue === 'object' && hasOwn.call( parentValue, key ) ) {
+			if ( !this._wrapped[ normalised ] ) {
+				this._wrapped[ normalised ] = wrapProperty( parentValue, key, this, normalised );
+			}
+		}
+
+		// update cache map
+		if ( !( cacheMap = this._cacheMap[ parentKeypath ] ) ) {
+			this._cacheMap[ parentKeypath ] = [ normalised ];
 		} else {
-			return cache[ normalised ];
+			if ( cacheMap.indexOf( normalised ) === -1 ) {
+				cacheMap[ cacheMap.length ] = normalised;
+			}
 		}
-	}
 
-	// is this an uncached evaluator value?
-	if ( this._evaluators[ normalised ] ) {
-		value = this._evaluators[ normalised ].value;
+		value = parentValue[ key ];
+
+		// Is this an array that needs to be wrapped?
+		if ( this.modifyArrays ) {
+			// if it's not an expression, is an array, and we're not here because it sent us here, wrap it
+			if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value._ractive || !value._ractive.setting ) ) {
+				registerKeypathToArray( value, normalised, this );
+			}
+		}
+
+		// Update cache
 		cache[ normalised ] = value;
+
 		return value;
-	}
+	};
 
-	// otherwise it looks like we need to do some work
-	key = keys.pop();
-	parentKeypath = keys.join( '.' );
-	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-	if ( parentValue === null || parentValue === undefined || parentValue === UNSET ) {
-		return;
-	}
+	// wrap object for magic get/set
+	wrapProperty = function ( obj, prop, ractive, keypath ) {
+		var value, descriptor, get, set, oldGet, oldSet;
 
-	// update cache map
-	if ( !( cacheMap = this._cacheMap[ parentKeypath ] ) ) {
-		this._cacheMap[ parentKeypath ] = [ normalised ];
-	} else {
-		if ( cacheMap.indexOf( normalised ) === -1 ) {
-			cacheMap[ cacheMap.length ] = normalised;
+		descriptor = Object.getOwnPropertyDescriptor( obj, prop );
+
+		if ( descriptor ) {
+			if ( descriptor.set && descriptor.set[ ractive._guid + keypath ] ) {
+				return; // already wrapped
+			}
+
+			if ( !descriptor.configurable ) {
+				throw new Error( 'Cannot configure property' );
+			}
 		}
-	}
 
-	value = parentValue[ key ];
+		if ( !descriptor || hasOwn.call( descriptor, 'value' ) ) {
+			if ( descriptor ) {
+				value = descriptor.value;
+			}
+			
+			get = function () {
+				return value;
+			};
 
-	// Is this an array that needs to be wrapped?
-	if ( this.modifyArrays ) {
-		// if it's not an expression, is an array, and we're not here because it sent us here, wrap it
-		if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value._ractive || !value._ractive.setting ) ) {
-			registerKeypathToArray( value, normalised, this );
+			set = function ( newValue ) {
+				value = newValue;
+
+				if ( !ractive.muggleSet ) {
+					ractive.magicSet = true;
+					ractive.set( keypath, newValue );
+					ractive.magicSet = false;
+				}
+			};
+
+			// prevent rewrapping
+			set[ ractive._guid + keypath ] = true;
+
+			Object.defineProperty( obj, prop, { get: get, set: set, enumerable: true, configurable: true });
 		}
-	}
 
-	// Update cache
-	cache[ normalised ] = value;
+		else {
+			if ( ( descriptor.set && !descriptor.get ) || ( !descriptor.set && descriptor.get ) ) {
+				throw new Error( 'Property with getter but no setter, or vice versa. I am confused.' );
+			}
 
-	return value;
-};
+			if ( descriptor.set._ractive ) {
+				return; // already wrapped
+			}
+
+			oldGet = descriptor.get;
+			oldSet = descriptor.set;
+
+			set = function ( newValue ) {
+				oldSet( newValue );
+
+				if ( !ractive.muggleSet ) {
+					ractive.magicSet = true;
+					ractive.set( keypath, oldGet() );
+					ractive.magicSet = false;
+				}
+			};
+
+			// prevent rewrapping
+			set[ ractive._guid + keypath ] = true;
+
+			Object.defineProperty( obj, prop, { get: oldGet, set: set, enumerable: true, configurable: true });
+		}
+
+		return {
+			teardown: function () {
+				Object.defineProperty( obj, prop, descriptor );
+			}
+		};
+	};
+
+}( proto ));
 clearCache = function ( ractive, keypath ) {
-	var value, cacheMap;
+	var value, cacheMap, childKeypath, wrappedProperty;
 
 	// is this a modified array, which shouldn't fire set events on this keypath anymore?
 	if ( ractive.modifyArrays ) {
@@ -2730,7 +2823,18 @@ clearCache = function ( ractive, keypath ) {
 
 	if ( cacheMap = ractive._cacheMap[ keypath ] ) {
 		while ( cacheMap.length ) {
-			clearCache( ractive, cacheMap.pop() );
+			childKeypath = cacheMap.pop();
+
+			clearCache( ractive, childKeypath );
+
+			// unwrap properties
+			wrappedProperty = ractive._wrapped[ childKeypath ];
+
+			if ( wrappedProperty ) {
+				wrappedProperty.teardown();
+			}
+
+			ractive._wrapped[ childKeypath ] = null;
 		}
 	}
 };
@@ -3204,31 +3308,37 @@ proto.requestFullscreen = function () {
 
 		// update the model, if necessary
 		if ( previous !== value ) {
-			// update data
-			obj = root.data;
-			while ( keys.length > 1 ) {
-				key = accumulated[ accumulated.length ] = keys.shift();
+			if ( !root.magicSet ) {
+				root.muggleSet = true;
 
-				// If this branch doesn't exist yet, create a new one - if the next
-				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
-				// than an object
-				if ( !obj[ key ] ) {
-					
-					// if we're creating a new branch, we may need to clear the upstream
-					// keypath
-					if ( !keypathToClear ) {
-						keypathToClear = accumulated.join( '.' );
+				// update data
+				obj = root.data;
+				while ( keys.length > 1 ) {
+					key = accumulated[ accumulated.length ] = keys.shift();
+
+					// If this branch doesn't exist yet, create a new one - if the next
+					// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
+					// than an object
+					if ( !obj[ key ] ) {
+						
+						// if we're creating a new branch, we may need to clear the upstream
+						// keypath
+						if ( !keypathToClear ) {
+							keypathToClear = accumulated.join( '.' );
+						}
+
+						obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
 					}
 
-					obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
+					obj = obj[ key ];
 				}
 
-				obj = obj[ key ];
+				key = keys[0];
+
+				obj[ key ] = value;
+
+				root.muggleSet = false;
 			}
-
-			key = keys[0];
-
-			obj[ key ] = value;
 		}
 
 		else {
@@ -4191,7 +4301,8 @@ defineProperties( defaultOptions, {
 	transitions:        { enumerable: true, value: {}    },
 	eventDefinitions:   { enumerable: true, value: {}    },
 	noIntro:            { enumerable: true, value: false },
-	transitionsEnabled: { enumerable: true, value: true  }
+	transitionsEnabled: { enumerable: true, value: true  },
+	magic:              { enumerable: true, value: false }
 });
 
 Ractive = function ( options ) {
@@ -4242,10 +4353,6 @@ Ractive = function ( options ) {
 		_defEvals: { value: [] },
 		_defSelectValues: { value: [] },
 
-		// Cache proxy event handlers - allows efficient reuse
-		_proxies: { value: createFromNull() },
-		_customProxies: { value: createFromNull() },
-
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
 
@@ -4259,14 +4366,22 @@ Ractive = function ( options ) {
 		_animations: { value: [] },
 
 		// nodes registry
-		nodes: { value: {} }
+		nodes: { value: {} },
+
+		// property wrappers
+		_wrapped: { value: createFromNull() }
 	});
 
 	// options
 	this.modifyArrays = options.modifyArrays;
+	this.magic = options.magic;
 	this.twoway = options.twoway;
 	this.lazy = options.lazy;
 	this.debug = options.debug;
+
+	if ( this.magic && noMagic ) {
+		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+	}
 
 	if ( options.el ) {
 		this.el = getEl( options.el );
