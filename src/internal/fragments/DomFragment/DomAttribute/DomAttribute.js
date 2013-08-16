@@ -29,6 +29,7 @@
 	// Attribute
 	DomAttribute = function ( options ) {
 
+		this.element = options.element;
 		determineNameAndNamespace( this, options.name );
 
 		// if it's an empty attribute, or just a straight key-value pair, with no
@@ -40,7 +41,6 @@
 
 		// otherwise we need to do some work
 		this.root = options.root;
-		this.element = options.element;
 		this.parentNode = options.parentNode;
 
 		// share parentFragment with parent element
@@ -201,7 +201,7 @@
 			}
 
 			if ( attribute.name === 'value' ) {
-				options.parentNode._ractive.value = options.value;
+				attribute.element.ractify().value = options.value;
 			}
 		}
 

@@ -67,30 +67,21 @@ DomElement = function ( options, docFrag ) {
 
 DomElement.prototype = {
 	teardown: function ( detach ) {
-		var self = this, listener;
+		var eventName;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
-		if ( self.fragment ) {
-			self.fragment.teardown( false );
+		if ( this.fragment ) {
+			this.fragment.teardown( false );
 		}
 
-		while ( self.attributes.length ) {
-			self.attributes.pop().teardown();
+		while ( this.attributes.length ) {
+			this.attributes.pop().teardown();
 		}
 
-		while ( self.eventListeners.length ) {
-			listener = self.eventListeners.pop();
-			self.node.removeEventListener( listener.n, listener.h, false );
-		}
-
-		while ( self.customEventListeners.length ) {
-			self.customEventListeners.pop().teardown();
-		}
-
-		if ( this.proxyFrags ) {
-			while ( this.proxyFrags.length ) {
-				this.proxyFrags.pop().teardown();
+		if ( this.node._ractive ) {
+			for ( eventName in this.node._ractive.events ) {
+				this.node._ractive.events[ eventName ].teardown();
 			}
 		}
 
@@ -111,6 +102,7 @@ DomElement.prototype = {
 		return null;
 	},
 
+	// TODO can we get rid of this?
 	bubble: noop, // just so event proxy and transition fragments have something to call!
 
 	toString: function () {
@@ -145,9 +137,13 @@ DomElement.prototype = {
 			defineProperty( this.node, '_ractive', {
 				value: {
 					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
-					index: this.parentFragment.indexRefs
+					index: this.parentFragment.indexRefs,
+					events: createFromNull(),
+					root: this.root
 				}
 			});
 		}
+
+		return this.node._ractive;
 	}
 };

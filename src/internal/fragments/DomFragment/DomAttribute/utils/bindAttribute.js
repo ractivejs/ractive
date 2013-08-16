@@ -56,30 +56,6 @@
 		node._ractive.binding = binding;
 		this.twoway = true;
 
-		this.boundEvents = [ 'change' ];
-
-		if ( !lazy ) {
-			this.boundEvents.push( 'input' );
-
-			// this is a hack to see if we're in IE - if so, we probably need to add
-			// a keyup listener as well, since in IE8 the input event doesn't fire,
-			// and in IE9 it doesn't fire when text is deleted
-			if ( node.attachEvent ) {
-				this.boundEvents.push( 'keyup' );
-			}
-		}
-
-		// Another IE fix, this time with checkboxes that don't fire change events
-		// until they blur
-		if ( node.attachEvent && node.type === 'checkbox' ) {
-			this.boundEvents.push( 'click' );
-		}
-
-		i = this.boundEvents.length;
-		while ( i-- ) {
-			node.addEventListener( this.boundEvents[i], updateModel, false );
-		}
-
 		return true;
 	};
 
@@ -128,7 +104,7 @@
 				}
 			}
 
-			if ( attribute.propertyName === 'check' ) {
+			if ( attribute.propertyName === 'checked' ) {
 				return new CheckedBinding( attribute, node );
 			}
 

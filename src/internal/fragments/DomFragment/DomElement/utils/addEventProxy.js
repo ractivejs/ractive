@@ -1,117 +1,164 @@
-addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack ) {
-	var root = element.root, proxyName, proxyArgs, dynamicArgs, definition, listener, handler, comboKey;
+(function () {
 
-	element.ractify();
+	var MasterEventHandler,
+		ProxyEvent,
+		firePlainEvent,
+		fireEventWithArgs,
+		fireEventWithDynamicArgs,
+		customHandlers,
+		genericHandler,
+		getCustomHandler;
 
-	if ( typeof proxyDescriptor === 'string' ) {
-		proxyName = proxyDescriptor;
-	} else {
-		proxyName = proxyDescriptor.n;
-	}
+	addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack, indexRefs ) {
+		var events, master;
 
-	// This key uniquely identifies this trigger+proxy name combo on this element
-	comboKey = triggerEventName + '=' + proxyName;
-	
-	if ( proxyDescriptor.a ) {
-		proxyArgs = proxyDescriptor.a;
-	}
+		events = element.ractify().events;
+		master = events[ triggerEventName ] || ( events[ triggerEventName ] = new MasterEventHandler( element, triggerEventName, contextStack, indexRefs ) );
 
-	else if ( proxyDescriptor.d ) {
-		dynamicArgs = true;
-
-		proxyArgs = new StringFragment({
-			descriptor:   proxyDescriptor.d,
-			root:         element.root,
-			owner:        element,
-			contextStack: contextStack
-		});
-
-		if ( !element.proxyFrags ) {
-			element.proxyFrags = [];
-		}
-		element.proxyFrags[ element.proxyFrags.length ] = proxyArgs;
-	}
-
-	if ( proxyArgs !== undefined ) {
-		// store arguments on the element, so we can reuse the same handler
-		// with multiple elements
-		if ( element.node._ractive[ comboKey ] ) {
-			throw new Error( 'You cannot have two proxy events with the same trigger event (' + comboKey + ')' );
-		}
-
-		element.node._ractive[ comboKey ] = {
-			dynamic: dynamicArgs,
-			payload: proxyArgs
-		};
-	}
-
-	// Is this a custom event?
-	if ( definition = ( root.eventDefinitions[ triggerEventName ] || Ractive.eventDefinitions[ triggerEventName ] ) ) {
-		// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
-		// we can reuse the handler. This eliminates the need for event delegation
-		if ( !root._customProxies[ comboKey ] ) {
-			root._customProxies[ comboKey ] = function ( proxyEvent ) {
-				var args, payload;
-
-				if ( !proxyEvent.node ) {
-					throw new Error( 'Proxy event definitions must fire events with a `node` property' );
-				}
-
-				proxyEvent.keypath = proxyEvent.node._ractive.keypath;
-				proxyEvent.context = root.get( proxyEvent.keypath );
-				proxyEvent.index = proxyEvent.node._ractive.index;
-
-				if ( proxyEvent.node._ractive[ comboKey ] ) {
-					args = proxyEvent.node._ractive[ comboKey ];
-					payload = args.dynamic ? args.payload.toJSON() : args.payload;
-				}
-
-				root.fire( proxyName, proxyEvent, payload );
-			};
-		}
-
-		handler = root._customProxies[ comboKey ];
-
-		// Use custom event. Apply definition to this node
-		listener = definition( element.node, handler );
-		element.customEventListeners[ element.customEventListeners.length ] = listener;
-
-		return;
-	}
-
-	// If not, we just need to check it is a valid event for this element
-	// warn about invalid event handlers, if we're in debug mode
-	if ( element.node[ 'on' + triggerEventName ] !== undefined && root.debug ) {
-		if ( console && console.warn ) {
-			console.warn( 'Invalid event handler (' + triggerEventName + ')' );
-		}
-	}
-
-	if ( !root._proxies[ comboKey ] ) {
-		root._proxies[ comboKey ] = function ( event ) {
-			var args, payload, proxyEvent = {
-				node: element,
-				original: event,
-				keypath: element.node._ractive.keypath,
-				context: root.get( element.node._ractive.keypath ),
-				index: element.node._ractive.index
-			};
-
-			if ( element.node._ractive && element.node._ractive[ comboKey ] ) {
-				args = element.node._ractive[ comboKey ];
-				payload = args.dynamic ? args.payload.toJSON() : args.payload;
-			}
-
-			root.fire( proxyName, proxyEvent, payload );
-		};
-	}
-
-	handler = root._proxies[ comboKey ];
-
-	element.eventListeners[ element.eventListeners.length ] = {
-		n: triggerEventName,
-		h: handler
+		master.add( proxyDescriptor );
 	};
 
-	element.node.addEventListener( triggerEventName, handler, false );
-};
+	MasterEventHandler = function ( element, eventName, contextStack ) {
+		var definition;
+
+		this.element = element;
+		this.root = element.root;
+		this.node = element.node;
+		this.name = eventName;
+		this.contextStack = contextStack; // TODO do we need to pass contextStack down everywhere? Doesn't it belong to the parentFragment?
+		this.proxies = [];
+
+		if ( definition = ( this.root.eventDefinitions[ eventName ] || Ractive.eventDefinitions[ eventName ] ) ) {
+			this.custom = definition( this.node, getCustomHandler( eventName ) );
+		} else {
+			this.node.addEventListener( eventName, genericHandler, false );
+		}
+	};
+
+	MasterEventHandler.prototype = {
+		add: function ( proxy ) {
+			this.proxies[ this.proxies.length ] = new ProxyEvent( this.element, this.root, proxy, this.contextStack );
+		},
+
+		// TODO teardown when element torn down
+		teardown: function () {
+			var i;
+
+			if ( this.custom ) {
+				this.custom.teardown();
+			} else {
+				this.node.removeEventListener( this.name, genericHandler, false );
+			}
+
+			i = this.proxies.length;
+			while ( i-- ) {
+				this.proxies[i].teardown();
+			}
+		},
+
+		fire: function ( event ) {
+			var i = this.proxies.length;
+
+			while ( i-- ) {
+				this.proxies[i].fire( event );
+			}
+		}
+	};
+
+	ProxyEvent = function ( element, ractive, descriptor, contextStack ) {
+		var name;
+
+		this.root = ractive;
+
+		name = descriptor.n || descriptor;
+
+		if ( typeof name === 'string' ) {
+			this.n = name;
+		} else {
+			this.n = new StringFragment({
+				descriptor:   descriptor.n,
+				root:         this.root,
+				owner:        element,
+				contextStack: contextStack
+			});
+		}
+
+		if ( descriptor.a ) {
+			this.a = descriptor.a;
+			this.fire = fireEventWithArgs;
+			return;
+		}
+
+		if ( descriptor.d ) {
+			this.d = new StringFragment({
+				descriptor:   descriptor.d,
+				root:         this.root,
+				owner:        element,
+				contextStack: contextStack
+			});
+			this.fire = fireEventWithDynamicArgs;
+			return;
+		}
+
+		this.fire = firePlainEvent;
+	};
+
+	ProxyEvent.prototype = {
+		teardown: function () {
+			if ( this.n.teardown) {
+				this.n.teardown();
+			}
+
+			if ( this.d ) {
+				this.d.teardown();
+			}
+		},
+
+		bubble: noop // TODO can we get rid of this?
+	};
+
+	// the ProxyEvent instance fire method could be any of these
+	firePlainEvent = function ( event ) {
+		this.root.fire( this.n.toString(), event );
+	};
+
+	fireEventWithArgs = function ( event ) {
+		this.root.fire( this.n.toString(), event, this.a );
+	};
+
+	fireEventWithDynamicArgs = function ( event ) {
+		this.root.fire( this.n.toString(), event, this.d.toJSON() );
+	};
+
+	// all native DOM events dealt with by Ractive share a single handler
+	genericHandler = function ( event ) {
+		var storage = this._ractive;
+
+		storage.events[ event.type ].fire({
+			node: this,
+			original: event,
+			index: storage.index,
+			keypath: storage.keypath,
+			context: storage.root.get( storage.keypath )
+		});
+	};
+
+	customHandlers = {};
+
+	getCustomHandler = function ( eventName ) {
+		if ( customHandlers[ eventName ] ) {
+			return customHandlers[ eventName ];
+		}
+
+		return customHandlers[ eventName ] = function ( event ) {
+			var storage = event.node._ractive;
+
+			event.index = storage.index;
+			event.keypath = storage.keypath;
+			event.context = storage.root.get( storage.keypath );
+
+			storage.events[ eventName ].fire( event );
+		};
+	};
+
+}());
