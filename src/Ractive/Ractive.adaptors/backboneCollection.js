@@ -32,7 +32,7 @@ adaptors.backboneCollection = function ( collection, path ) {
 
 			else {
 				prefix = function ( models ) {
-					var attr, result, i;
+					var result, i;
 
 					result = {};
 

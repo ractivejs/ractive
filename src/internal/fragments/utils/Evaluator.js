@@ -185,7 +185,7 @@
 		// otherwise, we do
 		defineProperty( fn, '_wrapped', {
 			value: function () {
-				return fn.apply( this, arguments );
+				return fn.apply( ractive, arguments );
 			},
 			writable: true
 		});

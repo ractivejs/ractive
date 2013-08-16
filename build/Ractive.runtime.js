@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.5 - 2013-08-15
+/*! Ractive - v0.3.5 - 2013-08-16
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -897,8 +897,8 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 
 		proxyArgs = new StringFragment({
 			descriptor:   proxyDescriptor.d,
-			root:         this.root,
-			owner:        this,
+			root:         element.root,
+			owner:        element,
 			contextStack: contextStack
 		});
 
@@ -939,7 +939,7 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 
 				if ( proxyEvent.node._ractive[ comboKey ] ) {
 					args = proxyEvent.node._ractive[ comboKey ];
-					payload = args.dynamic ? args.payload.toJson() : args.payload;
+					payload = args.dynamic ? args.payload.toJSON() : args.payload;
 				}
 
 				root.fire( proxyName, proxyEvent, payload );
@@ -968,14 +968,14 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 			var args, payload, proxyEvent = {
 				node: element,
 				original: event,
-				keypath: element._ractive.keypath,
-				context: root.get( element._ractive.keypath ),
-				index: element._ractive.index
+				keypath: element.node._ractive.keypath,
+				context: root.get( element.node._ractive.keypath ),
+				index: element.node._ractive.index
 			};
 
-			if ( element._ractive && element._ractive[ comboKey ] ) {
-				args = element._ractive[ comboKey ];
-				payload = args.dynamic ? args.payload.toJson() : args.payload;
+			if ( element.node._ractive && element.node._ractive[ comboKey ] ) {
+				args = element.node._ractive[ comboKey ];
+				payload = args.dynamic ? args.payload.toJSON() : args.payload;
 			}
 
 			root.fire( proxyName, proxyEvent, payload );
@@ -1133,7 +1133,7 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 				contextStack: owner.parentFragment.contextStack
 			});
 
-			transitionParams = fragment.toJson();
+			transitionParams = fragment.toJSON();
 			fragment.teardown();
 		}
 	}
@@ -1492,13 +1492,29 @@ insertHtml = function ( html, docFrag ) {
 	thisPattern = /this/;
 
 	wrapFunction = function ( fn, ractive ) {
+		var prop;
+
+		// if the function doesn't refer to `this`, we don't need
+		// to set the context
 		if ( !thisPattern.test( fn.toString() ) ) {
 			return fn._wrapped = fn;
 		}
 
-		return fn._wrapped = function () {
-			return fn.apply( ractive, arguments );
-		};
+		// otherwise, we do
+		defineProperty( fn, '_wrapped', {
+			value: function () {
+				return fn.apply( ractive, arguments );
+			},
+			writable: true
+		});
+
+		for ( prop in fn ) {
+			if ( hasOwn.call( fn, prop ) ) {
+				fn._wrapped[ prop ] = fn[ prop ];
+			}
+		}
+
+		return fn._wrapped;
 	};
 
 }({}));
@@ -2248,7 +2264,7 @@ proto.get = function ( keypath ) {
 	parentKeypath = keys.join( '.' );
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-	if ( parentValue === null || typeof parentValue !== 'object' || parentValue === UNSET ) {
+	if ( parentValue === null || parentValue === undefined || parentValue === UNSET ) {
 		return;
 	}
 
@@ -2440,11 +2456,19 @@ resolveRef = function ( ractive, ref, contextStack ) {
 
 	// Implicit iterators - i.e. {{.}} - are a special case
 	if ( ref === '.' ) {
+		if ( !contextStack.length ) {
+			return '';
+		}
+
 		return contextStack[ contextStack.length - 1 ];
 	}
 
 	// References prepended with '.' are another special case
 	if ( ref.charAt( 0 ) === '.' ) {
+		if ( !contextStack.length ) {
+			return ref.substring( 1 );
+		}
+		
 		return contextStack[ contextStack.length - 1 ] + ref;
 	}
 
@@ -2986,6 +3010,87 @@ adaptors.backbone = function ( model, path ) {
 		teardown: function ( view ) {
 			model.off( 'change', setView );
 			view.off( 'set', setModel );
+		}
+	};
+};
+adaptors.backboneCollection = function ( collection, path ) {
+	var settingCollection, settingView, setCollection, setView, pathMatcher, pathLength, prefix;
+
+	if ( path ) {
+		path += '.';
+		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+		pathLength = path.length;
+	}
+
+
+	return {
+		init: function ( view ) {
+
+			// if no path specified...
+			if ( !path ) {
+				setView = function ( collection ) {
+					if ( !settingCollection ) {
+						settingView = true;
+						view.set( collection.collection.toJSON() );
+						settingView = false;
+					}
+				};
+
+				setCollection = function ( keypath, value ) {
+					if ( !settingView ) {
+						settingCollection = true;
+						collection.reset(value);
+						settingCollection = false;
+					}
+				};
+			}
+
+			else {
+				prefix = function ( models ) {
+					var result, i;
+
+					result = {};
+
+					for ( i=0; i<models.length; i++ ) {
+						result[ path + i ] = models[ i ];
+					}
+
+					return result;
+				};
+
+				setView = function ( collection ) {
+					if ( typeof arguments[0] === 'string' ) {
+						collection = arguments[1];
+					}
+
+					if ( !settingCollection ) {
+						settingView = true;
+						view.set( prefix( collection.collection.toJSON() ) );
+						settingView = false;
+					}
+				};
+
+				setCollection = function ( keypath, value ) {
+					if ( !settingView ) {
+						if ( pathMatcher.test( keypath ) ) {
+							settingCollection = true;
+							collection.reset(value);
+							settingCollection = false;
+						}
+					}
+				};
+			}
+
+			collection.on( 'all', setView );
+			view.on( 'set', setCollection );
+
+			// initialise
+			view.set( path ? prefix( collection.toJSON() ) : collection.toJSON() );
+		},
+
+		teardown: function ( view ) {
+			collection.off( 'change', setView );
+			view.off( 'set', setCollection );
 		}
 	};
 };
@@ -5865,7 +5970,7 @@ StringFragment.prototype = {
 		return this.items.join( '' );
 	},
 
-	toJson: function () {
+	toJSON: function () {
 		var str, json;
 
 		str = this.toString();

@@ -1060,8 +1060,8 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 
 		proxyArgs = new StringFragment({
 			descriptor:   proxyDescriptor.d,
-			root:         this.root,
-			owner:        this,
+			root:         element.root,
+			owner:        element,
 			contextStack: contextStack
 		});
 
@@ -1102,7 +1102,7 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 
 				if ( proxyEvent.node._ractive[ comboKey ] ) {
 					args = proxyEvent.node._ractive[ comboKey ];
-					payload = args.dynamic ? args.payload.toJson() : args.payload;
+					payload = args.dynamic ? args.payload.toJSON() : args.payload;
 				}
 
 				root.fire( proxyName, proxyEvent, payload );
@@ -1131,14 +1131,14 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 			var args, payload, proxyEvent = {
 				node: element,
 				original: event,
-				keypath: element._ractive.keypath,
-				context: root.get( element._ractive.keypath ),
-				index: element._ractive.index
+				keypath: element.node._ractive.keypath,
+				context: root.get( element.node._ractive.keypath ),
+				index: element.node._ractive.index
 			};
 
-			if ( element._ractive && element._ractive[ comboKey ] ) {
-				args = element._ractive[ comboKey ];
-				payload = args.dynamic ? args.payload.toJson() : args.payload;
+			if ( element.node._ractive && element.node._ractive[ comboKey ] ) {
+				args = element.node._ractive[ comboKey ];
+				payload = args.dynamic ? args.payload.toJSON() : args.payload;
 			}
 
 			root.fire( proxyName, proxyEvent, payload );
@@ -1296,7 +1296,7 @@ executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) 
 				contextStack: owner.parentFragment.contextStack
 			});
 
-			transitionParams = fragment.toJson();
+			transitionParams = fragment.toJSON();
 			fragment.teardown();
 		}
 	}
@@ -1655,13 +1655,29 @@ insertHtml = function ( html, docFrag ) {
 	thisPattern = /this/;
 
 	wrapFunction = function ( fn, ractive ) {
+		var prop;
+
+		// if the function doesn't refer to `this`, we don't need
+		// to set the context
 		if ( !thisPattern.test( fn.toString() ) ) {
 			return fn._wrapped = fn;
 		}
 
-		return fn._wrapped = function () {
-			return fn.apply( ractive, arguments );
-		};
+		// otherwise, we do
+		defineProperty( fn, '_wrapped', {
+			value: function () {
+				return fn.apply( ractive, arguments );
+			},
+			writable: true
+		});
+
+		for ( prop in fn ) {
+			if ( hasOwn.call( fn, prop ) ) {
+				fn._wrapped[ prop ] = fn[ prop ];
+			}
+		}
+
+		return fn._wrapped;
 	};
 
 }({}));
@@ -2226,7 +2242,7 @@ var jsonifyStubs = function ( items, noStringify ) {
 	}
 
 	json = items.map( function ( item ) {
-		return item.toJson( noStringify );
+		return item.toJSON( noStringify );
 	});
 
 	return json;
@@ -2646,7 +2662,7 @@ proto.get = function ( keypath ) {
 	parentKeypath = keys.join( '.' );
 	parentValue = ( keys.length ? this.get( keys ) : this.data );
 
-	if ( parentValue === null || typeof parentValue !== 'object' || parentValue === UNSET ) {
+	if ( parentValue === null || parentValue === undefined || parentValue === UNSET ) {
 		return;
 	}
 
@@ -2838,11 +2854,19 @@ resolveRef = function ( ractive, ref, contextStack ) {
 
 	// Implicit iterators - i.e. {{.}} - are a special case
 	if ( ref === '.' ) {
+		if ( !contextStack.length ) {
+			return '';
+		}
+
 		return contextStack[ contextStack.length - 1 ];
 	}
 
 	// References prepended with '.' are another special case
 	if ( ref.charAt( 0 ) === '.' ) {
+		if ( !contextStack.length ) {
+			return ref.substring( 1 );
+		}
+		
 		return contextStack[ contextStack.length - 1 ] + ref;
 	}
 
@@ -3384,6 +3408,87 @@ adaptors.backbone = function ( model, path ) {
 		teardown: function ( view ) {
 			model.off( 'change', setView );
 			view.off( 'set', setModel );
+		}
+	};
+};
+adaptors.backboneCollection = function ( collection, path ) {
+	var settingCollection, settingView, setCollection, setView, pathMatcher, pathLength, prefix;
+
+	if ( path ) {
+		path += '.';
+		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
+		pathLength = path.length;
+	}
+
+
+	return {
+		init: function ( view ) {
+
+			// if no path specified...
+			if ( !path ) {
+				setView = function ( collection ) {
+					if ( !settingCollection ) {
+						settingView = true;
+						view.set( collection.collection.toJSON() );
+						settingView = false;
+					}
+				};
+
+				setCollection = function ( keypath, value ) {
+					if ( !settingView ) {
+						settingCollection = true;
+						collection.reset(value);
+						settingCollection = false;
+					}
+				};
+			}
+
+			else {
+				prefix = function ( models ) {
+					var result, i;
+
+					result = {};
+
+					for ( i=0; i<models.length; i++ ) {
+						result[ path + i ] = models[ i ];
+					}
+
+					return result;
+				};
+
+				setView = function ( collection ) {
+					if ( typeof arguments[0] === 'string' ) {
+						collection = arguments[1];
+					}
+
+					if ( !settingCollection ) {
+						settingView = true;
+						view.set( prefix( collection.collection.toJSON() ) );
+						settingView = false;
+					}
+				};
+
+				setCollection = function ( keypath, value ) {
+					if ( !settingView ) {
+						if ( pathMatcher.test( keypath ) ) {
+							settingCollection = true;
+							collection.reset(value);
+							settingCollection = false;
+						}
+					}
+				};
+			}
+
+			collection.on( 'all', setView );
+			view.on( 'set', setCollection );
+
+			// initialise
+			view.set( path ? prefix( collection.toJSON() ) : collection.toJSON() );
+		},
+
+		teardown: function ( view ) {
+			collection.off( 'change', setView );
+			view.off( 'set', setCollection );
 		}
 	};
 };
@@ -6263,7 +6368,7 @@ StringFragment.prototype = {
 		return this.items.join( '' );
 	},
 
-	toJson: function () {
+	toJSON: function () {
 		var str, json;
 
 		str = this.toString();
@@ -6744,7 +6849,7 @@ var ElementStub;
 	};
 
 	ElementStub.prototype = {
-		toJson: function ( noStringify ) {
+		toJSON: function ( noStringify ) {
 			var json, name, value, proxy, i, len;
 
 			if ( this[ 'json_' + noStringify ] ) {
@@ -7048,7 +7153,7 @@ var ExpressionStub;
 	};
 
 	ExpressionStub.prototype = {
-		toJson: function () {
+		toJSON: function () {
 			if ( this.json ) {
 				return this.json;
 			}
@@ -7180,7 +7285,7 @@ var FragmentStub = function ( parser, preserveWhitespace ) {
 };
 
 FragmentStub.prototype = {
-	toJson: function ( noStringify ) {
+	toJSON: function ( noStringify ) {
 		var json;
 
 		if ( this[ 'json_' + noStringify ] ) {
@@ -7215,7 +7320,7 @@ var MustacheStub = function ( token, parser ) {
 };
 
 MustacheStub.prototype = {
-	toJson: function () {
+	toJSON: function () {
 		var json;
 
 		if ( this.json ) {
@@ -7231,7 +7336,7 @@ MustacheStub.prototype = {
 		}
 
 		if ( this.expr ) {
-			json.x = this.expr.toJson();
+			json.x = this.expr.toJSON();
 		}
 
 		this.json = json;
@@ -7278,7 +7383,7 @@ var SectionStub = function ( firstToken, parser, preserveWhitespace ) {
 };
 
 SectionStub.prototype = {
-	toJson: function ( noStringify ) {
+	toJSON: function ( noStringify ) {
 		var json;
 
 		if ( this.json ) {
@@ -7300,7 +7405,7 @@ SectionStub.prototype = {
 		}
 
 		if ( this.expr ) {
-			json.x = this.expr.toJson();
+			json.x = this.expr.toJSON();
 		}
 
 		if ( this.items.length ) {
@@ -7328,7 +7433,7 @@ var TextStub;
 	};
 
 	TextStub.prototype = {
-		toJson: function () {
+		toJSON: function () {
 			// this will be used within HTML, so we need to decode things like &amp;
 			return this.decoded || ( this.decoded = decodeCharacterReferences( this.text) );
 		},
@@ -8832,7 +8937,7 @@ var getUnescapedSingleQuotedChars = getRegexMatcher( /^[^\\']+/ );
 		
 		fragmentStub = getFragmentStubFromTokens( tokens, options, options.preserveWhitespace );
 		
-		json = fragmentStub.toJson();
+		json = fragmentStub.toJSON();
 
 		if ( typeof json === 'string' ) {
 			// If we return it as a string, Ractive will attempt to reparse it!
