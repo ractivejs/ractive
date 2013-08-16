@@ -5,7 +5,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
 
 	mousedown = function ( event ) {
-		var currentTarget, x, y, up, move, cancel;
+		var currentTarget, x, y, pointerId, up, move, cancel;
 
 		if ( event.which != 1) {
 			return;
@@ -14,8 +14,14 @@ eventDefinitions.tap = function ( node, fire ) {
 		x = event.clientX;
 		y = event.clientY;
 		currentTarget = this;
+		// This will be null for mouse events.
+		pointerId = event.pointerId;
 
 		up = function ( event ) {
+			if ( event.pointerId != pointerId ) {
+				return;
+			}
+
 			fire({
 				node: currentTarget,
 				original: event
@@ -25,23 +31,49 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		move = function ( event ) {
+			if ( event.pointerId != pointerId ) {
+				return;
+			}
+
 			if ( ( Math.abs( event.clientX - x ) >= distanceThreshold ) || ( Math.abs( event.clientY - y ) >= distanceThreshold ) ) {
 				cancel();
 			}
 		};
 
 		cancel = function () {
+			node.removeEventListener( 'MSPointerUp', up, false );
+			doc.removeEventListener( 'MSPointerMove', move, false );
+			doc.removeEventListener( 'MSPointerCancel', cancel, false );
+			node.removeEventListener( 'pointerup', up, false );
+			doc.removeEventListener( 'pointermove', move, false );
+			doc.removeEventListener( 'pointercancel', cancel, false );
 			node.removeEventListener( 'click', up, false );
 			doc.removeEventListener( 'mousemove', move, false );
 		};
 
-		node.addEventListener( 'click', up, false );
-		doc.addEventListener( 'mousemove', move, false );
+		if ( window.navigator.pointerEnabled ) {
+			node.addEventListener( 'pointerup', up, false );
+			doc.addEventListener( 'pointermove', move, false );
+			doc.addEventListener( 'pointercancel', cancel, false );
+		} else if ( window.navigator.msPointerEnabled ) {
+			node.addEventListener( 'MSPointerUp', up, false );
+			doc.addEventListener( 'MSPointerMove', move, false );
+			doc.addEventListener( 'MSPointerCancel', cancel, false );
+		} else {
+			node.addEventListener( 'click', up, false );
+			doc.addEventListener( 'mousemove', move, false );
+		}
 
 		setTimeout( cancel, timeThreshold );
 	};
 
-	node.addEventListener( 'mousedown', mousedown, false );
+	if ( window.navigator.pointerEnabled ) {
+		node.addEventListener( 'pointerdown', mousedown, false );
+	} else if ( window.navigator.msPointerEnabled ) {
+		node.addEventListener( 'MSPointerDown', mousedown, false );
+	} else {
+		node.addEventListener( 'mousedown', mousedown, false );
+	}
 
 
 	touchstart = function ( event ) {
