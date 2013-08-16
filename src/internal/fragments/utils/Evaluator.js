@@ -174,13 +174,29 @@
 	thisPattern = /this/;
 
 	wrapFunction = function ( fn, ractive ) {
+		var prop;
+
+		// if the function doesn't refer to `this`, we don't need
+		// to set the context
 		if ( !thisPattern.test( fn.toString() ) ) {
 			return fn._wrapped = fn;
 		}
 
-		return fn._wrapped = function () {
-			return fn.apply( ractive, arguments );
-		};
+		// otherwise, we do
+		defineProperty( fn, '_wrapped', {
+			value: function () {
+				return fn.apply( this, arguments );
+			},
+			writable: true
+		});
+
+		for ( prop in fn ) {
+			if ( hasOwn.call( fn, prop ) ) {
+				fn._wrapped[ prop ] = fn[ prop ];
+			}
+		}
+
+		return fn._wrapped;
 	};
 
 }({}));
