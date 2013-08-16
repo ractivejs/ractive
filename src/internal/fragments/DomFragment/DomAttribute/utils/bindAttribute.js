@@ -13,8 +13,8 @@
 		FileListBinding,
 		GenericBinding;
 
-	bindAttribute = function ( lazy ) {
-		var node = this.parentNode, interpolator, i, binding;
+	bindAttribute = function () {
+		var node = this.parentNode, interpolator, binding;
 
 		if ( !this.fragment ) {
 			return false; // report failure

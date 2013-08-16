@@ -467,8 +467,8 @@ var cssTransitionsEnabled, transition, transitionend;
 		FileListBinding,
 		GenericBinding;
 
-	bindAttribute = function ( lazy ) {
-		var node = this.parentNode, interpolator, i, binding;
+	bindAttribute = function () {
+		var node = this.parentNode, interpolator, binding;
 
 		if ( !this.fragment ) {
 			return false; // report failure
@@ -509,30 +509,6 @@ var cssTransitionsEnabled, transition, transitionend;
 
 		node._ractive.binding = binding;
 		this.twoway = true;
-
-		this.boundEvents = [ 'change' ];
-
-		if ( !lazy ) {
-			this.boundEvents.push( 'input' );
-
-			// this is a hack to see if we're in IE - if so, we probably need to add
-			// a keyup listener as well, since in IE8 the input event doesn't fire,
-			// and in IE9 it doesn't fire when text is deleted
-			if ( node.attachEvent ) {
-				this.boundEvents.push( 'keyup' );
-			}
-		}
-
-		// Another IE fix, this time with checkboxes that don't fire change events
-		// until they blur
-		if ( node.attachEvent && node.type === 'checkbox' ) {
-			this.boundEvents.push( 'click' );
-		}
-
-		i = this.boundEvents.length;
-		while ( i-- ) {
-			node.addEventListener( this.boundEvents[i], updateModel, false );
-		}
 
 		return true;
 	};
@@ -582,7 +558,7 @@ var cssTransitionsEnabled, transition, transitionend;
 				}
 			}
 
-			if ( attribute.propertyName === 'check' ) {
+			if ( attribute.propertyName === 'checked' ) {
 				return new CheckedBinding( attribute, node );
 			}
 
@@ -1037,123 +1013,170 @@ addEventProxies = function ( element, proxies ) {
 		}
 	}
 };
-addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack ) {
-	var root = element.root, proxyName, proxyArgs, dynamicArgs, definition, listener, handler, comboKey;
+(function () {
 
-	element.ractify();
+	var MasterEventHandler,
+		ProxyEvent,
+		firePlainEvent,
+		fireEventWithArgs,
+		fireEventWithDynamicArgs,
+		customHandlers,
+		genericHandler,
+		getCustomHandler;
 
-	if ( typeof proxyDescriptor === 'string' ) {
-		proxyName = proxyDescriptor;
-	} else {
-		proxyName = proxyDescriptor.n;
-	}
+	addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack, indexRefs ) {
+		var events, master;
 
-	// This key uniquely identifies this trigger+proxy name combo on this element
-	comboKey = triggerEventName + '=' + proxyName;
-	
-	if ( proxyDescriptor.a ) {
-		proxyArgs = proxyDescriptor.a;
-	}
+		events = element.ractify().events;
+		master = events[ triggerEventName ] || ( events[ triggerEventName ] = new MasterEventHandler( element, triggerEventName, contextStack, indexRefs ) );
 
-	else if ( proxyDescriptor.d ) {
-		dynamicArgs = true;
-
-		proxyArgs = new StringFragment({
-			descriptor:   proxyDescriptor.d,
-			root:         element.root,
-			owner:        element,
-			contextStack: contextStack
-		});
-
-		if ( !element.proxyFrags ) {
-			element.proxyFrags = [];
-		}
-		element.proxyFrags[ element.proxyFrags.length ] = proxyArgs;
-	}
-
-	if ( proxyArgs !== undefined ) {
-		// store arguments on the element, so we can reuse the same handler
-		// with multiple elements
-		if ( element.node._ractive[ comboKey ] ) {
-			throw new Error( 'You cannot have two proxy events with the same trigger event (' + comboKey + ')' );
-		}
-
-		element.node._ractive[ comboKey ] = {
-			dynamic: dynamicArgs,
-			payload: proxyArgs
-		};
-	}
-
-	// Is this a custom event?
-	if ( definition = ( root.eventDefinitions[ triggerEventName ] || Ractive.eventDefinitions[ triggerEventName ] ) ) {
-		// If the proxy is a string (e.g. <a proxy-click='select'>{{item}}</a>) then
-		// we can reuse the handler. This eliminates the need for event delegation
-		if ( !root._customProxies[ comboKey ] ) {
-			root._customProxies[ comboKey ] = function ( proxyEvent ) {
-				var args, payload;
-
-				if ( !proxyEvent.node ) {
-					throw new Error( 'Proxy event definitions must fire events with a `node` property' );
-				}
-
-				proxyEvent.keypath = proxyEvent.node._ractive.keypath;
-				proxyEvent.context = root.get( proxyEvent.keypath );
-				proxyEvent.index = proxyEvent.node._ractive.index;
-
-				if ( proxyEvent.node._ractive[ comboKey ] ) {
-					args = proxyEvent.node._ractive[ comboKey ];
-					payload = args.dynamic ? args.payload.toJSON() : args.payload;
-				}
-
-				root.fire( proxyName, proxyEvent, payload );
-			};
-		}
-
-		handler = root._customProxies[ comboKey ];
-
-		// Use custom event. Apply definition to this node
-		listener = definition( element.node, handler );
-		element.customEventListeners[ element.customEventListeners.length ] = listener;
-
-		return;
-	}
-
-	// If not, we just need to check it is a valid event for this element
-	// warn about invalid event handlers, if we're in debug mode
-	if ( element.node[ 'on' + triggerEventName ] !== undefined && root.debug ) {
-		if ( console && console.warn ) {
-			console.warn( 'Invalid event handler (' + triggerEventName + ')' );
-		}
-	}
-
-	if ( !root._proxies[ comboKey ] ) {
-		root._proxies[ comboKey ] = function ( event ) {
-			var args, payload, proxyEvent = {
-				node: element,
-				original: event,
-				keypath: element.node._ractive.keypath,
-				context: root.get( element.node._ractive.keypath ),
-				index: element.node._ractive.index
-			};
-
-			if ( element.node._ractive && element.node._ractive[ comboKey ] ) {
-				args = element.node._ractive[ comboKey ];
-				payload = args.dynamic ? args.payload.toJSON() : args.payload;
-			}
-
-			root.fire( proxyName, proxyEvent, payload );
-		};
-	}
-
-	handler = root._proxies[ comboKey ];
-
-	element.eventListeners[ element.eventListeners.length ] = {
-		n: triggerEventName,
-		h: handler
+		master.add( proxyDescriptor );
 	};
 
-	element.node.addEventListener( triggerEventName, handler, false );
-};
+	MasterEventHandler = function ( element, eventName, contextStack ) {
+		var definition;
+
+		this.element = element;
+		this.root = element.root;
+		this.node = element.node;
+		this.name = eventName;
+		this.contextStack = contextStack; // TODO do we need to pass contextStack down everywhere? Doesn't it belong to the parentFragment?
+		this.proxies = [];
+
+		if ( definition = ( this.root.eventDefinitions[ eventName ] || Ractive.eventDefinitions[ eventName ] ) ) {
+			this.custom = definition( this.node, getCustomHandler( eventName ) );
+		} else {
+			this.node.addEventListener( eventName, genericHandler, false );
+		}
+	};
+
+	MasterEventHandler.prototype = {
+		add: function ( proxy ) {
+			this.proxies[ this.proxies.length ] = new ProxyEvent( this.element, this.root, proxy, this.contextStack );
+		},
+
+		// TODO teardown when element torn down
+		teardown: function () {
+			var i;
+
+			if ( this.custom ) {
+				this.custom.teardown();
+			} else {
+				this.node.removeEventListener( this.name, genericHandler, false );
+			}
+
+			i = this.proxies.length;
+			while ( i-- ) {
+				this.proxies[i].teardown();
+			}
+		},
+
+		fire: function ( event ) {
+			var i = this.proxies.length;
+
+			while ( i-- ) {
+				this.proxies[i].fire( event );
+			}
+		}
+	};
+
+	ProxyEvent = function ( element, ractive, descriptor, contextStack ) {
+		var name;
+
+		this.root = ractive;
+
+		name = descriptor.n || descriptor;
+
+		if ( typeof name === 'string' ) {
+			this.n = name;
+		} else {
+			this.n = new StringFragment({
+				descriptor:   descriptor.n,
+				root:         this.root,
+				owner:        element,
+				contextStack: contextStack
+			});
+		}
+
+		if ( descriptor.a ) {
+			this.a = descriptor.a;
+			this.fire = fireEventWithArgs;
+			return;
+		}
+
+		if ( descriptor.d ) {
+			this.d = new StringFragment({
+				descriptor:   descriptor.d,
+				root:         this.root,
+				owner:        element,
+				contextStack: contextStack
+			});
+			this.fire = fireEventWithDynamicArgs;
+			return;
+		}
+
+		this.fire = firePlainEvent;
+	};
+
+	ProxyEvent.prototype = {
+		teardown: function () {
+			if ( this.n.teardown) {
+				this.n.teardown();
+			}
+
+			if ( this.d ) {
+				this.d.teardown();
+			}
+		},
+
+		bubble: noop // TODO can we get rid of this?
+	};
+
+	// the ProxyEvent instance fire method could be any of these
+	firePlainEvent = function ( event ) {
+		this.root.fire( this.n.toString(), event );
+	};
+
+	fireEventWithArgs = function ( event ) {
+		this.root.fire( this.n.toString(), event, this.a );
+	};
+
+	fireEventWithDynamicArgs = function ( event ) {
+		this.root.fire( this.n.toString(), event, this.d.toJSON() );
+	};
+
+	// all native DOM events dealt with by Ractive share a single handler
+	genericHandler = function ( event ) {
+		var storage = this._ractive;
+
+		storage.events[ event.type ].fire({
+			node: this,
+			original: event,
+			index: storage.index,
+			keypath: storage.keypath,
+			context: storage.root.get( storage.keypath )
+		});
+	};
+
+	customHandlers = {};
+
+	getCustomHandler = function ( eventName ) {
+		if ( customHandlers[ eventName ] ) {
+			return customHandlers[ eventName ];
+		}
+
+		return customHandlers[ eventName ] = function ( event ) {
+			var storage = event.node._ractive;
+
+			event.index = storage.index;
+			event.keypath = storage.keypath;
+			event.context = storage.root.get( storage.keypath );
+
+			storage.events[ eventName ].fire( event );
+		};
+	};
+
+}());
 appendElementChildren = function ( element, node, descriptor, docFrag ) {
 	if ( typeof descriptor.f === 'string' && ( !node || ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) ) {
 		// great! we can use innerHTML
@@ -5199,6 +5222,7 @@ animationCollection = {
 	// Attribute
 	DomAttribute = function ( options ) {
 
+		this.element = options.element;
 		determineNameAndNamespace( this, options.name );
 
 		// if it's an empty attribute, or just a straight key-value pair, with no
@@ -5210,7 +5234,6 @@ animationCollection = {
 
 		// otherwise we need to do some work
 		this.root = options.root;
-		this.element = options.element;
 		this.parentNode = options.parentNode;
 
 		// share parentFragment with parent element
@@ -5371,7 +5394,7 @@ animationCollection = {
 			}
 
 			if ( attribute.name === 'value' ) {
-				options.parentNode._ractive.value = options.value;
+				attribute.element.ractify().value = options.value;
 			}
 		}
 
@@ -5699,30 +5722,21 @@ DomElement = function ( options, docFrag ) {
 
 DomElement.prototype = {
 	teardown: function ( detach ) {
-		var self = this, listener;
+		var eventName;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
-		if ( self.fragment ) {
-			self.fragment.teardown( false );
+		if ( this.fragment ) {
+			this.fragment.teardown( false );
 		}
 
-		while ( self.attributes.length ) {
-			self.attributes.pop().teardown();
+		while ( this.attributes.length ) {
+			this.attributes.pop().teardown();
 		}
 
-		while ( self.eventListeners.length ) {
-			listener = self.eventListeners.pop();
-			self.node.removeEventListener( listener.n, listener.h, false );
-		}
-
-		while ( self.customEventListeners.length ) {
-			self.customEventListeners.pop().teardown();
-		}
-
-		if ( this.proxyFrags ) {
-			while ( this.proxyFrags.length ) {
-				this.proxyFrags.pop().teardown();
+		if ( this.node._ractive ) {
+			for ( eventName in this.node._ractive.events ) {
+				this.node._ractive.events[ eventName ].teardown();
 			}
 		}
 
@@ -5743,6 +5757,7 @@ DomElement.prototype = {
 		return null;
 	},
 
+	// TODO can we get rid of this?
 	bubble: noop, // just so event proxy and transition fragments have something to call!
 
 	toString: function () {
@@ -5777,10 +5792,14 @@ DomElement.prototype = {
 			defineProperty( this.node, '_ractive', {
 				value: {
 					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
-					index: this.parentFragment.indexRefs
+					index: this.parentFragment.indexRefs,
+					events: createFromNull(),
+					root: this.root
 				}
 			});
 		}
+
+		return this.node._ractive;
 	}
 };
 DomFragment = function ( options ) {
@@ -6667,10 +6686,13 @@ var ElementStub;
 		siblingsByTagName,
 		onPattern,
 		sanitize,
-		filterAttrs;
+		filterAttrs,
+		getFrag,
+		processProxy,
+		jsonifyProxy;
 
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
-		var next, attrs, filtered, proxies, getFrag, processProxy, item;
+		var next, attrs, filtered, proxies, item;
 
 		this.lcTag = firstToken.name.toLowerCase();
 
@@ -6693,71 +6715,6 @@ var ElementStub;
 			if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
 				attrs = attrs.filter( sanitize );
 			}
-
-			getFrag = function ( attr ) {
-				var lcName = attr.name.toLowerCase();
-
-				return {
-					name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
-					value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
-				};
-			};
-
-			processProxy = function ( proxy ) {
-				var processed, tokens, colonIndex, throwError;
-
-				throwError = function () {
-					throw new Error( 'Illegal proxy event' );
-				};
-
-				if ( !proxy.name || !proxy.value ) {
-					throwError();
-				}
-
-				processed = { domEventName: proxy.name };
-
-				tokens = proxy.value;
-
-				// proxy event names must start with a string (no mustaches)
-				if ( tokens[0].type !== TEXT ) {
-					throwError();
-				}
-
-				colonIndex = tokens[0].value.indexOf( ':' );
-				
-				// if no arguments are specified...
-				if ( colonIndex === -1 ) {
-					
-					// ...the proxy name must be string-only (no mustaches)
-					if ( tokens.length > 1 ) {
-						throwError();
-					}
-
-					processed.name = tokens[0].value;
-				}
-
-				else {
-					processed.name = tokens[0].value.substr( 0, colonIndex );
-					tokens[0].value = tokens[0].value.substring( colonIndex + 1 );
-
-					if ( !tokens[0].value ) {
-						tokens.shift();
-					}
-
-					// can we parse it yet?
-					if ( tokens.length === 1 && tokens[0].type === TEXT ) {
-						try {
-							processed.args = JSON.parse( tokens[0].value );
-						} catch ( err ) {
-							processed.args = tokens[0].value;
-						}
-					}
-
-					processed.dynamicArgs = getFragmentStubFromTokens( tokens );
-				}
-
-				return processed;
-			};
 
 			if ( attrs.length ) {
 				this.attributes = attrs.map( getFrag );
@@ -6901,20 +6858,7 @@ var ElementStub;
 				for ( i=0; i<len; i+=1 ) {
 					proxy = this.proxies[i];
 
-					// TODO rename domEventName, since transitions use the same mechanism
-					if ( proxy.args ) {
-						json.v[ proxy.domEventName ] = {
-							n: proxy.name,
-							a: proxy.args
-						};
-					} else if ( proxy.dynamicArgs ) {
-						json.v[ proxy.domEventName ] = {
-							n: proxy.name,
-							d: jsonifyStubs( proxy.dynamicArgs.items, noStringify )
-						};
-					} else {
-						json.v[ proxy.domEventName ] = proxy.name;
-					}
+					json.v[ proxy.domEventName ] = jsonifyProxy( proxy );
 				}
 			}
 
@@ -7138,6 +7082,124 @@ var ElementStub;
 
 		return filtered;
 	};
+
+	getFrag = function ( attr ) {
+		var lcName = attr.name.toLowerCase();
+
+		return {
+			name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
+			value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
+		};
+	};
+
+	processProxy = function ( proxy ) {
+		var processed, tokens, token, colonIndex, throwError, proxyName, proxyArgs;
+
+		throwError = function () {
+			throw new Error( 'Illegal proxy event' );
+		};
+
+		if ( !proxy.name || !proxy.value ) {
+			throwError();
+		}
+
+		processed = { domEventName: proxy.name };
+
+		tokens = proxy.value;
+
+		proxyName = [];
+		proxyArgs = [];
+
+		while ( tokens.length ) {
+			token = tokens.shift();
+
+			if ( token.type === TEXT ) {
+				colonIndex = token.value.indexOf( ':' );
+				
+				if ( colonIndex === -1 ) {
+					proxyName[ proxyName.length ] = token;
+				} else {
+					
+					// is the colon the first character?
+					if ( colonIndex ) {
+						// no
+						proxyName[ proxyName.length ] = {
+							type: TEXT,
+							value: token.value.substr( 0, colonIndex )
+						};
+					}
+
+					// if there is anything after the colon in this token, treat
+					// it as the first token of the proxyArgs fragment
+					if ( token.value.length > colonIndex + 1 ) {
+						proxyArgs[0] = {
+							type: TEXT,
+							value: token.value.substring( colonIndex + 1 )
+						};
+					}
+
+					break;
+				}
+			}
+
+			else {
+				proxyName[ proxyName.length ] = token;
+			}
+		}
+
+		proxyArgs = proxyArgs.concat( tokens );
+
+		if ( proxyName.length === 1 && proxyName[0].type === TEXT ) {
+			processed.name = proxyName[0].value;
+		} else {
+			processed.name = proxyName;
+		}
+
+		if ( proxyArgs.length ) {
+			if ( proxyArgs.length === 1 && proxyArgs[0].type === TEXT ) {
+				try {
+					processed.args = JSON.parse( proxyArgs[0].value );
+				} catch ( err ) {
+					processed.args = proxyArgs[0].value;
+				}
+			}
+
+			else {
+				processed.dynamicArgs = proxyArgs;
+			}
+		}
+
+		return processed;
+	};
+
+	jsonifyProxy = function ( proxy ) {
+		var result, name;
+
+		if ( typeof proxy.name === 'string' ) {
+			if ( !proxy.args && !proxy.dynamicArgs ) {
+				return proxy.name;
+			}
+
+			name = proxy.name;
+		} else {
+			name = getFragmentStubFromTokens( proxy.name ).toJSON();
+		}
+
+		result = { n: name };
+
+		if ( proxy.args ) {
+			result.a = proxy.args;
+			return result;
+		}
+
+		if ( proxy.dynamicArgs ) {
+			result.d = getFragmentStubFromTokens( proxy.dynamicArgs ).toJSON();
+		}
+
+		return result;
+	};
+
+
 }());
 var ExpressionStub;
 
