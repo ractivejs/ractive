@@ -21,8 +21,8 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 
 		proxyArgs = new StringFragment({
 			descriptor:   proxyDescriptor.d,
-			root:         this.root,
-			owner:        this,
+			root:         element.root,
+			owner:        element,
 			contextStack: contextStack
 		});
 
@@ -92,13 +92,13 @@ addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextSt
 			var args, payload, proxyEvent = {
 				node: element,
 				original: event,
-				keypath: element._ractive.keypath,
-				context: root.get( element._ractive.keypath ),
-				index: element._ractive.index
+				keypath: element.node._ractive.keypath,
+				context: root.get( element.node._ractive.keypath ),
+				index: element.node._ractive.index
 			};
 
-			if ( element._ractive && element._ractive[ comboKey ] ) {
-				args = element._ractive[ comboKey ];
+			if ( element.node._ractive && element.node._ractive[ comboKey ] ) {
+				args = element.node._ractive[ comboKey ];
 				payload = args.dynamic ? args.payload.toJSON() : args.payload;
 			}
 
