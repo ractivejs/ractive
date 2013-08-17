@@ -193,13 +193,7 @@ Ractive = function ( options ) {
 			}
 		}
 	}
-
-	// Unpack string-based partials, if necessary
-	for ( key in this.partials ) {
-		if ( hasOwn.call( this.partials, key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
-			this.partials[ key ] = this.partials[ key ][0];
-		}
-	}
+	
 
 	// temporarily disable transitions, if noIntro flag is set
 	this.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
