@@ -303,10 +303,10 @@
 
 		if ( !this.root.lazy ) {
 			node.addEventListener( 'input', updateModel, false );
-		}
 
-		if ( node.attachEvent ) {
-			node.addEventListener( 'keyup', updateModel, false );
+			if ( node.attachEvent ) {
+				node.addEventListener( 'keyup', updateModel, false );
+			}
 		}
 	};
 
