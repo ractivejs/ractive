@@ -13,9 +13,6 @@
 
 (function () {
 
-	QUnit.config.reorder = false;
-
-
 	var testModules, runTest, runModule, i, trim, fudge, testDiv, normalise, isOldIe;
 
 	testDiv = document.createElement( 'div' );

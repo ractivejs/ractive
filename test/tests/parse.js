@@ -5,8 +5,6 @@
 
 (function () {
 
-	QUnit.config.reorder = false;
-
 	module( 'Parse' );
 
 	tests = [

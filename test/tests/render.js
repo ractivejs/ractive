@@ -9,8 +9,6 @@
 
 (function () {
 
-	QUnit.config.reorder = false;
-
 	var fixture = document.getElementById( 'qunit-fixture' ), tests, runTest, theTest, hasSvg, testDiv, testDiv2, getElements, compareContents, compareNode;
 
 	testDiv = document.createElement( 'div' );

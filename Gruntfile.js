@@ -17,18 +17,16 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			main: {
-				files: 'src/**/*.js',
-				tasks: 'concat',
+				files: [ 'src/**/*.js', 'wrapper/**/*.js' ],
+				tasks: [ 'clean:tmp', 'concat' ],
 				options: {
-					interrupt: true
+					interrupt: true,
+					force: true
 				}
 			}
 		},
 		qunit: {
 			files: [ 'test/index.html' ]
-		},
-		clean: {
-			files: [ 'build/**/*' ]
 		},
 		concat: {
 			options: {
@@ -41,27 +39,31 @@ module.exports = function(grunt) {
 					banner: '<%= meta.banner %>'
 				},
 				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js', '!src/parser/**/*.js' ],
-				dest: 'build/Ractive.runtime.js'
+				dest: 'tmp/Ractive.runtime.js'
 			},
 			full: {
 				options: {
 					banner: '<%= meta.banner %>'
 				},
 				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js'  ],
-				dest: 'build/Ractive.js'
+				dest: 'tmp/Ractive.js'
 			},
 			runtime_legacy: {
 				src: [ 'wrapper/begin.js', 'src/legacy.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/parser/**/*.js' ],
-				dest: 'build/Ractive-legacy.runtime.js'
+				dest: 'tmp/Ractive-legacy.runtime.js'
 			},
 			full_legacy: {
 				src: [ 'wrapper/begin.js', 'src/legacy.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js' ],
-				dest: 'build/Ractive-legacy.js'
+				dest: 'tmp/Ractive-legacy.js'
 			}
 		},
 		watch: {
 			files: ['<config:lint.files>', 'package.json'],
 			tasks: ['concat','min']
+		},
+		clean: {
+			tmp: [ 'tmp/' ],
+			build: [ 'build/' ]
 		},
 		jshint: {
 			files: [ '<%= concat.full_legacy.dest %>' ],
@@ -88,6 +90,14 @@ module.exports = function(grunt) {
 			}
 		},
 		copy: {
+			build: {
+				files: [{
+					expand: true,
+					cwd: 'tmp/',
+					src: [ '**/*' ],
+					dest: 'build/'
+				}]
+			},
 			release: {
 				files: [{
 					expand: true,
@@ -112,9 +122,16 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	
-	// Default task.
-	grunt.registerTask('default', [ 'jshint', 'qunit', 'clean', 'concat' ]);
+	grunt.registerTask( 'default', [
+		'clean:tmp',
+		'concat',
+		'jshint',
+		'qunit',
+		'clean:build',
+		'copy:build',
+		'uglify'
+	]);
 
-	grunt.registerTask( 'release', [ 'default', 'uglify', 'copy' ] );
+	grunt.registerTask( 'release', [ 'default', 'copy:release', 'copy:link' ] );
 
 };
