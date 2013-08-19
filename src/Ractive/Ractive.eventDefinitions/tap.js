@@ -139,6 +139,8 @@ eventDefinitions.tap = function ( node, fire ) {
 
 	return {
 		teardown: function () {
+			node.removeEventListener( 'pointerdown', mousedown, false );
+			node.removeEventListener( 'MSPointerDown', mousedown, false );
 			node.removeEventListener( 'mousedown', mousedown, false );
 			node.removeEventListener( 'touchstart', touchstart, false );
 		}
