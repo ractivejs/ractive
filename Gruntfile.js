@@ -16,7 +16,7 @@ module.exports = function(grunt) {
 				'\n\n'
 		},
 		watch: {
-			main: {
+			js: {
 				files: [ 'src/**/*.js', 'wrapper/**/*.js' ],
 				tasks: [ 'clean:tmp', 'concat' ],
 				options: {
@@ -56,10 +56,6 @@ module.exports = function(grunt) {
 				src: [ 'wrapper/begin.js', 'src/legacy.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js' ],
 				dest: 'tmp/Ractive-legacy.js'
 			}
-		},
-		watch: {
-			files: ['<config:lint.files>', 'package.json'],
-			tasks: ['concat','min']
 		},
 		clean: {
 			tmp: [ 'tmp/' ],
