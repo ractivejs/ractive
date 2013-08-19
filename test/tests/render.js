@@ -1,11 +1,7 @@
 // RENDERING TESTS
 // ===============
 //
-// This loads in the render.json sample file and checks that each compiled
-// template, in combination with the sample data, produces the expected
-// HTML.
-//
-// TODO: add moar samples
+// TODO: add moar tests
 
 (function () {
 
