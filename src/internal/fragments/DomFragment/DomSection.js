@@ -168,8 +168,17 @@ DomSection.prototype = {
 	},
 
 	teardownFragments: function ( detach ) {
+		var id;
+
 		while ( this.fragments.length ) {
 			this.fragments.shift().teardown( detach );
+		}
+
+		if ( this.fragmentsById ) {
+			for ( id in this.fragmentsById ) {
+				this.fragmentsById[ id ].teardown();
+				this.fragmentsById[ id ] = null;
+			}
 		}
 	},
 

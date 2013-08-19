@@ -1,6 +1,6 @@
 (function () {
 
-	var updateListSection, updateContextSection, updateConditionalSection;
+	var updateListSection, updateListObjectSection, updateContextSection, updateConditionalSection;
 
 	updateSection = function ( section, value ) {
 		var fragmentOptions;
@@ -20,7 +20,7 @@
 
 		// otherwise we need to work out what sort of section we're dealing with
 
-		// if value is an array, iterate through
+		// if value is an array, or an object with an index reference, iterate through
 		if ( isArray( value ) ) {
 			updateListSection( section, value, fragmentOptions );
 		}
@@ -28,7 +28,11 @@
 
 		// if value is a hash...
 		else if ( isObject( value ) ) {
-			updateContextSection( section, fragmentOptions );
+			if ( section.descriptor.i ) {
+				updateListObjectSection( section, value, fragmentOptions );
+			} else {
+				updateContextSection( section, fragmentOptions );
+			}
 		}
 
 
@@ -39,11 +43,13 @@
 	};
 
 	updateListSection = function ( section, value, fragmentOptions ) {
-		var i, fragmentsToRemove;
+		var i, length, fragmentsToRemove;
+
+		length = value.length;
 
 		// if the array is shorter than it was previously, remove items
-		if ( value.length < section.length ) {
-			fragmentsToRemove = section.fragments.splice( value.length, section.length - value.length );
+		if ( length < section.length ) {
+			fragmentsToRemove = section.fragments.splice( length, section.length - length );
 
 			while ( fragmentsToRemove.length ) {
 				fragmentsToRemove.pop().teardown( true );
@@ -53,9 +59,9 @@
 		// otherwise...
 		else {
 
-			if ( value.length > section.length ) {
+			if ( length > section.length ) {
 				// add any new ones
-				for ( i=section.length; i<value.length; i+=1 ) {
+				for ( i=section.length; i<length; i+=1 ) {
 					// append list item to context stack
 					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
 					fragmentOptions.index = i;
@@ -69,7 +75,35 @@
 			}
 		}
 
-		section.length = value.length;
+		section.length = length;
+	};
+
+	updateListObjectSection = function ( section, value, fragmentOptions ) {
+		var id, fragmentsById;
+
+		fragmentsById = section.fragmentsById || ( section.fragmentsById = createFromNull() );
+
+		// remove any fragments that should no longer exist
+		for ( id in fragmentsById ) {
+			if ( value[ id ] === undefined ) {
+				fragmentsById[ id ].teardown( true );
+				fragmentsById[ id ] = null;
+			}
+		}
+
+		// add any that haven't been created yet
+		for ( id in value ) {
+			if ( value[ id ] !== undefined && !fragmentsById[ id ] ) {
+				fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + id );
+				fragmentOptions.index = id;
+
+				if ( section.descriptor.i ) {
+					fragmentOptions.indexRef = section.descriptor.i;
+				}
+
+				fragmentsById[ id ] = section.createFragment( fragmentOptions );
+			}
+		}
 	};
 
 	updateContextSection = function ( section, fragmentOptions ) {
