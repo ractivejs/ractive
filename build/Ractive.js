@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.5 - 2013-08-17
+/*! Ractive - v0.3.5 - 2013-08-19
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -597,10 +597,10 @@ var cssTransitionsEnabled, transition, transitionend;
 
 		if ( !this.root.lazy ) {
 			node.addEventListener( 'input', updateModel, false );
-		}
 
-		if ( node.attachEvent ) {
-			node.addEventListener( 'keyup', updateModel, false );
+			if ( node.attachEvent ) {
+				node.addEventListener( 'keyup', updateModel, false );
+			}
 		}
 	};
 
@@ -1910,7 +1910,7 @@ resolveMustache = function ( keypath ) {
 };
 (function () {
 
-	var updateListSection, updateContextSection, updateConditionalSection;
+	var updateListSection, updateListObjectSection, updateContextSection, updateConditionalSection;
 
 	updateSection = function ( section, value ) {
 		var fragmentOptions;
@@ -1930,7 +1930,7 @@ resolveMustache = function ( keypath ) {
 
 		// otherwise we need to work out what sort of section we're dealing with
 
-		// if value is an array, iterate through
+		// if value is an array, or an object with an index reference, iterate through
 		if ( isArray( value ) ) {
 			updateListSection( section, value, fragmentOptions );
 		}
@@ -1938,7 +1938,11 @@ resolveMustache = function ( keypath ) {
 
 		// if value is a hash...
 		else if ( isObject( value ) ) {
-			updateContextSection( section, fragmentOptions );
+			if ( section.descriptor.i ) {
+				updateListObjectSection( section, value, fragmentOptions );
+			} else {
+				updateContextSection( section, fragmentOptions );
+			}
 		}
 
 
@@ -1949,11 +1953,13 @@ resolveMustache = function ( keypath ) {
 	};
 
 	updateListSection = function ( section, value, fragmentOptions ) {
-		var i, fragmentsToRemove;
+		var i, length, fragmentsToRemove;
+
+		length = value.length;
 
 		// if the array is shorter than it was previously, remove items
-		if ( value.length < section.length ) {
-			fragmentsToRemove = section.fragments.splice( value.length, section.length - value.length );
+		if ( length < section.length ) {
+			fragmentsToRemove = section.fragments.splice( length, section.length - length );
 
 			while ( fragmentsToRemove.length ) {
 				fragmentsToRemove.pop().teardown( true );
@@ -1963,9 +1969,9 @@ resolveMustache = function ( keypath ) {
 		// otherwise...
 		else {
 
-			if ( value.length > section.length ) {
+			if ( length > section.length ) {
 				// add any new ones
-				for ( i=section.length; i<value.length; i+=1 ) {
+				for ( i=section.length; i<length; i+=1 ) {
 					// append list item to context stack
 					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
 					fragmentOptions.index = i;
@@ -1979,7 +1985,35 @@ resolveMustache = function ( keypath ) {
 			}
 		}
 
-		section.length = value.length;
+		section.length = length;
+	};
+
+	updateListObjectSection = function ( section, value, fragmentOptions ) {
+		var id, fragmentsById;
+
+		fragmentsById = section.fragmentsById || ( section.fragmentsById = createFromNull() );
+
+		// remove any fragments that should no longer exist
+		for ( id in fragmentsById ) {
+			if ( value[ id ] === undefined ) {
+				fragmentsById[ id ].teardown( true );
+				fragmentsById[ id ] = null;
+			}
+		}
+
+		// add any that haven't been created yet
+		for ( id in value ) {
+			if ( value[ id ] !== undefined && !fragmentsById[ id ] ) {
+				fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + id );
+				fragmentOptions.index = id;
+
+				if ( section.descriptor.i ) {
+					fragmentOptions.indexRef = section.descriptor.i;
+				}
+
+				fragmentsById[ id ] = section.createFragment( fragmentOptions );
+			}
+		}
 	};
 
 	updateContextSection = function ( section, fragmentOptions ) {
@@ -2568,12 +2602,26 @@ proto.fire = function ( eventName ) {
 
 	// wrap object for magic get/set
 	wrapProperty = function ( obj, prop, ractive, keypath ) {
-		var value, descriptor, get, set, oldGet, oldSet;
+		var value, descriptor, get, set, oldGet, oldSet, ractives, keypathsByGuid;
 
 		descriptor = Object.getOwnPropertyDescriptor( obj, prop );
 
 		if ( descriptor ) {
-			if ( descriptor.set && descriptor.set[ ractive._guid + keypath ] ) {
+			if ( descriptor.set && ( ractives = descriptor.set.ractives ) ) {
+				console.log( 'here' );
+
+				// register this ractive to this object
+				if ( ractives.indexOf( ractive ) === -1 ) {
+					ractives[ ractives.length ] = ractive;
+				}
+
+				// register this keypath to this object
+				keypathsByGuid = descriptor.set[ ractive._guid ] || ( descriptor.set[ ractive._guid ] = []);
+
+				if ( keypathsByGuid.indexOf( keypath ) === -1 ) {
+					keypathsByGuid[ keypathsByGuid.length ] = keypath;
+				}
+
 				return; // already wrapped
 			}
 
@@ -2592,17 +2640,34 @@ proto.fire = function ( eventName ) {
 			};
 
 			set = function ( newValue ) {
+				var ractives, ractive, keypaths, i, j;
+
 				value = newValue;
 
-				if ( !ractive.muggleSet ) {
-					ractive.magicSet = true;
-					ractive.set( keypath, newValue );
-					ractive.magicSet = false;
+				ractives = set.ractives;
+
+				i = ractives.length;
+				while ( i-- ) {
+					ractive = ractives[i];
+
+					if ( !ractive.muggleSet ) {	
+						ractive.magicSet = true;
+
+						keypaths = set[ ractive._guid ];
+						j = keypaths.length;
+
+						while ( j-- ) {
+							ractive.set( keypaths[j], newValue );
+						}
+
+						ractive.magicSet = false;
+					}
 				}
 			};
 
 			// prevent rewrapping
-			set[ ractive._guid + keypath ] = true;
+			set.ractives = [ ractive ];
+			set[ ractive._guid ] = [ keypath ];
 
 			Object.defineProperty( obj, prop, { get: get, set: set, enumerable: true, configurable: true });
 		}
@@ -2637,7 +2702,10 @@ proto.fire = function ( eventName ) {
 
 		return {
 			teardown: function () {
+				var value = obj[ prop ];
+
 				Object.defineProperty( obj, prop, descriptor );
+				obj[ prop ] = value;
 			}
 		};
 	};
@@ -3664,7 +3732,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
 
 	mousedown = function ( event ) {
-		var currentTarget, x, y, up, move, cancel;
+		var currentTarget, x, y, pointerId, up, move, cancel;
 
 		if ( event.which != 1) {
 			return;
@@ -3673,8 +3741,14 @@ eventDefinitions.tap = function ( node, fire ) {
 		x = event.clientX;
 		y = event.clientY;
 		currentTarget = this;
+		// This will be null for mouse events.
+		pointerId = event.pointerId;
 
 		up = function ( event ) {
+			if ( event.pointerId != pointerId ) {
+				return;
+			}
+
 			fire({
 				node: currentTarget,
 				original: event
@@ -3684,23 +3758,49 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		move = function ( event ) {
+			if ( event.pointerId != pointerId ) {
+				return;
+			}
+
 			if ( ( Math.abs( event.clientX - x ) >= distanceThreshold ) || ( Math.abs( event.clientY - y ) >= distanceThreshold ) ) {
 				cancel();
 			}
 		};
 
 		cancel = function () {
+			node.removeEventListener( 'MSPointerUp', up, false );
+			doc.removeEventListener( 'MSPointerMove', move, false );
+			doc.removeEventListener( 'MSPointerCancel', cancel, false );
+			node.removeEventListener( 'pointerup', up, false );
+			doc.removeEventListener( 'pointermove', move, false );
+			doc.removeEventListener( 'pointercancel', cancel, false );
 			node.removeEventListener( 'click', up, false );
 			doc.removeEventListener( 'mousemove', move, false );
 		};
 
-		node.addEventListener( 'click', up, false );
-		doc.addEventListener( 'mousemove', move, false );
+		if ( window.navigator.pointerEnabled ) {
+			node.addEventListener( 'pointerup', up, false );
+			doc.addEventListener( 'pointermove', move, false );
+			doc.addEventListener( 'pointercancel', cancel, false );
+		} else if ( window.navigator.msPointerEnabled ) {
+			node.addEventListener( 'MSPointerUp', up, false );
+			doc.addEventListener( 'MSPointerMove', move, false );
+			doc.addEventListener( 'MSPointerCancel', cancel, false );
+		} else {
+			node.addEventListener( 'click', up, false );
+			doc.addEventListener( 'mousemove', move, false );
+		}
 
 		setTimeout( cancel, timeThreshold );
 	};
 
-	node.addEventListener( 'mousedown', mousedown, false );
+	if ( window.navigator.pointerEnabled ) {
+		node.addEventListener( 'pointerdown', mousedown, false );
+	} else if ( window.navigator.msPointerEnabled ) {
+		node.addEventListener( 'MSPointerDown', mousedown, false );
+	} else {
+		node.addEventListener( 'mousedown', mousedown, false );
+	}
 
 
 	touchstart = function ( event ) {
@@ -4320,13 +4420,7 @@ Ractive = function ( options ) {
 			}
 		}
 	}
-
-	// Unpack string-based partials, if necessary
-	for ( key in this.partials ) {
-		if ( hasOwn.call( this.partials, key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
-			this.partials[ key ] = this.partials[ key ][0];
-		}
-	}
+	
 
 	// temporarily disable transitions, if noIntro flag is set
 	this.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
@@ -6113,8 +6207,17 @@ DomSection.prototype = {
 	},
 
 	teardownFragments: function ( detach ) {
+		var id;
+
 		while ( this.fragments.length ) {
 			this.fragments.shift().teardown( detach );
+		}
+
+		if ( this.fragmentsById ) {
+			for ( id in this.fragmentsById ) {
+				this.fragmentsById[ id ].teardown();
+				this.fragmentsById[ id ] = null;
+			}
 		}
 	},
 
