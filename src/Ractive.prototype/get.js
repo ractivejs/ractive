@@ -95,12 +95,24 @@
 
 	// wrap object for magic get/set
 	wrapProperty = function ( obj, prop, ractive, keypath ) {
-		var value, descriptor, get, set, oldGet, oldSet;
+		var value, descriptor, get, set, oldGet, oldSet, ractives, keypathsByGuid;
 
 		descriptor = Object.getOwnPropertyDescriptor( obj, prop );
 
 		if ( descriptor ) {
-			if ( descriptor.set && descriptor.set[ ractive._guid + keypath ] ) {
+			if ( descriptor.set && ( ractives = descriptor.set.ractives ) ) {
+				// register this ractive to this object
+				if ( ractives.indexOf( ractive ) === -1 ) {
+					ractives[ ractives.length ] = ractive;
+				}
+
+				// register this keypath to this object
+				keypathsByGuid = descriptor.set[ ractive._guid ] || ( descriptor.set[ ractive._guid ] = []);
+
+				if ( keypathsByGuid.indexOf( keypath ) === -1 ) {
+					keypathsByGuid[ keypathsByGuid.length ] = keypath;
+				}
+
 				return; // already wrapped
 			}
 
@@ -119,17 +131,34 @@
 			};
 
 			set = function ( newValue ) {
+				var ractives, ractive, keypaths, i, j;
+
 				value = newValue;
 
-				if ( !ractive.muggleSet ) {
-					ractive.magicSet = true;
-					ractive.set( keypath, newValue );
-					ractive.magicSet = false;
+				ractives = set.ractives;
+
+				i = ractives.length;
+				while ( i-- ) {
+					ractive = ractives[i];
+
+					if ( !ractive.muggleSet ) {	
+						ractive.magicSet = true;
+
+						keypaths = set[ ractive._guid ];
+						j = keypaths.length;
+
+						while ( j-- ) {
+							ractive.set( keypaths[j], newValue );
+						}
+
+						ractive.magicSet = false;
+					}
 				}
 			};
 
 			// prevent rewrapping
-			set[ ractive._guid + keypath ] = true;
+			set.ractives = [ ractive ];
+			set[ ractive._guid ] = [ keypath ];
 
 			Object.defineProperty( obj, prop, { get: get, set: set, enumerable: true, configurable: true });
 		}
@@ -164,7 +193,10 @@
 
 		return {
 			teardown: function () {
+				var value = obj[ prop ];
+
 				Object.defineProperty( obj, prop, descriptor );
+				obj[ prop ] = value;
 			}
 		};
 	};
