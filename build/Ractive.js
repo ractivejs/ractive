@@ -446,8 +446,10 @@ var cssTransitionsEnabled, transition, transitionend;
 			}
 
 			if ( changed = true ) {
+				attribute.receiving = true;
 				attribute.value = value;
 				this.root.set( this.keypath, value );
+				attribute.receiving = false;
 			}
 		},
 
@@ -473,8 +475,10 @@ var cssTransitionsEnabled, transition, transitionend;
 
 			value = selectedOption._ractive.value;
 
+			this.attr.receiving = true;
 			this.attr.value = value;
 			this.root.set( this.keypath, value );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -499,7 +503,9 @@ var cssTransitionsEnabled, transition, transitionend;
 			var node = this.node;
 
 			if ( node.checked ) {
+				this.attr.receiving = true;
 				this.root.set( this.keypath, node._ractive ? node._ractive.value : node.value );
+				this.attr.receiving = false;
 			}
 		},
 
@@ -543,7 +549,9 @@ var cssTransitionsEnabled, transition, transitionend;
 			}
 
 			if ( !arrayContentsMatch( previousValue, value ) ) {
+				this.attr.receiving = true;
 				this.root.set( this.keypath, value );
+				this.attr.receiving = false;
 			}
 		},
 
@@ -565,7 +573,9 @@ var cssTransitionsEnabled, transition, transitionend;
 
 	CheckedBinding.prototype = {
 		update: function () {
+			this.attr.receiving = true;
 			this.root.set( this.keypath, this.node.checked );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -617,7 +627,9 @@ var cssTransitionsEnabled, transition, transitionend;
 				value = +value || value;
 			}
 
+			attribute.receiving = true;
 			attribute.root.set( attribute.keypath, value );
+			attribute.receiving = false;
 		},
 
 		teardown: function () {
@@ -803,9 +815,8 @@ var cssTransitionsEnabled, transition, transitionend;
 		}
 
 		// with two-way binding, only update a non-focused node
-		console.log( 'updating' );
-		if ( this.twoway && doc.activeElement === node ) {
-			console.log( 'active node' );
+		if ( this.receiving ) {
+			console.log( 'receiving. returning' );
 			return;
 		}
 

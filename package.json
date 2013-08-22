@@ -72,7 +72,7 @@
     "grunt-contrib-watch": "~0.4.3"
   },
   "testling": {
-    "html": "test/index.html",
+    "html": "test/testling.html",
     "browsers": [
       "ie/8..latest",
       "chrome/10.0",
