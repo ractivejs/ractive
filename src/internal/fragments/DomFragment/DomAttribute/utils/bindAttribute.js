@@ -152,8 +152,10 @@
 			}
 
 			if ( changed = true ) {
+				attribute.receiving = true;
 				attribute.value = value;
 				this.root.set( this.keypath, value );
+				attribute.receiving = false;
 			}
 		},
 
@@ -179,8 +181,10 @@
 
 			value = selectedOption._ractive.value;
 
+			this.attr.receiving = true;
 			this.attr.value = value;
 			this.root.set( this.keypath, value );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -205,7 +209,9 @@
 			var node = this.node;
 
 			if ( node.checked ) {
+				this.attr.receiving = true;
 				this.root.set( this.keypath, node._ractive ? node._ractive.value : node.value );
+				this.attr.receiving = false;
 			}
 		},
 
@@ -249,7 +255,9 @@
 			}
 
 			if ( !arrayContentsMatch( previousValue, value ) ) {
+				this.attr.receiving = true;
 				this.root.set( this.keypath, value );
+				this.attr.receiving = false;
 			}
 		},
 
@@ -271,7 +279,9 @@
 
 	CheckedBinding.prototype = {
 		update: function () {
+			this.attr.receiving = true;
 			this.root.set( this.keypath, this.node.checked );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -323,7 +333,9 @@
 				value = +value || value;
 			}
 
+			attribute.receiving = true;
 			attribute.root.set( attribute.keypath, value );
+			attribute.receiving = false;
 		},
 
 		teardown: function () {
