@@ -389,6 +389,7 @@ var getExpression;
 		// allow the use of `this`
 		if ( name === 'this' ) {
 			name = '.';
+			startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
 		}
 
 		combo = dot + name;
