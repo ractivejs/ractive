@@ -144,20 +144,19 @@
 			node._ractive.value = value;
 		}
 
-		// with two-way binding, only update if the change wasn't initiated by the user
-		// otherwise the cursor will often be sent to the wrong place
-		if ( this.receiving ) {
-			return;
-		}
-
 		if ( value === undefined ) {
 			value = '';
 		}
 
 		if ( value !== this.value ) {
 			if ( this.useProperty ) {
+
+				// with two-way binding, only update if the change wasn't initiated by the user
+				// otherwise the cursor will often be sent to the wrong place
+				if ( !this.receiving ) {
+					node[ this.propertyName ] = value;
+				}
 				
-				node[ this.propertyName ] = value;
 				this.value = value;
 
 				return this;
