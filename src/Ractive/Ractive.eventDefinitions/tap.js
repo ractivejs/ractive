@@ -7,7 +7,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	mousedown = function ( event ) {
 		var currentTarget, x, y, pointerId, up, move, cancel;
 
-		if ( event.which != 1) {
+		if ( event.which !== undefined && event.which !== 1 ) {
 			return;
 		}
 
