@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.5 - 2013-08-19
+/*! Ractive - v0.3.5 - 2013-08-22
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -800,6 +800,13 @@ var cssTransitionsEnabled, transition, transitionend;
 		// store actual value, so it doesn't get coerced to a string
 		if ( this.isValueAttribute ) {
 			node._ractive.value = value;
+		}
+
+		// with two-way binding, only update a non-focused node
+		console.log( 'updating' );
+		if ( this.twoway && doc.activeElement === node ) {
+			console.log( 'active node' );
+			return;
 		}
 
 		if ( value === undefined ) {
@@ -2608,8 +2615,6 @@ proto.fire = function ( eventName ) {
 
 		if ( descriptor ) {
 			if ( descriptor.set && ( ractives = descriptor.set.ractives ) ) {
-				console.log( 'here' );
-
 				// register this ractive to this object
 				if ( ractives.indexOf( ractive ) === -1 ) {
 					ractives[ ractives.length ] = ractive;
@@ -3866,6 +3871,8 @@ eventDefinitions.tap = function ( node, fire ) {
 
 	return {
 		teardown: function () {
+			node.removeEventListener( 'pointerdown', mousedown, false );
+			node.removeEventListener( 'MSPointerDown', mousedown, false );
 			node.removeEventListener( 'mousedown', mousedown, false );
 			node.removeEventListener( 'touchstart', touchstart, false );
 		}
@@ -7348,7 +7355,7 @@ var ExpressionStub;
 			return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
 
 			case INFIX_OPERATOR:
-			return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
+			return stringify( token.o[0], refs ) + ( token.s.substr( 0, 2 ) === 'in' ? ' ' + token.s + ' ' : token.s ) + stringify( token.o[1], refs );
 
 			case INVOCATION:
 			return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
@@ -7882,6 +7889,12 @@ var getExpression;
 			allowWhitespace( tokenizer );
 
 			if ( !getStringMatch( tokenizer, symbol ) ) {
+				tokenizer.pos = start;
+				return left;
+			}
+
+			// special case - in operator must not be followed by [a-zA-Z_$0-9]
+			if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
 				tokenizer.pos = start;
 				return left;
 			}

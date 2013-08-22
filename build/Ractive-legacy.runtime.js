@@ -965,6 +965,13 @@ var cssTransitionsEnabled, transition, transitionend;
 			node._ractive.value = value;
 		}
 
+		// with two-way binding, only update a non-focused node
+		console.log( 'updating' );
+		if ( this.twoway && doc.activeElement === node ) {
+			console.log( 'active node' );
+			return;
+		}
+
 		if ( value === undefined ) {
 			value = '';
 		}
@@ -2536,8 +2543,6 @@ proto.fire = function ( eventName ) {
 
 		if ( descriptor ) {
 			if ( descriptor.set && ( ractives = descriptor.set.ractives ) ) {
-				console.log( 'here' );
-
 				// register this ractive to this object
 				if ( ractives.indexOf( ractive ) === -1 ) {
 					ractives[ ractives.length ] = ractive;
@@ -3794,6 +3799,8 @@ eventDefinitions.tap = function ( node, fire ) {
 
 	return {
 		teardown: function () {
+			node.removeEventListener( 'pointerdown', mousedown, false );
+			node.removeEventListener( 'MSPointerDown', mousedown, false );
 			node.removeEventListener( 'mousedown', mousedown, false );
 			node.removeEventListener( 'touchstart', touchstart, false );
 		}
