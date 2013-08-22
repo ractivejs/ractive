@@ -111,10 +111,6 @@ Browser support
 
 Tested successfully in IE8+ and all modern browsers. If your experience differs please let me know!
 
-Ractive uses [testling-ci](https://ci.testling.com/) to automate browser testing:
-
-[![browser support](https://ci.testling.com/Rich-Harris/Ractive.png)](https://ci.testling.com/Rich-Harris/Ractive)
-
 
 
 License
