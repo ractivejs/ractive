@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.5 - 2013-08-22
+/*! Ractive - v0.3.6 - 2013-08-22
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -15,7 +15,7 @@
 var Ractive,
 
 // current version
-VERSION = '0.3.5',
+VERSION = '0.3.6',
 
 doc = global.document || null,
 
@@ -618,13 +618,9 @@ var cssTransitionsEnabled, transition, transitionend;
 		update: function () {
 			var attribute = this.attr, value = attribute.parentNode.value;
 
-			// so that we can do +value || value below
-			if ( value === '0' ) {
-				value = 0;
-			}
-
-			else if ( value !== '' ) {
-				value = +value || value;
+			// if the value is numeric, treat it as a number. otherwise don't
+			if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {
+				value = +value;
 			}
 
 			attribute.receiving = true;
@@ -814,20 +810,19 @@ var cssTransitionsEnabled, transition, transitionend;
 			node._ractive.value = value;
 		}
 
-		// with two-way binding, only update a non-focused node
-		if ( this.receiving ) {
-			console.log( 'receiving. returning' );
-			return;
-		}
-
 		if ( value === undefined ) {
 			value = '';
 		}
 
 		if ( value !== this.value ) {
 			if ( this.useProperty ) {
+
+				// with two-way binding, only update if the change wasn't initiated by the user
+				// otherwise the cursor will often be sent to the wrong place
+				if ( !this.receiving ) {
+					node[ this.propertyName ] = value;
+				}
 				
-				node[ this.propertyName ] = value;
 				this.value = value;
 
 				return this;
@@ -3750,7 +3745,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	mousedown = function ( event ) {
 		var currentTarget, x, y, pointerId, up, move, cancel;
 
-		if ( event.which != 1) {
+		if ( event.which !== undefined && event.which !== 1 ) {
 			return;
 		}
 
@@ -8016,6 +8011,7 @@ var getExpression;
 		// allow the use of `this`
 		if ( name === 'this' ) {
 			name = '.';
+			startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
 		}
 
 		combo = dot + name;
