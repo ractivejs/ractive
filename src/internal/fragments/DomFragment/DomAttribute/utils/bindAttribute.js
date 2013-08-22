@@ -11,8 +11,7 @@
 		CheckboxNameBinding,
 		CheckedBinding,
 		FileListBinding,
-		GenericBinding,
-		numberPattern;
+		GenericBinding;
 
 	bindAttribute = function () {
 		var node = this.parentNode, interpolator, binding;
@@ -325,7 +324,8 @@
 		update: function () {
 			var attribute = this.attr, value = attribute.parentNode.value;
 
-			if ( numberPattern.test( value ) ) {
+			// if the value is numeric, treat it as a number. otherwise don't
+			if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {
 				value = +value;
 			}
 
@@ -368,7 +368,5 @@
 
 		return true;
 	};
-
-	numberPattern = /^\s*-?[0-9]*(?:\.[0-9]+)?\s*$/;
 
 }());
