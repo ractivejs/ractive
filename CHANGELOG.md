@@ -75,3 +75,10 @@ Changelog
     * Support for [component](https://github.com/component/component) - thanks [CamShaft](https://github.com/CamShaft)
     * Option to use `on-click` style event binding (as opposed to `proxy-click`)
     * Bug fixes
+* 0.3.6
+    * Better two-way binding - support for multiple checkboxes and file inputs
+    * Experimental 'magic mode' - use ES5 getters and setters instead of .set() and .get(). See [#110](https://github.com/Rich-Harris/Ractive/issues/110)
+    * More efficient event binding, and dynamic proxy event names
+    * Support for pointer events with `tap` - thanks [lluchs](https://github.com/lluchs)
+    * Iterate through properties of an object - see [#115](https://github.com/Rich-Harris/Ractive/issues/115)
+    * Bugfixes and refactoring
