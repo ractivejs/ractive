@@ -277,6 +277,12 @@ var getExpression;
 				return left;
 			}
 
+			// special case - in operator must not be followed by [a-zA-Z_$0-9]
+			if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
+				tokenizer.pos = start;
+				return left;
+			}
+
 			allowWhitespace( tokenizer );
 
 			right = getExpression( tokenizer );

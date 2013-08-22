@@ -90,7 +90,7 @@ var ExpressionStub;
 			return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
 
 			case INFIX_OPERATOR:
-			return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
+			return stringify( token.o[0], refs ) + ( token.s.substr( 0, 2 ) === 'in' ? ' ' + token.s + ' ' : token.s ) + stringify( token.o[1], refs );
 
 			case INVOCATION:
 			return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
