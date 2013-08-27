@@ -64,7 +64,7 @@
 	};
 
 	reassignElement = function ( element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, attribute;
+		var i, attribute, storage, masterEventName, proxies, proxy;
 
 		i = element.attributes.length;
 		while ( i-- ) {
@@ -79,21 +79,30 @@
 			}
 		}
 
-		// reassign proxy argument fragments TODO and intro/outro param fragments
-		if ( element.proxyFrags ) {
-			i = element.proxyFrags.length;
-			while ( i-- ) {
-				reassignFragment( element.proxyFrags[i], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-			}
-		}
-
-		if ( element.node._ractive ) {
-			if ( element.node._ractive.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
+		if ( storage = element.node._ractive ) {
+			if ( storage.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+				storage.keypath = storage.keypath.replace( oldKeypath, newKeypath );
 			}
 
 			if ( indexRef !== undefined ) {
-				element.node._ractive.index[ indexRef ] = newIndex;
+				storage.index[ indexRef ] = newIndex;
+			}
+
+			for ( masterEventName in storage.events ) {
+				proxies = storage.events[ masterEventName ].proxies;
+				i = proxies.length;
+
+				while ( i-- ) {
+					proxy = proxies[i];
+
+					if ( typeof proxy.n === 'object' ) {
+						reassignFragment( proxy.a, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+					}
+
+					if ( proxy.d ) {
+						reassignFragment( proxy.d, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+					}
+				}
 			}
 		}
 
