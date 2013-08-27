@@ -211,4 +211,33 @@
 		t.deepEqual( last, [ 1, 2, 3 ] );
 	});
 
+	test( 'Splicing arrays correctly modifies proxy events', function ( t ) {
+		var ractive, fakeEvent;
+
+		expect( 4 );
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{#buttons:i}}<button id="button_{{i}}" on-click="remove:{{i}}">click me</button>{{/buttons}}',
+			data: { buttons: new Array(5) }
+		});
+
+		ractive.on( 'remove', function ( event, num ) {
+			this.get( 'buttons' ).splice( num, 1 );
+		});
+
+		fakeEvent = createEvent( 'click' );
+
+		t.equal( ractive.findAll( 'button' ).length, 5 );
+
+		ractive.nodes.button_2.dispatchEvent( fakeEvent );
+		t.equal( ractive.findAll( 'button' ).length, 4 );
+
+		ractive.nodes.button_2.dispatchEvent( fakeEvent );
+		t.equal( ractive.findAll( 'button' ).length, 3 );
+
+		ractive.nodes.button_2.dispatchEvent( fakeEvent );
+		t.equal( ractive.findAll( 'button' ).length, 2 );
+	});
+
 }());
