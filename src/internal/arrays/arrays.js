@@ -120,7 +120,7 @@
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i;
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
 
 			// If this is a sort or reverse, we just do root.set()...
 			if ( methodName === 'sort' || methodName === 'reverse' ) {
@@ -151,7 +151,7 @@
 
 					// we may have some deferred evaluators to process
 					processDeferredUpdates( root );
-					
+
 					while ( smartUpdateQueue.length ) {
 						smartUpdateQueue.pop().smartUpdate( methodName, args );
 					}
@@ -159,6 +159,24 @@
 					while ( dumbUpdateQueue.length ) {
 						dumbUpdateQueue.pop().update();
 					}
+				}
+			}
+
+			// if we're removing old items and adding new ones, simultaneously, we need to force an update
+			if ( methodName === 'splice' && ( args.length > 2 ) && args[1] ) {
+				changed = Math.min( args[1], args.length - 2 );
+				start = args[0];
+				end = start + changed;
+
+				if ( args[1] === ( args.length - 2 ) ) {
+					lengthUnchanged = true;
+				}
+
+				for ( i=start; i<end; i+=1 ) {
+					childKeypath = keypath + '.' + i;
+					console.log( childKeypath );
+
+					notifyDependants( root, childKeypath );
 				}
 			}
 
@@ -181,7 +199,9 @@
 			// adding a new item (which should deactivate the 'all complete' checkbox
 			// but doesn't) this needs to happen before other updates. But doing so causes
 			// other mental problems. not sure what's going on...
-			notifyDependants( root, keypath + '.length', true );
+			if ( !lengthUnchanged ) {
+				notifyDependants( root, keypath + '.length', true );
+			}
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
@@ -199,7 +219,7 @@
 				}
 
 				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === SECTION /*&& dependant.parentNode*/ ) {
+				else if ( dependant.keypath === keypath && dependant.type === SECTION && dependant.parentNode ) {
 					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
 
 				} else {

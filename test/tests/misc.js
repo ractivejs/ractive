@@ -198,6 +198,28 @@
 		t.ok( compareHTML( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' ) );
 	});
 
+	test( 'Array splice works when simultaneously adding and removing items', function ( t ) {
+		var items, ractive;
+
+		items = [ 'zero', 'one', 'two', 'four' ];
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{#items:i}}<span data-text="{{i}}:{{.}}">{{i}}:{{.}}</span>{{/items}}',
+			data: { items: items }
+		});
+
+		console.log( fixture.innerHTML );
+
+		t.ok( compareHTML( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:four">3:four</span>' ) );
+
+		items.splice( 3, 0, 'three' );
+		t.ok( compareHTML( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:three">3:three</span><span data-text="4:four">4:four</span>' ) );
+
+		items.splice( 3, 1, 'THREE' );
+		t.ok( compareHTML( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:THREE">3:THREE</span><span data-text="4:four">4:four</span>' ) );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build
