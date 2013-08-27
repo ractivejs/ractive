@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-08-22
+/*! Ractive - v0.3.6 - 2013-08-27
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -1271,7 +1271,7 @@ insertHtml = function ( html, docFrag ) {
 	};
 
 	reassignElement = function ( element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, attribute;
+		var i, attribute, storage, masterEventName, proxies, proxy;
 
 		i = element.attributes.length;
 		while ( i-- ) {
@@ -1286,21 +1286,30 @@ insertHtml = function ( html, docFrag ) {
 			}
 		}
 
-		// reassign proxy argument fragments TODO and intro/outro param fragments
-		if ( element.proxyFrags ) {
-			i = element.proxyFrags.length;
-			while ( i-- ) {
-				reassignFragment( element.proxyFrags[i], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-			}
-		}
-
-		if ( element.node._ractive ) {
-			if ( element.node._ractive.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				element.node._ractive.keypath = element.node._ractive.keypath.replace( oldKeypath, newKeypath );
+		if ( storage = element.node._ractive ) {
+			if ( storage.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+				storage.keypath = storage.keypath.replace( oldKeypath, newKeypath );
 			}
 
 			if ( indexRef !== undefined ) {
-				element.node._ractive.index[ indexRef ] = newIndex;
+				storage.index[ indexRef ] = newIndex;
+			}
+
+			for ( masterEventName in storage.events ) {
+				proxies = storage.events[ masterEventName ].proxies;
+				i = proxies.length;
+
+				while ( i-- ) {
+					proxy = proxies[i];
+
+					if ( typeof proxy.n === 'object' ) {
+						reassignFragment( proxy.a, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+					}
+
+					if ( proxy.d ) {
+						reassignFragment( proxy.d, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+					}
+				}
 			}
 		}
 
@@ -5091,7 +5100,7 @@ animationCollection = {
 		};
 
 		processKeypath = function ( root, keypath ) {
-			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i;
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
 
 			// If this is a sort or reverse, we just do root.set()...
 			if ( methodName === 'sort' || methodName === 'reverse' ) {
@@ -5122,7 +5131,7 @@ animationCollection = {
 
 					// we may have some deferred evaluators to process
 					processDeferredUpdates( root );
-					
+
 					while ( smartUpdateQueue.length ) {
 						smartUpdateQueue.pop().smartUpdate( methodName, args );
 					}
@@ -5130,6 +5139,24 @@ animationCollection = {
 					while ( dumbUpdateQueue.length ) {
 						dumbUpdateQueue.pop().update();
 					}
+				}
+			}
+
+			// if we're removing old items and adding new ones, simultaneously, we need to force an update
+			if ( methodName === 'splice' && ( args.length > 2 ) && args[1] ) {
+				changed = Math.min( args[1], args.length - 2 );
+				start = args[0];
+				end = start + changed;
+
+				if ( args[1] === ( args.length - 2 ) ) {
+					lengthUnchanged = true;
+				}
+
+				for ( i=start; i<end; i+=1 ) {
+					childKeypath = keypath + '.' + i;
+					console.log( childKeypath );
+
+					notifyDependants( root, childKeypath );
 				}
 			}
 
@@ -5152,7 +5179,9 @@ animationCollection = {
 			// adding a new item (which should deactivate the 'all complete' checkbox
 			// but doesn't) this needs to happen before other updates. But doing so causes
 			// other mental problems. not sure what's going on...
-			notifyDependants( root, keypath + '.length', true );
+			if ( !lengthUnchanged ) {
+				notifyDependants( root, keypath + '.length', true );
+			}
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
@@ -5170,7 +5199,7 @@ animationCollection = {
 				}
 
 				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === SECTION /*&& dependant.parentNode*/ ) {
+				else if ( dependant.keypath === keypath && dependant.type === SECTION && dependant.parentNode ) {
 					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
 
 				} else {
