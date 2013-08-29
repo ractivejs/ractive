@@ -104,6 +104,12 @@
 					}
 				}
 			}
+
+			if ( storage.binding ) {
+				if ( storage.binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+					storage.binding.keypath = storage.binding.keypath.replace( oldKeypath, newKeypath );
+				}
+			}
 		}
 
 		// reassign children
