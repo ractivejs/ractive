@@ -5,11 +5,37 @@
 
 (function () {
 
-	var fixture, testDiv, compareHTML;
+	var fixture, createEvent, testDiv, compareHTML;
 
 	module( 'Events' );
 
 	fixture = document.getElementById( 'qunit-fixture' );
+
+	try {
+		new Event( 'click' );
+
+		createEvent = function ( eventType, params ) {
+			return new Event( eventType, params );
+		};
+	}
+
+	catch ( err ) {
+		createEvent = function ( eventType, params ) {
+			var event, args;
+
+			event = document.createEvent( 'Event' );
+
+			args = [
+				eventType
+			]
+
+			event.initEvent( eventType );
+
+			return event;
+		};
+	}
+
+
 	testDiv = document.createElement( 'div' );
 
 	// necessary because IE is a goddamned nuisance
@@ -40,13 +66,13 @@
 			t.equal( event.original.type, 'click' );
 		});
 
-		$( ractive.nodes.test ).trigger( 'click' );
+		simulant.fire( ractive.nodes.test, 'click' );
 	});
 
 	test( 'Standard events have correct properties: node, original, keypath, context, index', function ( t ) {
 		var ractive, fakeEvent;
 
-		expect( 4 );
+		expect( 5 );
 
 		ractive = new Ractive({
 			el: fixture,
@@ -55,12 +81,15 @@
 
 		ractive.on( 'someEvent', function ( event ) {
 			t.equal( event.node, ractive.nodes.test );
+			t.equal( event.original, fakeEvent );
 			t.equal( event.keypath, '' );
 			t.equal( event.context, ractive.data );
 			t.equal( event.index, undefined );
 		});
 
-		$( ractive.nodes.test ).trigger( 'click' );
+		fakeEvent = simulant( 'click' );
+
+		simulant.fire( ractive.nodes.test, fakeEvent );
 	});
 
 	test( 'event.keypath is set to the innermost context', function ( t ) {
@@ -81,7 +110,7 @@
 			t.equal( event.context.bar, 'test' );
 		});
 
-		$( ractive.nodes.test ).trigger( 'click' );
+		simulant.fire( ractive.nodes.test, 'click' );
 	});
 
 	test( 'event.index stores current indices against their references', function ( t ) {
@@ -104,7 +133,7 @@
 			t.deepEqual( event.index, { i: 2 })
 		});
 
-		$( ractive.nodes.item_2 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.item_2, 'click' );
 	});
 
 	test( 'event.index reports nested indices correctly', function ( t ) {
@@ -134,7 +163,7 @@
 			t.deepEqual( event.index, { x: 0, y: 0, z: 1 })
 		});
 
-		$( ractive.nodes.test_001 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.test_001, 'click' );
 	});
 
 	test( 'proxy events can have dynamic names', function ( t ) {
@@ -157,12 +186,12 @@
 			}
 		});
 
-		$( ractive.nodes.test ).trigger( 'click' );
+		simulant.fire( ractive.nodes.test, 'click' );
 		t.equal( last, 'foo' );
 
 		ractive.set( 'something', 'bar' );
 
-		$( ractive.nodes.test ).trigger( 'click' );
+		simulant.fire( ractive.nodes.test, 'click' );
 		t.equal( last, 'bar' );
 	});
 
@@ -182,13 +211,13 @@
 			}
 		});
 
-		$( ractive.nodes.foo ).trigger( 'click' );
+		simulant.fire( ractive.nodes.foo, 'click' );
 		t.equal( last, 'one' );
 
-		$( ractive.nodes.bar ).trigger( 'click' );
+		simulant.fire( ractive.nodes.bar, 'click' );
 		t.deepEqual( last, { bar: true } );
 
-		$( ractive.nodes.baz ).trigger( 'click' );
+		simulant.fire( ractive.nodes.baz, 'click' );
 		t.deepEqual( last, [ 1, 2, 3 ] );
 	});
 
@@ -209,13 +238,13 @@
 
 		t.equal( ractive.findAll( 'button' ).length, 5 );
 
-		$( ractive.nodes.button_2 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.button_2, 'click' );
 		t.equal( ractive.findAll( 'button' ).length, 4 );
 
-		$( ractive.nodes.button_2 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.button_2, 'click' );
 		t.equal( ractive.findAll( 'button' ).length, 3 );
 
-		$( ractive.nodes.button_2 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.button_2, 'click' );
 		t.equal( ractive.findAll( 'button' ).length, 2 );
 	});
 
@@ -246,7 +275,7 @@
 		t.equal( !!ractive.get( 'items.1.done' ), true );
 		t.equal( !!ractive.get( 'items.2.done' ), false );
 
-		$( ractive.nodes.input_0 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.input_0, 'click' );
 
 		// 7-9
 		t.equal( ractive.nodes.input_0.checked, true );
@@ -268,7 +297,7 @@
 		t.equal( !!ractive.get( 'items.0.done' ), true );
 		t.equal( !!ractive.get( 'items.1.done' ), false );
 
-		$( ractive.nodes.input_0 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.input_0, 'click' );
 
 		// 17-18
 		t.equal( ractive.nodes.input_0.checked, false );
@@ -278,7 +307,7 @@
 		t.equal( !!ractive.get( 'items.0.done' ), false );
 		t.equal( !!ractive.get( 'items.1.done' ), false );
 
-		$( ractive.nodes.input_1 ).trigger( 'click' );
+		simulant.fire( ractive.nodes.input_1, 'click' );
 
 		// 21-22
 		t.equal( ractive.nodes.input_0.checked, false );
