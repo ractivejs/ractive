@@ -6,13 +6,9 @@ module.exports = function(grunt) {
 		pkg: grunt.file.readJSON( 'package.json' ),
 		meta: {
 			banner: '/*! Ractive - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
-				'* <%= pkg.description %>\n\n' +
-				'* <%= pkg.homepage %>\n' +
-				'* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
-				' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n' +
-				'\n' +
-				'/*jslint eqeq: true, plusplus: true */\n' +
-				'/*global document, HTMLElement */\n' +
+				'* Next-generation DOM manipulation\n\n' +
+				'* http://ractivejs.org\n' +
+				'* Copyright (c) <%= grunt.template.today("yyyy") %> Rich Harris; Licensed MIT */' +
 				'\n\n'
 		},
 		watch: {
@@ -30,21 +26,16 @@ module.exports = function(grunt) {
 		},
 		concat: {
 			options: {
+				banner: '<%= meta.banner %>',
 				process: {
 					data: { version: '<%= pkg.version %>' }
 				}
 			},
 			runtime: {
-				options: {
-					banner: '<%= meta.banner %>'
-				},
 				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js', '!src/parser/**/*.js' ],
 				dest: 'tmp/Ractive.runtime.js'
 			},
 			full: {
-				options: {
-					banner: '<%= meta.banner %>'
-				},
 				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js'  ],
 				dest: 'tmp/Ractive.js'
 			},
