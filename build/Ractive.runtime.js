@@ -1,12 +1,8 @@
-/*! Ractive - v0.3.6 - 2013-08-27
+/*! Ractive - v0.3.6 - 2013-08-29
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
 * Copyright (c) 2013 Rich Harris; Licensed MIT */
-
-/*jslint eqeq: true, plusplus: true */
-/*global document, HTMLElement */
-
 
 (function ( global ) {
 
@@ -1309,6 +1305,12 @@ insertHtml = function ( html, docFrag ) {
 					if ( proxy.d ) {
 						reassignFragment( proxy.d, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
 					}
+				}
+			}
+
+			if ( storage.binding ) {
+				if ( storage.binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+					storage.binding.keypath = storage.binding.keypath.replace( oldKeypath, newKeypath );
 				}
 			}
 		}
