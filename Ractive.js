@@ -4610,6 +4610,10 @@ Ractive = function ( options ) {
 		transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
 			duration: 400, easing: 'easeOut'
 		}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 });
+
+		transitions.come = makeTransition([ 'opacity', 'right', 'position' ], {
+			duration: 400, easing: 'easeOut'
+		}, { position: 'relative', right: '-500px' }, { position: 'relative', right: 0 });
 	}
 
 	
