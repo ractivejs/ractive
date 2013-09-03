@@ -157,6 +157,8 @@ var getTag;
 			return null;
 		}
 
+		allowWhitespace( tokenizer );
+
 		value = getSingleQuotedAttributeValue( tokenizer ) || getDoubleQuotedAttributeValue( tokenizer ) || getUnquotedAttributeValue( tokenizer );
 
 		if ( value === null ) {

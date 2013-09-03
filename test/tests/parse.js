@@ -205,6 +205,11 @@
 			name: 'Methods on `this`',
 			template: '{{ this.getId() }}',
 			parsed: [{t:2,x:{r:['.'],s:'${0}.getId()'}}]
+		},
+		{
+			name: 'Sloppy whitespace in tags',
+			template: '<div class = "foo"></div>',
+			parsed: ['<div class=foo></div>']
 		}
 	];
 
