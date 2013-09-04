@@ -35,14 +35,14 @@ DomElement = function ( options, docFrag ) {
 	}
 
 
+	// set attributes
+	attributes = createElementAttributes( this, descriptor.a );
+
+
 	// create event proxies
 	if ( docFrag && descriptor.v ) {
 		addEventProxies( this, descriptor.v );
 	}
-
-	// set attributes
-	attributes = createElementAttributes( this, descriptor.a );
-
 
 	// if we're actually rendering (i.e. not server-side stringifying), proceed
 	if ( docFrag ) {
