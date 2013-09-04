@@ -28,4 +28,6 @@ render = function ( ractive, options ) {
 	// transition manager has finished its work
 	ractive._transitionManager = null;
 	transitionManager.ready();
+
+	ractive.rendered = true;
 };

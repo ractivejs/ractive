@@ -4,7 +4,6 @@
 		updateModel,
 		getBinding,
 		inheritProperties,
-		arrayContentsMatch,
 		MultipleSelectBinding,
 		SelectBinding,
 		RadioNameBinding,
@@ -46,7 +45,6 @@
 		// updating. Using it in lists is probably a recipe for confusion...
 		this.keypath = interpolator.keypath || interpolator.descriptor.r;
 
-		//this.updateModel = getUpdater( this );
 		binding = getBinding( this );
 
 		if ( !binding ) {
@@ -123,35 +121,44 @@
 	};
 
 	MultipleSelectBinding = function ( attribute, node ) {
+		var valueFromModel;
+
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
+
+		valueFromModel = this.root.get( this.keypath );
+
+		if ( valueFromModel === undefined ) {
+			// get value from DOM, if possible
+			this.update();
+		}
 	};
 
 	MultipleSelectBinding.prototype = {
-		update: function () {
-			var attribute, value, selectedOptions, i, previousValue, changed, len;
-
-			attribute = this.attr;
-			previousValue = attribute.value || [];
+		getValueFromDom: function () {
+			var value, selectedOptions, i, len;
 
 			value = [];
 			selectedOptions = this.node.querySelectorAll( 'option:checked' );
 			len = selectedOptions.length;
-
+			
 			for ( i=0; i<len; i+=1 ) {
 				value[ value.length ] = selectedOptions[i]._ractive.value;
 			}
 
-			// has the selection changed?
-			changed = ( len !== previousValue.length );
-			i = value.length;
-			while ( i-- ) {
-				if ( value[i] !== previousValue[i] ) {
-					changed = true;
-				}
-			}
+			return value;
+		},
 
-			if ( changed = true ) {
+		update: function () {
+			var attribute, previousValue, value, changed, i;
+
+			attribute = this.attr;
+			previousValue = attribute.value;
+
+			value = this.getValueFromDom();
+			
+			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
+				// either length or contents have changed, so we update the model
 				attribute.receiving = true;
 				attribute.value = value;
 				this.root.set( this.keypath, value );
@@ -165,12 +172,21 @@
 	};
 
 	SelectBinding = function ( attribute, node ) {
+		var valueFromModel;
+
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
+
+		valueFromModel = this.root.get( this.keypath );
+
+		if ( valueFromModel === undefined ) {
+			// get value from DOM, if possible
+			this.update();
+		}
 	};
 
 	SelectBinding.prototype = {
-		update: function () {
+		getValueFromDom: function () {
 			var selectedOption, value;
 
 			selectedOption = this.node.querySelector( 'option:checked' );
@@ -180,6 +196,12 @@
 			}
 
 			value = selectedOption._ractive.value;
+
+			return value;
+		},
+
+		update: function () {
+			var value = this.getValueFromDom();
 
 			this.attr.receiving = true;
 			this.attr.value = value;
@@ -193,6 +215,8 @@
 	};
 
 	RadioNameBinding = function ( attribute, node ) {
+		var valueFromModel;
+
 		inheritProperties( this, attribute, node );
 
 		node.name = '{{' + attribute.keypath + '}}';
@@ -201,6 +225,13 @@
 
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', updateModel, false );
+		}
+
+		valueFromModel = this.root.get( this.keypath );
+		if ( valueFromModel !== undefined ) {
+			node.checked = ( valueFromModel === node._ractive.value );
+		} else {
+			this.update();
 		}
 	};
 
@@ -222,43 +253,40 @@
 	};
 
 	CheckboxNameBinding = function ( attribute, node ) {
+		var valueFromModel, checked;
+
 		inheritProperties( this, attribute, node );
 
 		node.name = '{{' + this.keypath + '}}';
-		this.query = 'input[type="checkbox"][name="' + node.name + '"]';
 
 		node.addEventListener( 'change', updateModel, false );
 
+		// in case of IE emergency, bind to click event as well
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', updateModel, false );
+		}
+
+		valueFromModel = this.root.get( this.keypath );
+
+		// if the model already specifies this value, check/uncheck accordingly
+		if ( valueFromModel !== undefined ) {
+			checked = valueFromModel.indexOf( node._ractive.value !== -1 );
+			node.checked = checked;
+		}
+
+		// otherwise make a note that we will need to update the model later
+		else {
+			if ( this.root._defCheckboxes.indexOf( this.keypath ) === -1 ) {
+				this.root._defCheckboxes[ this.root._defCheckboxes.length ] = this.keypath;
+			}
 		}
 	};
 
 	CheckboxNameBinding.prototype = {
 		update: function () {
-			var previousValue, value, checkboxes, len, i, checkbox;
-
-			previousValue = this.root.get( this.keypath );
-
-			// TODO is this overkill?
-			checkboxes = this.root.el.querySelectorAll( this.query );
-
-			len = checkboxes.length;
-			value = [];
-
-			for ( i=0; i<len; i+=1 ) {
-				checkbox = checkboxes[i];
-
-				if ( checkbox.checked ) {
-					value[ value.length ] = checkbox._ractive.value;
-				}
-			}
-
-			if ( !arrayContentsMatch( previousValue, value ) ) {
-				this.attr.receiving = true;
-				this.root.set( this.keypath, value );
-				this.attr.receiving = false;
-			}
+			this.attr.receiving = true;
+			getValueFromCheckboxes( this.root, this.keypath );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -346,27 +374,6 @@
 		binding.node = node;
 		binding.root = attribute.root;
 		binding.keypath = attribute.keypath;
-	};
-
-	arrayContentsMatch = function ( a, b ) {
-		var i;
-
-		if ( !isArray( a ) || !isArray( b ) ) {
-			return false;
-		}
-
-		if ( a.length !== b.length ) {
-			return false;
-		}
-
-		i = a.length;
-		while ( i-- ) {
-			if ( a[i] !== b[i] ) {
-				return false;
-			}
-		}
-
-		return true;
 	};
 
 }());

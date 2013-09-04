@@ -29,14 +29,14 @@ DomElement = function ( options, docFrag ) {
 	}
 
 
+	// set attributes
+	attributes = createElementAttributes( this, descriptor.a );
+
+
 	// append children, if there are any
 	if ( descriptor.f ) {
 		appendElementChildren( this, this.node, descriptor, docFrag );
 	}
-
-
-	// set attributes
-	attributes = createElementAttributes( this, descriptor.a );
 
 
 	// create event proxies

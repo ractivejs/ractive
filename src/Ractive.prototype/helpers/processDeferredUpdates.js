@@ -14,4 +14,8 @@ processDeferredUpdates = function ( ractive ) {
 	while ( ractive._defSelectValues.length ) {
 		ractive._defSelectValues.pop().deferredUpdate();
 	}
+
+	while ( ractive._defCheckboxes.length ) {
+		getValueFromCheckboxes( ractive, ractive._defCheckboxes.pop() );
+	}
 };

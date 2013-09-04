@@ -155,7 +155,7 @@
 		while ( i-- ) { // Work backwards, so we don't go in circles!
 			unresolved = root._pendingResolution.splice( i, 1 )[0];
 
-			keypath = resolveRef( root, unresolved.ref, unresolved.contextStack )
+			keypath = resolveRef( root, unresolved.ref, unresolved.contextStack );
 			if ( keypath !== undefined ) {
 				// If we've resolved the keypath, we can initialise this item
 				unresolved.resolve( keypath );

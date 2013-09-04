@@ -15,7 +15,6 @@ bindElement = function ( element, attributes ) {
 		if ( element.node.type === 'radio' || element.node.type === 'checkbox' ) {
 			// we can either bind the name attribute, or the checked attribute - not both
 			if ( attributes.name && attributes.name.bind() ) {
-				element.node._ractive.binding.update();
 				return;
 			}
 
