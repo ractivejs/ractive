@@ -189,11 +189,13 @@
 	};
 
 	setStaticAttribute = function ( attribute, options ) {
+		var value = ( options.value === null ? '' : options.value );
+
 		if ( options.parentNode ) {
 			if ( attribute.namespace ) {
-				options.parentNode.setAttributeNS( attribute.namespace, options.name, options.value );
+				options.parentNode.setAttributeNS( attribute.namespace, options.name, value );
 			} else {
-				options.parentNode.setAttribute( options.name, options.value );
+				options.parentNode.setAttribute( options.name, value );
 			}
 
 			if ( attribute.name === 'id' ) {
