@@ -32,6 +32,11 @@
 		this.name = options.descriptor.r;
 
 		Component = getComponentConstructor( parentFragment.root, options.descriptor.e );
+
+		if ( !Component ) {
+			throw new Error( 'Component "' + options.descriptor.e + '" not found' );
+		}
+
 		twoway = ( Component.twoway !== false );
 
 		data = {};
