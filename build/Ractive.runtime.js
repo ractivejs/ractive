@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-08-29
+/*! Ractive - v0.3.6 - 2013-09-05
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -294,7 +294,6 @@ var cssTransitionsEnabled, transition, transitionend;
 		updateModel,
 		getBinding,
 		inheritProperties,
-		arrayContentsMatch,
 		MultipleSelectBinding,
 		SelectBinding,
 		RadioNameBinding,
@@ -336,7 +335,6 @@ var cssTransitionsEnabled, transition, transitionend;
 		// updating. Using it in lists is probably a recipe for confusion...
 		this.keypath = interpolator.keypath || interpolator.descriptor.r;
 
-		//this.updateModel = getUpdater( this );
 		binding = getBinding( this );
 
 		if ( !binding ) {
@@ -413,35 +411,44 @@ var cssTransitionsEnabled, transition, transitionend;
 	};
 
 	MultipleSelectBinding = function ( attribute, node ) {
+		var valueFromModel;
+
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
+
+		valueFromModel = this.root.get( this.keypath );
+
+		if ( valueFromModel === undefined ) {
+			// get value from DOM, if possible
+			this.update();
+		}
 	};
 
 	MultipleSelectBinding.prototype = {
-		update: function () {
-			var attribute, value, selectedOptions, i, previousValue, changed, len;
-
-			attribute = this.attr;
-			previousValue = attribute.value || [];
+		getValueFromDom: function () {
+			var value, selectedOptions, i, len;
 
 			value = [];
 			selectedOptions = this.node.querySelectorAll( 'option:checked' );
 			len = selectedOptions.length;
-
+			
 			for ( i=0; i<len; i+=1 ) {
 				value[ value.length ] = selectedOptions[i]._ractive.value;
 			}
 
-			// has the selection changed?
-			changed = ( len !== previousValue.length );
-			i = value.length;
-			while ( i-- ) {
-				if ( value[i] !== previousValue[i] ) {
-					changed = true;
-				}
-			}
+			return value;
+		},
 
-			if ( changed = true ) {
+		update: function () {
+			var attribute, previousValue, value;
+
+			attribute = this.attr;
+			previousValue = attribute.value;
+
+			value = this.getValueFromDom();
+			
+			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
+				// either length or contents have changed, so we update the model
 				attribute.receiving = true;
 				attribute.value = value;
 				this.root.set( this.keypath, value );
@@ -455,12 +462,21 @@ var cssTransitionsEnabled, transition, transitionend;
 	};
 
 	SelectBinding = function ( attribute, node ) {
+		var valueFromModel;
+
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
+
+		valueFromModel = this.root.get( this.keypath );
+
+		if ( valueFromModel === undefined ) {
+			// get value from DOM, if possible
+			this.update();
+		}
 	};
 
 	SelectBinding.prototype = {
-		update: function () {
+		getValueFromDom: function () {
 			var selectedOption, value;
 
 			selectedOption = this.node.querySelector( 'option:checked' );
@@ -470,6 +486,12 @@ var cssTransitionsEnabled, transition, transitionend;
 			}
 
 			value = selectedOption._ractive.value;
+
+			return value;
+		},
+
+		update: function () {
+			var value = this.getValueFromDom();
 
 			this.attr.receiving = true;
 			this.attr.value = value;
@@ -483,6 +505,8 @@ var cssTransitionsEnabled, transition, transitionend;
 	};
 
 	RadioNameBinding = function ( attribute, node ) {
+		var valueFromModel;
+
 		inheritProperties( this, attribute, node );
 
 		node.name = '{{' + attribute.keypath + '}}';
@@ -491,6 +515,13 @@ var cssTransitionsEnabled, transition, transitionend;
 
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', updateModel, false );
+		}
+
+		valueFromModel = this.root.get( this.keypath );
+		if ( valueFromModel !== undefined ) {
+			node.checked = ( valueFromModel === node._ractive.value );
+		} else {
+			this.root._defRadios[ this.root._defRadios.length ] = this;
 		}
 	};
 
@@ -512,43 +543,40 @@ var cssTransitionsEnabled, transition, transitionend;
 	};
 
 	CheckboxNameBinding = function ( attribute, node ) {
+		var valueFromModel, checked;
+
 		inheritProperties( this, attribute, node );
 
 		node.name = '{{' + this.keypath + '}}';
-		this.query = 'input[type="checkbox"][name="' + node.name + '"]';
 
 		node.addEventListener( 'change', updateModel, false );
 
+		// in case of IE emergency, bind to click event as well
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', updateModel, false );
+		}
+
+		valueFromModel = this.root.get( this.keypath );
+
+		// if the model already specifies this value, check/uncheck accordingly
+		if ( valueFromModel !== undefined ) {
+			checked = valueFromModel.indexOf( node._ractive.value ) !== -1;
+			node.checked = checked;
+		}
+
+		// otherwise make a note that we will need to update the model later
+		else {
+			if ( this.root._defCheckboxes.indexOf( this.keypath ) === -1 ) {
+				this.root._defCheckboxes[ this.root._defCheckboxes.length ] = this.keypath;
+			}
 		}
 	};
 
 	CheckboxNameBinding.prototype = {
 		update: function () {
-			var previousValue, value, checkboxes, len, i, checkbox;
-
-			previousValue = this.root.get( this.keypath );
-
-			// TODO is this overkill?
-			checkboxes = this.root.el.querySelectorAll( this.query );
-
-			len = checkboxes.length;
-			value = [];
-
-			for ( i=0; i<len; i+=1 ) {
-				checkbox = checkboxes[i];
-
-				if ( checkbox.checked ) {
-					value[ value.length ] = checkbox._ractive.value;
-				}
-			}
-
-			if ( !arrayContentsMatch( previousValue, value ) ) {
-				this.attr.receiving = true;
-				this.root.set( this.keypath, value );
-				this.attr.receiving = false;
-			}
+			this.attr.receiving = true;
+			getValueFromCheckboxes( this.root, this.keypath );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -636,27 +664,6 @@ var cssTransitionsEnabled, transition, transitionend;
 		binding.node = node;
 		binding.root = attribute.root;
 		binding.keypath = attribute.keypath;
-	};
-
-	arrayContentsMatch = function ( a, b ) {
-		var i;
-
-		if ( !isArray( a ) || !isArray( b ) ) {
-			return false;
-		}
-
-		if ( a.length !== b.length ) {
-			return false;
-		}
-
-		i = a.length;
-		while ( i-- ) {
-			if ( a[i] !== b[i] ) {
-				return false;
-			}
-		}
-
-		return true;
 	};
 
 }());
@@ -1085,7 +1092,6 @@ bindElement = function ( element, attributes ) {
 		if ( element.node.type === 'radio' || element.node.type === 'checkbox' ) {
 			// we can either bind the name attribute, or the checked attribute - not both
 			if ( attributes.name && attributes.name.bind() ) {
-				element.node._ractive.binding.update();
 				return;
 			}
 
@@ -2530,6 +2536,36 @@ clearCache = function ( ractive, keypath ) {
 		}
 	}
 };
+var getValueFromCheckboxes = function ( ractive, keypath ) {
+	var value, previousValue, checkboxes, checkbox, len, i, rootEl;
+
+	previousValue = ractive.get( 'keypath' );
+
+	value = [];
+
+	// TODO in edge cases involving components with inputs bound to the same keypath, this
+	// could get messy
+	
+	// if we're still in the initial render, we need to find the inputs from the as-yet off-DOM
+	// document fragment. otherwise, the root element
+	rootEl = ractive.rendered ? ractive.el : ractive.fragment.docFrag;
+	checkboxes = rootEl.querySelectorAll( 'input[type="checkbox"][name="{{' + keypath + '}}"]' );
+	
+	len = checkboxes.length;
+
+	for ( i=0; i<len; i+=1 ) {
+		checkbox = checkboxes[i];
+
+		if ( checkbox.hasAttribute( 'checked' ) || checkbox.checked ) {
+			value[ value.length ] = checkbox._ractive.value;
+		}
+	}
+
+	// only update the model if it's actually changed
+	if ( !arrayContentsMatch( value, previousValue ) ) {
+		ractive.set( keypath, value );
+	}
+};
 notifyDependants = function ( ractive, keypath, onlyDirect ) {
 	var i;
 
@@ -2602,6 +2638,14 @@ processDeferredUpdates = function ( ractive ) {
 	while ( ractive._defSelectValues.length ) {
 		ractive._defSelectValues.pop().deferredUpdate();
 	}
+
+	while ( ractive._defCheckboxes.length ) {
+		getValueFromCheckboxes( ractive, ractive._defCheckboxes.pop() );
+	}
+
+	while ( ractive._defRadios.length ) {
+		ractive._defRadios.pop().update();
+	}
 };
 registerDependant = function ( dependant ) {
 	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
@@ -2664,6 +2708,8 @@ render = function ( ractive, options ) {
 	// transition manager has finished its work
 	ractive._transitionManager = null;
 	transitionManager.ready();
+
+	ractive.rendered = true;
 };
 // Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 // `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
@@ -3068,7 +3114,8 @@ proto.requestFullscreen = function () {
 		while ( i-- ) { // Work backwards, so we don't go in circles!
 			unresolved = root._pendingResolution.splice( i, 1 )[0];
 
-			if ( keypath = resolveRef( root, unresolved.ref, unresolved.contextStack ) ) {
+			keypath = resolveRef( root, unresolved.ref, unresolved.contextStack );
+			if ( keypath !== undefined ) {
 				// If we've resolved the keypath, we can initialise this item
 				unresolved.resolve( keypath );
 
@@ -3513,7 +3560,7 @@ eventDefinitions.hover = function ( node, fire ) {
 
 }());
 eventDefinitions.tap = function ( node, fire ) {
-	var mousedown, touchstart, distanceThreshold, timeThreshold;
+	var mousedown, touchstart, focusHandler, distanceThreshold, timeThreshold;
 
 	distanceThreshold = 5; // maximum pixels pointer can move before cancel
 	timeThreshold = 400;   // maximum milliseconds between down and up before cancel
@@ -3651,12 +3698,41 @@ eventDefinitions.tap = function ( node, fire ) {
 	node.addEventListener( 'touchstart', touchstart, false );
 
 
+	// native buttons, and <input type='button'> elements, should fire a tap event
+	// when the space key is pressed
+	if ( node.tagName === 'BUTTON' || node.type === 'button' ) {
+		focusHandler = function () {
+			var blurHandler, keydownHandler;
+
+			keydownHandler = function ( event ) {
+				if ( event.which === 32 ) { // space key
+					fire({
+						node: node,
+						original: event
+					});
+				}
+			};
+
+			blurHandler = function () {
+				node.removeEventListener( 'keydown', keydownHandler, false );
+				node.removeEventListener( 'blur', blurHandler, false );
+			};
+
+			node.addEventListener( 'keydown', keydownHandler, false );
+			node.addEventListener( 'blur', blurHandler, false );
+		};
+
+		node.addEventListener( 'focus', focusHandler, false );
+	}
+
+
 	return {
 		teardown: function () {
 			node.removeEventListener( 'pointerdown', mousedown, false );
 			node.removeEventListener( 'MSPointerDown', mousedown, false );
 			node.removeEventListener( 'mousedown', mousedown, false );
 			node.removeEventListener( 'touchstart', touchstart, false );
+			node.removeEventListener( 'focus', focusHandler, false );
 		}
 	};
 };
@@ -4078,6 +4154,8 @@ Ractive = function ( options ) {
 		_defAttrs: { value: [] },
 		_defEvals: { value: [] },
 		_defSelectValues: { value: [] },
+		_defCheckboxes: { value: [] },
+		_defRadios: { value: [] },
 
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
@@ -4745,6 +4823,26 @@ animationCollection = {
 	}
 	
 }( ['ms', 'moz', 'webkit', 'o'], 0, global ));
+var arrayContentsMatch = function ( a, b ) {
+	var i;
+
+	if ( !isArray( a ) || !isArray( b ) ) {
+		return false;
+	}
+
+	if ( a.length !== b.length ) {
+		return false;
+	}
+
+	i = a.length;
+	while ( i-- ) {
+		if ( a[i] !== b[i] ) {
+			return false;
+		}
+	}
+
+	return true;
+};
 (function () {
 
 	var notifyArrayDependants,
@@ -5237,11 +5335,13 @@ animationCollection = {
 	};
 
 	setStaticAttribute = function ( attribute, options ) {
+		var value = ( options.value === null ? '' : options.value );
+
 		if ( options.parentNode ) {
 			if ( attribute.namespace ) {
-				options.parentNode.setAttributeNS( attribute.namespace, options.name, options.value );
+				options.parentNode.setAttributeNS( attribute.namespace, options.name, value );
 			} else {
-				options.parentNode.setAttribute( options.name, options.value );
+				options.parentNode.setAttribute( options.name, value );
 			}
 
 			if ( attribute.name === 'id' ) {
@@ -5309,6 +5409,11 @@ animationCollection = {
 		this.name = options.descriptor.r;
 
 		Component = getComponentConstructor( parentFragment.root, options.descriptor.e );
+
+		if ( !Component ) {
+			throw new Error( 'Component "' + options.descriptor.e + '" not found' );
+		}
+
 		twoway = ( Component.twoway !== false );
 
 		data = {};
@@ -5539,6 +5644,10 @@ DomElement = function ( options, docFrag ) {
 	}
 
 
+	// set attributes
+	attributes = createElementAttributes( this, descriptor.a );
+
+
 	// append children, if there are any
 	if ( descriptor.f ) {
 		appendElementChildren( this, this.node, descriptor, docFrag );
@@ -5550,10 +5659,6 @@ DomElement = function ( options, docFrag ) {
 		addEventProxies( this, descriptor.v );
 	}
 
-	// set attributes
-	attributes = createElementAttributes( this, descriptor.a );
-
-
 	// if we're actually rendering (i.e. not server-side stringifying), proceed
 	if ( docFrag ) {
 		// deal with two-way bindings
@@ -5561,8 +5666,10 @@ DomElement = function ( options, docFrag ) {
 			bindElement( this, attributes );
 		}
 
-		// name attributes are deferred, because they're a special case
-		if ( attributes.name ) {
+		// name attributes are deferred, because they're a special case - if two-way
+		// binding is involved they need to update later. But if it turns out they're
+		// not two-way we can update them now
+		if ( attributes.name && !attributes.name.twoway ) {
 			attributes.name.update();
 		}
 
