@@ -63,6 +63,7 @@ Ractive = function ( options ) {
 		_defEvals: { value: [] },
 		_defSelectValues: { value: [] },
 		_defCheckboxes: { value: [] },
+		_defRadios: { value: [] },
 
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },

@@ -150,7 +150,7 @@
 		},
 
 		update: function () {
-			var attribute, previousValue, value, changed, i;
+			var attribute, previousValue, value;
 
 			attribute = this.attr;
 			previousValue = attribute.value;
@@ -231,7 +231,7 @@
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel === node._ractive.value );
 		} else {
-			this.update();
+			this.root._defRadios[ this.root._defRadios.length ] = this;
 		}
 	};
 
@@ -270,7 +270,7 @@
 
 		// if the model already specifies this value, check/uncheck accordingly
 		if ( valueFromModel !== undefined ) {
-			checked = valueFromModel.indexOf( node._ractive.value !== -1 );
+			checked = valueFromModel.indexOf( node._ractive.value ) !== -1;
 			node.checked = checked;
 		}
 

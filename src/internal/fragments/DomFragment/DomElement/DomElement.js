@@ -51,8 +51,10 @@ DomElement = function ( options, docFrag ) {
 			bindElement( this, attributes );
 		}
 
-		// name attributes are deferred, because they're a special case
-		if ( attributes.name ) {
+		// name attributes are deferred, because they're a special case - if two-way
+		// binding is involved they need to update later. But if it turns out they're
+		// not two-way we can update them now
+		if ( attributes.name && !attributes.name.twoway ) {
 			attributes.name.update();
 		}
 
