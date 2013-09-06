@@ -210,6 +210,16 @@
 			name: 'Sloppy whitespace in tags',
 			template: '<div class = "foo"></div>',
 			parsed: ['<div class=foo></div>']
+		},
+		{
+			name: 'HTML entities are treated correctly in pure string templates',
+			template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;',
+			parsed: ['Non&nbsp;breaking&nbsp;spaces&nbsp;']
+		},
+		{
+			name: 'HTML entities are treated correctly in regular templates',
+			template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;<div id="foo"></div>',
+			parsed: ['Non\u00A0breaking\u00A0spaces\u00A0',{t:7,e:'div',a:{id:'foo'}}]
 		}
 	];
 

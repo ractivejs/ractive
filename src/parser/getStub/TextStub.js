@@ -27,7 +27,7 @@ var TextStub;
 		var result;
 
 		// named entities
-		result = html.replace( /&([a-zA-Z]+);/, function ( match, name ) {
+		result = html.replace( /&([a-zA-Z]+);/g, function ( match, name ) {
 			if ( htmlEntities[ name ] ) {
 				return String.fromCharCode( htmlEntities[ name ] );
 			}
@@ -36,12 +36,12 @@ var TextStub;
 		});
 
 		// hex references
-		result = result.replace( /&#x([0-9]+);/, function ( match, hex ) {
+		result = result.replace( /&#x([0-9]+);/g, function ( match, hex ) {
 			return String.fromCharCode( parseInt( hex, 16 ) );
 		});
 
 		// decimal references
-		result = result.replace( /&#([0-9]+);/, function ( match, num ) {
+		result = result.replace( /&#([0-9]+);/g, function ( match, num ) {
 			return String.fromCharCode( num );
 		});
 
