@@ -58,6 +58,7 @@ $ grunt qunit
 # Release a new version of the library to the release folder
 # (reads version number from package.json)
 $ grunt release
+```
 
 
 Contributing
