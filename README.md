@@ -72,7 +72,7 @@ Pull requests are always welcome! In lieu of a formal styleguide, please try to 
 Browser support
 ---------------
 
-Tested successfully in IE8+ and all modern browsers. If your experience differs please let me know!
+Tested successfully in IE8+ and all modern browsers. If your experience differs please let me know! (For legacy browser support, use the builds with `legacy` in the filename - these include polyfills for `Array.prototype.forEach` and other ES5 features used by Ractive.)
 
 
 License
