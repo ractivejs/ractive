@@ -28,7 +28,7 @@
 		};
 	}
 
-	
+
 	// Array extras
 	if ( !Array.prototype.indexOf ) {
 		Array.prototype.indexOf = function ( needle, i ) {
@@ -127,7 +127,7 @@
 
 				listeners = element.listeners || ( element.listeners = [] );
 				i = listeners.length;
-				
+
 				listeners[i] = [ listener, function (e) {
 					listener.call( element, new Event( e, element ) );
 				}];
@@ -159,6 +159,14 @@
 				Element.prototype.addEventListener = addEventListener;
 				Element.prototype.removeEventListener = removeEventListener;
 			} else {
+				var origCreateElement = doc.createElement;
+				doc.createElement = function(tagName) {
+					var el = origCreateElement(tagName);
+					el.addEventListener = addEventListener;
+					el.removeEventListener = removeEventListener;
+					return el;
+				};
+
 				head = doc.getElementsByTagName('head')[0];
 				style = doc.createElement('style');
 
