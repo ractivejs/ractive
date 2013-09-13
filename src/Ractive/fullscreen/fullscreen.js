@@ -10,6 +10,7 @@
 
 	if ( !Ractive.fullscreenEnabled ) {
 		Ractive.requestFullscreen = Ractive.cancelFullscreen = noop;
+		Ractive.isFullscreen = function () { return false; };
 		return;
 	}
 
