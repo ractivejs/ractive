@@ -133,8 +133,8 @@
 		update: function () {
 			var value = this.root.get( this.keypath );
 
-			if ( typeof value === 'function' ) {
-				value = value._wrapped || wrapFunction( value, this.root );
+			if ( typeof value === 'function' && !value._nowrap ) {
+				value = value[ '_' + this.root._guid ] || wrapFunction( value, this.root );
 			}
 
 			if ( !isEqual( value, this.value ) ) {
@@ -179,11 +179,14 @@
 		// if the function doesn't refer to `this`, we don't need
 		// to set the context
 		if ( !thisPattern.test( fn.toString() ) ) {
-			return fn._wrapped = fn;
+			defineProperty( fn, '_nowrap', { // no point doing this every time
+				value: true
+			});
+			return fn;
 		}
 
 		// otherwise, we do
-		defineProperty( fn, '_wrapped', {
+		defineProperty( fn, '_' + ractive._guid, {
 			value: function () {
 				return fn.apply( ractive, arguments );
 			},
@@ -192,11 +195,11 @@
 
 		for ( prop in fn ) {
 			if ( hasOwn.call( fn, prop ) ) {
-				fn._wrapped[ prop ] = fn[ prop ];
+				fn[ '_' + ractive._guid ][ prop ] = fn[ prop ];
 			}
 		}
 
-		return fn._wrapped;
+		return fn[ '_' + ractive._guid ];
 	};
 
 }({}));
