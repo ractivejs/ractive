@@ -371,6 +371,23 @@
 		t.ok( ractive.nodes.green.checked );
 	});
 
+	test( 'Updating values with properties corresponding to unresolved references works', function ( t ) {
+		var ractive, user;
+
+		user = {};
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{#user}}{{name}}{{/user}}',
+			data: { user: user }
+		});
+
+		t.equal( fixture.innerHTML, '' );
+		user.name = 'Jim';
+		ractive.update( 'user' );
+		t.equal( fixture.innerHTML, 'Jim' );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build
