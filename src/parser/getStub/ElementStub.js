@@ -16,50 +16,72 @@ var ElementStub;
 		filterAttrs,
 		getFrag,
 		processProxy,
-		jsonifyProxy;
+		jsonifyProxy,
+		camelCase;
 
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
-		var next, attrs, filtered, proxies, item;
+		var next, attrs, filtered, proxies, item, i, attr;
 
 		this.lcTag = firstToken.name.toLowerCase();
 
-		// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
-		// that should be camelcased, camelcase it
-		this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
-
 		parser.pos += 1;
 
-		// if this is a <pre> element, preserve whitespace within
-		preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
+		// TODO is this the right way to deal with component naming?
+		if ( this.lcTag.substr( 0, 3 ) === 'rv-' ) {
+			this.component = camelCase( firstToken.name.substring( 3 ) );
 
-		if ( firstToken.attrs ) {
-			filtered = filterAttrs( firstToken.attrs );
-			
-			attrs = filtered.attrs;
-			proxies = filtered.proxies;
+			if ( firstToken.attrs ) {
+				this.attributes = [];
+				i = firstToken.attrs.length;
+				while ( i-- ) {
+					attr = firstToken.attrs[i];
 
-			// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
-			if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
-				attrs = attrs.filter( sanitize );
-			}
-
-			if ( attrs.length ) {
-				this.attributes = attrs.map( getFrag );
-			}
-
-			if ( proxies.length ) {
-				this.proxies = proxies.map( processProxy );
-			}
-
-			// TODO rename this helper function
-			if ( filtered.intro ) {
-				this.intro = processProxy( filtered.intro );
-			}
-
-			if ( filtered.outro ) {
-				this.outro = processProxy( filtered.outro );
+					this.attributes[i] = {
+						name: attr.name,
+						value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
+					};
+				}
 			}
 		}
+
+		else {
+			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
+			// that should be camelcased, camelcase it
+			this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
+
+			// if this is a <pre> element, preserve whitespace within
+			preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
+
+			if ( firstToken.attrs ) {
+				filtered = filterAttrs( firstToken.attrs );
+				
+				attrs = filtered.attrs;
+				proxies = filtered.proxies;
+
+				// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
+				if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
+					attrs = attrs.filter( sanitize );
+				}
+
+				if ( attrs.length ) {
+					this.attributes = attrs.map( getFrag );
+				}
+
+				if ( proxies.length ) {
+					this.proxies = proxies.map( processProxy );
+				}
+
+				// TODO rename this helper function
+				if ( filtered.intro ) {
+					this.intro = processProxy( filtered.intro );
+				}
+
+				if ( filtered.outro ) {
+					this.outro = processProxy( filtered.outro );
+				}
+			}
+		}
+		
 
 		if ( firstToken.selfClosing ) {
 			this.selfClosing = true;
@@ -140,10 +162,10 @@ var ElementStub;
 				return this[ 'json_' + noStringify ];
 			}
 
-			if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
+			if ( this.component ) {
 				json = {
 					t: COMPONENT,
-					e: this.tag.substr( 3 )
+					e: this.component
 				};
 			} else {
 				json = {
@@ -160,7 +182,7 @@ var ElementStub;
 					name = this.attributes[i].name;
 
 					if ( json.a[ name ] ) {
-						throw new Error( 'You cannot have multiple elements with the same name' );
+						throw new Error( 'You cannot have multiple attributes with the same name' );
 					}
 
 					// empty attributes (e.g. autoplay, checked)
@@ -230,6 +252,11 @@ var ElementStub;
 
 			if ( this.str !== undefined ) {
 				return this.str;
+			}
+
+			// components can't be stringified
+			if ( this.component ) {
+				return ( this.str = false );
 			}
 
 			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
@@ -524,6 +551,12 @@ var ElementStub;
 		}
 
 		return result;
+	};
+
+	camelCase = function ( hyphenatedStr ) {
+		return hyphenatedStr.replace( /-([a-zA-Z])/g, function ( match, $1 ) {
+			return $1.toUpperCase();
+		});
 	};
 
 
