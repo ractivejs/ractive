@@ -78,11 +78,12 @@
 
 
 	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
-		var previous, key, obj, keysClone, accumulated, keypathToClear;
+		var cached, previous, key, obj, keysClone, accumulated, keypathToClear;
 
 		keysClone = keys.slice();
 		accumulated = [];
 
+		cached = root._cache[ keypath ];
 		previous = root.get( keypath );
 
 		// update the model, if necessary
@@ -121,8 +122,9 @@
 		}
 
 		else {
-			// if value is a primitive, we don't need to do anything else
-			if ( typeof value !== 'object' ) {
+			// if the value is the same as the cached value AND the value is a primitive,
+			// we don't need to do anything else
+			if ( value === cached && typeof value !== 'object' ) {
 				return;
 			}
 		}
