@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-05
+/*! Ractive - v0.3.6 - 2013-09-13
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -1507,8 +1507,8 @@ insertHtml = function ( html, docFrag ) {
 		update: function () {
 			var value = this.root.get( this.keypath );
 
-			if ( typeof value === 'function' ) {
-				value = value._wrapped || wrapFunction( value, this.root );
+			if ( typeof value === 'function' && !value._nowrap ) {
+				value = value[ '_' + this.root._guid ] || wrapFunction( value, this.root );
 			}
 
 			if ( !isEqual( value, this.value ) ) {
@@ -1553,11 +1553,14 @@ insertHtml = function ( html, docFrag ) {
 		// if the function doesn't refer to `this`, we don't need
 		// to set the context
 		if ( !thisPattern.test( fn.toString() ) ) {
-			return fn._wrapped = fn;
+			defineProperty( fn, '_nowrap', { // no point doing this every time
+				value: true
+			});
+			return fn;
 		}
 
 		// otherwise, we do
-		defineProperty( fn, '_wrapped', {
+		defineProperty( fn, '_' + ractive._guid, {
 			value: function () {
 				return fn.apply( ractive, arguments );
 			},
@@ -1566,11 +1569,11 @@ insertHtml = function ( html, docFrag ) {
 
 		for ( prop in fn ) {
 			if ( hasOwn.call( fn, prop ) ) {
-				fn._wrapped[ prop ] = fn[ prop ];
+				fn[ '_' + ractive._guid ][ prop ] = fn[ prop ];
 			}
 		}
 
-		return fn._wrapped;
+		return fn[ '_' + ractive._guid ];
 	};
 
 }({}));
@@ -2739,6 +2742,26 @@ proto.fire = function ( eventName ) {
 	};
 
 }( proto ));
+var attemptKeypathResolution = function ( root ) {
+	var i, unresolved, keypath;
+
+	// See if we can resolve any of the unresolved keypaths (if such there be)
+	i = root._pendingResolution.length;
+	while ( i-- ) { // Work backwards, so we don't go in circles!
+		unresolved = root._pendingResolution.splice( i, 1 )[0];
+
+		keypath = resolveRef( root, unresolved.ref, unresolved.contextStack );
+		if ( keypath !== undefined ) {
+			// If we've resolved the keypath, we can initialise this item
+			unresolved.resolve( keypath );
+
+		} else {
+			// If we can't resolve the reference, add to the back of
+			// the queue (this is why we're working backwards)
+			root._pendingResolution[ root._pendingResolution.length ] = unresolved;
+		}
+	}
+};
 clearCache = function ( ractive, keypath ) {
 	var value, cacheMap, childKeypath, wrappedProperty;
 
@@ -3194,7 +3217,7 @@ proto.requestFullscreen = function () {
 };
 (function ( proto ) {
 
-	var set, attemptKeypathResolution;
+	var set;
 
 	proto.set = function ( keypath, value, complete ) {
 		var notificationQueue, upstreamQueue, k, normalised, keys, previousTransitionManager, transitionManager;
@@ -3272,11 +3295,12 @@ proto.requestFullscreen = function () {
 
 
 	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
-		var previous, key, obj, keysClone, accumulated, keypathToClear;
+		var cached, previous, key, obj, keysClone, accumulated, keypathToClear;
 
 		keysClone = keys.slice();
 		accumulated = [];
 
+		cached = root._cache[ keypath ];
 		previous = root.get( keypath );
 
 		// update the model, if necessary
@@ -3315,8 +3339,9 @@ proto.requestFullscreen = function () {
 		}
 
 		else {
-			// if value is a primitive, we don't need to do anything else
-			if ( typeof value !== 'object' ) {
+			// if the value is the same as the cached value AND the value is a primitive,
+			// we don't need to do anything else
+			if ( value === cached && typeof value !== 'object' ) {
 				return;
 			}
 		}
@@ -3339,27 +3364,6 @@ proto.requestFullscreen = function () {
 			}
 		}
 		
-	};
-
-	attemptKeypathResolution = function ( root ) {
-		var i, unresolved, keypath;
-
-		// See if we can resolve any of the unresolved keypaths (if such there be)
-		i = root._pendingResolution.length;
-		while ( i-- ) { // Work backwards, so we don't go in circles!
-			unresolved = root._pendingResolution.splice( i, 1 )[0];
-
-			keypath = resolveRef( root, unresolved.ref, unresolved.contextStack );
-			if ( keypath !== undefined ) {
-				// If we've resolved the keypath, we can initialise this item
-				unresolved.resolve( keypath );
-
-			} else {
-				// If we can't resolve the reference, add to the back of
-				// the queue (this is why we're working backwards)
-				root._pendingResolution[ root._pendingResolution.length ] = unresolved;
-			}
-		}
 	};
 
 }( proto ));
@@ -3417,6 +3421,10 @@ proto.update = function ( keypath, complete ) {
 	if ( typeof keypath === 'function' ) {
 		complete = keypath;
 	}
+
+	// if we're using update, it's possible that we've introduced new values, and
+	// some unresolved references can be dealt with
+	attemptKeypathResolution( this );
 
 	// manage transitions
 	previousTransitionManager = this._transitionManager;
@@ -4869,6 +4877,7 @@ var parseTransitionParams = function ( params ) {
 
 	if ( !Ractive.fullscreenEnabled ) {
 		Ractive.requestFullscreen = Ractive.cancelFullscreen = noop;
+		Ractive.isFullscreen = function () { return false; };
 		return;
 	}
 
@@ -6895,50 +6904,72 @@ var ElementStub;
 		filterAttrs,
 		getFrag,
 		processProxy,
-		jsonifyProxy;
+		jsonifyProxy,
+		camelCase;
 
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
-		var next, attrs, filtered, proxies, item;
+		var next, attrs, filtered, proxies, item, i, attr;
 
 		this.lcTag = firstToken.name.toLowerCase();
 
-		// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
-		// that should be camelcased, camelcase it
-		this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
-
 		parser.pos += 1;
 
-		// if this is a <pre> element, preserve whitespace within
-		preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
+		// TODO is this the right way to deal with component naming?
+		if ( this.lcTag.substr( 0, 3 ) === 'rv-' ) {
+			this.component = camelCase( firstToken.name.substring( 3 ) );
 
-		if ( firstToken.attrs ) {
-			filtered = filterAttrs( firstToken.attrs );
-			
-			attrs = filtered.attrs;
-			proxies = filtered.proxies;
+			if ( firstToken.attrs ) {
+				this.attributes = [];
+				i = firstToken.attrs.length;
+				while ( i-- ) {
+					attr = firstToken.attrs[i];
 
-			// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
-			if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
-				attrs = attrs.filter( sanitize );
-			}
-
-			if ( attrs.length ) {
-				this.attributes = attrs.map( getFrag );
-			}
-
-			if ( proxies.length ) {
-				this.proxies = proxies.map( processProxy );
-			}
-
-			// TODO rename this helper function
-			if ( filtered.intro ) {
-				this.intro = processProxy( filtered.intro );
-			}
-
-			if ( filtered.outro ) {
-				this.outro = processProxy( filtered.outro );
+					this.attributes[i] = {
+						name: attr.name,
+						value: attr.value ? getFragmentStubFromTokens( attr.value ) : null
+					};
+				}
 			}
 		}
+
+		else {
+			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
+			// that should be camelcased, camelcase it
+			this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
+
+			// if this is a <pre> element, preserve whitespace within
+			preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
+
+			if ( firstToken.attrs ) {
+				filtered = filterAttrs( firstToken.attrs );
+				
+				attrs = filtered.attrs;
+				proxies = filtered.proxies;
+
+				// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
+				if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
+					attrs = attrs.filter( sanitize );
+				}
+
+				if ( attrs.length ) {
+					this.attributes = attrs.map( getFrag );
+				}
+
+				if ( proxies.length ) {
+					this.proxies = proxies.map( processProxy );
+				}
+
+				// TODO rename this helper function
+				if ( filtered.intro ) {
+					this.intro = processProxy( filtered.intro );
+				}
+
+				if ( filtered.outro ) {
+					this.outro = processProxy( filtered.outro );
+				}
+			}
+		}
+		
 
 		if ( firstToken.selfClosing ) {
 			this.selfClosing = true;
@@ -7019,10 +7050,10 @@ var ElementStub;
 				return this[ 'json_' + noStringify ];
 			}
 
-			if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
+			if ( this.component ) {
 				json = {
 					t: COMPONENT,
-					e: this.tag.substr( 3 )
+					e: this.component
 				};
 			} else {
 				json = {
@@ -7039,7 +7070,7 @@ var ElementStub;
 					name = this.attributes[i].name;
 
 					if ( json.a[ name ] ) {
-						throw new Error( 'You cannot have multiple elements with the same name' );
+						throw new Error( 'You cannot have multiple attributes with the same name' );
 					}
 
 					// empty attributes (e.g. autoplay, checked)
@@ -7109,6 +7140,11 @@ var ElementStub;
 
 			if ( this.str !== undefined ) {
 				return this.str;
+			}
+
+			// components can't be stringified
+			if ( this.component ) {
+				return ( this.str = false );
 			}
 
 			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
@@ -7403,6 +7439,12 @@ var ElementStub;
 		}
 
 		return result;
+	};
+
+	camelCase = function ( hyphenatedStr ) {
+		return hyphenatedStr.replace( /-([a-zA-Z])/g, function ( match, $1 ) {
+			return $1.toUpperCase();
+		});
 	};
 
 
@@ -7718,7 +7760,7 @@ var TextStub;
 		var result;
 
 		// named entities
-		result = html.replace( /&([a-zA-Z]+);/, function ( match, name ) {
+		result = html.replace( /&([a-zA-Z]+);/g, function ( match, name ) {
 			if ( htmlEntities[ name ] ) {
 				return String.fromCharCode( htmlEntities[ name ] );
 			}
@@ -7727,12 +7769,12 @@ var TextStub;
 		});
 
 		// hex references
-		result = result.replace( /&#x([0-9]+);/, function ( match, hex ) {
+		result = result.replace( /&#x([0-9]+);/g, function ( match, hex ) {
 			return String.fromCharCode( parseInt( hex, 16 ) );
 		});
 
 		// decimal references
-		result = result.replace( /&#([0-9]+);/, function ( match, num ) {
+		result = result.replace( /&#([0-9]+);/g, function ( match, num ) {
 			return String.fromCharCode( num );
 		});
 

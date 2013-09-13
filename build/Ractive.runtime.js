@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-05
+/*! Ractive - v0.3.6 - 2013-09-13
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -1507,8 +1507,8 @@ insertHtml = function ( html, docFrag ) {
 		update: function () {
 			var value = this.root.get( this.keypath );
 
-			if ( typeof value === 'function' ) {
-				value = value._wrapped || wrapFunction( value, this.root );
+			if ( typeof value === 'function' && !value._nowrap ) {
+				value = value[ '_' + this.root._guid ] || wrapFunction( value, this.root );
 			}
 
 			if ( !isEqual( value, this.value ) ) {
@@ -1553,11 +1553,14 @@ insertHtml = function ( html, docFrag ) {
 		// if the function doesn't refer to `this`, we don't need
 		// to set the context
 		if ( !thisPattern.test( fn.toString() ) ) {
-			return fn._wrapped = fn;
+			defineProperty( fn, '_nowrap', { // no point doing this every time
+				value: true
+			});
+			return fn;
 		}
 
 		// otherwise, we do
-		defineProperty( fn, '_wrapped', {
+		defineProperty( fn, '_' + ractive._guid, {
 			value: function () {
 				return fn.apply( ractive, arguments );
 			},
@@ -1566,11 +1569,11 @@ insertHtml = function ( html, docFrag ) {
 
 		for ( prop in fn ) {
 			if ( hasOwn.call( fn, prop ) ) {
-				fn._wrapped[ prop ] = fn[ prop ];
+				fn[ '_' + ractive._guid ][ prop ] = fn[ prop ];
 			}
 		}
 
-		return fn._wrapped;
+		return fn[ '_' + ractive._guid ];
 	};
 
 }({}));
@@ -2504,6 +2507,26 @@ proto.fire = function ( eventName ) {
 	};
 
 }( proto ));
+var attemptKeypathResolution = function ( root ) {
+	var i, unresolved, keypath;
+
+	// See if we can resolve any of the unresolved keypaths (if such there be)
+	i = root._pendingResolution.length;
+	while ( i-- ) { // Work backwards, so we don't go in circles!
+		unresolved = root._pendingResolution.splice( i, 1 )[0];
+
+		keypath = resolveRef( root, unresolved.ref, unresolved.contextStack );
+		if ( keypath !== undefined ) {
+			// If we've resolved the keypath, we can initialise this item
+			unresolved.resolve( keypath );
+
+		} else {
+			// If we can't resolve the reference, add to the back of
+			// the queue (this is why we're working backwards)
+			root._pendingResolution[ root._pendingResolution.length ] = unresolved;
+		}
+	}
+};
 clearCache = function ( ractive, keypath ) {
 	var value, cacheMap, childKeypath, wrappedProperty;
 
@@ -2959,7 +2982,7 @@ proto.requestFullscreen = function () {
 };
 (function ( proto ) {
 
-	var set, attemptKeypathResolution;
+	var set;
 
 	proto.set = function ( keypath, value, complete ) {
 		var notificationQueue, upstreamQueue, k, normalised, keys, previousTransitionManager, transitionManager;
@@ -3037,11 +3060,12 @@ proto.requestFullscreen = function () {
 
 
 	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
-		var previous, key, obj, keysClone, accumulated, keypathToClear;
+		var cached, previous, key, obj, keysClone, accumulated, keypathToClear;
 
 		keysClone = keys.slice();
 		accumulated = [];
 
+		cached = root._cache[ keypath ];
 		previous = root.get( keypath );
 
 		// update the model, if necessary
@@ -3080,8 +3104,9 @@ proto.requestFullscreen = function () {
 		}
 
 		else {
-			// if value is a primitive, we don't need to do anything else
-			if ( typeof value !== 'object' ) {
+			// if the value is the same as the cached value AND the value is a primitive,
+			// we don't need to do anything else
+			if ( value === cached && typeof value !== 'object' ) {
 				return;
 			}
 		}
@@ -3104,27 +3129,6 @@ proto.requestFullscreen = function () {
 			}
 		}
 		
-	};
-
-	attemptKeypathResolution = function ( root ) {
-		var i, unresolved, keypath;
-
-		// See if we can resolve any of the unresolved keypaths (if such there be)
-		i = root._pendingResolution.length;
-		while ( i-- ) { // Work backwards, so we don't go in circles!
-			unresolved = root._pendingResolution.splice( i, 1 )[0];
-
-			keypath = resolveRef( root, unresolved.ref, unresolved.contextStack );
-			if ( keypath !== undefined ) {
-				// If we've resolved the keypath, we can initialise this item
-				unresolved.resolve( keypath );
-
-			} else {
-				// If we can't resolve the reference, add to the back of
-				// the queue (this is why we're working backwards)
-				root._pendingResolution[ root._pendingResolution.length ] = unresolved;
-			}
-		}
 	};
 
 }( proto ));
@@ -3182,6 +3186,10 @@ proto.update = function ( keypath, complete ) {
 	if ( typeof keypath === 'function' ) {
 		complete = keypath;
 	}
+
+	// if we're using update, it's possible that we've introduced new values, and
+	// some unresolved references can be dealt with
+	attemptKeypathResolution( this );
 
 	// manage transitions
 	previousTransitionManager = this._transitionManager;
@@ -4634,6 +4642,7 @@ var parseTransitionParams = function ( params ) {
 
 	if ( !Ractive.fullscreenEnabled ) {
 		Ractive.requestFullscreen = Ractive.cancelFullscreen = noop;
+		Ractive.isFullscreen = function () { return false; };
 		return;
 	}
 
