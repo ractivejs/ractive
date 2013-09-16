@@ -209,8 +209,6 @@
 			data: { items: items }
 		});
 
-		console.log( fixture.innerHTML );
-
 		t.ok( compareHTML( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:four">3:four</span>' ) );
 
 		items.splice( 3, 0, 'three' );

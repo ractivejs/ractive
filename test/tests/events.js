@@ -350,7 +350,6 @@
 		node = ractive.nodes.test;
 
 		ractive.on( 'tap', function ( event ) {
-			console.log( event );
 			tapped = true;
 		});
 
