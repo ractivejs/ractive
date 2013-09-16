@@ -3,7 +3,7 @@
 	var ComponentParameter;
 
 	// TODO support server environments
-	DomComponent = function ( options ) {
+	DomComponent = function ( options, docFrag ) {
 		var self = this,
 			parentFragment = this.parentFragment = options.parentFragment,
 			root,
@@ -57,7 +57,7 @@
 				return;
 			}
 
-			// if null, we treat is as a boolean attribute (i.e. true)
+			// if null, we treat it as a boolean attribute (i.e. true)
 			if ( value === null ) {
 				data[ key ] = true;
 				return;
@@ -98,12 +98,19 @@
 			partials.content = options.descriptor.f;
 		}
 
+		// TODO don't clone parent node - instead use a document fragment (and pass in the namespaceURI
+		// of the parent node, for SVG purposes) and insert contents that way?
 		instance = this.instance = new Component({
-			append: true,
-			el: parentFragment.parentNode,
+			el: parentFragment.parentNode.cloneNode(), // to ensure correct namespaceURL
 			data: data,
 			partials: partials
 		});
+
+		while ( instance.el.firstChild ) {
+			docFrag.appendChild( instance.el.firstChild );
+		}
+
+		instance.parentNode = parentFragment.parentNode;
 
 		self.observers = [];
 		initFalse = { init: false };
@@ -131,6 +138,9 @@
 				}, initFalse );
 
 				self.observers[ self.observers.length ] = observer;
+
+				// initialise
+				root.set( pair[1], instance.get( pair[0] ) );
 			};
 		}
 		

@@ -388,11 +388,57 @@
 		t.equal( fixture.innerHTML, 'Jim' );
 	});
 
+	test( 'Components are rendered in the correct place', function ( t ) {
+		var Component, ractive;
+
+		Component = Ractive.extend({
+			template: '<p>this is a component!</p>'
+		});
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<h2>Here is a component:</h2><rv-component/><p>(that was a component)</p>',
+			components: {
+				component: Component
+			}
+		});
+
+		t.ok( compareHTML( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' ) );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build
 
-	/*{
+	/*test( 'Components with two-way bindings set parent values on initialisation', function ( t ) {
+		var Dropdown, ractive;
+
+		Dropdown = Ractive.extend({
+			template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'
+		});
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<h2>Select an option:</h2><rv-dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
+			data: {
+				numbers: [
+					{ word: 'one', digit: 1 },
+					{ word: 'two', digit: 2 },
+					{ word: 'three', digit: 3 },
+					{ word: 'four', digit: 4 }
+				]
+			},
+			components: {
+				dropdown: Dropdown
+			}
+		});
+
+		t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
+	});
+
+	
+
+	{
 		name: 'Tearing down expression mustaches and recreating them does\'t throw errors',
 		test: function () {
 			var ractive;
