@@ -174,8 +174,6 @@
 
 				for ( i=start; i<end; i+=1 ) {
 					childKeypath = keypath + '.' + i;
-					console.log( childKeypath );
-
 					notifyDependants( root, childKeypath );
 				}
 			}
