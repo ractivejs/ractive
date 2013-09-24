@@ -282,3 +282,11 @@ var cssTransitionsEnabled, transition, transitionend;
 	}
 
 }());
+
+
+// Internet Explorer derp. Methods that should be attached to Node.prototype
+// are instead attached to HTMLElement.prototype, which means SVG elements
+// can't use them. Remember kids, friends don't let friends use IE.
+if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && global.HTMLElement.prototype.contains ) {
+	global.Node.prototype.contains = global.HTMLElement.prototype.contains;
+}
