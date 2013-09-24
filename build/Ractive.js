@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-13
+/*! Ractive - v0.3.6 - 2013-09-24
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -288,6 +288,14 @@ var cssTransitionsEnabled, transition, transitionend;
 	}
 
 }());
+
+
+// Internet Explorer derp. Methods that should be attached to Node.prototype
+// are instead attached to HTMLElement.prototype, which means SVG elements
+// can't use them. Remember kids, friends don't let friends use IE.
+if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && global.HTMLElement.prototype.contains ) {
+	global.Node.prototype.contains = global.HTMLElement.prototype.contains;
+}
 (function () {
 
 	var getInterpolator,
@@ -2028,7 +2036,7 @@ resolveMustache = function ( keypath ) {
 
 		// remove any fragments that should no longer exist
 		for ( id in fragmentsById ) {
-			if ( value[ id ] === undefined ) {
+			if ( value[ id ] === undefined && fragmentsById[ id ] ) {
 				fragmentsById[ id ].teardown( true );
 				fragmentsById[ id ] = null;
 			}
@@ -3132,6 +3140,13 @@ proto.link = function ( keypath ) {
 		update: function ( init ) {
 			var value;
 
+			// Prevent infinite loops
+			if ( this.updating ) {
+				return;
+			}
+
+			this.updating = true;
+
 			// TODO create, and use, an internal get method instead - we can skip checks
 			value = this.root.get( this.keypath, true );
 
@@ -3147,6 +3162,8 @@ proto.link = function ( keypath ) {
 				}
 				this.value = value;
 			}
+
+			this.updating = false;
 		}
 	};
 
@@ -3638,26 +3655,37 @@ adaptors.statesman = function ( model, path ) {
 	return {
 		init: function ( view ) {
 			
-			var data;
+			var data, lastViewChange;
 
 			// if no path specified...
 			if ( !path ) {
 				setView = function ( change ) {
-					if ( !settingModel ) {
-						settingView = true;
-						
-						view.set( change );
-						
-						settingView = false;
+					var keypath;
+
+					settingView = true;
+
+					if ( typeof lastViewChange === 'string' ) {
+						delete change[ lastViewChange ];
 					}
+
+					if ( typeof lastViewChange === 'object' ) {
+						for ( keypath in lastViewChange ) {
+							if ( lastViewChange.hasOwnProperty( keypath ) ) {
+								delete change[ lastViewChange ];
+							}
+						}
+					}
+					
+					view.set( change );
+					
+					settingView = false;
 				};
 
 				if ( view.twoway ) {
 					setModel = function ( keypath, value ) {
 						if ( !settingView ) {
-							settingModel = true;
+							lastViewChange = keypath;
 							model.set( keypath, value );
-							settingModel = false;
 						}
 					};
 				}
@@ -3665,7 +3693,7 @@ adaptors.statesman = function ( model, path ) {
 
 			else {
 				setView = function ( change ) {
-					if ( !settingModel ) {
+					if ( !settingModel ) { // TODO use lastViewChange mechanism
 						settingView = true;
 						
 						change = prefix( change );
@@ -3800,6 +3828,11 @@ eventDefinitions.hover = function ( node, fire ) {
 	eventDefinitions.tab = makeKeyDefinition( 9 );
 	eventDefinitions.escape = makeKeyDefinition( 27 );
 	eventDefinitions.space = makeKeyDefinition( 32 );
+
+	eventDefinitions.leftarrow = makeKeyDefinition( 37 );
+	eventDefinitions.rightarrow = makeKeyDefinition( 39 );
+	eventDefinitions.downarrow = makeKeyDefinition( 40 );
+	eventDefinitions.uparrow = makeKeyDefinition( 38 );
 
 }());
 eventDefinitions.tap = function ( node, fire ) {
@@ -5263,8 +5296,6 @@ var arrayContentsMatch = function ( a, b ) {
 
 				for ( i=start; i<end; i+=1 ) {
 					childKeypath = keypath + '.' + i;
-					console.log( childKeypath );
-
 					notifyDependants( root, childKeypath );
 				}
 			}
@@ -5624,7 +5655,7 @@ var arrayContentsMatch = function ( a, b ) {
 	var ComponentParameter;
 
 	// TODO support server environments
-	DomComponent = function ( options ) {
+	DomComponent = function ( options, docFrag ) {
 		var self = this,
 			parentFragment = this.parentFragment = options.parentFragment,
 			root,
@@ -5678,7 +5709,7 @@ var arrayContentsMatch = function ( a, b ) {
 				return;
 			}
 
-			// if null, we treat is as a boolean attribute (i.e. true)
+			// if null, we treat it as a boolean attribute (i.e. true)
 			if ( value === null ) {
 				data[ key ] = true;
 				return;
@@ -5719,12 +5750,19 @@ var arrayContentsMatch = function ( a, b ) {
 			partials.content = options.descriptor.f;
 		}
 
+		// TODO don't clone parent node - instead use a document fragment (and pass in the namespaceURI
+		// of the parent node, for SVG purposes) and insert contents that way?
 		instance = this.instance = new Component({
-			append: true,
-			el: parentFragment.parentNode,
+			el: parentFragment.parentNode.cloneNode( false ), // to ensure correct namespaceURL
 			data: data,
 			partials: partials
 		});
+
+		while ( instance.el.firstChild ) {
+			docFrag.appendChild( instance.el.firstChild );
+		}
+
+		instance.el = parentFragment.parentNode;
 
 		self.observers = [];
 		initFalse = { init: false };
@@ -5752,6 +5790,9 @@ var arrayContentsMatch = function ( a, b ) {
 				}, initFalse );
 
 				self.observers[ self.observers.length ] = observer;
+
+				// initialise
+				root.set( pair[1], instance.get( pair[0] ) );
 			};
 		}
 		
@@ -6375,8 +6416,10 @@ DomSection.prototype = {
 
 		if ( this.fragmentsById ) {
 			for ( id in this.fragmentsById ) {
-				this.fragmentsById[ id ].teardown();
-				this.fragmentsById[ id ] = null;
+				if ( this.fragments[ id ] ) {
+					this.fragmentsById[ id ].teardown();
+					this.fragmentsById[ id ] = null;
+				}
 			}
 		}
 	},
@@ -6603,17 +6646,17 @@ StringFragment.prototype = {
 	},
 
 	toJSON: function () {
-		var str, json;
+		var value = this.getValue();
 
-		str = this.toString();
-
-		try {
-			json = JSON.parse( str );
-		} catch ( err ) {
-			json = str;
+		if ( typeof value === 'string' ) {
+			try {
+				value = JSON.parse( value );
+			} catch ( err ) {
+				// value = value
+			}
 		}
 
-		return json;
+		return value;
 	}
 };
 // Interpolator or Triple
