@@ -72,7 +72,7 @@
 		}
 
 		item = attribute.fragment.items[0];
-			
+
 		if ( item.type !== INTERPOLATOR ) {
 			return null;
 		}
@@ -141,7 +141,7 @@
 			value = [];
 			selectedOptions = this.node.querySelectorAll( 'option:checked' );
 			len = selectedOptions.length;
-			
+
 			for ( i=0; i<len; i+=1 ) {
 				value[ value.length ] = selectedOptions[i]._ractive.value;
 			}
@@ -156,7 +156,7 @@
 			previousValue = attribute.value;
 
 			value = this.getValueFromDom();
-			
+
 			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 				// either length or contents have changed, so we update the model
 				attribute.receiving = true;
@@ -187,9 +187,21 @@
 
 	SelectBinding.prototype = {
 		getValueFromDom: function () {
-			var selectedOption, value;
+			var selectedOption, value, i, len;
 
-			selectedOption = this.node.querySelector( 'option:checked' );
+			try {
+				selectedOption = this.node.querySelector( 'option:checked' );
+			} catch ( e ) {
+
+				len = this.node.options.length;
+
+				for ( i=0; i<len; i+= 1 ) {
+					if ( this.node.options[i].selected ) {
+						selectedOption = this.node.options[i];
+						break;
+					}
+				}
+			}
 
 			if ( !selectedOption ) {
 				return;
