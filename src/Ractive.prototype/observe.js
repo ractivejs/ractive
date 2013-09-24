@@ -60,6 +60,13 @@
 		update: function ( init ) {
 			var value;
 
+			// Prevent infinite loops
+			if ( this.updating ) {
+				return;
+			}
+
+			this.updating = true;
+
 			// TODO create, and use, an internal get method instead - we can skip checks
 			value = this.root.get( this.keypath, true );
 
@@ -75,6 +82,8 @@
 				}
 				this.value = value;
 			}
+
+			this.updating = false;
 		}
 	};
 
