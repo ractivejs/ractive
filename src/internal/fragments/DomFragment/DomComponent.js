@@ -101,7 +101,7 @@
 		// TODO don't clone parent node - instead use a document fragment (and pass in the namespaceURI
 		// of the parent node, for SVG purposes) and insert contents that way?
 		instance = this.instance = new Component({
-			el: parentFragment.parentNode.cloneNode(), // to ensure correct namespaceURL
+			el: parentFragment.parentNode.cloneNode( false ), // to ensure correct namespaceURL
 			data: data,
 			partials: partials
 		});
@@ -110,7 +110,7 @@
 			docFrag.appendChild( instance.el.firstChild );
 		}
 
-		instance.parentNode = parentFragment.parentNode;
+		instance.el = parentFragment.parentNode;
 
 		self.observers = [];
 		initFalse = { init: false };
