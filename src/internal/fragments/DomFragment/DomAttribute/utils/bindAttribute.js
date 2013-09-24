@@ -136,14 +136,16 @@
 
 	MultipleSelectBinding.prototype = {
 		getValueFromDom: function () {
-			var value, selectedOptions, i, len;
+			var value, options, i, len;
 
 			value = [];
-			selectedOptions = this.node.querySelectorAll( 'option:checked' );
-			len = selectedOptions.length;
+			options = this.node.options;
+			len = options.length;
 			
 			for ( i=0; i<len; i+=1 ) {
-				value[ value.length ] = selectedOptions[i]._ractive.value;
+				if ( options[i].selected ) {
+					value[ value.length ] = options[i]._ractive.value;
+				}
 			}
 
 			return value;
@@ -187,17 +189,16 @@
 
 	SelectBinding.prototype = {
 		getValueFromDom: function () {
-			var selectedOption, value;
+			var options, i, len;
 
-			selectedOption = this.node.querySelector( 'option:checked' );
+			options = this.node.options;
+			len = options.length;
 
-			if ( !selectedOption ) {
-				return;
+			for ( i=0; i<len; i+=1 ) {
+				if ( options[i].selected ) {
+					return options[i]._ractive.value;
+				}
 			}
-
-			value = selectedOption._ractive.value;
-
-			return value;
 		},
 
 		update: function () {
