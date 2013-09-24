@@ -50,16 +50,16 @@ StringFragment.prototype = {
 	},
 
 	toJSON: function () {
-		var str, json;
+		var value = this.getValue();
 
-		str = this.toString();
-
-		try {
-			json = JSON.parse( str );
-		} catch ( err ) {
-			json = str;
+		if ( typeof value === 'string' ) {
+			try {
+				value = JSON.parse( value );
+			} catch ( err ) {
+				// value = value
+			}
 		}
 
-		return json;
+		return value;
 	}
 };
