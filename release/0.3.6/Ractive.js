@@ -2009,8 +2009,12 @@ resolveMustache = function ( keypath ) {
 		// remove any fragments that should no longer exist
 		for ( id in fragmentsById ) {
 			if ( value[ id ] === undefined ) {
-				fragmentsById[ id ].teardown( true );
-				fragmentsById[ id ] = null;
+                if(fragmentsById[ id ])
+                {
+                    fragmentsById[ id ].teardown( true );
+                }
+
+                fragmentsById[ id ] = null;
 			}
 		}
 
@@ -6228,8 +6232,11 @@ DomSection.prototype = {
 
 		if ( this.fragmentsById ) {
 			for ( id in this.fragmentsById ) {
-				this.fragmentsById[ id ].teardown();
-				this.fragmentsById[ id ] = null;
+                if(this.fragmentsById[ id ])
+                {
+                    this.fragmentsById[ id ].teardown();
+                    this.fragmentsById[ id ] = null;
+                }
 			}
 		}
 	},
