@@ -176,8 +176,10 @@ DomSection.prototype = {
 
 		if ( this.fragmentsById ) {
 			for ( id in this.fragmentsById ) {
-				this.fragmentsById[ id ].teardown();
-				this.fragmentsById[ id ] = null;
+				if ( this.fragments[ id ] ) {
+					this.fragmentsById[ id ].teardown();
+					this.fragmentsById[ id ] = null;
+				}
 			}
 		}
 	},

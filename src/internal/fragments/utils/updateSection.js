@@ -85,7 +85,7 @@
 
 		// remove any fragments that should no longer exist
 		for ( id in fragmentsById ) {
-			if ( value[ id ] === undefined ) {
+			if ( value[ id ] === undefined && fragmentsById[ id ] ) {
 				fragmentsById[ id ].teardown( true );
 				fragmentsById[ id ] = null;
 			}
