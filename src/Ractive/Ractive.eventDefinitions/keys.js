@@ -30,4 +30,9 @@
 	eventDefinitions.escape = makeKeyDefinition( 27 );
 	eventDefinitions.space = makeKeyDefinition( 32 );
 
+	eventDefinitions.leftarrow = makeKeyDefinition( 37 );
+	eventDefinitions.rightarrow = makeKeyDefinition( 39 );
+	eventDefinitions.downarrow = makeKeyDefinition( 40 );
+	eventDefinitions.uparrow = makeKeyDefinition( 38 );
+
 }());
