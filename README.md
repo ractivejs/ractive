@@ -1,6 +1,8 @@
 Ractive.js - Next-generation DOM manipulation
 =============================================
 
+*Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
+
 What is Ractive.js?
 -------------------
 
