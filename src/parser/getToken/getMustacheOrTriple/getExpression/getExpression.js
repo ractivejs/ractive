@@ -28,7 +28,6 @@ var getExpression;
 	getNumberLiteral,
 	getStringLiteral,
 	getObjectLiteral,
-	getGlobal,
 
 	getKeyValuePairs,
 	getKeyValuePair,
@@ -376,6 +375,9 @@ var getExpression;
 	getInteger = getRegexMatcher( /^(0|[1-9][0-9]*)/ );
 
 
+	// if a reference is a browser global, we don't deference it later, so it needs special treatment
+	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+
 	getReference = function ( tokenizer ) {
 		var startPos, name, dot, combo, refinement, lastDotIndex;
 
@@ -385,6 +387,14 @@ var getExpression;
 		// standard reference ('name')
 		dot = getStringMatch( tokenizer, '.' ) || '';
 		name = getName( tokenizer ) || '';
+
+		// if this is a browser global, stop here
+		if ( !dot && globals.test( name ) ) {
+			return {
+				t: GLOBAL,
+				v: name
+			};
+		}
 
 		// allow the use of `this`
 		if ( name === 'this' ) {
@@ -471,7 +481,6 @@ var getExpression;
 	getLiteral = function ( tokenizer ) {
 		var literal = getNumberLiteral( tokenizer )   ||
 		              getBooleanLiteral( tokenizer )  ||
-		              getGlobal( tokenizer )          ||
 		              getStringLiteral( tokenizer )   ||
 		              getObjectLiteral( tokenizer )   ||
 		              getArrayLiteral( tokenizer );
@@ -524,38 +533,6 @@ var getExpression;
 			};
 		}
 
-		return null;
-	};
-
-	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)/;
-
-	// Not strictly literals, but we can treat them as such because they
-	// never need to be dereferenced.
-
-	// Allowed globals:
-	// ----------------
-	//
-	// Array, Date, RegExp, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, isFinite, isNaN, parseFloat, parseInt, JSON, Math, NaN, undefined, null
-	getGlobal = function ( tokenizer ) {
-		var start, name, match;
-
-		start = tokenizer.pos;
-		name = getName( tokenizer );
-
-		if ( !name ) {
-			return null;
-		}
-
-		match = globals.exec( name );
-		if ( match ) {
-			tokenizer.pos = start + match[0].length;
-			return {
-				t: GLOBAL,
-				v: match[0]
-			};
-		}
-
-		tokenizer.pos = start;
 		return null;
 	};
 
