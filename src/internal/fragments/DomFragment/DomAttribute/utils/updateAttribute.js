@@ -69,7 +69,7 @@
 
 		this.value = value;
 
-		options = this.parentNode.querySelectorAll( 'option' );
+		options = this.parentNode.options;
 		i = options.length;
 
 		while ( i-- ) {
@@ -94,7 +94,7 @@
 			value = [ value ];
 		}
 
-		options = this.parentNode.querySelectorAll( 'option' );
+		options = this.parentNode.options;
 		i = options.length;
 
 		while ( i-- ) {
