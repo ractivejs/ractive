@@ -222,6 +222,21 @@
 			parsed: ['Non\u00A0breaking\u00A0spaces\u00A0',{t:7,e:'div',a:{id:'foo'}}]
 		},
 		{
+			name: 'HTML entities are treated correctly in pure string templates if semi-colon is omitted',
+			template: 'Non&nbspbreaking&nbspspaces&nbsp',
+			parsed: ['Non&nbspbreaking&nbspspaces&nbsp']
+		},
+		{
+			name: 'HTML entities are treated correctly in regular templates if semi-colon is omitted',
+			template: 'Non&nbspbreaking&nbspspaces&nbsp<div id="foo"></div>',
+			parsed: ['Non\u00A0breaking\u00A0spaces\u00A0',{t:7,e:'div',a:{id:'foo'}}]
+		},
+		{
+			name: 'Illegal code points between 128 and 159 are dealt with',
+			template: 'Euro sign: &#128; &#8364; {{foo}}',
+			parsed: ['Euro sign: \u20AC \u20AC ',{t:2,r:'foo'}]
+		},
+		{
 			name: 'References can begin with browser globals',
 			template: '{{ DateRange }}',
 			parsed: [{t:2,r:'DateRange'}]
