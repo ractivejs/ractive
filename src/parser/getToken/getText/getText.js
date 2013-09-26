@@ -1,27 +1,21 @@
 var getText = function ( tokenizer ) {
-	var minIndex, text;
+	var index, remaining;
 
-	minIndex = tokenizer.str.length;
+	remaining = tokenizer.remaining();
 
-	// anything goes except opening delimiters or a '<'
-	[ tokenizer.delimiters[0], tokenizer.tripleDelimiters[0], '<' ].forEach( function ( substr ) {
-		var index = tokenizer.str.indexOf( substr, tokenizer.pos );
+	index = getLowestIndex( remaining, [ '<', tokenizer.delimiters[0], tokenizer.tripleDelimiters[0] ] );
 
-		if ( index !== -1 ) {
-			minIndex = Math.min( index, minIndex );
-		}
-	});
-
-	if ( minIndex === tokenizer.pos ) {
+	if ( !index ) {
 		return null;
 	}
 
-	text = tokenizer.str.substring( tokenizer.pos, minIndex );
-	tokenizer.pos = minIndex;
+	if ( index === -1 ) {
+		index = remaining.length;
+	}
 
+	tokenizer.pos += index;
 	return {
 		type: TEXT,
-		value: text
+		value: remaining.substr( 0, index )
 	};
-
 };

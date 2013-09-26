@@ -1,3 +1,4 @@
+// TODO establish whether we actually need this (and siblings)
 var getDoubleQuotedString = function ( tokenizer ) {
 	var start, string, escaped, unescaped, next;
 

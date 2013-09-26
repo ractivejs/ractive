@@ -11,13 +11,11 @@ var getTag;
 	getUnquotedAttributeValue,
 	getUnquotedAttributeValueToken,
 	getUnquotedAttributeValueText,
-	getSingleQuotedAttributeValue,
-	getSingleQuotedStringToken,
-	getDoubleQuotedAttributeValue,
-	getDoubleQuotedStringToken;
+	getQuotedStringToken,
+	getQuotedAttributeValue;
 
 	getTag = function ( tokenizer ) {
-		return ( getOpeningTag( tokenizer ) || getClosingTag( tokenizer ) );
+		return getOpeningTag( tokenizer ) || getClosingTag( tokenizer );
 	};
 
 	getOpeningTag = function ( tokenizer ) {
@@ -159,8 +157,10 @@ var getTag;
 
 		allowWhitespace( tokenizer );
 
-		value = getSingleQuotedAttributeValue( tokenizer ) || getDoubleQuotedAttributeValue( tokenizer ) || getUnquotedAttributeValue( tokenizer );
-
+		value = getQuotedAttributeValue( tokenizer, "'" ) ||
+		        getQuotedAttributeValue( tokenizer, '"' ) ||
+		        getUnquotedAttributeValue( tokenizer );
+		
 		if ( value === null ) {
 			tokenizer.pos = start;
 			return null;
@@ -211,100 +211,53 @@ var getTag;
 		return tokens;
 	};
 
-
-	getSingleQuotedStringToken = function ( tokenizer ) {
-		var start, text, index;
-
-		start = tokenizer.pos;
-
-		text = getSingleQuotedString( tokenizer );
-
-		if ( !text ) {
-			return null;
-		}
-
-		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-			text = text.substr( 0, index );
-			tokenizer.pos = start + text.length;
-		}
-
-		return {
-			type: TEXT,
-			value: text
-		};
-	};
-
-	getSingleQuotedAttributeValue = function ( tokenizer ) {
+	getQuotedAttributeValue = function ( tokenizer, quoteMark ) {
 		var start, tokens, token;
 
 		start = tokenizer.pos;
 
-		if ( !getStringMatch( tokenizer, "'" ) ) {
+		if ( !getStringMatch( tokenizer, quoteMark ) ) {
 			return null;
 		}
 
 		tokens = [];
 
-		token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+		token = getMustacheOrTriple( tokenizer ) || getQuotedStringToken( tokenizer, quoteMark );
 		while ( token !== null ) {
 			tokens[ tokens.length ] = token;
-			token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+			token = getMustacheOrTriple( tokenizer ) || getQuotedStringToken( tokenizer, quoteMark );
 		}
 
-		if ( !getStringMatch( tokenizer, "'" ) ) {
+		if ( !getStringMatch( tokenizer, quoteMark ) ) {
 			tokenizer.pos = start;
 			return null;
 		}
 
 		return tokens;
-
 	};
 
-	getDoubleQuotedStringToken = function ( tokenizer ) {
-		var start, text, index;
+	getQuotedStringToken = function ( tokenizer, quoteMark ) {
+		var start, index, remaining;
 
 		start = tokenizer.pos;
+		remaining = tokenizer.remaining();
 
-		text = getDoubleQuotedString( tokenizer );
+		index = getLowestIndex( remaining, [ quoteMark, tokenizer.delimiters[0], tokenizer.delimiters[1] ] );
 
-		if ( !text ) {
+		if ( index === -1 ) {
+			throw new Error( 'Quoted attribute value must have a closing quote' );
+		}
+
+		if ( !index ) {
 			return null;
 		}
 
-		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-			text = text.substr( 0, index );
-			tokenizer.pos = start + text.length;
-		}
+		tokenizer.pos += index;
 
 		return {
 			type: TEXT,
-			value: text
+			value: remaining.substr( 0, index )
 		};
 	};
 
-	getDoubleQuotedAttributeValue = function ( tokenizer ) {
-		var start, tokens, token;
-
-		start = tokenizer.pos;
-
-		if ( !getStringMatch( tokenizer, '"' ) ) {
-			return null;
-		}
-
-		tokens = [];
-
-		token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
-		while ( token !== null ) {
-			tokens[ tokens.length ] = token;
-			token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
-		}
-
-		if ( !getStringMatch( tokenizer, '"' ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return tokens;
-
-	};
 }());
