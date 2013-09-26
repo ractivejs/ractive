@@ -29,26 +29,37 @@ adaptors.statesman = function ( model, path ) {
 	return {
 		init: function ( view ) {
 			
-			var data;
+			var data, lastViewChange;
 
 			// if no path specified...
 			if ( !path ) {
 				setView = function ( change ) {
-					if ( !settingModel ) {
-						settingView = true;
-						
-						view.set( change );
-						
-						settingView = false;
+					var keypath;
+
+					settingView = true;
+
+					if ( typeof lastViewChange === 'string' ) {
+						delete change[ lastViewChange ];
 					}
+
+					if ( typeof lastViewChange === 'object' ) {
+						for ( keypath in lastViewChange ) {
+							if ( lastViewChange.hasOwnProperty( keypath ) ) {
+								delete change[ lastViewChange ];
+							}
+						}
+					}
+					
+					view.set( change );
+					
+					settingView = false;
 				};
 
 				if ( view.twoway ) {
 					setModel = function ( keypath, value ) {
 						if ( !settingView ) {
-							settingModel = true;
+							lastViewChange = keypath;
 							model.set( keypath, value );
-							settingModel = false;
 						}
 					};
 				}
@@ -56,7 +67,7 @@ adaptors.statesman = function ( model, path ) {
 
 			else {
 				setView = function ( change ) {
-					if ( !settingModel ) {
+					if ( !settingModel ) { // TODO use lastViewChange mechanism
 						settingView = true;
 						
 						change = prefix( change );
