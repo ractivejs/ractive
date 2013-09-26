@@ -1,7 +1,5 @@
 var getValueFromCheckboxes = function ( ractive, keypath ) {
-	var value, previousValue, checkboxes, checkbox, len, i, rootEl;
-
-	previousValue = ractive.get( 'keypath' );
+	var value, checkboxes, checkbox, len, i, rootEl;
 
 	value = [];
 
@@ -23,8 +21,5 @@ var getValueFromCheckboxes = function ( ractive, keypath ) {
 		}
 	}
 
-	// only update the model if it's actually changed
-	if ( !arrayContentsMatch( value, previousValue ) ) {
-		ractive.set( keypath, value );
-	}
+	return value;
 };

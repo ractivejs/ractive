@@ -68,8 +68,11 @@ Ractive = function ( options ) {
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
 
-		// bindings
+		// external model bindings
 		_bound: { value: [] },
+
+		// two-way bindings
+		_twowayBindings: { value: {} },
 
 		// transition manager
 		_transitionManager: { value: null, writable: true },

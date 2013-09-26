@@ -6,6 +6,7 @@
 	"laxbreak": true,
 	"undef": true,
 	"unused": true,
+	"-W018": true,
 	"globals": {
 		"Element": true,
 		"window": true,

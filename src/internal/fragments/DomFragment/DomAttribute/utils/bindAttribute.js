@@ -13,7 +13,7 @@
 		GenericBinding;
 
 	bindAttribute = function () {
-		var node = this.parentNode, interpolator, binding;
+		var node = this.parentNode, interpolator, binding, bindings;
 
 		if ( !this.fragment ) {
 			return false; // report failure
@@ -54,9 +54,16 @@
 		node._ractive.binding = binding;
 		this.twoway = true;
 
+		// register this with the root, so that we can force an update later
+		bindings = this.root._twowayBindings[ this.keypath ] || ( this.root._twowayBindings[ this.keypath ] = [] );
+		bindings[ bindings.length ] = binding;
+
 		return true;
 	};
 
+
+	// This is the handler for DOM events that would lead to a change in the model
+	// (i.e. change, sometimes, input, and occasionally click and keyup)
 	updateModel = function () {
 		this._ractive.binding.update();
 	};
@@ -135,7 +142,7 @@
 	};
 
 	MultipleSelectBinding.prototype = {
-		getValueFromDom: function () {
+		value: function () {
 			var value, options, i, len;
 
 			value = [];
@@ -157,7 +164,7 @@
 			attribute = this.attr;
 			previousValue = attribute.value;
 
-			value = this.getValueFromDom();
+			value = this.value();
 			
 			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 				// either length or contents have changed, so we update the model
@@ -188,7 +195,7 @@
 	};
 
 	SelectBinding.prototype = {
-		getValueFromDom: function () {
+		value: function () {
 			var options, i, len;
 
 			options = this.node.options;
@@ -202,7 +209,7 @@
 		},
 
 		update: function () {
-			var value = this.getValueFromDom();
+			var value = this.value();
 
 			this.attr.receiving = true;
 			this.attr.value = value;
@@ -217,6 +224,8 @@
 
 	RadioNameBinding = function ( attribute, node ) {
 		var valueFromModel;
+
+		this.radioName = true; // so that updateModel knows what to do with this
 
 		inheritProperties( this, attribute, node );
 
@@ -237,12 +246,16 @@
 	};
 
 	RadioNameBinding.prototype = {
+		value: function () {
+			return this.node._ractive ? this.node._ractive.value : this.node.value;
+		},
+
 		update: function () {
 			var node = this.node;
 
 			if ( node.checked ) {
 				this.attr.receiving = true;
-				this.root.set( this.keypath, node._ractive ? node._ractive.value : node.value );
+				this.root.set( this.keypath, this.value() );
 				this.attr.receiving = false;
 			}
 		},
@@ -255,6 +268,8 @@
 
 	CheckboxNameBinding = function ( attribute, node ) {
 		var valueFromModel, checked;
+
+		this.checkboxName = true; // so that updateModel knows what to do with this
 
 		inheritProperties( this, attribute, node );
 
@@ -284,9 +299,15 @@
 	};
 
 	CheckboxNameBinding.prototype = {
+		changed: function () {
+			return this.node.checked !== !!this.checked;
+		},
+
 		update: function () {
+			this.checked = this.node.checked;
+
 			this.attr.receiving = true;
-			getValueFromCheckboxes( this.root, this.keypath );
+			this.root.set( this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
 			this.attr.receiving = false;
 		},
 
@@ -307,9 +328,13 @@
 	};
 
 	CheckedBinding.prototype = {
+		value: function () {
+			return this.node.checked;
+		},
+
 		update: function () {
 			this.attr.receiving = true;
-			this.root.set( this.keypath, this.node.checked );
+			this.root.set( this.keypath, this.value() );
 			this.attr.receiving = false;
 		},
 
@@ -326,8 +351,12 @@
 	};
 
 	FileListBinding.prototype = {
+		value: function () {
+			return this.attr.parentNode.files;
+		},
+
 		update: function () {
-			this.attr.root.set( this.attr.keypath, this.attr.parentNode.files );
+			this.attr.root.set( this.attr.keypath, this.value() );
 		},
 
 		teardown: function () {
@@ -350,13 +379,19 @@
 	};
 
 	GenericBinding.prototype = {
-		update: function () {
-			var attribute = this.attr, value = attribute.parentNode.value;
+		value: function () {
+			var value = this.attr.parentNode.value;
 
 			// if the value is numeric, treat it as a number. otherwise don't
 			if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {
 				value = +value;
 			}
+
+			return value;
+		},
+
+		update: function () {
+			var attribute = this.attr, value = this.value();
 
 			attribute.receiving = true;
 			attribute.root.set( attribute.keypath, value );

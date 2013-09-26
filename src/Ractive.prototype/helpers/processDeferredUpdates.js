@@ -1,5 +1,5 @@
 processDeferredUpdates = function ( ractive ) {
-	var evaluator, attribute;
+	var evaluator, attribute, keypath;
 
 	while ( ractive._defEvals.length ) {
 		 evaluator = ractive._defEvals.pop();
@@ -16,7 +16,8 @@ processDeferredUpdates = function ( ractive ) {
 	}
 
 	while ( ractive._defCheckboxes.length ) {
-		getValueFromCheckboxes( ractive, ractive._defCheckboxes.pop() );
+		keypath = ractive._defCheckboxes.pop();
+		ractive.set( keypath, getValueFromCheckboxes( ractive, keypath ) );
 	}
 
 	while ( ractive._defRadios.length ) {

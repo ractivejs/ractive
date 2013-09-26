@@ -404,6 +404,114 @@
 		t.ok( compareHTML( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' ) );
 	});
 
+	test( 'updateModel correctly updates the value of a text input', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<input value="{{name}}">',
+			data: { name: 'Bob' }
+		});
+
+		ractive.find( 'input' ).value = 'Jim';
+		ractive.updateModel( 'name' );
+
+		t.equal( ractive.get( 'name' ), 'Jim' );
+	});
+
+	test( 'updateModel correctly updates the value of a select', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<select value="{{selected}}"><option selected value="red">red</option><option value="blue">blue</option><option value="green">green</option></select>'
+		});
+
+		t.equal( ractive.get( 'selected' ), 'red' );
+
+		ractive.findAll( 'option' )[1].selected = true;
+		ractive.updateModel();
+
+		t.equal( ractive.get( 'selected' ), 'blue' );
+	});
+
+	test( 'updateModel correctly updates the value of a multiple select', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<select multiple value="{{selected}}"><option selected value="red">red</option><option value="blue">blue</option><option value="green">green</option></select>'
+		});
+
+		t.deepEqual( ractive.get( 'selected' ), [ 'red' ] );
+
+		ractive.findAll( 'option' )[1].selected = true;
+		ractive.updateModel();
+
+		t.deepEqual( ractive.get( 'selected' ), [ 'red', 'blue' ] );
+	});
+
+	test( 'updateModel correctly updates the value of a textarea', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<textarea value="{{name}}"></textarea>',
+			data: { name: 'Bob' }
+		});
+
+		ractive.find( 'textarea' ).value = 'Jim';
+		ractive.updateModel( 'name' );
+
+		t.equal( ractive.get( 'name' ), 'Jim' );
+	});
+
+	test( 'updateModel correctly updates the value of a checkbox', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<input type="checkbox" checked="{{active}}">',
+			data: { active: true }
+		});
+
+		ractive.find( 'input' ).checked = false;
+		ractive.updateModel();
+
+		t.equal( ractive.get( 'active' ), false );
+	});
+
+	test( 'updateModel correctly updates the value of a radio', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<input type="radio" checked="{{active}}">',
+			data: { active: true }
+		});
+
+		ractive.find( 'input' ).checked = false;
+		ractive.updateModel();
+
+		t.equal( ractive.get( 'active' ), false );
+	});
+
+	test( 'updateModel correctly updates the value of an indirect (name-value) checkbox', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<input type="checkbox" name="{{colour}}" value="red"><input type="checkbox" name="{{colour}}" value="blue" checked><input type="checkbox" name="{{colour}}" value="green">'
+		});
+
+		t.deepEqual( ractive.get( 'colour' ), [ 'blue' ] );
+
+		ractive.findAll( 'input' )[2].checked = true;
+		ractive.updateModel();
+
+		t.deepEqual( ractive.get( 'colour' ), [ 'blue', 'green' ] );
+	});
+
+	test( 'updateModel correctly updates the value of an indirect (name-value) radio', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<input type="radio" name="{{colour}}" value="red"><input type="radio" name="{{colour}}" value="blue" checked><input type="radio" name="{{colour}}" value="green">'
+		});
+
+		t.deepEqual( ractive.get( 'colour' ), 'blue' );
+
+		ractive.findAll( 'input' )[2].checked = true;
+		ractive.updateModel();
+
+		t.deepEqual( ractive.get( 'colour' ), 'green' );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build
