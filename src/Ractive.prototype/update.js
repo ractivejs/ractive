@@ -3,6 +3,7 @@ proto.update = function ( keypath, complete ) {
 
 	if ( typeof keypath === 'function' ) {
 		complete = keypath;
+		keypath = '';
 	}
 
 	// if we're using update, it's possible that we've introduced new values, and
