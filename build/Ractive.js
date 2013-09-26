@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-24
+/*! Ractive - v0.3.6 - 2013-09-26
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -311,7 +311,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		GenericBinding;
 
 	bindAttribute = function () {
-		var node = this.parentNode, interpolator, binding;
+		var node = this.parentNode, interpolator, binding, bindings;
 
 		if ( !this.fragment ) {
 			return false; // report failure
@@ -352,9 +352,16 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		node._ractive.binding = binding;
 		this.twoway = true;
 
+		// register this with the root, so that we can force an update later
+		bindings = this.root._twowayBindings[ this.keypath ] || ( this.root._twowayBindings[ this.keypath ] = [] );
+		bindings[ bindings.length ] = binding;
+
 		return true;
 	};
 
+
+	// This is the handler for DOM events that would lead to a change in the model
+	// (i.e. change, sometimes, input, and occasionally click and keyup)
 	updateModel = function () {
 		this._ractive.binding.update();
 	};
@@ -433,15 +440,17 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	};
 
 	MultipleSelectBinding.prototype = {
-		getValueFromDom: function () {
-			var value, selectedOptions, i, len;
+		value: function () {
+			var value, options, i, len;
 
 			value = [];
-			selectedOptions = this.node.querySelectorAll( 'option:checked' );
-			len = selectedOptions.length;
+			options = this.node.options;
+			len = options.length;
 			
 			for ( i=0; i<len; i+=1 ) {
-				value[ value.length ] = selectedOptions[i]._ractive.value;
+				if ( options[i].selected ) {
+					value[ value.length ] = options[i]._ractive.value;
+				}
 			}
 
 			return value;
@@ -453,7 +462,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 			attribute = this.attr;
 			previousValue = attribute.value;
 
-			value = this.getValueFromDom();
+			value = this.value();
 			
 			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 				// either length or contents have changed, so we update the model
@@ -484,22 +493,21 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	};
 
 	SelectBinding.prototype = {
-		getValueFromDom: function () {
-			var selectedOption, value;
+		value: function () {
+			var options, i, len;
 
-			selectedOption = this.node.querySelector( 'option:checked' );
+			options = this.node.options;
+			len = options.length;
 
-			if ( !selectedOption ) {
-				return;
+			for ( i=0; i<len; i+=1 ) {
+				if ( options[i].selected ) {
+					return options[i]._ractive.value;
+				}
 			}
-
-			value = selectedOption._ractive.value;
-
-			return value;
 		},
 
 		update: function () {
-			var value = this.getValueFromDom();
+			var value = this.value();
 
 			this.attr.receiving = true;
 			this.attr.value = value;
@@ -514,6 +522,8 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 	RadioNameBinding = function ( attribute, node ) {
 		var valueFromModel;
+
+		this.radioName = true; // so that updateModel knows what to do with this
 
 		inheritProperties( this, attribute, node );
 
@@ -534,12 +544,16 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	};
 
 	RadioNameBinding.prototype = {
+		value: function () {
+			return this.node._ractive ? this.node._ractive.value : this.node.value;
+		},
+
 		update: function () {
 			var node = this.node;
 
 			if ( node.checked ) {
 				this.attr.receiving = true;
-				this.root.set( this.keypath, node._ractive ? node._ractive.value : node.value );
+				this.root.set( this.keypath, this.value() );
 				this.attr.receiving = false;
 			}
 		},
@@ -552,6 +566,8 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 	CheckboxNameBinding = function ( attribute, node ) {
 		var valueFromModel, checked;
+
+		this.checkboxName = true; // so that updateModel knows what to do with this
 
 		inheritProperties( this, attribute, node );
 
@@ -581,9 +597,15 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	};
 
 	CheckboxNameBinding.prototype = {
+		changed: function () {
+			return this.node.checked !== !!this.checked;
+		},
+
 		update: function () {
+			this.checked = this.node.checked;
+
 			this.attr.receiving = true;
-			getValueFromCheckboxes( this.root, this.keypath );
+			this.root.set( this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
 			this.attr.receiving = false;
 		},
 
@@ -604,9 +626,13 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	};
 
 	CheckedBinding.prototype = {
+		value: function () {
+			return this.node.checked;
+		},
+
 		update: function () {
 			this.attr.receiving = true;
-			this.root.set( this.keypath, this.node.checked );
+			this.root.set( this.keypath, this.value() );
 			this.attr.receiving = false;
 		},
 
@@ -623,8 +649,12 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	};
 
 	FileListBinding.prototype = {
+		value: function () {
+			return this.attr.parentNode.files;
+		},
+
 		update: function () {
-			this.attr.root.set( this.attr.keypath, this.attr.parentNode.files );
+			this.attr.root.set( this.attr.keypath, this.value() );
 		},
 
 		teardown: function () {
@@ -647,13 +677,19 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	};
 
 	GenericBinding.prototype = {
-		update: function () {
-			var attribute = this.attr, value = attribute.parentNode.value;
+		value: function () {
+			var value = this.attr.parentNode.value;
 
 			// if the value is numeric, treat it as a number. otherwise don't
 			if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {
 				value = +value;
 			}
+
+			return value;
+		},
+
+		update: function () {
+			var attribute = this.attr, value = this.value();
 
 			attribute.receiving = true;
 			attribute.root.set( attribute.keypath, value );
@@ -746,7 +782,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 		this.value = value;
 
-		options = this.parentNode.querySelectorAll( 'option' );
+		options = this.parentNode.options;
 		i = options.length;
 
 		while ( i-- ) {
@@ -771,7 +807,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 			value = [ value ];
 		}
 
-		options = this.parentNode.querySelectorAll( 'option' );
+		options = this.parentNode.options;
 		i = options.length;
 
 		while ( i-- ) {
@@ -2803,9 +2839,7 @@ clearCache = function ( ractive, keypath ) {
 	}
 };
 var getValueFromCheckboxes = function ( ractive, keypath ) {
-	var value, previousValue, checkboxes, checkbox, len, i, rootEl;
-
-	previousValue = ractive.get( 'keypath' );
+	var value, checkboxes, checkbox, len, i, rootEl;
 
 	value = [];
 
@@ -2827,10 +2861,7 @@ var getValueFromCheckboxes = function ( ractive, keypath ) {
 		}
 	}
 
-	// only update the model if it's actually changed
-	if ( !arrayContentsMatch( value, previousValue ) ) {
-		ractive.set( keypath, value );
-	}
+	return value;
 };
 notifyDependants = function ( ractive, keypath, onlyDirect ) {
 	var i;
@@ -2889,7 +2920,7 @@ notifyMultipleDependants = function ( ractive, keypaths, onlyDirect ) {
 	}
 };
 processDeferredUpdates = function ( ractive ) {
-	var evaluator, attribute;
+	var evaluator, attribute, keypath;
 
 	while ( ractive._defEvals.length ) {
 		 evaluator = ractive._defEvals.pop();
@@ -2906,7 +2937,8 @@ processDeferredUpdates = function ( ractive ) {
 	}
 
 	while ( ractive._defCheckboxes.length ) {
-		getValueFromCheckboxes( ractive, ractive._defCheckboxes.pop() );
+		keypath = ractive._defCheckboxes.pop();
+		ractive.set( keypath, getValueFromCheckboxes( ractive, keypath ) );
 	}
 
 	while ( ractive._defRadios.length ) {
@@ -3464,6 +3496,86 @@ proto.update = function ( keypath, complete ) {
 
 	return this;
 };
+(function ( proto ) {
+
+	var consolidateChangedValues;
+
+	proto.updateModel = function ( keypath, cascade ) {
+		var values, deferredCheckboxes, i;
+
+		if ( typeof keypath !== 'string' ) {
+			keypath = '';
+			cascade = true;
+		}
+
+		consolidateChangedValues( this, keypath, values = {}, deferredCheckboxes = [], cascade );
+
+		if ( i = deferredCheckboxes.length ) {
+			while ( i-- ) {
+				keypath = deferredCheckboxes[i];
+				values[ keypath ] = getValueFromCheckboxes( this, keypath );
+			}
+		}
+
+		this.set( values );
+	};
+
+	consolidateChangedValues = function ( ractive, keypath, values, deferredCheckboxes, cascade ) {
+		var bindings, childDeps, i, binding, oldValue, newValue;
+
+		bindings = ractive._twowayBindings[ keypath ];
+
+		if ( bindings ) {
+			i = bindings.length;
+			while ( i-- ) {
+				binding = bindings[i];
+
+				// special case - radio name bindings
+				if ( binding.radioName && !binding.node.checked ) {
+					continue;
+				}
+
+				// special case - checkbox name bindings
+				if ( binding.checkboxName ) {
+					if ( binding.changed() && !deferredCheckboxes[ keypath ] ) {
+						// we will need to see which checkboxes with the same name are checked,
+						// but we only want to do so once
+						deferredCheckboxes[ keypath ] = true; // for quick lookup without indexOf
+						deferredCheckboxes[ deferredCheckboxes.length ] = keypath;
+					}
+					
+					continue;
+				}
+
+				oldValue = binding.attr.value;
+				newValue = binding.value();
+
+				if ( arrayContentsMatch( oldValue, newValue ) ) {
+					continue;
+				}
+
+				if ( !isEqual( oldValue, newValue ) ) {
+					values[ keypath ] = newValue;
+				}
+			}
+		}
+
+		if ( !cascade ) {
+			return;
+		}
+
+		// cascade
+		childDeps = ractive._depsMap[ keypath ];
+		
+		if ( childDeps ) {
+			i = childDeps.length;
+			while ( i-- ) {
+				consolidateChangedValues( ractive, childDeps[i], values, deferredCheckboxes, cascade );
+			}
+		}
+	};
+
+}( proto ));
 adaptors.backbone = function ( model, path ) {
 	var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
 
@@ -4436,8 +4548,11 @@ Ractive = function ( options ) {
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
 
-		// bindings
+		// external model bindings
 		_bound: { value: [] },
+
+		// two-way bindings
+		_twowayBindings: { value: {} },
 
 		// transition manager
 		_transitionManager: { value: null, writable: true },
@@ -5969,7 +6084,7 @@ DomElement = function ( options, docFrag ) {
 
 DomElement.prototype = {
 	teardown: function ( detach ) {
-		var eventName;
+		var eventName, binding, bindings;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
@@ -5984,6 +6099,14 @@ DomElement.prototype = {
 		if ( this.node._ractive ) {
 			for ( eventName in this.node._ractive.events ) {
 				this.node._ractive.events[ eventName ].teardown();
+			}
+
+			// tear down two-way binding, if such there be
+			if ( binding = this.node._ractive.binding ) {
+				binding.teardown();
+
+				bindings = this.root._twowayBindings[ binding.attr.keypath ];
+				bindings.splice( bindings.indexOf( binding ), 1 );
 			}
 		}
 
@@ -7873,7 +7996,6 @@ var getExpression;
 	getNumberLiteral,
 	getStringLiteral,
 	getObjectLiteral,
-	getGlobal,
 
 	getKeyValuePairs,
 	getKeyValuePair,
@@ -8221,6 +8343,9 @@ var getExpression;
 	getInteger = getRegexMatcher( /^(0|[1-9][0-9]*)/ );
 
 
+	// if a reference is a browser global, we don't deference it later, so it needs special treatment
+	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+
 	getReference = function ( tokenizer ) {
 		var startPos, name, dot, combo, refinement, lastDotIndex;
 
@@ -8230,6 +8355,14 @@ var getExpression;
 		// standard reference ('name')
 		dot = getStringMatch( tokenizer, '.' ) || '';
 		name = getName( tokenizer ) || '';
+
+		// if this is a browser global, stop here
+		if ( !dot && globals.test( name ) ) {
+			return {
+				t: GLOBAL,
+				v: name
+			};
+		}
 
 		// allow the use of `this`
 		if ( name === 'this' ) {
@@ -8316,7 +8449,6 @@ var getExpression;
 	getLiteral = function ( tokenizer ) {
 		var literal = getNumberLiteral( tokenizer )   ||
 		              getBooleanLiteral( tokenizer )  ||
-		              getGlobal( tokenizer )          ||
 		              getStringLiteral( tokenizer )   ||
 		              getObjectLiteral( tokenizer )   ||
 		              getArrayLiteral( tokenizer );
@@ -8369,38 +8501,6 @@ var getExpression;
 			};
 		}
 
-		return null;
-	};
-
-	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)/;
-
-	// Not strictly literals, but we can treat them as such because they
-	// never need to be dereferenced.
-
-	// Allowed globals:
-	// ----------------
-	//
-	// Array, Date, RegExp, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, isFinite, isNaN, parseFloat, parseInt, JSON, Math, NaN, undefined, null
-	getGlobal = function ( tokenizer ) {
-		var start, name, match;
-
-		start = tokenizer.pos;
-		name = getName( tokenizer );
-
-		if ( !name ) {
-			return null;
-		}
-
-		match = globals.exec( name );
-		if ( match ) {
-			tokenizer.pos = start + match[0].length;
-			return {
-				t: GLOBAL,
-				v: match[0]
-			};
-		}
-
-		tokenizer.pos = start;
 		return null;
 	};
 
