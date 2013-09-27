@@ -1390,10 +1390,12 @@ insertHtml = function ( html, docFrag ) {
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				unregisterDependant( mustache );
+				// unregisterDependant( mustache );
 
-				mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
-				registerDependant( mustache );
+				// mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
+				// registerDependant( mustache );
+
+				mustache.resolve( mustache.keypath.replace( oldKeypath, newKeypath ) );
 			}
 		}
 
@@ -1426,21 +1428,29 @@ insertHtml = function ( html, docFrag ) {
 		this.root = root;
 		this.keypath = keypath;
 
+		this.dependants = 0;
+
 		this.fn = getFunctionFromString( functionStr, args.length );
 		this.values = [];
 		this.refs = [];
 
 		i = args.length;
 		while ( i-- ) {
-			arg = args[i];
+			if ( arg = args[i] ) {
+				arg = args[i];
 
-			if ( arg[0] ) {
-				// this is an index ref... we don't need to register a dependant
-				this.values[i] = arg[1];
+				if ( arg[0] ) {
+					// this is an index ref... we don't need to register a dependant
+					this.values[i] = arg[1];
+				}
+
+				else {
+					this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
+				}
 			}
-
+			
 			else {
-				this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
+				this.values[i] = undefined;
 			}
 		}
 
@@ -1448,7 +1458,20 @@ insertHtml = function ( html, docFrag ) {
 	};
 
 	Evaluator.prototype = {
+		wake: function () {
+			this.awake = true;
+			this.update();
+		},
+
+		sleep: function () {
+			this.awake = false;
+		},
+
 		bubble: function () {
+			if ( !this.awake ) {
+				return;
+			}
+
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
 				this.update();
@@ -1496,7 +1519,7 @@ insertHtml = function ( html, docFrag ) {
 			return this;
 		},
 
-		// TODO should evaluators ever get torn down?
+		// TODO should evaluators ever get torn down? At present, they don't...
 		teardown: function () {
 			while ( this.refs.length ) {
 				this.refs.pop().teardown();
@@ -1640,10 +1663,12 @@ insertHtml = function ( html, docFrag ) {
 		this.str = expression.s;
 
 		// send out scouts for each reference
-		len = this.unresolved = ( expression.r ? expression.r.length : 0 );
+		len = this.unresolved = this.args.length = ( expression.r ? expression.r.length : 0 );
 
 		if ( !len ) {
-			this.init(); // some expressions don't have references. edge case, but, yeah.
+			this.resolved = this.ready = true;
+			this.bubble(); // some expressions don't have references. edge case, but, yeah.
+			return;
 		}
 
 		for ( i=0; i<len; i+=1 ) {
@@ -1658,10 +1683,17 @@ insertHtml = function ( html, docFrag ) {
 				this.scouts[ this.scouts.length ] = new ReferenceScout( this, ref, mustache.contextStack, i );
 			}
 		}
+
+		this.ready = true;
+		this.bubble();
 	};
 
 	ExpressionResolver.prototype = {
-		init: function () {
+		bubble: function () {
+			if ( !this.ready ) {
+				return;
+			}
+			
 			this.keypath = getKeypath( this.str, this.args );
 			this.createEvaluator();
 
@@ -1676,23 +1708,17 @@ insertHtml = function ( html, docFrag ) {
 
 		resolveRef: function ( argNum, isIndexRef, value ) {
 			this.args[ argNum ] = [ isIndexRef, value ];
+			this.bubble();
 
-			// can we initialise yet?
-			if ( --this.unresolved ) {
-				// no;
-				return;
-			}
-
-			this.init();
+			// when all references have been resolved, we can flag the entire expression
+			// as having been resolved
+			this.resolved = !( --this.unresolved );
 		},
 
 		createEvaluator: function () {
 			// only if it doesn't exist yet!
 			if ( !this.root._evaluators[ this.keypath ] ) {
 				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
-
-				// initialise
-				this.root._evaluators[ this.keypath ].update();
 			}
 
 			else {
@@ -1743,7 +1769,7 @@ insertHtml = function ( html, docFrag ) {
 
 		// get string that is unique to this expression
 		unique = str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
-			return args[ $1 ][1];
+			return args[ $1 ] ? args[ $1 ][1] : 'undefined';
 		});
 
 		// then sanitize by removing any periods or square brackets. Otherwise
@@ -1975,15 +2001,22 @@ updateMustache = function () {
 };
 
 resolveMustache = function ( keypath ) {
-	this.keypath = keypath;
+	// if we resolved previously, we need to unregister
+	if ( this.resolved ) {
+		unregisterDependant( this );
+	}
 
+	this.keypath = keypath;
 	registerDependant( this );
 	
 	this.update();
 
-	if ( this.expressionResolver ) {
+	// TODO is there any need for this?
+	if ( this.expressionResolver && this.expressionResolver.resolved ) {
 		this.expressionResolver = null;
 	}
+
+	this.resolved = true;
 };
 (function () {
 
@@ -2945,7 +2978,7 @@ processDeferredUpdates = function ( ractive ) {
 	}
 };
 registerDependant = function ( dependant ) {
-	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
+	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority, evaluator;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -2955,6 +2988,17 @@ registerDependant = function ( dependant ) {
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 	deps[ deps.length ] = dependant;
+
+	// If this keypath is an evaluator, note the dependency. If the evaluator didn't
+	// previously exist, or it used to have dependants, then didn't, and now does again,
+	// we can wake it up
+	if ( evaluator = ractive._evaluators[ keypath ] ) {
+		if ( !evaluator.dependants ) {
+			evaluator.wake();
+		}
+
+		evaluator.dependants += 1;
+	}
 
 	// update dependants map
 	keys = splitKeypath( keypath );
@@ -3097,7 +3141,7 @@ teardown = function ( thing ) {
 	}
 };
 unregisterDependant = function ( dependant ) {
-	var deps, keys, parentKeypath, map, ractive, keypath, priority;
+	var deps, keys, parentKeypath, map, ractive, keypath, priority, evaluator;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -3108,6 +3152,17 @@ unregisterDependant = function ( dependant ) {
 
 	// update dependants map
 	keys = splitKeypath( keypath );
+
+	// If this keypath is an evaluator, decrement its dependants property.
+	// That way, if an evaluator doesn't have any remaining dependants (temporarily
+	// or permanently) we can put it to sleep, preventing unnecessary work
+	if ( evaluator = ractive._evaluators[ keypath ] ) {
+		evaluator.dependants -= 1;
+		
+		if ( !evaluator.dependants ) {
+			evaluator.sleep();
+		}
+	}
 	
 	while ( keys.length ) {
 		keys.pop();
@@ -8436,17 +8491,17 @@ var getExpression;
 	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
 
 	getReference = function ( tokenizer ) {
-		var startPos, parent, name, dot, combo, refinement, lastDotIndex;
+		var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
 
 		startPos = tokenizer.pos;
 
-		// we might have parent refs...
-		parent = '';
+		// we might have ancestor refs...
+		ancestor = '';
 		while ( getStringMatch( tokenizer, '../' ) ) {
-			parent += '../';
+			ancestor += '../';
 		}
 
-		if ( !parent ) {
+		if ( !ancestor ) {
 			// we might have an implicit iterator or a restricted reference
 			dot = getStringMatch( tokenizer, '.' ) || '';
 		}
@@ -8454,7 +8509,7 @@ var getExpression;
 		name = getName( tokenizer ) || '';
 
 		// if this is a browser global, stop here
-		if ( !parent && !dot && globals.test( name ) ) {
+		if ( !ancestor && !dot && globals.test( name ) ) {
 			return {
 				t: GLOBAL,
 				v: name
@@ -8462,12 +8517,12 @@ var getExpression;
 		}
 
 		// allow the use of `this`
-		if ( name === 'this' && !parent && !dot ) {
+		if ( name === 'this' && !ancestor && !dot ) {
 			name = '.';
 			startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
 		}
 
-		combo = ( parent || dot ) + name;
+		combo = ( ancestor || dot ) + name;
 
 		if ( !combo ) {
 			return null;
