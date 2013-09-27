@@ -354,6 +354,24 @@
 			template: '{{#foo}}{{#bar}}{{#baz}}<p>{{value}}</p><p>{{../value}}</p><p>{{../../value}}</p>{{/baz}}{{/bar}}{{/foo}}',
 			data: { foo: { value: 'foo', bar: { value: 'bar', baz: { value: 'baz' } } } },
 			result: '<p>baz</p><p>bar</p><p>foo</p>'
+		},
+		{
+			name: 'Conditional expression with unresolved condition',
+			template: '{{ foobar ? "YES" : "NO"}}',
+			data: {},
+			result: 'NO'
+		},
+		{
+			name: 'Conditional section with unresolved reference in expression',
+			template: '{{#( ! foobar )}}NO{{/()}}',
+			data: {},
+			result: 'NO'
+		},
+		{
+			name: 'Conditional section with references to undefined',
+			template: '{{#( foobar === undefined )}}undefined{{/()}}',
+			data: { foobar: undefined },
+			result: 'undefined'
 		}
 	];
 
