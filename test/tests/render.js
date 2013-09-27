@@ -348,6 +348,12 @@
 			template: '{{#list:i}}<input name="test{{i}}">{{/list}}',
 			data: { list: [ 'a', 'b', 'c' ] },
 			result: '<input name="test0"><input name="test1"><input name="test2">'
+		},
+		{
+			name: 'Ancestor references',
+			template: '{{#foo}}{{#bar}}{{#baz}}<p>{{value}}</p><p>{{../value}}</p><p>{{../../value}}</p>{{/baz}}{{/bar}}{{/foo}}',
+			data: { foo: { value: 'foo', bar: { value: 'bar', baz: { value: 'baz' } } } },
+			result: '<p>baz</p><p>bar</p><p>foo</p>'
 		}
 	];
 

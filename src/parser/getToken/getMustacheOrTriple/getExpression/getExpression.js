@@ -379,17 +379,25 @@ var getExpression;
 	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
 
 	getReference = function ( tokenizer ) {
-		var startPos, name, dot, combo, refinement, lastDotIndex;
+		var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
 
 		startPos = tokenizer.pos;
 
-		// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
-		// standard reference ('name')
-		dot = getStringMatch( tokenizer, '.' ) || '';
+		// we might have ancestor refs...
+		ancestor = '';
+		while ( getStringMatch( tokenizer, '../' ) ) {
+			ancestor += '../';
+		}
+
+		if ( !ancestor ) {
+			// we might have an implicit iterator or a restricted reference
+			dot = getStringMatch( tokenizer, '.' ) || '';
+		}
+
 		name = getName( tokenizer ) || '';
 
 		// if this is a browser global, stop here
-		if ( !dot && globals.test( name ) ) {
+		if ( !ancestor && !dot && globals.test( name ) ) {
 			return {
 				t: GLOBAL,
 				v: name
@@ -397,12 +405,12 @@ var getExpression;
 		}
 
 		// allow the use of `this`
-		if ( name === 'this' ) {
+		if ( name === 'this' && !ancestor && !dot ) {
 			name = '.';
 			startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
 		}
 
-		combo = dot + name;
+		combo = ( ancestor || dot ) + name;
 
 		if ( !combo ) {
 			return null;
