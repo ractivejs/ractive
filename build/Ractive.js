@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-26
+/*! Ractive - v0.3.6 - 2013-09-27
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -2270,7 +2270,6 @@ var getRegexMatcher = function ( regex ) {
 		return match[1] || match[0];
 	};
 };
-
 var getStringMatch = function ( tokenizer, string ) {
 	var substr;
 
@@ -3013,7 +3012,9 @@ render = function ( ractive, options ) {
 // `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 resolveRef = function ( ractive, ref, contextStack ) {
 
-	var keys, lastKey, innerMostContext, contextKeys, parentValue, keypath;
+	var keys, lastKey, innerMostContext, contextKeys, parentValue, keypath, context, ancestorErrorMessage;
+
+	ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
 	// Implicit iterators - i.e. {{.}} - are a special case
 	if ( ref === '.' ) {
@@ -3024,13 +3025,35 @@ resolveRef = function ( ractive, ref, contextStack ) {
 		return contextStack[ contextStack.length - 1 ];
 	}
 
-	// References prepended with '.' are another special case
+	// If a reference begins with '.', it's either a restricted reference or
+	// an ancestor reference...
 	if ( ref.charAt( 0 ) === '.' ) {
-		if ( !contextStack.length ) {
+		
+		// ...either way we need to get the innermost context
+		context = contextStack[ contextStack.length - 1 ];
+		contextKeys = splitKeypath( context || '' );
+
+		// ancestor references (starting "../") go up the tree
+		if ( ref.substr( 0, 3 ) === '../' ) {
+			while ( ref.substr( 0, 3 ) === '../' ) {
+				if ( !contextKeys.length ) {
+					throw new Error( ancestorErrorMessage );
+				}
+
+				contextKeys.pop();
+				ref = ref.substring( 3 );
+			}
+
+			contextKeys.push( ref );
+			return contextKeys.join( '.' );
+		}
+
+		// not an ancestor reference - must be a restricted reference (prepended with ".")
+		if ( !context ) {
 			return ref.substring( 1 );
 		}
 		
-		return contextStack[ contextStack.length - 1 ] + ref;
+		return context + ref;
 	}
 
 	keys = splitKeypath( ref );
@@ -3469,6 +3492,7 @@ proto.update = function ( keypath, complete ) {
 
 	if ( typeof keypath === 'function' ) {
 		complete = keypath;
+		keypath = '';
 	}
 
 	// if we're using update, it's possible that we've introduced new values, and
@@ -7901,7 +7925,7 @@ var TextStub;
 
 (function () {
 	
-	var htmlEntities, decodeCharacterReferences, whitespace;
+	var htmlEntities, controlCharacters, getKeys, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
 
 	TextStub = function ( token, preserveWhitespace ) {
 		this.type = TEXT;
@@ -7921,12 +7945,77 @@ var TextStub;
 	};
 
 	htmlEntities = { quot: 34, amp: 38, apos: 39, lt: 60, gt: 62, nbsp: 160, iexcl: 161, cent: 162, pound: 163, curren: 164, yen: 165, brvbar: 166, sect: 167, uml: 168, copy: 169, ordf: 170, laquo: 171, not: 172, shy: 173, reg: 174, macr: 175, deg: 176, plusmn: 177, sup2: 178, sup3: 179, acute: 180, micro: 181, para: 182, middot: 183, cedil: 184, sup1: 185, ordm: 186, raquo: 187, frac14: 188, frac12: 189, frac34: 190, iquest: 191, Agrave: 192, Aacute: 193, Acirc: 194, Atilde: 195, Auml: 196, Aring: 197, AElig: 198, Ccedil: 199, Egrave: 200, Eacute: 201, Ecirc: 202, Euml: 203, Igrave: 204, Iacute: 205, Icirc: 206, Iuml: 207, ETH: 208, Ntilde: 209, Ograve: 210, Oacute: 211, Ocirc: 212, Otilde: 213, Ouml: 214, times: 215, Oslash: 216, Ugrave: 217, Uacute: 218, Ucirc: 219, Uuml: 220, Yacute: 221, THORN: 222, szlig: 223, agrave: 224, aacute: 225, acirc: 226, atilde: 227, auml: 228, aring: 229, aelig: 230, ccedil: 231, egrave: 232, eacute: 233, ecirc: 234, euml: 235, igrave: 236, iacute: 237, icirc: 238, iuml: 239, eth: 240, ntilde: 241, ograve: 242, oacute: 243, ocirc: 244, otilde: 245, ouml: 246, divide: 247, oslash: 248, ugrave: 249, uacute: 250, ucirc: 251, uuml: 252, yacute: 253, thorn: 254, yuml: 255, OElig: 338, oelig: 339, Scaron: 352, scaron: 353, Yuml: 376, fnof: 402, circ: 710, tilde: 732, Alpha: 913, Beta: 914, Gamma: 915, Delta: 916, Epsilon: 917, Zeta: 918, Eta: 919, Theta: 920, Iota: 921, Kappa: 922, Lambda: 923, Mu: 924, Nu: 925, Xi: 926, Omicron: 927, Pi: 928, Rho: 929, Sigma: 931, Tau: 932, Upsilon: 933, Phi: 934, Chi: 935, Psi: 936, Omega: 937, alpha: 945, beta: 946, gamma: 947, delta: 948, epsilon: 949, zeta: 950, eta: 951, theta: 952, iota: 953, kappa: 954, lambda: 955, mu: 956, nu: 957, xi: 958, omicron: 959, pi: 960, rho: 961, sigmaf: 962, sigma: 963, tau: 964, upsilon: 965, phi: 966, chi: 967, psi: 968, omega: 969, thetasym: 977, upsih: 978, piv: 982, ensp: 8194, emsp: 8195, thinsp: 8201, zwnj: 8204, zwj: 8205, lrm: 8206, rlm: 8207, ndash: 8211, mdash: 8212, lsquo: 8216, rsquo: 8217, sbquo: 8218, ldquo: 8220, rdquo: 8221, bdquo: 8222, dagger: 8224, Dagger: 8225, bull: 8226, hellip: 8230, permil: 8240, prime: 8242, Prime: 8243, lsaquo: 8249, rsaquo: 8250, oline: 8254, frasl: 8260, euro: 8364, image: 8465, weierp: 8472, real: 8476, trade: 8482, alefsym: 8501, larr: 8592, uarr: 8593, rarr: 8594, darr: 8595, harr: 8596, crarr: 8629, lArr: 8656, uArr: 8657, rArr: 8658, dArr: 8659, hArr: 8660, forall: 8704, part: 8706, exist: 8707, empty: 8709, nabla: 8711, isin: 8712, notin: 8713, ni: 8715, prod: 8719, sum: 8721, minus: 8722, lowast: 8727, radic: 8730, prop: 8733, infin: 8734, ang: 8736, and: 8743, or: 8744, cap: 8745, cup: 8746, 'int': 8747, there4: 8756, sim: 8764, cong: 8773, asymp: 8776, ne: 8800, equiv: 8801, le: 8804, ge: 8805, sub: 8834, sup: 8835, nsub: 8836, sube: 8838, supe: 8839, oplus: 8853, otimes: 8855, perp: 8869, sdot: 8901, lceil: 8968, rceil: 8969, lfloor: 8970, rfloor: 8971, lang: 9001, rang: 9002, loz: 9674, spades: 9824, clubs: 9827, hearts: 9829, diams: 9830	};
+	controlCharacters = [8364, 129, 8218, 402, 8222, 8230, 8224, 8225, 710, 8240, 352, 8249, 338, 141, 381, 143, 144, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250, 339, 157, 382, 376];
+
+	// need to do this for the benefit of IE8... not putting in legacy.js because it's
+	// not a complete polyfill
+	getKeys = Object.keys || function ( obj ) {
+		var keys = [], key;
+
+		for ( key in obj ) {
+			if ( hasOwn.call( obj, key ) ) {
+				keys[ keys.length ] = key;
+			}
+		}
+
+		return key;
+	};
+
+	namedEntityPattern = new RegExp( '&(' + getKeys( htmlEntities ).join( '|' ) + ');?', 'g' );
+	hexEntityPattern     = /&#x([0-9]+);?/g;
+	decimalEntityPattern = /&#([0-9]+);?/g;
+
+	// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
+	// code points with alternatives in some cases - since we're bypassing that mechanism, we need
+	// to replace them ourselves
+	//
+	// Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
+	validateCode = function ( code ) {
+		if ( !code ) {
+			return 65533;
+		}
+
+		// line feed becomes generic whitespace
+		if ( code === 10 ) {
+			return 32;
+		}
+
+		// ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
+		if ( code < 128 ) {
+			return code;
+		}
+
+		// code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
+		// to correct the mistake or we'll end up with missing € signs and so on
+		if ( code <= 159 ) {
+			return controlCharacters[ code - 128 ];
+		}
+
+		// basic multilingual plane
+		if ( code < 55296 ) {
+			return code;
+		}
+
+		// UTF-16 surrogate halves
+		if ( code <= 57343 ) {
+			return 65533;
+		}
+
+		// rest of the basic multilingual plane
+		if ( code <= 65535 ) {
+			return code;
+		}
+
+		// TODO it's... not exactly clear what should happen with code points over this value. The
+		// following seems to work. But I can't guarantee it works in China!
+		return 65533;
+	};
 
 	decodeCharacterReferences = function ( html ) {
 		var result;
 
 		// named entities
-		result = html.replace( /&([a-zA-Z]+);/g, function ( match, name ) {
+		result = html.replace( namedEntityPattern, function ( match, name ) {
 			if ( htmlEntities[ name ] ) {
 				return String.fromCharCode( htmlEntities[ name ] );
 			}
@@ -7935,13 +8024,13 @@ var TextStub;
 		});
 
 		// hex references
-		result = result.replace( /&#x([0-9]+);/g, function ( match, hex ) {
-			return String.fromCharCode( parseInt( hex, 16 ) );
+		result = result.replace( hexEntityPattern, function ( match, hex ) {
+			return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
 		});
 
 		// decimal references
-		result = result.replace( /&#([0-9]+);/g, function ( match, num ) {
-			return String.fromCharCode( num );
+		result = result.replace( decimalEntityPattern, function ( match, charCode ) {
+			return String.fromCharCode( validateCode( charCode ) );
 		});
 
 		return result;
@@ -8347,17 +8436,25 @@ var getExpression;
 	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
 
 	getReference = function ( tokenizer ) {
-		var startPos, name, dot, combo, refinement, lastDotIndex;
+		var startPos, parent, name, dot, combo, refinement, lastDotIndex;
 
 		startPos = tokenizer.pos;
 
-		// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
-		// standard reference ('name')
-		dot = getStringMatch( tokenizer, '.' ) || '';
+		// we might have parent refs...
+		parent = '';
+		while ( getStringMatch( tokenizer, '../' ) ) {
+			parent += '../';
+		}
+
+		if ( !parent ) {
+			// we might have an implicit iterator or a restricted reference
+			dot = getStringMatch( tokenizer, '.' ) || '';
+		}
+
 		name = getName( tokenizer ) || '';
 
 		// if this is a browser global, stop here
-		if ( !dot && globals.test( name ) ) {
+		if ( !parent && !dot && globals.test( name ) ) {
 			return {
 				t: GLOBAL,
 				v: name
@@ -8365,12 +8462,12 @@ var getExpression;
 		}
 
 		// allow the use of `this`
-		if ( name === 'this' ) {
+		if ( name === 'this' && !parent && !dot ) {
 			name = '.';
 			startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
 		}
 
-		combo = dot + name;
+		combo = ( parent || dot ) + name;
 
 		if ( !combo ) {
 			return null;
@@ -8917,13 +9014,11 @@ var getTag;
 	getUnquotedAttributeValue,
 	getUnquotedAttributeValueToken,
 	getUnquotedAttributeValueText,
-	getSingleQuotedAttributeValue,
-	getSingleQuotedStringToken,
-	getDoubleQuotedAttributeValue,
-	getDoubleQuotedStringToken;
+	getQuotedStringToken,
+	getQuotedAttributeValue;
 
 	getTag = function ( tokenizer ) {
-		return ( getOpeningTag( tokenizer ) || getClosingTag( tokenizer ) );
+		return getOpeningTag( tokenizer ) || getClosingTag( tokenizer );
 	};
 
 	getOpeningTag = function ( tokenizer ) {
@@ -9065,8 +9160,10 @@ var getTag;
 
 		allowWhitespace( tokenizer );
 
-		value = getSingleQuotedAttributeValue( tokenizer ) || getDoubleQuotedAttributeValue( tokenizer ) || getUnquotedAttributeValue( tokenizer );
-
+		value = getQuotedAttributeValue( tokenizer, "'" ) ||
+		        getQuotedAttributeValue( tokenizer, '"' ) ||
+		        getUnquotedAttributeValue( tokenizer );
+		
 		if ( value === null ) {
 			tokenizer.pos = start;
 			return null;
@@ -9117,129 +9214,76 @@ var getTag;
 		return tokens;
 	};
 
-
-	getSingleQuotedStringToken = function ( tokenizer ) {
-		var start, text, index;
-
-		start = tokenizer.pos;
-
-		text = getSingleQuotedString( tokenizer );
-
-		if ( !text ) {
-			return null;
-		}
-
-		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-			text = text.substr( 0, index );
-			tokenizer.pos = start + text.length;
-		}
-
-		return {
-			type: TEXT,
-			value: text
-		};
-	};
-
-	getSingleQuotedAttributeValue = function ( tokenizer ) {
+	getQuotedAttributeValue = function ( tokenizer, quoteMark ) {
 		var start, tokens, token;
 
 		start = tokenizer.pos;
 
-		if ( !getStringMatch( tokenizer, "'" ) ) {
+		if ( !getStringMatch( tokenizer, quoteMark ) ) {
 			return null;
 		}
 
 		tokens = [];
 
-		token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+		token = getMustacheOrTriple( tokenizer ) || getQuotedStringToken( tokenizer, quoteMark );
 		while ( token !== null ) {
 			tokens[ tokens.length ] = token;
-			token = getMustacheOrTriple( tokenizer ) || getSingleQuotedStringToken( tokenizer );
+			token = getMustacheOrTriple( tokenizer ) || getQuotedStringToken( tokenizer, quoteMark );
 		}
 
-		if ( !getStringMatch( tokenizer, "'" ) ) {
+		if ( !getStringMatch( tokenizer, quoteMark ) ) {
 			tokenizer.pos = start;
 			return null;
 		}
 
 		return tokens;
-
 	};
 
-	getDoubleQuotedStringToken = function ( tokenizer ) {
-		var start, text, index;
+	getQuotedStringToken = function ( tokenizer, quoteMark ) {
+		var start, index, remaining;
 
 		start = tokenizer.pos;
+		remaining = tokenizer.remaining();
 
-		text = getDoubleQuotedString( tokenizer );
+		index = getLowestIndex( remaining, [ quoteMark, tokenizer.delimiters[0], tokenizer.delimiters[1] ] );
 
-		if ( !text ) {
+		if ( index === -1 ) {
+			throw new Error( 'Quoted attribute value must have a closing quote' );
+		}
+
+		if ( !index ) {
 			return null;
 		}
 
-		if ( ( index = text.indexOf( tokenizer.delimiters[0] ) ) !== -1 ) {
-			text = text.substr( 0, index );
-			tokenizer.pos = start + text.length;
-		}
+		tokenizer.pos += index;
 
 		return {
 			type: TEXT,
-			value: text
+			value: remaining.substr( 0, index )
 		};
 	};
 
-	getDoubleQuotedAttributeValue = function ( tokenizer ) {
-		var start, tokens, token;
-
-		start = tokenizer.pos;
-
-		if ( !getStringMatch( tokenizer, '"' ) ) {
-			return null;
-		}
-
-		tokens = [];
-
-		token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
-		while ( token !== null ) {
-			tokens[ tokens.length ] = token;
-			token = getMustacheOrTriple( tokenizer ) || getDoubleQuotedStringToken( tokenizer );
-		}
-
-		if ( !getStringMatch( tokenizer, '"' ) ) {
-			tokenizer.pos = start;
-			return null;
-		}
-
-		return tokens;
-
-	};
 }());
 var getText = function ( tokenizer ) {
-	var minIndex, text;
+	var index, remaining;
 
-	minIndex = tokenizer.str.length;
+	remaining = tokenizer.remaining();
 
-	// anything goes except opening delimiters or a '<'
-	[ tokenizer.delimiters[0], tokenizer.tripleDelimiters[0], '<' ].forEach( function ( substr ) {
-		var index = tokenizer.str.indexOf( substr, tokenizer.pos );
+	index = getLowestIndex( remaining, [ '<', tokenizer.delimiters[0], tokenizer.tripleDelimiters[0] ] );
 
-		if ( index !== -1 ) {
-			minIndex = Math.min( index, minIndex );
-		}
-	});
-
-	if ( minIndex === tokenizer.pos ) {
+	if ( !index ) {
 		return null;
 	}
 
-	text = tokenizer.str.substring( tokenizer.pos, minIndex );
-	tokenizer.pos = minIndex;
+	if ( index === -1 ) {
+		index = remaining.length;
+	}
 
+	tokenizer.pos += index;
 	return {
 		type: TEXT,
-		value: text
+		value: remaining.substr( 0, index )
 	};
-
 };
 getToken = function ( tokenizer ) {
 	var token = getMustacheOrTriple( tokenizer ) ||
@@ -9248,6 +9292,7 @@ getToken = function ( tokenizer ) {
 
 	return token;
 };
+// TODO establish whether we actually need this (and siblings)
 var getDoubleQuotedString = function ( tokenizer ) {
 	var start, string, escaped, unescaped, next;
 
@@ -9300,6 +9345,29 @@ var getEscapedChars = function ( tokenizer ) {
 	}
 
 	return chars || null;
+};
+var getLowestIndex = function ( haystack, needles ) {
+	var i, index, lowest;
+
+	i = needles.length;
+	while ( i-- ) {
+		index = haystack.indexOf( needles[i] );
+		
+		// short circuit
+		if ( !index ) {
+			return 0;
+		}
+
+		if ( index === -1 ) {
+			continue;
+		}
+		
+		if ( !lowest || ( index < lowest ) ) {
+			lowest = index;
+		}
+	}
+
+	return lowest || -1;
 };
 var getSingleQuotedString = function ( tokenizer ) {
 	var start, string, escaped, unescaped, next;
