@@ -8,21 +8,27 @@
 		this.root = root;
 		this.keypath = keypath;
 
+		this.dependants = 0;
+
 		this.fn = getFunctionFromString( functionStr, args.length );
 		this.values = [];
 		this.refs = [];
 
 		i = args.length;
 		while ( i-- ) {
-			arg = args[i];
+			if ( arg = args[i] ) {
+				if ( arg[0] ) {
+					// this is an index ref... we don't need to register a dependant
+					this.values[i] = arg[1];
+				}
 
-			if ( arg[0] ) {
-				// this is an index ref... we don't need to register a dependant
-				this.values[i] = arg[1];
+				else {
+					this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
+				}
 			}
-
+			
 			else {
-				this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
+				this.values[i] = undefined;
 			}
 		}
 
@@ -30,7 +36,20 @@
 	};
 
 	Evaluator.prototype = {
+		wake: function () {
+			this.awake = true;
+			this.update();
+		},
+
+		sleep: function () {
+			this.awake = false;
+		},
+
 		bubble: function () {
+			if ( !this.awake ) {
+				return;
+			}
+
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
 				this.update();
@@ -78,7 +97,7 @@
 			return this;
 		},
 
-		// TODO should evaluators ever get torn down?
+		// TODO should evaluators ever get torn down? At present, they don't...
 		teardown: function () {
 			while ( this.refs.length ) {
 				this.refs.pop().teardown();

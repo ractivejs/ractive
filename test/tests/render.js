@@ -228,13 +228,13 @@
 		{
 			name: 'Arithmetic expression with missing data',
 			template: '{{( number * 2 )}}',
-			result: ''
+			result: 'NaN'
 		},
 		{
 			name: 'Arithmetic expression with missing data and update',
 			template: '{{( number * 2 )}}',
 			new_data: { number: 20 },
-			result: '',
+			result: 'NaN',
 			new_result: '40'
 		},
 		{

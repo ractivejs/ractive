@@ -137,10 +137,7 @@
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				unregisterDependant( mustache );
-
-				mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
-				registerDependant( mustache );
+				mustache.resolve( mustache.keypath.replace( oldKeypath, newKeypath ) );
 			}
 		}
 

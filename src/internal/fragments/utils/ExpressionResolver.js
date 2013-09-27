@@ -17,10 +17,12 @@
 		this.str = expression.s;
 
 		// send out scouts for each reference
-		len = this.unresolved = ( expression.r ? expression.r.length : 0 );
+		len = this.unresolved = this.args.length = ( expression.r ? expression.r.length : 0 );
 
 		if ( !len ) {
-			this.init(); // some expressions don't have references. edge case, but, yeah.
+			this.resolved = this.ready = true;
+			this.bubble(); // some expressions don't have references. edge case, but, yeah.
+			return;
 		}
 
 		for ( i=0; i<len; i+=1 ) {
@@ -35,10 +37,17 @@
 				this.scouts[ this.scouts.length ] = new ReferenceScout( this, ref, mustache.contextStack, i );
 			}
 		}
+
+		this.ready = true;
+		this.bubble();
 	};
 
 	ExpressionResolver.prototype = {
-		init: function () {
+		bubble: function () {
+			if ( !this.ready ) {
+				return;
+			}
+			
 			this.keypath = getKeypath( this.str, this.args );
 			this.createEvaluator();
 
@@ -53,23 +62,17 @@
 
 		resolveRef: function ( argNum, isIndexRef, value ) {
 			this.args[ argNum ] = [ isIndexRef, value ];
+			this.bubble();
 
-			// can we initialise yet?
-			if ( --this.unresolved ) {
-				// no;
-				return;
-			}
-
-			this.init();
+			// when all references have been resolved, we can flag the entire expression
+			// as having been resolved
+			this.resolved = !( --this.unresolved );
 		},
 
 		createEvaluator: function () {
 			// only if it doesn't exist yet!
 			if ( !this.root._evaluators[ this.keypath ] ) {
 				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
-
-				// initialise
-				this.root._evaluators[ this.keypath ].update();
 			}
 
 			else {
@@ -120,7 +123,7 @@
 
 		// get string that is unique to this expression
 		unique = str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
-			return args[ $1 ][1];
+			return args[ $1 ] ? args[ $1 ][1] : 'undefined';
 		});
 
 		// then sanitize by removing any periods or square brackets. Otherwise

@@ -67,13 +67,20 @@ updateMustache = function () {
 };
 
 resolveMustache = function ( keypath ) {
-	this.keypath = keypath;
+	// if we resolved previously, we need to unregister
+	if ( this.resolved ) {
+		unregisterDependant( this );
+	}
 
+	this.keypath = keypath;
 	registerDependant( this );
 	
 	this.update();
 
-	if ( this.expressionResolver ) {
+	// TODO is there any need for this?
+	if ( this.expressionResolver && this.expressionResolver.resolved ) {
 		this.expressionResolver = null;
 	}
+
+	this.resolved = true;
 };
