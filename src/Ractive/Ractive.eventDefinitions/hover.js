@@ -2,6 +2,10 @@ eventDefinitions.hover = function ( node, fire ) {
 	var mouseoverHandler, mouseoutHandler;
 
 	mouseoverHandler = function ( event ) {
+		if ( node.contains( event.relatedTarget ) ) {
+			return;
+		}
+
 		fire({
 			node: node,
 			original: event,
@@ -10,6 +14,10 @@ eventDefinitions.hover = function ( node, fire ) {
 	};
 
 	mouseoutHandler = function ( event ) {
+		if ( node.contains( event.relatedTarget ) ) {
+			return;
+		}
+		
 		fire({
 			node: node,
 			original: event,
