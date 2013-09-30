@@ -1,32 +1,19 @@
 clearCache = function ( ractive, keypath ) {
-	var value, cacheMap, childKeypath, wrappedProperty;
+	var cacheMap, wrappedProperty;
 
-	// is this a modified array, which shouldn't fire set events on this keypath anymore?
-	if ( ractive.modifyArrays ) {
-		if ( keypath.charAt( 0 ) !== '(' ) { // expressions (and their children) don't get wrapped
-			value = ractive._cache[ keypath ];
-			if ( isArray( value ) && !value._ractive.setting ) {
-				unregisterKeypathFromArray( value, keypath, ractive );
-			}
+	// Is there a wrapped property at this keypath?
+	if ( wrappedProperty = ractive._wrapped[ keypath ] ) {
+		// Did we unwrap it?
+		if ( wrappedProperty.teardown() !== false ) {
+			ractive._wrapped[ keypath ] = null;
 		}
 	}
 	
-	ractive._cache[ keypath ] = UNSET;
+	ractive._cache[ keypath ] = undefined;
 
 	if ( cacheMap = ractive._cacheMap[ keypath ] ) {
 		while ( cacheMap.length ) {
-			childKeypath = cacheMap.pop();
-
-			clearCache( ractive, childKeypath );
-
-			// unwrap properties
-			wrappedProperty = ractive._wrapped[ childKeypath ];
-
-			if ( wrappedProperty ) {
-				wrappedProperty.teardown();
-			}
-
-			ractive._wrapped[ childKeypath ] = null;
+			clearCache( ractive, cacheMap.pop() );
 		}
 	}
 };

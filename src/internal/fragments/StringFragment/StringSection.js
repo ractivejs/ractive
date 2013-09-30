@@ -30,6 +30,13 @@ StringSection.prototype = {
 	},
 
 	render: function ( value ) {
+		var wrapped;
+
+		// with sections, we need to get the fake value if we have a wrapped object
+		if ( wrapped = this.root._wrapped[ this.keypath ] ) {
+			value = wrapped.get();
+		}
+
 		updateSection( this, value );
 		this.parentFragment.bubble();
 	},

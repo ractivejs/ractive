@@ -1,204 +1,165 @@
-// TODO use dontNormalise
-// TODO refactor this shitball
-
 (function ( proto ) {
 
-	var wrapProperty;
+	var get,
+		prefix,
+		getPrefixer,
+		prefixers = {};
 
 	proto.get = function ( keypath ) {
-		var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
+		var cache,
+			cached,
+			value,
+			wrapped,
+			evaluator;
 
 		if ( !keypath ) {
 			return this.data;
 		}
 
+		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
+		keypath = normaliseKeypath( keypath );
+
 		cache = this._cache;
 
-		if ( isArray( keypath ) ) {
-			if ( !keypath.length ) {
-				return this.data;
-			}
-
-			keys = keypath.slice(); // clone
-			normalised = keys.join( '.' );
-
-			ignoreUndefined = true; // because this should be a branch, sod the cache
+		if ( ( cached = cache[ keypath ] ) !== undefined ) {
+			return cached;
 		}
 
+		// Is this a wrapped property?
+		if ( wrapped = this._wrapped[ keypath ] ) {
+			value = wrapped.value;
+		}
+
+		// Is this an uncached evaluator value?
+		else if ( evaluator = this._evaluators[ keypath ] ) {
+			value = evaluator.value;
+		}
+
+		// No? Then we need to retrieve the value one key at a time
 		else {
-			// cache hit? great
-			if ( hasOwn.call( cache, keypath ) && cache[ keypath ] !== UNSET ) {
-				return cache[ keypath ];
-			}
-
-			keys = splitKeypath( keypath );
-			normalised = keys.join( '.' );
+			value = get( this, keypath );
 		}
-
-		// we may have a cache hit now that it's been normalised
-		if ( hasOwn.call( cache, normalised ) && cache[ normalised ] !== UNSET ) {
-			if ( cache[ normalised ] === undefined && ignoreUndefined ) {
-				// continue
-			} else {
-				return cache[ normalised ];
-			}
-		}
-
-		// is this an uncached evaluator value?
-		if ( this._evaluators[ normalised ] ) {
-			value = this._evaluators[ normalised ].value;
-			cache[ normalised ] = value;
-			return value;
-		}
-
-		// otherwise it looks like we need to do some work
-		key = keys.pop();
-		parentKeypath = keys.join( '.' );
-		parentValue = ( keys.length ? this.get( keys ) : this.data );
-
-		if ( parentValue === null || parentValue === undefined || parentValue === UNSET ) {
-			return;
-		}
-
-		// if we're in magic mode, wrap values if necessary
-		if ( this.magic && typeof parentValue === 'object' && hasOwn.call( parentValue, key ) ) {
-			if ( !this._wrapped[ normalised ] ) {
-				this._wrapped[ normalised ] = wrapProperty( parentValue, key, this, normalised );
-			}
-		}
-
-		// update cache map
-		if ( !( cacheMap = this._cacheMap[ parentKeypath ] ) ) {
-			this._cacheMap[ parentKeypath ] = [ normalised ];
-		} else {
-			if ( cacheMap.indexOf( normalised ) === -1 ) {
-				cacheMap[ cacheMap.length ] = normalised;
-			}
-		}
-
-		value = parentValue[ key ];
-
-		// Is this an array that needs to be wrapped?
-		if ( this.modifyArrays ) {
-			// if it's not an expression, is an array, and we're not here because it sent us here, wrap it
-			if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value._ractive || !value._ractive.setting ) ) {
-				registerKeypathToArray( value, normalised, this );
-			}
-		}
-
-		// Update cache
-		cache[ normalised ] = value;
-
+		
+		cache[ keypath ] = value;
 		return value;
 	};
 
 
-	// wrap object for magic get/set
-	wrapProperty = function ( obj, prop, ractive, keypath ) {
-		var value, descriptor, get, set, oldGet, oldSet, ractives, keypathsByGuid;
 
-		descriptor = Object.getOwnPropertyDescriptor( obj, prop );
+	get = function ( ractive, keypath ) {
+		var keys, key, parentKeypath, parentValue, cacheMap, value, adaptor, wrapped, i;
 
-		if ( descriptor ) {
-			if ( descriptor.set && ( ractives = descriptor.set.ractives ) ) {
-				// register this ractive to this object
-				if ( ractives.indexOf( ractive ) === -1 ) {
-					ractives[ ractives.length ] = ractive;
-				}
+		keys = keypath.split( '.' );
+		key = keys.pop();
+		parentKeypath = keys.join( '.' );
 
-				// register this keypath to this object
-				keypathsByGuid = descriptor.set[ ractive._guid ] || ( descriptor.set[ ractive._guid ] = []);
+		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+			parentValue = wrapped.get();
+		} else {
+			parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
+		}
 
-				if ( keypathsByGuid.indexOf( keypath ) === -1 ) {
-					keypathsByGuid[ keypathsByGuid.length ] = keypath;
-				}
+		if ( parentValue === null || parentValue === undefined ) {
+			return;
+		}
 
-				return; // already wrapped
-			}
-
-			if ( !descriptor.configurable ) {
-				throw new Error( 'Cannot configure property' );
+		// update cache map
+		if ( !( cacheMap = ractive._cacheMap[ parentKeypath ] ) ) {
+			ractive._cacheMap[ parentKeypath ] = [ keypath ];
+		} else {
+			if ( cacheMap.indexOf( keypath ) === -1 ) {
+				cacheMap[ cacheMap.length ] = keypath;
 			}
 		}
 
-		if ( !descriptor || hasOwn.call( descriptor, 'value' ) ) {
-			if ( descriptor ) {
-				value = descriptor.value;
-			}
+
+		value = parentValue[ key ];
+
+
+		// Do we have an adaptor for this value?
+		i = ractive.adaptors.length;
+		while ( i-- ) {
+			adaptor = ractive.adaptors[i];
 			
-			get = function () {
+			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
+			// we need to get the actual adaptor if that's the case
+			if ( typeof adaptor === 'string' ) {
+				if ( !Ractive.adaptors[ adaptor ] ) {
+					throw new Error( 'Missing adaptor "' + adaptor + '"' );
+				}
+				adaptor = ractive.adaptors[i] = Ractive.adaptors[ adaptor ];
+			}
+
+			if ( adaptor.filter( ractive, value, keypath ) ) {
+				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+				
+				ractive._cache[ keypath ] = value;
 				return value;
-			};
-
-			set = function ( newValue ) {
-				var ractives, ractive, keypaths, i, j;
-
-				value = newValue;
-
-				ractives = set.ractives;
-
-				i = ractives.length;
-				while ( i-- ) {
-					ractive = ractives[i];
-
-					if ( !ractive.muggleSet ) {	
-						ractive.magicSet = true;
-
-						keypaths = set[ ractive._guid ];
-						j = keypaths.length;
-
-						while ( j-- ) {
-							ractive.set( keypaths[j], newValue );
-						}
-
-						ractive.magicSet = false;
-					}
-				}
-			};
-
-			// prevent rewrapping
-			set.ractives = [ ractive ];
-			set[ ractive._guid ] = [ keypath ];
-
-			Object.defineProperty( obj, prop, { get: get, set: set, enumerable: true, configurable: true });
+			}
 		}
 
-		else {
-			if ( ( descriptor.set && !descriptor.get ) || ( !descriptor.set && descriptor.get ) ) {
-				throw new Error( 'Property with getter but no setter, or vice versa. I am confused.' );
-			}
 
-			if ( descriptor.set._ractive ) {
-				return; // already wrapped
-			}
-
-			oldGet = descriptor.get;
-			oldSet = descriptor.set;
-
-			set = function ( newValue ) {
-				oldSet( newValue );
-
-				if ( !ractive.muggleSet ) {
-					ractive.magicSet = true;
-					ractive.set( keypath, oldGet() );
-					ractive.magicSet = false;
-				}
-			};
-
-			// prevent rewrapping
-			set[ ractive._guid + keypath ] = true;
-
-			Object.defineProperty( obj, prop, { get: oldGet, set: set, enumerable: true, configurable: true });
+		// If we're in 'magic' mode, wrap this object
+		if ( ractive.magic ) {
+			ractive._wrapped[ keypath ] = Ractive.adaptors.magic.wrap( ractive, value, keypath );
 		}
 
-		return {
-			teardown: function () {
-				var value = obj[ prop ];
+		// Should we use the in-built adaptor for plain arrays?
+		if ( ractive.modifyArrays ) {
+			adaptor = Ractive.adaptors.array;
 
-				Object.defineProperty( obj, prop, descriptor );
-				obj[ prop ] = value;
+			if ( adaptor.filter( ractive, value, keypath ) ) {
+				ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath );
 			}
-		};
+		}
+
+		// Update cache
+		ractive._cache[ keypath ] = value;
+		return value;
+	};
+	
+
+	prefix = function ( obj, prefix ) {
+		var prefixed = {}, key;
+
+		if ( !prefix ) {
+			return obj;
+		}
+
+		prefix += '.';
+
+		for ( key in obj ) {
+			if ( hasOwn.call( obj, key ) ) {
+				prefixed[ prefix + key ] = obj[ key ];
+			}
+		}
+
+		return prefixed;
+	};
+
+	getPrefixer = function ( rootKeypath ) {
+		var rootDot;
+
+		if ( !prefixers[ rootKeypath ] ) {
+			rootDot = rootKeypath ? rootKeypath + '.' : '';
+
+			prefixers[ rootKeypath ] = function ( relativeKeypath, value ) {
+				var obj;
+
+				if ( typeof relativeKeypath === 'string' ) {
+					obj = {};
+					obj[ rootDot + relativeKeypath ] = value;
+					return obj;
+				}
+
+				if ( typeof relativeKeypath === 'object' ) {
+					// 'relativeKeypath' is in fact a hash, not a keypath
+					return rootDot ? prefix( relativeKeypath, rootKeypath ) : relativeKeypath;
+				}
+			};
+		}
+
+		return prefixers[ rootKeypath ];
 	};
 
 }( proto ));

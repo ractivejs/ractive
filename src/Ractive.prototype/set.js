@@ -1,14 +1,15 @@
 (function ( proto ) {
 
-	var set;
+	var set, resetWrapped;
 
 	proto.set = function ( keypath, value, complete ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previousTransitionManager, transitionManager;
+		var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
 
-		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
-		notificationQueue = [];
+		upstreamChanges = [ '' ]; // empty string will always be an upstream keypath
+		changes = [];
 
 		if ( isObject( keypath ) ) {
+			map = keypath;
 			complete = value;
 		}
 
@@ -17,38 +18,35 @@
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// setting multiple values in one go
-		if ( isObject( keypath ) ) {
-			for ( k in keypath ) {
-				if ( hasOwn.call( keypath, k ) ) {
-					keys = splitKeypath( k );
-					normalised = keys.join( '.' );
-					value = keypath[k];
+		if ( map ) {
+			for ( keypath in map ) {
+				if ( hasOwn.call( map, keypath) ) {
+					value = map[ keypath ];
+					keypath = normaliseKeypath( keypath );
 
-					set( this, normalised, keys, value, notificationQueue, upstreamQueue );
+					set( this, keypath, value, changes, upstreamChanges );
 				}
 			}
 		}
 
 		// setting a single value
 		else {
-			keys = splitKeypath( keypath );
-			normalised = keys.join( '.' );
-
-			set( this, normalised, keys, value, notificationQueue, upstreamQueue );
+			keypath = normaliseKeypath( keypath );
+			set( this, keypath, value, changes, upstreamChanges );
 		}
 
 		// if anything has changed, attempt to resolve any unresolved keypaths...
-		if ( notificationQueue.length && this._pendingResolution.length ) {
+		if ( changes.length && this._pendingResolution.length ) {
 			attemptKeypathResolution( this );
 		}
 
 		// ...and notify dependants
-		if ( upstreamQueue.length ) {
-			notifyMultipleDependants( this, upstreamQueue, true );
+		if ( upstreamChanges.length ) {
+			notifyMultipleDependants( this, upstreamChanges, true );
 		}
 
-		if ( notificationQueue.length ) {
-			notifyMultipleDependants( this, notificationQueue );
+		if ( changes.length ) {
+			notifyMultipleDependants( this, changes );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
@@ -60,42 +58,59 @@
 		this._transitionManager = previousTransitionManager;
 		transitionManager.ready();
 
-		// fire event
-		if ( !this.setting ) {
-			this.setting = true; // short-circuit any potential infinite loops
+		// Fire a change event
+		if ( ( i = changes.length ) && !this.firingChangeEvent ) {
+			this.firingChangeEvent = true; // short-circuit any potential infinite loops
 			
-			if ( typeof keypath === 'object' ) {
-				this.fire( 'set', keypath );
-			} else {
-				this.fire( 'set', keypath, value );
+			changeHash = {};
+
+			i = changes.length;
+			while ( i-- ) {
+				changeHash[ changes[i] ] = this.get( changes[i] );
 			}
 
-			this.setting = false;
+			this.fire( 'change', changeHash );
+
+			this.firingChangeEvent = false;
 		}
 
 		return this;
 	};
 
 
-	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
-		var cached, previous, key, obj, keysClone, accumulated, keypathToClear;
+	set = function ( ractive, keypath, value, changes, upstreamChanges ) {
+		var cached, keys, previous, key, obj, accumulated, currentKeypath, keypathToClear, wrapped;
 
-		keysClone = keys.slice();
+		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
+			if ( resetWrapped( ractive, keypath, value, wrapped, changes, upstreamChanges ) !== false ) {
+				return;
+			}
+		}
+
+		cached = ractive._cache[ keypath ];
+		previous = ractive.get( keypath );
+
+		keys = keypath.split( '.' );
 		accumulated = [];
-
-		cached = root._cache[ keypath ];
-		previous = root.get( keypath );
-
+		
 		// update the model, if necessary
 		if ( previous !== value ) {
-			if ( !root.magicSet ) {
-				root.muggleSet = true;
+			
+			// update data
+			obj = ractive.data;
+			while ( keys.length > 1 ) {
+				key = accumulated[ accumulated.length ] = keys.shift();
+				currentKeypath = accumulated.join( '.' );
 
-				// update data
-				obj = root.data;
-				while ( keys.length > 1 ) {
-					key = accumulated[ accumulated.length ] = keys.shift();
+				if ( wrapped = ractive._wrapped[ currentKeypath ] ) {
+					if ( wrapped.set ) {
+						wrapped.set( keys.join( '.' ), value );
+					}
 
+					obj = wrapped.get();
+				}
+
+				else {
 					// If this branch doesn't exist yet, create a new one - if the next
 					// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
 					// than an object
@@ -104,7 +119,7 @@
 						// if we're creating a new branch, we may need to clear the upstream
 						// keypath
 						if ( !keypathToClear ) {
-							keypathToClear = accumulated.join( '.' );
+							keypathToClear = currentKeypath;
 						}
 
 						obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
@@ -112,13 +127,10 @@
 
 					obj = obj[ key ];
 				}
-
-				key = keys[0];
-
-				obj[ key ] = value;
-
-				root.muggleSet = false;
 			}
+
+			key = keys[0];
+			obj[ key ] = value;
 		}
 
 		else {
@@ -131,22 +143,69 @@
 
 
 		// Clear cache
-		clearCache( root, keypathToClear || keypath );
+		clearCache( ractive, keypathToClear || keypath );
 
-		// add this keypath to the notification queue
-		queue[ queue.length ] = keypath;
+		// add this keypath to the list of changes
+		changes[ changes.length ] = keypath;
 
 
-		// add upstream keypaths to the upstream notification queue
-		while ( keysClone.length > 1 ) {
-			keysClone.pop();
-			keypath = keysClone.join( '.' );
+		// add upstream keypaths to the list of upstream changes
+		keys = keypath.split( '.' );
+		while ( keys.length > 1 ) {
+			keys.pop();
+			keypath = keys.join( '.' );
 
-			if ( upstreamQueue.indexOf( keypath ) === -1 ) {
-				upstreamQueue[ upstreamQueue.length ] = keypath;
+			if ( !upstreamChanges[ keypath ] ) {
+				upstreamChanges[ upstreamChanges.length ] = keypath;
+				upstreamChanges[ keypath ] = true;
 			}
 		}
-		
+	};
+
+
+	resetWrapped = function ( ractive, keypath, value, wrapped, changes, upstreamChanges ) {
+		var previous, cached, cacheMap, keys, i;
+
+		previous = wrapped.get();
+
+		if ( !isEqual( previous, value ) ) {
+			if ( wrapped.reset( value ) === false ) {
+				return false;
+			}
+		}
+
+		value = wrapped.get();
+		cached = ractive._cache[ keypath ];
+
+		if ( !isEqual( cached, value ) ) {
+			ractive._cache[ keypath ] = value;
+
+			// Clear downstream keypaths only. Otherwise this wrapper will be torn down!
+			// TODO is there a way to intelligently detect whether a wrapper should be
+			// torn down?
+			cacheMap = ractive._cacheMap[ keypath ];
+
+			if ( cacheMap ) {
+				i = cacheMap.length;
+				while ( i-- ) {
+					clearCache( ractive, cacheMap[i] );
+				}
+			}
+
+			changes[ changes.length ] = keypath;
+
+			// add upstream keypaths to the list of upstream changes
+			keys = keypath.split( '.' );
+			while ( keys.length > 1 ) {
+				keys.pop();
+				keypath = keys.join( '.' );
+
+				if ( !upstreamChanges[ keypath ] ) {
+					upstreamChanges[ upstreamChanges.length ] = keypath;
+					upstreamChanges[ keypath ] = true;
+				}
+			}
+		}
 	};
 
 }( proto ));

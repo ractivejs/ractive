@@ -185,7 +185,12 @@ DomSection.prototype = {
 	},
 
 	render: function ( value ) {
-		var next;
+		var next, wrapped;
+
+		// with sections, we need to get the fake value if we have a wrapped object
+		if ( wrapped = this.root._wrapped[ this.keypath ] ) {
+			value = wrapped.get();
+		}
 
 		// prevent sections from rendering multiple times (happens if
 		// evaluators evaluate while update is happening)

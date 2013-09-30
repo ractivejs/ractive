@@ -2,7 +2,7 @@
 // `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 resolveRef = function ( ractive, ref, contextStack ) {
 
-	var keys, lastKey, innerMostContext, contextKeys, parentValue, keypath, context, ancestorErrorMessage;
+	var keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, keypath, context, ancestorErrorMessage;
 
 	ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
@@ -21,7 +21,7 @@ resolveRef = function ( ractive, ref, contextStack ) {
 		
 		// ...either way we need to get the innermost context
 		context = contextStack[ contextStack.length - 1 ];
-		contextKeys = splitKeypath( context || '' );
+		contextKeys = context ? context.split( '.' ) : [];
 
 		// ancestor references (starting "../") go up the tree
 		if ( ref.substr( 0, 3 ) === '../' ) {
@@ -46,8 +46,9 @@ resolveRef = function ( ractive, ref, contextStack ) {
 		return context + ref;
 	}
 
-	keys = splitKeypath( ref );
+	keys = ref.split( '.' );
 	lastKey = keys.pop();
+	postfix = keys.length ? '.' + keys.join( '.' ) : '';
 
 	// Clone the context stack, so we don't mutate the original
 	contextStack = contextStack.concat();
@@ -56,9 +57,13 @@ resolveRef = function ( ractive, ref, contextStack ) {
 	while ( contextStack.length ) {
 
 		innerMostContext = contextStack.pop();
-		contextKeys = splitKeypath( innerMostContext );
+		parentKeypath = innerMostContext + postfix;
 
-		parentValue = ractive.get( contextKeys.concat( keys ) );
+		parentValue = ractive.get( innerMostContext + postfix );
+
+		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+			parentValue = wrapped.get();
+		}
 
 		if ( typeof parentValue === 'object' && parentValue !== null && hasOwn.call( parentValue, lastKey ) ) {
 			keypath = innerMostContext + '.' + ref;

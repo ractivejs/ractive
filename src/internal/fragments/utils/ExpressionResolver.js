@@ -127,7 +127,7 @@
 		});
 
 		// then sanitize by removing any periods or square brackets. Otherwise
-		// splitKeypath will go mental!
+		// we can't split the keypath into keys!
 		return '(' + unique.replace( /[\.\[\]]/g, '-' ) + ')';
 	};
 

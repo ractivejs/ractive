@@ -12,7 +12,8 @@ defineProperties( defaultOptions, {
 	eventDefinitions:   { enumerable: true, value: {}    },
 	noIntro:            { enumerable: true, value: false },
 	transitionsEnabled: { enumerable: true, value: true  },
-	magic:              { enumerable: true, value: false }
+	magic:              { enumerable: true, value: false },
+	adaptors:           { enumerable: true, value: []    }
 });
 
 Ractive = function ( options ) {
@@ -125,6 +126,9 @@ Ractive = function ( options ) {
 
 	// Instance-specific event definitions registry
 	this.eventDefinitions = options.eventDefinitions;
+
+	// Adaptors
+	this.adaptors = options.adaptors;
 
 	// Set up bindings
 	if ( options.bindings ) {

@@ -36,7 +36,6 @@ processDeferredUpdates,
 
 
 // internal utils
-splitKeypath,
 toString,
 isArray,
 isObject,
@@ -66,10 +65,6 @@ getElementNamespace,
 updateAttribute,
 bindAttribute,
 console = global.console || { log: noop, warn: noop },
-
-
-// internally used caches
-keypathCache = {},
 
 
 // internally used constructors
@@ -164,8 +159,6 @@ CONDITIONAL       = 35,
 INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
-
-UNSET             = { unset: true },
 
 testDiv = ( doc ? doc.createElement( 'div' ) : null ),
 noMagic,
