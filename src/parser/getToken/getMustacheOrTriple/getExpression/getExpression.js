@@ -7,9 +7,7 @@ var getExpression;
 	makeInfixSequenceMatcher,
 	getBracketedExpression,
 	getPrimary,
-	getMember,
-	getInvocation,
-	getInvocationRefinement,
+	getMemberOrInvocation,
 	getTypeOf,
 	getLogicalOr,
 	getConditional,
@@ -118,98 +116,53 @@ var getExpression;
 		    || getBracketedExpression( tokenizer );
 	};
 
-	getMember = function ( tokenizer ) {
-		var expression, refinement, member;
+	getMemberOrInvocation = function ( tokenizer ) {
+		var current, expression, refinement, expressionList;
 
 		expression = getPrimary( tokenizer );
+
 		if ( !expression ) {
 			return null;
 		}
 
-		refinement = getRefinement( tokenizer );
-		if ( !refinement ) {
-			return expression;
+		while ( expression ) {
+			current = tokenizer.pos;
+
+			if ( refinement = getRefinement( tokenizer ) ) {
+				expression = {
+					t: MEMBER,
+					x: expression,
+					r: refinement
+				};
+			}
+
+			else if ( getStringMatch( tokenizer, '(' ) ) {
+				allowWhitespace( tokenizer );
+				expressionList = getExpressionList( tokenizer );
+
+				allowWhitespace( tokenizer );
+
+				if ( !getStringMatch( tokenizer, ')' ) ) {
+					tokenizer.pos = current;
+					break;
+				}
+
+				expression = {
+					t: INVOCATION,
+					x: expression
+				};
+
+				if ( expressionList ) {
+					expression.o = expressionList;
+				}
+			}
+
+			else {
+				break;
+			}
 		}
 
-		while ( refinement !== null ) {
-			member = {
-				t: MEMBER,
-				x: expression,
-				r: refinement
-			};
-
-			expression = member;
-			refinement = getRefinement( tokenizer );
-		}
-
-		return member;
-	};
-
-	getInvocation = function ( tokenizer ) {
-		var start, expression, expressionList, result;
-
-		expression = getMember( tokenizer );
-		if ( !expression ) {
-			return null;
-		}
-
-		start = tokenizer.pos;
-
-		if ( !getStringMatch( tokenizer, '(' ) ) {
-			return expression;
-		}
-
-		allowWhitespace( tokenizer );
-		expressionList = getExpressionList( tokenizer );
-
-		allowWhitespace( tokenizer );
-
-		if ( !getStringMatch( tokenizer, ')' ) ) {
-			tokenizer.pos = start;
-			return expression;
-		}
-
-		result = {
-			t: INVOCATION,
-			x: expression
-		};
-
-		if ( expressionList ) {
-			result.o = expressionList;
-		}
-
-		return result;
-	};
-
-	getInvocationRefinement = function ( tokenizer ) {
-		var expression, refinement, member;
-
-		expression = getInvocation( tokenizer );
-		if ( !expression ) {
-			return null;
-		}
-
-		if ( expression.t !== INVOCATION ) {
-			return expression;
-		}
-
-		refinement = getRefinement( tokenizer );
-		if ( !refinement ) {
-			return expression;
-		}
-
-		while ( refinement !== null ) {
-			member = {
-				t: MEMBER,
-				x: expression,
-				r: refinement
-			};
-
-			expression = member;
-			refinement = getRefinement( tokenizer );
-		}
-
-		return member;
+		return expression;
 	};
 
 	// right-to-left
@@ -245,7 +198,8 @@ var getExpression;
 		prefixOperators = '! ~ + - typeof'.split( ' ' );
 
 		// An invocation refinement is higher precedence than logical-not
-		fallthrough = getInvocationRefinement;
+		//fallthrough = getInvocationRefinement;
+		fallthrough = getMemberOrInvocation;
 		for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
 			matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
 			fallthrough = matcher;
