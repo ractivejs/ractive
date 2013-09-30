@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-27
+/*! Ractive - v0.3.6 - 2013-09-30
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -42,7 +42,6 @@ processDeferredUpdates,
 
 
 // internal utils
-splitKeypath,
 toString,
 isArray,
 isObject,
@@ -72,10 +71,6 @@ getElementNamespace,
 updateAttribute,
 bindAttribute,
 console = global.console || { log: noop, warn: noop },
-
-
-// internally used caches
-keypathCache = {},
 
 
 // internally used constructors
@@ -170,8 +165,6 @@ CONDITIONAL       = 35,
 INFIX_OPERATOR    = 36,
 
 INVOCATION        = 40,
-
-UNSET             = { unset: true },
 
 testDiv = ( doc ? doc.createElement( 'div' ) : null ),
 noMagic,
@@ -1390,11 +1383,6 @@ insertHtml = function ( html, docFrag ) {
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
 			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				// unregisterDependant( mustache );
-
-				// mustache.keypath = mustache.keypath.replace( oldKeypath, newKeypath );
-				// registerDependant( mustache );
-
 				mustache.resolve( mustache.keypath.replace( oldKeypath, newKeypath ) );
 			}
 		}
@@ -1437,8 +1425,6 @@ insertHtml = function ( html, docFrag ) {
 		i = args.length;
 		while ( i-- ) {
 			if ( arg = args[i] ) {
-				arg = args[i];
-
 				if ( arg[0] ) {
 					// this is an index ref... we don't need to register a dependant
 					this.values[i] = arg[1];
@@ -1773,7 +1759,7 @@ insertHtml = function ( html, docFrag ) {
 		});
 
 		// then sanitize by removing any periods or square brackets. Otherwise
-		// splitKeypath will go mental!
+		// we can't split the keypath into keys!
 		return '(' + unique.replace( /[\.\[\]]/g, '-' ) + ')';
 	};
 
@@ -2556,8 +2542,6 @@ stripStandalones = function ( tokens ) {
 		duration = ( options.duration === undefined ? 400 : options.duration );
 
 		// TODO store keys, use an internal set method
-		//keys = splitKeypath( keypath );
-
 		animation = new Animation({
 			keypath: keypath,
 			from: from,
@@ -2614,207 +2598,168 @@ proto.fire = function ( eventName ) {
 		subscribers[i].apply( this, args );
 	}
 };
-// TODO use dontNormalise
-// TODO refactor this shitball
-
 (function ( proto ) {
 
-	var wrapProperty;
+	var get,
+		prefix,
+		getPrefixer,
+		prefixers = {};
 
 	proto.get = function ( keypath ) {
-		var cache, cacheMap, keys, normalised, key, parentKeypath, parentValue, value, ignoreUndefined;
+		var cache,
+			cached,
+			value,
+			wrapped,
+			evaluator;
 
 		if ( !keypath ) {
 			return this.data;
 		}
 
+		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
+		keypath = normaliseKeypath( keypath );
+
 		cache = this._cache;
 
-		if ( isArray( keypath ) ) {
-			if ( !keypath.length ) {
-				return this.data;
-			}
-
-			keys = keypath.slice(); // clone
-			normalised = keys.join( '.' );
-
-			ignoreUndefined = true; // because this should be a branch, sod the cache
+		if ( ( cached = cache[ keypath ] ) !== undefined ) {
+			return cached;
 		}
 
+		// Is this a wrapped property?
+		if ( wrapped = this._wrapped[ keypath ] ) {
+			value = wrapped.value;
+		}
+
+		// Is this an uncached evaluator value?
+		else if ( evaluator = this._evaluators[ keypath ] ) {
+			value = evaluator.value;
+		}
+
+		// No? Then we need to retrieve the value one key at a time
 		else {
-			// cache hit? great
-			if ( hasOwn.call( cache, keypath ) && cache[ keypath ] !== UNSET ) {
-				return cache[ keypath ];
-			}
-
-			keys = splitKeypath( keypath );
-			normalised = keys.join( '.' );
+			value = get( this, keypath );
 		}
-
-		// we may have a cache hit now that it's been normalised
-		if ( hasOwn.call( cache, normalised ) && cache[ normalised ] !== UNSET ) {
-			if ( cache[ normalised ] === undefined && ignoreUndefined ) {
-				// continue
-			} else {
-				return cache[ normalised ];
-			}
-		}
-
-		// is this an uncached evaluator value?
-		if ( this._evaluators[ normalised ] ) {
-			value = this._evaluators[ normalised ].value;
-			cache[ normalised ] = value;
-			return value;
-		}
-
-		// otherwise it looks like we need to do some work
-		key = keys.pop();
-		parentKeypath = keys.join( '.' );
-		parentValue = ( keys.length ? this.get( keys ) : this.data );
-
-		if ( parentValue === null || parentValue === undefined || parentValue === UNSET ) {
-			return;
-		}
-
-		// if we're in magic mode, wrap values if necessary
-		if ( this.magic && typeof parentValue === 'object' && hasOwn.call( parentValue, key ) ) {
-			if ( !this._wrapped[ normalised ] ) {
-				this._wrapped[ normalised ] = wrapProperty( parentValue, key, this, normalised );
-			}
-		}
-
-		// update cache map
-		if ( !( cacheMap = this._cacheMap[ parentKeypath ] ) ) {
-			this._cacheMap[ parentKeypath ] = [ normalised ];
-		} else {
-			if ( cacheMap.indexOf( normalised ) === -1 ) {
-				cacheMap[ cacheMap.length ] = normalised;
-			}
-		}
-
-		value = parentValue[ key ];
-
-		// Is this an array that needs to be wrapped?
-		if ( this.modifyArrays ) {
-			// if it's not an expression, is an array, and we're not here because it sent us here, wrap it
-			if ( ( normalised.charAt( 0 ) !== '(' ) && isArray( value ) && ( !value._ractive || !value._ractive.setting ) ) {
-				registerKeypathToArray( value, normalised, this );
-			}
-		}
-
-		// Update cache
-		cache[ normalised ] = value;
-
+		
+		cache[ keypath ] = value;
 		return value;
 	};
 
 
-	// wrap object for magic get/set
-	wrapProperty = function ( obj, prop, ractive, keypath ) {
-		var value, descriptor, get, set, oldGet, oldSet, ractives, keypathsByGuid;
 
-		descriptor = Object.getOwnPropertyDescriptor( obj, prop );
+	get = function ( ractive, keypath ) {
+		var keys, key, parentKeypath, parentValue, cacheMap, value, adaptor, wrapped, i;
 
-		if ( descriptor ) {
-			if ( descriptor.set && ( ractives = descriptor.set.ractives ) ) {
-				// register this ractive to this object
-				if ( ractives.indexOf( ractive ) === -1 ) {
-					ractives[ ractives.length ] = ractive;
-				}
+		keys = keypath.split( '.' );
+		key = keys.pop();
+		parentKeypath = keys.join( '.' );
 
-				// register this keypath to this object
-				keypathsByGuid = descriptor.set[ ractive._guid ] || ( descriptor.set[ ractive._guid ] = []);
+		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+			parentValue = wrapped.get();
+		} else {
+			parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
+		}
 
-				if ( keypathsByGuid.indexOf( keypath ) === -1 ) {
-					keypathsByGuid[ keypathsByGuid.length ] = keypath;
-				}
+		if ( parentValue === null || parentValue === undefined ) {
+			return;
+		}
 
-				return; // already wrapped
-			}
-
-			if ( !descriptor.configurable ) {
-				throw new Error( 'Cannot configure property' );
+		// update cache map
+		if ( !( cacheMap = ractive._cacheMap[ parentKeypath ] ) ) {
+			ractive._cacheMap[ parentKeypath ] = [ keypath ];
+		} else {
+			if ( cacheMap.indexOf( keypath ) === -1 ) {
+				cacheMap[ cacheMap.length ] = keypath;
 			}
 		}
 
-		if ( !descriptor || hasOwn.call( descriptor, 'value' ) ) {
-			if ( descriptor ) {
-				value = descriptor.value;
-			}
+
+		value = parentValue[ key ];
+
+
+		// Do we have an adaptor for this value?
+		i = ractive.adaptors.length;
+		while ( i-- ) {
+			adaptor = ractive.adaptors[i];
 			
-			get = function () {
+			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
+			// we need to get the actual adaptor if that's the case
+			if ( typeof adaptor === 'string' ) {
+				if ( !Ractive.adaptors[ adaptor ] ) {
+					throw new Error( 'Missing adaptor "' + adaptor + '"' );
+				}
+				adaptor = ractive.adaptors[i] = Ractive.adaptors[ adaptor ];
+			}
+
+			if ( adaptor.filter( ractive, value, keypath ) ) {
+				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+				
+				ractive._cache[ keypath ] = value;
 				return value;
-			};
-
-			set = function ( newValue ) {
-				var ractives, ractive, keypaths, i, j;
-
-				value = newValue;
-
-				ractives = set.ractives;
-
-				i = ractives.length;
-				while ( i-- ) {
-					ractive = ractives[i];
-
-					if ( !ractive.muggleSet ) {	
-						ractive.magicSet = true;
-
-						keypaths = set[ ractive._guid ];
-						j = keypaths.length;
-
-						while ( j-- ) {
-							ractive.set( keypaths[j], newValue );
-						}
-
-						ractive.magicSet = false;
-					}
-				}
-			};
-
-			// prevent rewrapping
-			set.ractives = [ ractive ];
-			set[ ractive._guid ] = [ keypath ];
-
-			Object.defineProperty( obj, prop, { get: get, set: set, enumerable: true, configurable: true });
+			}
 		}
 
-		else {
-			if ( ( descriptor.set && !descriptor.get ) || ( !descriptor.set && descriptor.get ) ) {
-				throw new Error( 'Property with getter but no setter, or vice versa. I am confused.' );
-			}
 
-			if ( descriptor.set._ractive ) {
-				return; // already wrapped
-			}
-
-			oldGet = descriptor.get;
-			oldSet = descriptor.set;
-
-			set = function ( newValue ) {
-				oldSet( newValue );
-
-				if ( !ractive.muggleSet ) {
-					ractive.magicSet = true;
-					ractive.set( keypath, oldGet() );
-					ractive.magicSet = false;
-				}
-			};
-
-			// prevent rewrapping
-			set[ ractive._guid + keypath ] = true;
-
-			Object.defineProperty( obj, prop, { get: oldGet, set: set, enumerable: true, configurable: true });
+		// If we're in 'magic' mode, wrap this object
+		if ( ractive.magic ) {
+			ractive._wrapped[ keypath ] = Ractive.adaptors.magic.wrap( ractive, value, keypath );
 		}
 
-		return {
-			teardown: function () {
-				var value = obj[ prop ];
+		// Should we use the in-built adaptor for plain arrays?
+		if ( ractive.modifyArrays ) {
+			adaptor = Ractive.adaptors.array;
 
-				Object.defineProperty( obj, prop, descriptor );
-				obj[ prop ] = value;
+			if ( adaptor.filter( ractive, value, keypath ) ) {
+				ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath );
 			}
-		};
+		}
+
+		// Update cache
+		ractive._cache[ keypath ] = value;
+		return value;
+	};
+	
+
+	prefix = function ( obj, prefix ) {
+		var prefixed = {}, key;
+
+		if ( !prefix ) {
+			return obj;
+		}
+
+		prefix += '.';
+
+		for ( key in obj ) {
+			if ( hasOwn.call( obj, key ) ) {
+				prefixed[ prefix + key ] = obj[ key ];
+			}
+		}
+
+		return prefixed;
+	};
+
+	getPrefixer = function ( rootKeypath ) {
+		var rootDot;
+
+		if ( !prefixers[ rootKeypath ] ) {
+			rootDot = rootKeypath ? rootKeypath + '.' : '';
+
+			prefixers[ rootKeypath ] = function ( relativeKeypath, value ) {
+				var obj;
+
+				if ( typeof relativeKeypath === 'string' ) {
+					obj = {};
+					obj[ rootDot + relativeKeypath ] = value;
+					return obj;
+				}
+
+				if ( typeof relativeKeypath === 'object' ) {
+					// 'relativeKeypath' is in fact a hash, not a keypath
+					return rootDot ? prefix( relativeKeypath, rootKeypath ) : relativeKeypath;
+				}
+			};
+		}
+
+		return prefixers[ rootKeypath ];
 	};
 
 }( proto ));
@@ -2839,34 +2784,21 @@ var attemptKeypathResolution = function ( root ) {
 	}
 };
 clearCache = function ( ractive, keypath ) {
-	var value, cacheMap, childKeypath, wrappedProperty;
+	var cacheMap, wrappedProperty;
 
-	// is this a modified array, which shouldn't fire set events on this keypath anymore?
-	if ( ractive.modifyArrays ) {
-		if ( keypath.charAt( 0 ) !== '(' ) { // expressions (and their children) don't get wrapped
-			value = ractive._cache[ keypath ];
-			if ( isArray( value ) && !value._ractive.setting ) {
-				unregisterKeypathFromArray( value, keypath, ractive );
-			}
+	// Is there a wrapped property at this keypath?
+	if ( wrappedProperty = ractive._wrapped[ keypath ] ) {
+		// Did we unwrap it?
+		if ( wrappedProperty.teardown() !== false ) {
+			ractive._wrapped[ keypath ] = null;
 		}
 	}
 	
-	ractive._cache[ keypath ] = UNSET;
+	ractive._cache[ keypath ] = undefined;
 
 	if ( cacheMap = ractive._cacheMap[ keypath ] ) {
 		while ( cacheMap.length ) {
-			childKeypath = cacheMap.pop();
-
-			clearCache( ractive, childKeypath );
-
-			// unwrap properties
-			wrappedProperty = ractive._wrapped[ childKeypath ];
-
-			if ( wrappedProperty ) {
-				wrappedProperty.teardown();
-			}
-
-			ractive._wrapped[ childKeypath ] = null;
+			clearCache( ractive, cacheMap.pop() );
 		}
 	}
 };
@@ -3001,7 +2933,7 @@ registerDependant = function ( dependant ) {
 	}
 
 	// update dependants map
-	keys = splitKeypath( keypath );
+	keys = keypath.split( '.' );
 	
 	while ( keys.length ) {
 		keys.pop();
@@ -3056,7 +2988,7 @@ render = function ( ractive, options ) {
 // `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 resolveRef = function ( ractive, ref, contextStack ) {
 
-	var keys, lastKey, innerMostContext, contextKeys, parentValue, keypath, context, ancestorErrorMessage;
+	var keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, keypath, context, ancestorErrorMessage;
 
 	ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
@@ -3075,7 +3007,7 @@ resolveRef = function ( ractive, ref, contextStack ) {
 		
 		// ...either way we need to get the innermost context
 		context = contextStack[ contextStack.length - 1 ];
-		contextKeys = splitKeypath( context || '' );
+		contextKeys = context ? context.split( '.' ) : [];
 
 		// ancestor references (starting "../") go up the tree
 		if ( ref.substr( 0, 3 ) === '../' ) {
@@ -3100,8 +3032,9 @@ resolveRef = function ( ractive, ref, contextStack ) {
 		return context + ref;
 	}
 
-	keys = splitKeypath( ref );
+	keys = ref.split( '.' );
 	lastKey = keys.pop();
+	postfix = keys.length ? '.' + keys.join( '.' ) : '';
 
 	// Clone the context stack, so we don't mutate the original
 	contextStack = contextStack.concat();
@@ -3110,9 +3043,13 @@ resolveRef = function ( ractive, ref, contextStack ) {
 	while ( contextStack.length ) {
 
 		innerMostContext = contextStack.pop();
-		contextKeys = splitKeypath( innerMostContext );
+		parentKeypath = innerMostContext + postfix;
 
-		parentValue = ractive.get( contextKeys.concat( keys ) );
+		parentValue = ractive.get( innerMostContext + postfix );
+
+		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+			parentValue = wrapped.get();
+		}
 
 		if ( typeof parentValue === 'object' && parentValue !== null && hasOwn.call( parentValue, lastKey ) ) {
 			keypath = innerMostContext + '.' + ref;
@@ -3151,7 +3088,7 @@ unregisterDependant = function ( dependant ) {
 	deps.splice( deps.indexOf( dependant ), 1 );
 
 	// update dependants map
-	keys = splitKeypath( keypath );
+	keys = keypath.split( '.' );
 
 	// If this keypath is an evaluator, decrement its dependants property.
 	// That way, if an evaluator doesn't have any remaining dependants (temporarily
@@ -3344,15 +3281,16 @@ proto.requestFullscreen = function () {
 };
 (function ( proto ) {
 
-	var set;
+	var set, resetWrapped;
 
 	proto.set = function ( keypath, value, complete ) {
-		var notificationQueue, upstreamQueue, k, normalised, keys, previousTransitionManager, transitionManager;
+		var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
 
-		upstreamQueue = [ '' ]; // empty string will always be an upstream keypath
-		notificationQueue = [];
+		upstreamChanges = [ '' ]; // empty string will always be an upstream keypath
+		changes = [];
 
 		if ( isObject( keypath ) ) {
+			map = keypath;
 			complete = value;
 		}
 
@@ -3361,38 +3299,35 @@ proto.requestFullscreen = function () {
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// setting multiple values in one go
-		if ( isObject( keypath ) ) {
-			for ( k in keypath ) {
-				if ( hasOwn.call( keypath, k ) ) {
-					keys = splitKeypath( k );
-					normalised = keys.join( '.' );
-					value = keypath[k];
+		if ( map ) {
+			for ( keypath in map ) {
+				if ( hasOwn.call( map, keypath) ) {
+					value = map[ keypath ];
+					keypath = normaliseKeypath( keypath );
 
-					set( this, normalised, keys, value, notificationQueue, upstreamQueue );
+					set( this, keypath, value, changes, upstreamChanges );
 				}
 			}
 		}
 
 		// setting a single value
 		else {
-			keys = splitKeypath( keypath );
-			normalised = keys.join( '.' );
-
-			set( this, normalised, keys, value, notificationQueue, upstreamQueue );
+			keypath = normaliseKeypath( keypath );
+			set( this, keypath, value, changes, upstreamChanges );
 		}
 
 		// if anything has changed, attempt to resolve any unresolved keypaths...
-		if ( notificationQueue.length && this._pendingResolution.length ) {
+		if ( changes.length && this._pendingResolution.length ) {
 			attemptKeypathResolution( this );
 		}
 
 		// ...and notify dependants
-		if ( upstreamQueue.length ) {
-			notifyMultipleDependants( this, upstreamQueue, true );
+		if ( upstreamChanges.length ) {
+			notifyMultipleDependants( this, upstreamChanges, true );
 		}
 
-		if ( notificationQueue.length ) {
-			notifyMultipleDependants( this, notificationQueue );
+		if ( changes.length ) {
+			notifyMultipleDependants( this, changes );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
@@ -3404,42 +3339,59 @@ proto.requestFullscreen = function () {
 		this._transitionManager = previousTransitionManager;
 		transitionManager.ready();
 
-		// fire event
-		if ( !this.setting ) {
-			this.setting = true; // short-circuit any potential infinite loops
+		// Fire a change event
+		if ( ( i = changes.length ) && !this.firingChangeEvent ) {
+			this.firingChangeEvent = true; // short-circuit any potential infinite loops
 			
-			if ( typeof keypath === 'object' ) {
-				this.fire( 'set', keypath );
-			} else {
-				this.fire( 'set', keypath, value );
+			changeHash = {};
+
+			i = changes.length;
+			while ( i-- ) {
+				changeHash[ changes[i] ] = this.get( changes[i] );
 			}
 
-			this.setting = false;
+			this.fire( 'change', changeHash );
+
+			this.firingChangeEvent = false;
 		}
 
 		return this;
 	};
 
 
-	set = function ( root, keypath, keys, value, queue, upstreamQueue ) {
-		var cached, previous, key, obj, keysClone, accumulated, keypathToClear;
+	set = function ( ractive, keypath, value, changes, upstreamChanges ) {
+		var cached, keys, previous, key, obj, accumulated, currentKeypath, keypathToClear, wrapped;
 
-		keysClone = keys.slice();
+		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
+			if ( resetWrapped( ractive, keypath, value, wrapped, changes, upstreamChanges ) !== false ) {
+				return;
+			}
+		}
+
+		cached = ractive._cache[ keypath ];
+		previous = ractive.get( keypath );
+
+		keys = keypath.split( '.' );
 		accumulated = [];
-
-		cached = root._cache[ keypath ];
-		previous = root.get( keypath );
-
+		
 		// update the model, if necessary
 		if ( previous !== value ) {
-			if ( !root.magicSet ) {
-				root.muggleSet = true;
+			
+			// update data
+			obj = ractive.data;
+			while ( keys.length > 1 ) {
+				key = accumulated[ accumulated.length ] = keys.shift();
+				currentKeypath = accumulated.join( '.' );
 
-				// update data
-				obj = root.data;
-				while ( keys.length > 1 ) {
-					key = accumulated[ accumulated.length ] = keys.shift();
+				if ( wrapped = ractive._wrapped[ currentKeypath ] ) {
+					if ( wrapped.set ) {
+						wrapped.set( keys.join( '.' ), value );
+					}
 
+					obj = wrapped.get();
+				}
+
+				else {
 					// If this branch doesn't exist yet, create a new one - if the next
 					// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
 					// than an object
@@ -3448,7 +3400,7 @@ proto.requestFullscreen = function () {
 						// if we're creating a new branch, we may need to clear the upstream
 						// keypath
 						if ( !keypathToClear ) {
-							keypathToClear = accumulated.join( '.' );
+							keypathToClear = currentKeypath;
 						}
 
 						obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
@@ -3456,13 +3408,10 @@ proto.requestFullscreen = function () {
 
 					obj = obj[ key ];
 				}
-
-				key = keys[0];
-
-				obj[ key ] = value;
-
-				root.muggleSet = false;
 			}
+
+			key = keys[0];
+			obj[ key ] = value;
 		}
 
 		else {
@@ -3475,22 +3424,69 @@ proto.requestFullscreen = function () {
 
 
 		// Clear cache
-		clearCache( root, keypathToClear || keypath );
+		clearCache( ractive, keypathToClear || keypath );
 
-		// add this keypath to the notification queue
-		queue[ queue.length ] = keypath;
+		// add this keypath to the list of changes
+		changes[ changes.length ] = keypath;
 
 
-		// add upstream keypaths to the upstream notification queue
-		while ( keysClone.length > 1 ) {
-			keysClone.pop();
-			keypath = keysClone.join( '.' );
+		// add upstream keypaths to the list of upstream changes
+		keys = keypath.split( '.' );
+		while ( keys.length > 1 ) {
+			keys.pop();
+			keypath = keys.join( '.' );
 
-			if ( upstreamQueue.indexOf( keypath ) === -1 ) {
-				upstreamQueue[ upstreamQueue.length ] = keypath;
+			if ( !upstreamChanges[ keypath ] ) {
+				upstreamChanges[ upstreamChanges.length ] = keypath;
+				upstreamChanges[ keypath ] = true;
 			}
 		}
-		
+	};
+
+
+	resetWrapped = function ( ractive, keypath, value, wrapped, changes, upstreamChanges ) {
+		var previous, cached, cacheMap, keys, i;
+
+		previous = wrapped.get();
+
+		if ( !isEqual( previous, value ) ) {
+			if ( wrapped.reset( value ) === false ) {
+				return false;
+			}
+		}
+
+		value = wrapped.get();
+		cached = ractive._cache[ keypath ];
+
+		if ( !isEqual( cached, value ) ) {
+			ractive._cache[ keypath ] = value;
+
+			// Clear downstream keypaths only. Otherwise this wrapper will be torn down!
+			// TODO is there a way to intelligently detect whether a wrapper should be
+			// torn down?
+			cacheMap = ractive._cacheMap[ keypath ];
+
+			if ( cacheMap ) {
+				i = cacheMap.length;
+				while ( i-- ) {
+					clearCache( ractive, cacheMap[i] );
+				}
+			}
+
+			changes[ changes.length ] = keypath;
+
+			// add upstream keypaths to the list of upstream changes
+			keys = keypath.split( '.' );
+			while ( keys.length > 1 ) {
+				keys.pop();
+				keypath = keys.join( '.' );
+
+				if ( !upstreamChanges[ keypath ] ) {
+					upstreamChanges[ upstreamChanges.length ] = keypath;
+					upstreamChanges[ keypath ] = true;
+				}
+			}
+		}
 	};
 
 }( proto ));
@@ -3655,278 +3651,458 @@ proto.update = function ( keypath, complete ) {
 	};
 
 }( proto ));
-adaptors.backbone = function ( model, path ) {
-	var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
+(function () {
 
-	if ( path ) {
-		path += '.';
-		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
-		pathLength = path.length;
-	}
+	var notifyArrayDependants,
 
+		ArrayWrapper,
+		wrapArray,
+		unwrapArray,
+		WrappedArrayProto,
+		testObj,
+		mutatorMethods;
 
-	return {
-		init: function ( view ) {
-			
-			// if no path specified...
-			if ( !path ) {
-				setView = function ( model ) {
-					if ( !settingModel ) {
-						settingView = true;
-						view.set( model.changed );
-						settingView = false;
-					}
-				};
+	// TODO use the wrapper properly, i.e. having a list of wrappers on each array, rather than
+	// a set of ractives and keypaths
 
-				setModel = function ( keypath, value ) {
-					if ( !settingView ) {
-						settingModel = true;
-						model.set( keypath, value );
-						settingModel = false;
-					}
-				};
-			}
-
-			else {
-				prefix = function ( attrs ) {
-					var attr, result;
-
-					result = {};
-
-					for ( attr in attrs ) {
-						if ( hasOwn.call( attrs, attr ) ) {
-							result[ path + attr ] = attrs[ attr ];
-						}
-					}
-
-					return result;
-				};
-
-				setView = function ( model ) {
-					if ( !settingModel ) {
-						settingView = true;
-						view.set( prefix( model.changed ) );
-						settingView = false;
-					}
-				};
-
-				setModel = function ( keypath, value ) {
-					if ( !settingView ) {
-						if ( pathMatcher.test( keypath ) ) {
-							settingModel = true;
-							model.set( keypath.substring( pathLength ), value );
-							settingModel = false;
-						}
-					}
-				};
-			}
-
-			model.on( 'change', setView );
-			view.on( 'set', setModel );
-			
-			// initialise
-			view.set( path ? prefix( model.attributes ) : model.attributes );
+	adaptors.array = {
+		filter: function ( ractive, object, keypath ) {
+			// wrap the array if a) it's not generated by an evaluator, b) it's an array, and
+			// c) either it hasn't been wrapped already, or the array didn't trigger the get() itself
+			return ( keypath.charAt( 0 ) !== '(' ) && isArray( object ) && ( !object._ractive || !object._ractive.setting );
 		},
-
-		teardown: function ( view ) {
-			model.off( 'change', setView );
-			view.off( 'set', setModel );
+		wrap: function ( ractive, array, keypath ) {
+			return new ArrayWrapper( ractive, array, keypath );
 		}
 	};
-};
-adaptors.backboneCollection = function ( collection, path ) {
-	var settingCollection, settingView, setCollection, setView, pathMatcher, pathLength, prefix;
 
-	if ( path ) {
-		path += '.';
-		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
-		pathLength = path.length;
-	}
+	ArrayWrapper = function ( ractive, array, keypath ) {
+		this.root = ractive;
+		this.value = array;
+		this.keypath = keypath;
 
+		registerKeypathToArray( array, keypath, ractive );
+	};
 
-	return {
-		init: function ( view ) {
-
-			// if no path specified...
-			if ( !path ) {
-				setView = function ( collection ) {
-					if ( !settingCollection ) {
-						settingView = true;
-						view.set( collection.collection.toJSON() );
-						settingView = false;
-					}
-				};
-
-				setCollection = function ( keypath, value ) {
-					if ( !settingView ) {
-						settingCollection = true;
-						collection.reset(value);
-						settingCollection = false;
-					}
-				};
-			}
-
-			else {
-				prefix = function ( models ) {
-					var result, i;
-
-					result = {};
-
-					for ( i=0; i<models.length; i++ ) {
-						result[ path + i ] = models[ i ];
-					}
-
-					return result;
-				};
-
-				setView = function ( collection ) {
-					if ( typeof arguments[0] === 'string' ) {
-						collection = arguments[1];
-					}
-
-					if ( !settingCollection ) {
-						settingView = true;
-						view.set( prefix( collection.collection.toJSON() ) );
-						settingView = false;
-					}
-				};
-
-				setCollection = function ( keypath, value ) {
-					if ( !settingView ) {
-						if ( pathMatcher.test( keypath ) ) {
-							settingCollection = true;
-							collection.reset(value);
-							settingCollection = false;
-						}
-					}
-				};
-			}
-
-			collection.on( 'all', setView );
-			view.on( 'set', setCollection );
-
-			// initialise
-			view.set( path ? prefix( collection.toJSON() ) : collection.toJSON() );
+	ArrayWrapper.prototype = {
+		get: function () {
+			return this.value;
 		},
+		teardown: function () {
+			// if teardown() was invoked because we're clearing the cache as a result of
+			// a change that the array itself triggered, we can save ourselves the teardown
+			// and immediate setup
+			if ( this.value._ractive.setting ) {
+				return false; // so that we don't remove it from this.root._wrapped
+			}
 
-		teardown: function ( view ) {
-			collection.off( 'change', setView );
-			view.off( 'set', setCollection );
+			unregisterKeypathFromArray( this.value, this.keypath, this.root );
 		}
 	};
-};
-adaptors.statesman = function ( model, path ) {
-	var settingModel, settingView, setModel, setView, pathMatcher, pathLength, prefix;
 
-	if ( path ) {
-		path += '.';
-		pathMatcher = new RegExp( '^' + path.replace( /\./g, '\\.' ) );
-		pathLength = path.length;
 
-		prefix = function ( attrs ) {
-			var attr, result;
 
-			if ( !attrs ) {
+
+
+	// Register a keypath to this array. When any of this array's mutator methods are called,
+	// it will `set` that keypath on the given Ractive instance
+	registerKeypathToArray = function ( array, keypath, root ) {
+		var roots, keypathsByGuid, keypaths;
+
+		// If this array hasn't been wrapped, we need to wrap it
+		if ( !array._ractive ) {
+			defineProperty( array, '_ractive', {
+				value: {
+					roots: [ root ], // there may be more than one Ractive instance depending on this
+					keypathsByGuid: {}
+				},
+				configurable: true
+			});
+
+			array._ractive.keypathsByGuid[ root._guid ] = [ keypath ];
+
+			wrapArray( array );
+		}
+
+		else {
+			roots = array._ractive.roots;
+			keypathsByGuid = array._ractive.keypathsByGuid;
+
+			// Does this Ractive instance currently depend on this array?
+			// If not, associate them
+			if ( !keypathsByGuid[ root._guid ] ) {
+				roots[ roots.length ] = root;
+				keypathsByGuid[ root._guid ] = [];
+			}
+
+			keypaths = keypathsByGuid[ root._guid ];
+
+			// If the current keypath isn't among them, add it
+			if ( keypaths.indexOf( keypath ) === -1 ) {
+				keypaths[ keypaths.length ] = keypath;
+			}
+		}
+	};
+
+
+	// Unregister keypath from array
+	unregisterKeypathFromArray = function ( array, keypath, root ) {
+		var roots, keypathsByGuid, keypaths, keypathIndex;
+
+		if ( !array._ractive ) {
+			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
+		}
+
+		roots = array._ractive.roots;
+		keypathsByGuid = array._ractive.keypathsByGuid;
+
+		if ( !keypathsByGuid[ root._guid ] ) {
+			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
+		}
+
+		keypaths = keypathsByGuid[ root._guid ];
+		keypathIndex = keypaths.indexOf( keypath );
+
+		if ( keypathIndex === -1 ) {
+			throw new Error( 'Attempted to unlink non-linked keypath from array. This error is unexpected - please send a bug report to @rich_harris' );
+		}
+
+		keypaths.splice( keypathIndex, 1 );
+
+		if ( !keypaths.length ) {
+			roots.splice( roots.indexOf( root ), 1 );
+			keypathsByGuid[ root._guid ] = null;
+		}
+
+		if ( !roots.length ) {
+			unwrapArray( array ); // It's good to clean up after ourselves
+		}
+	};
+
+
+	notifyArrayDependants = function ( array, methodName, args ) {
+		var processRoots,
+			processRoot,
+			processKeypaths,
+			processKeypath,
+			queueDependants,
+			keypathsByGuid;
+
+		keypathsByGuid = array._ractive.keypathsByGuid;
+
+		processRoots = function ( roots ) {
+			var i = roots.length;
+			while ( i-- ) {
+				processRoot( roots[i] );
+			}
+		};
+
+		processRoot = function ( root ) {
+			var previousTransitionManager = root._transitionManager, transitionManager;
+
+			root._transitionManager = transitionManager = makeTransitionManager( root, noop );
+			processKeypaths( root, keypathsByGuid[ root._guid ] );
+			root._transitionManager = previousTransitionManager;
+
+			transitionManager.ready();
+		};
+
+		processKeypaths = function ( root, keypaths ) {
+			var i = keypaths.length;
+			while ( i-- ) {
+				processKeypath( root, keypaths[i] );
+			}
+		};
+
+		processKeypath = function ( root, keypath ) {
+			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
+
+			// If this is a sort or reverse, we just do root.set()...
+			if ( methodName === 'sort' || methodName === 'reverse' ) {
+				root.set( keypath, array );
 				return;
 			}
 
-			result = {};
+			// otherwise we do a smart update whereby elements are added/removed
+			// in the right place. But we do need to clear the cache
+			clearCache( root, keypath );
 
-			for ( attr in attrs ) {
-				if ( hasOwn.call( attrs, attr ) ) {
-					result[ path + attr ] = attrs[ attr ];
+			// find dependants. If any are DOM sections, we do a smart update
+			// rather than a ractive.set() blunderbuss
+			smartUpdateQueue = [];
+			dumbUpdateQueue = [];
+
+			for ( i=0; i<root._deps.length; i+=1 ) { // we can't cache root._deps.length as it may change!
+				depsByKeypath = root._deps[i];
+
+				if ( !depsByKeypath ) {
+					continue;
+				}
+
+				deps = depsByKeypath[ keypath ];
+				
+				if ( deps ) {
+					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
+
+					// we may have some deferred evaluators to process
+					processDeferredUpdates( root );
+
+					while ( smartUpdateQueue.length ) {
+						smartUpdateQueue.pop().smartUpdate( methodName, args );
+					}
+
+					while ( dumbUpdateQueue.length ) {
+						dumbUpdateQueue.pop().update();
+					}
 				}
 			}
+
+			// if we're removing old items and adding new ones, simultaneously, we need to force an update
+			if ( methodName === 'splice' && ( args.length > 2 ) && args[1] ) {
+				changed = Math.min( args[1], args.length - 2 );
+				start = args[0];
+				end = start + changed;
+
+				if ( args[1] === ( args.length - 2 ) ) {
+					lengthUnchanged = true;
+				}
+
+				for ( i=start; i<end; i+=1 ) {
+					childKeypath = keypath + '.' + i;
+					notifyDependants( root, childKeypath );
+				}
+			}
+
+			// we may have some deferred attributes to process
+			processDeferredUpdates( root );
+
+			// Finally, notify direct dependants of upstream keypaths...
+			upstreamQueue = [];
+
+			keys = keypath.split( '.' );
+			while ( keys.length ) {
+				keys.pop();
+				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
+			}
+
+			notifyMultipleDependants( root, upstreamQueue, true );
+
+			// length property has changed - notify dependants
+			// TODO in some cases (e.g. todo list example, when marking all as complete, then
+			// adding a new item (which should deactivate the 'all complete' checkbox
+			// but doesn't) this needs to happen before other updates. But doing so causes
+			// other mental problems. not sure what's going on...
+			if ( !lengthUnchanged ) {
+				notifyDependants( root, keypath + '.length', true );
+			}
+		};
+
+		// TODO can we get rid of this whole queueing nonsense?
+		queueDependants = function ( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
+			var k, dependant;
+
+			k = deps.length;
+			while ( k-- ) {
+				dependant = deps[k];
+
+				// references need to get processed before mustaches
+				if ( dependant.type === REFERENCE ) {
+					dependant.update();
+					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
+				}
+
+				// is this a DOM section?
+				else if ( dependant.keypath === keypath && dependant.type === SECTION && dependant.parentNode ) {
+					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
+
+				} else {
+					dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
+				}
+			}
+		};
+
+		processRoots( array._ractive.roots );
+	};
+
+
+
+
+
+		
+	WrappedArrayProto = [];
+	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];
+
+	mutatorMethods.forEach( function ( methodName ) {
+		var method = function () {
+			var result = Array.prototype[ methodName ].apply( this, arguments );
+
+			this._ractive.setting = true;
+			notifyArrayDependants( this, methodName, arguments );
+			this._ractive.setting = false;
 
 			return result;
 		};
+
+		defineProperty( WrappedArrayProto, methodName, {
+			value: method
+		});
+	});
+
+	
+	// can we use prototype chain injection?
+	// http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
+	testObj = {};
+	if ( testObj.__proto__ ) {
+		// yes, we can
+		wrapArray = function ( array ) {
+			array.__proto__ = WrappedArrayProto;
+		};
+
+		unwrapArray = function ( array ) {
+			delete array._ractive;
+			array.__proto__ = Array.prototype;
+		};
 	}
 
+	else {
+		// no, we can't
+		wrapArray = function ( array ) {
+			var i, methodName;
 
-	return {
-		init: function ( view ) {
-			
-			var data, lastViewChange;
+			i = mutatorMethods.length;
+			while ( i-- ) {
+				methodName = mutatorMethods[i];
+				defineProperty( array, methodName, {
+					value: WrappedArrayProto[ methodName ],
+					configurable: true
+				});
+			}
+		};
 
-			// if no path specified...
-			if ( !path ) {
-				setView = function ( change ) {
-					var keypath;
+		unwrapArray = function ( array ) {
+			var i;
 
-					settingView = true;
-
-					if ( typeof lastViewChange === 'string' ) {
-						delete change[ lastViewChange ];
-					}
-
-					if ( typeof lastViewChange === 'object' ) {
-						for ( keypath in lastViewChange ) {
-							if ( lastViewChange.hasOwnProperty( keypath ) ) {
-								delete change[ lastViewChange ];
-							}
-						}
-					}
-					
-					view.set( change );
-					
-					settingView = false;
-				};
-
-				if ( view.twoway ) {
-					setModel = function ( keypath, value ) {
-						if ( !settingView ) {
-							lastViewChange = keypath;
-							model.set( keypath, value );
-						}
-					};
-				}
+			i = mutatorMethods.length;
+			while ( i-- ) {
+				delete array[ mutatorMethods[i] ];
 			}
 
-			else {
-				setView = function ( change ) {
-					if ( !settingModel ) { // TODO use lastViewChange mechanism
-						settingView = true;
-						
-						change = prefix( change );
-						view.set( change );
-						
-						settingView = false;
-					}
-				};
+			delete array._ractive;
+		};
+	}
 
-				if ( view.twoway ) {
-					setModel = function ( keypath, value ) {
-						if ( !settingView ) {
-							if ( pathMatcher.test( keypath ) ) {
-								settingModel = true;
-								model.set( keypath.substring( pathLength ), value );
-								settingModel = false;
-							}
-						}
-					};
-				}
-			}
+}());
+(function () {
 
-			model.on( 'change', setView );
-	
-			if ( view.twoway ) {
-				view.on( 'set', setModel );
-			}
-			
-			// initialise
-			data = ( path ? prefix( model.get() ) : model.get() );
+	var MagicWrapper;
 
-			if ( data ) {
-				view.set( path ? prefix( model.get() ) : model.get() );
-			}
-		},
-
-		teardown: function ( view ) {
-			model.off( 'change', setView );
-			view.off( 'set', setModel );
+	adaptors.magic = {
+		wrap: function ( ractive, object, keypath ) {
+			return new MagicWrapper( ractive, object, keypath );
 		}
 	};
-};
+
+	MagicWrapper = function ( ractive, object, keypath ) {
+		var wrapper = this, keys, prop, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
+
+		this.ractive = ractive;
+		this.keypath = keypath;
+
+		keys = keypath.split( '.' );
+		
+		this.prop = keys.pop();
+		
+		objKeypath = keys.join( '.' );
+		this.obj = ractive.get( objKeypath );
+
+		descriptor = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+
+		// Has this property already been wrapped?
+		if ( descriptor && descriptor.set && ( wrappers = descriptor.set._ractiveWrappers ) ) {
+		
+			// Yes. Register this wrapper to this property, if it hasn't been already
+			if ( wrappers.indexOf( this ) === -1 ) {
+				wrappers[ wrappers.length ] = this;
+			}
+
+			return; // already wrapped
+		}
+
+
+		// No, it hasn't been wrapped. Is this descriptor configurable?
+		if ( descriptor && !descriptor.configurable ) {
+			throw new Error( 'Cannot use magic mode with property "' + prop + '" - object is not configurable' );
+		}
+
+
+		// Time to wrap this property
+		if ( descriptor ) {
+			this.value = descriptor.value;
+
+			oldGet = descriptor.get;
+			oldSet = descriptor.set;
+		}
+		
+		get = oldGet || function () {
+			return wrapper.value; // whichever wrapper got there first!
+		};
+
+		set = function ( value ) {
+			var wrappers, wrapper, i;
+
+			if ( oldSet ) {
+				oldSet( value );
+			}
+
+			wrappers = set._ractiveWrappers;
+
+			i = wrappers.length;
+			while ( i-- ) {
+				wrapper = wrappers[i];
+				
+				if ( !wrapper.resetting ) {
+					wrapper.ractive.set( wrapper.keypath, value );
+				}
+			}
+		};
+
+		// Create an array of wrappers, in case other keypaths/ractives depend on this property.
+		// Handily, we can store them as a property of the set function. Yay JavaScript.
+		set._ractiveWrappers = [ this ];
+
+		Object.defineProperty( this.obj, this.prop, { get: get, set: set, enumerable: true, configurable: true });
+	};
+
+	MagicWrapper.prototype = {
+		get: function () {
+			return this.value;
+		},
+		reset: function ( value ) {
+			this.resetting = true;
+			this.value = value;
+			this.obj[ this.prop ] = value;
+			this.resetting = false;
+		},
+		teardown: function () {
+			var descriptor, set, value, wrappers;
+
+			descriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+			set = descriptor.set;
+			wrappers = set._ractiveWrappers;
+
+			wrappers.splice( wrappers.indexOf( this ), 1 );
+
+			// Last one out, turn off the lights
+			if ( !wrappers.length ) {
+				value = this.obj[ this.prop ];
+
+				Object.defineProperty( this.obj, this.prop, this.originalDescriptor );
+				this.obj[ this.prop ] = value;
+			}
+		}
+	};
+
+}());
 // These are a subset of the easing equations found at
 // https://raw.github.com/danro/easing-js - license info
 // follows:
@@ -3963,6 +4139,10 @@ eventDefinitions.hover = function ( node, fire ) {
 	var mouseoverHandler, mouseoutHandler;
 
 	mouseoverHandler = function ( event ) {
+		if ( node.contains( event.relatedTarget ) ) {
+			return;
+		}
+
 		fire({
 			node: node,
 			original: event,
@@ -3971,6 +4151,10 @@ eventDefinitions.hover = function ( node, fire ) {
 	};
 
 	mouseoutHandler = function ( event ) {
+		if ( node.contains( event.relatedTarget ) ) {
+			return;
+		}
+		
 		fire({
 			node: node,
 			original: event,
@@ -4571,7 +4755,8 @@ defineProperties( defaultOptions, {
 	eventDefinitions:   { enumerable: true, value: {}    },
 	noIntro:            { enumerable: true, value: false },
 	transitionsEnabled: { enumerable: true, value: true  },
-	magic:              { enumerable: true, value: false }
+	magic:              { enumerable: true, value: false },
+	adaptors:           { enumerable: true, value: []    }
 });
 
 Ractive = function ( options ) {
@@ -4684,6 +4869,9 @@ Ractive = function ( options ) {
 
 	// Instance-specific event definitions registry
 	this.eventDefinitions = options.eventDefinitions;
+
+	// Adaptors
+	this.adaptors = options.adaptors;
 
 	// Set up bindings
 	if ( options.bindings ) {
@@ -5314,305 +5502,6 @@ var arrayContentsMatch = function ( a, b ) {
 
 	return true;
 };
-(function () {
-
-	var notifyArrayDependants,
-
-		wrapArray,
-		unwrapArray,
-		WrappedArrayProto,
-		testObj,
-		mutatorMethods;
-
-
-	// Register a keypath to this array. When any of this array's mutator methods are called,
-	// it will `set` that keypath on the given Ractive instance
-	registerKeypathToArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, keypaths;
-
-		// If this array hasn't been wrapped, we need to wrap it
-		if ( !array._ractive ) {
-			defineProperty( array, '_ractive', {
-				value: {
-					roots: [ root ], // there may be more than one Ractive instance depending on this
-					keypathsByGuid: {}
-				},
-				configurable: true
-			});
-
-			array._ractive.keypathsByGuid[ root._guid ] = [ keypath ];
-
-			wrapArray( array );
-		}
-
-		else {
-			roots = array._ractive.roots;
-			keypathsByGuid = array._ractive.keypathsByGuid;
-
-			// Does this Ractive instance currently depend on this array?
-			// If not, associate them
-			if ( !keypathsByGuid[ root._guid ] ) {
-				roots[ roots.length ] = root;
-				keypathsByGuid[ root._guid ] = [];
-			}
-
-			keypaths = keypathsByGuid[ root._guid ];
-
-			// If the current keypath isn't among them, add it
-			if ( keypaths.indexOf( keypath ) === -1 ) {
-				keypaths[ keypaths.length ] = keypath;
-			}
-		}
-	};
-
-
-	// Unregister keypath from array
-	unregisterKeypathFromArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, keypaths, keypathIndex;
-
-		if ( !array._ractive ) {
-			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		roots = array._ractive.roots;
-		keypathsByGuid = array._ractive.keypathsByGuid;
-
-		if ( !keypathsByGuid[ root._guid ] ) {
-			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		keypaths = keypathsByGuid[ root._guid ];
-		keypathIndex = keypaths.indexOf( keypath );
-
-		if ( keypathIndex === -1 ) {
-			throw new Error( 'Attempted to unlink non-linked keypath from array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		keypaths.splice( keypathIndex, 1 );
-
-		if ( !keypaths.length ) {
-			roots.splice( roots.indexOf( root ), 1 );
-			keypathsByGuid[ root._guid ] = null;
-		}
-
-		if ( !roots.length ) {
-			unwrapArray( array ); // It's good to clean up after ourselves
-		}
-	};
-
-
-	notifyArrayDependants = function ( array, methodName, args ) {
-		var processRoots,
-			processRoot,
-			processKeypaths,
-			processKeypath,
-			queueDependants,
-			keypathsByGuid;
-
-		keypathsByGuid = array._ractive.keypathsByGuid;
-
-		processRoots = function ( roots ) {
-			var i = roots.length;
-			while ( i-- ) {
-				processRoot( roots[i] );
-			}
-		};
-
-		processRoot = function ( root ) {
-			var previousTransitionManager = root._transitionManager, transitionManager;
-
-			root._transitionManager = transitionManager = makeTransitionManager( root, noop );
-			processKeypaths( root, keypathsByGuid[ root._guid ] );
-			root._transitionManager = previousTransitionManager;
-
-			transitionManager.ready();
-		};
-
-		processKeypaths = function ( root, keypaths ) {
-			var i = keypaths.length;
-			while ( i-- ) {
-				processKeypath( root, keypaths[i] );
-			}
-		};
-
-		processKeypath = function ( root, keypath ) {
-			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
-
-			// If this is a sort or reverse, we just do root.set()...
-			if ( methodName === 'sort' || methodName === 'reverse' ) {
-				root.set( keypath, array );
-				return;
-			}
-
-			// otherwise we do a smart update whereby elements are added/removed
-			// in the right place. But we do need to clear the cache
-			clearCache( root, keypath );
-
-			// find dependants. If any are DOM sections, we do a smart update
-			// rather than a ractive.set() blunderbuss
-			smartUpdateQueue = [];
-			dumbUpdateQueue = [];
-
-			for ( i=0; i<root._deps.length; i+=1 ) { // we can't cache root._deps.length as it may change!
-				depsByKeypath = root._deps[i];
-
-				if ( !depsByKeypath ) {
-					continue;
-				}
-
-				deps = depsByKeypath[ keypath ];
-				
-				if ( deps ) {
-					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
-
-					// we may have some deferred evaluators to process
-					processDeferredUpdates( root );
-
-					while ( smartUpdateQueue.length ) {
-						smartUpdateQueue.pop().smartUpdate( methodName, args );
-					}
-
-					while ( dumbUpdateQueue.length ) {
-						dumbUpdateQueue.pop().update();
-					}
-				}
-			}
-
-			// if we're removing old items and adding new ones, simultaneously, we need to force an update
-			if ( methodName === 'splice' && ( args.length > 2 ) && args[1] ) {
-				changed = Math.min( args[1], args.length - 2 );
-				start = args[0];
-				end = start + changed;
-
-				if ( args[1] === ( args.length - 2 ) ) {
-					lengthUnchanged = true;
-				}
-
-				for ( i=start; i<end; i+=1 ) {
-					childKeypath = keypath + '.' + i;
-					notifyDependants( root, childKeypath );
-				}
-			}
-
-			// we may have some deferred attributes to process
-			processDeferredUpdates( root );
-
-			// Finally, notify direct dependants of upstream keypaths...
-			upstreamQueue = [];
-
-			keys = splitKeypath( keypath );
-			while ( keys.length ) {
-				keys.pop();
-				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
-			}
-
-			notifyMultipleDependants( root, upstreamQueue, true );
-
-			// length property has changed - notify dependants
-			// TODO in some cases (e.g. todo list example, when marking all as complete, then
-			// adding a new item (which should deactivate the 'all complete' checkbox
-			// but doesn't) this needs to happen before other updates. But doing so causes
-			// other mental problems. not sure what's going on...
-			if ( !lengthUnchanged ) {
-				notifyDependants( root, keypath + '.length', true );
-			}
-		};
-
-		// TODO can we get rid of this whole queueing nonsense?
-		queueDependants = function ( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
-			var k, dependant;
-
-			k = deps.length;
-			while ( k-- ) {
-				dependant = deps[k];
-
-				// references need to get processed before mustaches
-				if ( dependant.type === REFERENCE ) {
-					dependant.update();
-					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
-				}
-
-				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === SECTION && dependant.parentNode ) {
-					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
-
-				} else {
-					dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
-				}
-			}
-		};
-
-		processRoots( array._ractive.roots );
-	};
-
-
-
-
-
-		
-	WrappedArrayProto = [];
-	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];
-
-	mutatorMethods.forEach( function ( methodName ) {
-		var method = function () {
-			var result = Array.prototype[ methodName ].apply( this, arguments );
-
-			this._ractive.setting = true;
-			notifyArrayDependants( this, methodName, arguments );
-			this._ractive.setting = false;
-
-			return result;
-		};
-
-		defineProperty( WrappedArrayProto, methodName, {
-			value: method
-		});
-	});
-
-	
-	// can we use prototype chain injection?
-	// http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
-	testObj = {};
-	if ( testObj.__proto__ ) {
-		// yes, we can
-		wrapArray = function ( array ) {
-			array.__proto__ = WrappedArrayProto;
-		};
-
-		unwrapArray = function ( array ) {
-			delete array._ractive;
-			array.__proto__ = Array.prototype;
-		};
-	}
-
-	else {
-		// no, we can't
-		wrapArray = function ( array ) {
-			var i, methodName;
-
-			i = mutatorMethods.length;
-			while ( i-- ) {
-				methodName = mutatorMethods[i];
-				defineProperty( array, methodName, {
-					value: WrappedArrayProto[ methodName ],
-					configurable: true
-				});
-			}
-		};
-
-		unwrapArray = function ( array ) {
-			var i;
-
-			i = mutatorMethods.length;
-			while ( i-- ) {
-				delete array[ mutatorMethods[i] ];
-			}
-
-			delete array._ractive;
-		};
-	}
-
-}());
 (function () {
 
 	var propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
@@ -6627,7 +6516,12 @@ DomSection.prototype = {
 	},
 
 	render: function ( value ) {
-		var next;
+		var next, wrapped;
+
+		// with sections, we need to get the fake value if we have a wrapped object
+		if ( wrapped = this.root._wrapped[ this.keypath ] ) {
+			value = wrapped.get();
+		}
 
 		// prevent sections from rendering multiple times (happens if
 		// evaluators evaluate while update is happening)
@@ -6916,6 +6810,13 @@ StringSection.prototype = {
 	},
 
 	render: function ( value ) {
+		var wrapped;
+
+		// with sections, we need to get the fake value if we have a wrapped object
+		if ( wrapped = this.root._wrapped[ this.keypath ] ) {
+			value = wrapped.get();
+		}
+
 		updateSection( this, value );
 		this.parentFragment.bubble();
 	},
@@ -7079,58 +6980,18 @@ makeTransitionManager = function ( root, callback ) {
 
 	return transitionManager;
 };
-splitKeypath =  function ( keypath ) {
-	var index, startIndex, keys, remaining, part;
+var normaliseKeypath;
 
-	// We should only have to do all the heavy regex stuff once... caching FTW
-	if ( keypathCache[ keypath ] ) {
-		return keypathCache[ keypath ].concat();
-	}
+(function () {
 
-	keys = [];
-	remaining = keypath;
-	
-	startIndex = 0;
+	var pattern = /\[\s*([0-9]|[1-9][0-9]+)\s*\]/g;
 
-	// Split into keys
-	while ( remaining.length ) {
-		// Find next dot
-		index = remaining.indexOf( '.', startIndex );
+	normaliseKeypath = function ( keypath ) {
+		return keypath.replace( pattern, '.$1' );
+	};
 
-		// Final part?
-		if ( index === -1 ) {
-			part = remaining;
-			remaining = '';
-		}
+}());
 
-		else {
-			// If this dot is preceded by a backslash, which isn't
-			// itself preceded by a backslash, we consider it escaped
-			if ( remaining.charAt( index - 1) === '\\' && remaining.charAt( index - 2 ) !== '\\' ) {
-				// we don't want to keep this part, we want to keep looking
-				// for the separator
-				startIndex = index + 1;
-				continue;
-			}
-
-			// Otherwise, we have our next part
-			part = remaining.substr( 0, index );
-			startIndex = 0;
-		}
-
-		if ( /\[/.test( part ) ) {
-			keys = keys.concat( part.replace( /\[\s*([0-9]+)\s*\]/g, '.$1' ).split( '.' ) );
-		} else {
-			keys[ keys.length ] = part;
-		}
-		
-		remaining = remaining.substring( index + 1 );
-	}
-
-	
-	keypathCache[ keypath ] = keys;
-	return keys.concat();
-};
 var ElementStub;
 
 (function () {
@@ -7980,7 +7841,7 @@ var TextStub;
 
 (function () {
 	
-	var htmlEntities, controlCharacters, getKeys, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
+	var htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
 
 	TextStub = function ( token, preserveWhitespace ) {
 		this.type = TEXT;
@@ -8002,21 +7863,7 @@ var TextStub;
 	htmlEntities = { quot: 34, amp: 38, apos: 39, lt: 60, gt: 62, nbsp: 160, iexcl: 161, cent: 162, pound: 163, curren: 164, yen: 165, brvbar: 166, sect: 167, uml: 168, copy: 169, ordf: 170, laquo: 171, not: 172, shy: 173, reg: 174, macr: 175, deg: 176, plusmn: 177, sup2: 178, sup3: 179, acute: 180, micro: 181, para: 182, middot: 183, cedil: 184, sup1: 185, ordm: 186, raquo: 187, frac14: 188, frac12: 189, frac34: 190, iquest: 191, Agrave: 192, Aacute: 193, Acirc: 194, Atilde: 195, Auml: 196, Aring: 197, AElig: 198, Ccedil: 199, Egrave: 200, Eacute: 201, Ecirc: 202, Euml: 203, Igrave: 204, Iacute: 205, Icirc: 206, Iuml: 207, ETH: 208, Ntilde: 209, Ograve: 210, Oacute: 211, Ocirc: 212, Otilde: 213, Ouml: 214, times: 215, Oslash: 216, Ugrave: 217, Uacute: 218, Ucirc: 219, Uuml: 220, Yacute: 221, THORN: 222, szlig: 223, agrave: 224, aacute: 225, acirc: 226, atilde: 227, auml: 228, aring: 229, aelig: 230, ccedil: 231, egrave: 232, eacute: 233, ecirc: 234, euml: 235, igrave: 236, iacute: 237, icirc: 238, iuml: 239, eth: 240, ntilde: 241, ograve: 242, oacute: 243, ocirc: 244, otilde: 245, ouml: 246, divide: 247, oslash: 248, ugrave: 249, uacute: 250, ucirc: 251, uuml: 252, yacute: 253, thorn: 254, yuml: 255, OElig: 338, oelig: 339, Scaron: 352, scaron: 353, Yuml: 376, fnof: 402, circ: 710, tilde: 732, Alpha: 913, Beta: 914, Gamma: 915, Delta: 916, Epsilon: 917, Zeta: 918, Eta: 919, Theta: 920, Iota: 921, Kappa: 922, Lambda: 923, Mu: 924, Nu: 925, Xi: 926, Omicron: 927, Pi: 928, Rho: 929, Sigma: 931, Tau: 932, Upsilon: 933, Phi: 934, Chi: 935, Psi: 936, Omega: 937, alpha: 945, beta: 946, gamma: 947, delta: 948, epsilon: 949, zeta: 950, eta: 951, theta: 952, iota: 953, kappa: 954, lambda: 955, mu: 956, nu: 957, xi: 958, omicron: 959, pi: 960, rho: 961, sigmaf: 962, sigma: 963, tau: 964, upsilon: 965, phi: 966, chi: 967, psi: 968, omega: 969, thetasym: 977, upsih: 978, piv: 982, ensp: 8194, emsp: 8195, thinsp: 8201, zwnj: 8204, zwj: 8205, lrm: 8206, rlm: 8207, ndash: 8211, mdash: 8212, lsquo: 8216, rsquo: 8217, sbquo: 8218, ldquo: 8220, rdquo: 8221, bdquo: 8222, dagger: 8224, Dagger: 8225, bull: 8226, hellip: 8230, permil: 8240, prime: 8242, Prime: 8243, lsaquo: 8249, rsaquo: 8250, oline: 8254, frasl: 8260, euro: 8364, image: 8465, weierp: 8472, real: 8476, trade: 8482, alefsym: 8501, larr: 8592, uarr: 8593, rarr: 8594, darr: 8595, harr: 8596, crarr: 8629, lArr: 8656, uArr: 8657, rArr: 8658, dArr: 8659, hArr: 8660, forall: 8704, part: 8706, exist: 8707, empty: 8709, nabla: 8711, isin: 8712, notin: 8713, ni: 8715, prod: 8719, sum: 8721, minus: 8722, lowast: 8727, radic: 8730, prop: 8733, infin: 8734, ang: 8736, and: 8743, or: 8744, cap: 8745, cup: 8746, 'int': 8747, there4: 8756, sim: 8764, cong: 8773, asymp: 8776, ne: 8800, equiv: 8801, le: 8804, ge: 8805, sub: 8834, sup: 8835, nsub: 8836, sube: 8838, supe: 8839, oplus: 8853, otimes: 8855, perp: 8869, sdot: 8901, lceil: 8968, rceil: 8969, lfloor: 8970, rfloor: 8971, lang: 9001, rang: 9002, loz: 9674, spades: 9824, clubs: 9827, hearts: 9829, diams: 9830	};
 	controlCharacters = [8364, 129, 8218, 402, 8222, 8230, 8224, 8225, 710, 8240, 352, 8249, 338, 141, 381, 143, 144, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250, 339, 157, 382, 376];
 
-	// need to do this for the benefit of IE8... not putting in legacy.js because it's
-	// not a complete polyfill
-	getKeys = Object.keys || function ( obj ) {
-		var keys = [], key;
-
-		for ( key in obj ) {
-			if ( hasOwn.call( obj, key ) ) {
-				keys[ keys.length ] = key;
-			}
-		}
-
-		return key;
-	};
-
-	namedEntityPattern = new RegExp( '&(' + getKeys( htmlEntities ).join( '|' ) + ');?', 'g' );
+	namedEntityPattern = new RegExp( '&(' + Object.keys( htmlEntities ).join( '|' ) + ');?', 'g' );
 	hexEntityPattern     = /&#x([0-9]+);?/g;
 	decimalEntityPattern = /&#([0-9]+);?/g;
 
@@ -8119,9 +7966,7 @@ var getExpression;
 	makeInfixSequenceMatcher,
 	getBracketedExpression,
 	getPrimary,
-	getMember,
-	getInvocation,
-	getInvocationRefinement,
+	getMemberOrInvocation,
 	getTypeOf,
 	getLogicalOr,
 	getConditional,
@@ -8230,98 +8075,53 @@ var getExpression;
 		    || getBracketedExpression( tokenizer );
 	};
 
-	getMember = function ( tokenizer ) {
-		var expression, refinement, member;
+	getMemberOrInvocation = function ( tokenizer ) {
+		var current, expression, refinement, expressionList;
 
 		expression = getPrimary( tokenizer );
+
 		if ( !expression ) {
 			return null;
 		}
 
-		refinement = getRefinement( tokenizer );
-		if ( !refinement ) {
-			return expression;
+		while ( expression ) {
+			current = tokenizer.pos;
+
+			if ( refinement = getRefinement( tokenizer ) ) {
+				expression = {
+					t: MEMBER,
+					x: expression,
+					r: refinement
+				};
+			}
+
+			else if ( getStringMatch( tokenizer, '(' ) ) {
+				allowWhitespace( tokenizer );
+				expressionList = getExpressionList( tokenizer );
+
+				allowWhitespace( tokenizer );
+
+				if ( !getStringMatch( tokenizer, ')' ) ) {
+					tokenizer.pos = current;
+					break;
+				}
+
+				expression = {
+					t: INVOCATION,
+					x: expression
+				};
+
+				if ( expressionList ) {
+					expression.o = expressionList;
+				}
+			}
+
+			else {
+				break;
+			}
 		}
 
-		while ( refinement !== null ) {
-			member = {
-				t: MEMBER,
-				x: expression,
-				r: refinement
-			};
-
-			expression = member;
-			refinement = getRefinement( tokenizer );
-		}
-
-		return member;
-	};
-
-	getInvocation = function ( tokenizer ) {
-		var start, expression, expressionList, result;
-
-		expression = getMember( tokenizer );
-		if ( !expression ) {
-			return null;
-		}
-
-		start = tokenizer.pos;
-
-		if ( !getStringMatch( tokenizer, '(' ) ) {
-			return expression;
-		}
-
-		allowWhitespace( tokenizer );
-		expressionList = getExpressionList( tokenizer );
-
-		allowWhitespace( tokenizer );
-
-		if ( !getStringMatch( tokenizer, ')' ) ) {
-			tokenizer.pos = start;
-			return expression;
-		}
-
-		result = {
-			t: INVOCATION,
-			x: expression
-		};
-
-		if ( expressionList ) {
-			result.o = expressionList;
-		}
-
-		return result;
-	};
-
-	getInvocationRefinement = function ( tokenizer ) {
-		var expression, refinement, member;
-
-		expression = getInvocation( tokenizer );
-		if ( !expression ) {
-			return null;
-		}
-
-		if ( expression.t !== INVOCATION ) {
-			return expression;
-		}
-
-		refinement = getRefinement( tokenizer );
-		if ( !refinement ) {
-			return expression;
-		}
-
-		while ( refinement !== null ) {
-			member = {
-				t: MEMBER,
-				x: expression,
-				r: refinement
-			};
-
-			expression = member;
-			refinement = getRefinement( tokenizer );
-		}
-
-		return member;
+		return expression;
 	};
 
 	// right-to-left
@@ -8357,7 +8157,8 @@ var getExpression;
 		prefixOperators = '! ~ + - typeof'.split( ' ' );
 
 		// An invocation refinement is higher precedence than logical-not
-		fallthrough = getInvocationRefinement;
+		//fallthrough = getInvocationRefinement;
+		fallthrough = getMemberOrInvocation;
 		for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
 			matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
 			fallthrough = matcher;
