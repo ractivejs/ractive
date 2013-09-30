@@ -53,10 +53,10 @@
 		key = keys.pop();
 		parentKeypath = keys.join( '.' );
 
+		parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
+
 		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 			parentValue = wrapped.get();
-		} else {
-			parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
 		}
 
 		if ( parentValue === null || parentValue === undefined ) {
