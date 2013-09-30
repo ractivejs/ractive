@@ -512,6 +512,52 @@
 		t.deepEqual( ractive.get( 'colour' ), 'green' );
 	});
 
+	test( 'Setting nested properties with a keypath correctly updates value of intermediate keypaths', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '{{#foo}}{{#bar}}{{baz}}{{/bar}}{{/foo}}'
+		});
+
+		ractive.set( 'foo.bar.baz', 'success' );
+
+		t.ok( compareHTML( fixture.innerHTML, 'success' ) );
+	});
+
+	test( 'Functions are called with the ractive instance as context', function ( t ) {
+		expect( 1 );
+
+		var ractive = new Ractive({
+			el: fixture,
+			template: '{{ foo() }}'
+		});
+
+		ractive.set( 'foo', function () {
+			t.equal( this, ractive );
+		});
+	});
+
+	test( 'Methods are called with their object as context', function ( t ) {
+		expect( 1 );
+
+		var foo, run, ractive = new Ractive({
+			el: fixture,
+			template: '{{ foo.bar() }}'
+		});
+
+		foo = {
+			bar: function () {
+				// TODO why is this running twice?
+				if ( !run ) {
+					t.equal( this, foo );
+				}
+
+				run = true;
+			}
+		};
+
+		ractive.set( 'foo', foo );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build

@@ -240,6 +240,11 @@
 			name: 'References can begin with browser globals',
 			template: '{{ DateRange }}',
 			parsed: [{t:2,r:'DateRange'}]
+		},
+		{
+			name: 'Multiple method invocations',
+			template: '{{ a.foo().bar() }}',
+			parsed: [{t:2,x:{s:'${0}.foo().bar()',r:['a']}}]
 		}
 	];
 
