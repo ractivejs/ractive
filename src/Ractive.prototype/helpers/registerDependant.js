@@ -22,7 +22,7 @@ registerDependant = function ( dependant ) {
 	}
 
 	// update dependants map
-	keys = splitKeypath( keypath );
+	keys = keypath.split( '.' );
 	
 	while ( keys.length ) {
 		keys.pop();

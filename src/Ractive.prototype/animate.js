@@ -92,8 +92,6 @@
 		duration = ( options.duration === undefined ? 400 : options.duration );
 
 		// TODO store keys, use an internal set method
-		//keys = splitKeypath( keypath );
-
 		animation = new Animation({
 			keypath: keypath,
 			from: from,

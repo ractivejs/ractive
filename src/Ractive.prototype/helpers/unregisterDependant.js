@@ -9,7 +9,7 @@ unregisterDependant = function ( dependant ) {
 	deps.splice( deps.indexOf( dependant ), 1 );
 
 	// update dependants map
-	keys = splitKeypath( keypath );
+	keys = keypath.split( '.' );
 
 	// If this keypath is an evaluator, decrement its dependants property.
 	// That way, if an evaluator doesn't have any remaining dependants (temporarily
