@@ -18,7 +18,7 @@ defineProperties( defaultOptions, {
 
 Ractive = function ( options ) {
 
-	var key, partial, i, template, templateEl, parsedTemplate;
+	var key, partial, template, templateEl, parsedTemplate;
 
 	// Options
 	// -------

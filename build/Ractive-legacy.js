@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-30
+/*! Ractive - v0.3.6 - 2013-10-01
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -1624,13 +1624,14 @@ insertHtml = function ( html, docFrag ) {
 }());
 (function ( cache ) {
 
-	var Reference, getFunctionFromString, thisPattern, wrapFunction;
+	var Reference, SoftReference, getFunctionFromString, thisPattern, wrapFunction;
 
 	Evaluator = function ( root, keypath, functionStr, args, priority ) {
 		var i, arg;
 
 		this.root = root;
 		this.keypath = keypath;
+		this.priority = priority;
 
 		this.dependants = 0;
 
@@ -1747,6 +1748,38 @@ insertHtml = function ( html, docFrag ) {
 				this.update();
 				this.deferred = false;
 			}
+		},
+
+		updateSoftDependencies: function ( softDeps ) {
+			var i, keypath, ref;
+
+			if ( !this.softRefs ) {
+				this.softRefs = [];
+			}
+
+			// teardown any references that are no longer relevant
+			i = this.softRefs.length;
+			while ( i-- ) {
+				ref = this.softRefs[i];
+				if ( !softDeps[ ref.keypath ] ) {
+					this.softRefs.splice( i, 1 );
+					this.softRefs[ ref.keypath ] = false;
+					ref.teardown();
+				}
+			}
+
+			// add references for any new soft dependencies
+			i = softDeps.length;
+			while ( i-- ) {
+				keypath = softDeps[i];
+				if ( !this.softRefs[ keypath ] ) {
+					ref = new SoftReference( this.root, keypath, this );
+					this.softRefs[ this.softRefs.length ] = ref;
+					this.softRefs[ keypath ] = true;
+				}
+			}
+
+			this.selfUpdating = ( this.refs.length + this.softRefs.length <= 1 );
 		}
 	};
 
@@ -1764,7 +1797,7 @@ insertHtml = function ( html, docFrag ) {
 		value = root.get( keypath );
 
 		if ( typeof value === 'function' ) {
-			value = value._wrapped || wrapFunction( value, root );
+			value = value._wrapped || wrapFunction( value, root, evaluator );
 		}
 
 		this.value = evaluator.values[ argNum ] = value;
@@ -1777,13 +1810,38 @@ insertHtml = function ( html, docFrag ) {
 			var value = this.root.get( this.keypath );
 
 			if ( typeof value === 'function' && !value._nowrap ) {
-				value = value[ '_' + this.root._guid ] || wrapFunction( value, this.root );
+				value = value[ '_' + this.root._guid ] || wrapFunction( value, this.root, this.evaluator );
 			}
 
 			if ( !isEqual( value, this.value ) ) {
 				this.evaluator.values[ this.argNum ] = value;
 				this.evaluator.bubble();
 
+				this.value = value;
+			}
+		},
+
+		teardown: function () {
+			unregisterDependant( this );
+		}
+	};
+
+	SoftReference = function ( root, keypath, evaluator ) {
+		this.root = root;
+		this.keypath = keypath;
+		this.priority = evaluator.priority;
+
+		this.evaluator = evaluator;
+
+		registerDependant( this );
+	};
+
+	SoftReference.prototype = {
+		update: function () {
+			var value = this.root.get( this.keypath );
+
+			if ( !isEqual( value, this.value ) ) {
+				this.evaluator.bubble();
 				this.value = value;
 			}
 		},
@@ -1816,7 +1874,7 @@ insertHtml = function ( html, docFrag ) {
 
 	thisPattern = /this/;
 
-	wrapFunction = function ( fn, ractive ) {
+	wrapFunction = function ( fn, ractive, evaluator ) {
 		var prop;
 
 		// if the function doesn't refer to `this`, we don't need
@@ -1831,7 +1889,32 @@ insertHtml = function ( html, docFrag ) {
 		// otherwise, we do
 		defineProperty( fn, '_' + ractive._guid, {
 			value: function () {
-				return fn.apply( ractive, arguments );
+				var originalGet, result, softDependencies;
+
+				originalGet = ractive.get;
+				ractive.get = function ( keypath ) {
+					if ( !softDependencies ) {
+						softDependencies = [];
+					}
+
+					if ( !softDependencies[ keypath ] ) {
+						softDependencies[ softDependencies.length ] = keypath;
+						softDependencies[ keypath ] = true;
+					}
+					
+					return originalGet.call( ractive, keypath );
+				};
+				
+				result = fn.apply( ractive, arguments );
+				
+				if ( softDependencies ) {
+					evaluator.updateSoftDependencies( softDependencies );
+				}
+
+				// reset
+				ractive.get = originalGet;
+				
+				return result;
 			},
 			writable: true
 		});
@@ -2776,14 +2859,6 @@ stripStandalones = function ( tokens ) {
 	};
 
 }( proto ));
-proto.bind = function ( adaptor ) {
-	var bound = this._bound;
-
-	if ( bound.indexOf( adaptor ) === -1 ) {
-		bound[ bound.length ] = adaptor;
-		adaptor.init( this );
-	}
-};
 proto.cancelFullscreen = function () {
 	Ractive.cancelFullscreen( this.el );
 };
@@ -2869,10 +2944,10 @@ proto.fire = function ( eventName ) {
 		key = keys.pop();
 		parentKeypath = keys.join( '.' );
 
+		parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
+
 		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 			parentValue = wrapped.get();
-		} else {
-			parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
 		}
 
 		if ( parentValue === null || parentValue === undefined ) {
@@ -4977,7 +5052,7 @@ defineProperties( defaultOptions, {
 
 Ractive = function ( options ) {
 
-	var key, partial, i, template, templateEl, parsedTemplate;
+	var key, partial, template, templateEl, parsedTemplate;
 
 	// Options
 	// -------
@@ -5027,9 +5102,6 @@ Ractive = function ( options ) {
 
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
-
-		// external model bindings
-		_bound: { value: [] },
 
 		// two-way bindings
 		_twowayBindings: { value: {} },
@@ -5088,17 +5160,6 @@ Ractive = function ( options ) {
 
 	// Adaptors
 	this.adaptors = options.adaptors;
-
-	// Set up bindings
-	if ( options.bindings ) {
-		if ( isArray( options.bindings ) ) {
-			for ( i=0; i<options.bindings.length; i+=1 ) {
-				this.bind( options.bindings[i] );
-			}
-		} else {
-			this.bind( options.bindings );
-		}
-	}
 
 
 	// Parse template, if necessary
@@ -5975,7 +6036,8 @@ var arrayContentsMatch = function ( a, b ) {
 			initFalse,
 			processKeyValuePair,
 			eventName,
-			propagateEvent;
+			propagateEvent,
+			items;
 
 		root = parentFragment.root;
 
@@ -6061,7 +6123,18 @@ var arrayContentsMatch = function ( a, b ) {
 			docFrag.appendChild( instance.el.firstChild );
 		}
 
+		// reset node references...
+		// TODO this is a filthy hack! Need to come up with a neater solution
 		instance.el = parentFragment.parentNode;
+		items = instance.fragment.items;
+		if ( items ) {
+			i = items.length;
+			while ( i-- ) {
+				if ( items[i].parentNode ) {
+					items[i].parentNode = parentFragment.parentNode;
+				}
+			}
+		}
 
 		self.observers = [];
 		initFalse = { init: false };

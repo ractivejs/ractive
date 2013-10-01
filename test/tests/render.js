@@ -372,6 +372,14 @@
 			template: '{{#( foobar === undefined )}}undefined{{/()}}',
 			data: { foobar: undefined },
 			result: 'undefined'
+		},
+		{
+			name: 'Dependencies can be declared with this.get() inside expression functions',
+			template: '{{ area() }}',
+			data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ) } },
+			result: '2500',
+			new_data: { width: 100 },
+			new_result: '5000'
 		}
 	];
 
