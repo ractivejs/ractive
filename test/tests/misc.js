@@ -558,6 +558,27 @@
 		ractive.set( 'foo', foo );
 	});
 
+	test( 'Top-level sections in components are updated correctly', function ( t ) {
+		var ractive, Component, component;
+
+		Component = Ractive.extend({
+			template: '{{#foo}}foo is truthy{{/foo}}{{^foo}}foo is falsy{{/foo}}'
+		});
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<rv-component foo="{{foo}}"/>',
+			components: {
+				component: Component
+			}
+		});
+		
+		t.ok( compareHTML( fixture.innerHTML, 'foo is falsy' ) );
+
+		ractive.set( 'foo', true );
+		t.ok( compareHTML( fixture.innerHTML, 'foo is truthy' ) );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build

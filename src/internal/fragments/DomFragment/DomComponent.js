@@ -24,7 +24,8 @@
 			initFalse,
 			processKeyValuePair,
 			eventName,
-			propagateEvent;
+			propagateEvent,
+			items;
 
 		root = parentFragment.root;
 
@@ -110,7 +111,18 @@
 			docFrag.appendChild( instance.el.firstChild );
 		}
 
+		// reset node references...
+		// TODO this is a filthy hack! Need to come up with a neater solution
 		instance.el = parentFragment.parentNode;
+		items = instance.fragment.items;
+		if ( items ) {
+			i = items.length;
+			while ( i-- ) {
+				if ( items[i].parentNode ) {
+					items[i].parentNode = parentFragment.parentNode;
+				}
+			}
+		}
 
 		self.observers = [];
 		initFalse = { init: false };
