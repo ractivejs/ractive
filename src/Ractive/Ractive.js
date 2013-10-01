@@ -69,9 +69,6 @@ Ractive = function ( options ) {
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
 
-		// external model bindings
-		_bound: { value: [] },
-
 		// two-way bindings
 		_twowayBindings: { value: {} },
 
@@ -129,17 +126,6 @@ Ractive = function ( options ) {
 
 	// Adaptors
 	this.adaptors = options.adaptors;
-
-	// Set up bindings
-	if ( options.bindings ) {
-		if ( isArray( options.bindings ) ) {
-			for ( i=0; i<options.bindings.length; i+=1 ) {
-				this.bind( options.bindings[i] );
-			}
-		} else {
-			this.bind( options.bindings );
-		}
-	}
 
 
 	// Parse template, if necessary
