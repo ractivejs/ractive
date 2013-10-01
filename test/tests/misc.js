@@ -579,6 +579,27 @@
 		t.ok( compareHTML( fixture.innerHTML, 'foo is truthy' ) );
 	});
 
+	test( 'Partials can contain inline partials', function ( t ) {
+		var partialStr, ractive;
+
+		partialStr = '<ul>{{#items}}{{>item}}{{/items}}</ul> <!-- {{>item}} --><li>{{.}}</li><!-- {{/item}} -->';
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{>list}}',
+			partials: {
+				list: partialStr
+			},
+			data: {
+				items: [ 'a', 'b', 'c' ]
+			}
+		});
+
+		window.ractive = ractive;
+
+		t.ok( compareHTML( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' ) );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build

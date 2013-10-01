@@ -112,9 +112,6 @@ Ractive = function ( options ) {
 	}
 	
 
-	// Partials registry
-	this.partials = {};
-
 	// Components registry
 	this.components = options.components || {};
 
@@ -131,6 +128,7 @@ Ractive = function ( options ) {
 	// Parse template, if necessary
 	template = options.template;
 
+	
 	if ( typeof template === 'string' ) {
 		if ( !Ractive.parse ) {
 			throw new Error( missingParser );
@@ -159,6 +157,8 @@ Ractive = function ( options ) {
 	if ( isObject( parsedTemplate ) ) {
 		this.partials = parsedTemplate.partials;
 		parsedTemplate = parsedTemplate.main;
+	} else {
+		this.partials = {};
 	}
 
 	// If the template was an array with a single string member, that means
@@ -169,27 +169,22 @@ Ractive = function ( options ) {
 
 	this.template = parsedTemplate;
 
-
-	// If we were given unparsed partials, parse them
+	// Add partials to our registry
 	if ( options.partials ) {
 		for ( key in options.partials ) {
 			if ( hasOwn.call( options.partials, key ) ) {
-				partial = options.partials[ key ];
-
-				if ( typeof partial === 'string' ) {
-					if ( !Ractive.parse ) {
-						throw new Error( missingParser );
-					}
-
-					partial = Ractive.parse( partial, options );
-				}
-
-				this.partials[ key ] = partial;
+				this.partials[ key ] = options.partials[ key ];
 			}
 		}
 	}
-	
 
+	this.parseOptions = {
+		preserveWhitespace: options.preserveWhitespace,
+		sanitize: options.sanitize
+	};
+
+
+	
 	// temporarily disable transitions, if noIntro flag is set
 	this.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 

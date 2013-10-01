@@ -42,6 +42,8 @@
 	};
 
 	getPartialFromRegistry = function ( registry, name ) {
+		var partial, key;
+
 		if ( registry.partials[ name ] ) {
 			
 			// If this was added manually to the registry, but hasn't been parsed,
@@ -51,7 +53,19 @@
 					throw new Error( missingParser );
 				}
 
-				registry.partials[ name ] = Ractive.parse( registry.partials[ name ] );
+				partial = Ractive.parse( registry.partials[ name ], registry.parseOptions );
+
+				if ( isObject( partial ) ) {
+					registry.partials[ name ] = partial.main;
+
+					for ( key in partial.partials ) {
+						if ( partial.partials.hasOwnProperty( key ) ) {
+							registry.partials[ key ] = partial.partials[ key ];
+						}
+					}
+				} else {
+					registry.partials[ name ] = partial;
+				}
 			}
 
 			return unpack( registry.partials[ name ] );
