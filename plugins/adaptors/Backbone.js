@@ -17,7 +17,7 @@
 (function () {
 
 	Ractive.adaptors.Backbone = {
-		filter: function ( ractive, object ) {
+		filter: function ( object ) {
 			return object instanceof Backbone.Model || object instanceof Backbone.Collection;
 		},
 		wrap: function ( ractive, object, keypath, prefix ) {
