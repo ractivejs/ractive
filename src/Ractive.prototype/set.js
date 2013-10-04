@@ -1,11 +1,10 @@
 (function ( proto ) {
 
-	var set, resetWrapped;
+	var set, getUpstreamChanges, resetWrapped;
 
 	proto.set = function ( keypath, value, complete ) {
 		var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
 
-		upstreamChanges = [ '' ]; // empty string will always be an upstream keypath
 		changes = [];
 
 		if ( isObject( keypath ) ) {
@@ -13,41 +12,44 @@
 			complete = value;
 		}
 
-		// manage transitions
-		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
-
-		// setting multiple values in one go
+		// Set multiple keypaths in one go
 		if ( map ) {
 			for ( keypath in map ) {
 				if ( hasOwn.call( map, keypath) ) {
 					value = map[ keypath ];
 					keypath = normaliseKeypath( keypath );
 
-					set( this, keypath, value, changes, upstreamChanges );
+					set( this, keypath, value, changes );
 				}
 			}
 		}
 
-		// setting a single value
+		// Set a single keypath
 		else {
 			keypath = normaliseKeypath( keypath );
-			set( this, keypath, value, changes, upstreamChanges );
+			set( this, keypath, value, changes );
 		}
 
-		// if anything has changed, attempt to resolve any unresolved keypaths...
-		if ( changes.length && this._pendingResolution.length ) {
+		if ( !changes.length ) {
+			return;
+		}
+
+		// Manage transitions
+		previousTransitionManager = this._transitionManager;
+		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+
+		// Attempt to resolve any unresolved keypaths...
+		if ( this._pendingResolution.length ) {
 			attemptKeypathResolution( this );
 		}
 
 		// ...and notify dependants
+		upstreamChanges = getUpstreamChanges( changes );
 		if ( upstreamChanges.length ) {
 			notifyMultipleDependants( this, upstreamChanges, true );
 		}
 
-		if ( changes.length ) {
-			notifyMultipleDependants( this, changes );
-		}
+		notifyMultipleDependants( this, changes );
 
 		// Attributes don't reflect changes automatically if there is a possibility
 		// that they will need to change again before the .set() cycle is complete
@@ -59,7 +61,7 @@
 		transitionManager.ready();
 
 		// Fire a change event
-		if ( ( i = changes.length ) && !this.firingChangeEvent ) {
+		if ( !this.firingChangeEvent ) {
 			this.firingChangeEvent = true; // short-circuit any potential infinite loops
 			
 			changeHash = {};
@@ -78,11 +80,11 @@
 	};
 
 
-	set = function ( ractive, keypath, value, changes, upstreamChanges ) {
+	set = function ( ractive, keypath, value, changes ) {
 		var cached, keys, previous, key, obj, accumulated, currentKeypath, keypathToClear, wrapped;
 
 		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
-			if ( resetWrapped( ractive, keypath, value, wrapped, changes, upstreamChanges ) !== false ) {
+			if ( resetWrapped( ractive, keypath, value, wrapped, changes ) !== false ) {
 				return;
 			}
 		}
@@ -92,7 +94,7 @@
 
 		keys = keypath.split( '.' );
 		accumulated = [];
-		
+
 		// update the model, if necessary
 		if ( previous !== value ) {
 			
@@ -147,24 +149,33 @@
 
 		// add this keypath to the list of changes
 		changes[ changes.length ] = keypath;
+	};
 
+	getUpstreamChanges = function ( changes ) {
+		var upstreamChanges = [ '' ], i, keypath, keys, upstreamKeypath;
 
-		// add upstream keypaths to the list of upstream changes
-		keys = keypath.split( '.' );
-		while ( keys.length > 1 ) {
-			keys.pop();
-			keypath = keys.join( '.' );
+		i = changes.length;
+		while ( i-- ) {
+			keypath = changes[i];
+			keys = keypath.split( '.' );
 
-			if ( !upstreamChanges[ keypath ] ) {
-				upstreamChanges[ upstreamChanges.length ] = keypath;
-				upstreamChanges[ keypath ] = true;
+			while ( keys.length > 1 ) {
+				keys.pop();
+				upstreamKeypath = keys.join( '.' );
+
+				if ( !upstreamChanges[ upstreamKeypath ] ) {
+					upstreamChanges[ upstreamChanges.length ] = upstreamKeypath;
+					upstreamChanges[ upstreamKeypath ] = true;
+				}
 			}
 		}
+
+		return upstreamChanges;
 	};
 
 
-	resetWrapped = function ( ractive, keypath, value, wrapped, changes, upstreamChanges ) {
-		var previous, cached, cacheMap, keys, i;
+	resetWrapped = function ( ractive, keypath, value, wrapped, changes ) {
+		var previous, cached, cacheMap, i;
 
 		previous = wrapped.get();
 
@@ -193,18 +204,6 @@
 			}
 
 			changes[ changes.length ] = keypath;
-
-			// add upstream keypaths to the list of upstream changes
-			keys = keypath.split( '.' );
-			while ( keys.length > 1 ) {
-				keys.pop();
-				keypath = keys.join( '.' );
-
-				if ( !upstreamChanges[ keypath ] ) {
-					upstreamChanges[ upstreamChanges.length ] = keypath;
-					upstreamChanges[ keypath ] = true;
-				}
-			}
 		}
 	};
 
