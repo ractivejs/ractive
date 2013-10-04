@@ -1,3 +1,25 @@
+// Ractive adaptor plugin
+// =======================
+//
+// This plugin allows you to have several Ractive instances sharing
+// a single model, without using any third party libraries.
+//
+// Usage:
+//
+//     var ractiveOne = new Ractive({
+//       el: 'one',
+//       template: templateOne
+//     });
+//
+//     var ractiveTwo = new Ractive({
+//       el: 'two',
+//       template: templateTwo,
+//       data: ractiveOne,
+//       adaptors: [ 'Ractive' ]
+//     });
+//
+// Changes to either Ractive will be reflected in both.
+
 (function () {
 
 	var RactiveWrapper;
