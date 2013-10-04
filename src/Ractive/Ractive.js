@@ -1,30 +1,33 @@
-var defaultOptions = createFromNull();
+var defaultOptions = createFromNull(), getObject, getArray;
+
+getObject = function () { return {}; };
+getArray = function () { return []; };
 
 defineProperties( defaultOptions, {
-	preserveWhitespace: { enumerable: true, value: false },
-	append:             { enumerable: true, value: false },
-	twoway:             { enumerable: true, value: true  },
-	modifyArrays:       { enumerable: true, value: true  },
-	data:               { enumerable: true, value: {}    },
-	lazy:               { enumerable: true, value: false },
-	debug:              { enumerable: true, value: false },
-	transitions:        { enumerable: true, value: {}    },
-	eventDefinitions:   { enumerable: true, value: {}    },
-	noIntro:            { enumerable: true, value: false },
-	transitionsEnabled: { enumerable: true, value: true  },
-	magic:              { enumerable: true, value: false },
-	adaptors:           { enumerable: true, value: []    }
+	preserveWhitespace: { enumerable: true, value: false     },
+	append:             { enumerable: true, value: false     },
+	twoway:             { enumerable: true, value: true      },
+	modifyArrays:       { enumerable: true, value: true      },
+	data:               { enumerable: true, value: getObject },
+	lazy:               { enumerable: true, value: false     },
+	debug:              { enumerable: true, value: false     },
+	transitions:        { enumerable: true, value: getObject },
+	eventDefinitions:   { enumerable: true, value: getObject },
+	noIntro:            { enumerable: true, value: false     },
+	transitionsEnabled: { enumerable: true, value: true      },
+	magic:              { enumerable: true, value: false     },
+	adaptors:           { enumerable: true, value: getArray  }
 });
 
 Ractive = function ( options ) {
 
-	var key, partial, template, templateEl, parsedTemplate;
+	var key, template, templateEl, parsedTemplate;
 
 	// Options
 	// -------
 	for ( key in defaultOptions ) {
-		if ( !hasOwn.call( options, key ) ) {
-			options[ key ] = ( typeof defaultOptions[ key ] === 'object' ? {} : defaultOptions[ key ] );
+		if ( options[ key ] === undefined ) {
+			options[ key ] = ( typeof defaultOptions[ key ] === 'function' ? defaultOptions[ key ]() : defaultOptions[ key ] );
 		}
 	}
 
