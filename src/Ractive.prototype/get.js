@@ -3,7 +3,8 @@
 	var get,
 		prefix,
 		getPrefixer,
-		prefixers = {};
+		prefixers = {},
+		adaptIfNecessary;
 
 	proto.get = function ( keypath ) {
 		var cache,
@@ -12,12 +13,8 @@
 			wrapped,
 			evaluator;
 
-		if ( !keypath ) {
-			return this.data;
-		}
-
 		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
-		keypath = normaliseKeypath( keypath );
+		keypath = normaliseKeypath( keypath || '' );
 
 		cache = this._cache;
 
@@ -28,6 +25,12 @@
 		// Is this a wrapped property?
 		if ( wrapped = this._wrapped[ keypath ] ) {
 			value = wrapped.value;
+		}
+
+		// Is it the root?
+		else if ( !keypath ) {
+			adaptIfNecessary( this, '', this.data );
+			return this.data;
 		}
 
 		// Is this an uncached evaluator value?
@@ -47,13 +50,13 @@
 
 
 	get = function ( ractive, keypath ) {
-		var keys, key, parentKeypath, parentValue, cacheMap, value, adaptor, wrapped, i;
+		var keys, key, parentKeypath, parentValue, cacheMap, value, adaptor, wrapped;
 
 		keys = keypath.split( '.' );
 		key = keys.pop();
 		parentKeypath = keys.join( '.' );
 
-		parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
+		parentValue = ractive.get( parentKeypath );
 
 		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 			parentValue = wrapped.get();
@@ -77,25 +80,8 @@
 
 
 		// Do we have an adaptor for this value?
-		i = ractive.adaptors.length;
-		while ( i-- ) {
-			adaptor = ractive.adaptors[i];
-			
-			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
-			// we need to get the actual adaptor if that's the case
-			if ( typeof adaptor === 'string' ) {
-				if ( !Ractive.adaptors[ adaptor ] ) {
-					throw new Error( 'Missing adaptor "' + adaptor + '"' );
-				}
-				adaptor = ractive.adaptors[i] = Ractive.adaptors[ adaptor ];
-			}
-
-			if ( adaptor.filter( ractive, value, keypath ) ) {
-				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
-				
-				ractive._cache[ keypath ] = value;
-				return value;
-			}
+		if ( adaptIfNecessary( ractive, keypath, value ) ) {
+			return value;
 		}
 
 
@@ -160,6 +146,32 @@
 		}
 
 		return prefixers[ rootKeypath ];
+	};
+
+	adaptIfNecessary = function ( ractive, keypath, value ) {
+		var i, adaptor, wrapped;
+
+		// Do we have an adaptor for this value?
+		i = ractive.adaptors.length;
+		while ( i-- ) {
+			adaptor = ractive.adaptors[i];
+			
+			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
+			// we need to get the actual adaptor if that's the case
+			if ( typeof adaptor === 'string' ) {
+				if ( !Ractive.adaptors[ adaptor ] ) {
+					throw new Error( 'Missing adaptor "' + adaptor + '"' );
+				}
+				adaptor = ractive.adaptors[i] = Ractive.adaptors[ adaptor ];
+			}
+
+			if ( adaptor.filter( value, keypath, ractive ) ) {
+				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+				ractive._cache[ keypath ] = value;
+
+				return true;
+			}
+		}
 	};
 
 }( proto ));

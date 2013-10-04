@@ -98,8 +98,20 @@
 		// update the model, if necessary
 		if ( previous !== value ) {
 			
-			// update data
-			obj = ractive.data;
+			// Get the root object
+			if ( wrapped = ractive._wrapped[ '' ] ) {
+				if ( wrapped.set ) {
+					// Root object is wrapped, so we need to use the wrapper's
+					// set() method
+					wrapped.set( keys.join( '.' ), value );
+				}
+
+				obj = wrapped.get();
+			} else {
+				obj = ractive.data;
+			}
+
+			
 			while ( keys.length > 1 ) {
 				key = accumulated[ accumulated.length ] = keys.shift();
 				currentKeypath = accumulated.join( '.' );
