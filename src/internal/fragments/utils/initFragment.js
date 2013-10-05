@@ -32,7 +32,7 @@ initFragment = function ( fragment, options ) {
 	}
 
 	// inherit priority
-	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 0 );
+	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 1 );
 
 	if ( options.indexRef ) {
 		if ( !fragment.indexRefs ) {

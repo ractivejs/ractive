@@ -56,9 +56,7 @@ initMustache = function ( mustache, options ) {
 
 // methods to add to individual mustache prototypes
 updateMustache = function () {
-	var value;
-
-	value = this.root.get( this.keypath, true );
+	var value = this.root.get( this.keypath, true );
 
 	if ( !isEqual( value, this.value ) ) {
 		this.render( value );

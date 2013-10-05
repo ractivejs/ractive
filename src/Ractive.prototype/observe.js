@@ -34,9 +34,10 @@
 		observer = new Observer( root, keypath, callback, options );
 
 		if ( !options || options.init !== false ) {
-			observer.update( true );
+			observer.update();
 		}
 
+		observer.ready = true;
 		registerDependant( observer );
 
 		return {
@@ -50,15 +51,24 @@
 		this.root = root;
 		this.keypath = keypath;
 		this.callback = callback;
-		this.priority = 0; // observers get top priority
+		this.defer = options.defer;
+		
+		// Observers are notified before any DOM changes take place (though
+		// they can defer execution until afterwards)
+		this.priority = 0;
 
 		// default to root as context, but allow it to be overridden
 		this.context = ( options && options.context ? options.context : root );
 	};
 
 	Observer.prototype = {
-		update: function ( init ) {
+		update: function ( deferred ) {
 			var value;
+
+			if ( this.defer && !deferred && this.ready ) {
+				this.root._defObservers.push( this );
+				return;
+			}
 
 			// Prevent infinite loops
 			if ( this.updating ) {
@@ -70,7 +80,7 @@
 			// TODO create, and use, an internal get method instead - we can skip checks
 			value = this.root.get( this.keypath, true );
 
-			if ( !isEqual( value, this.value ) || init ) {
+			if ( !isEqual( value, this.value ) || !this.ready ) {
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {

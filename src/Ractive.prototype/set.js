@@ -38,11 +38,6 @@
 		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
-		// Attempt to resolve any unresolved keypaths...
-		if ( this._pendingResolution.length ) {
-			attemptKeypathResolution( this );
-		}
-
 		// ...and notify dependants
 		upstreamChanges = getUpstreamChanges( changes );
 		if ( upstreamChanges.length ) {
@@ -50,6 +45,11 @@
 		}
 
 		notifyMultipleDependants( this, changes );
+
+		// Attempt to resolve any unresolved keypaths...
+		if ( this._pendingResolution.length ) {
+			attemptKeypathResolution( this );
+		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
 		// that they will need to change again before the .set() cycle is complete

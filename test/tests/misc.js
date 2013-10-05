@@ -83,10 +83,10 @@
 		
 		t.ok( compareHTML( fixture.innerHTML, '3 3 3' ) );
 
-		t.equal( ractive._deps.length, 1 );
-		t.equal( ractive._deps[0].a.length, 1 );
+		t.equal( ractive._deps.length, 2 );
+		t.equal( ractive._deps[1].a.length, 1 );
 
-		t.equal( ractive._deps[0].b.length, 1 );
+		t.equal( ractive._deps[1].b.length, 1 );
 	});
 
 	test( 'Boolean attributes work as expected', function ( t ) {
@@ -598,6 +598,42 @@
 		window.ractive = ractive;
 
 		t.ok( compareHTML( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' ) );
+	});
+
+	test( 'Observers fire before the DOM updates', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '{{#foo}}{{bar}}{{/foo}}',
+			data: { bar: 'yeah' }
+		});
+
+		expect( 1 );
+
+		ractive.observe( 'foo', function ( foo ) {
+			t.equal( fixture.innerHTML, '' );
+		}, { init: false });
+
+		ractive.set( 'foo', true );
+
+		window.ractive = ractive;
+	});
+
+	test( 'Observers with { defer: true } fire after the DOM updates', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '{{#foo}}{{bar}}{{/foo}}',
+			data: { bar: 'yeah' }
+		});
+
+		expect( 1 );
+
+		ractive.observe( 'foo', function ( foo ) {
+			t.equal( fixture.innerHTML, 'yeah' );
+		}, { init: false, defer: true });
+
+		ractive.set( 'foo', true );
+
+		window.ractive = ractive;
 	});
 
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.

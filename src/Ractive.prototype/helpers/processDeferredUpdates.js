@@ -23,4 +23,8 @@ processDeferredUpdates = function ( ractive ) {
 	while ( ractive._defRadios.length ) {
 		ractive._defRadios.pop().update();
 	}
+
+	while ( ractive._defObservers.length ) {
+		ractive._defObservers.pop().update( true );
+	}
 };

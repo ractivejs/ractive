@@ -59,7 +59,7 @@ resolveRef = function ( ractive, ref, contextStack ) {
 		innerMostContext = contextStack.pop();
 		parentKeypath = innerMostContext + postfix;
 
-		parentValue = ractive.get( innerMostContext + postfix );
+		parentValue = ractive.get( parentKeypath );
 
 		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 			parentValue = wrapped.get();
