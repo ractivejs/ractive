@@ -182,8 +182,13 @@ namespaces = {
 // using for...in on a (modified) array, in which case you deserve what's
 // coming anyway
 try {
-	Object.defineProperty({}, 'test', { value: 0 });
-	Object.defineProperties({}, { test: { value: 0 } });
+	try {
+		Object.defineProperty({}, 'test', { value: 0 });
+		Object.defineProperties({}, { test: { value: 0 } });
+	} catch ( err ) {
+		noMagic = true;
+		throw err;
+	}
 
 	if ( doc ) {
 		Object.defineProperty( testDiv, 'test', { value: 0 });
@@ -208,8 +213,6 @@ try {
 			}
 		}
 	};
-
-	noMagic = true;
 }
 
 
