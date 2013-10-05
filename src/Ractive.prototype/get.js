@@ -30,7 +30,7 @@
 		// Is it the root?
 		else if ( !keypath ) {
 			adaptIfNecessary( this, '', this.data );
-			return this.data;
+			value = this.data;
 		}
 
 		// Is this an uncached evaluator value?

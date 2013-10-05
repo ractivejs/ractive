@@ -636,6 +636,82 @@
 		window.ractive = ractive;
 	});
 
+	test( 'findAll returns a static node list', function ( t ) {
+		var items, ractive, list;
+
+		items = [ 'a', 'b', 'c' ];
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
+			data: { items: items }
+		});
+
+		list = ractive.findAll( 'li' );
+		t.equal( list.length, 3 );
+
+		items.push( 'd' );
+		t.equal( items.length, 4 );
+		t.equal( list.length, 3 );
+	});
+
+	test( 'findAll with live=true returns a live node list if selector is a tag name', function ( t ) {
+		var items, ractive, list;
+
+		items = [ 'a', 'b', 'c' ];
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
+			data: { items: items }
+		});
+
+		list = ractive.findAll( 'li', true );
+		t.equal( list.length, 3 );
+
+		items.push( 'd' );
+		t.equal( items.length, 4 );
+		t.equal( list.length, 4 );
+	});
+
+	test( 'findAll with live=true returns a live node list if selector is a class name', function ( t ) {
+		var items, ractive, list;
+
+		items = [ 'a', 'b', 'c' ];
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<ul>{{#items}}<li class="item">{{.}}</li>{{/items}}</ul>',
+			data: { items: items }
+		});
+
+		list = ractive.findAll( '.item', true );
+		t.equal( list.length, 3 );
+
+		items.push( 'd' );
+		t.equal( items.length, 4 );
+		t.equal( list.length, 4 );
+	});
+
+	test( 'findAll with live=true returns a static node list if selector is neither a tag nor class name', function ( t ) {
+		var items, ractive, list;
+
+		items = [ 'a', 'b', 'c' ];
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '<ul>{{#items}}<li class="item">{{.}}</li>{{/items}}</ul>',
+			data: { items: items }
+		});
+
+		list = ractive.findAll( 'li.item', true );
+		t.equal( list.length, 3 );
+
+		items.push( 'd' );
+		t.equal( items.length, 4 );
+		t.equal( list.length, 3 );
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build
