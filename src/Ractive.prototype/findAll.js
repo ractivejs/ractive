@@ -33,6 +33,6 @@
 	};
 
 	tagSelector = /^[a-zA-Z][a-zA-Z0-9\-]*$/;
-	classSelector = /^\.[^\s]+$/g
+	classSelector = /^\.[^\s]+$/g;
 
 }());
