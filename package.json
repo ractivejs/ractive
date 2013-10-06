@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "homepage": "http://ractivejs.org",
   "main": "build/Ractive.js",
   "keywords": [
