@@ -8,7 +8,7 @@ DomFragment = function ( options ) {
 		this.html = options.descriptor;
 
 		if ( this.docFrag ) {
-			this.nodes = insertHtml( options.descriptor, this.docFrag );
+			this.nodes = insertHtml( options.descriptor, options.parentNode.tagName, this.docFrag );
 		}
 		
 		return; // prevent the rest of the init sequence

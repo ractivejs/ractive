@@ -1,13 +1,19 @@
-insertHtml = function ( html, docFrag ) {
-	var div, nodes = [];
+(function () {
 
-	div = doc.createElement( 'div' );
-	div.innerHTML = html;
+	var elementCache = {};
 
-	while ( div.firstChild ) {
-		nodes[ nodes.length ] = div.firstChild;
-		docFrag.appendChild( div.firstChild );
-	}
+	insertHtml = function ( html, tagName, docFrag ) {
+		var container, nodes = [];
 
-	return nodes;
-};
+		container = elementCache[ tagName ] || ( elementCache[ tagName ] = doc.createElement( tagName ) );
+		container.innerHTML = html;
+
+		while ( container.firstChild ) {
+			nodes[ nodes.length ] = container.firstChild;
+			docFrag.appendChild( container.firstChild );
+		}
+
+		return nodes;
+	};
+
+}());

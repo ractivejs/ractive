@@ -380,6 +380,14 @@
 			result: '2500',
 			new_data: { width: 100 },
 			new_result: '5000'
+		},
+		{
+			name: 'Triples work correctly inside table elements',
+			template: '<table>{{{row}}}</table>',
+			data: { row: '<tr><td>works</td></tr>' },
+			result: '<table><tr><td>works</td></tr></table>',
+			new_data: { row: '<tr><td>still works</td></tr>' },
+			new_result: '<table><tr><td>still works</td></tr></table>'
 		}
 	];
 

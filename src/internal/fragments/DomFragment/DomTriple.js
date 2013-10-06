@@ -62,7 +62,7 @@ DomTriple.prototype = {
 		}
 
 		// get new nodes
-		this.nodes = insertHtml( html, this.docFrag );
+		this.nodes = insertHtml( html, this.parentNode.tagName, this.docFrag );
 
 		if ( !this.initialising ) {
 			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
