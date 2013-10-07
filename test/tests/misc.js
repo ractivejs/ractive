@@ -712,6 +712,27 @@
 		t.equal( list.length, 3 );
 	});
 
+	test( 'Delimiters can be reset globally', function ( t ) {
+		var oldDelimiters, oldTripledDelimiters, ractive;
+
+		oldDelimiters = Ractive.delimiters;
+		oldTripledDelimiters = Ractive.tripleDelimiters;
+
+		Ractive.delimiters = [ '[[', ']]' ];
+		Ractive.tripleDelimiters = [ '[[[', ']]]' ];
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '[[foo]] [[[bar]]]',
+			data: { foo: 'text', bar: '<strong>html</strong>' }
+		});
+
+		t.ok( compareHTML( fixture.innerHTML, 'text <strong>html</strong>' ) );
+
+		Ractive.delimiters = oldDelimiters;
+		Ractive.tripleDelimiters = oldTripledDelimiters;
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build

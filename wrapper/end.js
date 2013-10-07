@@ -1,17 +1,21 @@
 Ractive.prototype = proto;
 
+// Shared properties
+Ractive.partials = {};
+Ractive.delimiters = [ '{{', '}}' ];
+Ractive.tripleDelimiters = [ '{{{', '}}}' ];
+
+// Plugins
 Ractive.adaptors = adaptors;
 Ractive.eventDefinitions = eventDefinitions;
-Ractive.partials = {};
-
 Ractive.easing = easing;
+Ractive.transitions = transitions;
+
+// Static methods
 Ractive.extend = extend;
 Ractive.interpolate = interpolate;
 Ractive.interpolators = interpolators;
 Ractive.parse = parse;
-
-// TODO add some more transitions
-Ractive.transitions = transitions;
 
 Ractive.VERSION = VERSION;
 

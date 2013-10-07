@@ -6,8 +6,8 @@ tokenize = function ( template, options ) {
 	tokenizer = {
 		str: stripHtmlComments( template ),
 		pos: 0,
-		delimiters: options.delimiters || [ '{{', '}}' ],
-		tripleDelimiters: options.tripleDelimiters || [ '{{{', '}}}' ],
+		delimiters: options.delimiters || Ractive.delimiters,
+		tripleDelimiters: options.tripleDelimiters || Ractive.tripleDelimiters,
 		remaining: function () {
 			return tokenizer.str.substring( tokenizer.pos );
 		}
