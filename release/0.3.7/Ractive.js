@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-06
+/*! Ractive - v0.3.7 - 2013-10-07
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -9553,8 +9553,8 @@ tokenize = function ( template, options ) {
 	tokenizer = {
 		str: stripHtmlComments( template ),
 		pos: 0,
-		delimiters: options.delimiters || [ '{{', '}}' ],
-		tripleDelimiters: options.tripleDelimiters || [ '{{{', '}}}' ],
+		delimiters: options.delimiters || Ractive.delimiters,
+		tripleDelimiters: options.tripleDelimiters || Ractive.tripleDelimiters,
 		remaining: function () {
 			return tokenizer.str.substring( tokenizer.pos );
 		}
@@ -9589,18 +9589,22 @@ tokenize = function ( template, options ) {
 };
 Ractive.prototype = proto;
 
+// Shared properties
+Ractive.partials = {};
+Ractive.delimiters = [ '{{', '}}' ];
+Ractive.tripleDelimiters = [ '{{{', '}}}' ];
+
+// Plugins
 Ractive.adaptors = adaptors;
 Ractive.eventDefinitions = eventDefinitions;
-Ractive.partials = {};
-
 Ractive.easing = easing;
+Ractive.transitions = transitions;
+
+// Static methods
 Ractive.extend = extend;
 Ractive.interpolate = interpolate;
 Ractive.interpolators = interpolators;
 Ractive.parse = parse;
-
-// TODO add some more transitions
-Ractive.transitions = transitions;
 
 Ractive.VERSION = VERSION;
 
