@@ -178,7 +178,7 @@ var getExpression;
 
 			allowWhitespace( tokenizer );
 
-			expression = getExpression( tokenizer );
+			expression = getTypeOf( tokenizer );
 			if ( !expression ) {
 				fail( tokenizer, 'an expression' );
 			}
