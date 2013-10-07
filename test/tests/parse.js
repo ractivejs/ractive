@@ -189,7 +189,7 @@
 		{
 			name: "Expression with JSON object",
 			template: "{{( fn({ foo: 1, 'bar': 2, '0foo': 3, '0bar': { baz: 'test', arr: [ 1, 2, 3 ] } }) )}}",
-			parsed: [{t:2,"x":{r:["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:'test',arr:[1,2,3]}})"}}]
+			parsed: [{t:2,"x":{r:["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:\"test\",arr:[1,2,3]}})"}}]
 		},
 		{
 			name: 'Invocation refinements',
@@ -245,7 +245,18 @@
 			name: 'Multiple method invocations',
 			template: '{{ a.foo().bar() }}',
 			parsed: [{t:2,x:{s:'${0}.foo().bar()',r:['a']}}]
+		},
+		{
+			name: 'Backslash escapes in strings',
+			template: '{{ ["\\\\ \\" \\\\", \'\\\\ \\\' \\\\\'] }}',
+			parsed: [{t:2,x:{r:[],s:'["\\\\ \\" \\\\","\\\\ \' \\\\"]'}}]
+		},
+		{
+			name: 'Unicode escapes in strings',
+			template: '{{ "A\\u0042C" }}',
+			parsed: [{t:2,x:{r:[],s:'"ABC"'}}]
 		}
+
 	];
 
 	runTest = function ( theTest ) {
