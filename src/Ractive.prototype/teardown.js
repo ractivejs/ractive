@@ -20,11 +20,6 @@ proto.teardown = function ( complete ) {
 		clearCache( this, keypath );
 	}
 
-	// Teardown any bindings
-	while ( this._bound.length ) {
-		this.unbind( this._bound.pop() );
-	}
-
 	// transition manager has finished its work
 	this._transitionManager = previousTransitionManager;
 	transitionManager.ready();
