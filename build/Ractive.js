@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-07
+/*! Ractive - v0.3.7 - 2013-10-08
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -3706,11 +3706,6 @@ proto.teardown = function ( complete ) {
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	for ( keypath in this._cache ) {
 		clearCache( this, keypath );
-	}
-
-	// Teardown any bindings
-	while ( this._bound.length ) {
-		this.unbind( this._bound.pop() );
 	}
 
 	// transition manager has finished its work
