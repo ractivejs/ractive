@@ -10,6 +10,7 @@
 		CheckboxNameBinding,
 		CheckedBinding,
 		FileListBinding,
+		ContentEditableBinding,
 		GenericBinding;
 
 	bindAttribute = function () {
