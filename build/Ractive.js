@@ -887,21 +887,29 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		node = this.parentNode;
 		value = this.fragment.getValue();
 
-		// Don't attempt to set information from non-direct changes
-		if (this.propertyName) {
-			if ( node[ this.propertyName ] !== value ) {
-				node[ this.propertyName ] = value;
-				if ( node.getAttribute( 'contenteditable' ) ) {
-					if ( node.innerHTML !== value ) {
-						node.innerHTML = value;
-					}
+		if (value !== this.value) {
+			if ( this.isValueAttribute ) {
+				this.value = value;
+			}
+
+			if ( this.useProperty ) {
+				// with two-way binding, only update if the change wasn't initiated by the user
+				// otherwise the cursor will often be sent to the wrong place
+				if ( !this.receiving ) {
+					node[ this.propertyName ] = value;
+				}
+				
+				this.value = value;
+			}
+
+			// I could be wrong, but this is when we want to update that value.
+			if (this.receiving && node.getAttribute( 'contenteditable' )) {
+				if ( node.innerHTML !== value ) {
+					node.innerHTML = value;
 				}
 			}
-		}
 
-		// If it is the value attribute
-		if ( this.isValueAttribute ) {
-			this.value = value;
+			node.setAttribute( this.name, value );
 		}
 		
 		return this;
