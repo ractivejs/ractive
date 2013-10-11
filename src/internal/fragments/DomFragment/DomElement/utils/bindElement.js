@@ -1,6 +1,14 @@
 bindElement = function ( element, attributes ) {
 	element.ractify();
 
+	if ( element.node.getAttribute( 'contenteditable' ) ) {
+		if ( attributes.value ) {
+			attributes.value.bind();
+		}
+
+		return;
+	}
+
 	// an element can only have one two-way attribute
 	switch ( element.descriptor.e ) {
 		case 'select':

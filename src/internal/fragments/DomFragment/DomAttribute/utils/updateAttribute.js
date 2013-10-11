@@ -1,6 +1,6 @@
 (function () {
 
-	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse;
+	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse, updateContentEditable;
 
 	// There are a few special cases when it comes to updating attributes. For this reason,
 	// the prototype .update() method points to updateAttribute, which waits until the
@@ -40,6 +40,12 @@
 				this.update = updateCheckboxName;
 				return this.update();
 			}
+		}
+
+		// special case - contenteditable
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			this.update = updateContentEditable;
+			return this.update();
 		}
 
 		this.update = updateEverythingElse;
@@ -130,6 +136,24 @@
 
 		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
 
+		return this;
+	};
+
+	updateContentEditable = function() {
+		var node, value;
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if ( node[ this.propertyName ] !== value ) {
+			node[ this.propertyName ] = value;
+			if ( node.getAttribute( 'contenteditable' ) ) {
+				if ( node.innerHTML !== value ) {
+					node.innerHTML = value;
+				}
+			}
+		}
+
+		this.value = value;
 		return this;
 	};
 
