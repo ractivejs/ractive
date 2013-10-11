@@ -144,16 +144,23 @@
 		node = this.parentNode;
 		value = this.fragment.getValue();
 
-		if ( node[ this.propertyName ] !== value ) {
-			node[ this.propertyName ] = value;
-			if ( node.getAttribute( 'contenteditable' ) ) {
-				if ( node.innerHTML !== value ) {
-					node.innerHTML = value;
+		// Don't attempt to set information from non-direct changes
+		if (this.propertyName) {
+			if ( node[ this.propertyName ] !== value ) {
+				node[ this.propertyName ] = value;
+				if ( node.getAttribute( 'contenteditable' ) ) {
+					if ( node.innerHTML !== value ) {
+						node.innerHTML = value;
+					}
 				}
 			}
 		}
 
-		this.value = value;
+		// If it is the value attribute
+		if ( this.isValueAttribute ) {
+			this.value = value;
+		}
+		
 		return this;
 	};
 
