@@ -384,7 +384,11 @@
 
 	ContentEditableBinding.prototype = {
 		update: function () {
-			this.root.set( this.keypath, this.node.childNodes[0].nodeValue );
+			if (this.node && this.node.childNodes[0]) {
+				this.root.set( this.keypath, this.node.childNodes[0].nodeValue );
+			} else {
+				this.root.set( this.keypath, '' );
+			}
 		},
 
 		teardown: function () {

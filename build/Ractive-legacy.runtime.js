@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-10
+/*! Ractive - v0.3.7 - 2013-10-11
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -894,7 +894,11 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 	ContentEditableBinding.prototype = {
 		update: function () {
-			this.root.set( this.keypath, this.node.childNodes[0].nodeValue );
+			if (this.node && this.node.childNodes[0]) {
+				this.root.set( this.keypath, this.node.childNodes[0].nodeValue );
+			} else {
+				this.root.set( this.keypath, '' );
+			}
 		},
 
 		teardown: function () {
