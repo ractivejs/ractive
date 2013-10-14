@@ -31,6 +31,7 @@
 	observe = function ( root, keypath, callback, options ) {
 		var observer;
 
+		options || options = {};
 		observer = new Observer( root, keypath, callback, options );
 
 		if ( options.init !== false ) {
