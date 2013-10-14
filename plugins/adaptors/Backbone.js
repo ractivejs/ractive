@@ -12,7 +12,7 @@
 //     });
 //
 // A gotcha: if you're using a module loader, the code below will
-// need to execute in a scope that includes Backbone!
+// need to execute in a scope that includes Ractive and Backbone!
 
 (function () {
 

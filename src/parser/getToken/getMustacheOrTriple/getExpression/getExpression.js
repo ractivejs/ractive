@@ -178,7 +178,7 @@ var getExpression;
 
 			allowWhitespace( tokenizer );
 
-			expression = getExpression( tokenizer );
+			expression = getTypeOf( tokenizer );
 			if ( !expression ) {
 				fail( tokenizer, 'an expression' );
 			}
@@ -221,34 +221,43 @@ var getExpression;
 				return null;
 			}
 
-			start = tokenizer.pos;
+			// Loop to handle left-recursion in a case like `a * b * c` and produce
+			// left association, i.e. `(a * b) * c`.  The matcher can't call itself
+			// to parse `left` because that would be infinite regress.
+			while (true) {
+				start = tokenizer.pos;
 
-			allowWhitespace( tokenizer );
+				allowWhitespace( tokenizer );
 
-			if ( !getStringMatch( tokenizer, symbol ) ) {
-				tokenizer.pos = start;
-				return left;
+				if ( !getStringMatch( tokenizer, symbol ) ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				// special case - in operator must not be followed by [a-zA-Z_$0-9]
+				if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				allowWhitespace( tokenizer );
+
+				// right operand must also consist of only higher-precedence operators
+				right = fallthrough( tokenizer );
+				if ( !right ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				left = {
+					t: INFIX_OPERATOR,
+					s: symbol,
+					o: [ left, right ]
+				};
+
+				// Loop back around.  If we don't see another occurrence of the symbol,
+				// we'll return left.
 			}
-
-			// special case - in operator must not be followed by [a-zA-Z_$0-9]
-			if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
-				tokenizer.pos = start;
-				return left;
-			}
-
-			allowWhitespace( tokenizer );
-
-			right = getExpression( tokenizer );
-			if ( !right ) {
-				tokenizer.pos = start;
-				return left;
-			}
-
-			return {
-				t: INFIX_OPERATOR,
-				s: symbol,
-				o: [ left, right ]
-			};
 		};
 	};
 

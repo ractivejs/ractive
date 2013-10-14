@@ -2,7 +2,7 @@ var ExpressionStub;
 
 (function () {
 
-	var getRefs, stringify, stringifyKey, identifier;
+	var getRefs, quoteStringLiteral, stringify, stringifyKey, identifier;
 
 	ExpressionStub = function ( token ) {
 		this.refs = [];
@@ -63,6 +63,11 @@ var ExpressionStub;
 	};
 
 
+	quoteStringLiteral = function ( str ) {
+		return JSON.stringify(String(str));
+	};
+
+
 	stringify = function ( token, refs ) {
 		var map = function ( item ) {
 			return stringify( item, refs );
@@ -75,7 +80,7 @@ var ExpressionStub;
 			return token.v;
 
 			case STRING_LITERAL:
-			return "'" + token.v.replace( /'/g, "\\'" ) + "'";
+			return quoteStringLiteral(token.v);
 
 			case ARRAY_LITERAL:
 			return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
@@ -118,7 +123,7 @@ var ExpressionStub;
 
 	stringifyKey = function ( key ) {
 		if ( key.t === STRING_LITERAL ) {
-			return identifier.test( key.v ) ? key.v : '"' + key.v.replace( /"/g, '\\"' ) + '"';
+			return identifier.test( key.v ) ? key.v : quoteStringLiteral( key.v );
 		}
 
 		if ( key.t === NUMBER_LITERAL ) {
