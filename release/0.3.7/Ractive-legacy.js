@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-08
+/*! Ractive - v0.3.7 - 2013-10-14
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -2883,6 +2883,7 @@ stripStandalones = function ( tokens ) {
 proto.cancelFullscreen = function () {
 	Ractive.cancelFullscreen( this.el );
 };
+// TODO can fail badly with { append: true }
 proto.find = function ( selector ) {
 	if ( !this.el ) {
 		return null;
@@ -2890,6 +2891,7 @@ proto.find = function ( selector ) {
 
 	return this.el.querySelector( selector );
 };
+// TODO can fail badly with { append: true }
 (function () {
 
 	var tagSelector, classSelector;
@@ -3493,7 +3495,7 @@ proto.link = function ( keypath ) {
 		var observers = [], k;
 
 		if ( typeof keypath === 'object' ) {
-			options = callback;
+			options = callback || {};
 
 			for ( k in keypath ) {
 				if ( hasOwn.call( keypath, k ) ) {
@@ -3511,7 +3513,7 @@ proto.link = function ( keypath ) {
 			};
 		}
 
-		return observe( this, keypath, callback, options );
+		return observe( this, keypath, callback, options || {} );
 	};
 
 	observe = function ( root, keypath, callback, options ) {
@@ -3519,7 +3521,7 @@ proto.link = function ( keypath ) {
 
 		observer = new Observer( root, keypath, callback, options );
 
-		if ( !options || options.init !== false ) {
+		if ( options.init !== false ) {
 			observer.update();
 		}
 
@@ -3544,7 +3546,7 @@ proto.link = function ( keypath ) {
 		this.priority = 0;
 
 		// default to root as context, but allow it to be overridden
-		this.context = ( options && options.context ? options.context : root );
+		this.context = options.context || root;
 	};
 
 	Observer.prototype = {
@@ -6433,6 +6435,7 @@ DomElement = function ( options, docFrag ) {
 		docFrag.appendChild( this.node );
 
 		// trigger intro transition
+		// TODO make it possible to defer execution until node is on DOM
 		if ( descriptor.t1 ) {
 			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
 		}
