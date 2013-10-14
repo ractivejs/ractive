@@ -750,6 +750,20 @@
 		}
 	});
 
+	test( 'Observer can be created without an options argument', function ( t ) {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '{{foo}}',
+			data: { foo: 'bar' }
+		});
+
+		expect( 1 );
+
+		ractive.observe( 'foo', function ( foo ) {
+			t.equal( foo, 'bar' );
+		});
+	});
+
 	// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 	// Anyway I can't be bothered to figure it out right now so I'm just commenting
 	// these out so it will build
