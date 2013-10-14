@@ -16,14 +16,18 @@ Animation = function ( options ) {
 
 Animation.prototype = {
 	tick: function () {
-		var elapsed, t, value, timeNow, index;
+		var elapsed, t, value, timeNow, index, keypath;
+
+		keypath = this.keypath;
 
 		if ( this.running ) {
 			timeNow = Date.now();
 			elapsed = timeNow - this.startTime;
 
 			if ( elapsed >= this.duration ) {
-				this.root.set( this.keypath, this.to );
+				if ( keypath !== null ) {
+					this.root.set( keypath, this.to );
+				}
 
 				if ( this.step ) {
 					this.step( 1, this.to );
@@ -43,22 +47,24 @@ Animation.prototype = {
 				this.root._animations.splice( index, 1 );
 
 				this.running = false;
-				return false;
+				return false; // remove from the stack
 			}
 
 			t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
-			value = this.interpolator( t );
 
-			this.root.set( this.keypath, value );
+			if ( keypath !== null ) {
+				value = this.interpolator( t );
+				this.root.set( keypath, value );
+			}
 
 			if ( this.step ) {
 				this.step( t, value );
 			}
 
-			return true;
+			return true; // keep in the stack
 		}
 
-		return false;
+		return false; // remove from the stack
 	},
 
 	stop: function () {
