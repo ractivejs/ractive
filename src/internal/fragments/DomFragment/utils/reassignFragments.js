@@ -10,6 +10,12 @@
 		for ( i=start; i<end; i+=1 ) {
 			fragment = section.fragments[i];
 
+			// If this fragment was rendered with innerHTML, we have nothing to do
+			// TODO a less hacky way of determining this
+			if ( fragment.html ) {
+				continue;
+			}
+
 			oldIndex = i - by;
 			newIndex = i;
 
