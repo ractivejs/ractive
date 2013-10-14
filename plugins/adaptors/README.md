@@ -1,0 +1,1 @@
+Adaptors now live in a [separate plugins repository](https://github.com/Rich-Harris/Ractive-plugins/tree/master/adaptors).
