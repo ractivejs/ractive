@@ -1,5 +1,5 @@
 registerDependant = function ( dependant ) {
-	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority, evaluator;
+	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -9,17 +9,6 @@ registerDependant = function ( dependant ) {
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 	deps[ deps.length ] = dependant;
-
-	// If this keypath is an evaluator, note the dependency. If the evaluator didn't
-	// previously exist, or it used to have dependants, then didn't, and now does again,
-	// we can wake it up
-	if ( evaluator = ractive._evaluators[ keypath ] ) {
-		if ( !evaluator.dependants ) {
-			evaluator.wake();
-		}
-
-		evaluator.dependants += 1;
-	}
 
 	// update dependants map
 	keys = keypath.split( '.' );

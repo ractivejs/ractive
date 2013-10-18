@@ -9,8 +9,6 @@
 		this.keypath = keypath;
 		this.priority = priority;
 
-		this.dependants = 0;
-
 		this.fn = getFunctionFromString( functionStr, args.length );
 		this.values = [];
 		this.refs = [];
@@ -34,23 +32,11 @@
 		}
 
 		this.selfUpdating = ( this.refs.length <= 1 );
+		this.update();
 	};
 
 	Evaluator.prototype = {
-		wake: function () {
-			this.awake = true;
-			this.update();
-		},
-
-		sleep: function () {
-			this.awake = false;
-		},
-
 		bubble: function () {
-			if ( !this.awake ) {
-				return;
-			}
-
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
 				this.update();
