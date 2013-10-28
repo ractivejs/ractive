@@ -18,6 +18,14 @@ StringInterpolator.prototype = {
 	},
 
 	toString: function () {
-		return ( this.value === undefined ? '' : this.value );
+		if ( this.value === undefined ) {
+			return '';
+		}
+
+		if ( this.value === null ) {
+			return 'null';
+		}
+
+		return this.value.toString();
 	}
 };
