@@ -218,12 +218,10 @@ var ElementStub;
 						a: this.intro.args
 					};
 				} else if ( this.intro.dynamicArgs ) {
-					console.log( 'dynamicArgs', this.intro.dynamicArgs );
 					json.t1 = {
 						n: this.intro.name,
 						d: jsonifyStubs( this.intro.dynamicArgs.items, noStringify )
 					};
-					console.log( json.t1.d );
 				} else {
 					json.t1 = this.intro.name;
 				}

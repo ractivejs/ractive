@@ -73,7 +73,7 @@
 					visibilityStyle;
 
 				params = parseTransitionParams( params );
-
+				
 				duration = params.duration || defaults.duration;
 				easing = hyphenate( params.easing || defaults.easing );
 				delay = params.delay || 0;
