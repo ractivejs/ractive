@@ -44,6 +44,8 @@ var getMustacheOrTriple;
 			return { type: MUSTACHE, mustacheType: DELIMCHANGE };
 		}
 
+		allowWhitespace( tokenizer );
+
 		content = getMustacheContent( tokenizer );
 
 		if ( content === null ) {

@@ -245,6 +245,11 @@
 			name: 'Multiple method invocations',
 			template: '{{ a.foo().bar() }}',
 			parsed: [{t:2,x:{s:'${0}.foo().bar()',r:['a']}}]
+		},
+		{
+			name: 'Whitespace before mustache type character',
+			template: '{{ # foo }}blah{{ / foo }}',
+			parsed: [{t:4,r:'foo',f:'blah'}]
 		}
 	];
 
