@@ -14,6 +14,7 @@ proto = {},
 
 // properties of the public Ractive object
 adaptors = {},
+decorators = {},
 eventDefinitions = {},
 easing,
 extend,

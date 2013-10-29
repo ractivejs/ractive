@@ -12,6 +12,7 @@ defineProperties( defaultOptions, {
 	lazy:               { enumerable: true, value: false     },
 	debug:              { enumerable: true, value: false     },
 	transitions:        { enumerable: true, value: getObject },
+	decorators:         { enumerable: true, value: getObject },
 	eventDefinitions:   { enumerable: true, value: getObject },
 	noIntro:            { enumerable: true, value: false     },
 	transitionsEnabled: { enumerable: true, value: true      },
@@ -116,6 +117,9 @@ Ractive = function ( options ) {
 
 	// Transition registry
 	this.transitions = options.transitions;
+
+	// Decorators registry
+	this.decorators = options.decorators;
 
 	// Instance-specific event definitions registry
 	this.eventDefinitions = options.eventDefinitions;

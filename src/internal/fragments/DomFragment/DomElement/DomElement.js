@@ -5,6 +5,7 @@ DomElement = function ( options, docFrag ) {
 		descriptor,
 		namespace,
 		attributes,
+		decoratorFn,
 		root;
 
 	this.type = ELEMENT;
@@ -60,6 +61,19 @@ DomElement = function ( options, docFrag ) {
 
 		docFrag.appendChild( this.node );
 
+		// apply decorator(s)
+		if ( descriptor.o ) {
+			decoratorFn = this.root.decorators[ descriptor.o ] || Ractive.decorators[ descriptor.o ];
+
+			if ( decoratorFn ) {
+				this.decorator = decoratorFn.call( this.root, this.node );
+
+				if ( !this.decorator || !this.decorator.teardown ) {
+					throw new Error( 'Decorator definition must return an object with a teardown method' );
+				}
+			}
+		}
+
 		// trigger intro transition
 		if ( descriptor.t1 ) {
 			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
@@ -93,6 +107,10 @@ DomElement.prototype = {
 				bindings = this.root._twowayBindings[ binding.attr.keypath ];
 				bindings.splice( bindings.indexOf( binding ), 1 );
 			}
+		}
+
+		if ( this.decorator ) {
+			this.decorator.teardown();
 		}
 
 		if ( this.descriptor.t2 ) {

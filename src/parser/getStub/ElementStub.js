@@ -79,6 +79,12 @@ var ElementStub;
 				if ( filtered.outro ) {
 					this.outro = processProxy( filtered.outro );
 				}
+
+				if ( filtered.decorator ) {
+					// TODO figure out the syntax for decorators - can we have multiple
+					// decorators? Decorators with arguments?
+					this.decorator = filtered.decorator.value[0].value;
+				}
 			}
 		}
 		
@@ -241,6 +247,10 @@ var ElementStub;
 				} else {
 					json.t2 = this.outro.name;
 				}
+			}
+
+			if ( this.decorator ) {
+				json.o = this.decorator;
 			}
 
 			this[ 'json_' + noStringify ] = json;
@@ -423,6 +433,11 @@ var ElementStub;
 			else if ( item.name.substr( 0, 3 ) === 'on-' ) {
 				item.name = item.name.substring( 3 );
 				proxies[ proxies.length ] = item;
+			}
+
+			// Decorator?
+			else if ( item.name === 'decorator' ) {
+				filtered.decorator = item;
 			}
 
 			// Attribute?
