@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-28
+/*! Ractive - v0.3.7 - 2013-10-29
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -20,6 +20,7 @@ proto = {},
 
 // properties of the public Ractive object
 adaptors = {},
+decorators = {},
 eventDefinitions = {},
 easing,
 extend,
@@ -4655,7 +4656,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		return Child;
 	};
 
-	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions', 'components' ];
+	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions', 'components', 'decorators' ];
 	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize', 'noIntro', 'transitionsEnabled' ];
 	blacklist = extendable.concat( inheritable );
 
@@ -4975,6 +4976,7 @@ defineProperties( defaultOptions, {
 	lazy:               { enumerable: true, value: false     },
 	debug:              { enumerable: true, value: false     },
 	transitions:        { enumerable: true, value: getObject },
+	decorators:         { enumerable: true, value: getObject },
 	eventDefinitions:   { enumerable: true, value: getObject },
 	noIntro:            { enumerable: true, value: false     },
 	transitionsEnabled: { enumerable: true, value: true      },
@@ -5079,6 +5081,9 @@ Ractive = function ( options ) {
 
 	// Transition registry
 	this.transitions = options.transitions;
+
+	// Decorators registry
+	this.decorators = options.decorators;
 
 	// Instance-specific event definitions registry
 	this.eventDefinitions = options.eventDefinitions;
@@ -6206,6 +6211,8 @@ DomElement = function ( options, docFrag ) {
 		descriptor,
 		namespace,
 		attributes,
+		decoratorFn,
+		errorMessage,
 		root;
 
 	this.type = ELEMENT;
@@ -6261,6 +6268,27 @@ DomElement = function ( options, docFrag ) {
 
 		docFrag.appendChild( this.node );
 
+		// apply decorator(s)
+		if ( descriptor.o ) {
+			decoratorFn = this.root.decorators[ descriptor.o ] || Ractive.decorators[ descriptor.o ];
+
+			if ( decoratorFn ) {
+				this.decorator = decoratorFn.call( this.root, this.node );
+
+				if ( !this.decorator || !this.decorator.teardown ) {
+					throw new Error( 'Decorator definition must return an object with a teardown method' );
+				}
+			} else {
+				errorMessage = 'Missing decorator "' + descriptor.o + '"';
+				
+				if ( this.root.debug ) {
+					throw new Error( errorMessage );
+				} else {
+					console.warn( errorMessage );
+				}
+			}
+		}
+
 		// trigger intro transition
 		if ( descriptor.t1 ) {
 			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
@@ -6294,6 +6322,10 @@ DomElement.prototype = {
 				bindings = this.root._twowayBindings[ binding.attr.keypath ];
 				bindings.splice( bindings.indexOf( binding ), 1 );
 			}
+		}
+
+		if ( this.decorator ) {
+			this.decorator.teardown();
 		}
 
 		if ( this.descriptor.t2 ) {
@@ -7299,6 +7331,12 @@ var ElementStub;
 				if ( filtered.outro ) {
 					this.outro = processProxy( filtered.outro );
 				}
+
+				if ( filtered.decorator ) {
+					// TODO figure out the syntax for decorators - can we have multiple
+					// decorators? Decorators with arguments?
+					this.decorator = filtered.decorator.value[0].value;
+				}
 			}
 		}
 		
@@ -7461,6 +7499,10 @@ var ElementStub;
 				} else {
 					json.t2 = this.outro.name;
 				}
+			}
+
+			if ( this.decorator ) {
+				json.o = this.decorator;
 			}
 
 			this[ 'json_' + noStringify ] = json;
@@ -7643,6 +7685,11 @@ var ElementStub;
 			else if ( item.name.substr( 0, 3 ) === 'on-' ) {
 				item.name = item.name.substring( 3 );
 				proxies[ proxies.length ] = item;
+			}
+
+			// Decorator?
+			else if ( item.name === 'decorator' ) {
+				filtered.decorator = item;
 			}
 
 			// Attribute?
@@ -9504,6 +9551,7 @@ var getUnescapedSingleQuotedChars = getRegexMatcher( /^[^\\']+/ );
 // * x - eXpressions
 // * t1 - intro Transition
 // * t2 - outro Transition
+// * o - decOrator
 
 (function () {
 
@@ -9646,6 +9694,7 @@ Ractive.tripleDelimiters = [ '{{{', '}}}' ];
 
 // Plugins
 Ractive.adaptors = adaptors;
+Ractive.decorators = decorators;
 Ractive.eventDefinitions = eventDefinitions;
 Ractive.easing = easing;
 Ractive.transitions = transitions;
