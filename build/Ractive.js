@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-16
+/*! Ractive - v0.3.7 - 2013-10-28
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -1432,8 +1432,6 @@ getComponentConstructor = function ( root, name ) {
 		this.keypath = keypath;
 		this.priority = priority;
 
-		this.dependants = 0;
-
 		this.fn = getFunctionFromString( functionStr, args.length );
 		this.values = [];
 		this.refs = [];
@@ -1457,23 +1455,11 @@ getComponentConstructor = function ( root, name ) {
 		}
 
 		this.selfUpdating = ( this.refs.length <= 1 );
+		this.update();
 	};
 
 	Evaluator.prototype = {
-		wake: function () {
-			this.awake = true;
-			this.update();
-		},
-
-		sleep: function () {
-			this.awake = false;
-		},
-
 		bubble: function () {
-			if ( !this.awake ) {
-				return;
-			}
-
 			// If we only have one reference, we can update immediately...
 			if ( this.selfUpdating ) {
 				this.update();
@@ -3127,7 +3113,7 @@ processDeferredUpdates = function ( ractive ) {
 	}
 };
 registerDependant = function ( dependant ) {
-	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority, evaluator;
+	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -3137,17 +3123,6 @@ registerDependant = function ( dependant ) {
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 	deps[ deps.length ] = dependant;
-
-	// If this keypath is an evaluator, note the dependency. If the evaluator didn't
-	// previously exist, or it used to have dependants, then didn't, and now does again,
-	// we can wake it up
-	if ( evaluator = ractive._evaluators[ keypath ] ) {
-		if ( !evaluator.dependants ) {
-			evaluator.wake();
-		}
-
-		evaluator.dependants += 1;
-	}
 
 	// update dependants map
 	keys = keypath.split( '.' );
@@ -3295,7 +3270,7 @@ teardown = function ( thing ) {
 	}
 };
 unregisterDependant = function ( dependant ) {
-	var deps, keys, parentKeypath, map, ractive, keypath, priority, evaluator;
+	var deps, keys, parentKeypath, map, ractive, keypath, priority;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -3306,17 +3281,6 @@ unregisterDependant = function ( dependant ) {
 
 	// update dependants map
 	keys = keypath.split( '.' );
-
-	// If this keypath is an evaluator, decrement its dependants property.
-	// That way, if an evaluator doesn't have any remaining dependants (temporarily
-	// or permanently) we can put it to sleep, preventing unnecessary work
-	if ( evaluator = ractive._evaluators[ keypath ] ) {
-		evaluator.dependants -= 1;
-		
-		if ( !evaluator.dependants ) {
-			evaluator.sleep();
-		}
-	}
 	
 	while ( keys.length ) {
 		keys.pop();
@@ -7029,7 +6993,15 @@ StringInterpolator.prototype = {
 	},
 
 	toString: function () {
-		return ( this.value === undefined ? '' : this.value );
+		if ( this.value === undefined ) {
+			return '';
+		}
+
+		if ( this.value === null ) {
+			return 'null';
+		}
+
+		return this.value.toString();
 	}
 };
 // Section
@@ -8938,6 +8910,8 @@ var getMustacheOrTriple;
 			tokenizer.delimiters = content;
 			return { type: MUSTACHE, mustacheType: DELIMCHANGE };
 		}
+
+		allowWhitespace( tokenizer );
 
 		content = getMustacheContent( tokenizer );
 
