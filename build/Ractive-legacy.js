@@ -7483,8 +7483,8 @@ var ElementStub;
 		sanitize,
 		filterAttrs,
 		getFrag,
-		processProxy,
-		jsonifyProxy,
+		processDirective,
+		jsonifyDirective,
 		camelCase;
 
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
@@ -7536,16 +7536,16 @@ var ElementStub;
 				}
 
 				if ( proxies.length ) {
-					this.proxies = proxies.map( processProxy );
+					this.proxies = proxies.map( processDirective );
 				}
 
 				// TODO rename this helper function
 				if ( filtered.intro ) {
-					this.intro = processProxy( filtered.intro );
+					this.intro = processDirective( filtered.intro );
 				}
 
 				if ( filtered.outro ) {
-					this.outro = processProxy( filtered.outro );
+					this.outro = processDirective( filtered.outro );
 				}
 
 				if ( filtered.decorator ) {
@@ -7680,41 +7680,16 @@ var ElementStub;
 				len = this.proxies.length;
 				for ( i=0; i<len; i+=1 ) {
 					proxy = this.proxies[i];
-
-					json.v[ proxy.domEventName ] = jsonifyProxy( proxy );
+					json.v[ proxy.domEventName ] = jsonifyDirective( proxy );
 				}
 			}
 
 			if ( this.intro ) {
-				if ( this.intro.args ) {
-					json.t1 = {
-						n: this.intro.name,
-						a: this.intro.args
-					};
-				} else if ( this.intro.dynamicArgs ) {
-					json.t1 = {
-						n: this.intro.name,
-						d: jsonifyStubs( this.intro.dynamicArgs.items, noStringify )
-					};
-				} else {
-					json.t1 = this.intro.name;
-				}
+				json.t1 = jsonifyDirective( this.intro );
 			}
 
 			if ( this.outro ) {
-				if ( this.outro.args ) {
-					json.t2 = {
-						n: this.outro.name,
-						a: this.outro.args
-					};
-				} else if ( this.outro.dynamicArgs ) {
-					json.t2 = {
-						n: this.outro.name,
-						d: jsonifyStubs( this.outro.dynamicArgs.items, noStringify )
-					};
-				} else {
-					json.t2 = this.outro.name;
-				}
+				json.t2 = jsonifyDirective( this.outro );
 			}
 
 			if ( this.decorator ) {
@@ -7929,7 +7904,7 @@ var ElementStub;
 		};
 	};
 
-	processProxy = function ( proxy ) {
+	processDirective = function ( proxy ) {
 		var processed, tokens, token, colonIndex, throwError, proxyName, proxyArgs;
 
 		throwError = function () {
@@ -8009,7 +7984,7 @@ var ElementStub;
 		return processed;
 	};
 
-	jsonifyProxy = function ( proxy ) {
+	jsonifyDirective = function ( proxy ) {
 		var result, name;
 
 		if ( typeof proxy.name === 'string' ) {
