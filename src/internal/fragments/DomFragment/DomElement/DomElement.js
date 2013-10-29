@@ -6,6 +6,7 @@ DomElement = function ( options, docFrag ) {
 		namespace,
 		attributes,
 		decoratorFn,
+		errorMessage,
 		root;
 
 	this.type = ELEMENT;
@@ -70,6 +71,14 @@ DomElement = function ( options, docFrag ) {
 
 				if ( !this.decorator || !this.decorator.teardown ) {
 					throw new Error( 'Decorator definition must return an object with a teardown method' );
+				}
+			} else {
+				errorMessage = 'Missing decorator "' + descriptor.o + '"';
+				
+				if ( this.root.debug ) {
+					throw new Error( errorMessage );
+				} else {
+					console.warn( errorMessage );
 				}
 			}
 		}
