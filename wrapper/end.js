@@ -8,7 +8,7 @@ Ractive.tripleDelimiters = [ '{{{', '}}}' ];
 // Plugins
 Ractive.adaptors = adaptors;
 Ractive.decorators = decorators;
-Ractive.eventDefinitions = eventDefinitions;
+Ractive.eventDefinitions = Ractive.events = eventDefinitions; // TODO deprecate eventDefinitions?
 Ractive.easing = easing;
 Ractive.transitions = transitions;
 
