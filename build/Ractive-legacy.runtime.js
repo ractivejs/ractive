@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-29
+/*! Ractive - v0.3.7 - 2013-10-30
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -112,10 +112,7 @@ updateSection,
 
 animationCollection,
 
-
-// array modification
-registerKeypathToArray,
-unregisterKeypathFromArray,
+voidElementNames = 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split( ' ' ),
 
 
 // parser and tokenizer
@@ -438,7 +435,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
 		(function ( win, doc ) {
-			var Event, addEventListener, removeEventListener, head, style;
+			var Event, addEventListener, removeEventListener, head, style, origCreateElement;
 
 			Event = function ( e, element ) {
 				var property, instance = this;
@@ -497,12 +494,26 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 				Element.prototype.addEventListener = addEventListener;
 				Element.prototype.removeEventListener = removeEventListener;
 			} else {
+				// First, intercept any calls to document.createElement - this is necessary
+				// because the CSS hack (see below) doesn't come into play until after a
+				// node is added to the DOM, which is too late for a lot of Ractive setup work
+				origCreateElement = doc.createElement;
+
+				doc.createElement = function ( tagName ) {
+					var el = origCreateElement( tagName );
+					el.addEventListener = addEventListener;
+					el.removeEventListener = removeEventListener;
+					return el;
+				};
+
+				// Then, mop up any additional elements that weren't created via
+				// document.createElement (i.e. with innerHTML).
 				head = doc.getElementsByTagName('head')[0];
 				style = doc.createElement('style');
 
 				head.insertBefore( style, head.firstChild );
 
-				style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
+				//style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
 			}
 		}( win, doc ));
 	}
@@ -926,7 +937,16 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 }());
 (function () {
 
-	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse;
+	var updateFileInputValue,
+		deferSelect,
+		initSelect,
+		updateSelect,
+		updateMultipleSelect,
+		updateRadioName,
+		updateCheckboxName,
+		updateIEStyleAttribute,
+		updateClassName,
+		updateEverythingElse;
 
 	// There are a few special cases when it comes to updating attributes. For this reason,
 	// the prototype .update() method points to updateAttribute, which waits until the
@@ -966,6 +986,18 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 				this.update = updateCheckboxName;
 				return this.update();
 			}
+		}
+
+		// special case - style attributes in Internet Exploder
+		if ( this.name === 'style' && node.style.setAttribute ) {
+			this.update = updateIEStyleAttribute;
+			return this.update();
+		}
+
+		// special case - class names. IE fucks things up, again
+		if ( this.name === 'class' ) {
+			this.update = updateClassName;
+			return this.update();
 		}
 
 		this.update = updateEverythingElse;
@@ -1055,6 +1087,42 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		}
 
 		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
+
+		return this;
+	};
+
+	updateIEStyleAttribute = function () {
+		var node, value;
+
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if ( value === undefined ) {
+			value = '';
+		}
+
+		if ( value !== this.value ) {
+			node.style.setAttribute( 'cssText', value );
+			this.value = value;
+		}
+
+		return this;
+	};
+
+	updateClassName = function () {
+		var node, value;
+
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if ( value === undefined ) {
+			value = '';
+		}
+
+		if ( value !== this.value ) {
+			node.className = value;
+			this.value = value;
+		}
 
 		return this;
 	};
@@ -1380,12 +1448,8 @@ createElementAttributes = function ( element, attributes ) {
 				contextStack: element.parentFragment.contextStack
 			});
 
-			element.attributes[ element.attributes.length ] = attr;
-
-			// name, value and checked attributes are potentially bindable
-			if ( attrName === 'value' || attrName === 'name' || attrName === 'checked' ) {
-				element.attributes[ attrName ] = attr;
-			}
+			// store against both index and name, for fast iteration and lookup
+			element.attributes[ element.attributes.length ] = element.attributes[ attrName ] = attr;
 
 			// The name attribute is a special case - it is the only two-way attribute that updates
 			// the viewmodel based on the value of another attribute. For that reason it must wait
@@ -3859,11 +3923,12 @@ proto.update = function ( keypath, complete ) {
 	var notifyArrayDependants,
 
 		ArrayWrapper,
-		wrapArray,
-		unwrapArray,
-		WrappedArrayProto,
+		patchArrayMethods,
+		unpatchArrayMethods,
+		patchedArrayProto,
 		testObj,
-		mutatorMethods;
+		mutatorMethods,
+		errorMessage;
 
 	// TODO use the wrapper properly, i.e. having a list of wrappers on each array, rather than
 	// a set of ractives and keypaths
@@ -3884,7 +3949,30 @@ proto.update = function ( keypath, complete ) {
 		this.value = array;
 		this.keypath = keypath;
 
-		registerKeypathToArray( array, keypath, ractive );
+		// if this array hasn't already been ractified, ractify it
+		if ( !array._ractive ) {
+			
+			// define a non-enumerable _ractive property to store the wrappers
+			defineProperty( array, '_ractive', {
+				value: {
+					wrappers: [],
+					instances: [],
+					setting: false
+				},
+				configurable: true
+			});
+
+			patchArrayMethods( array );
+		}
+
+		// store the ractive instance, so we can handle transitions later
+		if ( !array._ractive.instances[ ractive._guid ] ) {
+			array._ractive.instances[ ractive._guid ] = 0;
+			array._ractive.instances.push( ractive );
+		}
+
+		array._ractive.instances[ ractive._guid ] += 1;
+		array._ractive.wrappers.push( this );
 	};
 
 	ArrayWrapper.prototype = {
@@ -3892,132 +3980,59 @@ proto.update = function ( keypath, complete ) {
 			return this.value;
 		},
 		teardown: function () {
+			var array, storage, wrappers, instances, index;
+
+			array = this.value;
+			storage = array._ractive;
+			wrappers = storage.wrappers;
+			instances = storage.instances;
+
 			// if teardown() was invoked because we're clearing the cache as a result of
 			// a change that the array itself triggered, we can save ourselves the teardown
 			// and immediate setup
-			if ( this.value._ractive.setting ) {
+			if ( storage.setting ) {
 				return false; // so that we don't remove it from this.root._wrapped
 			}
 
-			unregisterKeypathFromArray( this.value, this.keypath, this.root );
-		}
-	};
-
-
-
-
-
-	// Register a keypath to this array. When any of this array's mutator methods are called,
-	// it will `set` that keypath on the given Ractive instance
-	registerKeypathToArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, keypaths;
-
-		// If this array hasn't been wrapped, we need to wrap it
-		if ( !array._ractive ) {
-			defineProperty( array, '_ractive', {
-				value: {
-					roots: [ root ], // there may be more than one Ractive instance depending on this
-					keypathsByGuid: {}
-				},
-				configurable: true
-			});
-
-			array._ractive.keypathsByGuid[ root._guid ] = [ keypath ];
-
-			wrapArray( array );
-		}
-
-		else {
-			roots = array._ractive.roots;
-			keypathsByGuid = array._ractive.keypathsByGuid;
-
-			// Does this Ractive instance currently depend on this array?
-			// If not, associate them
-			if ( !keypathsByGuid[ root._guid ] ) {
-				roots[ roots.length ] = root;
-				keypathsByGuid[ root._guid ] = [];
+			index = wrappers.indexOf( this );
+			if ( index === -1 ) {
+				throw new Error( errorMessage );
 			}
 
-			keypaths = keypathsByGuid[ root._guid ];
+			wrappers.splice( index, 1 );
 
-			// If the current keypath isn't among them, add it
-			if ( keypaths.indexOf( keypath ) === -1 ) {
-				keypaths[ keypaths.length ] = keypath;
+			// if nothing else depends on this array, we can revert it to its
+			// natural state
+			if ( !wrappers.length ) {
+				delete array._ractive;
+				unpatchArrayMethods( this.value );
 			}
-		}
-	};
 
+			else {
+				// remove ractive instance if possible
+				instances[ this.root._guid ] -= 1;
+				if ( !instances[ this.root._guid ] ) {
+					index = instances.indexOf( this.root );
 
-	// Unregister keypath from array
-	unregisterKeypathFromArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, keypaths, keypathIndex;
+					if ( index === -1 ) {
+						throw new Error( errorMessage );
+					}
 
-		if ( !array._ractive ) {
-			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		roots = array._ractive.roots;
-		keypathsByGuid = array._ractive.keypathsByGuid;
-
-		if ( !keypathsByGuid[ root._guid ] ) {
-			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		keypaths = keypathsByGuid[ root._guid ];
-		keypathIndex = keypaths.indexOf( keypath );
-
-		if ( keypathIndex === -1 ) {
-			throw new Error( 'Attempted to unlink non-linked keypath from array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		keypaths.splice( keypathIndex, 1 );
-
-		if ( !keypaths.length ) {
-			roots.splice( roots.indexOf( root ), 1 );
-			keypathsByGuid[ root._guid ] = null;
-		}
-
-		if ( !roots.length ) {
-			unwrapArray( array ); // It's good to clean up after ourselves
+					instances.splice( index, 1 );
+				}
+			}
 		}
 	};
 
 
 	notifyArrayDependants = function ( array, methodName, args ) {
-		var processRoots,
-			processRoot,
-			processKeypaths,
-			processKeypath,
+		var notifyKeypathDependants,
 			queueDependants,
-			keypathsByGuid;
+			wrappers,
+			wrapper,
+			i;
 
-		keypathsByGuid = array._ractive.keypathsByGuid;
-
-		processRoots = function ( roots ) {
-			var i = roots.length;
-			while ( i-- ) {
-				processRoot( roots[i] );
-			}
-		};
-
-		processRoot = function ( root ) {
-			var previousTransitionManager = root._transitionManager, transitionManager;
-
-			root._transitionManager = transitionManager = makeTransitionManager( root, noop );
-			processKeypaths( root, keypathsByGuid[ root._guid ] );
-			root._transitionManager = previousTransitionManager;
-
-			transitionManager.ready();
-		};
-
-		processKeypaths = function ( root, keypaths ) {
-			var i = keypaths.length;
-			while ( i-- ) {
-				processKeypath( root, keypaths[i] );
-			}
-		};
-
-		processKeypath = function ( root, keypath ) {
+		notifyKeypathDependants = function ( root, keypath ) {
 			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
 
 			// If this is a sort or reverse, we just do root.set()...
@@ -4026,11 +4041,11 @@ proto.update = function ( keypath, complete ) {
 				return;
 			}
 
-			// otherwise we do a smart update whereby elements are added/removed
+			// ...otherwise we do a smart update whereby elements are added/removed
 			// in the right place. But we do need to clear the cache
 			clearCache( root, keypath );
 
-			// find dependants. If any are DOM sections, we do a smart update
+			// Find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
 			dumbUpdateQueue = [];
@@ -4124,29 +4139,54 @@ proto.update = function ( keypath, complete ) {
 			}
 		};
 
-		processRoots( array._ractive.roots );
+		// Iterate through all wrappers associated with this array, notifying them
+		wrappers = array._ractive.wrappers;
+		i = wrappers.length;
+		while ( i-- ) {
+			wrapper = wrappers[i];
+			notifyKeypathDependants( wrapper.root, wrapper.keypath );
+		}
 	};
 
-
-
-
-
 		
-	WrappedArrayProto = [];
+	patchedArrayProto = [];
 	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];
 
 	mutatorMethods.forEach( function ( methodName ) {
 		var method = function () {
-			var result = Array.prototype[ methodName ].apply( this, arguments );
+			var result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {};
 
+			// apply the underlying method
+			result = Array.prototype[ methodName ].apply( this, arguments );
+
+			// create transition managers
+			instances = this._ractive.instances;
+			i = instances.length;
+			while ( i-- ) {
+				instance = instances[i];
+
+				previousTransitionManagers[ instance._guid ] = instance._transitionManager;
+				instance._transitionManager = transitionManagers[ instance._guid ] = makeTransitionManager( instance, noop );
+			}
+
+			// trigger changes
 			this._ractive.setting = true;
 			notifyArrayDependants( this, methodName, arguments );
 			this._ractive.setting = false;
 
+			// initialise transition managers
+			i = instances.length;
+			while ( i-- ) {
+				instance = instances[i];
+
+				instance._transitionManager = previousTransitionManagers[ instance._guid ];
+				transitionManagers[ instance._guid ].ready();
+			}
+
 			return result;
 		};
 
-		defineProperty( WrappedArrayProto, methodName, {
+		defineProperty( patchedArrayProto, methodName, {
 			value: method
 		});
 	});
@@ -4157,42 +4197,42 @@ proto.update = function ( keypath, complete ) {
 	testObj = {};
 	if ( testObj.__proto__ ) {
 		// yes, we can
-		wrapArray = function ( array ) {
-			array.__proto__ = WrappedArrayProto;
+		patchArrayMethods = function ( array ) {
+			array.__proto__ = patchedArrayProto;
 		};
 
-		unwrapArray = function ( array ) {
-			delete array._ractive;
+		unpatchArrayMethods = function ( array ) {
 			array.__proto__ = Array.prototype;
 		};
 	}
 
 	else {
 		// no, we can't
-		wrapArray = function ( array ) {
+		patchArrayMethods = function ( array ) {
 			var i, methodName;
 
 			i = mutatorMethods.length;
 			while ( i-- ) {
 				methodName = mutatorMethods[i];
 				defineProperty( array, methodName, {
-					value: WrappedArrayProto[ methodName ],
+					value: patchedArrayProto[ methodName ],
 					configurable: true
 				});
 			}
 		};
 
-		unwrapArray = function ( array ) {
+		unpatchArrayMethods = function ( array ) {
 			var i;
 
 			i = mutatorMethods.length;
 			while ( i-- ) {
 				delete array[ mutatorMethods[i] ];
 			}
-
-			delete array._ractive;
 		};
 	}
+
+
+	errorMessage = 'Something went wrong in a rather interesting way';
 
 }());
 (function () {
@@ -4337,43 +4377,6 @@ easing = {
 		if ( ( pos /= 0.5 ) < 1 ) { return ( 0.5 * Math.pow( pos, 3 ) ); }
 		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
 	}
-};
-eventDefinitions.hover = function ( node, fire ) {
-	var mouseoverHandler, mouseoutHandler;
-
-	mouseoverHandler = function ( event ) {
-		if ( node.contains( event.relatedTarget ) ) {
-			return;
-		}
-
-		fire({
-			node: node,
-			original: event,
-			hover: true
-		});
-	};
-
-	mouseoutHandler = function ( event ) {
-		if ( node.contains( event.relatedTarget ) ) {
-			return;
-		}
-		
-		fire({
-			node: node,
-			original: event,
-			hover: false
-		});
-	};
-
-	node.addEventListener( 'mouseover', mouseoverHandler, false );
-	node.addEventListener( 'mouseout', mouseoutHandler, false );
-
-	return {
-		teardown: function () {
-			node.removeEventListener( 'mouseover', mouseoverHandler, false );
-			node.removeEventListener( 'mouseout', mouseoutHandler, false );
-		}
-	};
 };
 (function () {
 
@@ -5892,7 +5895,15 @@ var arrayContentsMatch = function ( a, b ) {
 			if ( attribute.namespace ) {
 				options.parentNode.setAttributeNS( attribute.namespace, options.name, value );
 			} else {
-				options.parentNode.setAttribute( options.name, value );
+
+				// is it a style attribute? and are we in a broken POS browser?
+				if ( options.name === 'style' && options.parentNode.style.setAttribute ) {
+					options.parentNode.style.setAttribute( 'cssText', value );
+				} else if ( options.name === 'class' ) {
+					options.parentNode.className = value;
+				} else {
+					options.parentNode.setAttribute( options.name, value );
+				}
 			}
 
 			if ( attribute.name === 'id' ) {
@@ -5926,6 +5937,34 @@ var arrayContentsMatch = function ( a, b ) {
 	};
 
 }());
+// Plain text
+var DomComment = function ( options, docFrag ) {
+	this.type = COMMENT;
+	this.descriptor = options.descriptor;
+
+	if ( docFrag ) {
+		this.node = doc.createComment( options.descriptor.f );
+		this.parentNode = options.parentFragment.parentNode;
+
+		docFrag.appendChild( this.node );
+	}
+};
+
+DomComment.prototype = {
+	teardown: function ( detach ) {
+		if ( detach ) {
+			this.node.parentNode.removeChild( this.node );
+		}
+	},
+
+	firstNode: function () {
+		return this.node;
+	},
+
+	toString: function () {
+		return '<!--' + this.descriptor.f + '-->';
+	}
+};
 (function () {
 
 	var ComponentParameter;
@@ -6189,12 +6228,16 @@ var arrayContentsMatch = function ( a, b ) {
 // Element
 DomElement = function ( options, docFrag ) {
 
-	var parentFragment,
+	var self = this,
+		parentFragment,
 		descriptor,
 		namespace,
 		attributes,
 		decoratorFn,
 		errorMessage,
+		width,
+		height,
+		loadHandler,
 		root;
 
 	this.type = ELEMENT;
@@ -6246,6 +6289,22 @@ DomElement = function ( options, docFrag ) {
 		// not two-way we can update them now
 		if ( attributes.name && !attributes.name.twoway ) {
 			attributes.name.update();
+		}
+
+		// if this is an <img>, and we're in a crap browser, we may need to prevent it
+		// from overriding width and height when it loads the src
+		if ( this.node.tagName === 'IMG' && ( ( width = self.attributes.width ) || ( height = self.attributes.height ) ) ) {
+			this.node.addEventListener( 'load', loadHandler = function () {
+				if ( width ) {
+					self.node.width = width.value;
+				}
+
+				if ( height ) {
+					self.node.height = height.value;
+				}
+
+				self.node.removeEventListener( 'load', loadHandler, false );
+			}, false );
 		}
 
 		docFrag.appendChild( this.node );
@@ -6333,9 +6392,7 @@ DomElement.prototype = {
 	toString: function () {
 		var str, i, len;
 
-		// TODO void tags
-		str = '' +
-			'<' + this.descriptor.e;
+		str = '<' + ( this.descriptor.y ? '!doctype' : this.descriptor.e );
 
 		len = this.attributes.length;
 		for ( i=0; i<len; i+=1 ) {
@@ -6350,7 +6407,10 @@ DomElement.prototype = {
 			str += this.fragment.toString();
 		}
 
-		str += '</' + this.descriptor.e + '>';
+		// add a closing tag if this isn't a void element
+		if ( voidElementNames.indexOf( this.descriptor.e ) === -1 ) {
+			str += '</' + this.descriptor.e + '>';
+		}
 
 		return str;
 	},
@@ -6402,10 +6462,10 @@ DomFragment.prototype = {
 			case INTERPOLATOR: return new DomInterpolator( options, this.docFrag );
 			case SECTION:      return new DomSection( options, this.docFrag );
 			case TRIPLE:       return new DomTriple( options, this.docFrag );
-
 			case ELEMENT:      return new DomElement( options, this.docFrag );
 			case PARTIAL:      return new DomPartial( options, this.docFrag );
 			case COMPONENT:    return new DomComponent( options, this.docFrag );
+			case COMMENT:      return new DomComment( options, this.docFrag );
 
 			default: throw new Error( 'WTF? not sure what happened here...' );
 		}
@@ -7242,7 +7302,7 @@ Ractive.tripleDelimiters = [ '{{{', '}}}' ];
 // Plugins
 Ractive.adaptors = adaptors;
 Ractive.decorators = decorators;
-Ractive.eventDefinitions = eventDefinitions;
+Ractive.eventDefinitions = Ractive.events = eventDefinitions; // TODO deprecate eventDefinitions?
 Ractive.easing = easing;
 Ractive.transitions = transitions;
 

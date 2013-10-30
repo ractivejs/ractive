@@ -3,7 +3,7 @@ var getComment;
 (function () {
 
 	getComment = function ( tokenizer ) {
-		var comment, content, remaining, endIndex;
+		var content, remaining, endIndex;
 
 		if ( !getStringMatch( tokenizer, '<!--' ) ) {
 			return null;
