@@ -3,11 +3,12 @@
 	var notifyArrayDependants,
 
 		ArrayWrapper,
-		wrapArray,
-		unwrapArray,
-		WrappedArrayProto,
+		patchArrayMethods,
+		unpatchArrayMethods,
+		patchedArrayProto,
 		testObj,
-		mutatorMethods;
+		mutatorMethods,
+		errorMessage;
 
 	// TODO use the wrapper properly, i.e. having a list of wrappers on each array, rather than
 	// a set of ractives and keypaths
@@ -28,7 +29,30 @@
 		this.value = array;
 		this.keypath = keypath;
 
-		registerKeypathToArray( array, keypath, ractive );
+		// if this array hasn't already been ractified, ractify it
+		if ( !array._ractive ) {
+			
+			// define a non-enumerable _ractive property to store the wrappers
+			defineProperty( array, '_ractive', {
+				value: {
+					wrappers: [],
+					instances: [],
+					setting: false
+				},
+				configurable: true
+			});
+
+			patchArrayMethods( array );
+		}
+
+		// store the ractive instance, so we can handle transitions later
+		if ( !array._ractive.instances[ ractive._guid ] ) {
+			array._ractive.instances[ ractive._guid ] = 0;
+			array._ractive.instances.push( ractive );
+		}
+
+		array._ractive.instances[ ractive._guid ] += 1;
+		array._ractive.wrappers.push( this );
 	};
 
 	ArrayWrapper.prototype = {
@@ -36,132 +60,59 @@
 			return this.value;
 		},
 		teardown: function () {
+			var array, storage, wrappers, instances, index;
+
+			array = this.value;
+			storage = array._ractive;
+			wrappers = storage.wrappers;
+			instances = storage.instances;
+
 			// if teardown() was invoked because we're clearing the cache as a result of
 			// a change that the array itself triggered, we can save ourselves the teardown
 			// and immediate setup
-			if ( this.value._ractive.setting ) {
+			if ( storage.setting ) {
 				return false; // so that we don't remove it from this.root._wrapped
 			}
 
-			unregisterKeypathFromArray( this.value, this.keypath, this.root );
-		}
-	};
-
-
-
-
-
-	// Register a keypath to this array. When any of this array's mutator methods are called,
-	// it will `set` that keypath on the given Ractive instance
-	registerKeypathToArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, keypaths;
-
-		// If this array hasn't been wrapped, we need to wrap it
-		if ( !array._ractive ) {
-			defineProperty( array, '_ractive', {
-				value: {
-					roots: [ root ], // there may be more than one Ractive instance depending on this
-					keypathsByGuid: {}
-				},
-				configurable: true
-			});
-
-			array._ractive.keypathsByGuid[ root._guid ] = [ keypath ];
-
-			wrapArray( array );
-		}
-
-		else {
-			roots = array._ractive.roots;
-			keypathsByGuid = array._ractive.keypathsByGuid;
-
-			// Does this Ractive instance currently depend on this array?
-			// If not, associate them
-			if ( !keypathsByGuid[ root._guid ] ) {
-				roots[ roots.length ] = root;
-				keypathsByGuid[ root._guid ] = [];
+			index = wrappers.indexOf( this );
+			if ( index === -1 ) {
+				throw new Error( errorMessage );
 			}
 
-			keypaths = keypathsByGuid[ root._guid ];
+			wrappers.splice( index, 1 );
 
-			// If the current keypath isn't among them, add it
-			if ( keypaths.indexOf( keypath ) === -1 ) {
-				keypaths[ keypaths.length ] = keypath;
+			// if nothing else depends on this array, we can revert it to its
+			// natural state
+			if ( !wrappers.length ) {
+				delete array._ractive;
+				unpatchArrayMethods( this.value );
 			}
-		}
-	};
 
+			else {
+				// remove ractive instance if possible
+				instances[ this.root._guid ] -= 1;
+				if ( !instances[ this.root._guid ] ) {
+					index = instances.indexOf( this.root );
 
-	// Unregister keypath from array
-	unregisterKeypathFromArray = function ( array, keypath, root ) {
-		var roots, keypathsByGuid, keypaths, keypathIndex;
+					if ( index === -1 ) {
+						throw new Error( errorMessage );
+					}
 
-		if ( !array._ractive ) {
-			throw new Error( 'Attempted to remove keypath from non-wrapped array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		roots = array._ractive.roots;
-		keypathsByGuid = array._ractive.keypathsByGuid;
-
-		if ( !keypathsByGuid[ root._guid ] ) {
-			throw new Error( 'Ractive instance was not listed as a dependent of this array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		keypaths = keypathsByGuid[ root._guid ];
-		keypathIndex = keypaths.indexOf( keypath );
-
-		if ( keypathIndex === -1 ) {
-			throw new Error( 'Attempted to unlink non-linked keypath from array. This error is unexpected - please send a bug report to @rich_harris' );
-		}
-
-		keypaths.splice( keypathIndex, 1 );
-
-		if ( !keypaths.length ) {
-			roots.splice( roots.indexOf( root ), 1 );
-			keypathsByGuid[ root._guid ] = null;
-		}
-
-		if ( !roots.length ) {
-			unwrapArray( array ); // It's good to clean up after ourselves
+					instances.splice( index, 1 );
+				}
+			}
 		}
 	};
 
 
 	notifyArrayDependants = function ( array, methodName, args ) {
-		var processRoots,
-			processRoot,
-			processKeypaths,
-			processKeypath,
+		var notifyKeypathDependants,
 			queueDependants,
-			keypathsByGuid;
+			wrappers,
+			wrapper,
+			i;
 
-		keypathsByGuid = array._ractive.keypathsByGuid;
-
-		processRoots = function ( roots ) {
-			var i = roots.length;
-			while ( i-- ) {
-				processRoot( roots[i] );
-			}
-		};
-
-		processRoot = function ( root ) {
-			var previousTransitionManager = root._transitionManager, transitionManager;
-
-			root._transitionManager = transitionManager = makeTransitionManager( root, noop );
-			processKeypaths( root, keypathsByGuid[ root._guid ] );
-			root._transitionManager = previousTransitionManager;
-
-			transitionManager.ready();
-		};
-
-		processKeypaths = function ( root, keypaths ) {
-			var i = keypaths.length;
-			while ( i-- ) {
-				processKeypath( root, keypaths[i] );
-			}
-		};
-
-		processKeypath = function ( root, keypath ) {
+		notifyKeypathDependants = function ( root, keypath ) {
 			var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
 
 			// If this is a sort or reverse, we just do root.set()...
@@ -170,11 +121,11 @@
 				return;
 			}
 
-			// otherwise we do a smart update whereby elements are added/removed
+			// ...otherwise we do a smart update whereby elements are added/removed
 			// in the right place. But we do need to clear the cache
 			clearCache( root, keypath );
 
-			// find dependants. If any are DOM sections, we do a smart update
+			// Find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
 			dumbUpdateQueue = [];
@@ -268,29 +219,54 @@
 			}
 		};
 
-		processRoots( array._ractive.roots );
+		// Iterate through all wrappers associated with this array, notifying them
+		wrappers = array._ractive.wrappers;
+		i = wrappers.length;
+		while ( i-- ) {
+			wrapper = wrappers[i];
+			notifyKeypathDependants( wrapper.root, wrapper.keypath );
+		}
 	};
 
-
-
-
-
 		
-	WrappedArrayProto = [];
+	patchedArrayProto = [];
 	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];
 
 	mutatorMethods.forEach( function ( methodName ) {
 		var method = function () {
-			var result = Array.prototype[ methodName ].apply( this, arguments );
+			var result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {};
 
+			// apply the underlying method
+			result = Array.prototype[ methodName ].apply( this, arguments );
+
+			// create transition managers
+			instances = this._ractive.instances;
+			i = instances.length;
+			while ( i-- ) {
+				instance = instances[i];
+
+				previousTransitionManagers[ instance._guid ] = instance._transitionManager;
+				instance._transitionManager = transitionManagers[ instance._guid ] = makeTransitionManager( instance, noop );
+			}
+
+			// trigger changes
 			this._ractive.setting = true;
 			notifyArrayDependants( this, methodName, arguments );
 			this._ractive.setting = false;
 
+			// initialise transition managers
+			i = instances.length;
+			while ( i-- ) {
+				instance = instances[i];
+
+				instance._transitionManager = previousTransitionManagers[ instance._guid ];
+				transitionManagers[ instance._guid ].ready();
+			}
+
 			return result;
 		};
 
-		defineProperty( WrappedArrayProto, methodName, {
+		defineProperty( patchedArrayProto, methodName, {
 			value: method
 		});
 	});
@@ -301,41 +277,41 @@
 	testObj = {};
 	if ( testObj.__proto__ ) {
 		// yes, we can
-		wrapArray = function ( array ) {
-			array.__proto__ = WrappedArrayProto;
+		patchArrayMethods = function ( array ) {
+			array.__proto__ = patchedArrayProto;
 		};
 
-		unwrapArray = function ( array ) {
-			delete array._ractive;
+		unpatchArrayMethods = function ( array ) {
 			array.__proto__ = Array.prototype;
 		};
 	}
 
 	else {
 		// no, we can't
-		wrapArray = function ( array ) {
+		patchArrayMethods = function ( array ) {
 			var i, methodName;
 
 			i = mutatorMethods.length;
 			while ( i-- ) {
 				methodName = mutatorMethods[i];
 				defineProperty( array, methodName, {
-					value: WrappedArrayProto[ methodName ],
+					value: patchedArrayProto[ methodName ],
 					configurable: true
 				});
 			}
 		};
 
-		unwrapArray = function ( array ) {
+		unpatchArrayMethods = function ( array ) {
 			var i;
 
 			i = mutatorMethods.length;
 			while ( i-- ) {
 				delete array[ mutatorMethods[i] ];
 			}
-
-			delete array._ractive;
 		};
 	}
+
+
+	errorMessage = 'Something went wrong in a rather interesting way';
 
 }());

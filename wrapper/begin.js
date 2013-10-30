@@ -107,11 +107,6 @@ updateSection,
 animationCollection,
 
 
-// array modification
-registerKeypathToArray,
-unregisterKeypathFromArray,
-
-
 // parser and tokenizer
 getFragmentStubFromTokens,
 getToken,
