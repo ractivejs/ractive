@@ -143,7 +143,7 @@
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
 		(function ( win, doc ) {
-			var Event, addEventListener, removeEventListener, head, style;
+			var Event, addEventListener, removeEventListener, head, style, origCreateElement;
 
 			Event = function ( e, element ) {
 				var property, instance = this;
@@ -202,12 +202,26 @@
 				Element.prototype.addEventListener = addEventListener;
 				Element.prototype.removeEventListener = removeEventListener;
 			} else {
+				// First, intercept any calls to document.createElement - this is necessary
+				// because the CSS hack (see below) doesn't come into play until after a
+				// node is added to the DOM, which is too late for a lot of Ractive setup work
+				origCreateElement = doc.createElement;
+
+				doc.createElement = function ( tagName ) {
+					var el = origCreateElement( tagName );
+					el.addEventListener = addEventListener;
+					el.removeEventListener = removeEventListener;
+					return el;
+				};
+
+				// Then, mop up any additional elements that weren't created via
+				// document.createElement (i.e. with innerHTML).
 				head = doc.getElementsByTagName('head')[0];
 				style = doc.createElement('style');
 
 				head.insertBefore( style, head.firstChild );
 
-				style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
+				//style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
 			}
 		}( win, doc ));
 	}

@@ -16,12 +16,8 @@ createElementAttributes = function ( element, attributes ) {
 				contextStack: element.parentFragment.contextStack
 			});
 
-			element.attributes[ element.attributes.length ] = attr;
-
-			// name, value and checked attributes are potentially bindable
-			if ( attrName === 'value' || attrName === 'name' || attrName === 'checked' ) {
-				element.attributes[ attrName ] = attr;
-			}
+			// store against both index and name, for fast iteration and lookup
+			element.attributes[ element.attributes.length ] = element.attributes[ attrName ] = attr;
 
 			// The name attribute is a special case - it is the only two-way attribute that updates
 			// the viewmodel based on the value of another attribute. For that reason it must wait

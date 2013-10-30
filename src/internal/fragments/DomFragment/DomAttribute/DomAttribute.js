@@ -195,7 +195,15 @@
 			if ( attribute.namespace ) {
 				options.parentNode.setAttributeNS( attribute.namespace, options.name, value );
 			} else {
-				options.parentNode.setAttribute( options.name, value );
+
+				// is it a style attribute? and are we in a broken POS browser?
+				if ( options.name === 'style' && options.parentNode.style.setAttribute ) {
+					options.parentNode.style.setAttribute( 'cssText', value );
+				} else if ( options.name === 'class' ) {
+					options.parentNode.className = value;
+				} else {
+					options.parentNode.setAttribute( options.name, value );
+				}
 			}
 
 			if ( attribute.name === 'id' ) {

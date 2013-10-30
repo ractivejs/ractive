@@ -1,6 +1,15 @@
 (function () {
 
-	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse;
+	var updateFileInputValue,
+		deferSelect,
+		initSelect,
+		updateSelect,
+		updateMultipleSelect,
+		updateRadioName,
+		updateCheckboxName,
+		updateIEStyleAttribute,
+		updateClassName,
+		updateEverythingElse;
 
 	// There are a few special cases when it comes to updating attributes. For this reason,
 	// the prototype .update() method points to updateAttribute, which waits until the
@@ -40,6 +49,18 @@
 				this.update = updateCheckboxName;
 				return this.update();
 			}
+		}
+
+		// special case - style attributes in Internet Exploder
+		if ( this.name === 'style' && node.style.setAttribute ) {
+			this.update = updateIEStyleAttribute;
+			return this.update();
+		}
+
+		// special case - class names. IE fucks things up, again
+		if ( this.name === 'class' ) {
+			this.update = updateClassName;
+			return this.update();
 		}
 
 		this.update = updateEverythingElse;
@@ -129,6 +150,42 @@
 		}
 
 		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
+
+		return this;
+	};
+
+	updateIEStyleAttribute = function () {
+		var node, value;
+
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if ( value === undefined ) {
+			value = '';
+		}
+
+		if ( value !== this.value ) {
+			node.style.setAttribute( 'cssText', value );
+			this.value = value;
+		}
+
+		return this;
+	};
+
+	updateClassName = function () {
+		var node, value;
+
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if ( value === undefined ) {
+			value = '';
+		}
+
+		if ( value !== this.value ) {
+			node.className = value;
+			this.value = value;
+		}
 
 		return this;
 	};

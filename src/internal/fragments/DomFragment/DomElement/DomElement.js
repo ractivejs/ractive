@@ -1,12 +1,15 @@
 // Element
 DomElement = function ( options, docFrag ) {
 
-	var parentFragment,
+	var self = this,
+		parentFragment,
 		descriptor,
 		namespace,
 		attributes,
 		decoratorFn,
 		errorMessage,
+		width,
+		height,
 		root;
 
 	this.type = ELEMENT;
@@ -58,6 +61,18 @@ DomElement = function ( options, docFrag ) {
 		// not two-way we can update them now
 		if ( attributes.name && !attributes.name.twoway ) {
 			attributes.name.update();
+		}
+
+		// if this is an <img>, and we're in a crap browser, we may need to prevent it
+		// from overriding width and height when it loads the src
+		if ( this.node.tagName === 'IMG' && ( ( width = self.attributes.width ) || ( height = self.attributes.height ) ) ) {
+			this.node.addEventListener( 'load', loadHandler = function () {
+				width && ( self.node.width = width.value );
+				height && ( self.node.height = height.value );
+				console.log( 'done' );
+
+				self.node.removeEventListener( 'load', loadHandler, false );
+			}, false );
 		}
 
 		docFrag.appendChild( this.node );
