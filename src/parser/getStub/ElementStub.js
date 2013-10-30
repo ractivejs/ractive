@@ -2,8 +2,7 @@ var ElementStub;
 
 (function () {
 
-	var voidElementNames,
-		allElementNames,
+	var allElementNames,
 		mapToLowerCase,
 		svgCamelCaseElements,
 		svgCamelCaseElementsMap,
@@ -88,6 +87,9 @@ var ElementStub;
 			}
 		}
 		
+		if ( firstToken.doctype ) {
+			this.doctype = true;
+		}
 
 		if ( firstToken.selfClosing ) {
 			this.selfClosing = true;
@@ -178,6 +180,10 @@ var ElementStub;
 					t: ELEMENT,
 					e: this.tag
 				};
+			}
+
+			if ( this.doctype ) {
+				json.y = 1;
 			}
 
 			if ( this.attributes && this.attributes.length ) {
@@ -332,7 +338,6 @@ var ElementStub;
 	};
 
 
-	voidElementNames = 'area base br col command embed hr img input keygen link meta param source track wbr'.split( ' ' );
 	allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
 	closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
 

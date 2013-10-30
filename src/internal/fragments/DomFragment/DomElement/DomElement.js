@@ -10,6 +10,7 @@ DomElement = function ( options, docFrag ) {
 		errorMessage,
 		width,
 		height,
+		loadHandler,
 		root;
 
 	this.type = ELEMENT;
@@ -67,9 +68,13 @@ DomElement = function ( options, docFrag ) {
 		// from overriding width and height when it loads the src
 		if ( this.node.tagName === 'IMG' && ( ( width = self.attributes.width ) || ( height = self.attributes.height ) ) ) {
 			this.node.addEventListener( 'load', loadHandler = function () {
-				width && ( self.node.width = width.value );
-				height && ( self.node.height = height.value );
-				console.log( 'done' );
+				if ( width ) {
+					self.node.width = width.value;
+				}
+
+				if ( height ) {
+					self.node.height = height.value;
+				}
 
 				self.node.removeEventListener( 'load', loadHandler, false );
 			}, false );
@@ -160,9 +165,7 @@ DomElement.prototype = {
 	toString: function () {
 		var str, i, len;
 
-		// TODO void tags
-		str = '' +
-			'<' + this.descriptor.e;
+		str = '<' + ( this.descriptor.y ? '!doctype' : this.descriptor.e );
 
 		len = this.attributes.length;
 		for ( i=0; i<len; i+=1 ) {
@@ -177,7 +180,10 @@ DomElement.prototype = {
 			str += this.fragment.toString();
 		}
 
-		str += '</' + this.descriptor.e + '>';
+		// add a closing tag if this isn't a void element
+		if ( voidElementNames.indexOf( this.descriptor.e ) === -1 ) {
+			str += '</' + this.descriptor.e + '>';
+		}
 
 		return str;
 	},

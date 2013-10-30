@@ -31,6 +31,10 @@ var getTag;
 			type: TAG
 		};
 
+		if ( getStringMatch( tokenizer, '!' ) ) {
+			tag.doctype = true;
+		}
+
 		// tag name
 		tag.name = getTagName( tokenizer );
 		if ( !tag.name ) {

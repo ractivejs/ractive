@@ -22,6 +22,7 @@
 // * t1 - intro Transition
 // * t2 - outro Transition
 // * o - decOrator
+// * y - is doctYpe
 
 (function () {
 
