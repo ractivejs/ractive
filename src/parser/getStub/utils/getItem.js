@@ -2,21 +2,22 @@ var getItem;
 
 (function () {
 
-	var getText, getMustache, getElement;
+	var getText, getMustache, getElement, getComment;
 
 	getItem = function ( parser, preserveWhitespace ) {
-		if ( !parser.next() ) {
+		var next = parser.next();
+
+		if ( !next ) {
 			return null;
 		}
 
-		return getText( parser, preserveWhitespace )
-		    || getMustache( parser, preserveWhitespace )
-		    || getElement( parser, preserveWhitespace );
+		return getText( parser, next, preserveWhitespace )
+		    || getMustache( parser, next, preserveWhitespace )
+		    || getElement( parser, next, preserveWhitespace )
+		    || getComment( parser, next );
 	};
 
-	getText = function ( parser, preserveWhitespace ) {
-		var next = parser.next();
-
+	getText = function ( parser, next, preserveWhitespace ) {
 		if ( next.type === TEXT ) {
 			parser.pos += 1;
 			return new TextStub( next, preserveWhitespace );
@@ -25,9 +26,7 @@ var getItem;
 		return null;
 	};
 
-	getMustache = function ( parser, preserveWhitespace ) {
-		var next = parser.next();
-
+	getMustache = function ( parser, next, preserveWhitespace ) {
 		if ( next.type === MUSTACHE || next.type === TRIPLE ) {
 			if ( next.mustacheType === SECTION || next.mustacheType === INVERTED ) {
 				return new SectionStub( next, parser, preserveWhitespace );				
@@ -39,8 +38,8 @@ var getItem;
 		return null;
 	};
 
-	getElement = function ( parser, preserveWhitespace ) {
-		var next = parser.next(), stub;
+	getElement = function ( parser, next, preserveWhitespace ) {
+		var stub;
 
 		if ( next.type === TAG ) {
 			stub = new ElementStub( next, parser, preserveWhitespace );
@@ -53,6 +52,15 @@ var getItem;
 			}
 
 			return stub;
+		}
+
+		return null;
+	};
+
+	getComment = function ( parser, next ) {
+		if ( next.type === COMMENT ) {
+			parser.pos += 1;
+			return new CommentStub( next );
 		}
 
 		return null;

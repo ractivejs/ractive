@@ -270,6 +270,28 @@
 			name: 'Intro and outro with dynamic parameters',
 			template: "<div intro='fade:{\"delay\":{{i*50}}}' outro='fade:{\"delay\":{{i*50}}}'></div>",
 			parsed: [{t:7,e:'div',t1:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'},t2:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'}}]
+		},
+		{
+			name: 'Doctype declarations are handled',
+			template: '<!doctype html><html><head></head><body></body></html>',
+			parsed: [{t:7,e:'doctype',y:1,a:{html:null}},{t:7,e:'html',f:'<head></head><body></body>'}]
+		},
+		{
+			name: 'Comments are stripped by default',
+			template: '<!-- this will disappear --><p>foo <!-- so will this --></p>',
+			parsed: ['<p>foo</p>']
+		},
+		{
+			name: 'Comments are left if required (with mustache)',
+			template: '<!-- this will not disappear --><p>{{foo}} <!-- nor will this --></p>',
+			parsed: [{t:9,f:' this will not disappear '},{t:7,e:'p',f:[{t:2,r:'foo'},' ',{t:9,f:' nor will this '}]}],
+			options: { stripComments: false }
+		},
+		{
+			name: 'Comments are left if required (with plain text)',
+			template: '<!-- this will not disappear --><p>foo <!-- nor will this --></p>',
+			parsed: ['<!-- this will not disappear --><p>foo <!-- nor will this --></p>'],
+			options: { stripComments: false }
 		}
 	];
 

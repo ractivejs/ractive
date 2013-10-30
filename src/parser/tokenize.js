@@ -3,8 +3,12 @@ tokenize = function ( template, options ) {
 
 	options = options || {};
 
+	if ( options.stripComments !== false ) {
+		template = stripHtmlComments( template );
+	}
+
 	tokenizer = {
-		str: stripHtmlComments( template ),
+		str: template,
 		pos: 0,
 		delimiters: options.delimiters || Ractive.delimiters,
 		tripleDelimiters: options.tripleDelimiters || Ractive.tripleDelimiters,

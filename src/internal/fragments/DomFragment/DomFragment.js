@@ -28,10 +28,10 @@ DomFragment.prototype = {
 			case INTERPOLATOR: return new DomInterpolator( options, this.docFrag );
 			case SECTION:      return new DomSection( options, this.docFrag );
 			case TRIPLE:       return new DomTriple( options, this.docFrag );
-
 			case ELEMENT:      return new DomElement( options, this.docFrag );
 			case PARTIAL:      return new DomPartial( options, this.docFrag );
 			case COMPONENT:    return new DomComponent( options, this.docFrag );
+			case COMMENT:      return new DomComment( options, this.docFrag );
 
 			default: throw new Error( 'WTF? not sure what happened here...' );
 		}
