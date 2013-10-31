@@ -292,6 +292,11 @@
 			template: '<!-- this will not disappear --><p>foo <!-- nor will this --></p>',
 			parsed: ['<!-- this will not disappear --><p>foo <!-- nor will this --></p>'],
 			options: { stripComments: false }
+		},
+		{
+			name: 'XML namespaces are handled',
+			template: '<fb:like href="{{href}}" send="true" show_faces="false"></fb:like>',
+			parsed: [{t:7,e:'fb:like',a:{href:[{t:2,r:'href'}],send:'true',show_faces:'false'}}]
 		}
 	];
 
