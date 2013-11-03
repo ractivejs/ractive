@@ -248,36 +248,6 @@ try {
 
 
 
-var hyphenate = function ( str ) {
-	return str.replace( /[A-Z]/g, function ( match ) {
-		return '-' + match.toLowerCase();
-	});
-};
-
-// determine some facts about our environment
-var cssTransitionsEnabled, transition, transitionend;
-
-(function () {
-
-	if ( !doc ) {
-		return;
-	}
-
-	if ( testDiv.style.transition !== undefined ) {
-		transition = 'transition';
-		transitionend = 'transitionend';
-		cssTransitionsEnabled = true;
-	} else if ( testDiv.style.webkitTransition !== undefined ) {
-		transition = 'webkitTransition';
-		transitionend = 'webkitTransitionEnd';
-		cssTransitionsEnabled = true;
-	} else {
-		cssTransitionsEnabled = false;
-	}
-
-}());
-
-
 // Internet Explorer derp. Methods that should be attached to Node.prototype
 // are instead attached to HTMLElement.prototype, which means SVG elements
 // can't use them. Remember kids, friends don't let friends use IE.
