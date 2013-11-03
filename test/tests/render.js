@@ -339,7 +339,7 @@
 		},
 		{
 			name: 'Element with transitions',
-			template: '<div intro="slideIn" outro="slideOut">{{content}}</div>',
+			template: '<div intro-outro="slide">{{content}}</div>',
 			data: { content: 'test' },
 			result: '<div>test</div>'
 		},

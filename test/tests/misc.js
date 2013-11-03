@@ -52,13 +52,13 @@
 			template: '<div intro="wiggle">{{>foo}}{{>bar}}{{>baz}}</div><div intro="shimmy">{{foo}}{{bar}}{{baz}}</div>',
 			data: { foo: 1 },
 			partials: { foo: 'fooPartial' },
-			transitions: { wiggle: function () { wiggled = true; } }
+			transitions: { wiggle: function ( t ) { wiggled = true; } }
 		});
 
 		SubSubclass = Subclass.extend({
 			data: { bar: 2 },
 			partials: { bar: 'barPartial' },
-			transitions: { shimmy: function () { shimmied = true; } }
+			transitions: { shimmy: function ( t ) { shimmied = true; } }
 		});
 
 		instance = new SubSubclass({
