@@ -408,10 +408,8 @@ var ElementStub;
 					throw new Error( 'An element can only have one intro and one outro transition' );
 				}
 
-				console.log( 'intro = outro', JSON.stringify( item ) );
 				filtered.intro = item;
 				filtered.outro = deepClone( item );
-				console.log( item );
 			}
 
 			// Proxy?
