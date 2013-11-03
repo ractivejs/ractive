@@ -46,7 +46,16 @@ makeTransitionManager = function ( root, callback ) {
 			transitionManager.active[ transitionManager.active.length ] = node;
 		},
 		pop: function ( node ) {
-			transitionManager.active.splice( transitionManager.active.indexOf( node ), 1 );
+			var index;
+
+			index = transitionManager.active.indexOf( node );
+
+			if ( index === -1 ) {
+				// already popped this node
+				return;
+			}
+
+			transitionManager.active.splice( index, 1 );
 			
 			detachNodes();
 
