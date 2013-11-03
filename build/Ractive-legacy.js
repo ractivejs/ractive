@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.7 - 2013-10-30
+/*! Ractive - v0.3.8-pre - 2013-11-03
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -11,7 +11,7 @@
 var Ractive,
 
 // current version
-VERSION = '0.3.7',
+VERSION = '0.3.8-pre',
 
 doc = global.document || null,
 
@@ -254,36 +254,6 @@ try {
 
 
 
-var hyphenate = function ( str ) {
-	return str.replace( /[A-Z]/g, function ( match ) {
-		return '-' + match.toLowerCase();
-	});
-};
-
-// determine some facts about our environment
-var cssTransitionsEnabled, transition, transitionend;
-
-(function () {
-
-	if ( !doc ) {
-		return;
-	}
-
-	if ( testDiv.style.transition !== undefined ) {
-		transition = 'transition';
-		transitionend = 'transitionend';
-		cssTransitionsEnabled = true;
-	} else if ( testDiv.style.webkitTransition !== undefined ) {
-		transition = 'webkitTransition';
-		transitionend = 'webkitTransitionEnd';
-		cssTransitionsEnabled = true;
-	} else {
-		cssTransitionsEnabled = false;
-	}
-
-}());
-
-
 // Internet Explorer derp. Methods that should be attached to Node.prototype
 // are instead attached to HTMLElement.prototype, which means SVG elements
 // can't use them. Remember kids, friends don't let friends use IE.
@@ -304,7 +274,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		Date.now = function () { return +new Date(); };
 	}
 
-	if ( doc && !doc.createElementNS ) {
+	if ( !doc.createElementNS ) {
 		doc.createElementNS = function ( ns, type ) {
 			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
 				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
@@ -431,6 +401,8 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		};
 	}
 
+
+
 	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
@@ -516,6 +488,83 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 				//style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
 			}
 		}( win, doc ));
+	}
+
+
+	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
+	if ( !global.getComputedStyle ) {
+		global.getComputedStyle = (function () {
+			function getPixelSize(element, style, property, fontSize) {
+				var
+				sizeWithSuffix = style[property],
+				size = parseFloat(sizeWithSuffix),
+				suffix = sizeWithSuffix.split(/\d/)[0],
+				rootSize;
+
+				fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
+				rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
+
+				return (suffix == 'em') ? size * fontSize : (suffix == 'in') ? size * 96 : (suffix == 'pt') ? size * 96 / 72 : (suffix == '%') ? size / 100 * rootSize : size;
+			}
+
+			function setShortStyleProperty(style, property) {
+				var
+				borderSuffix = property == 'border' ? 'Width' : '',
+				t = property + 'Top' + borderSuffix,
+				r = property + 'Right' + borderSuffix,
+				b = property + 'Bottom' + borderSuffix,
+				l = property + 'Left' + borderSuffix;
+
+				style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]]
+				: style[t] == style[b] && style[l] == style[r] ? [style[t], style[r]]
+				: style[l] == style[r] ? [style[t], style[r], style[b]]
+				: [style[t], style[r], style[b], style[l]]).join(' ');
+			}
+
+			function CSSStyleDeclaration(element) {
+				var currentStyle, style, fontSize, property;
+
+				currentStyle = element.currentStyle;
+				style = this;
+				fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
+
+				for (property in currentStyle) {
+					if (/width|height|margin.|padding.|border.+W/.test(property) && style[property] !== 'auto') {
+						style[property] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
+					} else if (property === 'styleFloat') {
+						style['float'] = currentStyle[property];
+					} else {
+						style[property] = currentStyle[property];
+					}
+				}
+
+				setShortStyleProperty(style, 'margin');
+				setShortStyleProperty(style, 'padding');
+				setShortStyleProperty(style, 'border');
+
+				style.fontSize = fontSize + 'px';
+
+				return style;
+			}
+
+			CSSStyleDeclaration.prototype = {
+				constructor: CSSStyleDeclaration,
+				getPropertyPriority: function () {},
+				getPropertyValue: function ( prop ) {
+					return this[prop] || '';
+				},
+				item: function () {},
+				removeProperty: function () {},
+				setProperty: function () {},
+				getPropertyCSSValue: function () {}
+			};
+
+			function getComputedStyle(element) {
+				return new CSSStyleDeclaration(element);
+			}
+
+			return getComputedStyle;
+		}());
 	}
 
 }( global ));
@@ -1473,44 +1522,371 @@ getElementNamespace = function ( descriptor, parentNode ) {
 	// otherwise, use the svg namespace if this is an svg element, or inherit namespace from parent
 	return ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : parentNode.namespaceURI );
 };
-executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
-	var transitionName, transitionParams, fragment, transitionManager, transition;
+var Transition;
 
-	if ( !root.transitionsEnabled ) {
+(function () {
+
+	var parseTransitionParams,
+
+		testStyle,
+		vendors,
+		vendorPattern,
+		prefix,
+		prefixCache,
+		hyphenate,
+		
+		CSS_TRANSITIONS_ENABLED,
+		TRANSITION,
+		TRANSITION_DURATION,
+		TRANSITION_PROPERTY,
+		TRANSITION_TIMING_FUNCTION,
+		TRANSITIONEND;
+
+	if ( !doc ) {
+		// not relevant server-side
 		return;
 	}
 
-	if ( typeof descriptor === 'string' ) {
-		transitionName = descriptor;
-	} else {
-		transitionName = descriptor.n;
+	// determine some facts about our environment
+	(function () {
 
-		if ( descriptor.a ) {
-			transitionParams = descriptor.a;
-		} else if ( descriptor.d ) {
-			fragment = new StringFragment({
-				descriptor:   descriptor.d,
-				root:         root,
-				owner:        owner,
-				contextStack: owner.parentFragment.contextStack
-			});
-
-			transitionParams = fragment.toJSON();
-			fragment.teardown();
+		if ( testDiv.style.transition !== undefined ) {
+			TRANSITION = 'transition';
+			TRANSITIONEND = 'transitionend';
+			CSS_TRANSITIONS_ENABLED = true;
+		} else if ( testDiv.style.webkitTransition !== undefined ) {
+			TRANSITION = 'webkitTransition';
+			TRANSITIONEND = 'webkitTransitionEnd';
+			CSS_TRANSITIONS_ENABLED = true;
+		} else {
+			CSS_TRANSITIONS_ENABLED = false;
 		}
+
+	}());
+
+	if ( TRANSITION ) {
+		TRANSITION_DURATION = TRANSITION + 'Duration';
+		TRANSITION_PROPERTY = TRANSITION + 'Property';
+		TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
 	}
 
-	transition = root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
+	Transition = function ( descriptor, root, owner, contextStack, isIntro ) {
+		var fragment, params, prop;
 
-	if ( transition ) {
-		transitionManager = root._transitionManager;
+		this.root = root;
+		this.node = owner.node;
+		this.isIntro = isIntro;
 
-		transitionManager.push( owner.node );
-		transition.call( root, owner.node, function () {
-			transitionManager.pop( owner.node );
-		}, transitionParams, isIntro );
+		// store original style attribute
+		this.originalStyle = this.node.getAttribute( 'style' );
+
+		if ( typeof descriptor === 'string' ) {
+			this.name = descriptor;
+		} else {
+			this.name = descriptor.n;
+
+			if ( descriptor.a ) {
+				params = descriptor.a;
+			} else if ( descriptor.d ) {
+				// TODO is there a way to interpret dynamic arguments without all the
+				// 'dependency thrashing'?
+				fragment = new StringFragment({
+					descriptor:   descriptor.d,
+					root:         root,
+					owner:        owner,
+					contextStack: owner.parentFragment.contextStack
+				});
+
+				params = fragment.toJSON();
+				fragment.teardown();
+			}
+		}
+
+		this._fn = root.transitions[ this.name ] || Ractive.transitions[ this.name ];
+		if ( !this._fn ) {
+			return;
+		}
+
+		// parse transition parameters
+		params = parseTransitionParams( params );
+
+		// TODO blacklist certain params
+		for ( prop in params ) {
+			if ( params.hasOwnProperty( prop ) ) {
+				this[ prop ] = params[ prop ];
+			}
+		}
+	};
+
+	Transition.prototype = {
+		init: function () {
+			if ( this._inited ) {
+				throw new Error( 'Cannot initialize a transition more than once' );
+			}
+
+			this._inited = true;
+			this._fn.call( this.root, this );
+		},
+
+		complete: function () {
+			this._manager.pop( this.node );
+			this.node._ractive.transition = null;
+		},
+
+		// TODO handle prefixed styles
+		getStyle: function ( props ) {
+			var computedStyle, styles, i, prop, value;
+
+			computedStyle = window.getComputedStyle( this.node );
+
+			if ( typeof props === 'string' ) {
+				value = computedStyle[ prefix( props ) ];
+				if ( value === '0px' ) {
+					value = 0;
+				}
+				return value;
+			}
+
+			if ( !isArray( props ) ) {
+				throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
+			}
+
+			styles = {};
+
+			i = props.length;
+			while ( i-- ) {
+				prop = props[i];
+				value = computedStyle[ prefix( prop ) ];
+				if ( value === '0px' ) {
+					value = 0;
+				}
+				styles[ prop ] = value;
+			}
+
+			return styles;
+		},
+
+		setStyle: function ( style, value ) {
+			var prop;
+
+			if ( typeof style === 'string' ) {
+				this.node.style[ prefix( style ) ] = value;
+			}
+
+			else {
+				for ( prop in style ) {
+					if ( style.hasOwnProperty( prop ) ) {
+						// TODO prefix
+						this.node.style[ prefix( prop ) ] = style[ prop ];
+					}
+				}
+			}
+			
+			return this;
+		},
+
+		animateStyle: function ( to ) {
+			var t = this, propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+
+			// Get a list of the properties we're animating
+			propertyNames = Object.keys( to );
+			changedProperties = [];
+
+			// Store the current styles
+			computedStyle = window.getComputedStyle( t.node );
+
+			from = {};
+			i = propertyNames.length;
+			while ( i-- ) {
+				prop = propertyNames[i];
+				current = computedStyle[ prefix( prop ) ];
+
+				if ( current === '0px' ) {
+					current = 0;
+				}
+
+				// we need to know if we're actually changing anything
+				if ( current != to[ prop ] ) { // use != instead of !==, so we can compare strings with numbers
+					changedProperties[ changedProperties.length ] = prop;
+
+					// make the computed style explicit, so we can animate where
+					// e.g. height='auto'
+					t.node.style[ prefix( prop ) ] = current;
+				}
+			}
+
+			// If we're not actually changing anything, the transitionend event
+			// will never fire! So we complete early
+			if ( !changedProperties.length ) {
+				t.resetStyle();
+				t.complete();
+				return;
+			}
+
+			// Wait a beat (otherwise the target styles will be applied immediately)
+			// TODO use a fastdom-style mechanism?
+			setTimeout( function () {
+
+				t.node.style[ TRANSITION_PROPERTY ] = propertyNames.map( prefix ).map( hyphenate ).join( ',' );
+				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( t.easing || 'linear' );
+				t.node.style[ TRANSITION_DURATION ] = ( t.duration / 1000 ) + 's';
+
+				transitionEndHandler = function () {
+					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
+
+					// We've abused the style attribute - we need to revert
+					// it to it's natural state, if this is an intro
+					if ( t.isIntro ) {
+						t.resetStyle();
+					}
+
+					t.complete();
+				};
+				
+				t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
+
+				setTimeout( function () {
+					var i = changedProperties.length;
+					
+					while ( i-- ) {
+						prop = changedProperties[i];
+						t.node.style[ prefix( prop ) ] = to[ prop ];
+					}
+				}, 0 );
+			}, t.delay || 0 );
+		},
+
+		resetStyle: function () {
+			if ( this.originalStyle ) {
+				this.node.setAttribute( 'style', this.originalStyle );
+			} else {
+				
+				// Next line is necessary, to remove empty style attribute!
+				// See http://stackoverflow.com/a/7167553
+				this.node.getAttribute( 'style' );
+				this.node.removeAttribute( 'style' );
+			}
+		}
+	};
+
+	parseTransitionParams = function ( params ) {
+		if ( params === 'fast' ) {
+			return { duration: 200 };
+		}
+
+		if ( params === 'slow' ) {
+			return { duration: 600 };
+		}
+
+		if ( isNumeric( params ) ) {
+			return { duration: +params };
+		}
+
+		return params || {};
+	};
+
+	// get prefixed style attributes
+	testStyle = doc.createElement( 'div' ).style;
+	vendors = [ 'o', 'ms', 'moz', 'webkit' ];
+	vendorPattern = new RegExp( '^(?:' + vendors.join( '|' ) + ')[A-Z]' );
+	prefixCache = {};
+
+	prefix = function ( prop ) {
+		var i, vendor, capped;
+
+		if ( !prefixCache[ prop ] ) {
+			if ( testStyle[ prop ] !== undefined ) {
+				prefixCache[ prop ] = prop;
+			}
+
+			else {
+				// test vendors...
+				capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
+
+				i = vendors.length;
+				while ( i-- ) {
+					vendor = vendors[i];
+					if ( testStyle[ vendor + capped ] !== undefined ) {
+						prefixCache[ prop ] = vendor + capped;
+						break;
+					}
+				}
+			}
+		}
+
+		return prefixCache[ prop ];
+	};
+
+	hyphenate = function ( str ) {
+		var hyphenated;
+
+		if ( vendorPattern.test( str ) ) {
+			str = '-' + str;
+		}
+
+		hyphenated = str.replace( /[A-Z]/g, function ( match ) {
+			return '-' + match.toLowerCase();
+		});
+
+		return hyphenated;
+	};
+
+}());
+(function () {
+
+	var invoke;
+
+	if ( !doc ) {
+		// not relevant server-side
+		return;
 	}
-};
+
+	executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
+		var transition,
+			node,
+			oldTransition;
+
+		if ( !root.transitionsEnabled ) {
+			return;
+		}
+
+		// get transition name, args and function
+		transition = new Transition( descriptor, root, owner, contextStack, isIntro );
+
+		if ( transition._fn ) {
+			// TODO remove this warning after a few versions. Also, change URL when repo switches owner
+			if ( transition._fn.length !== 1 ) {
+				console.warn( 'The transitions API has changed. See https://github.com/Rich-Harris/Ractive/wiki/Transitions for details' );
+			}
+
+			node = transition.node;
+			transition._manager = root._transitionManager;
+
+			// Existing transition (i.e. we're outroing before intro is complete)?
+			// End it prematurely
+			if ( oldTransition = node._ractive.transition ) {
+				oldTransition.complete();
+			}
+
+			node._ractive.transition = transition;
+
+			transition._manager.push( node );
+
+			if ( isIntro ) {
+				// we don't want to call the transition function until this node
+				// exists on the DOM
+				root._defTransitions.push( transition );
+			} else {
+				transition.init();
+			}
+		}
+	};
+
+	invoke = function ( handler ) {
+		handler();
+	};
+
+}());
 getComponentConstructor = function ( root, name ) {
 	// TODO... write this properly!
 	return root.components[ name ];
@@ -3371,7 +3747,8 @@ notifyMultipleDependants = function ( ractive, keypaths, onlyDirect ) {
 		}
 	}
 };
-processDeferredUpdates = function ( ractive ) {
+// TODO can this be neatened up at all?
+processDeferredUpdates = function ( ractive, initialRender ) {
 	var evaluator, attribute, keypath;
 
 	while ( ractive._defEvals.length ) {
@@ -3399,6 +3776,12 @@ processDeferredUpdates = function ( ractive ) {
 
 	while ( ractive._defObservers.length ) {
 		ractive._defObservers.pop().update( true );
+	}
+
+	if ( !initialRender ) {
+		while ( ractive._defTransitions.length ) {
+			ractive._defTransitions.pop().init(); // TODO rename...
+		}
 	}
 };
 registerDependant = function ( dependant ) {
@@ -3453,10 +3836,15 @@ render = function ( ractive, options ) {
 		parentNode: el
 	});
 
-	processDeferredUpdates( ractive );
+	processDeferredUpdates( ractive, true );
 
 	if ( el ) {
 		el.appendChild( ractive.fragment.docFrag );
+	}
+
+	// trigger intros, now that elements are in the DOM
+	while ( ractive._defTransitions.length ) {
+		ractive._defTransitions.pop().init(); // TODO rename...
 	}
 
 	// transition manager has finished its work
@@ -4172,8 +4560,7 @@ proto.update = function ( keypath, complete ) {
 		mutatorMethods,
 		errorMessage;
 
-	// TODO use the wrapper properly, i.e. having a list of wrappers on each array, rather than
-	// a set of ractives and keypaths
+	// TODO remove this and the magic adaptor from the public API?
 
 	adaptors.array = {
 		filter: function ( ractive, object, keypath ) {
@@ -5254,13 +5641,14 @@ Ractive = function ( options ) {
 		// unresolved dependants
 		_pendingResolution: { value: [] },
 
-		// Create arrays for deferred attributes and evaluators
+		// Create arrays for deferred attributes and evaluators etc
 		_defAttrs: { value: [] },
 		_defEvals: { value: [] },
 		_defSelectValues: { value: [] },
 		_defCheckboxes: { value: [] },
 		_defRadios: { value: [] },
 		_defObservers: { value: [] },
+		_defTransitions: { value: [] },
 
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
@@ -5390,328 +5778,38 @@ Ractive = function ( options ) {
 
 (function () {
 
-	var getOriginalComputedStyles, setStyle, augment, makeTransition;
+	var fade, defaults;
 
-	// no point executing this code on the server
-	if ( !doc ) {
-		return;
-	}
-
-	getOriginalComputedStyles = function ( computedStyle, properties ) {
-		var original = {}, i;
-
-		i = properties.length;
-		while ( i-- ) {
-			original[ properties[i] ] = computedStyle[ properties[i] ];
-		}
-
-		return original;
+	defaults = {
+		duration: 300,
+		easing: 'linear'
 	};
 
-	setStyle = function ( node, properties, map, params ) {
-		var i = properties.length, prop;
+	fade = function ( t ) {
+		var targetOpacity;
 
-		while ( i-- ) {
-			prop = properties[i];
-			if ( map && map[ prop ] ) {
-				if ( typeof map[ prop ] === 'function' ) {
-					node.style[ prop ] = map[ prop ]( params );
-				} else {
-					node.style[ prop ] = map[ prop ];
-				}
-			}
-
-			else {
-				node.style[ prop ] = 0;
-			}
-		}
-	};
-
-	augment = function ( target, source ) {
-		var key;
-
-		if ( !source ) {
-			return target;
+		if ( t.isIntro ) {
+			targetOpacity = ( t.to !== undefined ? t.to : t.getStyle( 'opacity' ) );
+			t.setStyle( 'opacity', 0 );
 		}
 
-		for ( key in source ) {
-			if ( hasOwn.call( source, key ) ) {
-				target[ key ] = source[ key ];
-			}
+		// set defaults
+		if ( t.duration === undefined ) {
+			t.duration = defaults.duration;
 		}
 
-		return target;
-	};
+		if ( t.eaing === undefined ) {
+			t.easing = defaults.easing;
+		}
 
-	if ( cssTransitionsEnabled ) {
-		makeTransition = function ( properties, defaults, outside, inside ) {
-			if ( typeof properties === 'string' ) {
-				properties = [ properties ];
-			}
-
-			return function ( node, complete, params, isIntro ) {
-				var transitionEndHandler,
-					computedStyle,
-					originalComputedStyles,
-					startTransition,
-					originalStyle,
-					duration,
-					delay,
-					start,
-					end,
-					positionStyle,
-					visibilityStyle;
-
-				params = parseTransitionParams( params );
-				
-				duration = params.duration || defaults.duration;
-				easing = hyphenate( params.easing || defaults.easing );
-				delay = params.delay || 0;
-
-				start = ( isIntro ? outside : inside );
-				end = ( isIntro ? inside : outside );
-
-				computedStyle = window.getComputedStyle( node );
-				originalStyle = node.getAttribute( 'style' );
-
-				// if this is an intro, we need to transition TO the original styles
-				if ( isIntro ) {
-					// hide, to avoid flashes
-					positionStyle = node.style.position;
-					visibilityStyle = node.style.visibility;
-					node.style.position = 'absolute';
-					node.style.visibility = 'hidden';
-
-					// we need to wait a beat before we can actually get values from computedStyle.
-					// Yeah, I know, WTF browsers
-					setTimeout( function () {
-						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
-						
-						start = outside;
-						end = augment( originalComputedStyles, inside );
-
-						// starting style
-						node.style.position = positionStyle;
-						node.style.visibility = visibilityStyle;
-						
-						setStyle( node, properties, start, params );
-
-						setTimeout( startTransition, 0 );
-					}, delay );
-				}
-
-				// otherwise we need to transition FROM them
-				else {
-					setTimeout( function () {
-						originalComputedStyles = getOriginalComputedStyles( computedStyle, properties );
-
-						start = augment( originalComputedStyles, inside );
-						end = outside;
-
-						// ending style
-						setStyle( node, properties, start, params );
-
-						setTimeout( startTransition, 0 );
-					}, delay );
-				}
-
-				startTransition = function () {
-					node.style[ transition + 'Duration' ] = ( duration / 1000 ) + 's';
-					node.style[ transition + 'Properties' ] = properties.map( hyphenate ).join( ',' );
-					node.style[ transition + 'TimingFunction' ] = easing;
-
-					transitionEndHandler = function () {
-						node.removeEventListener( transitionend, transitionEndHandler, false );
-
-						if ( isIntro ) {
-							node.setAttribute( 'style', originalStyle || '' );
-						}
-
-						complete();
-					};
-					
-					node.addEventListener( transitionend, transitionEndHandler, false );
-
-					setStyle( node, properties, end, params );
-				};
-			};
-		};
-
-		transitions.slide = makeTransition([
-			'height',
-			'borderTopWidth',
-			'borderBottomWidth',
-			'paddingTop',
-			'paddingBottom',
-			'overflowY'
-		], { duration: 400, easing: 'easeInOut' }, { overflowY: 'hidden' }, { overflowY: 'hidden' });
-
-		transitions.fade = makeTransition( 'opacity', {
-			duration: 300,
-			easing: 'linear'
+		t.animateStyle({
+			opacity: t.isIntro ? targetOpacity : 0
 		});
+	};
 
-		transitions.fly = makeTransition([ 'opacity', 'left', 'position' ], {
-			duration: 400, easing: 'easeOut'
-		}, { position: 'relative', left: '-500px' }, { position: 'relative', left: 0 });
-	}
-
-	
+	transitions.fade = fade;
 
 }());
-var parseTransitionParams = function ( params ) {
-	if ( params === 'fast' ) {
-		return { duration: 200 };
-	}
-
-	if ( params === 'slow' ) {
-		return { duration: 600 };
-	}
-
-	if ( isNumeric( params ) ) {
-		return { duration: +params };
-	}
-
-	return params || {};
-};
-(function ( transitions ) {
-
-	var typewriter, typewriteNode, typewriteTextNode;
-
-	if ( !doc ) {
-		return;
-	}
-
-	typewriteNode = function ( node, complete, interval ) {
-		var children, next;
-
-		if ( node.nodeType === 1 ) {
-			node.style.display = node._display;
-		}
-
-		if ( node.nodeType === 3 ) {
-			typewriteTextNode( node, complete, interval );
-			return;
-		}
-
-		children = Array.prototype.slice.call( node.childNodes );
-
-		next = function () {
-			if ( !children.length ) {
-				if ( node.nodeType === 1 ) {
-					node.setAttribute( 'style', node._style || '' );
-				}
-
-				complete();
-				return;
-			}
-
-			typewriteNode( children.shift(), next, interval );
-		};
-
-		next();
-	};
-
-	typewriteTextNode = function ( node, complete, interval ) {
-		var str, len, loop, i;
-
-		// text node
-		str = node._hiddenData;
-		len = str.length;
-
-		if ( !len ) {
-			complete();
-			return;
-		}
-
-		i = 0;
-
-		loop = setInterval( function () {
-			var substr, remaining, match, remainingNonWhitespace, filler;
-
-			substr = str.substr( 0, i );
-			remaining = str.substring( i );
-
-			match = /^\w+/.exec( remaining );
-			remainingNonWhitespace = ( match ? match[0].length : 0 );
-
-			// add some non-breaking whitespace corresponding to the remaining length of the
-			// current word (only really works with monospace fonts, but better than nothing)
-			filler = new Array( remainingNonWhitespace + 1 ).join( '\u00a0' );
-
-			node.data = substr + filler;
-			if ( i === len ) {
-				clearInterval( loop );
-				delete node._hiddenData;
-				complete();
-			}
-
-			i += 1;
-		}, interval );
-	};
-
-	// TODO differentiate between intro and outro
-	typewriter = function ( node, complete, params ) {
-		var interval, style, computedStyle, hide;
-
-		params = parseTransitionParams( params );
-
-		interval = params.interval || ( params.speed ? 1000 / params.speed : ( params.duration ? node.textContent.length / params.duration : 4 ) );
-		
-		style = node.getAttribute( 'style' );
-		computedStyle = window.getComputedStyle( node );
-
-		node.style.visibility = 'hidden';
-
-		setTimeout( function () {
-			var computedHeight, computedWidth, computedVisibility;
-
-			computedWidth = computedStyle.width;
-			computedHeight = computedStyle.height;
-			computedVisibility = computedStyle.visibility;
-
-			hide( node );
-
-			setTimeout( function () {
-				node.style.width = computedWidth;
-				node.style.height = computedHeight;
-				node.style.visibility = 'visible';
-
-				typewriteNode( node, function () {
-					node.setAttribute( 'style', style || '' );
-					complete();
-				}, interval );
-			}, params.delay || 0 );
-		});
-
-		hide = function ( node ) {
-			var children, i;
-
-			if ( node.nodeType === 1 ) {
-				node._style = node.getAttribute( 'style' );
-				node._display = window.getComputedStyle( node ).display;
-
-				node.style.display = 'none';
-			}
-
-			if ( node.nodeType === 3 ) {
-				node._hiddenData = '' + node.data;
-				node.data = '';
-				
-				return;
-			}
-
-			children = Array.prototype.slice.call( node.childNodes );
-			i = children.length;
-			while ( i-- ) {
-				hide( children[i] );
-			}
-		};
-	};
-
-	transitions.typewriter = typewriter;
-
-}( transitions ));
 (function ( Ractive ) {
 
 	var requestFullscreen, cancelFullscreen, fullscreenElement;
@@ -7494,7 +7592,16 @@ makeTransitionManager = function ( root, callback ) {
 			transitionManager.active[ transitionManager.active.length ] = node;
 		},
 		pop: function ( node ) {
-			transitionManager.active.splice( transitionManager.active.indexOf( node ), 1 );
+			var index;
+
+			index = transitionManager.active.indexOf( node );
+
+			if ( index === -1 ) {
+				// already popped this node
+				return;
+			}
+
+			transitionManager.active.splice( index, 1 );
 			
 			detachNodes();
 
@@ -7568,7 +7675,8 @@ var ElementStub;
 		getFrag,
 		processDirective,
 		jsonifyDirective,
-		camelCase;
+		camelCase,
+		deepClone;
 
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
 		var next, attrs, filtered, proxies, item, i, attr;
@@ -7770,7 +7878,7 @@ var ElementStub;
 				len = this.proxies.length;
 				for ( i=0; i<len; i+=1 ) {
 					proxy = this.proxies[i];
-					json.v[ proxy.domEventName ] = jsonifyDirective( proxy );
+					json.v[ proxy.directiveType ] = jsonifyDirective( proxy );
 				}
 			}
 
@@ -7954,6 +8062,15 @@ var ElementStub;
 				}
 
 				filtered.outro = item;
+			} else if ( item.name === 'intro-outro' ) {
+				if ( filtered.intro || filtered.outro ) {
+					throw new Error( 'An element can only have one intro and one outro transition' );
+				}
+
+				console.log( 'intro = outro', JSON.stringify( item ) );
+				filtered.intro = item;
+				filtered.outro = deepClone( item );
+				console.log( item );
 			}
 
 			// Proxy?
@@ -7993,23 +8110,23 @@ var ElementStub;
 		};
 	};
 
-	processDirective = function ( proxy ) {
-		var processed, tokens, token, colonIndex, throwError, proxyName, proxyArgs;
+	processDirective = function ( directive ) {
+		var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs;
 
 		throwError = function () {
-			throw new Error( 'Illegal proxy event' );
+			throw new Error( 'Illegal directive' );
 		};
 
-		if ( !proxy.name || !proxy.value ) {
+		if ( !directive.name || !directive.value ) {
 			throwError();
 		}
 
-		processed = { domEventName: proxy.name };
+		processed = { directiveType: directive.name };
 
-		tokens = proxy.value;
+		tokens = directive.value;
 
-		proxyName = [];
-		proxyArgs = [];
+		directiveName = [];
+		directiveArgs = [];
 
 		while ( tokens.length ) {
 			token = tokens.shift();
@@ -8018,22 +8135,22 @@ var ElementStub;
 				colonIndex = token.value.indexOf( ':' );
 				
 				if ( colonIndex === -1 ) {
-					proxyName[ proxyName.length ] = token;
+					directiveName[ directiveName.length ] = token;
 				} else {
 					
 					// is the colon the first character?
 					if ( colonIndex ) {
 						// no
-						proxyName[ proxyName.length ] = {
+						directiveName[ directiveName.length ] = {
 							type: TEXT,
 							value: token.value.substr( 0, colonIndex )
 						};
 					}
 
 					// if there is anything after the colon in this token, treat
-					// it as the first token of the proxyArgs fragment
+					// it as the first token of the directiveArgs fragment
 					if ( token.value.length > colonIndex + 1 ) {
-						proxyArgs[0] = {
+						directiveArgs[0] = {
 							type: TEXT,
 							value: token.value.substring( colonIndex + 1 )
 						};
@@ -8044,57 +8161,57 @@ var ElementStub;
 			}
 
 			else {
-				proxyName[ proxyName.length ] = token;
+				directiveName[ directiveName.length ] = token;
 			}
 		}
 
-		proxyArgs = proxyArgs.concat( tokens );
+		directiveArgs = directiveArgs.concat( tokens );
 
-		if ( proxyName.length === 1 && proxyName[0].type === TEXT ) {
-			processed.name = proxyName[0].value;
+		if ( directiveName.length === 1 && directiveName[0].type === TEXT ) {
+			processed.name = directiveName[0].value;
 		} else {
-			processed.name = proxyName;
+			processed.name = directiveName;
 		}
 
-		if ( proxyArgs.length ) {
-			if ( proxyArgs.length === 1 && proxyArgs[0].type === TEXT ) {
+		if ( directiveArgs.length ) {
+			if ( directiveArgs.length === 1 && directiveArgs[0].type === TEXT ) {
 				try {
-					processed.args = JSON.parse( proxyArgs[0].value );
+					processed.args = JSON.parse( directiveArgs[0].value );
 				} catch ( err ) {
-					processed.args = proxyArgs[0].value;
+					processed.args = directiveArgs[0].value;
 				}
 			}
 
 			else {
-				processed.dynamicArgs = proxyArgs;
+				processed.dynamicArgs = directiveArgs;
 			}
 		}
 
 		return processed;
 	};
 
-	jsonifyDirective = function ( proxy ) {
+	jsonifyDirective = function ( directive ) {
 		var result, name;
 
-		if ( typeof proxy.name === 'string' ) {
-			if ( !proxy.args && !proxy.dynamicArgs ) {
-				return proxy.name;
+		if ( typeof directive.name === 'string' ) {
+			if ( !directive.args && !directive.dynamicArgs ) {
+				return directive.name;
 			}
 
-			name = proxy.name;
+			name = directive.name;
 		} else {
-			name = getFragmentStubFromTokens( proxy.name ).toJSON();
+			name = getFragmentStubFromTokens( directive.name ).toJSON();
 		}
 
 		result = { n: name };
 
-		if ( proxy.args ) {
-			result.a = proxy.args;
+		if ( directive.args ) {
+			result.a = directive.args;
 			return result;
 		}
 
-		if ( proxy.dynamicArgs ) {
-			result.d = getFragmentStubFromTokens( proxy.dynamicArgs ).toJSON();
+		if ( directive.dynamicArgs ) {
+			result.d = getFragmentStubFromTokens( directive.dynamicArgs ).toJSON();
 		}
 
 		return result;
@@ -8104,6 +8221,27 @@ var ElementStub;
 		return hyphenatedStr.replace( /-([a-zA-Z])/g, function ( match, $1 ) {
 			return $1.toUpperCase();
 		});
+	};
+
+	deepClone = function ( obj ) {
+		var result, key;
+
+		if ( typeof obj !== 'object' ) {
+			return obj;
+		}
+
+		if ( isArray( obj ) ) {
+			return obj.map( deepClone );
+		}
+
+		result = {};
+		for ( key in obj ) {
+			if ( hasOwn.call( obj, key ) ) {
+				result[ key ] = deepClone( obj[ key ] );
+			}
+		}
+
+		return result;
 	};
 
 
@@ -9537,7 +9675,7 @@ var getTag;
 		return tag;
 	};
 
-	getTagName = getRegexMatcher( /^[a-zA-Z][a-zA-Z0-9\-]*/ );
+	getTagName = getRegexMatcher( /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/ );
 
 	getAttributes = function ( tokenizer ) {
 		var start, attrs, attr;
