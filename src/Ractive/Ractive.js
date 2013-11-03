@@ -63,13 +63,14 @@ Ractive = function ( options ) {
 		// unresolved dependants
 		_pendingResolution: { value: [] },
 
-		// Create arrays for deferred attributes and evaluators
+		// Create arrays for deferred attributes and evaluators etc
 		_defAttrs: { value: [] },
 		_defEvals: { value: [] },
 		_defSelectValues: { value: [] },
 		_defCheckboxes: { value: [] },
 		_defRadios: { value: [] },
 		_defObservers: { value: [] },
+		_defTransitions: { value: [] },
 
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },

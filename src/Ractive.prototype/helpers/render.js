@@ -19,10 +19,15 @@ render = function ( ractive, options ) {
 		parentNode: el
 	});
 
-	processDeferredUpdates( ractive );
+	processDeferredUpdates( ractive, true );
 
 	if ( el ) {
 		el.appendChild( ractive.fragment.docFrag );
+	}
+
+	// trigger intros, now that elements are in the DOM
+	while ( ractive._defTransitions.length ) {
+		ractive._defTransitions.pop().init(); // TODO rename...
 	}
 
 	// transition manager has finished its work

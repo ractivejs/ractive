@@ -10,8 +10,7 @@
 		mutatorMethods,
 		errorMessage;
 
-	// TODO use the wrapper properly, i.e. having a list of wrappers on each array, rather than
-	// a set of ractives and keypaths
+	// TODO remove this and the magic adaptor from the public API?
 
 	adaptors.array = {
 		filter: function ( ractive, object, keypath ) {

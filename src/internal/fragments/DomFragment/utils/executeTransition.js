@@ -1,38 +1,55 @@
-executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
-	var transitionName, transitionParams, fragment, transitionManager, transition;
+(function () {
 
-	if ( !root.transitionsEnabled ) {
+	var invoke;
+
+	if ( !doc ) {
+		// not relevant server-side
 		return;
 	}
 
-	if ( typeof descriptor === 'string' ) {
-		transitionName = descriptor;
-	} else {
-		transitionName = descriptor.n;
+	executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
+		var transition,
+			node,
+			oldTransition;
 
-		if ( descriptor.a ) {
-			transitionParams = descriptor.a;
-		} else if ( descriptor.d ) {
-			fragment = new StringFragment({
-				descriptor:   descriptor.d,
-				root:         root,
-				owner:        owner,
-				contextStack: owner.parentFragment.contextStack
-			});
-
-			transitionParams = fragment.toJSON();
-			fragment.teardown();
+		if ( !root.transitionsEnabled ) {
+			return;
 		}
-	}
 
-	transition = root.transitions[ transitionName ] || Ractive.transitions[ transitionName ];
+		// get transition name, args and function
+		transition = new Transition( descriptor, root, owner, contextStack, isIntro );
 
-	if ( transition ) {
-		transitionManager = root._transitionManager;
+		if ( transition._fn ) {
+			// TODO remove this warning after a few versions. Also, change URL when repo switches owner
+			if ( transition._fn.length !== 1 ) {
+				console.warn( 'The transitions API has changed. See https://github.com/Rich-Harris/Ractive/wiki/Transitions for details' );
+			}
 
-		transitionManager.push( owner.node );
-		transition.call( root, owner.node, function () {
-			transitionManager.pop( owner.node );
-		}, transitionParams, isIntro );
-	}
-};
+			node = transition.node;
+			transition._manager = root._transitionManager;
+
+			// Existing transition (i.e. we're outroing before intro is complete)?
+			// End it prematurely
+			if ( oldTransition = node._ractive.transition ) {
+				oldTransition.complete();
+			}
+
+			node._ractive.transition = transition;
+
+			transition._manager.push( node );
+
+			if ( isIntro ) {
+				// we don't want to call the transition function until this node
+				// exists on the DOM
+				root._defTransitions.push( transition );
+			} else {
+				transition.init();
+			}
+		}
+	};
+
+	invoke = function ( handler ) {
+		handler();
+	};
+
+}());

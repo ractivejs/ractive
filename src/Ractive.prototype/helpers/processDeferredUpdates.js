@@ -1,4 +1,5 @@
-processDeferredUpdates = function ( ractive ) {
+// TODO can this be neatened up at all?
+processDeferredUpdates = function ( ractive, initialRender ) {
 	var evaluator, attribute, keypath;
 
 	while ( ractive._defEvals.length ) {
@@ -26,5 +27,11 @@ processDeferredUpdates = function ( ractive ) {
 
 	while ( ractive._defObservers.length ) {
 		ractive._defObservers.pop().update( true );
+	}
+
+	if ( !initialRender ) {
+		while ( ractive._defTransitions.length ) {
+			ractive._defTransitions.pop().init(); // TODO rename...
+		}
 	}
 };
