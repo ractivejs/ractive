@@ -110,13 +110,17 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	
 	grunt.registerTask( 'default', [
-		'clean:tmp',
-		'concat',
-		'jshint',
-		'qunit',
+		'test',
 		'clean:build',
 		'copy:build',
 		'uglify'
+	]);
+
+	grunt.registerTask( 'test', [
+		'clean:tmp',
+		'concat',
+		'jshint',
+		'qunit'
 	]);
 
 	grunt.registerTask( 'release', [ 'default', 'copy:release', 'copy:link' ] );
