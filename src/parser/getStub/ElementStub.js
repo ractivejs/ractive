@@ -16,7 +16,8 @@ var ElementStub;
 		getFrag,
 		processDirective,
 		jsonifyDirective,
-		camelCase;
+		camelCase,
+		deepClone;
 
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
 		var next, attrs, filtered, proxies, item, i, attr;
@@ -218,7 +219,7 @@ var ElementStub;
 				len = this.proxies.length;
 				for ( i=0; i<len; i+=1 ) {
 					proxy = this.proxies[i];
-					json.v[ proxy.domEventName ] = jsonifyDirective( proxy );
+					json.v[ proxy.directiveType ] = jsonifyDirective( proxy );
 				}
 			}
 
@@ -402,6 +403,15 @@ var ElementStub;
 				}
 
 				filtered.outro = item;
+			} else if ( item.name === 'intro-outro' ) {
+				if ( filtered.intro || filtered.outro ) {
+					throw new Error( 'An element can only have one intro and one outro transition' );
+				}
+
+				console.log( 'intro = outro', JSON.stringify( item ) );
+				filtered.intro = item;
+				filtered.outro = deepClone( item );
+				console.log( item );
 			}
 
 			// Proxy?
@@ -441,23 +451,23 @@ var ElementStub;
 		};
 	};
 
-	processDirective = function ( proxy ) {
-		var processed, tokens, token, colonIndex, throwError, proxyName, proxyArgs;
+	processDirective = function ( directive ) {
+		var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs;
 
 		throwError = function () {
-			throw new Error( 'Illegal proxy event' );
+			throw new Error( 'Illegal directive' );
 		};
 
-		if ( !proxy.name || !proxy.value ) {
+		if ( !directive.name || !directive.value ) {
 			throwError();
 		}
 
-		processed = { domEventName: proxy.name };
+		processed = { directiveType: directive.name };
 
-		tokens = proxy.value;
+		tokens = directive.value;
 
-		proxyName = [];
-		proxyArgs = [];
+		directiveName = [];
+		directiveArgs = [];
 
 		while ( tokens.length ) {
 			token = tokens.shift();
@@ -466,22 +476,22 @@ var ElementStub;
 				colonIndex = token.value.indexOf( ':' );
 				
 				if ( colonIndex === -1 ) {
-					proxyName[ proxyName.length ] = token;
+					directiveName[ directiveName.length ] = token;
 				} else {
 					
 					// is the colon the first character?
 					if ( colonIndex ) {
 						// no
-						proxyName[ proxyName.length ] = {
+						directiveName[ directiveName.length ] = {
 							type: TEXT,
 							value: token.value.substr( 0, colonIndex )
 						};
 					}
 
 					// if there is anything after the colon in this token, treat
-					// it as the first token of the proxyArgs fragment
+					// it as the first token of the directiveArgs fragment
 					if ( token.value.length > colonIndex + 1 ) {
-						proxyArgs[0] = {
+						directiveArgs[0] = {
 							type: TEXT,
 							value: token.value.substring( colonIndex + 1 )
 						};
@@ -492,57 +502,57 @@ var ElementStub;
 			}
 
 			else {
-				proxyName[ proxyName.length ] = token;
+				directiveName[ directiveName.length ] = token;
 			}
 		}
 
-		proxyArgs = proxyArgs.concat( tokens );
+		directiveArgs = directiveArgs.concat( tokens );
 
-		if ( proxyName.length === 1 && proxyName[0].type === TEXT ) {
-			processed.name = proxyName[0].value;
+		if ( directiveName.length === 1 && directiveName[0].type === TEXT ) {
+			processed.name = directiveName[0].value;
 		} else {
-			processed.name = proxyName;
+			processed.name = directiveName;
 		}
 
-		if ( proxyArgs.length ) {
-			if ( proxyArgs.length === 1 && proxyArgs[0].type === TEXT ) {
+		if ( directiveArgs.length ) {
+			if ( directiveArgs.length === 1 && directiveArgs[0].type === TEXT ) {
 				try {
-					processed.args = JSON.parse( proxyArgs[0].value );
+					processed.args = JSON.parse( directiveArgs[0].value );
 				} catch ( err ) {
-					processed.args = proxyArgs[0].value;
+					processed.args = directiveArgs[0].value;
 				}
 			}
 
 			else {
-				processed.dynamicArgs = proxyArgs;
+				processed.dynamicArgs = directiveArgs;
 			}
 		}
 
 		return processed;
 	};
 
-	jsonifyDirective = function ( proxy ) {
+	jsonifyDirective = function ( directive ) {
 		var result, name;
 
-		if ( typeof proxy.name === 'string' ) {
-			if ( !proxy.args && !proxy.dynamicArgs ) {
-				return proxy.name;
+		if ( typeof directive.name === 'string' ) {
+			if ( !directive.args && !directive.dynamicArgs ) {
+				return directive.name;
 			}
 
-			name = proxy.name;
+			name = directive.name;
 		} else {
-			name = getFragmentStubFromTokens( proxy.name ).toJSON();
+			name = getFragmentStubFromTokens( directive.name ).toJSON();
 		}
 
 		result = { n: name };
 
-		if ( proxy.args ) {
-			result.a = proxy.args;
+		if ( directive.args ) {
+			result.a = directive.args;
 			return result;
 		}
 
-		if ( proxy.dynamicArgs ) {
-			result.d = getFragmentStubFromTokens( proxy.dynamicArgs ).toJSON();
+		if ( directive.dynamicArgs ) {
+			result.d = getFragmentStubFromTokens( directive.dynamicArgs ).toJSON();
 		}
 
 		return result;
@@ -552,6 +562,27 @@ var ElementStub;
 		return hyphenatedStr.replace( /-([a-zA-Z])/g, function ( match, $1 ) {
 			return $1.toUpperCase();
 		});
+	};
+
+	deepClone = function ( obj ) {
+		var result, key;
+
+		if ( typeof obj !== 'object' ) {
+			return obj;
+		}
+
+		if ( isArray( obj ) ) {
+			return obj.map( deepClone );
+		}
+
+		result = {};
+		for ( key in obj ) {
+			if ( hasOwn.call( obj, key ) ) {
+				result[ key ] = deepClone( obj[ key ] );
+			}
+		}
+
+		return result;
 	};
 
 
