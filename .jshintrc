@@ -7,6 +7,7 @@
 	"undef": true,
 	"unused": true,
 	"-W018": true,
+	"eqnull": true,
 	"globals": {
 		"Element": true,
 		"window": true,
