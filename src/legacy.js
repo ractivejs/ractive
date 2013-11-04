@@ -1,5 +1,7 @@
 (function ( win ) {
 
+	'use strict';
+
 	var doc = win.document;
 
 	if ( !doc ) {
@@ -15,7 +17,8 @@
 	if ( !doc.createElementNS ) {
 		doc.createElementNS = function ( ns, type ) {
 			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
-				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
+				// TODO update URL when repo changes owner
+				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/Rich-Harris/Ractive/wiki/SVG-and-older-browsers for more information';
 			}
 
 			return doc.createElement( type );
@@ -90,7 +93,7 @@
 			}
 
 			for ( len = this.length; i<len; i++ ) {
-				if ( hasOwn.call( this, i ) && this[i] === needle ) {
+				if ( this.hasOwnProperty( i ) && this[i] === needle ) {
 					return i;
 				}
 			}
@@ -104,7 +107,7 @@
 			var i, len;
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( hasOwn.call( this, i ) ) {
+				if ( this.hasOwnProperty( i ) ) {
 					callback.call( context, this[i], i, this );
 				}
 			}
@@ -116,7 +119,7 @@
 			var i, len, mapped = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( hasOwn.call( this,  i ) ) {
+				if ( this.hasOwnProperty( i ) ) {
 					mapped[i] = mapper.call( context, this[i], i, this );
 				}
 			}
@@ -130,7 +133,7 @@
 			var i, len, filtered = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( hasOwn.call( this, i ) && filter.call( context, this[i], i, this ) ) {
+				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
 					filtered[ filtered.length ] = this[i];
 				}
 			}
@@ -230,8 +233,8 @@
 
 
 	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
-	if ( !global.getComputedStyle ) {
-		global.getComputedStyle = (function () {
+	if ( !win.getComputedStyle ) {
+		win.getComputedStyle = (function () {
 			function getPixelSize(element, style, property, fontSize) {
 				var
 				sizeWithSuffix = style[property],
@@ -305,4 +308,4 @@
 		}());
 	}
 
-}( global ));
+}( typeof window !== 'undefined' ? window : this ));

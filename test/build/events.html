@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Events | Ractive Test Suite</title>
+	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
+</head>
+<body>
+	<div id='qunit'></div>
+	<div id='qunit-fixture'></div>
+
+	<script src='../../tmp/Ractive.js'></script>
+
+	<script src='../vendor/qunit.js'></script>
+	<script src='../vendor/qunit-assert-html.js'></script>
+	<script src='../vendor/simulant.js'></script>
+	<script src='../vendor/Ractive-events-tap.js'></script>
+
+	<script>
+		// test modules are AMD so that we can test the source, but we don't want to
+		// bother with AMD here...
+		var define = function ( module ) { var tests = module(); tests(); };
+	</script>
+
+	<script src='../tests/events.js'></script>
+</body>
+</html>

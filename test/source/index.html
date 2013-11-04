@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Ractive Test Suite</title>
+	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
+</head>
+<body>
+	<div id='qunit'></div>
+	<div id='qunit-fixture'></div>
+
+	<script src='../vendor/qunit.js'></script>
+	<script src='../vendor/qunit-assert-html.js'></script>
+	<script src='../vendor/simulant.js'></script>
+	<script src='../vendor/require.js'></script>
+
+	<script>
+		var loadCircularDependency = function ( callback ) { callback(); };
+
+		require.config({
+			baseUrl: '../../src/'
+		});
+
+		require([ 'Ractive', '../test/vendor/Ractive-events-tap' ], function ( Ractive ) {
+
+			window.Ractive = Ractive;
+
+			req2 = require.config({
+				context: 'foo',
+				baseUrl: '../'
+			});
+
+			req2([ 'tests/parse', 'tests/render', 'tests/mustache', 'tests/events', 'tests/misc' ], function ( parse, render, mustache, events, misc ) {
+
+				parse();
+				render();
+				mustache();
+				events();
+				misc();
+				
+			});
+
+		});
+	</script>
+</body>
+</html>

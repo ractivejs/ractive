@@ -3,61 +3,144 @@ module.exports = function(grunt) {
 
 	// Project configuration.
 	grunt.initConfig({
+		
 		pkg: grunt.file.readJSON( 'package.json' ),
-		meta: {
-			banner: '/*! Ractive - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
-				'* Next-generation DOM manipulation\n\n' +
-				'* http://ractivejs.org\n' +
-				'* Copyright (c) <%= grunt.template.today("yyyy") %> Rich Harris; Licensed MIT */' +
-				'\n\n'
-		},
+		
 		watch: {
 			js: {
 				files: [ 'src/**/*.js', 'wrapper/**/*.js' ],
-				tasks: [ 'clean:tmp', 'concat' ],
+				tasks: [ 'clean:tmp', 'requirejs' ],
 				options: {
 					interrupt: true,
 					force: true
 				}
 			}
 		},
+		
 		qunit: {
-			files: [ 'test/index.html' ]
+			files: [ 'test/build/index.html' ]
 		},
+
+		requirejs: {
+			full: {
+				options: {
+					baseUrl: 'src/',
+					name: 'Ractive',
+					out: 'tmp/Ractive.js',
+					optimize: 'none',
+					findNestedDependencies: true,
+					onBuildWrite: function( name, path, contents ) {
+						return require( 'amdclean' ).clean( contents );
+					},
+
+					wrap: {
+						startFile: 'wrapper/intro.js',
+						endFile: 'wrapper/outro.js'
+					}
+				}
+			},
+			runtime: {
+				options: {
+					baseUrl: 'src/',
+					name: 'Ractive',
+					out: 'tmp/Ractive-runtime.js',
+					optimize: 'none',
+					findNestedDependencies: true,
+					onBuildWrite: function( name, path, contents ) {
+						return require( 'amdclean' ).clean( contents );
+					},
+
+					paths: {
+						'parse/_index': 'empty:'
+					},
+
+					wrap: {
+						startFile: 'wrapper/intro.js',
+						endFile: 'wrapper/outro.js'
+					}
+				}
+			},
+			parse: {
+				options: {
+					baseUrl: 'src/',
+					name: 'parse/_index',
+					out: 'tmp/parse.js',
+					optimize: 'none',
+					findNestedDependencies: true,
+					onBuildWrite: function( name, path, contents ) {
+						return require( 'amdclean' ).clean( contents );
+					},
+
+					paths: {
+						'Ractive/_index': 'empty:'
+					},
+
+					wrap: {
+						startFile: 'wrapper/parse-intro.js',
+						endFile: 'wrapper/parse-outro.js'
+					}
+				}
+			}
+		},
+		
 		concat: {
 			options: {
-				banner: '<%= meta.banner %>',
+				banner: grunt.file.read( 'wrapper/banner.js' ),
 				process: {
 					data: { version: '<%= pkg.version %>' }
 				}
 			},
-			runtime: {
-				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js', '!src/parser/**/*.js' ],
-				dest: 'tmp/Ractive.runtime.js'
-			},
 			full: {
-				src: [ 'wrapper/begin.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/legacy.js'  ],
-				dest: 'tmp/Ractive.js'
+				src: [ 'tmp/Ractive.js'  ],
+				dest: 'build/Ractive.js'
 			},
-			runtime_legacy: {
-				src: [ 'wrapper/begin.js', 'src/legacy.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js', '!src/parser/**/*.js' ],
-				dest: 'tmp/Ractive-legacy.runtime.js'
+			runtime: {
+				src: [ 'tmp/Ractive.runtime.js'  ],
+				dest: 'build/Ractive.runtime.js'
 			},
 			full_legacy: {
-				src: [ 'wrapper/begin.js', 'src/legacy.js', 'src/**/utils/*.js', 'src/**/*.js', 'wrapper/end.js' ],
-				dest: 'tmp/Ractive-legacy.js'
+				src: [ 'src/legacy.js', 'tmp/Ractive.js'  ],
+				dest: 'build/Ractive-legacy.js'
+			},
+			runtime_legacy: {
+				src: [ 'src/legacy.js', 'tmp/Ractive.runtime.js'  ],
+				dest: 'build/Ractive-legacy.runtime.js'
 			}
 		},
+		
 		clean: {
 			tmp: [ 'tmp/' ],
 			build: [ 'build/' ]
 		},
+		
 		jshint: {
-			files: [ '<%= concat.full_legacy.dest %>' ],
+			files: [ 'src/**/*.js' ],
 			options: {
-				jshintrc: '.jshintrc'
+				proto: true,
+				smarttabs: true,
+				boss: true,
+				evil: true,
+				laxbreak: true,
+				undef: true,
+				unused: true,
+				'-W018': true,
+				eqnull: true,
+				strict: true,
+				globals: {
+					define: true,
+					require: true,
+					Element: true,
+					window: true,
+					setTimeout: true,
+					setInterval: true,
+					clearInterval: true,
+					module: true,
+					document: true,
+					loadCircularDependency: true
+				}
 			}
 		},
+		
 		uglify: {
 			runtime: {
 				src: ['<%= concat.runtime.dest %>'],
@@ -76,15 +159,8 @@ module.exports = function(grunt) {
 				dest: 'build/Ractive-legacy.min.js'
 			}
 		},
+		
 		copy: {
-			build: {
-				files: [{
-					expand: true,
-					cwd: 'tmp/',
-					src: [ '**/*' ],
-					dest: 'build/'
-				}]
-			},
 			release: {
 				files: [{
 					expand: true,
@@ -108,18 +184,19 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
+	grunt.loadNpmTasks( 'grunt-contrib-requirejs' );
 	
 	grunt.registerTask( 'default', [
 		'test',
 		'clean:build',
-		'copy:build',
+		'concat',
 		'uglify'
 	]);
 
 	grunt.registerTask( 'test', [
 		'clean:tmp',
-		'concat',
 		'jshint',
+		'requirejs',
 		'qunit'
 	]);
 
