@@ -59,7 +59,7 @@ module.exports = function(grunt) {
 						endFile: 'wrapper/outro.js'
 					}
 				}
-			},
+			}/*,
 			parse: {
 				options: {
 					baseUrl: 'src/',
@@ -80,7 +80,7 @@ module.exports = function(grunt) {
 						endFile: 'wrapper/parse-outro.js'
 					}
 				}
-			}
+			}*/
 		},
 		
 		concat: {
