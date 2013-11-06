@@ -23,11 +23,12 @@ define([
 	'use strict';
 
 	var Ractive = function ( options ) {
-		initialise( this, options, Ractive );
+		initialise( this, options );
 	};
 
 	// Prototype methods
 	Ractive.prototype = prototype;
+	Ractive.prototype.constructor = Ractive;
 
 	// Shared properties - TODO make these read-only
 	Ractive.partials = partialRegistry;

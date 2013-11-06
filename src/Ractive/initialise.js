@@ -8,7 +8,8 @@ define([
 	'utils/getElement',
 	'utils/isObject',
 	'shared/render',
-	'Ractive/prototype/get/magicAdaptor'
+	'Ractive/prototype/get/magicAdaptor',
+	'parse/_index'
 ], function (
 	isClient,
 	errors,
@@ -19,7 +20,8 @@ define([
 	getElement,
 	isObject,
 	render,
-	magicAdaptor
+	magicAdaptor,
+	parse
 ) {
 	
 	'use strict';
@@ -48,9 +50,9 @@ define([
 		adaptors:           { enumerable: true, value: getArray  }
 	});
 
-	extendable = [ 'adaptors', 'components', 'decorators', 'events', 'transitions' ];
+	extendable = [ 'adaptors', 'components', 'decorators', 'events', 'partials', 'transitions' ];
 
-	return function ( ractive, options, Ractive ) {
+	return function ( ractive, options ) {
 
 		var key, template, templateEl, parsedTemplate;
 
@@ -149,7 +151,7 @@ define([
 		}
 
 		extendable.forEach( function ( registry ) {
-			ractive[ registry ] = extend( create( Ractive[ registry ] ), options[ registry ] );
+			ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
 		});
 		
 
@@ -158,7 +160,7 @@ define([
 		template = options.template;
 		
 		if ( typeof template === 'string' ) {
-			if ( !Ractive.parse ) {
+			if ( !parse ) {
 				throw new Error( errors.missingParser );
 			}
 
@@ -166,7 +168,7 @@ define([
 				// assume this is an ID of a <script type='text/ractive'> tag
 				templateEl = document.getElementById( template.substring( 1 ) );
 				if ( templateEl ) {
-					parsedTemplate = Ractive.parse( templateEl.innerHTML, options );
+					parsedTemplate = parse( templateEl.innerHTML, options );
 				}
 
 				else {
@@ -175,13 +177,11 @@ define([
 			}
 
 			else {
-				parsedTemplate = Ractive.parse( template, options );
+				parsedTemplate = parse( template, options );
 			}
 		} else {
 			parsedTemplate = template;
 		}
-
-		ractive.partials = create( Ractive.partials );
 
 		// deal with compound template
 		if ( isObject( parsedTemplate ) ) {

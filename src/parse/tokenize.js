@@ -18,7 +18,6 @@ define([
 		Ractive;
 
 	loadCircularDependency( function () {
-		// circular...
 		require([ 'Ractive/_index' ], function ( dep ) {
 			Ractive = dep;
 		});

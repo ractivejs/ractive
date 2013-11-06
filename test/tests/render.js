@@ -477,7 +477,7 @@ define( function () {
 				testDiv.innerHTML = theTest.result;
 				//expected = fixture.innerHTML;
 
-				window.view = view = new Ractive({
+				view = new Ractive({
 					el: fixture,
 					data: theTest.data,
 					template: theTest.template,

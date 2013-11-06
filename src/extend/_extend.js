@@ -38,7 +38,6 @@ define([
 
 
 	loadCircularDependency( function () {
-		// circular... TODO eliminate
 		require([ 'Ractive/_index' ], function ( dep ) {
 			Ractive = dep;
 		});
@@ -75,7 +74,11 @@ define([
 
 	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions', 'components', 'decorators' ];
 	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize', 'noIntro', 'transitionsEnabled' ];
-	blacklist = extendable.concat( inheritable );
+	
+	blacklist = {};
+	extendable.concat( inheritable ).forEach( function ( prop ) {
+		blacklist[ prop ] = true;
+	});
 
 	inheritFromParent = function ( Child, Parent ) {
 		extendable.forEach( function ( property ) {
@@ -134,7 +137,7 @@ define([
 
 		// Blacklisted properties don't extend the child, as they are part of the initialisation options
 		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) && !Child.prototype.hasOwnProperty( key ) && blacklist.indexOf( key ) === -1 ) {
+			if ( childProps.hasOwnProperty( key ) && !Child.prototype.hasOwnProperty( key ) && !blacklist[ key ] ) {
 				member = childProps[ key ];
 
 				// if this is a method that overwrites a prototype method, we may need

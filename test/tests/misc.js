@@ -140,7 +140,7 @@ define( function () {
 		test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', function ( t ) {
 			var ractive;
 
-			ractive = window.ractive = new Ractive({
+			ractive = new Ractive({
 				el: fixture,
 				template: '<select id="select" value="{{selected}}">{{#options}}<option value="{{.}}">{{.}}</option>{{/options}}</select>'
 			});
@@ -597,8 +597,6 @@ define( function () {
 				}
 			});
 
-			window.ractive = ractive;
-
 			t.ok( compareHTML( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' ) );
 		});
 
@@ -616,8 +614,6 @@ define( function () {
 			}, { init: false });
 
 			ractive.set( 'foo', true );
-
-			window.ractive = ractive;
 		});
 
 		test( 'Observers with { defer: true } fire after the DOM updates', function ( t ) {
@@ -634,8 +630,6 @@ define( function () {
 			}, { init: false, defer: true });
 
 			ractive.set( 'foo', true );
-
-			window.ractive = ractive;
 		});
 
 		test( 'findAll returns a static node list', function ( t ) {
