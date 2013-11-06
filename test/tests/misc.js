@@ -760,6 +760,31 @@ define( function () {
 			});
 		});
 
+		test( 'Options added to a select after the initial render will be selected if the value matches', function ( t ) {
+			var ractive, options;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{value_id}}">{{#post_values}}<option value="{{id}}">{{id}} &mdash; {{name}}</option>{{/post_values}}</select>',
+				data: {
+					value_id: 42,
+					values: [
+						{ id: 1, name: "Boo" },
+						{ id: 42, name: "Here 'tis" },
+					]
+				}
+			});
+
+			options = ractive.findAll( 'option', true );
+			t.ok( !options.length );
+
+			ractive.set('post_values', ractive.get('values'));
+
+			t.equal( options.length, 2 );
+			t.ok( !options[0].selected );
+			t.ok( options[1].selected );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
