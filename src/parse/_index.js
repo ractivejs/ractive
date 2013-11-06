@@ -27,11 +27,11 @@
 define([
 	'parse/tokenize',
 	'config/types',
-	'parse/getStub/getFragmentStubFromTokens'
+	'parse/parseTokens'
 ], function (
 	tokenize,
 	types,
-	getFragmentStubFromTokens
+	parseTokens
 ) {
 
 	'use strict';
@@ -44,7 +44,7 @@ define([
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 
 	parse = function ( template, options ) {
-		var tokens, fragmentStub, json, token;
+		var tokens, json, token;
 
 		options = options || {};
 
@@ -78,9 +78,9 @@ define([
 			}
 		}
 		
-		fragmentStub = getFragmentStubFromTokens( tokens, options, options.preserveWhitespace );
+		json = parseTokens( tokens, options );
 		
-		json = fragmentStub.toJSON();
+		//json = fragmentStub.toJSON();
 
 		if ( typeof json === 'string' ) {
 			// If we return it as a string, Ractive will attempt to reparse it!

@@ -2,12 +2,14 @@ define([
 	'config/errors',
 	'utils/create',
 	'config/isClient',
-	'utils/isObject'
+	'utils/isObject',
+	'parse/_index'
 ], function (
 	errors,
 	create,
 	isClient,
-	isObject
+	isObject,
+	parse
 ) {
 
 	'use strict';
@@ -36,7 +38,7 @@ define([
 
 
 	loadCircularDependency( function () {
-		// circular...
+		// circular... TODO eliminate
 		require([ 'Ractive/_index' ], function ( dep ) {
 			Ractive = dep;
 		});
@@ -150,19 +152,19 @@ define([
 		var templateEl;
 
 		if ( typeof Child.template === 'string' ) {
-			if ( !Ractive.parse ) {
+			if ( !parse ) {
 				throw new Error( errors.missingParser );
 			}
 
 			if ( Child.template.charAt( 0 ) === '#' && isClient ) {
 				templateEl = document.getElementById( Child.template.substring( 1 ) );
 				if ( templateEl && templateEl.tagName === 'SCRIPT' ) {
-					Child.template = Ractive.parse( templateEl.innerHTML, Child );
+					Child.template = parse( templateEl.innerHTML, Child );
 				} else {
 					throw new Error( 'Could not find template element (' + Child.template + ')' );
 				}
 			} else {
-				Child.template = Ractive.parse( Child.template, Child ); // all the relevant options are on Child
+				Child.template = parse( Child.template, Child ); // all the relevant options are on Child
 			}
 		}
 	};
@@ -195,11 +197,11 @@ define([
 			for ( key in Child.partials ) {
 				if ( Child.partials.hasOwnProperty( key ) ) {
 					if ( typeof Child.partials[ key ] === 'string' ) {
-						if ( !Ractive.parse ) {
+						if ( !parse ) {
 							throw new Error( errors.missingParser );
 						}
 
-						partial = Ractive.parse( Child.partials[ key ], Child );
+						partial = parse( Child.partials[ key ], Child );
 					} else {
 						partial = Child.partials[ key ];
 					}

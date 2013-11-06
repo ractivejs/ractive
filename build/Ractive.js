@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-05
+	Ractive - v0.3.8-pre - 2013-11-06
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1729,206 +1729,6 @@ var static_easing = function () {
         };
     }();
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
-var static_extend = function (errors, create, isClient, isObject) {
-        
-        var extend, Ractive, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
-        loadCircularDependency(function () {
-            (function (dep) {
-                Ractive = dep;
-            }(Ractive__index));
-        });
-        extend = function (childProps) {
-            var Parent = this, Child;
-            Child = function (options) {
-                initChildInstance(this, Child, options || {});
-            };
-            Child.prototype = create(Parent.prototype);
-            if (Parent !== Ractive) {
-                inheritFromParent(Child, Parent);
-            }
-            inheritFromChildProps(Child, childProps);
-            conditionallyParseTemplate(Child);
-            extractInlinePartials(Child, childProps);
-            conditionallyParsePartials(Child);
-            Child.extend = Parent.extend;
-            return Child;
-        };
-        extendable = [
-            'data',
-            'partials',
-            'transitions',
-            'eventDefinitions',
-            'components',
-            'decorators'
-        ];
-        inheritable = [
-            'el',
-            'template',
-            'complete',
-            'modifyArrays',
-            'twoway',
-            'lazy',
-            'append',
-            'preserveWhitespace',
-            'sanitize',
-            'noIntro',
-            'transitionsEnabled'
-        ];
-        blacklist = extendable.concat(inheritable);
-        inheritFromParent = function (Child, Parent) {
-            extendable.forEach(function (property) {
-                if (Parent[property]) {
-                    Child[property] = clone(Parent[property]);
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (Parent[property] !== undefined) {
-                    Child[property] = Parent[property];
-                }
-            });
-        };
-        wrapMethod = function (method, superMethod) {
-            if (/_super/.test(method)) {
-                return function () {
-                    var _super = this._super, result;
-                    this._super = superMethod;
-                    result = method.apply(this, arguments);
-                    this._super = _super;
-                    return result;
-                };
-            } else {
-                return method;
-            }
-        };
-        inheritFromChildProps = function (Child, childProps) {
-            var key, member;
-            extendable.forEach(function (property) {
-                var value = childProps[property];
-                if (value) {
-                    if (Child[property]) {
-                        augment(Child[property], value);
-                    } else {
-                        Child[property] = value;
-                    }
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (childProps[property] !== undefined) {
-                    Child[property] = childProps[property];
-                }
-            });
-            for (key in childProps) {
-                if (childProps.hasOwnProperty(key) && !Child.prototype.hasOwnProperty(key) && blacklist.indexOf(key) === -1) {
-                    member = childProps[key];
-                    if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
-                        Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
-                    } else {
-                        Child.prototype[key] = member;
-                    }
-                }
-            }
-        };
-        conditionallyParseTemplate = function (Child) {
-            var templateEl;
-            if (typeof Child.template === 'string') {
-                if (!Ractive.parse) {
-                    throw new Error(errors.missingParser);
-                }
-                if (Child.template.charAt(0) === '#' && isClient) {
-                    templateEl = document.getElementById(Child.template.substring(1));
-                    if (templateEl && templateEl.tagName === 'SCRIPT') {
-                        Child.template = Ractive.parse(templateEl.innerHTML, Child);
-                    } else {
-                        throw new Error('Could not find template element (' + Child.template + ')');
-                    }
-                } else {
-                    Child.template = Ractive.parse(Child.template, Child);
-                }
-            }
-        };
-        extractInlinePartials = function (Child, childProps) {
-            if (isObject(Child.template)) {
-                if (!Child.partials) {
-                    Child.partials = {};
-                }
-                augment(Child.partials, Child.template.partials);
-                if (childProps.partials) {
-                    augment(Child.partials, childProps.partials);
-                }
-                Child.template = Child.template.main;
-            }
-        };
-        conditionallyParsePartials = function (Child) {
-            var key, partial;
-            if (Child.partials) {
-                for (key in Child.partials) {
-                    if (Child.partials.hasOwnProperty(key)) {
-                        if (typeof Child.partials[key] === 'string') {
-                            if (!Ractive.parse) {
-                                throw new Error(errors.missingParser);
-                            }
-                            partial = Ractive.parse(Child.partials[key], Child);
-                        } else {
-                            partial = Child.partials[key];
-                        }
-                        Child.partials[key] = partial;
-                    }
-                }
-            }
-        };
-        initChildInstance = function (child, Child, options) {
-            if (!options.template && Child.template) {
-                options.template = Child.template;
-            }
-            extendable.forEach(function (property) {
-                if (!options[property]) {
-                    if (Child[property]) {
-                        options[property] = clone(Child[property]);
-                    }
-                } else {
-                    fillGaps(options[property], Child[property]);
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (options[property] === undefined && Child[property] !== undefined) {
-                    options[property] = Child[property];
-                }
-            });
-            if (child.beforeInit) {
-                child.beforeInit.call(child, options);
-            }
-            Ractive.call(child, options);
-            if (child.init) {
-                child.init.call(child, options);
-            }
-        };
-        fillGaps = function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-        };
-        clone = function (source) {
-            var target = {}, key;
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-            return target;
-        };
-        augment = function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-        };
-        return extend;
-    }(config_errors, utils_create, config_isClient, utils_isObject);
 var utils_stripHtmlComments = function () {
         
         return function (html) {
@@ -2000,31 +1800,7 @@ var utils_stripCommentTokens = function (types) {
             return tokens;
         };
     }(config_types);
-var utils_getStringMatch = function () {
-        
-        return function (tokenizer, string) {
-            var substr;
-            substr = tokenizer.str.substr(tokenizer.pos, string.length);
-            if (substr === string) {
-                tokenizer.pos += string.length;
-                return string;
-            }
-            return null;
-        };
-    }();
-var utils_allowWhitespace = function () {
-        
-        var leadingWhitespace = /^\s+/;
-        return function (tokenizer) {
-            var match = leadingWhitespace.exec(tokenizer.str.substring(tokenizer.pos));
-            if (!match) {
-                return null;
-            }
-            tokenizer.pos += match[0].length;
-            return match[0];
-        };
-    }();
-var utils_getRegexMatcher = function () {
+var utils_makeRegexMatcher = function () {
         
         return function (regex) {
             return function (tokenizer) {
@@ -2037,29 +1813,29 @@ var utils_getRegexMatcher = function () {
             };
         };
     }();
-var getMustacheOrTriple_getDelimiterChange = function (getStringMatch, getRegexMatcher, allowWhitespace) {
+var getMustache_getDelimiterChange = function (makeRegexMatcher) {
         
-        var getDelimiter = getRegexMatcher(/^[^\s=]+/);
+        var getDelimiter = makeRegexMatcher(/^[^\s=]+/);
         return function (tokenizer) {
             var start, opening, closing;
-            if (!getStringMatch(tokenizer, '=')) {
+            if (!tokenizer.getStringMatch('=')) {
                 return null;
             }
             start = tokenizer.pos;
-            allowWhitespace(tokenizer);
+            tokenizer.allowWhitespace();
             opening = getDelimiter(tokenizer);
             if (!opening) {
                 tokenizer.pos = start;
                 return null;
             }
-            allowWhitespace(tokenizer);
+            tokenizer.allowWhitespace();
             closing = getDelimiter(tokenizer);
             if (!closing) {
                 tokenizer.pos = start;
                 return null;
             }
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, '=')) {
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch('=')) {
                 tokenizer.pos = start;
                 return null;
             }
@@ -2068,8 +1844,8 @@ var getMustacheOrTriple_getDelimiterChange = function (getStringMatch, getRegexM
                 closing
             ];
         };
-    }(utils_getStringMatch, utils_getRegexMatcher, utils_allowWhitespace);
-var getMustacheOrTriple_getMustacheType = function (types) {
+    }(utils_makeRegexMatcher);
+var getMustache_getMustacheType = function (types) {
         
         var mustacheTypes = {
                 '#': types.SECTION,
@@ -2088,601 +1864,9 @@ var getMustacheOrTriple_getMustacheType = function (types) {
             return type;
         };
     }(config_types);
-var utils_fail = function () {
+var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMustacheType) {
         
-        return function (tokenizer, expected) {
-            var remaining = tokenizer.remaining().substr(0, 40);
-            if (remaining.length === 40) {
-                remaining += '...';
-            }
-            throw new Error('Tokenizer failed: unexpected string "' + remaining + '" (expected ' + expected + ')');
-        };
-    }();
-var getLiteral_getNumberLiteral = function (types, getRegexMatcher) {
-        
-        var getExponent = getRegexMatcher(/^[eE][\-+]?[0-9]+/), getFraction = getRegexMatcher(/^\.[0-9]+/), getInteger = getRegexMatcher(/^(0|[1-9][0-9]*)/);
-        return function (tokenizer) {
-            var start, result;
-            start = tokenizer.pos;
-            if (result = getFraction(tokenizer)) {
-                return {
-                    t: types.NUMBER_LITERAL,
-                    v: result
-                };
-            }
-            result = getInteger(tokenizer);
-            if (result === null) {
-                return null;
-            }
-            result += getFraction(tokenizer) || '';
-            result += getExponent(tokenizer) || '';
-            return {
-                t: types.NUMBER_LITERAL,
-                v: result
-            };
-        };
-    }(config_types, utils_getRegexMatcher);
-var getLiteral_getBooleanLiteral = function (types) {
-        
-        return function (tokenizer) {
-            var remaining = tokenizer.remaining();
-            if (remaining.substr(0, 4) === 'true') {
-                tokenizer.pos += 4;
-                return {
-                    t: types.BOOLEAN_LITERAL,
-                    v: 'true'
-                };
-            }
-            if (remaining.substr(0, 5) === 'false') {
-                tokenizer.pos += 5;
-                return {
-                    t: types.BOOLEAN_LITERAL,
-                    v: 'false'
-                };
-            }
-            return null;
-        };
-    }(config_types);
-var getStringLiteral_getEscapedChars = function (getStringMatch) {
-        
-        return function (tokenizer) {
-            var chars = '', character;
-            character = getEscapedChar(tokenizer);
-            while (character) {
-                chars += character;
-                character = getEscapedChar(tokenizer);
-            }
-            return chars || null;
-        };
-        function getEscapedChar(tokenizer) {
-            var character;
-            if (!getStringMatch(tokenizer, '\\')) {
-                return null;
-            }
-            character = tokenizer.str.charAt(tokenizer.pos);
-            tokenizer.pos += 1;
-            return character;
-        }
-    }(utils_getStringMatch);
-var getStringLiteral_getQuotedString = function (getRegexMatcher, getEscapedChars) {
-        
-        var getUnescapedDoubleQuotedChars = getRegexMatcher(/^[^\\"]+/), getUnescapedSingleQuotedChars = getRegexMatcher(/^[^\\']+/);
-        return function getQuotedString(tokenizer, singleQuotes) {
-            var start, string, escaped, unescaped, next, matcher;
-            start = tokenizer.pos;
-            string = '';
-            matcher = singleQuotes ? getUnescapedSingleQuotedChars : getUnescapedDoubleQuotedChars;
-            escaped = getEscapedChars(tokenizer);
-            if (escaped) {
-                string += escaped;
-            }
-            unescaped = matcher(tokenizer);
-            if (unescaped) {
-                string += unescaped;
-            }
-            if (!string) {
-                return '';
-            }
-            next = getQuotedString(tokenizer, singleQuotes);
-            while (next !== '') {
-                string += next;
-            }
-            return string;
-        };
-    }(utils_getRegexMatcher, getStringLiteral_getEscapedChars);
-var getStringLiteral__index = function (types, getStringMatch, getQuotedString) {
-        
-        return function (tokenizer) {
-            var start, string;
-            start = tokenizer.pos;
-            if (getStringMatch(tokenizer, '"')) {
-                string = getQuotedString(tokenizer, false);
-                if (!getStringMatch(tokenizer, '"')) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                return {
-                    t: types.STRING_LITERAL,
-                    v: string
-                };
-            }
-            if (getStringMatch(tokenizer, '\'')) {
-                string = getQuotedString(tokenizer, true);
-                if (!getStringMatch(tokenizer, '\'')) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                return {
-                    t: types.STRING_LITERAL,
-                    v: string
-                };
-            }
-            return null;
-        };
-    }(config_types, utils_getStringMatch, getStringLiteral_getQuotedString);
-var shared_getName = function (getRegexMatcher) {
-        
-        return getRegexMatcher(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
-    }(utils_getRegexMatcher);
-var getObjectLiteral_getKeyValuePair = function (types, allowWhitespace, getStringMatch, getName, getStringLiteral, getNumberLiteral) {
-        
-        var getKey, getExpression;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        getKey = function (tokenizer) {
-            return getName(tokenizer) || getStringLiteral(tokenizer) || getNumberLiteral(tokenizer);
-        };
-        return function (tokenizer) {
-            var start, key, value;
-            start = tokenizer.pos;
-            allowWhitespace(tokenizer);
-            key = getKey(tokenizer);
-            if (key === null) {
-                tokenizer.pos = start;
-                return null;
-            }
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, ':')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            allowWhitespace(tokenizer);
-            value = getExpression(tokenizer);
-            if (value === null) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.KEY_VALUE_PAIR,
-                k: key,
-                v: value
-            };
-        };
-    }(config_types, utils_allowWhitespace, utils_getStringMatch, shared_getName, getStringLiteral__index, getLiteral_getNumberLiteral);
-var getObjectLiteral_getKeyValuePairs = function (getStringMatch, getKeyValuePair) {
-        
-        return function getKeyValuePairs(tokenizer) {
-            var start, pairs, pair, keyValuePairs;
-            start = tokenizer.pos;
-            pair = getKeyValuePair(tokenizer);
-            if (pair === null) {
-                return null;
-            }
-            pairs = [pair];
-            if (getStringMatch(tokenizer, ',')) {
-                keyValuePairs = getKeyValuePairs(tokenizer);
-                if (!keyValuePairs) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                return pairs.concat(keyValuePairs);
-            }
-            return pairs;
-        };
-    }(utils_getStringMatch, getObjectLiteral_getKeyValuePair);
-var getObjectLiteral__index = function (types, allowWhitespace, getStringMatch, getKeyValuePairs) {
-        
-        return function (tokenizer) {
-            var start, keyValuePairs;
-            start = tokenizer.pos;
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, '{')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            keyValuePairs = getKeyValuePairs(tokenizer);
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, '}')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.OBJECT_LITERAL,
-                m: keyValuePairs
-            };
-        };
-    }(config_types, utils_allowWhitespace, utils_getStringMatch, getObjectLiteral_getKeyValuePairs);
-var shared_getExpressionList = function (types, allowWhitespace, getStringMatch) {
-        
-        var getExpression;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        return function getExpressionList(tokenizer) {
-            var start, expressions, expr, next;
-            start = tokenizer.pos;
-            allowWhitespace(tokenizer);
-            expr = getExpression(tokenizer);
-            if (expr === null) {
-                return null;
-            }
-            expressions = [expr];
-            allowWhitespace(tokenizer);
-            if (getStringMatch(tokenizer, ',')) {
-                next = getExpressionList(tokenizer);
-                if (next === null) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                expressions = expressions.concat(next);
-            }
-            return expressions;
-        };
-    }(config_types, utils_allowWhitespace, utils_getStringMatch);
-var getLiteral_getArrayLiteral = function (types, allowWhitespace, getStringMatch, getExpressionList) {
-        
-        return function (tokenizer) {
-            var start, expressionList;
-            start = tokenizer.pos;
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, '[')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            expressionList = getExpressionList(tokenizer);
-            if (!getStringMatch(tokenizer, ']')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.ARRAY_LITERAL,
-                m: expressionList
-            };
-        };
-    }(config_types, utils_allowWhitespace, utils_getStringMatch, shared_getExpressionList);
-var getLiteral__index = function (getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral) {
-        
-        return function (tokenizer) {
-            var literal = getNumberLiteral(tokenizer) || getBooleanLiteral(tokenizer) || getStringLiteral(tokenizer) || getObjectLiteral(tokenizer) || getArrayLiteral(tokenizer);
-            return literal;
-        };
-    }(getLiteral_getNumberLiteral, getLiteral_getBooleanLiteral, getStringLiteral__index, getObjectLiteral__index, getLiteral_getArrayLiteral);
-var getPrimary_getReference = function (types, getStringMatch, getRegexMatcher, getName) {
-        
-        var getDotRefinement, getArrayRefinement, getArrayMember, globals;
-        getDotRefinement = getRegexMatcher(/^\.[a-zA-Z_$0-9]+/);
-        getArrayRefinement = function (tokenizer) {
-            var num = getArrayMember(tokenizer);
-            if (num) {
-                return '.' + num;
-            }
-            return null;
-        };
-        getArrayMember = getRegexMatcher(/^\[(0|[1-9][0-9]*)\]/);
-        globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
-        return function (tokenizer) {
-            var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
-            startPos = tokenizer.pos;
-            ancestor = '';
-            while (getStringMatch(tokenizer, '../')) {
-                ancestor += '../';
-            }
-            if (!ancestor) {
-                dot = getStringMatch(tokenizer, '.') || '';
-            }
-            name = getName(tokenizer) || '';
-            if (!ancestor && !dot && globals.test(name)) {
-                return {
-                    t: types.GLOBAL,
-                    v: name
-                };
-            }
-            if (name === 'this' && !ancestor && !dot) {
-                name = '.';
-                startPos += 3;
-            }
-            combo = (ancestor || dot) + name;
-            if (!combo) {
-                return null;
-            }
-            while (refinement = getDotRefinement(tokenizer) || getArrayRefinement(tokenizer)) {
-                combo += refinement;
-            }
-            if (getStringMatch(tokenizer, '(')) {
-                lastDotIndex = combo.lastIndexOf('.');
-                if (lastDotIndex !== -1) {
-                    combo = combo.substr(0, lastDotIndex);
-                    tokenizer.pos = startPos + combo.length;
-                } else {
-                    tokenizer.pos -= 1;
-                }
-            }
-            return {
-                t: types.REFERENCE,
-                n: combo
-            };
-        };
-    }(config_types, utils_getStringMatch, utils_getRegexMatcher, shared_getName);
-var getPrimary_getBracketedExpression = function (types, getStringMatch, allowWhitespace) {
-        
-        var getExpression;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        return function (tokenizer) {
-            var start, expr;
-            start = tokenizer.pos;
-            if (!getStringMatch(tokenizer, '(')) {
-                return null;
-            }
-            allowWhitespace(tokenizer);
-            expr = getExpression(tokenizer);
-            if (!expr) {
-                tokenizer.pos = start;
-                return null;
-            }
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, ')')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.BRACKETED,
-                x: expr
-            };
-        };
-    }(config_types, utils_getStringMatch, utils_allowWhitespace);
-var getPrimary__index = function (getLiteral, getReference, getBracketedExpression) {
-        
-        return function (tokenizer) {
-            return getLiteral(tokenizer) || getReference(tokenizer) || getBracketedExpression(tokenizer);
-        };
-    }(getLiteral__index, getPrimary_getReference, getPrimary_getBracketedExpression);
-var shared_getRefinement = function (types, fail, allowWhitespace, getStringMatch, getName) {
-        
-        var getExpression;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        return function getRefinement(tokenizer) {
-            var start, name, expr;
-            start = tokenizer.pos;
-            allowWhitespace(tokenizer);
-            if (getStringMatch(tokenizer, '.')) {
-                allowWhitespace(tokenizer);
-                if (name = getName(tokenizer)) {
-                    return {
-                        t: types.REFINEMENT,
-                        n: name
-                    };
-                }
-                fail(tokenizer, 'a property name');
-            }
-            if (getStringMatch(tokenizer, '[')) {
-                allowWhitespace(tokenizer);
-                expr = getExpression(tokenizer);
-                if (!expr) {
-                    fail(tokenizer, 'an expression');
-                }
-                allowWhitespace(tokenizer);
-                if (!getStringMatch(tokenizer, ']')) {
-                    fail(tokenizer, '"]"');
-                }
-                return {
-                    t: types.REFINEMENT,
-                    x: expr
-                };
-            }
-            return null;
-        };
-    }(config_types, utils_fail, utils_allowWhitespace, utils_getStringMatch, shared_getName);
-var getExpression_getMemberOrInvocation = function (types, allowWhitespace, getStringMatch, getPrimary, getExpressionList, getRefinement) {
-        
-        var getExpression;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        return function (tokenizer) {
-            var current, expression, refinement, expressionList;
-            expression = getPrimary(tokenizer);
-            if (!expression) {
-                return null;
-            }
-            while (expression) {
-                current = tokenizer.pos;
-                if (refinement = getRefinement(tokenizer)) {
-                    expression = {
-                        t: types.MEMBER,
-                        x: expression,
-                        r: refinement
-                    };
-                } else if (getStringMatch(tokenizer, '(')) {
-                    allowWhitespace(tokenizer);
-                    expressionList = getExpressionList(tokenizer);
-                    allowWhitespace(tokenizer);
-                    if (!getStringMatch(tokenizer, ')')) {
-                        tokenizer.pos = current;
-                        break;
-                    }
-                    expression = {
-                        t: types.INVOCATION,
-                        x: expression
-                    };
-                    if (expressionList) {
-                        expression.o = expressionList;
-                    }
-                } else {
-                    break;
-                }
-            }
-            return expression;
-        };
-    }(config_types, utils_allowWhitespace, utils_getStringMatch, getPrimary__index, shared_getExpressionList, shared_getRefinement);
-var getExpression_getTypeOf = function (types, fail, allowWhitespace, getStringMatch, getMemberOrInvocation) {
-        
-        var getExpression;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        var makePrefixSequenceMatcher = function (symbol, fallthrough) {
-            return function (tokenizer) {
-                var start, expression;
-                if (!getStringMatch(tokenizer, symbol)) {
-                    return fallthrough(tokenizer);
-                }
-                start = tokenizer.pos;
-                allowWhitespace(tokenizer);
-                expression = getExpression(tokenizer);
-                if (!expression) {
-                    fail(tokenizer, 'an expression');
-                }
-                return {
-                    s: symbol,
-                    o: expression,
-                    t: types.PREFIX_OPERATOR
-                };
-            };
-        };
-        return function () {
-            var i, len, matcher, prefixOperators, fallthrough;
-            prefixOperators = '! ~ + - typeof'.split(' ');
-            fallthrough = getMemberOrInvocation;
-            for (i = 0, len = prefixOperators.length; i < len; i += 1) {
-                matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
-                fallthrough = matcher;
-            }
-            return fallthrough;
-        }();
-    }(config_types, utils_fail, utils_allowWhitespace, utils_getStringMatch, getExpression_getMemberOrInvocation);
-var getExpression_getLogicalOr = function (types, allowWhitespace, getStringMatch, getTypeOf) {
-        
-        var getExpression, makeInfixSequenceMatcher;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        makeInfixSequenceMatcher = function (symbol, fallthrough) {
-            return function (tokenizer) {
-                var start, left, right;
-                left = fallthrough(tokenizer);
-                if (!left) {
-                    return null;
-                }
-                start = tokenizer.pos;
-                allowWhitespace(tokenizer);
-                if (!getStringMatch(tokenizer, symbol)) {
-                    tokenizer.pos = start;
-                    return left;
-                }
-                if (symbol === 'in' && /[a-zA-Z_$0-9]/.test(tokenizer.remaining().charAt(0))) {
-                    tokenizer.pos = start;
-                    return left;
-                }
-                allowWhitespace(tokenizer);
-                right = getExpression(tokenizer);
-                if (!right) {
-                    tokenizer.pos = start;
-                    return left;
-                }
-                return {
-                    t: types.INFIX_OPERATOR,
-                    s: symbol,
-                    o: [
-                        left,
-                        right
-                    ]
-                };
-            };
-        };
-        return function () {
-            var i, len, matcher, infixOperators, fallthrough;
-            infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split(' ');
-            fallthrough = getTypeOf;
-            for (i = 0, len = infixOperators.length; i < len; i += 1) {
-                matcher = makeInfixSequenceMatcher(infixOperators[i], fallthrough);
-                fallthrough = matcher;
-            }
-            return fallthrough;
-        }();
-    }(config_types, utils_allowWhitespace, utils_getStringMatch, getExpression_getTypeOf);
-var getExpression_getConditional = function (types, allowWhitespace, getStringMatch, getLogicalOr) {
-        
-        var getExpression;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getExpression = dep;
-            }(getExpression__index));
-        });
-        return function (tokenizer) {
-            var start, expression, ifTrue, ifFalse;
-            expression = getLogicalOr(tokenizer);
-            if (!expression) {
-                return null;
-            }
-            start = tokenizer.pos;
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, '?')) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            allowWhitespace(tokenizer);
-            ifTrue = getExpression(tokenizer);
-            if (!ifTrue) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, ':')) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            allowWhitespace(tokenizer);
-            ifFalse = getExpression(tokenizer);
-            if (!ifFalse) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            return {
-                t: types.CONDITIONAL,
-                o: [
-                    expression,
-                    ifTrue,
-                    ifFalse
-                ]
-            };
-        };
-    }(config_types, utils_allowWhitespace, utils_getStringMatch, getExpression_getLogicalOr);
-var getExpression__index = function (getConditional) {
-        
-        return getConditional;
-    }(getExpression_getConditional);
-var getMustacheOrTriple_getMustacheContent = function (types, getRegexMatcher, allowWhitespace, getMustacheType, getExpression) {
-        
-        var getIndexRef = getRegexMatcher(/^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/);
+        var getIndexRef = makeRegexMatcher(/^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/);
         return function (tokenizer, isTriple) {
             var start, mustache, type, expr, i, remaining, index;
             start = tokenizer.pos;
@@ -2700,8 +1884,8 @@ var getMustacheOrTriple_getMustacheContent = function (types, getRegexMatcher, a
                     }
                 }
             }
-            allowWhitespace(tokenizer);
-            expr = getExpression(tokenizer);
+            tokenizer.allowWhitespace();
+            expr = tokenizer.getExpression();
             while (expr.t === types.BRACKETED && expr.x) {
                 expr = expr.x;
             }
@@ -2716,22 +1900,22 @@ var getMustacheOrTriple_getMustacheContent = function (types, getRegexMatcher, a
             }
             return mustache;
         };
-    }(config_types, utils_getRegexMatcher, utils_allowWhitespace, getMustacheOrTriple_getMustacheType, getExpression__index);
-var getMustacheOrTriple__index = function (types, getStringMatch, allowWhitespace, getDelimiterChange, getMustacheContent) {
+    }(config_types, utils_makeRegexMatcher, getMustache_getMustacheType);
+var getMustache__index = function (types, getDelimiterChange, getMustacheContent) {
         
-        return function (tokenizer) {
-            var seekTripleFirst = tokenizer.tripleDelimiters[0].length > tokenizer.delimiters[0].length;
-            return getMustache(tokenizer, seekTripleFirst) || getMustache(tokenizer, !seekTripleFirst);
+        return function () {
+            var seekTripleFirst = this.tripleDelimiters[0].length > this.delimiters[0].length;
+            return getMustache(this, seekTripleFirst) || getMustache(this, !seekTripleFirst);
         };
         function getMustache(tokenizer, seekTriple) {
             var start = tokenizer.pos, content, delimiters;
             delimiters = seekTriple ? tokenizer.tripleDelimiters : tokenizer.delimiters;
-            if (!getStringMatch(tokenizer, delimiters[0])) {
+            if (!tokenizer.getStringMatch(delimiters[0])) {
                 return null;
             }
             content = getDelimiterChange(tokenizer);
             if (content) {
-                if (!getStringMatch(tokenizer, delimiters[1])) {
+                if (!tokenizer.getStringMatch(delimiters[1])) {
                     tokenizer.pos = start;
                     return null;
                 }
@@ -2741,40 +1925,40 @@ var getMustacheOrTriple__index = function (types, getStringMatch, allowWhitespac
                     mustacheType: types.DELIMCHANGE
                 };
             }
-            allowWhitespace(tokenizer);
+            tokenizer.allowWhitespace();
             content = getMustacheContent(tokenizer, seekTriple);
             if (content === null) {
                 tokenizer.pos = start;
                 return null;
             }
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, delimiters[1])) {
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch(delimiters[1])) {
                 tokenizer.pos = start;
                 return null;
             }
             return content;
         }
-    }(config_types, utils_getStringMatch, utils_allowWhitespace, getMustacheOrTriple_getDelimiterChange, getMustacheOrTriple_getMustacheContent);
-var getComment_getComment = function (types, getStringMatch) {
+    }(config_types, getMustache_getDelimiterChange, getMustache_getMustacheContent);
+var getComment_getComment = function (types) {
         
-        return function (tokenizer) {
+        return function () {
             var content, remaining, endIndex;
-            if (!getStringMatch(tokenizer, '<!--')) {
+            if (!this.getStringMatch('<!--')) {
                 return null;
             }
-            remaining = tokenizer.remaining();
+            remaining = this.remaining();
             endIndex = remaining.indexOf('-->');
             if (endIndex === -1) {
                 throw new Error('Unexpected end of input (expected "-->" to close comment)');
             }
             content = remaining.substr(0, endIndex);
-            tokenizer.pos += endIndex + 3;
+            this.pos += endIndex + 3;
             return {
                 type: types.COMMENT,
                 content: content
             };
         };
-    }(config_types, utils_getStringMatch);
+    }(config_types);
 var utils_getLowestIndex = function () {
         
         return function (haystack, needles) {
@@ -2795,20 +1979,20 @@ var utils_getLowestIndex = function () {
             return lowest || -1;
         };
     }();
-var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhitespace, getMustacheOrTriple, getLowestIndex) {
+var getTag__index = function (types, makeRegexMatcher, getLowestIndex) {
         
         var getTag, getOpeningTag, getClosingTag, getTagName, getAttributes, getAttribute, getAttributeName, getAttributeValue, getUnquotedAttributeValue, getUnquotedAttributeValueToken, getUnquotedAttributeValueText, getQuotedStringToken, getQuotedAttributeValue;
-        getTag = function (tokenizer) {
-            return getOpeningTag(tokenizer) || getClosingTag(tokenizer);
+        getTag = function () {
+            return getOpeningTag(this) || getClosingTag(this);
         };
         getOpeningTag = function (tokenizer) {
             var start, tag, attrs;
             start = tokenizer.pos;
-            if (!getStringMatch(tokenizer, '<')) {
+            if (!tokenizer.getStringMatch('<')) {
                 return null;
             }
             tag = { type: types.TAG };
-            if (getStringMatch(tokenizer, '!')) {
+            if (tokenizer.getStringMatch('!')) {
                 tag.doctype = true;
             }
             tag.name = getTagName(tokenizer);
@@ -2820,11 +2004,11 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
             if (attrs) {
                 tag.attrs = attrs;
             }
-            allowWhitespace(tokenizer);
-            if (getStringMatch(tokenizer, '/')) {
+            tokenizer.allowWhitespace();
+            if (tokenizer.getStringMatch('/')) {
                 tag.selfClosing = true;
             }
-            if (!getStringMatch(tokenizer, '>')) {
+            if (!tokenizer.getStringMatch('>')) {
                 tokenizer.pos = start;
                 return null;
             }
@@ -2833,30 +2017,30 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
         getClosingTag = function (tokenizer) {
             var start, tag;
             start = tokenizer.pos;
-            if (!getStringMatch(tokenizer, '<')) {
+            if (!tokenizer.getStringMatch('<')) {
                 return null;
             }
             tag = {
                 type: types.TAG,
                 closing: true
             };
-            if (!getStringMatch(tokenizer, '/')) {
+            if (!tokenizer.getStringMatch('/')) {
                 throw new Error('Unexpected character ' + tokenizer.remaining().charAt(0) + ' (expected "/")');
             }
             tag.name = getTagName(tokenizer);
             if (!tag.name) {
                 throw new Error('Unexpected character ' + tokenizer.remaining().charAt(0) + ' (expected tag name)');
             }
-            if (!getStringMatch(tokenizer, '>')) {
+            if (!tokenizer.getStringMatch('>')) {
                 throw new Error('Unexpected character ' + tokenizer.remaining().charAt(0) + ' (expected ">")');
             }
             return tag;
         };
-        getTagName = getRegexMatcher(/^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/);
+        getTagName = makeRegexMatcher(/^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/);
         getAttributes = function (tokenizer) {
             var start, attrs, attr;
             start = tokenizer.pos;
-            allowWhitespace(tokenizer);
+            tokenizer.allowWhitespace();
             attr = getAttribute(tokenizer);
             if (!attr) {
                 tokenizer.pos = start;
@@ -2865,7 +2049,7 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
             attrs = [];
             while (attr !== null) {
                 attrs[attrs.length] = attr;
-                allowWhitespace(tokenizer);
+                tokenizer.allowWhitespace();
                 attr = getAttribute(tokenizer);
             }
             return attrs;
@@ -2883,16 +2067,16 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
             }
             return attr;
         };
-        getAttributeName = getRegexMatcher(/^[^\s"'>\/=]+/);
+        getAttributeName = makeRegexMatcher(/^[^\s"'>\/=]+/);
         getAttributeValue = function (tokenizer) {
             var start, value;
             start = tokenizer.pos;
-            allowWhitespace(tokenizer);
-            if (!getStringMatch(tokenizer, '=')) {
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch('=')) {
                 tokenizer.pos = start;
                 return null;
             }
-            allowWhitespace(tokenizer);
+            tokenizer.allowWhitespace();
             value = getQuotedAttributeValue(tokenizer, '\'') || getQuotedAttributeValue(tokenizer, '"') || getUnquotedAttributeValue(tokenizer);
             if (value === null) {
                 tokenizer.pos = start;
@@ -2900,7 +2084,7 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
             }
             return value;
         };
-        getUnquotedAttributeValueText = getRegexMatcher(/^[^\s"'=<>`]+/);
+        getUnquotedAttributeValueText = makeRegexMatcher(/^[^\s"'=<>`]+/);
         getUnquotedAttributeValueToken = function (tokenizer) {
             var start, text, index;
             start = tokenizer.pos;
@@ -2920,10 +2104,10 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
         getUnquotedAttributeValue = function (tokenizer) {
             var tokens, token;
             tokens = [];
-            token = getMustacheOrTriple(tokenizer) || getUnquotedAttributeValueToken(tokenizer);
+            token = tokenizer.getMustache() || getUnquotedAttributeValueToken(tokenizer);
             while (token !== null) {
                 tokens[tokens.length] = token;
-                token = getMustacheOrTriple(tokenizer) || getUnquotedAttributeValueToken(tokenizer);
+                token = tokenizer.getMustache() || getUnquotedAttributeValueToken(tokenizer);
             }
             if (!tokens.length) {
                 return null;
@@ -2933,16 +2117,16 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
         getQuotedAttributeValue = function (tokenizer, quoteMark) {
             var start, tokens, token;
             start = tokenizer.pos;
-            if (!getStringMatch(tokenizer, quoteMark)) {
+            if (!tokenizer.getStringMatch(quoteMark)) {
                 return null;
             }
             tokens = [];
-            token = getMustacheOrTriple(tokenizer) || getQuotedStringToken(tokenizer, quoteMark);
+            token = tokenizer.getMustache() || getQuotedStringToken(tokenizer, quoteMark);
             while (token !== null) {
                 tokens[tokens.length] = token;
-                token = getMustacheOrTriple(tokenizer) || getQuotedStringToken(tokenizer, quoteMark);
+                token = tokenizer.getMustache() || getQuotedStringToken(tokenizer, quoteMark);
             }
-            if (!getStringMatch(tokenizer, quoteMark)) {
+            if (!tokenizer.getStringMatch(quoteMark)) {
                 tokenizer.pos = start;
                 return null;
             }
@@ -2970,16 +2154,16 @@ var getTag_getTag = function (types, getRegexMatcher, getStringMatch, allowWhite
             };
         };
         return getTag;
-    }(config_types, utils_getRegexMatcher, utils_getStringMatch, utils_allowWhitespace, getMustacheOrTriple__index, utils_getLowestIndex);
+    }(config_types, utils_makeRegexMatcher, utils_getLowestIndex);
 var getText_getText = function (types, getLowestIndex) {
         
-        return function (tokenizer) {
+        return function () {
             var index, remaining;
-            remaining = tokenizer.remaining();
+            remaining = this.remaining();
             index = getLowestIndex(remaining, [
                 '<',
-                tokenizer.delimiters[0],
-                tokenizer.tripleDelimiters[0]
+                this.delimiters[0],
+                this.tripleDelimiters[0]
             ]);
             if (!index) {
                 return null;
@@ -2987,21 +2171,633 @@ var getText_getText = function (types, getLowestIndex) {
             if (index === -1) {
                 index = remaining.length;
             }
-            tokenizer.pos += index;
+            this.pos += index;
             return {
                 type: types.TEXT,
                 value: remaining.substr(0, index)
             };
         };
     }(config_types, utils_getLowestIndex);
-var getToken_getToken = function (getMustacheOrTriple, getComment, getTag, getText) {
+var getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
+        
+        var getExponent = makeRegexMatcher(/^[eE][\-+]?[0-9]+/), getFraction = makeRegexMatcher(/^\.[0-9]+/), getInteger = makeRegexMatcher(/^(0|[1-9][0-9]*)/);
+        return function (tokenizer) {
+            var start, result;
+            start = tokenizer.pos;
+            if (result = getFraction(tokenizer)) {
+                return {
+                    t: types.NUMBER_LITERAL,
+                    v: result
+                };
+            }
+            result = getInteger(tokenizer);
+            if (result === null) {
+                return null;
+            }
+            result += getFraction(tokenizer) || '';
+            result += getExponent(tokenizer) || '';
+            return {
+                t: types.NUMBER_LITERAL,
+                v: result
+            };
+        };
+    }(config_types, utils_makeRegexMatcher);
+var getLiteral_getBooleanLiteral = function (types) {
         
         return function (tokenizer) {
-            var token = getMustacheOrTriple(tokenizer) || getComment(tokenizer) || getTag(tokenizer) || getText(tokenizer);
-            return token;
+            var remaining = tokenizer.remaining();
+            if (remaining.substr(0, 4) === 'true') {
+                tokenizer.pos += 4;
+                return {
+                    t: types.BOOLEAN_LITERAL,
+                    v: 'true'
+                };
+            }
+            if (remaining.substr(0, 5) === 'false') {
+                tokenizer.pos += 5;
+                return {
+                    t: types.BOOLEAN_LITERAL,
+                    v: 'false'
+                };
+            }
+            return null;
         };
-    }(getMustacheOrTriple__index, getComment_getComment, getTag_getTag, getText_getText);
-var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, getToken) {
+    }(config_types);
+var getStringLiteral_getEscapedChars = function () {
+        
+        return function (tokenizer) {
+            var chars = '', character;
+            character = getEscapedChar(tokenizer);
+            while (character) {
+                chars += character;
+                character = getEscapedChar(tokenizer);
+            }
+            return chars || null;
+        };
+        function getEscapedChar(tokenizer) {
+            var character;
+            if (!tokenizer.getStringMatch('\\')) {
+                return null;
+            }
+            character = tokenizer.str.charAt(tokenizer.pos);
+            tokenizer.pos += 1;
+            return character;
+        }
+    }();
+var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
+        
+        var getUnescapedDoubleQuotedChars = makeRegexMatcher(/^[^\\"]+/), getUnescapedSingleQuotedChars = makeRegexMatcher(/^[^\\']+/);
+        return function getQuotedString(tokenizer, singleQuotes) {
+            var start, string, escaped, unescaped, next, matcher;
+            start = tokenizer.pos;
+            string = '';
+            matcher = singleQuotes ? getUnescapedSingleQuotedChars : getUnescapedDoubleQuotedChars;
+            escaped = getEscapedChars(tokenizer);
+            if (escaped) {
+                string += escaped;
+            }
+            unescaped = matcher(tokenizer);
+            if (unescaped) {
+                string += unescaped;
+            }
+            if (!string) {
+                return '';
+            }
+            next = getQuotedString(tokenizer, singleQuotes);
+            while (next !== '') {
+                string += next;
+            }
+            return string;
+        };
+    }(utils_makeRegexMatcher, getStringLiteral_getEscapedChars);
+var getStringLiteral__index = function (types, getQuotedString) {
+        
+        return function (tokenizer) {
+            var start, string;
+            start = tokenizer.pos;
+            if (tokenizer.getStringMatch('"')) {
+                string = getQuotedString(tokenizer, false);
+                if (!tokenizer.getStringMatch('"')) {
+                    tokenizer.pos = start;
+                    return null;
+                }
+                return {
+                    t: types.STRING_LITERAL,
+                    v: string
+                };
+            }
+            if (tokenizer.getStringMatch('\'')) {
+                string = getQuotedString(tokenizer, true);
+                if (!tokenizer.getStringMatch('\'')) {
+                    tokenizer.pos = start;
+                    return null;
+                }
+                return {
+                    t: types.STRING_LITERAL,
+                    v: string
+                };
+            }
+            return null;
+        };
+    }(config_types, getStringLiteral_getQuotedString);
+var shared_getName = function (makeRegexMatcher) {
+        
+        return makeRegexMatcher(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
+    }(utils_makeRegexMatcher);
+var getObjectLiteral_getKeyValuePair = function (types, getName, getStringLiteral, getNumberLiteral) {
+        
+        return function (tokenizer) {
+            var start, key, value;
+            start = tokenizer.pos;
+            tokenizer.allowWhitespace();
+            key = getKey(tokenizer);
+            if (key === null) {
+                tokenizer.pos = start;
+                return null;
+            }
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch(':')) {
+                tokenizer.pos = start;
+                return null;
+            }
+            tokenizer.allowWhitespace();
+            value = tokenizer.getExpression();
+            if (value === null) {
+                tokenizer.pos = start;
+                return null;
+            }
+            return {
+                t: types.KEY_VALUE_PAIR,
+                k: key,
+                v: value
+            };
+        };
+        function getKey(tokenizer) {
+            return getName(tokenizer) || getStringLiteral(tokenizer) || getNumberLiteral(tokenizer);
+        }
+    }(config_types, shared_getName, getStringLiteral__index, getLiteral_getNumberLiteral);
+var getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
+        
+        return function getKeyValuePairs(tokenizer) {
+            var start, pairs, pair, keyValuePairs;
+            start = tokenizer.pos;
+            pair = getKeyValuePair(tokenizer);
+            if (pair === null) {
+                return null;
+            }
+            pairs = [pair];
+            if (tokenizer.getStringMatch(',')) {
+                keyValuePairs = getKeyValuePairs(tokenizer);
+                if (!keyValuePairs) {
+                    tokenizer.pos = start;
+                    return null;
+                }
+                return pairs.concat(keyValuePairs);
+            }
+            return pairs;
+        };
+    }(getObjectLiteral_getKeyValuePair);
+var getObjectLiteral__index = function (types, getKeyValuePairs) {
+        
+        return function (tokenizer) {
+            var start, keyValuePairs;
+            start = tokenizer.pos;
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch('{')) {
+                tokenizer.pos = start;
+                return null;
+            }
+            keyValuePairs = getKeyValuePairs(tokenizer);
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch('}')) {
+                tokenizer.pos = start;
+                return null;
+            }
+            return {
+                t: types.OBJECT_LITERAL,
+                m: keyValuePairs
+            };
+        };
+    }(config_types, getObjectLiteral_getKeyValuePairs);
+var shared_getExpressionList = function () {
+        
+        return function getExpressionList(tokenizer) {
+            var start, expressions, expr, next;
+            start = tokenizer.pos;
+            tokenizer.allowWhitespace();
+            expr = tokenizer.getExpression();
+            if (expr === null) {
+                return null;
+            }
+            expressions = [expr];
+            tokenizer.allowWhitespace();
+            if (tokenizer.getStringMatch(',')) {
+                next = getExpressionList(tokenizer);
+                if (next === null) {
+                    tokenizer.pos = start;
+                    return null;
+                }
+                expressions = expressions.concat(next);
+            }
+            return expressions;
+        };
+    }();
+var getLiteral_getArrayLiteral = function (types, getExpressionList) {
+        
+        return function (tokenizer) {
+            var start, expressionList;
+            start = tokenizer.pos;
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch('[')) {
+                tokenizer.pos = start;
+                return null;
+            }
+            expressionList = getExpressionList(tokenizer);
+            if (!tokenizer.getStringMatch(']')) {
+                tokenizer.pos = start;
+                return null;
+            }
+            return {
+                t: types.ARRAY_LITERAL,
+                m: expressionList
+            };
+        };
+    }(config_types, shared_getExpressionList);
+var getLiteral__index = function (getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral) {
+        
+        return function (tokenizer) {
+            var literal = getNumberLiteral(tokenizer) || getBooleanLiteral(tokenizer) || getStringLiteral(tokenizer) || getObjectLiteral(tokenizer) || getArrayLiteral(tokenizer);
+            return literal;
+        };
+    }(getLiteral_getNumberLiteral, getLiteral_getBooleanLiteral, getStringLiteral__index, getObjectLiteral__index, getLiteral_getArrayLiteral);
+var getPrimary_getReference = function (types, makeRegexMatcher, getName) {
+        
+        var getDotRefinement, getArrayRefinement, getArrayMember, globals;
+        getDotRefinement = makeRegexMatcher(/^\.[a-zA-Z_$0-9]+/);
+        getArrayRefinement = function (tokenizer) {
+            var num = getArrayMember(tokenizer);
+            if (num) {
+                return '.' + num;
+            }
+            return null;
+        };
+        getArrayMember = makeRegexMatcher(/^\[(0|[1-9][0-9]*)\]/);
+        globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+        return function (tokenizer) {
+            var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
+            startPos = tokenizer.pos;
+            ancestor = '';
+            while (tokenizer.getStringMatch('../')) {
+                ancestor += '../';
+            }
+            if (!ancestor) {
+                dot = tokenizer.getStringMatch('.') || '';
+            }
+            name = getName(tokenizer) || '';
+            if (!ancestor && !dot && globals.test(name)) {
+                return {
+                    t: types.GLOBAL,
+                    v: name
+                };
+            }
+            if (name === 'this' && !ancestor && !dot) {
+                name = '.';
+                startPos += 3;
+            }
+            combo = (ancestor || dot) + name;
+            if (!combo) {
+                return null;
+            }
+            while (refinement = getDotRefinement(tokenizer) || getArrayRefinement(tokenizer)) {
+                combo += refinement;
+            }
+            if (tokenizer.getStringMatch('(')) {
+                lastDotIndex = combo.lastIndexOf('.');
+                if (lastDotIndex !== -1) {
+                    combo = combo.substr(0, lastDotIndex);
+                    tokenizer.pos = startPos + combo.length;
+                } else {
+                    tokenizer.pos -= 1;
+                }
+            }
+            return {
+                t: types.REFERENCE,
+                n: combo
+            };
+        };
+    }(config_types, utils_makeRegexMatcher, shared_getName);
+var getPrimary_getBracketedExpression = function (types) {
+        
+        return function (tokenizer) {
+            var start, expr;
+            start = tokenizer.pos;
+            if (!tokenizer.getStringMatch('(')) {
+                return null;
+            }
+            tokenizer.allowWhitespace();
+            expr = tokenizer.getExpression();
+            if (!expr) {
+                tokenizer.pos = start;
+                return null;
+            }
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch(')')) {
+                tokenizer.pos = start;
+                return null;
+            }
+            return {
+                t: types.BRACKETED,
+                x: expr
+            };
+        };
+    }(config_types);
+var getPrimary__index = function (getLiteral, getReference, getBracketedExpression) {
+        
+        return function (tokenizer) {
+            return getLiteral(tokenizer) || getReference(tokenizer) || getBracketedExpression(tokenizer);
+        };
+    }(getLiteral__index, getPrimary_getReference, getPrimary_getBracketedExpression);
+var shared_getRefinement = function (types, getName) {
+        
+        return function getRefinement(tokenizer) {
+            var start, name, expr;
+            start = tokenizer.pos;
+            tokenizer.allowWhitespace();
+            if (tokenizer.getStringMatch('.')) {
+                tokenizer.allowWhitespace();
+                if (name = getName(tokenizer)) {
+                    return {
+                        t: types.REFINEMENT,
+                        n: name
+                    };
+                }
+                tokenizer.expected('a property name');
+            }
+            if (tokenizer.getStringMatch('[')) {
+                tokenizer.allowWhitespace();
+                expr = tokenizer.getExpression();
+                if (!expr) {
+                    tokenizer.expected('an expression');
+                }
+                tokenizer.allowWhitespace();
+                if (!tokenizer.getStringMatch(']')) {
+                    tokenizer.expected('"]"');
+                }
+                return {
+                    t: types.REFINEMENT,
+                    x: expr
+                };
+            }
+            return null;
+        };
+    }(config_types, shared_getName);
+var getExpression_getMemberOrInvocation = function (types, getPrimary, getExpressionList, getRefinement) {
+        
+        return function (tokenizer) {
+            var current, expression, refinement, expressionList;
+            expression = getPrimary(tokenizer);
+            if (!expression) {
+                return null;
+            }
+            while (expression) {
+                current = tokenizer.pos;
+                if (refinement = getRefinement(tokenizer)) {
+                    expression = {
+                        t: types.MEMBER,
+                        x: expression,
+                        r: refinement
+                    };
+                } else if (tokenizer.getStringMatch('(')) {
+                    tokenizer.allowWhitespace();
+                    expressionList = getExpressionList(tokenizer);
+                    tokenizer.allowWhitespace();
+                    if (!tokenizer.getStringMatch(')')) {
+                        tokenizer.pos = current;
+                        break;
+                    }
+                    expression = {
+                        t: types.INVOCATION,
+                        x: expression
+                    };
+                    if (expressionList) {
+                        expression.o = expressionList;
+                    }
+                } else {
+                    break;
+                }
+            }
+            return expression;
+        };
+    }(config_types, getPrimary__index, shared_getExpressionList, shared_getRefinement);
+var getExpression_getTypeOf = function (types, getMemberOrInvocation) {
+        
+        var getTypeOf, makePrefixSequenceMatcher;
+        makePrefixSequenceMatcher = function (symbol, fallthrough) {
+            return function (tokenizer) {
+                var start, expression;
+                if (!tokenizer.getStringMatch(symbol)) {
+                    return fallthrough(tokenizer);
+                }
+                start = tokenizer.pos;
+                tokenizer.allowWhitespace();
+                expression = tokenizer.getExpression();
+                if (!expression) {
+                    tokenizer.expected('an expression');
+                }
+                return {
+                    s: symbol,
+                    o: expression,
+                    t: types.PREFIX_OPERATOR
+                };
+            };
+        };
+        (function () {
+            var i, len, matcher, prefixOperators, fallthrough;
+            prefixOperators = '! ~ + - typeof'.split(' ');
+            fallthrough = getMemberOrInvocation;
+            for (i = 0, len = prefixOperators.length; i < len; i += 1) {
+                matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
+                fallthrough = matcher;
+            }
+            getTypeOf = fallthrough;
+        }());
+        return getTypeOf;
+    }(config_types, getExpression_getMemberOrInvocation);
+var getExpression_getLogicalOr = function (types, getTypeOf) {
+        
+        var getLogicalOr, makeInfixSequenceMatcher;
+        makeInfixSequenceMatcher = function (symbol, fallthrough) {
+            return function (tokenizer) {
+                var start, left, right;
+                left = fallthrough(tokenizer);
+                if (!left) {
+                    return null;
+                }
+                start = tokenizer.pos;
+                tokenizer.allowWhitespace();
+                if (!tokenizer.getStringMatch(symbol)) {
+                    tokenizer.pos = start;
+                    return left;
+                }
+                if (symbol === 'in' && /[a-zA-Z_$0-9]/.test(tokenizer.remaining().charAt(0))) {
+                    tokenizer.pos = start;
+                    return left;
+                }
+                tokenizer.allowWhitespace();
+                right = tokenizer.getExpression();
+                if (!right) {
+                    tokenizer.pos = start;
+                    return left;
+                }
+                return {
+                    t: types.INFIX_OPERATOR,
+                    s: symbol,
+                    o: [
+                        left,
+                        right
+                    ]
+                };
+            };
+        };
+        (function () {
+            var i, len, matcher, infixOperators, fallthrough;
+            infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split(' ');
+            fallthrough = getTypeOf;
+            for (i = 0, len = infixOperators.length; i < len; i += 1) {
+                matcher = makeInfixSequenceMatcher(infixOperators[i], fallthrough);
+                fallthrough = matcher;
+            }
+            getLogicalOr = fallthrough;
+        }());
+        return getLogicalOr;
+    }(config_types, getExpression_getTypeOf);
+var getExpression_getConditional = function (types, getLogicalOr) {
+        
+        return function (tokenizer) {
+            var start, expression, ifTrue, ifFalse;
+            expression = getLogicalOr(tokenizer);
+            if (!expression) {
+                return null;
+            }
+            start = tokenizer.pos;
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch('?')) {
+                tokenizer.pos = start;
+                return expression;
+            }
+            tokenizer.allowWhitespace();
+            ifTrue = tokenizer.getExpression();
+            if (!ifTrue) {
+                tokenizer.pos = start;
+                return expression;
+            }
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch(':')) {
+                tokenizer.pos = start;
+                return expression;
+            }
+            tokenizer.allowWhitespace();
+            ifFalse = tokenizer.getExpression();
+            if (!ifFalse) {
+                tokenizer.pos = start;
+                return expression;
+            }
+            return {
+                t: types.CONDITIONAL,
+                o: [
+                    expression,
+                    ifTrue,
+                    ifFalse
+                ]
+            };
+        };
+    }(config_types, getExpression_getLogicalOr);
+var getExpression__index = function (getConditional) {
+        
+        return function () {
+            return getConditional(this);
+        };
+    }(getExpression_getConditional);
+var utils_allowWhitespace = function () {
+        
+        var leadingWhitespace = /^\s+/;
+        return function () {
+            var match = leadingWhitespace.exec(this.remaining());
+            if (!match) {
+                return null;
+            }
+            this.pos += match[0].length;
+            return match[0];
+        };
+    }();
+var utils_getStringMatch = function () {
+        
+        return function (string) {
+            var substr;
+            substr = this.str.substr(this.pos, string.length);
+            if (substr === string) {
+                this.pos += string.length;
+                return string;
+            }
+            return null;
+        };
+    }();
+var Tokenizer__index = function (getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch) {
+        
+        var Tokenizer;
+        Tokenizer = function (str, options) {
+            var token;
+            this.str = str;
+            this.pos = 0;
+            this.delimiters = options.delimiters;
+            this.tripleDelimiters = options.tripleDelimiters;
+            this.tokens = [];
+            while (this.pos < this.str.length) {
+                token = this.getToken();
+                if (token === null && this.remaining()) {
+                    this.fail();
+                }
+                this.tokens.push(token);
+            }
+        };
+        Tokenizer.prototype = {
+            getToken: function () {
+                var token = this.getMustache() || this.getComment() || this.getTag() || this.getText();
+                return token;
+            },
+            getMustache: getMustache,
+            getComment: getComment,
+            getTag: getTag,
+            getText: getText,
+            getExpression: getExpression,
+            allowWhitespace: allowWhitespace,
+            getStringMatch: getStringMatch,
+            remaining: function () {
+                return this.str.substring(this.pos);
+            },
+            fail: function () {
+                var last20, next20;
+                last20 = this.str.substr(0, this.pos).substr(-20);
+                if (last20.length === 20) {
+                    last20 = '...' + last20;
+                }
+                next20 = this.remaining().substr(0, 20);
+                if (next20.length === 20) {
+                    next20 = next20 + '...';
+                }
+                throw new Error('Could not parse template: ' + (last20 ? last20 + '<- ' : '') + 'failed at character ' + this.pos + ' ->' + next20);
+            },
+            expected: function (thing) {
+                var remaining = this.remaining().substr(0, 40);
+                if (remaining.length === 40) {
+                    remaining += '...';
+                }
+                throw new Error('Tokenizer failed: unexpected string "' + remaining + '" (expected ' + thing + ')');
+            }
+        };
+        return Tokenizer;
+    }(getMustache__index, getComment_getComment, getTag__index, getText_getText, getExpression__index, utils_allowWhitespace, utils_getStringMatch);
+var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer) {
         
         var tokenize, Ractive;
         loadCircularDependency(function () {
@@ -3010,14 +2806,12 @@ var parse_tokenize = function (stripHtmlComments, stripStandalones, stripComment
             }(Ractive__index));
         });
         tokenize = function (template, options) {
-            var tokenizer, tokens, token, last20, next20;
+            var tokenizer, tokens;
             options = options || {};
             if (options.stripComments !== false) {
                 template = stripHtmlComments(template);
             }
-            tokenizer = {
-                str: template,
-                pos: 0,
+            tokenizer = new Tokenizer(template, {
                 delimiters: options.delimiters || (Ractive ? Ractive.delimiters : [
                     '{{',
                     '}}'
@@ -3025,41 +2819,23 @@ var parse_tokenize = function (stripHtmlComments, stripStandalones, stripComment
                 tripleDelimiters: options.tripleDelimiters || (Ractive ? Ractive.tripleDelimiters : [
                     '{{{',
                     '}}}'
-                ]),
-                remaining: function () {
-                    return tokenizer.str.substring(tokenizer.pos);
-                }
-            };
-            tokens = [];
-            while (tokenizer.pos < tokenizer.str.length) {
-                token = getToken(tokenizer);
-                if (token === null && tokenizer.remaining()) {
-                    last20 = tokenizer.str.substr(0, tokenizer.pos).substr(-20);
-                    if (last20.length === 20) {
-                        last20 = '...' + last20;
-                    }
-                    next20 = tokenizer.remaining().substr(0, 20);
-                    if (next20.length === 20) {
-                        next20 = next20 + '...';
-                    }
-                    throw new Error('Could not parse template: ' + (last20 ? last20 + '<- ' : '') + 'failed at character ' + tokenizer.pos + ' ->' + next20);
-                }
-                tokens[tokens.length] = token;
-            }
+                ])
+            });
+            tokens = tokenizer.tokens;
             stripStandalones(tokens);
             stripCommentTokens(tokens);
             return tokens;
         };
         return tokenize;
-    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, getToken_getToken);
-var getStub_TextStub = function (types) {
+    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, Tokenizer__index);
+var TextStub__index = function (types) {
         
         var TextStub, htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
         TextStub = function (token, preserveWhitespace) {
-            this.type = types.TEXT;
             this.text = preserveWhitespace ? token.value : token.value.replace(whitespace, ' ');
         };
         TextStub.prototype = {
+            type: types.TEXT,
             toJSON: function () {
                 return this.decoded || (this.decoded = decodeCharacterReferences(this.text));
             },
@@ -3402,40 +3178,46 @@ var getStub_TextStub = function (types) {
         whitespace = /\s+/g;
         return TextStub;
     }(config_types);
-var utils_stringifyStubs = function () {
+var getText__index = function (types, TextStub) {
         
-        return function (items) {
-            var str = '', itemStr, i, len;
-            if (!items) {
-                return '';
+        return function (token) {
+            if (token.type === types.TEXT) {
+                this.pos += 1;
+                return new TextStub(token, this.preserveWhitespace);
             }
-            for (i = 0, len = items.length; i < len; i += 1) {
-                itemStr = items[i].toString();
-                if (itemStr === false) {
-                    return false;
-                }
-                str += itemStr;
-            }
-            return str;
+            return null;
         };
-    }();
-var utils_jsonifyStubs = function (stringifyStubs) {
+    }(config_types, TextStub__index);
+var CommentStub__index = function (types) {
         
-        return function (items, noStringify) {
-            var str, json;
-            if (!noStringify) {
-                str = stringifyStubs(items);
-                if (str !== false) {
-                    return str;
-                }
-            }
-            json = items.map(function (item) {
-                return item.toJSON(noStringify);
-            });
-            return json;
+        var CommentStub;
+        CommentStub = function (token) {
+            this.content = token.content;
         };
-    }(utils_stringifyStubs);
-var getStub_ExpressionStub = function (types, isObject) {
+        CommentStub.prototype = {
+            toJSON: function () {
+                return {
+                    t: types.COMMENT,
+                    f: this.content
+                };
+            },
+            toString: function () {
+                return '<!--' + this.content + '-->';
+            }
+        };
+        return CommentStub;
+    }(config_types);
+var getComment__index = function (types, CommentStub) {
+        
+        return function (token) {
+            if (token.type === types.COMMENT) {
+                this.pos += 1;
+                return new CommentStub(token, this.preserveWhitespace);
+            }
+            return null;
+        };
+    }(config_types, CommentStub__index);
+var ExpressionStub__index = function (types, isObject) {
         
         var ExpressionStub, getRefs, stringify, stringifyKey, identifier;
         ExpressionStub = function (token) {
@@ -3532,15 +3314,76 @@ var getStub_ExpressionStub = function (types, isObject) {
         identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
         return ExpressionStub;
     }(config_types, utils_isObject);
-var getStub_SectionStub = function (types, jsonifyStubs, ExpressionStub) {
+var MustacheStub__index = function (types, ExpressionStub) {
         
-        var SectionStub, getItem;
-        loadCircularDependency(function () {
-            (function (dep) {
-                getItem = dep;
-            }(utils_getItem));
-        });
-        SectionStub = function (firstToken, parser, preserveWhitespace) {
+        var MustacheStub = function (token, parser) {
+            this.type = token.type === types.TRIPLE ? types.TRIPLE : token.mustacheType;
+            if (token.ref) {
+                this.ref = token.ref;
+            }
+            if (token.expression) {
+                this.expr = new ExpressionStub(token.expression);
+            }
+            parser.pos += 1;
+        };
+        MustacheStub.prototype = {
+            toJSON: function () {
+                var json;
+                if (this.json) {
+                    return this.json;
+                }
+                json = { t: this.type };
+                if (this.ref) {
+                    json.r = this.ref;
+                }
+                if (this.expr) {
+                    json.x = this.expr.toJSON();
+                }
+                this.json = json;
+                return json;
+            },
+            toString: function () {
+                return false;
+            }
+        };
+        return MustacheStub;
+    }(config_types, ExpressionStub__index);
+var utils_stringifyStubs = function () {
+        
+        return function (items) {
+            var str = '', itemStr, i, len;
+            if (!items) {
+                return '';
+            }
+            for (i = 0, len = items.length; i < len; i += 1) {
+                itemStr = items[i].toString();
+                if (itemStr === false) {
+                    return false;
+                }
+                str += itemStr;
+            }
+            return str;
+        };
+    }();
+var utils_jsonifyStubs = function (stringifyStubs) {
+        
+        return function (items, noStringify) {
+            var str, json;
+            if (!noStringify) {
+                str = stringifyStubs(items);
+                if (str !== false) {
+                    return str;
+                }
+            }
+            json = items.map(function (item) {
+                return item.toJSON(noStringify);
+            });
+            return json;
+        };
+    }(utils_stringifyStubs);
+var SectionStub__index = function (types, jsonifyStubs, ExpressionStub) {
+        
+        var SectionStub = function (firstToken, parser) {
             var next;
             this.ref = firstToken.ref;
             this.indexRef = firstToken.indexRef;
@@ -3560,7 +3403,7 @@ var getStub_SectionStub = function (types, jsonifyStubs, ExpressionStub) {
                         throw new Error('Could not parse template: Illegal closing section');
                     }
                 }
-                this.items[this.items.length] = getItem(parser, preserveWhitespace);
+                this.items[this.items.length] = parser.getStub();
                 next = parser.next();
             }
         };
@@ -3594,280 +3437,25 @@ var getStub_SectionStub = function (types, jsonifyStubs, ExpressionStub) {
             }
         };
         return SectionStub;
-    }(config_types, utils_jsonifyStubs, getStub_ExpressionStub);
-var getStub_MustacheStub = function (types, ExpressionStub) {
+    }(config_types, utils_jsonifyStubs, ExpressionStub__index);
+var getMustache__index = function (types, MustacheStub, SectionStub) {
         
-        var MustacheStub = function (token, parser) {
-            this.type = token.type === types.TRIPLE ? types.TRIPLE : token.mustacheType;
-            if (token.ref) {
-                this.ref = token.ref;
-            }
-            if (token.expression) {
-                this.expr = new ExpressionStub(token.expression);
-            }
-            parser.pos += 1;
-        };
-        MustacheStub.prototype = {
-            toJSON: function () {
-                var json;
-                if (this.json) {
-                    return this.json;
+        return function (token) {
+            if (token.type === types.MUSTACHE || token.type === types.TRIPLE) {
+                if (token.mustacheType === types.SECTION || token.mustacheType === types.INVERTED) {
+                    return new SectionStub(token, this);
                 }
-                json = { t: this.type };
-                if (this.ref) {
-                    json.r = this.ref;
-                }
-                if (this.expr) {
-                    json.x = this.expr.toJSON();
-                }
-                this.json = json;
-                return json;
-            },
-            toString: function () {
-                return false;
+                return new MustacheStub(token, this);
             }
         };
-        return MustacheStub;
-    }(config_types, getStub_ExpressionStub);
+    }(config_types, MustacheStub__index, SectionStub__index);
 var config_voidElementNames = function () {
         
         return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
     }();
-var getStub_ElementStub = function (types, isArray, voidElementNames, stringifyStubs, jsonifyStubs) {
+var utils_siblingsByTagName = function () {
         
-        var ElementStub, getFragmentStubFromTokens, getItem, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, onPattern, sanitize, filterAttrs, getFrag, processDirective, jsonifyDirective, camelCase, deepClone, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
-        loadCircularDependency(function () {
-            (function (dep1, dep2) {
-                getFragmentStubFromTokens = dep1;
-                getItem = dep2;
-            }(getStub_getFragmentStubFromTokens, utils_getItem));
-        });
-        ElementStub = function (firstToken, parser, preserveWhitespace) {
-            var next, attrs, filtered, proxies, item, i, attr;
-            this.lcTag = firstToken.name.toLowerCase();
-            parser.pos += 1;
-            if (this.lcTag.substr(0, 3) === 'rv-') {
-                this.component = camelCase(firstToken.name.substring(3));
-                if (firstToken.attrs) {
-                    this.attributes = [];
-                    i = firstToken.attrs.length;
-                    while (i--) {
-                        attr = firstToken.attrs[i];
-                        this.attributes[i] = {
-                            name: attr.name,
-                            value: attr.value ? getFragmentStubFromTokens(attr.value) : null
-                        };
-                    }
-                }
-            } else {
-                this.tag = svgCamelCaseElementsMap[this.lcTag] ? svgCamelCaseElementsMap[this.lcTag] : this.lcTag;
-                preserveWhitespace = preserveWhitespace || this.lcTag === 'pre';
-                if (firstToken.attrs) {
-                    filtered = filterAttrs(firstToken.attrs);
-                    attrs = filtered.attrs;
-                    proxies = filtered.proxies;
-                    if (parser.options.sanitize && parser.options.sanitize.eventAttributes) {
-                        attrs = attrs.filter(sanitize);
-                    }
-                    if (attrs.length) {
-                        this.attributes = attrs.map(getFrag);
-                    }
-                    if (proxies.length) {
-                        this.proxies = proxies.map(processDirective);
-                    }
-                    if (filtered.intro) {
-                        this.intro = processDirective(filtered.intro);
-                    }
-                    if (filtered.outro) {
-                        this.outro = processDirective(filtered.outro);
-                    }
-                    if (filtered.decorator) {
-                        this.decorator = filtered.decorator.value[0].value;
-                    }
-                }
-            }
-            if (firstToken.doctype) {
-                this.doctype = true;
-            }
-            if (firstToken.selfClosing) {
-                this.selfClosing = true;
-            }
-            if (voidElementNames.indexOf(this.lcTag) !== -1) {
-                this.isVoid = true;
-            }
-            if (this.selfClosing || this.isVoid) {
-                return;
-            }
-            this.siblings = siblingsByTagName[this.lcTag];
-            this.items = [];
-            next = parser.next();
-            while (next) {
-                if (next.mustacheType === types.CLOSING) {
-                    break;
-                }
-                if (next.type === types.TAG) {
-                    if (next.closing) {
-                        if (next.name.toLowerCase() === this.lcTag) {
-                            parser.pos += 1;
-                        }
-                        break;
-                    } else if (this.siblings && this.siblings.indexOf(next.name.toLowerCase()) !== -1) {
-                        break;
-                    }
-                }
-                this.items[this.items.length] = getItem(parser);
-                next = parser.next();
-            }
-            if (!preserveWhitespace) {
-                item = this.items[0];
-                if (item && item.type === types.TEXT) {
-                    item.text = item.text.replace(leadingWhitespace, '');
-                    if (!item.text) {
-                        this.items.shift();
-                    }
-                }
-                item = this.items[this.items.length - 1];
-                if (item && item.type === types.TEXT) {
-                    item.text = item.text.replace(trailingWhitespace, '');
-                    if (!item.text) {
-                        this.items.pop();
-                    }
-                }
-            }
-        };
-        ElementStub.prototype = {
-            toJSON: function (noStringify) {
-                var json, name, value, proxy, i, len;
-                if (this['json_' + noStringify]) {
-                    return this['json_' + noStringify];
-                }
-                if (this.component) {
-                    json = {
-                        t: types.COMPONENT,
-                        e: this.component
-                    };
-                } else {
-                    json = {
-                        t: types.ELEMENT,
-                        e: this.tag
-                    };
-                }
-                if (this.doctype) {
-                    json.y = 1;
-                }
-                if (this.attributes && this.attributes.length) {
-                    json.a = {};
-                    len = this.attributes.length;
-                    for (i = 0; i < len; i += 1) {
-                        name = this.attributes[i].name;
-                        if (json.a[name]) {
-                            throw new Error('You cannot have multiple attributes with the same name');
-                        }
-                        if (this.attributes[i].value === null) {
-                            value = null;
-                        } else {
-                            value = jsonifyStubs(this.attributes[i].value.items, noStringify);
-                        }
-                        json.a[name] = value;
-                    }
-                }
-                if (this.items && this.items.length) {
-                    json.f = jsonifyStubs(this.items, noStringify);
-                }
-                if (this.proxies && this.proxies.length) {
-                    json.v = {};
-                    len = this.proxies.length;
-                    for (i = 0; i < len; i += 1) {
-                        proxy = this.proxies[i];
-                        json.v[proxy.directiveType] = jsonifyDirective(proxy);
-                    }
-                }
-                if (this.intro) {
-                    json.t1 = jsonifyDirective(this.intro);
-                }
-                if (this.outro) {
-                    json.t2 = jsonifyDirective(this.outro);
-                }
-                if (this.decorator) {
-                    json.o = this.decorator;
-                }
-                this['json_' + noStringify] = json;
-                return json;
-            },
-            toString: function () {
-                var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
-                if (this.str !== undefined) {
-                    return this.str;
-                }
-                if (this.component) {
-                    return this.str = false;
-                }
-                if (allElementNames.indexOf(this.tag.toLowerCase()) === -1) {
-                    return this.str = false;
-                }
-                if (this.proxies || this.intro || this.outro) {
-                    return this.str = false;
-                }
-                fragStr = stringifyStubs(this.items);
-                if (fragStr === false) {
-                    return this.str = false;
-                }
-                isVoid = voidElementNames.indexOf(this.tag.toLowerCase()) !== -1;
-                str = '<' + this.tag;
-                if (this.attributes) {
-                    for (i = 0, len = this.attributes.length; i < len; i += 1) {
-                        name = this.attributes[i].name;
-                        if (name.indexOf(':') !== -1) {
-                            return this.str = false;
-                        }
-                        if (name === 'id' || name === 'intro' || name === 'outro') {
-                            return this.str = false;
-                        }
-                        attrStr = ' ' + name;
-                        if (this.attributes[i].value !== null) {
-                            attrValueStr = this.attributes[i].value.toString();
-                            if (attrValueStr === false) {
-                                return this.str = false;
-                            }
-                            if (attrValueStr !== '') {
-                                attrStr += '=';
-                                if (/[\s"'=<>`]/.test(attrValueStr)) {
-                                    attrStr += '"' + attrValueStr.replace(/"/g, '&quot;') + '"';
-                                } else {
-                                    attrStr += attrValueStr;
-                                }
-                            }
-                        }
-                        str += attrStr;
-                    }
-                }
-                if (this.selfClosing && !isVoid) {
-                    str += '/>';
-                    return this.str = str;
-                }
-                str += '>';
-                if (isVoid) {
-                    return this.str = str;
-                }
-                str += fragStr;
-                str += '</' + this.tag + '>';
-                return this.str = str;
-            }
-        };
-        allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split(' ');
-        closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split(' ');
-        svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split(' ');
-        svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef glyphRef gradientTransform gradientTransform gradientUnits gradientUnits kernelMatrix kernelUnitLength kernelUnitLength kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent specularExponent spreadMethod spreadMethod startOffset stdDeviation stitchTiles surfaceScale surfaceScale systemLanguage tableValues targetX targetY textLength textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split(' ');
-        mapToLowerCase = function (items) {
-            var map = {}, i = items.length;
-            while (i--) {
-                map[items[i].toLowerCase()] = items[i];
-            }
-            return map;
-        };
-        svgCamelCaseElementsMap = mapToLowerCase(svgCamelCaseElements);
-        svgCamelCaseAttributesMap = mapToLowerCase(svgCamelCaseAttributes);
-        siblingsByTagName = {
+        return {
             li: ['li'],
             dt: [
                 'dt',
@@ -3909,12 +3497,10 @@ var getStub_ElementStub = function (types, isArray, voidElementNames, stringifyS
                 'th'
             ]
         };
-        onPattern = /^on[a-zA-Z]/;
-        sanitize = function (attr) {
-            var valid = !onPattern.test(attr.name);
-            return valid;
-        };
-        filterAttrs = function (items) {
+    }();
+var utils_filterAttributes = function (isArray) {
+        
+        return function (items) {
             var attrs, proxies, filtered, i, len, item;
             filtered = {};
             attrs = [];
@@ -3954,14 +3540,26 @@ var getStub_ElementStub = function (types, isArray, voidElementNames, stringifyS
             filtered.proxies = proxies;
             return filtered;
         };
-        getFrag = function (attr) {
-            var lcName = attr.name.toLowerCase();
-            return {
-                name: svgCamelCaseAttributesMap[lcName] ? svgCamelCaseAttributesMap[lcName] : lcName,
-                value: attr.value ? getFragmentStubFromTokens(attr.value) : null
-            };
-        };
-        processDirective = function (directive) {
+        function deepClone(obj) {
+            var result, key;
+            if (typeof obj !== 'object') {
+                return obj;
+            }
+            if (isArray(obj)) {
+                return obj.map(deepClone);
+            }
+            result = {};
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    result[key] = deepClone(obj[key]);
+                }
+            }
+            return result;
+        }
+    }(utils_isArray);
+var utils_processDirective = function (types) {
+        
+        return function (directive) {
             var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs;
             throwError = function () {
                 throw new Error('Illegal directive');
@@ -4017,7 +3615,65 @@ var getStub_ElementStub = function (types, isArray, voidElementNames, stringifyS
             }
             return processed;
         };
-        jsonifyDirective = function (directive) {
+    }(config_types);
+var StringStub_StringParser = function (getText, getMustache) {
+        
+        var StringParser;
+        StringParser = function (tokens, options) {
+            var stub;
+            this.tokens = tokens || [];
+            this.pos = 0;
+            this.options = options;
+            this.result = [];
+            while (stub = this.getStub()) {
+                this.result.push(stub);
+            }
+        };
+        StringParser.prototype = {
+            getStub: function () {
+                var token = this.next();
+                if (!token) {
+                    return null;
+                }
+                return this.getText(token) || this.getMustache(token);
+            },
+            getText: getText,
+            getMustache: getMustache,
+            next: function () {
+                return this.tokens[this.pos];
+            }
+        };
+        return StringParser;
+    }(getText__index, getMustache__index);
+var StringStub__index = function (StringParser, stringifyStubs, jsonifyStubs) {
+        
+        var StringStub;
+        StringStub = function (tokens) {
+            var parser = new StringParser(tokens);
+            this.stubs = parser.result;
+        };
+        StringStub.prototype = {
+            toJSON: function (noStringify) {
+                var json;
+                if (this['json_' + noStringify]) {
+                    return this['json_' + noStringify];
+                }
+                json = this['json_' + noStringify] = jsonifyStubs(this.stubs, noStringify);
+                return json;
+            },
+            toString: function () {
+                if (this.str !== undefined) {
+                    return this.str;
+                }
+                this.str = stringifyStubs(this.stubs);
+                return this.str;
+            }
+        };
+        return StringStub;
+    }(StringStub_StringParser, utils_stringifyStubs, utils_jsonifyStubs);
+var utils_jsonifyDirective = function (StringStub) {
+        
+        return function (directive) {
             var result, name;
             if (typeof directive.name === 'string') {
                 if (!directive.args && !directive.dynamicArgs) {
@@ -4025,7 +3681,7 @@ var getStub_ElementStub = function (types, isArray, voidElementNames, stringifyS
                 }
                 name = directive.name;
             } else {
-                name = getFragmentStubFromTokens(directive.name).toJSON();
+                name = new StringStub(directive.name).toJSON();
             }
             result = { n: name };
             if (directive.args) {
@@ -4033,154 +3689,328 @@ var getStub_ElementStub = function (types, isArray, voidElementNames, stringifyS
                 return result;
             }
             if (directive.dynamicArgs) {
-                result.d = getFragmentStubFromTokens(directive.dynamicArgs).toJSON();
+                result.d = new StringStub(directive.dynamicArgs).toJSON();
             }
             return result;
+        };
+    }(StringStub__index);
+var ElementStub_toJSON = function (types, jsonifyStubs, jsonifyDirective) {
+        
+        return function (noStringify) {
+            var json, name, value, proxy, i, len, attribute;
+            if (this['json_' + noStringify]) {
+                return this['json_' + noStringify];
+            }
+            if (this.component) {
+                json = {
+                    t: types.COMPONENT,
+                    e: this.component
+                };
+            } else {
+                json = {
+                    t: types.ELEMENT,
+                    e: this.tag
+                };
+            }
+            if (this.doctype) {
+                json.y = 1;
+            }
+            if (this.attributes && this.attributes.length) {
+                json.a = {};
+                len = this.attributes.length;
+                for (i = 0; i < len; i += 1) {
+                    attribute = this.attributes[i];
+                    name = attribute.name;
+                    if (json.a[name]) {
+                        throw new Error('You cannot have multiple attributes with the same name');
+                    }
+                    if (attribute.value === null) {
+                        value = null;
+                    } else {
+                        value = attribute.value.toJSON(noStringify);
+                    }
+                    json.a[name] = value;
+                }
+            }
+            if (this.items && this.items.length) {
+                json.f = jsonifyStubs(this.items, noStringify);
+            }
+            if (this.proxies && this.proxies.length) {
+                json.v = {};
+                len = this.proxies.length;
+                for (i = 0; i < len; i += 1) {
+                    proxy = this.proxies[i];
+                    json.v[proxy.directiveType] = jsonifyDirective(proxy);
+                }
+            }
+            if (this.intro) {
+                json.t1 = jsonifyDirective(this.intro);
+            }
+            if (this.outro) {
+                json.t2 = jsonifyDirective(this.outro);
+            }
+            if (this.decorator) {
+                json.o = this.decorator;
+            }
+            this['json_' + noStringify] = json;
+            return json;
+        };
+    }(config_types, utils_jsonifyStubs, utils_jsonifyDirective);
+var ElementStub_toString = function (stringifyStubs, voidElementNames) {
+        
+        var htmlElements;
+        htmlElements = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split(' ');
+        return function () {
+            var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
+            if (this.str !== undefined) {
+                return this.str;
+            }
+            if (this.component) {
+                return this.str = false;
+            }
+            if (htmlElements.indexOf(this.tag.toLowerCase()) === -1) {
+                return this.str = false;
+            }
+            if (this.proxies || this.intro || this.outro) {
+                return this.str = false;
+            }
+            fragStr = stringifyStubs(this.items);
+            if (fragStr === false) {
+                return this.str = false;
+            }
+            isVoid = voidElementNames.indexOf(this.tag.toLowerCase()) !== -1;
+            str = '<' + this.tag;
+            if (this.attributes) {
+                for (i = 0, len = this.attributes.length; i < len; i += 1) {
+                    name = this.attributes[i].name;
+                    if (name.indexOf(':') !== -1) {
+                        return this.str = false;
+                    }
+                    if (name === 'id' || name === 'intro' || name === 'outro') {
+                        return this.str = false;
+                    }
+                    attrStr = ' ' + name;
+                    if (this.attributes[i].value !== null) {
+                        attrValueStr = this.attributes[i].value.toString();
+                        if (attrValueStr === false) {
+                            return this.str = false;
+                        }
+                        if (attrValueStr !== '') {
+                            attrStr += '=';
+                            if (/[\s"'=<>`]/.test(attrValueStr)) {
+                                attrStr += '"' + attrValueStr.replace(/"/g, '&quot;') + '"';
+                            } else {
+                                attrStr += attrValueStr;
+                            }
+                        }
+                    }
+                    str += attrStr;
+                }
+            }
+            if (this.selfClosing && !isVoid) {
+                str += '/>';
+                return this.str = str;
+            }
+            str += '>';
+            if (isVoid) {
+                return this.str = str;
+            }
+            str += fragStr;
+            str += '</' + this.tag + '>';
+            return this.str = str;
+        };
+    }(utils_stringifyStubs, config_voidElementNames);
+var ElementStub__index = function (types, voidElementNames, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
+        
+        var ElementStub, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, onPattern, sanitize, camelCase, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
+        ElementStub = function (firstToken, parser, preserveWhitespace) {
+            var next, attrs, filtered, proxies, item, i, attr, getFrag;
+            this.lcTag = firstToken.name.toLowerCase();
+            parser.pos += 1;
+            getFrag = function (attr) {
+                var lcName = attr.name.toLowerCase();
+                return {
+                    name: svgCamelCaseAttributesMap[lcName] ? svgCamelCaseAttributesMap[lcName] : lcName,
+                    value: attr.value ? new StringStub(attr.value) : null
+                };
+            };
+            if (this.lcTag.substr(0, 3) === 'rv-') {
+                this.component = camelCase(firstToken.name.substring(3));
+                if (firstToken.attrs) {
+                    this.attributes = [];
+                    i = firstToken.attrs.length;
+                    while (i--) {
+                        attr = firstToken.attrs[i];
+                        this.attributes[i] = {
+                            name: attr.name,
+                            value: attr.value ? new StringStub(attr.value) : null
+                        };
+                    }
+                }
+            } else {
+                this.tag = svgCamelCaseElementsMap[this.lcTag] ? svgCamelCaseElementsMap[this.lcTag] : this.lcTag;
+                preserveWhitespace = preserveWhitespace || this.lcTag === 'pre';
+                if (firstToken.attrs) {
+                    filtered = filterAttributes(firstToken.attrs);
+                    attrs = filtered.attrs;
+                    proxies = filtered.proxies;
+                    if (parser.options.sanitize && parser.options.sanitize.eventAttributes) {
+                        attrs = attrs.filter(sanitize);
+                    }
+                    if (attrs.length) {
+                        this.attributes = attrs.map(getFrag);
+                    }
+                    if (proxies.length) {
+                        this.proxies = proxies.map(processDirective);
+                    }
+                    if (filtered.intro) {
+                        this.intro = processDirective(filtered.intro);
+                    }
+                    if (filtered.outro) {
+                        this.outro = processDirective(filtered.outro);
+                    }
+                    if (filtered.decorator) {
+                        this.decorator = filtered.decorator.value[0].value;
+                    }
+                }
+            }
+            if (firstToken.doctype) {
+                this.doctype = true;
+            }
+            if (firstToken.selfClosing) {
+                this.selfClosing = true;
+            }
+            if (voidElementNames.indexOf(this.lcTag) !== -1) {
+                this.isVoid = true;
+            }
+            if (this.selfClosing || this.isVoid) {
+                return;
+            }
+            this.siblings = siblingsByTagName[this.lcTag];
+            this.items = [];
+            next = parser.next();
+            while (next) {
+                if (next.mustacheType === types.CLOSING) {
+                    break;
+                }
+                if (next.type === types.TAG) {
+                    if (next.closing) {
+                        if (next.name.toLowerCase() === this.lcTag) {
+                            parser.pos += 1;
+                        }
+                        break;
+                    } else if (this.siblings && this.siblings.indexOf(next.name.toLowerCase()) !== -1) {
+                        break;
+                    }
+                }
+                this.items[this.items.length] = parser.getStub();
+                next = parser.next();
+            }
+            if (!preserveWhitespace) {
+                item = this.items[0];
+                if (item && item.type === types.TEXT) {
+                    item.text = item.text.replace(leadingWhitespace, '');
+                    if (!item.text) {
+                        this.items.shift();
+                    }
+                }
+                item = this.items[this.items.length - 1];
+                if (item && item.type === types.TEXT) {
+                    item.text = item.text.replace(trailingWhitespace, '');
+                    if (!item.text) {
+                        this.items.pop();
+                    }
+                }
+            }
+        };
+        ElementStub.prototype = {
+            toJSON: toJSON,
+            toString: toString
+        };
+        allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split(' ');
+        closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split(' ');
+        svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split(' ');
+        svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef glyphRef gradientTransform gradientTransform gradientUnits gradientUnits kernelMatrix kernelUnitLength kernelUnitLength kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent specularExponent spreadMethod spreadMethod startOffset stdDeviation stitchTiles surfaceScale surfaceScale systemLanguage tableValues targetX targetY textLength textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split(' ');
+        mapToLowerCase = function (items) {
+            var map = {}, i = items.length;
+            while (i--) {
+                map[items[i].toLowerCase()] = items[i];
+            }
+            return map;
+        };
+        svgCamelCaseElementsMap = mapToLowerCase(svgCamelCaseElements);
+        svgCamelCaseAttributesMap = mapToLowerCase(svgCamelCaseAttributes);
+        onPattern = /^on[a-zA-Z]/;
+        sanitize = function (attr) {
+            var valid = !onPattern.test(attr.name);
+            return valid;
         };
         camelCase = function (hyphenatedStr) {
             return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
                 return $1.toUpperCase();
             });
         };
-        deepClone = function (obj) {
-            var result, key;
-            if (typeof obj !== 'object') {
-                return obj;
-            }
-            if (isArray(obj)) {
-                return obj.map(deepClone);
-            }
-            result = {};
-            for (key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    result[key] = deepClone(obj[key]);
-                }
-            }
-            return result;
-        };
         return ElementStub;
-    }(config_types, utils_isArray, config_voidElementNames, utils_stringifyStubs, utils_jsonifyStubs);
-var getStub_CommentStub = function (types) {
+    }(config_types, config_voidElementNames, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__index);
+var getElement__index = function (types, ElementStub) {
         
-        var CommentStub;
-        CommentStub = function (token) {
-            this.content = token.content;
+        return function (token) {
+            if (this.options.sanitize && this.options.sanitize.elements) {
+                if (this.options.sanitize.elements.indexOf(token.name.toLowerCase()) !== -1) {
+                    return null;
+                }
+            }
+            return new ElementStub(token, this);
         };
-        CommentStub.prototype = {
-            toJSON: function () {
-                return {
-                    t: types.COMMENT,
-                    f: this.content
-                };
+    }(config_types, ElementStub__index);
+var Parser__index = function (getText, getComment, getMustache, getElement, jsonifyStubs) {
+        
+        var Parser;
+        Parser = function (tokens, options) {
+            var stub, stubs;
+            this.tokens = tokens || [];
+            this.pos = 0;
+            this.options = options;
+            this.preserveWhitespace = options.preserveWhitespace;
+            stubs = [];
+            while (stub = this.getStub()) {
+                stubs.push(stub);
+            }
+            this.result = jsonifyStubs(stubs);
+        };
+        Parser.prototype = {
+            getStub: function () {
+                var token = this.next();
+                if (!token) {
+                    return null;
+                }
+                return this.getText(token) || this.getComment(token) || this.getMustache(token) || this.getElement(token);
             },
-            toString: function () {
-                return '<!--' + this.content + '-->';
+            getText: getText,
+            getComment: getComment,
+            getMustache: getMustache,
+            getElement: getElement,
+            next: function () {
+                return this.tokens[this.pos];
             }
         };
-        return CommentStub;
-    }(config_types);
-var utils_getItem = function (types, TextStub, SectionStub, MustacheStub, ElementStub, CommentStub) {
+        return Parser;
+    }(getText__index, getComment__index, getMustache__index, getElement__index, utils_jsonifyStubs);
+var parse_parseTokens = function (Parser) {
         
-        var getItem, getText, getMustache, getElement, getComment;
-        getItem = function (parser, preserveWhitespace) {
-            var next = parser.next();
-            if (!next) {
-                return null;
-            }
-            return getText(parser, next, preserveWhitespace) || getMustache(parser, next, preserveWhitespace) || getElement(parser, next, preserveWhitespace) || getComment(parser, next);
+        return function (tokens, options) {
+            var parser = new Parser(tokens, options);
+            return parser.result;
         };
-        getText = function (parser, next, preserveWhitespace) {
-            if (next.type === types.TEXT) {
-                parser.pos += 1;
-                return new TextStub(next, preserveWhitespace);
-            }
-            return null;
-        };
-        getMustache = function (parser, next, preserveWhitespace) {
-            if (next.type === types.MUSTACHE || next.type === types.TRIPLE) {
-                if (next.mustacheType === types.SECTION || next.mustacheType === types.INVERTED) {
-                    return new SectionStub(next, parser, preserveWhitespace);
-                }
-                return new MustacheStub(next, parser);
-            }
-            return null;
-        };
-        getElement = function (parser, next, preserveWhitespace) {
-            var stub;
-            if (next.type === types.TAG) {
-                stub = new ElementStub(next, parser, preserveWhitespace);
-                if (parser.options.sanitize && parser.options.sanitize.elements) {
-                    if (parser.options.sanitize.elements.indexOf(stub.lcTag) !== -1) {
-                        return null;
-                    }
-                }
-                return stub;
-            }
-            return null;
-        };
-        getComment = function (parser, next) {
-            if (next.type === types.COMMENT) {
-                parser.pos += 1;
-                return new CommentStub(next);
-            }
-            return null;
-        };
-        return getItem;
-    }(config_types, getStub_TextStub, getStub_SectionStub, getStub_MustacheStub, getStub_ElementStub, getStub_CommentStub);
-var getStub_FragmentStub = function (getItem, jsonifyStubs, stringifyStubs) {
-        
-        var FragmentStub = function (parser, preserveWhitespace) {
-            var items, item;
-            items = this.items = [];
-            item = getItem(parser, preserveWhitespace);
-            while (item !== null) {
-                items[items.length] = item;
-                item = getItem(parser, preserveWhitespace);
-            }
-        };
-        FragmentStub.prototype = {
-            toJSON: function (noStringify) {
-                var json;
-                if (this['json_' + noStringify]) {
-                    return this['json_' + noStringify];
-                }
-                json = this['json_' + noStringify] = jsonifyStubs(this.items, noStringify);
-                return json;
-            },
-            toString: function () {
-                if (this.str !== undefined) {
-                    return this.str;
-                }
-                this.str = stringifyStubs(this.items);
-                return this.str;
-            }
-        };
-        return FragmentStub;
-    }(utils_getItem, utils_jsonifyStubs, utils_stringifyStubs);
-var getStub_getFragmentStubFromTokens = function (FragmentStub) {
-        
-        return function (tokens, options, preserveWhitespace) {
-            var parser, stub;
-            parser = {
-                pos: 0,
-                tokens: tokens || [],
-                next: function () {
-                    return parser.tokens[parser.pos];
-                },
-                options: options
-            };
-            stub = new FragmentStub(parser, preserveWhitespace);
-            return stub;
-        };
-    }(getStub_FragmentStub);
-var parse__index = function (tokenize, types, getFragmentStubFromTokens) {
+    }(Parser__index);
+var parse__index = function (tokenize, types, parseTokens) {
         
         var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
         onlyWhitespace = /^\s*$/;
         inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
         inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
         parse = function (template, options) {
-            var tokens, fragmentStub, json, token;
+            var tokens, json, token;
             options = options || {};
             if (inlinePartialStart.test(template)) {
                 return parseCompoundTemplate(template, options);
@@ -4202,8 +4032,7 @@ var parse__index = function (tokenize, types, getFragmentStubFromTokens) {
                     tokens.pop();
                 }
             }
-            fragmentStub = getFragmentStubFromTokens(tokens, options, options.preserveWhitespace);
-            json = fragmentStub.toJSON();
+            json = parseTokens(tokens, options);
             if (typeof json === 'string') {
                 return [json];
             }
@@ -4231,7 +4060,207 @@ var parse__index = function (tokenize, types, getFragmentStubFromTokens) {
             };
         };
         return parse;
-    }(parse_tokenize, config_types, getStub_getFragmentStubFromTokens);
+    }(parse_tokenize, config_types, parse_parseTokens);
+var static_extend = function (errors, create, isClient, isObject, parse) {
+        
+        var extend, Ractive, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
+        loadCircularDependency(function () {
+            (function (dep) {
+                Ractive = dep;
+            }(Ractive__index));
+        });
+        extend = function (childProps) {
+            var Parent = this, Child;
+            Child = function (options) {
+                initChildInstance(this, Child, options || {});
+            };
+            Child.prototype = create(Parent.prototype);
+            if (Parent !== Ractive) {
+                inheritFromParent(Child, Parent);
+            }
+            inheritFromChildProps(Child, childProps);
+            conditionallyParseTemplate(Child);
+            extractInlinePartials(Child, childProps);
+            conditionallyParsePartials(Child);
+            Child.extend = Parent.extend;
+            return Child;
+        };
+        extendable = [
+            'data',
+            'partials',
+            'transitions',
+            'eventDefinitions',
+            'components',
+            'decorators'
+        ];
+        inheritable = [
+            'el',
+            'template',
+            'complete',
+            'modifyArrays',
+            'twoway',
+            'lazy',
+            'append',
+            'preserveWhitespace',
+            'sanitize',
+            'noIntro',
+            'transitionsEnabled'
+        ];
+        blacklist = extendable.concat(inheritable);
+        inheritFromParent = function (Child, Parent) {
+            extendable.forEach(function (property) {
+                if (Parent[property]) {
+                    Child[property] = clone(Parent[property]);
+                }
+            });
+            inheritable.forEach(function (property) {
+                if (Parent[property] !== undefined) {
+                    Child[property] = Parent[property];
+                }
+            });
+        };
+        wrapMethod = function (method, superMethod) {
+            if (/_super/.test(method)) {
+                return function () {
+                    var _super = this._super, result;
+                    this._super = superMethod;
+                    result = method.apply(this, arguments);
+                    this._super = _super;
+                    return result;
+                };
+            } else {
+                return method;
+            }
+        };
+        inheritFromChildProps = function (Child, childProps) {
+            var key, member;
+            extendable.forEach(function (property) {
+                var value = childProps[property];
+                if (value) {
+                    if (Child[property]) {
+                        augment(Child[property], value);
+                    } else {
+                        Child[property] = value;
+                    }
+                }
+            });
+            inheritable.forEach(function (property) {
+                if (childProps[property] !== undefined) {
+                    Child[property] = childProps[property];
+                }
+            });
+            for (key in childProps) {
+                if (childProps.hasOwnProperty(key) && !Child.prototype.hasOwnProperty(key) && blacklist.indexOf(key) === -1) {
+                    member = childProps[key];
+                    if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
+                        Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
+                    } else {
+                        Child.prototype[key] = member;
+                    }
+                }
+            }
+        };
+        conditionallyParseTemplate = function (Child) {
+            var templateEl;
+            if (typeof Child.template === 'string') {
+                if (!parse) {
+                    throw new Error(errors.missingParser);
+                }
+                if (Child.template.charAt(0) === '#' && isClient) {
+                    templateEl = document.getElementById(Child.template.substring(1));
+                    if (templateEl && templateEl.tagName === 'SCRIPT') {
+                        Child.template = parse(templateEl.innerHTML, Child);
+                    } else {
+                        throw new Error('Could not find template element (' + Child.template + ')');
+                    }
+                } else {
+                    Child.template = parse(Child.template, Child);
+                }
+            }
+        };
+        extractInlinePartials = function (Child, childProps) {
+            if (isObject(Child.template)) {
+                if (!Child.partials) {
+                    Child.partials = {};
+                }
+                augment(Child.partials, Child.template.partials);
+                if (childProps.partials) {
+                    augment(Child.partials, childProps.partials);
+                }
+                Child.template = Child.template.main;
+            }
+        };
+        conditionallyParsePartials = function (Child) {
+            var key, partial;
+            if (Child.partials) {
+                for (key in Child.partials) {
+                    if (Child.partials.hasOwnProperty(key)) {
+                        if (typeof Child.partials[key] === 'string') {
+                            if (!parse) {
+                                throw new Error(errors.missingParser);
+                            }
+                            partial = parse(Child.partials[key], Child);
+                        } else {
+                            partial = Child.partials[key];
+                        }
+                        Child.partials[key] = partial;
+                    }
+                }
+            }
+        };
+        initChildInstance = function (child, Child, options) {
+            if (!options.template && Child.template) {
+                options.template = Child.template;
+            }
+            extendable.forEach(function (property) {
+                if (!options[property]) {
+                    if (Child[property]) {
+                        options[property] = clone(Child[property]);
+                    }
+                } else {
+                    fillGaps(options[property], Child[property]);
+                }
+            });
+            inheritable.forEach(function (property) {
+                if (options[property] === undefined && Child[property] !== undefined) {
+                    options[property] = Child[property];
+                }
+            });
+            if (child.beforeInit) {
+                child.beforeInit.call(child, options);
+            }
+            Ractive.call(child, options);
+            if (child.init) {
+                child.init.call(child, options);
+            }
+        };
+        fillGaps = function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+        };
+        clone = function (source) {
+            var target = {}, key;
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+        augment = function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+        };
+        return extend;
+    }(config_errors, utils_create, config_isClient, utils_isObject, parse__index);
 var utils_extend = function () {
         
         return function (target) {

@@ -59,28 +59,7 @@ module.exports = function(grunt) {
 						endFile: 'wrapper/outro.js'
 					}
 				}
-			}/*,
-			parse: {
-				options: {
-					baseUrl: 'src/',
-					name: 'parse/_index',
-					out: 'tmp/parse.js',
-					optimize: 'none',
-					findNestedDependencies: true,
-					onBuildWrite: function( name, path, contents ) {
-						return require( 'amdclean' ).clean( contents );
-					},
-
-					paths: {
-						'Ractive/_index': 'empty:'
-					},
-
-					wrap: {
-						startFile: 'wrapper/parse-intro.js',
-						endFile: 'wrapper/parse-outro.js'
-					}
-				}
-			}*/
+			}
 		},
 		
 		concat: {
