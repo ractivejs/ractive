@@ -100,7 +100,7 @@ define([ 'utils/isArray' ], function ( isArray ) {
 		while ( i-- ) {
 			option = options[i];
 
-			if ( option._ractive.value === value ) {
+			if ( option._ractive.value == value ) {
 				option.selected = true;
 				return this;
 			}
