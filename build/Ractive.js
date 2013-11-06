@@ -4080,7 +4080,10 @@ var extend__extend = function (errors, create, isClient, isObject, parse) {
             'noIntro',
             'transitionsEnabled'
         ];
-        blacklist = extendable.concat(inheritable);
+        blacklist = {};
+        extendable.concat(inheritable).forEach(function (prop) {
+            blacklist[prop] = true;
+        });
         inheritFromParent = function (Child, Parent) {
             extendable.forEach(function (property) {
                 if (Parent[property]) {
@@ -4124,7 +4127,7 @@ var extend__extend = function (errors, create, isClient, isObject, parse) {
                 }
             });
             for (key in childProps) {
-                if (childProps.hasOwnProperty(key) && !Child.prototype.hasOwnProperty(key) && blacklist.indexOf(key) === -1) {
+                if (childProps.hasOwnProperty(key) && !Child.prototype.hasOwnProperty(key) && !blacklist[key]) {
                     member = childProps[key];
                     if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
                         Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
@@ -5258,7 +5261,7 @@ var Element_getElementNamespace = function (namespaces) {
             return descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : parentNode.namespaceURI;
         };
     }(config_namespaces);
-var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, getValueFromCheckboxes) {
+var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, GenericBinding;
         bindAttribute = function () {
@@ -5386,6 +5389,9 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, getValu
             },
             update: function () {
                 var value = this.value();
+                if (isNumeric(value)) {
+                    value = +value;
+                }
                 this.attr.receiving = true;
                 this.attr.value = value;
                 this.root.set(this.keypath, value);
@@ -5535,7 +5541,7 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, getValu
             binding.keypath = attribute.keypath;
         };
         return bindAttribute;
-    }(config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes);
+    }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
 var Attribute_updateAttribute = function (isArray) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateEverythingElse;
@@ -5588,12 +5594,12 @@ var Attribute_updateAttribute = function (isArray) {
         };
         updateSelect = function () {
             var value = this.fragment.getValue(), options, option, i;
-            this.value = value;
+            this.value = this.parentNode._ractive.value = value;
             options = this.parentNode.options;
             i = options.length;
             while (i--) {
                 option = options[i];
-                if (option._ractive.value === value) {
+                if (option._ractive.value == value) {
                     option.selected = true;
                     return this;
                 }
@@ -6548,6 +6554,11 @@ var Element__index = function (types, create, defineProperty, voidElementNames, 
                 if (descriptor.t1) {
                     executeTransition(descriptor.t1, root, this, parentFragment.contextStack, true);
                 }
+                if (this.node.tagName === 'OPTION') {
+                    if (this.node._ractive.value == this.parentNode._ractive.value) {
+                        this.node.selected = true;
+                    }
+                }
             }
         };
         DomElement.prototype = {
@@ -7043,7 +7054,7 @@ var shared_render = function (getElement, makeTransitionManager, processDeferred
             ractive.rendered = true;
         };
     }(utils_getElement, shared_makeTransitionManager, shared_processDeferredUpdates, DomFragment__index);
-var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperties, getElement, isObject, render, magicAdaptor) {
+var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperties, getElement, isObject, render, magicAdaptor, parse) {
         
         var getObject, getArray, defaultOptions, extendable;
         getObject = function () {
@@ -7116,9 +7127,10 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             'components',
             'decorators',
             'events',
+            'partials',
             'transitions'
         ];
-        return function (ractive, options, Ractive) {
+        return function (ractive, options) {
             var key, template, templateEl, parsedTemplate;
             for (key in defaultOptions) {
                 if (options[key] === undefined) {
@@ -7176,27 +7188,26 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 options.events = options.eventDefinitions;
             }
             extendable.forEach(function (registry) {
-                ractive[registry] = extend(create(Ractive[registry]), options[registry]);
+                ractive[registry] = extend(create(ractive.constructor[registry]), options[registry]);
             });
             template = options.template;
             if (typeof template === 'string') {
-                if (!Ractive.parse) {
+                if (!parse) {
                     throw new Error(errors.missingParser);
                 }
                 if (template.charAt(0) === '#' && isClient) {
                     templateEl = document.getElementById(template.substring(1));
                     if (templateEl) {
-                        parsedTemplate = Ractive.parse(templateEl.innerHTML, options);
+                        parsedTemplate = parse(templateEl.innerHTML, options);
                     } else {
                         throw new Error('Could not find template element (' + template + ')');
                     }
                 } else {
-                    parsedTemplate = Ractive.parse(template, options);
+                    parsedTemplate = parse(template, options);
                 }
             } else {
                 parsedTemplate = template;
             }
-            ractive.partials = create(Ractive.partials);
             if (isObject(parsedTemplate)) {
                 extend(ractive.partials, parsedTemplate.partials);
                 parsedTemplate = parsedTemplate.main;
@@ -7218,13 +7229,14 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             });
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, shared_render, get_magicAdaptor);
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, shared_render, get_magicAdaptor, parse__index);
 var Ractive__index = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise) {
         
         var Ractive = function (options) {
-            initialise(this, options, Ractive);
+            initialise(this, options);
         };
         Ractive.prototype = prototype;
+        Ractive.prototype.constructor = Ractive;
         Ractive.partials = partialRegistry;
         Ractive.delimiters = [
             '{{',
