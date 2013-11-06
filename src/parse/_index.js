@@ -27,11 +27,11 @@
 define([
 	'parse/tokenize',
 	'config/types',
-	'parse/parseTokens'
+	'parse/Parser/_index'
 ], function (
 	tokenize,
 	types,
-	parseTokens
+	Parser
 ) {
 
 	'use strict';
@@ -78,9 +78,7 @@ define([
 			}
 		}
 		
-		json = parseTokens( tokens, options );
-		
-		//json = fragmentStub.toJSON();
+		json = new Parser( tokens, options ).result;
 
 		if ( typeof json === 'string' ) {
 			// If we return it as a string, Ractive will attempt to reparse it!

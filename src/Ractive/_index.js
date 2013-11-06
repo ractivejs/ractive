@@ -3,21 +3,19 @@ define([
 	'utils/defineProperties',
 	'Ractive/prototype/_index',
 	'registries/partials',
-	'Ractive/static/easing',
-	'Ractive/static/extend',
-	'Ractive/static/interpolate',
-	'Ractive/static/interpolators',
+	'registries/adaptors',
+	'registries/easing',
+	'extend/_extend',
 	'parse/_index',
 	'Ractive/initialise'
 ], function (
 	create,
 	defineProperties,
 	prototype,
-	partials,
-	easing,
+	partialRegistry,
+	adaptorRegistry,
+	easingRegistry,
 	Ractive_extend,
-	interpolate,
-	interpolators,
 	parse,
 	initialise
 ) {
@@ -31,23 +29,21 @@ define([
 	// Prototype methods
 	Ractive.prototype = prototype;
 
-	// Shared properties
-	Ractive.partials = partials;
+	// Shared properties - TODO make these read-only
+	Ractive.partials = partialRegistry;
 	Ractive.delimiters = [ '{{', '}}' ];
 	Ractive.tripleDelimiters = [ '{{{', '}}}' ];
 
 	// Plugins
-	Ractive.adaptors = {};
+	Ractive.adaptors = adaptorRegistry;
 	Ractive.transitions = {};
 	Ractive.events = Ractive.eventDefinitions = {};
-	Ractive.easing = easing;
+	Ractive.easing = easingRegistry;
 	Ractive.components = {};
 	Ractive.decorators = {};
 
 	// Static methods
 	Ractive.extend = Ractive_extend;
-	Ractive.interpolate = interpolate;
-	Ractive.interpolators = interpolators;
 	Ractive.parse = parse;
 
 	Ractive.VERSION = '<%= version %>';

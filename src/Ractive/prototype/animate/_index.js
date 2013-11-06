@@ -1,33 +1,25 @@
 define([
 	'utils/isEqual',
 	'Ractive/prototype/animate/animationCollection',
-	'Ractive/prototype/animate/Animation'
+	'Ractive/prototype/animate/Animation',
+	'registries/easing'
 ],
 
 function (
 	isEqual,
 	animationCollection,
-	Animation
+	Animation,
+	easingRegistry
 ) {
 
 	'use strict';
 
 	var animate,
 
-		// dependencies
-		Ractive,
-
 		// helpers
 		_animate,
 		noAnimation;
 
-
-	loadCircularDependency( function () {
-		// circular...
-		require([ 'Ractive/_index' ], function ( dep ) {
-			Ractive = dep;
-		});
-	});
 
 	animate = function ( keypath, to, options ) {
 		
@@ -172,7 +164,7 @@ function (
 					easing = root.easing[ options.easing ];
 				} else {
 					// fallback to global easing functions
-					easing = Ractive.easing[ options.easing ];
+					easing = easingRegistry[ options.easing ];
 				}
 			}
 

@@ -1,9 +1,11 @@
 define([
 	'utils/normaliseKeypath',
+	'registries/adaptors',
 	'Ractive/prototype/get/arrayAdaptor',
 	'Ractive/prototype/get/magicAdaptor'
 ], function (
 	normaliseKeypath,
+	adaptorRegistry,
 	arrayAdaptor,
 	magicAdaptor
 ) {
@@ -11,9 +13,6 @@ define([
 	'use strict';
 
 	var get,
-
-		// dependencies
-		Ractive,
 
 		// helpers
 		_get,
@@ -23,13 +22,6 @@ define([
 		prefixers = {},
 		adaptIfNecessary;
 
-
-	loadCircularDependency( function () {
-		// circular
-		require([ 'Ractive/_index' ], function ( dep ) {
-			Ractive = dep;
-		});
-	});
 
 	// all the logic sits in a private function, so we can do _get even when
 	// ractive.get() has been overridden (i.e. by an evaluator, to do intercepts)
@@ -187,10 +179,10 @@ define([
 			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
 			// we need to get the actual adaptor if that's the case
 			if ( typeof adaptor === 'string' ) {
-				if ( !Ractive.adaptors[ adaptor ] ) {
+				if ( !adaptorRegistry[ adaptor ] ) {
 					throw new Error( 'Missing adaptor "' + adaptor + '"' );
 				}
-				adaptor = ractive.adaptors[i] = Ractive.adaptors[ adaptor ];
+				adaptor = ractive.adaptors[i] = adaptorRegistry[ adaptor ];
 			}
 
 			if ( adaptor.filter( value, keypath, ractive ) ) {

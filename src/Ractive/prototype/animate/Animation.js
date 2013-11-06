@@ -1,6 +1,6 @@
 define([
 	'utils/warn',
-	'Ractive/static/interpolate'
+	'shared/interpolate'
 ], function (
 	warn,
 	interpolate

@@ -137,6 +137,7 @@ var utils_normaliseKeypath = function () {
             return keypath.replace(pattern, '.$1');
         };
     }();
+var registries_adaptors = {};
 var config_types = {
         TEXT: 1,
         INTERPOLATOR: 2,
@@ -642,14 +643,9 @@ var get_magicAdaptor = function () {
         };
         return magicAdaptor;
     }();
-var get__index = function (normaliseKeypath, arrayAdaptor, magicAdaptor) {
+var get__index = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
         
-        var get, Ractive, _get, retrieve, prefix, getPrefixer, prefixers = {}, adaptIfNecessary;
-        loadCircularDependency(function () {
-            (function (dep) {
-                Ractive = dep;
-            }(Ractive__index));
-        });
+        var get, _get, retrieve, prefix, getPrefixer, prefixers = {}, adaptIfNecessary;
         get = function (keypath) {
             return _get(this, keypath);
         };
@@ -744,10 +740,10 @@ var get__index = function (normaliseKeypath, arrayAdaptor, magicAdaptor) {
             while (i--) {
                 adaptor = ractive.adaptors[i];
                 if (typeof adaptor === 'string') {
-                    if (!Ractive.adaptors[adaptor]) {
+                    if (!adaptorRegistry[adaptor]) {
                         throw new Error('Missing adaptor "' + adaptor + '"');
                     }
-                    adaptor = ractive.adaptors[i] = Ractive.adaptors[adaptor];
+                    adaptor = ractive.adaptors[i] = adaptorRegistry[adaptor];
                 }
                 if (adaptor.filter(value, keypath, ractive)) {
                     wrapped = ractive._wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
@@ -757,7 +753,7 @@ var get__index = function (normaliseKeypath, arrayAdaptor, magicAdaptor) {
             }
         };
         return get;
-    }(utils_normaliseKeypath, get_arrayAdaptor, get_magicAdaptor);
+    }(utils_normaliseKeypath, registries_adaptors, get_arrayAdaptor, get_magicAdaptor);
 var utils_isObject = function () {
         
         var toString = Object.prototype.toString;
@@ -1163,96 +1159,86 @@ var utils_isNumeric = function () {
             return !isNaN(parseFloat(thing)) && isFinite(thing);
         };
     }();
-var static_interpolators = function () {
+var shared_interpolate = function (isArray, isObject, isNumeric) {
         
-        var interpolate;
-        loadCircularDependency(function () {
-            (function (dep) {
-                interpolate = dep;
-            }(static_interpolate));
-        });
-        return {
-            number: function (from, to) {
-                var delta = to - from;
-                if (!delta) {
-                    return function () {
-                        return from;
-                    };
-                }
-                return function (t) {
-                    return from + t * delta;
-                };
-            },
-            array: function (from, to) {
-                var intermediate, interpolators, len, i;
-                intermediate = [];
-                interpolators = [];
-                i = len = Math.min(from.length, to.length);
-                while (i--) {
-                    interpolators[i] = interpolate(from[i], to[i]);
-                }
-                for (i = len; i < from.length; i += 1) {
-                    intermediate[i] = from[i];
-                }
-                for (i = len; i < to.length; i += 1) {
-                    intermediate[i] = to[i];
-                }
-                return function (t) {
-                    var i = len;
-                    while (i--) {
-                        intermediate[i] = interpolators[i](t);
-                    }
-                    return intermediate;
-                };
-            },
-            object: function (from, to) {
-                var properties = [], len, interpolators, intermediate, prop;
-                intermediate = {};
-                interpolators = {};
-                for (prop in from) {
-                    if (from.hasOwnProperty(prop)) {
-                        if (to.hasOwnProperty(prop)) {
-                            properties[properties.length] = prop;
-                            interpolators[prop] = interpolate(from[prop], to[prop]);
-                        } else {
-                            intermediate[prop] = from[prop];
-                        }
-                    }
-                }
-                for (prop in to) {
-                    if (to.hasOwnProperty(prop) && !from.hasOwnProperty(prop)) {
-                        intermediate[prop] = to[prop];
-                    }
-                }
-                len = properties.length;
-                return function (t) {
-                    var i = len, prop;
-                    while (i--) {
-                        prop = properties[i];
-                        intermediate[prop] = interpolators[prop](t);
-                    }
-                    return intermediate;
-                };
-            }
-        };
-    }();
-var static_interpolate = function (isArray, isObject, isNumeric, interpolators) {
-        
-        return function (from, to) {
+        var interpolate = function (from, to) {
             if (isNumeric(from) && isNumeric(to)) {
-                return interpolators.number(+from, +to);
+                return makeNumberInterpolator(+from, +to);
             }
             if (isArray(from) && isArray(to)) {
-                return interpolators.array(from, to);
+                return makeArrayInterpolator(from, to);
             }
             if (isObject(from) && isObject(to)) {
-                return interpolators.object(from, to);
+                return makeObjectInterpolator(from, to);
             }
             return function () {
                 return to;
             };
         };
-    }(utils_isArray, utils_isObject, utils_isNumeric, static_interpolators);
+        return interpolate;
+        function makeNumberInterpolator(from, to) {
+            var delta = to - from;
+            if (!delta) {
+                return function () {
+                    return from;
+                };
+            }
+            return function (t) {
+                return from + t * delta;
+            };
+        }
+        function makeArrayInterpolator(from, to) {
+            var intermediate, interpolators, len, i;
+            intermediate = [];
+            interpolators = [];
+            i = len = Math.min(from.length, to.length);
+            while (i--) {
+                interpolators[i] = interpolate(from[i], to[i]);
+            }
+            for (i = len; i < from.length; i += 1) {
+                intermediate[i] = from[i];
+            }
+            for (i = len; i < to.length; i += 1) {
+                intermediate[i] = to[i];
+            }
+            return function (t) {
+                var i = len;
+                while (i--) {
+                    intermediate[i] = interpolators[i](t);
+                }
+                return intermediate;
+            };
+        }
+        function makeObjectInterpolator(from, to) {
+            var properties = [], len, interpolators, intermediate, prop;
+            intermediate = {};
+            interpolators = {};
+            for (prop in from) {
+                if (from.hasOwnProperty(prop)) {
+                    if (to.hasOwnProperty(prop)) {
+                        properties[properties.length] = prop;
+                        interpolators[prop] = interpolate(from[prop], to[prop]);
+                    } else {
+                        intermediate[prop] = from[prop];
+                    }
+                }
+            }
+            for (prop in to) {
+                if (to.hasOwnProperty(prop) && !from.hasOwnProperty(prop)) {
+                    intermediate[prop] = to[prop];
+                }
+            }
+            len = properties.length;
+            return function (t) {
+                var i = len, prop;
+                while (i--) {
+                    prop = properties[i];
+                    intermediate[prop] = interpolators[prop](t);
+                }
+                return intermediate;
+            };
+        }
+    }(utils_isArray, utils_isObject, utils_isNumeric);
 var animate_Animation = function (warn, interpolate) {
         
         var Animation = function (options) {
@@ -1314,15 +1300,30 @@ var animate_Animation = function (warn, interpolate) {
             }
         };
         return Animation;
-    }(utils_warn, static_interpolate);
-var animate__index = function (isEqual, animationCollection, Animation) {
+    }(utils_warn, shared_interpolate);
+var registries_easing = function () {
         
-        var animate, Ractive, _animate, noAnimation;
-        loadCircularDependency(function () {
-            (function (dep) {
-                Ractive = dep;
-            }(Ractive__index));
-        });
+        return {
+            linear: function (pos) {
+                return pos;
+            },
+            easeIn: function (pos) {
+                return Math.pow(pos, 3);
+            },
+            easeOut: function (pos) {
+                return Math.pow(pos - 1, 3) + 1;
+            },
+            easeInOut: function (pos) {
+                if ((pos /= 0.5) < 1) {
+                    return 0.5 * Math.pow(pos, 3);
+                }
+                return 0.5 * (Math.pow(pos - 2, 3) + 2);
+            }
+        };
+    }();
+var animate__index = function (isEqual, animationCollection, Animation, easingRegistry) {
+        
+        var animate, _animate, noAnimation;
         animate = function (keypath, to, options) {
             var k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
             if (typeof keypath === 'object') {
@@ -1425,7 +1426,7 @@ var animate__index = function (isEqual, animationCollection, Animation) {
                     if (root.easing && root.easing[options.easing]) {
                         easing = root.easing[options.easing];
                     } else {
-                        easing = Ractive.easing[options.easing];
+                        easing = easingRegistry[options.easing];
                     }
                 }
                 if (typeof easing !== 'function') {
@@ -1447,7 +1448,7 @@ var animate__index = function (isEqual, animationCollection, Animation) {
             root._animations[root._animations.length] = animation;
             return animation;
         };
-    }(utils_isEqual, animate_animationCollection, animate_Animation);
+    }(utils_isEqual, animate_animationCollection, animate_Animation, registries_easing);
 var prototype_on = function () {
         
         return function (eventName, callback) {
@@ -1708,26 +1709,6 @@ var prototype__index = function (get, set, update, updateModel, animate, on, off
         };
     }(get__index, prototype_set, prototype_update, prototype_updateModel, animate__index, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_renderHTML, prototype_teardown);
 var registries_partials = {};
-var static_easing = function () {
-        
-        return {
-            linear: function (pos) {
-                return pos;
-            },
-            easeIn: function (pos) {
-                return Math.pow(pos, 3);
-            },
-            easeOut: function (pos) {
-                return Math.pow(pos - 1, 3) + 1;
-            },
-            easeInOut: function (pos) {
-                if ((pos /= 0.5) < 1) {
-                    return 0.5 * Math.pow(pos, 3);
-                }
-                return 0.5 * (Math.pow(pos - 2, 3) + 2);
-            }
-        };
-    }();
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var utils_stripHtmlComments = function () {
         
@@ -3996,14 +3977,7 @@ var Parser__index = function (getText, getComment, getMustache, getElement, json
         };
         return Parser;
     }(getText__index, getComment__index, getMustache__index, getElement__index, utils_jsonifyStubs);
-var parse_parseTokens = function (Parser) {
-        
-        return function (tokens, options) {
-            var parser = new Parser(tokens, options);
-            return parser.result;
-        };
-    }(Parser__index);
-var parse__index = function (tokenize, types, parseTokens) {
+var parse__index = function (tokenize, types, Parser) {
         
         var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
         onlyWhitespace = /^\s*$/;
@@ -4032,7 +4006,7 @@ var parse__index = function (tokenize, types, parseTokens) {
                     tokens.pop();
                 }
             }
-            json = parseTokens(tokens, options);
+            json = new Parser(tokens, options).result;
             if (typeof json === 'string') {
                 return [json];
             }
@@ -4060,8 +4034,8 @@ var parse__index = function (tokenize, types, parseTokens) {
             };
         };
         return parse;
-    }(parse_tokenize, config_types, parse_parseTokens);
-var static_extend = function (errors, create, isClient, isObject, parse) {
+    }(parse_tokenize, config_types, Parser__index);
+var extend__extend = function (errors, create, isClient, isObject, parse) {
         
         var extend, Ractive, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
         loadCircularDependency(function () {
@@ -7245,13 +7219,13 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
     }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, shared_render, get_magicAdaptor);
-var Ractive__index = function (create, defineProperties, prototype, partials, easing, Ractive_extend, interpolate, interpolators, parse, initialise) {
+var Ractive__index = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise) {
         
         var Ractive = function (options) {
             initialise(this, options, Ractive);
         };
         Ractive.prototype = prototype;
-        Ractive.partials = partials;
+        Ractive.partials = partialRegistry;
         Ractive.delimiters = [
             '{{',
             '}}'
@@ -7260,19 +7234,17 @@ var Ractive__index = function (create, defineProperties, prototype, partials, ea
             '{{{',
             '}}}'
         ];
-        Ractive.adaptors = {};
+        Ractive.adaptors = adaptorRegistry;
         Ractive.transitions = {};
         Ractive.events = Ractive.eventDefinitions = {};
-        Ractive.easing = easing;
+        Ractive.easing = easingRegistry;
         Ractive.components = {};
         Ractive.decorators = {};
         Ractive.extend = Ractive_extend;
-        Ractive.interpolate = interpolate;
-        Ractive.interpolators = interpolators;
         Ractive.parse = parse;
         Ractive.VERSION = '0.3.8-pre';
         return Ractive;
-    }(utils_create, utils_defineProperties, prototype__index, registries_partials, static_easing, static_extend, static_interpolate, static_interpolators, parse__index, Ractive_initialise);
+    }(utils_create, utils_defineProperties, prototype__index, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__index, Ractive_initialise);
 var Ractive = function (Ractive) {
         
         return Ractive;
