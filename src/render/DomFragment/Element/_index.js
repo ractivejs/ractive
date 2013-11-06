@@ -134,6 +134,14 @@ define([
 			if ( descriptor.t1 ) {
 				executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
 			}
+
+			// Special case... a select may have had its value set before a matching
+			// option was rendered. This might be that option element
+			if ( this.node.tagName === 'OPTION' ) {
+				if ( this.node._ractive.value == this.parentNode._ractive.value ) {
+					this.node.selected = true;
+				}
+			}
 		}
 	};
 

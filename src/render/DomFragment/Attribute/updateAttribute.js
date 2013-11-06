@@ -92,7 +92,7 @@ define([ 'utils/isArray' ], function ( isArray ) {
 	updateSelect = function () {
 		var value = this.fragment.getValue(), options, option, i;
 
-		this.value = value;
+		this.value = this.parentNode._ractive.value = value;
 
 		options = this.parentNode.options;
 		i = options.length;
@@ -100,7 +100,7 @@ define([ 'utils/isArray' ], function ( isArray ) {
 		while ( i-- ) {
 			option = options[i];
 
-			if ( option._ractive.value == value ) {
+			if ( option._ractive.value == value ) { // double equals as we may be comparing numbers with strings
 				option.selected = true;
 				return this;
 			}
