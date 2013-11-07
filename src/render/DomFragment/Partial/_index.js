@@ -23,6 +23,7 @@ define([
 
 		this.type = types.PARTIAL;
 		this.name = options.descriptor.r;
+		this.index = options.index;
 
 		descriptor = getPartialDescriptor( parentFragment.root, options.descriptor.r );
 
