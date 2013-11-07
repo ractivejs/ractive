@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-06
+	Ractive - v0.3.8-pre - 2013-11-07
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -2003,7 +2003,57 @@ var prototype_teardown = function (makeTransitionManager, clearCache) {
             transitionManager.ready();
         };
     }(shared_makeTransitionManager, shared_clearCache);
-var prototype__index = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, renderHTML, teardown) {
+var shared_add = function (require, utils_isNumeric) {
+        
+        var isNumeric = utils_isNumeric;
+        return function (root, keypath, d) {
+            var value;
+            if (typeof keypath !== 'string' || !isNumeric(d)) {
+                if (root.debug) {
+                    throw new Error('Bad arguments');
+                }
+                return;
+            }
+            value = root.get(keypath);
+            if (value === undefined) {
+                value = 0;
+            }
+            if (!isNumeric(value)) {
+                if (root.debug) {
+                    throw new Error('Cannot add to a non-numeric value');
+                }
+                return;
+            }
+            root.set(keypath, value + d);
+        };
+    }({}, utils_isNumeric);
+var prototype_add = function (add) {
+        
+        return function (keypath, d) {
+            add(this, keypath, d === undefined ? 1 : d);
+        };
+    }(shared_add);
+var prototype_subtract = function (add) {
+        
+        return function (keypath, d) {
+            add(this, keypath, d === undefined ? -1 : -d);
+        };
+    }(shared_add);
+var prototype_toggle = function () {
+        
+        return function (keypath) {
+            var value;
+            if (typeof keypath !== 'string') {
+                if (this.debug) {
+                    throw new Error('Bad arguments');
+                }
+                return;
+            }
+            value = this.get(keypath);
+            this.set(keypath, !value);
+        };
+    }();
+var prototype__index = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, renderHTML, teardown, add, subtract, toggle) {
         
         return {
             get: get,
@@ -2017,9 +2067,12 @@ var prototype__index = function (get, set, update, updateModel, animate, on, off
             find: find,
             findAll: findAll,
             renderHTML: renderHTML,
-            teardown: teardown
+            teardown: teardown,
+            add: add,
+            subtract: subtract,
+            toggle: toggle
         };
-    }(get__index, prototype_set, prototype_update, prototype_updateModel, animate__index, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_renderHTML, prototype_teardown);
+    }(get__index, prototype_set, prototype_update, prototype_updateModel, animate__index, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle);
 var registries_partials = {};
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var utils_stripHtmlComments = function () {
@@ -4347,209 +4400,6 @@ var parse__index = function (tokenize, types, Parser) {
         };
         return parse;
     }(parse_tokenize, config_types, Parser__index);
-var extend__extend = function (errors, create, isClient, isObject, parse) {
-        
-        var extend, Ractive, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
-        loadCircularDependency(function () {
-            (function (dep) {
-                Ractive = dep;
-            }(Ractive__index));
-        });
-        extend = function (childProps) {
-            var Parent = this, Child;
-            Child = function (options) {
-                initChildInstance(this, Child, options || {});
-            };
-            Child.prototype = create(Parent.prototype);
-            if (Parent !== Ractive) {
-                inheritFromParent(Child, Parent);
-            }
-            inheritFromChildProps(Child, childProps);
-            conditionallyParseTemplate(Child);
-            extractInlinePartials(Child, childProps);
-            conditionallyParsePartials(Child);
-            Child.extend = Parent.extend;
-            return Child;
-        };
-        extendable = [
-            'data',
-            'partials',
-            'transitions',
-            'eventDefinitions',
-            'components',
-            'decorators'
-        ];
-        inheritable = [
-            'el',
-            'template',
-            'complete',
-            'modifyArrays',
-            'twoway',
-            'lazy',
-            'append',
-            'preserveWhitespace',
-            'sanitize',
-            'noIntro',
-            'transitionsEnabled'
-        ];
-        blacklist = {};
-        extendable.concat(inheritable).forEach(function (prop) {
-            blacklist[prop] = true;
-        });
-        inheritFromParent = function (Child, Parent) {
-            extendable.forEach(function (property) {
-                if (Parent[property]) {
-                    Child[property] = clone(Parent[property]);
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (Parent[property] !== undefined) {
-                    Child[property] = Parent[property];
-                }
-            });
-        };
-        wrapMethod = function (method, superMethod) {
-            if (/_super/.test(method)) {
-                return function () {
-                    var _super = this._super, result;
-                    this._super = superMethod;
-                    result = method.apply(this, arguments);
-                    this._super = _super;
-                    return result;
-                };
-            } else {
-                return method;
-            }
-        };
-        inheritFromChildProps = function (Child, childProps) {
-            var key, member;
-            extendable.forEach(function (property) {
-                var value = childProps[property];
-                if (value) {
-                    if (Child[property]) {
-                        augment(Child[property], value);
-                    } else {
-                        Child[property] = value;
-                    }
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (childProps[property] !== undefined) {
-                    Child[property] = childProps[property];
-                }
-            });
-            for (key in childProps) {
-                if (childProps.hasOwnProperty(key) && !Child.prototype.hasOwnProperty(key) && !blacklist[key]) {
-                    member = childProps[key];
-                    if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
-                        Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
-                    } else {
-                        Child.prototype[key] = member;
-                    }
-                }
-            }
-        };
-        conditionallyParseTemplate = function (Child) {
-            var templateEl;
-            if (typeof Child.template === 'string') {
-                if (!parse) {
-                    throw new Error(errors.missingParser);
-                }
-                if (Child.template.charAt(0) === '#' && isClient) {
-                    templateEl = document.getElementById(Child.template.substring(1));
-                    if (templateEl && templateEl.tagName === 'SCRIPT') {
-                        Child.template = parse(templateEl.innerHTML, Child);
-                    } else {
-                        throw new Error('Could not find template element (' + Child.template + ')');
-                    }
-                } else {
-                    Child.template = parse(Child.template, Child);
-                }
-            }
-        };
-        extractInlinePartials = function (Child, childProps) {
-            if (isObject(Child.template)) {
-                if (!Child.partials) {
-                    Child.partials = {};
-                }
-                augment(Child.partials, Child.template.partials);
-                if (childProps.partials) {
-                    augment(Child.partials, childProps.partials);
-                }
-                Child.template = Child.template.main;
-            }
-        };
-        conditionallyParsePartials = function (Child) {
-            var key, partial;
-            if (Child.partials) {
-                for (key in Child.partials) {
-                    if (Child.partials.hasOwnProperty(key)) {
-                        if (typeof Child.partials[key] === 'string') {
-                            if (!parse) {
-                                throw new Error(errors.missingParser);
-                            }
-                            partial = parse(Child.partials[key], Child);
-                        } else {
-                            partial = Child.partials[key];
-                        }
-                        Child.partials[key] = partial;
-                    }
-                }
-            }
-        };
-        initChildInstance = function (child, Child, options) {
-            if (!options.template && Child.template) {
-                options.template = Child.template;
-            }
-            extendable.forEach(function (property) {
-                if (!options[property]) {
-                    if (Child[property]) {
-                        options[property] = clone(Child[property]);
-                    }
-                } else {
-                    fillGaps(options[property], Child[property]);
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (options[property] === undefined && Child[property] !== undefined) {
-                    options[property] = Child[property];
-                }
-            });
-            if (child.beforeInit) {
-                child.beforeInit.call(child, options);
-            }
-            Ractive.call(child, options);
-            if (child.init) {
-                child.init.call(child, options);
-            }
-        };
-        fillGaps = function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-        };
-        clone = function (source) {
-            var target = {}, key;
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-            return target;
-        };
-        augment = function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-        };
-        return extend;
-    }(config_errors, utils_create, config_isClient, utils_isObject, parse__index);
 var utils_extend = function () {
         
         return function (target) {
@@ -5090,13 +4940,7 @@ var DomFragment_Interpolator = function (types, teardown, initMustache, resolveM
     }(config_types, shared_teardown, shared_initMustache, shared_resolveMustache, shared_updateMustache);
 var shared_updateSection = function (isArray, isObject, create) {
         
-        var updateSection, DomFragment, updateListSection, updateListObjectSection, updateContextSection, updateConditionalSection;
-        loadCircularDependency(function () {
-            (function (dep) {
-                DomFragment = dep;
-            }(DomFragment__index));
-        });
-        updateSection = function (section, value) {
+        return function (section, value) {
             var fragmentOptions;
             fragmentOptions = {
                 descriptor: section.descriptor.f,
@@ -5120,7 +4964,7 @@ var shared_updateSection = function (isArray, isObject, create) {
                 updateConditionalSection(section, value, false, fragmentOptions);
             }
         };
-        updateListSection = function (section, value, fragmentOptions) {
+        function updateListSection(section, value, fragmentOptions) {
             var i, length, fragmentsToRemove;
             length = value.length;
             if (length < section.length) {
@@ -5141,8 +4985,8 @@ var shared_updateSection = function (isArray, isObject, create) {
                 }
             }
             section.length = length;
-        };
-        updateListObjectSection = function (section, value, fragmentOptions) {
+        }
+        function updateListObjectSection(section, value, fragmentOptions) {
             var id, fragmentsById;
             fragmentsById = section.fragmentsById || (section.fragmentsById = create(null));
             for (id in fragmentsById) {
@@ -5161,16 +5005,16 @@ var shared_updateSection = function (isArray, isObject, create) {
                     fragmentsById[id] = section.createFragment(fragmentOptions);
                 }
             }
-        };
-        updateContextSection = function (section, fragmentOptions) {
+        }
+        function updateContextSection(section, fragmentOptions) {
             if (!section.length) {
                 fragmentOptions.contextStack = section.contextStack.concat(section.keypath);
                 fragmentOptions.index = 0;
                 section.fragments[0] = section.createFragment(fragmentOptions);
                 section.length = 1;
             }
-        };
-        updateConditionalSection = function (section, value, inverted, fragmentOptions) {
+        }
+        function updateConditionalSection(section, value, inverted, fragmentOptions) {
             var doRender, emptyArray, fragmentsToRemove;
             emptyArray = isArray(value) && value.length === 0;
             if (inverted) {
@@ -5195,8 +5039,7 @@ var shared_updateSection = function (isArray, isObject, create) {
                 section.teardownFragments(true);
                 section.length = 0;
             }
-        };
-        return updateSection;
+        }
     }(utils_isArray, utils_isObject, utils_create);
 var shared_reassignFragments = function (types, unregisterDependant, processDeferredUpdates, ExpressionResolver) {
         
@@ -7013,6 +6856,7 @@ var Partial__index = function (require, types, getPartialDescriptor) {
             var parentFragment = this.parentFragment = options.parentFragment, descriptor;
             this.type = types.PARTIAL;
             this.name = options.descriptor.r;
+            this.index = options.index;
             descriptor = getPartialDescriptor(parentFragment.root, options.descriptor.r);
             this.fragment = new DomFragment({
                 descriptor: descriptor,
@@ -7055,6 +6899,7 @@ var Component__index = function (types, resolveRef, getComponentConstructor, Str
             root = parentFragment.root;
             this.type = types.COMPONENT;
             this.name = options.descriptor.r;
+            this.index = options.index;
             Component = getComponentConstructor(parentFragment.root, options.descriptor.e);
             if (!Component) {
                 throw new Error('Component "' + options.descriptor.e + '" not found');
@@ -7110,6 +6955,7 @@ var Component__index = function (types, resolveRef, getComponentConstructor, Str
                 data: data,
                 partials: partials
             });
+            instance.component = this;
             while (instance.el.firstChild) {
                 docFrag.appendChild(instance.el.firstChild);
             }
@@ -7316,7 +7162,10 @@ var DomFragment__index = function (types, initFragment, insertHtml, Text, Interp
                     return this.items[index + 1].firstNode();
                 }
                 if (this.owner === this.root) {
-                    return null;
+                    if (!this.owner.component) {
+                        return null;
+                    }
+                    return this.owner.component.findNextNode();
                 }
                 return this.owner.findNextNode(this);
             },
@@ -7542,6 +7391,204 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
     }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, shared_render, get_magicAdaptor, parse__index);
+var extend__extend = function (errors, create, isClient, isObject, parse, initialise, adaptorRegistry) {
+        
+        var extend, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
+        extend = function (childProps) {
+            var Parent = this, Child;
+            Child = function (options) {
+                initChildInstance(this, Child, options || {});
+            };
+            Child.prototype = create(Parent.prototype);
+            if (Parent.adaptors !== adaptorRegistry) {
+                inheritFromParent(Child, Parent);
+            }
+            inheritFromChildProps(Child, childProps);
+            conditionallyParseTemplate(Child);
+            extractInlinePartials(Child, childProps);
+            conditionallyParsePartials(Child);
+            Child.extend = Parent.extend;
+            return Child;
+        };
+        extendable = [
+            'data',
+            'partials',
+            'transitions',
+            'eventDefinitions',
+            'components',
+            'decorators'
+        ];
+        inheritable = [
+            'el',
+            'template',
+            'complete',
+            'modifyArrays',
+            'twoway',
+            'lazy',
+            'append',
+            'preserveWhitespace',
+            'sanitize',
+            'noIntro',
+            'transitionsEnabled'
+        ];
+        blacklist = {};
+        extendable.concat(inheritable).forEach(function (prop) {
+            blacklist[prop] = true;
+        });
+        inheritFromParent = function (Child, Parent) {
+            extendable.forEach(function (property) {
+                if (Parent[property]) {
+                    Child[property] = clone(Parent[property]);
+                }
+            });
+            inheritable.forEach(function (property) {
+                if (Parent[property] !== undefined) {
+                    Child[property] = Parent[property];
+                }
+            });
+        };
+        wrapMethod = function (method, superMethod) {
+            if (/_super/.test(method)) {
+                return function () {
+                    var _super = this._super, result;
+                    this._super = superMethod;
+                    result = method.apply(this, arguments);
+                    this._super = _super;
+                    return result;
+                };
+            } else {
+                return method;
+            }
+        };
+        inheritFromChildProps = function (Child, childProps) {
+            var key, member;
+            extendable.forEach(function (property) {
+                var value = childProps[property];
+                if (value) {
+                    if (Child[property]) {
+                        augment(Child[property], value);
+                    } else {
+                        Child[property] = value;
+                    }
+                }
+            });
+            inheritable.forEach(function (property) {
+                if (childProps[property] !== undefined) {
+                    Child[property] = childProps[property];
+                }
+            });
+            for (key in childProps) {
+                if (childProps.hasOwnProperty(key) && !Child.prototype.hasOwnProperty(key) && !blacklist[key]) {
+                    member = childProps[key];
+                    if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
+                        Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
+                    } else {
+                        Child.prototype[key] = member;
+                    }
+                }
+            }
+        };
+        conditionallyParseTemplate = function (Child) {
+            var templateEl;
+            if (typeof Child.template === 'string') {
+                if (!parse) {
+                    throw new Error(errors.missingParser);
+                }
+                if (Child.template.charAt(0) === '#' && isClient) {
+                    templateEl = document.getElementById(Child.template.substring(1));
+                    if (templateEl && templateEl.tagName === 'SCRIPT') {
+                        Child.template = parse(templateEl.innerHTML, Child);
+                    } else {
+                        throw new Error('Could not find template element (' + Child.template + ')');
+                    }
+                } else {
+                    Child.template = parse(Child.template, Child);
+                }
+            }
+        };
+        extractInlinePartials = function (Child, childProps) {
+            if (isObject(Child.template)) {
+                if (!Child.partials) {
+                    Child.partials = {};
+                }
+                augment(Child.partials, Child.template.partials);
+                if (childProps.partials) {
+                    augment(Child.partials, childProps.partials);
+                }
+                Child.template = Child.template.main;
+            }
+        };
+        conditionallyParsePartials = function (Child) {
+            var key, partial;
+            if (Child.partials) {
+                for (key in Child.partials) {
+                    if (Child.partials.hasOwnProperty(key)) {
+                        if (typeof Child.partials[key] === 'string') {
+                            if (!parse) {
+                                throw new Error(errors.missingParser);
+                            }
+                            partial = parse(Child.partials[key], Child);
+                        } else {
+                            partial = Child.partials[key];
+                        }
+                        Child.partials[key] = partial;
+                    }
+                }
+            }
+        };
+        initChildInstance = function (child, Child, options) {
+            if (!options.template && Child.template) {
+                options.template = Child.template;
+            }
+            extendable.forEach(function (property) {
+                if (!options[property]) {
+                    if (Child[property]) {
+                        options[property] = clone(Child[property]);
+                    }
+                } else {
+                    fillGaps(options[property], Child[property]);
+                }
+            });
+            inheritable.forEach(function (property) {
+                if (options[property] === undefined && Child[property] !== undefined) {
+                    options[property] = Child[property];
+                }
+            });
+            if (child.beforeInit) {
+                child.beforeInit.call(child, options);
+            }
+            initialise(child, options);
+            if (child.init) {
+                child.init.call(child, options);
+            }
+        };
+        fillGaps = function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+        };
+        clone = function (source) {
+            var target = {}, key;
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+        augment = function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+        };
+        return extend;
+    }(config_errors, utils_create, config_isClient, utils_isObject, parse__index, Ractive_initialise, registries_adaptors);
 var Ractive__index = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise) {
         
         var Ractive = function (options) {
