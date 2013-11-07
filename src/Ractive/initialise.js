@@ -65,7 +65,7 @@ define([
 		}
 
 
-		// Initialization
+		// Initialisation
 		// --------------
 
 		// We use Object.defineProperties (where possible) as these should be read-only

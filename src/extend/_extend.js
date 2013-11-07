@@ -3,21 +3,22 @@ define([
 	'utils/create',
 	'config/isClient',
 	'utils/isObject',
-	'parse/_index'
+	'parse/_index',
+	'Ractive/initialise',
+	'registries/adaptors'
 ], function (
 	errors,
 	create,
 	isClient,
 	isObject,
-	parse
+	parse,
+	initialise,
+	adaptorRegistry
 ) {
 
 	'use strict';
 
 	var extend,
-
-		// dependencies
-		Ractive,
 
 		// helpers
 		fillGaps,
@@ -37,12 +38,6 @@ define([
 		blacklist;
 
 
-	loadCircularDependency( function () {
-		require([ 'Ractive/_index' ], function ( dep ) {
-			Ractive = dep;
-		});
-	});
-
 	extend = function ( childProps ) {
 
 		var Parent = this, Child;
@@ -54,8 +49,10 @@ define([
 
 		Child.prototype = create( Parent.prototype );
 
-		// inherit options from parent, if we're extending a subclass
-		if ( Parent !== Ractive ) {
+		// Inherit options from parent, if we're extending a subclass.
+		// This next line is just a way to determine if we're extending
+		// the base class, without introducing a circular dependency
+		if ( Parent.adaptors !== adaptorRegistry ) {
 			inheritFromParent( Child, Parent );
 		}
 
@@ -242,7 +239,7 @@ define([
 			child.beforeInit.call( child, options );
 		}
 
-		Ractive.call( child, options );
+		initialise( child, options );
 
 		if ( child.init ) {
 			child.init.call( child, options );
