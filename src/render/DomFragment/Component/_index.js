@@ -46,6 +46,7 @@ define([
 
 		this.type = types.COMPONENT;
 		this.name = options.descriptor.r;
+		this.index = options.index;
 
 		Component = getComponentConstructor( parentFragment.root, options.descriptor.e );
 
@@ -121,6 +122,9 @@ define([
 			data: data,
 			partials: partials
 		});
+
+		// Need this to find the first node *after* the component
+		instance.component = this;
 
 		while ( instance.el.firstChild ) {
 			docFrag.appendChild( instance.el.firstChild );

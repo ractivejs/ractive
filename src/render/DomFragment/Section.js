@@ -266,7 +266,7 @@ define([
 
 		createFragment: function ( options ) {
 			var fragment = new DomFragment( options );
-			
+
 			if ( this.docFrag ) {
 				this.docFrag.appendChild( fragment.docFrag );
 			}

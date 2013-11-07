@@ -785,6 +785,28 @@ define( function () {
 			t.ok( options[1].selected );
 		});
 
+		test( 'Element order is maintained correctly with components with multiple top-level elements', function ( t ) {
+			var ractive, TestComponent;
+
+			TestComponent = Ractive.extend({
+				template: '{{#bool}}TRUE{{/bool}}{{^bool}}FALSE{{/bool}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>before</p><rv-test bool="{{bool}}"/><p>after</p>',
+				components: { test: TestComponent }
+			});
+
+			t.ok( compareHTML( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' ) );
+
+			ractive.set( 'bool', true );
+			t.ok( compareHTML( fixture.innerHTML, '<p>before</p>TRUE<p>after</p>' ) );
+
+			ractive.set( 'bool', false );
+			t.ok( compareHTML( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' ) );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

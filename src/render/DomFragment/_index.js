@@ -105,9 +105,14 @@ define([
 			}
 
 			// if this is the root fragment, and there are no more items,
-			// it means we're at the end
+			// it means we're at the end...
 			if ( this.owner === this.root ) {
-				return null;
+				if ( !this.owner.component ) {
+					return null;
+				}
+
+				// ...unless this is a component
+				return this.owner.component.findNextNode();
 			}
 
 			return this.owner.findNextNode( this );
