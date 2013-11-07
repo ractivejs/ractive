@@ -11,7 +11,10 @@ define([
 	'Ractive/prototype/find',
 	'Ractive/prototype/findAll',
 	'Ractive/prototype/renderHTML',
-	'Ractive/prototype/teardown'
+	'Ractive/prototype/teardown',
+	'Ractive/prototype/add',
+	'Ractive/prototype/subtract',
+	'Ractive/prototype/toggle'
 ], function (
 	get,
 	set,
@@ -25,7 +28,10 @@ define([
 	find,
 	findAll,
 	renderHTML,
-	teardown
+	teardown,
+	add,
+	subtract,
+	toggle
 ) {
 	
 	'use strict';
@@ -42,7 +48,10 @@ define([
 		find: find,
 		findAll: findAll,
 		renderHTML: renderHTML,
-		teardown: teardown
+		teardown: teardown,
+		add: add,
+		subtract: subtract,
+		toggle: toggle
 	};
 
 });
