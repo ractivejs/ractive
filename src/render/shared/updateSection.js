@@ -10,24 +10,7 @@ define([
 
 	'use strict';
 
-	var updateSection,
-
-		// dependencies
-		DomFragment,
-
-		// helpers
-		updateListSection,
-		updateListObjectSection,
-		updateContextSection,
-		updateConditionalSection;
-
-	loadCircularDependency( function () {
-		require([ 'render/DomFragment/_index' ], function ( dep ) {
-			DomFragment = dep;
-		});
-	});
-
-	updateSection = function ( section, value ) {
+	return function ( section, value ) {
 		var fragmentOptions;
 
 		fragmentOptions = {
@@ -67,7 +50,7 @@ define([
 		}
 	};
 
-	updateListSection = function ( section, value, fragmentOptions ) {
+	function updateListSection ( section, value, fragmentOptions ) {
 		var i, length, fragmentsToRemove;
 
 		length = value.length;
@@ -101,9 +84,9 @@ define([
 		}
 
 		section.length = length;
-	};
+	}
 
-	updateListObjectSection = function ( section, value, fragmentOptions ) {
+	function updateListObjectSection ( section, value, fragmentOptions ) {
 		var id, fragmentsById;
 
 		fragmentsById = section.fragmentsById || ( section.fragmentsById = create( null ) );
@@ -129,9 +112,9 @@ define([
 				fragmentsById[ id ] = section.createFragment( fragmentOptions );
 			}
 		}
-	};
+	}
 
-	updateContextSection = function ( section, fragmentOptions ) {
+	function updateContextSection ( section, fragmentOptions ) {
 		// ...then if it isn't rendered, render it, adding section.keypath to the context stack
 		// (if it is already rendered, then any children dependent on the context stack
 		// will update themselves without any prompting)
@@ -143,9 +126,9 @@ define([
 			section.fragments[0] = section.createFragment( fragmentOptions );
 			section.length = 1;
 		}
-	};
+	}
 
-	updateConditionalSection = function ( section, value, inverted, fragmentOptions ) {
+	function updateConditionalSection ( section, value, inverted, fragmentOptions ) {
 		var doRender, emptyArray, fragmentsToRemove;
 
 		emptyArray = ( isArray( value ) && value.length === 0 );
@@ -179,8 +162,6 @@ define([
 			section.teardownFragments( true );
 			section.length = 0;
 		}
-	};
-
-	return updateSection;
+	}
 
 });
