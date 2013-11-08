@@ -2,6 +2,13 @@ define( function () {
 	
 	'use strict';
 
+	var window = window;
+
+	// If window doesn't exist return a noop
+	if ( !window ) {
+		return function () {};
+	}
+
 	// https://gist.github.com/paulirish/1579671
 	(function( vendors, lastTime, window ) {
 		
