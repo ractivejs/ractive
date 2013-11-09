@@ -6798,10 +6798,11 @@ var Partial_getPartialDescriptor = function (errors, warn, isClient, isObject, p
         var getPartialDescriptor, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
             var el, partial;
+            var document = document;
             if (partial = getPartialFromRegistry(root, name)) {
                 return partial;
             }
-            if (isClient) {
+            if (isClient && document) {
                 el = document.getElementById(name);
                 if (el && el.tagName === 'SCRIPT') {
                     if (!parse) {
