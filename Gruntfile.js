@@ -43,7 +43,7 @@ module.exports = function(grunt) {
 				options: {
 					baseUrl: 'src/',
 					name: 'Ractive',
-					out: 'tmp/Ractive-runtime.js',
+					out: 'tmp/Ractive.runtime.js',
 					optimize: 'none',
 					findNestedDependencies: true,
 					onBuildWrite: function( name, path, contents ) {
