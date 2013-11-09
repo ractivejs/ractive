@@ -25,6 +25,11 @@ define([
 		this.name = options.descriptor.r;
 		this.index = options.index;
 
+		if ( !options.descriptor.r ) {
+			// TODO support dynamic partial switching
+			throw new Error( 'Partials must have a static reference (no expressions). This may change in a future version of Ractive.' );
+		}
+
 		descriptor = getPartialDescriptor( parentFragment.root, options.descriptor.r );
 
 		this.fragment = new DomFragment({

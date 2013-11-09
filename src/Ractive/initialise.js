@@ -203,7 +203,8 @@ define([
 
 		ractive.parseOptions = {
 			preserveWhitespace: options.preserveWhitespace,
-			sanitize: options.sanitize
+			sanitize: options.sanitize,
+			stripComments: options.stripComments
 		};
 		
 		// temporarily disable transitions, if noIntro flag is set
