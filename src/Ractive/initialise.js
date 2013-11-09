@@ -50,7 +50,7 @@ define([
 		adaptors:           { enumerable: true, value: getArray  }
 	});
 
-	extendable = [ 'adaptors', 'components', 'decorators', 'events', 'partials', 'transitions' ];
+	extendable = [ 'components', 'decorators', 'events', 'partials', 'transitions' ];
 
 	return function ( ractive, options ) {
 
@@ -126,6 +126,7 @@ define([
 		// options
 		ractive.data = options.data;
 
+		ractive.adaptors = options.adaptors;
 		ractive.modifyArrays = options.modifyArrays;
 		ractive.magic = options.magic;
 		ractive.twoway = options.twoway;

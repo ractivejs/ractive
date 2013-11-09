@@ -4969,7 +4969,6 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             }
         });
         extendable = [
-            'adaptors',
             'components',
             'decorators',
             'events',
@@ -5015,6 +5014,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _wrapped: { value: create(null) }
             });
             ractive.data = options.data;
+            ractive.adaptors = options.adaptors;
             ractive.modifyArrays = options.modifyArrays;
             ractive.magic = options.magic;
             ractive.twoway = options.twoway;

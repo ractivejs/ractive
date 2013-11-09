@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-08
+	Ractive - v0.3.8-pre - 2013-11-09
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -6978,7 +6978,6 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             }
         });
         extendable = [
-            'adaptors',
             'components',
             'decorators',
             'events',
@@ -7024,6 +7023,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _wrapped: { value: create(null) }
             });
             ractive.data = options.data;
+            ractive.adaptors = options.adaptors;
             ractive.modifyArrays = options.modifyArrays;
             ractive.magic = options.magic;
             ractive.twoway = options.twoway;
