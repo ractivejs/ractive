@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-07
+	Ractive - v0.3.8-pre - 2013-11-08
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1083,6 +1083,11 @@ var prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch
     }(shared_getValueFromCheckboxes, utils_arrayContentsMatch, utils_isEqual);
 var animate_requestAnimationFrame = function () {
         
+        var window = window;
+        if (!window) {
+            return function () {
+            };
+        }
         (function (vendors, lastTime, window) {
             var x, setTimeout;
             if (window.requestAnimationFrame) {
@@ -6481,10 +6486,11 @@ var Partial_getPartialDescriptor = function (errors, warn, isClient, isObject, p
         var getPartialDescriptor, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
             var el, partial;
+            var document = document;
             if (partial = getPartialFromRegistry(root, name)) {
                 return partial;
             }
-            if (isClient) {
+            if (isClient && document) {
                 el = document.getElementById(name);
                 if (el && el.tagName === 'SCRIPT') {
                     if (!parse) {
