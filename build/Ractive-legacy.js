@@ -6863,6 +6863,9 @@ var Partial__index = function (require, types, getPartialDescriptor) {
             this.type = types.PARTIAL;
             this.name = options.descriptor.r;
             this.index = options.index;
+            if (!options.descriptor.r) {
+                throw new Error('Partials must have a static reference (no expressions). This may change in a future version of Ractive.');
+            }
             descriptor = getPartialDescriptor(parentFragment.root, options.descriptor.r);
             this.fragment = new DomFragment({
                 descriptor: descriptor,
@@ -7386,7 +7389,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             extend(ractive.partials, options.partials);
             ractive.parseOptions = {
                 preserveWhitespace: options.preserveWhitespace,
-                sanitize: options.sanitize
+                sanitize: options.sanitize,
+                stripComments: options.stripComments
             };
             ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
             render(ractive, {
