@@ -5,7 +5,8 @@ define([
 	'render/shared/resolveMustache',
 	'render/shared/updateSection',
 	'render/DomFragment/shared/reassignFragments',
-	'shared/teardown'
+	'shared/teardown',
+	'circular'
 ], function (
 	types,
 	initMustache,
@@ -13,23 +14,17 @@ define([
 	resolveMustache,
 	updateSection,
 	reassignFragments,
-	teardown
+	teardown,
+	circular
 ) {
 
 	'use strict';
 
-	var DomSection,
+	var DomSection, DomFragment;
 
-		// dependencies
-		DomFragment;
-
-
-	loadCircularDependency( function () {
-		require([ 'render/DomFragment/_DomFragment' ], function ( dep ) {
-			DomFragment = dep;
-		});
+	circular.push( function () {
+		DomFragment = circular.DomFragment;
 	});
-	
 
 	// Section
 	DomSection = function ( options, docFrag ) {

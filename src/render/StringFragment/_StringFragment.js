@@ -3,13 +3,15 @@ define([
 	'render/shared/initFragment',
 	'render/StringFragment/Interpolator',
 	'render/StringFragment/Section',
-	'render/StringFragment/Text'
+	'render/StringFragment/Text',
+	'circular'
 ], function (
 	types,
 	initFragment,
 	Interpolator,
 	Section,
-	Text
+	Text,
+	circular
 ) {
 	
 	'use strict';
@@ -112,6 +114,7 @@ define([
 		}
 	};
 
+	circular.StringFragment = StringFragment;
 	return StringFragment;
 
 });

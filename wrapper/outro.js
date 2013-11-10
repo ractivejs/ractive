@@ -1,7 +1,3 @@
-while ( loadCircularDependency.callbacks.length ) {
-	loadCircularDependency.callbacks.pop()();
-}
-
 
 // export as Common JS module...
 if ( typeof module !== "undefined" && module.exports ) {

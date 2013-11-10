@@ -1,20 +1,19 @@
 define([
 	'config/namespaces',
-	'render/StringFragment/_StringFragment'
+	'render/StringFragment/_StringFragment',
+	'circular'
 ], function (
 	namespaces,
-	StringFragment
+	StringFragment,
+	circular
 ) {
 	
 	'use strict';
 
 	var DomFragment;
 
-
-	loadCircularDependency( function () {
-		require([ 'render/DomFragment/_DomFragment' ], function ( dep ) {
-			DomFragment = dep;
-		});
+	circular.push( function () {
+		DomFragment = circular.DomFragment;
 	});
 
 

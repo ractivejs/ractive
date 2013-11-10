@@ -1,21 +1,19 @@
 define([
-	'require',
 	'config/types',
-	'render/DomFragment/Partial/getPartialDescriptor'
+	'render/DomFragment/Partial/getPartialDescriptor',
+	'circular'
 ], function (
-	require,
 	types,
-	getPartialDescriptor
+	getPartialDescriptor,
+	circular
 ) {
 
 	'use strict';
 
 	var DomPartial, DomFragment;
 
-	loadCircularDependency( function () {
-		require([ 'render/DomFragment/_DomFragment' ], function ( dep ) {
-			DomFragment = dep;
-		});
+	circular.push( function () {
+		DomFragment = circular.DomFragment;
 	});
 
 	DomPartial = function ( options, docFrag ) {

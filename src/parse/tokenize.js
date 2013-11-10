@@ -2,25 +2,22 @@ define([
 	'parse/utils/stripHtmlComments',
 	'parse/utils/stripStandalones',
 	'parse/utils/stripCommentTokens',
-	'parse/Tokenizer/_Tokenizer'
+	'parse/Tokenizer/_Tokenizer',
+	'circular'
 ], function (
 	stripHtmlComments,
 	stripStandalones,
 	stripCommentTokens,
-	Tokenizer
+	Tokenizer,
+	circular
 ) {
 
 	'use strict';
 
-	var tokenize,
+	var tokenize, Ractive;
 
-		// dependencies
-		Ractive;
-
-	loadCircularDependency( function () {
-		require([ 'Ractive/_Ractive' ], function ( dep ) {
-			Ractive = dep;
-		});
+	circular.push( function () {
+		Ractive = circular.Ractive;
 	});
 
 	tokenize = function ( template, options ) {

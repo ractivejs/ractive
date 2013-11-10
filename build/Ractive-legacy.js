@@ -347,31 +347,8 @@
 
 (function ( global ) {
 
-// Some of the modules herein have circular dependencies. This isn't a
-// huge problem with AMD, because you can do
-//
-//     require([ 'some/circular/dependency' ], function ( dep ) {
-//       dependency = dep;
-//     });
-//
-// However we're using amdclean to get rid of define() and require()
-// calls in the distributed file, and circular dependencies break
-// amdclean. So we're collecting those require calls (which amdclean
-// rewrites) and executing them at the end, once modules have been defined.
-var loadCircularDependency = function ( callback ) {
-	loadCircularDependency.callbacks.push( callback );
-};
 
-loadCircularDependency.callbacks = [];
 
-// Internet Explorer derp. Methods that should be attached to Node.prototype
-// are instead attached to HTMLElement.prototype, which means SVG elements
-// can't use them. Remember kids, friends don't let friends use IE.
-// 
-// This is here, rather than in legacy.js, because it affects IE9.
-if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && global.HTMLElement.prototype.contains ) {
-	global.Node.prototype.contains = global.HTMLElement.prototype.contains;
-}
 var utils_create = function () {
         
         var create;
@@ -2008,9 +1985,8 @@ var prototype_teardown = function (makeTransitionManager, clearCache) {
             transitionManager.ready();
         };
     }(shared_makeTransitionManager, shared_clearCache);
-var shared_add = function (require, utils_isNumeric) {
+var shared_add = function (isNumeric) {
         
-        var isNumeric = utils_isNumeric;
         return function (root, keypath, d) {
             var value;
             if (typeof keypath !== 'string' || !isNumeric(d)) {
@@ -2031,7 +2007,7 @@ var shared_add = function (require, utils_isNumeric) {
             }
             root.set(keypath, value + d);
         };
-    }({}, utils_isNumeric);
+    }(utils_isNumeric);
 var prototype_add = function (add) {
         
         return function (keypath, d) {
@@ -3148,13 +3124,15 @@ var Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, g
         };
         return Tokenizer;
     }(getMustache__getMustache, getComment_getComment, getTag__getTag, getText__getText, getExpression__getExpression, utils_allowWhitespace, utils_getStringMatch);
-var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer) {
+var circular = function () {
+        
+        return [];
+    }();
+var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer, circular) {
         
         var tokenize, Ractive;
-        loadCircularDependency(function () {
-            (function (dep) {
-                Ractive = dep;
-            }(Ractive__Ractive));
+        circular.push(function () {
+            Ractive = circular.Ractive;
         });
         tokenize = function (template, options) {
             var tokenizer, tokens;
@@ -3178,7 +3156,7 @@ var parse_tokenize = function (stripHtmlComments, stripStandalones, stripComment
             return tokens;
         };
         return tokenize;
-    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, Tokenizer__Tokenizer);
+    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, Tokenizer__Tokenizer, circular);
 var TextStub__TextStub = function (types) {
         
         var TextStub, htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
@@ -5096,7 +5074,7 @@ var shared_reassignFragments = function (types, unregisterDependant, processDefe
             }
         }
         function reassignElement(element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
-            var i, attribute, storage, masterEventName, proxies, proxy;
+            var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings;
             i = element.attributes.length;
             while (i--) {
                 attribute = element.attributes[i];
@@ -5127,9 +5105,13 @@ var shared_reassignFragments = function (types, unregisterDependant, processDefe
                         }
                     }
                 }
-                if (storage.binding) {
-                    if (storage.binding.keypath.substr(0, oldKeypath.length) === oldKeypath) {
-                        storage.binding.keypath = storage.binding.keypath.replace(oldKeypath, newKeypath);
+                if (binding = storage.binding) {
+                    if (binding.keypath.substr(0, oldKeypath.length) === oldKeypath) {
+                        bindings = storage.root._twowayBindings[binding.keypath];
+                        bindings.splice(bindings.indexOf(binding), 1);
+                        binding.keypath = binding.keypath.replace(oldKeypath, newKeypath);
+                        bindings = storage.root._twowayBindings[binding.keypath] || (storage.root._twowayBindings[binding.keypath] = []);
+                        bindings.push(binding);
                     }
                 }
             }
@@ -5164,13 +5146,11 @@ var shared_reassignFragments = function (types, unregisterDependant, processDefe
             }
         }
     }(config_types, shared_unregisterDependant, shared_processDeferredUpdates, shared_ExpressionResolver);
-var DomFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, reassignFragments, teardown) {
+var DomFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, reassignFragments, teardown, circular) {
         
         var DomSection, DomFragment;
-        loadCircularDependency(function () {
-            (function (dep) {
-                DomFragment = dep;
-            }(DomFragment__DomFragment));
+        circular.push(function () {
+            DomFragment = circular.DomFragment;
         });
         DomSection = function (options, docFrag) {
             this.type = types.SECTION;
@@ -5345,7 +5325,7 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
             }
         };
         return DomSection;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_reassignFragments, shared_teardown);
+    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_reassignFragments, shared_teardown, circular);
 var DomFragment_Triple = function (types, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
         
         var DomTriple = function (options, docFrag) {
@@ -5887,13 +5867,11 @@ var StringFragment_Interpolator = function (types, teardown, initMustache, updat
         };
         return StringInterpolator;
     }(config_types, shared_teardown, shared_initMustache, shared_updateMustache, shared_resolveMustache);
-var StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown) {
+var StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
         
         var StringSection, StringFragment;
-        loadCircularDependency(function () {
-            (function (dep) {
-                StringFragment = dep;
-            }(StringFragment__StringFragment));
+        circular.push(function () {
+            StringFragment = circular.StringFragment;
         });
         StringSection = function (options) {
             this.type = types.SECTION;
@@ -5934,7 +5912,7 @@ var StringFragment_Section = function (types, initMustache, updateMustache, reso
             }
         };
         return StringSection;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_teardown);
+    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_teardown, circular);
 var StringFragment_Text = function (types) {
         
         var StringText = function (text) {
@@ -5950,7 +5928,7 @@ var StringFragment_Text = function (types) {
         };
         return StringText;
     }(config_types);
-var StringFragment__StringFragment = function (types, initFragment, Interpolator, Section, Text) {
+var StringFragment__StringFragment = function (types, initFragment, Interpolator, Section, Text, circular) {
         
         var StringFragment = function (options) {
             initFragment(this, options);
@@ -6028,8 +6006,9 @@ var StringFragment__StringFragment = function (types, initFragment, Interpolator
                 return value;
             }
         };
+        circular.StringFragment = StringFragment;
         return StringFragment;
-    }(config_types, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text);
+    }(config_types, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
 var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute, StringFragment) {
         
         var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
@@ -6204,13 +6183,11 @@ var Element_createElementAttributes = function (DomAttribute) {
             return element.attributes;
         };
     }(Attribute__Attribute);
-var Element_appendElementChildren = function (namespaces, StringFragment) {
+var Element_appendElementChildren = function (namespaces, StringFragment, circular) {
         
         var DomFragment;
-        loadCircularDependency(function () {
-            (function (dep) {
-                DomFragment = dep;
-            }(DomFragment__DomFragment));
+        circular.push(function () {
+            DomFragment = circular.DomFragment;
         });
         return function (element, node, descriptor, docFrag) {
             if (typeof descriptor.f === 'string' && (!node || (!node.namespaceURI || node.namespaceURI === namespaces.html))) {
@@ -6245,7 +6222,7 @@ var Element_appendElementChildren = function (namespaces, StringFragment) {
                 }
             }
         };
-    }(config_namespaces, StringFragment__StringFragment);
+    }(config_namespaces, StringFragment__StringFragment, circular);
 var Element_bindElement = function () {
         
         return function (element, attributes) {
@@ -6850,13 +6827,11 @@ var Partial_getPartialDescriptor = function (errors, warn, isClient, isObject, p
         };
         return getPartialDescriptor;
     }(config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__parse);
-var Partial__Partial = function (require, types, getPartialDescriptor) {
+var Partial__Partial = function (types, getPartialDescriptor, circular) {
         
         var DomPartial, DomFragment;
-        loadCircularDependency(function () {
-            (function (dep) {
-                DomFragment = dep;
-            }(DomFragment__DomFragment));
+        circular.push(function () {
+            DomFragment = circular.DomFragment;
         });
         DomPartial = function (options, docFrag) {
             var parentFragment = this.parentFragment = options.parentFragment, descriptor;
@@ -6893,7 +6868,7 @@ var Partial__Partial = function (require, types, getPartialDescriptor) {
             }
         };
         return DomPartial;
-    }({}, config_types, Partial_getPartialDescriptor);
+    }(config_types, Partial_getPartialDescriptor, circular);
 var Component_getComponentConstructor = function () {
         
         return function (ractive, name) {
@@ -7102,7 +7077,7 @@ var DomFragment_Comment = function (types) {
         };
         return DomComment;
     }(config_types);
-var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment) {
+var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular) {
         
         var DomFragment = function (options) {
             if (options.parentNode) {
@@ -7195,8 +7170,9 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
                 return html;
             }
         };
+        circular.DomFragment = DomFragment;
         return DomFragment;
-    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, DomFragment_Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment);
+    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, DomFragment_Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment, circular);
 var shared_render = function (getElement, makeTransitionManager, processDeferredUpdates, DomFragment) {
         
         return function (ractive, options) {
@@ -7599,7 +7575,7 @@ var extend__extend = function (errors, create, isClient, isObject, parse, initia
         };
         return extend;
     }(config_errors, utils_create, config_isClient, utils_isObject, parse__parse, Ractive_initialise, registries_adaptors);
-var Ractive__Ractive = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise) {
+var Ractive__Ractive = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -7624,16 +7600,19 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
         Ractive.extend = Ractive_extend;
         Ractive.parse = parse;
         Ractive.VERSION = '0.3.8-pre';
+        circular.Ractive = Ractive;
         return Ractive;
-    }(utils_create, utils_defineProperties, prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise);
-var Ractive = function (Ractive) {
+    }(utils_create, utils_defineProperties, prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
+var Ractive = function (Ractive, circular) {
         
+        if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {
+            window.Node.prototype.contains = window.HTMLElement.prototype.contains;
+        }
+        while (circular.length) {
+            circular.pop()();
+        }
         return Ractive;
-    }(Ractive__Ractive);while ( loadCircularDependency.callbacks.length ) {
-	loadCircularDependency.callbacks.pop()();
-}
-
-
+    }(Ractive__Ractive, circular);
 // export as Common JS module...
 if ( typeof module !== "undefined" && module.exports ) {
 	module.exports = Ractive;

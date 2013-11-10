@@ -7,7 +7,8 @@ define([
 	'registries/easing',
 	'extend/_extend',
 	'parse/_parse',
-	'Ractive/initialise'
+	'Ractive/initialise',
+	'circular'
 ], function (
 	create,
 	defineProperties,
@@ -17,7 +18,8 @@ define([
 	easingRegistry,
 	Ractive_extend,
 	parse,
-	initialise
+	initialise,
+	circular
 ) {
 
 	'use strict';
@@ -49,6 +51,7 @@ define([
 
 	Ractive.VERSION = '<%= version %>';
 
+	circular.Ractive = Ractive;
 	return Ractive;
 
 });

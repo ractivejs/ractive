@@ -4,24 +4,24 @@ define([
 	'render/shared/updateMustache',
 	'render/shared/resolveMustache',
 	'render/shared/updateSection',
-	'shared/teardown'
+	'shared/teardown',
+	'circular'
 ], function (
 	types,
 	initMustache,
 	updateMustache,
 	resolveMustache,
 	updateSection,
-	teardown
+	teardown,
+	circular
 ) {
 	
 	'use strict';
 
 	var StringSection, StringFragment;
 
-	loadCircularDependency( function () {
-		require([ 'render/StringFragment/_StringFragment' ], function ( dep ) {
-			StringFragment = dep;
-		});
+	circular.push( function () {
+		StringFragment = circular.StringFragment;
 	});
 
 	StringSection = function ( options ) {

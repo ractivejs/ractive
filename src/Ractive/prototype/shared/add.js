@@ -1,8 +1,6 @@
-define( function ( require ) {
+define([ 'utils/isNumeric' ], function ( isNumeric ) {
 	
 	'use strict';
-
-	var isNumeric = require( 'utils/isNumeric' );
 
 	return function ( root, keypath, d ) {
 		var value;

@@ -9,7 +9,8 @@ define([
 	'render/DomFragment/Element/_Element',
 	'render/DomFragment/Partial/_Partial',
 	'render/DomFragment/Component/_Component',
-	'render/DomFragment/Comment'
+	'render/DomFragment/Comment',
+	'circular'
 ], function (
 	types,
 	initFragment,
@@ -21,7 +22,8 @@ define([
 	Element,
 	Partial,
 	Component,
-	Comment
+	Comment,
+	circular
 ) {
 
 	'use strict';
@@ -142,6 +144,7 @@ define([
 		}
 	};
 
+	circular.DomFragment = DomFragment;
 	return DomFragment;
 
 });
