@@ -807,6 +807,28 @@ define( function () {
 			t.ok( compareHTML( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' ) );
 		});
 
+		test( 'Bindings without explicit keypaths can survive a splice operation', function ( t ) {
+			var items, ractive;
+
+			items = new Array( 3 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<ul>{{#items}}<li><input value="{{foo}}"></li>{{/items}}</ul>',
+				data: { items: items }
+			});
+
+			expect( 1 );
+
+			items.splice( 1, 1 );
+			try {
+				items.splice( 1, 1 );
+				t.ok( 1 );
+			} catch ( err ) {
+				t.ok( 0 );
+			}
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
