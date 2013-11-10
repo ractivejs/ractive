@@ -82,7 +82,7 @@ define([
 	}
 
 	function reassignElement ( element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, attribute, storage, masterEventName, proxies, proxy;
+		var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings;
 
 		i = element.attributes.length;
 		while ( i-- ) {
@@ -123,9 +123,19 @@ define([
 				}
 			}
 
-			if ( storage.binding ) {
-				if ( storage.binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-					storage.binding.keypath = storage.binding.keypath.replace( oldKeypath, newKeypath );
+			if ( binding = storage.binding ) {
+				if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+					bindings = storage.root._twowayBindings[ binding.keypath ];
+					
+					// remove binding reference for old keypath
+					bindings.splice( bindings.indexOf( binding ), 1 );
+
+					// update keypath
+					binding.keypath = binding.keypath.replace( oldKeypath, newKeypath );
+
+					// add binding reference for new keypath
+					bindings = storage.root._twowayBindings[ binding.keypath ] || ( storage.root._twowayBindings[ binding.keypath ] = [] );
+					bindings.push( binding );
 				}
 			}
 		}
