@@ -1,7 +1,7 @@
 define([
 	'config/types',
-	'parse/Parser/getMustache/MustacheStub/_index',
-	'parse/Parser/getMustache/SectionStub/_index'
+	'parse/Parser/getMustache/MustacheStub/_MustacheStub',
+	'parse/Parser/getMustache/SectionStub/_SectionStub'
 ], function (
 	types,
 	MustacheStub,

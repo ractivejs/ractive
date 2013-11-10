@@ -10,7 +10,7 @@ define([
 	'parse/Parser/getElement/ElementStub/toJSON',
 	'parse/Parser/getElement/ElementStub/toString',
 
-	'parse/Parser/StringStub/_index'
+	'parse/Parser/StringStub/_StringStub'
 ], function (
 	types,
 	voidElementNames,

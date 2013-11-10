@@ -1,8 +1,8 @@
 define([
 	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getNumberLiteral',
 	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getBooleanLiteral',
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/_index',
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getObjectLiteral/_index',
+	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/_getStringLiteral',
+	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getObjectLiteral/_getObjectLiteral',
 	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getArrayLiteral'
 ], function (
 	getNumberLiteral,

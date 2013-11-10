@@ -2,7 +2,7 @@ define([
 	'parse/utils/stripHtmlComments',
 	'parse/utils/stripStandalones',
 	'parse/utils/stripCommentTokens',
-	'parse/Tokenizer/_index'
+	'parse/Tokenizer/_Tokenizer'
 ], function (
 	stripHtmlComments,
 	stripStandalones,
@@ -18,7 +18,7 @@ define([
 		Ractive;
 
 	loadCircularDependency( function () {
-		require([ 'Ractive/_index' ], function ( dep ) {
+		require([ 'Ractive/_Ractive' ], function ( dep ) {
 			Ractive = dep;
 		});
 	});

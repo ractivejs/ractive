@@ -1,4 +1,4 @@
-define([ 'Ractive/_index' ], function ( Ractive ) {
+define([ 'Ractive/_Ractive' ], function ( Ractive ) {
 
 	'use strict';
 

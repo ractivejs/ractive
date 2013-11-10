@@ -19,7 +19,7 @@ define([
 	var StringSection, StringFragment;
 
 	loadCircularDependency( function () {
-		require([ 'render/StringFragment/_index' ], function ( dep ) {
+		require([ 'render/StringFragment/_StringFragment' ], function ( dep ) {
 			StringFragment = dep;
 		});
 	});

@@ -1,5 +1,5 @@
 define([
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/_index',
+	'parse/Tokenizer/getExpression/getPrimary/getLiteral/_getLiteral',
 	'parse/Tokenizer/getExpression/getPrimary/getReference',
 	'parse/Tokenizer/getExpression/getPrimary/getBracketedExpression'
 ], function (

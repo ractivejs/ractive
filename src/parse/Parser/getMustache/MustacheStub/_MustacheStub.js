@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'parse/Parser/getMustache/ExpressionStub/_index'
+	'parse/Parser/getMustache/ExpressionStub/_ExpressionStub'
 ], function (
 	types,
 	ExpressionStub

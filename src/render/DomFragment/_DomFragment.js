@@ -6,9 +6,9 @@ define([
 	'render/DomFragment/Interpolator',
 	'render/DomFragment/Section',
 	'render/DomFragment/Triple',
-	'render/DomFragment/Element/_index',
-	'render/DomFragment/Partial/_index',
-	'render/DomFragment/Component/_index',
+	'render/DomFragment/Element/_Element',
+	'render/DomFragment/Partial/_Partial',
+	'render/DomFragment/Component/_Component',
 	'render/DomFragment/Comment'
 ], function (
 	types,

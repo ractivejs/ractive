@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-09
+	Ractive - v0.3.8-pre - 2013-11-10
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -643,7 +643,7 @@ var get_magicAdaptor = function () {
         };
         return magicAdaptor;
     }();
-var get__index = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
+var get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
         
         var get, _get, retrieve, prefix, getPrefixer, prefixers = {}, adaptIfNecessary;
         get = function (keypath) {
@@ -1326,7 +1326,7 @@ var registries_easing = function () {
             }
         };
     }();
-var animate__index = function (isEqual, animationCollection, Animation, easingRegistry) {
+var animate__animate = function (isEqual, animationCollection, Animation, easingRegistry) {
         
         var animate, _animate, noAnimation;
         animate = function (keypath, to, options) {
@@ -1746,7 +1746,7 @@ var prototype_toggle = function () {
             this.set(keypath, !value);
         };
     }();
-var prototype__index = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, renderHTML, teardown, add, subtract, toggle) {
+var prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, renderHTML, teardown, add, subtract, toggle) {
         
         return {
             get: get,
@@ -1765,7 +1765,7 @@ var prototype__index = function (get, set, update, updateModel, animate, on, off
             subtract: subtract,
             toggle: toggle
         };
-    }(get__index, prototype_set, prototype_update, prototype_updateModel, animate__index, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle);
+    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle);
 var registries_partials = {};
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var utils_stripHtmlComments = function () {
@@ -1940,7 +1940,7 @@ var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMusta
             return mustache;
         };
     }(config_types, utils_makeRegexMatcher, getMustache_getMustacheType);
-var getMustache__index = function (types, getDelimiterChange, getMustacheContent) {
+var getMustache__getMustache = function (types, getDelimiterChange, getMustacheContent) {
         
         return function () {
             var seekTripleFirst = this.tripleDelimiters[0].length > this.delimiters[0].length;
@@ -2018,7 +2018,7 @@ var utils_getLowestIndex = function () {
             return lowest || -1;
         };
     }();
-var getTag__index = function (types, makeRegexMatcher, getLowestIndex) {
+var getTag__getTag = function (types, makeRegexMatcher, getLowestIndex) {
         
         var getTag, getOpeningTag, getClosingTag, getTagName, getAttributes, getAttribute, getAttributeName, getAttributeValue, getUnquotedAttributeValue, getUnquotedAttributeValueToken, getUnquotedAttributeValueText, getQuotedStringToken, getQuotedAttributeValue;
         getTag = function () {
@@ -2194,7 +2194,7 @@ var getTag__index = function (types, makeRegexMatcher, getLowestIndex) {
         };
         return getTag;
     }(config_types, utils_makeRegexMatcher, utils_getLowestIndex);
-var getText_getText = function (types, getLowestIndex) {
+var getText__getText = function (types, getLowestIndex) {
         
         return function () {
             var index, remaining;
@@ -2309,7 +2309,7 @@ var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedCha
             return string;
         };
     }(utils_makeRegexMatcher, getStringLiteral_getEscapedChars);
-var getStringLiteral__index = function (types, getQuotedString) {
+var getStringLiteral__getStringLiteral = function (types, getQuotedString) {
         
         return function (tokenizer) {
             var start, string;
@@ -2374,7 +2374,7 @@ var getObjectLiteral_getKeyValuePair = function (types, getName, getStringLitera
         function getKey(tokenizer) {
             return getName(tokenizer) || getStringLiteral(tokenizer) || getNumberLiteral(tokenizer);
         }
-    }(config_types, shared_getName, getStringLiteral__index, getLiteral_getNumberLiteral);
+    }(config_types, shared_getName, getStringLiteral__getStringLiteral, getLiteral_getNumberLiteral);
 var getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
         
         return function getKeyValuePairs(tokenizer) {
@@ -2396,7 +2396,7 @@ var getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
             return pairs;
         };
     }(getObjectLiteral_getKeyValuePair);
-var getObjectLiteral__index = function (types, getKeyValuePairs) {
+var getObjectLiteral__getObjectLiteral = function (types, getKeyValuePairs) {
         
         return function (tokenizer) {
             var start, keyValuePairs;
@@ -2462,13 +2462,13 @@ var getLiteral_getArrayLiteral = function (types, getExpressionList) {
             };
         };
     }(config_types, shared_getExpressionList);
-var getLiteral__index = function (getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral) {
+var getLiteral__getLiteral = function (getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral) {
         
         return function (tokenizer) {
             var literal = getNumberLiteral(tokenizer) || getBooleanLiteral(tokenizer) || getStringLiteral(tokenizer) || getObjectLiteral(tokenizer) || getArrayLiteral(tokenizer);
             return literal;
         };
-    }(getLiteral_getNumberLiteral, getLiteral_getBooleanLiteral, getStringLiteral__index, getObjectLiteral__index, getLiteral_getArrayLiteral);
+    }(getLiteral_getNumberLiteral, getLiteral_getBooleanLiteral, getStringLiteral__getStringLiteral, getObjectLiteral__getObjectLiteral, getLiteral_getArrayLiteral);
 var getPrimary_getReference = function (types, makeRegexMatcher, getName) {
         
         var getDotRefinement, getArrayRefinement, getArrayMember, globals;
@@ -2550,12 +2550,12 @@ var getPrimary_getBracketedExpression = function (types) {
             };
         };
     }(config_types);
-var getPrimary__index = function (getLiteral, getReference, getBracketedExpression) {
+var getPrimary__getPrimary = function (getLiteral, getReference, getBracketedExpression) {
         
         return function (tokenizer) {
             return getLiteral(tokenizer) || getReference(tokenizer) || getBracketedExpression(tokenizer);
         };
-    }(getLiteral__index, getPrimary_getReference, getPrimary_getBracketedExpression);
+    }(getLiteral__getLiteral, getPrimary_getReference, getPrimary_getBracketedExpression);
 var shared_getRefinement = function (types, getName) {
         
         return function getRefinement(tokenizer) {
@@ -2627,7 +2627,7 @@ var getExpression_getMemberOrInvocation = function (types, getPrimary, getExpres
             }
             return expression;
         };
-    }(config_types, getPrimary__index, shared_getExpressionList, shared_getRefinement);
+    }(config_types, getPrimary__getPrimary, shared_getExpressionList, shared_getRefinement);
 var getExpression_getTypeOf = function (types, getMemberOrInvocation) {
         
         var getTypeOf, makePrefixSequenceMatcher;
@@ -2751,7 +2751,7 @@ var getExpression_getConditional = function (types, getLogicalOr) {
             };
         };
     }(config_types, getExpression_getLogicalOr);
-var getExpression__index = function (getConditional) {
+var getExpression__getExpression = function (getConditional) {
         
         return function () {
             return getConditional(this);
@@ -2781,7 +2781,7 @@ var utils_getStringMatch = function () {
             return null;
         };
     }();
-var Tokenizer__index = function (getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch) {
+var Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch) {
         
         var Tokenizer;
         Tokenizer = function (str, options) {
@@ -2835,14 +2835,14 @@ var Tokenizer__index = function (getMustache, getComment, getTag, getText, getEx
             }
         };
         return Tokenizer;
-    }(getMustache__index, getComment_getComment, getTag__index, getText_getText, getExpression__index, utils_allowWhitespace, utils_getStringMatch);
+    }(getMustache__getMustache, getComment_getComment, getTag__getTag, getText__getText, getExpression__getExpression, utils_allowWhitespace, utils_getStringMatch);
 var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer) {
         
         var tokenize, Ractive;
         loadCircularDependency(function () {
             (function (dep) {
                 Ractive = dep;
-            }(Ractive__index));
+            }(Ractive__Ractive));
         });
         tokenize = function (template, options) {
             var tokenizer, tokens;
@@ -2866,8 +2866,8 @@ var parse_tokenize = function (stripHtmlComments, stripStandalones, stripComment
             return tokens;
         };
         return tokenize;
-    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, Tokenizer__index);
-var TextStub__index = function (types) {
+    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, Tokenizer__Tokenizer);
+var TextStub__TextStub = function (types) {
         
         var TextStub, htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
         TextStub = function (token, preserveWhitespace) {
@@ -3217,7 +3217,7 @@ var TextStub__index = function (types) {
         whitespace = /\s+/g;
         return TextStub;
     }(config_types);
-var getText__index = function (types, TextStub) {
+var getText__getText = function (types, TextStub) {
         
         return function (token) {
             if (token.type === types.TEXT) {
@@ -3226,8 +3226,8 @@ var getText__index = function (types, TextStub) {
             }
             return null;
         };
-    }(config_types, TextStub__index);
-var CommentStub__index = function (types) {
+    }(config_types, TextStub__TextStub);
+var CommentStub__CommentStub = function (types) {
         
         var CommentStub;
         CommentStub = function (token) {
@@ -3246,7 +3246,7 @@ var CommentStub__index = function (types) {
         };
         return CommentStub;
     }(config_types);
-var getComment__index = function (types, CommentStub) {
+var getComment__getComment = function (types, CommentStub) {
         
         return function (token) {
             if (token.type === types.COMMENT) {
@@ -3255,8 +3255,8 @@ var getComment__index = function (types, CommentStub) {
             }
             return null;
         };
-    }(config_types, CommentStub__index);
-var ExpressionStub__index = function (types, isObject) {
+    }(config_types, CommentStub__CommentStub);
+var ExpressionStub__ExpressionStub = function (types, isObject) {
         
         var ExpressionStub, getRefs, stringify, stringifyKey, identifier;
         ExpressionStub = function (token) {
@@ -3353,7 +3353,7 @@ var ExpressionStub__index = function (types, isObject) {
         identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
         return ExpressionStub;
     }(config_types, utils_isObject);
-var MustacheStub__index = function (types, ExpressionStub) {
+var MustacheStub__MustacheStub = function (types, ExpressionStub) {
         
         var MustacheStub = function (token, parser) {
             this.type = token.type === types.TRIPLE ? types.TRIPLE : token.mustacheType;
@@ -3386,7 +3386,7 @@ var MustacheStub__index = function (types, ExpressionStub) {
             }
         };
         return MustacheStub;
-    }(config_types, ExpressionStub__index);
+    }(config_types, ExpressionStub__ExpressionStub);
 var utils_stringifyStubs = function () {
         
         return function (items) {
@@ -3420,7 +3420,7 @@ var utils_jsonifyStubs = function (stringifyStubs) {
             return json;
         };
     }(utils_stringifyStubs);
-var SectionStub__index = function (types, jsonifyStubs, ExpressionStub) {
+var SectionStub__SectionStub = function (types, jsonifyStubs, ExpressionStub) {
         
         var SectionStub = function (firstToken, parser) {
             var next;
@@ -3476,8 +3476,8 @@ var SectionStub__index = function (types, jsonifyStubs, ExpressionStub) {
             }
         };
         return SectionStub;
-    }(config_types, utils_jsonifyStubs, ExpressionStub__index);
-var getMustache__index = function (types, MustacheStub, SectionStub) {
+    }(config_types, utils_jsonifyStubs, ExpressionStub__ExpressionStub);
+var getMustache__getMustache = function (types, MustacheStub, SectionStub) {
         
         return function (token) {
             if (token.type === types.MUSTACHE || token.type === types.TRIPLE) {
@@ -3487,7 +3487,7 @@ var getMustache__index = function (types, MustacheStub, SectionStub) {
                 return new MustacheStub(token, this);
             }
         };
-    }(config_types, MustacheStub__index, SectionStub__index);
+    }(config_types, MustacheStub__MustacheStub, SectionStub__SectionStub);
 var config_voidElementNames = function () {
         
         return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
@@ -3683,8 +3683,8 @@ var StringStub_StringParser = function (getText, getMustache) {
             }
         };
         return StringParser;
-    }(getText__index, getMustache__index);
-var StringStub__index = function (StringParser, stringifyStubs, jsonifyStubs) {
+    }(getText__getText, getMustache__getMustache);
+var StringStub__StringStub = function (StringParser, stringifyStubs, jsonifyStubs) {
         
         var StringStub;
         StringStub = function (tokens) {
@@ -3732,7 +3732,7 @@ var utils_jsonifyDirective = function (StringStub) {
             }
             return result;
         };
-    }(StringStub__index);
+    }(StringStub__StringStub);
 var ElementStub_toJSON = function (types, jsonifyStubs, jsonifyDirective) {
         
         return function (noStringify) {
@@ -3859,7 +3859,7 @@ var ElementStub_toString = function (stringifyStubs, voidElementNames) {
             return this.str = str;
         };
     }(utils_stringifyStubs, config_voidElementNames);
-var ElementStub__index = function (types, voidElementNames, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
+var ElementStub__ElementStub = function (types, voidElementNames, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
         
         var ElementStub, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, onPattern, sanitize, camelCase, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
         ElementStub = function (firstToken, parser, preserveWhitespace) {
@@ -3990,8 +3990,8 @@ var ElementStub__index = function (types, voidElementNames, stringifyStubs, sibl
             });
         };
         return ElementStub;
-    }(config_types, config_voidElementNames, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__index);
-var getElement__index = function (types, ElementStub) {
+    }(config_types, config_voidElementNames, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__StringStub);
+var getElement__getElement = function (types, ElementStub) {
         
         return function (token) {
             if (this.options.sanitize && this.options.sanitize.elements) {
@@ -4001,8 +4001,8 @@ var getElement__index = function (types, ElementStub) {
             }
             return new ElementStub(token, this);
         };
-    }(config_types, ElementStub__index);
-var Parser__index = function (getText, getComment, getMustache, getElement, jsonifyStubs) {
+    }(config_types, ElementStub__ElementStub);
+var Parser__Parser = function (getText, getComment, getMustache, getElement, jsonifyStubs) {
         
         var Parser;
         Parser = function (tokens, options) {
@@ -4034,8 +4034,8 @@ var Parser__index = function (getText, getComment, getMustache, getElement, json
             }
         };
         return Parser;
-    }(getText__index, getComment__index, getMustache__index, getElement__index, utils_jsonifyStubs);
-var parse__index = function (tokenize, types, Parser) {
+    }(getText__getText, getComment__getComment, getMustache__getMustache, getElement__getElement, utils_jsonifyStubs);
+var parse__parse = function (tokenize, types, Parser) {
         
         var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
         onlyWhitespace = /^\s*$/;
@@ -4092,7 +4092,7 @@ var parse__index = function (tokenize, types, Parser) {
             };
         };
         return parse;
-    }(parse_tokenize, config_types, Parser__index);
+    }(parse_tokenize, config_types, Parser__Parser);
 var utils_extend = function () {
         
         return function (target) {
@@ -4320,7 +4320,7 @@ var Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDe
         };
         return SoftReference;
     }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var Evaluator__index = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
+var Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
         
         var Evaluator, cache = {};
         Evaluator = function (root, keypath, functionStr, args, priority) {
@@ -4533,7 +4533,7 @@ var shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
             return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
         };
         return ExpressionResolver;
-    }(shared_resolveRef, shared_teardown, Evaluator__index);
+    }(shared_resolveRef, shared_teardown, Evaluator__Evaluator);
 var shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
@@ -4858,7 +4858,7 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
         loadCircularDependency(function () {
             (function (dep) {
                 DomFragment = dep;
-            }(DomFragment__index));
+            }(DomFragment__DomFragment));
         });
         DomSection = function (options, docFrag) {
             this.type = types.SECTION;
@@ -5581,7 +5581,7 @@ var StringFragment_Section = function (types, initMustache, updateMustache, reso
         loadCircularDependency(function () {
             (function (dep) {
                 StringFragment = dep;
-            }(StringFragment__index));
+            }(StringFragment__StringFragment));
         });
         StringSection = function (options) {
             this.type = types.SECTION;
@@ -5638,7 +5638,7 @@ var StringFragment_Text = function (types) {
         };
         return StringText;
     }(config_types);
-var StringFragment__index = function (types, initFragment, Interpolator, Section, Text) {
+var StringFragment__StringFragment = function (types, initFragment, Interpolator, Section, Text) {
         
         var StringFragment = function (options) {
             initFragment(this, options);
@@ -5718,7 +5718,7 @@ var StringFragment__index = function (types, initFragment, Interpolator, Section
         };
         return StringFragment;
     }(config_types, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text);
-var Attribute_index = function (namespaces, bindAttribute, updateAttribute, StringFragment) {
+var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute, StringFragment) {
         
         var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
         propertyNames = {
@@ -5776,7 +5776,7 @@ var Attribute_index = function (namespaces, bindAttribute, updateAttribute, Stri
             bind: bindAttribute,
             update: updateAttribute,
             updateBindings: function () {
-                this.keypath = this.interpolator.keypath || this.interpolator.r;
+                this.keypath = this.interpolator.keypath || this.interpolator.ref;
                 if (this.propertyName === 'name') {
                     this.parentNode.name = '{{' + this.keypath + '}}';
                 }
@@ -5866,7 +5866,7 @@ var Attribute_index = function (namespaces, bindAttribute, updateAttribute, Stri
             }
         };
         return DomAttribute;
-    }(config_namespaces, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__index);
+    }(config_namespaces, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__StringFragment);
 var Element_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
@@ -5891,14 +5891,14 @@ var Element_createElementAttributes = function (DomAttribute) {
             }
             return element.attributes;
         };
-    }(Attribute_index);
+    }(Attribute__Attribute);
 var Element_appendElementChildren = function (namespaces, StringFragment) {
         
         var DomFragment;
         loadCircularDependency(function () {
             (function (dep) {
                 DomFragment = dep;
-            }(DomFragment__index));
+            }(DomFragment__DomFragment));
         });
         return function (element, node, descriptor, docFrag) {
             if (typeof descriptor.f === 'string' && (!node || (!node.namespaceURI || node.namespaceURI === namespaces.html))) {
@@ -5933,7 +5933,7 @@ var Element_appendElementChildren = function (namespaces, StringFragment) {
                 }
             }
         };
-    }(config_namespaces, StringFragment__index);
+    }(config_namespaces, StringFragment__StringFragment);
 var Element_bindElement = function () {
         
         return function (element, attributes) {
@@ -6172,7 +6172,7 @@ var Element_Transition = function (isClient, isNumeric, isArray, StringFragment)
             return hyphenated;
         };
         return Transition;
-    }(config_isClient, utils_isNumeric, utils_isArray, StringFragment__index);
+    }(config_isClient, utils_isNumeric, utils_isArray, StringFragment__StringFragment);
 var Element_executeTransition = function (isClient, warn, Transition) {
         
         if (!isClient) {
@@ -6325,7 +6325,7 @@ var Element_addEventProxy = function (StringFragment) {
             };
         };
         return addEventProxy;
-    }(StringFragment__index);
+    }(StringFragment__StringFragment);
 var Element_addEventProxies = function (addEventProxy) {
         
         return function (element, proxies) {
@@ -6341,7 +6341,7 @@ var Element_addEventProxies = function (addEventProxy) {
             }
         };
     }(Element_addEventProxy);
-var Element__index = function (types, create, defineProperty, voidElementNames, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, addEventProxies) {
+var Element__Element = function (types, create, defineProperty, voidElementNames, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, addEventProxies) {
         
         var DomElement = function (options, docFrag) {
             var self = this, parentFragment, descriptor, namespace, attributes, decoratorFn, errorMessage, width, height, loadHandler, root;
@@ -6537,14 +6537,14 @@ var Partial_getPartialDescriptor = function (errors, warn, isClient, isObject, p
             return partial;
         };
         return getPartialDescriptor;
-    }(config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__index);
-var Partial__index = function (require, types, getPartialDescriptor) {
+    }(config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__parse);
+var Partial__Partial = function (require, types, getPartialDescriptor) {
         
         var DomPartial, DomFragment;
         loadCircularDependency(function () {
             (function (dep) {
                 DomFragment = dep;
-            }(DomFragment__index));
+            }(DomFragment__DomFragment));
         });
         DomPartial = function (options, docFrag) {
             var parentFragment = this.parentFragment = options.parentFragment, descriptor;
@@ -6588,7 +6588,7 @@ var Component_getComponentConstructor = function () {
             return ractive.components[name];
         };
     }();
-var Component__index = function (types, resolveRef, getComponentConstructor, StringFragment) {
+var Component__Component = function (types, resolveRef, getComponentConstructor, StringFragment) {
         
         var DomComponent, ComponentParameter;
         DomComponent = function (options, docFrag) {
@@ -6763,7 +6763,7 @@ var Component__index = function (types, resolveRef, getComponentConstructor, Str
             }
         };
         return DomComponent;
-    }(config_types, shared_resolveRef, Component_getComponentConstructor, StringFragment__index);
+    }(config_types, shared_resolveRef, Component_getComponentConstructor, StringFragment__StringFragment);
 var DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
@@ -6790,7 +6790,7 @@ var DomFragment_Comment = function (types) {
         };
         return DomComment;
     }(config_types);
-var DomFragment__index = function (types, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment) {
+var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment) {
         
         var DomFragment = function (options) {
             if (options.parentNode) {
@@ -6884,7 +6884,7 @@ var DomFragment__index = function (types, initFragment, insertHtml, Text, Interp
             }
         };
         return DomFragment;
-    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, DomFragment_Section, DomFragment_Triple, Element__index, Partial__index, Component__index, DomFragment_Comment);
+    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, DomFragment_Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment);
 var shared_render = function (getElement, makeTransitionManager, processDeferredUpdates, DomFragment) {
         
         return function (ractive, options) {
@@ -6911,7 +6911,7 @@ var shared_render = function (getElement, makeTransitionManager, processDeferred
             transitionManager.ready();
             ractive.rendered = true;
         };
-    }(utils_getElement, shared_makeTransitionManager, shared_processDeferredUpdates, DomFragment__index);
+    }(utils_getElement, shared_makeTransitionManager, shared_processDeferredUpdates, DomFragment__DomFragment);
 var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperties, getElement, isObject, render, magicAdaptor, parse) {
         
         var getObject, getArray, defaultOptions, extendable;
@@ -7088,7 +7088,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             });
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, shared_render, get_magicAdaptor, parse__index);
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, shared_render, get_magicAdaptor, parse__parse);
 var extend__extend = function (errors, create, isClient, isObject, parse, initialise, adaptorRegistry) {
         
         var extend, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
@@ -7286,8 +7286,8 @@ var extend__extend = function (errors, create, isClient, isObject, parse, initia
             }
         };
         return extend;
-    }(config_errors, utils_create, config_isClient, utils_isObject, parse__index, Ractive_initialise, registries_adaptors);
-var Ractive__index = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise) {
+    }(config_errors, utils_create, config_isClient, utils_isObject, parse__parse, Ractive_initialise, registries_adaptors);
+var Ractive__Ractive = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -7313,11 +7313,11 @@ var Ractive__index = function (create, defineProperties, prototype, partialRegis
         Ractive.parse = parse;
         Ractive.VERSION = '0.3.8-pre';
         return Ractive;
-    }(utils_create, utils_defineProperties, prototype__index, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__index, Ractive_initialise);
+    }(utils_create, utils_defineProperties, prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise);
 var Ractive = function (Ractive) {
         
         return Ractive;
-    }(Ractive__index);while ( loadCircularDependency.callbacks.length ) {
+    }(Ractive__Ractive);while ( loadCircularDependency.callbacks.length ) {
 	loadCircularDependency.callbacks.pop()();
 }
 

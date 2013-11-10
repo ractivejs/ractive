@@ -2,7 +2,7 @@ define([
 	'utils/getElement',
 	'shared/makeTransitionManager',
 	'shared/processDeferredUpdates',
-	'render/DomFragment/_index'
+	'render/DomFragment/_DomFragment'
 ], function (
 	getElement,
 	makeTransitionManager,

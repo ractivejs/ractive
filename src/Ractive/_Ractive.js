@@ -1,12 +1,12 @@
 define([
 	'utils/create',
 	'utils/defineProperties',
-	'Ractive/prototype/_index',
+	'Ractive/prototype/_prototype',
 	'registries/partials',
 	'registries/adaptors',
 	'registries/easing',
 	'extend/_extend',
-	'parse/_index',
+	'parse/_parse',
 	'Ractive/initialise'
 ], function (
 	create,

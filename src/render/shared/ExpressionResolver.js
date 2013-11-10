@@ -1,7 +1,7 @@
 define([
 	'shared/resolveRef',
 	'shared/teardown',
-	'render/shared/Evaluator/_index'
+	'render/shared/Evaluator/_Evaluator'
 ], function (
 	resolveRef,
 	teardown,

@@ -13,7 +13,7 @@ define([
 	var DomPartial, DomFragment;
 
 	loadCircularDependency( function () {
-		require([ 'render/DomFragment/_index' ], function ( dep ) {
+		require([ 'render/DomFragment/_DomFragment' ], function ( dep ) {
 			DomFragment = dep;
 		});
 	});

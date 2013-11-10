@@ -3,7 +3,7 @@ define([
 	'utils/create',
 	'config/isClient',
 	'utils/isObject',
-	'parse/_index',
+	'parse/_parse',
 	'Ractive/initialise',
 	'registries/adaptors'
 ], function (

@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'parse/Parser/getText/TextStub/_index'
+	'parse/Parser/getText/TextStub/_TextStub'
 ], function (
 	types,
 	TextStub

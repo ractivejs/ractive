@@ -2,7 +2,7 @@ define([
 	'config/types',
 	'shared/resolveRef',
 	'render/DomFragment/Component/getComponentConstructor',
-	'render/StringFragment/_index'
+	'render/StringFragment/_StringFragment'
 ], function (
 	types,
 	resolveRef,

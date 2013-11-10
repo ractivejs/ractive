@@ -1,10 +1,10 @@
 define([
-	'parse/Tokenizer/getMustache/_index',
+	'parse/Tokenizer/getMustache/_getMustache',
 	'parse/Tokenizer/getComment/getComment',
-	'parse/Tokenizer/getTag/_index',
-	'parse/Tokenizer/getText/getText',
+	'parse/Tokenizer/getTag/_getTag',
+	'parse/Tokenizer/getText/_getText',
 
-	'parse/Tokenizer/getExpression/_index',
+	'parse/Tokenizer/getExpression/_getExpression',
 	
 	'parse/Tokenizer/utils/allowWhitespace',
 	'parse/Tokenizer/utils/getStringMatch'

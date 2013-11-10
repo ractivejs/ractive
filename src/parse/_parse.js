@@ -27,7 +27,7 @@
 define([
 	'parse/tokenize',
 	'config/types',
-	'parse/Parser/_index'
+	'parse/Parser/_Parser'
 ], function (
 	tokenize,
 	types,

@@ -1,7 +1,7 @@
 define([
 	'config/types',
 	'parse/Tokenizer/getExpression/shared/getName',
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/_index', // TODO should these be higher in the tree?
+	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/_getStringLiteral', // TODO should these be higher in the tree?
 	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getNumberLiteral'
 ], function (
 	types,

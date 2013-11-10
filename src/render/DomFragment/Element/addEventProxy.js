@@ -1,4 +1,4 @@
-define([ 'render/StringFragment/_index' ], function ( StringFragment ) {
+define([ 'render/StringFragment/_StringFragment' ], function ( StringFragment ) {
 
 	'use strict';
 

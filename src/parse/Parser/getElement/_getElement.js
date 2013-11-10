@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'parse/Parser/getElement/ElementStub/_index'
+	'parse/Parser/getElement/ElementStub/_ElementStub'
 ], function (
 	types,
 	ElementStub

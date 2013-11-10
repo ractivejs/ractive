@@ -4,7 +4,7 @@ define([
 	'utils/warn',
 	'utils/isObject',
 	'registries/partials',
-	'parse/_index'
+	'parse/_parse'
 ], function (
 	errors,
 	warn,

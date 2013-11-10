@@ -2,7 +2,7 @@ define([
 	'config/isClient',
 	'utils/isNumeric',
 	'utils/isArray',
-	'render/StringFragment/_index'
+	'render/StringFragment/_StringFragment'
 ], function (
 	isClient,
 	isNumeric,

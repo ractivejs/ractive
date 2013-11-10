@@ -1,6 +1,6 @@
 define([
 	'config/namespaces',
-	'render/StringFragment/_index'
+	'render/StringFragment/_StringFragment'
 ], function (
 	namespaces,
 	StringFragment
@@ -12,7 +12,7 @@ define([
 
 
 	loadCircularDependency( function () {
-		require([ 'render/DomFragment/_index' ], function ( dep ) {
+		require([ 'render/DomFragment/_DomFragment' ], function ( dep ) {
 			DomFragment = dep;
 		});
 	});

@@ -1,8 +1,8 @@
 define([
-	'parse/Parser/getText/_index',
-	'parse/Parser/getComment/_index',
-	'parse/Parser/getMustache/_index',
-	'parse/Parser/getElement/_index',
+	'parse/Parser/getText/_getText',
+	'parse/Parser/getComment/_getComment',
+	'parse/Parser/getMustache/_getMustache',
+	'parse/Parser/getElement/_getElement',
 
 	'parse/Parser/utils/jsonifyStubs'
 ], function (

@@ -1,7 +1,7 @@
 define([
 	'config/types',
 	'parse/Parser/utils/jsonifyStubs',
-	'parse/Parser/getMustache/ExpressionStub/_index'
+	'parse/Parser/getMustache/ExpressionStub/_ExpressionStub'
 ], function (
 	types,
 	jsonifyStubs,

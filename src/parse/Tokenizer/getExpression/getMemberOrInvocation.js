@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'parse/Tokenizer/getExpression/getPrimary/_index',
+	'parse/Tokenizer/getExpression/getPrimary/_getPrimary',
 	'parse/Tokenizer/getExpression/shared/getExpressionList',
 	'parse/Tokenizer/getExpression/shared/getRefinement'
 ], function (

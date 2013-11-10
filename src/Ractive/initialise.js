@@ -9,7 +9,7 @@ define([
 	'utils/isObject',
 	'shared/render',
 	'Ractive/prototype/get/magicAdaptor',
-	'parse/_index'
+	'parse/_parse'
 ], function (
 	isClient,
 	errors,

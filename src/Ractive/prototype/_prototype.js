@@ -1,9 +1,9 @@
 define([
-	'Ractive/prototype/get/_index',
+	'Ractive/prototype/get/_get',
 	'Ractive/prototype/set',
 	'Ractive/prototype/update',
 	'Ractive/prototype/updateModel',
-	'Ractive/prototype/animate/_index',
+	'Ractive/prototype/animate/_animate',
 	'Ractive/prototype/on',
 	'Ractive/prototype/off',
 	'Ractive/prototype/observe',

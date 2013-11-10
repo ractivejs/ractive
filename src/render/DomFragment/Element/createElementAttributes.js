@@ -1,4 +1,4 @@
-define([ 'render/DomFragment/Attribute/index' ], function ( DomAttribute ) {
+define([ 'render/DomFragment/Attribute/_Attribute' ], function ( DomAttribute ) {
 	
 	'use strict';
 

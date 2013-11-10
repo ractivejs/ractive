@@ -2,7 +2,7 @@ define([
 	'config/namespaces',
 	'render/DomFragment/Attribute/bindAttribute',
 	'render/DomFragment/Attribute/updateAttribute',
-	'render/StringFragment/_index'
+	'render/StringFragment/_StringFragment'
 ], function (
 	namespaces,
 	bindAttribute,

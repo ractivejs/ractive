@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'parse/Parser/getComment/CommentStub/_index'
+	'parse/Parser/getComment/CommentStub/_CommentStub'
 ], function (
 	types,
 	CommentStub
