@@ -2,11 +2,9 @@ define( function () {
 	
 	'use strict';
 
-	var window = window;
-
-	// If window doesn't exist return a noop
-	if ( !window ) {
-		return function () {};
+	// If window doesn't exist, we don't need requestAnimationFrame
+	if ( typeof window === 'undefined' ) {
+		return;
 	}
 
 	// https://gist.github.com/paulirish/1579671

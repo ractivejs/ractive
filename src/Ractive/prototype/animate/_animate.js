@@ -14,16 +14,25 @@ function (
 
 	'use strict';
 
-	var animate,
-
-		// helpers
-		_animate,
-		noAnimation;
+	var noAnimation = {
+		stop: function () {}
+	};
 
 
-	animate = function ( keypath, to, options ) {
+	return function ( keypath, to, options ) {
 		
-		var k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
+		var k,
+			animation,
+			animations,
+			easing,
+			duration,
+			step,
+			complete,
+			makeValueCollector,
+			currentValues,
+			collectValue,
+			dummy,
+			dummyOptions;
 
 		// animate multiple keypaths
 		if ( typeof keypath === 'object' ) {
@@ -121,12 +130,8 @@ function (
 		};
 	};
 
-	noAnimation = {
-		stop: function () {}
-	};
-
-	_animate = function ( root, keypath, to, options ) {
-		var easing, duration, animation, i, from;
+	function animate ( root, keypath, to, options ) {
+		var easing, duration, animation, from;
 
 		if ( keypath !== null ) {
 			from = root.get( keypath );
@@ -134,14 +139,7 @@ function (
 		
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?
-		i = animationCollection.animations.length;
-		while ( i-- ) {
-			animation = animationCollection.animations[i];
-
-			if ( animation.root === root && animation.keypath === keypath ) {
-				animation.stop();
-			}
-		}
+		animationCollection.abort( keypath, root );
 
 		// don't bother animating values that stay the same
 		if ( isEqual( from, to ) ) {
@@ -190,10 +188,10 @@ function (
 			complete: options.complete
 		});
 
-		animationCollection.push( animation );
+		animationCollection.add( animation );
 		root._animations[ root._animations.length ] = animation;
 
 		return animation;
-	};
+	}
 
 });

@@ -41,6 +41,7 @@ define([
 		set: set,
 		update: update,
 		updateModel: updateModel,
+		animate: animate,
 		on: on,
 		off: off,
 		observe: observe,
