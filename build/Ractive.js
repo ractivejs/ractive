@@ -806,17 +806,19 @@ var shared_resolveRef = function () {
     }();
 var shared_attemptKeypathResolution = function (resolveRef) {
         
+        var push = Array.prototype.push;
         return function (ractive) {
-            var i, unresolved, keypath;
-            i = ractive._pendingResolution.length;
-            while (i--) {
-                unresolved = ractive._pendingResolution.splice(i, 1)[0];
+            var unresolved, keypath, leftover;
+            while (unresolved = ractive._pendingResolution.pop()) {
                 keypath = resolveRef(ractive, unresolved.ref, unresolved.contextStack);
                 if (keypath !== undefined) {
                     unresolved.resolve(keypath);
                 } else {
-                    ractive._pendingResolution[ractive._pendingResolution.length] = unresolved;
+                    (leftover || (leftover = [])).push(unresolved);
                 }
+            }
+            if (leftover) {
+                push.apply(ractive._pendingResolution, leftover);
             }
         };
     }(shared_resolveRef);
@@ -3853,8 +3855,7 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, stringif
         
         var ElementStub, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, onPattern, sanitize, camelCase, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
         ElementStub = function (firstToken, parser, preserveWhitespace) {
-            var next, attrs, filtered, proxies, item, getFrag;
-            this.lcTag = firstToken.name.toLowerCase();
+            var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
             parser.pos += 1;
             getFrag = function (attr) {
                 var lcName = attr.name.toLowerCase();
@@ -3863,12 +3864,13 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, stringif
                     value: attr.value ? new StringStub(attr.value) : null
                 };
             };
-            this.tag = svgCamelCaseElementsMap[this.lcTag] ? svgCamelCaseElementsMap[this.lcTag] : this.lcTag;
+            lowerCaseTag = firstToken.name.toLowerCase();
+            this.tag = svgCamelCaseElementsMap[lowerCaseTag] ? svgCamelCaseElementsMap[lowerCaseTag] : lowerCaseTag;
             if (this.tag.substr(0, 3) === 'rv-') {
                 warn('The "rv-" prefix for components has been deprecated. Support will be removed in a future version');
                 this.tag = this.tag.substring(3);
             }
-            preserveWhitespace = preserveWhitespace || this.lcTag === 'pre';
+            preserveWhitespace = preserveWhitespace || lowerCaseTag === 'pre';
             if (firstToken.attrs) {
                 filtered = filterAttributes(firstToken.attrs);
                 attrs = filtered.attrs;
@@ -3898,13 +3900,13 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, stringif
             if (firstToken.selfClosing) {
                 this.selfClosing = true;
             }
-            if (voidElementNames.indexOf(this.lcTag) !== -1) {
+            if (voidElementNames.indexOf(lowerCaseTag) !== -1) {
                 this.isVoid = true;
             }
             if (this.selfClosing || this.isVoid) {
                 return;
             }
-            this.siblings = siblingsByTagName[this.lcTag];
+            this.siblings = siblingsByTagName[lowerCaseTag];
             this.items = [];
             next = parser.next();
             while (next) {
@@ -3913,7 +3915,7 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, stringif
                 }
                 if (next.type === types.TAG) {
                     if (next.closing) {
-                        if (next.name.toLowerCase() === this.lcTag) {
+                        if (next.name.toLowerCase() === lowerCaseTag) {
                             parser.pos += 1;
                         }
                         break;
