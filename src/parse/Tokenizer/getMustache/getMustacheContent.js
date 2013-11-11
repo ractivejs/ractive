@@ -19,29 +19,51 @@ define([
 
 		mustache = { type: isTriple ? types.TRIPLE : types.MUSTACHE };
 
-		// mustache type
+		// Determine mustache type
 		if ( !isTriple ) {
-			type = getMustacheType( tokenizer );
-			mustache.mustacheType = type || types.INTERPOLATOR; // default
+			// We need to test for expressions before we test for mustache type, because
+			// an expression that begins '!' looks a lot like a comment
+			if ( expr = tokenizer.getExpression() ) {
+				mustache.mustacheType = types.INTERPOLATOR;
 
-			// if it's a comment or a section closer, allow any contents except '}}'
-			if ( type === types.COMMENT || type === types.CLOSING ) {
-				remaining = tokenizer.remaining();
-				index = remaining.indexOf( tokenizer.delimiters[1] );
+				// Was it actually an expression, or a comment block in disguise?
+				tokenizer.allowWhitespace();
 
-				if ( index !== -1 ) {
-					mustache.ref = remaining.substr( 0, index );
-					tokenizer.pos += index;
-					return mustache;
+				if ( tokenizer.getStringMatch( tokenizer.delimiters[1] ) ) {
+					// expression
+					tokenizer.pos -= tokenizer.delimiters[1].length;
+				} else {
+					// comment block
+					tokenizer.pos = start;
+					expr = null;
+				}
+			}
+
+			if ( !expr ) {
+				type = getMustacheType( tokenizer );
+				mustache.mustacheType = type || types.INTERPOLATOR; // default
+
+				// if it's a comment or a section closer, allow any contents except '}}'
+				if ( type === types.COMMENT || type === types.CLOSING ) {
+					remaining = tokenizer.remaining();
+					index = remaining.indexOf( tokenizer.delimiters[1] );
+
+					if ( index !== -1 ) {
+						mustache.ref = remaining.substr( 0, index );
+						tokenizer.pos += index;
+						return mustache;
+					}
 				}
 			}
 		}
 
-		// allow whitespace
-		tokenizer.allowWhitespace();
+		if ( !expr ) {
+			// allow whitespace
+			tokenizer.allowWhitespace();
 
-		// get expression
-		expr = tokenizer.getExpression();
+			// get expression
+			expr = tokenizer.getExpression();
+		}
 
 		while ( expr.t === types.BRACKETED && expr.x ) {
 			expr = expr.x;

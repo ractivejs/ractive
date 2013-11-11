@@ -96,7 +96,7 @@ define( function () {
 						name: "Indented Inline",
 						data: {},
 						expected: "  12 \n",
-						template: "  12 {{! 34 }}\n",
+						template: "  12 {{! 3 4 }}\n",
 						desc: "Inline comments should not strip whitespace"
 					},
 					{
