@@ -17,8 +17,7 @@
 	if ( !doc.createElementNS ) {
 		doc.createElementNS = function ( ns, type ) {
 			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
-				// TODO update URL when repo changes owner
-				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/Rich-Harris/Ractive/wiki/SVG-and-older-browsers for more information';
+				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/RactiveJS/Ractive/wiki/SVG-and-older-browsers for more information';
 			}
 
 			return doc.createElement( type );
