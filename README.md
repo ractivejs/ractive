@@ -1,6 +1,8 @@
 Ractive.js - Next-generation DOM manipulation
 =============================================
 
+[![Build Status](https://travis-ci.org/RactiveJS/Ractive.png)](https://travis-ci.org/RactiveJS/Ractive)
+
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
 
 What is Ractive.js?
