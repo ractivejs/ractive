@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-10
+	Ractive - v0.3.8-pre - 2013-11-11
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1060,10 +1060,8 @@ var prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch
     }(shared_getValueFromCheckboxes, utils_arrayContentsMatch, utils_isEqual);
 var animate_requestAnimationFrame = function () {
         
-        var window = window;
-        if (!window) {
-            return function () {
-            };
+        if (typeof window === 'undefined') {
+            return;
         }
         (function (vendors, lastTime, window) {
             var x, setTimeout;
@@ -1096,30 +1094,36 @@ var animate_requestAnimationFrame = function () {
     }();
 var animate_animationCollection = function (rAF) {
         
+        var animations = [];
         var animationCollection = {
-                animations: [],
                 tick: function () {
                     var i, animation;
-                    for (i = 0; i < this.animations.length; i += 1) {
-                        animation = this.animations[i];
+                    for (i = 0; i < animations.length; i += 1) {
+                        animation = animations[i];
                         if (!animation.tick()) {
-                            this.animations.splice(i--, 1);
+                            animations.splice(i--, 1);
                         }
                     }
-                    if (this.animations.length) {
-                        rAF(this.boundTick);
+                    if (animations.length) {
+                        rAF(animationCollection.tick);
                     } else {
                         this.running = false;
                     }
                 },
-                boundTick: function () {
-                    animationCollection.tick();
-                },
-                push: function (animation) {
-                    this.animations[this.animations.length] = animation;
+                add: function (animation) {
+                    animations[animations.length] = animation;
                     if (!this.running) {
                         this.running = true;
                         this.tick();
+                    }
+                },
+                abort: function (keypath, root) {
+                    var i = animations.length, animation;
+                    while (i--) {
+                        animation = animations[i];
+                        if (animation.root === root && animation.keypath === keypath) {
+                            animation.stop();
+                        }
                     }
                 }
             };
@@ -1305,8 +1309,11 @@ var registries_easing = function () {
     }();
 var animate__animate = function (isEqual, animationCollection, Animation, easingRegistry) {
         
-        var animate, _animate, noAnimation;
-        animate = function (keypath, to, options) {
+        var noAnimation = {
+                stop: function () {
+                }
+            };
+        return function (keypath, to, options) {
             var k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
             if (typeof keypath === 'object') {
                 options = to || {};
@@ -1379,22 +1386,12 @@ var animate__animate = function (isEqual, animationCollection, Animation, easing
                 }
             };
         };
-        noAnimation = {
-            stop: function () {
-            }
-        };
-        _animate = function (root, keypath, to, options) {
-            var easing, duration, animation, i, from;
+        function animate(root, keypath, to, options) {
+            var easing, duration, animation, from;
             if (keypath !== null) {
                 from = root.get(keypath);
             }
-            i = animationCollection.animations.length;
-            while (i--) {
-                animation = animationCollection.animations[i];
-                if (animation.root === root && animation.keypath === keypath) {
-                    animation.stop();
-                }
-            }
+            animationCollection.abort(keypath, root);
             if (isEqual(from, to)) {
                 if (options.complete) {
                     options.complete(1, options.to);
@@ -1426,10 +1423,10 @@ var animate__animate = function (isEqual, animationCollection, Animation, easing
                 step: options.step,
                 complete: options.complete
             });
-            animationCollection.push(animation);
+            animationCollection.add(animation);
             root._animations[root._animations.length] = animation;
             return animation;
-        };
+        }
     }(utils_isEqual, animate_animationCollection, animate_Animation, registries_easing);
 var prototype_on = function () {
         
@@ -1729,6 +1726,7 @@ var prototype__prototype = function (get, set, update, updateModel, animate, on,
             set: set,
             update: update,
             updateModel: updateModel,
+            animate: animate,
             on: on,
             off: off,
             observe: observe,
@@ -1887,20 +1885,34 @@ var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMusta
             start = tokenizer.pos;
             mustache = { type: isTriple ? types.TRIPLE : types.MUSTACHE };
             if (!isTriple) {
-                type = getMustacheType(tokenizer);
-                mustache.mustacheType = type || types.INTERPOLATOR;
-                if (type === types.COMMENT || type === types.CLOSING) {
-                    remaining = tokenizer.remaining();
-                    index = remaining.indexOf(tokenizer.delimiters[1]);
-                    if (index !== -1) {
-                        mustache.ref = remaining.substr(0, index);
-                        tokenizer.pos += index;
-                        return mustache;
+                if (expr = tokenizer.getExpression()) {
+                    mustache.mustacheType = types.INTERPOLATOR;
+                    tokenizer.allowWhitespace();
+                    if (tokenizer.getStringMatch(tokenizer.delimiters[1])) {
+                        tokenizer.pos -= tokenizer.delimiters[1].length;
+                    } else {
+                        tokenizer.pos = start;
+                        expr = null;
+                    }
+                }
+                if (!expr) {
+                    type = getMustacheType(tokenizer);
+                    mustache.mustacheType = type || types.INTERPOLATOR;
+                    if (type === types.COMMENT || type === types.CLOSING) {
+                        remaining = tokenizer.remaining();
+                        index = remaining.indexOf(tokenizer.delimiters[1]);
+                        if (index !== -1) {
+                            mustache.ref = remaining.substr(0, index);
+                            tokenizer.pos += index;
+                            return mustache;
+                        }
                     }
                 }
             }
-            tokenizer.allowWhitespace();
-            expr = tokenizer.getExpression();
+            if (!expr) {
+                tokenizer.allowWhitespace();
+                expr = tokenizer.getExpression();
+            }
             while (expr.t === types.BRACKETED && expr.x) {
                 expr = expr.x;
             }
@@ -3837,11 +3849,11 @@ var ElementStub_toString = function (stringifyStubs, voidElementNames) {
             return this.str = str;
         };
     }(utils_stringifyStubs, config_voidElementNames);
-var ElementStub__ElementStub = function (types, voidElementNames, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
+var ElementStub__ElementStub = function (types, voidElementNames, warn, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
         
         var ElementStub, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, onPattern, sanitize, camelCase, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
         ElementStub = function (firstToken, parser, preserveWhitespace) {
-            var next, attrs, filtered, proxies, item, i, attr, getFrag;
+            var next, attrs, filtered, proxies, item, getFrag;
             this.lcTag = firstToken.name.toLowerCase();
             parser.pos += 1;
             getFrag = function (attr) {
@@ -3851,44 +3863,33 @@ var ElementStub__ElementStub = function (types, voidElementNames, stringifyStubs
                     value: attr.value ? new StringStub(attr.value) : null
                 };
             };
-            if (this.lcTag.substr(0, 3) === 'rv-') {
-                this.component = camelCase(firstToken.name.substring(3));
-                if (firstToken.attrs) {
-                    this.attributes = [];
-                    i = firstToken.attrs.length;
-                    while (i--) {
-                        attr = firstToken.attrs[i];
-                        this.attributes[i] = {
-                            name: attr.name,
-                            value: attr.value ? new StringStub(attr.value) : null
-                        };
-                    }
+            this.tag = svgCamelCaseElementsMap[this.lcTag] ? svgCamelCaseElementsMap[this.lcTag] : this.lcTag;
+            if (this.tag.substr(0, 3) === 'rv-') {
+                warn('The "rv-" prefix for components has been deprecated. Support will be removed in a future version');
+                this.tag = this.tag.substring(3);
+            }
+            preserveWhitespace = preserveWhitespace || this.lcTag === 'pre';
+            if (firstToken.attrs) {
+                filtered = filterAttributes(firstToken.attrs);
+                attrs = filtered.attrs;
+                proxies = filtered.proxies;
+                if (parser.options.sanitize && parser.options.sanitize.eventAttributes) {
+                    attrs = attrs.filter(sanitize);
                 }
-            } else {
-                this.tag = svgCamelCaseElementsMap[this.lcTag] ? svgCamelCaseElementsMap[this.lcTag] : this.lcTag;
-                preserveWhitespace = preserveWhitespace || this.lcTag === 'pre';
-                if (firstToken.attrs) {
-                    filtered = filterAttributes(firstToken.attrs);
-                    attrs = filtered.attrs;
-                    proxies = filtered.proxies;
-                    if (parser.options.sanitize && parser.options.sanitize.eventAttributes) {
-                        attrs = attrs.filter(sanitize);
-                    }
-                    if (attrs.length) {
-                        this.attributes = attrs.map(getFrag);
-                    }
-                    if (proxies.length) {
-                        this.proxies = proxies.map(processDirective);
-                    }
-                    if (filtered.intro) {
-                        this.intro = processDirective(filtered.intro);
-                    }
-                    if (filtered.outro) {
-                        this.outro = processDirective(filtered.outro);
-                    }
-                    if (filtered.decorator) {
-                        this.decorator = filtered.decorator.value[0].value;
-                    }
+                if (attrs.length) {
+                    this.attributes = attrs.map(getFrag);
+                }
+                if (proxies.length) {
+                    this.proxies = proxies.map(processDirective);
+                }
+                if (filtered.intro) {
+                    this.intro = processDirective(filtered.intro);
+                }
+                if (filtered.outro) {
+                    this.outro = processDirective(filtered.outro);
+                }
+                if (filtered.decorator) {
+                    this.decorator = filtered.decorator.value[0].value;
                 }
             }
             if (firstToken.doctype) {
@@ -3968,7 +3969,7 @@ var ElementStub__ElementStub = function (types, voidElementNames, stringifyStubs
             });
         };
         return ElementStub;
-    }(config_types, config_voidElementNames, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__StringStub);
+    }(config_types, config_voidElementNames, utils_warn, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__StringStub);
 var getElement__getElement = function (types, ElementStub) {
         
         return function (token) {
@@ -6557,13 +6558,7 @@ var Partial__Partial = function (types, getPartialDescriptor, circular) {
         };
         return DomPartial;
     }(config_types, Partial_getPartialDescriptor, circular);
-var Component_getComponentConstructor = function () {
-        
-        return function (ractive, name) {
-            return ractive.components[name];
-        };
-    }();
-var Component__Component = function (types, resolveRef, getComponentConstructor, StringFragment) {
+var Component__Component = function (types, warn, resolveRef, StringFragment) {
         
         var DomComponent, ComponentParameter;
         DomComponent = function (options, docFrag) {
@@ -6572,7 +6567,7 @@ var Component__Component = function (types, resolveRef, getComponentConstructor,
             this.type = types.COMPONENT;
             this.name = options.descriptor.r;
             this.index = options.index;
-            Component = getComponentConstructor(parentFragment.root, options.descriptor.e);
+            Component = root.components[options.descriptor.e];
             if (!Component) {
                 throw new Error('Component "' + options.descriptor.e + '" not found');
             }
@@ -6688,6 +6683,9 @@ var Component__Component = function (types, resolveRef, getComponentConstructor,
                     }
                 }
             }
+            if (options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o) {
+                warn('The "intro", "outro" and "decorator" directives have no effect on components');
+            }
         };
         DomComponent.prototype = {
             firstNode: function () {
@@ -6738,7 +6736,7 @@ var Component__Component = function (types, resolveRef, getComponentConstructor,
             }
         };
         return DomComponent;
-    }(config_types, shared_resolveRef, Component_getComponentConstructor, StringFragment__StringFragment);
+    }(config_types, utils_warn, shared_resolveRef, StringFragment__StringFragment);
 var DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
@@ -6793,11 +6791,12 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
                 case types.TRIPLE:
                     return new Triple(options, this.docFrag);
                 case types.ELEMENT:
+                    if (this.root.components[options.descriptor.e]) {
+                        return new Component(options, this.docFrag);
+                    }
                     return new Element(options, this.docFrag);
                 case types.PARTIAL:
                     return new Partial(options, this.docFrag);
-                case types.COMPONENT:
-                    return new Component(options, this.docFrag);
                 case types.COMMENT:
                     return new Comment(options, this.docFrag);
                 default:
