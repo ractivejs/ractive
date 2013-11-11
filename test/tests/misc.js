@@ -829,6 +829,22 @@ define( function () {
 			}
 		});
 
+		test( 'Attempting to set up two-way binding against an expression throws an error', function ( t ) {
+			var ractive;
+
+			expect( 1 );
+
+			try {
+				ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{ foo[bar] }}">',
+					debug: true
+				});
+			} catch ( err ) {
+				t.ok( err );
+			}
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

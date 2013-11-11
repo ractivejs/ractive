@@ -104,6 +104,13 @@ define([
 			return null;
 		}
 
+		if ( item.descriptor.x ) {
+			if ( attribute.root.debug ) {
+				throw new Error( 'You cannot set up two-way binding against an expression' );
+			}
+			return null;
+		}
+
 		return item;
 	};
 
