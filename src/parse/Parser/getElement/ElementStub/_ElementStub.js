@@ -48,12 +48,9 @@ define([
 
 	
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
-		var next, attrs, filtered, proxies, item, getFrag;
-
-		this.lcTag = firstToken.name.toLowerCase();
+		var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
 
 		parser.pos += 1;
-
 
 		getFrag = function ( attr ) {
 			var lcName = attr.name.toLowerCase();
@@ -66,7 +63,8 @@ define([
 
 		// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
 		// that should be camelcased, camelcase it
-		this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
+		lowerCaseTag = firstToken.name.toLowerCase();
+		this.tag = ( svgCamelCaseElementsMap[ lowerCaseTag ] ? svgCamelCaseElementsMap[ lowerCaseTag ] : lowerCaseTag );
 
 		if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
 			warn( 'The "rv-" prefix for components has been deprecated. Support will be removed in a future version' );
@@ -74,7 +72,7 @@ define([
 		}
 
 		// if this is a <pre> element, preserve whitespace within
-		preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
+		preserveWhitespace = ( preserveWhitespace || lowerCaseTag === 'pre' );
 
 		if ( firstToken.attrs ) {
 			filtered = filterAttributes( firstToken.attrs );
@@ -119,7 +117,7 @@ define([
 			this.selfClosing = true;
 		}
 
-		if ( voidElementNames.indexOf( this.lcTag ) !== -1 ) {
+		if ( voidElementNames.indexOf( lowerCaseTag ) !== -1 ) {
 			this.isVoid = true;
 		}
 
@@ -128,7 +126,7 @@ define([
 			return;
 		}
 
-		this.siblings = siblingsByTagName[ this.lcTag ];
+		this.siblings = siblingsByTagName[ lowerCaseTag ];
 
 		this.items = [];
 
@@ -146,7 +144,7 @@ define([
 				// closing tag
 				if ( next.closing ) {
 					// it's a closing tag, which means this element is closed...
-					if ( next.name.toLowerCase() === this.lcTag ) {
+					if ( next.name.toLowerCase() === lowerCaseTag ) {
 						parser.pos += 1;
 					}
 
@@ -216,10 +214,6 @@ define([
 		var valid = !onPattern.test( attr.name );
 		return valid;
 	};
-
-	
-
-	
 
 	camelCase = function ( hyphenatedStr ) {
 		return hyphenatedStr.replace( /-([a-zA-Z])/g, function ( match, $1 ) {
