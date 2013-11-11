@@ -58,9 +58,12 @@ define([
 				case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
 				case types.SECTION:      return new Section( options, this.docFrag );
 				case types.TRIPLE:       return new Triple( options, this.docFrag );
-				case types.ELEMENT:      return new Element( options, this.docFrag );
+				case types.ELEMENT:
+					if ( this.root.components[ options.descriptor.e ] ) {
+						return new Component( options, this.docFrag );
+					}
+					return new Element( options, this.docFrag );
 				case types.PARTIAL:      return new Partial( options, this.docFrag );
-				case types.COMPONENT:    return new Component( options, this.docFrag );
 				case types.COMMENT:      return new Comment( options, this.docFrag );
 
 				default: throw new Error( 'WTF? not sure what happened here...' );

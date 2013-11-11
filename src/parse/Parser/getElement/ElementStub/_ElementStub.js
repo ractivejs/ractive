@@ -1,6 +1,7 @@
 define([
 	'config/types',
 	'config/voidElementNames',
+	'utils/warn',
 	'parse/Parser/utils/stringifyStubs',
 
 	'parse/Parser/getElement/ElementStub/utils/siblingsByTagName',
@@ -14,6 +15,7 @@ define([
 ], function (
 	types,
 	voidElementNames,
+	warn,
 	stringifyStubs,
 
 	siblingsByTagName,
@@ -46,7 +48,7 @@ define([
 
 	
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
-		var next, attrs, filtered, proxies, item, i, attr, getFrag;
+		var next, attrs, filtered, proxies, item, getFrag;
 
 		this.lcTag = firstToken.name.toLowerCase();
 
@@ -62,67 +64,50 @@ define([
 			};
 		};
 
+		// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
+		// that should be camelcased, camelcase it
+		this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
 
-
-		// TODO is this the right way to deal with component naming?
-		if ( this.lcTag.substr( 0, 3 ) === 'rv-' ) {
-			this.component = camelCase( firstToken.name.substring( 3 ) );
-
-			if ( firstToken.attrs ) {
-				this.attributes = [];
-				i = firstToken.attrs.length;
-				while ( i-- ) {
-					attr = firstToken.attrs[i];
-
-					this.attributes[i] = {
-						name: attr.name,
-						value: attr.value ? new StringStub( attr.value ) : null
-					};
-				}
-			}
+		if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
+			warn( 'The "rv-" prefix for components has been deprecated. Support will be removed in a future version' );
+			this.tag = this.tag.substring( 3 );
 		}
 
-		else {
-			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
-			// that should be camelcased, camelcase it
-			this.tag = ( svgCamelCaseElementsMap[ this.lcTag ] ? svgCamelCaseElementsMap[ this.lcTag ] : this.lcTag );
+		// if this is a <pre> element, preserve whitespace within
+		preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
 
-			// if this is a <pre> element, preserve whitespace within
-			preserveWhitespace = ( preserveWhitespace || this.lcTag === 'pre' );
+		if ( firstToken.attrs ) {
+			filtered = filterAttributes( firstToken.attrs );
+			
+			attrs = filtered.attrs;
+			proxies = filtered.proxies;
 
-			if ( firstToken.attrs ) {
-				filtered = filterAttributes( firstToken.attrs );
-				
-				attrs = filtered.attrs;
-				proxies = filtered.proxies;
+			// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
+			if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
+				attrs = attrs.filter( sanitize );
+			}
 
-				// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
-				if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
-					attrs = attrs.filter( sanitize );
-				}
+			if ( attrs.length ) {
+				this.attributes = attrs.map( getFrag );
+			}
 
-				if ( attrs.length ) {
-					this.attributes = attrs.map( getFrag );
-				}
+			if ( proxies.length ) {
+				this.proxies = proxies.map( processDirective );
+			}
 
-				if ( proxies.length ) {
-					this.proxies = proxies.map( processDirective );
-				}
+			// TODO rename this helper function
+			if ( filtered.intro ) {
+				this.intro = processDirective( filtered.intro );
+			}
 
-				// TODO rename this helper function
-				if ( filtered.intro ) {
-					this.intro = processDirective( filtered.intro );
-				}
+			if ( filtered.outro ) {
+				this.outro = processDirective( filtered.outro );
+			}
 
-				if ( filtered.outro ) {
-					this.outro = processDirective( filtered.outro );
-				}
-
-				if ( filtered.decorator ) {
-					// TODO figure out the syntax for decorators - can we have multiple
-					// decorators? Decorators with arguments?
-					this.decorator = filtered.decorator.value[0].value;
-				}
+			if ( filtered.decorator ) {
+				// TODO figure out the syntax for decorators - can we have multiple
+				// decorators? Decorators with arguments?
+				this.decorator = filtered.decorator.value[0].value;
 			}
 		}
 		

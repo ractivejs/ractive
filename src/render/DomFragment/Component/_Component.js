@@ -1,21 +1,18 @@
 define([
 	'config/types',
+	'utils/warn',
 	'shared/resolveRef',
-	'render/DomFragment/Component/getComponentConstructor',
 	'render/StringFragment/_StringFragment'
 ], function (
 	types,
+	warn,
 	resolveRef,
-	getComponentConstructor,
 	StringFragment
 ) {
 
 	'use strict';
 
-	var DomComponent,
-
-		// helpers
-		ComponentParameter;
+	var DomComponent, ComponentParameter;
 
 	// TODO support server environments
 	DomComponent = function ( options, docFrag ) {
@@ -48,7 +45,7 @@ define([
 		this.name = options.descriptor.r;
 		this.index = options.index;
 
-		Component = getComponentConstructor( parentFragment.root, options.descriptor.e );
+		Component = root.components[ options.descriptor.e ];
 
 		if ( !Component ) {
 			throw new Error( 'Component "' + options.descriptor.e + '" not found' );
@@ -204,6 +201,11 @@ define([
 					propagateEvent( eventName, options.descriptor.v[ eventName ] );
 				}
 			}
+		}
+
+		// intro, outro and decorator directives have no effect
+		if ( options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o ) {
+			warn( 'The "intro", "outro" and "decorator" directives have no effect on components' );
 		}
 	};
 
