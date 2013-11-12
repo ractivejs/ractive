@@ -2,43 +2,43 @@ define([ 'Ractive/prototype/animate/requestAnimationFrame' ], function ( rAF ) {
 	
 	'use strict';
 
-	var animations = [];
+	var queue = [];
 
-	var animationCollection = {
+	var animations = {
 		tick: function () {
 			var i, animation;
 
-			for ( i=0; i<animations.length; i+=1 ) {
-				animation = animations[i];
+			for ( i=0; i<queue.length; i+=1 ) {
+				animation = queue[i];
 
 				if ( !animation.tick() ) {
 					// animation is complete, remove it from the stack, and decrement i so we don't miss one
-					animations.splice( i--, 1 );
+					queue.splice( i--, 1 );
 				}
 			}
 
-			if ( animations.length ) {
-				rAF( animationCollection.tick );
+			if ( queue.length ) {
+				rAF( animations.tick );
 			} else {
-				this.running = false;
+				animations.running = false;
 			}
 		},
 
 		add: function ( animation ) {
-			animations[ animations.length ] = animation;
+			queue[ queue.length ] = animation;
 
-			if ( !this.running ) {
-				this.running = true;
-				this.tick();
+			if ( !animations.running ) {
+				animations.running = true;
+				animations.tick();
 			}
 		},
 
 		// TODO optimise this
 		abort: function ( keypath, root ) {
-			var i = animations.length, animation;
+			var i = queue.length, animation;
 
 			while ( i-- ) {
-				animation = animations[i];
+				animation = queue[i];
 
 				if ( animation.root === root && animation.keypath === keypath ) {
 					animation.stop();
@@ -47,6 +47,6 @@ define([ 'Ractive/prototype/animate/requestAnimationFrame' ], function ( rAF ) {
 		}
 	};
 
-	return animationCollection;
+	return animations;
 
 });

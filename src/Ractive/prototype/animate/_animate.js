@@ -1,13 +1,13 @@
 define([
 	'utils/isEqual',
-	'Ractive/prototype/animate/animationCollection',
+	'Ractive/prototype/animate/animations',
 	'Ractive/prototype/animate/Animation',
 	'registries/easing'
 ],
 
 function (
 	isEqual,
-	animationCollection,
+	animations,
 	Animation,
 	easingRegistry
 ) {
@@ -139,7 +139,7 @@ function (
 		
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?
-		animationCollection.abort( keypath, root );
+		animations.abort( keypath, root );
 
 		// don't bother animating values that stay the same
 		if ( isEqual( from, to ) ) {
@@ -188,7 +188,7 @@ function (
 			complete: options.complete
 		});
 
-		animationCollection.add( animation );
+		animations.add( animation );
 		root._animations[ root._animations.length ] = animation;
 
 		return animation;
