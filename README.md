@@ -16,7 +16,7 @@ It's a JavaScript library for building reactive user interfaces in a way that do
 
 ...among many others. It takes a radically different approach to DOM manipulation - one that saves both you and the browser unnecessary work.
 
-To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](https://github.com/Rich-Harris/Ractive/wiki/60-second-setup).
+To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](https://github.com/RactiveJS/Ractive/wiki/60-second-setup).
 
 
 Get help
@@ -68,7 +68,7 @@ $ grunt release
 Contributing
 ------------
 
-If you have feature suggestions or bug reports, please [raise an issue on GitHub](https://github.com/Rich-Harris/Ractive/issues) after checking it's not a duplicate.
+If you have feature suggestions or bug reports, please [raise an issue on GitHub](https://github.com/RactiveJS/Ractive/issues) after checking it's not a duplicate.
 
 Pull requests are always welcome! In lieu of a formal styleguide, please try to follow the existing conventions.
 

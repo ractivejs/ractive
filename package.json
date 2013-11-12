@@ -40,7 +40,7 @@
     "Templating"
   ],
   "bugs": {
-    "url": "https://github.com/Rich-Harris/Ractive/issues"
+    "url": "https://github.com/RactiveJS/Ractive/issues"
   },
   "contributors": [
     {
@@ -58,9 +58,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rich-Harris/Ractive.git"
+    "url": "https://github.com/RactiveJS/Ractive.git"
   },
-  "github": "https://github.com/Rich-Harris/Ractive",
+  "github": "https://github.com/RactiveJS/Ractive",
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.2.0",

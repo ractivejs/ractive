@@ -10,7 +10,7 @@ Got a question or need help?
 If you're having trouble getting Ractive to do what you want, there are a couple of places to get help before submitting an issue:
 
 * [Stack Overflow questions tagged ractivejs](http://stackoverflow.com/questions/tagged/ractivejs)
-* [The Ractive wiki](https://github.com/Rich-Harris/Ractive/wiki)
+* [The Ractive wiki](https://github.com/RactiveJS/Ractive/wiki)
 * [@RactiveJS on Twitter](http://twitter.com/RactiveJS)
 
 Of course, if you've encountered a bug, then the best course of action is to raise an issue (if no-one else has!).
@@ -19,13 +19,13 @@ Of course, if you've encountered a bug, then the best course of action is to rai
 Raising issues
 --------------
 
-Before submitting an issue, please make sure you're using the [latest released version](https://raw.github.com/Rich-Harris/Ractive/master/Ractive.js).
+Before submitting an issue, please make sure you're using the [latest released version](https://raw.github.com/RactiveJS/Ractive/master/Ractive.js).
 
-If the bug persists, it may have been fixed in the latest development version. New versions are developed in branches, named for the version number (e.g. at the time of writing, the development branch is [0.3.8](https://github.com/Rich-Harris/Ractive/tree/0.3.8)). You can get the most recent builds from the `build` folder of this branch.
+If the bug persists, it may have been fixed in the latest development version. New versions are developed in branches, named for the version number (e.g. at the time of writing, the development branch is [0.3.8](https://github.com/RactiveJS/Ractive/tree/0.3.8)). You can get the most recent builds from the `build` folder of this branch.
 
-See the [branches page](https://github.com/Rich-Harris/Ractive/branches) to find the newest development branch.
+See the [branches page](https://github.com/RactiveJS/Ractive/branches) to find the newest development branch.
 
-The best issues contain a reproducible demonstration of the bug in the form of a [JSFiddle](http://jsfiddle.net/) or similar. A good tip when using these tools is to import Ractive via [rawgithub.com](https://rawgithub.com/), e.g. https://rawgithub.com/Rich-Harris/Ractive/master/Ractive.js.
+The best issues contain a reproducible demonstration of the bug in the form of a [JSFiddle](http://jsfiddle.net/) or similar. A good tip when using these tools is to import Ractive via [rawgithub.com](https://rawgithub.com/), e.g. https://rawgithub.com/RactiveJS/Ractive/master/Ractive.js.
 
 
 Pull requests

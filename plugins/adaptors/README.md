@@ -1,1 +1,1 @@
-Adaptors have been removed from here - visit https://github.com/Rich-Harris/Ractive/wiki/Plugins
+Adaptors have been removed from here - visit https://github.com/RactiveJS/Ractive/wiki/Plugins
