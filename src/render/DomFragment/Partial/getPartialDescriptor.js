@@ -7,8 +7,8 @@ define([
 	'parse/_parse'
 ], function (
 	errors,
-	warn,
 	isClient,
+	warn,
 	isObject,
 	partials,
 	parse
