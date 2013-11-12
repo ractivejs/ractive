@@ -390,6 +390,11 @@ define( function () {
 				result: '<table><tr><td>works</td></tr></table>',
 				new_data: { row: '<tr><td>still works</td></tr>' },
 				new_result: '<table><tr><td>still works</td></tr></table>'
+			},
+			{
+				name: 'Class name on an SVG element',
+				template: '<svg><text class="label">foo</text></svg>',
+				result: '<svg><text class=label>foo</text></svg>'
 			}
 		];
 

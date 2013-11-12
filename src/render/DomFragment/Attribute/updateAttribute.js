@@ -1,4 +1,4 @@
-define([ 'utils/isArray' ], function ( isArray ) {
+define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces ) {
 
 	'use strict';
 
@@ -62,7 +62,7 @@ define([ 'utils/isArray' ], function ( isArray ) {
 		}
 
 		// special case - class names. IE fucks things up, again
-		if ( this.name === 'class' ) {
+		if ( this.name === 'class' && ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) {
 			this.update = updateClassName;
 			return this.update();
 		}

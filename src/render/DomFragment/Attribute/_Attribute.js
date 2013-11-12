@@ -207,25 +207,30 @@ define([
 	};
 
 	setStaticAttribute = function ( attribute, options ) {
-		var value = ( options.value === null ? '' : options.value );
+		var node, value = ( options.value === null ? '' : options.value );
 
-		if ( options.parentNode ) {
+		if ( node = options.parentNode ) {
 			if ( attribute.namespace ) {
-				options.parentNode.setAttributeNS( attribute.namespace, options.name, value );
+				node.setAttributeNS( attribute.namespace, options.name, value );
 			} else {
 
 				// is it a style attribute? and are we in a broken POS browser?
-				if ( options.name === 'style' && options.parentNode.style.setAttribute ) {
-					options.parentNode.style.setAttribute( 'cssText', value );
-				} else if ( options.name === 'class' ) {
-					options.parentNode.className = value;
-				} else {
-					options.parentNode.setAttribute( options.name, value );
+				if ( options.name === 'style' && node.style.setAttribute ) {
+					node.style.setAttribute( 'cssText', value );
+				}
+
+				// some browsers prefer className to class...
+				else if ( options.name === 'class' && ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) {
+					node.className = value;
+				}
+
+				else {
+					node.setAttribute( options.name, value );
 				}
 			}
 
 			if ( attribute.name === 'id' ) {
-				options.root.nodes[ options.value ] = options.parentNode;
+				options.root.nodes[ options.value ] = node;
 			}
 
 			if ( attribute.name === 'value' ) {
