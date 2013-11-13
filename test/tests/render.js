@@ -493,10 +493,10 @@ define( function () {
 				testDiv2.innerHTML = view.renderHTML();
 
 				same = compareContents( fixture, testDiv );
-				t.ok( same );
+				t.ok( same, 'Expected:\n"' + testDiv.innerHTML + '"\n\nResult:\n"' + fixture.innerHTML + '"' );
 
 				same = compareContents( testDiv2, testDiv );
-				t.ok( same );
+				t.ok( same, 'Expected:\n"' + testDiv.innerHTML + '"\n\nResult:\n"' + testDiv2.innerHTML + '"' );
 
 				if ( theTest.new_data ) {
 					view.set( theTest.new_data );
