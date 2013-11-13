@@ -9,7 +9,7 @@ define([ 'config/namespaces' ], function ( namespaces ) {
 		}
 
 		// otherwise, use the svg namespace if this is an svg element, or inherit namespace from parent
-		return ( descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : parentNode.namespaceURI );
+		return ( descriptor.e === 'svg' ? namespaces.svg : parentNode.namespaceURI );
 	};
 
 });
