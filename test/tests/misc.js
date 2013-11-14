@@ -823,6 +823,26 @@ define( function () {
 			}
 		});
 
+		test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to implode', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{^foo}}not foo{{/foo}}{{#foo}}<widget items="{{items}}"/>{{/foo}}',
+				data: { items: [ 1, 2 ] },
+				components: {
+					widget: Ractive.extend({ template: 'widget' })
+				}
+			});
+
+			expect( 1 );
+
+			try {
+				ractive.set( 'foo', true );
+				t.ok( 1 );
+			} catch ( err ) {
+				t.ok( 0 );
+			}
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
