@@ -7,7 +7,6 @@ define([
 	'utils/defineProperties',
 	'utils/getElement',
 	'utils/isObject',
-	'shared/render',
 	'Ractive/prototype/get/magicAdaptor',
 	'parse/_parse'
 ], function (
@@ -19,7 +18,6 @@ define([
 	defineProperties,
 	getElement,
 	isObject,
-	render,
 	magicAdaptor,
 	parse
 ) {
@@ -210,7 +208,12 @@ define([
 		// temporarily disable transitions, if noIntro flag is set
 		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 
-		render( ractive, { el: ractive.el, append: options.append, complete: options.complete });
+		// if the target contains content, and `append` is falsy, clear it
+		if ( ractive.el && !options.append ) {
+			ractive.el.innerHTML = '';
+		}
+
+		ractive.render( options.complete );
 
 		// reset transitionsEnabled
 		ractive.transitionsEnabled = options.transitionsEnabled;
