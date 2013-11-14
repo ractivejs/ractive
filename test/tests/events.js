@@ -7,51 +7,9 @@ define( function () {
 
 	return function () {
 		
-		var fixture, createEvent, testDiv, compareHTML;
+		var fixture = document.getElementById( 'qunit-fixture' );
 
 		module( 'Events' );
-
-		fixture = document.getElementById( 'qunit-fixture' );
-
-		try {
-			new Event( 'click' );
-
-			createEvent = function ( eventType, params ) {
-				return new Event( eventType, params );
-			};
-		}
-
-		catch ( err ) {
-			createEvent = function ( eventType, params ) {
-				var event, args;
-
-				event = document.createEvent( 'Event' );
-
-				args = [
-					eventType
-				]
-
-				event.initEvent( eventType );
-
-				return event;
-			};
-		}
-
-
-		testDiv = document.createElement( 'div' );
-
-		// necessary because IE is a goddamned nuisance
-		compareHTML = function ( actual, expected ) {
-			testDiv.innerHTML = actual;
-			actual = testDiv.innerHTML;
-
-			testDiv.innerHTML = expected;
-			expected = testDiv.innerHTML;
-
-			return actual === expected;
-		};
-		
-
 
 		test( 'on-click="someEvent" fires an event when user clicks the element', function ( t ) {
 			var ractive;

@@ -15,15 +15,9 @@ define( function () {
 
 	return function () {
 
-		var testModules, runTest, runModule, i, trim, fudge, testDiv, normalise, isOldIe;
+		var fixture, testModules, runTest, runModule, i, isOldIe;
 
-		testDiv = document.createElement( 'div' );
-
-		// necessary because IE is a goddamned nuisance
-		normalise = function ( html ) {
-			testDiv.innerHTML = fudge( trim( html ) );
-			return fudge( trim( testDiv.innerHTML ) );
-		};
+		fixture = document.getElementById( 'qunit-fixture' );
 
 		testModules = [
 			{
@@ -1200,48 +1194,19 @@ define( function () {
 
 		isOldIe = /MSIE [6-8]/.test( navigator.userAgent );
 
-		trim = function ( str ) {
-			if ( typeof str !== 'string' ) {
-				return '';
-			}
-
-			return str.replace( /^\s*/, '' ).replace( /\s*$/, '' );
-		};
-
-		fudge = function ( str ) {
-			// Modify test output so that unpassable tests become passable...
-			// is this bad?
-
-			// Fudge 1: If you do p.innerHTML = '\r\n', guess what p.innerHTML
-			// is equal to? That's right... '\n'. Not '\r\n'.
-			str = str.replace( /\r\n/g, '\n' );
-
-			// Fudge 2: If you do p.innerText = '>', p.innerHTML = '&gt;'. This
-			// is correct, but the mustache spec deals with plain text rather than
-			// HTML, so it gets all confused
-			str = str.replace( /&gt;/g, '>' ).replace( /&lt;/g, '<' );
-			
-			return str;
-		};
-
-
 		runTest = function ( theTest ) {
 			test( theTest.name, function ( t ) {
-				var data, ractive, result, pattern;
+				var ractive;
 
 				ractive = new Ractive({
-					el: 'qunit-fixture',
+					el: fixture,
 					template: theTest.template,
 					data: theTest.data,
 					partials: theTest.partials,
 					preserveWhitespace: true
 				});
-
-				result = ractive.el.innerHTML;
 				
-				//t.equal( fudge( trim( result ) ), fudge( trim( theTest.expected ) ), theTest.desc + '\n' + theTest.template + '\n' );
-
-				t.equal( normalise( ractive.el.innerHTML ), normalise( theTest.expected ), theTest.desc + '\n' + theTest.template + '\n' );
+				t.htmlEqual( fixture.innerHTML, theTest.expected, theTest.desc + '\n' + theTest.template + '\n' );
 			});
 		};
 

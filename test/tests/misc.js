@@ -1,34 +1,12 @@
-// RENDERING TESTS
-// ===============
-//
-// This loads in the render.json sample file and checks that each compiled
-// template, in combination with the sample data, produces the expected
-// HTML.
-//
-// TODO: add moar samples
-
 define( function () {
+
+	'use strict';
 
 	return function () {
 
-		var fixture, tests, i, len, runTest, compareHTML, testDiv;
-
-		fixture = document.getElementById( 'qunit-fixture' );
-		testDiv = document.createElement( 'div' );
-
-		// necessary because IE is a goddamned nuisance
-		compareHTML = function ( actual, expected ) {
-			testDiv.innerHTML = actual;
-			actual = testDiv.innerHTML;
-
-			testDiv.innerHTML = expected;
-			expected = testDiv.innerHTML;
-
-			return actual === expected;
-		};
+		var fixture = document.getElementById( 'qunit-fixture' );
 
 		module( 'Miscellaneous' );
-
 
 		test( 'Subclass instance data extends prototype data', function ( t ) {
 			var Subclass, instance;
@@ -43,7 +21,7 @@ define( function () {
 				data: { bar: 2 }
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, '1 2' ) );
+			t.htmlEqual( fixture.innerHTML, '1 2' );
 			t.deepEqual( instance.get(), { foo: 1, bar: 2 });
 		});
 
@@ -69,7 +47,7 @@ define( function () {
 				partials: { baz: 'bazPartial' }
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, '<div>fooPartialbarPartialbazPartial</div><div>123</div>' ) );
+			t.htmlEqual( fixture.innerHTML, '<div>fooPartialbarPartialbazPartial</div><div>123</div>' );
 			t.ok( wiggled );
 			t.ok( shimmied );
 		});
@@ -83,7 +61,7 @@ define( function () {
 				data: { a: 1, b: 2 }
 			});
 			
-			t.ok( compareHTML( fixture.innerHTML, '3 3 3' ) );
+			t.htmlEqual( fixture.innerHTML, '3 3 3' );
 
 			t.equal( ractive._deps.length, 2 );
 			t.equal( ractive._deps[1].a.length, 1 );
@@ -123,7 +101,7 @@ define( function () {
 				data: { items: [ 'a', 'b', 'c' ] }
 			});
 
-			t.ok( compareHTML( ractive.renderHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' ) );
+			t.htmlEqual( ractive.renderHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' );
 		});
 
 		test( 'Triples work with renderHTML', function ( t ) {
@@ -134,7 +112,7 @@ define( function () {
 				data: { triple: '<p>test</p>' }
 			});
 
-			t.ok( compareHTML( ractive.renderHTML(), '<p>test</p>' ) );
+			t.htmlEqual( ractive.renderHTML(), '<p>test</p>' );
 		});
 
 		test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', function ( t ) {
@@ -145,7 +123,7 @@ define( function () {
 				template: '<select id="select" value="{{selected}}">{{#options}}<option value="{{.}}">{{.}}</option>{{/options}}</select>'
 			});
 			
-			t.ok( compareHTML( fixture.innerHTML, '<select id="select"></select>' ) );
+			t.htmlEqual( fixture.innerHTML, '<select id="select"></select>' );
 
 			ractive.set({
 				selected: 'c',
@@ -169,7 +147,7 @@ define( function () {
 				tripleDelimiters: [ '[[[', ']]]' ]
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' ) );
+			t.htmlEqual( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
 		});
 
 		test( 'Using alternative delimiters in template', function ( t ) {
@@ -183,7 +161,7 @@ define( function () {
 				}
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' ) );
+			t.htmlEqual( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
 		});
 
 		test( '.unshift() works with proxy event handlers, without index references', function ( t ) {
@@ -197,7 +175,7 @@ define( function () {
 
 			ractive.get('items').unshift({title: 'Title0'});
 
-			t.ok( compareHTML( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' ) );
+			t.htmlEqual( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' );
 		});
 
 		test( 'Array splice works when simultaneously adding and removing items', function ( t ) {
@@ -211,13 +189,13 @@ define( function () {
 				data: { items: items }
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:four">3:four</span>' ) );
+			t.htmlEqual( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:four">3:four</span>' );
 
 			items.splice( 3, 0, 'three' );
-			t.ok( compareHTML( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:three">3:three</span><span data-text="4:four">4:four</span>' ) );
+			t.htmlEqual( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:three">3:three</span><span data-text="4:four">4:four</span>' );
 
 			items.splice( 3, 1, 'THREE' );
-			t.ok( compareHTML( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:THREE">3:THREE</span><span data-text="4:four">4:four</span>' ) );
+			t.htmlEqual( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:THREE">3:THREE</span><span data-text="4:four">4:four</span>' );
 		});
 
 		// these tests don't run in phantomJS...
@@ -403,7 +381,7 @@ define( function () {
 				}
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' ) );
+			t.htmlEqual( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' );
 		});
 
 		test( 'updateModel correctly updates the value of a text input', function ( t ) {
@@ -522,7 +500,7 @@ define( function () {
 
 			ractive.set( 'foo.bar.baz', 'success' );
 
-			t.ok( compareHTML( fixture.innerHTML, 'success' ) );
+			t.htmlEqual( fixture.innerHTML, 'success' );
 		});
 
 		test( 'Functions are called with the ractive instance as context', function ( t ) {
@@ -575,10 +553,10 @@ define( function () {
 				}
 			});
 			
-			t.ok( compareHTML( fixture.innerHTML, 'foo is falsy' ) );
+			t.htmlEqual( fixture.innerHTML, 'foo is falsy' );
 
 			ractive.set( 'foo', true );
-			t.ok( compareHTML( fixture.innerHTML, 'foo is truthy' ) );
+			t.htmlEqual( fixture.innerHTML, 'foo is truthy' );
 		});
 
 		test( 'Partials can contain inline partials', function ( t ) {
@@ -597,7 +575,7 @@ define( function () {
 				}
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' ) );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
 		});
 
 		test( 'Observers fire before the DOM updates', function ( t ) {
@@ -723,7 +701,7 @@ define( function () {
 				data: { foo: 'text', bar: '<strong>html</strong>' }
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, 'text <strong>html</strong>' ) );
+			t.htmlEqual( fixture.innerHTML, 'text <strong>html</strong>' );
 
 			Ractive.delimiters = oldDelimiters;
 			Ractive.tripleDelimiters = oldTripledDelimiters;
@@ -798,13 +776,13 @@ define( function () {
 				components: { test: TestComponent }
 			});
 
-			t.ok( compareHTML( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' ) );
+			t.htmlEqual( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' );
 
 			ractive.set( 'bool', true );
-			t.ok( compareHTML( fixture.innerHTML, '<p>before</p>TRUE<p>after</p>' ) );
+			t.htmlEqual( fixture.innerHTML, '<p>before</p>TRUE<p>after</p>' );
 
 			ractive.set( 'bool', false );
-			t.ok( compareHTML( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' ) );
+			t.htmlEqual( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' );
 		});
 
 		test( 'Bindings without explicit keypaths can survive a splice operation', function ( t ) {

@@ -7,10 +7,7 @@ define( function () {
 
 	return function () {
 
-		var fixture = document.getElementById( 'qunit-fixture' ), tests, runTest, theTest, hasSvg, testDiv, testDiv2, getElements, compareContents, compareNode;
-
-		testDiv = document.createElement( 'div' );
-		testDiv2 = document.createElement( 'div' );
+		var fixture = document.getElementById( 'qunit-fixture' ), tests, runTest, theTest, hasSvg;
 
 		module ( 'Render' );
 
@@ -399,88 +396,11 @@ define( function () {
 		];
 
 
-		getElements = function ( nodeList ) {
-			var elements = [], i = nodeList.length;
-
-			while ( i-- ) {
-				if ( nodeList[i].nodeType === 1 ) {
-					elements[ elements.length ] = nodeList[i];
-				}
-			}
-
-			return elements;
-		};
-
-		compareContents = function ( a, b ) {
-			var i, aChildren, bChildren;
-
-			if ( a.textContent !== b.textContent ) {
-				return false;
-			}
-
-			aChildren = ( a.children ? a.children : getElements( a.childNodes ) );
-			bChildren = ( b.children ? b.children : getElements( b.childNodes ) );
-
-			if ( aChildren.length !== bChildren.length ) {
-				return false;
-			}
-
-			i = aChildren.length;
-			while ( i-- ) {
-				if ( !compareNode( aChildren[i], bChildren[i] ) ) {
-					return false;
-				}
-			}
-
-			return true;
-		};
-
-		compareNode = function ( a, b ) {
-			var i, attrName;
-
-			if ( a.nodeType !== b.nodeType ) {
-				return false;
-			}
-
-			if ( a.nodeType === 3 ) {
-				if ( a.data !== b.data ) {
-					return false;
-				}
-
-				return true;
-			}
-
-			if ( a.tagName.toLowerCase() !== b.tagName.toLowerCase() ) {
-				return false;
-			}
-
-			// compare attributes
-			if ( a.attributes.length !== b.attributes.length ) {
-				return false;
-			}
-
-			i = a.attributes.length;
-			while ( i-- ) {
-				attrName = a.attributes[i].name;
-
-				if ( !b.hasAttribute( attrName ) || b.getAttribute( attrName ) !== a.getAttribute( attrName ) ) {
-					return false;
-				}
-			}
-
-			return compareContents( a, b );
-		};
-
-
 		runTest = function ( i ) {
 			var theTest = tests[i];
 
 			test( theTest.name, function ( t ) {
-				var view, expected, result, same;
-
-				// necessary for IE
-				testDiv.innerHTML = theTest.result;
-				//expected = fixture.innerHTML;
+				var view;
 
 				view = new Ractive({
 					el: fixture,
@@ -490,24 +410,14 @@ define( function () {
 					debug: true
 				});
 
-				testDiv2.innerHTML = view.renderHTML();
-
-				same = compareContents( fixture, testDiv );
-				t.ok( same, 'Expected:\n"' + testDiv.innerHTML + '"\n\nResult:\n"' + fixture.innerHTML + '"' );
-
-				same = compareContents( testDiv2, testDiv );
-				t.ok( same, 'Expected:\n"' + testDiv.innerHTML + '"\n\nResult:\n"' + testDiv2.innerHTML + '"' );
+				t.htmlEqual( fixture.innerHTML, theTest.result );
+				t.htmlEqual( view.renderHTML(), theTest.result );
 
 				if ( theTest.new_data ) {
 					view.set( theTest.new_data );
-					testDiv.innerHTML = theTest.new_result;
-					testDiv2.innerHTML = view.renderHTML();
-
-					same = compareContents( fixture, testDiv );
-					t.ok( same );
-
-					same = compareContents( testDiv2, testDiv );
-					t.ok( same );
+					
+					t.htmlEqual( fixture.innerHTML, theTest.new_result );
+					t.htmlEqual( view.renderHTML(), theTest.new_result );
 				}
 			});
 		};
