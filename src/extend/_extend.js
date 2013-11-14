@@ -73,7 +73,7 @@ define([
 	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize', 'noIntro', 'transitionsEnabled' ];
 	
 	blacklist = {};
-	extendable.concat( inheritable ).forEach( function ( prop ) {
+	extendable.forEach( function ( prop ) {
 		blacklist[ prop ] = true;
 	});
 

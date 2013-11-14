@@ -23,7 +23,7 @@ define([
 			el.innerHTML = '';
 		}
 
-		ractive._transitionManager = transitionManager = makeTransitionManager( ractive, options.complete );
+		ractive._transitionManager = transitionManager = makeTransitionManager( ractive, ractive.complete || options.complete );
 
 		// Render our *root fragment*
 		ractive.fragment = new DomFragment({
