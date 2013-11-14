@@ -29,7 +29,7 @@ define([
 	'use strict';
 
 	var DomFragment = function ( options ) {
-		if ( options.parentNode ) {
+		if ( options.pNode ) {
 			this.docFrag = document.createDocumentFragment();
 		}
 
@@ -38,14 +38,14 @@ define([
 			this.html = options.descriptor;
 
 			if ( this.docFrag ) {
-				this.nodes = insertHtml( options.descriptor, options.parentNode.tagName, this.docFrag );
+				this.nodes = insertHtml( options.descriptor, options.pNode.tagName, this.docFrag );
 			}
-			
-			return; // prevent the rest of the init sequence
 		}
 
-		// otherwise we need to make a proper fragment
-		initFragment( this, options );
+		else {
+			// otherwise we need to make a proper fragment
+			initFragment( this, options );
+		}
 	};
 
 	DomFragment.prototype = {

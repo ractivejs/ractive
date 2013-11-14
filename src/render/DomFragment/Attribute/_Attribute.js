@@ -59,7 +59,7 @@ define([
 
 		// otherwise we need to do some work
 		this.root = options.root;
-		this.parentNode = options.parentNode;
+		this.pNode = options.pNode;
 
 		// share parentFragment with parent element
 		this.parentFragment = this.element.parentFragment;
@@ -73,7 +73,7 @@ define([
 
 
 		// if we're not rendering (i.e. we're just stringifying), we can stop here
-		if ( !this.parentNode ) {
+		if ( !this.pNode ) {
 			return;
 		}
 
@@ -89,7 +89,7 @@ define([
 			// TODO need to wait until afterwards to determine type, in case we
 			// haven't initialised that attribute yet
 			// <input type='file' value='{{value}}'>
-			if ( this.parentNode.tagName === 'INPUT' && this.parentNode.type === 'file' ) {
+			if ( this.pNode.tagName === 'INPUT' && this.pNode.type === 'file' ) {
 				this.isFileInputValue = true;
 			}
 		} 
@@ -118,7 +118,7 @@ define([
 			// if we encounter the special case described above, update the name attribute
 			if ( this.propertyName === 'name' ) {
 				// replace actual name attribute
-				this.parentNode.name = '{{' + this.keypath + '}}';
+				this.pNode.name = '{{' + this.keypath + '}}';
 			}
 		},
 
@@ -129,7 +129,7 @@ define([
 				i = this.boundEvents.length;
 
 				while ( i-- ) {
-					this.parentNode.removeEventListener( this.boundEvents[i], this.updateModel, false );
+					this.pNode.removeEventListener( this.boundEvents[i], this.updateModel, false );
 				}
 			}
 
@@ -209,7 +209,7 @@ define([
 	setStaticAttribute = function ( attribute, options ) {
 		var node, value = ( options.value === null ? '' : options.value );
 
-		if ( node = options.parentNode ) {
+		if ( node = options.pNode ) {
 			if ( attribute.namespace ) {
 				node.setAttributeNS( attribute.namespace, options.name, value );
 			} else {
@@ -244,16 +244,16 @@ define([
 	determinePropertyName = function ( attribute, options ) {
 		var propertyName;
 
-		if ( attribute.parentNode && !attribute.namespace && ( !options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html ) ) {
+		if ( attribute.pNode && !attribute.namespace && ( !options.pNode.namespaceURI || options.pNode.namespaceURI === namespaces.html ) ) {
 			propertyName = propertyNames[ attribute.name ] || attribute.name;
 
-			if ( options.parentNode[ propertyName ] !== undefined ) {
+			if ( options.pNode[ propertyName ] !== undefined ) {
 				attribute.propertyName = propertyName;
 			}
 
 			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 			// node.selected = true rather than node.setAttribute( 'selected', '' )
-			if ( typeof options.parentNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+			if ( typeof options.pNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
 				attribute.useProperty = true;
 			}
 		}

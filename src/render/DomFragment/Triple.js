@@ -79,10 +79,10 @@ define([
 			}
 
 			// get new nodes
-			this.nodes = insertHtml( html, this.parentNode.tagName, this.docFrag );
+			this.nodes = insertHtml( html, this.pNode.tagName, this.docFrag );
 
 			if ( !this.initialising ) {
-				this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+				this.pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
 		},
 

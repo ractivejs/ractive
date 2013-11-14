@@ -22,7 +22,7 @@ define([
 			descriptor: this.template,
 			root: this,
 			owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
-			parentNode: this.el
+			pNode: this.el
 		});
 
 		processDeferredUpdates( this, true );

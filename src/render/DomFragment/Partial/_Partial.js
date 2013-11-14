@@ -33,7 +33,7 @@ define([
 		this.fragment = new DomFragment({
 			descriptor:   descriptor,
 			root:         parentFragment.root,
-			parentNode:   parentFragment.parentNode,
+			pNode:        parentFragment.pNode,
 			contextStack: parentFragment.contextStack,
 			owner:        this
 		});

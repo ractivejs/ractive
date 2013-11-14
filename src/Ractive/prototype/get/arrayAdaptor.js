@@ -230,7 +230,7 @@ define([
 				}
 
 				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === types.SECTION && dependant.parentNode ) {
+				else if ( dependant.keypath === keypath && dependant.type === types.SECTION && dependant.pNode ) {
 					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
 
 				} else {

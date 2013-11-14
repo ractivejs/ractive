@@ -16,7 +16,7 @@ define([
 		fragmentOptions = {
 			descriptor: section.descriptor.f,
 			root:       section.root,
-			parentNode: section.parentNode,
+			pNode:      section.pNode,
 			owner:      section
 		};
 

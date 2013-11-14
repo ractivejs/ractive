@@ -58,7 +58,7 @@ define([
 				fragmentOptions = {
 					descriptor: this.descriptor.f,
 					root:       this.root,
-					parentNode: this.parentNode,
+					pNode:      this.pNode,
 					owner:      this
 				};
 
@@ -97,7 +97,7 @@ define([
 			this.length += args.length;
 
 			// append docfrag in front of next node
-			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			this.pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 		},
 
 		shift: function () {
@@ -160,7 +160,7 @@ define([
 				}
 
 				// Append docfrag in front of insertion point
-				this.parentNode.insertBefore( this.docFrag, insertionPoint );
+				this.pNode.insertBefore( this.docFrag, insertionPoint );
 			}
 
 			this.length += balance;
@@ -213,7 +213,7 @@ define([
 		},
 
 		render: function ( value ) {
-			var next, wrapped;
+			var nextNode, wrapped;
 
 			// with sections, we need to get the fake value if we have a wrapped object
 			if ( wrapped = this.root._wrapped[ this.keypath ] ) {
@@ -242,10 +242,10 @@ define([
 				
 				// Normally this is just a case of finding the next node, and inserting
 				// items before it...
-				next = this.parentFragment.findNextNode( this );
+				nextNode = this.parentFragment.findNextNode( this );
 
-				if ( next && ( next.parentNode === this.parentNode ) ) {
-					this.parentNode.insertBefore( this.docFrag, next );
+				if ( nextNode && ( nextNode.parentNode === this.pNode ) ) {
+					this.pNode.insertBefore( this.docFrag, nextNode );
 				}
 
 				// ...but in some edge cases the next node will not have been attached to
@@ -254,7 +254,7 @@ define([
 					// TODO could there be a situation in which later nodes could have
 					// been attached to the parent node, i.e. we need to find a sibling
 					// to insert before?
-					this.parentNode.appendChild( this.docFrag );
+					this.pNode.appendChild( this.docFrag );
 				}
 			}
 		},

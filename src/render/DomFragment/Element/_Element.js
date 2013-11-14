@@ -47,15 +47,15 @@ define([
 		descriptor = this.descriptor = options.descriptor;
 
 		this.root = root = parentFragment.root;
-		this.parentNode = parentFragment.parentNode;
+		this.pNode = parentFragment.pNode;
 		this.index = options.index;
 
 		this.eventListeners = [];
 		this.customEventListeners = [];
 
 		// get namespace, if we're actually rendering (not server-side stringifying)
-		if ( this.parentNode ) {
-			namespace = getElementNamespace( descriptor, this.parentNode );
+		if ( this.pNode ) {
+			namespace = getElementNamespace( descriptor, this.pNode );
 
 			// create the DOM node
 			this.node = document.createElementNS( namespace, descriptor.e );
@@ -138,7 +138,7 @@ define([
 			// Special case... a select may have had its value set before a matching
 			// option was rendered. This might be that option element
 			if ( this.node.tagName === 'OPTION' ) {
-				if ( this.node._ractive.value == this.parentNode._ractive.value ) {
+				if ( this.node._ractive.value == this.pNode._ractive.value ) {
 					this.node.selected = true;
 				}
 			}

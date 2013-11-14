@@ -48,7 +48,7 @@ define([
 				element.fragment = new DomFragment({
 					descriptor:   descriptor.f,
 					root:         element.root,
-					parentNode:   node,
+					pNode:        node,
 					contextStack: element.parentFragment.contextStack,
 					owner:        element
 				});

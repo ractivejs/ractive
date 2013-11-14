@@ -115,7 +115,7 @@ define([
 		// TODO don't clone parent node - instead use a document fragment (and pass in the namespaceURI
 		// of the parent node, for SVG purposes) and insert contents that way?
 		instance = this.instance = new Component({
-			el: parentFragment.parentNode.cloneNode( false ), // to ensure correct namespaceURL
+			el: parentFragment.pNode.cloneNode( false ), // to ensure correct namespaceURI
 			data: data,
 			partials: partials
 		});
@@ -129,13 +129,13 @@ define([
 
 		// reset node references...
 		// TODO this is a filthy hack! Need to come up with a neater solution
-		instance.el = parentFragment.parentNode;
+		instance.el = parentFragment.pNode;
 		items = instance.fragment.items;
 		if ( items ) {
 			i = items.length;
 			while ( i-- ) {
-				if ( items[i].parentNode ) {
-					items[i].parentNode = parentFragment.parentNode;
+				if ( items[i].pNode ) {
+					items[i].pNode = parentFragment.pNode;
 				}
 			}
 		}

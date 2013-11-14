@@ -8,7 +8,7 @@ define([ 'config/types' ], function ( types ) {
 
 		if ( docFrag ) {
 			this.node = document.createTextNode( options.descriptor );
-			this.parentNode = options.parentFragment.parentNode;
+			this.pNode = options.parentFragment.pNode;
 
 			docFrag.appendChild( this.node );
 		}

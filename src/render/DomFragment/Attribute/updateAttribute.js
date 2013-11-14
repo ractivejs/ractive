@@ -26,7 +26,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 			return this; // avoid items bubbling to the surface when we're still initialising
 		}
 
-		node = this.parentNode;
+		node = this.pNode;
 
 		// special case - selects
 		if ( node.tagName === 'SELECT' && this.name === 'value' ) {
@@ -77,7 +77,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 
 	initSelect = function () {
 		// we're now in a position to decide whether this is a select-one or select-multiple
-		this.deferredUpdate = ( this.parentNode.multiple ? updateMultipleSelect : updateSelect );
+		this.deferredUpdate = ( this.pNode.multiple ? updateMultipleSelect : updateSelect );
 		this.deferredUpdate();
 	};
 
@@ -92,9 +92,9 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	updateSelect = function () {
 		var value = this.fragment.getValue(), options, option, i;
 
-		this.value = this.parentNode._ractive.value = value;
+		this.value = this.pNode._ractive.value = value;
 
-		options = this.parentNode.options;
+		options = this.pNode.options;
 		i = options.length;
 
 		while ( i-- ) {
@@ -119,7 +119,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 			value = [ value ];
 		}
 
-		options = this.parentNode.options;
+		options = this.pNode.options;
 		i = options.length;
 
 		while ( i-- ) {
@@ -134,7 +134,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	updateRadioName = function () {
 		var node, value;
 
-		node = this.parentNode;
+		node = this.pNode;
 		value = this.fragment.getValue();
 
 		node.checked = ( value === node._ractive.value );
@@ -145,7 +145,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	updateCheckboxName = function () {
 		var node, value;
 
-		node = this.parentNode;
+		node = this.pNode;
 		value = this.fragment.getValue();
 
 		if ( !isArray( value ) ) {
@@ -161,7 +161,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	updateIEStyleAttribute = function () {
 		var node, value;
 
-		node = this.parentNode;
+		node = this.pNode;
 		value = this.fragment.getValue();
 
 		if ( value === undefined ) {
@@ -179,7 +179,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	updateClassName = function () {
 		var node, value;
 
-		node = this.parentNode;
+		node = this.pNode;
 		value = this.fragment.getValue();
 
 		if ( value === undefined ) {
@@ -197,7 +197,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	updateEverythingElse = function () {
 		var node, value;
 
-		node = this.parentNode;
+		node = this.pNode;
 		value = this.fragment.getValue();
 
 		// store actual value, so it doesn't get coerced to a string

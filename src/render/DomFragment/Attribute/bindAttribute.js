@@ -29,7 +29,7 @@ define([
 		GenericBinding;
 
 	bindAttribute = function () {
-		var node = this.parentNode, interpolator, binding, bindings;
+		var node = this.pNode, interpolator, binding, bindings;
 
 		if ( !this.fragment ) {
 			return false; // report failure
@@ -115,7 +115,7 @@ define([
 	};
 
 	getBinding = function ( attribute ) {
-		var node = attribute.parentNode;
+		var node = attribute.pNode;
 
 		if ( node.tagName === 'SELECT' ) {
 			return ( node.multiple ? new MultipleSelectBinding( attribute, node ) : new SelectBinding( attribute, node ) );
@@ -143,7 +143,7 @@ define([
 			warn( 'This is... odd' );
 		}
 
-		if ( attribute.parentNode.type === 'file' ) {
+		if ( attribute.pNode.type === 'file' ) {
 			return new FileListBinding( attribute, node );
 		}
 
@@ -379,7 +379,7 @@ define([
 
 	FileListBinding.prototype = {
 		value: function () {
-			return this.attr.parentNode.files;
+			return this.attr.pNode.files;
 		},
 
 		update: function () {
@@ -407,7 +407,7 @@ define([
 
 	GenericBinding.prototype = {
 		value: function () {
-			var value = this.attr.parentNode.value;
+			var value = this.attr.pNode.value;
 
 			// if the value is numeric, treat it as a number. otherwise don't
 			if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {

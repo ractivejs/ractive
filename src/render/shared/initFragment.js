@@ -18,7 +18,7 @@ define([
 
 		// inherited properties
 		fragment.root = options.root;
-		fragment.parentNode = options.parentNode;
+		fragment.pNode = options.pNode;
 		fragment.contextStack = options.contextStack || [];
 
 		// If parent item is a section, this may not be the only fragment

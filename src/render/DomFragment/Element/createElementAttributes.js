@@ -16,7 +16,7 @@ define([ 'render/DomFragment/Attribute/_Attribute' ], function ( DomAttribute ) 
 					name:         attrName,
 					value:        attrValue,
 					root:         element.root,
-					parentNode:   element.node,
+					pNode:        element.node,
 					contextStack: element.parentFragment.contextStack
 				});
 
