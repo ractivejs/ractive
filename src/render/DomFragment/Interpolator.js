@@ -14,7 +14,12 @@ define([
 
 	'use strict';
 
-	var DomInterpolator = function ( options, docFrag ) {
+	var DomInterpolator, lessThan, greaterThan;
+
+	lessThan = /</g;
+	greaterThan = />/g;
+
+	DomInterpolator = function ( options, docFrag ) {
 		this.type = types.INTERPOLATOR;
 
 		if ( docFrag ) {
@@ -50,7 +55,7 @@ define([
 
 		toString: function () {
 			var value = ( this.value !== undefined ? '' + this.value : '' );
-			return value.replace( '<', '&lt;' ).replace( '>', '&gt;' );
+			return value.replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 		}
 	};
 

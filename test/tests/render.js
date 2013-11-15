@@ -392,6 +392,12 @@ define( function () {
 				name: 'Class name on an SVG element',
 				template: '<svg><text class="label">foo</text></svg>',
 				result: '<svg><text class=label>foo</text></svg>'
+			},
+			{
+				name: 'Multiple angle brackets are correctly escaped, both with render() and renderHTML()',
+				template: '{{foo}}',
+				data: { foo: '<p>test</p>' },
+				result: '&lt;p&gt;test&lt;/p&gt;'
 			}
 		];
 
