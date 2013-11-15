@@ -2,7 +2,12 @@ define([ 'config/types' ], function ( types ) {
 
 	'use strict';
 
-	var DomText = function ( options, docFrag ) {
+	var DomText, lessThan, greaterThan;
+
+	lessThan = /</g;
+	greaterThan = />/g;
+
+	DomText = function ( options, docFrag ) {
 		this.type = types.TEXT;
 		this.descriptor = options.descriptor;
 
@@ -26,7 +31,7 @@ define([ 'config/types' ], function ( types ) {
 		},
 
 		toString: function () {
-			return ( '' + this.descriptor ).replace( '<', '&lt;' ).replace( '>', '&gt;' );
+			return ( '' + this.descriptor ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 		}
 	};
 
