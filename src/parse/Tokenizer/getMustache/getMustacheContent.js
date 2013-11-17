@@ -10,7 +10,8 @@ define([
 	
 	'use strict';
 
-	var getIndexRef = makeRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ );
+	var getIndexRef = makeRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ ),
+		arrayMember = /^[0-9][1-9]*$/;
 
 	return function ( tokenizer, isTriple ) {
 		var start, mustache, type, expr, i, remaining, index;
@@ -69,8 +70,12 @@ define([
 			expr = expr.x;
 		}
 
+		// special case - integers should be treated as array members references,
+		// rather than as expressions in their own right
 		if ( expr.t === types.REFERENCE ) {
 			mustache.ref = expr.n;
+		} else if ( expr.t === types.NUMBER_LITERAL && arrayMember.test( expr.v ) ) {
+			mustache.ref = expr.v;
 		} else {
 			mustache.expression = expr;
 		}
