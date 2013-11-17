@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-11
+	Ractive - v0.3.8-pre - 2013-11-17
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -453,7 +453,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     dependant = deps[k];
                     if (dependant.type === types.REFERENCE) {
                         dependant.update();
-                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && dependant.parentNode) {
+                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && dependant.pNode) {
                         smartUpdateQueue[smartUpdateQueue.length] = dependant;
                     } else {
                         dumbUpdateQueue[dumbUpdateQueue.length] = dependant;
@@ -1094,42 +1094,42 @@ var animate_requestAnimationFrame = function () {
         ], 0, window));
         return window.requestAnimationFrame;
     }();
-var animate_animationCollection = function (rAF) {
+var animate_animations = function (rAF) {
         
-        var animations = [];
-        var animationCollection = {
+        var queue = [];
+        var animations = {
                 tick: function () {
                     var i, animation;
-                    for (i = 0; i < animations.length; i += 1) {
-                        animation = animations[i];
+                    for (i = 0; i < queue.length; i += 1) {
+                        animation = queue[i];
                         if (!animation.tick()) {
-                            animations.splice(i--, 1);
+                            queue.splice(i--, 1);
                         }
                     }
-                    if (animations.length) {
-                        rAF(animationCollection.tick);
+                    if (queue.length) {
+                        rAF(animations.tick);
                     } else {
-                        this.running = false;
+                        animations.running = false;
                     }
                 },
                 add: function (animation) {
-                    animations[animations.length] = animation;
-                    if (!this.running) {
-                        this.running = true;
-                        this.tick();
+                    queue[queue.length] = animation;
+                    if (!animations.running) {
+                        animations.running = true;
+                        animations.tick();
                     }
                 },
                 abort: function (keypath, root) {
-                    var i = animations.length, animation;
+                    var i = queue.length, animation;
                     while (i--) {
-                        animation = animations[i];
+                        animation = queue[i];
                         if (animation.root === root && animation.keypath === keypath) {
                             animation.stop();
                         }
                     }
                 }
             };
-        return animationCollection;
+        return animations;
     }(animate_requestAnimationFrame);
 var utils_warn = function () {
         
@@ -1309,7 +1309,7 @@ var registries_easing = function () {
             }
         };
     }();
-var animate__animate = function (isEqual, animationCollection, Animation, easingRegistry) {
+var animate__animate = function (isEqual, animations, Animation, easingRegistry) {
         
         var noAnimation = {
                 stop: function () {
@@ -1393,7 +1393,7 @@ var animate__animate = function (isEqual, animationCollection, Animation, easing
             if (keypath !== null) {
                 from = root.get(keypath);
             }
-            animationCollection.abort(keypath, root);
+            animations.abort(keypath, root);
             if (isEqual(from, to)) {
                 if (options.complete) {
                     options.complete(1, options.to);
@@ -1425,11 +1425,11 @@ var animate__animate = function (isEqual, animationCollection, Animation, easing
                 step: options.step,
                 complete: options.complete
             });
-            animationCollection.add(animation);
+            animations.add(animation);
             root._animations[root._animations.length] = animation;
             return animation;
         }
-    }(utils_isEqual, animate_animationCollection, animate_Animation, registries_easing);
+    }(utils_isEqual, animate_animations, animate_Animation, registries_easing);
 var prototype_on = function () {
         
         return function (eventName, callback) {
@@ -1648,102 +1648,2425 @@ var prototype_findAll = function (warn) {
             return this.el.querySelectorAll(selector);
         };
     }(utils_warn);
-var prototype_renderHTML = function () {
+var utils_getElement = function () {
         
-        return function () {
-            return this.fragment.toString();
+        return function (input) {
+            var output;
+            if (typeof window === 'undefined' || !document || !input) {
+                return null;
+            }
+            if (input.nodeType) {
+                return input;
+            }
+            if (typeof input === 'string') {
+                output = document.getElementById(input);
+                if (!output && document.querySelector) {
+                    output = document.querySelector(input);
+                }
+                if (output.nodeType) {
+                    return output;
+                }
+            }
+            if (input[0] && input[0].nodeType) {
+                return input[0];
+            }
+            return null;
         };
     }();
-var prototype_teardown = function (makeTransitionManager, clearCache) {
+var shared_initFragment = function (types, create) {
         
-        return function (complete) {
-            var keypath, transitionManager, previousTransitionManager;
-            this.fire('teardown');
-            previousTransitionManager = this._transitionManager;
-            this._transitionManager = transitionManager = makeTransitionManager(this, complete);
-            this.fragment.teardown(true);
-            while (this._animations[0]) {
-                this._animations[0].stop();
+        return function (fragment, options) {
+            var numItems, i, parentFragment, parentRefs, ref;
+            fragment.owner = options.owner;
+            parentFragment = fragment.owner.parentFragment;
+            fragment.root = options.root;
+            fragment.pNode = options.pNode;
+            fragment.contextStack = options.contextStack || [];
+            if (fragment.owner.type === types.SECTION) {
+                fragment.index = options.index;
             }
-            for (keypath in this._cache) {
-                clearCache(this, keypath);
+            if (parentFragment) {
+                parentRefs = parentFragment.indexRefs;
+                if (parentRefs) {
+                    fragment.indexRefs = create(null);
+                    for (ref in parentRefs) {
+                        fragment.indexRefs[ref] = parentRefs[ref];
+                    }
+                }
             }
-            this._transitionManager = previousTransitionManager;
-            transitionManager.ready();
+            fragment.priority = parentFragment ? parentFragment.priority + 1 : 1;
+            if (options.indexRef) {
+                if (!fragment.indexRefs) {
+                    fragment.indexRefs = {};
+                }
+                fragment.indexRefs[options.indexRef] = options.index;
+            }
+            fragment.items = [];
+            numItems = options.descriptor ? options.descriptor.length : 0;
+            for (i = 0; i < numItems; i += 1) {
+                fragment.items[fragment.items.length] = fragment.createItem({
+                    parentFragment: fragment,
+                    descriptor: options.descriptor[i],
+                    index: i
+                });
+            }
         };
-    }(shared_makeTransitionManager, shared_clearCache);
-var shared_add = function (isNumeric) {
+    }(config_types, utils_create);
+var shared_insertHtml = function () {
         
-        return function (root, keypath, d) {
+        var elementCache = {};
+        return function (html, tagName, docFrag) {
+            var container, nodes = [];
+            container = elementCache[tagName] || (elementCache[tagName] = document.createElement(tagName));
+            container.innerHTML = html;
+            while (container.firstChild) {
+                nodes[nodes.length] = container.firstChild;
+                docFrag.appendChild(container.firstChild);
+            }
+            return nodes;
+        };
+    }();
+var DomFragment_Text = function (types) {
+        
+        var DomText, lessThan, greaterThan;
+        lessThan = /</g;
+        greaterThan = />/g;
+        DomText = function (options, docFrag) {
+            this.type = types.TEXT;
+            this.descriptor = options.descriptor;
+            if (docFrag) {
+                this.node = document.createTextNode(options.descriptor);
+                this.pNode = options.parentFragment.pNode;
+                docFrag.appendChild(this.node);
+            }
+        };
+        DomText.prototype = {
+            teardown: function (detach) {
+                if (detach) {
+                    this.node.parentNode.removeChild(this.node);
+                }
+            },
+            firstNode: function () {
+                return this.node;
+            },
+            toString: function () {
+                return ('' + this.descriptor).replace(lessThan, '&lt;').replace(greaterThan, '&gt;');
+            }
+        };
+        return DomText;
+    }(config_types);
+var shared_teardown = function (unregisterDependant) {
+        
+        return function (thing) {
+            if (!thing.keypath) {
+                var index = thing.root._pendingResolution.indexOf(thing);
+                if (index !== -1) {
+                    thing.root._pendingResolution.splice(index, 1);
+                }
+            } else {
+                unregisterDependant(thing);
+            }
+        };
+    }(shared_unregisterDependant);
+var Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
+        
+        var Reference, thisPattern;
+        thisPattern = /this/;
+        Reference = function (root, keypath, evaluator, argNum, priority) {
             var value;
-            if (typeof keypath !== 'string' || !isNumeric(d)) {
-                if (root.debug) {
-                    throw new Error('Bad arguments');
-                }
-                return;
-            }
+            this.evaluator = evaluator;
+            this.keypath = keypath;
+            this.root = root;
+            this.argNum = argNum;
+            this.type = types.REFERENCE;
+            this.priority = priority;
             value = root.get(keypath);
-            if (value === undefined) {
-                value = 0;
+            if (typeof value === 'function') {
+                value = value._wrapped || wrapFunction(value, root, evaluator);
             }
-            if (!isNumeric(value)) {
-                if (root.debug) {
-                    throw new Error('Cannot add to a non-numeric value');
+            this.value = evaluator.values[argNum] = value;
+            registerDependant(this);
+        };
+        Reference.prototype = {
+            update: function () {
+                var value = this.root.get(this.keypath);
+                if (typeof value === 'function' && !value._nowrap) {
+                    value = value['_' + this.root._guid] || wrapFunction(value, this.root, this.evaluator);
                 }
+                if (!isEqual(value, this.value)) {
+                    this.evaluator.values[this.argNum] = value;
+                    this.evaluator.bubble();
+                    this.value = value;
+                }
+            },
+            teardown: function () {
+                unregisterDependant(this);
+            }
+        };
+        return Reference;
+        function wrapFunction(fn, ractive, evaluator) {
+            var prop;
+            if (!thisPattern.test(fn.toString())) {
+                defineProperty(fn, '_nowrap', { value: true });
+                return fn;
+            }
+            defineProperty(fn, '_' + ractive._guid, {
+                value: function () {
+                    var originalGet, result, softDependencies;
+                    originalGet = ractive.get;
+                    ractive.get = function (keypath) {
+                        if (!softDependencies) {
+                            softDependencies = [];
+                        }
+                        if (!softDependencies[keypath]) {
+                            softDependencies[softDependencies.length] = keypath;
+                            softDependencies[keypath] = true;
+                        }
+                        return originalGet.call(ractive, keypath);
+                    };
+                    result = fn.apply(ractive, arguments);
+                    if (softDependencies) {
+                        evaluator.updateSoftDependencies(softDependencies);
+                    }
+                    ractive.get = originalGet;
+                    return result;
+                },
+                writable: true
+            });
+            for (prop in fn) {
+                if (fn.hasOwnProperty(prop)) {
+                    fn['_' + ractive._guid][prop] = fn[prop];
+                }
+            }
+            return fn['_' + ractive._guid];
+        }
+    }(config_types, utils_isEqual, utils_defineProperty, shared_registerDependant, shared_unregisterDependant);
+var Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDependant) {
+        
+        var SoftReference = function (root, keypath, evaluator) {
+            this.root = root;
+            this.keypath = keypath;
+            this.priority = evaluator.priority;
+            this.evaluator = evaluator;
+            registerDependant(this);
+        };
+        SoftReference.prototype = {
+            update: function () {
+                var value = this.root.get(this.keypath);
+                if (!isEqual(value, this.value)) {
+                    this.evaluator.bubble();
+                    this.value = value;
+                }
+            },
+            teardown: function () {
+                unregisterDependant(this);
+            }
+        };
+        return SoftReference;
+    }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
+var Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
+        
+        var Evaluator, cache = {};
+        Evaluator = function (root, keypath, functionStr, args, priority) {
+            var i, arg;
+            this.root = root;
+            this.keypath = keypath;
+            this.priority = priority;
+            this.fn = getFunctionFromString(functionStr, args.length);
+            this.values = [];
+            this.refs = [];
+            i = args.length;
+            while (i--) {
+                if (arg = args[i]) {
+                    if (arg[0]) {
+                        this.values[i] = arg[1];
+                    } else {
+                        this.refs[this.refs.length] = new Reference(root, arg[1], this, i, priority);
+                    }
+                } else {
+                    this.values[i] = undefined;
+                }
+            }
+            this.selfUpdating = this.refs.length <= 1;
+            this.update();
+        };
+        Evaluator.prototype = {
+            bubble: function () {
+                if (this.selfUpdating) {
+                    this.update();
+                } else if (!this.deferred) {
+                    this.root._defEvals[this.root._defEvals.length] = this;
+                    this.deferred = true;
+                }
+            },
+            update: function () {
+                var value;
+                if (this.evaluating) {
+                    return this;
+                }
+                this.evaluating = true;
+                try {
+                    value = this.fn.apply(null, this.values);
+                } catch (err) {
+                    if (this.root.debug) {
+                        throw err;
+                    } else {
+                        value = undefined;
+                    }
+                }
+                if (!isEqual(value, this.value)) {
+                    clearCache(this.root, this.keypath);
+                    this.root._cache[this.keypath] = value;
+                    notifyDependants(this.root, this.keypath);
+                    this.value = value;
+                }
+                this.evaluating = false;
+                return this;
+            },
+            teardown: function () {
+                while (this.refs.length) {
+                    this.refs.pop().teardown();
+                }
+                clearCache(this.root, this.keypath);
+                this.root._evaluators[this.keypath] = null;
+            },
+            refresh: function () {
+                if (!this.selfUpdating) {
+                    this.deferred = true;
+                }
+                var i = this.refs.length;
+                while (i--) {
+                    this.refs[i].update();
+                }
+                if (this.deferred) {
+                    this.update();
+                    this.deferred = false;
+                }
+            },
+            updateSoftDependencies: function (softDeps) {
+                var i, keypath, ref;
+                if (!this.softRefs) {
+                    this.softRefs = [];
+                }
+                i = this.softRefs.length;
+                while (i--) {
+                    ref = this.softRefs[i];
+                    if (!softDeps[ref.keypath]) {
+                        this.softRefs.splice(i, 1);
+                        this.softRefs[ref.keypath] = false;
+                        ref.teardown();
+                    }
+                }
+                i = softDeps.length;
+                while (i--) {
+                    keypath = softDeps[i];
+                    if (!this.softRefs[keypath]) {
+                        ref = new SoftReference(this.root, keypath, this);
+                        this.softRefs[this.softRefs.length] = ref;
+                        this.softRefs[keypath] = true;
+                    }
+                }
+                this.selfUpdating = this.refs.length + this.softRefs.length <= 1;
+            }
+        };
+        return Evaluator;
+        function getFunctionFromString(str, i) {
+            var fn, args;
+            str = str.replace(/\$\{([0-9]+)\}/g, '_$1');
+            if (cache[str]) {
+                return cache[str];
+            }
+            args = [];
+            while (i--) {
+                args[i] = '_' + i;
+            }
+            fn = new Function(args.join(','), 'return(' + str + ')');
+            cache[str] = fn;
+            return fn;
+        }
+    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, Evaluator_Reference, Evaluator_SoftReference);
+var shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
+        
+        var ExpressionResolver, ReferenceScout, getKeypath;
+        ExpressionResolver = function (mustache) {
+            var expression, i, len, ref, indexRefs;
+            this.root = mustache.root;
+            this.mustache = mustache;
+            this.args = [];
+            this.scouts = [];
+            expression = mustache.descriptor.x;
+            indexRefs = mustache.parentFragment.indexRefs;
+            this.str = expression.s;
+            len = this.unresolved = this.args.length = expression.r ? expression.r.length : 0;
+            if (!len) {
+                this.resolved = this.ready = true;
+                this.bubble();
                 return;
             }
-            root.set(keypath, value + d);
+            for (i = 0; i < len; i += 1) {
+                ref = expression.r[i];
+                if (indexRefs && indexRefs[ref] !== undefined) {
+                    this.resolveRef(i, true, indexRefs[ref]);
+                } else {
+                    this.scouts[this.scouts.length] = new ReferenceScout(this, ref, mustache.contextStack, i);
+                }
+            }
+            this.ready = true;
+            this.bubble();
         };
-    }(utils_isNumeric);
-var prototype_add = function (add) {
+        ExpressionResolver.prototype = {
+            bubble: function () {
+                if (!this.ready) {
+                    return;
+                }
+                this.keypath = getKeypath(this.str, this.args);
+                this.createEvaluator();
+                this.mustache.resolve(this.keypath);
+            },
+            teardown: function () {
+                while (this.scouts.length) {
+                    this.scouts.pop().teardown();
+                }
+            },
+            resolveRef: function (argNum, isIndexRef, value) {
+                this.args[argNum] = [
+                    isIndexRef,
+                    value
+                ];
+                this.bubble();
+                this.resolved = !--this.unresolved;
+            },
+            createEvaluator: function () {
+                if (!this.root._evaluators[this.keypath]) {
+                    this.root._evaluators[this.keypath] = new Evaluator(this.root, this.keypath, this.str, this.args, this.mustache.priority);
+                } else {
+                    this.root._evaluators[this.keypath].refresh();
+                }
+            }
+        };
+        ReferenceScout = function (resolver, ref, contextStack, argNum) {
+            var keypath, root;
+            root = this.root = resolver.root;
+            keypath = resolveRef(root, ref, contextStack);
+            if (keypath) {
+                resolver.resolveRef(argNum, false, keypath);
+            } else {
+                this.ref = ref;
+                this.argNum = argNum;
+                this.resolver = resolver;
+                this.contextStack = contextStack;
+                root._pendingResolution[root._pendingResolution.length] = this;
+            }
+        };
+        ReferenceScout.prototype = {
+            resolve: function (keypath) {
+                this.keypath = keypath;
+                this.resolver.resolveRef(this.argNum, false, keypath);
+            },
+            teardown: function () {
+                if (!this.keypath) {
+                    teardown(this);
+                }
+            }
+        };
+        getKeypath = function (str, args) {
+            var unique;
+            unique = str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
+                return args[$1] ? args[$1][1] : 'undefined';
+            });
+            return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
+        };
+        return ExpressionResolver;
+    }(shared_resolveRef, shared_teardown, Evaluator__Evaluator);
+var shared_initMustache = function (resolveRef, ExpressionResolver) {
         
-        return function (keypath, d) {
-            add(this, keypath, d === undefined ? 1 : d);
+        return function (mustache, options) {
+            var keypath, indexRef, parentFragment;
+            parentFragment = mustache.parentFragment = options.parentFragment;
+            mustache.root = parentFragment.root;
+            mustache.contextStack = parentFragment.contextStack;
+            mustache.descriptor = options.descriptor;
+            mustache.index = options.index || 0;
+            mustache.priority = parentFragment.priority;
+            if (parentFragment.pNode) {
+                mustache.pNode = parentFragment.pNode;
+            }
+            mustache.type = options.descriptor.t;
+            if (options.descriptor.r) {
+                if (parentFragment.indexRefs && parentFragment.indexRefs[options.descriptor.r] !== undefined) {
+                    indexRef = parentFragment.indexRefs[options.descriptor.r];
+                    mustache.indexRef = options.descriptor.r;
+                    mustache.value = indexRef;
+                    mustache.render(mustache.value);
+                } else {
+                    keypath = resolveRef(mustache.root, options.descriptor.r, mustache.contextStack);
+                    if (keypath) {
+                        mustache.resolve(keypath);
+                    } else {
+                        mustache.ref = options.descriptor.r;
+                        mustache.root._pendingResolution[mustache.root._pendingResolution.length] = mustache;
+                        if (mustache.descriptor.n) {
+                            mustache.render(false);
+                        }
+                    }
+                }
+            }
+            if (options.descriptor.x) {
+                mustache.expressionResolver = new ExpressionResolver(mustache);
+            }
         };
-    }(shared_add);
-var prototype_subtract = function (add) {
-        
-        return function (keypath, d) {
-            add(this, keypath, d === undefined ? -1 : -d);
-        };
-    }(shared_add);
-var prototype_toggle = function () {
+    }(shared_resolveRef, shared_ExpressionResolver);
+var shared_resolveMustache = function (registerDependant, unregisterDependant) {
         
         return function (keypath) {
-            var value;
-            if (typeof keypath !== 'string') {
-                if (this.debug) {
-                    throw new Error('Bad arguments');
+            if (this.resolved) {
+                unregisterDependant(this);
+            }
+            this.keypath = keypath;
+            registerDependant(this);
+            this.update();
+            if (this.expressionResolver && this.expressionResolver.resolved) {
+                this.expressionResolver = null;
+            }
+            this.resolved = true;
+        };
+    }(shared_registerDependant, shared_unregisterDependant);
+var shared_updateMustache = function (isEqual) {
+        
+        return function () {
+            var value = this.root.get(this.keypath, true);
+            if (!isEqual(value, this.value)) {
+                this.render(value);
+                this.value = value;
+            }
+        };
+    }(utils_isEqual);
+var DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache) {
+        
+        var DomInterpolator, lessThan, greaterThan;
+        lessThan = /</g;
+        greaterThan = />/g;
+        DomInterpolator = function (options, docFrag) {
+            this.type = types.INTERPOLATOR;
+            if (docFrag) {
+                this.node = document.createTextNode('');
+                docFrag.appendChild(this.node);
+            }
+            initMustache(this, options);
+        };
+        DomInterpolator.prototype = {
+            update: updateMustache,
+            resolve: resolveMustache,
+            teardown: function (detach) {
+                teardown(this);
+                if (detach) {
+                    this.node.parentNode.removeChild(this.node);
                 }
+            },
+            render: function (value) {
+                if (this.node) {
+                    this.node.data = value === undefined ? '' : value;
+                }
+            },
+            firstNode: function () {
+                return this.node;
+            },
+            toString: function () {
+                var value = this.value !== undefined ? '' + this.value : '';
+                return value.replace(lessThan, '&lt;').replace(greaterThan, '&gt;');
+            }
+        };
+        return DomInterpolator;
+    }(config_types, shared_teardown, shared_initMustache, shared_resolveMustache, shared_updateMustache);
+var shared_updateSection = function (isArray, isObject, create) {
+        
+        return function (section, value) {
+            var fragmentOptions;
+            fragmentOptions = {
+                descriptor: section.descriptor.f,
+                root: section.root,
+                pNode: section.pNode,
+                owner: section
+            };
+            if (section.descriptor.n) {
+                updateConditionalSection(section, value, true, fragmentOptions);
                 return;
             }
-            value = this.get(keypath);
-            this.set(keypath, !value);
+            if (isArray(value)) {
+                updateListSection(section, value, fragmentOptions);
+            } else if (isObject(value)) {
+                if (section.descriptor.i) {
+                    updateListObjectSection(section, value, fragmentOptions);
+                } else {
+                    updateContextSection(section, fragmentOptions);
+                }
+            } else {
+                updateConditionalSection(section, value, false, fragmentOptions);
+            }
+        };
+        function updateListSection(section, value, fragmentOptions) {
+            var i, length, fragmentsToRemove;
+            length = value.length;
+            if (length < section.length) {
+                fragmentsToRemove = section.fragments.splice(length, section.length - length);
+                while (fragmentsToRemove.length) {
+                    fragmentsToRemove.pop().teardown(true);
+                }
+            } else {
+                if (length > section.length) {
+                    for (i = section.length; i < length; i += 1) {
+                        fragmentOptions.contextStack = section.contextStack.concat(section.keypath + '.' + i);
+                        fragmentOptions.index = i;
+                        if (section.descriptor.i) {
+                            fragmentOptions.indexRef = section.descriptor.i;
+                        }
+                        section.fragments[i] = section.createFragment(fragmentOptions);
+                    }
+                }
+            }
+            section.length = length;
+        }
+        function updateListObjectSection(section, value, fragmentOptions) {
+            var id, fragmentsById;
+            fragmentsById = section.fragmentsById || (section.fragmentsById = create(null));
+            for (id in fragmentsById) {
+                if (value[id] === undefined && fragmentsById[id]) {
+                    fragmentsById[id].teardown(true);
+                    fragmentsById[id] = null;
+                }
+            }
+            for (id in value) {
+                if (value[id] !== undefined && !fragmentsById[id]) {
+                    fragmentOptions.contextStack = section.contextStack.concat(section.keypath + '.' + id);
+                    fragmentOptions.index = id;
+                    if (section.descriptor.i) {
+                        fragmentOptions.indexRef = section.descriptor.i;
+                    }
+                    fragmentsById[id] = section.createFragment(fragmentOptions);
+                }
+            }
+        }
+        function updateContextSection(section, fragmentOptions) {
+            if (!section.length) {
+                fragmentOptions.contextStack = section.contextStack.concat(section.keypath);
+                fragmentOptions.index = 0;
+                section.fragments[0] = section.createFragment(fragmentOptions);
+                section.length = 1;
+            }
+        }
+        function updateConditionalSection(section, value, inverted, fragmentOptions) {
+            var doRender, emptyArray, fragmentsToRemove;
+            emptyArray = isArray(value) && value.length === 0;
+            if (inverted) {
+                doRender = emptyArray || !value;
+            } else {
+                doRender = value && !emptyArray;
+            }
+            if (doRender) {
+                if (!section.length) {
+                    fragmentOptions.contextStack = section.contextStack;
+                    fragmentOptions.index = 0;
+                    section.fragments[0] = section.createFragment(fragmentOptions);
+                    section.length = 1;
+                }
+                if (section.length > 1) {
+                    fragmentsToRemove = section.fragments.splice(1);
+                    while (fragmentsToRemove.length) {
+                        fragmentsToRemove.pop().teardown(true);
+                    }
+                }
+            } else if (section.length) {
+                section.teardownFragments(true);
+                section.length = 0;
+            }
+        }
+    }(utils_isArray, utils_isObject, utils_create);
+var shared_reassignFragments = function (types, unregisterDependant, processDeferredUpdates, ExpressionResolver) {
+        
+        return function (root, section, start, end, by) {
+            var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
+            indexRef = section.descriptor.i;
+            for (i = start; i < end; i += 1) {
+                fragment = section.fragments[i];
+                if (fragment.html) {
+                    continue;
+                }
+                oldIndex = i - by;
+                newIndex = i;
+                oldKeypath = section.keypath + '.' + (i - by);
+                newKeypath = section.keypath + '.' + i;
+                fragment.index += by;
+                reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+            }
+            processDeferredUpdates(root);
+        };
+        function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
+            var i, item, context;
+            if (fragment.indexRefs && fragment.indexRefs[indexRef] !== undefined) {
+                fragment.indexRefs[indexRef] = newIndex;
+            }
+            i = fragment.contextStack.length;
+            while (i--) {
+                context = fragment.contextStack[i];
+                if (context.substr(0, oldKeypath.length) === oldKeypath) {
+                    fragment.contextStack[i] = context.replace(oldKeypath, newKeypath);
+                }
+            }
+            i = fragment.items.length;
+            while (i--) {
+                item = fragment.items[i];
+                switch (item.type) {
+                case types.ELEMENT:
+                    reassignElement(item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    break;
+                case types.PARTIAL:
+                    reassignFragment(item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    break;
+                case types.SECTION:
+                case types.INTERPOLATOR:
+                case types.TRIPLE:
+                    reassignMustache(item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    break;
+                }
+            }
+        }
+        function reassignElement(element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
+            var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings;
+            i = element.attributes.length;
+            while (i--) {
+                attribute = element.attributes[i];
+                if (attribute.fragment) {
+                    reassignFragment(attribute.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    if (attribute.twoway) {
+                        attribute.updateBindings();
+                    }
+                }
+            }
+            if (storage = element.node._ractive) {
+                if (storage.keypath.substr(0, oldKeypath.length) === oldKeypath) {
+                    storage.keypath = storage.keypath.replace(oldKeypath, newKeypath);
+                }
+                if (indexRef !== undefined) {
+                    storage.index[indexRef] = newIndex;
+                }
+                for (masterEventName in storage.events) {
+                    proxies = storage.events[masterEventName].proxies;
+                    i = proxies.length;
+                    while (i--) {
+                        proxy = proxies[i];
+                        if (typeof proxy.n === 'object') {
+                            reassignFragment(proxy.a, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                        }
+                        if (proxy.d) {
+                            reassignFragment(proxy.d, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                        }
+                    }
+                }
+                if (binding = storage.binding) {
+                    if (binding.keypath.substr(0, oldKeypath.length) === oldKeypath) {
+                        bindings = storage.root._twowayBindings[binding.keypath];
+                        bindings.splice(bindings.indexOf(binding), 1);
+                        binding.keypath = binding.keypath.replace(oldKeypath, newKeypath);
+                        bindings = storage.root._twowayBindings[binding.keypath] || (storage.root._twowayBindings[binding.keypath] = []);
+                        bindings.push(binding);
+                    }
+                }
+            }
+            if (element.fragment) {
+                reassignFragment(element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+            }
+        }
+        function reassignMustache(mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
+            var i;
+            if (mustache.descriptor.x) {
+                if (mustache.keypath) {
+                    unregisterDependant(mustache);
+                }
+                if (mustache.expressionResolver) {
+                    mustache.expressionResolver.teardown();
+                }
+                mustache.expressionResolver = new ExpressionResolver(mustache);
+            }
+            if (mustache.keypath) {
+                if (mustache.keypath.substr(0, oldKeypath.length) === oldKeypath) {
+                    mustache.resolve(mustache.keypath.replace(oldKeypath, newKeypath));
+                }
+            } else if (mustache.indexRef === indexRef) {
+                mustache.value = newIndex;
+                mustache.render(newIndex);
+            }
+            if (mustache.fragments) {
+                i = mustache.fragments.length;
+                while (i--) {
+                    reassignFragment(mustache.fragments[i], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                }
+            }
+        }
+    }(config_types, shared_unregisterDependant, shared_processDeferredUpdates, shared_ExpressionResolver);
+var circular = function () {
+        
+        return [];
+    }();
+var DomFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, reassignFragments, teardown, circular) {
+        
+        var DomSection, DomFragment;
+        circular.push(function () {
+            DomFragment = circular.DomFragment;
+        });
+        DomSection = function (options, docFrag) {
+            this.type = types.SECTION;
+            this.fragments = [];
+            this.length = 0;
+            if (docFrag) {
+                this.docFrag = document.createDocumentFragment();
+            }
+            this.initialising = true;
+            initMustache(this, options);
+            if (docFrag) {
+                docFrag.appendChild(this.docFrag);
+            }
+            this.initialising = false;
+        };
+        DomSection.prototype = {
+            update: updateMustache,
+            resolve: resolveMustache,
+            smartUpdate: function (methodName, args) {
+                var fragmentOptions;
+                if (methodName === 'push' || methodName === 'unshift' || methodName === 'splice') {
+                    fragmentOptions = {
+                        descriptor: this.descriptor.f,
+                        root: this.root,
+                        pNode: this.pNode,
+                        owner: this
+                    };
+                    if (this.descriptor.i) {
+                        fragmentOptions.indexRef = this.descriptor.i;
+                    }
+                }
+                if (this[methodName]) {
+                    this[methodName](fragmentOptions, args);
+                }
+            },
+            pop: function () {
+                if (this.length) {
+                    this.fragments.pop().teardown(true);
+                    this.length -= 1;
+                }
+            },
+            push: function (fragmentOptions, args) {
+                var start, end, i;
+                start = this.length;
+                end = start + args.length;
+                for (i = start; i < end; i += 1) {
+                    fragmentOptions.contextStack = this.contextStack.concat(this.keypath + '.' + i);
+                    fragmentOptions.index = i;
+                    this.fragments[i] = this.createFragment(fragmentOptions);
+                }
+                this.length += args.length;
+                this.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
+            },
+            shift: function () {
+                this.splice(null, [
+                    0,
+                    1
+                ]);
+            },
+            unshift: function (fragmentOptions, args) {
+                this.splice(fragmentOptions, [
+                    0,
+                    0
+                ].concat(new Array(args.length)));
+            },
+            splice: function (fragmentOptions, args) {
+                var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart;
+                if (!args.length) {
+                    return;
+                }
+                start = +(args[0] < 0 ? this.length + args[0] : args[0]);
+                addedItems = Math.max(0, args.length - 2);
+                removedItems = args[1] !== undefined ? args[1] : this.length - start;
+                balance = addedItems - removedItems;
+                if (!balance) {
+                    return;
+                }
+                if (balance < 0) {
+                    end = start - balance;
+                    for (i = start; i < end; i += 1) {
+                        this.fragments[i].teardown(true);
+                    }
+                    this.fragments.splice(start, -balance);
+                } else {
+                    end = start + balance;
+                    insertionPoint = this.fragments[start] ? this.fragments[start].firstNode() : this.parentFragment.findNextNode(this);
+                    spliceArgs = [
+                        start,
+                        0
+                    ].concat(new Array(balance));
+                    this.fragments.splice.apply(this.fragments, spliceArgs);
+                    for (i = start; i < end; i += 1) {
+                        fragmentOptions.contextStack = this.contextStack.concat(this.keypath + '.' + i);
+                        fragmentOptions.index = i;
+                        this.fragments[i] = this.createFragment(fragmentOptions);
+                    }
+                    this.pNode.insertBefore(this.docFrag, insertionPoint);
+                }
+                this.length += balance;
+                reassignStart = start + addedItems;
+                reassignFragments(this.root, this, reassignStart, this.length, balance);
+            },
+            teardown: function (detach) {
+                this.teardownFragments(detach);
+                teardown(this);
+            },
+            firstNode: function () {
+                if (this.fragments[0]) {
+                    return this.fragments[0].firstNode();
+                }
+                return this.parentFragment.findNextNode(this);
+            },
+            findNextNode: function (fragment) {
+                if (this.fragments[fragment.index + 1]) {
+                    return this.fragments[fragment.index + 1].firstNode();
+                }
+                return this.parentFragment.findNextNode(this);
+            },
+            teardownFragments: function (detach) {
+                var id;
+                while (this.fragments.length) {
+                    this.fragments.shift().teardown(detach);
+                }
+                if (this.fragmentsById) {
+                    for (id in this.fragmentsById) {
+                        if (this.fragments[id]) {
+                            this.fragmentsById[id].teardown();
+                            this.fragmentsById[id] = null;
+                        }
+                    }
+                }
+            },
+            render: function (value) {
+                var nextNode, wrapped;
+                if (wrapped = this.root._wrapped[this.keypath]) {
+                    value = wrapped.get();
+                }
+                if (this.rendering) {
+                    return;
+                }
+                this.rendering = true;
+                updateSection(this, value);
+                this.rendering = false;
+                if (this.docFrag && !this.docFrag.childNodes.length) {
+                    return;
+                }
+                if (!this.initialising) {
+                    nextNode = this.parentFragment.findNextNode(this);
+                    if (nextNode && nextNode.parentNode === this.pNode) {
+                        this.pNode.insertBefore(this.docFrag, nextNode);
+                    } else {
+                        this.pNode.appendChild(this.docFrag);
+                    }
+                }
+            },
+            createFragment: function (options) {
+                var fragment = new DomFragment(options);
+                if (this.docFrag) {
+                    this.docFrag.appendChild(fragment.docFrag);
+                }
+                return fragment;
+            },
+            toString: function () {
+                var str, i, len;
+                str = '';
+                i = 0;
+                len = this.length;
+                for (i = 0; i < len; i += 1) {
+                    str += this.fragments[i].toString();
+                }
+                return str;
+            }
+        };
+        return DomSection;
+    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_reassignFragments, shared_teardown, circular);
+var DomFragment_Triple = function (types, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
+        
+        var DomTriple = function (options, docFrag) {
+            this.type = types.TRIPLE;
+            if (docFrag) {
+                this.nodes = [];
+                this.docFrag = document.createDocumentFragment();
+            }
+            this.initialising = true;
+            initMustache(this, options);
+            if (docFrag) {
+                docFrag.appendChild(this.docFrag);
+            }
+            this.initialising = false;
+        };
+        DomTriple.prototype = {
+            update: updateMustache,
+            resolve: resolveMustache,
+            teardown: function (detach) {
+                var node;
+                if (detach) {
+                    while (this.nodes.length) {
+                        node = this.nodes.pop();
+                        node.parentNode.removeChild(node);
+                    }
+                }
+                teardown(this);
+            },
+            firstNode: function () {
+                if (this.nodes[0]) {
+                    return this.nodes[0];
+                }
+                return this.parentFragment.findNextNode(this);
+            },
+            render: function (html) {
+                var node;
+                if (!this.nodes) {
+                    return;
+                }
+                while (this.nodes.length) {
+                    node = this.nodes.pop();
+                    node.parentNode.removeChild(node);
+                }
+                if (html === undefined) {
+                    this.nodes = [];
+                    return;
+                }
+                this.nodes = insertHtml(html, this.pNode.tagName, this.docFrag);
+                if (!this.initialising) {
+                    this.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
+                }
+            },
+            toString: function () {
+                return this.value !== undefined ? this.value : '';
+            }
+        };
+        return DomTriple;
+    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_insertHtml, shared_teardown);
+var config_voidElementNames = function () {
+        
+        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
+    }();
+var config_namespaces = {
+        html: 'http://www.w3.org/1999/xhtml',
+        mathml: 'http://www.w3.org/1998/Math/MathML',
+        svg: 'http://www.w3.org/2000/svg',
+        xlink: 'http://www.w3.org/1999/xlink',
+        xml: 'http://www.w3.org/XML/1998/namespace',
+        xmlns: 'http://www.w3.org/2000/xmlns/'
+    };
+var Element_getElementNamespace = function (namespaces) {
+        
+        return function (descriptor, parentNode) {
+            if (descriptor.a && descriptor.a.xmlns) {
+                return descriptor.a.xmlns;
+            }
+            return descriptor.e === 'svg' ? namespaces.svg : parentNode.namespaceURI;
+        };
+    }(config_namespaces);
+var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
+        
+        var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, GenericBinding;
+        bindAttribute = function () {
+            var node = this.pNode, interpolator, binding, bindings;
+            if (!this.fragment) {
+                return false;
+            }
+            interpolator = getInterpolator(this);
+            if (!interpolator) {
+                return false;
+            }
+            this.interpolator = interpolator;
+            this.keypath = interpolator.keypath || interpolator.descriptor.r;
+            binding = getBinding(this);
+            if (!binding) {
+                return false;
+            }
+            node._ractive.binding = binding;
+            this.twoway = true;
+            bindings = this.root._twowayBindings[this.keypath] || (this.root._twowayBindings[this.keypath] = []);
+            bindings[bindings.length] = binding;
+            return true;
+        };
+        updateModel = function () {
+            this._ractive.binding.update();
+        };
+        getInterpolator = function (attribute) {
+            var item;
+            if (attribute.fragment.items.length !== 1) {
+                return null;
+            }
+            item = attribute.fragment.items[0];
+            if (item.type !== types.INTERPOLATOR) {
+                return null;
+            }
+            if (!item.keypath && !item.ref) {
+                return null;
+            }
+            if (item.descriptor.x) {
+                if (attribute.root.debug) {
+                    throw new Error('You cannot set up two-way binding against an expression');
+                }
+                return null;
+            }
+            return item;
+        };
+        getBinding = function (attribute) {
+            var node = attribute.pNode;
+            if (node.tagName === 'SELECT') {
+                return node.multiple ? new MultipleSelectBinding(attribute, node) : new SelectBinding(attribute, node);
+            }
+            if (node.type === 'checkbox' || node.type === 'radio') {
+                if (attribute.propertyName === 'name') {
+                    if (node.type === 'checkbox') {
+                        return new CheckboxNameBinding(attribute, node);
+                    }
+                    if (node.type === 'radio') {
+                        return new RadioNameBinding(attribute, node);
+                    }
+                }
+                if (attribute.propertyName === 'checked') {
+                    return new CheckedBinding(attribute, node);
+                }
+                return null;
+            }
+            if (attribute.propertyName !== 'value') {
+                warn('This is... odd');
+            }
+            if (attribute.pNode.type === 'file') {
+                return new FileListBinding(attribute, node);
+            }
+            return new GenericBinding(attribute, node);
+        };
+        MultipleSelectBinding = function (attribute, node) {
+            var valueFromModel;
+            inheritProperties(this, attribute, node);
+            node.addEventListener('change', updateModel, false);
+            valueFromModel = this.root.get(this.keypath);
+            if (valueFromModel === undefined) {
+                this.update();
+            }
+        };
+        MultipleSelectBinding.prototype = {
+            value: function () {
+                var value, options, i, len;
+                value = [];
+                options = this.node.options;
+                len = options.length;
+                for (i = 0; i < len; i += 1) {
+                    if (options[i].selected) {
+                        value[value.length] = options[i]._ractive.value;
+                    }
+                }
+                return value;
+            },
+            update: function () {
+                var attribute, previousValue, value;
+                attribute = this.attr;
+                previousValue = attribute.value;
+                value = this.value();
+                if (previousValue === undefined || !arrayContentsMatch(value, previousValue)) {
+                    attribute.receiving = true;
+                    attribute.value = value;
+                    this.root.set(this.keypath, value);
+                    attribute.receiving = false;
+                }
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+            }
+        };
+        SelectBinding = function (attribute, node) {
+            var valueFromModel;
+            inheritProperties(this, attribute, node);
+            node.addEventListener('change', updateModel, false);
+            valueFromModel = this.root.get(this.keypath);
+            if (valueFromModel === undefined) {
+                this.update();
+            }
+        };
+        SelectBinding.prototype = {
+            value: function () {
+                var options, i, len;
+                options = this.node.options;
+                len = options.length;
+                for (i = 0; i < len; i += 1) {
+                    if (options[i].selected) {
+                        return options[i]._ractive.value;
+                    }
+                }
+            },
+            update: function () {
+                var value = this.value();
+                if (isNumeric(value)) {
+                    value = +value;
+                }
+                this.attr.receiving = true;
+                this.attr.value = value;
+                this.root.set(this.keypath, value);
+                this.attr.receiving = false;
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+            }
+        };
+        RadioNameBinding = function (attribute, node) {
+            var valueFromModel;
+            this.radioName = true;
+            inheritProperties(this, attribute, node);
+            node.name = '{{' + attribute.keypath + '}}';
+            node.addEventListener('change', updateModel, false);
+            if (node.attachEvent) {
+                node.addEventListener('click', updateModel, false);
+            }
+            valueFromModel = this.root.get(this.keypath);
+            if (valueFromModel !== undefined) {
+                node.checked = valueFromModel === node._ractive.value;
+            } else {
+                this.root._defRadios[this.root._defRadios.length] = this;
+            }
+        };
+        RadioNameBinding.prototype = {
+            value: function () {
+                return this.node._ractive ? this.node._ractive.value : this.node.value;
+            },
+            update: function () {
+                var node = this.node;
+                if (node.checked) {
+                    this.attr.receiving = true;
+                    this.root.set(this.keypath, this.value());
+                    this.attr.receiving = false;
+                }
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+                this.node.removeEventListener('click', updateModel, false);
+            }
+        };
+        CheckboxNameBinding = function (attribute, node) {
+            var valueFromModel, checked;
+            this.checkboxName = true;
+            inheritProperties(this, attribute, node);
+            node.name = '{{' + this.keypath + '}}';
+            node.addEventListener('change', updateModel, false);
+            if (node.attachEvent) {
+                node.addEventListener('click', updateModel, false);
+            }
+            valueFromModel = this.root.get(this.keypath);
+            if (valueFromModel !== undefined) {
+                checked = valueFromModel.indexOf(node._ractive.value) !== -1;
+                node.checked = checked;
+            } else {
+                if (this.root._defCheckboxes.indexOf(this.keypath) === -1) {
+                    this.root._defCheckboxes[this.root._defCheckboxes.length] = this.keypath;
+                }
+            }
+        };
+        CheckboxNameBinding.prototype = {
+            changed: function () {
+                return this.node.checked !== !!this.checked;
+            },
+            update: function () {
+                this.checked = this.node.checked;
+                this.attr.receiving = true;
+                this.root.set(this.keypath, getValueFromCheckboxes(this.root, this.keypath));
+                this.attr.receiving = false;
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+                this.node.removeEventListener('click', updateModel, false);
+            }
+        };
+        CheckedBinding = function (attribute, node) {
+            inheritProperties(this, attribute, node);
+            node.addEventListener('change', updateModel, false);
+            if (node.attachEvent) {
+                node.addEventListener('click', updateModel, false);
+            }
+        };
+        CheckedBinding.prototype = {
+            value: function () {
+                return this.node.checked;
+            },
+            update: function () {
+                this.attr.receiving = true;
+                this.root.set(this.keypath, this.value());
+                this.attr.receiving = false;
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+                this.node.removeEventListener('click', updateModel, false);
+            }
+        };
+        FileListBinding = function (attribute, node) {
+            inheritProperties(this, attribute, node);
+            node.addEventListener('change', updateModel, false);
+        };
+        FileListBinding.prototype = {
+            value: function () {
+                return this.attr.pNode.files;
+            },
+            update: function () {
+                this.attr.root.set(this.attr.keypath, this.value());
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+            }
+        };
+        GenericBinding = function (attribute, node) {
+            inheritProperties(this, attribute, node);
+            node.addEventListener('change', updateModel, false);
+            if (!this.root.lazy) {
+                node.addEventListener('input', updateModel, false);
+                if (node.attachEvent) {
+                    node.addEventListener('keyup', updateModel, false);
+                }
+            }
+        };
+        GenericBinding.prototype = {
+            value: function () {
+                var value = this.attr.pNode.value;
+                if (+value + '' === value && value.indexOf('e') === -1) {
+                    value = +value;
+                }
+                return value;
+            },
+            update: function () {
+                var attribute = this.attr, value = this.value();
+                attribute.receiving = true;
+                attribute.root.set(attribute.keypath, value);
+                attribute.receiving = false;
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+                this.node.removeEventListener('input', updateModel, false);
+                this.node.removeEventListener('keyup', updateModel, false);
+            }
+        };
+        inheritProperties = function (binding, attribute, node) {
+            binding.attr = attribute;
+            binding.node = node;
+            binding.root = attribute.root;
+            binding.keypath = attribute.keypath;
+        };
+        return bindAttribute;
+    }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
+var Attribute_updateAttribute = function (isArray, namespaces) {
+        
+        var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateEverythingElse;
+        updateAttribute = function () {
+            var node;
+            if (!this.ready) {
+                return this;
+            }
+            node = this.pNode;
+            if (node.tagName === 'SELECT' && this.name === 'value') {
+                this.update = deferSelect;
+                this.deferredUpdate = initSelect;
+                return this.update();
+            }
+            if (this.isFileInputValue) {
+                this.update = updateFileInputValue;
+                return this;
+            }
+            if (this.twoway && this.name === 'name') {
+                if (node.type === 'radio') {
+                    this.update = updateRadioName;
+                    return this.update();
+                }
+                if (node.type === 'checkbox') {
+                    this.update = updateCheckboxName;
+                    return this.update();
+                }
+            }
+            if (this.name === 'style' && node.style.setAttribute) {
+                this.update = updateIEStyleAttribute;
+                return this.update();
+            }
+            if (this.name === 'class' && (!node.namespaceURI || node.namespaceURI === namespaces.html)) {
+                this.update = updateClassName;
+                return this.update();
+            }
+            this.update = updateEverythingElse;
+            return this.update();
+        };
+        updateFileInputValue = function () {
+            return this;
+        };
+        initSelect = function () {
+            this.deferredUpdate = this.pNode.multiple ? updateMultipleSelect : updateSelect;
+            this.deferredUpdate();
+        };
+        deferSelect = function () {
+            this.root._defSelectValues.push(this);
+            return this;
+        };
+        updateSelect = function () {
+            var value = this.fragment.getValue(), options, option, i;
+            this.value = this.pNode._ractive.value = value;
+            options = this.pNode.options;
+            i = options.length;
+            while (i--) {
+                option = options[i];
+                if (option._ractive.value == value) {
+                    option.selected = true;
+                    return this;
+                }
+            }
+            return this;
+        };
+        updateMultipleSelect = function () {
+            var value = this.fragment.getValue(), options, i;
+            if (!isArray(value)) {
+                value = [value];
+            }
+            options = this.pNode.options;
+            i = options.length;
+            while (i--) {
+                options[i].selected = value.indexOf(options[i]._ractive.value) !== -1;
+            }
+            this.value = value;
+            return this;
+        };
+        updateRadioName = function () {
+            var node, value;
+            node = this.pNode;
+            value = this.fragment.getValue();
+            node.checked = value === node._ractive.value;
+            return this;
+        };
+        updateCheckboxName = function () {
+            var node, value;
+            node = this.pNode;
+            value = this.fragment.getValue();
+            if (!isArray(value)) {
+                node.checked = value === node._ractive.value;
+                return this;
+            }
+            node.checked = value.indexOf(node._ractive.value) !== -1;
+            return this;
+        };
+        updateIEStyleAttribute = function () {
+            var node, value;
+            node = this.pNode;
+            value = this.fragment.getValue();
+            if (value === undefined) {
+                value = '';
+            }
+            if (value !== this.value) {
+                node.style.setAttribute('cssText', value);
+                this.value = value;
+            }
+            return this;
+        };
+        updateClassName = function () {
+            var node, value;
+            node = this.pNode;
+            value = this.fragment.getValue();
+            if (value === undefined) {
+                value = '';
+            }
+            if (value !== this.value) {
+                node.className = value;
+                this.value = value;
+            }
+            return this;
+        };
+        updateEverythingElse = function () {
+            var node, value;
+            node = this.pNode;
+            value = this.fragment.getValue();
+            if (this.isValueAttribute) {
+                node._ractive.value = value;
+            }
+            if (value === undefined) {
+                value = '';
+            }
+            if (value !== this.value) {
+                if (this.useProperty) {
+                    if (!this.receiving) {
+                        node[this.propertyName] = value;
+                    }
+                    this.value = value;
+                    return this;
+                }
+                if (this.namespace) {
+                    node.setAttributeNS(this.namespace, this.name, value);
+                    this.value = value;
+                    return this;
+                }
+                if (this.name === 'id') {
+                    if (this.value !== undefined) {
+                        this.root.nodes[this.value] = undefined;
+                    }
+                    this.root.nodes[value] = node;
+                }
+                node.setAttribute(this.name, value);
+                this.value = value;
+            }
+            return this;
+        };
+        return updateAttribute;
+    }(utils_isArray, config_namespaces);
+var StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
+        
+        var StringInterpolator = function (options) {
+            this.type = types.INTERPOLATOR;
+            initMustache(this, options);
+        };
+        StringInterpolator.prototype = {
+            update: updateMustache,
+            resolve: resolveMustache,
+            render: function (value) {
+                this.value = value;
+                this.parentFragment.bubble();
+            },
+            teardown: function () {
+                teardown(this);
+            },
+            toString: function () {
+                if (this.value === undefined) {
+                    return '';
+                }
+                if (this.value === null) {
+                    return 'null';
+                }
+                return this.value.toString();
+            }
+        };
+        return StringInterpolator;
+    }(config_types, shared_teardown, shared_initMustache, shared_updateMustache, shared_resolveMustache);
+var StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
+        
+        var StringSection, StringFragment;
+        circular.push(function () {
+            StringFragment = circular.StringFragment;
+        });
+        StringSection = function (options) {
+            this.type = types.SECTION;
+            this.fragments = [];
+            this.length = 0;
+            initMustache(this, options);
+        };
+        StringSection.prototype = {
+            update: updateMustache,
+            resolve: resolveMustache,
+            teardown: function () {
+                this.teardownFragments();
+                teardown(this);
+            },
+            teardownFragments: function () {
+                while (this.fragments.length) {
+                    this.fragments.shift().teardown();
+                }
+                this.length = 0;
+            },
+            bubble: function () {
+                this.value = this.fragments.join('');
+                this.parentFragment.bubble();
+            },
+            render: function (value) {
+                var wrapped;
+                if (wrapped = this.root._wrapped[this.keypath]) {
+                    value = wrapped.get();
+                }
+                updateSection(this, value);
+                this.parentFragment.bubble();
+            },
+            createFragment: function (options) {
+                return new StringFragment(options);
+            },
+            toString: function () {
+                return this.fragments.join('');
+            }
+        };
+        return StringSection;
+    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_teardown, circular);
+var StringFragment_Text = function (types) {
+        
+        var StringText = function (text) {
+            this.type = types.TEXT;
+            this.text = text;
+        };
+        StringText.prototype = {
+            toString: function () {
+                return this.text;
+            },
+            teardown: function () {
+            }
+        };
+        return StringText;
+    }(config_types);
+var StringFragment__StringFragment = function (types, initFragment, Interpolator, Section, Text, circular) {
+        
+        var StringFragment = function (options) {
+            initFragment(this, options);
+        };
+        StringFragment.prototype = {
+            createItem: function (options) {
+                if (typeof options.descriptor === 'string') {
+                    return new Text(options.descriptor);
+                }
+                switch (options.descriptor.t) {
+                case types.INTERPOLATOR:
+                    return new Interpolator(options);
+                case types.TRIPLE:
+                    return new Interpolator(options);
+                case types.SECTION:
+                    return new Section(options);
+                default:
+                    throw 'Something went wrong in a rather interesting way';
+                }
+            },
+            bubble: function () {
+                this.owner.bubble();
+            },
+            teardown: function () {
+                var numItems, i;
+                numItems = this.items.length;
+                for (i = 0; i < numItems; i += 1) {
+                    this.items[i].teardown();
+                }
+            },
+            getValue: function () {
+                var value;
+                if (this.items.length === 1 && this.items[0].type === types.INTERPOLATOR) {
+                    value = this.items[0].value;
+                    if (value !== undefined) {
+                        return value;
+                    }
+                }
+                return this.toString();
+            },
+            isSimple: function () {
+                var i, item, containsInterpolator;
+                if (this.simple !== undefined) {
+                    return this.simple;
+                }
+                i = this.items.length;
+                while (i--) {
+                    item = this.items[i];
+                    if (item.type === types.TEXT) {
+                        continue;
+                    }
+                    if (item.type === types.INTERPOLATOR) {
+                        if (containsInterpolator) {
+                            return false;
+                        } else {
+                            containsInterpolator = true;
+                            continue;
+                        }
+                    }
+                    return this.simple = false;
+                }
+                return this.simple = true;
+            },
+            toString: function () {
+                return this.items.join('');
+            },
+            toJSON: function () {
+                var value = this.getValue();
+                if (typeof value === 'string') {
+                    try {
+                        value = JSON.parse(value);
+                    } catch (err) {
+                    }
+                }
+                return value;
+            }
+        };
+        circular.StringFragment = StringFragment;
+        return StringFragment;
+    }(config_types, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
+var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute, StringFragment) {
+        
+        var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
+        propertyNames = {
+            'accept-charset': 'acceptCharset',
+            accesskey: 'accessKey',
+            bgcolor: 'bgColor',
+            'class': 'className',
+            codebase: 'codeBase',
+            colspan: 'colSpan',
+            contenteditable: 'contentEditable',
+            datetime: 'dateTime',
+            dirname: 'dirName',
+            'for': 'htmlFor',
+            'http-equiv': 'httpEquiv',
+            ismap: 'isMap',
+            maxlength: 'maxLength',
+            novalidate: 'noValidate',
+            pubdate: 'pubDate',
+            readonly: 'readOnly',
+            rowspan: 'rowSpan',
+            tabindex: 'tabIndex',
+            usemap: 'useMap'
+        };
+        DomAttribute = function (options) {
+            this.element = options.element;
+            determineNameAndNamespace(this, options.name);
+            if (options.value === null || typeof options.value === 'string') {
+                setStaticAttribute(this, options);
+                return;
+            }
+            this.root = options.root;
+            this.pNode = options.pNode;
+            this.parentFragment = this.element.parentFragment;
+            this.fragment = new StringFragment({
+                descriptor: options.value,
+                root: this.root,
+                owner: this,
+                contextStack: options.contextStack
+            });
+            if (!this.pNode) {
+                return;
+            }
+            if (this.name === 'value') {
+                options.element.ractify();
+                this.isValueAttribute = true;
+                if (this.pNode.tagName === 'INPUT' && this.pNode.type === 'file') {
+                    this.isFileInputValue = true;
+                }
+            }
+            determinePropertyName(this, options);
+            this.selfUpdating = this.fragment.isSimple();
+            this.ready = true;
+        };
+        DomAttribute.prototype = {
+            bind: bindAttribute,
+            update: updateAttribute,
+            updateBindings: function () {
+                this.keypath = this.interpolator.keypath || this.interpolator.ref;
+                if (this.propertyName === 'name') {
+                    this.pNode.name = '{{' + this.keypath + '}}';
+                }
+            },
+            teardown: function () {
+                var i;
+                if (this.boundEvents) {
+                    i = this.boundEvents.length;
+                    while (i--) {
+                        this.pNode.removeEventListener(this.boundEvents[i], this.updateModel, false);
+                    }
+                }
+                if (this.fragment) {
+                    this.fragment.teardown();
+                }
+            },
+            bubble: function () {
+                if (this.selfUpdating) {
+                    this.update();
+                } else if (!this.deferred && this.ready) {
+                    this.root._defAttrs[this.root._defAttrs.length] = this;
+                    this.deferred = true;
+                }
+            },
+            toString: function () {
+                var str;
+                if (this.value === null) {
+                    return this.name;
+                }
+                if (!this.fragment) {
+                    return this.name + '=' + JSON.stringify(this.value);
+                }
+                str = this.fragment.toString();
+                return this.name + '=' + JSON.stringify(str);
+            }
+        };
+        determineNameAndNamespace = function (attribute, name) {
+            var colonIndex, namespacePrefix;
+            colonIndex = name.indexOf(':');
+            if (colonIndex !== -1) {
+                namespacePrefix = name.substr(0, colonIndex);
+                if (namespacePrefix !== 'xmlns') {
+                    name = name.substring(colonIndex + 1);
+                    attribute.name = name;
+                    attribute.namespace = namespaces[namespacePrefix];
+                    if (!attribute.namespace) {
+                        throw 'Unknown namespace ("' + namespacePrefix + '")';
+                    }
+                    return;
+                }
+            }
+            attribute.name = name;
+        };
+        setStaticAttribute = function (attribute, options) {
+            var node, value = options.value === null ? '' : options.value;
+            if (node = options.pNode) {
+                if (attribute.namespace) {
+                    node.setAttributeNS(attribute.namespace, options.name, value);
+                } else {
+                    if (options.name === 'style' && node.style.setAttribute) {
+                        node.style.setAttribute('cssText', value);
+                    } else if (options.name === 'class' && (!node.namespaceURI || node.namespaceURI === namespaces.html)) {
+                        node.className = value;
+                    } else {
+                        node.setAttribute(options.name, value);
+                    }
+                }
+                if (attribute.name === 'id') {
+                    options.root.nodes[options.value] = node;
+                }
+                if (attribute.name === 'value') {
+                    attribute.element.ractify().value = options.value;
+                }
+            }
+            attribute.value = options.value;
+        };
+        determinePropertyName = function (attribute, options) {
+            var propertyName;
+            if (attribute.pNode && !attribute.namespace && (!options.pNode.namespaceURI || options.pNode.namespaceURI === namespaces.html)) {
+                propertyName = propertyNames[attribute.name] || attribute.name;
+                if (options.pNode[propertyName] !== undefined) {
+                    attribute.propertyName = propertyName;
+                }
+                if (typeof options.pNode[propertyName] === 'boolean' || propertyName === 'value') {
+                    attribute.useProperty = true;
+                }
+            }
+        };
+        return DomAttribute;
+    }(config_namespaces, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__StringFragment);
+var Element_createElementAttributes = function (DomAttribute) {
+        
+        return function (element, attributes) {
+            var attrName, attrValue, attr;
+            element.attributes = [];
+            for (attrName in attributes) {
+                if (attributes.hasOwnProperty(attrName)) {
+                    attrValue = attributes[attrName];
+                    attr = new DomAttribute({
+                        element: element,
+                        name: attrName,
+                        value: attrValue,
+                        root: element.root,
+                        pNode: element.node,
+                        contextStack: element.parentFragment.contextStack
+                    });
+                    element.attributes[element.attributes.length] = element.attributes[attrName] = attr;
+                    if (attrName !== 'name') {
+                        attr.update();
+                    }
+                }
+            }
+            return element.attributes;
+        };
+    }(Attribute__Attribute);
+var Element_appendElementChildren = function (namespaces, StringFragment, circular) {
+        
+        var DomFragment;
+        circular.push(function () {
+            DomFragment = circular.DomFragment;
+        });
+        return function (element, node, descriptor, docFrag) {
+            if (typeof descriptor.f === 'string' && (!node || (!node.namespaceURI || node.namespaceURI === namespaces.html))) {
+                element.html = descriptor.f;
+                if (docFrag) {
+                    node.innerHTML = element.html;
+                }
+            } else {
+                if (descriptor.e === 'style' && node.styleSheet !== undefined) {
+                    element.fragment = new StringFragment({
+                        descriptor: descriptor.f,
+                        root: element.root,
+                        contextStack: element.parentFragment.contextStack,
+                        owner: element
+                    });
+                    if (docFrag) {
+                        element.bubble = function () {
+                            node.styleSheet.cssText = element.fragment.toString();
+                        };
+                    }
+                } else {
+                    element.fragment = new DomFragment({
+                        descriptor: descriptor.f,
+                        root: element.root,
+                        pNode: node,
+                        contextStack: element.parentFragment.contextStack,
+                        owner: element
+                    });
+                    if (docFrag) {
+                        node.appendChild(element.fragment.docFrag);
+                    }
+                }
+            }
+        };
+    }(config_namespaces, StringFragment__StringFragment, circular);
+var Element_bindElement = function () {
+        
+        return function (element, attributes) {
+            element.ractify();
+            switch (element.descriptor.e) {
+            case 'select':
+            case 'textarea':
+                if (attributes.value) {
+                    attributes.value.bind();
+                }
+                return;
+            case 'input':
+                if (element.node.type === 'radio' || element.node.type === 'checkbox') {
+                    if (attributes.name && attributes.name.bind()) {
+                        return;
+                    }
+                    if (attributes.checked && attributes.checked.bind()) {
+                        return;
+                    }
+                }
+                if (attributes.value && attributes.value.bind()) {
+                    return;
+                }
+            }
         };
     }();
-var prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, renderHTML, teardown, add, subtract, toggle) {
+var utils_camelCase = function () {
         
-        return {
-            get: get,
-            set: set,
-            update: update,
-            updateModel: updateModel,
-            animate: animate,
-            on: on,
-            off: off,
-            observe: observe,
-            fire: fire,
-            find: find,
-            findAll: findAll,
-            renderHTML: renderHTML,
-            teardown: teardown,
-            add: add,
-            subtract: subtract,
-            toggle: toggle
+        return function (hyphenatedStr) {
+            return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
+                return $1.toUpperCase();
+            });
         };
-    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle);
-var registries_partials = {};
+    }();
+var Element_Transition = function (isClient, isNumeric, isArray, camelCase, StringFragment) {
+        
+        var Transition, testStyle, vendors, vendorPattern, unprefixPattern, prefixCache, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
+        if (!isClient) {
+            return;
+        }
+        testStyle = document.createElement('div').style;
+        (function () {
+            if (testStyle.transition !== undefined) {
+                TRANSITION = 'transition';
+                TRANSITIONEND = 'transitionend';
+                CSS_TRANSITIONS_ENABLED = true;
+            } else if (testStyle.webkitTransition !== undefined) {
+                TRANSITION = 'webkitTransition';
+                TRANSITIONEND = 'webkitTransitionEnd';
+                CSS_TRANSITIONS_ENABLED = true;
+            } else {
+                CSS_TRANSITIONS_ENABLED = false;
+            }
+        }());
+        if (TRANSITION) {
+            TRANSITION_DURATION = TRANSITION + 'Duration';
+            TRANSITION_PROPERTY = TRANSITION + 'Property';
+            TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
+        }
+        Transition = function (descriptor, root, owner, contextStack, isIntro) {
+            var fragment, params, prop;
+            this.root = root;
+            this.node = owner.node;
+            this.isIntro = isIntro;
+            this.originalStyle = this.node.getAttribute('style');
+            if (typeof descriptor === 'string') {
+                this.name = descriptor;
+            } else {
+                this.name = descriptor.n;
+                if (descriptor.a) {
+                    params = descriptor.a;
+                } else if (descriptor.d) {
+                    fragment = new StringFragment({
+                        descriptor: descriptor.d,
+                        root: root,
+                        owner: owner,
+                        contextStack: owner.parentFragment.contextStack
+                    });
+                    params = fragment.toJSON();
+                    fragment.teardown();
+                }
+            }
+            this._fn = root.transitions[this.name];
+            if (!this._fn) {
+                return;
+            }
+            params = parseTransitionParams(params);
+            for (prop in params) {
+                if (params.hasOwnProperty(prop)) {
+                    this[prop] = params[prop];
+                }
+            }
+        };
+        Transition.prototype = {
+            init: function () {
+                if (this._inited) {
+                    throw new Error('Cannot initialize a transition more than once');
+                }
+                this._inited = true;
+                this._fn.call(this.root, this);
+            },
+            complete: function () {
+                this._manager.pop(this.node);
+                this.node._ractive.transition = null;
+            },
+            getStyle: function (props) {
+                var computedStyle, styles, i, prop, value;
+                computedStyle = window.getComputedStyle(this.node);
+                if (typeof props === 'string') {
+                    value = computedStyle[prefix(props)];
+                    if (value === '0px') {
+                        value = 0;
+                    }
+                    return value;
+                }
+                if (!isArray(props)) {
+                    throw new Error('Transition#getStyle must be passed a string, or an array of strings representing CSS properties');
+                }
+                styles = {};
+                i = props.length;
+                while (i--) {
+                    prop = props[i];
+                    value = computedStyle[prefix(prop)];
+                    if (value === '0px') {
+                        value = 0;
+                    }
+                    styles[prop] = value;
+                }
+                return styles;
+            },
+            setStyle: function (style, value) {
+                var prop;
+                if (typeof style === 'string') {
+                    this.node.style[prefix(style)] = value;
+                } else {
+                    for (prop in style) {
+                        if (style.hasOwnProperty(prop)) {
+                            this.node.style[prefix(prop)] = style[prop];
+                        }
+                    }
+                }
+                return this;
+            },
+            animateStyle: function (to) {
+                var t = this, propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+                if (!t.duration) {
+                    t.setStyle(to);
+                    t.complete();
+                }
+                propertyNames = Object.keys(to);
+                changedProperties = [];
+                computedStyle = window.getComputedStyle(t.node);
+                from = {};
+                i = propertyNames.length;
+                while (i--) {
+                    prop = propertyNames[i];
+                    current = computedStyle[prefix(prop)];
+                    if (current === '0px') {
+                        current = 0;
+                    }
+                    if (current != to[prop]) {
+                        changedProperties[changedProperties.length] = prop;
+                        t.node.style[prefix(prop)] = current;
+                    }
+                }
+                if (!changedProperties.length) {
+                    t.resetStyle();
+                    t.complete();
+                    return;
+                }
+                setTimeout(function () {
+                    t.node.style[TRANSITION_PROPERTY] = propertyNames.map(prefix).map(hyphenate).join(',');
+                    t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(t.easing || 'linear');
+                    t.node.style[TRANSITION_DURATION] = t.duration / 1000 + 's';
+                    transitionEndHandler = function (event) {
+                        var index;
+                        index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
+                        if (index !== -1) {
+                            changedProperties.splice(index, 1);
+                        }
+                        if (changedProperties.length) {
+                            return;
+                        }
+                        t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
+                        if (t.isIntro) {
+                            t.resetStyle();
+                        }
+                        t.complete();
+                    };
+                    t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
+                    setTimeout(function () {
+                        var i = changedProperties.length;
+                        while (i--) {
+                            prop = changedProperties[i];
+                            t.node.style[prefix(prop)] = to[prop];
+                        }
+                    }, 0);
+                }, t.delay || 0);
+            },
+            resetStyle: function () {
+                if (this.originalStyle) {
+                    this.node.setAttribute('style', this.originalStyle);
+                } else {
+                    this.node.getAttribute('style');
+                    this.node.removeAttribute('style');
+                }
+            }
+        };
+        function parseTransitionParams(params) {
+            if (params === 'fast') {
+                return { duration: 200 };
+            }
+            if (params === 'slow') {
+                return { duration: 600 };
+            }
+            if (isNumeric(params)) {
+                return { duration: +params };
+            }
+            return params || {};
+        }
+        vendors = [
+            'o',
+            'ms',
+            'moz',
+            'webkit'
+        ];
+        vendorPattern = new RegExp('^(?:' + vendors.join('|') + ')([A-Z])');
+        unprefixPattern = new RegExp('^-(?:' + vendors.join('|') + ')-');
+        prefixCache = {};
+        function prefix(prop) {
+            var i, vendor, capped;
+            if (!prefixCache[prop]) {
+                if (testStyle[prop] !== undefined) {
+                    prefixCache[prop] = prop;
+                } else {
+                    capped = prop.charAt(0).toUpperCase() + prop.substring(1);
+                    i = vendors.length;
+                    while (i--) {
+                        vendor = vendors[i];
+                        if (testStyle[vendor + capped] !== undefined) {
+                            prefixCache[prop] = vendor + capped;
+                            break;
+                        }
+                    }
+                }
+            }
+            return prefixCache[prop];
+        }
+        function unprefix(prop) {
+            return prop.replace(unprefixPattern, '');
+        }
+        function hyphenate(str) {
+            var hyphenated;
+            if (vendorPattern.test(str)) {
+                str = '-' + str;
+            }
+            hyphenated = str.replace(/[A-Z]/g, function (match) {
+                return '-' + match.toLowerCase();
+            });
+            return hyphenated;
+        }
+        return Transition;
+    }(config_isClient, utils_isNumeric, utils_isArray, utils_camelCase, StringFragment__StringFragment);
+var Element_executeTransition = function (isClient, warn, Transition) {
+        
+        if (!isClient) {
+            return;
+        }
+        return function (descriptor, root, owner, contextStack, isIntro) {
+            var transition, node, oldTransition;
+            if (!root.transitionsEnabled) {
+                return;
+            }
+            transition = new Transition(descriptor, root, owner, contextStack, isIntro);
+            if (transition._fn) {
+                if (transition._fn.length !== 1) {
+                    warn('The transitions API has changed. See https://github.com/RactiveJS/Ractive/wiki/Transitions for details');
+                }
+                node = transition.node;
+                transition._manager = root._transitionManager;
+                if (oldTransition = node._ractive.transition) {
+                    oldTransition.complete();
+                }
+                node._ractive.transition = transition;
+                transition._manager.push(node);
+                if (isIntro) {
+                    root._defTransitions.push(transition);
+                } else {
+                    transition.init();
+                }
+            }
+        };
+    }(config_isClient, utils_warn, Element_Transition);
+var Element_addEventProxy = function (StringFragment) {
+        
+        var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
+        addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
+            var events, master;
+            events = element.ractify().events;
+            master = events[triggerEventName] || (events[triggerEventName] = new MasterEventHandler(element, triggerEventName, contextStack, indexRefs));
+            master.add(proxyDescriptor);
+        };
+        MasterEventHandler = function (element, eventName, contextStack) {
+            var definition;
+            this.element = element;
+            this.root = element.root;
+            this.node = element.node;
+            this.name = eventName;
+            this.contextStack = contextStack;
+            this.proxies = [];
+            if (definition = this.root.events[eventName]) {
+                this.custom = definition(this.node, getCustomHandler(eventName));
+            } else {
+                this.node.addEventListener(eventName, genericHandler, false);
+            }
+        };
+        MasterEventHandler.prototype = {
+            add: function (proxy) {
+                this.proxies[this.proxies.length] = new ProxyEvent(this.element, this.root, proxy, this.contextStack);
+            },
+            teardown: function () {
+                var i;
+                if (this.custom) {
+                    this.custom.teardown();
+                } else {
+                    this.node.removeEventListener(this.name, genericHandler, false);
+                }
+                i = this.proxies.length;
+                while (i--) {
+                    this.proxies[i].teardown();
+                }
+            },
+            fire: function (event) {
+                var i = this.proxies.length;
+                while (i--) {
+                    this.proxies[i].fire(event);
+                }
+            }
+        };
+        ProxyEvent = function (element, ractive, descriptor, contextStack) {
+            var name;
+            this.root = ractive;
+            name = descriptor.n || descriptor;
+            if (typeof name === 'string') {
+                this.n = name;
+            } else {
+                this.n = new StringFragment({
+                    descriptor: descriptor.n,
+                    root: this.root,
+                    owner: element,
+                    contextStack: contextStack
+                });
+            }
+            if (descriptor.a) {
+                this.a = descriptor.a;
+                this.fire = fireEventWithArgs;
+                return;
+            }
+            if (descriptor.d) {
+                this.d = new StringFragment({
+                    descriptor: descriptor.d,
+                    root: this.root,
+                    owner: element,
+                    contextStack: contextStack
+                });
+                this.fire = fireEventWithDynamicArgs;
+                return;
+            }
+            this.fire = firePlainEvent;
+        };
+        ProxyEvent.prototype = {
+            teardown: function () {
+                if (this.n.teardown) {
+                    this.n.teardown();
+                }
+                if (this.d) {
+                    this.d.teardown();
+                }
+            },
+            bubble: function () {
+            }
+        };
+        firePlainEvent = function (event) {
+            this.root.fire(this.n.toString(), event);
+        };
+        fireEventWithArgs = function (event) {
+            this.root.fire(this.n.toString(), event, this.a);
+        };
+        fireEventWithDynamicArgs = function (event) {
+            this.root.fire(this.n.toString(), event, this.d.toJSON());
+        };
+        genericHandler = function (event) {
+            var storage = this._ractive;
+            storage.events[event.type].fire({
+                node: this,
+                original: event,
+                index: storage.index,
+                keypath: storage.keypath,
+                context: storage.root.get(storage.keypath)
+            });
+        };
+        customHandlers = {};
+        getCustomHandler = function (eventName) {
+            if (customHandlers[eventName]) {
+                return customHandlers[eventName];
+            }
+            return customHandlers[eventName] = function (event) {
+                var storage = event.node._ractive;
+                event.index = storage.index;
+                event.keypath = storage.keypath;
+                event.context = storage.root.get(storage.keypath);
+                storage.events[eventName].fire(event);
+            };
+        };
+        return addEventProxy;
+    }(StringFragment__StringFragment);
+var Element_addEventProxies = function (addEventProxy) {
+        
+        return function (element, proxies) {
+            var i, eventName, eventNames;
+            for (eventName in proxies) {
+                if (proxies.hasOwnProperty(eventName)) {
+                    eventNames = eventName.split('-');
+                    i = eventNames.length;
+                    while (i--) {
+                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
+                    }
+                }
+            }
+        };
+    }(Element_addEventProxy);
+var Element__Element = function (types, create, defineProperty, voidElementNames, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, addEventProxies) {
+        
+        var DomElement = function (options, docFrag) {
+            var self = this, parentFragment, descriptor, namespace, attributes, decoratorFn, errorMessage, width, height, loadHandler, root;
+            this.type = types.ELEMENT;
+            parentFragment = this.parentFragment = options.parentFragment;
+            descriptor = this.descriptor = options.descriptor;
+            this.root = root = parentFragment.root;
+            this.pNode = parentFragment.pNode;
+            this.index = options.index;
+            this.eventListeners = [];
+            this.customEventListeners = [];
+            if (this.pNode) {
+                namespace = getElementNamespace(descriptor, this.pNode);
+                this.node = document.createElementNS(namespace, descriptor.e);
+            }
+            attributes = createElementAttributes(this, descriptor.a);
+            if (descriptor.f) {
+                appendElementChildren(this, this.node, descriptor, docFrag);
+            }
+            if (docFrag && descriptor.v) {
+                addEventProxies(this, descriptor.v);
+            }
+            if (docFrag) {
+                if (root.twoway) {
+                    bindElement(this, attributes);
+                }
+                if (attributes.name && !attributes.name.twoway) {
+                    attributes.name.update();
+                }
+                if (this.node.tagName === 'IMG' && ((width = self.attributes.width) || (height = self.attributes.height))) {
+                    this.node.addEventListener('load', loadHandler = function () {
+                        if (width) {
+                            self.node.width = width.value;
+                        }
+                        if (height) {
+                            self.node.height = height.value;
+                        }
+                        self.node.removeEventListener('load', loadHandler, false);
+                    }, false);
+                }
+                docFrag.appendChild(this.node);
+                if (descriptor.o) {
+                    decoratorFn = this.root.decorators[descriptor.o];
+                    if (decoratorFn) {
+                        this.decorator = decoratorFn.call(this.root, this.node);
+                        if (!this.decorator || !this.decorator.teardown) {
+                            throw new Error('Decorator definition must return an object with a teardown method');
+                        }
+                    } else {
+                        errorMessage = 'Missing decorator "' + descriptor.o + '"';
+                        if (this.root.debug) {
+                            throw new Error(errorMessage);
+                        } else {
+                            warn(errorMessage);
+                        }
+                    }
+                }
+                if (descriptor.t1) {
+                    executeTransition(descriptor.t1, root, this, parentFragment.contextStack, true);
+                }
+                if (this.node.tagName === 'OPTION') {
+                    if (this.node._ractive.value == this.pNode._ractive.value) {
+                        this.node.selected = true;
+                    }
+                }
+            }
+        };
+        DomElement.prototype = {
+            teardown: function (detach) {
+                var eventName, binding, bindings;
+                if (this.fragment) {
+                    this.fragment.teardown(false);
+                }
+                while (this.attributes.length) {
+                    this.attributes.pop().teardown();
+                }
+                if (this.node._ractive) {
+                    for (eventName in this.node._ractive.events) {
+                        this.node._ractive.events[eventName].teardown();
+                    }
+                    if (binding = this.node._ractive.binding) {
+                        binding.teardown();
+                        bindings = this.root._twowayBindings[binding.attr.keypath];
+                        bindings.splice(bindings.indexOf(binding), 1);
+                    }
+                }
+                if (this.decorator) {
+                    this.decorator.teardown();
+                }
+                if (this.descriptor.t2) {
+                    executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
+                }
+                if (detach) {
+                    this.root._transitionManager.detachWhenReady(this.node);
+                }
+            },
+            firstNode: function () {
+                return this.node;
+            },
+            findNextNode: function () {
+                return null;
+            },
+            bubble: function () {
+            },
+            toString: function () {
+                var str, i, len;
+                str = '<' + (this.descriptor.y ? '!doctype' : this.descriptor.e);
+                len = this.attributes.length;
+                for (i = 0; i < len; i += 1) {
+                    str += ' ' + this.attributes[i].toString();
+                }
+                str += '>';
+                if (this.html) {
+                    str += this.html;
+                } else if (this.fragment) {
+                    str += this.fragment.toString();
+                }
+                if (voidElementNames.indexOf(this.descriptor.e) === -1) {
+                    str += '</' + this.descriptor.e + '>';
+                }
+                return str;
+            },
+            ractify: function () {
+                var contextStack = this.parentFragment.contextStack;
+                if (!this.node._ractive) {
+                    defineProperty(this.node, '_ractive', {
+                        value: {
+                            keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
+                            index: this.parentFragment.indexRefs,
+                            events: create(null),
+                            root: this.root
+                        }
+                    });
+                }
+                return this.node._ractive;
+            }
+        };
+        return DomElement;
+    }(config_types, utils_create, utils_defineProperty, config_voidElementNames, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_addEventProxies);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
+var registries_partials = {};
 var utils_stripHtmlComments = function () {
         
         return function (html) {
@@ -1881,7 +4204,7 @@ var getMustache_getMustacheType = function (types) {
     }(config_types);
 var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMustacheType) {
         
-        var getIndexRef = makeRegexMatcher(/^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/);
+        var getIndexRef = makeRegexMatcher(/^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/), arrayMember = /^[0-9][1-9]*$/;
         return function (tokenizer, isTriple) {
             var start, mustache, type, expr, i, remaining, index;
             start = tokenizer.pos;
@@ -1920,6 +4243,8 @@ var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMusta
             }
             if (expr.t === types.REFERENCE) {
                 mustache.ref = expr.n;
+            } else if (expr.t === types.NUMBER_LITERAL && arrayMember.test(expr.v)) {
+                mustache.ref = expr.v;
             } else {
                 mustache.expression = expr;
             }
@@ -2826,10 +5151,6 @@ var Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, g
         };
         return Tokenizer;
     }(getMustache__getMustache, getComment_getComment, getTag__getTag, getText__getText, getExpression__getExpression, utils_allowWhitespace, utils_getStringMatch);
-var circular = function () {
-        
-        return [];
-    }();
 var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer, circular) {
         
         var tokenize, Ractive;
@@ -3480,10 +5801,6 @@ var getMustache__getMustache = function (types, MustacheStub, SectionStub) {
             }
         };
     }(config_types, MustacheStub__MustacheStub, SectionStub__SectionStub);
-var config_voidElementNames = function () {
-        
-        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
-    }();
 var utils_siblingsByTagName = function () {
         
         return {
@@ -3851,9 +6168,9 @@ var ElementStub_toString = function (stringifyStubs, voidElementNames) {
             return this.str = str;
         };
     }(utils_stringifyStubs, config_voidElementNames);
-var ElementStub__ElementStub = function (types, voidElementNames, warn, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
+var ElementStub__ElementStub = function (types, voidElementNames, warn, camelCase, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
         
-        var ElementStub, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, onPattern, sanitize, camelCase, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
+        var ElementStub, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, onPattern, sanitize, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
         ElementStub = function (firstToken, parser, preserveWhitespace) {
             var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
             parser.pos += 1;
@@ -3965,13 +6282,8 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, stringif
             var valid = !onPattern.test(attr.name);
             return valid;
         };
-        camelCase = function (hyphenatedStr) {
-            return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
-                return $1.toUpperCase();
-            });
-        };
         return ElementStub;
-    }(config_types, config_voidElementNames, utils_warn, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__StringStub);
+    }(config_types, config_voidElementNames, utils_warn, utils_camelCase, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__StringStub);
 var getElement__getElement = function (types, ElementStub) {
         
         return function (token) {
@@ -4074,2394 +6386,7 @@ var parse__parse = function (tokenize, types, Parser) {
         };
         return parse;
     }(parse_tokenize, config_types, Parser__Parser);
-var utils_extend = function () {
-        
-        return function (target) {
-            var prop, source, sources = Array.prototype.slice.call(arguments, 1);
-            while (source = sources.shift()) {
-                for (prop in source) {
-                    if (source.hasOwnProperty(prop)) {
-                        target[prop] = source[prop];
-                    }
-                }
-            }
-            return target;
-        };
-    }();
-var utils_getElement = function () {
-        
-        return function (input) {
-            var output;
-            if (typeof window === 'undefined' || !document || !input) {
-                return null;
-            }
-            if (input.nodeType) {
-                return input;
-            }
-            if (typeof input === 'string') {
-                output = document.getElementById(input);
-                if (!output && document.querySelector) {
-                    output = document.querySelector(input);
-                }
-                if (output.nodeType) {
-                    return output;
-                }
-            }
-            if (input[0] && input[0].nodeType) {
-                return input[0];
-            }
-            return null;
-        };
-    }();
-var shared_initFragment = function (types, create) {
-        
-        return function (fragment, options) {
-            var numItems, i, parentFragment, parentRefs, ref;
-            fragment.owner = options.owner;
-            parentFragment = fragment.owner.parentFragment;
-            fragment.root = options.root;
-            fragment.parentNode = options.parentNode;
-            fragment.contextStack = options.contextStack || [];
-            if (fragment.owner.type === types.SECTION) {
-                fragment.index = options.index;
-            }
-            if (parentFragment) {
-                parentRefs = parentFragment.indexRefs;
-                if (parentRefs) {
-                    fragment.indexRefs = create(null);
-                    for (ref in parentRefs) {
-                        fragment.indexRefs[ref] = parentRefs[ref];
-                    }
-                }
-            }
-            fragment.priority = parentFragment ? parentFragment.priority + 1 : 1;
-            if (options.indexRef) {
-                if (!fragment.indexRefs) {
-                    fragment.indexRefs = {};
-                }
-                fragment.indexRefs[options.indexRef] = options.index;
-            }
-            fragment.items = [];
-            numItems = options.descriptor ? options.descriptor.length : 0;
-            for (i = 0; i < numItems; i += 1) {
-                fragment.items[fragment.items.length] = fragment.createItem({
-                    parentFragment: fragment,
-                    descriptor: options.descriptor[i],
-                    index: i
-                });
-            }
-        };
-    }(config_types, utils_create);
-var shared_insertHtml = function () {
-        
-        var elementCache = {};
-        return function (html, tagName, docFrag) {
-            var container, nodes = [];
-            container = elementCache[tagName] || (elementCache[tagName] = document.createElement(tagName));
-            container.innerHTML = html;
-            while (container.firstChild) {
-                nodes[nodes.length] = container.firstChild;
-                docFrag.appendChild(container.firstChild);
-            }
-            return nodes;
-        };
-    }();
-var DomFragment_Text = function (types) {
-        
-        var DomText = function (options, docFrag) {
-            this.type = types.TEXT;
-            this.descriptor = options.descriptor;
-            if (docFrag) {
-                this.node = document.createTextNode(options.descriptor);
-                this.parentNode = options.parentFragment.parentNode;
-                docFrag.appendChild(this.node);
-            }
-        };
-        DomText.prototype = {
-            teardown: function (detach) {
-                if (detach) {
-                    this.node.parentNode.removeChild(this.node);
-                }
-            },
-            firstNode: function () {
-                return this.node;
-            },
-            toString: function () {
-                return ('' + this.descriptor).replace('<', '&lt;').replace('>', '&gt;');
-            }
-        };
-        return DomText;
-    }(config_types);
-var shared_teardown = function (unregisterDependant) {
-        
-        return function (thing) {
-            if (!thing.keypath) {
-                var index = thing.root._pendingResolution.indexOf(thing);
-                if (index !== -1) {
-                    thing.root._pendingResolution.splice(index, 1);
-                }
-            } else {
-                unregisterDependant(thing);
-            }
-        };
-    }(shared_unregisterDependant);
-var Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
-        
-        var Reference, thisPattern;
-        thisPattern = /this/;
-        Reference = function (root, keypath, evaluator, argNum, priority) {
-            var value;
-            this.evaluator = evaluator;
-            this.keypath = keypath;
-            this.root = root;
-            this.argNum = argNum;
-            this.type = types.REFERENCE;
-            this.priority = priority;
-            value = root.get(keypath);
-            if (typeof value === 'function') {
-                value = value._wrapped || wrapFunction(value, root, evaluator);
-            }
-            this.value = evaluator.values[argNum] = value;
-            registerDependant(this);
-        };
-        Reference.prototype = {
-            update: function () {
-                var value = this.root.get(this.keypath);
-                if (typeof value === 'function' && !value._nowrap) {
-                    value = value['_' + this.root._guid] || wrapFunction(value, this.root, this.evaluator);
-                }
-                if (!isEqual(value, this.value)) {
-                    this.evaluator.values[this.argNum] = value;
-                    this.evaluator.bubble();
-                    this.value = value;
-                }
-            },
-            teardown: function () {
-                unregisterDependant(this);
-            }
-        };
-        return Reference;
-        function wrapFunction(fn, ractive, evaluator) {
-            var prop;
-            if (!thisPattern.test(fn.toString())) {
-                defineProperty(fn, '_nowrap', { value: true });
-                return fn;
-            }
-            defineProperty(fn, '_' + ractive._guid, {
-                value: function () {
-                    var originalGet, result, softDependencies;
-                    originalGet = ractive.get;
-                    ractive.get = function (keypath) {
-                        if (!softDependencies) {
-                            softDependencies = [];
-                        }
-                        if (!softDependencies[keypath]) {
-                            softDependencies[softDependencies.length] = keypath;
-                            softDependencies[keypath] = true;
-                        }
-                        return originalGet.call(ractive, keypath);
-                    };
-                    result = fn.apply(ractive, arguments);
-                    if (softDependencies) {
-                        evaluator.updateSoftDependencies(softDependencies);
-                    }
-                    ractive.get = originalGet;
-                    return result;
-                },
-                writable: true
-            });
-            for (prop in fn) {
-                if (fn.hasOwnProperty(prop)) {
-                    fn['_' + ractive._guid][prop] = fn[prop];
-                }
-            }
-            return fn['_' + ractive._guid];
-        }
-    }(config_types, utils_isEqual, utils_defineProperty, shared_registerDependant, shared_unregisterDependant);
-var Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDependant) {
-        
-        var SoftReference = function (root, keypath, evaluator) {
-            this.root = root;
-            this.keypath = keypath;
-            this.priority = evaluator.priority;
-            this.evaluator = evaluator;
-            registerDependant(this);
-        };
-        SoftReference.prototype = {
-            update: function () {
-                var value = this.root.get(this.keypath);
-                if (!isEqual(value, this.value)) {
-                    this.evaluator.bubble();
-                    this.value = value;
-                }
-            },
-            teardown: function () {
-                unregisterDependant(this);
-            }
-        };
-        return SoftReference;
-    }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
-        
-        var Evaluator, cache = {};
-        Evaluator = function (root, keypath, functionStr, args, priority) {
-            var i, arg;
-            this.root = root;
-            this.keypath = keypath;
-            this.priority = priority;
-            this.fn = getFunctionFromString(functionStr, args.length);
-            this.values = [];
-            this.refs = [];
-            i = args.length;
-            while (i--) {
-                if (arg = args[i]) {
-                    if (arg[0]) {
-                        this.values[i] = arg[1];
-                    } else {
-                        this.refs[this.refs.length] = new Reference(root, arg[1], this, i, priority);
-                    }
-                } else {
-                    this.values[i] = undefined;
-                }
-            }
-            this.selfUpdating = this.refs.length <= 1;
-            this.update();
-        };
-        Evaluator.prototype = {
-            bubble: function () {
-                if (this.selfUpdating) {
-                    this.update();
-                } else if (!this.deferred) {
-                    this.root._defEvals[this.root._defEvals.length] = this;
-                    this.deferred = true;
-                }
-            },
-            update: function () {
-                var value;
-                if (this.evaluating) {
-                    return this;
-                }
-                this.evaluating = true;
-                try {
-                    value = this.fn.apply(null, this.values);
-                } catch (err) {
-                    if (this.root.debug) {
-                        throw err;
-                    } else {
-                        value = undefined;
-                    }
-                }
-                if (!isEqual(value, this.value)) {
-                    clearCache(this.root, this.keypath);
-                    this.root._cache[this.keypath] = value;
-                    notifyDependants(this.root, this.keypath);
-                    this.value = value;
-                }
-                this.evaluating = false;
-                return this;
-            },
-            teardown: function () {
-                while (this.refs.length) {
-                    this.refs.pop().teardown();
-                }
-                clearCache(this.root, this.keypath);
-                this.root._evaluators[this.keypath] = null;
-            },
-            refresh: function () {
-                if (!this.selfUpdating) {
-                    this.deferred = true;
-                }
-                var i = this.refs.length;
-                while (i--) {
-                    this.refs[i].update();
-                }
-                if (this.deferred) {
-                    this.update();
-                    this.deferred = false;
-                }
-            },
-            updateSoftDependencies: function (softDeps) {
-                var i, keypath, ref;
-                if (!this.softRefs) {
-                    this.softRefs = [];
-                }
-                i = this.softRefs.length;
-                while (i--) {
-                    ref = this.softRefs[i];
-                    if (!softDeps[ref.keypath]) {
-                        this.softRefs.splice(i, 1);
-                        this.softRefs[ref.keypath] = false;
-                        ref.teardown();
-                    }
-                }
-                i = softDeps.length;
-                while (i--) {
-                    keypath = softDeps[i];
-                    if (!this.softRefs[keypath]) {
-                        ref = new SoftReference(this.root, keypath, this);
-                        this.softRefs[this.softRefs.length] = ref;
-                        this.softRefs[keypath] = true;
-                    }
-                }
-                this.selfUpdating = this.refs.length + this.softRefs.length <= 1;
-            }
-        };
-        return Evaluator;
-        function getFunctionFromString(str, i) {
-            var fn, args;
-            str = str.replace(/\$\{([0-9]+)\}/g, '_$1');
-            if (cache[str]) {
-                return cache[str];
-            }
-            args = [];
-            while (i--) {
-                args[i] = '_' + i;
-            }
-            fn = new Function(args.join(','), 'return(' + str + ')');
-            cache[str] = fn;
-            return fn;
-        }
-    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, Evaluator_Reference, Evaluator_SoftReference);
-var shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
-        
-        var ExpressionResolver, ReferenceScout, getKeypath;
-        ExpressionResolver = function (mustache) {
-            var expression, i, len, ref, indexRefs;
-            this.root = mustache.root;
-            this.mustache = mustache;
-            this.args = [];
-            this.scouts = [];
-            expression = mustache.descriptor.x;
-            indexRefs = mustache.parentFragment.indexRefs;
-            this.str = expression.s;
-            len = this.unresolved = this.args.length = expression.r ? expression.r.length : 0;
-            if (!len) {
-                this.resolved = this.ready = true;
-                this.bubble();
-                return;
-            }
-            for (i = 0; i < len; i += 1) {
-                ref = expression.r[i];
-                if (indexRefs && indexRefs[ref] !== undefined) {
-                    this.resolveRef(i, true, indexRefs[ref]);
-                } else {
-                    this.scouts[this.scouts.length] = new ReferenceScout(this, ref, mustache.contextStack, i);
-                }
-            }
-            this.ready = true;
-            this.bubble();
-        };
-        ExpressionResolver.prototype = {
-            bubble: function () {
-                if (!this.ready) {
-                    return;
-                }
-                this.keypath = getKeypath(this.str, this.args);
-                this.createEvaluator();
-                this.mustache.resolve(this.keypath);
-            },
-            teardown: function () {
-                while (this.scouts.length) {
-                    this.scouts.pop().teardown();
-                }
-            },
-            resolveRef: function (argNum, isIndexRef, value) {
-                this.args[argNum] = [
-                    isIndexRef,
-                    value
-                ];
-                this.bubble();
-                this.resolved = !--this.unresolved;
-            },
-            createEvaluator: function () {
-                if (!this.root._evaluators[this.keypath]) {
-                    this.root._evaluators[this.keypath] = new Evaluator(this.root, this.keypath, this.str, this.args, this.mustache.priority);
-                } else {
-                    this.root._evaluators[this.keypath].refresh();
-                }
-            }
-        };
-        ReferenceScout = function (resolver, ref, contextStack, argNum) {
-            var keypath, root;
-            root = this.root = resolver.root;
-            keypath = resolveRef(root, ref, contextStack);
-            if (keypath) {
-                resolver.resolveRef(argNum, false, keypath);
-            } else {
-                this.ref = ref;
-                this.argNum = argNum;
-                this.resolver = resolver;
-                this.contextStack = contextStack;
-                root._pendingResolution[root._pendingResolution.length] = this;
-            }
-        };
-        ReferenceScout.prototype = {
-            resolve: function (keypath) {
-                this.keypath = keypath;
-                this.resolver.resolveRef(this.argNum, false, keypath);
-            },
-            teardown: function () {
-                if (!this.keypath) {
-                    teardown(this);
-                }
-            }
-        };
-        getKeypath = function (str, args) {
-            var unique;
-            unique = str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
-                return args[$1] ? args[$1][1] : 'undefined';
-            });
-            return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
-        };
-        return ExpressionResolver;
-    }(shared_resolveRef, shared_teardown, Evaluator__Evaluator);
-var shared_initMustache = function (resolveRef, ExpressionResolver) {
-        
-        return function (mustache, options) {
-            var keypath, indexRef, parentFragment;
-            parentFragment = mustache.parentFragment = options.parentFragment;
-            mustache.root = parentFragment.root;
-            mustache.contextStack = parentFragment.contextStack;
-            mustache.descriptor = options.descriptor;
-            mustache.index = options.index || 0;
-            mustache.priority = parentFragment.priority;
-            if (parentFragment.parentNode) {
-                mustache.parentNode = parentFragment.parentNode;
-            }
-            mustache.type = options.descriptor.t;
-            if (options.descriptor.r) {
-                if (parentFragment.indexRefs && parentFragment.indexRefs[options.descriptor.r] !== undefined) {
-                    indexRef = parentFragment.indexRefs[options.descriptor.r];
-                    mustache.indexRef = options.descriptor.r;
-                    mustache.value = indexRef;
-                    mustache.render(mustache.value);
-                } else {
-                    keypath = resolveRef(mustache.root, options.descriptor.r, mustache.contextStack);
-                    if (keypath) {
-                        mustache.resolve(keypath);
-                    } else {
-                        mustache.ref = options.descriptor.r;
-                        mustache.root._pendingResolution[mustache.root._pendingResolution.length] = mustache;
-                        if (mustache.descriptor.n) {
-                            mustache.render(false);
-                        }
-                    }
-                }
-            }
-            if (options.descriptor.x) {
-                mustache.expressionResolver = new ExpressionResolver(mustache);
-            }
-        };
-    }(shared_resolveRef, shared_ExpressionResolver);
-var shared_resolveMustache = function (registerDependant, unregisterDependant) {
-        
-        return function (keypath) {
-            if (this.resolved) {
-                unregisterDependant(this);
-            }
-            this.keypath = keypath;
-            registerDependant(this);
-            this.update();
-            if (this.expressionResolver && this.expressionResolver.resolved) {
-                this.expressionResolver = null;
-            }
-            this.resolved = true;
-        };
-    }(shared_registerDependant, shared_unregisterDependant);
-var shared_updateMustache = function (isEqual) {
-        
-        return function () {
-            var value = this.root.get(this.keypath, true);
-            if (!isEqual(value, this.value)) {
-                this.render(value);
-                this.value = value;
-            }
-        };
-    }(utils_isEqual);
-var DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache) {
-        
-        var DomInterpolator = function (options, docFrag) {
-            this.type = types.INTERPOLATOR;
-            if (docFrag) {
-                this.node = document.createTextNode('');
-                docFrag.appendChild(this.node);
-            }
-            initMustache(this, options);
-        };
-        DomInterpolator.prototype = {
-            update: updateMustache,
-            resolve: resolveMustache,
-            teardown: function (detach) {
-                teardown(this);
-                if (detach) {
-                    this.node.parentNode.removeChild(this.node);
-                }
-            },
-            render: function (value) {
-                if (this.node) {
-                    this.node.data = value === undefined ? '' : value;
-                }
-            },
-            firstNode: function () {
-                return this.node;
-            },
-            toString: function () {
-                var value = this.value !== undefined ? '' + this.value : '';
-                return value.replace('<', '&lt;').replace('>', '&gt;');
-            }
-        };
-        return DomInterpolator;
-    }(config_types, shared_teardown, shared_initMustache, shared_resolveMustache, shared_updateMustache);
-var shared_updateSection = function (isArray, isObject, create) {
-        
-        return function (section, value) {
-            var fragmentOptions;
-            fragmentOptions = {
-                descriptor: section.descriptor.f,
-                root: section.root,
-                parentNode: section.parentNode,
-                owner: section
-            };
-            if (section.descriptor.n) {
-                updateConditionalSection(section, value, true, fragmentOptions);
-                return;
-            }
-            if (isArray(value)) {
-                updateListSection(section, value, fragmentOptions);
-            } else if (isObject(value)) {
-                if (section.descriptor.i) {
-                    updateListObjectSection(section, value, fragmentOptions);
-                } else {
-                    updateContextSection(section, fragmentOptions);
-                }
-            } else {
-                updateConditionalSection(section, value, false, fragmentOptions);
-            }
-        };
-        function updateListSection(section, value, fragmentOptions) {
-            var i, length, fragmentsToRemove;
-            length = value.length;
-            if (length < section.length) {
-                fragmentsToRemove = section.fragments.splice(length, section.length - length);
-                while (fragmentsToRemove.length) {
-                    fragmentsToRemove.pop().teardown(true);
-                }
-            } else {
-                if (length > section.length) {
-                    for (i = section.length; i < length; i += 1) {
-                        fragmentOptions.contextStack = section.contextStack.concat(section.keypath + '.' + i);
-                        fragmentOptions.index = i;
-                        if (section.descriptor.i) {
-                            fragmentOptions.indexRef = section.descriptor.i;
-                        }
-                        section.fragments[i] = section.createFragment(fragmentOptions);
-                    }
-                }
-            }
-            section.length = length;
-        }
-        function updateListObjectSection(section, value, fragmentOptions) {
-            var id, fragmentsById;
-            fragmentsById = section.fragmentsById || (section.fragmentsById = create(null));
-            for (id in fragmentsById) {
-                if (value[id] === undefined && fragmentsById[id]) {
-                    fragmentsById[id].teardown(true);
-                    fragmentsById[id] = null;
-                }
-            }
-            for (id in value) {
-                if (value[id] !== undefined && !fragmentsById[id]) {
-                    fragmentOptions.contextStack = section.contextStack.concat(section.keypath + '.' + id);
-                    fragmentOptions.index = id;
-                    if (section.descriptor.i) {
-                        fragmentOptions.indexRef = section.descriptor.i;
-                    }
-                    fragmentsById[id] = section.createFragment(fragmentOptions);
-                }
-            }
-        }
-        function updateContextSection(section, fragmentOptions) {
-            if (!section.length) {
-                fragmentOptions.contextStack = section.contextStack.concat(section.keypath);
-                fragmentOptions.index = 0;
-                section.fragments[0] = section.createFragment(fragmentOptions);
-                section.length = 1;
-            }
-        }
-        function updateConditionalSection(section, value, inverted, fragmentOptions) {
-            var doRender, emptyArray, fragmentsToRemove;
-            emptyArray = isArray(value) && value.length === 0;
-            if (inverted) {
-                doRender = emptyArray || !value;
-            } else {
-                doRender = value && !emptyArray;
-            }
-            if (doRender) {
-                if (!section.length) {
-                    fragmentOptions.contextStack = section.contextStack;
-                    fragmentOptions.index = 0;
-                    section.fragments[0] = section.createFragment(fragmentOptions);
-                    section.length = 1;
-                }
-                if (section.length > 1) {
-                    fragmentsToRemove = section.fragments.splice(1);
-                    while (fragmentsToRemove.length) {
-                        fragmentsToRemove.pop().teardown(true);
-                    }
-                }
-            } else if (section.length) {
-                section.teardownFragments(true);
-                section.length = 0;
-            }
-        }
-    }(utils_isArray, utils_isObject, utils_create);
-var shared_reassignFragments = function (types, unregisterDependant, processDeferredUpdates, ExpressionResolver) {
-        
-        return function (root, section, start, end, by) {
-            var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
-            indexRef = section.descriptor.i;
-            for (i = start; i < end; i += 1) {
-                fragment = section.fragments[i];
-                if (fragment.html) {
-                    continue;
-                }
-                oldIndex = i - by;
-                newIndex = i;
-                oldKeypath = section.keypath + '.' + (i - by);
-                newKeypath = section.keypath + '.' + i;
-                fragment.index += by;
-                reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-            }
-            processDeferredUpdates(root);
-        };
-        function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
-            var i, item, context;
-            if (fragment.indexRefs && fragment.indexRefs[indexRef] !== undefined) {
-                fragment.indexRefs[indexRef] = newIndex;
-            }
-            i = fragment.contextStack.length;
-            while (i--) {
-                context = fragment.contextStack[i];
-                if (context.substr(0, oldKeypath.length) === oldKeypath) {
-                    fragment.contextStack[i] = context.replace(oldKeypath, newKeypath);
-                }
-            }
-            i = fragment.items.length;
-            while (i--) {
-                item = fragment.items[i];
-                switch (item.type) {
-                case types.ELEMENT:
-                    reassignElement(item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-                    break;
-                case types.PARTIAL:
-                    reassignFragment(item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-                    break;
-                case types.SECTION:
-                case types.INTERPOLATOR:
-                case types.TRIPLE:
-                    reassignMustache(item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-                    break;
-                }
-            }
-        }
-        function reassignElement(element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
-            var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings;
-            i = element.attributes.length;
-            while (i--) {
-                attribute = element.attributes[i];
-                if (attribute.fragment) {
-                    reassignFragment(attribute.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-                    if (attribute.twoway) {
-                        attribute.updateBindings();
-                    }
-                }
-            }
-            if (storage = element.node._ractive) {
-                if (storage.keypath.substr(0, oldKeypath.length) === oldKeypath) {
-                    storage.keypath = storage.keypath.replace(oldKeypath, newKeypath);
-                }
-                if (indexRef !== undefined) {
-                    storage.index[indexRef] = newIndex;
-                }
-                for (masterEventName in storage.events) {
-                    proxies = storage.events[masterEventName].proxies;
-                    i = proxies.length;
-                    while (i--) {
-                        proxy = proxies[i];
-                        if (typeof proxy.n === 'object') {
-                            reassignFragment(proxy.a, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-                        }
-                        if (proxy.d) {
-                            reassignFragment(proxy.d, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-                        }
-                    }
-                }
-                if (binding = storage.binding) {
-                    if (binding.keypath.substr(0, oldKeypath.length) === oldKeypath) {
-                        bindings = storage.root._twowayBindings[binding.keypath];
-                        bindings.splice(bindings.indexOf(binding), 1);
-                        binding.keypath = binding.keypath.replace(oldKeypath, newKeypath);
-                        bindings = storage.root._twowayBindings[binding.keypath] || (storage.root._twowayBindings[binding.keypath] = []);
-                        bindings.push(binding);
-                    }
-                }
-            }
-            if (element.fragment) {
-                reassignFragment(element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-            }
-        }
-        function reassignMustache(mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
-            var i;
-            if (mustache.descriptor.x) {
-                if (mustache.keypath) {
-                    unregisterDependant(mustache);
-                }
-                if (mustache.expressionResolver) {
-                    mustache.expressionResolver.teardown();
-                }
-                mustache.expressionResolver = new ExpressionResolver(mustache);
-            }
-            if (mustache.keypath) {
-                if (mustache.keypath.substr(0, oldKeypath.length) === oldKeypath) {
-                    mustache.resolve(mustache.keypath.replace(oldKeypath, newKeypath));
-                }
-            } else if (mustache.indexRef === indexRef) {
-                mustache.value = newIndex;
-                mustache.render(newIndex);
-            }
-            if (mustache.fragments) {
-                i = mustache.fragments.length;
-                while (i--) {
-                    reassignFragment(mustache.fragments[i], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-                }
-            }
-        }
-    }(config_types, shared_unregisterDependant, shared_processDeferredUpdates, shared_ExpressionResolver);
-var DomFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, reassignFragments, teardown, circular) {
-        
-        var DomSection, DomFragment;
-        circular.push(function () {
-            DomFragment = circular.DomFragment;
-        });
-        DomSection = function (options, docFrag) {
-            this.type = types.SECTION;
-            this.fragments = [];
-            this.length = 0;
-            if (docFrag) {
-                this.docFrag = document.createDocumentFragment();
-            }
-            this.initialising = true;
-            initMustache(this, options);
-            if (docFrag) {
-                docFrag.appendChild(this.docFrag);
-            }
-            this.initialising = false;
-        };
-        DomSection.prototype = {
-            update: updateMustache,
-            resolve: resolveMustache,
-            smartUpdate: function (methodName, args) {
-                var fragmentOptions;
-                if (methodName === 'push' || methodName === 'unshift' || methodName === 'splice') {
-                    fragmentOptions = {
-                        descriptor: this.descriptor.f,
-                        root: this.root,
-                        parentNode: this.parentNode,
-                        owner: this
-                    };
-                    if (this.descriptor.i) {
-                        fragmentOptions.indexRef = this.descriptor.i;
-                    }
-                }
-                if (this[methodName]) {
-                    this[methodName](fragmentOptions, args);
-                }
-            },
-            pop: function () {
-                if (this.length) {
-                    this.fragments.pop().teardown(true);
-                    this.length -= 1;
-                }
-            },
-            push: function (fragmentOptions, args) {
-                var start, end, i;
-                start = this.length;
-                end = start + args.length;
-                for (i = start; i < end; i += 1) {
-                    fragmentOptions.contextStack = this.contextStack.concat(this.keypath + '.' + i);
-                    fragmentOptions.index = i;
-                    this.fragments[i] = this.createFragment(fragmentOptions);
-                }
-                this.length += args.length;
-                this.parentNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
-            },
-            shift: function () {
-                this.splice(null, [
-                    0,
-                    1
-                ]);
-            },
-            unshift: function (fragmentOptions, args) {
-                this.splice(fragmentOptions, [
-                    0,
-                    0
-                ].concat(new Array(args.length)));
-            },
-            splice: function (fragmentOptions, args) {
-                var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart;
-                if (!args.length) {
-                    return;
-                }
-                start = +(args[0] < 0 ? this.length + args[0] : args[0]);
-                addedItems = Math.max(0, args.length - 2);
-                removedItems = args[1] !== undefined ? args[1] : this.length - start;
-                balance = addedItems - removedItems;
-                if (!balance) {
-                    return;
-                }
-                if (balance < 0) {
-                    end = start - balance;
-                    for (i = start; i < end; i += 1) {
-                        this.fragments[i].teardown(true);
-                    }
-                    this.fragments.splice(start, -balance);
-                } else {
-                    end = start + balance;
-                    insertionPoint = this.fragments[start] ? this.fragments[start].firstNode() : this.parentFragment.findNextNode(this);
-                    spliceArgs = [
-                        start,
-                        0
-                    ].concat(new Array(balance));
-                    this.fragments.splice.apply(this.fragments, spliceArgs);
-                    for (i = start; i < end; i += 1) {
-                        fragmentOptions.contextStack = this.contextStack.concat(this.keypath + '.' + i);
-                        fragmentOptions.index = i;
-                        this.fragments[i] = this.createFragment(fragmentOptions);
-                    }
-                    this.parentNode.insertBefore(this.docFrag, insertionPoint);
-                }
-                this.length += balance;
-                reassignStart = start + addedItems;
-                reassignFragments(this.root, this, reassignStart, this.length, balance);
-            },
-            teardown: function (detach) {
-                this.teardownFragments(detach);
-                teardown(this);
-            },
-            firstNode: function () {
-                if (this.fragments[0]) {
-                    return this.fragments[0].firstNode();
-                }
-                return this.parentFragment.findNextNode(this);
-            },
-            findNextNode: function (fragment) {
-                if (this.fragments[fragment.index + 1]) {
-                    return this.fragments[fragment.index + 1].firstNode();
-                }
-                return this.parentFragment.findNextNode(this);
-            },
-            teardownFragments: function (detach) {
-                var id;
-                while (this.fragments.length) {
-                    this.fragments.shift().teardown(detach);
-                }
-                if (this.fragmentsById) {
-                    for (id in this.fragmentsById) {
-                        if (this.fragments[id]) {
-                            this.fragmentsById[id].teardown();
-                            this.fragmentsById[id] = null;
-                        }
-                    }
-                }
-            },
-            render: function (value) {
-                var next, wrapped;
-                if (wrapped = this.root._wrapped[this.keypath]) {
-                    value = wrapped.get();
-                }
-                if (this.rendering) {
-                    return;
-                }
-                this.rendering = true;
-                updateSection(this, value);
-                this.rendering = false;
-                if (this.docFrag && !this.docFrag.childNodes.length) {
-                    return;
-                }
-                if (!this.initialising) {
-                    next = this.parentFragment.findNextNode(this);
-                    if (next && next.parentNode === this.parentNode) {
-                        this.parentNode.insertBefore(this.docFrag, next);
-                    } else {
-                        this.parentNode.appendChild(this.docFrag);
-                    }
-                }
-            },
-            createFragment: function (options) {
-                var fragment = new DomFragment(options);
-                if (this.docFrag) {
-                    this.docFrag.appendChild(fragment.docFrag);
-                }
-                return fragment;
-            },
-            toString: function () {
-                var str, i, len;
-                str = '';
-                i = 0;
-                len = this.length;
-                for (i = 0; i < len; i += 1) {
-                    str += this.fragments[i].toString();
-                }
-                return str;
-            }
-        };
-        return DomSection;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_reassignFragments, shared_teardown, circular);
-var DomFragment_Triple = function (types, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
-        
-        var DomTriple = function (options, docFrag) {
-            this.type = types.TRIPLE;
-            if (docFrag) {
-                this.nodes = [];
-                this.docFrag = document.createDocumentFragment();
-            }
-            this.initialising = true;
-            initMustache(this, options);
-            if (docFrag) {
-                docFrag.appendChild(this.docFrag);
-            }
-            this.initialising = false;
-        };
-        DomTriple.prototype = {
-            update: updateMustache,
-            resolve: resolveMustache,
-            teardown: function (detach) {
-                var node;
-                if (detach) {
-                    while (this.nodes.length) {
-                        node = this.nodes.pop();
-                        node.parentNode.removeChild(node);
-                    }
-                }
-                teardown(this);
-            },
-            firstNode: function () {
-                if (this.nodes[0]) {
-                    return this.nodes[0];
-                }
-                return this.parentFragment.findNextNode(this);
-            },
-            render: function (html) {
-                var node;
-                if (!this.nodes) {
-                    return;
-                }
-                while (this.nodes.length) {
-                    node = this.nodes.pop();
-                    node.parentNode.removeChild(node);
-                }
-                if (html === undefined) {
-                    this.nodes = [];
-                    return;
-                }
-                this.nodes = insertHtml(html, this.parentNode.tagName, this.docFrag);
-                if (!this.initialising) {
-                    this.parentNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
-                }
-            },
-            toString: function () {
-                return this.value !== undefined ? this.value : '';
-            }
-        };
-        return DomTriple;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_insertHtml, shared_teardown);
-var config_namespaces = {
-        html: 'http://www.w3.org/1999/xhtml',
-        mathml: 'http://www.w3.org/1998/Math/MathML',
-        svg: 'http://www.w3.org/2000/svg',
-        xlink: 'http://www.w3.org/1999/xlink',
-        xml: 'http://www.w3.org/XML/1998/namespace',
-        xmlns: 'http://www.w3.org/2000/xmlns/'
-    };
-var Element_getElementNamespace = function (namespaces) {
-        
-        return function (descriptor, parentNode) {
-            if (descriptor.a && descriptor.a.xmlns) {
-                return descriptor.a.xmlns;
-            }
-            return descriptor.e.toLowerCase() === 'svg' ? namespaces.svg : parentNode.namespaceURI;
-        };
-    }(config_namespaces);
-var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
-        
-        var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, GenericBinding;
-        bindAttribute = function () {
-            var node = this.parentNode, interpolator, binding, bindings;
-            if (!this.fragment) {
-                return false;
-            }
-            interpolator = getInterpolator(this);
-            if (!interpolator) {
-                return false;
-            }
-            this.interpolator = interpolator;
-            this.keypath = interpolator.keypath || interpolator.descriptor.r;
-            binding = getBinding(this);
-            if (!binding) {
-                return false;
-            }
-            node._ractive.binding = binding;
-            this.twoway = true;
-            bindings = this.root._twowayBindings[this.keypath] || (this.root._twowayBindings[this.keypath] = []);
-            bindings[bindings.length] = binding;
-            return true;
-        };
-        updateModel = function () {
-            this._ractive.binding.update();
-        };
-        getInterpolator = function (attribute) {
-            var item;
-            if (attribute.fragment.items.length !== 1) {
-                return null;
-            }
-            item = attribute.fragment.items[0];
-            if (item.type !== types.INTERPOLATOR) {
-                return null;
-            }
-            if (!item.keypath && !item.ref) {
-                return null;
-            }
-            return item;
-        };
-        getBinding = function (attribute) {
-            var node = attribute.parentNode;
-            if (node.tagName === 'SELECT') {
-                return node.multiple ? new MultipleSelectBinding(attribute, node) : new SelectBinding(attribute, node);
-            }
-            if (node.type === 'checkbox' || node.type === 'radio') {
-                if (attribute.propertyName === 'name') {
-                    if (node.type === 'checkbox') {
-                        return new CheckboxNameBinding(attribute, node);
-                    }
-                    if (node.type === 'radio') {
-                        return new RadioNameBinding(attribute, node);
-                    }
-                }
-                if (attribute.propertyName === 'checked') {
-                    return new CheckedBinding(attribute, node);
-                }
-                return null;
-            }
-            if (attribute.propertyName !== 'value') {
-                warn('This is... odd');
-            }
-            if (attribute.parentNode.type === 'file') {
-                return new FileListBinding(attribute, node);
-            }
-            return new GenericBinding(attribute, node);
-        };
-        MultipleSelectBinding = function (attribute, node) {
-            var valueFromModel;
-            inheritProperties(this, attribute, node);
-            node.addEventListener('change', updateModel, false);
-            valueFromModel = this.root.get(this.keypath);
-            if (valueFromModel === undefined) {
-                this.update();
-            }
-        };
-        MultipleSelectBinding.prototype = {
-            value: function () {
-                var value, options, i, len;
-                value = [];
-                options = this.node.options;
-                len = options.length;
-                for (i = 0; i < len; i += 1) {
-                    if (options[i].selected) {
-                        value[value.length] = options[i]._ractive.value;
-                    }
-                }
-                return value;
-            },
-            update: function () {
-                var attribute, previousValue, value;
-                attribute = this.attr;
-                previousValue = attribute.value;
-                value = this.value();
-                if (previousValue === undefined || !arrayContentsMatch(value, previousValue)) {
-                    attribute.receiving = true;
-                    attribute.value = value;
-                    this.root.set(this.keypath, value);
-                    attribute.receiving = false;
-                }
-            },
-            teardown: function () {
-                this.node.removeEventListener('change', updateModel, false);
-            }
-        };
-        SelectBinding = function (attribute, node) {
-            var valueFromModel;
-            inheritProperties(this, attribute, node);
-            node.addEventListener('change', updateModel, false);
-            valueFromModel = this.root.get(this.keypath);
-            if (valueFromModel === undefined) {
-                this.update();
-            }
-        };
-        SelectBinding.prototype = {
-            value: function () {
-                var options, i, len;
-                options = this.node.options;
-                len = options.length;
-                for (i = 0; i < len; i += 1) {
-                    if (options[i].selected) {
-                        return options[i]._ractive.value;
-                    }
-                }
-            },
-            update: function () {
-                var value = this.value();
-                if (isNumeric(value)) {
-                    value = +value;
-                }
-                this.attr.receiving = true;
-                this.attr.value = value;
-                this.root.set(this.keypath, value);
-                this.attr.receiving = false;
-            },
-            teardown: function () {
-                this.node.removeEventListener('change', updateModel, false);
-            }
-        };
-        RadioNameBinding = function (attribute, node) {
-            var valueFromModel;
-            this.radioName = true;
-            inheritProperties(this, attribute, node);
-            node.name = '{{' + attribute.keypath + '}}';
-            node.addEventListener('change', updateModel, false);
-            if (node.attachEvent) {
-                node.addEventListener('click', updateModel, false);
-            }
-            valueFromModel = this.root.get(this.keypath);
-            if (valueFromModel !== undefined) {
-                node.checked = valueFromModel === node._ractive.value;
-            } else {
-                this.root._defRadios[this.root._defRadios.length] = this;
-            }
-        };
-        RadioNameBinding.prototype = {
-            value: function () {
-                return this.node._ractive ? this.node._ractive.value : this.node.value;
-            },
-            update: function () {
-                var node = this.node;
-                if (node.checked) {
-                    this.attr.receiving = true;
-                    this.root.set(this.keypath, this.value());
-                    this.attr.receiving = false;
-                }
-            },
-            teardown: function () {
-                this.node.removeEventListener('change', updateModel, false);
-                this.node.removeEventListener('click', updateModel, false);
-            }
-        };
-        CheckboxNameBinding = function (attribute, node) {
-            var valueFromModel, checked;
-            this.checkboxName = true;
-            inheritProperties(this, attribute, node);
-            node.name = '{{' + this.keypath + '}}';
-            node.addEventListener('change', updateModel, false);
-            if (node.attachEvent) {
-                node.addEventListener('click', updateModel, false);
-            }
-            valueFromModel = this.root.get(this.keypath);
-            if (valueFromModel !== undefined) {
-                checked = valueFromModel.indexOf(node._ractive.value) !== -1;
-                node.checked = checked;
-            } else {
-                if (this.root._defCheckboxes.indexOf(this.keypath) === -1) {
-                    this.root._defCheckboxes[this.root._defCheckboxes.length] = this.keypath;
-                }
-            }
-        };
-        CheckboxNameBinding.prototype = {
-            changed: function () {
-                return this.node.checked !== !!this.checked;
-            },
-            update: function () {
-                this.checked = this.node.checked;
-                this.attr.receiving = true;
-                this.root.set(this.keypath, getValueFromCheckboxes(this.root, this.keypath));
-                this.attr.receiving = false;
-            },
-            teardown: function () {
-                this.node.removeEventListener('change', updateModel, false);
-                this.node.removeEventListener('click', updateModel, false);
-            }
-        };
-        CheckedBinding = function (attribute, node) {
-            inheritProperties(this, attribute, node);
-            node.addEventListener('change', updateModel, false);
-            if (node.attachEvent) {
-                node.addEventListener('click', updateModel, false);
-            }
-        };
-        CheckedBinding.prototype = {
-            value: function () {
-                return this.node.checked;
-            },
-            update: function () {
-                this.attr.receiving = true;
-                this.root.set(this.keypath, this.value());
-                this.attr.receiving = false;
-            },
-            teardown: function () {
-                this.node.removeEventListener('change', updateModel, false);
-                this.node.removeEventListener('click', updateModel, false);
-            }
-        };
-        FileListBinding = function (attribute, node) {
-            inheritProperties(this, attribute, node);
-            node.addEventListener('change', updateModel, false);
-        };
-        FileListBinding.prototype = {
-            value: function () {
-                return this.attr.parentNode.files;
-            },
-            update: function () {
-                this.attr.root.set(this.attr.keypath, this.value());
-            },
-            teardown: function () {
-                this.node.removeEventListener('change', updateModel, false);
-            }
-        };
-        GenericBinding = function (attribute, node) {
-            inheritProperties(this, attribute, node);
-            node.addEventListener('change', updateModel, false);
-            if (!this.root.lazy) {
-                node.addEventListener('input', updateModel, false);
-                if (node.attachEvent) {
-                    node.addEventListener('keyup', updateModel, false);
-                }
-            }
-        };
-        GenericBinding.prototype = {
-            value: function () {
-                var value = this.attr.parentNode.value;
-                if (+value + '' === value && value.indexOf('e') === -1) {
-                    value = +value;
-                }
-                return value;
-            },
-            update: function () {
-                var attribute = this.attr, value = this.value();
-                attribute.receiving = true;
-                attribute.root.set(attribute.keypath, value);
-                attribute.receiving = false;
-            },
-            teardown: function () {
-                this.node.removeEventListener('change', updateModel, false);
-                this.node.removeEventListener('input', updateModel, false);
-                this.node.removeEventListener('keyup', updateModel, false);
-            }
-        };
-        inheritProperties = function (binding, attribute, node) {
-            binding.attr = attribute;
-            binding.node = node;
-            binding.root = attribute.root;
-            binding.keypath = attribute.keypath;
-        };
-        return bindAttribute;
-    }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
-var Attribute_updateAttribute = function (isArray) {
-        
-        var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateEverythingElse;
-        updateAttribute = function () {
-            var node;
-            if (!this.ready) {
-                return this;
-            }
-            node = this.parentNode;
-            if (node.tagName === 'SELECT' && this.name === 'value') {
-                this.update = deferSelect;
-                this.deferredUpdate = initSelect;
-                return this.update();
-            }
-            if (this.isFileInputValue) {
-                this.update = updateFileInputValue;
-                return this;
-            }
-            if (this.twoway && this.name === 'name') {
-                if (node.type === 'radio') {
-                    this.update = updateRadioName;
-                    return this.update();
-                }
-                if (node.type === 'checkbox') {
-                    this.update = updateCheckboxName;
-                    return this.update();
-                }
-            }
-            if (this.name === 'style' && node.style.setAttribute) {
-                this.update = updateIEStyleAttribute;
-                return this.update();
-            }
-            if (this.name === 'class') {
-                this.update = updateClassName;
-                return this.update();
-            }
-            this.update = updateEverythingElse;
-            return this.update();
-        };
-        updateFileInputValue = function () {
-            return this;
-        };
-        initSelect = function () {
-            this.deferredUpdate = this.parentNode.multiple ? updateMultipleSelect : updateSelect;
-            this.deferredUpdate();
-        };
-        deferSelect = function () {
-            this.root._defSelectValues.push(this);
-            return this;
-        };
-        updateSelect = function () {
-            var value = this.fragment.getValue(), options, option, i;
-            this.value = this.parentNode._ractive.value = value;
-            options = this.parentNode.options;
-            i = options.length;
-            while (i--) {
-                option = options[i];
-                if (option._ractive.value == value) {
-                    option.selected = true;
-                    return this;
-                }
-            }
-            return this;
-        };
-        updateMultipleSelect = function () {
-            var value = this.fragment.getValue(), options, i;
-            if (!isArray(value)) {
-                value = [value];
-            }
-            options = this.parentNode.options;
-            i = options.length;
-            while (i--) {
-                options[i].selected = value.indexOf(options[i]._ractive.value) !== -1;
-            }
-            this.value = value;
-            return this;
-        };
-        updateRadioName = function () {
-            var node, value;
-            node = this.parentNode;
-            value = this.fragment.getValue();
-            node.checked = value === node._ractive.value;
-            return this;
-        };
-        updateCheckboxName = function () {
-            var node, value;
-            node = this.parentNode;
-            value = this.fragment.getValue();
-            if (!isArray(value)) {
-                node.checked = value === node._ractive.value;
-                return this;
-            }
-            node.checked = value.indexOf(node._ractive.value) !== -1;
-            return this;
-        };
-        updateIEStyleAttribute = function () {
-            var node, value;
-            node = this.parentNode;
-            value = this.fragment.getValue();
-            if (value === undefined) {
-                value = '';
-            }
-            if (value !== this.value) {
-                node.style.setAttribute('cssText', value);
-                this.value = value;
-            }
-            return this;
-        };
-        updateClassName = function () {
-            var node, value;
-            node = this.parentNode;
-            value = this.fragment.getValue();
-            if (value === undefined) {
-                value = '';
-            }
-            if (value !== this.value) {
-                node.className = value;
-                this.value = value;
-            }
-            return this;
-        };
-        updateEverythingElse = function () {
-            var node, value;
-            node = this.parentNode;
-            value = this.fragment.getValue();
-            if (this.isValueAttribute) {
-                node._ractive.value = value;
-            }
-            if (value === undefined) {
-                value = '';
-            }
-            if (value !== this.value) {
-                if (this.useProperty) {
-                    if (!this.receiving) {
-                        node[this.propertyName] = value;
-                    }
-                    this.value = value;
-                    return this;
-                }
-                if (this.namespace) {
-                    node.setAttributeNS(this.namespace, this.name, value);
-                    this.value = value;
-                    return this;
-                }
-                if (this.name === 'id') {
-                    if (this.value !== undefined) {
-                        this.root.nodes[this.value] = undefined;
-                    }
-                    this.root.nodes[value] = node;
-                }
-                node.setAttribute(this.name, value);
-                this.value = value;
-            }
-            return this;
-        };
-        return updateAttribute;
-    }(utils_isArray);
-var StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
-        
-        var StringInterpolator = function (options) {
-            this.type = types.INTERPOLATOR;
-            initMustache(this, options);
-        };
-        StringInterpolator.prototype = {
-            update: updateMustache,
-            resolve: resolveMustache,
-            render: function (value) {
-                this.value = value;
-                this.parentFragment.bubble();
-            },
-            teardown: function () {
-                teardown(this);
-            },
-            toString: function () {
-                if (this.value === undefined) {
-                    return '';
-                }
-                if (this.value === null) {
-                    return 'null';
-                }
-                return this.value.toString();
-            }
-        };
-        return StringInterpolator;
-    }(config_types, shared_teardown, shared_initMustache, shared_updateMustache, shared_resolveMustache);
-var StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
-        
-        var StringSection, StringFragment;
-        circular.push(function () {
-            StringFragment = circular.StringFragment;
-        });
-        StringSection = function (options) {
-            this.type = types.SECTION;
-            this.fragments = [];
-            this.length = 0;
-            initMustache(this, options);
-        };
-        StringSection.prototype = {
-            update: updateMustache,
-            resolve: resolveMustache,
-            teardown: function () {
-                this.teardownFragments();
-                teardown(this);
-            },
-            teardownFragments: function () {
-                while (this.fragments.length) {
-                    this.fragments.shift().teardown();
-                }
-                this.length = 0;
-            },
-            bubble: function () {
-                this.value = this.fragments.join('');
-                this.parentFragment.bubble();
-            },
-            render: function (value) {
-                var wrapped;
-                if (wrapped = this.root._wrapped[this.keypath]) {
-                    value = wrapped.get();
-                }
-                updateSection(this, value);
-                this.parentFragment.bubble();
-            },
-            createFragment: function (options) {
-                return new StringFragment(options);
-            },
-            toString: function () {
-                return this.fragments.join('');
-            }
-        };
-        return StringSection;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_teardown, circular);
-var StringFragment_Text = function (types) {
-        
-        var StringText = function (text) {
-            this.type = types.TEXT;
-            this.text = text;
-        };
-        StringText.prototype = {
-            toString: function () {
-                return this.text;
-            },
-            teardown: function () {
-            }
-        };
-        return StringText;
-    }(config_types);
-var StringFragment__StringFragment = function (types, initFragment, Interpolator, Section, Text, circular) {
-        
-        var StringFragment = function (options) {
-            initFragment(this, options);
-        };
-        StringFragment.prototype = {
-            createItem: function (options) {
-                if (typeof options.descriptor === 'string') {
-                    return new Text(options.descriptor);
-                }
-                switch (options.descriptor.t) {
-                case types.INTERPOLATOR:
-                    return new Interpolator(options);
-                case types.TRIPLE:
-                    return new Interpolator(options);
-                case types.SECTION:
-                    return new Section(options);
-                default:
-                    throw 'Something went wrong in a rather interesting way';
-                }
-            },
-            bubble: function () {
-                this.owner.bubble();
-            },
-            teardown: function () {
-                var numItems, i;
-                numItems = this.items.length;
-                for (i = 0; i < numItems; i += 1) {
-                    this.items[i].teardown();
-                }
-            },
-            getValue: function () {
-                var value;
-                if (this.items.length === 1 && this.items[0].type === types.INTERPOLATOR) {
-                    value = this.items[0].value;
-                    if (value !== undefined) {
-                        return value;
-                    }
-                }
-                return this.toString();
-            },
-            isSimple: function () {
-                var i, item, containsInterpolator;
-                if (this.simple !== undefined) {
-                    return this.simple;
-                }
-                i = this.items.length;
-                while (i--) {
-                    item = this.items[i];
-                    if (item.type === types.TEXT) {
-                        continue;
-                    }
-                    if (item.type === types.INTERPOLATOR) {
-                        if (containsInterpolator) {
-                            return false;
-                        } else {
-                            containsInterpolator = true;
-                            continue;
-                        }
-                    }
-                    return this.simple = false;
-                }
-                return this.simple = true;
-            },
-            toString: function () {
-                return this.items.join('');
-            },
-            toJSON: function () {
-                var value = this.getValue();
-                if (typeof value === 'string') {
-                    try {
-                        value = JSON.parse(value);
-                    } catch (err) {
-                    }
-                }
-                return value;
-            }
-        };
-        circular.StringFragment = StringFragment;
-        return StringFragment;
-    }(config_types, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
-var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute, StringFragment) {
-        
-        var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
-        propertyNames = {
-            'accept-charset': 'acceptCharset',
-            accesskey: 'accessKey',
-            bgcolor: 'bgColor',
-            'class': 'className',
-            codebase: 'codeBase',
-            colspan: 'colSpan',
-            contenteditable: 'contentEditable',
-            datetime: 'dateTime',
-            dirname: 'dirName',
-            'for': 'htmlFor',
-            'http-equiv': 'httpEquiv',
-            ismap: 'isMap',
-            maxlength: 'maxLength',
-            novalidate: 'noValidate',
-            pubdate: 'pubDate',
-            readonly: 'readOnly',
-            rowspan: 'rowSpan',
-            tabindex: 'tabIndex',
-            usemap: 'useMap'
-        };
-        DomAttribute = function (options) {
-            this.element = options.element;
-            determineNameAndNamespace(this, options.name);
-            if (options.value === null || typeof options.value === 'string') {
-                setStaticAttribute(this, options);
-                return;
-            }
-            this.root = options.root;
-            this.parentNode = options.parentNode;
-            this.parentFragment = this.element.parentFragment;
-            this.fragment = new StringFragment({
-                descriptor: options.value,
-                root: this.root,
-                owner: this,
-                contextStack: options.contextStack
-            });
-            if (!this.parentNode) {
-                return;
-            }
-            if (this.name === 'value') {
-                options.element.ractify();
-                this.isValueAttribute = true;
-                if (this.parentNode.tagName === 'INPUT' && this.parentNode.type === 'file') {
-                    this.isFileInputValue = true;
-                }
-            }
-            determinePropertyName(this, options);
-            this.selfUpdating = this.fragment.isSimple();
-            this.ready = true;
-        };
-        DomAttribute.prototype = {
-            bind: bindAttribute,
-            update: updateAttribute,
-            updateBindings: function () {
-                this.keypath = this.interpolator.keypath || this.interpolator.ref;
-                if (this.propertyName === 'name') {
-                    this.parentNode.name = '{{' + this.keypath + '}}';
-                }
-            },
-            teardown: function () {
-                var i;
-                if (this.boundEvents) {
-                    i = this.boundEvents.length;
-                    while (i--) {
-                        this.parentNode.removeEventListener(this.boundEvents[i], this.updateModel, false);
-                    }
-                }
-                if (this.fragment) {
-                    this.fragment.teardown();
-                }
-            },
-            bubble: function () {
-                if (this.selfUpdating) {
-                    this.update();
-                } else if (!this.deferred && this.ready) {
-                    this.root._defAttrs[this.root._defAttrs.length] = this;
-                    this.deferred = true;
-                }
-            },
-            toString: function () {
-                var str;
-                if (this.value === null) {
-                    return this.name;
-                }
-                if (!this.fragment) {
-                    return this.name + '=' + JSON.stringify(this.value);
-                }
-                str = this.fragment.toString();
-                return this.name + '=' + JSON.stringify(str);
-            }
-        };
-        determineNameAndNamespace = function (attribute, name) {
-            var colonIndex, namespacePrefix;
-            colonIndex = name.indexOf(':');
-            if (colonIndex !== -1) {
-                namespacePrefix = name.substr(0, colonIndex);
-                if (namespacePrefix !== 'xmlns') {
-                    name = name.substring(colonIndex + 1);
-                    attribute.name = name;
-                    attribute.namespace = namespaces[namespacePrefix];
-                    if (!attribute.namespace) {
-                        throw 'Unknown namespace ("' + namespacePrefix + '")';
-                    }
-                    return;
-                }
-            }
-            attribute.name = name;
-        };
-        setStaticAttribute = function (attribute, options) {
-            var value = options.value === null ? '' : options.value;
-            if (options.parentNode) {
-                if (attribute.namespace) {
-                    options.parentNode.setAttributeNS(attribute.namespace, options.name, value);
-                } else {
-                    if (options.name === 'style' && options.parentNode.style.setAttribute) {
-                        options.parentNode.style.setAttribute('cssText', value);
-                    } else if (options.name === 'class') {
-                        options.parentNode.className = value;
-                    } else {
-                        options.parentNode.setAttribute(options.name, value);
-                    }
-                }
-                if (attribute.name === 'id') {
-                    options.root.nodes[options.value] = options.parentNode;
-                }
-                if (attribute.name === 'value') {
-                    attribute.element.ractify().value = options.value;
-                }
-            }
-            attribute.value = options.value;
-        };
-        determinePropertyName = function (attribute, options) {
-            var propertyName;
-            if (attribute.parentNode && !attribute.namespace && (!options.parentNode.namespaceURI || options.parentNode.namespaceURI === namespaces.html)) {
-                propertyName = propertyNames[attribute.name] || attribute.name;
-                if (options.parentNode[propertyName] !== undefined) {
-                    attribute.propertyName = propertyName;
-                }
-                if (typeof options.parentNode[propertyName] === 'boolean' || propertyName === 'value') {
-                    attribute.useProperty = true;
-                }
-            }
-        };
-        return DomAttribute;
-    }(config_namespaces, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__StringFragment);
-var Element_createElementAttributes = function (DomAttribute) {
-        
-        return function (element, attributes) {
-            var attrName, attrValue, attr;
-            element.attributes = [];
-            for (attrName in attributes) {
-                if (attributes.hasOwnProperty(attrName)) {
-                    attrValue = attributes[attrName];
-                    attr = new DomAttribute({
-                        element: element,
-                        name: attrName,
-                        value: attrValue,
-                        root: element.root,
-                        parentNode: element.node,
-                        contextStack: element.parentFragment.contextStack
-                    });
-                    element.attributes[element.attributes.length] = element.attributes[attrName] = attr;
-                    if (attrName !== 'name') {
-                        attr.update();
-                    }
-                }
-            }
-            return element.attributes;
-        };
-    }(Attribute__Attribute);
-var Element_appendElementChildren = function (namespaces, StringFragment, circular) {
-        
-        var DomFragment;
-        circular.push(function () {
-            DomFragment = circular.DomFragment;
-        });
-        return function (element, node, descriptor, docFrag) {
-            if (typeof descriptor.f === 'string' && (!node || (!node.namespaceURI || node.namespaceURI === namespaces.html))) {
-                element.html = descriptor.f;
-                if (docFrag) {
-                    node.innerHTML = element.html;
-                }
-            } else {
-                if (descriptor.e === 'style' && node.styleSheet !== undefined) {
-                    element.fragment = new StringFragment({
-                        descriptor: descriptor.f,
-                        root: element.root,
-                        contextStack: element.parentFragment.contextStack,
-                        owner: element
-                    });
-                    if (docFrag) {
-                        element.bubble = function () {
-                            node.styleSheet.cssText = element.fragment.toString();
-                        };
-                    }
-                } else {
-                    element.fragment = new DomFragment({
-                        descriptor: descriptor.f,
-                        root: element.root,
-                        parentNode: node,
-                        contextStack: element.parentFragment.contextStack,
-                        owner: element
-                    });
-                    if (docFrag) {
-                        node.appendChild(element.fragment.docFrag);
-                    }
-                }
-            }
-        };
-    }(config_namespaces, StringFragment__StringFragment, circular);
-var Element_bindElement = function () {
-        
-        return function (element, attributes) {
-            element.ractify();
-            switch (element.descriptor.e) {
-            case 'select':
-            case 'textarea':
-                if (attributes.value) {
-                    attributes.value.bind();
-                }
-                return;
-            case 'input':
-                if (element.node.type === 'radio' || element.node.type === 'checkbox') {
-                    if (attributes.name && attributes.name.bind()) {
-                        return;
-                    }
-                    if (attributes.checked && attributes.checked.bind()) {
-                        return;
-                    }
-                }
-                if (attributes.value && attributes.value.bind()) {
-                    return;
-                }
-            }
-        };
-    }();
-var Element_Transition = function (isClient, isNumeric, isArray, StringFragment) {
-        
-        var Transition, parseTransitionParams, testStyle, vendors, vendorPattern, prefix, prefixCache, hyphenate, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
-        if (!isClient) {
-            return;
-        }
-        testStyle = document.createElement('div').style;
-        (function () {
-            if (testStyle.transition !== undefined) {
-                TRANSITION = 'transition';
-                TRANSITIONEND = 'transitionend';
-                CSS_TRANSITIONS_ENABLED = true;
-            } else if (testStyle.webkitTransition !== undefined) {
-                TRANSITION = 'webkitTransition';
-                TRANSITIONEND = 'webkitTransitionEnd';
-                CSS_TRANSITIONS_ENABLED = true;
-            } else {
-                CSS_TRANSITIONS_ENABLED = false;
-            }
-        }());
-        if (TRANSITION) {
-            TRANSITION_DURATION = TRANSITION + 'Duration';
-            TRANSITION_PROPERTY = TRANSITION + 'Property';
-            TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
-        }
-        Transition = function (descriptor, root, owner, contextStack, isIntro) {
-            var fragment, params, prop;
-            this.root = root;
-            this.node = owner.node;
-            this.isIntro = isIntro;
-            this.originalStyle = this.node.getAttribute('style');
-            if (typeof descriptor === 'string') {
-                this.name = descriptor;
-            } else {
-                this.name = descriptor.n;
-                if (descriptor.a) {
-                    params = descriptor.a;
-                } else if (descriptor.d) {
-                    fragment = new StringFragment({
-                        descriptor: descriptor.d,
-                        root: root,
-                        owner: owner,
-                        contextStack: owner.parentFragment.contextStack
-                    });
-                    params = fragment.toJSON();
-                    fragment.teardown();
-                }
-            }
-            this._fn = root.transitions[this.name];
-            if (!this._fn) {
-                return;
-            }
-            params = parseTransitionParams(params);
-            for (prop in params) {
-                if (params.hasOwnProperty(prop)) {
-                    this[prop] = params[prop];
-                }
-            }
-        };
-        Transition.prototype = {
-            init: function () {
-                if (this._inited) {
-                    throw new Error('Cannot initialize a transition more than once');
-                }
-                this._inited = true;
-                this._fn.call(this.root, this);
-            },
-            complete: function () {
-                this._manager.pop(this.node);
-                this.node._ractive.transition = null;
-            },
-            getStyle: function (props) {
-                var computedStyle, styles, i, prop, value;
-                computedStyle = window.getComputedStyle(this.node);
-                if (typeof props === 'string') {
-                    value = computedStyle[prefix(props)];
-                    if (value === '0px') {
-                        value = 0;
-                    }
-                    return value;
-                }
-                if (!isArray(props)) {
-                    throw new Error('Transition#getStyle must be passed a string, or an array of strings representing CSS properties');
-                }
-                styles = {};
-                i = props.length;
-                while (i--) {
-                    prop = props[i];
-                    value = computedStyle[prefix(prop)];
-                    if (value === '0px') {
-                        value = 0;
-                    }
-                    styles[prop] = value;
-                }
-                return styles;
-            },
-            setStyle: function (style, value) {
-                var prop;
-                if (typeof style === 'string') {
-                    this.node.style[prefix(style)] = value;
-                } else {
-                    for (prop in style) {
-                        if (style.hasOwnProperty(prop)) {
-                            this.node.style[prefix(prop)] = style[prop];
-                        }
-                    }
-                }
-                return this;
-            },
-            animateStyle: function (to) {
-                var t = this, propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
-                propertyNames = Object.keys(to);
-                changedProperties = [];
-                computedStyle = window.getComputedStyle(t.node);
-                from = {};
-                i = propertyNames.length;
-                while (i--) {
-                    prop = propertyNames[i];
-                    current = computedStyle[prefix(prop)];
-                    if (current === '0px') {
-                        current = 0;
-                    }
-                    if (current != to[prop]) {
-                        changedProperties[changedProperties.length] = prop;
-                        t.node.style[prefix(prop)] = current;
-                    }
-                }
-                if (!changedProperties.length) {
-                    t.resetStyle();
-                    t.complete();
-                    return;
-                }
-                setTimeout(function () {
-                    t.node.style[TRANSITION_PROPERTY] = propertyNames.map(prefix).map(hyphenate).join(',');
-                    t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(t.easing || 'linear');
-                    t.node.style[TRANSITION_DURATION] = t.duration / 1000 + 's';
-                    transitionEndHandler = function () {
-                        t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
-                        if (t.isIntro) {
-                            t.resetStyle();
-                        }
-                        t.complete();
-                    };
-                    t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
-                    setTimeout(function () {
-                        var i = changedProperties.length;
-                        while (i--) {
-                            prop = changedProperties[i];
-                            t.node.style[prefix(prop)] = to[prop];
-                        }
-                    }, 0);
-                }, t.delay || 0);
-            },
-            resetStyle: function () {
-                if (this.originalStyle) {
-                    this.node.setAttribute('style', this.originalStyle);
-                } else {
-                    this.node.getAttribute('style');
-                    this.node.removeAttribute('style');
-                }
-            }
-        };
-        parseTransitionParams = function (params) {
-            if (params === 'fast') {
-                return { duration: 200 };
-            }
-            if (params === 'slow') {
-                return { duration: 600 };
-            }
-            if (isNumeric(params)) {
-                return { duration: +params };
-            }
-            return params || {};
-        };
-        vendors = [
-            'o',
-            'ms',
-            'moz',
-            'webkit'
-        ];
-        vendorPattern = new RegExp('^(?:' + vendors.join('|') + ')[A-Z]');
-        prefixCache = {};
-        prefix = function (prop) {
-            var i, vendor, capped;
-            if (!prefixCache[prop]) {
-                if (testStyle[prop] !== undefined) {
-                    prefixCache[prop] = prop;
-                } else {
-                    capped = prop.charAt(0).toUpperCase() + prop.substring(1);
-                    i = vendors.length;
-                    while (i--) {
-                        vendor = vendors[i];
-                        if (testStyle[vendor + capped] !== undefined) {
-                            prefixCache[prop] = vendor + capped;
-                            break;
-                        }
-                    }
-                }
-            }
-            return prefixCache[prop];
-        };
-        hyphenate = function (str) {
-            var hyphenated;
-            if (vendorPattern.test(str)) {
-                str = '-' + str;
-            }
-            hyphenated = str.replace(/[A-Z]/g, function (match) {
-                return '-' + match.toLowerCase();
-            });
-            return hyphenated;
-        };
-        return Transition;
-    }(config_isClient, utils_isNumeric, utils_isArray, StringFragment__StringFragment);
-var Element_executeTransition = function (isClient, warn, Transition) {
-        
-        if (!isClient) {
-            return;
-        }
-        return function (descriptor, root, owner, contextStack, isIntro) {
-            var transition, node, oldTransition;
-            if (!root.transitionsEnabled) {
-                return;
-            }
-            transition = new Transition(descriptor, root, owner, contextStack, isIntro);
-            if (transition._fn) {
-                if (transition._fn.length !== 1) {
-                    warn('The transitions API has changed. See https://github.com/Rich-Harris/Ractive/wiki/Transitions for details');
-                }
-                node = transition.node;
-                transition._manager = root._transitionManager;
-                if (oldTransition = node._ractive.transition) {
-                    oldTransition.complete();
-                }
-                node._ractive.transition = transition;
-                transition._manager.push(node);
-                if (isIntro) {
-                    root._defTransitions.push(transition);
-                } else {
-                    transition.init();
-                }
-            }
-        };
-    }(config_isClient, utils_warn, Element_Transition);
-var Element_addEventProxy = function (StringFragment) {
-        
-        var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
-        addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
-            var events, master;
-            events = element.ractify().events;
-            master = events[triggerEventName] || (events[triggerEventName] = new MasterEventHandler(element, triggerEventName, contextStack, indexRefs));
-            master.add(proxyDescriptor);
-        };
-        MasterEventHandler = function (element, eventName, contextStack) {
-            var definition;
-            this.element = element;
-            this.root = element.root;
-            this.node = element.node;
-            this.name = eventName;
-            this.contextStack = contextStack;
-            this.proxies = [];
-            if (definition = this.root.events[eventName]) {
-                this.custom = definition(this.node, getCustomHandler(eventName));
-            } else {
-                this.node.addEventListener(eventName, genericHandler, false);
-            }
-        };
-        MasterEventHandler.prototype = {
-            add: function (proxy) {
-                this.proxies[this.proxies.length] = new ProxyEvent(this.element, this.root, proxy, this.contextStack);
-            },
-            teardown: function () {
-                var i;
-                if (this.custom) {
-                    this.custom.teardown();
-                } else {
-                    this.node.removeEventListener(this.name, genericHandler, false);
-                }
-                i = this.proxies.length;
-                while (i--) {
-                    this.proxies[i].teardown();
-                }
-            },
-            fire: function (event) {
-                var i = this.proxies.length;
-                while (i--) {
-                    this.proxies[i].fire(event);
-                }
-            }
-        };
-        ProxyEvent = function (element, ractive, descriptor, contextStack) {
-            var name;
-            this.root = ractive;
-            name = descriptor.n || descriptor;
-            if (typeof name === 'string') {
-                this.n = name;
-            } else {
-                this.n = new StringFragment({
-                    descriptor: descriptor.n,
-                    root: this.root,
-                    owner: element,
-                    contextStack: contextStack
-                });
-            }
-            if (descriptor.a) {
-                this.a = descriptor.a;
-                this.fire = fireEventWithArgs;
-                return;
-            }
-            if (descriptor.d) {
-                this.d = new StringFragment({
-                    descriptor: descriptor.d,
-                    root: this.root,
-                    owner: element,
-                    contextStack: contextStack
-                });
-                this.fire = fireEventWithDynamicArgs;
-                return;
-            }
-            this.fire = firePlainEvent;
-        };
-        ProxyEvent.prototype = {
-            teardown: function () {
-                if (this.n.teardown) {
-                    this.n.teardown();
-                }
-                if (this.d) {
-                    this.d.teardown();
-                }
-            },
-            bubble: function () {
-            }
-        };
-        firePlainEvent = function (event) {
-            this.root.fire(this.n.toString(), event);
-        };
-        fireEventWithArgs = function (event) {
-            this.root.fire(this.n.toString(), event, this.a);
-        };
-        fireEventWithDynamicArgs = function (event) {
-            this.root.fire(this.n.toString(), event, this.d.toJSON());
-        };
-        genericHandler = function (event) {
-            var storage = this._ractive;
-            storage.events[event.type].fire({
-                node: this,
-                original: event,
-                index: storage.index,
-                keypath: storage.keypath,
-                context: storage.root.get(storage.keypath)
-            });
-        };
-        customHandlers = {};
-        getCustomHandler = function (eventName) {
-            if (customHandlers[eventName]) {
-                return customHandlers[eventName];
-            }
-            return customHandlers[eventName] = function (event) {
-                var storage = event.node._ractive;
-                event.index = storage.index;
-                event.keypath = storage.keypath;
-                event.context = storage.root.get(storage.keypath);
-                storage.events[eventName].fire(event);
-            };
-        };
-        return addEventProxy;
-    }(StringFragment__StringFragment);
-var Element_addEventProxies = function (addEventProxy) {
-        
-        return function (element, proxies) {
-            var i, eventName, eventNames;
-            for (eventName in proxies) {
-                if (proxies.hasOwnProperty(eventName)) {
-                    eventNames = eventName.split('-');
-                    i = eventNames.length;
-                    while (i--) {
-                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
-                    }
-                }
-            }
-        };
-    }(Element_addEventProxy);
-var Element__Element = function (types, create, defineProperty, voidElementNames, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, addEventProxies) {
-        
-        var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, descriptor, namespace, attributes, decoratorFn, errorMessage, width, height, loadHandler, root;
-            this.type = types.ELEMENT;
-            parentFragment = this.parentFragment = options.parentFragment;
-            descriptor = this.descriptor = options.descriptor;
-            this.root = root = parentFragment.root;
-            this.parentNode = parentFragment.parentNode;
-            this.index = options.index;
-            this.eventListeners = [];
-            this.customEventListeners = [];
-            if (this.parentNode) {
-                namespace = getElementNamespace(descriptor, this.parentNode);
-                this.node = document.createElementNS(namespace, descriptor.e);
-            }
-            attributes = createElementAttributes(this, descriptor.a);
-            if (descriptor.f) {
-                appendElementChildren(this, this.node, descriptor, docFrag);
-            }
-            if (docFrag && descriptor.v) {
-                addEventProxies(this, descriptor.v);
-            }
-            if (docFrag) {
-                if (root.twoway) {
-                    bindElement(this, attributes);
-                }
-                if (attributes.name && !attributes.name.twoway) {
-                    attributes.name.update();
-                }
-                if (this.node.tagName === 'IMG' && ((width = self.attributes.width) || (height = self.attributes.height))) {
-                    this.node.addEventListener('load', loadHandler = function () {
-                        if (width) {
-                            self.node.width = width.value;
-                        }
-                        if (height) {
-                            self.node.height = height.value;
-                        }
-                        self.node.removeEventListener('load', loadHandler, false);
-                    }, false);
-                }
-                docFrag.appendChild(this.node);
-                if (descriptor.o) {
-                    decoratorFn = this.root.decorators[descriptor.o];
-                    if (decoratorFn) {
-                        this.decorator = decoratorFn.call(this.root, this.node);
-                        if (!this.decorator || !this.decorator.teardown) {
-                            throw new Error('Decorator definition must return an object with a teardown method');
-                        }
-                    } else {
-                        errorMessage = 'Missing decorator "' + descriptor.o + '"';
-                        if (this.root.debug) {
-                            throw new Error(errorMessage);
-                        } else {
-                            warn(errorMessage);
-                        }
-                    }
-                }
-                if (descriptor.t1) {
-                    executeTransition(descriptor.t1, root, this, parentFragment.contextStack, true);
-                }
-                if (this.node.tagName === 'OPTION') {
-                    if (this.node._ractive.value == this.parentNode._ractive.value) {
-                        this.node.selected = true;
-                    }
-                }
-            }
-        };
-        DomElement.prototype = {
-            teardown: function (detach) {
-                var eventName, binding, bindings;
-                if (this.fragment) {
-                    this.fragment.teardown(false);
-                }
-                while (this.attributes.length) {
-                    this.attributes.pop().teardown();
-                }
-                if (this.node._ractive) {
-                    for (eventName in this.node._ractive.events) {
-                        this.node._ractive.events[eventName].teardown();
-                    }
-                    if (binding = this.node._ractive.binding) {
-                        binding.teardown();
-                        bindings = this.root._twowayBindings[binding.attr.keypath];
-                        bindings.splice(bindings.indexOf(binding), 1);
-                    }
-                }
-                if (this.decorator) {
-                    this.decorator.teardown();
-                }
-                if (this.descriptor.t2) {
-                    executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
-                }
-                if (detach) {
-                    this.root._transitionManager.detachWhenReady(this.node);
-                }
-            },
-            firstNode: function () {
-                return this.node;
-            },
-            findNextNode: function () {
-                return null;
-            },
-            bubble: function () {
-            },
-            toString: function () {
-                var str, i, len;
-                str = '<' + (this.descriptor.y ? '!doctype' : this.descriptor.e);
-                len = this.attributes.length;
-                for (i = 0; i < len; i += 1) {
-                    str += ' ' + this.attributes[i].toString();
-                }
-                str += '>';
-                if (this.html) {
-                    str += this.html;
-                } else if (this.fragment) {
-                    str += this.fragment.toString();
-                }
-                if (voidElementNames.indexOf(this.descriptor.e) === -1) {
-                    str += '</' + this.descriptor.e + '>';
-                }
-                return str;
-            },
-            ractify: function () {
-                var contextStack = this.parentFragment.contextStack;
-                if (!this.node._ractive) {
-                    defineProperty(this.node, '_ractive', {
-                        value: {
-                            keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
-                            index: this.parentFragment.indexRefs,
-                            events: create(null),
-                            root: this.root
-                        }
-                    });
-                }
-                return this.node._ractive;
-            }
-        };
-        return DomElement;
-    }(config_types, utils_create, utils_defineProperty, config_voidElementNames, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_addEventProxies);
-var Partial_getPartialDescriptor = function (errors, warn, isClient, isObject, partials, parse) {
+var Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
         
         var getPartialDescriptor, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
@@ -6536,7 +6461,7 @@ var Partial__Partial = function (types, getPartialDescriptor, circular) {
             this.fragment = new DomFragment({
                 descriptor: descriptor,
                 root: parentFragment.root,
-                parentNode: parentFragment.parentNode,
+                pNode: parentFragment.pNode,
                 contextStack: parentFragment.contextStack,
                 owner: this
             });
@@ -6560,9 +6485,41 @@ var Partial__Partial = function (types, getPartialDescriptor, circular) {
         };
         return DomPartial;
     }(config_types, Partial_getPartialDescriptor, circular);
-var Component__Component = function (types, warn, resolveRef, StringFragment) {
+var Component_ComponentParameter = function (StringFragment) {
         
-        var DomComponent, ComponentParameter;
+        var ComponentParameter = function (root, component, key, value, contextStack) {
+            this.parentFragment = component.parentFragment;
+            this.component = component;
+            this.key = key;
+            this.fragment = new StringFragment({
+                descriptor: value,
+                root: root,
+                owner: this,
+                contextStack: contextStack
+            });
+            this.selfUpdating = this.fragment.isSimple();
+            this.value = this.fragment.getValue();
+        };
+        ComponentParameter.prototype = {
+            bubble: function () {
+                if (this.selfUpdating) {
+                    this.update();
+                } else if (!this.deferred && this.ready) {
+                    this.root._defAttrs[this.root._defAttrs.length] = this;
+                    this.deferred = true;
+                }
+            },
+            update: function () {
+                var value = this.fragment.getValue();
+                this.component.set(this.key, value);
+                this.value = value;
+            }
+        };
+        return ComponentParameter;
+    }(StringFragment__StringFragment);
+var Component__Component = function (types, warn, resolveRef, ComponentParameter) {
+        
+        var DomComponent;
         DomComponent = function (options, docFrag) {
             var self = this, parentFragment = this.parentFragment = options.parentFragment, root, Component, twoway, partials, instance, keypath, data, mappings, i, pair, observeParent, observeChild, settingParent, settingChild, key, initFalse, processKeyValuePair, eventName, propagateEvent, items;
             root = parentFragment.root;
@@ -6620,7 +6577,7 @@ var Component__Component = function (types, warn, resolveRef, StringFragment) {
                 partials.content = options.descriptor.f;
             }
             instance = this.instance = new Component({
-                el: parentFragment.parentNode.cloneNode(false),
+                el: parentFragment.pNode.cloneNode(false),
                 data: data,
                 partials: partials
             });
@@ -6628,13 +6585,13 @@ var Component__Component = function (types, warn, resolveRef, StringFragment) {
             while (instance.el.firstChild) {
                 docFrag.appendChild(instance.el.firstChild);
             }
-            instance.el = parentFragment.parentNode;
+            instance.el = parentFragment.pNode;
             items = instance.fragment.items;
             if (items) {
                 i = items.length;
                 while (i--) {
-                    if (items[i].parentNode) {
-                        items[i].parentNode = parentFragment.parentNode;
+                    if (items[i].pNode) {
+                        items[i].pNode = parentFragment.pNode;
                     }
                 }
             }
@@ -6709,36 +6666,8 @@ var Component__Component = function (types, warn, resolveRef, StringFragment) {
                 return this.instance.fragment.toString();
             }
         };
-        ComponentParameter = function (root, component, key, value, contextStack) {
-            this.parentFragment = component.parentFragment;
-            this.component = component;
-            this.key = key;
-            this.fragment = new StringFragment({
-                descriptor: value,
-                root: root,
-                owner: this,
-                contextStack: contextStack
-            });
-            this.selfUpdating = this.fragment.isSimple();
-            this.value = this.fragment.getValue();
-        };
-        ComponentParameter.prototype = {
-            bubble: function () {
-                if (this.selfUpdating) {
-                    this.update();
-                } else if (!this.deferred && this.ready) {
-                    this.root._defAttrs[this.root._defAttrs.length] = this;
-                    this.deferred = true;
-                }
-            },
-            update: function () {
-                var value = this.fragment.getValue();
-                this.component.set(this.key, value);
-                this.value = value;
-            }
-        };
         return DomComponent;
-    }(config_types, utils_warn, shared_resolveRef, StringFragment__StringFragment);
+    }(config_types, utils_warn, shared_resolveRef, Component_ComponentParameter);
 var DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
@@ -6746,7 +6675,7 @@ var DomFragment_Comment = function (types) {
             this.descriptor = options.descriptor;
             if (docFrag) {
                 this.node = document.createComment(options.descriptor.f);
-                this.parentNode = options.parentFragment.parentNode;
+                this.pNode = options.parentFragment.pNode;
                 docFrag.appendChild(this.node);
             }
         };
@@ -6768,17 +6697,17 @@ var DomFragment_Comment = function (types) {
 var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular) {
         
         var DomFragment = function (options) {
-            if (options.parentNode) {
+            if (options.pNode) {
                 this.docFrag = document.createDocumentFragment();
             }
             if (typeof options.descriptor === 'string') {
                 this.html = options.descriptor;
                 if (this.docFrag) {
-                    this.nodes = insertHtml(options.descriptor, options.parentNode.tagName, this.docFrag);
+                    this.nodes = insertHtml(options.descriptor, options.pNode.tagName, this.docFrag);
                 }
-                return;
+            } else {
+                initFragment(this, options);
             }
-            initFragment(this, options);
         };
         DomFragment.prototype = {
             createItem: function (options) {
@@ -6862,34 +6791,139 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
         circular.DomFragment = DomFragment;
         return DomFragment;
     }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, DomFragment_Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment, circular);
-var shared_render = function (getElement, makeTransitionManager, processDeferredUpdates, DomFragment) {
+var prototype_render = function (getElement, makeTransitionManager, processDeferredUpdates, DomFragment) {
         
-        return function (ractive, options) {
-            var el, transitionManager;
-            el = options.el ? getElement(options.el) : ractive.el;
-            if (el && !options.append) {
-                el.innerHTML = '';
-            }
-            ractive._transitionManager = transitionManager = makeTransitionManager(ractive, options.complete);
-            ractive.fragment = new DomFragment({
-                descriptor: ractive.template,
-                root: ractive,
-                owner: ractive,
-                parentNode: el
+        return function (target, complete) {
+            var transitionManager;
+            this._transitionManager = transitionManager = makeTransitionManager(this, complete);
+            this.fragment = new DomFragment({
+                descriptor: this.template,
+                root: this,
+                owner: this,
+                pNode: this.el
             });
-            processDeferredUpdates(ractive, true);
-            if (el) {
-                el.appendChild(ractive.fragment.docFrag);
+            processDeferredUpdates(this, true);
+            if (target) {
+                target.appendChild(this.fragment.docFrag);
             }
-            while (ractive._defTransitions.length) {
-                ractive._defTransitions.pop().init();
+            while (this._defTransitions.length) {
+                this._defTransitions.pop().init();
             }
-            ractive._transitionManager = null;
+            this._transitionManager = null;
             transitionManager.ready();
-            ractive.rendered = true;
+            this.rendered = true;
         };
     }(utils_getElement, shared_makeTransitionManager, shared_processDeferredUpdates, DomFragment__DomFragment);
-var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperties, getElement, isObject, render, magicAdaptor, parse) {
+var prototype_renderHTML = function () {
+        
+        return function () {
+            return this.fragment.toString();
+        };
+    }();
+var prototype_teardown = function (makeTransitionManager, clearCache) {
+        
+        return function (complete) {
+            var keypath, transitionManager, previousTransitionManager;
+            this.fire('teardown');
+            previousTransitionManager = this._transitionManager;
+            this._transitionManager = transitionManager = makeTransitionManager(this, complete);
+            this.fragment.teardown(true);
+            while (this._animations[0]) {
+                this._animations[0].stop();
+            }
+            for (keypath in this._cache) {
+                clearCache(this, keypath);
+            }
+            this._transitionManager = previousTransitionManager;
+            transitionManager.ready();
+        };
+    }(shared_makeTransitionManager, shared_clearCache);
+var shared_add = function (isNumeric) {
+        
+        return function (root, keypath, d) {
+            var value;
+            if (typeof keypath !== 'string' || !isNumeric(d)) {
+                if (root.debug) {
+                    throw new Error('Bad arguments');
+                }
+                return;
+            }
+            value = root.get(keypath);
+            if (value === undefined) {
+                value = 0;
+            }
+            if (!isNumeric(value)) {
+                if (root.debug) {
+                    throw new Error('Cannot add to a non-numeric value');
+                }
+                return;
+            }
+            root.set(keypath, value + d);
+        };
+    }(utils_isNumeric);
+var prototype_add = function (add) {
+        
+        return function (keypath, d) {
+            add(this, keypath, d === undefined ? 1 : d);
+        };
+    }(shared_add);
+var prototype_subtract = function (add) {
+        
+        return function (keypath, d) {
+            add(this, keypath, d === undefined ? -1 : -d);
+        };
+    }(shared_add);
+var prototype_toggle = function () {
+        
+        return function (keypath) {
+            var value;
+            if (typeof keypath !== 'string') {
+                if (this.debug) {
+                    throw new Error('Bad arguments');
+                }
+                return;
+            }
+            value = this.get(keypath);
+            this.set(keypath, !value);
+        };
+    }();
+var prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle) {
+        
+        return {
+            get: get,
+            set: set,
+            update: update,
+            updateModel: updateModel,
+            animate: animate,
+            on: on,
+            off: off,
+            observe: observe,
+            fire: fire,
+            find: find,
+            findAll: findAll,
+            renderHTML: renderHTML,
+            render: render,
+            teardown: teardown,
+            add: add,
+            subtract: subtract,
+            toggle: toggle
+        };
+    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle);
+var utils_extend = function () {
+        
+        return function (target) {
+            var prop, source, sources = Array.prototype.slice.call(arguments, 1);
+            while (source = sources.shift()) {
+                for (prop in source) {
+                    if (source.hasOwnProperty(prop)) {
+                        target[prop] = source[prop];
+                    }
+                }
+            }
+            return target;
+        };
+    }();
+var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperties, getElement, isObject, magicAdaptor, parse) {
         
         var getObject, getArray, defaultOptions, extendable;
         getObject = function () {
@@ -7058,14 +7092,13 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 stripComments: options.stripComments
             };
             ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
-            render(ractive, {
-                el: ractive.el,
-                append: options.append,
-                complete: options.complete
-            });
+            if (ractive.el && !options.append) {
+                ractive.el.innerHTML = '';
+            }
+            ractive.render(ractive.el, options.complete);
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, shared_render, get_magicAdaptor, parse__parse);
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, get_magicAdaptor, parse__parse);
 var extend__extend = function (errors, create, isClient, isObject, parse, initialise, adaptorRegistry) {
         
         var extend, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
