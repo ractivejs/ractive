@@ -2,17 +2,17 @@ define([
 	'config/types',
 	'utils/warn',
 	'shared/resolveRef',
-	'render/StringFragment/_StringFragment'
+	'render/DomFragment/Component/ComponentParameter'
 ], function (
 	types,
 	warn,
 	resolveRef,
-	StringFragment
+	ComponentParameter
 ) {
 
 	'use strict';
 
-	var DomComponent, ComponentParameter;
+	var DomComponent;
 
 	// TODO support server environments
 	DomComponent = function ( options, docFrag ) {
@@ -232,48 +232,6 @@ define([
 
 		toString: function () {
 			return this.instance.fragment.toString();
-		}
-	};
-
-
-	ComponentParameter = function ( root, component, key, value, contextStack ) {
-		
-		this.parentFragment = component.parentFragment;
-		this.component = component;
-		this.key = key;
-
-		this.fragment = new StringFragment({
-			descriptor:   value,
-			root:         root,
-			owner:        this,
-			contextStack: contextStack
-		});
-
-		this.selfUpdating = this.fragment.isSimple();
-		this.value = this.fragment.getValue();
-	};
-
-	ComponentParameter.prototype = {
-		bubble: function () {
-			// If there's a single item, we can update the component immediately...
-			if ( this.selfUpdating ) {
-				this.update();
-			}
-
-			// otherwise we want to register it as a deferred component, to be
-			// updated once all the information is in, to prevent unnecessary
-			// DOM manipulation
-			else if ( !this.deferred && this.ready ) {
-				this.root._defAttrs[ this.root._defAttrs.length ] = this;
-				this.deferred = true;
-			}
-		},
-
-		update: function () {
-			var value = this.fragment.getValue();
-
-			this.component.set( this.key, value );
-			this.value = value;
 		}
 	};
 
