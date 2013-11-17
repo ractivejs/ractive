@@ -213,7 +213,7 @@ define([
 			ractive.el.innerHTML = '';
 		}
 
-		ractive.render( options.complete );
+		ractive.render( ractive.el, options.complete );
 
 		// reset transitionsEnabled
 		ractive.transitionsEnabled = options.transitionsEnabled;

@@ -12,7 +12,7 @@ define([
 
 	'use strict';
 
-	return function ( complete ) {
+	return function ( target, complete ) {
 		var transitionManager;
 
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
@@ -27,8 +27,8 @@ define([
 
 		processDeferredUpdates( this, true );
 
-		if ( this.el ) {
-			this.el.appendChild( this.fragment.docFrag );
+		if ( target ) {
+			target.appendChild( this.fragment.docFrag );
 		}
 
 		// trigger intros, now that elements are in the DOM
