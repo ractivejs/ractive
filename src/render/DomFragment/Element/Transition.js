@@ -2,11 +2,13 @@ define([
 	'config/isClient',
 	'utils/isNumeric',
 	'utils/isArray',
+	'utils/camelCase',
 	'render/StringFragment/_StringFragment'
 ], function (
 	isClient,
 	isNumeric,
 	isArray,
+	camelCase,
 	StringFragment
 ) {
 	
@@ -14,14 +16,11 @@ define([
 
 	var Transition,
 
-		parseTransitionParams,
-
 		testStyle,
 		vendors,
 		vendorPattern,
-		prefix,
+		unprefixPattern,
 		prefixCache,
-		hyphenate,
 		
 		CSS_TRANSITIONS_ENABLED,
 		TRANSITION,
@@ -178,6 +177,12 @@ define([
 		animateStyle: function ( to ) {
 			var t = this, propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
 
+			// Edge case - if duration is zero, set style synchronously and complete
+			if ( !t.duration ) {
+				t.setStyle( to );
+				t.complete();
+			}
+
 			// Get a list of the properties we're animating
 			propertyNames = Object.keys( to );
 			changedProperties = [];
@@ -221,7 +226,19 @@ define([
 				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( t.easing || 'linear' );
 				t.node.style[ TRANSITION_DURATION ] = ( t.duration / 1000 ) + 's';
 
-				transitionEndHandler = function () {
+				transitionEndHandler = function ( event ) {
+					var index;
+
+					index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
+					if ( index !== -1 ) {
+						changedProperties.splice( index, 1 );
+					}
+
+					if ( changedProperties.length ) {
+						// still transitioning...
+						return;
+					}
+
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
 					// We've abused the style attribute - we need to revert
@@ -259,7 +276,7 @@ define([
 		}
 	};
 
-	parseTransitionParams = function ( params ) {
+	function parseTransitionParams ( params ) {
 		if ( params === 'fast' ) {
 			return { duration: 200 };
 		}
@@ -273,14 +290,15 @@ define([
 		}
 
 		return params || {};
-	};
+	}
 
 	// get prefixed style attributes
 	vendors = [ 'o', 'ms', 'moz', 'webkit' ];
-	vendorPattern = new RegExp( '^(?:' + vendors.join( '|' ) + ')[A-Z]' );
+	vendorPattern = new RegExp( '^(?:' + vendors.join( '|' ) + ')([A-Z])' );
+	unprefixPattern = new RegExp( '^-(?:' + vendors.join( '|' ) + ')-' );
 	prefixCache = {};
 
-	prefix = function ( prop ) {
+	function prefix ( prop ) {
 		var i, vendor, capped;
 
 		if ( !prefixCache[ prop ] ) {
@@ -304,9 +322,13 @@ define([
 		}
 
 		return prefixCache[ prop ];
-	};
+	}
 
-	hyphenate = function ( str ) {
+	function unprefix ( prop ) {
+		return prop.replace( unprefixPattern, '' );
+	}
+
+	function hyphenate ( str ) {
 		var hyphenated;
 
 		if ( vendorPattern.test( str ) ) {
@@ -318,7 +340,7 @@ define([
 		});
 
 		return hyphenated;
-	};
+	}
 
 	return Transition;
 
