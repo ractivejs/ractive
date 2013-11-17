@@ -11,6 +11,11 @@ define([ 'Ractive/_Ractive', 'circular' ], function ( Ractive, circular ) {
 		window.Node.prototype.contains = window.HTMLElement.prototype.contains;
 	}
 
+	// Certain modules have circular dependencies. If we were bundling a
+	// module loader, e.g. almond.js, this wouldn't be a problem, but we're
+	// not - we're using amdclean as part of the build process. Because of
+	// this, we need to wait until all modules have loaded before those
+	// circular dependencies can be required.
 	while ( circular.length ) {
 		circular.pop()();
 	}
