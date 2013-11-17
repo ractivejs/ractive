@@ -2,6 +2,7 @@ define([
 	'config/types',
 	'config/voidElementNames',
 	'utils/warn',
+	'utils/camelCase',
 	'parse/Parser/utils/stringifyStubs',
 
 	'parse/Parser/getElement/ElementStub/utils/siblingsByTagName',
@@ -16,6 +17,7 @@ define([
 	types,
 	voidElementNames,
 	warn,
+	camelCase,
 	stringifyStubs,
 
 	siblingsByTagName,
@@ -42,7 +44,6 @@ define([
 		closedByParentClose,
 		onPattern,
 		sanitize,
-		camelCase,
 		leadingWhitespace = /^\s+/,
 		trailingWhitespace = /\s+$/;
 
@@ -213,12 +214,6 @@ define([
 	sanitize = function ( attr ) {
 		var valid = !onPattern.test( attr.name );
 		return valid;
-	};
-
-	camelCase = function ( hyphenatedStr ) {
-		return hyphenatedStr.replace( /-([a-zA-Z])/g, function ( match, $1 ) {
-			return $1.toUpperCase();
-		});
 	};
 
 	return ElementStub;
