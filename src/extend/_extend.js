@@ -1,42 +1,30 @@
 define([
-	'config/errors',
-	'config/isClient',
 	'utils/create',
-	'utils/isObject',
-	'parse/_parse',
-	'Ractive/initialise',
-	'registries/adaptors',
-	'extend/utils/augment',
-	'extend/utils/clone',
-	'extend/utils/fillGaps',
 	'extend/inheritFromParent',
 	'extend/inheritFromChildProps',
-	'extend/wrapMethod',
 	'extend/extractInlinePartials',
 	'extend/conditionallyParseTemplate',
 	'extend/conditionallyParsePartials',
-	'extend/initChildInstance'
+	'extend/initChildInstance',
+	'circular'
 ], function (
-	errors,
-	isClient,
 	create,
-	isObject,
-	parse,
-	initialise,
-	adaptorRegistry,
-	augment,
-	clone,
-	fillGaps,
 	inheritFromParent,
 	inheritFromChildProps,
-	wrapMethod,
 	extractInlinePartials,
 	conditionallyParseTemplate,
 	conditionallyParsePartials,
-	initChildInstance
+	initChildInstance,
+	circular
 ) {
 
 	'use strict';
+
+	var Ractive;
+
+	circular.push( function () {
+		Ractive = circular.Ractive;
+	});
 
 	return function ( childProps ) {
 
@@ -48,18 +36,15 @@ define([
 		};
 
 		Child.prototype = create( Parent.prototype );
+		Child.prototype.constructor = Child;
 
-		// Inherit options from parent, if we're extending a subclass.
-		// This next line is just a way to determine if we're extending
-		// the base class, without introducing a circular dependency
-		if ( Parent.adaptors !== adaptorRegistry ) {
-			inheritFromParent( Child, Parent );
-		}
-
-		// apply childProps
+		// Inherit options from parent
+		inheritFromParent( Child, Parent );
+		
+		// Add new prototype methods and init options
 		inheritFromChildProps( Child, childProps );
-
-		// parse template and any partials that need it
+		
+		// Parse template and any partials that need it
 		conditionallyParseTemplate( Child );
 		extractInlinePartials( Child, childProps );
 		conditionallyParsePartials( Child );

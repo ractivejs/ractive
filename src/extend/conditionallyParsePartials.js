@@ -9,23 +9,17 @@ define([
 	'use strict';
 
 	return function ( Child ) {
-		var key, partial;
+		var key;
 
 		// Parse partials, if necessary
 		if ( Child.partials ) {
 			for ( key in Child.partials ) {
-				if ( Child.partials.hasOwnProperty( key ) ) {
-					if ( typeof Child.partials[ key ] === 'string' ) {
-						if ( !parse ) {
-							throw new Error( errors.missingParser );
-						}
-
-						partial = parse( Child.partials[ key ], Child );
-					} else {
-						partial = Child.partials[ key ];
+				if ( Child.partials.hasOwnProperty( key ) && typeof Child.partials[ key ] === 'string' ) {
+					if ( !parse ) {
+						throw new Error( errors.missingParser );
 					}
 
-					Child.partials[ key ] = partial;
+					Child.partials[ key ] = parse( Child.partials[ key ], Child );
 				}
 			}
 		}

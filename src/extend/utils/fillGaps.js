@@ -10,6 +10,8 @@ define( function () {
 				target[ key ] = source[ key ];
 			}
 		}
+
+		return target;
 	};
 
 });

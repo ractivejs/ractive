@@ -1,43 +1,60 @@
 define([
-	'extend/extendable',
-	'extend/inheritable',
+	'extend/registries',
+	'extend/initOptions',
 	'extend/wrapMethod',
 	'extend/utils/augment'
 ], function (
-	extendable,
-	inheritable,
+	registries,
+	initOptions,
 	wrapMethod,
 	augment
 ) {
 	
 	'use strict';
 
+	var blacklist, blacklisted;
+
+	blacklist = registries.concat( initOptions );
+	blacklisted = {};
+	blacklist.forEach( function ( property ) {
+		blacklisted[ property ] = true;
+	});
+
+	// This is where we augment the class-level options (inherited from
+	// Parent) with the values passed to Parent.extend()
+
 	return function ( Child, childProps ) {
 		var key, member;
 
-		extendable.forEach( function ( property ) {
+		registries.forEach( function ( property ) {
 			var value = childProps[ property ];
 
 			if ( value ) {
 				if ( Child[ property ] ) {
 					augment( Child[ property ], value );
 				}
+			}
+		});
 
-				else {
-					Child[ property ] = value;
+		initOptions.forEach( function ( property ) {
+			var value = childProps[ property ];
+
+			if ( value !== undefined ) {
+				// we may need to wrap a function (e.g. the `complete` option)
+				if ( typeof value === 'function' && typeof Child[ property ] === 'function' ) {
+					Child[ property ] = wrapMethod( value, Child[ property ] );
+				} else {
+					Child[ property ] = childProps[ property ];
 				}
 			}
 		});
 
-		inheritable.forEach( function ( property ) {
-			if ( childProps[ property ] !== undefined ) {
-				Child[ property ] = childProps[ property ];
-			}
-		});
+		if ( childProps.data ) {
+			Child.data = augment( Child.data || {}, childProps.data );
+		}
 
-		// Blacklisted properties don't extend the child, as they are part of the initialisation options
 		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) && !Child.prototype.hasOwnProperty( key ) ) {
+			if ( childProps.hasOwnProperty( key ) && !blacklisted[ key ] ) {
 				member = childProps[ key ];
 
 				// if this is a method that overwrites a prototype method, we may need

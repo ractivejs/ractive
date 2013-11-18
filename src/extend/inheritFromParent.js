@@ -1,27 +1,30 @@
 define([
-	'extend/extendable',
-	'extend/inheritable',
-	'extend/utils/clone'
+	'extend/registries',
+	'extend/initOptions',
+	'utils/create'
 ], function (
-	extendable,
-	inheritable,
-	clone
+	registries,
+	initOptions,
+	create
 ) {
 	
 	'use strict';
 
+	// This is where we inherit class-level options, such as `modifyArrays`
+	// or `append` or `twoway`, and registries such as `partials`
+
 	return function ( Child, Parent ) {
-		extendable.forEach( function ( property ) {
-			if ( Parent[ property ] ) {
-				Child[ property ] = clone( Parent[ property ] );
-			}
+		registries.forEach( function ( property ) {
+			Child[ property ] = create( Parent[ property ] );
 		});
 
-		inheritable.forEach( function ( property ) {
-			if ( Parent[ property ] !== undefined ) {
-				Child[ property ] = Parent[ property ];
-			}
+		initOptions.forEach( function ( property ) {
+			Child[ property ] = Parent[ property ];
 		});
+
+		if ( Parent.data ) {
+			Child.data = Parent.data;
+		}
 	};
 
 });

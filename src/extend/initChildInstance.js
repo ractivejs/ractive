@@ -1,41 +1,38 @@
 define([
-	'extend/extendable',
-	'extend/inheritable',
+	'extend/initOptions',
 	'extend/utils/clone',
 	'extend/utils/fillGaps',
+	'extend/wrapMethod',
 	'Ractive/initialise'
 ], function (
-	extendable,
-	inheritable,
+	initOptions,
 	clone,
 	fillGaps,
+	wrapMethod,
 	initialise
 ) {
 	
 	'use strict';
 
+	// The Child constructor contains the default init options for this class
+
 	return function ( child, Child, options ) {
 		
-		// Add template to options, if necessary
-		if ( !options.template && Child.template ) {
-			options.template = Child.template;
-		}
+		initOptions.forEach( function ( property ) {
+			var value = options[ property ], defaultValue = Child[ property ];
 
-		extendable.forEach( function ( property ) {
-			if ( !options[ property ] ) {
-				if ( Child[ property ] ) {
-					options[ property ] = clone( Child[ property ] );
-				}
-			} else {
-				fillGaps( options[ property ], Child[ property ] );
+			if ( typeof value === 'function' && typeof defaultValue === 'function' ) {
+				options[ property ] = wrapMethod( value, defaultValue );	
+			}
+
+			else if ( value === undefined && defaultValue !== undefined ) {
+				options[ property ] = defaultValue;
 			}
 		});
-		
-		inheritable.forEach( function ( property ) {
-			if ( options[ property ] === undefined && Child[ property ] !== undefined ) {
-				options[ property ] = Child[ property ];
-			}
-		});
+
+		if ( Child.data ) {
+			options.data = fillGaps( options.data || {}, Child.data );
+		}
 
 		if ( child.beforeInit ) {
 			child.beforeInit( options );
