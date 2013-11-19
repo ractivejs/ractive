@@ -843,6 +843,30 @@ define( function () {
 			}
 		});
 
+		test( 'Inverted sections aren\'t broken by unshift operations', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{^items}}no items{{/items}}{{#items}}{{.}}{{/items}}',
+				data: { items: [] }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'no items' );
+			ractive.get( 'items' ).unshift( 'foo' );
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+		});
+
+		test( 'Splice operations that try to remove more items than there are from an array are handled', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{.}}{{/items}}',
+				data: { items: [ 'a', 'b', 'c' ] }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'abc' );
+			ractive.get( 'items' ).splice( 2, 2 );
+			t.htmlEqual( fixture.innerHTML, 'ab' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
