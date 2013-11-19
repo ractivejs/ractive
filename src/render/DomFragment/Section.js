@@ -29,6 +29,7 @@ define([
 	// Section
 	DomSection = function ( options, docFrag ) {
 		this.type = types.SECTION;
+		this.inverted = !!options.descriptor.n;
 
 		this.fragments = [];
 		this.length = 0; // number of times this section is rendered

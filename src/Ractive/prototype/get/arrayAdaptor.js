@@ -31,7 +31,6 @@ define([
 		noop,
 		errorMessage;
 
-	// TODO remove this and the magic adaptor from the public API?
 
 	arrayAdaptor = {
 		filter: function ( ractive, object, keypath ) {
@@ -230,7 +229,7 @@ define([
 				}
 
 				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === types.SECTION && dependant.pNode ) {
+				else if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode ) {
 					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
 
 				} else {
