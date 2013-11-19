@@ -44,7 +44,8 @@ define([
 			width,
 			height,
 			loadHandler,
-			root;
+			root,
+			selectBinding;
 
 		this.type = types.ELEMENT;
 
@@ -140,9 +141,16 @@ define([
 				executeTransition( descriptor.t1, root, this, contextStack, true );
 			}
 
-			// Special case... a select may have had its value set before a matching
-			// option was rendered. This might be that option element
 			if ( this.node.tagName === 'OPTION' ) {
+				// Special case... if this option's parent select was previously
+				// empty, it's possible that it should initialise to the value of
+				// this option.
+				if ( this.pNode.tagName === 'SELECT' && ( selectBinding = this.pNode._ractive.binding ) ) { // it should be!
+					selectBinding.deferUpdate();
+				}
+
+				// Special case... a select may have had its value set before a matching
+				// option was rendered. This might be that option element
 				if ( this.node._ractive.value == this.pNode._ractive.value ) {
 					this.node.selected = true;
 				}

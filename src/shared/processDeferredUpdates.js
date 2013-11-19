@@ -11,13 +11,13 @@ define([ 'shared/getValueFromCheckboxes' ], function ( getValueFromCheckboxes ) 
 			 evaluator.update().deferred = false;
 		}
 
+		while ( ractive._defSelectValues.length ) {
+			ractive._defSelectValues.pop().deferredUpdate();
+		}
+
 		while ( ractive._defAttrs.length ) {
 			attribute = ractive._defAttrs.pop();
 			attribute.update().deferred = false;
-		}
-
-		while ( ractive._defSelectValues.length ) {
-			ractive._defSelectValues.pop().deferredUpdate();
 		}
 
 		while ( ractive._defCheckboxes.length ) {

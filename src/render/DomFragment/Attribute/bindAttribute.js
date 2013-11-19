@@ -242,6 +242,19 @@ define([
 			this.attr.value = value;
 			this.root.set( this.keypath, value );
 			this.attr.receiving = false;
+
+			return this;
+		},
+
+		deferUpdate: function () {
+			if ( this.deferred === true ) {
+				return;
+			}
+
+			// TODO we're hijacking an existing bit of functionality here...
+			// the whole deferred updates thing could use a spring clean
+			this.root._defAttrs.push( this );
+			this.deferred = true;
 		},
 
 		teardown: function () {
