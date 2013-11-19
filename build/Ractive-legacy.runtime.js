@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-17
+	Ractive - v0.3.8-pre - 2013-11-19
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1444,7 +1444,7 @@ var animate_animations = function (rAF) {
     }(animate_requestAnimationFrame);
 var utils_warn = function () {
         
-        if (typeof console !== undefined && console.warn) {
+        if (typeof console !== undefined && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
             return function () {
                 console.warn.apply(console, arguments);
             };
@@ -3421,6 +3421,258 @@ var Attribute_updateAttribute = function (isArray, namespaces) {
         };
         return updateAttribute;
     }(utils_isArray, config_namespaces);
+var utils_getStringMatch = function () {
+        
+        return function (string) {
+            var substr;
+            substr = this.str.substr(this.pos, string.length);
+            if (substr === string) {
+                this.pos += string.length;
+                return string;
+            }
+            return null;
+        };
+    }();
+var utils_allowWhitespace = function () {
+        
+        var leadingWhitespace = /^\s+/;
+        return function () {
+            var match = leadingWhitespace.exec(this.remaining());
+            if (!match) {
+                return null;
+            }
+            this.pos += match[0].length;
+            return match[0];
+        };
+    }();
+var utils_makeRegexMatcher = function () {
+        
+        return function (regex) {
+            return function (tokenizer) {
+                var match = regex.exec(tokenizer.str.substring(tokenizer.pos));
+                if (!match) {
+                    return null;
+                }
+                tokenizer.pos += match[0].length;
+                return match[1] || match[0];
+            };
+        };
+    }();
+var getStringLiteral_getEscapedChars = function () {
+        
+        return function (tokenizer) {
+            var chars = '', character;
+            character = getEscapedChar(tokenizer);
+            while (character) {
+                chars += character;
+                character = getEscapedChar(tokenizer);
+            }
+            return chars || null;
+        };
+        function getEscapedChar(tokenizer) {
+            var character;
+            if (!tokenizer.getStringMatch('\\')) {
+                return null;
+            }
+            character = tokenizer.str.charAt(tokenizer.pos);
+            tokenizer.pos += 1;
+            return character;
+        }
+    }();
+var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
+        
+        var getUnescapedDoubleQuotedChars = makeRegexMatcher(/^[^\\"]+/), getUnescapedSingleQuotedChars = makeRegexMatcher(/^[^\\']+/);
+        return function getQuotedString(tokenizer, singleQuotes) {
+            var start, string, escaped, unescaped, next, matcher;
+            start = tokenizer.pos;
+            string = '';
+            matcher = singleQuotes ? getUnescapedSingleQuotedChars : getUnescapedDoubleQuotedChars;
+            escaped = getEscapedChars(tokenizer);
+            if (escaped) {
+                string += escaped;
+            }
+            unescaped = matcher(tokenizer);
+            if (unescaped) {
+                string += unescaped;
+            }
+            if (!string) {
+                return '';
+            }
+            next = getQuotedString(tokenizer, singleQuotes);
+            while (next !== '') {
+                string += next;
+            }
+            return string;
+        };
+    }(utils_makeRegexMatcher, getStringLiteral_getEscapedChars);
+var getStringLiteral__getStringLiteral = function (types, getQuotedString) {
+        
+        return function (tokenizer) {
+            var start, string;
+            start = tokenizer.pos;
+            if (tokenizer.getStringMatch('"')) {
+                string = getQuotedString(tokenizer, false);
+                if (!tokenizer.getStringMatch('"')) {
+                    tokenizer.pos = start;
+                    return null;
+                }
+                return {
+                    t: types.STRING_LITERAL,
+                    v: string
+                };
+            }
+            if (tokenizer.getStringMatch('\'')) {
+                string = getQuotedString(tokenizer, true);
+                if (!tokenizer.getStringMatch('\'')) {
+                    tokenizer.pos = start;
+                    return null;
+                }
+                return {
+                    t: types.STRING_LITERAL,
+                    v: string
+                };
+            }
+            return null;
+        };
+    }(config_types, getStringLiteral_getQuotedString);
+var getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
+        
+        var getNumber = makeRegexMatcher(/^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/);
+        return function (tokenizer) {
+            var result;
+            if (result = getNumber(tokenizer)) {
+                return {
+                    t: types.NUMBER_LITERAL,
+                    v: result
+                };
+            }
+            return null;
+        };
+    }(config_types, utils_makeRegexMatcher);
+var shared_getName = function (makeRegexMatcher) {
+        
+        return makeRegexMatcher(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
+    }(utils_makeRegexMatcher);
+var shared_getKey = function (getStringLiteral, getNumberLiteral, getName) {
+        
+        var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+        return function (tokenizer) {
+            var token;
+            if (token = getStringLiteral(tokenizer)) {
+                return identifier.test(token.v) ? token.v : '"' + token.v.replace(/"/g, '\\"') + '"';
+            }
+            if (token = getNumberLiteral(tokenizer)) {
+                return token.v;
+            }
+            if (token = getName(tokenizer)) {
+                return token;
+            }
+        };
+    }(getStringLiteral__getStringLiteral, getLiteral_getNumberLiteral, shared_getName);
+var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLiteral, getKey) {
+        
+        var Tokenizer, specials, specialsPattern, numberPattern;
+        specials = {
+            'true': true,
+            'false': false,
+            'undefined': undefined,
+            'null': null
+        };
+        specialsPattern = new RegExp('^(?:' + Object.keys(specials).join('|') + ')');
+        numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+        Tokenizer = function (str) {
+            this.str = str;
+            this.pos = 0;
+            this.result = this.getToken();
+        };
+        Tokenizer.prototype = {
+            remaining: function () {
+                return this.str.substring(this.pos);
+            },
+            getStringMatch: getStringMatch,
+            getToken: function () {
+                this.allowWhitespace();
+                return this.getSpecial() || this.getNumber() || this.getString() || this.getObject() || this.getArray();
+            },
+            getSpecial: function () {
+                var match;
+                if (match = specialsPattern.exec(this.remaining())) {
+                    this.pos += match[0].length;
+                    return { v: specials[match[0]] };
+                }
+            },
+            getNumber: function () {
+                var match;
+                if (match = numberPattern.exec(this.remaining())) {
+                    this.pos += match[0].length;
+                    return { v: +match[0] };
+                }
+            },
+            getString: function () {
+                return getStringLiteral(this);
+            },
+            getObject: function () {
+                var result, pair;
+                if (!this.getStringMatch('{')) {
+                    return null;
+                }
+                result = {};
+                while (pair = getKeyValuePair(this)) {
+                    result[pair.key] = pair.value;
+                    this.allowWhitespace();
+                    if (this.getStringMatch('}')) {
+                        return { v: result };
+                    }
+                    if (!this.getStringMatch(',')) {
+                        return null;
+                    }
+                }
+                return null;
+            },
+            getArray: function () {
+                var result, valueToken;
+                if (!this.getStringMatch('[')) {
+                    return null;
+                }
+                result = [];
+                while (valueToken = this.getToken()) {
+                    result.push(valueToken.v);
+                    if (this.getStringMatch(']')) {
+                        return { v: result };
+                    }
+                    if (!this.getStringMatch(',')) {
+                        return null;
+                    }
+                }
+                return null;
+            },
+            allowWhitespace: allowWhitespace
+        };
+        function getKeyValuePair(tokenizer) {
+            var key, valueToken, pair;
+            tokenizer.allowWhitespace();
+            key = getKey(tokenizer);
+            if (!key) {
+                return null;
+            }
+            pair = { key: key };
+            tokenizer.allowWhitespace();
+            if (!tokenizer.getStringMatch(':')) {
+                return null;
+            }
+            tokenizer.allowWhitespace();
+            valueToken = tokenizer.getToken();
+            if (!valueToken) {
+                return null;
+            }
+            pair.value = valueToken.v;
+            return pair;
+        }
+        return function (str) {
+            var tokenizer = new Tokenizer(str);
+            return tokenizer.result;
+        };
+    }(utils_getStringMatch, utils_allowWhitespace, getStringLiteral__getStringLiteral, shared_getKey);
 var StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
         
         var StringInterpolator = function (options) {
@@ -3510,7 +3762,7 @@ var StringFragment_Text = function (types) {
         };
         return StringText;
     }(config_types);
-var StringFragment__StringFragment = function (types, initFragment, Interpolator, Section, Text, circular) {
+var StringFragment__StringFragment = function (types, parseJSON, initFragment, Interpolator, Section, Text, circular) {
         
         var StringFragment = function (options) {
             initFragment(this, options);
@@ -3578,19 +3830,17 @@ var StringFragment__StringFragment = function (types, initFragment, Interpolator
                 return this.items.join('');
             },
             toJSON: function () {
-                var value = this.getValue();
+                var value = this.getValue(), parsed;
                 if (typeof value === 'string') {
-                    try {
-                        value = JSON.parse(value);
-                    } catch (err) {
-                    }
+                    parsed = parseJSON(value);
+                    value = parsed ? parsed.v : value;
                 }
                 return value;
             }
         };
         circular.StringFragment = StringFragment;
         return StringFragment;
-    }(config_types, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
+    }(config_types, utils_parseJSON, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
 var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute, StringFragment) {
         
         var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
@@ -4068,11 +4318,8 @@ var Element_Transition = function (isClient, isNumeric, isArray, camelCase, Stri
         }
         return Transition;
     }(config_isClient, utils_isNumeric, utils_isArray, utils_camelCase, StringFragment__StringFragment);
-var Element_executeTransition = function (isClient, warn, Transition) {
+var Element_executeTransition = function (warn, Transition) {
         
-        if (!isClient) {
-            return;
-        }
         return function (descriptor, root, owner, contextStack, isIntro) {
             var transition, node, oldTransition;
             if (!root.transitionsEnabled) {
@@ -4097,7 +4344,45 @@ var Element_executeTransition = function (isClient, warn, Transition) {
                 }
             }
         };
-    }(config_isClient, utils_warn, Element_Transition);
+    }(utils_warn, Element_Transition);
+var Element_decorate = function (warn, StringFragment) {
+        
+        return function (descriptor, root, owner, contextStack) {
+            var name, args, frag, fn, errorMessage;
+            name = descriptor.n || descriptor;
+            fn = root.decorators[name];
+            if (fn) {
+                if (descriptor.a) {
+                    args = descriptor.a;
+                } else if (descriptor.d) {
+                    frag = new StringFragment({
+                        descriptor: descriptor.d,
+                        root: root,
+                        owner: owner,
+                        contextStack: contextStack
+                    });
+                    args = frag.toJSON();
+                    frag.teardown();
+                }
+                if (args) {
+                    args.unshift(owner.node);
+                    owner.decorator = fn.apply(root, args);
+                } else {
+                    owner.decorator = fn.call(root, owner.node);
+                }
+                if (!owner.decorator || !owner.decorator.teardown) {
+                    throw new Error('Decorator definition must return an object with a teardown method');
+                }
+            } else {
+                errorMessage = 'Missing decorator "' + descriptor.o + '"';
+                if (root.debug) {
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
+                }
+            }
+        };
+    }(utils_warn, StringFragment__StringFragment);
 var Element_addEventProxy = function (StringFragment) {
         
         var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
@@ -4191,10 +4476,20 @@ var Element_addEventProxy = function (StringFragment) {
             this.root.fire(this.n.toString(), event);
         };
         fireEventWithArgs = function (event) {
-            this.root.fire(this.n.toString(), event, this.a);
+            this.root.fire.apply(this.root, [
+                this.n.toString(),
+                event
+            ].concat(this.a));
         };
         fireEventWithDynamicArgs = function (event) {
-            this.root.fire(this.n.toString(), event, this.d.toJSON());
+            var args = this.d.toJSON();
+            if (typeof args === 'string') {
+                args = args.substr(1, args.length - 2);
+            }
+            this.root.fire.apply(this.root, [
+                this.n.toString(),
+                event
+            ].concat(args));
         };
         genericHandler = function (event) {
             var storage = this._ractive;
@@ -4236,10 +4531,10 @@ var Element_addEventProxies = function (addEventProxy) {
             }
         };
     }(Element_addEventProxy);
-var Element__Element = function (types, create, defineProperty, voidElementNames, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, addEventProxies) {
+var Element__Element = function (types, create, defineProperty, voidElementNames, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies) {
         
         var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, descriptor, namespace, attributes, decoratorFn, errorMessage, width, height, loadHandler, root;
+            var self = this, parentFragment, descriptor, namespace, attributes, width, height, loadHandler, root;
             this.type = types.ELEMENT;
             parentFragment = this.parentFragment = options.parentFragment;
             descriptor = this.descriptor = options.descriptor;
@@ -4279,20 +4574,7 @@ var Element__Element = function (types, create, defineProperty, voidElementNames
                 }
                 docFrag.appendChild(this.node);
                 if (descriptor.o) {
-                    decoratorFn = this.root.decorators[descriptor.o];
-                    if (decoratorFn) {
-                        this.decorator = decoratorFn.call(this.root, this.node);
-                        if (!this.decorator || !this.decorator.teardown) {
-                            throw new Error('Decorator definition must return an object with a teardown method');
-                        }
-                    } else {
-                        errorMessage = 'Missing decorator "' + descriptor.o + '"';
-                        if (this.root.debug) {
-                            throw new Error(errorMessage);
-                        } else {
-                            warn(errorMessage);
-                        }
-                    }
+                    decorate(descriptor.o, root, this, parentFragment.contextStack);
                 }
                 if (descriptor.t1) {
                     executeTransition(descriptor.t1, root, this, parentFragment.contextStack, true);
@@ -4375,7 +4657,7 @@ var Element__Element = function (types, create, defineProperty, voidElementNames
             }
         };
         return DomElement;
-    }(config_types, utils_create, utils_defineProperty, config_voidElementNames, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_addEventProxies);
+    }(config_types, utils_create, utils_defineProperty, config_voidElementNames, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_decorate, Element_addEventProxies);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
 var utils_stripHtmlComments = function () {
@@ -4449,19 +4731,6 @@ var utils_stripCommentTokens = function (types) {
             return tokens;
         };
     }(config_types);
-var utils_makeRegexMatcher = function () {
-        
-        return function (regex) {
-            return function (tokenizer) {
-                var match = regex.exec(tokenizer.str.substring(tokenizer.pos));
-                if (!match) {
-                    return null;
-                }
-                tokenizer.pos += match[0].length;
-                return match[1] || match[0];
-            };
-        };
-    }();
 var getMustache_getDelimiterChange = function (makeRegexMatcher) {
         
         var getDelimiter = makeRegexMatcher(/^[^\s=]+/);
@@ -4843,30 +5112,6 @@ var getText__getText = function (types, getLowestIndex) {
             };
         };
     }(config_types, utils_getLowestIndex);
-var getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
-        
-        var getExponent = makeRegexMatcher(/^[eE][\-+]?[0-9]+/), getFraction = makeRegexMatcher(/^\.[0-9]+/), getInteger = makeRegexMatcher(/^(0|[1-9][0-9]*)/);
-        return function (tokenizer) {
-            var start, result;
-            start = tokenizer.pos;
-            if (result = getFraction(tokenizer)) {
-                return {
-                    t: types.NUMBER_LITERAL,
-                    v: result
-                };
-            }
-            result = getInteger(tokenizer);
-            if (result === null) {
-                return null;
-            }
-            result += getFraction(tokenizer) || '';
-            result += getExponent(tokenizer) || '';
-            return {
-                t: types.NUMBER_LITERAL,
-                v: result
-            };
-        };
-    }(config_types, utils_makeRegexMatcher);
 var getLiteral_getBooleanLiteral = function (types) {
         
         return function (tokenizer) {
@@ -4888,88 +5133,7 @@ var getLiteral_getBooleanLiteral = function (types) {
             return null;
         };
     }(config_types);
-var getStringLiteral_getEscapedChars = function () {
-        
-        return function (tokenizer) {
-            var chars = '', character;
-            character = getEscapedChar(tokenizer);
-            while (character) {
-                chars += character;
-                character = getEscapedChar(tokenizer);
-            }
-            return chars || null;
-        };
-        function getEscapedChar(tokenizer) {
-            var character;
-            if (!tokenizer.getStringMatch('\\')) {
-                return null;
-            }
-            character = tokenizer.str.charAt(tokenizer.pos);
-            tokenizer.pos += 1;
-            return character;
-        }
-    }();
-var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
-        
-        var getUnescapedDoubleQuotedChars = makeRegexMatcher(/^[^\\"]+/), getUnescapedSingleQuotedChars = makeRegexMatcher(/^[^\\']+/);
-        return function getQuotedString(tokenizer, singleQuotes) {
-            var start, string, escaped, unescaped, next, matcher;
-            start = tokenizer.pos;
-            string = '';
-            matcher = singleQuotes ? getUnescapedSingleQuotedChars : getUnescapedDoubleQuotedChars;
-            escaped = getEscapedChars(tokenizer);
-            if (escaped) {
-                string += escaped;
-            }
-            unescaped = matcher(tokenizer);
-            if (unescaped) {
-                string += unescaped;
-            }
-            if (!string) {
-                return '';
-            }
-            next = getQuotedString(tokenizer, singleQuotes);
-            while (next !== '') {
-                string += next;
-            }
-            return string;
-        };
-    }(utils_makeRegexMatcher, getStringLiteral_getEscapedChars);
-var getStringLiteral__getStringLiteral = function (types, getQuotedString) {
-        
-        return function (tokenizer) {
-            var start, string;
-            start = tokenizer.pos;
-            if (tokenizer.getStringMatch('"')) {
-                string = getQuotedString(tokenizer, false);
-                if (!tokenizer.getStringMatch('"')) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                return {
-                    t: types.STRING_LITERAL,
-                    v: string
-                };
-            }
-            if (tokenizer.getStringMatch('\'')) {
-                string = getQuotedString(tokenizer, true);
-                if (!tokenizer.getStringMatch('\'')) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                return {
-                    t: types.STRING_LITERAL,
-                    v: string
-                };
-            }
-            return null;
-        };
-    }(config_types, getStringLiteral_getQuotedString);
-var shared_getName = function (makeRegexMatcher) {
-        
-        return makeRegexMatcher(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
-    }(utils_makeRegexMatcher);
-var getObjectLiteral_getKeyValuePair = function (types, getName, getStringLiteral, getNumberLiteral) {
+var getObjectLiteral_getKeyValuePair = function (types, getKey) {
         
         return function (tokenizer) {
             var start, key, value;
@@ -4997,10 +5161,7 @@ var getObjectLiteral_getKeyValuePair = function (types, getName, getStringLitera
                 v: value
             };
         };
-        function getKey(tokenizer) {
-            return getName(tokenizer) || getStringLiteral(tokenizer) || getNumberLiteral(tokenizer);
-        }
-    }(config_types, shared_getName, getStringLiteral__getStringLiteral, getLiteral_getNumberLiteral);
+    }(config_types, shared_getKey);
 var getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
         
         return function getKeyValuePairs(tokenizer) {
@@ -5383,30 +5544,6 @@ var getExpression__getExpression = function (getConditional) {
             return getConditional(this);
         };
     }(getExpression_getConditional);
-var utils_allowWhitespace = function () {
-        
-        var leadingWhitespace = /^\s+/;
-        return function () {
-            var match = leadingWhitespace.exec(this.remaining());
-            if (!match) {
-                return null;
-            }
-            this.pos += match[0].length;
-            return match[0];
-        };
-    }();
-var utils_getStringMatch = function () {
-        
-        return function (string) {
-            var substr;
-            substr = this.str.substr(this.pos, string.length);
-            if (substr === string) {
-                this.pos += string.length;
-                return string;
-            }
-            return null;
-        };
-    }();
 var Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch) {
         
         var Tokenizer;
@@ -5882,7 +6019,7 @@ var getComment__getComment = function (types, CommentStub) {
     }(config_types, CommentStub__CommentStub);
 var ExpressionStub__ExpressionStub = function (types, isObject) {
         
-        var ExpressionStub, getRefs, stringify, stringifyKey, identifier;
+        var ExpressionStub, getRefs, stringify;
         ExpressionStub = function (token) {
             this.refs = [];
             getRefs(token, this.refs);
@@ -5944,7 +6081,7 @@ var ExpressionStub__ExpressionStub = function (types, isObject) {
             case types.OBJECT_LITERAL:
                 return '{' + (token.m ? token.m.map(map).join(',') : '') + '}';
             case types.KEY_VALUE_PAIR:
-                return stringifyKey(token.k) + ':' + stringify(token.v, refs);
+                return token.k + ':' + stringify(token.v, refs);
             case types.PREFIX_OPERATOR:
                 return (token.s === 'typeof' ? 'typeof ' : token.s) + stringify(token.o, refs);
             case types.INFIX_OPERATOR:
@@ -5965,16 +6102,6 @@ var ExpressionStub__ExpressionStub = function (types, isObject) {
                 throw new Error('Could not stringify expression token. This error is unexpected');
             }
         };
-        stringifyKey = function (key) {
-            if (key.t === types.STRING_LITERAL) {
-                return identifier.test(key.v) ? key.v : '"' + key.v.replace(/"/g, '\\"') + '"';
-            }
-            if (key.t === types.NUMBER_LITERAL) {
-                return key.v;
-            }
-            return key;
-        };
-        identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
         return ExpressionStub;
     }(config_types, utils_isObject);
 var MustacheStub__MustacheStub = function (types, ExpressionStub) {
@@ -6216,10 +6343,10 @@ var utils_filterAttributes = function (isArray) {
             return result;
         }
     }(utils_isArray);
-var utils_processDirective = function (types) {
+var utils_processDirective = function (types, parseJSON) {
         
         return function (directive) {
-            var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs;
+            var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed, item;
             throwError = function () {
                 throw new Error('Illegal directive');
             };
@@ -6263,18 +6390,33 @@ var utils_processDirective = function (types) {
             }
             if (directiveArgs.length) {
                 if (directiveArgs.length === 1 && directiveArgs[0].type === types.TEXT) {
-                    try {
-                        processed.args = JSON.parse(directiveArgs[0].value);
-                    } catch (err) {
-                        processed.args = directiveArgs[0].value;
-                    }
+                    parsed = parseJSON('[' + directiveArgs[0].value + ']');
+                    processed.args = parsed ? parsed.v : directiveArgs[0].value;
                 } else {
+                    item = directiveArgs[0];
+                    if (item.type === types.TEXT) {
+                        item.value = '[' + item.value;
+                    } else {
+                        directiveArgs.unshift({
+                            type: types.TEXT,
+                            value: '['
+                        });
+                    }
+                    item = directiveArgs[directiveArgs.length - 1];
+                    if (item.type === types.TEXT) {
+                        item.value += ']';
+                    } else {
+                        directiveArgs.push({
+                            type: types.TEXT,
+                            value: ']'
+                        });
+                    }
                     processed.dynamicArgs = directiveArgs;
                 }
             }
             return processed;
         };
-    }(config_types);
+    }(config_types, utils_parseJSON);
 var StringStub_StringParser = function (getText, getMustache) {
         
         var StringParser;
@@ -6409,7 +6551,7 @@ var ElementStub_toJSON = function (types, jsonifyStubs, jsonifyDirective) {
                 json.t2 = jsonifyDirective(this.outro);
             }
             if (this.decorator) {
-                json.o = this.decorator;
+                json.o = jsonifyDirective(this.decorator);
             }
             this['json_' + noStringify] = json;
             return json;
@@ -6430,7 +6572,7 @@ var ElementStub_toString = function (stringifyStubs, voidElementNames) {
             if (htmlElements.indexOf(this.tag.toLowerCase()) === -1) {
                 return this.str = false;
             }
-            if (this.proxies || this.intro || this.outro) {
+            if (this.proxies || this.intro || this.outro || this.decorator) {
                 return this.str = false;
             }
             fragStr = stringifyStubs(this.items);
@@ -6519,7 +6661,7 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, camelCas
                     this.outro = processDirective(filtered.outro);
                 }
                 if (filtered.decorator) {
-                    this.decorator = filtered.decorator.value[0].value;
+                    this.decorator = processDirective(filtered.decorator);
                 }
             }
             if (firstToken.doctype) {
@@ -6828,7 +6970,7 @@ var Component_ComponentParameter = function (StringFragment) {
         };
         return ComponentParameter;
     }(StringFragment__StringFragment);
-var Component__Component = function (types, warn, resolveRef, ComponentParameter) {
+var Component__Component = function (types, warn, parseJSON, resolveRef, ComponentParameter) {
         
         var DomComponent;
         DomComponent = function (options, docFrag) {
@@ -6846,13 +6988,10 @@ var Component__Component = function (types, warn, resolveRef, ComponentParameter
             mappings = [];
             this.complexParameters = [];
             processKeyValuePair = function (key, value) {
-                var parameter;
+                var parameter, parsed;
                 if (typeof value === 'string') {
-                    try {
-                        data[key] = JSON.parse(value);
-                    } catch (err) {
-                        data[key] = value;
-                    }
+                    parsed = parseJSON(value);
+                    data[key] = parsed ? parsed.v : value;
                     return;
                 }
                 if (value === null) {
@@ -6978,7 +7117,7 @@ var Component__Component = function (types, warn, resolveRef, ComponentParameter
             }
         };
         return DomComponent;
-    }(config_types, utils_warn, shared_resolveRef, Component_ComponentParameter);
+    }(config_types, utils_warn, utils_parseJSON, shared_resolveRef, Component_ComponentParameter);
 var DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
@@ -7220,6 +7359,195 @@ var prototype__prototype = function (get, set, update, updateModel, animate, on,
             toggle: toggle
         };
     }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle);
+var extend_registries = function () {
+        
+        return [
+            'partials',
+            'transitions',
+            'events',
+            'components',
+            'decorators'
+        ];
+    }();
+var extend_initOptions = function () {
+        
+        return [
+            'el',
+            'template',
+            'complete',
+            'modifyArrays',
+            'magic',
+            'twoway',
+            'lazy',
+            'append',
+            'preserveWhitespace',
+            'sanitize',
+            'stripComments',
+            'noIntro',
+            'transitionsEnabled'
+        ];
+    }();
+var extend_inheritFromParent = function (registries, initOptions, create) {
+        
+        return function (Child, Parent) {
+            registries.forEach(function (property) {
+                Child[property] = create(Parent[property]);
+            });
+            initOptions.forEach(function (property) {
+                Child[property] = Parent[property];
+            });
+            if (Parent.data) {
+                Child.data = Parent.data;
+            }
+        };
+    }(extend_registries, extend_initOptions, utils_create);
+var extend_wrapMethod = function () {
+        
+        return function (method, superMethod) {
+            if (/_super/.test(method)) {
+                return function () {
+                    var _super = this._super, result;
+                    this._super = superMethod;
+                    result = method.apply(this, arguments);
+                    this._super = _super;
+                    return result;
+                };
+            } else {
+                return method;
+            }
+        };
+    }();
+var utils_augment = function () {
+        
+        return function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+    }();
+var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod, augment) {
+        
+        var blacklist, blacklisted;
+        blacklist = registries.concat(initOptions);
+        blacklisted = {};
+        blacklist.forEach(function (property) {
+            blacklisted[property] = true;
+        });
+        return function (Child, childProps) {
+            var key, member;
+            registries.forEach(function (property) {
+                var value = childProps[property];
+                if (value) {
+                    if (Child[property]) {
+                        augment(Child[property], value);
+                    }
+                }
+            });
+            initOptions.forEach(function (property) {
+                var value = childProps[property];
+                if (value !== undefined) {
+                    if (typeof value === 'function' && typeof Child[property] === 'function') {
+                        Child[property] = wrapMethod(value, Child[property]);
+                    } else {
+                        Child[property] = childProps[property];
+                    }
+                }
+            });
+            if (childProps.data) {
+                Child.data = augment(Child.data || {}, childProps.data);
+            }
+            for (key in childProps) {
+                if (childProps.hasOwnProperty(key) && !blacklisted[key]) {
+                    member = childProps[key];
+                    if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
+                        Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
+                    } else {
+                        Child.prototype[key] = member;
+                    }
+                }
+            }
+        };
+    }(extend_registries, extend_initOptions, extend_wrapMethod, utils_augment);
+var extend_extractInlinePartials = function (isObject, augment) {
+        
+        return function (Child, childProps) {
+            if (isObject(Child.template)) {
+                if (!Child.partials) {
+                    Child.partials = {};
+                }
+                augment(Child.partials, Child.template.partials);
+                if (childProps.partials) {
+                    augment(Child.partials, childProps.partials);
+                }
+                Child.template = Child.template.main;
+            }
+        };
+    }(utils_isObject, utils_augment);
+var extend_conditionallyParseTemplate = function (errors, isClient, parse) {
+        
+        return function (Child) {
+            var templateEl;
+            if (typeof Child.template === 'string') {
+                if (!parse) {
+                    throw new Error(errors.missingParser);
+                }
+                if (Child.template.charAt(0) === '#' && isClient) {
+                    templateEl = document.getElementById(Child.template.substring(1));
+                    if (templateEl && templateEl.tagName === 'SCRIPT') {
+                        Child.template = parse(templateEl.innerHTML, Child);
+                    } else {
+                        throw new Error('Could not find template element (' + Child.template + ')');
+                    }
+                } else {
+                    Child.template = parse(Child.template, Child);
+                }
+            }
+        };
+    }(config_errors, config_isClient, parse__parse);
+var extend_conditionallyParsePartials = function (errors, parse) {
+        
+        return function (Child) {
+            var key;
+            if (Child.partials) {
+                for (key in Child.partials) {
+                    if (Child.partials.hasOwnProperty(key) && typeof Child.partials[key] === 'string') {
+                        if (!parse) {
+                            throw new Error(errors.missingParser);
+                        }
+                        Child.partials[key] = parse(Child.partials[key], Child);
+                    }
+                }
+            }
+        };
+    }(config_errors, parse__parse);
+var utils_clone = function () {
+        
+        return function (source) {
+            var target = {}, key;
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+    }();
+var utils_fillGaps = function () {
+        
+        return function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+    }();
 var utils_extend = function () {
         
         return function (target) {
@@ -7410,18 +7738,43 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
     }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, get_magicAdaptor, parse__parse);
-var extend__extend = function (errors, create, isClient, isObject, parse, initialise, adaptorRegistry) {
+var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMethod, initialise) {
         
-        var extend, fillGaps, clone, augment, inheritFromParent, wrapMethod, inheritFromChildProps, conditionallyParseTemplate, extractInlinePartials, conditionallyParsePartials, initChildInstance, extendable, inheritable, blacklist;
-        extend = function (childProps) {
+        return function (child, Child, options) {
+            initOptions.forEach(function (property) {
+                var value = options[property], defaultValue = Child[property];
+                if (typeof value === 'function' && typeof defaultValue === 'function') {
+                    options[property] = wrapMethod(value, defaultValue);
+                } else if (value === undefined && defaultValue !== undefined) {
+                    options[property] = defaultValue;
+                }
+            });
+            if (Child.data) {
+                options.data = fillGaps(options.data || {}, Child.data);
+            }
+            if (child.beforeInit) {
+                child.beforeInit(options);
+            }
+            initialise(child, options);
+            if (child.init) {
+                child.init(options);
+            }
+        };
+    }(extend_initOptions, utils_clone, utils_fillGaps, extend_wrapMethod, Ractive_initialise);
+var extend__extend = function (create, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
+        
+        var Ractive;
+        circular.push(function () {
+            Ractive = circular.Ractive;
+        });
+        return function (childProps) {
             var Parent = this, Child;
             Child = function (options) {
                 initChildInstance(this, Child, options || {});
             };
             Child.prototype = create(Parent.prototype);
-            if (Parent.adaptors !== adaptorRegistry) {
-                inheritFromParent(Child, Parent);
-            }
+            Child.prototype.constructor = Child;
+            inheritFromParent(Child, Parent);
             inheritFromChildProps(Child, childProps);
             conditionallyParseTemplate(Child);
             extractInlinePartials(Child, childProps);
@@ -7429,185 +7782,7 @@ var extend__extend = function (errors, create, isClient, isObject, parse, initia
             Child.extend = Parent.extend;
             return Child;
         };
-        extendable = [
-            'data',
-            'partials',
-            'transitions',
-            'eventDefinitions',
-            'components',
-            'decorators'
-        ];
-        inheritable = [
-            'el',
-            'template',
-            'complete',
-            'modifyArrays',
-            'twoway',
-            'lazy',
-            'append',
-            'preserveWhitespace',
-            'sanitize',
-            'noIntro',
-            'transitionsEnabled'
-        ];
-        blacklist = {};
-        extendable.concat(inheritable).forEach(function (prop) {
-            blacklist[prop] = true;
-        });
-        inheritFromParent = function (Child, Parent) {
-            extendable.forEach(function (property) {
-                if (Parent[property]) {
-                    Child[property] = clone(Parent[property]);
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (Parent[property] !== undefined) {
-                    Child[property] = Parent[property];
-                }
-            });
-        };
-        wrapMethod = function (method, superMethod) {
-            if (/_super/.test(method)) {
-                return function () {
-                    var _super = this._super, result;
-                    this._super = superMethod;
-                    result = method.apply(this, arguments);
-                    this._super = _super;
-                    return result;
-                };
-            } else {
-                return method;
-            }
-        };
-        inheritFromChildProps = function (Child, childProps) {
-            var key, member;
-            extendable.forEach(function (property) {
-                var value = childProps[property];
-                if (value) {
-                    if (Child[property]) {
-                        augment(Child[property], value);
-                    } else {
-                        Child[property] = value;
-                    }
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (childProps[property] !== undefined) {
-                    Child[property] = childProps[property];
-                }
-            });
-            for (key in childProps) {
-                if (childProps.hasOwnProperty(key) && !Child.prototype.hasOwnProperty(key) && !blacklist[key]) {
-                    member = childProps[key];
-                    if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
-                        Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
-                    } else {
-                        Child.prototype[key] = member;
-                    }
-                }
-            }
-        };
-        conditionallyParseTemplate = function (Child) {
-            var templateEl;
-            if (typeof Child.template === 'string') {
-                if (!parse) {
-                    throw new Error(errors.missingParser);
-                }
-                if (Child.template.charAt(0) === '#' && isClient) {
-                    templateEl = document.getElementById(Child.template.substring(1));
-                    if (templateEl && templateEl.tagName === 'SCRIPT') {
-                        Child.template = parse(templateEl.innerHTML, Child);
-                    } else {
-                        throw new Error('Could not find template element (' + Child.template + ')');
-                    }
-                } else {
-                    Child.template = parse(Child.template, Child);
-                }
-            }
-        };
-        extractInlinePartials = function (Child, childProps) {
-            if (isObject(Child.template)) {
-                if (!Child.partials) {
-                    Child.partials = {};
-                }
-                augment(Child.partials, Child.template.partials);
-                if (childProps.partials) {
-                    augment(Child.partials, childProps.partials);
-                }
-                Child.template = Child.template.main;
-            }
-        };
-        conditionallyParsePartials = function (Child) {
-            var key, partial;
-            if (Child.partials) {
-                for (key in Child.partials) {
-                    if (Child.partials.hasOwnProperty(key)) {
-                        if (typeof Child.partials[key] === 'string') {
-                            if (!parse) {
-                                throw new Error(errors.missingParser);
-                            }
-                            partial = parse(Child.partials[key], Child);
-                        } else {
-                            partial = Child.partials[key];
-                        }
-                        Child.partials[key] = partial;
-                    }
-                }
-            }
-        };
-        initChildInstance = function (child, Child, options) {
-            if (!options.template && Child.template) {
-                options.template = Child.template;
-            }
-            extendable.forEach(function (property) {
-                if (!options[property]) {
-                    if (Child[property]) {
-                        options[property] = clone(Child[property]);
-                    }
-                } else {
-                    fillGaps(options[property], Child[property]);
-                }
-            });
-            inheritable.forEach(function (property) {
-                if (options[property] === undefined && Child[property] !== undefined) {
-                    options[property] = Child[property];
-                }
-            });
-            if (child.beforeInit) {
-                child.beforeInit.call(child, options);
-            }
-            initialise(child, options);
-            if (child.init) {
-                child.init.call(child, options);
-            }
-        };
-        fillGaps = function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-        };
-        clone = function (source) {
-            var target = {}, key;
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-            return target;
-        };
-        augment = function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-        };
-        return extend;
-    }(config_errors, utils_create, config_isClient, utils_isObject, parse__parse, Ractive_initialise, registries_adaptors);
+    }(utils_create, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
 var Ractive__Ractive = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
