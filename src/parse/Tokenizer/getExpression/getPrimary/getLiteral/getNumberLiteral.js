@@ -8,36 +8,20 @@ define([
 	
 	'use strict';
 
-	var getExponent = makeRegexMatcher( /^[eE][\-+]?[0-9]+/ ),
-		getFraction = makeRegexMatcher( /^\.[0-9]+/ ),
-		getInteger = makeRegexMatcher( /^(0|[1-9][0-9]*)/ );
+	// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
+	var getNumber = makeRegexMatcher( /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/ );
 
 	return function ( tokenizer ) {
-		var start, result;
+		var result;
 
-		start = tokenizer.pos;
-
-		// special case - we may have a decimal without a literal zero (because
-		// some programmers are plonkers)
-		if ( result = getFraction( tokenizer ) ) {
+		if ( result = getNumber( tokenizer ) ) {
 			return {
 				t: types.NUMBER_LITERAL,
 				v: result
 			};
 		}
 
-		result = getInteger( tokenizer );
-		if ( result === null ) {
-			return null;
-		}
-
-		result += getFraction( tokenizer ) || '';
-		result += getExponent( tokenizer ) || '';
-
-		return {
-			t: types.NUMBER_LITERAL,
-			v: result
-		};
+		return null;
 	};
 
 });
