@@ -505,12 +505,12 @@ var shared_processDeferredUpdates = function (getValueFromCheckboxes) {
                 evaluator = ractive._defEvals.pop();
                 evaluator.update().deferred = false;
             }
+            while (ractive._defSelectValues.length) {
+                ractive._defSelectValues.pop().deferredUpdate();
+            }
             while (ractive._defAttrs.length) {
                 attribute = ractive._defAttrs.pop();
                 attribute.update().deferred = false;
-            }
-            while (ractive._defSelectValues.length) {
-                ractive._defSelectValues.pop().deferredUpdate();
             }
             while (ractive._defCheckboxes.length) {
                 keypath = ractive._defCheckboxes.pop();
@@ -3138,6 +3138,14 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumer
                 this.attr.value = value;
                 this.root.set(this.keypath, value);
                 this.attr.receiving = false;
+                return this;
+            },
+            deferUpdate: function () {
+                if (this.deferred === true) {
+                    return;
+                }
+                this.root._defAttrs.push(this);
+                this.deferred = true;
             },
             teardown: function () {
                 this.node.removeEventListener('change', updateModel, false);
@@ -4552,7 +4560,7 @@ var Element_addEventProxies = function (addEventProxy) {
 var Element__Element = function (types, namespaces, voidElementNames, create, defineProperty, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies, enforceCase) {
         
         var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root;
+            var self = this, parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding;
             this.type = types.ELEMENT;
             parentFragment = this.parentFragment = options.parentFragment;
             contextStack = parentFragment.contextStack;
@@ -4608,6 +4616,9 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                     executeTransition(descriptor.t1, root, this, contextStack, true);
                 }
                 if (this.node.tagName === 'OPTION') {
+                    if (this.pNode.tagName === 'SELECT' && (selectBinding = this.pNode._ractive.binding)) {
+                        selectBinding.deferUpdate();
+                    }
                     if (this.node._ractive.value == this.pNode._ractive.value) {
                         this.node.selected = true;
                     }
