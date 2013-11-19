@@ -304,6 +304,21 @@ define( function () {
 				name: 'XML namespaces are handled',
 				template: '<fb:like href="{{href}}" send="true" show_faces="false"></fb:like>',
 				parsed: [{t:7,e:'fb:like',a:{href:[{t:2,r:'href'}],send:'true',show_faces:'false'}}]
+			},
+			{
+				name: 'Basic decorator',
+				template: '<div decorator="foo">{{bar}}</div>',
+				parsed: [{t:7,e:'div',o:'foo',f:[{t:2,r:'bar'}]}]
+			},
+			{
+				name: 'Decorator with arguments',
+				template: '<div decorator="foo:1,2,3">{{bar}}</div>',
+				parsed: [{t:7,e:'div',o:{n:'foo',a:[1,2,3]},f:[{t:2,r:'bar'}]}]
+			},
+			{
+				name: 'Decorator with dynamic arguments',
+				template: '<div decorator="foo:{{baz}}">{{bar}}</div>',
+				parsed: [{t:7,e:'div',o:{n:'foo',d:['[',{t:2,r:'baz'},']']},f:[{t:2,r:'bar'}]}]
 			}
 		];
 

@@ -1,19 +1,12 @@
 define([
-	'config/isClient',
 	'utils/warn',
 	'render/DomFragment/Element/Transition'
 ], function (
-	isClient,
 	warn,
 	Transition
 ) {
 	
 	'use strict';
-
-	if ( !isClient ) {
-		// not relevant server-side
-		return;
-	}
 
 	return function ( descriptor, root, owner, contextStack, isIntro ) {
 		var transition,

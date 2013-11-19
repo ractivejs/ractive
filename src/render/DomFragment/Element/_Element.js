@@ -9,6 +9,7 @@ define([
 	'render/DomFragment/Element/appendElementChildren',
 	'render/DomFragment/Element/bindElement',
 	'render/DomFragment/Element/executeTransition',
+	'render/DomFragment/Element/decorate',
 	'render/DomFragment/Element/addEventProxies'
 ], function (
 	types,
@@ -21,6 +22,7 @@ define([
 	appendElementChildren,
 	bindElement,
 	executeTransition,
+	decorate,
 	addEventProxies
 ) {
 	
@@ -33,8 +35,6 @@ define([
 			descriptor,
 			namespace,
 			attributes,
-			decoratorFn,
-			errorMessage,
 			width,
 			height,
 			loadHandler,
@@ -111,23 +111,7 @@ define([
 
 			// apply decorator(s)
 			if ( descriptor.o ) {
-				decoratorFn = this.root.decorators[ descriptor.o ];
-
-				if ( decoratorFn ) {
-					this.decorator = decoratorFn.call( this.root, this.node );
-
-					if ( !this.decorator || !this.decorator.teardown ) {
-						throw new Error( 'Decorator definition must return an object with a teardown method' );
-					}
-				} else {
-					errorMessage = 'Missing decorator "' + descriptor.o + '"';
-					
-					if ( this.root.debug ) {
-						throw new Error( errorMessage );
-					} else {
-						warn( errorMessage );
-					}
-				}
+				decorate( descriptor.o, root, this, parentFragment.contextStack );
 			}
 
 			// trigger intro transition

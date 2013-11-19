@@ -106,7 +106,9 @@ define([
 			if ( filtered.decorator ) {
 				// TODO figure out the syntax for decorators - can we have multiple
 				// decorators? Decorators with arguments?
-				this.decorator = filtered.decorator.value[0].value;
+				
+				//this.decorator = filtered.decorator.value[0].value;
+				this.decorator = processDirective( filtered.decorator );
 			}
 		}
 		

@@ -32,8 +32,8 @@ define([
 			return ( this.str = false );
 		}
 
-		// do we have proxies or transitions? if so we can't use innerHTML
-		if ( this.proxies || this.intro || this.outro ) {
+		// do we have proxies or transitions or a decorator? if so we can't use innerHTML
+		if ( this.proxies || this.intro || this.outro || this.decorator ) {
 			return ( this.str = false );
 		}
 

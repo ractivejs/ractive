@@ -80,7 +80,7 @@ define([
 		}
 
 		if ( this.decorator ) {
-			json.o = this.decorator;
+			json.o = jsonifyDirective( this.decorator );
 		}
 
 		this[ 'json_' + noStringify ] = json;
