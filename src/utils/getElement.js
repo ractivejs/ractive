@@ -25,7 +25,7 @@ define( function () {
 			}
 
 			// did it work?
-			if ( output.nodeType ) {
+			if ( output && output.nodeType ) {
 				return output;
 			}
 		}
