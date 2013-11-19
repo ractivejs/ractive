@@ -81,11 +81,6 @@ define([
 
 		// special cases
 		if ( this.name === 'value' ) {
-			
-			// in some cases we will need to store the node's intended value, as node.value
-			// is always a string. For that, we need to add a place to store it
-			options.element.ractify();
-
 			this.isValueAttribute = true;
 
 			// TODO need to wait until afterwards to determine type, in case we
@@ -237,7 +232,7 @@ define([
 			}
 
 			if ( attribute.name === 'value' ) {
-				attribute.element.ractify().value = options.value;
+				node._ractive.value = options.value;
 			}
 		}
 

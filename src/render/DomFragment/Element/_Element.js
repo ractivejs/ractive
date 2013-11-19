@@ -36,6 +36,7 @@ define([
 
 		var self = this,
 			parentFragment,
+			contextStack,
 			descriptor,
 			namespace,
 			name,
@@ -49,6 +50,7 @@ define([
 
 		// stuff we'll need later
 		parentFragment = this.parentFragment = options.parentFragment;
+		contextStack = parentFragment.contextStack;
 		descriptor = this.descriptor = options.descriptor;
 
 		this.root = root = parentFragment.root;
@@ -67,6 +69,17 @@ define([
 
 			// create the DOM node
 			this.node = document.createElementNS( namespace, name );
+
+			// Add _ractive property to the node - we use this object to store stuff
+			// related to proxy events, two-way bindings etc
+			defineProperty( this.node, '_ractive', {
+				value: {
+					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
+					index: parentFragment.indexRefs,
+					events: create( null ),
+					root: root
+				}
+			});
 		}
 
 
@@ -119,12 +132,12 @@ define([
 
 			// apply decorator(s)
 			if ( descriptor.o ) {
-				decorate( descriptor.o, root, this, parentFragment.contextStack );
+				decorate( descriptor.o, root, this, contextStack );
 			}
 
 			// trigger intro transition
 			if ( descriptor.t1 ) {
-				executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
+				executeTransition( descriptor.t1, root, this, contextStack, true );
 			}
 
 			// Special case... a select may have had its value set before a matching
@@ -213,23 +226,6 @@ define([
 			}
 
 			return str;
-		},
-
-		ractify: function () {
-			var contextStack = this.parentFragment.contextStack;
-
-			if ( !this.node._ractive ) {
-				defineProperty( this.node, '_ractive', {
-					value: {
-						keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
-						index: this.parentFragment.indexRefs,
-						events: create( null ),
-						root: this.root
-					}
-				});
-			}
-
-			return this.node._ractive;
 		}
 	};
 

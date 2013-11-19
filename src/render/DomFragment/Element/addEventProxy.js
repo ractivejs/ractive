@@ -17,7 +17,7 @@ define([ 'render/StringFragment/_StringFragment' ], function ( StringFragment ) 
 	addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack, indexRefs ) {
 		var events, master;
 
-		events = element.ractify().events;
+		events = element.node._ractive.events;
 		master = events[ triggerEventName ] || ( events[ triggerEventName ] = new MasterEventHandler( element, triggerEventName, contextStack, indexRefs ) );
 
 		master.add( proxyDescriptor );
