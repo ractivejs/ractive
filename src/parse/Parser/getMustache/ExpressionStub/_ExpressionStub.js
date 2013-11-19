@@ -6,9 +6,7 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 
 		// helpers
 		getRefs,
-		stringify,
-		stringifyKey,
-		identifier;
+		stringify;
 
 	ExpressionStub = function ( token ) {
 		this.refs = [];
@@ -90,7 +88,7 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 			return '{' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + '}';
 
 			case types.KEY_VALUE_PAIR:
-			return stringifyKey( token.k ) + ':' + stringify( token.v, refs );
+			return token.k + ':' + stringify( token.v, refs );
 
 			case types.PREFIX_OPERATOR:
 			return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
@@ -120,20 +118,6 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 			throw new Error( 'Could not stringify expression token. This error is unexpected' );
 		}
 	};
-
-	stringifyKey = function ( key ) {
-		if ( key.t === types.STRING_LITERAL ) {
-			return identifier.test( key.v ) ? key.v : '"' + key.v.replace( /"/g, '\\"' ) + '"';
-		}
-
-		if ( key.t === types.NUMBER_LITERAL ) {
-			return key.v;
-		}
-
-		return key;
-	};
-
-	identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
 	return ExpressionStub;
 

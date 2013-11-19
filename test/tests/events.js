@@ -181,6 +181,58 @@ define( function () {
 			t.deepEqual( last, [ 1, 2, 3 ] );
 		});
 
+		test( 'proxy events can have dynamic arguments', function ( t ) {
+			var ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="foo" on-click="foo:{{foo}}">click me</span>',
+				data: { foo: 'bar' }
+			});
+
+			expect( 1 );
+
+			ractive.on({
+				foo: function ( event, foo ) {
+					t.equal( foo, 'bar' );
+				}
+			});
+
+			simulant.fire( ractive.nodes.foo, 'click' );
+		});
+
+		test( 'proxy events can have multiple arguments', function ( t ) {
+			var ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="foo" on-click="one:1,2,3">click me</span><span id="bar" on-click="two:{a:1},{b:2}">click me</span><span id="baz" on-click="three:{c:{{c}}},{d:\'{{d}}\'}">click me</span>',
+				data: { c: 3, d: 'four' }
+			});
+
+			expect( 7 );
+
+			ractive.on({
+				one: function ( event, one, two, three ) {
+					t.equal( one, 1 );
+					t.equal( two, 2 );
+					t.equal( three, 3 );
+				},
+				two: function ( event, one, two ) {
+					t.equal( one.a, 1 );
+					t.equal( two.b, 2 );
+				},
+				three: function ( event, three, four ) {
+					t.equal( three.c, 3 );
+					t.equal( four.d, 'four' );
+				}
+			});
+
+			simulant.fire( ractive.nodes.foo, 'click' );
+			simulant.fire( ractive.nodes.bar, 'click' );
+			simulant.fire( ractive.nodes.baz, 'click' );
+		});
+
 		test( 'Splicing arrays correctly modifies proxy events', function ( t ) {
 			var ractive;
 

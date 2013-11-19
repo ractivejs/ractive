@@ -1,13 +1,9 @@
 define([
 	'config/types',
-	'parse/Tokenizer/getExpression/shared/getName',
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/_getStringLiteral', // TODO should these be higher in the tree?
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getNumberLiteral'
+	'parse/Tokenizer/getExpression/shared/getKey'
 ], function (
 	types,
-	getName,
-	getStringLiteral,
-	getNumberLiteral
+	getKey
 ) {
 	
 	'use strict';
@@ -51,12 +47,5 @@ define([
 			v: value
 		};
 	};
-
-
-	// http://mathiasbynens.be/notes/javascript-properties
-	// can be any name, string literal, or number literal
-	function getKey ( tokenizer ) {
-		return getName( tokenizer ) || getStringLiteral( tokenizer ) || getNumberLiteral( tokenizer );
-	}
 
 });

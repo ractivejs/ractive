@@ -261,17 +261,22 @@ define( function () {
 			{
 				name: 'Intro and outro with simple parameters',
 				template: '<div intro="fade:400" outro="fade:fast"></div>',
-				parsed: [{t:7,e:'div',t1:{a:400,n:'fade'},t2:{a:'fast',n:'fade'}}]
+				parsed: [{t:7,e:'div',t1:{a:[400],n:'fade'},t2:{a:'fast',n:'fade'}}]
 			},
 			{
 				name: 'Intro and outro with JSON parameters',
 				template: "<div intro='fade:{\"delay\":50}' outro='fade:{\"duration\":500}'></div>",
-				parsed: [{t:7,e:'div',t1:{a:{delay:50},n:'fade'},t2:{a:{duration:500},n:'fade'}}]
+				parsed: [{t:7,e:'div',t1:{a:[{delay:50}],n:'fade'},t2:{a:[{duration:500}],n:'fade'}}]
+			},
+			{
+				name: 'Intro and outro with JSON-like parameters',
+				template: "<div intro='fade:{delay:50}' outro='fade:{duration:500}'></div>",
+				parsed: [{t:7,e:'div',t1:{a:[{delay:50}],n:'fade'},t2:{a:[{duration:500}],n:'fade'}}]
 			},
 			{
 				name: 'Intro and outro with dynamic parameters',
 				template: "<div intro='fade:{\"delay\":{{i*50}}}' outro='fade:{\"delay\":{{i*50}}}'></div>",
-				parsed: [{t:7,e:'div',t1:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'},t2:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'}}]
+				parsed: [{t:7,e:'div',t1:{d:['[{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}]'],n:'fade'},t2:{d:['[{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}]'],n:'fade'}}]
 			},
 			{
 				name: 'Doctype declarations are handled',

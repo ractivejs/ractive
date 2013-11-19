@@ -128,11 +128,18 @@ define([ 'render/StringFragment/_StringFragment' ], function ( StringFragment ) 
 	};
 
 	fireEventWithArgs = function ( event ) {
-		this.root.fire( this.n.toString(), event, this.a );
+		this.root.fire.apply( this.root, [ this.n.toString(), event ].concat( this.a ) );
 	};
 
 	fireEventWithDynamicArgs = function ( event ) {
-		this.root.fire( this.n.toString(), event, this.d.toJSON() );
+		var args = this.d.toJSON();
+
+		// need to strip [] from ends if a string!
+		if ( typeof args === 'string' ) {
+			args = args.substr( 1, args.length - 2 );
+		}
+		
+		this.root.fire.apply( this.root, [ this.n.toString(), event ].concat( args ) );
 	};
 
 	// all native DOM events dealt with by Ractive share a single handler

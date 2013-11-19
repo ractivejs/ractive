@@ -1,5 +1,6 @@
 define([
 	'config/types',
+	'utils/parseJSON',
 	'render/shared/initFragment',
 	'render/StringFragment/Interpolator',
 	'render/StringFragment/Section',
@@ -7,6 +8,7 @@ define([
 	'circular'
 ], function (
 	types,
+	parseJSON,
 	initFragment,
 	Interpolator,
 	Section,
@@ -100,14 +102,11 @@ define([
 		},
 
 		toJSON: function () {
-			var value = this.getValue();
+			var value = this.getValue(), parsed;
 
 			if ( typeof value === 'string' ) {
-				try {
-					value = JSON.parse( value );
-				} catch ( err ) {
-					// value = value
-				}
+				parsed = parseJSON( value );
+				value = parsed ? parsed.v : value;
 			}
 
 			return value;

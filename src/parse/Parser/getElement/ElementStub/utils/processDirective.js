@@ -1,9 +1,9 @@
-define([ 'config/types' ], function ( types ) {
+define([ 'config/types', 'utils/parseJSON' ], function ( types, parseJSON ) {
 	
 	'use strict';
 
 	return function ( directive ) {
-		var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs;
+		var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed, item;
 
 		throwError = function () {
 			throw new Error( 'Illegal directive' );
@@ -67,14 +67,34 @@ define([ 'config/types' ], function ( types ) {
 
 		if ( directiveArgs.length ) {
 			if ( directiveArgs.length === 1 && directiveArgs[0].type === types.TEXT ) {
-				try {
-					processed.args = JSON.parse( directiveArgs[0].value );
-				} catch ( err ) {
-					processed.args = directiveArgs[0].value;
-				}
+				parsed = parseJSON( '[' + directiveArgs[0].value + ']' );
+
+				processed.args = parsed ? parsed.v : directiveArgs[0].value;
 			}
 
 			else {
+				// need to wrap args in [] brackets so they are parsed
+				// as an array of arguments
+				item = directiveArgs[0];
+				if ( item.type === types.TEXT ) {
+					item.value = '[' + item.value;
+				} else {
+					directiveArgs.unshift({
+						type: types.TEXT,
+						value: '['
+					});
+				}
+
+				item = directiveArgs[ directiveArgs.length - 1 ];
+				if ( item.type === types.TEXT ) {
+					item.value += ']';
+				} else {
+					directiveArgs.push({
+						type: types.TEXT,
+						value: ']'
+					});
+				}
+
 				processed.dynamicArgs = directiveArgs;
 			}
 		}

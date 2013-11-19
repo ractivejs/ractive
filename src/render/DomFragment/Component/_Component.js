@@ -1,11 +1,13 @@
 define([
 	'config/types',
 	'utils/warn',
+	'utils/parseJSON',
 	'shared/resolveRef',
 	'render/DomFragment/Component/ComponentParameter'
 ], function (
 	types,
 	warn,
+	parseJSON,
 	resolveRef,
 	ComponentParameter
 ) {
@@ -59,15 +61,13 @@ define([
 		this.complexParameters = [];
 
 		processKeyValuePair = function ( key, value ) {
-			var parameter;
+			var parameter, parsed;
 
 			// if this is a static value, great
 			if ( typeof value === 'string' ) {
-				try {
-					data[ key ] = JSON.parse( value );
-				} catch ( err ) {
-					data[ key ] = value;
-				}
+				parsed = parseJSON( value );
+				data[ key ] = parsed ? parsed.v : value;
+
 				return;
 			}
 
