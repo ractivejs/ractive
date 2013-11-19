@@ -36,11 +36,6 @@ define([
 
 		// helpers
 		allElementNames,
-		mapToLowerCase,
-		svgCamelCaseElements,
-		svgCamelCaseElementsMap,
-		svgCamelCaseAttributes,
-		svgCamelCaseAttributesMap,
 		closedByParentClose,
 		onPattern,
 		sanitize,
@@ -54,20 +49,18 @@ define([
 		parser.pos += 1;
 
 		getFrag = function ( attr ) {
-			var lcName = attr.name.toLowerCase();
-
 			return {
-				name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
+				name: attr.name,
 				value: attr.value ? new StringStub( attr.value ) : null
 			};
 		};
 
 		// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
 		// that should be camelcased, camelcase it
+		this.tag = firstToken.name;
 		lowerCaseTag = firstToken.name.toLowerCase();
-		this.tag = ( svgCamelCaseElementsMap[ lowerCaseTag ] ? svgCamelCaseElementsMap[ lowerCaseTag ] : lowerCaseTag );
 
-		if ( this.tag.substr( 0, 3 ) === 'rv-' ) {
+		if ( lowerCaseTag.substr( 0, 3 ) === 'rv-' ) {
 			warn( 'The "rv-" prefix for components has been deprecated. Support will be removed in a future version' );
 			this.tag = this.tag.substring( 3 );
 		}
@@ -195,21 +188,6 @@ define([
 
 	allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
 	closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
-
-	svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split( ' ' );
-	svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef glyphRef gradientTransform gradientTransform gradientUnits gradientUnits kernelMatrix kernelUnitLength kernelUnitLength kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent specularExponent spreadMethod spreadMethod startOffset stdDeviation stitchTiles surfaceScale surfaceScale systemLanguage tableValues targetX targetY textLength textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split( ' ' );
-	
-	mapToLowerCase = function ( items ) {
-		var map = {}, i = items.length;
-		while ( i-- ) {
-			map[ items[i].toLowerCase() ] = items[i];
-		}
-		return map;
-	};
-
-	svgCamelCaseElementsMap = mapToLowerCase( svgCamelCaseElements );
-	svgCamelCaseAttributesMap = mapToLowerCase( svgCamelCaseAttributes );
-
 	
 	onPattern = /^on[a-zA-Z]/;
 

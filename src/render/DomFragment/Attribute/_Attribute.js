@@ -1,10 +1,12 @@
 define([
 	'config/namespaces',
+	'render/DomFragment/shared/enforceCase',
 	'render/DomFragment/Attribute/bindAttribute',
 	'render/DomFragment/Attribute/updateAttribute',
 	'render/StringFragment/_StringFragment'
 ], function (
 	namespaces,
+	enforceCase,
 	bindAttribute,
 	updateAttribute,
 	StringFragment
@@ -192,8 +194,8 @@ define([
 			if ( namespacePrefix !== 'xmlns' ) {
 				name = name.substring( colonIndex + 1 );
 
-				attribute.name = name;
-				attribute.namespace = namespaces[ namespacePrefix ];
+				attribute.name = enforceCase( name );
+				attribute.namespace = namespaces[ namespacePrefix.toLowerCase() ];
 
 				if ( !attribute.namespace ) {
 					throw 'Unknown namespace ("' + namespacePrefix + '")';
@@ -203,7 +205,8 @@ define([
 			}
 		}
 
-		attribute.name = name;
+		// SVG attribute names are case sensitive
+		attribute.name = ( attribute.element.namespace !== namespaces.html ? enforceCase( name ) : name );
 	};
 
 	setStaticAttribute = function ( attribute, options ) {

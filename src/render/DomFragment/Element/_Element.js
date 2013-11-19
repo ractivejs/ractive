@@ -1,8 +1,9 @@
 define([
 	'config/types',
+	'config/namespaces',
+	'config/voidElementNames',
 	'utils/create',
 	'utils/defineProperty',
-	'config/voidElementNames',
 	'utils/warn',
 	'render/DomFragment/Element/getElementNamespace',
 	'render/DomFragment/Element/createElementAttributes',
@@ -10,12 +11,14 @@ define([
 	'render/DomFragment/Element/bindElement',
 	'render/DomFragment/Element/executeTransition',
 	'render/DomFragment/Element/decorate',
-	'render/DomFragment/Element/addEventProxies'
+	'render/DomFragment/Element/addEventProxies',
+	'render/DomFragment/shared/enforceCase'
 ], function (
 	types,
+	namespaces,
+	voidElementNames,
 	create,
 	defineProperty,
-	voidElementNames,
 	warn,
 	getElementNamespace,
 	createElementAttributes,
@@ -23,7 +26,8 @@ define([
 	bindElement,
 	executeTransition,
 	decorate,
-	addEventProxies
+	addEventProxies,
+	enforceCase
 ) {
 	
 	'use strict';
@@ -34,6 +38,7 @@ define([
 			parentFragment,
 			descriptor,
 			namespace,
+			name,
 			attributes,
 			width,
 			height,
@@ -55,10 +60,13 @@ define([
 
 		// get namespace, if we're actually rendering (not server-side stringifying)
 		if ( this.pNode ) {
-			namespace = getElementNamespace( descriptor, this.pNode );
+			namespace = this.namespace = getElementNamespace( descriptor, this.pNode );
+
+			// non-HTML elements (i.e. SVG) are case-sensitive
+			name = ( namespace !== namespaces.html ? enforceCase( descriptor.e ) : descriptor.e );
 
 			// create the DOM node
-			this.node = document.createElementNS( namespace, descriptor.e );
+			this.node = document.createElementNS( namespace, name );
 		}
 
 
