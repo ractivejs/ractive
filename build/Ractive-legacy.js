@@ -2956,10 +2956,6 @@ var DomFragment_Triple = function (types, initMustache, updateMustache, resolveM
         };
         return DomTriple;
     }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_insertHtml, shared_teardown);
-var config_voidElementNames = function () {
-        
-        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
-    }();
 var config_namespaces = {
         html: 'http://www.w3.org/1999/xhtml',
         mathml: 'http://www.w3.org/1998/Math/MathML',
@@ -2968,15 +2964,37 @@ var config_namespaces = {
         xml: 'http://www.w3.org/XML/1998/namespace',
         xmlns: 'http://www.w3.org/2000/xmlns/'
     };
+var config_voidElementNames = function () {
+        
+        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
+    }();
 var Element_getElementNamespace = function (namespaces) {
         
         return function (descriptor, parentNode) {
             if (descriptor.a && descriptor.a.xmlns) {
                 return descriptor.a.xmlns;
             }
-            return descriptor.e === 'svg' ? namespaces.svg : parentNode.namespaceURI;
+            return descriptor.e === 'svg' ? namespaces.svg : parentNode.namespaceURI || namespaces.html;
         };
     }(config_namespaces);
+var shared_enforceCase = function () {
+        
+        var svgCamelCaseElements, svgCamelCaseAttributes, createMap, map;
+        svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split(' ');
+        svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split(' ');
+        createMap = function (items) {
+            var map = {}, i = items.length;
+            while (i--) {
+                map[items[i].toLowerCase()] = items[i];
+            }
+            return map;
+        };
+        map = createMap(svgCamelCaseElements.concat(svgCamelCaseAttributes));
+        return function (elementName) {
+            var lowerCaseElementName = elementName.toLowerCase();
+            return map[lowerCaseElementName] || lowerCaseElementName;
+        };
+    }();
 var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, GenericBinding;
@@ -3841,7 +3859,7 @@ var StringFragment__StringFragment = function (types, parseJSON, initFragment, I
         circular.StringFragment = StringFragment;
         return StringFragment;
     }(config_types, utils_parseJSON, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
-var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute, StringFragment) {
+var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, updateAttribute, StringFragment) {
         
         var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
         propertyNames = {
@@ -3943,15 +3961,15 @@ var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute,
                 namespacePrefix = name.substr(0, colonIndex);
                 if (namespacePrefix !== 'xmlns') {
                     name = name.substring(colonIndex + 1);
-                    attribute.name = name;
-                    attribute.namespace = namespaces[namespacePrefix];
+                    attribute.name = enforceCase(name);
+                    attribute.namespace = namespaces[namespacePrefix.toLowerCase()];
                     if (!attribute.namespace) {
                         throw 'Unknown namespace ("' + namespacePrefix + '")';
                     }
                     return;
                 }
             }
-            attribute.name = name;
+            attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
         };
         setStaticAttribute = function (attribute, options) {
             var node, value = options.value === null ? '' : options.value;
@@ -3989,7 +4007,7 @@ var Attribute__Attribute = function (namespaces, bindAttribute, updateAttribute,
             }
         };
         return DomAttribute;
-    }(config_namespaces, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__StringFragment);
+    }(config_namespaces, shared_enforceCase, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__StringFragment);
 var Element_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
@@ -4531,10 +4549,10 @@ var Element_addEventProxies = function (addEventProxy) {
             }
         };
     }(Element_addEventProxy);
-var Element__Element = function (types, create, defineProperty, voidElementNames, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies) {
+var Element__Element = function (types, namespaces, voidElementNames, create, defineProperty, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies, enforceCase) {
         
         var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, descriptor, namespace, attributes, width, height, loadHandler, root;
+            var self = this, parentFragment, descriptor, namespace, name, attributes, width, height, loadHandler, root;
             this.type = types.ELEMENT;
             parentFragment = this.parentFragment = options.parentFragment;
             descriptor = this.descriptor = options.descriptor;
@@ -4544,8 +4562,9 @@ var Element__Element = function (types, create, defineProperty, voidElementNames
             this.eventListeners = [];
             this.customEventListeners = [];
             if (this.pNode) {
-                namespace = getElementNamespace(descriptor, this.pNode);
-                this.node = document.createElementNS(namespace, descriptor.e);
+                namespace = this.namespace = getElementNamespace(descriptor, this.pNode);
+                name = namespace !== namespaces.html ? enforceCase(descriptor.e) : descriptor.e;
+                this.node = document.createElementNS(namespace, name);
             }
             attributes = createElementAttributes(this, descriptor.a);
             if (descriptor.f) {
@@ -4657,7 +4676,7 @@ var Element__Element = function (types, create, defineProperty, voidElementNames
             }
         };
         return DomElement;
-    }(config_types, utils_create, utils_defineProperty, config_voidElementNames, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_decorate, Element_addEventProxies);
+    }(config_types, config_namespaces, config_voidElementNames, utils_create, utils_defineProperty, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_decorate, Element_addEventProxies, shared_enforceCase);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
 var utils_stripHtmlComments = function () {
@@ -6623,20 +6642,19 @@ var ElementStub_toString = function (stringifyStubs, voidElementNames) {
     }(utils_stringifyStubs, config_voidElementNames);
 var ElementStub__ElementStub = function (types, voidElementNames, warn, camelCase, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
         
-        var ElementStub, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, onPattern, sanitize, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
+        var ElementStub, allElementNames, closedByParentClose, onPattern, sanitize, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
         ElementStub = function (firstToken, parser, preserveWhitespace) {
             var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
             parser.pos += 1;
             getFrag = function (attr) {
-                var lcName = attr.name.toLowerCase();
                 return {
-                    name: svgCamelCaseAttributesMap[lcName] ? svgCamelCaseAttributesMap[lcName] : lcName,
+                    name: attr.name,
                     value: attr.value ? new StringStub(attr.value) : null
                 };
             };
+            this.tag = firstToken.name;
             lowerCaseTag = firstToken.name.toLowerCase();
-            this.tag = svgCamelCaseElementsMap[lowerCaseTag] ? svgCamelCaseElementsMap[lowerCaseTag] : lowerCaseTag;
-            if (this.tag.substr(0, 3) === 'rv-') {
+            if (lowerCaseTag.substr(0, 3) === 'rv-') {
                 warn('The "rv-" prefix for components has been deprecated. Support will be removed in a future version');
                 this.tag = this.tag.substring(3);
             }
@@ -6719,17 +6737,6 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, camelCas
         };
         allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split(' ');
         closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split(' ');
-        svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split(' ');
-        svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef glyphRef gradientTransform gradientTransform gradientUnits gradientUnits kernelMatrix kernelUnitLength kernelUnitLength kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent specularExponent spreadMethod spreadMethod startOffset stdDeviation stitchTiles surfaceScale surfaceScale systemLanguage tableValues targetX targetY textLength textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split(' ');
-        mapToLowerCase = function (items) {
-            var map = {}, i = items.length;
-            while (i--) {
-                map[items[i].toLowerCase()] = items[i];
-            }
-            return map;
-        };
-        svgCamelCaseElementsMap = mapToLowerCase(svgCamelCaseElements);
-        svgCamelCaseAttributesMap = mapToLowerCase(svgCamelCaseAttributes);
         onPattern = /^on[a-zA-Z]/;
         sanitize = function (attr) {
             var valid = !onPattern.test(attr.name);
