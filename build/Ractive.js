@@ -453,7 +453,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     dependant = deps[k];
                     if (dependant.type === types.REFERENCE) {
                         dependant.update();
-                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && dependant.pNode) {
+                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode) {
                         smartUpdateQueue[smartUpdateQueue.length] = dependant;
                     } else {
                         dumbUpdateQueue[dumbUpdateQueue.length] = dependant;
@@ -1663,7 +1663,7 @@ var utils_getElement = function () {
                 if (!output && document.querySelector) {
                     output = document.querySelector(input);
                 }
-                if (output.nodeType) {
+                if (output && output.nodeType) {
                     return output;
                 }
             }
@@ -2415,6 +2415,7 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
         });
         DomSection = function (options, docFrag) {
             this.type = types.SECTION;
+            this.inverted = !!options.descriptor.n;
             this.fragments = [];
             this.length = 0;
             if (docFrag) {
@@ -2485,6 +2486,7 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
                 start = +(args[0] < 0 ? this.length + args[0] : args[0]);
                 addedItems = Math.max(0, args.length - 2);
                 removedItems = args[1] !== undefined ? args[1] : this.length - start;
+                removedItems = Math.min(removedItems, this.length - start);
                 balance = addedItems - removedItems;
                 if (!balance) {
                     return;
@@ -3592,7 +3594,6 @@ var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, upd
                 return;
             }
             if (this.name === 'value') {
-                options.element.ractify();
                 this.isValueAttribute = true;
                 if (this.pNode.tagName === 'INPUT' && this.pNode.type === 'file') {
                     this.isFileInputValue = true;
@@ -3678,7 +3679,7 @@ var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, upd
                     options.root.nodes[options.value] = node;
                 }
                 if (attribute.name === 'value') {
-                    attribute.element.ractify().value = options.value;
+                    node._ractive.value = options.value;
                 }
             }
             attribute.value = options.value;
@@ -3765,7 +3766,6 @@ var Element_appendElementChildren = function (namespaces, StringFragment, circul
 var Element_bindElement = function () {
         
         return function (element, attributes) {
-            element.ractify();
             switch (element.descriptor.e) {
             case 'select':
             case 'textarea':
@@ -4095,7 +4095,7 @@ var Element_addEventProxy = function (StringFragment) {
         var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
         addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
             var events, master;
-            events = element.ractify().events;
+            events = element.node._ractive.events;
             master = events[triggerEventName] || (events[triggerEventName] = new MasterEventHandler(element, triggerEventName, contextStack, indexRefs));
             master.add(proxyDescriptor);
         };
@@ -4241,9 +4241,10 @@ var Element_addEventProxies = function (addEventProxy) {
 var Element__Element = function (types, namespaces, voidElementNames, create, defineProperty, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies, enforceCase) {
         
         var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, descriptor, namespace, name, attributes, width, height, loadHandler, root;
+            var self = this, parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root;
             this.type = types.ELEMENT;
             parentFragment = this.parentFragment = options.parentFragment;
+            contextStack = parentFragment.contextStack;
             descriptor = this.descriptor = options.descriptor;
             this.root = root = parentFragment.root;
             this.pNode = parentFragment.pNode;
@@ -4254,6 +4255,14 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                 namespace = this.namespace = getElementNamespace(descriptor, this.pNode);
                 name = namespace !== namespaces.html ? enforceCase(descriptor.e) : descriptor.e;
                 this.node = document.createElementNS(namespace, name);
+                defineProperty(this.node, '_ractive', {
+                    value: {
+                        keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
+                        index: parentFragment.indexRefs,
+                        events: create(null),
+                        root: root
+                    }
+                });
             }
             attributes = createElementAttributes(this, descriptor.a);
             if (descriptor.f) {
@@ -4282,10 +4291,10 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                 }
                 docFrag.appendChild(this.node);
                 if (descriptor.o) {
-                    decorate(descriptor.o, root, this, parentFragment.contextStack);
+                    decorate(descriptor.o, root, this, contextStack);
                 }
                 if (descriptor.t1) {
-                    executeTransition(descriptor.t1, root, this, parentFragment.contextStack, true);
+                    executeTransition(descriptor.t1, root, this, contextStack, true);
                 }
                 if (this.node.tagName === 'OPTION') {
                     if (this.node._ractive.value == this.pNode._ractive.value) {
@@ -4348,20 +4357,6 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                     str += '</' + this.descriptor.e + '>';
                 }
                 return str;
-            },
-            ractify: function () {
-                var contextStack = this.parentFragment.contextStack;
-                if (!this.node._ractive) {
-                    defineProperty(this.node, '_ractive', {
-                        value: {
-                            keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
-                            index: this.parentFragment.indexRefs,
-                            events: create(null),
-                            root: this.root
-                        }
-                    });
-                }
-                return this.node._ractive;
             }
         };
         return DomElement;
