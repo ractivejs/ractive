@@ -33,7 +33,7 @@ DomFragment.prototype = {
 			case PARTIAL:      return new DomPartial( options, this.docFrag );
 			case COMPONENT:    return new DomComponent( options, this.docFrag );
 
-			default: throw new Error( 'WTF? not sure what happened here...' );
+			default: throw new Error( 'Not sure what happened here...' );
 		}
 	},
 
