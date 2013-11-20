@@ -877,6 +877,25 @@ define( function () {
 			t.htmlEqual( fixture.innerHTML, '<select><option value="1">one</option><option value="2">two</option></select><strong>Selected: 1</strong>' );
 		});
 
+		test( 'Partial templates will be drawn from script tags if not already registered', function ( t ) {
+			var partialScr, ractive;
+
+			partialScr = document.createElement( 'script' );
+			partialScr.id = 'thePartial';
+			partialScr.type = 'text/ractive';
+			partialScr.innerHTML = '{{one}}{{two}}{{three}}';
+
+			document.body.appendChild( partialScr );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{>thePartial}}',
+				data: { one: 1, two: 2, three: 3 }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '123' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

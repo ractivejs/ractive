@@ -23,7 +23,7 @@ define([
 
 
 	getPartialDescriptor = function ( root, name ) {
-		var el, partial;
+		var el, partial, errorMessage;
 
 		// If the partial was specified on this instance, great
 		if ( partial = getPartialFromRegistry( root, name ) ) {
@@ -46,8 +46,12 @@ define([
 
 		// No match? Return an empty array
 		if ( !partial ) {
+			errorMessage = 'Could not find descriptor for partial "' + name + '"';
+
 			if ( root.debug ) {
-				warn( 'Could not find descriptor for partial "' + name + '"' );
+				throw new Error( errorMessage );
+			} else {
+				warn( errorMessage );
 			}
 
 			return [];
