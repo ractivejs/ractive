@@ -25,15 +25,13 @@ define([
 	getPartialDescriptor = function ( root, name ) {
 		var el, partial;
 
-		var document = document;
-
 		// If the partial was specified on this instance, great
 		if ( partial = getPartialFromRegistry( root, name ) ) {
 			return partial;
 		}
 
 		// Does it exist on the page as a script tag?
-		if ( isClient && document ) {
+		if ( isClient ) {
 			el = document.getElementById( name );
 			if ( el && el.tagName === 'SCRIPT' ) {
 				if ( !parse ) {
