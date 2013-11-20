@@ -1,6 +1,6 @@
 (function () {
 
-	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse;
+	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse, updateContentEditable;
 
 	// There are a few special cases when it comes to updating attributes. For this reason,
 	// the prototype .update() method points to updateAttribute, which waits until the
@@ -40,6 +40,12 @@
 				this.update = updateCheckboxName;
 				return this.update();
 			}
+		}
+
+		// special case - contenteditable
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			this.update = updateContentEditable;
+			return this.update();
 		}
 
 		this.update = updateEverythingElse;
@@ -130,6 +136,39 @@
 
 		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
 
+		return this;
+	};
+
+	updateContentEditable = function() {
+		var node, value;
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if (value !== this.value) {
+			if ( this.isValueAttribute ) {
+				this.value = value;
+			}
+
+			if ( this.useProperty ) {
+				// with two-way binding, only update if the change wasn't initiated by the user
+				// otherwise the cursor will often be sent to the wrong place
+				if ( !this.receiving ) {
+					node[ this.propertyName ] = value;
+				}
+				
+				this.value = value;
+			}
+
+			// I could be wrong, but this is when we want to update that value.
+			if (this.receiving && node.getAttribute( 'contenteditable' )) {
+				if ( node.innerHTML !== value ) {
+					node.innerHTML = value;
+				}
+			}
+
+			node.setAttribute( this.name, value );
+		}
+		
 		return this;
 	};
 

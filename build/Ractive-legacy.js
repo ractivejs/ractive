@@ -520,6 +520,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		CheckboxNameBinding,
 		CheckedBinding,
 		FileListBinding,
+		ContentEditableBinding,
 		GenericBinding;
 
 	bindAttribute = function () {
@@ -632,6 +633,10 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 		if ( attribute.parentNode.type === 'file' ) {
 			return new FileListBinding( attribute, node );
+		}
+
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			return new ContentEditableBinding( attribute, node );
 		}
 
 		return new GenericBinding( attribute, node );
@@ -874,6 +879,35 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		}
 	};
 
+	ContentEditableBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.addEventListener( 'change', updateModel, false );
+		if ( !this.root.lazy ) {
+			node.addEventListener( 'input', updateModel, false );
+
+			if ( node.attachEvent ) {
+				node.addEventListener( 'keyup', updateModel, false );
+			}
+		}
+	};
+
+	ContentEditableBinding.prototype = {
+		update: function () {
+			if (this.node && this.node.childNodes[0]) {
+				this.root.set( this.keypath, this.node.childNodes[0].nodeValue );
+			} else {
+				this.root.set( this.keypath, '' );
+			}
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'input', updateModel, false );
+			this.node.removeEventListener( 'keyup', updateModel, false );
+		}
+	};
+
 	GenericBinding = function ( attribute, node ) {
 		inheritProperties( this, attribute, node );
 
@@ -925,7 +959,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 }());
 (function () {
 
-	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse;
+	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse, updateContentEditable;
 
 	// There are a few special cases when it comes to updating attributes. For this reason,
 	// the prototype .update() method points to updateAttribute, which waits until the
@@ -965,6 +999,12 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 				this.update = updateCheckboxName;
 				return this.update();
 			}
+		}
+
+		// special case - contenteditable
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			this.update = updateContentEditable;
+			return this.update();
 		}
 
 		this.update = updateEverythingElse;
@@ -1055,6 +1095,39 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
 
+		return this;
+	};
+
+	updateContentEditable = function() {
+		var node, value;
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if (value !== this.value) {
+			if ( this.isValueAttribute ) {
+				this.value = value;
+			}
+
+			if ( this.useProperty ) {
+				// with two-way binding, only update if the change wasn't initiated by the user
+				// otherwise the cursor will often be sent to the wrong place
+				if ( !this.receiving ) {
+					node[ this.propertyName ] = value;
+				}
+				
+				this.value = value;
+			}
+
+			// I could be wrong, but this is when we want to update that value.
+			if (this.receiving && node.getAttribute( 'contenteditable' )) {
+				if ( node.innerHTML !== value ) {
+					node.innerHTML = value;
+				}
+			}
+
+			node.setAttribute( this.name, value );
+		}
+		
 		return this;
 	};
 
@@ -1333,6 +1406,14 @@ appendElementChildren = function ( element, node, descriptor, docFrag ) {
 };
 bindElement = function ( element, attributes ) {
 	element.ractify();
+
+	if ( element.node.getAttribute( 'contenteditable' ) ) {
+		if ( attributes.value ) {
+			attributes.value.bind();
+		}
+
+		return;
+	}
 
 	// an element can only have one two-way attribute
 	switch ( element.descriptor.e ) {
@@ -2883,7 +2964,6 @@ stripStandalones = function ( tokens ) {
 proto.cancelFullscreen = function () {
 	Ractive.cancelFullscreen( this.el );
 };
-// TODO can fail badly with { append: true }
 proto.find = function ( selector ) {
 	if ( !this.el ) {
 		return null;
@@ -2891,7 +2971,6 @@ proto.find = function ( selector ) {
 
 	return this.el.querySelector( selector );
 };
-// TODO can fail badly with { append: true }
 (function () {
 
 	var tagSelector, classSelector;
@@ -6435,7 +6514,6 @@ DomElement = function ( options, docFrag ) {
 		docFrag.appendChild( this.node );
 
 		// trigger intro transition
-		// TODO make it possible to defer execution until node is on DOM
 		if ( descriptor.t1 ) {
 			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
 		}
@@ -7951,7 +8029,7 @@ var ExpressionStub;
 
 (function () {
 
-	var getRefs, stringify, stringifyKey, identifier;
+	var getRefs, quoteStringLiteral, stringify, stringifyKey, identifier;
 
 	ExpressionStub = function ( token ) {
 		this.refs = [];
@@ -8012,6 +8090,11 @@ var ExpressionStub;
 	};
 
 
+	quoteStringLiteral = function ( str ) {
+		return JSON.stringify(String(str));
+	};
+
+
 	stringify = function ( token, refs ) {
 		var map = function ( item ) {
 			return stringify( item, refs );
@@ -8024,7 +8107,7 @@ var ExpressionStub;
 			return token.v;
 
 			case STRING_LITERAL:
-			return "'" + token.v.replace( /'/g, "\\'" ) + "'";
+			return quoteStringLiteral(token.v);
 
 			case ARRAY_LITERAL:
 			return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
@@ -8067,7 +8150,7 @@ var ExpressionStub;
 
 	stringifyKey = function ( key ) {
 		if ( key.t === STRING_LITERAL ) {
-			return identifier.test( key.v ) ? key.v : '"' + key.v.replace( /"/g, '\\"' ) + '"';
+			return identifier.test( key.v ) ? key.v : quoteStringLiteral( key.v );
 		}
 
 		if ( key.t === NUMBER_LITERAL ) {
@@ -8529,7 +8612,7 @@ var getExpression;
 
 			allowWhitespace( tokenizer );
 
-			expression = getExpression( tokenizer );
+			expression = getTypeOf( tokenizer );
 			if ( !expression ) {
 				fail( tokenizer, 'an expression' );
 			}
@@ -8572,34 +8655,43 @@ var getExpression;
 				return null;
 			}
 
-			start = tokenizer.pos;
+			// Loop to handle left-recursion in a case like `a * b * c` and produce
+			// left association, i.e. `(a * b) * c`.  The matcher can't call itself
+			// to parse `left` because that would be infinite regress.
+			while (true) {
+				start = tokenizer.pos;
 
-			allowWhitespace( tokenizer );
+				allowWhitespace( tokenizer );
 
-			if ( !getStringMatch( tokenizer, symbol ) ) {
-				tokenizer.pos = start;
-				return left;
+				if ( !getStringMatch( tokenizer, symbol ) ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				// special case - in operator must not be followed by [a-zA-Z_$0-9]
+				if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				allowWhitespace( tokenizer );
+
+				// right operand must also consist of only higher-precedence operators
+				right = fallthrough( tokenizer );
+				if ( !right ) {
+					tokenizer.pos = start;
+					return left;
+				}
+
+				left = {
+					t: INFIX_OPERATOR,
+					s: symbol,
+					o: [ left, right ]
+				};
+
+				// Loop back around.  If we don't see another occurrence of the symbol,
+				// we'll return left.
 			}
-
-			// special case - in operator must not be followed by [a-zA-Z_$0-9]
-			if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
-				tokenizer.pos = start;
-				return left;
-			}
-
-			allowWhitespace( tokenizer );
-
-			right = getExpression( tokenizer );
-			if ( !right ) {
-				tokenizer.pos = start;
-				return left;
-			}
-
-			return {
-				t: INFIX_OPERATOR,
-				s: symbol,
-				o: [ left, right ]
-			};
 		};
 	};
 
@@ -9540,60 +9632,6 @@ getToken = function ( tokenizer ) {
 
 	return token;
 };
-// TODO establish whether we actually need this (and siblings)
-var getDoubleQuotedString = function ( tokenizer ) {
-	var start, string, escaped, unescaped, next;
-
-	start = tokenizer.pos;
-
-	string = '';
-
-	escaped = getEscapedChars( tokenizer );
-	if ( escaped ) {
-		string += escaped;
-	}
-
-	unescaped = getUnescapedDoubleQuotedChars( tokenizer );
-	if ( unescaped ) {
-		string += unescaped;
-	}
-
-	if ( !string ) {
-		return '';
-	}
-
-	next = getDoubleQuotedString( tokenizer );
-	while ( next !== '' ) {
-		string += next;
-	}
-
-	return string;
-};
-
-var getUnescapedDoubleQuotedChars = getRegexMatcher( /^[^\\"]+/ );
-var getEscapedChar = function ( tokenizer ) {
-	var character;
-
-	if ( !getStringMatch( tokenizer, '\\' ) ) {
-		return null;
-	}
-
-	character = tokenizer.str.charAt( tokenizer.pos );
-	tokenizer.pos += 1;
-
-	return character;
-};
-var getEscapedChars = function ( tokenizer ) {
-	var chars = '', character;
-
-	character = getEscapedChar( tokenizer );
-	while ( character ) {
-		chars += character;
-		character = getEscapedChar( tokenizer );
-	}
-
-	return chars || null;
-};
 var getLowestIndex = function ( haystack, needles ) {
 	var i, index, lowest;
 
@@ -9617,34 +9655,59 @@ var getLowestIndex = function ( haystack, needles ) {
 
 	return lowest || -1;
 };
-var getSingleQuotedString = function ( tokenizer ) {
-	var start, string, escaped, unescaped, next;
+// Match one or more characters until: ", ', \, or EOL/EOF.
+// EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
+var getStringMiddle = getRegexMatcher(/^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/);
 
-	start = tokenizer.pos;
+// Match one escape sequence, including the backslash.
+var getEscapeSequence = getRegexMatcher(/^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/);
 
-	string = '';
+// Match one ES5 line continuation (backslash + line terminator).
+var getLineContinuation = getRegexMatcher(/^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/);
 
-	escaped = getEscapedChars( tokenizer );
-	if ( escaped ) {
-		string += escaped;
-	}
 
-	unescaped = getUnescapedSingleQuotedChars( tokenizer );
-	if ( unescaped ) {
-		string += unescaped;
-	}
-	if ( string ) {
-		next = getSingleQuotedString( tokenizer );
-		while ( next ) {
-			string += next;
-			next = getSingleQuotedString( tokenizer );
+// Helper for defining getDoubleQuotedString and getSingleQuotedString.
+var getQuotedStringMatcher = function (quote, okQuote) {
+	return function ( tokenizer ) {
+		var start, literal, done, next;
+
+		start = tokenizer.pos;
+		literal = '"';
+		done = false;
+
+		while (! done) {
+			next = (getStringMiddle( tokenizer ) || getEscapeSequence( tokenizer ) ||
+				getStringMatch( tokenizer, okQuote));
+			if ( next ) {
+				if ( next === '"' ) {
+					literal += '\\"';
+				} else if (next === "\\'") {
+					literal += "'";
+				} else {
+					literal += next;
+				}
+			} else {
+				next = getLineContinuation( tokenizer );
+				if ( next ) {
+					// convert \(newline-like) into a \u escape, which is allowed in JSON
+					literal += '\\u' + ('000' + next.charCodeAt(1).toString(16)).slice(-4);
+				} else {
+					done = true;
+				}
+			}
 		}
-	}
 
-	return string;
+		literal += '"';
+
+		// use JSON.parse to interpret escapes
+		return JSON.parse(literal);
+	};
 };
 
-var getUnescapedSingleQuotedChars = getRegexMatcher( /^[^\\']+/ );
+var getDoubleQuotedString = getQuotedStringMatcher('"', "'");
+
+var getSingleQuotedString = getQuotedStringMatcher("'", '"');
+
 // Ractive.parse
 // ===============
 //

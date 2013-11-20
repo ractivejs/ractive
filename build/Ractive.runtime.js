@@ -304,6 +304,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		CheckboxNameBinding,
 		CheckedBinding,
 		FileListBinding,
+		ContentEditableBinding,
 		GenericBinding;
 
 	bindAttribute = function () {
@@ -416,6 +417,10 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 		if ( attribute.parentNode.type === 'file' ) {
 			return new FileListBinding( attribute, node );
+		}
+
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			return new ContentEditableBinding( attribute, node );
 		}
 
 		return new GenericBinding( attribute, node );
@@ -658,6 +663,35 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 		}
 	};
 
+	ContentEditableBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.addEventListener( 'change', updateModel, false );
+		if ( !this.root.lazy ) {
+			node.addEventListener( 'input', updateModel, false );
+
+			if ( node.attachEvent ) {
+				node.addEventListener( 'keyup', updateModel, false );
+			}
+		}
+	};
+
+	ContentEditableBinding.prototype = {
+		update: function () {
+			if (this.node && this.node.childNodes[0]) {
+				this.root.set( this.keypath, this.node.childNodes[0].nodeValue );
+			} else {
+				this.root.set( this.keypath, '' );
+			}
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'input', updateModel, false );
+			this.node.removeEventListener( 'keyup', updateModel, false );
+		}
+	};
+
 	GenericBinding = function ( attribute, node ) {
 		inheritProperties( this, attribute, node );
 
@@ -709,7 +743,7 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 }());
 (function () {
 
-	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse;
+	var updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateEverythingElse, updateContentEditable;
 
 	// There are a few special cases when it comes to updating attributes. For this reason,
 	// the prototype .update() method points to updateAttribute, which waits until the
@@ -749,6 +783,12 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 				this.update = updateCheckboxName;
 				return this.update();
 			}
+		}
+
+		// special case - contenteditable
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			this.update = updateContentEditable;
+			return this.update();
 		}
 
 		this.update = updateEverythingElse;
@@ -839,6 +879,39 @@ if ( global.Node && !global.Node.prototype.contains && global.HTMLElement && glo
 
 		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
 
+		return this;
+	};
+
+	updateContentEditable = function() {
+		var node, value;
+		node = this.parentNode;
+		value = this.fragment.getValue();
+
+		if (value !== this.value) {
+			if ( this.isValueAttribute ) {
+				this.value = value;
+			}
+
+			if ( this.useProperty ) {
+				// with two-way binding, only update if the change wasn't initiated by the user
+				// otherwise the cursor will often be sent to the wrong place
+				if ( !this.receiving ) {
+					node[ this.propertyName ] = value;
+				}
+				
+				this.value = value;
+			}
+
+			// I could be wrong, but this is when we want to update that value.
+			if (this.receiving && node.getAttribute( 'contenteditable' )) {
+				if ( node.innerHTML !== value ) {
+					node.innerHTML = value;
+				}
+			}
+
+			node.setAttribute( this.name, value );
+		}
+		
 		return this;
 	};
 
@@ -1117,6 +1190,14 @@ appendElementChildren = function ( element, node, descriptor, docFrag ) {
 };
 bindElement = function ( element, attributes ) {
 	element.ractify();
+
+	if ( element.node.getAttribute( 'contenteditable' ) ) {
+		if ( attributes.value ) {
+			attributes.value.bind();
+		}
+
+		return;
+	}
 
 	// an element can only have one two-way attribute
 	switch ( element.descriptor.e ) {
@@ -2433,7 +2514,6 @@ resolveMustache = function ( keypath ) {
 proto.cancelFullscreen = function () {
 	Ractive.cancelFullscreen( this.el );
 };
-// TODO can fail badly with { append: true }
 proto.find = function ( selector ) {
 	if ( !this.el ) {
 		return null;
@@ -2441,7 +2521,6 @@ proto.find = function ( selector ) {
 
 	return this.el.querySelector( selector );
 };
-// TODO can fail badly with { append: true }
 (function () {
 
 	var tagSelector, classSelector;
@@ -5985,7 +6064,6 @@ DomElement = function ( options, docFrag ) {
 		docFrag.appendChild( this.node );
 
 		// trigger intro transition
-		// TODO make it possible to defer execution until node is on DOM
 		if ( descriptor.t1 ) {
 			executeTransition( descriptor.t1, root, this, parentFragment.contextStack, true );
 		}

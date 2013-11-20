@@ -10,6 +10,7 @@
 		CheckboxNameBinding,
 		CheckedBinding,
 		FileListBinding,
+		ContentEditableBinding,
 		GenericBinding;
 
 	bindAttribute = function () {
@@ -122,6 +123,10 @@
 
 		if ( attribute.parentNode.type === 'file' ) {
 			return new FileListBinding( attribute, node );
+		}
+
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			return new ContentEditableBinding( attribute, node );
 		}
 
 		return new GenericBinding( attribute, node );
@@ -361,6 +366,35 @@
 
 		teardown: function () {
 			this.node.removeEventListener( 'change', updateModel, false );
+		}
+	};
+
+	ContentEditableBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+
+		node.addEventListener( 'change', updateModel, false );
+		if ( !this.root.lazy ) {
+			node.addEventListener( 'input', updateModel, false );
+
+			if ( node.attachEvent ) {
+				node.addEventListener( 'keyup', updateModel, false );
+			}
+		}
+	};
+
+	ContentEditableBinding.prototype = {
+		update: function () {
+			if (this.node && this.node.childNodes[0]) {
+				this.root.set( this.keypath, this.node.childNodes[0].nodeValue );
+			} else {
+				this.root.set( this.keypath, '' );
+			}
+		},
+
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'input', updateModel, false );
+			this.node.removeEventListener( 'keyup', updateModel, false );
 		}
 	};
 
