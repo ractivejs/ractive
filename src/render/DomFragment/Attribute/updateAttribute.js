@@ -13,6 +13,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		updateCheckboxName,
 		updateIEStyleAttribute,
 		updateClassName,
+		updateContentEditableValue,
 		updateEverythingElse;
 
 	// There are a few special cases when it comes to updating attributes. For this reason,
@@ -29,7 +30,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		node = this.pNode;
 
 		// special case - selects
-		if ( node.tagName === 'SELECT' && this.name === 'value' ) {
+		if ( node.tagName === 'SELECT' && this.lcName === 'value' ) {
 			this.update = deferSelect;
 			this.deferredUpdate = initSelect; // we don't know yet if it's a select-one or select-multiple
 
@@ -43,7 +44,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		}
 
 		// special case - <input type='radio' name='{{twoway}}' value='foo'>
-		if ( this.twoway && this.name === 'name' ) {
+		if ( this.twoway && this.lcName === 'name' ) {
 			if ( node.type === 'radio' ) {
 				this.update = updateRadioName;
 				return this.update();
@@ -56,14 +57,20 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		}
 
 		// special case - style attributes in Internet Exploder
-		if ( this.name === 'style' && node.style.setAttribute ) {
+		if ( this.lcName === 'style' && node.style.setAttribute ) {
 			this.update = updateIEStyleAttribute;
 			return this.update();
 		}
 
 		// special case - class names. IE fucks things up, again
-		if ( this.name === 'class' && ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) {
+		if ( this.lcName === 'class' && ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) {
 			this.update = updateClassName;
+			return this.update();
+		}
+
+		// special case - contenteditable
+		if ( node.getAttribute( 'contenteditable' ) && this.lcName === 'value' ) {
+			this.update = updateContentEditableValue;
 			return this.update();
 		}
 
@@ -194,6 +201,27 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		return this;
 	};
 
+	updateContentEditableValue = function () {
+		var node, value;
+
+		node = this.pNode;
+		value = this.fragment.getValue();
+
+		if ( value === undefined ) {
+			value = '';
+		}
+
+		if ( value !== this.value ) {
+			if ( !this.receiving ) {
+				node.innerHTML = value;
+			}
+			
+			this.value = value;
+		}
+
+		return this;
+	};
+
 	updateEverythingElse = function () {
 		var node, value;
 
@@ -230,7 +258,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 				return this;
 			}
 
-			if ( this.name === 'id' ) {
+			if ( this.lcName === 'id' ) {
 				if ( this.value !== undefined ) {
 					this.root.nodes[ this.value ] = undefined;
 				}

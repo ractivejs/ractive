@@ -190,6 +190,7 @@ define([
 				name = name.substring( colonIndex + 1 );
 
 				attribute.name = enforceCase( name );
+				attribute.lcName = attribute.name.toLowerCase();
 				attribute.namespace = namespaces[ namespacePrefix.toLowerCase() ];
 
 				if ( !attribute.namespace ) {
@@ -202,6 +203,7 @@ define([
 
 		// SVG attribute names are case sensitive
 		attribute.name = ( attribute.element.namespace !== namespaces.html ? enforceCase( name ) : name );
+		attribute.lcName = attribute.name.toLowerCase();
 	};
 
 	setStaticAttribute = function ( attribute, options ) {

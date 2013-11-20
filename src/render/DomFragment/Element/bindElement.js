@@ -3,6 +3,12 @@ define( function () {
 	'use strict';
 
 	return function ( element, attributes ) {
+		
+		// contenteditable
+		if ( element.node.getAttribute( 'contenteditable' ) && attributes.value && attributes.value.bind() ) {
+			return;
+		}
+
 		// an element can only have one two-way attribute
 		switch ( element.descriptor.e ) {
 			case 'select':

@@ -45,7 +45,8 @@ define([
 			height,
 			loadHandler,
 			root,
-			selectBinding;
+			selectBinding,
+			errorMessage;
 
 		this.type = types.ELEMENT;
 
@@ -90,6 +91,20 @@ define([
 
 		// append children, if there are any
 		if ( descriptor.f ) {
+			// Special case - contenteditable
+			if ( this.node && this.node.getAttribute( 'contenteditable' ) ) {
+				if ( this.node.innerHTML ) {
+					// This is illegal. You can't have content inside a contenteditable
+					// element that's already populated
+					errorMessage = 'A pre-populated contenteditable element should not have children';
+					if ( root.debug ) {
+						throw new Error( errorMessage );
+					} else {
+						warn( errorMessage );
+					}
+				}
+			}
+
 			appendElementChildren( this, this.node, descriptor, docFrag );
 		}
 
@@ -104,6 +119,12 @@ define([
 			// deal with two-way bindings
 			if ( root.twoway ) {
 				bindElement( this, attributes );
+
+				// Special case - contenteditable
+				if ( this.node.getAttribute( 'contenteditable' ) && this.node._ractive.binding ) {
+					// We need to update the model
+					this.node._ractive.binding.update();
+				}
 			}
 
 			// name attributes are deferred, because they're a special case - if two-way

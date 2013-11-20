@@ -26,6 +26,7 @@ define([
 		CheckboxNameBinding,
 		CheckedBinding,
 		FileListBinding,
+		ContentEditableBinding,
 		GenericBinding;
 
 	bindAttribute = function () {
@@ -139,12 +140,16 @@ define([
 			return null;
 		}
 
-		if ( attribute.propertyName !== 'value' ) {
+		if ( attribute.lcName !== 'value' ) {
 			warn( 'This is... odd' );
 		}
 
-		if ( attribute.pNode.type === 'file' ) {
+		if ( node.type === 'file' ) {
 			return new FileListBinding( attribute, node );
+		}
+
+		if ( node.getAttribute( 'contenteditable' ) ) {
+			return new ContentEditableBinding( attribute, node );
 		}
 
 		return new GenericBinding( attribute, node );
@@ -401,6 +406,33 @@ define([
 
 		teardown: function () {
 			this.node.removeEventListener( 'change', updateModel, false );
+		}
+	};
+
+	ContentEditableBinding = function ( attribute, node ) {
+		inheritProperties( this, attribute, node );
+		
+		node.addEventListener( 'change', updateModel, false );
+		if ( !this.root.lazy ) {
+			node.addEventListener( 'input', updateModel, false );
+		
+			if ( node.attachEvent ) {
+				node.addEventListener( 'keyup', updateModel, false );
+			}
+		}
+	};
+		
+	ContentEditableBinding.prototype = {
+		update: function () {
+			this.attr.receiving = true;
+			this.root.set( this.keypath, this.node.innerHTML );
+			this.attr.receiving = false;
+		},
+		
+		teardown: function () {
+			this.node.removeEventListener( 'change', updateModel, false );
+			this.node.removeEventListener( 'input', updateModel, false );
+			this.node.removeEventListener( 'keyup', updateModel, false );
 		}
 	};
 
