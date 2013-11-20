@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-19
+	Ractive - v0.3.8-pre - 2013-11-20
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -2688,7 +2688,7 @@ var shared_enforceCase = function () {
     }();
 var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
         
-        var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, GenericBinding;
+        var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
             var node = this.pNode, interpolator, binding, bindings;
             if (!this.fragment) {
@@ -2752,11 +2752,14 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumer
                 }
                 return null;
             }
-            if (attribute.propertyName !== 'value') {
+            if (attribute.lcName !== 'value') {
                 warn('This is... odd');
             }
-            if (attribute.pNode.type === 'file') {
+            if (node.type === 'file') {
                 return new FileListBinding(attribute, node);
+            }
+            if (node.getAttribute('contenteditable')) {
+                return new ContentEditableBinding(attribute, node);
             }
             return new GenericBinding(attribute, node);
         };
@@ -2943,6 +2946,28 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumer
                 this.node.removeEventListener('change', updateModel, false);
             }
         };
+        ContentEditableBinding = function (attribute, node) {
+            inheritProperties(this, attribute, node);
+            node.addEventListener('change', updateModel, false);
+            if (!this.root.lazy) {
+                node.addEventListener('input', updateModel, false);
+                if (node.attachEvent) {
+                    node.addEventListener('keyup', updateModel, false);
+                }
+            }
+        };
+        ContentEditableBinding.prototype = {
+            update: function () {
+                this.attr.receiving = true;
+                this.root.set(this.keypath, this.node.innerHTML);
+                this.attr.receiving = false;
+            },
+            teardown: function () {
+                this.node.removeEventListener('change', updateModel, false);
+                this.node.removeEventListener('input', updateModel, false);
+                this.node.removeEventListener('keyup', updateModel, false);
+            }
+        };
         GenericBinding = function (attribute, node) {
             inheritProperties(this, attribute, node);
             node.addEventListener('change', updateModel, false);
@@ -2983,14 +3008,14 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumer
     }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
 var Attribute_updateAttribute = function (isArray, namespaces) {
         
-        var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateEverythingElse;
+        var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
         updateAttribute = function () {
             var node;
             if (!this.ready) {
                 return this;
             }
             node = this.pNode;
-            if (node.tagName === 'SELECT' && this.name === 'value') {
+            if (node.tagName === 'SELECT' && this.lcName === 'value') {
                 this.update = deferSelect;
                 this.deferredUpdate = initSelect;
                 return this.update();
@@ -2999,7 +3024,7 @@ var Attribute_updateAttribute = function (isArray, namespaces) {
                 this.update = updateFileInputValue;
                 return this;
             }
-            if (this.twoway && this.name === 'name') {
+            if (this.twoway && this.lcName === 'name') {
                 if (node.type === 'radio') {
                     this.update = updateRadioName;
                     return this.update();
@@ -3009,12 +3034,16 @@ var Attribute_updateAttribute = function (isArray, namespaces) {
                     return this.update();
                 }
             }
-            if (this.name === 'style' && node.style.setAttribute) {
+            if (this.lcName === 'style' && node.style.setAttribute) {
                 this.update = updateIEStyleAttribute;
                 return this.update();
             }
-            if (this.name === 'class' && (!node.namespaceURI || node.namespaceURI === namespaces.html)) {
+            if (this.lcName === 'class' && (!node.namespaceURI || node.namespaceURI === namespaces.html)) {
                 this.update = updateClassName;
+                return this.update();
+            }
+            if (node.getAttribute('contenteditable') && this.lcName === 'value') {
+                this.update = updateContentEditableValue;
                 return this.update();
             }
             this.update = updateEverythingElse;
@@ -3102,6 +3131,21 @@ var Attribute_updateAttribute = function (isArray, namespaces) {
             }
             return this;
         };
+        updateContentEditableValue = function () {
+            var node, value;
+            node = this.pNode;
+            value = this.fragment.getValue();
+            if (value === undefined) {
+                value = '';
+            }
+            if (value !== this.value) {
+                if (!this.receiving) {
+                    node.innerHTML = value;
+                }
+                this.value = value;
+            }
+            return this;
+        };
         updateEverythingElse = function () {
             var node, value;
             node = this.pNode;
@@ -3125,7 +3169,7 @@ var Attribute_updateAttribute = function (isArray, namespaces) {
                     this.value = value;
                     return this;
                 }
-                if (this.name === 'id') {
+                if (this.lcName === 'id') {
                     if (this.value !== undefined) {
                         this.root.nodes[this.value] = undefined;
                     }
@@ -3660,6 +3704,7 @@ var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, upd
                 if (namespacePrefix !== 'xmlns') {
                     name = name.substring(colonIndex + 1);
                     attribute.name = enforceCase(name);
+                    attribute.lcName = attribute.name.toLowerCase();
                     attribute.namespace = namespaces[namespacePrefix.toLowerCase()];
                     if (!attribute.namespace) {
                         throw 'Unknown namespace ("' + namespacePrefix + '")';
@@ -3668,6 +3713,7 @@ var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, upd
                 }
             }
             attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
+            attribute.lcName = attribute.name.toLowerCase();
         };
         setStaticAttribute = function (attribute, options) {
             var node, value = options.value === null ? '' : options.value;
@@ -3774,6 +3820,9 @@ var Element_appendElementChildren = function (namespaces, StringFragment, circul
 var Element_bindElement = function () {
         
         return function (element, attributes) {
+            if (element.node.getAttribute('contenteditable') && attributes.value && attributes.value.bind()) {
+                return;
+            }
             switch (element.descriptor.e) {
             case 'select':
             case 'textarea':
@@ -4249,7 +4298,7 @@ var Element_addEventProxies = function (addEventProxy) {
 var Element__Element = function (types, namespaces, voidElementNames, create, defineProperty, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies, enforceCase) {
         
         var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding;
+            var self = this, parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
             this.type = types.ELEMENT;
             parentFragment = this.parentFragment = options.parentFragment;
             contextStack = parentFragment.contextStack;
@@ -4274,6 +4323,16 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
             }
             attributes = createElementAttributes(this, descriptor.a);
             if (descriptor.f) {
+                if (this.node && this.node.getAttribute('contenteditable')) {
+                    if (this.node.innerHTML) {
+                        errorMessage = 'A pre-populated contenteditable element should not have children';
+                        if (root.debug) {
+                            throw new Error(errorMessage);
+                        } else {
+                            warn(errorMessage);
+                        }
+                    }
+                }
                 appendElementChildren(this, this.node, descriptor, docFrag);
             }
             if (docFrag && descriptor.v) {
@@ -4282,6 +4341,9 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
             if (docFrag) {
                 if (root.twoway) {
                     bindElement(this, attributes);
+                    if (this.node.getAttribute('contenteditable') && this.node._ractive.binding) {
+                        this.node._ractive.binding.update();
+                    }
                 }
                 if (attributes.name && !attributes.name.twoway) {
                     attributes.name.update();
@@ -6883,7 +6945,7 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
                 case types.COMMENT:
                     return new Comment(options, this.docFrag);
                 default:
-                    throw new Error('WTF? not sure what happened here...');
+                    throw new Error('Something very strange happened. Please file an issue at https://github.com/RactiveJS/Ractive/issues. Thanks!');
                 }
             },
             teardown: function (detach) {
