@@ -66,7 +66,7 @@ define([
 				case types.PARTIAL:      return new Partial( options, this.docFrag );
 				case types.COMMENT:      return new Comment( options, this.docFrag );
 
-				default: throw new Error( 'WTF? not sure what happened here...' );
+				default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/RactiveJS/Ractive/issues. Thanks!' );
 			}
 		},
 
