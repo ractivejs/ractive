@@ -1,4 +1,4 @@
-define( function () {
+define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 	'use strict';
 

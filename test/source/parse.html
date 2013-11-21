@@ -14,27 +14,12 @@
 	<script src='../vendor/require.js'></script>
 
 	<script>
-		var loadCircularDependency = function ( callback ) { callback(); };
-
 		require.config({
-			baseUrl: '../../src/',
-			urlArgs: 'bust=' + Date.now()
+			baseUrl: '../../src/'
 		});
 
-		require([ 'Ractive' ], function ( Ractive ) {
-
-			window.Ractive = Ractive;
-
-			req2 = require.config({
-				context: 'foo',
-				baseUrl: '../',
-				urlArgs: 'bust=' + Date.now()
-			});
-
-			req2([ 'tests/parse' ], function ( parse ) {
-				parse();
-			});
-
+		require([ '../test/tests/parse' ], function ( parse ) {
+			parse();
 		});
 	</script>
 </body>

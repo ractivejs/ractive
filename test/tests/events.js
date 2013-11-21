@@ -3,7 +3,7 @@
 //
 // TODO: add moar tests
 
-define( function () {
+define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 	return function () {
 		
