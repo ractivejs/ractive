@@ -8,23 +8,33 @@
 	<div id='qunit'></div>
 	<div id='qunit-fixture'></div>
 
-	<script src='../../tmp/Ractive.js'></script>
-
 	<script src='../vendor/qunit.js'></script>
 	<script src='../vendor/qunit-html.js'></script>
 	<script src='../vendor/simulant.js'></script>
-	<script src='../vendor/Ractive-events-tap.js'></script>
-
+	<script src='../vendor/require.js'></script>
+	
 	<script>
-		// test modules are AMD so that we can test the source, but we don't want to
-		// bother with AMD here...
-		var define = function ( module ) { var tests = module(); tests(); };
-	</script>
+		require.config({ baseUrl: '../../tmp' });
 
-	<script src='../tests/parse.js'></script>
-	<script src='../tests/render.js'></script>
-	<script src='../tests/mustache.js'></script>
-	<script src='../tests/events.js'></script>
-	<script src='../tests/misc.js'></script>
+		require([
+			'../test/tests/parse',
+			'../test/tests/render',
+			'../test/tests/mustache',
+			'../test/tests/events',
+			'../test/tests/misc'
+		], function (
+			parse,
+			render,
+			mustache,
+			events,
+			misc
+		) {
+			parse();
+			render();
+			mustache();
+			events();
+			misc();
+		});
+	</script>
 </body>
 </html>

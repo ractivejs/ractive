@@ -14,31 +14,28 @@
 	<script src='../vendor/require.js'></script>
 
 	<script>
-		var loadCircularDependency = function ( callback ) { callback(); };
-
 		require.config({
 			baseUrl: '../../src/'
 		});
 
-		require([ 'Ractive', '../test/vendor/Ractive-events-tap' ], function ( Ractive ) {
-
-			window.Ractive = Ractive;
-
-			req2 = require.config({
-				context: 'foo',
-				baseUrl: '../'
-			});
-
-			req2([ 'tests/parse', 'tests/render', 'tests/mustache', 'tests/events', 'tests/misc' ], function ( parse, render, mustache, events, misc ) {
-
-				parse();
-				render();
-				mustache();
-				events();
-				misc();
-				
-			});
-
+		require([
+			'../test/tests/parse',
+			'../test/tests/render',
+			'../test/tests/mustache',
+			'../test/tests/events',
+			'../test/tests/misc'
+		], function (
+			parse,
+			render,
+			mustache,
+			events,
+			misc
+		) {
+			parse();
+			render();
+			mustache();
+			events();
+			misc();
 		});
 	</script>
 </body>

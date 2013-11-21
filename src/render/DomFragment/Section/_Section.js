@@ -1,5 +1,6 @@
 define([
 	'config/types',
+	'config/isClient',
 	'render/shared/initMustache',
 	'render/shared/updateMustache',
 	'render/shared/resolveMustache',
@@ -9,6 +10,7 @@ define([
 	'circular'
 ], function (
 	types,
+	isClient,
 	initMustache,
 	updateMustache,
 	resolveMustache,
@@ -248,7 +250,7 @@ define([
 
 			// if this isn't the initial render, we need to insert any new nodes in
 			// the right place
-			if ( !this.initialising ) {
+			if ( !this.initialising && isClient ) {
 				
 				// Normally this is just a case of finding the next node, and inserting
 				// items before it...

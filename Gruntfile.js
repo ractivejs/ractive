@@ -16,9 +16,19 @@ module.exports = function(grunt) {
 				}
 			}
 		},
+
+		nodeunit: {
+			basic: [ 'test/node/basic.js' ],
+			parse: [ 'test/node/parse.js' ],
+			renderHTML: [ 'test/node/renderHTML.js' ]
+		},
 		
 		qunit: {
-			files: [ 'test/build/index.html' ]
+			parse:    [ 'test/build/parse.html'    ],
+			render:   [ 'test/build/render.html'   ],
+			mustache: [ 'test/build/mustache.html' ],
+			events:   [ 'test/build/events.html'   ],
+			misc:     [ 'test/build/misc.html'     ]
 		},
 
 		requirejs: {
@@ -158,6 +168,7 @@ module.exports = function(grunt) {
 
 	grunt.loadNpmTasks( 'grunt-contrib-jshint' );
 	grunt.loadNpmTasks( 'grunt-contrib-clean' );
+	grunt.loadNpmTasks( 'grunt-contrib-nodeunit' );
 	grunt.loadNpmTasks( 'grunt-contrib-qunit' );
 	grunt.loadNpmTasks( 'grunt-contrib-concat' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
@@ -176,6 +187,7 @@ module.exports = function(grunt) {
 		'clean:tmp',
 		'jshint',
 		'requirejs',
+		'nodeunit',
 		'qunit'
 	]);
 
