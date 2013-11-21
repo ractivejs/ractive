@@ -4,7 +4,7 @@ define([
 	'render/DomFragment/shared/insertHtml',
 	'render/DomFragment/Text',
 	'render/DomFragment/Interpolator',
-	'render/DomFragment/Section',
+	'render/DomFragment/Section/_Section',
 	'render/DomFragment/Triple',
 	'render/DomFragment/Element/_Element',
 	'render/DomFragment/Partial/_Partial',

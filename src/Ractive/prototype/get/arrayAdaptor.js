@@ -159,7 +159,7 @@ define([
 				deps = depsByKeypath[ keypath ];
 				
 				if ( deps ) {
-					queueDependants( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue );
+					queueDependants( keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
 					// we may have some deferred evaluators to process
 					processDeferredUpdates( root );
@@ -215,7 +215,7 @@ define([
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
-		queueDependants = function ( root, keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
+		queueDependants = function ( keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
 			var k, dependant;
 
 			k = deps.length;
@@ -225,7 +225,6 @@ define([
 				// references need to get processed before mustaches
 				if ( dependant.type === types.REFERENCE ) {
 					dependant.update();
-					//dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
 				}
 
 				// is this a DOM section?

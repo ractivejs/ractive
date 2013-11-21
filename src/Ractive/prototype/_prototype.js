@@ -15,7 +15,8 @@ define([
 	'Ractive/prototype/teardown',
 	'Ractive/prototype/add',
 	'Ractive/prototype/subtract',
-	'Ractive/prototype/toggle'
+	'Ractive/prototype/toggle',
+	'Ractive/prototype/merge/_merge'
 ], function (
 	get,
 	set,
@@ -33,7 +34,8 @@ define([
 	teardown,
 	add,
 	subtract,
-	toggle
+	toggle,
+	merge
 ) {
 	
 	'use strict';
@@ -55,7 +57,8 @@ define([
 		teardown: teardown,
 		add: add,
 		subtract: subtract,
-		toggle: toggle
+		toggle: toggle,
+		merge: merge
 	};
 
 });

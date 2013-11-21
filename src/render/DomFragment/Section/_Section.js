@@ -4,7 +4,7 @@ define([
 	'render/shared/updateMustache',
 	'render/shared/resolveMustache',
 	'render/shared/updateSection',
-	'render/DomFragment/shared/reassignFragments',
+	'render/DomFragment/Section/reassignFragments',
 	'shared/teardown',
 	'circular'
 ], function (
@@ -177,6 +177,10 @@ define([
 			reassignStart = ( start + addedItems );
 
 			reassignFragments( this.root, this, reassignStart, this.length, balance );
+		},
+
+		merge: function ( newIndices ) {
+			console.log( 'merging...', newIndices );
 		},
 
 		teardown: function ( detach ) {
