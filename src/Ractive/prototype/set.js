@@ -6,7 +6,8 @@ define([
 	'shared/notifyDependants',
 	'shared/attemptKeypathResolution',
 	'shared/makeTransitionManager',
-	'shared/processDeferredUpdates'
+	'shared/processDeferredUpdates',
+	'Ractive/prototype/shared/replaceData'
 ], function (
 	isObject,
 	isEqual,
@@ -15,17 +16,13 @@ define([
 	notifyDependants,
 	attemptKeypathResolution,
 	makeTransitionManager,
-	processDeferredUpdates
+	processDeferredUpdates,
+	replaceData
 ) {
 
 	'use strict';
 
-	var set,
-
-		// helpers
-		updateModel,
-		getUpstreamChanges,
-		resetWrapped;
+	var set, updateModel, getUpstreamChanges, resetWrapped;
 
 	set = function ( keypath, value, complete ) {
 		var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
@@ -106,7 +103,7 @@ define([
 
 
 	updateModel = function ( ractive, keypath, value, changes ) {
-		var cached, keys, previous, key, obj, accumulated, currentKeypath, keypathToClear, wrapped;
+		var cached, previous, wrapped, keypathToClear;
 
 		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
 			if ( resetWrapped( ractive, keypath, value, wrapped, changes ) !== false ) {
@@ -117,59 +114,9 @@ define([
 		cached = ractive._cache[ keypath ];
 		previous = ractive.get( keypath );
 
-		keys = keypath.split( '.' );
-		accumulated = [];
-
 		// update the model, if necessary
 		if ( previous !== value ) {
-			
-			// Get the root object
-			if ( wrapped = ractive._wrapped[ '' ] ) {
-				if ( wrapped.set ) {
-					// Root object is wrapped, so we need to use the wrapper's
-					// set() method
-					wrapped.set( keys.join( '.' ), value );
-				}
-
-				obj = wrapped.get();
-			} else {
-				obj = ractive.data;
-			}
-
-			
-			while ( keys.length > 1 ) {
-				key = accumulated[ accumulated.length ] = keys.shift();
-				currentKeypath = accumulated.join( '.' );
-
-				if ( wrapped = ractive._wrapped[ currentKeypath ] ) {
-					if ( wrapped.set ) {
-						wrapped.set( keys.join( '.' ), value );
-					}
-
-					obj = wrapped.get();
-				}
-
-				else {
-					// If this branch doesn't exist yet, create a new one - if the next
-					// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
-					// than an object
-					if ( !obj[ key ] ) {
-						
-						// if we're creating a new branch, we may need to clear the upstream
-						// keypath
-						if ( !keypathToClear ) {
-							keypathToClear = currentKeypath;
-						}
-
-						obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
-					}
-
-					obj = obj[ key ];
-				}
-			}
-
-			key = keys[0];
-			obj[ key ] = value;
+			keypathToClear = replaceData( ractive, keypath, value );
 		}
 
 		else {
