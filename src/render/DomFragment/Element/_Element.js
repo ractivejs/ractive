@@ -180,7 +180,12 @@ define([
 	};
 
 	DomElement.prototype = {
-		teardown: function ( detach ) {
+		detach: function () {
+			this.node.parentNode.removeChild( this.node );
+			return this.node;
+		},
+
+		teardown: function ( destroy ) {
 			var eventName, binding, bindings;
 
 			// Children first. that way, any transitions on child elements will be
@@ -211,12 +216,17 @@ define([
 				this.decorator.teardown();
 			}
 
+			// Outro then detach, or just detach
 			if ( this.descriptor.t2 ) {
+				if ( destroy ) {
+					this.root._transitionManager.detachWhenReady( this.node );
+				}
+
 				executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
 			}
 
-			if ( detach ) {
-				this.root._transitionManager.detachWhenReady( this.node );
+			else if ( destroy ) {
+				this.node.parentNode.removeChild( this.node );
 			}
 		},
 

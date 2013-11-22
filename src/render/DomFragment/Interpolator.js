@@ -35,12 +35,17 @@ define([
 		update: updateMustache,
 		resolve: resolveMustache,
 
-		teardown: function ( detach ) {
-			teardown( this );
-			
-			if ( detach ) {
-				this.node.parentNode.removeChild( this.node );
+		detach: function () {
+			this.node.parentNode.removeChild( this.node );
+			return this.node;
+		},
+
+		teardown: function ( destroy ) {
+			if ( destroy ) {
+				this.detach();
 			}
+		
+			teardown( this );
 		},
 
 		render: function ( value ) {

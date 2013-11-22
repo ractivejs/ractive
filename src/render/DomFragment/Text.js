@@ -20,9 +20,14 @@ define([ 'config/types' ], function ( types ) {
 	};
 
 	DomText.prototype = {
-		teardown: function ( detach ) {
-			if ( detach ) {
-				this.node.parentNode.removeChild( this.node );
+		detach: function () {
+			this.node.parentNode.removeChild( this.node );
+			return this.node;
+		},
+
+		teardown: function ( destroy ) {
+			if ( destroy ) {
+				this.detach();
 			}
 		},
 

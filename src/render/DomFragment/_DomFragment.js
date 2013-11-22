@@ -49,6 +49,27 @@ define([
 	};
 
 	DomFragment.prototype = {
+		detach: function () {
+			var len, i;
+
+			// if this was built from HTML, we just need to remove the nodes
+			if ( this.nodes ) {
+				while ( this.nodes.length ) {
+					this.docFrag.appendChild( this.nodes.pop() );
+				}
+			}
+
+			// otherwise we need to detach each item
+			else if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.docFrag.appendChild( this.items[i].detach() );
+				}
+			}
+
+			return this.docFrag;
+		},
+
 		createItem: function ( options ) {
 			if ( typeof options.descriptor === 'string' ) {
 				return new Text( options, this.docFrag );
@@ -70,26 +91,24 @@ define([
 			}
 		},
 
-		teardown: function ( detach ) {
+		teardown: function ( destroy ) {
 			var node;
 
 			// if this was built from HTML, we just need to remove the nodes
-			if ( detach && this.nodes ) {
-				while ( this.nodes.length ) {
-					node = this.nodes.pop();
+			if ( this.nodes && destroy ) {
+				while ( node = this.nodes.pop() ) {
 					node.parentNode.removeChild( node );
 				}
-				return;
 			}
 
-			// otherwise we need to do a proper teardown
-			if ( !this.items ) {
-				return;
+			// otherwise we need to detach each item
+			else if ( this.items ) {
+				while ( this.items.length ) {
+					this.items.pop().teardown( destroy );
+				}
 			}
 
-			while ( this.items.length ) {
-				this.items.pop().teardown( detach );
-			}
+			this.nodes = this.items = this.docFrag = null;
 		},
 
 		firstNode: function () {

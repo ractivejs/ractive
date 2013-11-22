@@ -129,7 +129,7 @@ define([
 	}
 
 	function updateConditionalSection ( section, value, inverted, fragmentOptions ) {
-		var doRender, emptyArray, fragmentsToRemove;
+		var doRender, emptyArray, fragmentsToRemove, fragment;
 
 		emptyArray = ( isArray( value ) && value.length === 0 );
 
@@ -152,8 +152,8 @@ define([
 			if ( section.length > 1 ) {
 				fragmentsToRemove = section.fragments.splice( 1 );
 				
-				while ( fragmentsToRemove.length ) {
-					fragmentsToRemove.pop().teardown( true );
+				while ( fragment = fragmentsToRemove.pop() ) {
+					fragment.teardown( true );
 				}
 			}
 		}

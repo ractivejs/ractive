@@ -52,8 +52,12 @@ define([
 			return this.parentFragment.findNextNode( this );
 		},
 
-		teardown: function ( detach ) {
-			this.fragment.teardown( detach );
+		detach: function () {
+			return this.fragment.detach();
+		},
+
+		teardown: function () {
+			this.fragment.teardown();
 		},
 
 		toString: function () {

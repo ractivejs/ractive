@@ -36,15 +36,18 @@ define([
 		update: updateMustache,
 		resolve: resolveMustache,
 
-		teardown: function ( detach ) {
-			var node;
+		detach: function () {
+			while ( this.nodes.length ) {
+				this.docFrag.appendChild( this.nodes.pop() );
+			}
 
-			// remove child nodes from DOM
-			if ( detach ) {
-				while ( this.nodes.length ) {
-					node = this.nodes.pop();
-					node.parentNode.removeChild( node );
-				}
+			return this.docFrag;
+		},
+
+		teardown: function ( destroy ) {
+			if ( destroy ) {
+				this.detach();
+				this.docFrag = this.nodes = null;
 			}
 
 			teardown( this );

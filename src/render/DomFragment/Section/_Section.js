@@ -5,7 +5,9 @@ define([
 	'render/shared/updateMustache',
 	'render/shared/resolveMustache',
 	'render/shared/updateSection',
+	'render/DomFragment/Section/reassignFragment',
 	'render/DomFragment/Section/reassignFragments',
+	'render/DomFragment/Section/prototype/merge',
 	'shared/teardown',
 	'circular'
 ], function (
@@ -15,7 +17,9 @@ define([
 	updateMustache,
 	resolveMustache,
 	updateSection,
+	reassignFragment,
 	reassignFragments,
+	merge,
 	teardown,
 	circular
 ) {
@@ -181,12 +185,21 @@ define([
 			reassignFragments( this.root, this, reassignStart, this.length, balance );
 		},
 
-		merge: function ( newIndices ) {
-			console.log( 'merging...', newIndices );
+		merge: merge,
+
+		detach: function () {
+			var i, len;
+
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.docFrag.appendChild( this.fragments[i].detach() );
+			}
+
+			return this.docFrag;
 		},
 
-		teardown: function ( detach ) {
-			this.teardownFragments( detach );
+		teardown: function ( destroy ) {
+			this.teardownFragments( destroy );
 
 			teardown( this );
 		},
@@ -207,17 +220,17 @@ define([
 			return this.parentFragment.findNextNode( this );
 		},
 
-		teardownFragments: function ( detach ) {
+		teardownFragments: function ( destroy ) {
 			var id;
 
 			while ( this.fragments.length ) {
-				this.fragments.shift().teardown( detach );
+				this.fragments.shift().teardown( destroy );
 			}
 
 			if ( this.fragmentsById ) {
 				for ( id in this.fragmentsById ) {
 					if ( this.fragments[ id ] ) {
-						this.fragmentsById[ id ].teardown();
+						this.fragmentsById[ id ].teardown( destroy );
 						this.fragmentsById[ id ] = null;
 					}
 				}
@@ -251,7 +264,7 @@ define([
 			// if this isn't the initial render, we need to insert any new nodes in
 			// the right place
 			if ( !this.initialising && isClient ) {
-				
+
 				// Normally this is just a case of finding the next node, and inserting
 				// items before it...
 				nextNode = this.parentFragment.findNextNode( this );
