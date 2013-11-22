@@ -47,7 +47,7 @@ define([
 		// If either the existing value or the new value isn't an
 		// array, just do a regular set
 		if ( !isArray( currentArray ) || !isArray( array ) ) {
-			return this.set( keypath, array ); // TODO complete handler?
+			return this.set( keypath, array, options && options.complete );
 		}
 
 		lengthUnchanged = ( currentArray.length === array.length );
