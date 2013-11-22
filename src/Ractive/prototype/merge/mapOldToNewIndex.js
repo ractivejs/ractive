@@ -18,6 +18,7 @@ define([], function () {
 				index = newArray.indexOf( item, start );
 
 				if ( index === -1 ) {
+					changed = true;
 					return -1;
 				}
 

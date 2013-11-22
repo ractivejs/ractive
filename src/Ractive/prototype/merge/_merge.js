@@ -1,4 +1,5 @@
 define([
+	'utils/warn',
 	'utils/isArray',
 	'shared/clearCache',
 	'shared/processDeferredUpdates',
@@ -8,6 +9,7 @@ define([
 	'Ractive/prototype/merge/mapOldToNewIndex',
 	'Ractive/prototype/merge/queueDependants'
 ], function (
+	warn,
 	isArray,
 	clearCache,
 	processDeferredUpdates,
@@ -20,10 +22,14 @@ define([
 	
 	'use strict';
 
-	return function ( keypath, array, sameSameButDifferent, complete ) {
+	var identifiers = {};
 
-		var oldArray,
+	return function ( keypath, array, options ) {
+
+		var currentArray,
+			oldArray,
 			newArray,
+			identifier,
 			lengthUnchanged,
 			i,
 			newIndices,
@@ -36,30 +42,63 @@ define([
 			upstreamQueue,
 			keys;
 
-		oldArray = this.get( keypath );
+		currentArray = this.get( keypath );
 
 		// If either the existing value or the new value isn't an
 		// array, just do a regular set
-		if ( !isArray( oldArray ) || !isArray( array ) ) {
+		if ( !isArray( currentArray ) || !isArray( array ) ) {
 			return this.set( keypath, array ); // TODO complete handler?
 		}
 
-		lengthUnchanged = ( oldArray.length === array.length );
+		lengthUnchanged = ( currentArray.length === array.length );
 
-		// if we're dealing with objects that look identical but aren't
-		// - i.e. {foo:'bar'} !== {foo:'bar'} - the easiest thing to do is
-		// stringify them in order to compare
-		if ( sameSameButDifferent ) {
-			oldArray = oldArray.map( stringify );
-			newArray = array.map( stringify );
+		if ( options && options.compare ) {
+			
+			// If `compare` is `true`, we use JSON.stringify to compare
+			// objects that are the same shape, but non-identical - i.e.
+			// { foo: 'bar' } !== { foo: 'bar' }
+			if ( options.compare === true ) {
+				identifier = stringify;
+			}
+
+			else if ( typeof options.compare === 'string' ) {
+				identifier = getIdentifier( options.compare );
+			}
+
+			else if ( typeof options.compare == 'function' ) {
+				identifier = options.compare;
+			}
+
+			else {
+				throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
+			}
+
+			try {
+				oldArray = currentArray.map( identifier );
+				newArray = array.map( identifier );
+			} catch ( err ) {
+				// fallback to an identity check - worst case scenario we have
+				// to do more DOM manipulation than we thought...
+
+				// ...unless we're in debug mode of course
+				if ( this.debug ) {
+					throw err;
+				} else {
+					warn( 'Merge operation: comparison failed. Falling back to identity checking' );
+				}
+
+				oldArray = currentArray;
+				newArray = array;
+			}
+			
 		} else {
+			oldArray = currentArray;
 			newArray = array;
 		}
 
 
 		// find new indices for members of oldArray
 		newIndices = mapOldToNewIndex( oldArray, newArray );
-
 
 
 		// Clear the cache
@@ -77,7 +116,7 @@ define([
 
 		// Manage transitions
 		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		this._transitionManager = transitionManager = makeTransitionManager( this, options && options.complete );
 
 		// Go through all dependant priority levels, finding merge targets
 		mergeQueue = [];
@@ -139,6 +178,16 @@ define([
 
 	function stringify ( item ) {
 		return JSON.stringify( item );
+	}
+
+	function getIdentifier ( str ) {
+		if ( !identifiers[ str ] ) {
+			identifiers[ str ] = function ( item ) {
+				return item[ str ];
+			};
+		}
+
+		return identifiers[ str ];
 	}
 
 });
