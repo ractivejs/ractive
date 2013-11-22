@@ -29,7 +29,10 @@ module.exports = function(grunt) {
 			mustache: [ 'test/build/mustache.html' ],
 			events:   [ 'test/build/events.html'   ],
 			misc:     [ 'test/build/misc.html'     ],
-			merge:    [ 'test/build/merge.html'    ]
+			merge:    [ 'test/build/merge.html'    ],
+			options: {
+				timeout: 30000
+			}
 		},
 
 		requirejs: {
