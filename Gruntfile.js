@@ -28,7 +28,8 @@ module.exports = function(grunt) {
 			render:   [ 'test/build/render.html'   ],
 			mustache: [ 'test/build/mustache.html' ],
 			events:   [ 'test/build/events.html'   ],
-			misc:     [ 'test/build/misc.html'     ]
+			misc:     [ 'test/build/misc.html'     ],
+			merge:    [ 'test/build/merge.html'    ]
 		},
 
 		requirejs: {

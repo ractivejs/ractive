@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>Ractive Test Suite</title>
+	<title>Merge | Ractive Test Suite</title>
 	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
 </head>
 <body>
@@ -18,26 +18,7 @@
 			baseUrl: '../../src/'
 		});
 
-		require([
-			'../test/tests/parse',
-			'../test/tests/render',
-			'../test/tests/mustache',
-			'../test/tests/events',
-			'../test/tests/misc',
-			'../test/tests/merge'
-		], function (
-			parse,
-			render,
-			mustache,
-			events,
-			misc,
-			merge
-		) {
-			parse();
-			render();
-			mustache();
-			events();
-			misc();
+		require([ '../test/tests/merge' ], function ( merge ) {
 			merge();
 		});
 	</script>
