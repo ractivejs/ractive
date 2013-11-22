@@ -67,6 +67,7 @@ define([
 		this.keypath = keypath;
 		this.callback = callback;
 		this.defer = options.defer;
+		this.debug = options.debug;
 		
 		// Observers are notified before any DOM changes take place (though
 		// they can defer execution until afterwards)
@@ -101,7 +102,7 @@ define([
 				try {
 					this.callback.call( this.context, value, this.value );
 				} catch ( err ) {
-					if ( this.root.debug ) {
+					if ( this.debug || this.root.debug ) {
 						throw err;
 					}
 				}

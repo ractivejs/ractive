@@ -35,7 +35,7 @@ define([
 			settingParent,
 			settingChild,
 			key,
-			initFalse,
+			observeOptions,
 			processKeyValuePair,
 			eventName,
 			propagateEvent,
@@ -141,7 +141,7 @@ define([
 		}
 
 		self.observers = [];
-		initFalse = { init: false };
+		observeOptions = { init: false, debug: true };
 
 		observeParent = function ( pair ) {
 			var observer = root.observe( pair[1], function ( value ) {
@@ -150,7 +150,7 @@ define([
 					instance.set( pair[0], value );
 					settingChild = false;
 				}
-			}, initFalse );
+			}, observeOptions );
 
 			self.observers[ self.observers.length ] = observer;
 		};
@@ -163,7 +163,7 @@ define([
 						root.set( pair[1], value );
 						settingParent = false;
 					}
-				}, initFalse );
+				}, observeOptions );
 
 				self.observers[ self.observers.length ] = observer;
 
