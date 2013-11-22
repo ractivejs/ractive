@@ -21,11 +21,6 @@ define([
 		transition = new Transition( descriptor, root, owner, contextStack, isIntro );
 
 		if ( transition._fn ) {
-			// TODO remove this warning after a few versions
-			if ( transition._fn.length !== 1 ) {
-				warn( 'The transitions API has changed. See https://github.com/RactiveJS/Ractive/wiki/Transitions for details' );
-			}
-
 			node = transition.node;
 			transition._manager = root._transitionManager;
 

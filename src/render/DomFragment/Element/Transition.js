@@ -1,11 +1,13 @@
 define([
 	'config/isClient',
+	'utils/warn',
 	'utils/isNumeric',
 	'utils/isArray',
 	'utils/camelCase',
 	'render/StringFragment/_StringFragment'
 ], function (
 	isClient,
+	warn,
 	isNumeric,
 	isArray,
 	camelCase,
@@ -60,7 +62,7 @@ define([
 	}
 
 	Transition = function ( descriptor, root, owner, contextStack, isIntro ) {
-		var fragment, params, prop;
+		var fragment, errorMessage;
 
 		this.root = root;
 		this.node = owner.node;
@@ -75,7 +77,7 @@ define([
 			this.name = descriptor.n;
 
 			if ( descriptor.a ) {
-				params = descriptor.a;
+				this._params = descriptor.a;
 			} else if ( descriptor.d ) {
 				// TODO is there a way to interpret dynamic arguments without all the
 				// 'dependency thrashing'?
@@ -86,24 +88,22 @@ define([
 					contextStack: owner.parentFragment.contextStack
 				});
 
-				params = fragment.toJSON();
+				this._params = fragment.toJSON();
 				fragment.teardown();
 			}
 		}
 
 		this._fn = root.transitions[ this.name ];
 		if ( !this._fn ) {
-			return;
-		}
+			errorMessage = 'Missing "' + this.name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
 
-		// parse transition parameters
-		params = parseTransitionParams( params );
-
-		// TODO blacklist certain params
-		for ( prop in params ) {
-			if ( params.hasOwnProperty( prop ) ) {
-				this[ prop ] = params[ prop ];
+			if ( root.debug ) {
+				throw new Error( errorMessage );
+			} else {
+				warn( errorMessage );
 			}
+
+			return;
 		}
 	};
 
@@ -114,7 +114,7 @@ define([
 			}
 
 			this._inited = true;
-			this._fn.call( this.root, this );
+			this._fn.apply( this.root, [ this ].concat( this._params ) );
 		},
 
 		complete: function () {
@@ -275,22 +275,6 @@ define([
 			}
 		}
 	};
-
-	function parseTransitionParams ( params ) {
-		if ( params === 'fast' ) {
-			return { duration: 200 };
-		}
-
-		if ( params === 'slow' ) {
-			return { duration: 600 };
-		}
-
-		if ( isNumeric( params ) ) {
-			return { duration: +params };
-		}
-
-		return params || {};
-	}
 
 	// get prefixed style attributes
 	vendors = [ 'o', 'ms', 'moz', 'webkit' ];
