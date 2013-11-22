@@ -304,12 +304,6 @@ var renderTests = [
 		new_result: '<ul><li>D</li><li>E</li><li>F</li></ul>'
 	},
 	{
-		name: 'Element with transitions',
-		template: '<div intro-outro="slide">{{content}}</div>',
-		data: { content: 'test' },
-		result: '<div>test</div>'
-	},
-	{
 		name: 'Input with dynamic (but not two-way) name attribute',
 		template: '{{#list:i}}<input name="test{{i}}">{{/list}}',
 		data: { list: [ 'a', 'b', 'c' ] },

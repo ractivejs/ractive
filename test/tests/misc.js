@@ -374,7 +374,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<h2>Here is a component:</h2><rv-component/><p>(that was a component)</p>',
+				template: '<h2>Here is a component:</h2><component/><p>(that was a component)</p>',
 				components: {
 					component: Component
 				}
@@ -546,7 +546,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<rv-component foo="{{foo}}"/>',
+				template: '<component foo="{{foo}}"/>',
 				components: {
 					component: Component
 				}
@@ -771,7 +771,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<p>before</p><rv-test bool="{{bool}}"/><p>after</p>',
+				template: '<p>before</p><test bool="{{bool}}"/><p>after</p>',
 				components: { test: TestComponent }
 			});
 
@@ -909,7 +909,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<h2>Select an option:</h2><rv-dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
+				template: '<h2>Select an option:</h2><dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
 				data: {
 					numbers: [
 						{ word: 'one', digit: 1 },
