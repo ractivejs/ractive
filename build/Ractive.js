@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-20
+	Ractive - v0.3.8-pre - 2013-11-22
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -412,7 +412,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     }
                     deps = depsByKeypath[keypath];
                     if (deps) {
-                        queueDependants(root, keypath, deps, smartUpdateQueue, dumbUpdateQueue);
+                        queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue);
                         processDeferredUpdates(root);
                         while (smartUpdateQueue.length) {
                             smartUpdateQueue.pop().smartUpdate(methodName, args);
@@ -446,7 +446,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     notifyDependants(root, keypath + '.length', true);
                 }
             };
-            queueDependants = function (root, keypath, deps, smartUpdateQueue, dumbUpdateQueue) {
+            queueDependants = function (keypath, deps, smartUpdateQueue, dumbUpdateQueue) {
                 var k, dependant;
                 k = deps.length;
                 while (k--) {
@@ -822,7 +822,44 @@ var shared_attemptKeypathResolution = function (resolveRef) {
             }
         };
     }(shared_resolveRef);
-var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates) {
+var shared_replaceData = function () {
+        
+        return function (ractive, keypath, value) {
+            var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
+            keys = keypath.split('.');
+            accumulated = [];
+            if (wrapped = ractive._wrapped['']) {
+                if (wrapped.set) {
+                    wrapped.set(keys.join('.'), value);
+                }
+                obj = wrapped.get();
+            } else {
+                obj = ractive.data;
+            }
+            while (keys.length > 1) {
+                key = accumulated[accumulated.length] = keys.shift();
+                currentKeypath = accumulated.join('.');
+                if (wrapped = ractive._wrapped[currentKeypath]) {
+                    if (wrapped.set) {
+                        wrapped.set(keys.join('.'), value);
+                    }
+                    obj = wrapped.get();
+                } else {
+                    if (!obj[key]) {
+                        if (!keypathToClear) {
+                            keypathToClear = currentKeypath;
+                        }
+                        obj[key] = /^\s*[0-9]+\s*$/.test(keys[0]) ? [] : {};
+                    }
+                    obj = obj[key];
+                }
+            }
+            key = keys[0];
+            obj[key] = value;
+            return keypathToClear;
+        };
+    }();
+var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData) {
         
         var set, updateModel, getUpstreamChanges, resetWrapped;
         set = function (keypath, value, complete) {
@@ -873,7 +910,7 @@ var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, n
             return this;
         };
         updateModel = function (ractive, keypath, value, changes) {
-            var cached, keys, previous, key, obj, accumulated, currentKeypath, keypathToClear, wrapped;
+            var cached, previous, wrapped, keypathToClear;
             if ((wrapped = ractive._wrapped[keypath]) && wrapped.reset) {
                 if (resetWrapped(ractive, keypath, value, wrapped, changes) !== false) {
                     return;
@@ -881,37 +918,8 @@ var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, n
             }
             cached = ractive._cache[keypath];
             previous = ractive.get(keypath);
-            keys = keypath.split('.');
-            accumulated = [];
             if (previous !== value) {
-                if (wrapped = ractive._wrapped['']) {
-                    if (wrapped.set) {
-                        wrapped.set(keys.join('.'), value);
-                    }
-                    obj = wrapped.get();
-                } else {
-                    obj = ractive.data;
-                }
-                while (keys.length > 1) {
-                    key = accumulated[accumulated.length] = keys.shift();
-                    currentKeypath = accumulated.join('.');
-                    if (wrapped = ractive._wrapped[currentKeypath]) {
-                        if (wrapped.set) {
-                            wrapped.set(keys.join('.'), value);
-                        }
-                        obj = wrapped.get();
-                    } else {
-                        if (!obj[key]) {
-                            if (!keypathToClear) {
-                                keypathToClear = currentKeypath;
-                            }
-                            obj[key] = /^\s*[0-9]+\s*$/.test(keys[0]) ? [] : {};
-                        }
-                        obj = obj[key];
-                    }
-                }
-                key = keys[0];
-                obj[key] = value;
+                keypathToClear = replaceData(ractive, keypath, value);
             } else {
                 if (value === cached && typeof value !== 'object') {
                     return;
@@ -960,7 +968,7 @@ var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, n
             }
         };
         return set;
-    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates);
+    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, shared_replaceData);
 var prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, processDeferredUpdates) {
         
         return function (keypath, complete) {
@@ -1571,6 +1579,7 @@ var prototype_observe = function (isEqual, registerDependant, unregisterDependan
             this.keypath = keypath;
             this.callback = callback;
             this.defer = options.defer;
+            this.debug = options.debug;
             this.priority = 0;
             this.context = options && options.context ? options.context : root;
         };
@@ -1590,7 +1599,7 @@ var prototype_observe = function (isEqual, registerDependant, unregisterDependan
                     try {
                         this.callback.call(this.context, value, this.value);
                     } catch (err) {
-                        if (this.root.debug) {
+                        if (this.debug || this.root.debug) {
                             throw err;
                         }
                     }
@@ -1741,9 +1750,13 @@ var DomFragment_Text = function (types) {
             }
         };
         DomText.prototype = {
-            teardown: function (detach) {
-                if (detach) {
-                    this.node.parentNode.removeChild(this.node);
+            detach: function () {
+                this.node.parentNode.removeChild(this.node);
+                return this.node;
+            },
+            teardown: function (destroy) {
+                if (destroy) {
+                    this.detach();
                 }
             },
             firstNode: function () {
@@ -2157,11 +2170,15 @@ var DomFragment_Interpolator = function (types, teardown, initMustache, resolveM
         DomInterpolator.prototype = {
             update: updateMustache,
             resolve: resolveMustache,
-            teardown: function (detach) {
-                teardown(this);
-                if (detach) {
-                    this.node.parentNode.removeChild(this.node);
+            detach: function () {
+                this.node.parentNode.removeChild(this.node);
+                return this.node;
+            },
+            teardown: function (destroy) {
+                if (destroy) {
+                    this.detach();
                 }
+                teardown(this);
             },
             render: function (value) {
                 if (this.node) {
@@ -2255,7 +2272,7 @@ var shared_updateSection = function (isArray, isObject, create) {
             }
         }
         function updateConditionalSection(section, value, inverted, fragmentOptions) {
-            var doRender, emptyArray, fragmentsToRemove;
+            var doRender, emptyArray, fragmentsToRemove, fragment;
             emptyArray = isArray(value) && value.length === 0;
             if (inverted) {
                 doRender = emptyArray || !value;
@@ -2271,8 +2288,8 @@ var shared_updateSection = function (isArray, isObject, create) {
                 }
                 if (section.length > 1) {
                     fragmentsToRemove = section.fragments.splice(1);
-                    while (fragmentsToRemove.length) {
-                        fragmentsToRemove.pop().teardown(true);
+                    while (fragment = fragmentsToRemove.pop()) {
+                        fragment.teardown(true);
                     }
                 }
             } else if (section.length) {
@@ -2281,25 +2298,9 @@ var shared_updateSection = function (isArray, isObject, create) {
             }
         }
     }(utils_isArray, utils_isObject, utils_create);
-var shared_reassignFragments = function (types, unregisterDependant, processDeferredUpdates, ExpressionResolver) {
+var Section_reassignFragment = function (types, unregisterDependant, ExpressionResolver) {
         
-        return function (root, section, start, end, by) {
-            var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
-            indexRef = section.descriptor.i;
-            for (i = start; i < end; i += 1) {
-                fragment = section.fragments[i];
-                if (fragment.html) {
-                    continue;
-                }
-                oldIndex = i - by;
-                newIndex = i;
-                oldKeypath = section.keypath + '.' + (i - by);
-                newKeypath = section.keypath + '.' + i;
-                fragment.index += by;
-                reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
-            }
-            processDeferredUpdates(root);
-        };
+        return reassignFragment;
         function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
             var i, item, context;
             if (fragment.indexRefs && fragment.indexRefs[indexRef] !== undefined) {
@@ -2402,12 +2403,93 @@ var shared_reassignFragments = function (types, unregisterDependant, processDefe
                 }
             }
         }
-    }(config_types, shared_unregisterDependant, shared_processDeferredUpdates, shared_ExpressionResolver);
+    }(config_types, shared_unregisterDependant, shared_ExpressionResolver);
+var Section_reassignFragments = function (types, reassignFragment, processDeferredUpdates) {
+        
+        return function (root, section, start, end, by) {
+            var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
+            indexRef = section.descriptor.i;
+            for (i = start; i < end; i += 1) {
+                fragment = section.fragments[i];
+                if (fragment.html) {
+                    continue;
+                }
+                oldIndex = i - by;
+                newIndex = i;
+                oldKeypath = section.keypath + '.' + (i - by);
+                newKeypath = section.keypath + '.' + i;
+                fragment.index += by;
+                reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+            }
+            processDeferredUpdates(root);
+        };
+    }(config_types, Section_reassignFragment, shared_processDeferredUpdates);
+var prototype_merge = function (reassignFragment) {
+        
+        return function (newIndices) {
+            var section = this, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
+            newFragments = [];
+            newIndices.forEach(function (newIndex, oldIndex) {
+                var by, oldKeypath, newKeypath;
+                if (newIndex === oldIndex) {
+                    newFragments[newIndex] = section.fragments[oldIndex];
+                    return;
+                }
+                if (firstChange === undefined) {
+                    firstChange = oldIndex;
+                }
+                if (newIndex === -1) {
+                    (toTeardown || (toTeardown = [])).push(section.fragments[oldIndex]);
+                    return;
+                }
+                by = newIndex - oldIndex;
+                oldKeypath = section.keypath + '.' + oldIndex;
+                newKeypath = section.keypath + '.' + newIndex;
+                reassignFragment(section.fragments[oldIndex], section.descriptor.i, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                newFragments[newIndex] = section.fragments[oldIndex];
+                changed = true;
+            });
+            if (toTeardown) {
+                while (fragment = toTeardown.pop()) {
+                    fragment.teardown(true);
+                }
+            }
+            if (firstChange === undefined) {
+                firstChange = this.length;
+            }
+            newLength = this.root.get(this.keypath).length;
+            if (newLength === firstChange) {
+                return;
+            }
+            fragmentOptions = {
+                descriptor: this.descriptor.f,
+                root: this.root,
+                pNode: this.pNode,
+                owner: this
+            };
+            if (this.descriptor.i) {
+                fragmentOptions.indexRef = this.descriptor.i;
+            }
+            for (i = firstChange; i < newLength; i += 1) {
+                if (fragment = newFragments[i]) {
+                    this.docFrag.appendChild(fragment.detach(false));
+                } else {
+                    fragmentOptions.contextStack = this.contextStack.concat(this.keypath + '.' + i);
+                    fragmentOptions.index = i;
+                    fragment = this.createFragment(fragmentOptions);
+                }
+                this.fragments[i] = fragment;
+            }
+            nextNode = this.parentFragment.findNextNode(this);
+            this.pNode.insertBefore(this.docFrag, nextNode);
+            this.length = newLength;
+        };
+    }(Section_reassignFragment);
 var circular = function () {
         
         return [];
     }();
-var DomFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, reassignFragments, teardown, circular) {
+var Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, reassignFragment, reassignFragments, merge, teardown, circular) {
         
         var DomSection, DomFragment;
         circular.push(function () {
@@ -2516,8 +2598,17 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
                 reassignStart = start + addedItems;
                 reassignFragments(this.root, this, reassignStart, this.length, balance);
             },
-            teardown: function (detach) {
-                this.teardownFragments(detach);
+            merge: merge,
+            detach: function () {
+                var i, len;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    this.docFrag.appendChild(this.fragments[i].detach());
+                }
+                return this.docFrag;
+            },
+            teardown: function (destroy) {
+                this.teardownFragments(destroy);
                 teardown(this);
             },
             firstNode: function () {
@@ -2532,15 +2623,15 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
                 }
                 return this.parentFragment.findNextNode(this);
             },
-            teardownFragments: function (detach) {
+            teardownFragments: function (destroy) {
                 var id;
                 while (this.fragments.length) {
-                    this.fragments.shift().teardown(detach);
+                    this.fragments.shift().teardown(destroy);
                 }
                 if (this.fragmentsById) {
                     for (id in this.fragmentsById) {
                         if (this.fragments[id]) {
-                            this.fragmentsById[id].teardown();
+                            this.fragmentsById[id].teardown(destroy);
                             this.fragmentsById[id] = null;
                         }
                     }
@@ -2560,7 +2651,7 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
                 if (this.docFrag && !this.docFrag.childNodes.length) {
                     return;
                 }
-                if (!this.initialising) {
+                if (!this.initialising && isClient) {
                     nextNode = this.parentFragment.findNextNode(this);
                     if (nextNode && nextNode.parentNode === this.pNode) {
                         this.pNode.insertBefore(this.docFrag, nextNode);
@@ -2588,7 +2679,7 @@ var DomFragment_Section = function (types, initMustache, updateMustache, resolve
             }
         };
         return DomSection;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_reassignFragments, shared_teardown, circular);
+    }(config_types, config_isClient, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, Section_reassignFragment, Section_reassignFragments, prototype_merge, shared_teardown, circular);
 var DomFragment_Triple = function (types, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
         
         var DomTriple = function (options, docFrag) {
@@ -2607,13 +2698,16 @@ var DomFragment_Triple = function (types, initMustache, updateMustache, resolveM
         DomTriple.prototype = {
             update: updateMustache,
             resolve: resolveMustache,
-            teardown: function (detach) {
-                var node;
-                if (detach) {
-                    while (this.nodes.length) {
-                        node = this.nodes.pop();
-                        node.parentNode.removeChild(node);
-                    }
+            detach: function () {
+                while (this.nodes.length) {
+                    this.docFrag.appendChild(this.nodes.pop());
+                }
+                return this.docFrag;
+            },
+            teardown: function (destroy) {
+                if (destroy) {
+                    this.detach();
+                    this.docFrag = this.nodes = null;
                 }
                 teardown(this);
             },
@@ -3853,7 +3947,7 @@ var utils_camelCase = function () {
             });
         };
     }();
-var Element_Transition = function (isClient, isNumeric, isArray, camelCase, StringFragment) {
+var Element_Transition = function (isClient, warn, isNumeric, isArray, camelCase, StringFragment) {
         
         var Transition, testStyle, vendors, vendorPattern, unprefixPattern, prefixCache, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
         if (!isClient) {
@@ -3879,7 +3973,7 @@ var Element_Transition = function (isClient, isNumeric, isArray, camelCase, Stri
             TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
         }
         Transition = function (descriptor, root, owner, contextStack, isIntro) {
-            var fragment, params, prop;
+            var fragment, errorMessage;
             this.root = root;
             this.node = owner.node;
             this.isIntro = isIntro;
@@ -3889,7 +3983,7 @@ var Element_Transition = function (isClient, isNumeric, isArray, camelCase, Stri
             } else {
                 this.name = descriptor.n;
                 if (descriptor.a) {
-                    params = descriptor.a;
+                    this._params = descriptor.a;
                 } else if (descriptor.d) {
                     fragment = new StringFragment({
                         descriptor: descriptor.d,
@@ -3897,19 +3991,19 @@ var Element_Transition = function (isClient, isNumeric, isArray, camelCase, Stri
                         owner: owner,
                         contextStack: owner.parentFragment.contextStack
                     });
-                    params = fragment.toJSON();
+                    this._params = fragment.toJSON();
                     fragment.teardown();
                 }
             }
             this._fn = root.transitions[this.name];
             if (!this._fn) {
-                return;
-            }
-            params = parseTransitionParams(params);
-            for (prop in params) {
-                if (params.hasOwnProperty(prop)) {
-                    this[prop] = params[prop];
+                errorMessage = 'Missing "' + this.name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
+                if (root.debug) {
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
                 }
+                return;
             }
         };
         Transition.prototype = {
@@ -3918,7 +4012,7 @@ var Element_Transition = function (isClient, isNumeric, isArray, camelCase, Stri
                     throw new Error('Cannot initialize a transition more than once');
                 }
                 this._inited = true;
-                this._fn.call(this.root, this);
+                this._fn.apply(this.root, [this].concat(this._params));
             },
             complete: function () {
                 this._manager.pop(this.node);
@@ -4027,18 +4121,6 @@ var Element_Transition = function (isClient, isNumeric, isArray, camelCase, Stri
                 }
             }
         };
-        function parseTransitionParams(params) {
-            if (params === 'fast') {
-                return { duration: 200 };
-            }
-            if (params === 'slow') {
-                return { duration: 600 };
-            }
-            if (isNumeric(params)) {
-                return { duration: +params };
-            }
-            return params || {};
-        }
         vendors = [
             'o',
             'ms',
@@ -4081,7 +4163,7 @@ var Element_Transition = function (isClient, isNumeric, isArray, camelCase, Stri
             return hyphenated;
         }
         return Transition;
-    }(config_isClient, utils_isNumeric, utils_isArray, utils_camelCase, StringFragment__StringFragment);
+    }(config_isClient, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, StringFragment__StringFragment);
 var Element_executeTransition = function (warn, Transition) {
         
         return function (descriptor, root, owner, contextStack, isIntro) {
@@ -4091,9 +4173,6 @@ var Element_executeTransition = function (warn, Transition) {
             }
             transition = new Transition(descriptor, root, owner, contextStack, isIntro);
             if (transition._fn) {
-                if (transition._fn.length !== 1) {
-                    warn('The transitions API has changed. See https://github.com/RactiveJS/Ractive/wiki/Transitions for details');
-                }
                 node = transition.node;
                 transition._manager = root._transitionManager;
                 if (oldTransition = node._ractive.transition) {
@@ -4377,7 +4456,11 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
             }
         };
         DomElement.prototype = {
-            teardown: function (detach) {
+            detach: function () {
+                this.node.parentNode.removeChild(this.node);
+                return this.node;
+            },
+            teardown: function (destroy) {
                 var eventName, binding, bindings;
                 if (this.fragment) {
                     this.fragment.teardown(false);
@@ -4399,10 +4482,12 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                     this.decorator.teardown();
                 }
                 if (this.descriptor.t2) {
+                    if (destroy) {
+                        this.root._transitionManager.detachWhenReady(this.node);
+                    }
                     executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
-                }
-                if (detach) {
-                    this.root._transitionManager.detachWhenReady(this.node);
+                } else if (destroy) {
+                    this.node.parentNode.removeChild(this.node);
                 }
             },
             firstNode: function () {
@@ -6607,12 +6692,11 @@ var Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, p
         
         var getPartialDescriptor, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
-            var el, partial;
-            var document = document;
+            var el, partial, errorMessage;
             if (partial = getPartialFromRegistry(root, name)) {
                 return partial;
             }
-            if (isClient && document) {
+            if (isClient) {
                 el = document.getElementById(name);
                 if (el && el.tagName === 'SCRIPT') {
                     if (!parse) {
@@ -6623,8 +6707,11 @@ var Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, p
             }
             partial = partials[name];
             if (!partial) {
+                errorMessage = 'Could not find descriptor for partial "' + name + '"';
                 if (root.debug) {
-                    warn('Could not find descriptor for partial "' + name + '"');
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
                 }
                 return [];
             }
@@ -6693,8 +6780,11 @@ var Partial__Partial = function (types, getPartialDescriptor, circular) {
             findNextNode: function () {
                 return this.parentFragment.findNextNode(this);
             },
-            teardown: function (detach) {
-                this.fragment.teardown(detach);
+            detach: function () {
+                return this.fragment.detach();
+            },
+            teardown: function () {
+                this.fragment.teardown();
             },
             toString: function () {
                 return this.fragment.toString();
@@ -6738,7 +6828,7 @@ var Component__Component = function (types, warn, parseJSON, resolveRef, Compone
         
         var DomComponent;
         DomComponent = function (options, docFrag) {
-            var self = this, parentFragment = this.parentFragment = options.parentFragment, root, Component, twoway, partials, instance, keypath, data, mappings, i, pair, observeParent, observeChild, settingParent, settingChild, key, initFalse, processKeyValuePair, eventName, propagateEvent, items;
+            var self = this, parentFragment = this.parentFragment = options.parentFragment, root, Component, twoway, partials, instance, keypath, data, mappings, i, pair, observeParent, observeChild, settingParent, settingChild, key, observeOptions, processKeyValuePair, eventName, propagateEvent, items;
             root = parentFragment.root;
             this.type = types.COMPONENT;
             this.name = options.descriptor.r;
@@ -6810,7 +6900,10 @@ var Component__Component = function (types, warn, parseJSON, resolveRef, Compone
                 }
             }
             self.observers = [];
-            initFalse = { init: false };
+            observeOptions = {
+                init: false,
+                debug: true
+            };
             observeParent = function (pair) {
                 var observer = root.observe(pair[1], function (value) {
                         if (!settingParent) {
@@ -6818,7 +6911,7 @@ var Component__Component = function (types, warn, parseJSON, resolveRef, Compone
                             instance.set(pair[0], value);
                             settingChild = false;
                         }
-                    }, initFalse);
+                    }, observeOptions);
                 self.observers[self.observers.length] = observer;
             };
             if (twoway) {
@@ -6829,7 +6922,7 @@ var Component__Component = function (types, warn, parseJSON, resolveRef, Compone
                                 root.set(pair[1], value);
                                 settingParent = false;
                             }
-                        }, initFalse);
+                        }, observeOptions);
                     self.observers[self.observers.length] = observer;
                     root.set(pair[1], instance.get(pair[0]));
                 };
@@ -6894,9 +6987,13 @@ var DomFragment_Comment = function (types) {
             }
         };
         DomComment.prototype = {
-            teardown: function (detach) {
-                if (detach) {
-                    this.node.parentNode.removeChild(this.node);
+            detach: function () {
+                this.node.parentNode.removeChild(this.node);
+                return this.node;
+            },
+            teardown: function (destroy) {
+                if (destroy) {
+                    this.detach();
                 }
             },
             firstNode: function () {
@@ -6924,6 +7021,20 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
             }
         };
         DomFragment.prototype = {
+            detach: function () {
+                var len, i;
+                if (this.nodes) {
+                    while (this.nodes.length) {
+                        this.docFrag.appendChild(this.nodes.pop());
+                    }
+                } else if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        this.docFrag.appendChild(this.items[i].detach());
+                    }
+                }
+                return this.docFrag;
+            },
             createItem: function (options) {
                 if (typeof options.descriptor === 'string') {
                     return new Text(options, this.docFrag);
@@ -6948,21 +7059,18 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
                     throw new Error('Something very strange happened. Please file an issue at https://github.com/RactiveJS/Ractive/issues. Thanks!');
                 }
             },
-            teardown: function (detach) {
+            teardown: function (destroy) {
                 var node;
-                if (detach && this.nodes) {
-                    while (this.nodes.length) {
-                        node = this.nodes.pop();
+                if (this.nodes && destroy) {
+                    while (node = this.nodes.pop()) {
                         node.parentNode.removeChild(node);
                     }
-                    return;
+                } else if (this.items) {
+                    while (this.items.length) {
+                        this.items.pop().teardown(destroy);
+                    }
                 }
-                if (!this.items) {
-                    return;
-                }
-                while (this.items.length) {
-                    this.items.pop().teardown(detach);
-                }
+                this.nodes = this.items = this.docFrag = null;
             },
             firstNode: function () {
                 if (this.items && this.items[0]) {
@@ -7004,7 +7112,7 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
         };
         circular.DomFragment = DomFragment;
         return DomFragment;
-    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, DomFragment_Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment, circular);
+    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, Section__Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment, circular);
 var prototype_render = function (getElement, makeTransitionManager, processDeferredUpdates, DomFragment) {
         
         return function (target, complete) {
@@ -7101,7 +7209,145 @@ var prototype_toggle = function () {
             this.set(keypath, !value);
         };
     }();
-var prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle) {
+var merge_mapOldToNewIndex = function () {
+        
+        return function (oldArray, newArray) {
+            var usedIndices, mapper, firstUnusedIndex, newIndices, changed;
+            usedIndices = {};
+            firstUnusedIndex = 0;
+            mapper = function (item, i) {
+                var index, start, len;
+                start = firstUnusedIndex;
+                len = newArray.length;
+                do {
+                    index = newArray.indexOf(item, start);
+                    if (index === -1) {
+                        changed = true;
+                        return -1;
+                    }
+                    start = index + 1;
+                } while (usedIndices[index] && start < len);
+                if (index === firstUnusedIndex) {
+                    firstUnusedIndex += 1;
+                }
+                if (index !== i) {
+                    changed = true;
+                }
+                usedIndices[index] = true;
+                return index;
+            };
+            newIndices = oldArray.map(mapper);
+            newIndices.unchanged = !changed;
+            return newIndices;
+        };
+    }();
+var merge_queueDependants = function (types) {
+        
+        return function queueDependants(keypath, deps, mergeQueue, updateQueue) {
+            var i, dependant;
+            i = deps.length;
+            while (i--) {
+                dependant = deps[i];
+                if (dependant.type === types.REFERENCE) {
+                    dependant.update();
+                } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode) {
+                    mergeQueue[mergeQueue.length] = dependant;
+                } else {
+                    updateQueue[updateQueue.length] = dependant;
+                }
+            }
+        };
+    }(config_types);
+var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
+        
+        var identifiers = {};
+        return function (keypath, array, options) {
+            var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, transitionManager, previousTransitionManager, upstreamQueue, keys;
+            currentArray = this.get(keypath);
+            if (!isArray(currentArray) || !isArray(array)) {
+                return this.set(keypath, array);
+            }
+            lengthUnchanged = currentArray.length === array.length;
+            if (options && options.compare) {
+                if (options.compare === true) {
+                    identifier = stringify;
+                } else if (typeof options.compare === 'string') {
+                    identifier = getIdentifier(options.compare);
+                } else if (typeof options.compare == 'function') {
+                    identifier = options.compare;
+                } else {
+                    throw new Error('The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)');
+                }
+                try {
+                    oldArray = currentArray.map(identifier);
+                    newArray = array.map(identifier);
+                } catch (err) {
+                    if (this.debug) {
+                        throw err;
+                    } else {
+                        warn('Merge operation: comparison failed. Falling back to identity checking');
+                    }
+                    oldArray = currentArray;
+                    newArray = array;
+                }
+            } else {
+                oldArray = currentArray;
+                newArray = array;
+            }
+            newIndices = mapOldToNewIndex(oldArray, newArray);
+            clearCache(this, keypath);
+            replaceData(this, keypath, array);
+            if (newIndices.unchanged && lengthUnchanged) {
+                return;
+            }
+            previousTransitionManager = this._transitionManager;
+            this._transitionManager = transitionManager = makeTransitionManager(this, options && options.complete);
+            mergeQueue = [];
+            updateQueue = [];
+            for (i = 0; i < this._deps.length; i += 1) {
+                depsByKeypath = this._deps[i];
+                if (!depsByKeypath) {
+                    continue;
+                }
+                deps = depsByKeypath[keypath];
+                if (deps) {
+                    queueDependants(keypath, deps, mergeQueue, updateQueue);
+                    processDeferredUpdates(this);
+                    while (mergeQueue.length) {
+                        mergeQueue.pop().merge(newIndices);
+                    }
+                    while (updateQueue.length) {
+                        updateQueue.pop().update();
+                    }
+                }
+            }
+            processDeferredUpdates(this);
+            upstreamQueue = [];
+            keys = keypath.split('.');
+            while (keys.length) {
+                keys.pop();
+                upstreamQueue[upstreamQueue.length] = keys.join('.');
+            }
+            notifyDependants.multiple(this, upstreamQueue, true);
+            if (oldArray.length !== newArray.length) {
+                notifyDependants(this, keypath + '.length', true);
+            }
+            this._transitionManager = previousTransitionManager;
+            transitionManager.ready();
+        };
+        function stringify(item) {
+            return JSON.stringify(item);
+        }
+        function getIdentifier(str) {
+            if (!identifiers[str]) {
+                identifiers[str] = function (item) {
+                    return item[str];
+                };
+            }
+            return identifiers[str];
+        }
+    }(utils_warn, utils_isArray, shared_clearCache, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants, shared_replaceData, merge_mapOldToNewIndex, merge_queueDependants);
+var prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge) {
         
         return {
             get: get,
@@ -7120,9 +7366,10 @@ var prototype__prototype = function (get, set, update, updateModel, animate, on,
             teardown: teardown,
             add: add,
             subtract: subtract,
-            toggle: toggle
+            toggle: toggle,
+            merge: merge
         };
-    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle);
+    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle, merge__merge);
 var extend_registries = function () {
         
         return [
@@ -7412,7 +7659,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _guid: {
                     value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                         var r, v;
-                        r = Math.random() * 16 | 0, v = c == 'x' ? r : r & 3 | 8;
+                        r = Math.random() * 16 | 0;
+                        v = c == 'x' ? r : r & 3 | 8;
                         return v.toString(16);
                     })
                 },
