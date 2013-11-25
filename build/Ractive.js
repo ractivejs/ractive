@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-22
+	Ractive - v0.3.8-pre - 2013-11-25
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -109,9 +109,9 @@ var utils_defineProperties = function (defineProperty, isClient) {
     }(utils_defineProperty, config_isClient);
 var utils_normaliseKeypath = function () {
         
-        var pattern = /\[\s*([0-9]|[1-9][0-9]+)\s*\]/g;
+        var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
         return function (keypath) {
-            return keypath.replace(pattern, '.$1');
+            return keypath.replace(regex, '.$1');
         };
     }();
 var registries_adaptors = {};
@@ -209,7 +209,7 @@ var shared_processDeferredUpdates = function (getValueFromCheckboxes) {
                 ractive._defRadios.pop().update();
             }
             while (ractive._defObservers.length) {
-                ractive._defObservers.pop().update(true);
+                ractive._defObservers.pop().update();
             }
             if (!initialRender) {
                 while (ractive._defTransitions.length) {
@@ -284,8 +284,13 @@ var shared_makeTransitionManager = function () {
     }();
 var shared_notifyDependants = function () {
         
-        var notifyDependants = function (ractive, keypath, onlyDirect) {
+        var notifyDependants, lastKey, starMaps = {};
+        lastKey = /[^\.]+$/;
+        notifyDependants = function (ractive, keypath, onlyDirect) {
             var i;
+            if (ractive._patternObservers.length) {
+                notifyPatternObservers(ractive, keypath, keypath, onlyDirect, true);
+            }
             for (i = 0; i < ractive._deps.length; i += 1) {
                 notifyDependantsAtPriority(ractive, keypath, i, onlyDirect);
             }
@@ -293,6 +298,12 @@ var shared_notifyDependants = function () {
         notifyDependants.multiple = function (ractive, keypaths, onlyDirect) {
             var i, j, len;
             len = keypaths.length;
+            if (ractive._patternObservers.length) {
+                i = len;
+                while (i--) {
+                    notifyPatternObservers(ractive, keypaths[i], keypaths[i], onlyDirect, true);
+                }
+            }
             for (i = 0; i < ractive._deps.length; i += 1) {
                 if (ractive._deps[i]) {
                     j = len;
@@ -304,28 +315,103 @@ var shared_notifyDependants = function () {
         };
         return notifyDependants;
         function notifyDependantsAtPriority(ractive, keypath, priority, onlyDirect) {
-            var depsByKeypath, deps, i, childDeps;
-            depsByKeypath = ractive._deps[priority];
+            var depsByKeypath = ractive._deps[priority];
             if (!depsByKeypath) {
                 return;
             }
-            deps = depsByKeypath[keypath];
-            if (deps) {
-                i = deps.length;
-                while (i--) {
-                    deps[i].update();
-                }
-            }
+            updateAll(depsByKeypath[keypath]);
             if (onlyDirect) {
                 return;
             }
-            childDeps = ractive._depsMap[keypath];
+            cascade(ractive._depsMap[keypath], ractive, priority);
+        }
+        function updateAll(deps, keypath) {
+            var i;
+            if (deps) {
+                i = deps.length;
+                while (i--) {
+                    deps[i].update(keypath);
+                }
+            }
+        }
+        function cascade(childDeps, ractive, priority, onlyDirect) {
+            var i;
             if (childDeps) {
                 i = childDeps.length;
                 while (i--) {
-                    notifyDependantsAtPriority(ractive, childDeps[i], priority);
+                    notifyDependantsAtPriority(ractive, childDeps[i], priority, onlyDirect);
                 }
             }
+        }
+        function notifyPatternObservers(ractive, registeredKeypath, actualKeypath, isParentOfChangedKeypath, isTopLevelCall) {
+            var i, patternObserver, children, child, key, childActualKeypath, potentialWildcardMatches, cascade;
+            i = ractive._patternObservers.length;
+            while (i--) {
+                patternObserver = ractive._patternObservers[i];
+                if (patternObserver.regex.test(actualKeypath)) {
+                    patternObserver.update(actualKeypath);
+                }
+            }
+            if (isParentOfChangedKeypath) {
+                return;
+            }
+            cascade = function (keypath) {
+                if (children = ractive._depsMap[keypath]) {
+                    i = children.length;
+                    while (i--) {
+                        child = children[i];
+                        key = lastKey.exec(child)[0];
+                        childActualKeypath = actualKeypath + '.' + key;
+                        notifyPatternObservers(ractive, child, childActualKeypath);
+                    }
+                }
+            };
+            if (isTopLevelCall) {
+                potentialWildcardMatches = getPotentialWildcardMatches(actualKeypath);
+                potentialWildcardMatches.forEach(cascade);
+            } else {
+                cascade(registeredKeypath);
+            }
+        }
+        function getPotentialWildcardMatches(keypath) {
+            var keys, starMap, mapper, i, result, wildcardKeypath;
+            keys = keypath.split('.');
+            starMap = getStarMap(keys.length);
+            result = [];
+            mapper = function (star, i) {
+                return star ? '*' : keys[i];
+            };
+            i = starMap.length;
+            while (i--) {
+                wildcardKeypath = starMap[i].map(mapper).join('.');
+                if (!result[wildcardKeypath]) {
+                    result[result.length] = wildcardKeypath;
+                    result[wildcardKeypath] = true;
+                }
+            }
+            return result;
+        }
+        function getStarMap(num) {
+            var ones = '', max, binary, starMap, mapper, i;
+            if (!starMaps[num]) {
+                starMap = [];
+                while (ones.length < num) {
+                    ones += 1;
+                }
+                max = parseInt(ones, 2);
+                mapper = function (digit) {
+                    return digit === '1';
+                };
+                for (i = 0; i <= max; i += 1) {
+                    binary = i.toString(2);
+                    while (binary.length < num) {
+                        binary = '0' + binary;
+                    }
+                    starMap[i] = Array.prototype.map.call(binary, mapper);
+                }
+                starMaps[num] = starMap;
+            }
+            return starMaps[num];
         }
     }();
 var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, processDeferredUpdates, makeTransitionManager, notifyDependants) {
@@ -1536,12 +1622,208 @@ var shared_unregisterDependant = function () {
             }
         };
     }();
-var prototype_observe = function (isEqual, registerDependant, unregisterDependant) {
+var observe_Observer = function (isEqual) {
         
-        var observe, getObserverFacade, Observer;
-        observe = function (keypath, callback, options) {
+        var Observer = function (ractive, keypath, callback, options) {
+            var self = this;
+            this.root = ractive;
+            this.keypath = keypath;
+            this.callback = callback;
+            this.defer = options.defer;
+            this.debug = options.debug;
+            this.proxy = {
+                update: function () {
+                    self.reallyUpdate();
+                }
+            };
+            this.priority = 0;
+            this.context = options && options.context ? options.context : ractive;
+            if (options.init !== false) {
+                this.update();
+            } else {
+                this.value = ractive.get(this.keypath);
+            }
+        };
+        Observer.prototype = {
+            update: function () {
+                if (this.defer) {
+                    this.root._defObservers.push(this.proxy);
+                    return;
+                }
+                this.reallyUpdate();
+            },
+            reallyUpdate: function () {
+                var value;
+                if (this.updating) {
+                    return;
+                }
+                this.updating = true;
+                value = this.root.get(this.keypath, true);
+                if (!isEqual(value, this.value) || !this.ready) {
+                    try {
+                        this.callback.call(this.context, value, this.value, this.keypath);
+                    } catch (err) {
+                        if (this.debug || this.root.debug) {
+                            throw err;
+                        }
+                    }
+                    this.value = value;
+                }
+                this.updating = false;
+            }
+        };
+        return Observer;
+    }(utils_isEqual);
+var observe_getPattern = function () {
+        
+        return function (ractive, pattern) {
+            var keys, key, values, toGet, newToGet, expand, concatenate;
+            keys = pattern.split('.');
+            toGet = [];
+            expand = function (keypath) {
+                var value, key;
+                value = ractive._wrapped[keypath] ? ractive._wrapped[keypath].get() : ractive.get(keypath);
+                for (key in value) {
+                    newToGet.push(keypath + '.' + key);
+                }
+            };
+            concatenate = function (keypath) {
+                return keypath + '.' + key;
+            };
+            while (key = keys.shift()) {
+                if (key === '*') {
+                    newToGet = [];
+                    toGet.forEach(expand);
+                    toGet = newToGet;
+                } else {
+                    if (!toGet[0]) {
+                        toGet[0] = key;
+                    } else {
+                        toGet = toGet.map(concatenate);
+                    }
+                }
+            }
+            values = {};
+            toGet.forEach(function (keypath) {
+                values[keypath] = ractive.get(keypath);
+            });
+            return values;
+        };
+    }();
+var observe_PatternObserver = function (isEqual, getPattern) {
+        
+        var PatternObserver, wildcard = /\*/;
+        PatternObserver = function (ractive, keypath, callback, options) {
+            var values;
+            this.root = ractive;
+            this.callback = callback;
+            this.defer = options.defer;
+            this.debug = options.debug;
+            this.keypath = keypath;
+            this.regex = new RegExp('^' + keypath.replace(/\./g, '\\.').replace(/\*/g, '[^\\.]+') + '$');
+            this.values = {};
+            if (this.defer) {
+                this.proxies = [];
+            }
+            this.priority = 'pattern';
+            this.context = options && options.context ? options.context : ractive;
+            values = getPattern(ractive, keypath);
+            if (options.init !== false) {
+                for (keypath in values) {
+                    if (values.hasOwnProperty(keypath)) {
+                        this.update(keypath);
+                    }
+                }
+            } else {
+                this.values = values;
+            }
+        };
+        PatternObserver.prototype = {
+            update: function (keypath) {
+                var values;
+                if (wildcard.test(keypath)) {
+                    values = getPattern(this.root, keypath);
+                    for (keypath in values) {
+                        if (values.hasOwnProperty(keypath)) {
+                            this.update(keypath);
+                        }
+                    }
+                    return;
+                }
+                if (this.defer) {
+                    this.root._defObservers.push(this.getProxy(keypath));
+                    return;
+                }
+                this.reallyUpdate(keypath);
+            },
+            reallyUpdate: function (keypath) {
+                var value;
+                if (this.updating) {
+                    return;
+                }
+                this.updating = true;
+                value = this.root.get(keypath || this.keypath, true);
+                if (!isEqual(value, this.values[keypath]) || !this.ready) {
+                    try {
+                        this.callback.call(this.context, value, this.values[keypath], keypath || this.keypath);
+                    } catch (err) {
+                        if (this.debug || this.root.debug) {
+                            throw err;
+                        }
+                    }
+                    this.values[keypath] = value;
+                }
+                this.updating = false;
+            },
+            getProxy: function (keypath) {
+                var self = this;
+                if (!this.proxies[keypath]) {
+                    this.proxies[keypath] = {
+                        update: function () {
+                            self.reallyUpdate(keypath);
+                        }
+                    };
+                }
+                return this.proxies[keypath];
+            }
+        };
+        return PatternObserver;
+    }(utils_isEqual, observe_getPattern);
+var observe_getObserverFacade = function (normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver) {
+        
+        var wildcard = /\*/, emptyObject = {};
+        return function getObserverFacade(ractive, keypath, callback, options) {
+            var observer, isPatternObserver;
+            keypath = normaliseKeypath(keypath);
+            options = options || emptyObject;
+            if (wildcard.test(keypath)) {
+                observer = new PatternObserver(ractive, keypath, callback, options);
+                ractive._patternObservers.push(observer);
+                isPatternObserver = true;
+            } else {
+                observer = new Observer(ractive, keypath, callback, options);
+            }
+            registerDependant(observer);
+            observer.ready = true;
+            return {
+                cancel: function () {
+                    var index;
+                    if (isPatternObserver) {
+                        index = ractive._patternObservers.indexOf(observer);
+                        if (index !== -1) {
+                            ractive._patternObservers.splice(index, 1);
+                        }
+                    }
+                    unregisterDependant(observer);
+                }
+            };
+        };
+    }(utils_normaliseKeypath, shared_registerDependant, shared_unregisterDependant, observe_Observer, observe_PatternObserver);
+var observe__observe = function (isObject, getObserverFacade) {
+        
+        return function observe(keypath, callback, options) {
             var observers = [], k;
-            if (typeof keypath === 'object') {
+            if (isObject(keypath)) {
                 options = callback;
                 for (k in keypath) {
                     if (keypath.hasOwnProperty(k)) {
@@ -1559,57 +1841,7 @@ var prototype_observe = function (isEqual, registerDependant, unregisterDependan
             }
             return getObserverFacade(this, keypath, callback, options);
         };
-        getObserverFacade = function (root, keypath, callback, options) {
-            var observer;
-            options = options || {};
-            observer = new Observer(root, keypath, callback, options);
-            if (options.init !== false) {
-                observer.update();
-            }
-            observer.ready = true;
-            registerDependant(observer);
-            return {
-                cancel: function () {
-                    unregisterDependant(observer);
-                }
-            };
-        };
-        Observer = function (root, keypath, callback, options) {
-            this.root = root;
-            this.keypath = keypath;
-            this.callback = callback;
-            this.defer = options.defer;
-            this.debug = options.debug;
-            this.priority = 0;
-            this.context = options && options.context ? options.context : root;
-        };
-        Observer.prototype = {
-            update: function (deferred) {
-                var value;
-                if (this.defer && !deferred && this.ready) {
-                    this.root._defObservers.push(this);
-                    return;
-                }
-                if (this.updating) {
-                    return;
-                }
-                this.updating = true;
-                value = this.root.get(this.keypath, true);
-                if (!isEqual(value, this.value) || !this.ready) {
-                    try {
-                        this.callback.call(this.context, value, this.value);
-                    } catch (err) {
-                        if (this.debug || this.root.debug) {
-                            throw err;
-                        }
-                    }
-                    this.value = value;
-                }
-                this.updating = false;
-            }
-        };
-        return observe;
-    }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
+    }(utils_isObject, observe_getObserverFacade);
 var prototype_fire = function () {
         
         return function (eventName) {
@@ -7265,7 +7497,7 @@ var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, 
             var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, transitionManager, previousTransitionManager, upstreamQueue, keys;
             currentArray = this.get(keypath);
             if (!isArray(currentArray) || !isArray(array)) {
-                return this.set(keypath, array);
+                return this.set(keypath, array, options && options.complete);
             }
             lengthUnchanged = currentArray.length === array.length;
             if (options && options.compare) {
@@ -7369,7 +7601,7 @@ var prototype__prototype = function (get, set, update, updateModel, animate, on,
             toggle: toggle,
             merge: merge
         };
-    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, prototype_observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle, merge__merge);
+    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, observe__observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle, merge__merge);
 var extend_registries = function () {
         
         return [
@@ -7669,6 +7901,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _cacheMap: { value: create(null) },
                 _deps: { value: [] },
                 _depsMap: { value: create(null) },
+                _patternObservers: { value: [] },
                 _pendingResolution: { value: [] },
                 _defAttrs: { value: [] },
                 _defEvals: { value: [] },
