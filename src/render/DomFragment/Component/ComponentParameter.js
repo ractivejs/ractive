@@ -42,7 +42,7 @@ define([
 		update: function () {
 			var value = this.fragment.getValue();
 
-			this.component.set( this.key, value );
+			this.component.instance.set( this.key, value );
 			this.value = value;
 		}
 	};
