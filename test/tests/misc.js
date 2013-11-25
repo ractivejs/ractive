@@ -577,37 +577,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
 		});
 
-		test( 'Observers fire before the DOM updates', function ( t ) {
-			var ractive = new Ractive({
-				el: fixture,
-				template: '{{#foo}}{{bar}}{{/foo}}',
-				data: { bar: 'yeah' }
-			});
-
-			expect( 1 );
-
-			ractive.observe( 'foo', function ( foo ) {
-				t.equal( fixture.innerHTML, '' );
-			}, { init: false });
-
-			ractive.set( 'foo', true );
-		});
-
-		test( 'Observers with { defer: true } fire after the DOM updates', function ( t ) {
-			var ractive = new Ractive({
-				el: fixture,
-				template: '{{#foo}}{{bar}}{{/foo}}',
-				data: { bar: 'yeah' }
-			});
-
-			expect( 1 );
-
-			ractive.observe( 'foo', function ( foo ) {
-				t.equal( fixture.innerHTML, 'yeah' );
-			}, { init: false, defer: true });
-
-			ractive.set( 'foo', true );
-		});
+		
 
 		test( 'findAll returns a static node list', function ( t ) {
 			var items, ractive, list;
@@ -721,20 +691,6 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			} catch ( err ) {
 				t.ok( 0 );
 			}
-		});
-
-		test( 'Observer can be created without an options argument', function ( t ) {
-			var ractive = new Ractive({
-				el: fixture,
-				template: '{{foo}}',
-				data: { foo: 'bar' }
-			});
-
-			expect( 1 );
-
-			ractive.observe( 'foo', function ( foo ) {
-				t.equal( foo, 'bar' );
-			});
 		});
 
 		test( 'Options added to a select after the initial render will be selected if the value matches', function ( t ) {

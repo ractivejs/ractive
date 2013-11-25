@@ -2,10 +2,10 @@ define( function () {
 	
 	'use strict';
 
-	var pattern = /\[\s*([0-9]|[1-9][0-9]+)\s*\]/g;
+	var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 	return function ( keypath ) {
-		return keypath.replace( pattern, '.$1' );
+		return keypath.replace( regex, '.$1' );
 	};
 
 });

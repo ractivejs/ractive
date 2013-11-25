@@ -91,6 +91,8 @@ define([
 			_deps: { value: [] },
 			_depsMap: { value: create( null ) },
 
+			_patternObservers: { value: [] },
+
 			// unresolved dependants
 			_pendingResolution: { value: [] },
 

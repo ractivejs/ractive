@@ -30,6 +30,7 @@ module.exports = function(grunt) {
 			events:   [ 'test/build/events.html'   ],
 			misc:     [ 'test/build/misc.html'     ],
 			merge:    [ 'test/build/merge.html'    ],
+			observe:  [ 'test/build/observe.html'  ],
 			options: {
 				timeout: 30000
 			}

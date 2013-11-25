@@ -30,7 +30,7 @@ define([ 'shared/getValueFromCheckboxes' ], function ( getValueFromCheckboxes ) 
 		}
 
 		while ( ractive._defObservers.length ) {
-			ractive._defObservers.pop().update( true );
+			ractive._defObservers.pop().update();
 		}
 
 		if ( !initialRender ) {

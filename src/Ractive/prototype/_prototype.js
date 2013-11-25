@@ -6,7 +6,7 @@ define([
 	'Ractive/prototype/animate/_animate',
 	'Ractive/prototype/on',
 	'Ractive/prototype/off',
-	'Ractive/prototype/observe',
+	'Ractive/prototype/observe/_observe',
 	'Ractive/prototype/fire',
 	'Ractive/prototype/find',
 	'Ractive/prototype/findAll',
