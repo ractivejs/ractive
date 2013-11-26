@@ -29,7 +29,7 @@
 		}
 	};
 
-	BackboneModelWrapper = function ( ractive, model, keypath, prefix ) {
+	var BackboneModelWrapper = function ( ractive, model, keypath, prefix ) {
 		var wrapper = this;
 
 		this.value = model;
@@ -67,7 +67,7 @@
 		}
 	};
 
-	BackboneCollectionWrapper = function ( ractive, collection, keypath, prefix ) {
+	var BackboneCollectionWrapper = function ( ractive, collection, keypath, prefix ) {
 		var wrapper = this;
 
 		this.value = collection;
