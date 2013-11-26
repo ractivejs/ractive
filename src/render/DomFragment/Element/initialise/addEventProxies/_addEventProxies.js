@@ -1,4 +1,4 @@
-define([ 'render/DomFragment/Element/addEventProxy' ], function ( addEventProxy ) {
+define([ 'render/DomFragment/Element/initialise/addEventProxies/addEventProxy' ], function ( addEventProxy ) {
 	
 	'use strict';
 

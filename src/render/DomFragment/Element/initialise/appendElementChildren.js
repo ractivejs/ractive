@@ -24,6 +24,7 @@ define([
 
 			if ( docFrag ) {
 				node.innerHTML = element.html;
+				// TODO update live queries, if applicable
 			}
 		}
 
