@@ -2,6 +2,7 @@ define([
 	'utils/warn',
 	'utils/isArray',
 	'shared/clearCache',
+	'shared/preDomUpdate',
 	'shared/processDeferredUpdates',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants',
@@ -12,6 +13,7 @@ define([
 	warn,
 	isArray,
 	clearCache,
+	preDomUpdate,
 	processDeferredUpdates,
 	makeTransitionManager,
 	notifyDependants,
@@ -135,7 +137,7 @@ define([
 				queueDependants( keypath, deps, mergeQueue, updateQueue );
 
 				// we may have some deferred evaluators to process
-				processDeferredUpdates( this );
+				preDomUpdate( this );
 
 				while ( mergeQueue.length ) {
 					mergeQueue.pop().merge( newIndices );

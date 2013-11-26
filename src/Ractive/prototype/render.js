@@ -1,12 +1,14 @@
 define([
 	'utils/getElement',
 	'shared/makeTransitionManager',
-	'shared/processDeferredUpdates',
+	'shared/preDomUpdate',
+	'shared/postDomUpdate',
 	'render/DomFragment/_DomFragment'
 ], function (
 	getElement,
 	makeTransitionManager,
-	processDeferredUpdates,
+	preDomUpdate,
+	postDomUpdate,
 	DomFragment
 ) {
 
@@ -25,16 +27,13 @@ define([
 			pNode: this.el
 		});
 
-		processDeferredUpdates( this, true );
+		preDomUpdate( this );
 
 		if ( target ) {
 			target.appendChild( this.fragment.docFrag );
 		}
 
-		// trigger intros, now that elements are in the DOM
-		while ( this._defTransitions.length ) {
-			this._defTransitions.pop().init(); // TODO rename...
-		}
+		postDomUpdate( this );
 
 		// transition manager has finished its work
 		this._transitionManager = null;

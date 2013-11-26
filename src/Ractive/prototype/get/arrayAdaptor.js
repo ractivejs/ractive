@@ -3,7 +3,8 @@ define([
 	'utils/defineProperty',
 	'utils/isArray',
 	'shared/clearCache',
-	'shared/processDeferredUpdates',
+	'shared/preDomUpdate',
+	'shared/postDomUpdate',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants'
 ], function (
@@ -11,7 +12,8 @@ define([
 	defineProperty,
 	isArray,
 	clearCache,
-	processDeferredUpdates,
+	preDomUpdate,
+	postDomUpdate,
 	makeTransitionManager,
 	notifyDependants
 ) {
@@ -162,7 +164,7 @@ define([
 					queueDependants( keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
 					// we may have some deferred evaluators to process
-					processDeferredUpdates( root );
+					preDomUpdate( root );
 
 					while ( smartUpdateQueue.length ) {
 						smartUpdateQueue.pop().smartUpdate( methodName, args );
@@ -190,8 +192,7 @@ define([
 				}
 			}
 
-			// we may have some deferred attributes to process
-			processDeferredUpdates( root );
+			preDomUpdate( root ); // TODO determine whether this is necessary
 
 			// Finally, notify direct dependants of upstream keypaths...
 			upstreamQueue = [];
@@ -280,6 +281,8 @@ define([
 
 				instance._transitionManager = previousTransitionManagers[ instance._guid ];
 				transitionManagers[ instance._guid ].ready();
+
+				postDomUpdate( instance );
 			}
 
 			return result;

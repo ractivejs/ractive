@@ -1,11 +1,11 @@
 define([
 	'config/types',
 	'render/DomFragment/Section/reassignFragment',
-	'shared/processDeferredUpdates'
+	'shared/preDomUpdate'
 ], function (
 	types,
 	reassignFragment,
-	processDeferredUpdates
+	preDomUpdate
 ) {
 
 	'use strict';
@@ -36,7 +36,7 @@ define([
 			reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
 		}
 
-		processDeferredUpdates( root );
+		preDomUpdate( root );
 	};
 	
 
