@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>Ractive Test Suite</title>
+	<title>Find | Ractive Test Suite</title>
 	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
 </head>
 <body>
@@ -18,32 +18,7 @@
 			baseUrl: '../../src/'
 		});
 
-		require([
-			'../test/tests/parse',
-			'../test/tests/render',
-			'../test/tests/mustache',
-			'../test/tests/events',
-			'../test/tests/misc',
-			'../test/tests/merge',
-			'../test/tests/observe',
-			'../test/tests/find'
-		], function (
-			parse,
-			render,
-			mustache,
-			events,
-			misc,
-			merge,
-			observe,
-			find
-		) {
-			parse();
-			render();
-			mustache();
-			events();
-			misc();
-			merge();
-			observe();
+		require([ '../test/tests/find' ], function ( find ) {
 			find();
 		});
 	</script>

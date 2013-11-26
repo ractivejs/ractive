@@ -598,7 +598,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( list.length, 3 );
 		});
 
-		test( 'findAll with live=true returns a live node list if selector is a tag name', function ( t ) {
+		test( 'findAll with live: true returns a live node list', function ( t ) {
 			var items, ractive, list;
 
 			items = [ 'a', 'b', 'c' ];
@@ -609,50 +609,12 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				data: { items: items }
 			});
 
-			list = ractive.findAll( 'li', true );
+			list = ractive.findAll( 'li', { live: true });
 			t.equal( list.length, 3 );
 
 			items.push( 'd' );
 			t.equal( items.length, 4 );
 			t.equal( list.length, 4 );
-		});
-
-		test( 'findAll with live=true returns a live node list if selector is a class name', function ( t ) {
-			var items, ractive, list;
-
-			items = [ 'a', 'b', 'c' ];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<ul>{{#items}}<li class="item">{{.}}</li>{{/items}}</ul>',
-				data: { items: items }
-			});
-
-			list = ractive.findAll( '.item', true );
-			t.equal( list.length, 3 );
-
-			items.push( 'd' );
-			t.equal( items.length, 4 );
-			t.equal( list.length, 4 );
-		});
-
-		test( 'findAll with live=true returns a static node list if selector is neither a tag nor class name', function ( t ) {
-			var items, ractive, list;
-
-			items = [ 'a', 'b', 'c' ];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<ul>{{#items}}<li class="item">{{.}}</li>{{/items}}</ul>',
-				data: { items: items }
-			});
-
-			list = ractive.findAll( 'li.item', true );
-			t.equal( list.length, 3 );
-
-			items.push( 'd' );
-			t.equal( items.length, 4 );
-			t.equal( list.length, 3 );
 		});
 
 		test( 'Delimiters can be reset globally', function ( t ) {
@@ -708,7 +670,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				}
 			});
 
-			options = ractive.findAll( 'option', true );
+			options = ractive.findAll( 'option', { live: true });
 			t.ok( !options.length );
 
 			ractive.set('post_values', ractive.get('values'));
