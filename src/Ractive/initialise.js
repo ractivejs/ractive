@@ -104,6 +104,7 @@ define([
 			_defRadios: { value: [] },
 			_defObservers: { value: [] },
 			_defTransitions: { value: [] },
+			_defLiveQueries: { value: [] },
 
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },
@@ -121,7 +122,10 @@ define([
 			nodes: { value: {} },
 
 			// property wrappers
-			_wrapped: { value: create( null ) }
+			_wrapped: { value: create( null ) },
+
+			// live queries
+			_liveQueries: { value: [] }
 		});
 
 		// options
