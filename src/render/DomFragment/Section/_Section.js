@@ -307,6 +307,28 @@ define([
 			}
 
 			return str;
+		},
+
+		find: function ( selector ) {
+			var i, len, queryResult;
+
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				if ( queryResult = this.fragments[i].find( selector ) ) {
+					return queryResult;
+				}
+			}
+
+			return null;
+		},
+
+		findAll: function ( selector, options, queryResult ) {
+			var i, len;
+
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.fragments[i].findAll( selector, options, queryResult );
+			}
 		}
 	};
 

@@ -1,5 +1,6 @@
 define([
 	'config/types',
+	'utils/matches',
 	'render/shared/initMustache',
 	'render/shared/updateMustache',
 	'render/shared/resolveMustache',
@@ -7,6 +8,7 @@ define([
 	'shared/teardown'
 ], function (
 	types,
+	matches,
 	initMustache,
 	updateMustache,
 	resolveMustache,
@@ -91,6 +93,53 @@ define([
 
 		toString: function () {
 			return ( this.value !== undefined ? this.value : '' );
+		},
+
+		find: function ( selector ) {
+			var i, len, node, queryResult;
+
+			len = this.nodes.length;
+			for ( i = 0; i < len; i += 1 ) {
+				node = this.nodes[i];
+
+				if ( node.nodeType !== 1 ) {
+					continue;
+				}
+
+				if ( matches( node, selector ) ) {
+					return node;
+				}
+
+				if ( queryResult = node.querySelector( selector ) ) {
+					return queryResult;
+				}
+			}
+
+			return null;
+		},
+
+		findAll: function ( selector, options, queryResult ) {
+			var i, len, node, queryAllResult, numNodes, j;
+
+			len = this.nodes.length;
+			for ( i = 0; i < len; i += 1 ) {
+				node = this.nodes[i];
+
+				if ( node.nodeType !== 1 ) {
+					continue;
+				}
+
+				if ( matches( node, selector ) ) {
+					queryResult.push( node );
+				}
+
+				if ( queryAllResult = node.querySelectorAll( selector ) ) {
+					numNodes = queryAllResult.length;
+					for ( j = 0; j < numNodes; j += 1 ) {
+						queryResult.push( queryAllResult[j] );
+					}
+				}
+			}
 		}
 	};
 

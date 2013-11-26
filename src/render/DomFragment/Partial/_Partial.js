@@ -62,6 +62,14 @@ define([
 
 		toString: function () {
 			return this.fragment.toString();
+		},
+
+		find: function ( selector ) {
+			return this.fragment.find( selector );
+		},
+
+		findAll: function ( selector, options, queryResult ) {
+			return this.fragment.findAll( selector, options, queryResult );
 		}
 	};
 
