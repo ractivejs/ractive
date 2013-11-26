@@ -7,7 +7,7 @@ define( function () {
 			return null;
 		}
 
-		return this.el.querySelector( selector );
+		return this.fragment.find( selector );
 	};
 
 });
