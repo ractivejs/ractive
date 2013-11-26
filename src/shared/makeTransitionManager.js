@@ -6,24 +6,24 @@ define( function () {
 	// efficient) to pass e.g. transitionManager.pop as a callback, rather
 	// than wrapping a prototype method in an anonymous function each time
 	var makeTransitionManager = function ( root, callback ) {
-		var transitionManager, nodesToDetach, detachNodes, nodeHasNoTransitioningChildren;
+		var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
 
-		nodesToDetach = [];
+		elementsToDetach = [];
 
 		// detach any nodes which a) need to be detached and b) have no child nodes
 		// which are actively transitioning. This will be called each time a
 		// transition completes
 		detachNodes = function () {
-			var i, node;
+			var i, element;
 
-			i = nodesToDetach.length;
+			i = elementsToDetach.length;
 			while ( i-- ) {
-				node = nodesToDetach[i];
+				element = elementsToDetach[i];
 
 				// see if this node can be detached yet
-				if ( nodeHasNoTransitioningChildren( node ) ) {
-					node.parentNode.removeChild( node );
-					nodesToDetach.splice( i, 1 );
+				if ( nodeHasNoTransitioningChildren( element.node ) ) {
+					element.detach();
+					elementsToDetach.splice( i, 1 );
 				}
 			}
 		};
@@ -80,8 +80,8 @@ define( function () {
 					transitionManager.complete();
 				}
 			},
-			detachWhenReady: function ( node ) {
-				nodesToDetach[ nodesToDetach.length ] = node;
+			detachWhenReady: function ( element ) {
+				elementsToDetach[ elementsToDetach.length ] = element;
 			}
 		};
 
