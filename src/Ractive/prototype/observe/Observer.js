@@ -38,7 +38,7 @@ define([
 
 	Observer.prototype = {
 		update: function () {
-			if ( this.defer ) {
+			if ( this.defer && this.ready ) {
 				this.root._defObservers.push( this.proxy );
 				return;
 			}
