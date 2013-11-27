@@ -51,7 +51,7 @@ define([
 	}
 
 	function reassignElement ( element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings;
+		var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
 
 		i = element.attributes.length;
 		while ( i-- ) {
@@ -112,6 +112,16 @@ define([
 		// reassign children
 		if ( element.fragment ) {
 			reassignFragment( element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+		}
+
+		// Update live queries, if necessary
+		if ( liveQueries = element.liveQueries ) {
+			ractive = element.root;
+
+			i = liveQueries.length;
+			while ( i-- ) {
+				ractive._liveQueries[ liveQueries[i] ]._makeDirty();
+			}
 		}
 	}
 

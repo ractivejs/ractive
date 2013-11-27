@@ -73,13 +73,15 @@ define([
 		return ( bitmask & 2 ) ? 1 : -1;
 	};
 
-	testNode = function ( node ) {
+	testNode = function ( node, noDirty ) {
 		if ( matches( node, this.selector ) ) {
 			this.push( node );
 			
-			if ( this.live ) {
+			if ( !noDirty ) {
 				this._makeDirty();
 			}
+
+			return true;
 		}
 	};
 
@@ -118,7 +120,7 @@ define([
 			this._liveQueries[ selector ] = query;
 		}
 
-		this.fragment.findAll( selector, options, query );
+		this.fragment.findAll( selector, query );
 		return query;
 	};
 

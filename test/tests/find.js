@@ -90,13 +90,11 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			lis = ractive.findAll( 'li', { live: true });
 			t.deepEqual( lis.map( getHtml ), [ 'a', 'b', 'c', 'd' ] );
-			console.log( lis.map( getHtml ) );
 
+			console.group( 'merging' );
 			ractive.merge( 'items', [ 'c', 'b', 'a', 'd' ] );
 			t.deepEqual( lis.map( getHtml ), [ 'c', 'b', 'a', 'd' ] );
-			console.log( lis.map( getHtml ) );
-
-			window.lis = lis;
+			console.groupEnd();
 		});
 
 

@@ -61,7 +61,7 @@ define([
 					query = this.root._liveQueries[ selector ];
 
 					while ( j-- ) {
-						query.remove( nodesToRemove[j] );
+						query._remove( nodesToRemove[j] );
 					}
 				}
 			}
