@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-25
+	Ractive - v0.3.8-pre - 2013-11-26
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -497,9 +497,9 @@ var shared_getValueFromCheckboxes = function () {
             return value;
         };
     }();
-var shared_processDeferredUpdates = function (getValueFromCheckboxes) {
+var shared_preDomUpdate = function (getValueFromCheckboxes) {
         
-        return function (ractive, initialRender) {
+        return function (ractive) {
             var evaluator, attribute, keypath;
             while (ractive._defEvals.length) {
                 evaluator = ractive._defEvals.pop();
@@ -519,29 +519,35 @@ var shared_processDeferredUpdates = function (getValueFromCheckboxes) {
             while (ractive._defRadios.length) {
                 ractive._defRadios.pop().update();
             }
+        };
+    }(shared_getValueFromCheckboxes);
+var shared_postDomUpdate = function () {
+        
+        return function (ractive) {
+            while (ractive._defLiveQueries.length) {
+                ractive._defLiveQueries.pop()._sort();
+            }
+            while (ractive._defTransitions.length) {
+                ractive._defTransitions.pop().init();
+            }
             while (ractive._defObservers.length) {
                 ractive._defObservers.pop().update();
             }
-            if (!initialRender) {
-                while (ractive._defTransitions.length) {
-                    ractive._defTransitions.pop().init();
-                }
-            }
         };
-    }(shared_getValueFromCheckboxes);
+    }();
 var shared_makeTransitionManager = function () {
         
         var makeTransitionManager = function (root, callback) {
-            var transitionManager, nodesToDetach, detachNodes, nodeHasNoTransitioningChildren;
-            nodesToDetach = [];
+            var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
+            elementsToDetach = [];
             detachNodes = function () {
-                var i, node;
-                i = nodesToDetach.length;
+                var i, element;
+                i = elementsToDetach.length;
                 while (i--) {
-                    node = nodesToDetach[i];
-                    if (nodeHasNoTransitioningChildren(node)) {
-                        node.parentNode.removeChild(node);
-                        nodesToDetach.splice(i, 1);
+                    element = elementsToDetach[i];
+                    if (nodeHasNoTransitioningChildren(element.node)) {
+                        element.detach();
+                        elementsToDetach.splice(i, 1);
                     }
                 }
             };
@@ -585,8 +591,8 @@ var shared_makeTransitionManager = function () {
                         transitionManager.complete();
                     }
                 },
-                detachWhenReady: function (node) {
-                    nodesToDetach[nodesToDetach.length] = node;
+                detachWhenReady: function (element) {
+                    elementsToDetach[elementsToDetach.length] = element;
                 }
             };
             return transitionManager;
@@ -725,7 +731,7 @@ var shared_notifyDependants = function () {
             return starMaps[num];
         }
     }();
-var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, processDeferredUpdates, makeTransitionManager, notifyDependants) {
+var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, preDomUpdate, postDomUpdate, makeTransitionManager, notifyDependants) {
         
         var arrayAdaptor, notifyArrayDependants, ArrayWrapper, patchArrayMethods, unpatchArrayMethods, patchedArrayProto, testObj, mutatorMethods, noop, errorMessage;
         arrayAdaptor = {
@@ -810,7 +816,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     deps = depsByKeypath[keypath];
                     if (deps) {
                         queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue);
-                        processDeferredUpdates(root);
+                        preDomUpdate(root);
                         while (smartUpdateQueue.length) {
                             smartUpdateQueue.pop().smartUpdate(methodName, args);
                         }
@@ -831,7 +837,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                         notifyDependants(root, childKeypath);
                     }
                 }
-                processDeferredUpdates(root);
+                preDomUpdate(root);
                 upstreamQueue = [];
                 keys = keypath.split('.');
                 while (keys.length) {
@@ -895,6 +901,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     instance = instances[i];
                     instance._transitionManager = previousTransitionManagers[instance._guid];
                     transitionManagers[instance._guid].ready();
+                    postDomUpdate(instance);
                 }
                 return result;
             };
@@ -930,8 +937,8 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
         }
         errorMessage = 'Something went wrong in a rather interesting way';
         return arrayAdaptor;
-    }(config_types, utils_defineProperty, utils_isArray, shared_clearCache, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants);
-var get_magicAdaptor = function () {
+    }(config_types, utils_defineProperty, utils_isArray, shared_clearCache, shared_preDomUpdate, shared_postDomUpdate, shared_makeTransitionManager, shared_notifyDependants);
+var Ractive_prototype_get_magicAdaptor = function () {
         
         var magicAdaptor, MagicWrapper;
         try {
@@ -1017,7 +1024,7 @@ var get_magicAdaptor = function () {
         };
         return magicAdaptor;
     }();
-var get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
+var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
         
         var get, _get, retrieve, prefix, getPrefixer, prefixers = {}, adaptIfNecessary;
         get = function (keypath) {
@@ -1127,7 +1134,7 @@ var get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicA
             }
         };
         return get;
-    }(utils_normaliseKeypath, registries_adaptors, get_arrayAdaptor, get_magicAdaptor);
+    }(utils_normaliseKeypath, registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
 var utils_isObject = function () {
         
         var toString = Object.prototype.toString;
@@ -1219,7 +1226,14 @@ var shared_attemptKeypathResolution = function (resolveRef) {
             }
         };
     }(shared_resolveRef);
-var shared_replaceData = function () {
+var shared_processDeferredUpdates = function (preDomUpdate, postDomUpdate) {
+        
+        return function (ractive) {
+            preDomUpdate(ractive);
+            postDomUpdate(ractive);
+        };
+    }(shared_preDomUpdate, shared_postDomUpdate);
+var Ractive_prototype_shared_replaceData = function () {
         
         return function (ractive, keypath, value) {
             var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
@@ -1256,7 +1270,7 @@ var shared_replaceData = function () {
             return keypathToClear;
         };
     }();
-var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData) {
+var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData) {
         
         var set, updateModel, getUpstreamChanges, resetWrapped;
         set = function (keypath, value, complete) {
@@ -1365,8 +1379,8 @@ var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, n
             }
         };
         return set;
-    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, shared_replaceData);
-var prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, processDeferredUpdates) {
+    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, Ractive_prototype_shared_replaceData);
+var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, processDeferredUpdates) {
         
         return function (keypath, complete) {
             var transitionManager, previousTransitionManager;
@@ -1409,7 +1423,7 @@ var utils_arrayContentsMatch = function (isArray) {
             return true;
         };
     }(utils_isArray);
-var prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch, isEqual) {
+var Ractive_prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch, isEqual) {
         
         return function (keypath, cascade) {
             var values, deferredCheckboxes, i;
@@ -1465,7 +1479,7 @@ var prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch
             }
         }
     }(shared_getValueFromCheckboxes, utils_arrayContentsMatch, utils_isEqual);
-var animate_requestAnimationFrame = function () {
+var Ractive_prototype_animate_requestAnimationFrame = function () {
         
         if (typeof window === 'undefined') {
             return;
@@ -1499,7 +1513,7 @@ var animate_requestAnimationFrame = function () {
         ], 0, window));
         return window.requestAnimationFrame;
     }();
-var animate_animations = function (rAF) {
+var Ractive_prototype_animate_animations = function (rAF) {
         
         var queue = [];
         var animations = {
@@ -1535,7 +1549,7 @@ var animate_animations = function (rAF) {
                 }
             };
         return animations;
-    }(animate_requestAnimationFrame);
+    }(Ractive_prototype_animate_requestAnimationFrame);
 var utils_warn = function () {
         
         if (typeof console !== undefined && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
@@ -1632,7 +1646,7 @@ var shared_interpolate = function (isArray, isObject, isNumeric) {
             };
         }
     }(utils_isArray, utils_isObject, utils_isNumeric);
-var animate_Animation = function (warn, interpolate) {
+var Ractive_prototype_animate_Animation = function (warn, interpolate) {
         
         var Animation = function (options) {
             var key;
@@ -1714,7 +1728,7 @@ var registries_easing = function () {
             }
         };
     }();
-var animate__animate = function (isEqual, animations, Animation, easingRegistry) {
+var Ractive_prototype_animate__animate = function (isEqual, animations, Animation, easingRegistry) {
         
         var noAnimation = {
                 stop: function () {
@@ -1834,8 +1848,8 @@ var animate__animate = function (isEqual, animations, Animation, easingRegistry)
             root._animations[root._animations.length] = animation;
             return animation;
         }
-    }(utils_isEqual, animate_animations, animate_Animation, registries_easing);
-var prototype_on = function () {
+    }(utils_isEqual, Ractive_prototype_animate_animations, Ractive_prototype_animate_Animation, registries_easing);
+var Ractive_prototype_on = function () {
         
         return function (eventName, callback) {
             var self = this, listeners, n;
@@ -1866,7 +1880,7 @@ var prototype_on = function () {
             };
         };
     }();
-var prototype_off = function () {
+var Ractive_prototype_off = function () {
         
         return function (eventName, callback) {
             var subscribers, index;
@@ -1933,7 +1947,7 @@ var shared_unregisterDependant = function () {
             }
         };
     }();
-var observe_Observer = function (isEqual) {
+var Ractive_prototype_observe_Observer = function (isEqual) {
         
         var Observer = function (ractive, keypath, callback, options) {
             var self = this;
@@ -1957,7 +1971,7 @@ var observe_Observer = function (isEqual) {
         };
         Observer.prototype = {
             update: function () {
-                if (this.defer) {
+                if (this.defer && this.ready) {
                     this.root._defObservers.push(this.proxy);
                     return;
                 }
@@ -1985,7 +1999,7 @@ var observe_Observer = function (isEqual) {
         };
         return Observer;
     }(utils_isEqual);
-var observe_getPattern = function () {
+var Ractive_prototype_observe_getPattern = function () {
         
         return function (ractive, pattern) {
             var keys, key, values, toGet, newToGet, expand, concatenate;
@@ -2021,7 +2035,7 @@ var observe_getPattern = function () {
             return values;
         };
     }();
-var observe_PatternObserver = function (isEqual, getPattern) {
+var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
         
         var PatternObserver, wildcard = /\*/;
         PatternObserver = function (ractive, keypath, callback, options) {
@@ -2061,7 +2075,7 @@ var observe_PatternObserver = function (isEqual, getPattern) {
                     }
                     return;
                 }
-                if (this.defer) {
+                if (this.defer && this.ready) {
                     this.root._defObservers.push(this.getProxy(keypath));
                     return;
                 }
@@ -2099,8 +2113,8 @@ var observe_PatternObserver = function (isEqual, getPattern) {
             }
         };
         return PatternObserver;
-    }(utils_isEqual, observe_getPattern);
-var observe_getObserverFacade = function (normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver) {
+    }(utils_isEqual, Ractive_prototype_observe_getPattern);
+var Ractive_prototype_observe_getObserverFacade = function (normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver) {
         
         var wildcard = /\*/, emptyObject = {};
         return function getObserverFacade(ractive, keypath, callback, options) {
@@ -2129,8 +2143,8 @@ var observe_getObserverFacade = function (normaliseKeypath, registerDependant, u
                 }
             };
         };
-    }(utils_normaliseKeypath, shared_registerDependant, shared_unregisterDependant, observe_Observer, observe_PatternObserver);
-var observe__observe = function (isObject, getObserverFacade) {
+    }(utils_normaliseKeypath, shared_registerDependant, shared_unregisterDependant, Ractive_prototype_observe_Observer, Ractive_prototype_observe_PatternObserver);
+var Ractive_prototype_observe__observe = function (isObject, getObserverFacade) {
         
         return function observe(keypath, callback, options) {
             var observers = [], k;
@@ -2152,8 +2166,8 @@ var observe__observe = function (isObject, getObserverFacade) {
             }
             return getObserverFacade(this, keypath, callback, options);
         };
-    }(utils_isObject, observe_getObserverFacade);
-var prototype_fire = function () {
+    }(utils_isObject, Ractive_prototype_observe_getObserverFacade);
+var Ractive_prototype_fire = function () {
         
         return function (eventName) {
             var args, i, len, subscribers = this._subs[eventName];
@@ -2166,40 +2180,59 @@ var prototype_fire = function () {
             }
         };
     }();
-var prototype_find = function () {
+var Ractive_prototype_find = function () {
         
         return function (selector) {
             if (!this.el) {
                 return null;
             }
-            return this.el.querySelector(selector);
+            return this.fragment.find(selector);
         };
     }();
-var prototype_findAll = function (warn) {
+var Ractive_prototype_findAll = function (warn, defineProperty) {
         
-        var tagSelector = /^[a-zA-Z][a-zA-Z0-9\-]*$/, classSelector = /^\.[^\s]+$/g;
-        return function (selector, live) {
-            var errorMessage;
+        var sortQuery, comparePosition;
+        sortQuery = function () {
+            this.sort(comparePosition);
+            this._dirty = false;
+        };
+        comparePosition = function (node, otherNode) {
+            var bitmask = node.compareDocumentPosition(otherNode);
+            return bitmask & 2 ? 1 : -1;
+        };
+        return function (selector, options) {
+            var liveQueries, queryResult;
             if (!this.el) {
                 return [];
             }
-            if (live) {
-                if (tagSelector.test(selector)) {
-                    return this.el.getElementsByTagName(selector);
-                }
-                if (classSelector.test(selector)) {
-                    return this.el.getElementsByClassName(selector.substring(1));
-                }
-                errorMessage = 'Could not generate live nodelist from "' + selector + '" selector';
-                if (this.debug) {
-                    throw new Error(errorMessage);
-                } else {
-                    warn(errorMessage);
-                }
+            options = options || {};
+            liveQueries = this._liveQueries;
+            if (queryResult = liveQueries[selector]) {
+                return options && options.live ? queryResult : queryResult.slice();
             }
-            return this.el.querySelectorAll(selector);
+            queryResult = [];
+            if (options.live) {
+                liveQueries.push(selector);
+                liveQueries[selector] = queryResult;
+                defineProperty(queryResult, 'cancel', {
+                    value: function () {
+                        var index = liveQueries.indexOf(selector);
+                        if (index !== -1) {
+                            liveQueries.splice(index, 1);
+                            liveQueries[selector] = null;
+                        }
+                    }
+                });
+                defineProperty(queryResult, '_sort', { value: sortQuery });
+                defineProperty(queryResult, '_dirty', {
+                    value: false,
+                    writable: true
+                });
+            }
+            this.fragment.findAll(selector, options, queryResult);
+            return queryResult;
         };
-    }(utils_warn);
+    }(utils_warn, utils_defineProperty);
 var utils_getElement = function () {
         
         return function (input) {
@@ -2225,7 +2258,55 @@ var utils_getElement = function () {
             return null;
         };
     }();
-var shared_initFragment = function (types, create) {
+var utils_matches = function (isClient) {
+        
+        var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
+        if (!isClient) {
+            return;
+        }
+        div = document.createElement('div');
+        methodNames = [
+            'matches',
+            'matchesSelector'
+        ];
+        vendors = [
+            'o',
+            'ms',
+            'moz',
+            'webkit'
+        ];
+        makeFunction = function (methodName) {
+            return function (node, selector) {
+                return node[methodName](selector);
+            };
+        };
+        i = methodNames.length;
+        while (i--) {
+            unprefixed = methodNames[i];
+            if (div[unprefixed]) {
+                return makeFunction(unprefixed);
+            }
+            j = vendors.length;
+            while (j--) {
+                prefixed = vendors[i] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
+                if (div[prefixed]) {
+                    return makeFunction(prefixed);
+                }
+            }
+        }
+        return function (node, selector) {
+            var nodes, i;
+            nodes = (node.parentNode || node.document).querySelectorAll(selector);
+            i = nodes.length;
+            while (i--) {
+                if (nodes[i] === node) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }(config_isClient);
+var render_shared_initFragment = function (types, create) {
         
         return function (fragment, options) {
             var numItems, i, parentFragment, parentRefs, ref;
@@ -2264,7 +2345,7 @@ var shared_initFragment = function (types, create) {
             }
         };
     }(config_types, utils_create);
-var shared_insertHtml = function () {
+var render_DomFragment_shared_insertHtml = function () {
         
         var elementCache = {};
         return function (html, tagName, docFrag) {
@@ -2278,7 +2359,7 @@ var shared_insertHtml = function () {
             return nodes;
         };
     }();
-var DomFragment_Text = function (types) {
+var render_DomFragment_Text = function (types) {
         
         var DomText, lessThan, greaterThan;
         lessThan = /</g;
@@ -2324,7 +2405,7 @@ var shared_teardown = function (unregisterDependant) {
             }
         };
     }(shared_unregisterDependant);
-var Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
+var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
         
         var Reference, thisPattern;
         thisPattern = /this/;
@@ -2397,7 +2478,7 @@ var Evaluator_Reference = function (types, isEqual, defineProperty, registerDepe
             return fn['_' + ractive._guid];
         }
     }(config_types, utils_isEqual, utils_defineProperty, shared_registerDependant, shared_unregisterDependant);
-var Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDependant) {
+var render_shared_Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDependant) {
         
         var SoftReference = function (root, keypath, evaluator) {
             this.root = root;
@@ -2420,7 +2501,7 @@ var Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDe
         };
         return SoftReference;
     }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
+var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
         
         var Evaluator, cache = {};
         Evaluator = function (root, keypath, functionStr, args, priority) {
@@ -2540,8 +2621,8 @@ var Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notify
             cache[str] = fn;
             return fn;
         }
-    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, Evaluator_Reference, Evaluator_SoftReference);
-var shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
+    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
+var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
         
         var ExpressionResolver, ReferenceScout, getKeypath;
         ExpressionResolver = function (mustache) {
@@ -2633,8 +2714,8 @@ var shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
             return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
         };
         return ExpressionResolver;
-    }(shared_resolveRef, shared_teardown, Evaluator__Evaluator);
-var shared_initMustache = function (resolveRef, ExpressionResolver) {
+    }(shared_resolveRef, shared_teardown, render_shared_Evaluator__Evaluator);
+var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
             var keypath, indexRef, parentFragment;
@@ -2671,8 +2752,8 @@ var shared_initMustache = function (resolveRef, ExpressionResolver) {
                 mustache.expressionResolver = new ExpressionResolver(mustache);
             }
         };
-    }(shared_resolveRef, shared_ExpressionResolver);
-var shared_resolveMustache = function (registerDependant, unregisterDependant) {
+    }(shared_resolveRef, render_shared_ExpressionResolver);
+var render_shared_resolveMustache = function (registerDependant, unregisterDependant) {
         
         return function (keypath) {
             if (this.resolved) {
@@ -2687,7 +2768,7 @@ var shared_resolveMustache = function (registerDependant, unregisterDependant) {
             this.resolved = true;
         };
     }(shared_registerDependant, shared_unregisterDependant);
-var shared_updateMustache = function (isEqual) {
+var render_shared_updateMustache = function (isEqual) {
         
         return function () {
             var value = this.root.get(this.keypath, true);
@@ -2697,7 +2778,7 @@ var shared_updateMustache = function (isEqual) {
             }
         };
     }(utils_isEqual);
-var DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache) {
+var render_DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache) {
         
         var DomInterpolator, lessThan, greaterThan;
         lessThan = /</g;
@@ -2737,8 +2818,8 @@ var DomFragment_Interpolator = function (types, teardown, initMustache, resolveM
             }
         };
         return DomInterpolator;
-    }(config_types, shared_teardown, shared_initMustache, shared_resolveMustache, shared_updateMustache);
-var shared_updateSection = function (isArray, isObject, create) {
+    }(config_types, shared_teardown, render_shared_initMustache, render_shared_resolveMustache, render_shared_updateMustache);
+var render_shared_updateSection = function (isArray, isObject, create) {
         
         return function (section, value) {
             var fragmentOptions;
@@ -2841,7 +2922,7 @@ var shared_updateSection = function (isArray, isObject, create) {
             }
         }
     }(utils_isArray, utils_isObject, utils_create);
-var Section_reassignFragment = function (types, unregisterDependant, ExpressionResolver) {
+var render_DomFragment_Section_reassignFragment = function (types, unregisterDependant, ExpressionResolver) {
         
         return reassignFragment;
         function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
@@ -2946,8 +3027,8 @@ var Section_reassignFragment = function (types, unregisterDependant, ExpressionR
                 }
             }
         }
-    }(config_types, shared_unregisterDependant, shared_ExpressionResolver);
-var Section_reassignFragments = function (types, reassignFragment, processDeferredUpdates) {
+    }(config_types, shared_unregisterDependant, render_shared_ExpressionResolver);
+var render_DomFragment_Section_reassignFragments = function (types, reassignFragment, preDomUpdate) {
         
         return function (root, section, start, end, by) {
             var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
@@ -2964,10 +3045,10 @@ var Section_reassignFragments = function (types, reassignFragment, processDeferr
                 fragment.index += by;
                 reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
             }
-            processDeferredUpdates(root);
+            preDomUpdate(root);
         };
-    }(config_types, Section_reassignFragment, shared_processDeferredUpdates);
-var prototype_merge = function (reassignFragment) {
+    }(config_types, render_DomFragment_Section_reassignFragment, shared_preDomUpdate);
+var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
         
         return function (newIndices) {
             var section = this, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
@@ -3027,12 +3108,12 @@ var prototype_merge = function (reassignFragment) {
             this.pNode.insertBefore(this.docFrag, nextNode);
             this.length = newLength;
         };
-    }(Section_reassignFragment);
+    }(render_DomFragment_Section_reassignFragment);
 var circular = function () {
         
         return [];
     }();
-var Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, reassignFragment, reassignFragments, merge, teardown, circular) {
+var render_DomFragment_Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, reassignFragment, reassignFragments, merge, teardown, circular) {
         
         var DomSection, DomFragment;
         circular.push(function () {
@@ -3219,11 +3300,28 @@ var Section__Section = function (types, isClient, initMustache, updateMustache, 
                     str += this.fragments[i].toString();
                 }
                 return str;
+            },
+            find: function (selector) {
+                var i, len, queryResult;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    if (queryResult = this.fragments[i].find(selector)) {
+                        return queryResult;
+                    }
+                }
+                return null;
+            },
+            findAll: function (selector, options, queryResult) {
+                var i, len;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    this.fragments[i].findAll(selector, options, queryResult);
+                }
             }
         };
         return DomSection;
-    }(config_types, config_isClient, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, Section_reassignFragment, Section_reassignFragments, prototype_merge, shared_teardown, circular);
-var DomFragment_Triple = function (types, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
+    }(config_types, config_isClient, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_shared_updateSection, render_DomFragment_Section_reassignFragment, render_DomFragment_Section_reassignFragments, render_DomFragment_Section_prototype_merge, shared_teardown, circular);
+var render_DomFragment_Triple = function (types, matches, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
         
         var DomTriple = function (options, docFrag) {
             this.type = types.TRIPLE;
@@ -3280,10 +3378,46 @@ var DomFragment_Triple = function (types, initMustache, updateMustache, resolveM
             },
             toString: function () {
                 return this.value !== undefined ? this.value : '';
+            },
+            find: function (selector) {
+                var i, len, node, queryResult;
+                len = this.nodes.length;
+                for (i = 0; i < len; i += 1) {
+                    node = this.nodes[i];
+                    if (node.nodeType !== 1) {
+                        continue;
+                    }
+                    if (matches(node, selector)) {
+                        return node;
+                    }
+                    if (queryResult = node.querySelector(selector)) {
+                        return queryResult;
+                    }
+                }
+                return null;
+            },
+            findAll: function (selector, options, queryResult) {
+                var i, len, node, queryAllResult, numNodes, j;
+                len = this.nodes.length;
+                for (i = 0; i < len; i += 1) {
+                    node = this.nodes[i];
+                    if (node.nodeType !== 1) {
+                        continue;
+                    }
+                    if (matches(node, selector)) {
+                        queryResult.push(node);
+                    }
+                    if (queryAllResult = node.querySelectorAll(selector)) {
+                        numNodes = queryAllResult.length;
+                        for (j = 0; j < numNodes; j += 1) {
+                            queryResult.push(queryAllResult[j]);
+                        }
+                    }
+                }
             }
         };
         return DomTriple;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_insertHtml, shared_teardown);
+    }(config_types, utils_matches, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_DomFragment_shared_insertHtml, shared_teardown);
 var config_namespaces = {
         html: 'http://www.w3.org/1999/xhtml',
         mathml: 'http://www.w3.org/1998/Math/MathML',
@@ -3292,11 +3426,7 @@ var config_namespaces = {
         xml: 'http://www.w3.org/XML/1998/namespace',
         xmlns: 'http://www.w3.org/2000/xmlns/'
     };
-var config_voidElementNames = function () {
-        
-        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
-    }();
-var Element_getElementNamespace = function (namespaces) {
+var render_DomFragment_Element_initialise_getElementNamespace = function (namespaces) {
         
         return function (descriptor, parentNode) {
             if (descriptor.a && descriptor.a.xmlns) {
@@ -3305,7 +3435,7 @@ var Element_getElementNamespace = function (namespaces) {
             return descriptor.e === 'svg' ? namespaces.svg : parentNode.namespaceURI || namespaces.html;
         };
     }(config_namespaces);
-var shared_enforceCase = function () {
+var render_DomFragment_shared_enforceCase = function () {
         
         var svgCamelCaseElements, svgCamelCaseAttributes, createMap, map;
         svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split(' ');
@@ -3323,7 +3453,7 @@ var shared_enforceCase = function () {
             return map[lowerCaseElementName] || lowerCaseElementName;
         };
     }();
-var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
+var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
@@ -3643,7 +3773,7 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumer
         };
         return bindAttribute;
     }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
-var Attribute_updateAttribute = function (isArray, namespaces) {
+var render_DomFragment_Attribute_updateAttribute = function (isArray, namespaces) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
         updateAttribute = function () {
@@ -3819,7 +3949,7 @@ var Attribute_updateAttribute = function (isArray, namespaces) {
         };
         return updateAttribute;
     }(utils_isArray, config_namespaces);
-var utils_getStringMatch = function () {
+var parse_Tokenizer_utils_getStringMatch = function () {
         
         return function (string) {
             var substr;
@@ -3831,7 +3961,7 @@ var utils_getStringMatch = function () {
             return null;
         };
     }();
-var utils_allowWhitespace = function () {
+var parse_Tokenizer_utils_allowWhitespace = function () {
         
         var leadingWhitespace = /^\s+/;
         return function () {
@@ -3843,7 +3973,7 @@ var utils_allowWhitespace = function () {
             return match[0];
         };
     }();
-var utils_makeRegexMatcher = function () {
+var parse_Tokenizer_utils_makeRegexMatcher = function () {
         
         return function (regex) {
             return function (tokenizer) {
@@ -3856,7 +3986,7 @@ var utils_makeRegexMatcher = function () {
             };
         };
     }();
-var getStringLiteral_getEscapedChars = function () {
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getEscapedChars = function () {
         
         return function (tokenizer) {
             var chars = '', character;
@@ -3877,7 +4007,7 @@ var getStringLiteral_getEscapedChars = function () {
             return character;
         }
     }();
-var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
         
         var getUnescapedDoubleQuotedChars = makeRegexMatcher(/^[^\\"]+/), getUnescapedSingleQuotedChars = makeRegexMatcher(/^[^\\']+/);
         return function getQuotedString(tokenizer, singleQuotes) {
@@ -3902,8 +4032,8 @@ var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedCha
             }
             return string;
         };
-    }(utils_makeRegexMatcher, getStringLiteral_getEscapedChars);
-var getStringLiteral__getStringLiteral = function (types, getQuotedString) {
+    }(parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getEscapedChars);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral = function (types, getQuotedString) {
         
         return function (tokenizer) {
             var start, string;
@@ -3932,8 +4062,8 @@ var getStringLiteral__getStringLiteral = function (types, getQuotedString) {
             }
             return null;
         };
-    }(config_types, getStringLiteral_getQuotedString);
-var getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
+    }(config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getQuotedString);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
         
         var getNumber = makeRegexMatcher(/^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/);
         return function (tokenizer) {
@@ -3946,12 +4076,12 @@ var getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
             }
             return null;
         };
-    }(config_types, utils_makeRegexMatcher);
-var shared_getName = function (makeRegexMatcher) {
+    }(config_types, parse_Tokenizer_utils_makeRegexMatcher);
+var parse_Tokenizer_getExpression_shared_getName = function (makeRegexMatcher) {
         
         return makeRegexMatcher(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
-    }(utils_makeRegexMatcher);
-var shared_getKey = function (getStringLiteral, getNumberLiteral, getName) {
+    }(parse_Tokenizer_utils_makeRegexMatcher);
+var parse_Tokenizer_getExpression_shared_getKey = function (getStringLiteral, getNumberLiteral, getName) {
         
         var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
         return function (tokenizer) {
@@ -3966,7 +4096,7 @@ var shared_getKey = function (getStringLiteral, getNumberLiteral, getName) {
                 return token;
             }
         };
-    }(getStringLiteral__getStringLiteral, getLiteral_getNumberLiteral, shared_getName);
+    }(parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_shared_getName);
 var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLiteral, getKey) {
         
         var Tokenizer, specials, specialsPattern, numberPattern;
@@ -4070,8 +4200,8 @@ var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLitera
             var tokenizer = new Tokenizer(str);
             return tokenizer.result;
         };
-    }(utils_getStringMatch, utils_allowWhitespace, getStringLiteral__getStringLiteral, shared_getKey);
-var StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
+    }(parse_Tokenizer_utils_getStringMatch, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_shared_getKey);
+var render_StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
         
         var StringInterpolator = function (options) {
             this.type = types.INTERPOLATOR;
@@ -4098,8 +4228,8 @@ var StringFragment_Interpolator = function (types, teardown, initMustache, updat
             }
         };
         return StringInterpolator;
-    }(config_types, shared_teardown, shared_initMustache, shared_updateMustache, shared_resolveMustache);
-var StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
+    }(config_types, shared_teardown, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache);
+var render_StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
         
         var StringSection, StringFragment;
         circular.push(function () {
@@ -4144,8 +4274,8 @@ var StringFragment_Section = function (types, initMustache, updateMustache, reso
             }
         };
         return StringSection;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_teardown, circular);
-var StringFragment_Text = function (types) {
+    }(config_types, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_shared_updateSection, shared_teardown, circular);
+var render_StringFragment_Text = function (types) {
         
         var StringText = function (text) {
             this.type = types.TEXT;
@@ -4160,7 +4290,7 @@ var StringFragment_Text = function (types) {
         };
         return StringText;
     }(config_types);
-var StringFragment__StringFragment = function (types, parseJSON, initFragment, Interpolator, Section, Text, circular) {
+var render_StringFragment__StringFragment = function (types, parseJSON, initFragment, Interpolator, Section, Text, circular) {
         
         var StringFragment = function (options) {
             initFragment(this, options);
@@ -4238,8 +4368,8 @@ var StringFragment__StringFragment = function (types, parseJSON, initFragment, I
         };
         circular.StringFragment = StringFragment;
         return StringFragment;
-    }(config_types, utils_parseJSON, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
-var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, updateAttribute, StringFragment) {
+    }(config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, circular);
+var render_DomFragment_Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, updateAttribute, StringFragment) {
         
         var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
         propertyNames = {
@@ -4388,8 +4518,8 @@ var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, upd
             }
         };
         return DomAttribute;
-    }(config_namespaces, shared_enforceCase, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__StringFragment);
-var Element_createElementAttributes = function (DomAttribute) {
+    }(config_namespaces, render_DomFragment_shared_enforceCase, render_DomFragment_Attribute_bindAttribute, render_DomFragment_Attribute_updateAttribute, render_StringFragment__StringFragment);
+var render_DomFragment_Element_initialise_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
             var attrName, attrValue, attr;
@@ -4413,18 +4543,31 @@ var Element_createElementAttributes = function (DomAttribute) {
             }
             return element.attributes;
         };
-    }(Attribute__Attribute);
-var Element_appendElementChildren = function (namespaces, StringFragment, circular) {
+    }(render_DomFragment_Attribute__Attribute);
+var render_DomFragment_Element_initialise_appendElementChildren = function (namespaces, StringFragment, circular) {
         
         var DomFragment;
         circular.push(function () {
             DomFragment = circular.DomFragment;
         });
         return function (element, node, descriptor, docFrag) {
+            var liveQueries, i, selector, queryAllResult, j;
             if (typeof descriptor.f === 'string' && (!node || (!node.namespaceURI || node.namespaceURI === namespaces.html))) {
                 element.html = descriptor.f;
                 if (docFrag) {
                     node.innerHTML = element.html;
+                    liveQueries = element.root._liveQueries;
+                    i = liveQueries.length;
+                    while (i--) {
+                        selector = liveQueries[i];
+                        if (queryAllResult = node.querySelectorAll(selector) && (j = queryAllResult.length)) {
+                            (element.liveQueries || (element.liveQueries = [])).push(selector);
+                            element.liveQueries[selector] = [];
+                            while (j--) {
+                                element.liveQueries[selector][j] = queryAllResult[j];
+                            }
+                        }
+                    }
                 }
             } else {
                 if (descriptor.e === 'style' && node.styleSheet !== undefined) {
@@ -4453,8 +4596,8 @@ var Element_appendElementChildren = function (namespaces, StringFragment, circul
                 }
             }
         };
-    }(config_namespaces, StringFragment__StringFragment, circular);
-var Element_bindElement = function () {
+    }(config_namespaces, render_StringFragment__StringFragment, circular);
+var render_DomFragment_Element_initialise_bindElement = function () {
         
         return function (element, attributes) {
             if (element.node.getAttribute('contenteditable') && attributes.value && attributes.value.bind()) {
@@ -4482,6 +4625,214 @@ var Element_bindElement = function () {
             }
         };
     }();
+var render_DomFragment_Element_initialise_decorate = function (warn, StringFragment) {
+        
+        return function (descriptor, root, owner, contextStack) {
+            var name, args, frag, fn, errorMessage;
+            name = descriptor.n || descriptor;
+            fn = root.decorators[name];
+            if (fn) {
+                if (descriptor.a) {
+                    args = descriptor.a;
+                } else if (descriptor.d) {
+                    frag = new StringFragment({
+                        descriptor: descriptor.d,
+                        root: root,
+                        owner: owner,
+                        contextStack: contextStack
+                    });
+                    args = frag.toJSON();
+                    frag.teardown();
+                }
+                if (args) {
+                    args.unshift(owner.node);
+                    owner.decorator = fn.apply(root, args);
+                } else {
+                    owner.decorator = fn.call(root, owner.node);
+                }
+                if (!owner.decorator || !owner.decorator.teardown) {
+                    throw new Error('Decorator definition must return an object with a teardown method');
+                }
+            } else {
+                errorMessage = 'Missing decorator "' + descriptor.o + '"';
+                if (root.debug) {
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
+                }
+            }
+        };
+    }(utils_warn, render_StringFragment__StringFragment);
+var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (StringFragment) {
+        
+        var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
+        addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
+            var events, master;
+            events = element.node._ractive.events;
+            master = events[triggerEventName] || (events[triggerEventName] = new MasterEventHandler(element, triggerEventName, contextStack, indexRefs));
+            master.add(proxyDescriptor);
+        };
+        MasterEventHandler = function (element, eventName, contextStack) {
+            var definition;
+            this.element = element;
+            this.root = element.root;
+            this.node = element.node;
+            this.name = eventName;
+            this.contextStack = contextStack;
+            this.proxies = [];
+            if (definition = this.root.events[eventName]) {
+                this.custom = definition(this.node, getCustomHandler(eventName));
+            } else {
+                this.node.addEventListener(eventName, genericHandler, false);
+            }
+        };
+        MasterEventHandler.prototype = {
+            add: function (proxy) {
+                this.proxies[this.proxies.length] = new ProxyEvent(this.element, this.root, proxy, this.contextStack);
+            },
+            teardown: function () {
+                var i;
+                if (this.custom) {
+                    this.custom.teardown();
+                } else {
+                    this.node.removeEventListener(this.name, genericHandler, false);
+                }
+                i = this.proxies.length;
+                while (i--) {
+                    this.proxies[i].teardown();
+                }
+            },
+            fire: function (event) {
+                var i = this.proxies.length;
+                while (i--) {
+                    this.proxies[i].fire(event);
+                }
+            }
+        };
+        ProxyEvent = function (element, ractive, descriptor, contextStack) {
+            var name;
+            this.root = ractive;
+            name = descriptor.n || descriptor;
+            if (typeof name === 'string') {
+                this.n = name;
+            } else {
+                this.n = new StringFragment({
+                    descriptor: descriptor.n,
+                    root: this.root,
+                    owner: element,
+                    contextStack: contextStack
+                });
+            }
+            if (descriptor.a) {
+                this.a = descriptor.a;
+                this.fire = fireEventWithArgs;
+                return;
+            }
+            if (descriptor.d) {
+                this.d = new StringFragment({
+                    descriptor: descriptor.d,
+                    root: this.root,
+                    owner: element,
+                    contextStack: contextStack
+                });
+                this.fire = fireEventWithDynamicArgs;
+                return;
+            }
+            this.fire = firePlainEvent;
+        };
+        ProxyEvent.prototype = {
+            teardown: function () {
+                if (this.n.teardown) {
+                    this.n.teardown();
+                }
+                if (this.d) {
+                    this.d.teardown();
+                }
+            },
+            bubble: function () {
+            }
+        };
+        firePlainEvent = function (event) {
+            this.root.fire(this.n.toString(), event);
+        };
+        fireEventWithArgs = function (event) {
+            this.root.fire.apply(this.root, [
+                this.n.toString(),
+                event
+            ].concat(this.a));
+        };
+        fireEventWithDynamicArgs = function (event) {
+            var args = this.d.toJSON();
+            if (typeof args === 'string') {
+                args = args.substr(1, args.length - 2);
+            }
+            this.root.fire.apply(this.root, [
+                this.n.toString(),
+                event
+            ].concat(args));
+        };
+        genericHandler = function (event) {
+            var storage = this._ractive;
+            storage.events[event.type].fire({
+                node: this,
+                original: event,
+                index: storage.index,
+                keypath: storage.keypath,
+                context: storage.root.get(storage.keypath)
+            });
+        };
+        customHandlers = {};
+        getCustomHandler = function (eventName) {
+            if (customHandlers[eventName]) {
+                return customHandlers[eventName];
+            }
+            return customHandlers[eventName] = function (event) {
+                var storage = event.node._ractive;
+                event.index = storage.index;
+                event.keypath = storage.keypath;
+                event.context = storage.root.get(storage.keypath);
+                storage.events[eventName].fire(event);
+            };
+        };
+        return addEventProxy;
+    }(render_StringFragment__StringFragment);
+var render_DomFragment_Element_initialise_addEventProxies__addEventProxies = function (addEventProxy) {
+        
+        return function (element, proxies) {
+            var i, eventName, eventNames;
+            for (eventName in proxies) {
+                if (proxies.hasOwnProperty(eventName)) {
+                    eventNames = eventName.split('-');
+                    i = eventNames.length;
+                    while (i--) {
+                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
+                    }
+                }
+            }
+        };
+    }(render_DomFragment_Element_initialise_addEventProxies_addEventProxy);
+var render_DomFragment_Element_initialise_updateLiveQueries = function (matches) {
+        
+        return function (element) {
+            var ractive, liveQueries, i, selector, query;
+            ractive = element.root;
+            liveQueries = ractive._liveQueries;
+            i = liveQueries.length;
+            while (i--) {
+                selector = liveQueries[i];
+                query = liveQueries[selector];
+                if (matches(element.node, selector)) {
+                    query.push(element.node);
+                    (element.liveQueries || (element.liveQueries = [])).push(selector);
+                    element.liveQueries[selector] = [element.node];
+                    if (!query._dirty) {
+                        ractive._defLiveQueries.push(query);
+                        query._dirty = true;
+                    }
+                }
+            }
+        };
+    }(utils_matches);
 var utils_camelCase = function () {
         
         return function (hyphenatedStr) {
@@ -4490,7 +4841,7 @@ var utils_camelCase = function () {
             });
         };
     }();
-var Element_Transition = function (isClient, warn, isNumeric, isArray, camelCase, StringFragment) {
+var render_DomFragment_Element_shared_executeTransition_Transition = function (isClient, warn, isNumeric, isArray, camelCase, StringFragment) {
         
         var Transition, testStyle, vendors, vendorPattern, unprefixPattern, prefixCache, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
         if (!isClient) {
@@ -4706,8 +5057,8 @@ var Element_Transition = function (isClient, warn, isNumeric, isArray, camelCase
             return hyphenated;
         }
         return Transition;
-    }(config_isClient, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, StringFragment__StringFragment);
-var Element_executeTransition = function (warn, Transition) {
+    }(config_isClient, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, render_StringFragment__StringFragment);
+var render_DomFragment_Element_shared_executeTransition__executeTransition = function (warn, Transition) {
         
         return function (descriptor, root, owner, contextStack, isIntro) {
             var transition, node, oldTransition;
@@ -4730,211 +5081,25 @@ var Element_executeTransition = function (warn, Transition) {
                 }
             }
         };
-    }(utils_warn, Element_Transition);
-var Element_decorate = function (warn, StringFragment) {
+    }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition);
+var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
-        return function (descriptor, root, owner, contextStack) {
-            var name, args, frag, fn, errorMessage;
-            name = descriptor.n || descriptor;
-            fn = root.decorators[name];
-            if (fn) {
-                if (descriptor.a) {
-                    args = descriptor.a;
-                } else if (descriptor.d) {
-                    frag = new StringFragment({
-                        descriptor: descriptor.d,
-                        root: root,
-                        owner: owner,
-                        contextStack: contextStack
-                    });
-                    args = frag.toJSON();
-                    frag.teardown();
-                }
-                if (args) {
-                    args.unshift(owner.node);
-                    owner.decorator = fn.apply(root, args);
-                } else {
-                    owner.decorator = fn.call(root, owner.node);
-                }
-                if (!owner.decorator || !owner.decorator.teardown) {
-                    throw new Error('Decorator definition must return an object with a teardown method');
-                }
-            } else {
-                errorMessage = 'Missing decorator "' + descriptor.o + '"';
-                if (root.debug) {
-                    throw new Error(errorMessage);
-                } else {
-                    warn(errorMessage);
-                }
-            }
-        };
-    }(utils_warn, StringFragment__StringFragment);
-var Element_addEventProxy = function (StringFragment) {
-        
-        var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
-        addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
-            var events, master;
-            events = element.node._ractive.events;
-            master = events[triggerEventName] || (events[triggerEventName] = new MasterEventHandler(element, triggerEventName, contextStack, indexRefs));
-            master.add(proxyDescriptor);
-        };
-        MasterEventHandler = function (element, eventName, contextStack) {
-            var definition;
-            this.element = element;
-            this.root = element.root;
-            this.node = element.node;
-            this.name = eventName;
-            this.contextStack = contextStack;
-            this.proxies = [];
-            if (definition = this.root.events[eventName]) {
-                this.custom = definition(this.node, getCustomHandler(eventName));
-            } else {
-                this.node.addEventListener(eventName, genericHandler, false);
-            }
-        };
-        MasterEventHandler.prototype = {
-            add: function (proxy) {
-                this.proxies[this.proxies.length] = new ProxyEvent(this.element, this.root, proxy, this.contextStack);
-            },
-            teardown: function () {
-                var i;
-                if (this.custom) {
-                    this.custom.teardown();
-                } else {
-                    this.node.removeEventListener(this.name, genericHandler, false);
-                }
-                i = this.proxies.length;
-                while (i--) {
-                    this.proxies[i].teardown();
-                }
-            },
-            fire: function (event) {
-                var i = this.proxies.length;
-                while (i--) {
-                    this.proxies[i].fire(event);
-                }
-            }
-        };
-        ProxyEvent = function (element, ractive, descriptor, contextStack) {
-            var name;
-            this.root = ractive;
-            name = descriptor.n || descriptor;
-            if (typeof name === 'string') {
-                this.n = name;
-            } else {
-                this.n = new StringFragment({
-                    descriptor: descriptor.n,
-                    root: this.root,
-                    owner: element,
-                    contextStack: contextStack
-                });
-            }
-            if (descriptor.a) {
-                this.a = descriptor.a;
-                this.fire = fireEventWithArgs;
-                return;
-            }
-            if (descriptor.d) {
-                this.d = new StringFragment({
-                    descriptor: descriptor.d,
-                    root: this.root,
-                    owner: element,
-                    contextStack: contextStack
-                });
-                this.fire = fireEventWithDynamicArgs;
-                return;
-            }
-            this.fire = firePlainEvent;
-        };
-        ProxyEvent.prototype = {
-            teardown: function () {
-                if (this.n.teardown) {
-                    this.n.teardown();
-                }
-                if (this.d) {
-                    this.d.teardown();
-                }
-            },
-            bubble: function () {
-            }
-        };
-        firePlainEvent = function (event) {
-            this.root.fire(this.n.toString(), event);
-        };
-        fireEventWithArgs = function (event) {
-            this.root.fire.apply(this.root, [
-                this.n.toString(),
-                event
-            ].concat(this.a));
-        };
-        fireEventWithDynamicArgs = function (event) {
-            var args = this.d.toJSON();
-            if (typeof args === 'string') {
-                args = args.substr(1, args.length - 2);
-            }
-            this.root.fire.apply(this.root, [
-                this.n.toString(),
-                event
-            ].concat(args));
-        };
-        genericHandler = function (event) {
-            var storage = this._ractive;
-            storage.events[event.type].fire({
-                node: this,
-                original: event,
-                index: storage.index,
-                keypath: storage.keypath,
-                context: storage.root.get(storage.keypath)
-            });
-        };
-        customHandlers = {};
-        getCustomHandler = function (eventName) {
-            if (customHandlers[eventName]) {
-                return customHandlers[eventName];
-            }
-            return customHandlers[eventName] = function (event) {
-                var storage = event.node._ractive;
-                event.index = storage.index;
-                event.keypath = storage.keypath;
-                event.context = storage.root.get(storage.keypath);
-                storage.events[eventName].fire(event);
-            };
-        };
-        return addEventProxy;
-    }(StringFragment__StringFragment);
-var Element_addEventProxies = function (addEventProxy) {
-        
-        return function (element, proxies) {
-            var i, eventName, eventNames;
-            for (eventName in proxies) {
-                if (proxies.hasOwnProperty(eventName)) {
-                    eventNames = eventName.split('-');
-                    i = eventNames.length;
-                    while (i--) {
-                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
-                    }
-                }
-            }
-        };
-    }(Element_addEventProxy);
-var Element__Element = function (types, namespaces, voidElementNames, create, defineProperty, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies, enforceCase) {
-        
-        var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
-            this.type = types.ELEMENT;
-            parentFragment = this.parentFragment = options.parentFragment;
+        return function (element, options, docFrag) {
+            var parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
+            element.type = types.ELEMENT;
+            parentFragment = element.parentFragment = options.parentFragment;
             contextStack = parentFragment.contextStack;
-            descriptor = this.descriptor = options.descriptor;
-            this.root = root = parentFragment.root;
-            this.pNode = parentFragment.pNode;
-            this.index = options.index;
-            this.eventListeners = [];
-            this.customEventListeners = [];
-            if (this.pNode) {
-                namespace = this.namespace = getElementNamespace(descriptor, this.pNode);
+            descriptor = element.descriptor = options.descriptor;
+            element.root = root = parentFragment.root;
+            element.pNode = parentFragment.pNode;
+            element.index = options.index;
+            element.eventListeners = [];
+            element.customEventListeners = [];
+            if (element.pNode) {
+                namespace = element.namespace = getElementNamespace(descriptor, element.pNode);
                 name = namespace !== namespaces.html ? enforceCase(descriptor.e) : descriptor.e;
-                this.node = document.createElementNS(namespace, name);
-                defineProperty(this.node, '_ractive', {
+                element.node = document.createElementNS(namespace, name);
+                defineProperty(element.node, '_ractive', {
                     value: {
                         keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
                         index: parentFragment.indexRefs,
@@ -4943,10 +5108,10 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                     }
                 });
             }
-            attributes = createElementAttributes(this, descriptor.a);
+            attributes = createElementAttributes(element, descriptor.a);
             if (descriptor.f) {
-                if (this.node && this.node.getAttribute('contenteditable')) {
-                    if (this.node.innerHTML) {
+                if (element.node && element.node.getAttribute('contenteditable')) {
+                    if (element.node.innerHTML) {
                         errorMessage = 'A pre-populated contenteditable element should not have children';
                         if (root.debug) {
                             throw new Error(errorMessage);
@@ -4955,84 +5120,169 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                         }
                     }
                 }
-                appendElementChildren(this, this.node, descriptor, docFrag);
+                appendElementChildren(element, element.node, descriptor, docFrag);
             }
             if (docFrag && descriptor.v) {
-                addEventProxies(this, descriptor.v);
+                addEventProxies(element, descriptor.v);
             }
             if (docFrag) {
                 if (root.twoway) {
-                    bindElement(this, attributes);
-                    if (this.node.getAttribute('contenteditable') && this.node._ractive.binding) {
-                        this.node._ractive.binding.update();
+                    bindElement(element, attributes);
+                    if (element.node.getAttribute('contenteditable') && element.node._ractive.binding) {
+                        element.node._ractive.binding.update();
                     }
                 }
                 if (attributes.name && !attributes.name.twoway) {
                     attributes.name.update();
                 }
-                if (this.node.tagName === 'IMG' && ((width = self.attributes.width) || (height = self.attributes.height))) {
-                    this.node.addEventListener('load', loadHandler = function () {
+                if (element.node.tagName === 'IMG' && ((width = element.attributes.width) || (height = element.attributes.height))) {
+                    element.node.addEventListener('load', loadHandler = function () {
                         if (width) {
-                            self.node.width = width.value;
+                            element.node.width = width.value;
                         }
                         if (height) {
-                            self.node.height = height.value;
+                            element.node.height = height.value;
                         }
-                        self.node.removeEventListener('load', loadHandler, false);
+                        element.node.removeEventListener('load', loadHandler, false);
                     }, false);
                 }
-                docFrag.appendChild(this.node);
+                docFrag.appendChild(element.node);
                 if (descriptor.o) {
-                    decorate(descriptor.o, root, this, contextStack);
+                    decorate(descriptor.o, root, element, contextStack);
                 }
                 if (descriptor.t1) {
-                    executeTransition(descriptor.t1, root, this, contextStack, true);
+                    executeTransition(descriptor.t1, root, element, contextStack, true);
                 }
-                if (this.node.tagName === 'OPTION') {
-                    if (this.pNode.tagName === 'SELECT' && (selectBinding = this.pNode._ractive.binding)) {
+                if (element.node.tagName === 'OPTION') {
+                    if (element.pNode.tagName === 'SELECT' && (selectBinding = element.pNode._ractive.binding)) {
                         selectBinding.deferUpdate();
                     }
-                    if (this.node._ractive.value == this.pNode._ractive.value) {
-                        this.node.selected = true;
+                    if (element.node._ractive.value == element.pNode._ractive.value) {
+                        element.node.selected = true;
                     }
                 }
             }
+            updateLiveQueries(element);
+        };
+    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_bindElement, render_DomFragment_Element_initialise_decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
+var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
+        
+        return function (destroy) {
+            var eventName, binding, bindings, i, liveQueries, selector, query, index, nodesToRemove, j;
+            if (this.fragment) {
+                this.fragment.teardown(false);
+            }
+            while (this.attributes.length) {
+                this.attributes.pop().teardown();
+            }
+            if (this.node._ractive) {
+                for (eventName in this.node._ractive.events) {
+                    this.node._ractive.events[eventName].teardown();
+                }
+                if (binding = this.node._ractive.binding) {
+                    binding.teardown();
+                    bindings = this.root._twowayBindings[binding.attr.keypath];
+                    bindings.splice(bindings.indexOf(binding), 1);
+                }
+            }
+            if (this.decorator) {
+                this.decorator.teardown();
+            }
+            if (this.descriptor.t2) {
+                if (destroy) {
+                    this.root._transitionManager.detachWhenReady(this);
+                }
+                executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
+            } else if (destroy) {
+                this.detach();
+            }
+            if (liveQueries = this.liveQueries) {
+                i = liveQueries.length;
+                while (i--) {
+                    selector = liveQueries[i];
+                    if (nodesToRemove = this.liveQueries[selector]) {
+                        j = nodesToRemove.length;
+                        query = this.root._liveQueries[selector];
+                        while (j--) {
+                            index = query.indexOf(nodesToRemove[j]);
+                            if (index !== -1) {
+                                query.splice(index, 1);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    }(render_DomFragment_Element_shared_executeTransition__executeTransition);
+var config_voidElementNames = function () {
+        
+        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
+    }();
+var render_DomFragment_Element_prototype_toString = function (voidElementNames) {
+        
+        return function () {
+            var str, i, len;
+            str = '<' + (this.descriptor.y ? '!doctype' : this.descriptor.e);
+            len = this.attributes.length;
+            for (i = 0; i < len; i += 1) {
+                str += ' ' + this.attributes[i].toString();
+            }
+            str += '>';
+            if (this.html) {
+                str += this.html;
+            } else if (this.fragment) {
+                str += this.fragment.toString();
+            }
+            if (voidElementNames.indexOf(this.descriptor.e) === -1) {
+                str += '</' + this.descriptor.e + '>';
+            }
+            return str;
+        };
+    }(config_voidElementNames);
+var render_DomFragment_Element_prototype_find = function (matches) {
+        
+        return function (selector) {
+            var queryResult;
+            if (matches(this.node, selector)) {
+                return this.node;
+            }
+            if (this.html && (queryResult = this.node.querySelector(selector))) {
+                return queryResult;
+            }
+            if (this.fragment) {
+                return this.fragment.find(selector);
+            }
+        };
+    }(utils_matches);
+var render_DomFragment_Element_prototype_findAll = function (matches) {
+        
+        return function (selector, options, list) {
+            var queryAllResult, i, numNodes;
+            if (matches(this.node, selector)) {
+                list.push(this.node);
+            }
+            if (this.html && (queryAllResult = this.node.querySelectorAll(selector))) {
+                numNodes = queryAllResult.length;
+                for (i = 0; i < numNodes; i += 1) {
+                    list.push(queryAllResult[i]);
+                }
+            }
+            if (this.fragment) {
+                this.fragment.findAll(selector, options, list);
+            }
+        };
+    }(utils_matches);
+var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll) {
+        
+        var DomElement = function (options, docFrag) {
+            initialise(this, options, docFrag);
         };
         DomElement.prototype = {
             detach: function () {
                 this.node.parentNode.removeChild(this.node);
                 return this.node;
             },
-            teardown: function (destroy) {
-                var eventName, binding, bindings;
-                if (this.fragment) {
-                    this.fragment.teardown(false);
-                }
-                while (this.attributes.length) {
-                    this.attributes.pop().teardown();
-                }
-                if (this.node._ractive) {
-                    for (eventName in this.node._ractive.events) {
-                        this.node._ractive.events[eventName].teardown();
-                    }
-                    if (binding = this.node._ractive.binding) {
-                        binding.teardown();
-                        bindings = this.root._twowayBindings[binding.attr.keypath];
-                        bindings.splice(bindings.indexOf(binding), 1);
-                    }
-                }
-                if (this.decorator) {
-                    this.decorator.teardown();
-                }
-                if (this.descriptor.t2) {
-                    if (destroy) {
-                        this.root._transitionManager.detachWhenReady(this.node);
-                    }
-                    executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
-                } else if (destroy) {
-                    this.node.parentNode.removeChild(this.node);
-                }
-            },
+            teardown: teardown,
             firstNode: function () {
                 return this.node;
             },
@@ -5041,30 +5291,15 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
             },
             bubble: function () {
             },
-            toString: function () {
-                var str, i, len;
-                str = '<' + (this.descriptor.y ? '!doctype' : this.descriptor.e);
-                len = this.attributes.length;
-                for (i = 0; i < len; i += 1) {
-                    str += ' ' + this.attributes[i].toString();
-                }
-                str += '>';
-                if (this.html) {
-                    str += this.html;
-                } else if (this.fragment) {
-                    str += this.fragment.toString();
-                }
-                if (voidElementNames.indexOf(this.descriptor.e) === -1) {
-                    str += '</' + this.descriptor.e + '>';
-                }
-                return str;
-            }
+            toString: toString,
+            find: find,
+            findAll: findAll
         };
         return DomElement;
-    }(config_types, config_namespaces, config_voidElementNames, utils_create, utils_defineProperty, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_decorate, Element_addEventProxies, shared_enforceCase);
+    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
-var utils_stripHtmlComments = function () {
+var parse_utils_stripHtmlComments = function () {
         
         return function (html) {
             var commentStart, commentEnd, processed;
@@ -5088,7 +5323,7 @@ var utils_stripHtmlComments = function () {
             return processed;
         };
     }();
-var utils_stripStandalones = function (types) {
+var parse_utils_stripStandalones = function (types) {
         
         return function (tokens) {
             var i, current, backOne, backTwo, leadingLinebreak, trailingLinebreak;
@@ -5113,7 +5348,7 @@ var utils_stripStandalones = function (types) {
             return tokens;
         };
     }(config_types);
-var utils_stripCommentTokens = function (types) {
+var parse_utils_stripCommentTokens = function (types) {
         
         return function (tokens) {
             var i, current, previous, next;
@@ -5135,7 +5370,7 @@ var utils_stripCommentTokens = function (types) {
             return tokens;
         };
     }(config_types);
-var getMustache_getDelimiterChange = function (makeRegexMatcher) {
+var parse_Tokenizer_getMustache_getDelimiterChange = function (makeRegexMatcher) {
         
         var getDelimiter = makeRegexMatcher(/^[^\s=]+/);
         return function (tokenizer) {
@@ -5166,8 +5401,8 @@ var getMustache_getDelimiterChange = function (makeRegexMatcher) {
                 closing
             ];
         };
-    }(utils_makeRegexMatcher);
-var getMustache_getMustacheType = function (types) {
+    }(parse_Tokenizer_utils_makeRegexMatcher);
+var parse_Tokenizer_getMustache_getMustacheType = function (types) {
         
         var mustacheTypes = {
                 '#': types.SECTION,
@@ -5186,7 +5421,7 @@ var getMustache_getMustacheType = function (types) {
             return type;
         };
     }(config_types);
-var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMustacheType) {
+var parse_Tokenizer_getMustache_getMustacheContent = function (types, makeRegexMatcher, getMustacheType) {
         
         var getIndexRef = makeRegexMatcher(/^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/), arrayMember = /^[0-9][1-9]*$/;
         return function (tokenizer, isTriple) {
@@ -5238,8 +5473,8 @@ var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMusta
             }
             return mustache;
         };
-    }(config_types, utils_makeRegexMatcher, getMustache_getMustacheType);
-var getMustache__getMustache = function (types, getDelimiterChange, getMustacheContent) {
+    }(config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getMustache_getMustacheType);
+var parse_Tokenizer_getMustache__getMustache = function (types, getDelimiterChange, getMustacheContent) {
         
         return function () {
             var seekTripleFirst = this.tripleDelimiters[0].length > this.delimiters[0].length;
@@ -5276,8 +5511,8 @@ var getMustache__getMustache = function (types, getDelimiterChange, getMustacheC
             }
             return content;
         }
-    }(config_types, getMustache_getDelimiterChange, getMustache_getMustacheContent);
-var getComment_getComment = function (types) {
+    }(config_types, parse_Tokenizer_getMustache_getDelimiterChange, parse_Tokenizer_getMustache_getMustacheContent);
+var parse_Tokenizer_getComment_getComment = function (types) {
         
         return function () {
             var content, remaining, endIndex;
@@ -5297,7 +5532,7 @@ var getComment_getComment = function (types) {
             };
         };
     }(config_types);
-var utils_getLowestIndex = function () {
+var parse_Tokenizer_utils_getLowestIndex = function () {
         
         return function (haystack, needles) {
             var i, index, lowest;
@@ -5317,7 +5552,7 @@ var utils_getLowestIndex = function () {
             return lowest || -1;
         };
     }();
-var getTag__getTag = function (types, makeRegexMatcher, getLowestIndex) {
+var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowestIndex) {
         
         var getTag, getOpeningTag, getClosingTag, getTagName, getAttributes, getAttribute, getAttributeName, getAttributeValue, getUnquotedAttributeValue, getUnquotedAttributeValueToken, getUnquotedAttributeValueText, getQuotedStringToken, getQuotedAttributeValue;
         getTag = function () {
@@ -5492,8 +5727,8 @@ var getTag__getTag = function (types, makeRegexMatcher, getLowestIndex) {
             };
         };
         return getTag;
-    }(config_types, utils_makeRegexMatcher, utils_getLowestIndex);
-var getText__getText = function (types, getLowestIndex) {
+    }(config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_utils_getLowestIndex);
+var parse_Tokenizer_getText__getText = function (types, getLowestIndex) {
         
         return function () {
             var index, remaining;
@@ -5515,8 +5750,8 @@ var getText__getText = function (types, getLowestIndex) {
                 value: remaining.substr(0, index)
             };
         };
-    }(config_types, utils_getLowestIndex);
-var getLiteral_getBooleanLiteral = function (types) {
+    }(config_types, parse_Tokenizer_utils_getLowestIndex);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getBooleanLiteral = function (types) {
         
         return function (tokenizer) {
             var remaining = tokenizer.remaining();
@@ -5537,7 +5772,7 @@ var getLiteral_getBooleanLiteral = function (types) {
             return null;
         };
     }(config_types);
-var getObjectLiteral_getKeyValuePair = function (types, getKey) {
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePair = function (types, getKey) {
         
         return function (tokenizer) {
             var start, key, value;
@@ -5565,8 +5800,8 @@ var getObjectLiteral_getKeyValuePair = function (types, getKey) {
                 v: value
             };
         };
-    }(config_types, shared_getKey);
-var getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
+    }(config_types, parse_Tokenizer_getExpression_shared_getKey);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
         
         return function getKeyValuePairs(tokenizer) {
             var start, pairs, pair, keyValuePairs;
@@ -5586,8 +5821,8 @@ var getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
             }
             return pairs;
         };
-    }(getObjectLiteral_getKeyValuePair);
-var getObjectLiteral__getObjectLiteral = function (types, getKeyValuePairs) {
+    }(parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePair);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral__getObjectLiteral = function (types, getKeyValuePairs) {
         
         return function (tokenizer) {
             var start, keyValuePairs;
@@ -5608,8 +5843,8 @@ var getObjectLiteral__getObjectLiteral = function (types, getKeyValuePairs) {
                 m: keyValuePairs
             };
         };
-    }(config_types, getObjectLiteral_getKeyValuePairs);
-var shared_getExpressionList = function () {
+    }(config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePairs);
+var parse_Tokenizer_getExpression_shared_getExpressionList = function () {
         
         return function getExpressionList(tokenizer) {
             var start, expressions, expr, next;
@@ -5632,7 +5867,7 @@ var shared_getExpressionList = function () {
             return expressions;
         };
     }();
-var getLiteral_getArrayLiteral = function (types, getExpressionList) {
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getArrayLiteral = function (types, getExpressionList) {
         
         return function (tokenizer) {
             var start, expressionList;
@@ -5652,15 +5887,15 @@ var getLiteral_getArrayLiteral = function (types, getExpressionList) {
                 m: expressionList
             };
         };
-    }(config_types, shared_getExpressionList);
-var getLiteral__getLiteral = function (getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral) {
+    }(config_types, parse_Tokenizer_getExpression_shared_getExpressionList);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral__getLiteral = function (getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral) {
         
         return function (tokenizer) {
             var literal = getNumberLiteral(tokenizer) || getBooleanLiteral(tokenizer) || getStringLiteral(tokenizer) || getObjectLiteral(tokenizer) || getArrayLiteral(tokenizer);
             return literal;
         };
-    }(getLiteral_getNumberLiteral, getLiteral_getBooleanLiteral, getStringLiteral__getStringLiteral, getObjectLiteral__getObjectLiteral, getLiteral_getArrayLiteral);
-var getPrimary_getReference = function (types, makeRegexMatcher, getName) {
+    }(parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getBooleanLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral__getObjectLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getArrayLiteral);
+var parse_Tokenizer_getExpression_getPrimary_getReference = function (types, makeRegexMatcher, getName) {
         
         var getDotRefinement, getArrayRefinement, getArrayMember, globals;
         getDotRefinement = makeRegexMatcher(/^\.[a-zA-Z_$0-9]+/);
@@ -5715,8 +5950,8 @@ var getPrimary_getReference = function (types, makeRegexMatcher, getName) {
                 n: combo
             };
         };
-    }(config_types, utils_makeRegexMatcher, shared_getName);
-var getPrimary_getBracketedExpression = function (types) {
+    }(config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getExpression_shared_getName);
+var parse_Tokenizer_getExpression_getPrimary_getBracketedExpression = function (types) {
         
         return function (tokenizer) {
             var start, expr;
@@ -5741,13 +5976,13 @@ var getPrimary_getBracketedExpression = function (types) {
             };
         };
     }(config_types);
-var getPrimary__getPrimary = function (getLiteral, getReference, getBracketedExpression) {
+var parse_Tokenizer_getExpression_getPrimary__getPrimary = function (getLiteral, getReference, getBracketedExpression) {
         
         return function (tokenizer) {
             return getLiteral(tokenizer) || getReference(tokenizer) || getBracketedExpression(tokenizer);
         };
-    }(getLiteral__getLiteral, getPrimary_getReference, getPrimary_getBracketedExpression);
-var shared_getRefinement = function (types, getName) {
+    }(parse_Tokenizer_getExpression_getPrimary_getLiteral__getLiteral, parse_Tokenizer_getExpression_getPrimary_getReference, parse_Tokenizer_getExpression_getPrimary_getBracketedExpression);
+var parse_Tokenizer_getExpression_shared_getRefinement = function (types, getName) {
         
         return function getRefinement(tokenizer) {
             var start, name, expr;
@@ -5780,8 +6015,8 @@ var shared_getRefinement = function (types, getName) {
             }
             return null;
         };
-    }(config_types, shared_getName);
-var getExpression_getMemberOrInvocation = function (types, getPrimary, getExpressionList, getRefinement) {
+    }(config_types, parse_Tokenizer_getExpression_shared_getName);
+var parse_Tokenizer_getExpression_getMemberOrInvocation = function (types, getPrimary, getExpressionList, getRefinement) {
         
         return function (tokenizer) {
             var current, expression, refinement, expressionList;
@@ -5818,8 +6053,8 @@ var getExpression_getMemberOrInvocation = function (types, getPrimary, getExpres
             }
             return expression;
         };
-    }(config_types, getPrimary__getPrimary, shared_getExpressionList, shared_getRefinement);
-var getExpression_getTypeOf = function (types, getMemberOrInvocation) {
+    }(config_types, parse_Tokenizer_getExpression_getPrimary__getPrimary, parse_Tokenizer_getExpression_shared_getExpressionList, parse_Tokenizer_getExpression_shared_getRefinement);
+var parse_Tokenizer_getExpression_getTypeOf = function (types, getMemberOrInvocation) {
         
         var getTypeOf, makePrefixSequenceMatcher;
         makePrefixSequenceMatcher = function (symbol, fallthrough) {
@@ -5852,8 +6087,8 @@ var getExpression_getTypeOf = function (types, getMemberOrInvocation) {
             getTypeOf = fallthrough;
         }());
         return getTypeOf;
-    }(config_types, getExpression_getMemberOrInvocation);
-var getExpression_getLogicalOr = function (types, getTypeOf) {
+    }(config_types, parse_Tokenizer_getExpression_getMemberOrInvocation);
+var parse_Tokenizer_getExpression_getLogicalOr = function (types, getTypeOf) {
         
         var getLogicalOr, makeInfixSequenceMatcher;
         makeInfixSequenceMatcher = function (symbol, fallthrough) {
@@ -5900,8 +6135,8 @@ var getExpression_getLogicalOr = function (types, getTypeOf) {
             getLogicalOr = fallthrough;
         }());
         return getLogicalOr;
-    }(config_types, getExpression_getTypeOf);
-var getExpression_getConditional = function (types, getLogicalOr) {
+    }(config_types, parse_Tokenizer_getExpression_getTypeOf);
+var parse_Tokenizer_getExpression_getConditional = function (types, getLogicalOr) {
         
         return function (tokenizer) {
             var start, expression, ifTrue, ifFalse;
@@ -5941,14 +6176,14 @@ var getExpression_getConditional = function (types, getLogicalOr) {
                 ]
             };
         };
-    }(config_types, getExpression_getLogicalOr);
-var getExpression__getExpression = function (getConditional) {
+    }(config_types, parse_Tokenizer_getExpression_getLogicalOr);
+var parse_Tokenizer_getExpression__getExpression = function (getConditional) {
         
         return function () {
             return getConditional(this);
         };
-    }(getExpression_getConditional);
-var Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch) {
+    }(parse_Tokenizer_getExpression_getConditional);
+var parse_Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch) {
         
         var Tokenizer;
         Tokenizer = function (str, options) {
@@ -6002,7 +6237,7 @@ var Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, g
             }
         };
         return Tokenizer;
-    }(getMustache__getMustache, getComment_getComment, getTag__getTag, getText__getText, getExpression__getExpression, utils_allowWhitespace, utils_getStringMatch);
+    }(parse_Tokenizer_getMustache__getMustache, parse_Tokenizer_getComment_getComment, parse_Tokenizer_getTag__getTag, parse_Tokenizer_getText__getText, parse_Tokenizer_getExpression__getExpression, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_utils_getStringMatch);
 var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer, circular) {
         
         var tokenize, Ractive;
@@ -6031,8 +6266,8 @@ var parse_tokenize = function (stripHtmlComments, stripStandalones, stripComment
             return tokens;
         };
         return tokenize;
-    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, Tokenizer__Tokenizer, circular);
-var TextStub__TextStub = function (types) {
+    }(parse_utils_stripHtmlComments, parse_utils_stripStandalones, parse_utils_stripCommentTokens, parse_Tokenizer__Tokenizer, circular);
+var parse_Parser_getText_TextStub__TextStub = function (types) {
         
         var TextStub, htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
         TextStub = function (token, preserveWhitespace) {
@@ -6382,7 +6617,7 @@ var TextStub__TextStub = function (types) {
         whitespace = /\s+/g;
         return TextStub;
     }(config_types);
-var getText__getText = function (types, TextStub) {
+var parse_Parser_getText__getText = function (types, TextStub) {
         
         return function (token) {
             if (token.type === types.TEXT) {
@@ -6391,8 +6626,8 @@ var getText__getText = function (types, TextStub) {
             }
             return null;
         };
-    }(config_types, TextStub__TextStub);
-var CommentStub__CommentStub = function (types) {
+    }(config_types, parse_Parser_getText_TextStub__TextStub);
+var parse_Parser_getComment_CommentStub__CommentStub = function (types) {
         
         var CommentStub;
         CommentStub = function (token) {
@@ -6411,7 +6646,7 @@ var CommentStub__CommentStub = function (types) {
         };
         return CommentStub;
     }(config_types);
-var getComment__getComment = function (types, CommentStub) {
+var parse_Parser_getComment__getComment = function (types, CommentStub) {
         
         return function (token) {
             if (token.type === types.COMMENT) {
@@ -6420,8 +6655,8 @@ var getComment__getComment = function (types, CommentStub) {
             }
             return null;
         };
-    }(config_types, CommentStub__CommentStub);
-var ExpressionStub__ExpressionStub = function (types, isObject) {
+    }(config_types, parse_Parser_getComment_CommentStub__CommentStub);
+var parse_Parser_getMustache_ExpressionStub__ExpressionStub = function (types, isObject) {
         
         var ExpressionStub, getRefs, stringify;
         ExpressionStub = function (token) {
@@ -6508,7 +6743,7 @@ var ExpressionStub__ExpressionStub = function (types, isObject) {
         };
         return ExpressionStub;
     }(config_types, utils_isObject);
-var MustacheStub__MustacheStub = function (types, ExpressionStub) {
+var parse_Parser_getMustache_MustacheStub__MustacheStub = function (types, ExpressionStub) {
         
         var MustacheStub = function (token, parser) {
             this.type = token.type === types.TRIPLE ? types.TRIPLE : token.mustacheType;
@@ -6541,8 +6776,8 @@ var MustacheStub__MustacheStub = function (types, ExpressionStub) {
             }
         };
         return MustacheStub;
-    }(config_types, ExpressionStub__ExpressionStub);
-var utils_stringifyStubs = function () {
+    }(config_types, parse_Parser_getMustache_ExpressionStub__ExpressionStub);
+var parse_Parser_utils_stringifyStubs = function () {
         
         return function (items) {
             var str = '', itemStr, i, len;
@@ -6559,7 +6794,7 @@ var utils_stringifyStubs = function () {
             return str;
         };
     }();
-var utils_jsonifyStubs = function (stringifyStubs) {
+var parse_Parser_utils_jsonifyStubs = function (stringifyStubs) {
         
         return function (items, noStringify) {
             var str, json;
@@ -6574,8 +6809,8 @@ var utils_jsonifyStubs = function (stringifyStubs) {
             });
             return json;
         };
-    }(utils_stringifyStubs);
-var SectionStub__SectionStub = function (types, jsonifyStubs, ExpressionStub) {
+    }(parse_Parser_utils_stringifyStubs);
+var parse_Parser_getMustache_SectionStub__SectionStub = function (types, jsonifyStubs, ExpressionStub) {
         
         var SectionStub = function (firstToken, parser) {
             var next;
@@ -6631,8 +6866,8 @@ var SectionStub__SectionStub = function (types, jsonifyStubs, ExpressionStub) {
             }
         };
         return SectionStub;
-    }(config_types, utils_jsonifyStubs, ExpressionStub__ExpressionStub);
-var getMustache__getMustache = function (types, MustacheStub, SectionStub) {
+    }(config_types, parse_Parser_utils_jsonifyStubs, parse_Parser_getMustache_ExpressionStub__ExpressionStub);
+var parse_Parser_getMustache__getMustache = function (types, MustacheStub, SectionStub) {
         
         return function (token) {
             if (token.type === types.MUSTACHE || token.type === types.TRIPLE) {
@@ -6642,8 +6877,8 @@ var getMustache__getMustache = function (types, MustacheStub, SectionStub) {
                 return new MustacheStub(token, this);
             }
         };
-    }(config_types, MustacheStub__MustacheStub, SectionStub__SectionStub);
-var utils_siblingsByTagName = function () {
+    }(config_types, parse_Parser_getMustache_MustacheStub__MustacheStub, parse_Parser_getMustache_SectionStub__SectionStub);
+var parse_Parser_getElement_ElementStub_utils_siblingsByTagName = function () {
         
         return {
             li: ['li'],
@@ -6688,7 +6923,7 @@ var utils_siblingsByTagName = function () {
             ]
         };
     }();
-var utils_filterAttributes = function (isArray) {
+var parse_Parser_getElement_ElementStub_utils_filterAttributes = function (isArray) {
         
         return function (items) {
             var attrs, proxies, filtered, i, len, item;
@@ -6747,7 +6982,7 @@ var utils_filterAttributes = function (isArray) {
             return result;
         }
     }(utils_isArray);
-var utils_processDirective = function (types, parseJSON) {
+var parse_Parser_getElement_ElementStub_utils_processDirective = function (types, parseJSON) {
         
         return function (directive) {
             var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed, item;
@@ -6821,7 +7056,7 @@ var utils_processDirective = function (types, parseJSON) {
             return processed;
         };
     }(config_types, utils_parseJSON);
-var StringStub_StringParser = function (getText, getMustache) {
+var parse_Parser_StringStub_StringParser = function (getText, getMustache) {
         
         var StringParser;
         StringParser = function (tokens, options) {
@@ -6849,8 +7084,8 @@ var StringStub_StringParser = function (getText, getMustache) {
             }
         };
         return StringParser;
-    }(getText__getText, getMustache__getMustache);
-var StringStub__StringStub = function (StringParser, stringifyStubs, jsonifyStubs) {
+    }(parse_Parser_getText__getText, parse_Parser_getMustache__getMustache);
+var parse_Parser_StringStub__StringStub = function (StringParser, stringifyStubs, jsonifyStubs) {
         
         var StringStub;
         StringStub = function (tokens) {
@@ -6875,8 +7110,8 @@ var StringStub__StringStub = function (StringParser, stringifyStubs, jsonifyStub
             }
         };
         return StringStub;
-    }(StringStub_StringParser, utils_stringifyStubs, utils_jsonifyStubs);
-var utils_jsonifyDirective = function (StringStub) {
+    }(parse_Parser_StringStub_StringParser, parse_Parser_utils_stringifyStubs, parse_Parser_utils_jsonifyStubs);
+var parse_Parser_getElement_ElementStub_utils_jsonifyDirective = function (StringStub) {
         
         return function (directive) {
             var result, name;
@@ -6898,8 +7133,8 @@ var utils_jsonifyDirective = function (StringStub) {
             }
             return result;
         };
-    }(StringStub__StringStub);
-var ElementStub_toJSON = function (types, jsonifyStubs, jsonifyDirective) {
+    }(parse_Parser_StringStub__StringStub);
+var parse_Parser_getElement_ElementStub_toJSON = function (types, jsonifyStubs, jsonifyDirective) {
         
         return function (noStringify) {
             var json, name, value, proxy, i, len, attribute;
@@ -6960,8 +7195,8 @@ var ElementStub_toJSON = function (types, jsonifyStubs, jsonifyDirective) {
             this['json_' + noStringify] = json;
             return json;
         };
-    }(config_types, utils_jsonifyStubs, utils_jsonifyDirective);
-var ElementStub_toString = function (stringifyStubs, voidElementNames) {
+    }(config_types, parse_Parser_utils_jsonifyStubs, parse_Parser_getElement_ElementStub_utils_jsonifyDirective);
+var parse_Parser_getElement_ElementStub_toString = function (stringifyStubs, voidElementNames) {
         
         var htmlElements;
         htmlElements = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split(' ');
@@ -7024,8 +7259,8 @@ var ElementStub_toString = function (stringifyStubs, voidElementNames) {
             str += '</' + this.tag + '>';
             return this.str = str;
         };
-    }(utils_stringifyStubs, config_voidElementNames);
-var ElementStub__ElementStub = function (types, voidElementNames, warn, camelCase, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
+    }(parse_Parser_utils_stringifyStubs, config_voidElementNames);
+var parse_Parser_getElement_ElementStub__ElementStub = function (types, voidElementNames, warn, camelCase, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
         
         var ElementStub, allElementNames, closedByParentClose, onPattern, sanitize, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
         ElementStub = function (firstToken, parser, preserveWhitespace) {
@@ -7128,8 +7363,8 @@ var ElementStub__ElementStub = function (types, voidElementNames, warn, camelCas
             return valid;
         };
         return ElementStub;
-    }(config_types, config_voidElementNames, utils_warn, utils_camelCase, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__StringStub);
-var getElement__getElement = function (types, ElementStub) {
+    }(config_types, config_voidElementNames, utils_warn, utils_camelCase, parse_Parser_utils_stringifyStubs, parse_Parser_getElement_ElementStub_utils_siblingsByTagName, parse_Parser_getElement_ElementStub_utils_filterAttributes, parse_Parser_getElement_ElementStub_utils_processDirective, parse_Parser_getElement_ElementStub_toJSON, parse_Parser_getElement_ElementStub_toString, parse_Parser_StringStub__StringStub);
+var parse_Parser_getElement__getElement = function (types, ElementStub) {
         
         return function (token) {
             if (this.options.sanitize && this.options.sanitize.elements) {
@@ -7139,8 +7374,8 @@ var getElement__getElement = function (types, ElementStub) {
             }
             return new ElementStub(token, this);
         };
-    }(config_types, ElementStub__ElementStub);
-var Parser__Parser = function (getText, getComment, getMustache, getElement, jsonifyStubs) {
+    }(config_types, parse_Parser_getElement_ElementStub__ElementStub);
+var parse_Parser__Parser = function (getText, getComment, getMustache, getElement, jsonifyStubs) {
         
         var Parser;
         Parser = function (tokens, options) {
@@ -7172,7 +7407,7 @@ var Parser__Parser = function (getText, getComment, getMustache, getElement, jso
             }
         };
         return Parser;
-    }(getText__getText, getComment__getComment, getMustache__getMustache, getElement__getElement, utils_jsonifyStubs);
+    }(parse_Parser_getText__getText, parse_Parser_getComment__getComment, parse_Parser_getMustache__getMustache, parse_Parser_getElement__getElement, parse_Parser_utils_jsonifyStubs);
 var parse__parse = function (tokenize, types, Parser) {
         
         var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
@@ -7230,8 +7465,8 @@ var parse__parse = function (tokenize, types, Parser) {
             };
         };
         return parse;
-    }(parse_tokenize, config_types, Parser__Parser);
-var Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
+    }(parse_tokenize, config_types, parse_Parser__Parser);
+var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
         
         var getPartialDescriptor, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
@@ -7290,7 +7525,7 @@ var Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, p
         };
         return getPartialDescriptor;
     }(config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__parse);
-var Partial__Partial = function (types, getPartialDescriptor, circular) {
+var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor, circular) {
         
         var DomPartial, DomFragment;
         circular.push(function () {
@@ -7331,11 +7566,17 @@ var Partial__Partial = function (types, getPartialDescriptor, circular) {
             },
             toString: function () {
                 return this.fragment.toString();
+            },
+            find: function (selector) {
+                return this.fragment.find(selector);
+            },
+            findAll: function (selector, options, queryResult) {
+                return this.fragment.findAll(selector, options, queryResult);
             }
         };
         return DomPartial;
-    }(config_types, Partial_getPartialDescriptor, circular);
-var Component_ComponentParameter = function (StringFragment) {
+    }(config_types, render_DomFragment_Partial_getPartialDescriptor, circular);
+var render_DomFragment_Component_ComponentParameter = function (StringFragment) {
         
         var ComponentParameter = function (root, component, key, value, contextStack) {
             this.parentFragment = component.parentFragment;
@@ -7361,13 +7602,13 @@ var Component_ComponentParameter = function (StringFragment) {
             },
             update: function () {
                 var value = this.fragment.getValue();
-                this.component.set(this.key, value);
+                this.component.instance.set(this.key, value);
                 this.value = value;
             }
         };
         return ComponentParameter;
-    }(StringFragment__StringFragment);
-var Component__Component = function (types, warn, parseJSON, resolveRef, ComponentParameter) {
+    }(render_StringFragment__StringFragment);
+var render_DomFragment_Component__Component = function (types, warn, parseJSON, resolveRef, ComponentParameter) {
         
         var DomComponent;
         DomComponent = function (options, docFrag) {
@@ -7517,8 +7758,8 @@ var Component__Component = function (types, warn, parseJSON, resolveRef, Compone
             }
         };
         return DomComponent;
-    }(config_types, utils_warn, utils_parseJSON, shared_resolveRef, Component_ComponentParameter);
-var DomFragment_Comment = function (types) {
+    }(config_types, utils_warn, utils_parseJSON, shared_resolveRef, render_DomFragment_Component_ComponentParameter);
+var render_DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
             this.type = types.COMMENT;
@@ -7548,7 +7789,7 @@ var DomFragment_Comment = function (types) {
         };
         return DomComment;
     }(config_types);
-var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular) {
+var render_DomFragment__DomFragment = function (types, matches, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular) {
         
         var DomFragment = function (options) {
             if (options.pNode) {
@@ -7651,12 +7892,71 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
                     html += item.toString();
                 }
                 return html;
+            },
+            find: function (selector) {
+                var i, len, item, node, queryResult;
+                if (this.nodes) {
+                    len = this.nodes.length;
+                    for (i = 0; i < len; i += 1) {
+                        node = this.nodes[i];
+                        if (node.nodeType !== 1) {
+                            continue;
+                        }
+                        if (matches(node, selector)) {
+                            return node;
+                        }
+                        if (queryResult = node.querySelector(selector)) {
+                            return queryResult;
+                        }
+                    }
+                    return null;
+                }
+                if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.find && (queryResult = item.find(selector))) {
+                            return queryResult;
+                        }
+                    }
+                    return null;
+                }
+            },
+            findAll: function (selector, options, queryResult) {
+                var i, len, item, node, queryAllResult, numNodes, j;
+                if (this.nodes) {
+                    len = this.nodes.length;
+                    for (i = 0; i < len; i += 1) {
+                        node = this.nodes[i];
+                        if (node.nodeType !== 1) {
+                            continue;
+                        }
+                        if (matches(node, selector)) {
+                            queryResult.push(node);
+                        }
+                        if (queryAllResult = node.querySelectorAll(selector)) {
+                            numNodes = queryAllResult.length;
+                            for (j = 0; j < numNodes; j += 1) {
+                                queryResult.push(queryAllResult[j]);
+                            }
+                        }
+                    }
+                } else if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.findAll) {
+                            item.findAll(selector, options, queryResult);
+                        }
+                    }
+                }
+                return queryResult;
             }
         };
         circular.DomFragment = DomFragment;
         return DomFragment;
-    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, Section__Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment, circular);
-var prototype_render = function (getElement, makeTransitionManager, processDeferredUpdates, DomFragment) {
+    }(config_types, utils_matches, render_shared_initFragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular);
+var Ractive_prototype_render = function (getElement, makeTransitionManager, preDomUpdate, postDomUpdate, DomFragment) {
         
         return function (target, complete) {
             var transitionManager;
@@ -7667,25 +7967,23 @@ var prototype_render = function (getElement, makeTransitionManager, processDefer
                 owner: this,
                 pNode: this.el
             });
-            processDeferredUpdates(this, true);
+            preDomUpdate(this);
             if (target) {
                 target.appendChild(this.fragment.docFrag);
             }
-            while (this._defTransitions.length) {
-                this._defTransitions.pop().init();
-            }
+            postDomUpdate(this);
             this._transitionManager = null;
             transitionManager.ready();
             this.rendered = true;
         };
-    }(utils_getElement, shared_makeTransitionManager, shared_processDeferredUpdates, DomFragment__DomFragment);
-var prototype_renderHTML = function () {
+    }(utils_getElement, shared_makeTransitionManager, shared_preDomUpdate, shared_postDomUpdate, render_DomFragment__DomFragment);
+var Ractive_prototype_renderHTML = function () {
         
         return function () {
             return this.fragment.toString();
         };
     }();
-var prototype_teardown = function (makeTransitionManager, clearCache) {
+var Ractive_prototype_teardown = function (makeTransitionManager, clearCache) {
         
         return function (complete) {
             var keypath, transitionManager, previousTransitionManager;
@@ -7703,7 +8001,7 @@ var prototype_teardown = function (makeTransitionManager, clearCache) {
             transitionManager.ready();
         };
     }(shared_makeTransitionManager, shared_clearCache);
-var shared_add = function (isNumeric) {
+var Ractive_prototype_shared_add = function (isNumeric) {
         
         return function (root, keypath, d) {
             var value;
@@ -7726,19 +8024,19 @@ var shared_add = function (isNumeric) {
             root.set(keypath, value + d);
         };
     }(utils_isNumeric);
-var prototype_add = function (add) {
+var Ractive_prototype_add = function (add) {
         
         return function (keypath, d) {
             add(this, keypath, d === undefined ? 1 : d);
         };
-    }(shared_add);
-var prototype_subtract = function (add) {
+    }(Ractive_prototype_shared_add);
+var Ractive_prototype_subtract = function (add) {
         
         return function (keypath, d) {
             add(this, keypath, d === undefined ? -1 : -d);
         };
-    }(shared_add);
-var prototype_toggle = function () {
+    }(Ractive_prototype_shared_add);
+var Ractive_prototype_toggle = function () {
         
         return function (keypath) {
             var value;
@@ -7752,7 +8050,7 @@ var prototype_toggle = function () {
             this.set(keypath, !value);
         };
     }();
-var merge_mapOldToNewIndex = function () {
+var Ractive_prototype_merge_mapOldToNewIndex = function () {
         
         return function (oldArray, newArray) {
             var usedIndices, mapper, firstUnusedIndex, newIndices, changed;
@@ -7784,7 +8082,7 @@ var merge_mapOldToNewIndex = function () {
             return newIndices;
         };
     }();
-var merge_queueDependants = function (types) {
+var Ractive_prototype_merge_queueDependants = function (types) {
         
         return function queueDependants(keypath, deps, mergeQueue, updateQueue) {
             var i, dependant;
@@ -7801,7 +8099,7 @@ var merge_queueDependants = function (types) {
             }
         };
     }(config_types);
-var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
+var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDomUpdate, processDeferredUpdates, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
         
         var identifiers = {};
         return function (keypath, array, options) {
@@ -7855,7 +8153,7 @@ var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, 
                 deps = depsByKeypath[keypath];
                 if (deps) {
                     queueDependants(keypath, deps, mergeQueue, updateQueue);
-                    processDeferredUpdates(this);
+                    preDomUpdate(this);
                     while (mergeQueue.length) {
                         mergeQueue.pop().merge(newIndices);
                     }
@@ -7889,8 +8187,8 @@ var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, 
             }
             return identifiers[str];
         }
-    }(utils_warn, utils_isArray, shared_clearCache, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants, shared_replaceData, merge_mapOldToNewIndex, merge_queueDependants);
-var prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge) {
+    }(utils_warn, utils_isArray, shared_clearCache, shared_preDomUpdate, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants);
+var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge) {
         
         return {
             get: get,
@@ -7912,7 +8210,7 @@ var prototype__prototype = function (get, set, update, updateModel, animate, on,
             toggle: toggle,
             merge: merge
         };
-    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, observe__observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle, merge__merge);
+    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge);
 var extend_registries = function () {
         
         return [
@@ -7971,7 +8269,7 @@ var extend_wrapMethod = function () {
             }
         };
     }();
-var utils_augment = function () {
+var extend_utils_augment = function () {
         
         return function (target, source) {
             var key;
@@ -8025,7 +8323,7 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                 }
             }
         };
-    }(extend_registries, extend_initOptions, extend_wrapMethod, utils_augment);
+    }(extend_registries, extend_initOptions, extend_wrapMethod, extend_utils_augment);
 var extend_extractInlinePartials = function (isObject, augment) {
         
         return function (Child, childProps) {
@@ -8040,7 +8338,7 @@ var extend_extractInlinePartials = function (isObject, augment) {
                 Child.template = Child.template.main;
             }
         };
-    }(utils_isObject, utils_augment);
+    }(utils_isObject, extend_utils_augment);
 var extend_conditionallyParseTemplate = function (errors, isClient, parse) {
         
         return function (Child) {
@@ -8078,7 +8376,7 @@ var extend_conditionallyParsePartials = function (errors, parse) {
             }
         };
     }(config_errors, parse__parse);
-var utils_clone = function () {
+var extend_utils_clone = function () {
         
         return function (source) {
             var target = {}, key;
@@ -8090,7 +8388,7 @@ var utils_clone = function () {
             return target;
         };
     }();
-var utils_fillGaps = function () {
+var extend_utils_fillGaps = function () {
         
         return function (target, source) {
             var key;
@@ -8221,6 +8519,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _defRadios: { value: [] },
                 _defObservers: { value: [] },
                 _defTransitions: { value: [] },
+                _defLiveQueries: { value: [] },
                 _evaluators: { value: create(null) },
                 _twowayBindings: { value: {} },
                 _transitionManager: {
@@ -8229,7 +8528,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 },
                 _animations: { value: [] },
                 nodes: { value: {} },
-                _wrapped: { value: create(null) }
+                _wrapped: { value: create(null) },
+                _liveQueries: { value: [] }
             });
             ractive.data = options.data;
             ractive.adaptors = options.adaptors;
@@ -8293,7 +8593,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.render(ractive.el, options.complete);
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, get_magicAdaptor, parse__parse);
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
 var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMethod, initialise) {
         
         return function (child, Child, options) {
@@ -8316,7 +8616,7 @@ var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMetho
                 child.init(options);
             }
         };
-    }(extend_initOptions, utils_clone, utils_fillGaps, extend_wrapMethod, Ractive_initialise);
+    }(extend_initOptions, extend_utils_clone, extend_utils_fillGaps, extend_wrapMethod, Ractive_initialise);
 var extend__extend = function (create, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
         
         var Ractive;
@@ -8366,7 +8666,7 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
         Ractive.VERSION = '0.3.8-pre';
         circular.Ractive = Ractive;
         return Ractive;
-    }(utils_create, utils_defineProperties, prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
+    }(utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular) {
         
         if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {

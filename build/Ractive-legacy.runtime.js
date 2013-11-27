@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-25
+	Ractive - v0.3.8-pre - 2013-11-26
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -497,9 +497,9 @@ var shared_getValueFromCheckboxes = function () {
             return value;
         };
     }();
-var shared_processDeferredUpdates = function (getValueFromCheckboxes) {
+var shared_preDomUpdate = function (getValueFromCheckboxes) {
         
-        return function (ractive, initialRender) {
+        return function (ractive) {
             var evaluator, attribute, keypath;
             while (ractive._defEvals.length) {
                 evaluator = ractive._defEvals.pop();
@@ -519,29 +519,35 @@ var shared_processDeferredUpdates = function (getValueFromCheckboxes) {
             while (ractive._defRadios.length) {
                 ractive._defRadios.pop().update();
             }
+        };
+    }(shared_getValueFromCheckboxes);
+var shared_postDomUpdate = function () {
+        
+        return function (ractive) {
+            while (ractive._defLiveQueries.length) {
+                ractive._defLiveQueries.pop()._sort();
+            }
+            while (ractive._defTransitions.length) {
+                ractive._defTransitions.pop().init();
+            }
             while (ractive._defObservers.length) {
                 ractive._defObservers.pop().update();
             }
-            if (!initialRender) {
-                while (ractive._defTransitions.length) {
-                    ractive._defTransitions.pop().init();
-                }
-            }
         };
-    }(shared_getValueFromCheckboxes);
+    }();
 var shared_makeTransitionManager = function () {
         
         var makeTransitionManager = function (root, callback) {
-            var transitionManager, nodesToDetach, detachNodes, nodeHasNoTransitioningChildren;
-            nodesToDetach = [];
+            var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
+            elementsToDetach = [];
             detachNodes = function () {
-                var i, node;
-                i = nodesToDetach.length;
+                var i, element;
+                i = elementsToDetach.length;
                 while (i--) {
-                    node = nodesToDetach[i];
-                    if (nodeHasNoTransitioningChildren(node)) {
-                        node.parentNode.removeChild(node);
-                        nodesToDetach.splice(i, 1);
+                    element = elementsToDetach[i];
+                    if (nodeHasNoTransitioningChildren(element.node)) {
+                        element.detach();
+                        elementsToDetach.splice(i, 1);
                     }
                 }
             };
@@ -585,8 +591,8 @@ var shared_makeTransitionManager = function () {
                         transitionManager.complete();
                     }
                 },
-                detachWhenReady: function (node) {
-                    nodesToDetach[nodesToDetach.length] = node;
+                detachWhenReady: function (element) {
+                    elementsToDetach[elementsToDetach.length] = element;
                 }
             };
             return transitionManager;
@@ -725,7 +731,7 @@ var shared_notifyDependants = function () {
             return starMaps[num];
         }
     }();
-var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, processDeferredUpdates, makeTransitionManager, notifyDependants) {
+var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, preDomUpdate, postDomUpdate, makeTransitionManager, notifyDependants) {
         
         var arrayAdaptor, notifyArrayDependants, ArrayWrapper, patchArrayMethods, unpatchArrayMethods, patchedArrayProto, testObj, mutatorMethods, noop, errorMessage;
         arrayAdaptor = {
@@ -810,7 +816,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     deps = depsByKeypath[keypath];
                     if (deps) {
                         queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue);
-                        processDeferredUpdates(root);
+                        preDomUpdate(root);
                         while (smartUpdateQueue.length) {
                             smartUpdateQueue.pop().smartUpdate(methodName, args);
                         }
@@ -831,7 +837,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                         notifyDependants(root, childKeypath);
                     }
                 }
-                processDeferredUpdates(root);
+                preDomUpdate(root);
                 upstreamQueue = [];
                 keys = keypath.split('.');
                 while (keys.length) {
@@ -895,6 +901,7 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
                     instance = instances[i];
                     instance._transitionManager = previousTransitionManagers[instance._guid];
                     transitionManagers[instance._guid].ready();
+                    postDomUpdate(instance);
                 }
                 return result;
             };
@@ -930,8 +937,8 @@ var get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, pro
         }
         errorMessage = 'Something went wrong in a rather interesting way';
         return arrayAdaptor;
-    }(config_types, utils_defineProperty, utils_isArray, shared_clearCache, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants);
-var get_magicAdaptor = function () {
+    }(config_types, utils_defineProperty, utils_isArray, shared_clearCache, shared_preDomUpdate, shared_postDomUpdate, shared_makeTransitionManager, shared_notifyDependants);
+var Ractive_prototype_get_magicAdaptor = function () {
         
         var magicAdaptor, MagicWrapper;
         try {
@@ -1017,7 +1024,7 @@ var get_magicAdaptor = function () {
         };
         return magicAdaptor;
     }();
-var get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
+var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
         
         var get, _get, retrieve, prefix, getPrefixer, prefixers = {}, adaptIfNecessary;
         get = function (keypath) {
@@ -1127,7 +1134,7 @@ var get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicA
             }
         };
         return get;
-    }(utils_normaliseKeypath, registries_adaptors, get_arrayAdaptor, get_magicAdaptor);
+    }(utils_normaliseKeypath, registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
 var utils_isObject = function () {
         
         var toString = Object.prototype.toString;
@@ -1219,7 +1226,14 @@ var shared_attemptKeypathResolution = function (resolveRef) {
             }
         };
     }(shared_resolveRef);
-var shared_replaceData = function () {
+var shared_processDeferredUpdates = function (preDomUpdate, postDomUpdate) {
+        
+        return function (ractive) {
+            preDomUpdate(ractive);
+            postDomUpdate(ractive);
+        };
+    }(shared_preDomUpdate, shared_postDomUpdate);
+var Ractive_prototype_shared_replaceData = function () {
         
         return function (ractive, keypath, value) {
             var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
@@ -1256,7 +1270,7 @@ var shared_replaceData = function () {
             return keypathToClear;
         };
     }();
-var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData) {
+var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData) {
         
         var set, updateModel, getUpstreamChanges, resetWrapped;
         set = function (keypath, value, complete) {
@@ -1365,8 +1379,8 @@ var prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, n
             }
         };
         return set;
-    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, shared_replaceData);
-var prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, processDeferredUpdates) {
+    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, Ractive_prototype_shared_replaceData);
+var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, processDeferredUpdates) {
         
         return function (keypath, complete) {
             var transitionManager, previousTransitionManager;
@@ -1409,7 +1423,7 @@ var utils_arrayContentsMatch = function (isArray) {
             return true;
         };
     }(utils_isArray);
-var prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch, isEqual) {
+var Ractive_prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch, isEqual) {
         
         return function (keypath, cascade) {
             var values, deferredCheckboxes, i;
@@ -1465,7 +1479,7 @@ var prototype_updateModel = function (getValueFromCheckboxes, arrayContentsMatch
             }
         }
     }(shared_getValueFromCheckboxes, utils_arrayContentsMatch, utils_isEqual);
-var animate_requestAnimationFrame = function () {
+var Ractive_prototype_animate_requestAnimationFrame = function () {
         
         if (typeof window === 'undefined') {
             return;
@@ -1499,7 +1513,7 @@ var animate_requestAnimationFrame = function () {
         ], 0, window));
         return window.requestAnimationFrame;
     }();
-var animate_animations = function (rAF) {
+var Ractive_prototype_animate_animations = function (rAF) {
         
         var queue = [];
         var animations = {
@@ -1535,7 +1549,7 @@ var animate_animations = function (rAF) {
                 }
             };
         return animations;
-    }(animate_requestAnimationFrame);
+    }(Ractive_prototype_animate_requestAnimationFrame);
 var utils_warn = function () {
         
         if (typeof console !== undefined && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
@@ -1632,7 +1646,7 @@ var shared_interpolate = function (isArray, isObject, isNumeric) {
             };
         }
     }(utils_isArray, utils_isObject, utils_isNumeric);
-var animate_Animation = function (warn, interpolate) {
+var Ractive_prototype_animate_Animation = function (warn, interpolate) {
         
         var Animation = function (options) {
             var key;
@@ -1714,7 +1728,7 @@ var registries_easing = function () {
             }
         };
     }();
-var animate__animate = function (isEqual, animations, Animation, easingRegistry) {
+var Ractive_prototype_animate__animate = function (isEqual, animations, Animation, easingRegistry) {
         
         var noAnimation = {
                 stop: function () {
@@ -1834,8 +1848,8 @@ var animate__animate = function (isEqual, animations, Animation, easingRegistry)
             root._animations[root._animations.length] = animation;
             return animation;
         }
-    }(utils_isEqual, animate_animations, animate_Animation, registries_easing);
-var prototype_on = function () {
+    }(utils_isEqual, Ractive_prototype_animate_animations, Ractive_prototype_animate_Animation, registries_easing);
+var Ractive_prototype_on = function () {
         
         return function (eventName, callback) {
             var self = this, listeners, n;
@@ -1866,7 +1880,7 @@ var prototype_on = function () {
             };
         };
     }();
-var prototype_off = function () {
+var Ractive_prototype_off = function () {
         
         return function (eventName, callback) {
             var subscribers, index;
@@ -1933,7 +1947,7 @@ var shared_unregisterDependant = function () {
             }
         };
     }();
-var observe_Observer = function (isEqual) {
+var Ractive_prototype_observe_Observer = function (isEqual) {
         
         var Observer = function (ractive, keypath, callback, options) {
             var self = this;
@@ -1957,7 +1971,7 @@ var observe_Observer = function (isEqual) {
         };
         Observer.prototype = {
             update: function () {
-                if (this.defer) {
+                if (this.defer && this.ready) {
                     this.root._defObservers.push(this.proxy);
                     return;
                 }
@@ -1985,7 +1999,7 @@ var observe_Observer = function (isEqual) {
         };
         return Observer;
     }(utils_isEqual);
-var observe_getPattern = function () {
+var Ractive_prototype_observe_getPattern = function () {
         
         return function (ractive, pattern) {
             var keys, key, values, toGet, newToGet, expand, concatenate;
@@ -2021,7 +2035,7 @@ var observe_getPattern = function () {
             return values;
         };
     }();
-var observe_PatternObserver = function (isEqual, getPattern) {
+var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
         
         var PatternObserver, wildcard = /\*/;
         PatternObserver = function (ractive, keypath, callback, options) {
@@ -2061,7 +2075,7 @@ var observe_PatternObserver = function (isEqual, getPattern) {
                     }
                     return;
                 }
-                if (this.defer) {
+                if (this.defer && this.ready) {
                     this.root._defObservers.push(this.getProxy(keypath));
                     return;
                 }
@@ -2099,8 +2113,8 @@ var observe_PatternObserver = function (isEqual, getPattern) {
             }
         };
         return PatternObserver;
-    }(utils_isEqual, observe_getPattern);
-var observe_getObserverFacade = function (normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver) {
+    }(utils_isEqual, Ractive_prototype_observe_getPattern);
+var Ractive_prototype_observe_getObserverFacade = function (normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver) {
         
         var wildcard = /\*/, emptyObject = {};
         return function getObserverFacade(ractive, keypath, callback, options) {
@@ -2129,8 +2143,8 @@ var observe_getObserverFacade = function (normaliseKeypath, registerDependant, u
                 }
             };
         };
-    }(utils_normaliseKeypath, shared_registerDependant, shared_unregisterDependant, observe_Observer, observe_PatternObserver);
-var observe__observe = function (isObject, getObserverFacade) {
+    }(utils_normaliseKeypath, shared_registerDependant, shared_unregisterDependant, Ractive_prototype_observe_Observer, Ractive_prototype_observe_PatternObserver);
+var Ractive_prototype_observe__observe = function (isObject, getObserverFacade) {
         
         return function observe(keypath, callback, options) {
             var observers = [], k;
@@ -2152,8 +2166,8 @@ var observe__observe = function (isObject, getObserverFacade) {
             }
             return getObserverFacade(this, keypath, callback, options);
         };
-    }(utils_isObject, observe_getObserverFacade);
-var prototype_fire = function () {
+    }(utils_isObject, Ractive_prototype_observe_getObserverFacade);
+var Ractive_prototype_fire = function () {
         
         return function (eventName) {
             var args, i, len, subscribers = this._subs[eventName];
@@ -2166,40 +2180,59 @@ var prototype_fire = function () {
             }
         };
     }();
-var prototype_find = function () {
+var Ractive_prototype_find = function () {
         
         return function (selector) {
             if (!this.el) {
                 return null;
             }
-            return this.el.querySelector(selector);
+            return this.fragment.find(selector);
         };
     }();
-var prototype_findAll = function (warn) {
+var Ractive_prototype_findAll = function (warn, defineProperty) {
         
-        var tagSelector = /^[a-zA-Z][a-zA-Z0-9\-]*$/, classSelector = /^\.[^\s]+$/g;
-        return function (selector, live) {
-            var errorMessage;
+        var sortQuery, comparePosition;
+        sortQuery = function () {
+            this.sort(comparePosition);
+            this._dirty = false;
+        };
+        comparePosition = function (node, otherNode) {
+            var bitmask = node.compareDocumentPosition(otherNode);
+            return bitmask & 2 ? 1 : -1;
+        };
+        return function (selector, options) {
+            var liveQueries, queryResult;
             if (!this.el) {
                 return [];
             }
-            if (live) {
-                if (tagSelector.test(selector)) {
-                    return this.el.getElementsByTagName(selector);
-                }
-                if (classSelector.test(selector)) {
-                    return this.el.getElementsByClassName(selector.substring(1));
-                }
-                errorMessage = 'Could not generate live nodelist from "' + selector + '" selector';
-                if (this.debug) {
-                    throw new Error(errorMessage);
-                } else {
-                    warn(errorMessage);
-                }
+            options = options || {};
+            liveQueries = this._liveQueries;
+            if (queryResult = liveQueries[selector]) {
+                return options && options.live ? queryResult : queryResult.slice();
             }
-            return this.el.querySelectorAll(selector);
+            queryResult = [];
+            if (options.live) {
+                liveQueries.push(selector);
+                liveQueries[selector] = queryResult;
+                defineProperty(queryResult, 'cancel', {
+                    value: function () {
+                        var index = liveQueries.indexOf(selector);
+                        if (index !== -1) {
+                            liveQueries.splice(index, 1);
+                            liveQueries[selector] = null;
+                        }
+                    }
+                });
+                defineProperty(queryResult, '_sort', { value: sortQuery });
+                defineProperty(queryResult, '_dirty', {
+                    value: false,
+                    writable: true
+                });
+            }
+            this.fragment.findAll(selector, options, queryResult);
+            return queryResult;
         };
-    }(utils_warn);
+    }(utils_warn, utils_defineProperty);
 var utils_getElement = function () {
         
         return function (input) {
@@ -2225,7 +2258,55 @@ var utils_getElement = function () {
             return null;
         };
     }();
-var shared_initFragment = function (types, create) {
+var utils_matches = function (isClient) {
+        
+        var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
+        if (!isClient) {
+            return;
+        }
+        div = document.createElement('div');
+        methodNames = [
+            'matches',
+            'matchesSelector'
+        ];
+        vendors = [
+            'o',
+            'ms',
+            'moz',
+            'webkit'
+        ];
+        makeFunction = function (methodName) {
+            return function (node, selector) {
+                return node[methodName](selector);
+            };
+        };
+        i = methodNames.length;
+        while (i--) {
+            unprefixed = methodNames[i];
+            if (div[unprefixed]) {
+                return makeFunction(unprefixed);
+            }
+            j = vendors.length;
+            while (j--) {
+                prefixed = vendors[i] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
+                if (div[prefixed]) {
+                    return makeFunction(prefixed);
+                }
+            }
+        }
+        return function (node, selector) {
+            var nodes, i;
+            nodes = (node.parentNode || node.document).querySelectorAll(selector);
+            i = nodes.length;
+            while (i--) {
+                if (nodes[i] === node) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }(config_isClient);
+var render_shared_initFragment = function (types, create) {
         
         return function (fragment, options) {
             var numItems, i, parentFragment, parentRefs, ref;
@@ -2264,7 +2345,7 @@ var shared_initFragment = function (types, create) {
             }
         };
     }(config_types, utils_create);
-var shared_insertHtml = function () {
+var render_DomFragment_shared_insertHtml = function () {
         
         var elementCache = {};
         return function (html, tagName, docFrag) {
@@ -2278,7 +2359,7 @@ var shared_insertHtml = function () {
             return nodes;
         };
     }();
-var DomFragment_Text = function (types) {
+var render_DomFragment_Text = function (types) {
         
         var DomText, lessThan, greaterThan;
         lessThan = /</g;
@@ -2324,7 +2405,7 @@ var shared_teardown = function (unregisterDependant) {
             }
         };
     }(shared_unregisterDependant);
-var Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
+var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
         
         var Reference, thisPattern;
         thisPattern = /this/;
@@ -2397,7 +2478,7 @@ var Evaluator_Reference = function (types, isEqual, defineProperty, registerDepe
             return fn['_' + ractive._guid];
         }
     }(config_types, utils_isEqual, utils_defineProperty, shared_registerDependant, shared_unregisterDependant);
-var Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDependant) {
+var render_shared_Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDependant) {
         
         var SoftReference = function (root, keypath, evaluator) {
             this.root = root;
@@ -2420,7 +2501,7 @@ var Evaluator_SoftReference = function (isEqual, registerDependant, unregisterDe
         };
         return SoftReference;
     }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
+var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
         
         var Evaluator, cache = {};
         Evaluator = function (root, keypath, functionStr, args, priority) {
@@ -2540,8 +2621,8 @@ var Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notify
             cache[str] = fn;
             return fn;
         }
-    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, Evaluator_Reference, Evaluator_SoftReference);
-var shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
+    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
+var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
         
         var ExpressionResolver, ReferenceScout, getKeypath;
         ExpressionResolver = function (mustache) {
@@ -2633,8 +2714,8 @@ var shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
             return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
         };
         return ExpressionResolver;
-    }(shared_resolveRef, shared_teardown, Evaluator__Evaluator);
-var shared_initMustache = function (resolveRef, ExpressionResolver) {
+    }(shared_resolveRef, shared_teardown, render_shared_Evaluator__Evaluator);
+var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
             var keypath, indexRef, parentFragment;
@@ -2671,8 +2752,8 @@ var shared_initMustache = function (resolveRef, ExpressionResolver) {
                 mustache.expressionResolver = new ExpressionResolver(mustache);
             }
         };
-    }(shared_resolveRef, shared_ExpressionResolver);
-var shared_resolveMustache = function (registerDependant, unregisterDependant) {
+    }(shared_resolveRef, render_shared_ExpressionResolver);
+var render_shared_resolveMustache = function (registerDependant, unregisterDependant) {
         
         return function (keypath) {
             if (this.resolved) {
@@ -2687,7 +2768,7 @@ var shared_resolveMustache = function (registerDependant, unregisterDependant) {
             this.resolved = true;
         };
     }(shared_registerDependant, shared_unregisterDependant);
-var shared_updateMustache = function (isEqual) {
+var render_shared_updateMustache = function (isEqual) {
         
         return function () {
             var value = this.root.get(this.keypath, true);
@@ -2697,7 +2778,7 @@ var shared_updateMustache = function (isEqual) {
             }
         };
     }(utils_isEqual);
-var DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache) {
+var render_DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache) {
         
         var DomInterpolator, lessThan, greaterThan;
         lessThan = /</g;
@@ -2737,8 +2818,8 @@ var DomFragment_Interpolator = function (types, teardown, initMustache, resolveM
             }
         };
         return DomInterpolator;
-    }(config_types, shared_teardown, shared_initMustache, shared_resolveMustache, shared_updateMustache);
-var shared_updateSection = function (isArray, isObject, create) {
+    }(config_types, shared_teardown, render_shared_initMustache, render_shared_resolveMustache, render_shared_updateMustache);
+var render_shared_updateSection = function (isArray, isObject, create) {
         
         return function (section, value) {
             var fragmentOptions;
@@ -2841,7 +2922,7 @@ var shared_updateSection = function (isArray, isObject, create) {
             }
         }
     }(utils_isArray, utils_isObject, utils_create);
-var Section_reassignFragment = function (types, unregisterDependant, ExpressionResolver) {
+var render_DomFragment_Section_reassignFragment = function (types, unregisterDependant, ExpressionResolver) {
         
         return reassignFragment;
         function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
@@ -2946,8 +3027,8 @@ var Section_reassignFragment = function (types, unregisterDependant, ExpressionR
                 }
             }
         }
-    }(config_types, shared_unregisterDependant, shared_ExpressionResolver);
-var Section_reassignFragments = function (types, reassignFragment, processDeferredUpdates) {
+    }(config_types, shared_unregisterDependant, render_shared_ExpressionResolver);
+var render_DomFragment_Section_reassignFragments = function (types, reassignFragment, preDomUpdate) {
         
         return function (root, section, start, end, by) {
             var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
@@ -2964,10 +3045,10 @@ var Section_reassignFragments = function (types, reassignFragment, processDeferr
                 fragment.index += by;
                 reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
             }
-            processDeferredUpdates(root);
+            preDomUpdate(root);
         };
-    }(config_types, Section_reassignFragment, shared_processDeferredUpdates);
-var prototype_merge = function (reassignFragment) {
+    }(config_types, render_DomFragment_Section_reassignFragment, shared_preDomUpdate);
+var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
         
         return function (newIndices) {
             var section = this, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
@@ -3027,12 +3108,12 @@ var prototype_merge = function (reassignFragment) {
             this.pNode.insertBefore(this.docFrag, nextNode);
             this.length = newLength;
         };
-    }(Section_reassignFragment);
+    }(render_DomFragment_Section_reassignFragment);
 var circular = function () {
         
         return [];
     }();
-var Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, reassignFragment, reassignFragments, merge, teardown, circular) {
+var render_DomFragment_Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, reassignFragment, reassignFragments, merge, teardown, circular) {
         
         var DomSection, DomFragment;
         circular.push(function () {
@@ -3219,11 +3300,28 @@ var Section__Section = function (types, isClient, initMustache, updateMustache, 
                     str += this.fragments[i].toString();
                 }
                 return str;
+            },
+            find: function (selector) {
+                var i, len, queryResult;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    if (queryResult = this.fragments[i].find(selector)) {
+                        return queryResult;
+                    }
+                }
+                return null;
+            },
+            findAll: function (selector, options, queryResult) {
+                var i, len;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    this.fragments[i].findAll(selector, options, queryResult);
+                }
             }
         };
         return DomSection;
-    }(config_types, config_isClient, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, Section_reassignFragment, Section_reassignFragments, prototype_merge, shared_teardown, circular);
-var DomFragment_Triple = function (types, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
+    }(config_types, config_isClient, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_shared_updateSection, render_DomFragment_Section_reassignFragment, render_DomFragment_Section_reassignFragments, render_DomFragment_Section_prototype_merge, shared_teardown, circular);
+var render_DomFragment_Triple = function (types, matches, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
         
         var DomTriple = function (options, docFrag) {
             this.type = types.TRIPLE;
@@ -3280,10 +3378,46 @@ var DomFragment_Triple = function (types, initMustache, updateMustache, resolveM
             },
             toString: function () {
                 return this.value !== undefined ? this.value : '';
+            },
+            find: function (selector) {
+                var i, len, node, queryResult;
+                len = this.nodes.length;
+                for (i = 0; i < len; i += 1) {
+                    node = this.nodes[i];
+                    if (node.nodeType !== 1) {
+                        continue;
+                    }
+                    if (matches(node, selector)) {
+                        return node;
+                    }
+                    if (queryResult = node.querySelector(selector)) {
+                        return queryResult;
+                    }
+                }
+                return null;
+            },
+            findAll: function (selector, options, queryResult) {
+                var i, len, node, queryAllResult, numNodes, j;
+                len = this.nodes.length;
+                for (i = 0; i < len; i += 1) {
+                    node = this.nodes[i];
+                    if (node.nodeType !== 1) {
+                        continue;
+                    }
+                    if (matches(node, selector)) {
+                        queryResult.push(node);
+                    }
+                    if (queryAllResult = node.querySelectorAll(selector)) {
+                        numNodes = queryAllResult.length;
+                        for (j = 0; j < numNodes; j += 1) {
+                            queryResult.push(queryAllResult[j]);
+                        }
+                    }
+                }
             }
         };
         return DomTriple;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_insertHtml, shared_teardown);
+    }(config_types, utils_matches, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_DomFragment_shared_insertHtml, shared_teardown);
 var config_namespaces = {
         html: 'http://www.w3.org/1999/xhtml',
         mathml: 'http://www.w3.org/1998/Math/MathML',
@@ -3292,11 +3426,7 @@ var config_namespaces = {
         xml: 'http://www.w3.org/XML/1998/namespace',
         xmlns: 'http://www.w3.org/2000/xmlns/'
     };
-var config_voidElementNames = function () {
-        
-        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
-    }();
-var Element_getElementNamespace = function (namespaces) {
+var render_DomFragment_Element_initialise_getElementNamespace = function (namespaces) {
         
         return function (descriptor, parentNode) {
             if (descriptor.a && descriptor.a.xmlns) {
@@ -3305,7 +3435,7 @@ var Element_getElementNamespace = function (namespaces) {
             return descriptor.e === 'svg' ? namespaces.svg : parentNode.namespaceURI || namespaces.html;
         };
     }(config_namespaces);
-var shared_enforceCase = function () {
+var render_DomFragment_shared_enforceCase = function () {
         
         var svgCamelCaseElements, svgCamelCaseAttributes, createMap, map;
         svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split(' ');
@@ -3323,7 +3453,7 @@ var shared_enforceCase = function () {
             return map[lowerCaseElementName] || lowerCaseElementName;
         };
     }();
-var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
+var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
@@ -3643,7 +3773,7 @@ var Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumer
         };
         return bindAttribute;
     }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
-var Attribute_updateAttribute = function (isArray, namespaces) {
+var render_DomFragment_Attribute_updateAttribute = function (isArray, namespaces) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
         updateAttribute = function () {
@@ -3819,7 +3949,7 @@ var Attribute_updateAttribute = function (isArray, namespaces) {
         };
         return updateAttribute;
     }(utils_isArray, config_namespaces);
-var utils_getStringMatch = function () {
+var parse_Tokenizer_utils_getStringMatch = function () {
         
         return function (string) {
             var substr;
@@ -3831,7 +3961,7 @@ var utils_getStringMatch = function () {
             return null;
         };
     }();
-var utils_allowWhitespace = function () {
+var parse_Tokenizer_utils_allowWhitespace = function () {
         
         var leadingWhitespace = /^\s+/;
         return function () {
@@ -3843,7 +3973,7 @@ var utils_allowWhitespace = function () {
             return match[0];
         };
     }();
-var utils_makeRegexMatcher = function () {
+var parse_Tokenizer_utils_makeRegexMatcher = function () {
         
         return function (regex) {
             return function (tokenizer) {
@@ -3856,7 +3986,7 @@ var utils_makeRegexMatcher = function () {
             };
         };
     }();
-var getStringLiteral_getEscapedChars = function () {
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getEscapedChars = function () {
         
         return function (tokenizer) {
             var chars = '', character;
@@ -3877,7 +4007,7 @@ var getStringLiteral_getEscapedChars = function () {
             return character;
         }
     }();
-var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
         
         var getUnescapedDoubleQuotedChars = makeRegexMatcher(/^[^\\"]+/), getUnescapedSingleQuotedChars = makeRegexMatcher(/^[^\\']+/);
         return function getQuotedString(tokenizer, singleQuotes) {
@@ -3902,8 +4032,8 @@ var getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedCha
             }
             return string;
         };
-    }(utils_makeRegexMatcher, getStringLiteral_getEscapedChars);
-var getStringLiteral__getStringLiteral = function (types, getQuotedString) {
+    }(parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getEscapedChars);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral = function (types, getQuotedString) {
         
         return function (tokenizer) {
             var start, string;
@@ -3932,8 +4062,8 @@ var getStringLiteral__getStringLiteral = function (types, getQuotedString) {
             }
             return null;
         };
-    }(config_types, getStringLiteral_getQuotedString);
-var getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
+    }(config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getQuotedString);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
         
         var getNumber = makeRegexMatcher(/^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/);
         return function (tokenizer) {
@@ -3946,12 +4076,12 @@ var getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
             }
             return null;
         };
-    }(config_types, utils_makeRegexMatcher);
-var shared_getName = function (makeRegexMatcher) {
+    }(config_types, parse_Tokenizer_utils_makeRegexMatcher);
+var parse_Tokenizer_getExpression_shared_getName = function (makeRegexMatcher) {
         
         return makeRegexMatcher(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
-    }(utils_makeRegexMatcher);
-var shared_getKey = function (getStringLiteral, getNumberLiteral, getName) {
+    }(parse_Tokenizer_utils_makeRegexMatcher);
+var parse_Tokenizer_getExpression_shared_getKey = function (getStringLiteral, getNumberLiteral, getName) {
         
         var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
         return function (tokenizer) {
@@ -3966,7 +4096,7 @@ var shared_getKey = function (getStringLiteral, getNumberLiteral, getName) {
                 return token;
             }
         };
-    }(getStringLiteral__getStringLiteral, getLiteral_getNumberLiteral, shared_getName);
+    }(parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_shared_getName);
 var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLiteral, getKey) {
         
         var Tokenizer, specials, specialsPattern, numberPattern;
@@ -4070,8 +4200,8 @@ var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLitera
             var tokenizer = new Tokenizer(str);
             return tokenizer.result;
         };
-    }(utils_getStringMatch, utils_allowWhitespace, getStringLiteral__getStringLiteral, shared_getKey);
-var StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
+    }(parse_Tokenizer_utils_getStringMatch, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_shared_getKey);
+var render_StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
         
         var StringInterpolator = function (options) {
             this.type = types.INTERPOLATOR;
@@ -4098,8 +4228,8 @@ var StringFragment_Interpolator = function (types, teardown, initMustache, updat
             }
         };
         return StringInterpolator;
-    }(config_types, shared_teardown, shared_initMustache, shared_updateMustache, shared_resolveMustache);
-var StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
+    }(config_types, shared_teardown, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache);
+var render_StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
         
         var StringSection, StringFragment;
         circular.push(function () {
@@ -4144,8 +4274,8 @@ var StringFragment_Section = function (types, initMustache, updateMustache, reso
             }
         };
         return StringSection;
-    }(config_types, shared_initMustache, shared_updateMustache, shared_resolveMustache, shared_updateSection, shared_teardown, circular);
-var StringFragment_Text = function (types) {
+    }(config_types, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_shared_updateSection, shared_teardown, circular);
+var render_StringFragment_Text = function (types) {
         
         var StringText = function (text) {
             this.type = types.TEXT;
@@ -4160,7 +4290,7 @@ var StringFragment_Text = function (types) {
         };
         return StringText;
     }(config_types);
-var StringFragment__StringFragment = function (types, parseJSON, initFragment, Interpolator, Section, Text, circular) {
+var render_StringFragment__StringFragment = function (types, parseJSON, initFragment, Interpolator, Section, Text, circular) {
         
         var StringFragment = function (options) {
             initFragment(this, options);
@@ -4238,8 +4368,8 @@ var StringFragment__StringFragment = function (types, parseJSON, initFragment, I
         };
         circular.StringFragment = StringFragment;
         return StringFragment;
-    }(config_types, utils_parseJSON, shared_initFragment, StringFragment_Interpolator, StringFragment_Section, StringFragment_Text, circular);
-var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, updateAttribute, StringFragment) {
+    }(config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, circular);
+var render_DomFragment_Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, updateAttribute, StringFragment) {
         
         var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
         propertyNames = {
@@ -4388,8 +4518,8 @@ var Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, upd
             }
         };
         return DomAttribute;
-    }(config_namespaces, shared_enforceCase, Attribute_bindAttribute, Attribute_updateAttribute, StringFragment__StringFragment);
-var Element_createElementAttributes = function (DomAttribute) {
+    }(config_namespaces, render_DomFragment_shared_enforceCase, render_DomFragment_Attribute_bindAttribute, render_DomFragment_Attribute_updateAttribute, render_StringFragment__StringFragment);
+var render_DomFragment_Element_initialise_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
             var attrName, attrValue, attr;
@@ -4413,18 +4543,31 @@ var Element_createElementAttributes = function (DomAttribute) {
             }
             return element.attributes;
         };
-    }(Attribute__Attribute);
-var Element_appendElementChildren = function (namespaces, StringFragment, circular) {
+    }(render_DomFragment_Attribute__Attribute);
+var render_DomFragment_Element_initialise_appendElementChildren = function (namespaces, StringFragment, circular) {
         
         var DomFragment;
         circular.push(function () {
             DomFragment = circular.DomFragment;
         });
         return function (element, node, descriptor, docFrag) {
+            var liveQueries, i, selector, queryAllResult, j;
             if (typeof descriptor.f === 'string' && (!node || (!node.namespaceURI || node.namespaceURI === namespaces.html))) {
                 element.html = descriptor.f;
                 if (docFrag) {
                     node.innerHTML = element.html;
+                    liveQueries = element.root._liveQueries;
+                    i = liveQueries.length;
+                    while (i--) {
+                        selector = liveQueries[i];
+                        if (queryAllResult = node.querySelectorAll(selector) && (j = queryAllResult.length)) {
+                            (element.liveQueries || (element.liveQueries = [])).push(selector);
+                            element.liveQueries[selector] = [];
+                            while (j--) {
+                                element.liveQueries[selector][j] = queryAllResult[j];
+                            }
+                        }
+                    }
                 }
             } else {
                 if (descriptor.e === 'style' && node.styleSheet !== undefined) {
@@ -4453,8 +4596,8 @@ var Element_appendElementChildren = function (namespaces, StringFragment, circul
                 }
             }
         };
-    }(config_namespaces, StringFragment__StringFragment, circular);
-var Element_bindElement = function () {
+    }(config_namespaces, render_StringFragment__StringFragment, circular);
+var render_DomFragment_Element_initialise_bindElement = function () {
         
         return function (element, attributes) {
             if (element.node.getAttribute('contenteditable') && attributes.value && attributes.value.bind()) {
@@ -4482,6 +4625,214 @@ var Element_bindElement = function () {
             }
         };
     }();
+var render_DomFragment_Element_initialise_decorate = function (warn, StringFragment) {
+        
+        return function (descriptor, root, owner, contextStack) {
+            var name, args, frag, fn, errorMessage;
+            name = descriptor.n || descriptor;
+            fn = root.decorators[name];
+            if (fn) {
+                if (descriptor.a) {
+                    args = descriptor.a;
+                } else if (descriptor.d) {
+                    frag = new StringFragment({
+                        descriptor: descriptor.d,
+                        root: root,
+                        owner: owner,
+                        contextStack: contextStack
+                    });
+                    args = frag.toJSON();
+                    frag.teardown();
+                }
+                if (args) {
+                    args.unshift(owner.node);
+                    owner.decorator = fn.apply(root, args);
+                } else {
+                    owner.decorator = fn.call(root, owner.node);
+                }
+                if (!owner.decorator || !owner.decorator.teardown) {
+                    throw new Error('Decorator definition must return an object with a teardown method');
+                }
+            } else {
+                errorMessage = 'Missing decorator "' + descriptor.o + '"';
+                if (root.debug) {
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
+                }
+            }
+        };
+    }(utils_warn, render_StringFragment__StringFragment);
+var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (StringFragment) {
+        
+        var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
+        addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
+            var events, master;
+            events = element.node._ractive.events;
+            master = events[triggerEventName] || (events[triggerEventName] = new MasterEventHandler(element, triggerEventName, contextStack, indexRefs));
+            master.add(proxyDescriptor);
+        };
+        MasterEventHandler = function (element, eventName, contextStack) {
+            var definition;
+            this.element = element;
+            this.root = element.root;
+            this.node = element.node;
+            this.name = eventName;
+            this.contextStack = contextStack;
+            this.proxies = [];
+            if (definition = this.root.events[eventName]) {
+                this.custom = definition(this.node, getCustomHandler(eventName));
+            } else {
+                this.node.addEventListener(eventName, genericHandler, false);
+            }
+        };
+        MasterEventHandler.prototype = {
+            add: function (proxy) {
+                this.proxies[this.proxies.length] = new ProxyEvent(this.element, this.root, proxy, this.contextStack);
+            },
+            teardown: function () {
+                var i;
+                if (this.custom) {
+                    this.custom.teardown();
+                } else {
+                    this.node.removeEventListener(this.name, genericHandler, false);
+                }
+                i = this.proxies.length;
+                while (i--) {
+                    this.proxies[i].teardown();
+                }
+            },
+            fire: function (event) {
+                var i = this.proxies.length;
+                while (i--) {
+                    this.proxies[i].fire(event);
+                }
+            }
+        };
+        ProxyEvent = function (element, ractive, descriptor, contextStack) {
+            var name;
+            this.root = ractive;
+            name = descriptor.n || descriptor;
+            if (typeof name === 'string') {
+                this.n = name;
+            } else {
+                this.n = new StringFragment({
+                    descriptor: descriptor.n,
+                    root: this.root,
+                    owner: element,
+                    contextStack: contextStack
+                });
+            }
+            if (descriptor.a) {
+                this.a = descriptor.a;
+                this.fire = fireEventWithArgs;
+                return;
+            }
+            if (descriptor.d) {
+                this.d = new StringFragment({
+                    descriptor: descriptor.d,
+                    root: this.root,
+                    owner: element,
+                    contextStack: contextStack
+                });
+                this.fire = fireEventWithDynamicArgs;
+                return;
+            }
+            this.fire = firePlainEvent;
+        };
+        ProxyEvent.prototype = {
+            teardown: function () {
+                if (this.n.teardown) {
+                    this.n.teardown();
+                }
+                if (this.d) {
+                    this.d.teardown();
+                }
+            },
+            bubble: function () {
+            }
+        };
+        firePlainEvent = function (event) {
+            this.root.fire(this.n.toString(), event);
+        };
+        fireEventWithArgs = function (event) {
+            this.root.fire.apply(this.root, [
+                this.n.toString(),
+                event
+            ].concat(this.a));
+        };
+        fireEventWithDynamicArgs = function (event) {
+            var args = this.d.toJSON();
+            if (typeof args === 'string') {
+                args = args.substr(1, args.length - 2);
+            }
+            this.root.fire.apply(this.root, [
+                this.n.toString(),
+                event
+            ].concat(args));
+        };
+        genericHandler = function (event) {
+            var storage = this._ractive;
+            storage.events[event.type].fire({
+                node: this,
+                original: event,
+                index: storage.index,
+                keypath: storage.keypath,
+                context: storage.root.get(storage.keypath)
+            });
+        };
+        customHandlers = {};
+        getCustomHandler = function (eventName) {
+            if (customHandlers[eventName]) {
+                return customHandlers[eventName];
+            }
+            return customHandlers[eventName] = function (event) {
+                var storage = event.node._ractive;
+                event.index = storage.index;
+                event.keypath = storage.keypath;
+                event.context = storage.root.get(storage.keypath);
+                storage.events[eventName].fire(event);
+            };
+        };
+        return addEventProxy;
+    }(render_StringFragment__StringFragment);
+var render_DomFragment_Element_initialise_addEventProxies__addEventProxies = function (addEventProxy) {
+        
+        return function (element, proxies) {
+            var i, eventName, eventNames;
+            for (eventName in proxies) {
+                if (proxies.hasOwnProperty(eventName)) {
+                    eventNames = eventName.split('-');
+                    i = eventNames.length;
+                    while (i--) {
+                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
+                    }
+                }
+            }
+        };
+    }(render_DomFragment_Element_initialise_addEventProxies_addEventProxy);
+var render_DomFragment_Element_initialise_updateLiveQueries = function (matches) {
+        
+        return function (element) {
+            var ractive, liveQueries, i, selector, query;
+            ractive = element.root;
+            liveQueries = ractive._liveQueries;
+            i = liveQueries.length;
+            while (i--) {
+                selector = liveQueries[i];
+                query = liveQueries[selector];
+                if (matches(element.node, selector)) {
+                    query.push(element.node);
+                    (element.liveQueries || (element.liveQueries = [])).push(selector);
+                    element.liveQueries[selector] = [element.node];
+                    if (!query._dirty) {
+                        ractive._defLiveQueries.push(query);
+                        query._dirty = true;
+                    }
+                }
+            }
+        };
+    }(utils_matches);
 var utils_camelCase = function () {
         
         return function (hyphenatedStr) {
@@ -4490,7 +4841,7 @@ var utils_camelCase = function () {
             });
         };
     }();
-var Element_Transition = function (isClient, warn, isNumeric, isArray, camelCase, StringFragment) {
+var render_DomFragment_Element_shared_executeTransition_Transition = function (isClient, warn, isNumeric, isArray, camelCase, StringFragment) {
         
         var Transition, testStyle, vendors, vendorPattern, unprefixPattern, prefixCache, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
         if (!isClient) {
@@ -4706,8 +5057,8 @@ var Element_Transition = function (isClient, warn, isNumeric, isArray, camelCase
             return hyphenated;
         }
         return Transition;
-    }(config_isClient, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, StringFragment__StringFragment);
-var Element_executeTransition = function (warn, Transition) {
+    }(config_isClient, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, render_StringFragment__StringFragment);
+var render_DomFragment_Element_shared_executeTransition__executeTransition = function (warn, Transition) {
         
         return function (descriptor, root, owner, contextStack, isIntro) {
             var transition, node, oldTransition;
@@ -4730,211 +5081,25 @@ var Element_executeTransition = function (warn, Transition) {
                 }
             }
         };
-    }(utils_warn, Element_Transition);
-var Element_decorate = function (warn, StringFragment) {
+    }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition);
+var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
-        return function (descriptor, root, owner, contextStack) {
-            var name, args, frag, fn, errorMessage;
-            name = descriptor.n || descriptor;
-            fn = root.decorators[name];
-            if (fn) {
-                if (descriptor.a) {
-                    args = descriptor.a;
-                } else if (descriptor.d) {
-                    frag = new StringFragment({
-                        descriptor: descriptor.d,
-                        root: root,
-                        owner: owner,
-                        contextStack: contextStack
-                    });
-                    args = frag.toJSON();
-                    frag.teardown();
-                }
-                if (args) {
-                    args.unshift(owner.node);
-                    owner.decorator = fn.apply(root, args);
-                } else {
-                    owner.decorator = fn.call(root, owner.node);
-                }
-                if (!owner.decorator || !owner.decorator.teardown) {
-                    throw new Error('Decorator definition must return an object with a teardown method');
-                }
-            } else {
-                errorMessage = 'Missing decorator "' + descriptor.o + '"';
-                if (root.debug) {
-                    throw new Error(errorMessage);
-                } else {
-                    warn(errorMessage);
-                }
-            }
-        };
-    }(utils_warn, StringFragment__StringFragment);
-var Element_addEventProxy = function (StringFragment) {
-        
-        var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
-        addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
-            var events, master;
-            events = element.node._ractive.events;
-            master = events[triggerEventName] || (events[triggerEventName] = new MasterEventHandler(element, triggerEventName, contextStack, indexRefs));
-            master.add(proxyDescriptor);
-        };
-        MasterEventHandler = function (element, eventName, contextStack) {
-            var definition;
-            this.element = element;
-            this.root = element.root;
-            this.node = element.node;
-            this.name = eventName;
-            this.contextStack = contextStack;
-            this.proxies = [];
-            if (definition = this.root.events[eventName]) {
-                this.custom = definition(this.node, getCustomHandler(eventName));
-            } else {
-                this.node.addEventListener(eventName, genericHandler, false);
-            }
-        };
-        MasterEventHandler.prototype = {
-            add: function (proxy) {
-                this.proxies[this.proxies.length] = new ProxyEvent(this.element, this.root, proxy, this.contextStack);
-            },
-            teardown: function () {
-                var i;
-                if (this.custom) {
-                    this.custom.teardown();
-                } else {
-                    this.node.removeEventListener(this.name, genericHandler, false);
-                }
-                i = this.proxies.length;
-                while (i--) {
-                    this.proxies[i].teardown();
-                }
-            },
-            fire: function (event) {
-                var i = this.proxies.length;
-                while (i--) {
-                    this.proxies[i].fire(event);
-                }
-            }
-        };
-        ProxyEvent = function (element, ractive, descriptor, contextStack) {
-            var name;
-            this.root = ractive;
-            name = descriptor.n || descriptor;
-            if (typeof name === 'string') {
-                this.n = name;
-            } else {
-                this.n = new StringFragment({
-                    descriptor: descriptor.n,
-                    root: this.root,
-                    owner: element,
-                    contextStack: contextStack
-                });
-            }
-            if (descriptor.a) {
-                this.a = descriptor.a;
-                this.fire = fireEventWithArgs;
-                return;
-            }
-            if (descriptor.d) {
-                this.d = new StringFragment({
-                    descriptor: descriptor.d,
-                    root: this.root,
-                    owner: element,
-                    contextStack: contextStack
-                });
-                this.fire = fireEventWithDynamicArgs;
-                return;
-            }
-            this.fire = firePlainEvent;
-        };
-        ProxyEvent.prototype = {
-            teardown: function () {
-                if (this.n.teardown) {
-                    this.n.teardown();
-                }
-                if (this.d) {
-                    this.d.teardown();
-                }
-            },
-            bubble: function () {
-            }
-        };
-        firePlainEvent = function (event) {
-            this.root.fire(this.n.toString(), event);
-        };
-        fireEventWithArgs = function (event) {
-            this.root.fire.apply(this.root, [
-                this.n.toString(),
-                event
-            ].concat(this.a));
-        };
-        fireEventWithDynamicArgs = function (event) {
-            var args = this.d.toJSON();
-            if (typeof args === 'string') {
-                args = args.substr(1, args.length - 2);
-            }
-            this.root.fire.apply(this.root, [
-                this.n.toString(),
-                event
-            ].concat(args));
-        };
-        genericHandler = function (event) {
-            var storage = this._ractive;
-            storage.events[event.type].fire({
-                node: this,
-                original: event,
-                index: storage.index,
-                keypath: storage.keypath,
-                context: storage.root.get(storage.keypath)
-            });
-        };
-        customHandlers = {};
-        getCustomHandler = function (eventName) {
-            if (customHandlers[eventName]) {
-                return customHandlers[eventName];
-            }
-            return customHandlers[eventName] = function (event) {
-                var storage = event.node._ractive;
-                event.index = storage.index;
-                event.keypath = storage.keypath;
-                event.context = storage.root.get(storage.keypath);
-                storage.events[eventName].fire(event);
-            };
-        };
-        return addEventProxy;
-    }(StringFragment__StringFragment);
-var Element_addEventProxies = function (addEventProxy) {
-        
-        return function (element, proxies) {
-            var i, eventName, eventNames;
-            for (eventName in proxies) {
-                if (proxies.hasOwnProperty(eventName)) {
-                    eventNames = eventName.split('-');
-                    i = eventNames.length;
-                    while (i--) {
-                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
-                    }
-                }
-            }
-        };
-    }(Element_addEventProxy);
-var Element__Element = function (types, namespaces, voidElementNames, create, defineProperty, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, executeTransition, decorate, addEventProxies, enforceCase) {
-        
-        var DomElement = function (options, docFrag) {
-            var self = this, parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
-            this.type = types.ELEMENT;
-            parentFragment = this.parentFragment = options.parentFragment;
+        return function (element, options, docFrag) {
+            var parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
+            element.type = types.ELEMENT;
+            parentFragment = element.parentFragment = options.parentFragment;
             contextStack = parentFragment.contextStack;
-            descriptor = this.descriptor = options.descriptor;
-            this.root = root = parentFragment.root;
-            this.pNode = parentFragment.pNode;
-            this.index = options.index;
-            this.eventListeners = [];
-            this.customEventListeners = [];
-            if (this.pNode) {
-                namespace = this.namespace = getElementNamespace(descriptor, this.pNode);
+            descriptor = element.descriptor = options.descriptor;
+            element.root = root = parentFragment.root;
+            element.pNode = parentFragment.pNode;
+            element.index = options.index;
+            element.eventListeners = [];
+            element.customEventListeners = [];
+            if (element.pNode) {
+                namespace = element.namespace = getElementNamespace(descriptor, element.pNode);
                 name = namespace !== namespaces.html ? enforceCase(descriptor.e) : descriptor.e;
-                this.node = document.createElementNS(namespace, name);
-                defineProperty(this.node, '_ractive', {
+                element.node = document.createElementNS(namespace, name);
+                defineProperty(element.node, '_ractive', {
                     value: {
                         keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
                         index: parentFragment.indexRefs,
@@ -4943,10 +5108,10 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                     }
                 });
             }
-            attributes = createElementAttributes(this, descriptor.a);
+            attributes = createElementAttributes(element, descriptor.a);
             if (descriptor.f) {
-                if (this.node && this.node.getAttribute('contenteditable')) {
-                    if (this.node.innerHTML) {
+                if (element.node && element.node.getAttribute('contenteditable')) {
+                    if (element.node.innerHTML) {
                         errorMessage = 'A pre-populated contenteditable element should not have children';
                         if (root.debug) {
                             throw new Error(errorMessage);
@@ -4955,84 +5120,169 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
                         }
                     }
                 }
-                appendElementChildren(this, this.node, descriptor, docFrag);
+                appendElementChildren(element, element.node, descriptor, docFrag);
             }
             if (docFrag && descriptor.v) {
-                addEventProxies(this, descriptor.v);
+                addEventProxies(element, descriptor.v);
             }
             if (docFrag) {
                 if (root.twoway) {
-                    bindElement(this, attributes);
-                    if (this.node.getAttribute('contenteditable') && this.node._ractive.binding) {
-                        this.node._ractive.binding.update();
+                    bindElement(element, attributes);
+                    if (element.node.getAttribute('contenteditable') && element.node._ractive.binding) {
+                        element.node._ractive.binding.update();
                     }
                 }
                 if (attributes.name && !attributes.name.twoway) {
                     attributes.name.update();
                 }
-                if (this.node.tagName === 'IMG' && ((width = self.attributes.width) || (height = self.attributes.height))) {
-                    this.node.addEventListener('load', loadHandler = function () {
+                if (element.node.tagName === 'IMG' && ((width = element.attributes.width) || (height = element.attributes.height))) {
+                    element.node.addEventListener('load', loadHandler = function () {
                         if (width) {
-                            self.node.width = width.value;
+                            element.node.width = width.value;
                         }
                         if (height) {
-                            self.node.height = height.value;
+                            element.node.height = height.value;
                         }
-                        self.node.removeEventListener('load', loadHandler, false);
+                        element.node.removeEventListener('load', loadHandler, false);
                     }, false);
                 }
-                docFrag.appendChild(this.node);
+                docFrag.appendChild(element.node);
                 if (descriptor.o) {
-                    decorate(descriptor.o, root, this, contextStack);
+                    decorate(descriptor.o, root, element, contextStack);
                 }
                 if (descriptor.t1) {
-                    executeTransition(descriptor.t1, root, this, contextStack, true);
+                    executeTransition(descriptor.t1, root, element, contextStack, true);
                 }
-                if (this.node.tagName === 'OPTION') {
-                    if (this.pNode.tagName === 'SELECT' && (selectBinding = this.pNode._ractive.binding)) {
+                if (element.node.tagName === 'OPTION') {
+                    if (element.pNode.tagName === 'SELECT' && (selectBinding = element.pNode._ractive.binding)) {
                         selectBinding.deferUpdate();
                     }
-                    if (this.node._ractive.value == this.pNode._ractive.value) {
-                        this.node.selected = true;
+                    if (element.node._ractive.value == element.pNode._ractive.value) {
+                        element.node.selected = true;
                     }
                 }
             }
+            updateLiveQueries(element);
+        };
+    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_bindElement, render_DomFragment_Element_initialise_decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
+var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
+        
+        return function (destroy) {
+            var eventName, binding, bindings, i, liveQueries, selector, query, index, nodesToRemove, j;
+            if (this.fragment) {
+                this.fragment.teardown(false);
+            }
+            while (this.attributes.length) {
+                this.attributes.pop().teardown();
+            }
+            if (this.node._ractive) {
+                for (eventName in this.node._ractive.events) {
+                    this.node._ractive.events[eventName].teardown();
+                }
+                if (binding = this.node._ractive.binding) {
+                    binding.teardown();
+                    bindings = this.root._twowayBindings[binding.attr.keypath];
+                    bindings.splice(bindings.indexOf(binding), 1);
+                }
+            }
+            if (this.decorator) {
+                this.decorator.teardown();
+            }
+            if (this.descriptor.t2) {
+                if (destroy) {
+                    this.root._transitionManager.detachWhenReady(this);
+                }
+                executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
+            } else if (destroy) {
+                this.detach();
+            }
+            if (liveQueries = this.liveQueries) {
+                i = liveQueries.length;
+                while (i--) {
+                    selector = liveQueries[i];
+                    if (nodesToRemove = this.liveQueries[selector]) {
+                        j = nodesToRemove.length;
+                        query = this.root._liveQueries[selector];
+                        while (j--) {
+                            index = query.indexOf(nodesToRemove[j]);
+                            if (index !== -1) {
+                                query.splice(index, 1);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    }(render_DomFragment_Element_shared_executeTransition__executeTransition);
+var config_voidElementNames = function () {
+        
+        return 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split(' ');
+    }();
+var render_DomFragment_Element_prototype_toString = function (voidElementNames) {
+        
+        return function () {
+            var str, i, len;
+            str = '<' + (this.descriptor.y ? '!doctype' : this.descriptor.e);
+            len = this.attributes.length;
+            for (i = 0; i < len; i += 1) {
+                str += ' ' + this.attributes[i].toString();
+            }
+            str += '>';
+            if (this.html) {
+                str += this.html;
+            } else if (this.fragment) {
+                str += this.fragment.toString();
+            }
+            if (voidElementNames.indexOf(this.descriptor.e) === -1) {
+                str += '</' + this.descriptor.e + '>';
+            }
+            return str;
+        };
+    }(config_voidElementNames);
+var render_DomFragment_Element_prototype_find = function (matches) {
+        
+        return function (selector) {
+            var queryResult;
+            if (matches(this.node, selector)) {
+                return this.node;
+            }
+            if (this.html && (queryResult = this.node.querySelector(selector))) {
+                return queryResult;
+            }
+            if (this.fragment) {
+                return this.fragment.find(selector);
+            }
+        };
+    }(utils_matches);
+var render_DomFragment_Element_prototype_findAll = function (matches) {
+        
+        return function (selector, options, list) {
+            var queryAllResult, i, numNodes;
+            if (matches(this.node, selector)) {
+                list.push(this.node);
+            }
+            if (this.html && (queryAllResult = this.node.querySelectorAll(selector))) {
+                numNodes = queryAllResult.length;
+                for (i = 0; i < numNodes; i += 1) {
+                    list.push(queryAllResult[i]);
+                }
+            }
+            if (this.fragment) {
+                this.fragment.findAll(selector, options, list);
+            }
+        };
+    }(utils_matches);
+var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll) {
+        
+        var DomElement = function (options, docFrag) {
+            initialise(this, options, docFrag);
         };
         DomElement.prototype = {
             detach: function () {
                 this.node.parentNode.removeChild(this.node);
                 return this.node;
             },
-            teardown: function (destroy) {
-                var eventName, binding, bindings;
-                if (this.fragment) {
-                    this.fragment.teardown(false);
-                }
-                while (this.attributes.length) {
-                    this.attributes.pop().teardown();
-                }
-                if (this.node._ractive) {
-                    for (eventName in this.node._ractive.events) {
-                        this.node._ractive.events[eventName].teardown();
-                    }
-                    if (binding = this.node._ractive.binding) {
-                        binding.teardown();
-                        bindings = this.root._twowayBindings[binding.attr.keypath];
-                        bindings.splice(bindings.indexOf(binding), 1);
-                    }
-                }
-                if (this.decorator) {
-                    this.decorator.teardown();
-                }
-                if (this.descriptor.t2) {
-                    if (destroy) {
-                        this.root._transitionManager.detachWhenReady(this.node);
-                    }
-                    executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
-                } else if (destroy) {
-                    this.node.parentNode.removeChild(this.node);
-                }
-            },
+            teardown: teardown,
             firstNode: function () {
                 return this.node;
             },
@@ -5041,2197 +5291,15 @@ var Element__Element = function (types, namespaces, voidElementNames, create, de
             },
             bubble: function () {
             },
-            toString: function () {
-                var str, i, len;
-                str = '<' + (this.descriptor.y ? '!doctype' : this.descriptor.e);
-                len = this.attributes.length;
-                for (i = 0; i < len; i += 1) {
-                    str += ' ' + this.attributes[i].toString();
-                }
-                str += '>';
-                if (this.html) {
-                    str += this.html;
-                } else if (this.fragment) {
-                    str += this.fragment.toString();
-                }
-                if (voidElementNames.indexOf(this.descriptor.e) === -1) {
-                    str += '</' + this.descriptor.e + '>';
-                }
-                return str;
-            }
+            toString: toString,
+            find: find,
+            findAll: findAll
         };
         return DomElement;
-    }(config_types, config_namespaces, config_voidElementNames, utils_create, utils_defineProperty, utils_warn, Element_getElementNamespace, Element_createElementAttributes, Element_appendElementChildren, Element_bindElement, Element_executeTransition, Element_decorate, Element_addEventProxies, shared_enforceCase);
+    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
-var utils_stripHtmlComments = function () {
-        
-        return function (html) {
-            var commentStart, commentEnd, processed;
-            processed = '';
-            while (html.length) {
-                commentStart = html.indexOf('<!--');
-                commentEnd = html.indexOf('-->');
-                if (commentStart === -1 && commentEnd === -1) {
-                    processed += html;
-                    break;
-                }
-                if (commentStart !== -1 && commentEnd === -1) {
-                    throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
-                }
-                if (commentEnd !== -1 && commentStart === -1 || commentEnd < commentStart) {
-                    throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
-                }
-                processed += html.substr(0, commentStart);
-                html = html.substring(commentEnd + 3);
-            }
-            return processed;
-        };
-    }();
-var utils_stripStandalones = function (types) {
-        
-        return function (tokens) {
-            var i, current, backOne, backTwo, leadingLinebreak, trailingLinebreak;
-            leadingLinebreak = /^\s*\r?\n/;
-            trailingLinebreak = /\r?\n\s*$/;
-            for (i = 2; i < tokens.length; i += 1) {
-                current = tokens[i];
-                backOne = tokens[i - 1];
-                backTwo = tokens[i - 2];
-                if (current.type === types.TEXT && backOne.type === types.MUSTACHE && backTwo.type === types.TEXT) {
-                    if (trailingLinebreak.test(backTwo.value) && leadingLinebreak.test(current.value)) {
-                        if (backOne.mustacheType !== types.INTERPOLATOR && backOne.mustacheType !== types.TRIPLE) {
-                            backTwo.value = backTwo.value.replace(trailingLinebreak, '\n');
-                        }
-                        current.value = current.value.replace(leadingLinebreak, '');
-                        if (current.value === '') {
-                            tokens.splice(i--, 1);
-                        }
-                    }
-                }
-            }
-            return tokens;
-        };
-    }(config_types);
-var utils_stripCommentTokens = function (types) {
-        
-        return function (tokens) {
-            var i, current, previous, next;
-            for (i = 0; i < tokens.length; i += 1) {
-                current = tokens[i];
-                previous = tokens[i - 1];
-                next = tokens[i + 1];
-                if (current.mustacheType === types.COMMENT || current.mustacheType === types.DELIMCHANGE) {
-                    tokens.splice(i, 1);
-                    if (previous && next) {
-                        if (previous.type === types.TEXT && next.type === types.TEXT) {
-                            previous.value += next.value;
-                            tokens.splice(i, 1);
-                        }
-                    }
-                    i -= 1;
-                }
-            }
-            return tokens;
-        };
-    }(config_types);
-var getMustache_getDelimiterChange = function (makeRegexMatcher) {
-        
-        var getDelimiter = makeRegexMatcher(/^[^\s=]+/);
-        return function (tokenizer) {
-            var start, opening, closing;
-            if (!tokenizer.getStringMatch('=')) {
-                return null;
-            }
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            opening = getDelimiter(tokenizer);
-            if (!opening) {
-                tokenizer.pos = start;
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            closing = getDelimiter(tokenizer);
-            if (!closing) {
-                tokenizer.pos = start;
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch('=')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return [
-                opening,
-                closing
-            ];
-        };
-    }(utils_makeRegexMatcher);
-var getMustache_getMustacheType = function (types) {
-        
-        var mustacheTypes = {
-                '#': types.SECTION,
-                '^': types.INVERTED,
-                '/': types.CLOSING,
-                '>': types.PARTIAL,
-                '!': types.COMMENT,
-                '&': types.INTERPOLATOR
-            };
-        return function (tokenizer) {
-            var type = mustacheTypes[tokenizer.str.charAt(tokenizer.pos)];
-            if (!type) {
-                return null;
-            }
-            tokenizer.pos += 1;
-            return type;
-        };
-    }(config_types);
-var getMustache_getMustacheContent = function (types, makeRegexMatcher, getMustacheType) {
-        
-        var getIndexRef = makeRegexMatcher(/^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/), arrayMember = /^[0-9][1-9]*$/;
-        return function (tokenizer, isTriple) {
-            var start, mustache, type, expr, i, remaining, index;
-            start = tokenizer.pos;
-            mustache = { type: isTriple ? types.TRIPLE : types.MUSTACHE };
-            if (!isTriple) {
-                if (expr = tokenizer.getExpression()) {
-                    mustache.mustacheType = types.INTERPOLATOR;
-                    tokenizer.allowWhitespace();
-                    if (tokenizer.getStringMatch(tokenizer.delimiters[1])) {
-                        tokenizer.pos -= tokenizer.delimiters[1].length;
-                    } else {
-                        tokenizer.pos = start;
-                        expr = null;
-                    }
-                }
-                if (!expr) {
-                    type = getMustacheType(tokenizer);
-                    mustache.mustacheType = type || types.INTERPOLATOR;
-                    if (type === types.COMMENT || type === types.CLOSING) {
-                        remaining = tokenizer.remaining();
-                        index = remaining.indexOf(tokenizer.delimiters[1]);
-                        if (index !== -1) {
-                            mustache.ref = remaining.substr(0, index);
-                            tokenizer.pos += index;
-                            return mustache;
-                        }
-                    }
-                }
-            }
-            if (!expr) {
-                tokenizer.allowWhitespace();
-                expr = tokenizer.getExpression();
-            }
-            while (expr.t === types.BRACKETED && expr.x) {
-                expr = expr.x;
-            }
-            if (expr.t === types.REFERENCE) {
-                mustache.ref = expr.n;
-            } else if (expr.t === types.NUMBER_LITERAL && arrayMember.test(expr.v)) {
-                mustache.ref = expr.v;
-            } else {
-                mustache.expression = expr;
-            }
-            i = getIndexRef(tokenizer);
-            if (i !== null) {
-                mustache.indexRef = i;
-            }
-            return mustache;
-        };
-    }(config_types, utils_makeRegexMatcher, getMustache_getMustacheType);
-var getMustache__getMustache = function (types, getDelimiterChange, getMustacheContent) {
-        
-        return function () {
-            var seekTripleFirst = this.tripleDelimiters[0].length > this.delimiters[0].length;
-            return getMustache(this, seekTripleFirst) || getMustache(this, !seekTripleFirst);
-        };
-        function getMustache(tokenizer, seekTriple) {
-            var start = tokenizer.pos, content, delimiters;
-            delimiters = seekTriple ? tokenizer.tripleDelimiters : tokenizer.delimiters;
-            if (!tokenizer.getStringMatch(delimiters[0])) {
-                return null;
-            }
-            content = getDelimiterChange(tokenizer);
-            if (content) {
-                if (!tokenizer.getStringMatch(delimiters[1])) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                tokenizer[seekTriple ? 'tripleDelimiters' : 'delimiters'] = content;
-                return {
-                    type: types.MUSTACHE,
-                    mustacheType: types.DELIMCHANGE
-                };
-            }
-            tokenizer.allowWhitespace();
-            content = getMustacheContent(tokenizer, seekTriple);
-            if (content === null) {
-                tokenizer.pos = start;
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch(delimiters[1])) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return content;
-        }
-    }(config_types, getMustache_getDelimiterChange, getMustache_getMustacheContent);
-var getComment_getComment = function (types) {
-        
-        return function () {
-            var content, remaining, endIndex;
-            if (!this.getStringMatch('<!--')) {
-                return null;
-            }
-            remaining = this.remaining();
-            endIndex = remaining.indexOf('-->');
-            if (endIndex === -1) {
-                throw new Error('Unexpected end of input (expected "-->" to close comment)');
-            }
-            content = remaining.substr(0, endIndex);
-            this.pos += endIndex + 3;
-            return {
-                type: types.COMMENT,
-                content: content
-            };
-        };
-    }(config_types);
-var utils_getLowestIndex = function () {
-        
-        return function (haystack, needles) {
-            var i, index, lowest;
-            i = needles.length;
-            while (i--) {
-                index = haystack.indexOf(needles[i]);
-                if (!index) {
-                    return 0;
-                }
-                if (index === -1) {
-                    continue;
-                }
-                if (!lowest || index < lowest) {
-                    lowest = index;
-                }
-            }
-            return lowest || -1;
-        };
-    }();
-var getTag__getTag = function (types, makeRegexMatcher, getLowestIndex) {
-        
-        var getTag, getOpeningTag, getClosingTag, getTagName, getAttributes, getAttribute, getAttributeName, getAttributeValue, getUnquotedAttributeValue, getUnquotedAttributeValueToken, getUnquotedAttributeValueText, getQuotedStringToken, getQuotedAttributeValue;
-        getTag = function () {
-            return getOpeningTag(this) || getClosingTag(this);
-        };
-        getOpeningTag = function (tokenizer) {
-            var start, tag, attrs;
-            start = tokenizer.pos;
-            if (!tokenizer.getStringMatch('<')) {
-                return null;
-            }
-            tag = { type: types.TAG };
-            if (tokenizer.getStringMatch('!')) {
-                tag.doctype = true;
-            }
-            tag.name = getTagName(tokenizer);
-            if (!tag.name) {
-                tokenizer.pos = start;
-                return null;
-            }
-            attrs = getAttributes(tokenizer);
-            if (attrs) {
-                tag.attrs = attrs;
-            }
-            tokenizer.allowWhitespace();
-            if (tokenizer.getStringMatch('/')) {
-                tag.selfClosing = true;
-            }
-            if (!tokenizer.getStringMatch('>')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return tag;
-        };
-        getClosingTag = function (tokenizer) {
-            var start, tag;
-            start = tokenizer.pos;
-            if (!tokenizer.getStringMatch('<')) {
-                return null;
-            }
-            tag = {
-                type: types.TAG,
-                closing: true
-            };
-            if (!tokenizer.getStringMatch('/')) {
-                throw new Error('Unexpected character ' + tokenizer.remaining().charAt(0) + ' (expected "/")');
-            }
-            tag.name = getTagName(tokenizer);
-            if (!tag.name) {
-                throw new Error('Unexpected character ' + tokenizer.remaining().charAt(0) + ' (expected tag name)');
-            }
-            if (!tokenizer.getStringMatch('>')) {
-                throw new Error('Unexpected character ' + tokenizer.remaining().charAt(0) + ' (expected ">")');
-            }
-            return tag;
-        };
-        getTagName = makeRegexMatcher(/^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/);
-        getAttributes = function (tokenizer) {
-            var start, attrs, attr;
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            attr = getAttribute(tokenizer);
-            if (!attr) {
-                tokenizer.pos = start;
-                return null;
-            }
-            attrs = [];
-            while (attr !== null) {
-                attrs[attrs.length] = attr;
-                tokenizer.allowWhitespace();
-                attr = getAttribute(tokenizer);
-            }
-            return attrs;
-        };
-        getAttribute = function (tokenizer) {
-            var attr, name, value;
-            name = getAttributeName(tokenizer);
-            if (!name) {
-                return null;
-            }
-            attr = { name: name };
-            value = getAttributeValue(tokenizer);
-            if (value) {
-                attr.value = value;
-            }
-            return attr;
-        };
-        getAttributeName = makeRegexMatcher(/^[^\s"'>\/=]+/);
-        getAttributeValue = function (tokenizer) {
-            var start, value;
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch('=')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            value = getQuotedAttributeValue(tokenizer, '\'') || getQuotedAttributeValue(tokenizer, '"') || getUnquotedAttributeValue(tokenizer);
-            if (value === null) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return value;
-        };
-        getUnquotedAttributeValueText = makeRegexMatcher(/^[^\s"'=<>`]+/);
-        getUnquotedAttributeValueToken = function (tokenizer) {
-            var start, text, index;
-            start = tokenizer.pos;
-            text = getUnquotedAttributeValueText(tokenizer);
-            if (!text) {
-                return null;
-            }
-            if ((index = text.indexOf(tokenizer.delimiters[0])) !== -1) {
-                text = text.substr(0, index);
-                tokenizer.pos = start + text.length;
-            }
-            return {
-                type: types.TEXT,
-                value: text
-            };
-        };
-        getUnquotedAttributeValue = function (tokenizer) {
-            var tokens, token;
-            tokens = [];
-            token = tokenizer.getMustache() || getUnquotedAttributeValueToken(tokenizer);
-            while (token !== null) {
-                tokens[tokens.length] = token;
-                token = tokenizer.getMustache() || getUnquotedAttributeValueToken(tokenizer);
-            }
-            if (!tokens.length) {
-                return null;
-            }
-            return tokens;
-        };
-        getQuotedAttributeValue = function (tokenizer, quoteMark) {
-            var start, tokens, token;
-            start = tokenizer.pos;
-            if (!tokenizer.getStringMatch(quoteMark)) {
-                return null;
-            }
-            tokens = [];
-            token = tokenizer.getMustache() || getQuotedStringToken(tokenizer, quoteMark);
-            while (token !== null) {
-                tokens[tokens.length] = token;
-                token = tokenizer.getMustache() || getQuotedStringToken(tokenizer, quoteMark);
-            }
-            if (!tokenizer.getStringMatch(quoteMark)) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return tokens;
-        };
-        getQuotedStringToken = function (tokenizer, quoteMark) {
-            var start, index, remaining;
-            start = tokenizer.pos;
-            remaining = tokenizer.remaining();
-            index = getLowestIndex(remaining, [
-                quoteMark,
-                tokenizer.delimiters[0],
-                tokenizer.delimiters[1]
-            ]);
-            if (index === -1) {
-                throw new Error('Quoted attribute value must have a closing quote');
-            }
-            if (!index) {
-                return null;
-            }
-            tokenizer.pos += index;
-            return {
-                type: types.TEXT,
-                value: remaining.substr(0, index)
-            };
-        };
-        return getTag;
-    }(config_types, utils_makeRegexMatcher, utils_getLowestIndex);
-var getText__getText = function (types, getLowestIndex) {
-        
-        return function () {
-            var index, remaining;
-            remaining = this.remaining();
-            index = getLowestIndex(remaining, [
-                '<',
-                this.delimiters[0],
-                this.tripleDelimiters[0]
-            ]);
-            if (!index) {
-                return null;
-            }
-            if (index === -1) {
-                index = remaining.length;
-            }
-            this.pos += index;
-            return {
-                type: types.TEXT,
-                value: remaining.substr(0, index)
-            };
-        };
-    }(config_types, utils_getLowestIndex);
-var getLiteral_getBooleanLiteral = function (types) {
-        
-        return function (tokenizer) {
-            var remaining = tokenizer.remaining();
-            if (remaining.substr(0, 4) === 'true') {
-                tokenizer.pos += 4;
-                return {
-                    t: types.BOOLEAN_LITERAL,
-                    v: 'true'
-                };
-            }
-            if (remaining.substr(0, 5) === 'false') {
-                tokenizer.pos += 5;
-                return {
-                    t: types.BOOLEAN_LITERAL,
-                    v: 'false'
-                };
-            }
-            return null;
-        };
-    }(config_types);
-var getObjectLiteral_getKeyValuePair = function (types, getKey) {
-        
-        return function (tokenizer) {
-            var start, key, value;
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            key = getKey(tokenizer);
-            if (key === null) {
-                tokenizer.pos = start;
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch(':')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            value = tokenizer.getExpression();
-            if (value === null) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.KEY_VALUE_PAIR,
-                k: key,
-                v: value
-            };
-        };
-    }(config_types, shared_getKey);
-var getObjectLiteral_getKeyValuePairs = function (getKeyValuePair) {
-        
-        return function getKeyValuePairs(tokenizer) {
-            var start, pairs, pair, keyValuePairs;
-            start = tokenizer.pos;
-            pair = getKeyValuePair(tokenizer);
-            if (pair === null) {
-                return null;
-            }
-            pairs = [pair];
-            if (tokenizer.getStringMatch(',')) {
-                keyValuePairs = getKeyValuePairs(tokenizer);
-                if (!keyValuePairs) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                return pairs.concat(keyValuePairs);
-            }
-            return pairs;
-        };
-    }(getObjectLiteral_getKeyValuePair);
-var getObjectLiteral__getObjectLiteral = function (types, getKeyValuePairs) {
-        
-        return function (tokenizer) {
-            var start, keyValuePairs;
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch('{')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            keyValuePairs = getKeyValuePairs(tokenizer);
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch('}')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.OBJECT_LITERAL,
-                m: keyValuePairs
-            };
-        };
-    }(config_types, getObjectLiteral_getKeyValuePairs);
-var shared_getExpressionList = function () {
-        
-        return function getExpressionList(tokenizer) {
-            var start, expressions, expr, next;
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            expr = tokenizer.getExpression();
-            if (expr === null) {
-                return null;
-            }
-            expressions = [expr];
-            tokenizer.allowWhitespace();
-            if (tokenizer.getStringMatch(',')) {
-                next = getExpressionList(tokenizer);
-                if (next === null) {
-                    tokenizer.pos = start;
-                    return null;
-                }
-                expressions = expressions.concat(next);
-            }
-            return expressions;
-        };
-    }();
-var getLiteral_getArrayLiteral = function (types, getExpressionList) {
-        
-        return function (tokenizer) {
-            var start, expressionList;
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch('[')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            expressionList = getExpressionList(tokenizer);
-            if (!tokenizer.getStringMatch(']')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.ARRAY_LITERAL,
-                m: expressionList
-            };
-        };
-    }(config_types, shared_getExpressionList);
-var getLiteral__getLiteral = function (getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral) {
-        
-        return function (tokenizer) {
-            var literal = getNumberLiteral(tokenizer) || getBooleanLiteral(tokenizer) || getStringLiteral(tokenizer) || getObjectLiteral(tokenizer) || getArrayLiteral(tokenizer);
-            return literal;
-        };
-    }(getLiteral_getNumberLiteral, getLiteral_getBooleanLiteral, getStringLiteral__getStringLiteral, getObjectLiteral__getObjectLiteral, getLiteral_getArrayLiteral);
-var getPrimary_getReference = function (types, makeRegexMatcher, getName) {
-        
-        var getDotRefinement, getArrayRefinement, getArrayMember, globals;
-        getDotRefinement = makeRegexMatcher(/^\.[a-zA-Z_$0-9]+/);
-        getArrayRefinement = function (tokenizer) {
-            var num = getArrayMember(tokenizer);
-            if (num) {
-                return '.' + num;
-            }
-            return null;
-        };
-        getArrayMember = makeRegexMatcher(/^\[(0|[1-9][0-9]*)\]/);
-        globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
-        return function (tokenizer) {
-            var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
-            startPos = tokenizer.pos;
-            ancestor = '';
-            while (tokenizer.getStringMatch('../')) {
-                ancestor += '../';
-            }
-            if (!ancestor) {
-                dot = tokenizer.getStringMatch('.') || '';
-            }
-            name = getName(tokenizer) || '';
-            if (!ancestor && !dot && globals.test(name)) {
-                return {
-                    t: types.GLOBAL,
-                    v: name
-                };
-            }
-            if (name === 'this' && !ancestor && !dot) {
-                name = '.';
-                startPos += 3;
-            }
-            combo = (ancestor || dot) + name;
-            if (!combo) {
-                return null;
-            }
-            while (refinement = getDotRefinement(tokenizer) || getArrayRefinement(tokenizer)) {
-                combo += refinement;
-            }
-            if (tokenizer.getStringMatch('(')) {
-                lastDotIndex = combo.lastIndexOf('.');
-                if (lastDotIndex !== -1) {
-                    combo = combo.substr(0, lastDotIndex);
-                    tokenizer.pos = startPos + combo.length;
-                } else {
-                    tokenizer.pos -= 1;
-                }
-            }
-            return {
-                t: types.REFERENCE,
-                n: combo
-            };
-        };
-    }(config_types, utils_makeRegexMatcher, shared_getName);
-var getPrimary_getBracketedExpression = function (types) {
-        
-        return function (tokenizer) {
-            var start, expr;
-            start = tokenizer.pos;
-            if (!tokenizer.getStringMatch('(')) {
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            expr = tokenizer.getExpression();
-            if (!expr) {
-                tokenizer.pos = start;
-                return null;
-            }
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch(')')) {
-                tokenizer.pos = start;
-                return null;
-            }
-            return {
-                t: types.BRACKETED,
-                x: expr
-            };
-        };
-    }(config_types);
-var getPrimary__getPrimary = function (getLiteral, getReference, getBracketedExpression) {
-        
-        return function (tokenizer) {
-            return getLiteral(tokenizer) || getReference(tokenizer) || getBracketedExpression(tokenizer);
-        };
-    }(getLiteral__getLiteral, getPrimary_getReference, getPrimary_getBracketedExpression);
-var shared_getRefinement = function (types, getName) {
-        
-        return function getRefinement(tokenizer) {
-            var start, name, expr;
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            if (tokenizer.getStringMatch('.')) {
-                tokenizer.allowWhitespace();
-                if (name = getName(tokenizer)) {
-                    return {
-                        t: types.REFINEMENT,
-                        n: name
-                    };
-                }
-                tokenizer.expected('a property name');
-            }
-            if (tokenizer.getStringMatch('[')) {
-                tokenizer.allowWhitespace();
-                expr = tokenizer.getExpression();
-                if (!expr) {
-                    tokenizer.expected('an expression');
-                }
-                tokenizer.allowWhitespace();
-                if (!tokenizer.getStringMatch(']')) {
-                    tokenizer.expected('"]"');
-                }
-                return {
-                    t: types.REFINEMENT,
-                    x: expr
-                };
-            }
-            return null;
-        };
-    }(config_types, shared_getName);
-var getExpression_getMemberOrInvocation = function (types, getPrimary, getExpressionList, getRefinement) {
-        
-        return function (tokenizer) {
-            var current, expression, refinement, expressionList;
-            expression = getPrimary(tokenizer);
-            if (!expression) {
-                return null;
-            }
-            while (expression) {
-                current = tokenizer.pos;
-                if (refinement = getRefinement(tokenizer)) {
-                    expression = {
-                        t: types.MEMBER,
-                        x: expression,
-                        r: refinement
-                    };
-                } else if (tokenizer.getStringMatch('(')) {
-                    tokenizer.allowWhitespace();
-                    expressionList = getExpressionList(tokenizer);
-                    tokenizer.allowWhitespace();
-                    if (!tokenizer.getStringMatch(')')) {
-                        tokenizer.pos = current;
-                        break;
-                    }
-                    expression = {
-                        t: types.INVOCATION,
-                        x: expression
-                    };
-                    if (expressionList) {
-                        expression.o = expressionList;
-                    }
-                } else {
-                    break;
-                }
-            }
-            return expression;
-        };
-    }(config_types, getPrimary__getPrimary, shared_getExpressionList, shared_getRefinement);
-var getExpression_getTypeOf = function (types, getMemberOrInvocation) {
-        
-        var getTypeOf, makePrefixSequenceMatcher;
-        makePrefixSequenceMatcher = function (symbol, fallthrough) {
-            return function (tokenizer) {
-                var start, expression;
-                if (!tokenizer.getStringMatch(symbol)) {
-                    return fallthrough(tokenizer);
-                }
-                start = tokenizer.pos;
-                tokenizer.allowWhitespace();
-                expression = tokenizer.getExpression();
-                if (!expression) {
-                    tokenizer.expected('an expression');
-                }
-                return {
-                    s: symbol,
-                    o: expression,
-                    t: types.PREFIX_OPERATOR
-                };
-            };
-        };
-        (function () {
-            var i, len, matcher, prefixOperators, fallthrough;
-            prefixOperators = '! ~ + - typeof'.split(' ');
-            fallthrough = getMemberOrInvocation;
-            for (i = 0, len = prefixOperators.length; i < len; i += 1) {
-                matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
-                fallthrough = matcher;
-            }
-            getTypeOf = fallthrough;
-        }());
-        return getTypeOf;
-    }(config_types, getExpression_getMemberOrInvocation);
-var getExpression_getLogicalOr = function (types, getTypeOf) {
-        
-        var getLogicalOr, makeInfixSequenceMatcher;
-        makeInfixSequenceMatcher = function (symbol, fallthrough) {
-            return function (tokenizer) {
-                var start, left, right;
-                left = fallthrough(tokenizer);
-                if (!left) {
-                    return null;
-                }
-                start = tokenizer.pos;
-                tokenizer.allowWhitespace();
-                if (!tokenizer.getStringMatch(symbol)) {
-                    tokenizer.pos = start;
-                    return left;
-                }
-                if (symbol === 'in' && /[a-zA-Z_$0-9]/.test(tokenizer.remaining().charAt(0))) {
-                    tokenizer.pos = start;
-                    return left;
-                }
-                tokenizer.allowWhitespace();
-                right = tokenizer.getExpression();
-                if (!right) {
-                    tokenizer.pos = start;
-                    return left;
-                }
-                return {
-                    t: types.INFIX_OPERATOR,
-                    s: symbol,
-                    o: [
-                        left,
-                        right
-                    ]
-                };
-            };
-        };
-        (function () {
-            var i, len, matcher, infixOperators, fallthrough;
-            infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split(' ');
-            fallthrough = getTypeOf;
-            for (i = 0, len = infixOperators.length; i < len; i += 1) {
-                matcher = makeInfixSequenceMatcher(infixOperators[i], fallthrough);
-                fallthrough = matcher;
-            }
-            getLogicalOr = fallthrough;
-        }());
-        return getLogicalOr;
-    }(config_types, getExpression_getTypeOf);
-var getExpression_getConditional = function (types, getLogicalOr) {
-        
-        return function (tokenizer) {
-            var start, expression, ifTrue, ifFalse;
-            expression = getLogicalOr(tokenizer);
-            if (!expression) {
-                return null;
-            }
-            start = tokenizer.pos;
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch('?')) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            tokenizer.allowWhitespace();
-            ifTrue = tokenizer.getExpression();
-            if (!ifTrue) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            tokenizer.allowWhitespace();
-            if (!tokenizer.getStringMatch(':')) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            tokenizer.allowWhitespace();
-            ifFalse = tokenizer.getExpression();
-            if (!ifFalse) {
-                tokenizer.pos = start;
-                return expression;
-            }
-            return {
-                t: types.CONDITIONAL,
-                o: [
-                    expression,
-                    ifTrue,
-                    ifFalse
-                ]
-            };
-        };
-    }(config_types, getExpression_getLogicalOr);
-var getExpression__getExpression = function (getConditional) {
-        
-        return function () {
-            return getConditional(this);
-        };
-    }(getExpression_getConditional);
-var Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch) {
-        
-        var Tokenizer;
-        Tokenizer = function (str, options) {
-            var token;
-            this.str = str;
-            this.pos = 0;
-            this.delimiters = options.delimiters;
-            this.tripleDelimiters = options.tripleDelimiters;
-            this.tokens = [];
-            while (this.pos < this.str.length) {
-                token = this.getToken();
-                if (token === null && this.remaining()) {
-                    this.fail();
-                }
-                this.tokens.push(token);
-            }
-        };
-        Tokenizer.prototype = {
-            getToken: function () {
-                var token = this.getMustache() || this.getComment() || this.getTag() || this.getText();
-                return token;
-            },
-            getMustache: getMustache,
-            getComment: getComment,
-            getTag: getTag,
-            getText: getText,
-            getExpression: getExpression,
-            allowWhitespace: allowWhitespace,
-            getStringMatch: getStringMatch,
-            remaining: function () {
-                return this.str.substring(this.pos);
-            },
-            fail: function () {
-                var last20, next20;
-                last20 = this.str.substr(0, this.pos).substr(-20);
-                if (last20.length === 20) {
-                    last20 = '...' + last20;
-                }
-                next20 = this.remaining().substr(0, 20);
-                if (next20.length === 20) {
-                    next20 = next20 + '...';
-                }
-                throw new Error('Could not parse template: ' + (last20 ? last20 + '<- ' : '') + 'failed at character ' + this.pos + ' ->' + next20);
-            },
-            expected: function (thing) {
-                var remaining = this.remaining().substr(0, 40);
-                if (remaining.length === 40) {
-                    remaining += '...';
-                }
-                throw new Error('Tokenizer failed: unexpected string "' + remaining + '" (expected ' + thing + ')');
-            }
-        };
-        return Tokenizer;
-    }(getMustache__getMustache, getComment_getComment, getTag__getTag, getText__getText, getExpression__getExpression, utils_allowWhitespace, utils_getStringMatch);
-var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer, circular) {
-        
-        var tokenize, Ractive;
-        circular.push(function () {
-            Ractive = circular.Ractive;
-        });
-        tokenize = function (template, options) {
-            var tokenizer, tokens;
-            options = options || {};
-            if (options.stripComments !== false) {
-                template = stripHtmlComments(template);
-            }
-            tokenizer = new Tokenizer(template, {
-                delimiters: options.delimiters || (Ractive ? Ractive.delimiters : [
-                    '{{',
-                    '}}'
-                ]),
-                tripleDelimiters: options.tripleDelimiters || (Ractive ? Ractive.tripleDelimiters : [
-                    '{{{',
-                    '}}}'
-                ])
-            });
-            tokens = tokenizer.tokens;
-            stripStandalones(tokens);
-            stripCommentTokens(tokens);
-            return tokens;
-        };
-        return tokenize;
-    }(utils_stripHtmlComments, utils_stripStandalones, utils_stripCommentTokens, Tokenizer__Tokenizer, circular);
-var TextStub__TextStub = function (types) {
-        
-        var TextStub, htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
-        TextStub = function (token, preserveWhitespace) {
-            this.text = preserveWhitespace ? token.value : token.value.replace(whitespace, ' ');
-        };
-        TextStub.prototype = {
-            type: types.TEXT,
-            toJSON: function () {
-                return this.decoded || (this.decoded = decodeCharacterReferences(this.text));
-            },
-            toString: function () {
-                return this.text;
-            }
-        };
-        htmlEntities = {
-            quot: 34,
-            amp: 38,
-            apos: 39,
-            lt: 60,
-            gt: 62,
-            nbsp: 160,
-            iexcl: 161,
-            cent: 162,
-            pound: 163,
-            curren: 164,
-            yen: 165,
-            brvbar: 166,
-            sect: 167,
-            uml: 168,
-            copy: 169,
-            ordf: 170,
-            laquo: 171,
-            not: 172,
-            shy: 173,
-            reg: 174,
-            macr: 175,
-            deg: 176,
-            plusmn: 177,
-            sup2: 178,
-            sup3: 179,
-            acute: 180,
-            micro: 181,
-            para: 182,
-            middot: 183,
-            cedil: 184,
-            sup1: 185,
-            ordm: 186,
-            raquo: 187,
-            frac14: 188,
-            frac12: 189,
-            frac34: 190,
-            iquest: 191,
-            Agrave: 192,
-            Aacute: 193,
-            Acirc: 194,
-            Atilde: 195,
-            Auml: 196,
-            Aring: 197,
-            AElig: 198,
-            Ccedil: 199,
-            Egrave: 200,
-            Eacute: 201,
-            Ecirc: 202,
-            Euml: 203,
-            Igrave: 204,
-            Iacute: 205,
-            Icirc: 206,
-            Iuml: 207,
-            ETH: 208,
-            Ntilde: 209,
-            Ograve: 210,
-            Oacute: 211,
-            Ocirc: 212,
-            Otilde: 213,
-            Ouml: 214,
-            times: 215,
-            Oslash: 216,
-            Ugrave: 217,
-            Uacute: 218,
-            Ucirc: 219,
-            Uuml: 220,
-            Yacute: 221,
-            THORN: 222,
-            szlig: 223,
-            agrave: 224,
-            aacute: 225,
-            acirc: 226,
-            atilde: 227,
-            auml: 228,
-            aring: 229,
-            aelig: 230,
-            ccedil: 231,
-            egrave: 232,
-            eacute: 233,
-            ecirc: 234,
-            euml: 235,
-            igrave: 236,
-            iacute: 237,
-            icirc: 238,
-            iuml: 239,
-            eth: 240,
-            ntilde: 241,
-            ograve: 242,
-            oacute: 243,
-            ocirc: 244,
-            otilde: 245,
-            ouml: 246,
-            divide: 247,
-            oslash: 248,
-            ugrave: 249,
-            uacute: 250,
-            ucirc: 251,
-            uuml: 252,
-            yacute: 253,
-            thorn: 254,
-            yuml: 255,
-            OElig: 338,
-            oelig: 339,
-            Scaron: 352,
-            scaron: 353,
-            Yuml: 376,
-            fnof: 402,
-            circ: 710,
-            tilde: 732,
-            Alpha: 913,
-            Beta: 914,
-            Gamma: 915,
-            Delta: 916,
-            Epsilon: 917,
-            Zeta: 918,
-            Eta: 919,
-            Theta: 920,
-            Iota: 921,
-            Kappa: 922,
-            Lambda: 923,
-            Mu: 924,
-            Nu: 925,
-            Xi: 926,
-            Omicron: 927,
-            Pi: 928,
-            Rho: 929,
-            Sigma: 931,
-            Tau: 932,
-            Upsilon: 933,
-            Phi: 934,
-            Chi: 935,
-            Psi: 936,
-            Omega: 937,
-            alpha: 945,
-            beta: 946,
-            gamma: 947,
-            delta: 948,
-            epsilon: 949,
-            zeta: 950,
-            eta: 951,
-            theta: 952,
-            iota: 953,
-            kappa: 954,
-            lambda: 955,
-            mu: 956,
-            nu: 957,
-            xi: 958,
-            omicron: 959,
-            pi: 960,
-            rho: 961,
-            sigmaf: 962,
-            sigma: 963,
-            tau: 964,
-            upsilon: 965,
-            phi: 966,
-            chi: 967,
-            psi: 968,
-            omega: 969,
-            thetasym: 977,
-            upsih: 978,
-            piv: 982,
-            ensp: 8194,
-            emsp: 8195,
-            thinsp: 8201,
-            zwnj: 8204,
-            zwj: 8205,
-            lrm: 8206,
-            rlm: 8207,
-            ndash: 8211,
-            mdash: 8212,
-            lsquo: 8216,
-            rsquo: 8217,
-            sbquo: 8218,
-            ldquo: 8220,
-            rdquo: 8221,
-            bdquo: 8222,
-            dagger: 8224,
-            Dagger: 8225,
-            bull: 8226,
-            hellip: 8230,
-            permil: 8240,
-            prime: 8242,
-            Prime: 8243,
-            lsaquo: 8249,
-            rsaquo: 8250,
-            oline: 8254,
-            frasl: 8260,
-            euro: 8364,
-            image: 8465,
-            weierp: 8472,
-            real: 8476,
-            trade: 8482,
-            alefsym: 8501,
-            larr: 8592,
-            uarr: 8593,
-            rarr: 8594,
-            darr: 8595,
-            harr: 8596,
-            crarr: 8629,
-            lArr: 8656,
-            uArr: 8657,
-            rArr: 8658,
-            dArr: 8659,
-            hArr: 8660,
-            forall: 8704,
-            part: 8706,
-            exist: 8707,
-            empty: 8709,
-            nabla: 8711,
-            isin: 8712,
-            notin: 8713,
-            ni: 8715,
-            prod: 8719,
-            sum: 8721,
-            minus: 8722,
-            lowast: 8727,
-            radic: 8730,
-            prop: 8733,
-            infin: 8734,
-            ang: 8736,
-            and: 8743,
-            or: 8744,
-            cap: 8745,
-            cup: 8746,
-            'int': 8747,
-            there4: 8756,
-            sim: 8764,
-            cong: 8773,
-            asymp: 8776,
-            ne: 8800,
-            equiv: 8801,
-            le: 8804,
-            ge: 8805,
-            sub: 8834,
-            sup: 8835,
-            nsub: 8836,
-            sube: 8838,
-            supe: 8839,
-            oplus: 8853,
-            otimes: 8855,
-            perp: 8869,
-            sdot: 8901,
-            lceil: 8968,
-            rceil: 8969,
-            lfloor: 8970,
-            rfloor: 8971,
-            lang: 9001,
-            rang: 9002,
-            loz: 9674,
-            spades: 9824,
-            clubs: 9827,
-            hearts: 9829,
-            diams: 9830
-        };
-        controlCharacters = [
-            8364,
-            129,
-            8218,
-            402,
-            8222,
-            8230,
-            8224,
-            8225,
-            710,
-            8240,
-            352,
-            8249,
-            338,
-            141,
-            381,
-            143,
-            144,
-            8216,
-            8217,
-            8220,
-            8221,
-            8226,
-            8211,
-            8212,
-            732,
-            8482,
-            353,
-            8250,
-            339,
-            157,
-            382,
-            376
-        ];
-        namedEntityPattern = new RegExp('&(' + Object.keys(htmlEntities).join('|') + ');?', 'g');
-        hexEntityPattern = /&#x([0-9]+);?/g;
-        decimalEntityPattern = /&#([0-9]+);?/g;
-        validateCode = function (code) {
-            if (!code) {
-                return 65533;
-            }
-            if (code === 10) {
-                return 32;
-            }
-            if (code < 128) {
-                return code;
-            }
-            if (code <= 159) {
-                return controlCharacters[code - 128];
-            }
-            if (code < 55296) {
-                return code;
-            }
-            if (code <= 57343) {
-                return 65533;
-            }
-            if (code <= 65535) {
-                return code;
-            }
-            return 65533;
-        };
-        decodeCharacterReferences = function (html) {
-            var result;
-            result = html.replace(namedEntityPattern, function (match, name) {
-                if (htmlEntities[name]) {
-                    return String.fromCharCode(htmlEntities[name]);
-                }
-                return match;
-            });
-            result = result.replace(hexEntityPattern, function (match, hex) {
-                return String.fromCharCode(validateCode(parseInt(hex, 16)));
-            });
-            result = result.replace(decimalEntityPattern, function (match, charCode) {
-                return String.fromCharCode(validateCode(charCode));
-            });
-            return result;
-        };
-        whitespace = /\s+/g;
-        return TextStub;
-    }(config_types);
-var getText__getText = function (types, TextStub) {
-        
-        return function (token) {
-            if (token.type === types.TEXT) {
-                this.pos += 1;
-                return new TextStub(token, this.preserveWhitespace);
-            }
-            return null;
-        };
-    }(config_types, TextStub__TextStub);
-var CommentStub__CommentStub = function (types) {
-        
-        var CommentStub;
-        CommentStub = function (token) {
-            this.content = token.content;
-        };
-        CommentStub.prototype = {
-            toJSON: function () {
-                return {
-                    t: types.COMMENT,
-                    f: this.content
-                };
-            },
-            toString: function () {
-                return '<!--' + this.content + '-->';
-            }
-        };
-        return CommentStub;
-    }(config_types);
-var getComment__getComment = function (types, CommentStub) {
-        
-        return function (token) {
-            if (token.type === types.COMMENT) {
-                this.pos += 1;
-                return new CommentStub(token, this.preserveWhitespace);
-            }
-            return null;
-        };
-    }(config_types, CommentStub__CommentStub);
-var ExpressionStub__ExpressionStub = function (types, isObject) {
-        
-        var ExpressionStub, getRefs, stringify;
-        ExpressionStub = function (token) {
-            this.refs = [];
-            getRefs(token, this.refs);
-            this.str = stringify(token, this.refs);
-        };
-        ExpressionStub.prototype = {
-            toJSON: function () {
-                if (this.json) {
-                    return this.json;
-                }
-                this.json = {
-                    r: this.refs,
-                    s: this.str
-                };
-                return this.json;
-            }
-        };
-        getRefs = function (token, refs) {
-            var i, list;
-            if (token.t === types.REFERENCE) {
-                if (refs.indexOf(token.n) === -1) {
-                    refs.unshift(token.n);
-                }
-            }
-            list = token.o || token.m;
-            if (list) {
-                if (isObject(list)) {
-                    getRefs(list, refs);
-                } else {
-                    i = list.length;
-                    while (i--) {
-                        getRefs(list[i], refs);
-                    }
-                }
-            }
-            if (token.x) {
-                getRefs(token.x, refs);
-            }
-            if (token.r) {
-                getRefs(token.r, refs);
-            }
-            if (token.v) {
-                getRefs(token.v, refs);
-            }
-        };
-        stringify = function (token, refs) {
-            var map = function (item) {
-                return stringify(item, refs);
-            };
-            switch (token.t) {
-            case types.BOOLEAN_LITERAL:
-            case types.GLOBAL:
-            case types.NUMBER_LITERAL:
-                return token.v;
-            case types.STRING_LITERAL:
-                return '\'' + token.v.replace(/'/g, '\\\'') + '\'';
-            case types.ARRAY_LITERAL:
-                return '[' + (token.m ? token.m.map(map).join(',') : '') + ']';
-            case types.OBJECT_LITERAL:
-                return '{' + (token.m ? token.m.map(map).join(',') : '') + '}';
-            case types.KEY_VALUE_PAIR:
-                return token.k + ':' + stringify(token.v, refs);
-            case types.PREFIX_OPERATOR:
-                return (token.s === 'typeof' ? 'typeof ' : token.s) + stringify(token.o, refs);
-            case types.INFIX_OPERATOR:
-                return stringify(token.o[0], refs) + (token.s.substr(0, 2) === 'in' ? ' ' + token.s + ' ' : token.s) + stringify(token.o[1], refs);
-            case types.INVOCATION:
-                return stringify(token.x, refs) + '(' + (token.o ? token.o.map(map).join(',') : '') + ')';
-            case types.BRACKETED:
-                return '(' + stringify(token.x, refs) + ')';
-            case types.MEMBER:
-                return stringify(token.x, refs) + stringify(token.r, refs);
-            case types.REFINEMENT:
-                return token.n ? '.' + token.n : '[' + stringify(token.x, refs) + ']';
-            case types.CONDITIONAL:
-                return stringify(token.o[0], refs) + '?' + stringify(token.o[1], refs) + ':' + stringify(token.o[2], refs);
-            case types.REFERENCE:
-                return '${' + refs.indexOf(token.n) + '}';
-            default:
-                throw new Error('Could not stringify expression token. This error is unexpected');
-            }
-        };
-        return ExpressionStub;
-    }(config_types, utils_isObject);
-var MustacheStub__MustacheStub = function (types, ExpressionStub) {
-        
-        var MustacheStub = function (token, parser) {
-            this.type = token.type === types.TRIPLE ? types.TRIPLE : token.mustacheType;
-            if (token.ref) {
-                this.ref = token.ref;
-            }
-            if (token.expression) {
-                this.expr = new ExpressionStub(token.expression);
-            }
-            parser.pos += 1;
-        };
-        MustacheStub.prototype = {
-            toJSON: function () {
-                var json;
-                if (this.json) {
-                    return this.json;
-                }
-                json = { t: this.type };
-                if (this.ref) {
-                    json.r = this.ref;
-                }
-                if (this.expr) {
-                    json.x = this.expr.toJSON();
-                }
-                this.json = json;
-                return json;
-            },
-            toString: function () {
-                return false;
-            }
-        };
-        return MustacheStub;
-    }(config_types, ExpressionStub__ExpressionStub);
-var utils_stringifyStubs = function () {
-        
-        return function (items) {
-            var str = '', itemStr, i, len;
-            if (!items) {
-                return '';
-            }
-            for (i = 0, len = items.length; i < len; i += 1) {
-                itemStr = items[i].toString();
-                if (itemStr === false) {
-                    return false;
-                }
-                str += itemStr;
-            }
-            return str;
-        };
-    }();
-var utils_jsonifyStubs = function (stringifyStubs) {
-        
-        return function (items, noStringify) {
-            var str, json;
-            if (!noStringify) {
-                str = stringifyStubs(items);
-                if (str !== false) {
-                    return str;
-                }
-            }
-            json = items.map(function (item) {
-                return item.toJSON(noStringify);
-            });
-            return json;
-        };
-    }(utils_stringifyStubs);
-var SectionStub__SectionStub = function (types, jsonifyStubs, ExpressionStub) {
-        
-        var SectionStub = function (firstToken, parser) {
-            var next;
-            this.ref = firstToken.ref;
-            this.indexRef = firstToken.indexRef;
-            this.inverted = firstToken.mustacheType === types.INVERTED;
-            if (firstToken.expression) {
-                this.expr = new ExpressionStub(firstToken.expression);
-            }
-            parser.pos += 1;
-            this.items = [];
-            next = parser.next();
-            while (next) {
-                if (next.mustacheType === types.CLOSING) {
-                    if (next.ref.trim() === this.ref || this.expr) {
-                        parser.pos += 1;
-                        break;
-                    } else {
-                        throw new Error('Could not parse template: Illegal closing section');
-                    }
-                }
-                this.items[this.items.length] = parser.getStub();
-                next = parser.next();
-            }
-        };
-        SectionStub.prototype = {
-            toJSON: function (noStringify) {
-                var json;
-                if (this.json) {
-                    return this.json;
-                }
-                json = { t: types.SECTION };
-                if (this.ref) {
-                    json.r = this.ref;
-                }
-                if (this.indexRef) {
-                    json.i = this.indexRef;
-                }
-                if (this.inverted) {
-                    json.n = true;
-                }
-                if (this.expr) {
-                    json.x = this.expr.toJSON();
-                }
-                if (this.items.length) {
-                    json.f = jsonifyStubs(this.items, noStringify);
-                }
-                this.json = json;
-                return json;
-            },
-            toString: function () {
-                return false;
-            }
-        };
-        return SectionStub;
-    }(config_types, utils_jsonifyStubs, ExpressionStub__ExpressionStub);
-var getMustache__getMustache = function (types, MustacheStub, SectionStub) {
-        
-        return function (token) {
-            if (token.type === types.MUSTACHE || token.type === types.TRIPLE) {
-                if (token.mustacheType === types.SECTION || token.mustacheType === types.INVERTED) {
-                    return new SectionStub(token, this);
-                }
-                return new MustacheStub(token, this);
-            }
-        };
-    }(config_types, MustacheStub__MustacheStub, SectionStub__SectionStub);
-var utils_siblingsByTagName = function () {
-        
-        return {
-            li: ['li'],
-            dt: [
-                'dt',
-                'dd'
-            ],
-            dd: [
-                'dt',
-                'dd'
-            ],
-            p: 'address article aside blockquote dir div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr menu nav ol p pre section table ul'.split(' '),
-            rt: [
-                'rt',
-                'rp'
-            ],
-            rp: [
-                'rp',
-                'rt'
-            ],
-            optgroup: ['optgroup'],
-            option: [
-                'option',
-                'optgroup'
-            ],
-            thead: [
-                'tbody',
-                'tfoot'
-            ],
-            tbody: [
-                'tbody',
-                'tfoot'
-            ],
-            tr: ['tr'],
-            td: [
-                'td',
-                'th'
-            ],
-            th: [
-                'td',
-                'th'
-            ]
-        };
-    }();
-var utils_filterAttributes = function (isArray) {
-        
-        return function (items) {
-            var attrs, proxies, filtered, i, len, item;
-            filtered = {};
-            attrs = [];
-            proxies = [];
-            len = items.length;
-            for (i = 0; i < len; i += 1) {
-                item = items[i];
-                if (item.name === 'intro') {
-                    if (filtered.intro) {
-                        throw new Error('An element can only have one intro transition');
-                    }
-                    filtered.intro = item;
-                } else if (item.name === 'outro') {
-                    if (filtered.outro) {
-                        throw new Error('An element can only have one outro transition');
-                    }
-                    filtered.outro = item;
-                } else if (item.name === 'intro-outro') {
-                    if (filtered.intro || filtered.outro) {
-                        throw new Error('An element can only have one intro and one outro transition');
-                    }
-                    filtered.intro = item;
-                    filtered.outro = deepClone(item);
-                } else if (item.name.substr(0, 6) === 'proxy-') {
-                    item.name = item.name.substring(6);
-                    proxies[proxies.length] = item;
-                } else if (item.name.substr(0, 3) === 'on-') {
-                    item.name = item.name.substring(3);
-                    proxies[proxies.length] = item;
-                } else if (item.name === 'decorator') {
-                    filtered.decorator = item;
-                } else {
-                    attrs[attrs.length] = item;
-                }
-            }
-            filtered.attrs = attrs;
-            filtered.proxies = proxies;
-            return filtered;
-        };
-        function deepClone(obj) {
-            var result, key;
-            if (typeof obj !== 'object') {
-                return obj;
-            }
-            if (isArray(obj)) {
-                return obj.map(deepClone);
-            }
-            result = {};
-            for (key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    result[key] = deepClone(obj[key]);
-                }
-            }
-            return result;
-        }
-    }(utils_isArray);
-var utils_processDirective = function (types, parseJSON) {
-        
-        return function (directive) {
-            var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed, item;
-            throwError = function () {
-                throw new Error('Illegal directive');
-            };
-            if (!directive.name || !directive.value) {
-                throwError();
-            }
-            processed = { directiveType: directive.name };
-            tokens = directive.value;
-            directiveName = [];
-            directiveArgs = [];
-            while (tokens.length) {
-                token = tokens.shift();
-                if (token.type === types.TEXT) {
-                    colonIndex = token.value.indexOf(':');
-                    if (colonIndex === -1) {
-                        directiveName[directiveName.length] = token;
-                    } else {
-                        if (colonIndex) {
-                            directiveName[directiveName.length] = {
-                                type: types.TEXT,
-                                value: token.value.substr(0, colonIndex)
-                            };
-                        }
-                        if (token.value.length > colonIndex + 1) {
-                            directiveArgs[0] = {
-                                type: types.TEXT,
-                                value: token.value.substring(colonIndex + 1)
-                            };
-                        }
-                        break;
-                    }
-                } else {
-                    directiveName[directiveName.length] = token;
-                }
-            }
-            directiveArgs = directiveArgs.concat(tokens);
-            if (directiveName.length === 1 && directiveName[0].type === types.TEXT) {
-                processed.name = directiveName[0].value;
-            } else {
-                processed.name = directiveName;
-            }
-            if (directiveArgs.length) {
-                if (directiveArgs.length === 1 && directiveArgs[0].type === types.TEXT) {
-                    parsed = parseJSON('[' + directiveArgs[0].value + ']');
-                    processed.args = parsed ? parsed.v : directiveArgs[0].value;
-                } else {
-                    item = directiveArgs[0];
-                    if (item.type === types.TEXT) {
-                        item.value = '[' + item.value;
-                    } else {
-                        directiveArgs.unshift({
-                            type: types.TEXT,
-                            value: '['
-                        });
-                    }
-                    item = directiveArgs[directiveArgs.length - 1];
-                    if (item.type === types.TEXT) {
-                        item.value += ']';
-                    } else {
-                        directiveArgs.push({
-                            type: types.TEXT,
-                            value: ']'
-                        });
-                    }
-                    processed.dynamicArgs = directiveArgs;
-                }
-            }
-            return processed;
-        };
-    }(config_types, utils_parseJSON);
-var StringStub_StringParser = function (getText, getMustache) {
-        
-        var StringParser;
-        StringParser = function (tokens, options) {
-            var stub;
-            this.tokens = tokens || [];
-            this.pos = 0;
-            this.options = options;
-            this.result = [];
-            while (stub = this.getStub()) {
-                this.result.push(stub);
-            }
-        };
-        StringParser.prototype = {
-            getStub: function () {
-                var token = this.next();
-                if (!token) {
-                    return null;
-                }
-                return this.getText(token) || this.getMustache(token);
-            },
-            getText: getText,
-            getMustache: getMustache,
-            next: function () {
-                return this.tokens[this.pos];
-            }
-        };
-        return StringParser;
-    }(getText__getText, getMustache__getMustache);
-var StringStub__StringStub = function (StringParser, stringifyStubs, jsonifyStubs) {
-        
-        var StringStub;
-        StringStub = function (tokens) {
-            var parser = new StringParser(tokens);
-            this.stubs = parser.result;
-        };
-        StringStub.prototype = {
-            toJSON: function (noStringify) {
-                var json;
-                if (this['json_' + noStringify]) {
-                    return this['json_' + noStringify];
-                }
-                json = this['json_' + noStringify] = jsonifyStubs(this.stubs, noStringify);
-                return json;
-            },
-            toString: function () {
-                if (this.str !== undefined) {
-                    return this.str;
-                }
-                this.str = stringifyStubs(this.stubs);
-                return this.str;
-            }
-        };
-        return StringStub;
-    }(StringStub_StringParser, utils_stringifyStubs, utils_jsonifyStubs);
-var utils_jsonifyDirective = function (StringStub) {
-        
-        return function (directive) {
-            var result, name;
-            if (typeof directive.name === 'string') {
-                if (!directive.args && !directive.dynamicArgs) {
-                    return directive.name;
-                }
-                name = directive.name;
-            } else {
-                name = new StringStub(directive.name).toJSON();
-            }
-            result = { n: name };
-            if (directive.args) {
-                result.a = directive.args;
-                return result;
-            }
-            if (directive.dynamicArgs) {
-                result.d = new StringStub(directive.dynamicArgs).toJSON();
-            }
-            return result;
-        };
-    }(StringStub__StringStub);
-var ElementStub_toJSON = function (types, jsonifyStubs, jsonifyDirective) {
-        
-        return function (noStringify) {
-            var json, name, value, proxy, i, len, attribute;
-            if (this['json_' + noStringify]) {
-                return this['json_' + noStringify];
-            }
-            if (this.component) {
-                json = {
-                    t: types.COMPONENT,
-                    e: this.component
-                };
-            } else {
-                json = {
-                    t: types.ELEMENT,
-                    e: this.tag
-                };
-            }
-            if (this.doctype) {
-                json.y = 1;
-            }
-            if (this.attributes && this.attributes.length) {
-                json.a = {};
-                len = this.attributes.length;
-                for (i = 0; i < len; i += 1) {
-                    attribute = this.attributes[i];
-                    name = attribute.name;
-                    if (json.a[name]) {
-                        throw new Error('You cannot have multiple attributes with the same name');
-                    }
-                    if (attribute.value === null) {
-                        value = null;
-                    } else {
-                        value = attribute.value.toJSON(noStringify);
-                    }
-                    json.a[name] = value;
-                }
-            }
-            if (this.items && this.items.length) {
-                json.f = jsonifyStubs(this.items, noStringify);
-            }
-            if (this.proxies && this.proxies.length) {
-                json.v = {};
-                len = this.proxies.length;
-                for (i = 0; i < len; i += 1) {
-                    proxy = this.proxies[i];
-                    json.v[proxy.directiveType] = jsonifyDirective(proxy);
-                }
-            }
-            if (this.intro) {
-                json.t1 = jsonifyDirective(this.intro);
-            }
-            if (this.outro) {
-                json.t2 = jsonifyDirective(this.outro);
-            }
-            if (this.decorator) {
-                json.o = jsonifyDirective(this.decorator);
-            }
-            this['json_' + noStringify] = json;
-            return json;
-        };
-    }(config_types, utils_jsonifyStubs, utils_jsonifyDirective);
-var ElementStub_toString = function (stringifyStubs, voidElementNames) {
-        
-        var htmlElements;
-        htmlElements = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split(' ');
-        return function () {
-            var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
-            if (this.str !== undefined) {
-                return this.str;
-            }
-            if (this.component) {
-                return this.str = false;
-            }
-            if (htmlElements.indexOf(this.tag.toLowerCase()) === -1) {
-                return this.str = false;
-            }
-            if (this.proxies || this.intro || this.outro || this.decorator) {
-                return this.str = false;
-            }
-            fragStr = stringifyStubs(this.items);
-            if (fragStr === false) {
-                return this.str = false;
-            }
-            isVoid = voidElementNames.indexOf(this.tag.toLowerCase()) !== -1;
-            str = '<' + this.tag;
-            if (this.attributes) {
-                for (i = 0, len = this.attributes.length; i < len; i += 1) {
-                    name = this.attributes[i].name;
-                    if (name.indexOf(':') !== -1) {
-                        return this.str = false;
-                    }
-                    if (name === 'id' || name === 'intro' || name === 'outro') {
-                        return this.str = false;
-                    }
-                    attrStr = ' ' + name;
-                    if (this.attributes[i].value !== null) {
-                        attrValueStr = this.attributes[i].value.toString();
-                        if (attrValueStr === false) {
-                            return this.str = false;
-                        }
-                        if (attrValueStr !== '') {
-                            attrStr += '=';
-                            if (/[\s"'=<>`]/.test(attrValueStr)) {
-                                attrStr += '"' + attrValueStr.replace(/"/g, '&quot;') + '"';
-                            } else {
-                                attrStr += attrValueStr;
-                            }
-                        }
-                    }
-                    str += attrStr;
-                }
-            }
-            if (this.selfClosing && !isVoid) {
-                str += '/>';
-                return this.str = str;
-            }
-            str += '>';
-            if (isVoid) {
-                return this.str = str;
-            }
-            str += fragStr;
-            str += '</' + this.tag + '>';
-            return this.str = str;
-        };
-    }(utils_stringifyStubs, config_voidElementNames);
-var ElementStub__ElementStub = function (types, voidElementNames, warn, camelCase, stringifyStubs, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub) {
-        
-        var ElementStub, allElementNames, closedByParentClose, onPattern, sanitize, leadingWhitespace = /^\s+/, trailingWhitespace = /\s+$/;
-        ElementStub = function (firstToken, parser, preserveWhitespace) {
-            var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
-            parser.pos += 1;
-            getFrag = function (attr) {
-                return {
-                    name: attr.name,
-                    value: attr.value ? new StringStub(attr.value) : null
-                };
-            };
-            this.tag = firstToken.name;
-            lowerCaseTag = firstToken.name.toLowerCase();
-            if (lowerCaseTag.substr(0, 3) === 'rv-') {
-                warn('The "rv-" prefix for components has been deprecated. Support will be removed in a future version');
-                this.tag = this.tag.substring(3);
-            }
-            preserveWhitespace = preserveWhitespace || lowerCaseTag === 'pre';
-            if (firstToken.attrs) {
-                filtered = filterAttributes(firstToken.attrs);
-                attrs = filtered.attrs;
-                proxies = filtered.proxies;
-                if (parser.options.sanitize && parser.options.sanitize.eventAttributes) {
-                    attrs = attrs.filter(sanitize);
-                }
-                if (attrs.length) {
-                    this.attributes = attrs.map(getFrag);
-                }
-                if (proxies.length) {
-                    this.proxies = proxies.map(processDirective);
-                }
-                if (filtered.intro) {
-                    this.intro = processDirective(filtered.intro);
-                }
-                if (filtered.outro) {
-                    this.outro = processDirective(filtered.outro);
-                }
-                if (filtered.decorator) {
-                    this.decorator = processDirective(filtered.decorator);
-                }
-            }
-            if (firstToken.doctype) {
-                this.doctype = true;
-            }
-            if (firstToken.selfClosing) {
-                this.selfClosing = true;
-            }
-            if (voidElementNames.indexOf(lowerCaseTag) !== -1) {
-                this.isVoid = true;
-            }
-            if (this.selfClosing || this.isVoid) {
-                return;
-            }
-            this.siblings = siblingsByTagName[lowerCaseTag];
-            this.items = [];
-            next = parser.next();
-            while (next) {
-                if (next.mustacheType === types.CLOSING) {
-                    break;
-                }
-                if (next.type === types.TAG) {
-                    if (next.closing) {
-                        if (next.name.toLowerCase() === lowerCaseTag) {
-                            parser.pos += 1;
-                        }
-                        break;
-                    } else if (this.siblings && this.siblings.indexOf(next.name.toLowerCase()) !== -1) {
-                        break;
-                    }
-                }
-                this.items[this.items.length] = parser.getStub();
-                next = parser.next();
-            }
-            if (!preserveWhitespace) {
-                item = this.items[0];
-                if (item && item.type === types.TEXT) {
-                    item.text = item.text.replace(leadingWhitespace, '');
-                    if (!item.text) {
-                        this.items.shift();
-                    }
-                }
-                item = this.items[this.items.length - 1];
-                if (item && item.type === types.TEXT) {
-                    item.text = item.text.replace(trailingWhitespace, '');
-                    if (!item.text) {
-                        this.items.pop();
-                    }
-                }
-            }
-        };
-        ElementStub.prototype = {
-            toJSON: toJSON,
-            toString: toString
-        };
-        allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split(' ');
-        closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split(' ');
-        onPattern = /^on[a-zA-Z]/;
-        sanitize = function (attr) {
-            var valid = !onPattern.test(attr.name);
-            return valid;
-        };
-        return ElementStub;
-    }(config_types, config_voidElementNames, utils_warn, utils_camelCase, utils_stringifyStubs, utils_siblingsByTagName, utils_filterAttributes, utils_processDirective, ElementStub_toJSON, ElementStub_toString, StringStub__StringStub);
-var getElement__getElement = function (types, ElementStub) {
-        
-        return function (token) {
-            if (this.options.sanitize && this.options.sanitize.elements) {
-                if (this.options.sanitize.elements.indexOf(token.name.toLowerCase()) !== -1) {
-                    return null;
-                }
-            }
-            return new ElementStub(token, this);
-        };
-    }(config_types, ElementStub__ElementStub);
-var Parser__Parser = function (getText, getComment, getMustache, getElement, jsonifyStubs) {
-        
-        var Parser;
-        Parser = function (tokens, options) {
-            var stub, stubs;
-            this.tokens = tokens || [];
-            this.pos = 0;
-            this.options = options;
-            this.preserveWhitespace = options.preserveWhitespace;
-            stubs = [];
-            while (stub = this.getStub()) {
-                stubs.push(stub);
-            }
-            this.result = jsonifyStubs(stubs);
-        };
-        Parser.prototype = {
-            getStub: function () {
-                var token = this.next();
-                if (!token) {
-                    return null;
-                }
-                return this.getText(token) || this.getComment(token) || this.getMustache(token) || this.getElement(token);
-            },
-            getText: getText,
-            getComment: getComment,
-            getMustache: getMustache,
-            getElement: getElement,
-            next: function () {
-                return this.tokens[this.pos];
-            }
-        };
-        return Parser;
-    }(getText__getText, getComment__getComment, getMustache__getMustache, getElement__getElement, utils_jsonifyStubs);
-var parse__parse = function (tokenize, types, Parser) {
-        
-        var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
-        onlyWhitespace = /^\s*$/;
-        inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
-        inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
-        parse = function (template, options) {
-            var tokens, json, token;
-            options = options || {};
-            if (inlinePartialStart.test(template)) {
-                return parseCompoundTemplate(template, options);
-            }
-            if (options.sanitize === true) {
-                options.sanitize = {
-                    elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split(' '),
-                    eventAttributes: true
-                };
-            }
-            tokens = tokenize(template, options);
-            if (!options.preserveWhitespace) {
-                token = tokens[0];
-                if (token && token.type === types.TEXT && onlyWhitespace.test(token.value)) {
-                    tokens.shift();
-                }
-                token = tokens[tokens.length - 1];
-                if (token && token.type === types.TEXT && onlyWhitespace.test(token.value)) {
-                    tokens.pop();
-                }
-            }
-            json = new Parser(tokens, options).result;
-            if (typeof json === 'string') {
-                return [json];
-            }
-            return json;
-        };
-        parseCompoundTemplate = function (template, options) {
-            var mainTemplate, remaining, partials, name, startMatch, endMatch;
-            partials = {};
-            mainTemplate = '';
-            remaining = template;
-            while (startMatch = inlinePartialStart.exec(remaining)) {
-                name = startMatch[1];
-                mainTemplate += remaining.substr(0, startMatch.index);
-                remaining = remaining.substring(startMatch.index + startMatch[0].length);
-                endMatch = inlinePartialEnd.exec(remaining);
-                if (!endMatch || endMatch[1] !== name) {
-                    throw new Error('Inline partials must have a closing delimiter, and cannot be nested');
-                }
-                partials[name] = parse(remaining.substr(0, endMatch.index), options);
-                remaining = remaining.substring(endMatch.index + endMatch[0].length);
-            }
-            return {
-                main: parse(mainTemplate, options),
-                partials: partials
-            };
-        };
-        return parse;
-    }(parse_tokenize, config_types, Parser__Parser);
-var Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
+var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
         
         var getPartialDescriptor, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
@@ -7290,7 +5358,7 @@ var Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, p
         };
         return getPartialDescriptor;
     }(config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__parse);
-var Partial__Partial = function (types, getPartialDescriptor, circular) {
+var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor, circular) {
         
         var DomPartial, DomFragment;
         circular.push(function () {
@@ -7331,11 +5399,17 @@ var Partial__Partial = function (types, getPartialDescriptor, circular) {
             },
             toString: function () {
                 return this.fragment.toString();
+            },
+            find: function (selector) {
+                return this.fragment.find(selector);
+            },
+            findAll: function (selector, options, queryResult) {
+                return this.fragment.findAll(selector, options, queryResult);
             }
         };
         return DomPartial;
-    }(config_types, Partial_getPartialDescriptor, circular);
-var Component_ComponentParameter = function (StringFragment) {
+    }(config_types, render_DomFragment_Partial_getPartialDescriptor, circular);
+var render_DomFragment_Component_ComponentParameter = function (StringFragment) {
         
         var ComponentParameter = function (root, component, key, value, contextStack) {
             this.parentFragment = component.parentFragment;
@@ -7361,13 +5435,13 @@ var Component_ComponentParameter = function (StringFragment) {
             },
             update: function () {
                 var value = this.fragment.getValue();
-                this.component.set(this.key, value);
+                this.component.instance.set(this.key, value);
                 this.value = value;
             }
         };
         return ComponentParameter;
-    }(StringFragment__StringFragment);
-var Component__Component = function (types, warn, parseJSON, resolveRef, ComponentParameter) {
+    }(render_StringFragment__StringFragment);
+var render_DomFragment_Component__Component = function (types, warn, parseJSON, resolveRef, ComponentParameter) {
         
         var DomComponent;
         DomComponent = function (options, docFrag) {
@@ -7517,8 +5591,8 @@ var Component__Component = function (types, warn, parseJSON, resolveRef, Compone
             }
         };
         return DomComponent;
-    }(config_types, utils_warn, utils_parseJSON, shared_resolveRef, Component_ComponentParameter);
-var DomFragment_Comment = function (types) {
+    }(config_types, utils_warn, utils_parseJSON, shared_resolveRef, render_DomFragment_Component_ComponentParameter);
+var render_DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
             this.type = types.COMMENT;
@@ -7548,7 +5622,7 @@ var DomFragment_Comment = function (types) {
         };
         return DomComment;
     }(config_types);
-var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular) {
+var render_DomFragment__DomFragment = function (types, matches, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular) {
         
         var DomFragment = function (options) {
             if (options.pNode) {
@@ -7651,12 +5725,71 @@ var DomFragment__DomFragment = function (types, initFragment, insertHtml, Text, 
                     html += item.toString();
                 }
                 return html;
+            },
+            find: function (selector) {
+                var i, len, item, node, queryResult;
+                if (this.nodes) {
+                    len = this.nodes.length;
+                    for (i = 0; i < len; i += 1) {
+                        node = this.nodes[i];
+                        if (node.nodeType !== 1) {
+                            continue;
+                        }
+                        if (matches(node, selector)) {
+                            return node;
+                        }
+                        if (queryResult = node.querySelector(selector)) {
+                            return queryResult;
+                        }
+                    }
+                    return null;
+                }
+                if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.find && (queryResult = item.find(selector))) {
+                            return queryResult;
+                        }
+                    }
+                    return null;
+                }
+            },
+            findAll: function (selector, options, queryResult) {
+                var i, len, item, node, queryAllResult, numNodes, j;
+                if (this.nodes) {
+                    len = this.nodes.length;
+                    for (i = 0; i < len; i += 1) {
+                        node = this.nodes[i];
+                        if (node.nodeType !== 1) {
+                            continue;
+                        }
+                        if (matches(node, selector)) {
+                            queryResult.push(node);
+                        }
+                        if (queryAllResult = node.querySelectorAll(selector)) {
+                            numNodes = queryAllResult.length;
+                            for (j = 0; j < numNodes; j += 1) {
+                                queryResult.push(queryAllResult[j]);
+                            }
+                        }
+                    }
+                } else if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.findAll) {
+                            item.findAll(selector, options, queryResult);
+                        }
+                    }
+                }
+                return queryResult;
             }
         };
         circular.DomFragment = DomFragment;
         return DomFragment;
-    }(config_types, shared_initFragment, shared_insertHtml, DomFragment_Text, DomFragment_Interpolator, Section__Section, DomFragment_Triple, Element__Element, Partial__Partial, Component__Component, DomFragment_Comment, circular);
-var prototype_render = function (getElement, makeTransitionManager, processDeferredUpdates, DomFragment) {
+    }(config_types, utils_matches, render_shared_initFragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular);
+var Ractive_prototype_render = function (getElement, makeTransitionManager, preDomUpdate, postDomUpdate, DomFragment) {
         
         return function (target, complete) {
             var transitionManager;
@@ -7667,25 +5800,23 @@ var prototype_render = function (getElement, makeTransitionManager, processDefer
                 owner: this,
                 pNode: this.el
             });
-            processDeferredUpdates(this, true);
+            preDomUpdate(this);
             if (target) {
                 target.appendChild(this.fragment.docFrag);
             }
-            while (this._defTransitions.length) {
-                this._defTransitions.pop().init();
-            }
+            postDomUpdate(this);
             this._transitionManager = null;
             transitionManager.ready();
             this.rendered = true;
         };
-    }(utils_getElement, shared_makeTransitionManager, shared_processDeferredUpdates, DomFragment__DomFragment);
-var prototype_renderHTML = function () {
+    }(utils_getElement, shared_makeTransitionManager, shared_preDomUpdate, shared_postDomUpdate, render_DomFragment__DomFragment);
+var Ractive_prototype_renderHTML = function () {
         
         return function () {
             return this.fragment.toString();
         };
     }();
-var prototype_teardown = function (makeTransitionManager, clearCache) {
+var Ractive_prototype_teardown = function (makeTransitionManager, clearCache) {
         
         return function (complete) {
             var keypath, transitionManager, previousTransitionManager;
@@ -7703,7 +5834,7 @@ var prototype_teardown = function (makeTransitionManager, clearCache) {
             transitionManager.ready();
         };
     }(shared_makeTransitionManager, shared_clearCache);
-var shared_add = function (isNumeric) {
+var Ractive_prototype_shared_add = function (isNumeric) {
         
         return function (root, keypath, d) {
             var value;
@@ -7726,19 +5857,19 @@ var shared_add = function (isNumeric) {
             root.set(keypath, value + d);
         };
     }(utils_isNumeric);
-var prototype_add = function (add) {
+var Ractive_prototype_add = function (add) {
         
         return function (keypath, d) {
             add(this, keypath, d === undefined ? 1 : d);
         };
-    }(shared_add);
-var prototype_subtract = function (add) {
+    }(Ractive_prototype_shared_add);
+var Ractive_prototype_subtract = function (add) {
         
         return function (keypath, d) {
             add(this, keypath, d === undefined ? -1 : -d);
         };
-    }(shared_add);
-var prototype_toggle = function () {
+    }(Ractive_prototype_shared_add);
+var Ractive_prototype_toggle = function () {
         
         return function (keypath) {
             var value;
@@ -7752,7 +5883,7 @@ var prototype_toggle = function () {
             this.set(keypath, !value);
         };
     }();
-var merge_mapOldToNewIndex = function () {
+var Ractive_prototype_merge_mapOldToNewIndex = function () {
         
         return function (oldArray, newArray) {
             var usedIndices, mapper, firstUnusedIndex, newIndices, changed;
@@ -7784,7 +5915,7 @@ var merge_mapOldToNewIndex = function () {
             return newIndices;
         };
     }();
-var merge_queueDependants = function (types) {
+var Ractive_prototype_merge_queueDependants = function (types) {
         
         return function queueDependants(keypath, deps, mergeQueue, updateQueue) {
             var i, dependant;
@@ -7801,7 +5932,7 @@ var merge_queueDependants = function (types) {
             }
         };
     }(config_types);
-var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
+var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDomUpdate, processDeferredUpdates, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
         
         var identifiers = {};
         return function (keypath, array, options) {
@@ -7855,7 +5986,7 @@ var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, 
                 deps = depsByKeypath[keypath];
                 if (deps) {
                     queueDependants(keypath, deps, mergeQueue, updateQueue);
-                    processDeferredUpdates(this);
+                    preDomUpdate(this);
                     while (mergeQueue.length) {
                         mergeQueue.pop().merge(newIndices);
                     }
@@ -7889,8 +6020,8 @@ var merge__merge = function (warn, isArray, clearCache, processDeferredUpdates, 
             }
             return identifiers[str];
         }
-    }(utils_warn, utils_isArray, shared_clearCache, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants, shared_replaceData, merge_mapOldToNewIndex, merge_queueDependants);
-var prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge) {
+    }(utils_warn, utils_isArray, shared_clearCache, shared_preDomUpdate, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants);
+var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge) {
         
         return {
             get: get,
@@ -7912,7 +6043,7 @@ var prototype__prototype = function (get, set, update, updateModel, animate, on,
             toggle: toggle,
             merge: merge
         };
-    }(get__get, prototype_set, prototype_update, prototype_updateModel, animate__animate, prototype_on, prototype_off, observe__observe, prototype_fire, prototype_find, prototype_findAll, prototype_render, prototype_renderHTML, prototype_teardown, prototype_add, prototype_subtract, prototype_toggle, merge__merge);
+    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge);
 var extend_registries = function () {
         
         return [
@@ -7971,7 +6102,7 @@ var extend_wrapMethod = function () {
             }
         };
     }();
-var utils_augment = function () {
+var extend_utils_augment = function () {
         
         return function (target, source) {
             var key;
@@ -8025,7 +6156,7 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                 }
             }
         };
-    }(extend_registries, extend_initOptions, extend_wrapMethod, utils_augment);
+    }(extend_registries, extend_initOptions, extend_wrapMethod, extend_utils_augment);
 var extend_extractInlinePartials = function (isObject, augment) {
         
         return function (Child, childProps) {
@@ -8040,7 +6171,7 @@ var extend_extractInlinePartials = function (isObject, augment) {
                 Child.template = Child.template.main;
             }
         };
-    }(utils_isObject, utils_augment);
+    }(utils_isObject, extend_utils_augment);
 var extend_conditionallyParseTemplate = function (errors, isClient, parse) {
         
         return function (Child) {
@@ -8078,7 +6209,7 @@ var extend_conditionallyParsePartials = function (errors, parse) {
             }
         };
     }(config_errors, parse__parse);
-var utils_clone = function () {
+var extend_utils_clone = function () {
         
         return function (source) {
             var target = {}, key;
@@ -8090,7 +6221,7 @@ var utils_clone = function () {
             return target;
         };
     }();
-var utils_fillGaps = function () {
+var extend_utils_fillGaps = function () {
         
         return function (target, source) {
             var key;
@@ -8221,6 +6352,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _defRadios: { value: [] },
                 _defObservers: { value: [] },
                 _defTransitions: { value: [] },
+                _defLiveQueries: { value: [] },
                 _evaluators: { value: create(null) },
                 _twowayBindings: { value: {} },
                 _transitionManager: {
@@ -8229,7 +6361,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 },
                 _animations: { value: [] },
                 nodes: { value: {} },
-                _wrapped: { value: create(null) }
+                _wrapped: { value: create(null) },
+                _liveQueries: { value: [] }
             });
             ractive.data = options.data;
             ractive.adaptors = options.adaptors;
@@ -8293,7 +6426,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.render(ractive.el, options.complete);
             ractive.transitionsEnabled = options.transitionsEnabled;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, get_magicAdaptor, parse__parse);
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
 var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMethod, initialise) {
         
         return function (child, Child, options) {
@@ -8316,7 +6449,7 @@ var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMetho
                 child.init(options);
             }
         };
-    }(extend_initOptions, utils_clone, utils_fillGaps, extend_wrapMethod, Ractive_initialise);
+    }(extend_initOptions, extend_utils_clone, extend_utils_fillGaps, extend_wrapMethod, Ractive_initialise);
 var extend__extend = function (create, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
         
         var Ractive;
@@ -8366,7 +6499,7 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
         Ractive.VERSION = '0.3.8-pre';
         circular.Ractive = Ractive;
         return Ractive;
-    }(utils_create, utils_defineProperties, prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
+    }(utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular) {
         
         if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {
