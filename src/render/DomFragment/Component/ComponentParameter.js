@@ -44,6 +44,10 @@ define([
 
 			this.component.instance.set( this.key, value );
 			this.value = value;
+		},
+
+		teardown: function () {
+			this.fragment.teardown();
 		}
 	};
 
