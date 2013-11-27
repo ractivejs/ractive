@@ -814,6 +814,67 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '123' );
 		});
 
+		// ARGH these tests don't work in phantomJS
+		/*test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', function ( t ) {
+			var ractive, p, docFrag;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{foo}}</p>',
+				data: { foo: 'whee!' }
+			});
+
+			p = ractive.find( 'p' );
+
+			docFrag = ractive.detach();
+			t.ok( docFrag instanceof DocumentFragment );
+			t.ok( docFrag.contains( p ) );
+		});
+
+		test( 'ractive.detach() works with a previously unrendered ractive', function ( t ) {
+			var ractive, p, docFrag;
+
+			ractive = new Ractive({
+				template: '<p>{{foo}}</p>',
+				data: { foo: 'whee!' }
+			});
+
+			p = ractive.find( 'p' );
+
+			docFrag = ractive.detach();
+			t.ok( docFrag instanceof DocumentFragment );
+			t.ok( docFrag.contains( p ) );
+		});*/
+
+		test( 'ractive.insert() moves an instance to a different location', function ( t ) {
+			var ractive, p, one, two, three;
+
+			one = document.createElement( 'div' );
+			two = document.createElement( 'div' );
+
+			three = document.createElement( 'div' );
+			three.innerHTML = '<p>before</p><p class="after">after</p>';
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{foo}}</p>',
+				data: { foo: 'whee!' }
+			});
+
+			p = ractive.find( 'p' );
+
+			ractive.insert( one );
+			t.ok( one.contains( p ) );
+
+			ractive.insert( two );
+			t.ok( !one.contains( p ) );
+			t.ok( two.contains( p ) );
+
+			ractive.insert( three, three.querySelector( '.after' ) );
+			t.ok( three.contains( p ) );
+			t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

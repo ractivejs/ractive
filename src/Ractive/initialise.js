@@ -212,10 +212,16 @@ define([
 			stripComments: options.stripComments
 		};
 		
-		// temporarily disable transitions, if noIntro flag is set
+		// Temporarily disable transitions, if noIntro flag is set
 		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 
-		// if the target contains content, and `append` is falsy, clear it
+		// If we're in a browser, and no element has been specified, create
+		// a document fragment to use instead
+		if ( isClient && !ractive.el ) {
+			ractive.el = document.createDocumentFragment();
+		}
+
+		// If the target contains content, and `append` is falsy, clear it
 		if ( ractive.el && !options.append ) {
 			ractive.el.innerHTML = '';
 		}

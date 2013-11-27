@@ -24,7 +24,7 @@ define([
 			descriptor: this.template,
 			root: this,
 			owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
-			pNode: this.el
+			pNode: target
 		});
 
 		preDomUpdate( this );

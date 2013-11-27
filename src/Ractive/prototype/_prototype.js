@@ -16,7 +16,9 @@ define([
 	'Ractive/prototype/add',
 	'Ractive/prototype/subtract',
 	'Ractive/prototype/toggle',
-	'Ractive/prototype/merge/_merge'
+	'Ractive/prototype/merge/_merge',
+	'Ractive/prototype/detach',
+	'Ractive/prototype/insert'
 ], function (
 	get,
 	set,
@@ -35,7 +37,9 @@ define([
 	add,
 	subtract,
 	toggle,
-	merge
+	merge,
+	detach,
+	insert
 ) {
 	
 	'use strict';
@@ -58,7 +62,9 @@ define([
 		add: add,
 		subtract: subtract,
 		toggle: toggle,
-		merge: merge
+		merge: merge,
+		detach: detach,
+		insert: insert
 	};
 
 });
