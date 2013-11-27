@@ -1,4 +1,4 @@
-define([ 'utils/matches' ], function ( matches ) {
+define( function () {
 	
 	'use strict';
 

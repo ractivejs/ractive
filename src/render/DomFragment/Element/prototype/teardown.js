@@ -7,7 +7,7 @@ define([
 	'use strict';
 
 	return function ( destroy ) {
-		var eventName, binding, bindings, i, liveQueries, selector, query, index, nodesToRemove, j;
+		var eventName, binding, bindings, i, liveQueries, selector, query, nodesToRemove, j;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager

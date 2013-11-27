@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-26
+	Ractive - v0.3.8-pre - 2013-11-27
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1878,75 +1878,6 @@ var Ractive_prototype_find = function () {
             return this.fragment.find(selector);
         };
     }();
-var Ractive_prototype_findAll = function (warn, defineProperty) {
-        
-        var sortQuery, comparePosition;
-        sortQuery = function () {
-            this.sort(comparePosition);
-            this._dirty = false;
-        };
-        comparePosition = function (node, otherNode) {
-            var bitmask = node.compareDocumentPosition(otherNode);
-            return bitmask & 2 ? 1 : -1;
-        };
-        return function (selector, options) {
-            var liveQueries, queryResult;
-            if (!this.el) {
-                return [];
-            }
-            options = options || {};
-            liveQueries = this._liveQueries;
-            if (queryResult = liveQueries[selector]) {
-                return options && options.live ? queryResult : queryResult.slice();
-            }
-            queryResult = [];
-            if (options.live) {
-                liveQueries.push(selector);
-                liveQueries[selector] = queryResult;
-                defineProperty(queryResult, 'cancel', {
-                    value: function () {
-                        var index = liveQueries.indexOf(selector);
-                        if (index !== -1) {
-                            liveQueries.splice(index, 1);
-                            liveQueries[selector] = null;
-                        }
-                    }
-                });
-                defineProperty(queryResult, '_sort', { value: sortQuery });
-                defineProperty(queryResult, '_dirty', {
-                    value: false,
-                    writable: true
-                });
-            }
-            this.fragment.findAll(selector, options, queryResult);
-            return queryResult;
-        };
-    }(utils_warn, utils_defineProperty);
-var utils_getElement = function () {
-        
-        return function (input) {
-            var output;
-            if (typeof window === 'undefined' || !document || !input) {
-                return null;
-            }
-            if (input.nodeType) {
-                return input;
-            }
-            if (typeof input === 'string') {
-                output = document.getElementById(input);
-                if (!output && document.querySelector) {
-                    output = document.querySelector(input);
-                }
-                if (output && output.nodeType) {
-                    return output;
-                }
-            }
-            if (input[0] && input[0].nodeType) {
-                return input[0];
-            }
-            return null;
-        };
-    }();
 var utils_matches = function (isClient) {
         
         var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
@@ -1995,6 +1926,116 @@ var utils_matches = function (isClient) {
             return false;
         };
     }(config_isClient);
+var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
+        
+        var makeQuery, cancelQuery, sortQuery, dirtyQuery, testNode, removeNode, comparePosition;
+        makeQuery = function (ractive, selector, live) {
+            var query;
+            query = [];
+            defineProperties(query, {
+                selector: { value: selector },
+                live: { value: live },
+                _test: { value: testNode }
+            });
+            if (!live) {
+                return query;
+            }
+            defineProperties(query, {
+                cancel: { value: cancelQuery },
+                _root: { value: ractive },
+                _sort: { value: sortQuery },
+                _dirty: {
+                    value: false,
+                    writable: true
+                },
+                _makeDirty: { value: dirtyQuery },
+                _remove: { value: removeNode }
+            });
+            return query;
+        };
+        cancelQuery = function () {
+            var liveQueries, selector, index;
+            liveQueries = this._root.liveQueries;
+            selector = this.selector;
+            index = liveQueries.indexOf(selector);
+            if (index !== -1) {
+                liveQueries.splice(index, 1);
+                liveQueries[selector] = null;
+            }
+        };
+        dirtyQuery = function () {
+            if (!this._dirty) {
+                this._root._defLiveQueries.push(this);
+                this._dirty = true;
+            }
+        };
+        sortQuery = function () {
+            this.sort(comparePosition);
+            this._dirty = false;
+        };
+        comparePosition = function (node, otherNode) {
+            var bitmask = node.compareDocumentPosition(otherNode);
+            return bitmask & 2 ? 1 : -1;
+        };
+        testNode = function (node, noDirty) {
+            if (matches(node, this.selector)) {
+                this.push(node);
+                if (!noDirty) {
+                    this._makeDirty();
+                }
+                return true;
+            }
+        };
+        removeNode = function (node) {
+            var index = this.indexOf(node);
+            if (index !== -1) {
+                this.splice(index, 1);
+            }
+        };
+        return function (selector, options) {
+            var liveQueries, query;
+            if (!this.el) {
+                return [];
+            }
+            options = options || {};
+            liveQueries = this._liveQueries;
+            if (query = liveQueries[selector]) {
+                return options && options.live ? query : query.slice();
+            }
+            query = makeQuery(this, selector, !!options.live);
+            if (query.live) {
+                this._liveQueries.push(selector);
+                this._liveQueries[selector] = query;
+            }
+            this.fragment.findAll(selector, query);
+            return query;
+        };
+    }(utils_warn, utils_matches, utils_defineProperties);
+var utils_getElement = function () {
+        
+        return function (input) {
+            var output;
+            if (typeof window === 'undefined' || !document || !input) {
+                return null;
+            }
+            if (input.nodeType) {
+                return input;
+            }
+            if (typeof input === 'string') {
+                output = document.getElementById(input);
+                if (!output && document.querySelector) {
+                    output = document.querySelector(input);
+                }
+                if (output && output.nodeType) {
+                    return output;
+                }
+            }
+            if (input[0] && input[0].nodeType) {
+                return input[0];
+            }
+            return null;
+        };
+    }();
 var render_shared_initFragment = function (types, create) {
         
         return function (fragment, options) {
@@ -2645,7 +2686,7 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
             }
         }
         function reassignElement(element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
-            var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings;
+            var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
             i = element.attributes.length;
             while (i--) {
                 attribute = element.attributes[i];
@@ -2688,6 +2729,13 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
             }
             if (element.fragment) {
                 reassignFragment(element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+            }
+            if (liveQueries = element.liveQueries) {
+                ractive = element.root;
+                i = liveQueries.length;
+                while (i--) {
+                    ractive._liveQueries[liveQueries[i]]._makeDirty();
+                }
             }
         }
         function reassignMustache(mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
@@ -4500,7 +4548,7 @@ var render_DomFragment_Element_initialise_addEventProxies__addEventProxies = fun
             }
         };
     }(render_DomFragment_Element_initialise_addEventProxies_addEventProxy);
-var render_DomFragment_Element_initialise_updateLiveQueries = function (matches) {
+var render_DomFragment_Element_initialise_updateLiveQueries = function () {
         
         return function (element) {
             var ractive, liveQueries, i, selector, query;
@@ -4510,18 +4558,13 @@ var render_DomFragment_Element_initialise_updateLiveQueries = function (matches)
             while (i--) {
                 selector = liveQueries[i];
                 query = liveQueries[selector];
-                if (matches(element.node, selector)) {
-                    query.push(element.node);
+                if (query._test(element.node)) {
                     (element.liveQueries || (element.liveQueries = [])).push(selector);
                     element.liveQueries[selector] = [element.node];
-                    if (!query._dirty) {
-                        ractive._defLiveQueries.push(query);
-                        query._dirty = true;
-                    }
                 }
             }
         };
-    }(utils_matches);
+    }();
 var utils_camelCase = function () {
         
         return function (hyphenatedStr) {
@@ -4857,7 +4900,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
 var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
         
         return function (destroy) {
-            var eventName, binding, bindings, i, liveQueries, selector, query, index, nodesToRemove, j;
+            var eventName, binding, bindings, i, liveQueries, selector, query, nodesToRemove, j;
             if (this.fragment) {
                 this.fragment.teardown(false);
             }
@@ -4893,10 +4936,7 @@ var render_DomFragment_Element_prototype_teardown = function (executeTransition)
                         j = nodesToRemove.length;
                         query = this.root._liveQueries[selector];
                         while (j--) {
-                            index = query.indexOf(nodesToRemove[j]);
-                            if (index !== -1) {
-                                query.splice(index, 1);
-                            }
+                            query._remove(nodesToRemove[j]);
                         }
                     }
                 }
@@ -4943,24 +4983,35 @@ var render_DomFragment_Element_prototype_find = function (matches) {
             }
         };
     }(utils_matches);
-var render_DomFragment_Element_prototype_findAll = function (matches) {
+var render_DomFragment_Element_prototype_findAll = function () {
         
-        return function (selector, options, list) {
-            var queryAllResult, i, numNodes;
-            if (matches(this.node, selector)) {
-                list.push(this.node);
+        return function (selector, query) {
+            var queryAllResult, i, numNodes, node, registeredNodes;
+            if (query._test(this.node, true) && query.live) {
+                (this.liveQueries || (this.liveQueries = [])).push(selector);
+                this.liveQueries[selector] = [this.node];
             }
-            if (this.html && (queryAllResult = this.node.querySelectorAll(selector))) {
-                numNodes = queryAllResult.length;
+            if (this.html && (queryAllResult = this.node.querySelectorAll(selector)) && (numNodes = queryAllResult.length)) {
+                if (query.live) {
+                    if (!this.liveQueries[selector]) {
+                        (this.liveQueries || (this.liveQueries = [])).push(selector);
+                        this.liveQueries[selector] = [];
+                    }
+                    registeredNodes = this.liveQueries[selector];
+                }
                 for (i = 0; i < numNodes; i += 1) {
-                    list.push(queryAllResult[i]);
+                    node = queryAllResult[i];
+                    query.push(node);
+                    if (query.live) {
+                        registeredNodes.push(node);
+                    }
                 }
             }
             if (this.fragment) {
-                this.fragment.findAll(selector, options, list);
+                this.fragment.findAll(selector, query);
             }
         };
-    }(utils_matches);
+    }();
 var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll) {
         
         var DomElement = function (options, docFrag) {
@@ -7293,6 +7344,9 @@ var render_DomFragment_Component_ComponentParameter = function (StringFragment) 
                 var value = this.fragment.getValue();
                 this.component.instance.set(this.key, value);
                 this.value = value;
+            },
+            teardown: function () {
+                this.fragment.teardown();
             }
         };
         return ComponentParameter;
@@ -7654,7 +7708,7 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, preD
                 descriptor: this.template,
                 root: this,
                 owner: this,
-                pNode: this.el
+                pNode: target
             });
             preDomUpdate(this);
             if (target) {
@@ -7877,7 +7931,24 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDom
             return identifiers[str];
         }
     }(utils_warn, utils_isArray, shared_clearCache, shared_preDomUpdate, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants);
-var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge) {
+var Ractive_prototype_detach = function () {
+        
+        return function () {
+            return this.fragment.detach();
+        };
+    }();
+var Ractive_prototype_insert = function (getElement) {
+        
+        return function (target, anchor) {
+            target = getElement(target);
+            anchor = getElement(anchor) || null;
+            if (!target) {
+                throw new Error('You must specify a valid target to insert into');
+            }
+            target.insertBefore(this.detach(), anchor);
+        };
+    }(utils_getElement);
+var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge, detach, insert) {
         
         return {
             get: get,
@@ -7897,9 +7968,11 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             add: add,
             subtract: subtract,
             toggle: toggle,
-            merge: merge
+            merge: merge,
+            detach: detach,
+            insert: insert
         };
-    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge);
+    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
 var extend_registries = function () {
         
         return [
@@ -8276,6 +8349,9 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 stripComments: options.stripComments
             };
             ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
+            if (isClient && !ractive.el) {
+                ractive.el = document.createDocumentFragment();
+            }
             if (ractive.el && !options.append) {
                 ractive.el.innerHTML = '';
             }
