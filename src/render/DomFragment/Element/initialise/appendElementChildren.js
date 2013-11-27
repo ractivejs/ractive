@@ -18,13 +18,30 @@ define([
 
 
 	return function ( element, node, descriptor, docFrag ) {
+		var liveQueries, i, selector, queryAllResult, j;
+
 		if ( typeof descriptor.f === 'string' && ( !node || ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) ) {
 			// great! we can use innerHTML
 			element.html = descriptor.f;
 
 			if ( docFrag ) {
 				node.innerHTML = element.html;
-				// TODO update live queries, if applicable
+				
+				// Update live queries, if applicable
+				liveQueries = element.root._liveQueries;
+				i = liveQueries.length;
+				while ( i-- ) {
+					selector = liveQueries[i];
+
+					if ( queryAllResult = node.querySelectorAll( selector ) && ( j = queryAllResult.length ) ) {
+						( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
+						element.liveQueries[ selector ] = [];
+
+						while ( j-- ) {
+							element.liveQueries[ selector ][j] = queryAllResult[j];
+						}
+					}
+				}
 			}
 		}
 

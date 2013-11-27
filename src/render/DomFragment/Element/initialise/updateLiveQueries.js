@@ -14,13 +14,10 @@ define([ 'utils/matches' ], function ( matches ) {
 			selector = liveQueries[i];
 			query = liveQueries[ selector ];
 
-			if ( matches( element.node, selector ) ) {
-				query.push( element.node );
-				
-				if ( !query._dirty ) {
-					ractive._defLiveQueries.push( query );
-					query._dirty = true;
-				}
+			if ( query._test( element.node ) ) {
+				// keep register of applicable selectors, for when we teardown
+				( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
+				element.liveQueries[ selector ] = [ element.node ];
 			}
 		}
 	};

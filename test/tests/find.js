@@ -8,7 +8,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 		module( 'ractive.find()/findAll()' );
 
-		test( 'Find works with a string-only template', function ( t ) {
+		test( 'find() works with a string-only template', function ( t ) {
 			var ractive;
 
 			ractive = new Ractive({
@@ -19,7 +19,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.ok( ractive.find( 'p' ).innerHTML === 'foo' );
 		});
 
-		test( 'Find works with a template containing mustaches', function ( t ) {
+		test( 'find() works with a template containing mustaches', function ( t ) {
 			var ractive;
 
 			ractive = new Ractive({
@@ -31,7 +31,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 		});
 
-		test( 'Find works with nested elements', function ( t ) {
+		test( 'find() works with nested elements', function ( t ) {
 			var ractive;
 
 			ractive = new Ractive({
@@ -42,6 +42,68 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 		});
+
+		test( 'findAll() gets an array of all nodes matching a selector', function ( t ) {
+			var ractive, divs;
+
+			ractive = new Ractive({
+				el: fixture, 
+				template: '<div><div><div>{{foo}}</div></div></div>'
+			});
+
+			divs = ractive.findAll( 'div' );
+			t.equal( divs.length, 3 );
+		});
+
+		test( 'findAll() with { live: true } gets an updating array of all nodes matching a selector', function ( t ) {
+			var ractive, lis;
+
+			ractive = new Ractive({
+				el: fixture, 
+				template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
+				data: {
+					items: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			lis = ractive.findAll( 'li', { live: true });
+			t.equal( lis.length, 3 );
+
+			ractive.get( 'items' ).push( 'd' );
+			t.equal( lis.length, 4 );
+		});
+
+		test( 'A live query maintains the correct sort order after a merge operation', function ( t ) {
+			var ractive, lis, getHtml;
+
+			ractive = new Ractive({
+				el: fixture, 
+				template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
+				data: {
+					items: [ 'a', 'b', 'c', 'd' ]
+				}
+			});
+
+			getHtml = function ( node ) {
+				return node.innerHTML;
+			};
+
+			lis = ractive.findAll( 'li', { live: true });
+			t.deepEqual( lis.map( getHtml ), [ 'a', 'b', 'c', 'd' ] );
+			console.log( lis.map( getHtml ) );
+
+			ractive.merge( 'items', [ 'c', 'b', 'a', 'd' ] );
+			t.deepEqual( lis.map( getHtml ), [ 'c', 'b', 'a', 'd' ] );
+			console.log( lis.map( getHtml ) );
+
+			window.lis = lis;
+		});
+
+
+		// TODO add tests (and add the functionality)...
+		// * cancelling a live query (also, followed by teardown)
+		// * components
+		// * a load of other stuff
 		
 	};
 
