@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-27
+	Ractive - v0.3.8-pre - 2013-11-28
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -4281,14 +4281,36 @@ var render_DomFragment_Element_initialise_createElementAttributes = function (Do
             return element.attributes;
         };
     }(render_DomFragment_Attribute__Attribute);
-var render_DomFragment_Element_initialise_appendElementChildren = function (namespaces, StringFragment, circular) {
+var render_DomFragment_Element_initialise_appendElementChildren = function (warn, namespaces, StringFragment, circular) {
         
-        var DomFragment;
+        var DomFragment, updateCss, updateScript;
         circular.push(function () {
             DomFragment = circular.DomFragment;
         });
+        updateCss = function () {
+            this.node.styleSheet.cssText = this.fragment.toString();
+        };
+        updateScript = function () {
+            if (!this.node.type || this.node.type === 'text/javascript') {
+                warn('Script tag was updated. This does not cause the code to be re-evaluated!');
+            }
+            this.node.innerHTML = this.fragment.toString();
+        };
         return function (element, node, descriptor, docFrag) {
             var liveQueries, i, selector, queryAllResult, j;
+            if (element.lcName === 'script') {
+                element.fragment = new StringFragment({
+                    descriptor: descriptor.f,
+                    root: element.root,
+                    contextStack: element.parentFragment.contextStack,
+                    owner: element
+                });
+                if (docFrag) {
+                    element.node.innerHTML = element.fragment.toString();
+                    element.bubble = updateScript;
+                }
+                return;
+            }
             if (typeof descriptor.f === 'string' && (!node || (!node.namespaceURI || node.namespaceURI === namespaces.html))) {
                 element.html = descriptor.f;
                 if (docFrag) {
@@ -4307,7 +4329,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (name
                     }
                 }
             } else {
-                if (descriptor.e === 'style' && node.styleSheet !== undefined) {
+                if (descriptor.e === 'style' && node && node.styleSheet !== undefined) {
                     element.fragment = new StringFragment({
                         descriptor: descriptor.f,
                         root: element.root,
@@ -4315,9 +4337,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (name
                         owner: element
                     });
                     if (docFrag) {
-                        element.bubble = function () {
-                            node.styleSheet.cssText = element.fragment.toString();
-                        };
+                        element.bubble = updateCss;
                     }
                 } else {
                     element.fragment = new DomFragment({
@@ -4333,7 +4353,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (name
                 }
             }
         };
-    }(config_namespaces, render_StringFragment__StringFragment, circular);
+    }(utils_warn, config_namespaces, render_StringFragment__StringFragment, circular);
 var render_DomFragment_Element_initialise_bindElement = function () {
         
         return function (element, attributes) {
@@ -4825,6 +4845,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
             element.root = root = parentFragment.root;
             element.pNode = parentFragment.pNode;
             element.index = options.index;
+            element.lcName = descriptor.e.toLowerCase();
             element.eventListeners = [];
             element.customEventListeners = [];
             if (element.pNode) {
