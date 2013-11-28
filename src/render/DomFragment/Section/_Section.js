@@ -295,7 +295,7 @@ define([
 		},
 
 		toString: function () {
-			var str, i, len;
+			var str, i, id, len;
 
 			str = '';
 
@@ -304,6 +304,14 @@ define([
 
 			for ( i=0; i<len; i+=1 ) {
 				str += this.fragments[i].toString();
+			}
+
+			if ( this.fragmentsById ) {
+				for ( id in this.fragmentsById ) {
+					if ( this.fragmentsById[ id ] ) {
+						str += this.fragmentsById[ id ].toString();
+					}
+				}
 			}
 
 			return str;

@@ -365,6 +365,14 @@ var renderTests = [
 		template: '<script>var html="<p>{{html}}</p>";var foo = 4 < 3;</script>',
 		data: { html: 'some <strong>html</strong>' },
 		result: '<script>var html="<p>some <strong>html</strong></p>";var foo = 4 < 3;</script>'
+	},
+	{
+		name: 'Section iterating over a hash',
+		template: '<ul>{{#items:key}}<li>{{key}}: {{this}}</li>{{/items}}</ul>',
+		data: { items: { a: 1, b: 2, c: 3 } },
+		result: '<ul><li>a: 1</li><li>b: 2</li><li>c: 3</li></ul>',
+		new_data: { items: { c: 3, d: 4, e: 5 } },
+		new_result: '<ul><li>c: 3</li><li>d: 4</li><li>e: 5</li></ul>'
 	}
 ];
 
