@@ -22,8 +22,10 @@ define([
 
 	DomElement.prototype = {
 		detach: function () {
-			this.node.parentNode.removeChild( this.node );
-			return this.node;
+			if ( this.node ) {
+				this.node.parentNode.removeChild( this.node );
+				return this.node;
+			}
 		},
 
 		teardown: teardown,

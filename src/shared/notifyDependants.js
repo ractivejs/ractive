@@ -66,13 +66,13 @@ define( function () {
 		cascade( ractive._depsMap[ keypath ], ractive, priority );
 	}
 
-	function updateAll ( deps, keypath ) {
-		var i;
+	function updateAll ( deps ) {
+		var i, len;
 
 		if ( deps ) {
-			i = deps.length;
-			while ( i-- ) {
-				deps[i].update( keypath );
+			len = deps.length;
+			for ( i = 0; i < len; i += 1 ) {
+				deps[i].update();
 			}
 		}
 	}

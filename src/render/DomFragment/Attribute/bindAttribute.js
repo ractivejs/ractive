@@ -18,6 +18,7 @@ define([
 
 		getInterpolator,
 		updateModel,
+		update,
 		getBinding,
 		inheritProperties,
 		MultipleSelectBinding,
@@ -83,6 +84,10 @@ define([
 	// (i.e. change, sometimes, input, and occasionally click and keyup)
 	updateModel = function () {
 		this._ractive.binding.update();
+	};
+
+	update = function () {
+		this.value = this._ractive.root.get( this._ractive.binding.keypath );
 	};
 
 	getInterpolator = function ( attribute ) {
@@ -448,6 +453,8 @@ define([
 				node.addEventListener( 'keyup', updateModel, false );
 			}
 		}
+
+		this.node.addEventListener( 'blur', update, false );
 	};
 
 	GenericBinding.prototype = {
@@ -474,6 +481,7 @@ define([
 			this.node.removeEventListener( 'change', updateModel, false );
 			this.node.removeEventListener( 'input', updateModel, false );
 			this.node.removeEventListener( 'keyup', updateModel, false );
+			this.node.removeEventListener( 'blur', update, false );
 		}
 	};
 

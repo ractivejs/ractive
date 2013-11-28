@@ -32,6 +32,7 @@ define([
 		}
 		
 		registerDependant( observer );
+		observer.init( options.init );
 
 		// This flag allows observers to initialise even with undefined values
 		observer.ready = true;

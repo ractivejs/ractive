@@ -19,7 +19,7 @@ define([
 			this.attributes.pop().teardown();
 		}
 
-		if ( this.node._ractive ) {
+		if ( this.node ) {
 			for ( eventName in this.node._ractive.events ) {
 				this.node._ractive.events[ eventName ].teardown();
 			}

@@ -11,8 +11,6 @@ define([
 	var PatternObserver, wildcard = /\*/;
 
 	PatternObserver = function ( ractive, keypath, callback, options ) {
-		var values;
-
 		this.root = ractive;
 		
 		this.callback = callback;
@@ -33,22 +31,25 @@ define([
 
 		// default to root as context, but allow it to be overridden
 		this.context = ( options && options.context ? options.context : ractive );
-
-		// Initialise
-		values = getPattern( ractive, keypath );
-
-		if ( options.init !== false ) {
-			for ( keypath in values ) {
-				if ( values.hasOwnProperty( keypath ) ) {
-					this.update( keypath );
-				}
-			}
-		} else {
-			this.values = values;
-		}
 	};
 
 	PatternObserver.prototype = {
+		init: function ( immediate ) {
+			var values, keypath;
+
+			values = getPattern( this.root, this.keypath );
+
+			if ( immediate !== false ) {
+				for ( keypath in values ) {
+					if ( values.hasOwnProperty( keypath ) ) {
+						this.update( keypath );
+					}
+				}
+			} else {
+				this.values = values;
+			}
+		},
+
 		update: function ( keypath ) {
 			var values;
 
@@ -73,23 +74,21 @@ define([
 		},
 
 		reallyUpdate: function ( keypath ) {
-			var value;
+			var value = this.root.get( keypath );
 
 			// Prevent infinite loops
 			if ( this.updating ) {
+				this.values[ keypath ] = value;
 				return;
 			}
 
 			this.updating = true;
 
-			// TODO create, and use, an internal get method instead - we can skip checks
-			value = this.root.get( keypath || this.keypath, true );
-
 			if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
-					this.callback.call( this.context, value, this.values[ keypath ], keypath || this.keypath );
+					this.callback.call( this.context, value, this.values[ keypath ], keypath );
 				} catch ( err ) {
 					if ( this.debug || this.root.debug ) {
 						throw err;

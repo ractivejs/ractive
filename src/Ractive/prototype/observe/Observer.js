@@ -27,16 +27,17 @@ define([
 
 		// default to root as context, but allow it to be overridden
 		this.context = ( options && options.context ? options.context : ractive );
-
-		// Initialise
-		if ( options.init !== false ) {
-			this.update();
-		} else {
-			this.value = ractive.get( this.keypath );
-		}
 	};
 
 	Observer.prototype = {
+		init: function ( immediate ) {
+			if ( immediate !== false ) {
+				this.update();
+			} else {
+				this.value = this.root.get( this.keypath );
+			}
+		},
+
 		update: function () {
 			if ( this.defer && this.ready ) {
 				this.root._defObservers.push( this.proxy );
@@ -47,7 +48,12 @@ define([
 		},
 
 		reallyUpdate: function () {
-			var value;
+			var oldValue, newValue;
+
+			oldValue = this.value;
+			newValue = this.root.get( this.keypath );
+
+			this.value = newValue;
 
 			// Prevent infinite loops
 			if ( this.updating ) {
@@ -56,20 +62,16 @@ define([
 
 			this.updating = true;
 
-			// TODO create, and use, an internal get method instead - we can skip checks
-			value = this.root.get( this.keypath, true );
-
-			if ( !isEqual( value, this.value ) || !this.ready ) {
+			if ( !isEqual( newValue, oldValue ) || !this.ready ) {
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
-					this.callback.call( this.context, value, this.value, this.keypath );
+					this.callback.call( this.context, newValue, oldValue, this.keypath );
 				} catch ( err ) {
 					if ( this.debug || this.root.debug ) {
 						throw err;
 					}
 				}
-				this.value = value;
 			}
 
 			this.updating = false;
