@@ -34,6 +34,10 @@ define([
 
 		start = tokenizer.pos;
 
+		if ( tokenizer.insideScriptTag ) {
+			return null;
+		}
+
 		if ( !tokenizer.getStringMatch( '<' ) ) {
 			return null;
 		}
@@ -73,13 +77,23 @@ define([
 			return null;
 		}
 
+		// Special case - if we open a script tag, further tags should
+		// be ignored unless they're a closing script tag
+		if ( tag.name.toLowerCase() === 'script' ) {
+			tokenizer.insideScriptTag = true;
+		}
+
 		return tag;
 	};
 
 	getClosingTag = function ( tokenizer ) {
-		var start, tag;
+		var start, tag, expected;
 
 		start = tokenizer.pos;
+
+		expected = function ( str ) {
+			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ' + str + ')' );
+		};
 
 		if ( !tokenizer.getStringMatch( '<' ) ) {
 			return null;
@@ -89,18 +103,27 @@ define([
 
 		// closing solidus
 		if ( !tokenizer.getStringMatch( '/' ) ) {
-			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected "/")' );
+			expected( '"/"' );
 		}
 
 		// tag name
 		tag.name = getTagName( tokenizer );
 		if ( !tag.name ) {
-			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected tag name)' );
+			expected( 'tag name' );
 		}
 
 		// closing angle bracket
 		if ( !tokenizer.getStringMatch( '>' ) ) {
-			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ">")' );
+			expected( '">"' );
+		}
+
+		if ( tokenizer.insideScriptTag ) {
+			if ( tag.name.toLowerCase() !== 'script' ) {
+				tokenizer.pos = start;
+				return null;
+			}
+
+			tokenizer.insideScriptTag = false;
 		}
 
 		return tag;

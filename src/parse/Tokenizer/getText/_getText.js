@@ -13,7 +13,7 @@ define([
 
 		remaining = this.remaining();
 
-		index = getLowestIndex( remaining, [ '<', this.delimiters[0], this.tripleDelimiters[0] ] );
+		index = getLowestIndex( remaining, [ ( this.insideScriptTag ? '</script' : '<' ), this.delimiters[0], this.tripleDelimiters[0] ] );
 
 		if ( !index ) {
 			return null;

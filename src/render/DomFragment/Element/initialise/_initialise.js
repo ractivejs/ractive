@@ -58,6 +58,7 @@ define([
 		element.root = root = parentFragment.root;
 		element.pNode = parentFragment.pNode;
 		element.index = options.index;
+		element.lcName = descriptor.e.toLowerCase();
 
 		element.eventListeners = [];
 		element.customEventListeners = [];

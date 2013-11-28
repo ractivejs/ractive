@@ -359,6 +359,12 @@ var renderTests = [
 		template: '{{foo}}',
 		data: { foo: '<p>test</p>' },
 		result: '&lt;p&gt;test&lt;/p&gt;'
+	},
+	{
+		name: 'Angle brackets should not be escape inside script tags',
+		template: '<script>var html="<p>{{html}}</p>";var foo = 4 < 3;</script>',
+		data: { html: 'some <strong>html</strong>' },
+		result: '<script>var html="<p>some <strong>html</strong></p>";var foo = 4 < 3;</script>'
 	}
 ];
 

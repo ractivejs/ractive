@@ -308,6 +308,11 @@ var parseTests = [
 		name: 'Decorator with dynamic arguments',
 		template: '<div decorator="foo:{{baz}}">{{bar}}</div>',
 		parsed: [{t:7,e:'div',o:{n:'foo',d:['[',{t:2,r:'baz'},']']},f:[{t:2,r:'bar'}]}]
+	},
+	{
+		name: 'Script tag with tags e.g. <p> buried inside',
+		template: '<script>var html="<p>{{html}}</p>";</script>',
+		parsed: [{t:7,e:'script',f:['var html="<p>',{t:2,r:'html'},'</p>";']}]
 	}
 ];
 
