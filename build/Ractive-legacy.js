@@ -642,12 +642,12 @@ var shared_notifyDependants = function () {
             }
             cascade(ractive._depsMap[keypath], ractive, priority);
         }
-        function updateAll(deps, keypath) {
-            var i;
+        function updateAll(deps) {
+            var i, len;
             if (deps) {
-                i = deps.length;
-                while (i--) {
-                    deps[i].update(keypath);
+                len = deps.length;
+                for (i = 0; i < len; i += 1) {
+                    deps[i].update();
                 }
             }
         }
@@ -1963,13 +1963,15 @@ var Ractive_prototype_observe_Observer = function (isEqual) {
             };
             this.priority = 0;
             this.context = options && options.context ? options.context : ractive;
-            if (options.init !== false) {
-                this.update();
-            } else {
-                this.value = ractive.get(this.keypath);
-            }
         };
         Observer.prototype = {
+            init: function (immediate) {
+                if (immediate !== false) {
+                    this.update();
+                } else {
+                    this.value = this.root.get(this.keypath);
+                }
+            },
             update: function () {
                 if (this.defer && this.ready) {
                     this.root._defObservers.push(this.proxy);
@@ -1978,21 +1980,22 @@ var Ractive_prototype_observe_Observer = function (isEqual) {
                 this.reallyUpdate();
             },
             reallyUpdate: function () {
-                var value;
+                var oldValue, newValue;
+                oldValue = this.value;
+                newValue = this.root.get(this.keypath);
+                this.value = newValue;
                 if (this.updating) {
                     return;
                 }
                 this.updating = true;
-                value = this.root.get(this.keypath, true);
-                if (!isEqual(value, this.value) || !this.ready) {
+                if (!isEqual(newValue, oldValue) || !this.ready) {
                     try {
-                        this.callback.call(this.context, value, this.value, this.keypath);
+                        this.callback.call(this.context, newValue, oldValue, this.keypath);
                     } catch (err) {
                         if (this.debug || this.root.debug) {
                             throw err;
                         }
                     }
-                    this.value = value;
                 }
                 this.updating = false;
             }
@@ -2039,7 +2042,6 @@ var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
         
         var PatternObserver, wildcard = /\*/;
         PatternObserver = function (ractive, keypath, callback, options) {
-            var values;
             this.root = ractive;
             this.callback = callback;
             this.defer = options.defer;
@@ -2052,18 +2054,21 @@ var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
             }
             this.priority = 'pattern';
             this.context = options && options.context ? options.context : ractive;
-            values = getPattern(ractive, keypath);
-            if (options.init !== false) {
-                for (keypath in values) {
-                    if (values.hasOwnProperty(keypath)) {
-                        this.update(keypath);
-                    }
-                }
-            } else {
-                this.values = values;
-            }
         };
         PatternObserver.prototype = {
+            init: function (immediate) {
+                var values, keypath;
+                values = getPattern(this.root, this.keypath);
+                if (immediate !== false) {
+                    for (keypath in values) {
+                        if (values.hasOwnProperty(keypath)) {
+                            this.update(keypath);
+                        }
+                    }
+                } else {
+                    this.values = values;
+                }
+            },
             update: function (keypath) {
                 var values;
                 if (wildcard.test(keypath)) {
@@ -2082,15 +2087,15 @@ var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
                 this.reallyUpdate(keypath);
             },
             reallyUpdate: function (keypath) {
-                var value;
+                var value = this.root.get(keypath);
                 if (this.updating) {
+                    this.values[keypath] = value;
                     return;
                 }
                 this.updating = true;
-                value = this.root.get(keypath || this.keypath, true);
                 if (!isEqual(value, this.values[keypath]) || !this.ready) {
                     try {
-                        this.callback.call(this.context, value, this.values[keypath], keypath || this.keypath);
+                        this.callback.call(this.context, value, this.values[keypath], keypath);
                     } catch (err) {
                         if (this.debug || this.root.debug) {
                             throw err;
@@ -2129,6 +2134,7 @@ var Ractive_prototype_observe_getObserverFacade = function (normaliseKeypath, re
                 observer = new Observer(ractive, keypath, callback, options);
             }
             registerDependant(observer);
+            observer.init(options.init);
             observer.ready = true;
             return {
                 cancel: function () {
@@ -3340,12 +3346,19 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 return fragment;
             },
             toString: function () {
-                var str, i, len;
+                var str, i, id, len;
                 str = '';
                 i = 0;
                 len = this.length;
                 for (i = 0; i < len; i += 1) {
                     str += this.fragments[i].toString();
+                }
+                if (this.fragmentsById) {
+                    for (id in this.fragmentsById) {
+                        if (this.fragmentsById[id]) {
+                            str += this.fragmentsById[id].toString();
+                        }
+                    }
                 }
                 return str;
             },
@@ -3503,7 +3516,7 @@ var render_DomFragment_shared_enforceCase = function () {
     }();
 var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
         
-        var bindAttribute, getInterpolator, updateModel, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
+        var bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
             var node = this.pNode, interpolator, binding, bindings;
             if (!this.fragment) {
@@ -3527,6 +3540,9 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
         };
         updateModel = function () {
             this._ractive.binding.update();
+        };
+        update = function () {
+            this.value = this._ractive.root.get(this._ractive.binding.keypath);
         };
         getInterpolator = function (attribute) {
             var item;
@@ -3792,6 +3808,7 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
                     node.addEventListener('keyup', updateModel, false);
                 }
             }
+            this.node.addEventListener('blur', update, false);
         };
         GenericBinding.prototype = {
             value: function () {
@@ -3811,6 +3828,7 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
                 this.node.removeEventListener('change', updateModel, false);
                 this.node.removeEventListener('input', updateModel, false);
                 this.node.removeEventListener('keyup', updateModel, false);
+                this.node.removeEventListener('blur', update, false);
             }
         };
         inheritProperties = function (binding, attribute, node) {
@@ -5239,7 +5257,7 @@ var render_DomFragment_Element_prototype_teardown = function (executeTransition)
             while (this.attributes.length) {
                 this.attributes.pop().teardown();
             }
-            if (this.node._ractive) {
+            if (this.node) {
                 for (eventName in this.node._ractive.events) {
                     this.node._ractive.events[eventName].teardown();
                 }
@@ -5351,8 +5369,10 @@ var render_DomFragment_Element__Element = function (initialise, teardown, toStri
         };
         DomElement.prototype = {
             detach: function () {
-                this.node.parentNode.removeChild(this.node);
-                return this.node;
+                if (this.node) {
+                    this.node.parentNode.removeChild(this.node);
+                    return this.node;
+                }
             },
             teardown: teardown,
             firstNode: function () {
