@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-28
+	Ractive - v0.3.8-pre - 2013-11-29
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1927,12 +1927,16 @@ var shared_registerDependant = function () {
 var shared_unregisterDependant = function () {
         
         return function (dependant) {
-            var deps, keys, parentKeypath, map, ractive, keypath, priority;
+            var deps, index, keys, parentKeypath, map, ractive, keypath, priority;
             ractive = dependant.root;
             keypath = dependant.keypath;
             priority = dependant.priority;
             deps = ractive._deps[priority][keypath];
-            deps.splice(deps.indexOf(dependant), 1);
+            index = deps.indexOf(dependant);
+            if (index === -1) {
+                throw new Error('Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks');
+            }
+            deps.splice(index, 1);
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
@@ -2803,6 +2807,9 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
 var render_shared_resolveMustache = function (registerDependant, unregisterDependant) {
         
         return function (keypath) {
+            if (keypath === this.keypath) {
+                return;
+            }
             if (this.resolved) {
                 unregisterDependant(this);
             }
@@ -2860,7 +2867,7 @@ var render_DomFragment_Interpolator = function (types, teardown, initMustache, r
                 return this.node;
             },
             toString: function () {
-                var value = this.value !== undefined ? '' + this.value : '';
+                var value = this.value != undefined ? '' + this.value : '';
                 return value.replace(lessThan, '&lt;').replace(greaterThan, '&gt;');
             }
         };
@@ -2974,6 +2981,9 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
         return reassignFragment;
         function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
             var i, item, context;
+            if (fragment.html) {
+                return;
+            }
             if (fragment.indexRefs && fragment.indexRefs[indexRef] !== undefined) {
                 fragment.indexRefs[indexRef] = newIndex;
             }
@@ -3058,9 +3068,6 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
         function reassignMustache(mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
             var i;
             if (mustache.descriptor.x) {
-                if (mustache.keypath) {
-                    unregisterDependant(mustache);
-                }
                 if (mustache.expressionResolver) {
                     mustache.expressionResolver.teardown();
                 }
@@ -3089,9 +3096,6 @@ var render_DomFragment_Section_reassignFragments = function (types, reassignFrag
             indexRef = section.descriptor.i;
             for (i = start; i < end; i += 1) {
                 fragment = section.fragments[i];
-                if (fragment.html) {
-                    continue;
-                }
                 oldIndex = i - by;
                 newIndex = i;
                 oldKeypath = section.keypath + '.' + (i - by);
