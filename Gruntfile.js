@@ -118,6 +118,7 @@ module.exports = function(grunt) {
 				undef: true,
 				unused: true,
 				'-W018': true,
+				'-W041': false,
 				eqnull: true,
 				strict: true,
 				globals: {

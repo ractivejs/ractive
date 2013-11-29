@@ -373,6 +373,12 @@ var renderTests = [
 		result: '<ul><li>a: 1</li><li>b: 2</li><li>c: 3</li></ul>',
 		new_data: { items: { c: 3, d: 4, e: 5 } },
 		new_result: '<ul><li>c: 3</li><li>d: 4</li><li>e: 5</li></ul>'
+	},
+	{
+		name: 'Null values in the viewmodel',
+		template: '<p>{{foo}}</p>',
+		data: { foo: null },
+		result: '<p></p>'
 	}
 ];
 

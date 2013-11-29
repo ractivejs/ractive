@@ -59,7 +59,7 @@ define([
 		},
 
 		toString: function () {
-			var value = ( this.value !== undefined ? '' + this.value : '' );
+			var value = ( this.value != undefined ? '' + this.value : '' );
 			return value.replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 		}
 	};
