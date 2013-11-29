@@ -3,14 +3,20 @@ define( function () {
 	'use strict';
 
 	return function ( dependant ) {
-		var deps, keys, parentKeypath, map, ractive, keypath, priority;
+		var deps, index, keys, parentKeypath, map, ractive, keypath, priority;
 
 		ractive = dependant.root;
 		keypath = dependant.keypath;
 		priority = dependant.priority;
 
 		deps = ractive._deps[ priority ][ keypath ];
-		deps.splice( deps.indexOf( dependant ), 1 );
+		index = deps.indexOf( dependant );
+		
+		if ( index === -1 ) {
+			throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
+		}
+		
+		deps.splice( index, 1 );
 
 		// update dependants map
 		keys = keypath.split( '.' );

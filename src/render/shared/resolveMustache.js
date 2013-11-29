@@ -9,6 +9,13 @@ define([
 	'use strict';
 
 	return function ( keypath ) {
+		// In some cases, we may resolve to the same keypath (if this is
+		// an expression mustache that was reassigned due to an ancestor's
+		// keypath) - in which case, this is a no-op
+		if ( keypath === this.keypath ) {
+			return;
+		}
+
 		// if we resolved previously, we need to unregister
 		if ( this.resolved ) {
 			unregisterDependant( this );

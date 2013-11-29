@@ -15,6 +15,12 @@ define([
 	function reassignFragment ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
 		var i, item, context;
 
+		// If this fragment was rendered with innerHTML, we have nothing to do
+		// TODO a less hacky way of determining this
+		if ( fragment.html ) {
+			return;
+		}
+
 		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
 			fragment.indexRefs[ indexRef ] = newIndex;
 		}
@@ -130,9 +136,11 @@ define([
 
 		// expression mustache?
 		if ( mustache.descriptor.x ) {
-			if ( mustache.keypath ) {
-				unregisterDependant( mustache );
-			}
+			// TODO should we unregister here, or leave the mustache be in the
+			// expectation that it will be unregistered when the expression
+			// resolver checks in? For now, the latter (nb if this changes, we
+			// need to manually set mustache.resolved = false, otherwise we
+			// come up against a nasty bug - #271)
 			
 			if ( mustache.expressionResolver ) {
 				mustache.expressionResolver.teardown();
