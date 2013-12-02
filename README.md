@@ -2,6 +2,7 @@ Ractive.js - Next-generation DOM manipulation
 =============================================
 
 [![Build Status](https://travis-ci.org/RactiveJS/Ractive.png)](https://travis-ci.org/RactiveJS/Ractive)
+[![devDependency Status](https://david-dm.org/RactiveJS/Ractive/dev-status.png)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies)
 
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
 
