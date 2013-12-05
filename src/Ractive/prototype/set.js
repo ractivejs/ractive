@@ -7,7 +7,8 @@ define([
 	'shared/attemptKeypathResolution',
 	'shared/makeTransitionManager',
 	'shared/processDeferredUpdates',
-	'Ractive/prototype/shared/replaceData'
+	'Ractive/prototype/shared/replaceData',
+	'Ractive/prototype/observe/getPattern'
 ], function (
 	isObject,
 	isEqual,
@@ -17,12 +18,13 @@ define([
 	attemptKeypathResolution,
 	makeTransitionManager,
 	processDeferredUpdates,
-	replaceData
+	replaceData,
+	getPattern
 ) {
 
 	'use strict';
 
-	var set, updateModel, getUpstreamChanges, resetWrapped;
+	var set, updateModel, getUpstreamChanges, resetWrapped, updateKeyPath, wildcard = /\*/;
 
 	set = function ( keypath, value, complete ) {
 		var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
@@ -39,17 +41,13 @@ define([
 			for ( keypath in map ) {
 				if ( map.hasOwnProperty( keypath) ) {
 					value = map[ keypath ];
-					keypath = normaliseKeypath( keypath );
-
-					updateModel( this, keypath, value, changes );
+					updateKeyPath(this, keypath, value, changes);
 				}
 			}
 		}
-
 		// Set a single keypath
 		else {
-			keypath = normaliseKeypath( keypath );
-			updateModel( this, keypath, value, changes );
+			updateKeyPath(this, keypath, value, changes);
 		}
 
 		if ( !changes.length ) {
@@ -99,6 +97,25 @@ define([
 		}
 
 		return this;
+	};
+
+	updateKeyPath = function( ractive, keypath, value, changes ) {
+		var values;
+		if (wildcard.test(keypath) ) {
+
+			values = getPattern( ractive, keypath );
+
+			for ( keypath in values ) {
+				if ( values.hasOwnProperty( keypath ) ) {
+					keypath = normaliseKeypath(keypath);
+					updateModel( ractive, keypath, value, changes);
+				}
+			}
+
+		} else {
+			keypath = normaliseKeypath( keypath );
+			updateModel( ractive, keypath, value, changes );
+		}
 	};
 
 

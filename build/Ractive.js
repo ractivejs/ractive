@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-29
+	Ractive - v0.3.8-pre - 2013-12-04
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -959,9 +959,45 @@ var Ractive_prototype_shared_replaceData = function () {
             return keypathToClear;
         };
     }();
-var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData) {
+var Ractive_prototype_observe_getPattern = function () {
         
-        var set, updateModel, getUpstreamChanges, resetWrapped;
+        return function (ractive, pattern) {
+            var keys, key, values, toGet, newToGet, expand, concatenate;
+            keys = pattern.split('.');
+            toGet = [];
+            expand = function (keypath) {
+                var value, key;
+                value = ractive._wrapped[keypath] ? ractive._wrapped[keypath].get() : ractive.get(keypath);
+                for (key in value) {
+                    newToGet.push(keypath + '.' + key);
+                }
+            };
+            concatenate = function (keypath) {
+                return keypath + '.' + key;
+            };
+            while (key = keys.shift()) {
+                if (key === '*') {
+                    newToGet = [];
+                    toGet.forEach(expand);
+                    toGet = newToGet;
+                } else {
+                    if (!toGet[0]) {
+                        toGet[0] = key;
+                    } else {
+                        toGet = toGet.map(concatenate);
+                    }
+                }
+            }
+            values = {};
+            toGet.forEach(function (keypath) {
+                values[keypath] = ractive.get(keypath);
+            });
+            return values;
+        };
+    }();
+var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData, getPattern) {
+        
+        var set, updateModel, getUpstreamChanges, resetWrapped, updateKeyPath, wildcard = /\*/;
         set = function (keypath, value, complete) {
             var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
             changes = [];
@@ -973,13 +1009,11 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
                 for (keypath in map) {
                     if (map.hasOwnProperty(keypath)) {
                         value = map[keypath];
-                        keypath = normaliseKeypath(keypath);
-                        updateModel(this, keypath, value, changes);
+                        updateKeyPath(this, keypath, value, changes);
                     }
                 }
             } else {
-                keypath = normaliseKeypath(keypath);
-                updateModel(this, keypath, value, changes);
+                updateKeyPath(this, keypath, value, changes);
             }
             if (!changes.length) {
                 return;
@@ -1008,6 +1042,21 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
                 this.firingChangeEvent = false;
             }
             return this;
+        };
+        updateKeyPath = function (ractive, keypath, value, changes) {
+            var values;
+            if (wildcard.test(keypath)) {
+                values = getPattern(ractive, keypath);
+                for (keypath in values) {
+                    if (values.hasOwnProperty(keypath)) {
+                        keypath = normaliseKeypath(keypath);
+                        updateModel(ractive, keypath, value, changes);
+                    }
+                }
+            } else {
+                keypath = normaliseKeypath(keypath);
+                updateModel(ractive, keypath, value, changes);
+            }
         };
         updateModel = function (ractive, keypath, value, changes) {
             var cached, previous, wrapped, keypathToClear;
@@ -1068,7 +1117,7 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             }
         };
         return set;
-    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, Ractive_prototype_shared_replaceData);
+    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, Ractive_prototype_shared_replaceData, Ractive_prototype_observe_getPattern);
 var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, processDeferredUpdates) {
         
         return function (keypath, complete) {
@@ -1695,42 +1744,6 @@ var Ractive_prototype_observe_Observer = function (isEqual) {
         };
         return Observer;
     }(utils_isEqual);
-var Ractive_prototype_observe_getPattern = function () {
-        
-        return function (ractive, pattern) {
-            var keys, key, values, toGet, newToGet, expand, concatenate;
-            keys = pattern.split('.');
-            toGet = [];
-            expand = function (keypath) {
-                var value, key;
-                value = ractive._wrapped[keypath] ? ractive._wrapped[keypath].get() : ractive.get(keypath);
-                for (key in value) {
-                    newToGet.push(keypath + '.' + key);
-                }
-            };
-            concatenate = function (keypath) {
-                return keypath + '.' + key;
-            };
-            while (key = keys.shift()) {
-                if (key === '*') {
-                    newToGet = [];
-                    toGet.forEach(expand);
-                    toGet = newToGet;
-                } else {
-                    if (!toGet[0]) {
-                        toGet[0] = key;
-                    } else {
-                        toGet = toGet.map(concatenate);
-                    }
-                }
-            }
-            values = {};
-            toGet.forEach(function (keypath) {
-                values[keypath] = ractive.get(keypath);
-            });
-            return values;
-        };
-    }();
 var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
         
         var PatternObserver, wildcard = /\*/;
