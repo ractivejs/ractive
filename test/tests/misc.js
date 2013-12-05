@@ -502,6 +502,39 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'success' );
 		});
 
+		test( 'Setting nested properties with a keypath using a wildcard', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo}}{{#bar}}{{baz}}{{/bar}}{{/foo}}',
+				data: {foo: {bar: [{baz: 'foo'}, {baz: 'bar'}]}}
+			});
+
+			ractive.set( 'foo.bar.*.baz', 'baz' );
+			t.htmlEqual( fixture.innerHTML, 'bazbaz' );
+		});
+
+		test( 'Setting nested properties with a keypath using multiple wildcards', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo}}{{#bar}}{{#.}}{{baz}}{{/.}}{{/bar}}{{/foo}}',
+				data: {foo: {bar: [[{baz: 'foo'}], [{baz: 'bar'}]]}}
+			});
+
+			ractive.set( 'foo.bar.*.*.baz', 'baz' );
+			t.htmlEqual( fixture.innerHTML, 'bazbaz' );
+		});
+		
+		test( 'Setting nested properties with a keypath using multiple wildcards without objects', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo}}{{#bar}}{{#.}}{{.}}{{/.}}{{/bar}}{{/foo}}',
+				data: {foo: {bar: [['foo'], ['bar']]}}
+			});
+
+			ractive.set( 'foo.bar.*.*', 'baz' );
+			t.htmlEqual( fixture.innerHTML, 'bazbaz' );
+		});
+
 		test( 'Functions are called with the ractive instance as context', function ( t ) {
 			expect( 1 );
 
