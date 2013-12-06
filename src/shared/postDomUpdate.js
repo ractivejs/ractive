@@ -4,7 +4,12 @@ define( function () {
 
 	// TODO can this be neatened up at all?
 	return function ( ractive ) {
-		var query, decorator, transition, observer;
+		var focusable, query, decorator, transition, observer;
+
+		if ( focusable = ractive._defFocusable ) {
+			focusable.focus();
+			ractive._defFocusable = null;
+		}
 
 		while ( query = ractive._defLiveQueries.pop() ) {
 			query._sort();

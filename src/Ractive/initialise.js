@@ -106,6 +106,7 @@ define([
 			_defTransitions: { value: [] },
 			_defLiveQueries: { value: [] },
 			_defDecorators: { value: [] },
+			_defFocusable: { value: null, writable: true },
 
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },

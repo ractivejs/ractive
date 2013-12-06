@@ -177,6 +177,13 @@ define([
 					element.node.selected = true;
 				}
 			}
+
+			if ( element.node.autofocus ) {
+				// Special case. Some browsers (*cough* Firefix *cough*) have a problem
+				// with dynamically-generated elements having autofocus, and they won't
+				// allow you to programmatically focus the element until it's in the DOM
+				root._defFocusable = element.node;
+			}
 		}
 
 		updateLiveQueries( element );
