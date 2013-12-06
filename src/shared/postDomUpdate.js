@@ -4,16 +4,22 @@ define( function () {
 
 	// TODO can this be neatened up at all?
 	return function ( ractive ) {
-		while ( ractive._defLiveQueries.length ) {
-			ractive._defLiveQueries.pop()._sort();
+		var query, decorator, transition, observer;
+
+		while ( query = ractive._defLiveQueries.pop() ) {
+			query._sort();
 		}
 
-		while ( ractive._defTransitions.length ) {
-			ractive._defTransitions.pop().init(); // TODO rename...
+		while ( decorator = ractive._defDecorators.pop() ) {
+			decorator.init();
 		}
 
-		while ( ractive._defObservers.length ) {
-			ractive._defObservers.pop().update();
+		while ( transition = ractive._defTransitions.pop() ) {
+			transition.init(); // TODO rename...
+		}
+
+		while ( observer = ractive._defObservers.pop() ) {
+			observer.update();
 		}
 	};
 

@@ -9,7 +9,7 @@ define([
 	'render/DomFragment/Element/initialise/createElementAttributes',
 	'render/DomFragment/Element/initialise/appendElementChildren',
 	'render/DomFragment/Element/initialise/bindElement',
-	'render/DomFragment/Element/initialise/decorate',
+	'render/DomFragment/Element/initialise/decorate/_decorate',
 	'render/DomFragment/Element/initialise/addEventProxies/_addEventProxies',
 	'render/DomFragment/Element/initialise/updateLiveQueries',
 	'render/DomFragment/Element/shared/executeTransition/_executeTransition',
