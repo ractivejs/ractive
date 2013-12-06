@@ -87,7 +87,8 @@ define([
 	};
 
 	update = function () {
-		this.value = this._ractive.root.get( this._ractive.binding.keypath );
+		var value = this._ractive.root.get( this._ractive.binding.keypath );
+		this.value = value == undefined ? '' : value;
 	};
 
 	getInterpolator = function ( attribute ) {
