@@ -56,8 +56,8 @@ define([
 			return this.fragment.detach();
 		},
 
-		teardown: function () {
-			this.fragment.teardown();
+		teardown: function ( destroy ) {
+			this.fragment.teardown( destroy );
 		},
 
 		toString: function () {
