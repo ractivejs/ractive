@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-11-29
+	Ractive - v0.3.8-pre - 2013-12-07
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -213,14 +213,22 @@ var shared_preDomUpdate = function (getValueFromCheckboxes) {
 var shared_postDomUpdate = function () {
         
         return function (ractive) {
-            while (ractive._defLiveQueries.length) {
-                ractive._defLiveQueries.pop()._sort();
+            var focusable, query, decorator, transition, observer;
+            if (focusable = ractive._defFocusable) {
+                focusable.focus();
+                ractive._defFocusable = null;
             }
-            while (ractive._defTransitions.length) {
-                ractive._defTransitions.pop().init();
+            while (query = ractive._defLiveQueries.pop()) {
+                query._sort();
             }
-            while (ractive._defObservers.length) {
-                ractive._defObservers.pop().update();
+            while (decorator = ractive._defDecorators.pop()) {
+                decorator.init();
+            }
+            while (transition = ractive._defTransitions.pop()) {
+                transition.init();
+            }
+            while (observer = ractive._defObservers.pop()) {
+                observer.update();
             }
         };
     }();
@@ -3235,7 +3243,8 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
             this._ractive.binding.update();
         };
         update = function () {
-            this.value = this._ractive.root.get(this._ractive.binding.keypath);
+            var value = this._ractive.root.get(this._ractive.binding.keypath);
+            this.value = value == undefined ? '' : value;
         };
         getInterpolator = function (attribute) {
             var item;
@@ -4404,36 +4413,32 @@ var render_DomFragment_Element_initialise_bindElement = function () {
             }
         };
     }();
-var render_DomFragment_Element_initialise_decorate = function (warn, StringFragment) {
+var render_DomFragment_Element_initialise_decorate_Decorator = function (warn, StringFragment) {
         
-        return function (descriptor, root, owner, contextStack) {
-            var name, args, frag, fn, errorMessage;
-            name = descriptor.n || descriptor;
-            fn = root.decorators[name];
-            if (fn) {
+        var Decorator = function (descriptor, root, owner, contextStack) {
+            var fragment, errorMessage;
+            this.root = root;
+            this.node = owner.node;
+            if (typeof descriptor === 'string') {
+                this.name = descriptor;
+            } else {
+                this.name = descriptor.n;
                 if (descriptor.a) {
-                    args = descriptor.a;
+                    this._params = descriptor.a;
                 } else if (descriptor.d) {
-                    frag = new StringFragment({
+                    fragment = new StringFragment({
                         descriptor: descriptor.d,
                         root: root,
                         owner: owner,
                         contextStack: contextStack
                     });
-                    args = frag.toJSON();
-                    frag.teardown();
+                    this._params = fragment.toJSON();
+                    fragment.teardown();
                 }
-                if (args) {
-                    args.unshift(owner.node);
-                    owner.decorator = fn.apply(root, args);
-                } else {
-                    owner.decorator = fn.call(root, owner.node);
-                }
-                if (!owner.decorator || !owner.decorator.teardown) {
-                    throw new Error('Decorator definition must return an object with a teardown method');
-                }
-            } else {
-                errorMessage = 'Missing decorator "' + descriptor.o + '"';
+            }
+            this._fn = root.decorators[this.name];
+            if (!this._fn) {
+                errorMessage = 'Missing "' + descriptor.o + '" decorator. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#decorators';
                 if (root.debug) {
                     throw new Error(errorMessage);
                 } else {
@@ -4441,7 +4446,30 @@ var render_DomFragment_Element_initialise_decorate = function (warn, StringFragm
                 }
             }
         };
+        Decorator.prototype = {
+            init: function () {
+                var result, args;
+                if (this._params) {
+                    args = [this.node].concat(this._params);
+                    result = this._fn.apply(this.root, args);
+                } else {
+                    result = this._fn.call(this.root, this.node);
+                }
+                if (!result || !result.teardown) {
+                    throw new Error('Decorator definition must return an object with a teardown method');
+                }
+                this.teardown = result.teardown;
+            }
+        };
+        return Decorator;
     }(utils_warn, render_StringFragment__StringFragment);
+var render_DomFragment_Element_initialise_decorate__decorate = function (Decorator) {
+        
+        return function (descriptor, root, owner, contextStack) {
+            owner.decorator = new Decorator(descriptor, root, owner, contextStack);
+            root._defDecorators.push(owner.decorator);
+        };
+    }(render_DomFragment_Element_initialise_decorate_Decorator);
 var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (StringFragment) {
         
         var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
@@ -4936,10 +4964,13 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
                         element.node.selected = true;
                     }
                 }
+                if (element.node.autofocus) {
+                    root._defFocusable = element.node;
+                }
             }
             updateLiveQueries(element);
         };
-    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_bindElement, render_DomFragment_Element_initialise_decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
+    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_bindElement, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
 var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
         
         return function (destroy) {
@@ -7362,8 +7393,8 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
             detach: function () {
                 return this.fragment.detach();
             },
-            teardown: function () {
-                this.fragment.teardown();
+            teardown: function (destroy) {
+                this.fragment.teardown(destroy);
             },
             toString: function () {
                 return this.fragment.toString();
@@ -8343,6 +8374,11 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _defObservers: { value: [] },
                 _defTransitions: { value: [] },
                 _defLiveQueries: { value: [] },
+                _defDecorators: { value: [] },
+                _defFocusable: {
+                    value: null,
+                    writable: true
+                },
                 _evaluators: { value: create(null) },
                 _twowayBindings: { value: {} },
                 _transitionManager: {
