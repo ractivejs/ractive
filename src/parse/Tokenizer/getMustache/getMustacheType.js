@@ -8,7 +8,7 @@ define([ 'config/types' ], function ( types ) {
 		'/': types.CLOSING,
 		'>': types.PARTIAL,
 		'!': types.COMMENT,
-		'&': types.INTERPOLATOR
+		'&': types.TRIPLE
 	};
 
 	return function ( tokenizer ) {

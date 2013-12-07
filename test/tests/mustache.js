@@ -261,8 +261,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 						},
 						expected: "These characters should be HTML escaped: &amp; &quot; &lt; &gt;\n",
 						template: "These characters should be HTML escaped: {{forbidden}}\n",
-						desc: "Basic interpolation should be HTML escaped.",
-						unpassable: true
+						desc: "Basic interpolation should be HTML escaped."
 					},
 					{
 						name: "Triple Mustache",
@@ -271,8 +270,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 						},
 						expected: "These characters should not be HTML escaped: & \" < >\n",
 						template: "These characters should not be HTML escaped: {{{forbidden}}}\n",
-						desc: "Triple mustaches should interpolate without HTML escaping.",
-						unpassable: true
+						desc: "Triple mustaches should interpolate without HTML escaping."
 					},
 					{
 						name: "Ampersand",
@@ -281,8 +279,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 						},
 						expected: "These characters should not be HTML escaped: & \" < >\n",
 						template: "These characters should not be HTML escaped: {{&forbidden}}\n",
-						desc: "Ampersand should interpolate without HTML escaping.",
-						unpassable: true
+						desc: "Ampersand should interpolate without HTML escaping."
 					},
 					{
 						name: "Basic Integer Interpolation",
@@ -825,8 +822,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 						desc: "The greater-than operator should not alter surrounding whitespace.",
 						partials: {
 							partial: "\t|\t"
-						},
-						unpassable: true
+						}
 					},
 					{
 						name: "Inline Indentation",
@@ -838,8 +834,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 						desc: "Whitespace should be left untouched.",
 						partials: {
 							partial: ">\n>"
-						},
-						unpassable: true
+						}
 					},
 					{
 						name: "Standalone Line Endings",

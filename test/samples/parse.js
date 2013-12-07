@@ -313,6 +313,11 @@ var parseTests = [
 		name: 'Script tag with tags e.g. <p> buried inside',
 		template: '<script>var html="<p>{{html}}</p>";</script>',
 		parsed: [{t:7,e:'script',f:['var html="<p>',{t:2,r:'html'},'</p>";']}]
+	},
+	{
+		name: 'Ampersand mustaches are treated the same as triples',
+		template: '{{&foo}}',
+		parsed: [{t:3,r:'foo'}]
 	}
 ];
 

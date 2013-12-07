@@ -42,7 +42,13 @@ define([
 
 			if ( !expr ) {
 				type = getMustacheType( tokenizer );
-				mustache.mustacheType = type || types.INTERPOLATOR; // default
+
+				// Special case - ampersand mustaches
+				if ( type === types.TRIPLE ) {
+					mustache = { type: types.TRIPLE };
+				} else {
+					mustache.mustacheType = type || types.INTERPOLATOR; // default
+				}
 
 				// if it's a comment or a section closer, allow any contents except '}}'
 				if ( type === types.COMMENT || type === types.CLOSING ) {
