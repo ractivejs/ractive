@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-12-07
+	Ractive - v0.3.8-pre - 2013-12-10
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -3073,11 +3073,11 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 }
                 return null;
             },
-            findAll: function (selector, options, queryResult) {
+            findAll: function (selector, queryResult) {
                 var i, len;
                 len = this.fragments.length;
                 for (i = 0; i < len; i += 1) {
-                    this.fragments[i].findAll(selector, options, queryResult);
+                    this.fragments[i].findAll(selector, queryResult);
                 }
             }
         };
@@ -3158,7 +3158,7 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                 }
                 return null;
             },
-            findAll: function (selector, options, queryResult) {
+            findAll: function (selector, queryResult) {
                 var i, len, node, queryAllResult, numNodes, j;
                 len = this.nodes.length;
                 for (i = 0; i < len; i += 1) {
@@ -5226,7 +5226,7 @@ var parse_Tokenizer_getMustache_getMustacheType = function (types) {
                 '/': types.CLOSING,
                 '>': types.PARTIAL,
                 '!': types.COMMENT,
-                '&': types.INTERPOLATOR
+                '&': types.TRIPLE
             };
         return function (tokenizer) {
             var type = mustacheTypes[tokenizer.str.charAt(tokenizer.pos)];
@@ -5257,7 +5257,11 @@ var parse_Tokenizer_getMustache_getMustacheContent = function (types, makeRegexM
                 }
                 if (!expr) {
                     type = getMustacheType(tokenizer);
-                    mustache.mustacheType = type || types.INTERPOLATOR;
+                    if (type === types.TRIPLE) {
+                        mustache = { type: types.TRIPLE };
+                    } else {
+                        mustache.mustacheType = type || types.INTERPOLATOR;
+                    }
                     if (type === types.COMMENT || type === types.CLOSING) {
                         remaining = tokenizer.remaining();
                         index = remaining.indexOf(tokenizer.delimiters[1]);
@@ -7590,6 +7594,12 @@ var render_DomFragment_Component__Component = function (types, warn, parseJSON, 
             },
             toString: function () {
                 return this.instance.fragment.toString();
+            },
+            find: function (selector) {
+                return this.instance.fragment.find(selector);
+            },
+            findAll: function (selector, queryResult) {
+                return this.instance.fragment.findAll(selector, queryResult);
             }
         };
         return DomComponent;
@@ -7757,7 +7767,7 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                     return null;
                 }
             },
-            findAll: function (selector, options, queryResult) {
+            findAll: function (selector, queryResult) {
                 var i, len, item, node, queryAllResult, numNodes, j;
                 if (this.nodes) {
                     len = this.nodes.length;
@@ -7781,7 +7791,7 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                     for (i = 0; i < len; i += 1) {
                         item = this.items[i];
                         if (item.findAll) {
-                            item.findAll(selector, options, queryResult);
+                            item.findAll(selector, queryResult);
                         }
                     }
                 }
