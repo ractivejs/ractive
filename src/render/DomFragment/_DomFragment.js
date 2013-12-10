@@ -206,7 +206,7 @@ define([
 			}
 		},
 
-		findAll: function ( selector, options, queryResult ) {
+		findAll: function ( selector, queryResult ) {
 			var i, len, item, node, queryAllResult, numNodes, j;
 
 			if ( this.nodes ) {
@@ -238,7 +238,7 @@ define([
 					item = this.items[i];
 
 					if ( item.findAll ) {
-						item.findAll( selector, options, queryResult );
+						item.findAll( selector, queryResult );
 					}
 				}
 			}

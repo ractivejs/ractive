@@ -232,6 +232,14 @@ define([
 
 		toString: function () {
 			return this.instance.fragment.toString();
+		},
+
+		find: function ( selector ) {
+			return this.instance.fragment.find( selector );
+		},
+
+		findAll: function ( selector, queryResult ) {
+			return this.instance.fragment.findAll( selector, queryResult );
 		}
 	};
 

@@ -330,12 +330,12 @@ define([
 			return null;
 		},
 
-		findAll: function ( selector, options, queryResult ) {
+		findAll: function ( selector, queryResult ) {
 			var i, len;
 
 			len = this.fragments.length;
 			for ( i = 0; i < len; i += 1 ) {
-				this.fragments[i].findAll( selector, options, queryResult );
+				this.fragments[i].findAll( selector, queryResult );
 			}
 		}
 	};

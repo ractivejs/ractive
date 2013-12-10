@@ -118,7 +118,7 @@ define([
 			return null;
 		},
 
-		findAll: function ( selector, options, queryResult ) {
+		findAll: function ( selector, queryResult ) {
 			var i, len, node, queryAllResult, numNodes, j;
 
 			len = this.nodes.length;
