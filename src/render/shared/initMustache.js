@@ -47,11 +47,6 @@ define([
 				} else {
 					mustache.ref = options.descriptor.r;
 					mustache.root._pendingResolution[ mustache.root._pendingResolution.length ] = mustache;
-
-					// inverted section? initialise
-					if ( mustache.descriptor.n ) {
-						mustache.render( false );
-					}
 				}
 			}
 		}
@@ -61,6 +56,10 @@ define([
 			mustache.expressionResolver = new ExpressionResolver( mustache );
 		}
 
+		// Special case - inverted sections 
+		if ( mustache.descriptor.n && !mustache.hasOwnProperty( 'value' ) ) {
+			mustache.render( undefined );
+		}
 	};
 
 });

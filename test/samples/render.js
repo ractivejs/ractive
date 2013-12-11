@@ -379,6 +379,11 @@ var renderTests = [
 		template: '<p>{{foo}}</p>',
 		data: { foo: null },
 		result: '<p></p>'
+	},
+	{
+		name: 'Inverted section with restricted reference',
+		template: '<p>{{^.foo}}this should appear{{/.foo}}</p>',
+		result: '<p>this should appear</p>'
 	}
 ];
 
