@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-12-13
+	Ractive - v0.3.8-pre - 2013-12-14
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -7300,7 +7300,7 @@ var parse__parse = function (tokenize, types, Parser) {
     }(parse_tokenize, config_types, parse_Parser__Parser);
 var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
         
-        var getPartialDescriptor, getPartialFromRegistry, unpack;
+        var getPartialDescriptor, registerPartial, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
             var el, partial, errorMessage;
             if (partial = getPartialFromRegistry(root, name)) {
@@ -7312,7 +7312,7 @@ var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient
                     if (!parse) {
                         throw new Error(errors.missingParser);
                     }
-                    partials[name] = parse(el.innerHTML);
+                    registerPartial(parse(el.innerHTML), name, partials);
                 }
             }
             partial = partials[name];
@@ -7327,26 +7327,30 @@ var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient
             }
             return unpack(partial);
         };
-        getPartialFromRegistry = function (registry, name) {
-            var partial, key;
-            if (registry.partials[name]) {
-                if (typeof registry.partials[name] === 'string') {
+        getPartialFromRegistry = function (registryOwner, name) {
+            var partial;
+            if (registryOwner.partials[name]) {
+                if (typeof registryOwner.partials[name] === 'string') {
                     if (!parse) {
                         throw new Error(errors.missingParser);
                     }
-                    partial = parse(registry.partials[name], registry.parseOptions);
-                    if (isObject(partial)) {
-                        registry.partials[name] = partial.main;
-                        for (key in partial.partials) {
-                            if (partial.partials.hasOwnProperty(key)) {
-                                registry.partials[key] = partial.partials[key];
-                            }
-                        }
-                    } else {
-                        registry.partials[name] = partial;
+                    partial = parse(registryOwner.partials[name], registryOwner.parseOptions);
+                    registerPartial(partial, name, registryOwner.partials);
+                }
+                return unpack(registryOwner.partials[name]);
+            }
+        };
+        registerPartial = function (partial, name, registry) {
+            var key;
+            if (isObject(partial)) {
+                registry[name] = partial.main;
+                for (key in partial.partials) {
+                    if (partial.partials.hasOwnProperty(key)) {
+                        registry[key] = partial.partials[key];
                     }
                 }
-                return unpack(registry.partials[name]);
+            } else {
+                registry[name] = partial;
             }
         };
         unpack = function (partial) {
@@ -7525,7 +7529,7 @@ var render_DomFragment_Component__Component = function (types, warn, parseJSON, 
             };
             observeParent = function (pair) {
                 var observer = root.observe(pair[1], function (value) {
-                        if (!settingParent) {
+                        if (!settingParent && !root._wrapped[pair[1]]) {
                             settingChild = true;
                             instance.set(pair[0], value);
                             settingChild = false;
