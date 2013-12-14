@@ -238,6 +238,8 @@ define([
 						// still transitioning...
 						return;
 					}
+					
+					t.root.fire(t.name + ':end');
 
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
