@@ -9,11 +9,12 @@ define([
 	'use strict';
 
 	return function () {
-		var index, remaining;
+		var index, remaining, barrier;
 
 		remaining = this.remaining();
 
-		index = getLowestIndex( remaining, [ ( this.insideScriptTag ? '</script' : '<' ), this.delimiters[0], this.tripleDelimiters[0] ] );
+		barrier = this.inside ? '</' + this.inside : '<';
+		index = getLowestIndex( remaining, [ barrier, this.delimiters[0], this.tripleDelimiters[0] ] );
 
 		if ( !index ) {
 			return null;

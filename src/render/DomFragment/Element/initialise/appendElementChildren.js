@@ -38,8 +38,8 @@ define([
 	return function ( element, node, descriptor, docFrag ) {
 		var liveQueries, i, selector, queryAllResult, j;
 
-		// Special case - script tags
-		if ( element.lcName === 'script' ) {
+		// Special case - script and style tags
+		if ( element.lcName === 'script' || element.lcName === 'style' ) {
 			element.fragment = new StringFragment({
 				descriptor:   descriptor.f,
 				root:         element.root,
@@ -48,8 +48,13 @@ define([
 			});
 
 			if ( docFrag ) {
-				element.node.innerHTML = element.fragment.toString();
-				element.bubble = updateScript;
+				if ( element.lcName === 'script' ) {
+					element.bubble = updateScript;
+					element.node.innerHTML = element.fragment.toString(); // bypass warning initially 
+				} else {
+					element.bubble = updateCss;
+					element.bubble();
+				}
 			}
 
 			return;
@@ -81,32 +86,16 @@ define([
 		}
 
 		else {
-			// once again, everyone has to suffer because of IE bloody 8
-			if ( descriptor.e === 'style' && node && node.styleSheet !== undefined ) {
-				element.fragment = new StringFragment({
-					descriptor:   descriptor.f,
-					root:         element.root,
-					contextStack: element.parentFragment.contextStack,
-					owner:        element
-				});
+			element.fragment = new DomFragment({
+				descriptor:   descriptor.f,
+				root:         element.root,
+				pNode:        node,
+				contextStack: element.parentFragment.contextStack,
+				owner:        element
+			});
 
-				if ( docFrag ) {
-					element.bubble = updateCss;
-				}
-			}
-
-			else {
-				element.fragment = new DomFragment({
-					descriptor:   descriptor.f,
-					root:         element.root,
-					pNode:        node,
-					contextStack: element.parentFragment.contextStack,
-					owner:        element
-				});
-
-				if ( docFrag ) {
-					node.appendChild( element.fragment.docFrag );
-				}
+			if ( docFrag ) {
+				node.appendChild( element.fragment.docFrag );
 			}
 		}
 	};

@@ -30,11 +30,11 @@ define([
 	};
 
 	getOpeningTag = function ( tokenizer ) {
-		var start, tag, attrs;
+		var start, tag, attrs, lowerCaseName;
 
 		start = tokenizer.pos;
 
-		if ( tokenizer.insideScriptTag ) {
+		if ( tokenizer.inside ) {
 			return null;
 		}
 
@@ -79,8 +79,9 @@ define([
 
 		// Special case - if we open a script tag, further tags should
 		// be ignored unless they're a closing script tag
-		if ( tag.name.toLowerCase() === 'script' ) {
-			tokenizer.insideScriptTag = true;
+		lowerCaseName = tag.name.toLowerCase();
+		if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
+			tokenizer.inside = lowerCaseName;
 		}
 
 		return tag;
@@ -117,13 +118,13 @@ define([
 			expected( '">"' );
 		}
 
-		if ( tokenizer.insideScriptTag ) {
-			if ( tag.name.toLowerCase() !== 'script' ) {
+		if ( tokenizer.inside ) {
+			if ( tag.name.toLowerCase() !== tokenizer.inside ) {
 				tokenizer.pos = start;
 				return null;
 			}
 
-			tokenizer.insideScriptTag = false;
+			tokenizer.inside = null;
 		}
 
 		return tag;
