@@ -112,6 +112,10 @@ define([
 		}
 
 		if ( item.descriptor.x ) {
+			if (item.root.get(item.keypath) !== undefined) {
+				return item;
+			}
+			
 			if ( attribute.root.debug ) {
 				throw new Error( 'You cannot set up two-way binding against an expression' );
 			}
