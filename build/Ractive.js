@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-12-10
+	Ractive - v0.3.8-pre - 2013-12-13
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -598,6 +598,7 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                     instance = instances[i];
                     instance._transitionManager = previousTransitionManagers[instance._guid];
                     transitionManagers[instance._guid].ready();
+                    preDomUpdate(instance);
                     postDomUpdate(instance);
                 }
                 return result;
@@ -2490,14 +2491,14 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
                     } else {
                         mustache.ref = options.descriptor.r;
                         mustache.root._pendingResolution[mustache.root._pendingResolution.length] = mustache;
-                        if (mustache.descriptor.n) {
-                            mustache.render(false);
-                        }
                     }
                 }
             }
             if (options.descriptor.x) {
                 mustache.expressionResolver = new ExpressionResolver(mustache);
+            }
+            if (mustache.descriptor.n && !mustache.hasOwnProperty('value')) {
+                mustache.render(undefined);
             }
         };
     }(shared_resolveRef, render_shared_ExpressionResolver);
@@ -4329,7 +4330,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
         };
         return function (element, node, descriptor, docFrag) {
             var liveQueries, i, selector, queryAllResult, j;
-            if (element.lcName === 'script') {
+            if (element.lcName === 'script' || element.lcName === 'style') {
                 element.fragment = new StringFragment({
                     descriptor: descriptor.f,
                     root: element.root,
@@ -4337,8 +4338,13 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     owner: element
                 });
                 if (docFrag) {
-                    element.node.innerHTML = element.fragment.toString();
-                    element.bubble = updateScript;
+                    if (element.lcName === 'script') {
+                        element.bubble = updateScript;
+                        element.node.innerHTML = element.fragment.toString();
+                    } else {
+                        element.bubble = updateCss;
+                        element.bubble();
+                    }
                 }
                 return;
             }
@@ -4360,27 +4366,15 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     }
                 }
             } else {
-                if (descriptor.e === 'style' && node && node.styleSheet !== undefined) {
-                    element.fragment = new StringFragment({
-                        descriptor: descriptor.f,
-                        root: element.root,
-                        contextStack: element.parentFragment.contextStack,
-                        owner: element
-                    });
-                    if (docFrag) {
-                        element.bubble = updateCss;
-                    }
-                } else {
-                    element.fragment = new DomFragment({
-                        descriptor: descriptor.f,
-                        root: element.root,
-                        pNode: node,
-                        contextStack: element.parentFragment.contextStack,
-                        owner: element
-                    });
-                    if (docFrag) {
-                        node.appendChild(element.fragment.docFrag);
-                    }
+                element.fragment = new DomFragment({
+                    descriptor: descriptor.f,
+                    root: element.root,
+                    pNode: node,
+                    contextStack: element.parentFragment.contextStack,
+                    owner: element
+                });
+                if (docFrag) {
+                    node.appendChild(element.fragment.docFrag);
                 }
             }
         };
@@ -5379,9 +5373,9 @@ var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowes
             return getOpeningTag(this) || getClosingTag(this);
         };
         getOpeningTag = function (tokenizer) {
-            var start, tag, attrs;
+            var start, tag, attrs, lowerCaseName;
             start = tokenizer.pos;
-            if (tokenizer.insideScriptTag) {
+            if (tokenizer.inside) {
                 return null;
             }
             if (!tokenizer.getStringMatch('<')) {
@@ -5408,8 +5402,9 @@ var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowes
                 tokenizer.pos = start;
                 return null;
             }
-            if (tag.name.toLowerCase() === 'script') {
-                tokenizer.insideScriptTag = true;
+            lowerCaseName = tag.name.toLowerCase();
+            if (lowerCaseName === 'script' || lowerCaseName === 'style') {
+                tokenizer.inside = lowerCaseName;
             }
             return tag;
         };
@@ -5436,12 +5431,12 @@ var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowes
             if (!tokenizer.getStringMatch('>')) {
                 expected('">"');
             }
-            if (tokenizer.insideScriptTag) {
-                if (tag.name.toLowerCase() !== 'script') {
+            if (tokenizer.inside) {
+                if (tag.name.toLowerCase() !== tokenizer.inside) {
                     tokenizer.pos = start;
                     return null;
                 }
-                tokenizer.insideScriptTag = false;
+                tokenizer.inside = null;
             }
             return tag;
         };
@@ -5567,10 +5562,11 @@ var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowes
 var parse_Tokenizer_getText__getText = function (types, getLowestIndex) {
         
         return function () {
-            var index, remaining;
+            var index, remaining, barrier;
             remaining = this.remaining();
+            barrier = this.inside ? '</' + this.inside : '<';
             index = getLowestIndex(remaining, [
-                this.insideScriptTag ? '</script' : '<',
+                barrier,
                 this.delimiters[0],
                 this.tripleDelimiters[0]
             ]);

@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-12-10
+	Ractive - v0.3.8-pre - 2013-12-13
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -598,6 +598,7 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                     instance = instances[i];
                     instance._transitionManager = previousTransitionManagers[instance._guid];
                     transitionManagers[instance._guid].ready();
+                    preDomUpdate(instance);
                     postDomUpdate(instance);
                 }
                 return result;
@@ -2490,14 +2491,14 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
                     } else {
                         mustache.ref = options.descriptor.r;
                         mustache.root._pendingResolution[mustache.root._pendingResolution.length] = mustache;
-                        if (mustache.descriptor.n) {
-                            mustache.render(false);
-                        }
                     }
                 }
             }
             if (options.descriptor.x) {
                 mustache.expressionResolver = new ExpressionResolver(mustache);
+            }
+            if (mustache.descriptor.n && !mustache.hasOwnProperty('value')) {
+                mustache.render(undefined);
             }
         };
     }(shared_resolveRef, render_shared_ExpressionResolver);
@@ -4329,7 +4330,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
         };
         return function (element, node, descriptor, docFrag) {
             var liveQueries, i, selector, queryAllResult, j;
-            if (element.lcName === 'script') {
+            if (element.lcName === 'script' || element.lcName === 'style') {
                 element.fragment = new StringFragment({
                     descriptor: descriptor.f,
                     root: element.root,
@@ -4337,8 +4338,13 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     owner: element
                 });
                 if (docFrag) {
-                    element.node.innerHTML = element.fragment.toString();
-                    element.bubble = updateScript;
+                    if (element.lcName === 'script') {
+                        element.bubble = updateScript;
+                        element.node.innerHTML = element.fragment.toString();
+                    } else {
+                        element.bubble = updateCss;
+                        element.bubble();
+                    }
                 }
                 return;
             }
@@ -4360,27 +4366,15 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     }
                 }
             } else {
-                if (descriptor.e === 'style' && node && node.styleSheet !== undefined) {
-                    element.fragment = new StringFragment({
-                        descriptor: descriptor.f,
-                        root: element.root,
-                        contextStack: element.parentFragment.contextStack,
-                        owner: element
-                    });
-                    if (docFrag) {
-                        element.bubble = updateCss;
-                    }
-                } else {
-                    element.fragment = new DomFragment({
-                        descriptor: descriptor.f,
-                        root: element.root,
-                        pNode: node,
-                        contextStack: element.parentFragment.contextStack,
-                        owner: element
-                    });
-                    if (docFrag) {
-                        node.appendChild(element.fragment.docFrag);
-                    }
+                element.fragment = new DomFragment({
+                    descriptor: descriptor.f,
+                    root: element.root,
+                    pNode: node,
+                    contextStack: element.parentFragment.contextStack,
+                    owner: element
+                });
+                if (docFrag) {
+                    node.appendChild(element.fragment.docFrag);
                 }
             }
         };
