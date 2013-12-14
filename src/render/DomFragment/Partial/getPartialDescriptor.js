@@ -18,6 +18,7 @@ define([
 
 	var getPartialDescriptor,
 
+		registerPartial,
 		getPartialFromRegistry,
 		unpack;
 
@@ -38,7 +39,7 @@ define([
 					throw new Error( errors.missingParser );
 				}
 
-				partials[ name ] = parse( el.innerHTML );
+				registerPartial( parse( el.innerHTML ), name, partials );
 			}
 		}
 
@@ -60,34 +61,39 @@ define([
 		return unpack( partial );
 	};
 
-	getPartialFromRegistry = function ( registry, name ) {
-		var partial, key;
+	getPartialFromRegistry = function ( registryOwner, name ) {
+		var partial;
 
-		if ( registry.partials[ name ] ) {
+		if ( registryOwner.partials[ name ] ) {
 			
 			// If this was added manually to the registry, but hasn't been parsed,
 			// parse it now
-			if ( typeof registry.partials[ name ] === 'string' ) {
+			if ( typeof registryOwner.partials[ name ] === 'string' ) {
 				if ( !parse ) {
 					throw new Error( errors.missingParser );
 				}
 
-				partial = parse( registry.partials[ name ], registry.parseOptions );
-
-				if ( isObject( partial ) ) {
-					registry.partials[ name ] = partial.main;
-
-					for ( key in partial.partials ) {
-						if ( partial.partials.hasOwnProperty( key ) ) {
-							registry.partials[ key ] = partial.partials[ key ];
-						}
-					}
-				} else {
-					registry.partials[ name ] = partial;
-				}
+				partial = parse( registryOwner.partials[ name ], registryOwner.parseOptions );
+				registerPartial( partial, name, registryOwner.partials );
 			}
 
-			return unpack( registry.partials[ name ] );
+			return unpack( registryOwner.partials[ name ] );
+		}
+	};
+
+	registerPartial = function ( partial, name, registry ) {
+		var key;
+
+		if ( isObject( partial ) ) {
+			registry[ name ] = partial.main;
+
+			for ( key in partial.partials ) {
+				if ( partial.partials.hasOwnProperty( key ) ) {
+					registry[ key ] = partial.partials[ key ];
+				}
+			}
+		} else {
+			registry[ name ] = partial;
 		}
 	};
 
