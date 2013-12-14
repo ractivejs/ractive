@@ -988,8 +988,28 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			items.pop();
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li></ul><p>a d</p>' );
+		});
 
+		test( 'Regression test for #321', function ( t ) {
+			var ractive, buttons, expected;
 
+			ractive = new Ractive({
+				el: fixture,
+				template: '<button on-click=\'test:{{ ["just a string"] }}\'>test 1</button><button on-click=\'test:{{ {bar: 3} }}\'>test 2</button>'
+			});
+
+			ractive.on( 'test', function ( event, arg ) {
+				t.deepEqual( arg, expected );
+			});
+
+			expect( 2 );
+			buttons = ractive.findAll( 'button' );
+
+			expected = ['just a string'];
+			simulant.fire( buttons[0], 'click' );
+
+			expected = { bar: 3 };
+			simulant.fire( buttons[1], 'click' );
 		});
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.

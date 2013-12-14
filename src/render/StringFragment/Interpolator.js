@@ -41,10 +41,18 @@ define([
 				return 'null';
 			}
 
-			return this.value.toString();
+			return stringify( this.value );
 		}
 	};
 
 	return StringInterpolator;
+
+	function stringify ( value ) {
+		if ( typeof value === 'string' ) {
+			return value;
+		}
+
+		return JSON.stringify( value );
+	}
 
 });
