@@ -943,6 +943,55 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'foo' );
 		});
 
+		test( 'Regression test for #317', function ( t ) {
+			var Widget, widget, ractive, items;
+
+			Widget = Ractive.extend({
+				template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
+				init: function () {
+					widget = this;
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget items="{{items}}"/><p>{{ items.join( " " ) }}</p>',
+				data: { items: [ 'a', 'b', 'c', 'd' ] },
+				components: {
+					widget: Widget
+				}
+			});
+
+			items = ractive.get( 'items' );
+
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
+
+			items.push( 'e' );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
+
+			items.splice( 2, 1 );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
+
+			items.pop();
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
+
+
+			// reset items from within widget
+			widget.set( 'items', widget.get( 'items' ).slice() );
+			items = ractive.get( 'items' );
+
+			items.push( 'f' );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: f</li></ul><p>a b d f</p>' );
+
+			items.splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li><li>2: f</li></ul><p>a d f</p>' );
+
+			items.pop();
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li></ul><p>a d</p>' );
+
+
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

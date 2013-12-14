@@ -145,7 +145,7 @@ define([
 
 		observeParent = function ( pair ) {
 			var observer = root.observe( pair[1], function ( value ) {
-				if ( !settingParent ) {
+				if ( !settingParent && !root._wrapped[ pair[1] ] ) {
 					settingChild = true;
 					instance.set( pair[0], value );
 					settingChild = false;
