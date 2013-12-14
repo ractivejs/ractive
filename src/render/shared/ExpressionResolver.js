@@ -57,11 +57,23 @@ define([
 			if ( !this.ready ) {
 				return;
 			}
-			
-			this.keypath = getKeypath( this.str, this.args );
-			this.createEvaluator();
+			var self = this;
 
-			this.mustache.resolve( this.keypath );
+			// get string that is unique to this expression
+			var keypath = this.str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
+				return self.args[ $1 ] ? self.args[ $1 ][1] : 'undefined';
+			});
+			
+			keypath = resolveRef( this.root, keypath, this.mustache.contextStack );
+			if ( keypath ) {
+				this.resolved = false;
+				this.mustache.resolve( keypath );
+			} else {
+				this.keypath = getKeypath(this.str, this.args);
+				
+				this.createEvaluator();
+				this.mustache.resolve(this.keypath);
+			}
 		},
 
 		teardown: function () {
