@@ -1,11 +1,22 @@
 Changelog
 ---------
 
+* 0.3.8
+    * Reorganised project into AMD modules, using [amdclean](https://github.com/gfranko/amdclean) during build
+    * Decorators - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Decorators))
+    * Moved plugins (adaptors, decorators, custom events, transitions) out of the main codebase and into [separate repositories](https://github.com/RactiveJS/Ractive/wiki/Plugins). Note: [plugin APIs](https://github.com/RactiveJS/Ractive/wiki/Plugin-APIs) have changed!
+    * `ractive.merge()` - merge items from one array into another (e.g. updating with data from a server) ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.merge%28%29))
+    * Pattern observers - observe e.g. `items[*].status`
+    * Contenteditable support (thanks [@aphitiel](https://github.com/aphitiel) and [@Nijikokun](https://github.com/Nijikokun))
+    * `ractive.insert()` and `ractive.detach()` methods for moving a Ractive instance in and out of the DOM without destroying it
+    * `ractive.toHTML()` replaces `ractive.renderHTML()`
+    * `ractive.findAll( selector, { live: true })` maintains a live list of elements matching any CSS selector
+    * Various bugfixes
 * 0.3.7
-    * Adaptors - use external libraries like Backbone seamlessly with Ractive ([docs on the wiki](https://github.com/Rich-Harris/Ractive/wiki/Adaptors))
+    * Adaptors - use external libraries like Backbone seamlessly with Ractive ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Adaptors))
     * Dependency tracking within functions, by monitoring `ractive.get()`)
-    * Create live nodelists with the `findAll()` method ([docs on the wiki](https://github.com/Rich-Harris/Ractive/wiki/ractive.findAll%28%29)
-    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to `ractive.observe()` ([docs](https://github.com/Rich-Harris/Ractive/wiki/ractive.observe%28%29))
+    * Create live nodelists with the `findAll()` method ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.findAll%28%29)
+    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to `ractive.observe()` ([docs](https://github.com/RactiveJS/Ractive/wiki/ractive.observe%28%29))
     * Triples behave correctly inside table elements etc (issue #167)
     * Delimiters ('{{' and '}}') can be overridden globally with `Ractive.delimiters` and `Ractive.tripleDelimiters`
     * Fix #130 (event handler parameters and array modification)
@@ -17,13 +28,13 @@ Changelog
     * Various bugfixes and stability/performance improvements
 * 0.3.6
     * Better two-way binding - support for multiple checkboxes and file inputs
-    * Experimental 'magic mode' - use ES5 getters and setters instead of .set() and .get(). See [#110](https://github.com/Rich-Harris/Ractive/issues/110)
+    * Experimental 'magic mode' - use ES5 getters and setters instead of .set() and .get(). See [#110](https://github.com/RactiveJS/Ractive/issues/110)
     * More efficient event binding, and dynamic proxy event names
     * Support for pointer events with `tap` - thanks [lluchs](https://github.com/lluchs)
-    * Iterate through properties of an object - see [#115](https://github.com/Rich-Harris/Ractive/issues/115)
+    * Iterate through properties of an object - see [#115](https://github.com/RactiveJS/Ractive/issues/115)
     * Bugfixes and refactoring
 * 0.3.5
-    * Experimental support for components - see [this thread](https://github.com/Rich-Harris/Ractive/issues/74) for details
+    * Experimental support for components - see [this thread](https://github.com/RactiveJS/Ractive/issues/74) for details
     * Support for [component](https://github.com/component/component) - thanks [CamShaft](https://github.com/CamShaft)
     * Option to use `on-click` style event binding (as opposed to `proxy-click`)
     * Bug fixes
@@ -55,7 +66,7 @@ Changelog
 	* Added adaptors (e.g. Backbone Model adaptors)
 	* Various performance enhancements and bug fixes
 * 0.2.2
-	* Added event proxies. In lieu of documentation, for now, see [#27](https://github.com/Rich-Harris/Ractive/issues/27)
+	* Added event proxies. In lieu of documentation, for now, see [#27](https://github.com/RactiveJS/Ractive/issues/27)
 	* Made array modification more robust and performant
 * 0.2.1
 	* Cleaned up some redundant code following 0.2.0 overhaul, some minor performance benefits

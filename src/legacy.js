@@ -1,5 +1,7 @@
 (function ( win ) {
 
+	'use strict';
+
 	var doc = win.document;
 
 	if ( !doc ) {
@@ -12,10 +14,10 @@
 		Date.now = function () { return +new Date(); };
 	}
 
-	if ( doc && !doc.createElementNS ) {
+	if ( !doc.createElementNS ) {
 		doc.createElementNS = function ( ns, type ) {
 			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
-				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
+				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/RactiveJS/Ractive/wiki/SVG-and-older-browsers for more information';
 			}
 
 			return doc.createElement( type );
@@ -90,7 +92,7 @@
 			}
 
 			for ( len = this.length; i<len; i++ ) {
-				if ( hasOwn.call( this, i ) && this[i] === needle ) {
+				if ( this.hasOwnProperty( i ) && this[i] === needle ) {
 					return i;
 				}
 			}
@@ -104,7 +106,7 @@
 			var i, len;
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( hasOwn.call( this, i ) ) {
+				if ( this.hasOwnProperty( i ) ) {
 					callback.call( context, this[i], i, this );
 				}
 			}
@@ -116,7 +118,7 @@
 			var i, len, mapped = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( hasOwn.call( this,  i ) ) {
+				if ( this.hasOwnProperty( i ) ) {
 					mapped[i] = mapper.call( context, this[i], i, this );
 				}
 			}
@@ -130,7 +132,7 @@
 			var i, len, filtered = [];
 
 			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( hasOwn.call( this, i ) && filter.call( context, this[i], i, this ) ) {
+				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
 					filtered[ filtered.length ] = this[i];
 				}
 			}
@@ -139,11 +141,13 @@
 		};
 	}
 
+
+
 	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
 		(function ( win, doc ) {
-			var Event, addEventListener, removeEventListener, head, style;
+			var Event, addEventListener, removeEventListener, head, style, origCreateElement;
 
 			Event = function ( e, element ) {
 				var property, instance = this;
@@ -202,14 +206,105 @@
 				Element.prototype.addEventListener = addEventListener;
 				Element.prototype.removeEventListener = removeEventListener;
 			} else {
+				// First, intercept any calls to document.createElement - this is necessary
+				// because the CSS hack (see below) doesn't come into play until after a
+				// node is added to the DOM, which is too late for a lot of Ractive setup work
+				origCreateElement = doc.createElement;
+
+				doc.createElement = function ( tagName ) {
+					var el = origCreateElement( tagName );
+					el.addEventListener = addEventListener;
+					el.removeEventListener = removeEventListener;
+					return el;
+				};
+
+				// Then, mop up any additional elements that weren't created via
+				// document.createElement (i.e. with innerHTML).
 				head = doc.getElementsByTagName('head')[0];
 				style = doc.createElement('style');
 
 				head.insertBefore( style, head.firstChild );
 
-				style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
+				//style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
 			}
 		}( win, doc ));
 	}
 
-}( global ));
+
+	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
+	if ( !win.getComputedStyle ) {
+		win.getComputedStyle = (function () {
+			function getPixelSize(element, style, property, fontSize) {
+				var
+				sizeWithSuffix = style[property],
+				size = parseFloat(sizeWithSuffix),
+				suffix = sizeWithSuffix.split(/\d/)[0],
+				rootSize;
+
+				fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
+				rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
+
+				return (suffix == 'em') ? size * fontSize : (suffix == 'in') ? size * 96 : (suffix == 'pt') ? size * 96 / 72 : (suffix == '%') ? size / 100 * rootSize : size;
+			}
+
+			function setShortStyleProperty(style, property) {
+				var
+				borderSuffix = property == 'border' ? 'Width' : '',
+				t = property + 'Top' + borderSuffix,
+				r = property + 'Right' + borderSuffix,
+				b = property + 'Bottom' + borderSuffix,
+				l = property + 'Left' + borderSuffix;
+
+				style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]]
+				: style[t] == style[b] && style[l] == style[r] ? [style[t], style[r]]
+				: style[l] == style[r] ? [style[t], style[r], style[b]]
+				: [style[t], style[r], style[b], style[l]]).join(' ');
+			}
+
+			function CSSStyleDeclaration(element) {
+				var currentStyle, style, fontSize, property;
+
+				currentStyle = element.currentStyle;
+				style = this;
+				fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
+
+				for (property in currentStyle) {
+					if (/width|height|margin.|padding.|border.+W/.test(property) && style[property] !== 'auto') {
+						style[property] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
+					} else if (property === 'styleFloat') {
+						style.float = currentStyle[property];
+					} else {
+						style[property] = currentStyle[property];
+					}
+				}
+
+				setShortStyleProperty(style, 'margin');
+				setShortStyleProperty(style, 'padding');
+				setShortStyleProperty(style, 'border');
+
+				style.fontSize = fontSize + 'px';
+
+				return style;
+			}
+
+			CSSStyleDeclaration.prototype = {
+				constructor: CSSStyleDeclaration,
+				getPropertyPriority: function () {},
+				getPropertyValue: function ( prop ) {
+					return this[prop] || '';
+				},
+				item: function () {},
+				removeProperty: function () {},
+				setProperty: function () {},
+				getPropertyCSSValue: function () {}
+			};
+
+			function getComputedStyle(element) {
+				return new CSSStyleDeclaration(element);
+			}
+
+			return getComputedStyle;
+		}());
+	}
+
+}( typeof window !== 'undefined' ? window : this ));
