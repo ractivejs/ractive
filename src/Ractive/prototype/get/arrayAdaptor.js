@@ -282,6 +282,7 @@ define([
 				instance._transitionManager = previousTransitionManagers[ instance._guid ];
 				transitionManagers[ instance._guid ].ready();
 
+				preDomUpdate( instance );
 				postDomUpdate( instance );
 			}
 

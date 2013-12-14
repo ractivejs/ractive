@@ -922,6 +922,27 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>one</p><p>three</p>' );
 		});
 
+		test( 'Regression test for #316', function ( t ) {
+			var ractive, a, b;
+
+			a = [];
+			b = [];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{ a.length ? "foo" : b.length ? "bar" : "baz" }}',
+				data: { a: a, b: b }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'baz' );
+
+			b.push( 1 );
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+
+			a.push( 1 );
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
