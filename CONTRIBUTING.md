@@ -21,7 +21,7 @@ Raising issues
 
 Before submitting an issue, please make sure you're using the [latest released version](https://raw.github.com/RactiveJS/Ractive/master/Ractive.js).
 
-If the bug persists, it may have been fixed in the latest development version. New versions are developed in branches, named for the version number (e.g. at the time of writing, the development branch is [0.3.8](https://github.com/RactiveJS/Ractive/tree/0.3.8)). You can get the most recent builds from the `build` folder of this branch.
+If the bug persists, it may have been fixed in the latest development version. New versions are developed in branches, named for the version number (e.g. at the time of writing, the development branch is [0.3.9](https://github.com/RactiveJS/Ractive/tree/0.3.9)). You can get the most recent builds from the `build` folder of this branch.
 
 See the [branches page](https://github.com/RactiveJS/Ractive/branches) to find the newest development branch.
 
