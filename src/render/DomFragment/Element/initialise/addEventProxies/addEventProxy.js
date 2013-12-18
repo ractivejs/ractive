@@ -37,7 +37,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 			this.custom = definition( this.node, getCustomHandler( eventName ) );
 		} else {
 			// Looks like we're dealing with a standard DOM event... but let's check
-			if ( !this.node.hasOwnProperty( 'on' + eventName ) ) {
+			if ( !( 'on' + eventName in this.node ) ) {
 				warn( 'Missing "' + this.name + '" event. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#events' );
 			}
 
@@ -143,7 +143,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 		if ( typeof args === 'string' ) {
 			args = args.substr( 1, args.length - 2 );
 		}
-		
+
 		this.root.fire.apply( this.root, [ this.n.toString(), event ].concat( args ) );
 	};
 
