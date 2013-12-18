@@ -86,3 +86,7 @@ License
 -------
 
 Copyright (c) 2012-13 Rich Harris. Released under an MIT license.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
