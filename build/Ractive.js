@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8 - 2013-12-14
+	Ractive - v0.3.8 - 2013-12-18
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -4497,7 +4497,7 @@ var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = functi
             if (definition = this.root.events[eventName]) {
                 this.custom = definition(this.node, getCustomHandler(eventName));
             } else {
-                if (!this.node.hasOwnProperty('on' + eventName)) {
+                if (!('on' + eventName in this.node)) {
                     warn('Missing "' + this.name + '" event. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#events');
                 }
                 this.node.addEventListener(eventName, genericHandler, false);
@@ -8047,6 +8047,7 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDom
             }
             this._transitionManager = previousTransitionManager;
             transitionManager.ready();
+            return this;
         };
         function stringify(item) {
             return JSON.stringify(item);
