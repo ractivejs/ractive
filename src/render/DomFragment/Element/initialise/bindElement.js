@@ -1,9 +1,9 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function ( element, attributes ) {
-		
+
 		// contenteditable
 		if ( element.node.getAttribute( 'contenteditable' ) && attributes.value && attributes.value.bind() ) {
 			return;

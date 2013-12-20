@@ -31,7 +31,7 @@ define([
 	executeTransition,
 	enforceCase
 ) {
-	
+
 	'use strict';
 
 	return function ( element, options, docFrag ) {

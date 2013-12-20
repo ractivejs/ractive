@@ -102,7 +102,7 @@ define([
 		}
 
 		item = attribute.fragment.items[0];
-			
+
 		if ( item.type !== types.INTERPOLATOR ) {
 			return null;
 		}
@@ -182,7 +182,7 @@ define([
 			value = [];
 			options = this.node.options;
 			len = options.length;
-			
+
 			for ( i=0; i<len; i+=1 ) {
 				if ( options[i].selected ) {
 					value[ value.length ] = options[i]._ractive.value;
@@ -199,7 +199,7 @@ define([
 			previousValue = attribute.value;
 
 			value = this.value();
-			
+
 			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 				// either length or contents have changed, so we update the model
 				attribute.receiving = true;
@@ -417,24 +417,24 @@ define([
 
 	ContentEditableBinding = function ( attribute, node ) {
 		inheritProperties( this, attribute, node );
-		
+
 		node.addEventListener( 'change', updateModel, false );
 		if ( !this.root.lazy ) {
 			node.addEventListener( 'input', updateModel, false );
-		
+
 			if ( node.attachEvent ) {
 				node.addEventListener( 'keyup', updateModel, false );
 			}
 		}
 	};
-		
+
 	ContentEditableBinding.prototype = {
 		update: function () {
 			this.attr.receiving = true;
 			this.root.set( this.keypath, this.node.innerHTML );
 			this.attr.receiving = false;
 		},
-		
+
 		teardown: function () {
 			this.node.removeEventListener( 'change', updateModel, false );
 			this.node.removeEventListener( 'input', updateModel, false );

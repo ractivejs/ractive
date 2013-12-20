@@ -5,7 +5,7 @@ define([
 	'parse/Tokenizer/getText/_getText',
 
 	'parse/Tokenizer/getExpression/_getExpression',
-	
+
 	'parse/Tokenizer/utils/allowWhitespace',
 	'parse/Tokenizer/utils/getStringMatch'
 ], function (
@@ -15,11 +15,11 @@ define([
 	getText,
 
 	getExpression,
-	
+
 	allowWhitespace,
 	getStringMatch
 ) {
-	
+
 	'use strict';
 
 	var Tokenizer;

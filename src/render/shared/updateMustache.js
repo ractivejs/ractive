@@ -10,5 +10,5 @@ define([ 'utils/isEqual' ], function ( isEqual ) {
 			this.value = value;
 		}
 	};
-	
+
 });

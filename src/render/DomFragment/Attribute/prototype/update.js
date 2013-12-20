@@ -115,7 +115,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 
 		// if we're still here, it means the new value didn't match any of the options...
 		// TODO figure out what to do in this situation
-		
+
 		return this;
 	};
 
@@ -215,7 +215,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 			if ( !this.receiving ) {
 				node.innerHTML = value;
 			}
-			
+
 			this.value = value;
 		}
 
@@ -245,7 +245,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 				if ( !this.receiving ) {
 					node[ this.propertyName ] = value;
 				}
-				
+
 				this.value = value;
 
 				return this;

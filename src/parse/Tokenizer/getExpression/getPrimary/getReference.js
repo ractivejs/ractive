@@ -7,11 +7,11 @@ define([
 	makeRegexMatcher,
 	getName
 ) {
-	
+
 	'use strict';
 
 	var getDotRefinement, getArrayRefinement, getArrayMember, globals;
-	
+
 	getDotRefinement = makeRegexMatcher( /^\.[a-zA-Z_$0-9]+/ );
 
 	getArrayRefinement = function ( tokenizer ) {
@@ -73,7 +73,7 @@ define([
 		}
 
 		if ( tokenizer.getStringMatch( '(' ) ) {
-			
+
 			// if this is a method invocation (as opposed to a function) we need
 			// to strip the method name from the reference combo, else the context
 			// will be wrong

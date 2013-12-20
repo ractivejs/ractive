@@ -60,7 +60,7 @@ define( function () {
 				}
 
 				transitionManager.active.splice( index, 1 );
-				
+
 				detachNodes();
 
 				if ( !transitionManager.active.length && transitionManager._ready ) {

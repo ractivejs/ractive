@@ -58,12 +58,12 @@ define([
 			if ( this.pNode.tagName === 'INPUT' && this.pNode.type === 'file' ) {
 				this.isFileInputValue = true;
 			}
-		} 
-		
+		}
+
 
 		// can we establish this attribute's property name equivalent?
 		determinePropertyName( this, options );
-		
+
 		// determine whether this attribute can be marked as self-updating
 		this.selfUpdating = this.fragment.isSimple();
 
@@ -136,7 +136,7 @@ define([
 
 			// TODO deal with boolean attributes correctly
 			str = this.fragment.toString();
-			
+
 			return this.name + '=' + JSON.stringify( str );
 		}
 	};

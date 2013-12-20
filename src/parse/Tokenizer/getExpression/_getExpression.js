@@ -15,5 +15,5 @@ define([
 	return function () {
 		return getConditional( this );
 	};
-	
+
 });

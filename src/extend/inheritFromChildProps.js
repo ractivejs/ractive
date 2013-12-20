@@ -9,7 +9,7 @@ define([
 	wrapMethod,
 	augment
 ) {
-	
+
 	'use strict';
 
 	var blacklist, blacklisted;

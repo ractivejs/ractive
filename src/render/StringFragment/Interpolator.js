@@ -11,7 +11,7 @@ define([
 	updateMustache,
 	resolveMustache
 ) {
-	
+
 	'use strict';
 
 	var StringInterpolator = function ( options ) {

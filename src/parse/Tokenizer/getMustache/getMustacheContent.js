@@ -7,7 +7,7 @@ define([
 	makeRegexMatcher,
 	getMustacheType
 ) {
-	
+
 	'use strict';
 
 	var getIndexRef = makeRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ ),

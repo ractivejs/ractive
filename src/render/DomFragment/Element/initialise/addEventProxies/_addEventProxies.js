@@ -1,5 +1,5 @@
 define([ 'render/DomFragment/Element/initialise/addEventProxies/addEventProxy' ], function ( addEventProxy ) {
-	
+
 	'use strict';
 
 	return function ( element, proxies ) {

@@ -1,5 +1,5 @@
 define([ 'utils/isArray' ], function ( isArray ) {
-	
+
 	'use strict';
 
 	return function ( items ) {

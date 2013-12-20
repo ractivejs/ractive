@@ -1,5 +1,5 @@
 define([ 'config/types', 'utils/parseJSON' ], function ( types, parseJSON ) {
-	
+
 	'use strict';
 
 	return function ( directive ) {
@@ -25,11 +25,11 @@ define([ 'config/types', 'utils/parseJSON' ], function ( types, parseJSON ) {
 
 			if ( token.type === types.TEXT ) {
 				colonIndex = token.value.indexOf( ':' );
-				
+
 				if ( colonIndex === -1 ) {
 					directiveName[ directiveName.length ] = token;
 				} else {
-					
+
 					// is the colon the first character?
 					if ( colonIndex ) {
 						// no

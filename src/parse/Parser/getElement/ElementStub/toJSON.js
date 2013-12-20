@@ -7,7 +7,7 @@ define([
 	jsonifyStubs,
 	jsonifyDirective
 ) {
-	
+
 	'use strict';
 
 	return function ( noStringify ) {
@@ -49,7 +49,7 @@ define([
 				if( attribute.value === null ) {
 					value = null;
 				} else {
-					//value = jsonifyStubs( attribute.value, noStringify );	
+					//value = jsonifyStubs( attribute.value, noStringify );
 					value = attribute.value.toJSON( noStringify );
 				}
 

@@ -5,7 +5,7 @@ define([
 	warn,
 	Transition
 ) {
-	
+
 	'use strict';
 
 	return function ( descriptor, root, owner, contextStack, isIntro ) {

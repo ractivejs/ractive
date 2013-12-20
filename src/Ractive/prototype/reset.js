@@ -9,7 +9,7 @@ define([
 	clearCache,
 	notifyDependants
 ) {
-	
+
 	'use strict';
 
 	return function ( data, complete ) {

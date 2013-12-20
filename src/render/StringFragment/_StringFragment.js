@@ -15,7 +15,7 @@ define([
 	Text,
 	circular
 ) {
-	
+
 	'use strict';
 
 	var StringFragment = function ( options ) {
@@ -53,7 +53,7 @@ define([
 
 		getValue: function () {
 			var value;
-			
+
 			// Accommodate boolean attributes
 			if ( this.items.length === 1 && this.items[0].type === types.INTERPOLATOR ) {
 				value = this.items[0].value;
@@ -61,7 +61,7 @@ define([
 					return value;
 				}
 			}
-			
+
 			return this.toString();
 		},
 

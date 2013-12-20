@@ -7,7 +7,7 @@ define([
 	getReference,
 	getBracketedExpression
 ) {
-	
+
 	'use strict';
 
 	return function ( tokenizer ) {

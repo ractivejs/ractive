@@ -5,7 +5,7 @@ define([
 	errors,
 	parse
 ) {
-	
+
 	'use strict';
 
 	return function ( Child ) {

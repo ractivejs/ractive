@@ -37,7 +37,7 @@ define([
 
 		for ( i=0; i<len; i+=1 ) {
 			ref = expression.r[i];
-			
+
 			// is this an index ref?
 			if ( indexRefs && indexRefs[ ref ] !== undefined ) {
 				this.resolveRef( i, true, indexRefs[ ref ] );
@@ -57,7 +57,7 @@ define([
 			if ( !this.ready ) {
 				return;
 			}
-			
+
 			this.keypath = getKeypath( this.str, this.args );
 			this.createEvaluator();
 

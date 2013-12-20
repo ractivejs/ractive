@@ -3,7 +3,7 @@ define([
 ], function (
 	types
 ) {
-	
+
 	'use strict';
 
 	return function queueDependants ( keypath, deps, mergeQueue, updateQueue ) {

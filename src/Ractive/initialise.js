@@ -21,7 +21,7 @@ define([
 	magicAdaptor,
 	parse
 ) {
-	
+
 	'use strict';
 
 	var getObject, getArray, defaultOptions, extendable;
@@ -167,12 +167,12 @@ define([
 		extendable.forEach( function ( registry ) {
 			ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
 		});
-		
+
 
 
 		// Parse template, if necessary
 		template = options.template;
-		
+
 		if ( typeof template === 'string' ) {
 			if ( !parse ) {
 				throw new Error( errors.missingParser );
@@ -219,7 +219,7 @@ define([
 			sanitize: options.sanitize,
 			stripComments: options.stripComments
 		};
-		
+
 		// Temporarily disable transitions, if noIntro flag is set
 		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 

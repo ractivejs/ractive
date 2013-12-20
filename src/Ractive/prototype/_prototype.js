@@ -43,7 +43,7 @@ define([
 	detach,
 	insert
 ) {
-	
+
 	'use strict';
 
 	return {

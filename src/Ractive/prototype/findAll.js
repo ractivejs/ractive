@@ -30,7 +30,7 @@ define([
 
 		defineProperties( query, {
 			cancel: { value: cancelQuery },
-			
+
 			_root: { value: ractive },
 			_sort: { value: sortQuery },
 			_dirty: { value: false, writable: true },
@@ -76,7 +76,7 @@ define([
 	testNode = function ( node, noDirty ) {
 		if ( matches( node, this.selector ) ) {
 			this.push( node );
-			
+
 			if ( !noDirty ) {
 				this._makeDirty();
 			}

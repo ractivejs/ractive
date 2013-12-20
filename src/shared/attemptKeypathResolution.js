@@ -1,5 +1,5 @@
 define([ 'shared/resolveRef' ], function ( resolveRef ) {
-	
+
 	'use strict';
 
 	var push = Array.prototype.push;
@@ -10,7 +10,7 @@ define([ 'shared/resolveRef' ], function ( resolveRef ) {
 		// See if we can resolve any of the unresolved keypaths (if such there be)
 		while ( unresolved = ractive._pendingResolution.pop() ) {
 			keypath = resolveRef( ractive, unresolved.ref, unresolved.contextStack );
-		
+
 			if ( keypath !== undefined ) {
 				// If we've resolved the keypath, we can initialise this item
 				unresolved.resolve( keypath );

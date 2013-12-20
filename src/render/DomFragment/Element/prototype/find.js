@@ -1,5 +1,5 @@
 define([ 'utils/matches' ], function ( matches ) {
-	
+
 	'use strict';
 
 	return function ( selector ) {

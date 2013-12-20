@@ -9,7 +9,7 @@ define([
 	StringFragment,
 	circular
 ) {
-	
+
 	'use strict';
 
 	var DomFragment, updateCss, updateScript;
@@ -50,7 +50,7 @@ define([
 			if ( docFrag ) {
 				if ( element.lcName === 'script' ) {
 					element.bubble = updateScript;
-					element.node.innerHTML = element.fragment.toString(); // bypass warning initially 
+					element.node.innerHTML = element.fragment.toString(); // bypass warning initially
 				} else {
 					element.bubble = updateCss;
 					element.bubble();
@@ -66,7 +66,7 @@ define([
 
 			if ( docFrag ) {
 				node.innerHTML = element.html;
-				
+
 				// Update live queries, if applicable
 				liveQueries = element.root._liveQueries;
 				i = liveQueries.length;

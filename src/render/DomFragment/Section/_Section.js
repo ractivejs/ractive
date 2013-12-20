@@ -43,7 +43,7 @@ define([
 		if ( docFrag ) {
 			this.docFrag = document.createDocumentFragment();
 		}
-		
+
 		this.initialising = true;
 		initMustache( this, options );
 
@@ -100,7 +100,7 @@ define([
 
 				this.fragments[i] = this.createFragment( fragmentOptions );
 			}
-			
+
 			this.length += args.length;
 
 			// append docfrag in front of next node
@@ -341,5 +341,5 @@ define([
 	};
 
 	return DomSection;
-	
+
 });

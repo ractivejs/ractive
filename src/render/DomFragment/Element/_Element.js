@@ -13,7 +13,7 @@ define([
 	find,
 	findAll
 ) {
-	
+
 	'use strict';
 
 	var DomElement = function ( options, docFrag ) {

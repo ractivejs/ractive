@@ -52,7 +52,7 @@ define([
 
 		// if this array hasn't already been ractified, ractify it
 		if ( !array._ractive ) {
-			
+
 			// define a non-enumerable _ractive property to store the wrappers
 			defineProperty( array, '_ractive', {
 				value: {
@@ -159,7 +159,7 @@ define([
 				}
 
 				deps = depsByKeypath[ keypath ];
-				
+
 				if ( deps ) {
 					queueDependants( keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
@@ -247,7 +247,7 @@ define([
 		}
 	};
 
-		
+
 	patchedArrayProto = [];
 	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];
 	noop = function () {};
@@ -294,7 +294,7 @@ define([
 		});
 	});
 
-	
+
 	// can we use prototype chain injection?
 	// http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
 	testObj = {};

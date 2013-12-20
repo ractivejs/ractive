@@ -16,7 +16,7 @@ define([
 
 		mustache.root           = parentFragment.root;
 		mustache.contextStack   = parentFragment.contextStack;
-		
+
 		mustache.descriptor     = options.descriptor;
 		mustache.index          = options.index || 0;
 		mustache.priority       = parentFragment.priority;
@@ -56,7 +56,7 @@ define([
 			mustache.expressionResolver = new ExpressionResolver( mustache );
 		}
 
-		// Special case - inverted sections 
+		// Special case - inverted sections
 		if ( mustache.descriptor.n && !mustache.hasOwnProperty( 'value' ) ) {
 			mustache.render( undefined );
 		}

@@ -5,7 +5,7 @@ define([
 	types,
 	getKeyValuePairs
 ) {
-	
+
 	'use strict';
 
 	return function ( tokenizer ) {

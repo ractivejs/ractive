@@ -44,7 +44,7 @@ define([
 			if ( destroy ) {
 				this.detach();
 			}
-		
+
 			teardown( this );
 		},
 

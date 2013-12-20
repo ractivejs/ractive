@@ -3,11 +3,11 @@ define([
 ], function (
 	StringFragment
 ) {
-	
+
 	'use strict';
 
 	var ComponentParameter = function ( root, component, key, value, contextStack ) {
-		
+
 		this.parentFragment = component.parentFragment;
 		this.component = component;
 		this.key = key;

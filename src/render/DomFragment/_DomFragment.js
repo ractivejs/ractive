@@ -146,7 +146,7 @@ define([
 
 		toString: function () {
 			var html, i, len, item;
-			
+
 			if ( this.html ) {
 				return this.html;
 			}

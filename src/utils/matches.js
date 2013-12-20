@@ -1,5 +1,5 @@
 define([ 'config/isClient' ], function ( isClient ) {
-	
+
 	'use strict';
 
 	var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;

@@ -1,5 +1,5 @@
 define([ 'utils/getElement' ], function ( getElement ) {
-	
+
 	'use strict';
 
 	return function ( target, anchor ) {

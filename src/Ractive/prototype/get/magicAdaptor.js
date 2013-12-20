@@ -23,9 +23,9 @@ define( function () {
 		this.keypath = keypath;
 
 		keys = keypath.split( '.' );
-		
+
 		this.prop = keys.pop();
-		
+
 		objKeypath = keys.join( '.' );
 		this.obj = ractive.get( objKeypath );
 
@@ -33,7 +33,7 @@ define( function () {
 
 		// Has this property already been wrapped?
 		if ( descriptor && descriptor.set && ( wrappers = descriptor.set._ractiveWrappers ) ) {
-		
+
 			// Yes. Register this wrapper to this property, if it hasn't been already
 			if ( wrappers.indexOf( this ) === -1 ) {
 				wrappers[ wrappers.length ] = this;
@@ -56,7 +56,7 @@ define( function () {
 			oldGet = descriptor.get;
 			oldSet = descriptor.set;
 		}
-		
+
 		get = oldGet || function () {
 			return wrapper.value; // whichever wrapper got there first!
 		};
@@ -73,7 +73,7 @@ define( function () {
 			i = wrappers.length;
 			while ( i-- ) {
 				wrapper = wrappers[i];
-				
+
 				if ( !wrapper.resetting ) {
 					wrapper.ractive.set( wrapper.keypath, value );
 				}

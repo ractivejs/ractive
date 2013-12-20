@@ -5,7 +5,7 @@ define([
 	types,
 	TextStub
 ) {
-	
+
 	'use strict';
 
 	return function ( token ) {

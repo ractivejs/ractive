@@ -5,7 +5,7 @@ define([
 	types,
 	getMemberOrInvocation
 ) {
-	
+
 	'use strict';
 
 	var getTypeOf, makePrefixSequenceMatcher;

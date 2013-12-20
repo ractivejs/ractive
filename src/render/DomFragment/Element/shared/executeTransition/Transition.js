@@ -13,7 +13,7 @@ define([
 	camelCase,
 	StringFragment
 ) {
-	
+
 	'use strict';
 
 	var Transition,
@@ -23,7 +23,7 @@ define([
 		vendorPattern,
 		unprefixPattern,
 		prefixCache,
-		
+
 		CSS_TRANSITIONS_ENABLED,
 		TRANSITION,
 		TRANSITION_DURATION,
@@ -170,7 +170,7 @@ define([
 					}
 				}
 			}
-			
+
 			return this;
 		},
 
@@ -238,7 +238,7 @@ define([
 						// still transitioning...
 						return;
 					}
-					
+
 					t.root.fire(t.name + ':end');
 
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
@@ -251,12 +251,12 @@ define([
 
 					t.complete();
 				};
-				
+
 				t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
 
 				setTimeout( function () {
 					var i = changedProperties.length;
-					
+
 					while ( i-- ) {
 						prop = changedProperties[i];
 						t.node.style[ prefix( prop ) ] = to[ prop ];
@@ -269,7 +269,7 @@ define([
 			if ( this.originalStyle ) {
 				this.node.setAttribute( 'style', this.originalStyle );
 			} else {
-				
+
 				// Next line is necessary, to remove empty style attribute!
 				// See http://stackoverflow.com/a/7167553
 				this.node.getAttribute( 'style' );

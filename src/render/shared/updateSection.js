@@ -151,7 +151,7 @@ define([
 
 			if ( section.length > 1 ) {
 				fragmentsToRemove = section.fragments.splice( 1 );
-				
+
 				while ( fragment = fragmentsToRemove.pop() ) {
 					fragment.teardown( true );
 				}

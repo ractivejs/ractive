@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function ( selector, query ) {
@@ -25,7 +25,7 @@ define( function () {
 			for ( i = 0; i < numNodes; i += 1 ) {
 				node = queryAllResult[i];
 				query.push( node );
-				
+
 				if ( query.live ) {
 					registeredNodes.push( node );
 				}

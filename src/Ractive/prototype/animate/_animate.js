@@ -20,7 +20,7 @@ function (
 
 
 	return function ( keypath, to, options ) {
-		
+
 		var k,
 			animation,
 			animations,
@@ -60,7 +60,7 @@ function (
 					};
 				};
 			}
-			
+
 
 			for ( k in keypath ) {
 				if ( keypath.hasOwnProperty( k ) ) {
@@ -136,7 +136,7 @@ function (
 		if ( keypath !== null ) {
 			from = root.get( keypath );
 		}
-		
+
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?
 		animations.abort( keypath, root );

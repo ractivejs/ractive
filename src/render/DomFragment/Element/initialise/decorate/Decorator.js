@@ -5,7 +5,7 @@ define([
 	warn,
 	StringFragment
 ) {
-	
+
 	'use strict';
 
 	var Decorator = function ( descriptor, root, owner, contextStack ) {
@@ -40,7 +40,7 @@ define([
 
 		if ( !this._fn ) {
 			errorMessage = 'Missing "' + descriptor.o + '" decorator. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#decorators';
-			
+
 			if ( root.debug ) {
 				throw new Error( errorMessage );
 			} else {
@@ -59,7 +59,7 @@ define([
 			} else {
 				result = this._fn.call( this.root, this.node );
 			}
-			
+
 			if ( !result || !result.teardown ) {
 				throw new Error( 'Decorator definition must return an object with a teardown method' );
 			}

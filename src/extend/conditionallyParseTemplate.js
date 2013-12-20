@@ -7,7 +7,7 @@ define([
 	isClient,
 	parse
 ) {
-	
+
 	'use strict';
 
 	return function ( Child ) {

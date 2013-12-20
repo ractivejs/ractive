@@ -11,7 +11,7 @@ define([
 	notifyDependants,
 	processDeferredUpdates
 ) {
-	
+
 	'use strict';
 
 	return function ( keypath, complete ) {

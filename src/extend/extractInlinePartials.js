@@ -5,7 +5,7 @@ define([
 	isObject,
 	augment
 ) {
-	
+
 	'use strict';
 
 	return function ( Child, childProps ) {

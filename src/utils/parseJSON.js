@@ -9,7 +9,7 @@ define([
 	getStringLiteral,
 	getKey
 ) {
-	
+
 	'use strict';
 
 	// simple JSON parser, without the restrictions of JSON parse
@@ -116,7 +116,7 @@ define([
 
 			while ( valueToken = this.getToken() ) {
 				result.push( valueToken.v );
-				
+
 				if ( this.getStringMatch( ']' ) ) {
 					return { v: result };
 				}

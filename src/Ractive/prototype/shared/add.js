@@ -1,5 +1,5 @@
 define([ 'utils/isNumeric' ], function ( isNumeric ) {
-	
+
 	'use strict';
 
 	return function ( root, keypath, d ) {

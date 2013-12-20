@@ -5,7 +5,7 @@ define([
 	types,
 	CommentStub
 ) {
-	
+
 	'use strict';
 
 	return function ( token ) {

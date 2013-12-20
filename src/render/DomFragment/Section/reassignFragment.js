@@ -7,7 +7,7 @@ define([
 	unregisterDependant,
 	ExpressionResolver
 ) {
-	
+
 	'use strict';
 
 	return reassignFragment;
@@ -101,7 +101,7 @@ define([
 			if ( binding = storage.binding ) {
 				if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
 					bindings = storage.root._twowayBindings[ binding.keypath ];
-					
+
 					// remove binding reference for old keypath
 					bindings.splice( bindings.indexOf( binding ), 1 );
 
@@ -141,7 +141,7 @@ define([
 			// resolver checks in? For now, the latter (nb if this changes, we
 			// need to manually set mustache.resolved = false, otherwise we
 			// come up against a nasty bug - #271)
-			
+
 			if ( mustache.expressionResolver ) {
 				mustache.expressionResolver.teardown();
 			}

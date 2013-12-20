@@ -5,7 +5,7 @@ define([
 	registerDependant,
 	unregisterDependant
 ) {
-	
+
 	'use strict';
 
 	return function ( keypath ) {
@@ -23,7 +23,7 @@ define([
 
 		this.keypath = keypath;
 		registerDependant( this );
-		
+
 		this.update();
 
 		// TODO is there any need for this?
@@ -34,4 +34,4 @@ define([
 		this.resolved = true;
 	};
 
-}); 
+});

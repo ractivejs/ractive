@@ -30,7 +30,7 @@ define([
 
 	// Read-only properties
 	defineProperties( Ractive, {
-		
+
 		// Prototype methods
 		prototype: { value: prototype },
 

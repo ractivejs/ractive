@@ -73,7 +73,7 @@
 		}());
 	}
 
-	
+
 	// Array extras
 	if ( !Array.prototype.indexOf ) {
 		Array.prototype.indexOf = function ( needle, i ) {
@@ -174,7 +174,7 @@
 
 				listeners = element.listeners || ( element.listeners = [] );
 				i = listeners.length;
-				
+
 				listeners[i] = [ listener, function (e) {
 					listener.call( element, new Event( e, element ) );
 				}];

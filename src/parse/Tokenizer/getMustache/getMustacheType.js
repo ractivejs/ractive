@@ -1,5 +1,5 @@
 define([ 'config/types' ], function ( types ) {
-	
+
 	'use strict';
 
 	var mustacheTypes = {

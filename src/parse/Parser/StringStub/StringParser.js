@@ -5,7 +5,7 @@ define([
 	getText,
 	getMustache
 ) {
-	
+
 	'use strict';
 
 	var StringParser;

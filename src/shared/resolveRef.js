@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	var resolveRef;
@@ -24,7 +24,7 @@ define( function () {
 		// If a reference begins with '.', it's either a restricted reference or
 		// an ancestor reference...
 		if ( ref.charAt( 0 ) === '.' ) {
-			
+
 			// ...either way we need to get the innermost context
 			context = contextStack[ contextStack.length - 1 ];
 			contextKeys = context ? context.split( '.' ) : [];
@@ -48,7 +48,7 @@ define( function () {
 			if ( !context ) {
 				return ref.substring( 1 );
 			}
-			
+
 			return context + ref;
 		}
 

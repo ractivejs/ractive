@@ -7,7 +7,7 @@ define([
 	initOptions,
 	create
 ) {
-	
+
 	'use strict';
 
 	// This is where we inherit class-level options, such as `modifyArrays`

@@ -79,7 +79,7 @@ define([
 
 			// if a regular interpolator, we bind to it
 			if ( value.length === 1 && value[0].t === types.INTERPOLATOR && value[0].r ) {
-				
+
 				// is it an index reference?
 				if ( parentFragment.indexRefs && parentFragment.indexRefs[ value[0].r ] !== undefined ) {
 					data[ key ] = parentFragment.indexRefs[ value[0].r ];
@@ -171,7 +171,7 @@ define([
 				root.set( pair[1], instance.get( pair[0] ) );
 			};
 		}
-		
+
 
 		i = mappings.length;
 		while ( i-- ) {
@@ -226,7 +226,7 @@ define([
 			while ( this.observers.length ) {
 				this.observers.pop().cancel();
 			}
-			
+
 			this.instance.teardown();
 		},
 

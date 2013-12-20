@@ -1,5 +1,5 @@
 define([ 'utils/warn' ], function ( warn ) {
-	
+
 	'use strict';
 
 	return function () {

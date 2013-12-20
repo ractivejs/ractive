@@ -3,7 +3,7 @@ define([
 ], function (
 	executeTransition
 ) {
-	
+
 	'use strict';
 
 	return function ( destroy ) {

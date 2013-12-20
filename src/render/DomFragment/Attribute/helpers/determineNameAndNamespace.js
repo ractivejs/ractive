@@ -5,7 +5,7 @@ define([
 	namespaces,
 	enforceCase
 ) {
-	
+
 	'use strict';
 
 	return function ( attribute, name ) {

@@ -15,7 +15,7 @@ define([
 	insertHtml,
 	teardown
 ) {
-	
+
 	'use strict';
 
 	var DomTriple = function ( options, docFrag ) {

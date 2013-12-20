@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	var notifyDependants, lastKey, starMaps = {};
@@ -119,7 +119,7 @@ define( function () {
 
 					key = lastKey.exec( child )[0]; // 'baz'
 					childActualKeypath = actualKeypath + '.' + key; // 'foo.bar.baz'
-					
+
 					notifyPatternObservers( ractive, child, childActualKeypath ); // ractive, 'foo.*.baz', 'foo.bar.baz'
 				}
 			}
