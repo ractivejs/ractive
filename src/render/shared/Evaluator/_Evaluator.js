@@ -5,6 +5,7 @@ define([
 	'shared/notifyDependants',
 	'shared/registerDependant',
 	'shared/unregisterDependant',
+	'shared/adaptIfNecessary',
 	'render/shared/Evaluator/Reference',
 	'render/shared/Evaluator/SoftReference'
 ], function (
@@ -14,6 +15,7 @@ define([
 	notifyDependants,
 	registerDependant,
 	unregisterDependant,
+	adaptIfNecessary,
 	Reference,
 	SoftReference
 ) {
@@ -45,7 +47,7 @@ define([
 					this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
 				}
 			}
-			
+
 			else {
 				this.values[i] = undefined;
 			}
@@ -80,7 +82,7 @@ define([
 			}
 
 			this.evaluating = true;
-				
+
 			try {
 				value = this.fn.apply( null, this.values );
 			} catch ( err ) {
@@ -95,6 +97,9 @@ define([
 				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
 				notifyDependants( this.root, this.keypath );
+
+				// TODO teardown previous wrapper?
+				adaptIfNecessary( this.root, this.keypath, value );
 
 				this.value = value;
 			}
