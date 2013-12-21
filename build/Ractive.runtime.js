@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8 - 2013-12-18
+	Ractive - v0.3.8 - 2013-12-21
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1249,7 +1249,7 @@ var Ractive_prototype_animate_animations = function (rAF) {
     }(Ractive_prototype_animate_requestAnimationFrame);
 var utils_warn = function () {
         
-        if (typeof console !== undefined && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
+        if (typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
             return function () {
                 console.warn.apply(console, arguments);
             };
@@ -5858,7 +5858,6 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDom
             }
             this._transitionManager = previousTransitionManager;
             transitionManager.ready();
-            return this;
         };
         function stringify(item) {
             return JSON.stringify(item);
