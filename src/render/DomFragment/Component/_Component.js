@@ -66,7 +66,7 @@ define([
 			// if this is a static value, great
 			if ( typeof value === 'string' ) {
 				parsed = parseJSON( value );
-				data[ key ] = parsed ? parsed.v : value;
+				data[ key ] = parsed ? parsed.value : value;
 
 				return;
 			}

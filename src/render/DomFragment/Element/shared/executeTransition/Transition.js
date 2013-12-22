@@ -62,7 +62,7 @@ define([
 	}
 
 	Transition = function ( descriptor, root, owner, contextStack, isIntro ) {
-		var fragment, errorMessage;
+		var name, fragment, errorMessage;
 
 		this.root = root;
 		this.node = owner.node;
@@ -71,31 +71,43 @@ define([
 		// store original style attribute
 		this.originalStyle = this.node.getAttribute( 'style' );
 
-		if ( typeof descriptor === 'string' ) {
-			this.name = descriptor;
-		} else {
-			this.name = descriptor.n;
+		name = descriptor.n || descriptor;
 
-			if ( descriptor.a ) {
-				this._params = descriptor.a;
-			} else if ( descriptor.d ) {
-				// TODO is there a way to interpret dynamic arguments without all the
-				// 'dependency thrashing'?
-				fragment = new StringFragment({
-					descriptor:   descriptor.d,
-					root:         root,
-					owner:        owner,
-					contextStack: owner.parentFragment.contextStack
-				});
+		if ( typeof name !== 'string' ) {
+			fragment = new StringFragment({
+				descriptor:   name,
+				root:         this.root,
+				owner:        owner,
+				contextStack: contextStack
+			});
 
-				this._params = fragment.toJSON();
-				fragment.teardown();
-			}
+			name = fragment.toString();
+			fragment.teardown();
 		}
 
-		this._fn = root.transitions[ this.name ];
+		this.name = name;
+
+		if ( descriptor.a ) {
+			this.params = descriptor.a;
+		}
+
+		else if ( descriptor.d ) {
+			// TODO is there a way to interpret dynamic arguments without all the
+			// 'dependency thrashing'?
+			fragment = new StringFragment({
+				descriptor:   descriptor.d,
+				root:         this.root,
+				owner:        owner,
+				contextStack: contextStack
+			});
+
+			this.params = fragment.toArgsList();
+			fragment.teardown();
+		}
+
+		this._fn = root.transitions[ name ];
 		if ( !this._fn ) {
-			errorMessage = 'Missing "' + this.name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
+			errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
 
 			if ( root.debug ) {
 				throw new Error( errorMessage );

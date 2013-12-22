@@ -265,7 +265,7 @@ var parseTests = [
 	{
 		name: 'Intro and outro with dynamic parameters',
 		template: "<div intro='fade:{\"delay\":{{i*50}}}' outro='fade:{\"delay\":{{i*50}}}'></div>",
-		parsed: [{t:7,e:'div',t1:{d:['[{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}]'],n:'fade'},t2:{d:['[{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}]'],n:'fade'}}]
+		parsed: [{t:7,e:'div',t1:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'},t2:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'}}]
 	},
 	{
 		name: 'Doctype declarations are handled',
@@ -307,7 +307,7 @@ var parseTests = [
 	{
 		name: 'Decorator with dynamic arguments',
 		template: '<div decorator="foo:{{baz}}">{{bar}}</div>',
-		parsed: [{t:7,e:'div',o:{n:'foo',d:['[',{t:2,r:'baz'},']']},f:[{t:2,r:'bar'}]}]
+		parsed: [{t:7,e:'div',o:{n:'foo',d:[{t:2,r:'baz'}]},f:[{t:2,r:'bar'}]}]
 	},
 	{
 		name: 'Script tag with tags e.g. <p> buried inside',
