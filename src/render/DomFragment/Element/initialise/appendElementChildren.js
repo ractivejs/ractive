@@ -73,7 +73,7 @@ define([
 				while ( i-- ) {
 					selector = liveQueries[i];
 
-					if ( queryAllResult = node.querySelectorAll( selector ) && ( j = queryAllResult.length ) ) {
+					if ( ( queryAllResult = node.querySelectorAll( selector ) ) && ( j = queryAllResult.length ) ) {
 						( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
 						element.liveQueries[ selector ] = [];
 
