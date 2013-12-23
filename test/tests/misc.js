@@ -1069,6 +1069,45 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
 
+		test( 'Components inherit adaptors from their parent', function ( t ) {
+			var ractive, Foo;
+
+			Ractive.components.widget = Ractive.extend({
+				template: '<p>{{wrappedThing}}</p>'
+			});
+
+			Ractive.adaptors.foo = {
+				filter: function ( object ) {
+					return object instanceof Foo;
+				},
+				wrap: function ( ractive, foo, keypath, prefix ) {
+					return {
+						get: function () {
+							return foo.content;
+						},
+						teardown: function () {
+
+						}
+					};
+				}
+			};
+
+			Foo = function ( content ) {
+				this.content = content;
+			};
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget wrappedThing="{{thing}}"/>',
+				adaptors: [ 'foo' ],
+				data: {
+					thing: new Foo( 'whee!' )
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

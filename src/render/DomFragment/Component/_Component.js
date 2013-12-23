@@ -118,7 +118,8 @@ define([
 			el: parentFragment.pNode.cloneNode( false ), // to ensure correct namespaceURI
 			data: data,
 			partials: partials,
-			_parent: root
+			_parent: root,
+			adaptors: root.adaptors
 		});
 
 		// Need this to find the first node *after* the component
