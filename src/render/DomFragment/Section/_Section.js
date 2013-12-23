@@ -75,7 +75,9 @@ define([
 			}
 
 			if ( this[ methodName ] ) { // if not, it's sort or reverse, which doesn't affect us (i.e. our length)
+				this.rendering = true;
 				this[ methodName ]( fragmentOptions, args );
+				this.rendering = false;
 			}
 		},
 
