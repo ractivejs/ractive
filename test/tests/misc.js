@@ -60,7 +60,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				template: '{{( a+b )}} {{( a+b )}} {{( a+b )}}',
 				data: { a: 1, b: 2 }
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, '3 3 3' );
 
 			t.equal( ractive._deps.length, 2 );
@@ -122,7 +122,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				el: fixture,
 				template: '<select id="select" value="{{selected}}">{{#options}}<option value="{{.}}">{{.}}</option>{{/options}}</select>'
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, '<select id="select"></select>' );
 
 			ractive.set({
@@ -221,7 +221,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( ractive.get( 'color' ), 'red' );
 			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select><p>selected red</p>' );
 		});
-		
+
 
 		test( 'If the value of a select is specified in the model, it overrides the markup', function ( t ) {
 			var ractive;
@@ -235,6 +235,28 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( ractive.get( 'color' ), 'blue' );
 			t.ok( ractive.nodes.blue.selected );
 			t.ok( !ractive.nodes.green.selected );
+		});
+
+		test( 'A select value with static options with numeric values will show the one determined by the model, whether a string or a number is used', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{i}}"><option id="_1" value="1">one</option><option id="_2" value="2">two</option><option id="_3" value="3">three</option></select>',
+				data: { i: 2 }
+			});
+
+			t.ok( !ractive.nodes._1.selected );
+			t.ok(  ractive.nodes._2.selected );
+			t.ok( !ractive.nodes._3.selected );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{i}}"><option id="_1" value="1">one</option><option id="_2" value="2">two</option><option id="_3" value="3">three</option></select>',
+				data: { i: "3" }
+			});
+
+			t.ok( !ractive.nodes._1.selected );
+			t.ok( !ractive.nodes._2.selected );
+			t.ok(  ractive.nodes._3.selected );
 		});
 
 		/*
@@ -551,7 +573,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 					component: Component
 				}
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, 'foo is falsy' );
 
 			ractive.set( 'foo', true );
@@ -577,7 +599,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
 		});
 
-		
+
 
 		test( 'findAll returns a static node list', function ( t ) {
 			var items, ractive, list;
@@ -892,7 +914,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
 				items.push({});
 				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-				
+
 				items.splice( 1, 1 );
 				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
 				items.splice( 1, 1 );
@@ -1042,7 +1064,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
 		});
 
-		
+
 
 		{
 			name: 'Tearing down expression mustaches and recreating them does\'t throw errors',
@@ -1130,7 +1152,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 			}
 		}*/
-		
+
 	};
 
 });
