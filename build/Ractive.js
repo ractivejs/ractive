@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9-pre - 2013-12-21
+	Ractive - v0.3.9-pre - 2013-12-23
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1614,6 +1614,7 @@ var shared_registerDependant = function () {
             depsByKeypath = ractive._deps[priority] || (ractive._deps[priority] = {});
             deps = depsByKeypath[keypath] || (depsByKeypath[keypath] = []);
             deps[deps.length] = dependant;
+            dependant.registered = true;
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
@@ -1637,10 +1638,11 @@ var shared_unregisterDependant = function () {
             priority = dependant.priority;
             deps = ractive._deps[priority][keypath];
             index = deps.indexOf(dependant);
-            if (index === -1) {
+            if (index === -1 || !dependant.registered) {
                 throw new Error('Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks');
             }
             deps.splice(index, 1);
+            dependant.registered = false;
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
@@ -2515,7 +2517,7 @@ var render_shared_resolveMustache = function (registerDependant, unregisterDepen
             if (keypath === this.keypath) {
                 return;
             }
-            if (this.resolved) {
+            if (this.registered) {
                 unregisterDependant(this);
             }
             this.keypath = keypath;
@@ -2524,13 +2526,17 @@ var render_shared_resolveMustache = function (registerDependant, unregisterDepen
             if (this.expressionResolver && this.expressionResolver.resolved) {
                 this.expressionResolver = null;
             }
-            this.resolved = true;
         };
     }(shared_registerDependant, shared_unregisterDependant);
 var render_shared_updateMustache = function (isEqual) {
         
         return function () {
-            var value = this.root.get(this.keypath, true);
+            var wrapped, value;
+            if (wrapped = this.root._wrapped[this.keypath]) {
+                value = wrapped.get();
+            } else {
+                value = this.root.get(this.keypath);
+            }
             if (!isEqual(value, this.value)) {
                 this.render(value);
                 this.value = value;
@@ -3307,7 +3313,7 @@ var render_DomFragment_Attribute_helpers_determinePropertyName = function (names
             }
         };
     }(config_namespaces);
-var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
+var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayContentsMatch, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
@@ -3448,9 +3454,6 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             },
             update: function () {
                 var value = this.value();
-                if (isNumeric(value)) {
-                    value = +value;
-                }
                 this.attr.receiving = true;
                 this.attr.value = value;
                 this.root.set(this.keypath, value);
@@ -3479,7 +3482,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             }
             valueFromModel = this.root.get(this.keypath);
             if (valueFromModel !== undefined) {
-                node.checked = valueFromModel === node._ractive.value;
+                node.checked = valueFromModel == node._ractive.value;
             } else {
                 this.root._deferred.radios.push(this);
             }
@@ -3632,7 +3635,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             binding.keypath = attribute.keypath;
         };
         return bindAttribute;
-    }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
+    }(config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes);
 var render_DomFragment_Attribute_prototype_update = function (isArray, namespaces) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
@@ -3718,7 +3721,7 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             var node, value;
             node = this.pNode;
             value = this.fragment.getValue();
-            node.checked = value === node._ractive.value;
+            node.checked = value == node._ractive.value;
             return this;
         };
         updateCheckboxName = function () {
@@ -3726,7 +3729,7 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             node = this.pNode;
             value = this.fragment.getValue();
             if (!isArray(value)) {
-                node.checked = value === node._ractive.value;
+                node.checked = value == node._ractive.value;
                 return this;
             }
             node.checked = value.indexOf(node._ractive.value) !== -1;
@@ -4186,10 +4189,9 @@ var render_StringFragment_Text = function (types) {
 var render_StringFragment_prototype_toArgsList = function (warn, parseJSON) {
         
         return function () {
-            var values, args, counter, jsonesque, guid, errorMessage, parsed, processItems;
+            var values, counter, jsonesque, guid, errorMessage, parsed, processItems;
             if (!this.argsList || this.dirty) {
                 values = {};
-                args = [];
                 counter = 0;
                 guid = this.root._guid;
                 processItems = function (items) {
@@ -4211,15 +4213,16 @@ var render_StringFragment_prototype_toArgsList = function (warn, parseJSON) {
                 jsonesque = processItems(this.items);
                 parsed = parseJSON('[' + jsonesque + ']', values);
                 if (!parsed) {
-                    errorMessage = 'Could not parse directive arguments (' + this.toString() + ')';
+                    errorMessage = 'Could not parse directive arguments (' + this.toString() + '). If you think this is a bug, please file an issue at http://github.com/RactiveJS/Ractive/issues';
                     if (this.root.debug) {
                         throw new Error(errorMessage);
                     } else {
                         warn(errorMessage);
                         this.argsList = [jsonesque];
                     }
+                } else {
+                    this.argsList = parsed.value;
                 }
-                this.argsList = parsed.value;
                 this.dirty = false;
             }
             return this.argsList;
