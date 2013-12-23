@@ -2311,9 +2311,9 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
                 if (!isEqual(value, this.value)) {
                     clearCache(this.root, this.keypath);
                     this.root._cache[this.keypath] = value;
-                    notifyDependants(this.root, this.keypath);
                     adaptIfNecessary(this.root, this.keypath, value);
                     this.value = value;
+                    notifyDependants(this.root, this.keypath);
                 }
                 this.evaluating = false;
                 return this;
@@ -2920,7 +2920,9 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     }
                 }
                 if (this[methodName]) {
+                    this.rendering = true;
                     this[methodName](fragmentOptions, args);
+                    this.rendering = false;
                 }
             },
             pop: function () {
@@ -4451,7 +4453,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     i = liveQueries.length;
                     while (i--) {
                         selector = liveQueries[i];
-                        if (queryAllResult = node.querySelectorAll(selector) && (j = queryAllResult.length)) {
+                        if ((queryAllResult = node.querySelectorAll(selector)) && (j = queryAllResult.length)) {
                             (element.liveQueries || (element.liveQueries = [])).push(selector);
                             element.liveQueries[selector] = [];
                             while (j--) {
@@ -5202,7 +5204,9 @@ var render_DomFragment_Element__Element = function (initialise, teardown, toStri
         DomElement.prototype = {
             detach: function () {
                 if (this.node) {
-                    this.node.parentNode.removeChild(this.node);
+                    if (this.node.parentNode) {
+                        this.node.parentNode.removeChild(this.node);
+                    }
                     return this.node;
                 }
             },
