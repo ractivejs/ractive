@@ -144,7 +144,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		node = this.pNode;
 		value = this.fragment.getValue();
 
-		node.checked = ( value === node._ractive.value );
+		node.checked = ( value == node._ractive.value );
 
 		return this;
 	};
@@ -156,7 +156,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		value = this.fragment.getValue();
 
 		if ( !isArray( value ) ) {
-			node.checked = ( value === node._ractive.value );
+			node.checked = ( value == node._ractive.value );
 			return this;
 		}
 

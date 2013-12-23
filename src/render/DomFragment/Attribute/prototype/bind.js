@@ -2,13 +2,11 @@ define([
 	'config/types',
 	'utils/warn',
 	'utils/arrayContentsMatch',
-	'utils/isNumeric',
 	'shared/getValueFromCheckboxes'
 ], function (
 	types,
 	warn,
 	arrayContentsMatch,
-	isNumeric,
 	getValueFromCheckboxes
 ) {
 
@@ -245,10 +243,6 @@ define([
 		update: function () {
 			var value = this.value();
 
-			if ( isNumeric( value ) ) {
-				value = +value;
-			}
-
 			this.attr.receiving = true;
 			this.attr.value = value;
 			this.root.set( this.keypath, value );
@@ -290,7 +284,7 @@ define([
 
 		valueFromModel = this.root.get( this.keypath );
 		if ( valueFromModel !== undefined ) {
-			node.checked = ( valueFromModel === node._ractive.value );
+			node.checked = ( valueFromModel == node._ractive.value );
 		} else {
 			this.root._deferred.radios.push( this );
 		}
