@@ -13,6 +13,7 @@ define( function () {
 		deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 		deps[ deps.length ] = dependant;
+		dependant.registered = true;
 
 		// update dependants map
 		keys = keypath.split( '.' );

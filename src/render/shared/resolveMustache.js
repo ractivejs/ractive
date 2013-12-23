@@ -17,7 +17,7 @@ define([
 		}
 
 		// if we resolved previously, we need to unregister
-		if ( this.resolved ) {
+		if ( this.registered ) {
 			unregisterDependant( this );
 		}
 
@@ -30,8 +30,6 @@ define([
 		if ( this.expressionResolver && this.expressionResolver.resolved ) {
 			this.expressionResolver = null;
 		}
-
-		this.resolved = true;
 	};
 
 });
