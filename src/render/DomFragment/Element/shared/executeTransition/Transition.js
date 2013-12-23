@@ -134,7 +134,6 @@ define([
 			this.node._ractive.transition = null;
 		},
 
-		// TODO handle prefixed styles
 		getStyle: function ( props ) {
 			var computedStyle, styles, i, prop, value;
 
@@ -177,7 +176,6 @@ define([
 			else {
 				for ( prop in style ) {
 					if ( style.hasOwnProperty( prop ) ) {
-						// TODO prefix
 						this.node.style[ prefix( prop ) ] = style[ prop ];
 					}
 				}
