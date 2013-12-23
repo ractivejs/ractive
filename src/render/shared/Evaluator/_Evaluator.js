@@ -96,12 +96,12 @@ define([
 			if ( !isEqual( value, this.value ) ) {
 				clearCache( this.root, this.keypath );
 				this.root._cache[ this.keypath ] = value;
-				notifyDependants( this.root, this.keypath );
 
 				// TODO teardown previous wrapper?
 				adaptIfNecessary( this.root, this.keypath, value );
 
 				this.value = value;
+				notifyDependants( this.root, this.keypath );
 			}
 
 			this.evaluating = false;

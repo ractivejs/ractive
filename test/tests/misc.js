@@ -1053,6 +1053,22 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.deepEqual( ractive.get(), { items: [ {color: 'red'}, {color: 'red'} ] } );
 		});
 
+		test( 'Evaluators that have a value of undefined behave correctly', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{ list[index] }}',
+				data: {
+					index: 0,
+					list: [ 'foo' ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+
+			ractive.set( 'index', 1 );
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
