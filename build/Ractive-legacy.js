@@ -599,6 +599,9 @@ var shared_makeTransitionManager = function () {
         
         var makeTransitionManager = function (root, callback) {
             var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
+            if (root._parent && root._parent._transitionManager) {
+                return root._parent._transitionManager;
+            }
             elementsToDetach = [];
             detachNodes = function () {
                 var i, element;
@@ -5128,7 +5131,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                     throw new Error('Cannot initialize a transition more than once');
                 }
                 this._inited = true;
-                this._fn.apply(this.root, [this].concat(this._params));
+                this._fn.apply(this.root, [this].concat(this.params));
             },
             complete: function () {
                 this._manager.pop(this.node);
@@ -5285,7 +5288,7 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
         
         return function (descriptor, root, owner, contextStack, isIntro) {
             var transition, node, oldTransition;
-            if (!root.transitionsEnabled) {
+            if (!root.transitionsEnabled || root._parent && !root._parent.transitionsEnabled) {
                 return;
             }
             transition = new Transition(descriptor, root, owner, contextStack, isIntro);
@@ -5416,12 +5419,10 @@ var render_DomFragment_Element_prototype_teardown = function (executeTransition)
                 this.decorator.teardown();
             }
             if (this.descriptor.t2) {
-                if (destroy) {
-                    this.root._transitionManager.detachWhenReady(this);
-                }
                 executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
-            } else if (destroy) {
-                this.detach();
+            }
+            if (destroy) {
+                this.root._transitionManager.detachWhenReady(this);
             }
             if (liveQueries = this.liveQueries) {
                 i = liveQueries.length;
@@ -7917,7 +7918,9 @@ var render_DomFragment_Component__Component = function (types, warn, parseJSON, 
             instance = this.instance = new Component({
                 el: parentFragment.pNode.cloneNode(false),
                 data: data,
-                partials: partials
+                partials: partials,
+                _parent: root,
+                adaptors: root.adaptors
             });
             instance.component = this;
             while (instance.el.firstChild) {
@@ -8700,7 +8703,7 @@ var utils_extend = function () {
             return target;
         };
     }();
-var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperties, getElement, isObject, magicAdaptor, parse) {
+var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperty, defineProperties, getElement, isObject, magicAdaptor, parse) {
         
         var getObject, getArray, defaultOptions, extendable;
         getObject = function () {
@@ -8839,6 +8842,9 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             if (ractive.magic && !magicAdaptor) {
                 throw new Error('Getters and setters (magic mode) are not supported in this browser');
             }
+            if (options._parent) {
+                defineProperty(ractive, '_parent', { value: options._parent });
+            }
             if (options.el) {
                 ractive.el = getElement(options.el);
                 if (!ractive.el && ractive.debug) {
@@ -8895,7 +8901,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.transitionsEnabled = options.transitionsEnabled;
             ractive._initing = false;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
 var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMethod, initialise) {
         
         return function (child, Child, options) {
