@@ -23,7 +23,11 @@ define([
 	DomElement.prototype = {
 		detach: function () {
 			if ( this.node ) {
-				this.node.parentNode.removeChild( this.node );
+				// need to check for parent node - DOM may have been altered
+				// by something other than Ractive! e.g. jQuery UI...
+				if ( this.node.parentNode ) {
+					this.node.parentNode.removeChild( this.node );
+				}
 				return this.node;
 			}
 		},
