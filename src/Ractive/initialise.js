@@ -4,6 +4,7 @@ define([
 	'utils/warn',
 	'utils/create',
 	'utils/extend',
+	'utils/defineProperty',
 	'utils/defineProperties',
 	'utils/getElement',
 	'utils/isObject',
@@ -15,6 +16,7 @@ define([
 	warn,
 	create,
 	extend,
+	defineProperty,
 	defineProperties,
 	getElement,
 	isObject,
@@ -148,6 +150,13 @@ define([
 
 		if ( ractive.magic && !magicAdaptor ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+		}
+
+		// If this is a component, store a reference to the parent
+		if ( options._parent ) {
+			defineProperty( ractive, '_parent', {
+				value: options._parent
+			});
 		}
 
 		if ( options.el ) {

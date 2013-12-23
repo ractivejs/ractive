@@ -13,7 +13,7 @@ define([
 			node,
 			oldTransition;
 
-		if ( !root.transitionsEnabled ) {
+		if ( !root.transitionsEnabled || ( root._parent && !root._parent.transitionsEnabled ) ) {
 			return;
 		}
 

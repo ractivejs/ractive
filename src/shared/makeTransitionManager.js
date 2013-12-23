@@ -8,6 +8,11 @@ define( function () {
 	var makeTransitionManager = function ( root, callback ) {
 		var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
 
+		// components should inherit their transition manager
+		if ( root._parent && root._parent._transitionManager ) {
+			return root._parent._transitionManager;
+		}
+
 		elementsToDetach = [];
 
 		// detach any nodes which a) need to be detached and b) have no child nodes
