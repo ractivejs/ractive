@@ -59,7 +59,7 @@ var renderTests = [
 		},
 		result: "<li><label>debug Ractive</label><span class=\"complete\">debug Ractive</span></li><li><label>release Ractive</label><span class=\"incomplete\">release Ractive</span></li>"
 	},
-	
+
 	// argh, fails in IE because of how it does innerHTML (i.e. wrongly). Skipping
 	/*{
 		name: "Section with descendant value attributes",
@@ -379,6 +379,18 @@ var renderTests = [
 		template: '<p>{{foo}}</p>',
 		data: { foo: null },
 		result: '<p></p>'
+	},
+	{
+		name: 'Null values in the viewmodel, with a triple',
+		template: '<p>{{{foo}}}</p>',
+		data: { foo: null },
+		result: '<p></p>'
+	},
+	{
+		name: 'Null values in the viewmodel, with an attribute',
+		template: '<p class="foo-{{bar}}">test</p>',
+		data: { bar: null },
+		result: '<p class="foo-">test</p>'
 	},
 	{
 		name: 'Inverted section with restricted reference',

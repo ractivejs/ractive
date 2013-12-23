@@ -92,7 +92,7 @@ define([
 		},
 
 		toString: function () {
-			return ( this.value !== undefined ? this.value : '' );
+			return ( this.value != undefined ? this.value : '' );
 		},
 
 		find: function ( selector ) {

@@ -33,12 +33,8 @@ define([
 		},
 
 		toString: function () {
-			if ( this.value === undefined ) {
+			if ( this.value == undefined ) {
 				return '';
-			}
-
-			if ( this.value === null ) {
-				return 'null';
 			}
 
 			return stringify( this.value );
