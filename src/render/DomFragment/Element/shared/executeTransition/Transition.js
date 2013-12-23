@@ -126,7 +126,7 @@ define([
 			}
 
 			this._inited = true;
-			this._fn.apply( this.root, [ this ].concat( this._params ) );
+			this._fn.apply( this.root, [ this ].concat( this.params ) );
 		},
 
 		complete: function () {
