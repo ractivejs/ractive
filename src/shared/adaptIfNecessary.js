@@ -9,11 +9,11 @@ define([
 	var prefixers = {};
 
 	return function ( ractive, keypath, value ) {
-		var i, adaptor, wrapped;
+		var len, i, adaptor, wrapped;
 
 		// Do we have an adaptor for this value?
-		i = ractive.adaptors.length;
-		while ( i-- ) {
+		len = ractive.adaptors.length;
+		for ( i = 0; i < len; i += 1 ) {
 			adaptor = ractive.adaptors[i];
 
 			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -

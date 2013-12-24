@@ -4,9 +4,32 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture = document.getElementById( 'qunit-fixture' );
+		var fixture, Foo;
 
 		module( 'Miscellaneous' );
+
+		// some set-up
+		fixture = document.getElementById( 'qunit-fixture' );
+
+		Foo = function ( content ) {
+			this.content = content;
+		};
+
+		Ractive.adaptors.foo = {
+			filter: function ( object ) {
+				return object instanceof Foo;
+			},
+			wrap: function ( ractive, foo, keypath, prefix ) {
+				return {
+					get: function () {
+						return foo.content;
+					},
+					teardown: function () {
+
+					}
+				};
+			}
+		};
 
 		test( 'Subclass instance data extends prototype data', function ( t ) {
 			var Subclass, instance;
@@ -1070,31 +1093,11 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 		});
 
 		test( 'Components inherit adaptors from their parent', function ( t ) {
-			var ractive, Foo;
+			var ractive;
 
 			Ractive.components.widget = Ractive.extend({
 				template: '<p>{{wrappedThing}}</p>'
 			});
-
-			Ractive.adaptors.foo = {
-				filter: function ( object ) {
-					return object instanceof Foo;
-				},
-				wrap: function ( ractive, foo, keypath, prefix ) {
-					return {
-						get: function () {
-							return foo.content;
-						},
-						teardown: function () {
-
-						}
-					};
-				}
-			};
-
-			Foo = function ( content ) {
-				this.content = content;
-			};
 
 			ractive = new Ractive({
 				el: fixture,
@@ -1105,6 +1108,25 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				}
 			});
 
+			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
+		});
+
+		test( 'Components made with Ractive.extend() can include adaptors', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				adaptors: [ 'foo' ]
+			});
+
+			ractive = new Widget({
+				el: fixture,
+				template: '<p>{{thing}}</p>',
+				data: {
+					thing: new Foo( 'whee!' )
+				}
+			});
+
+			t.deepEqual( ractive.adaptors, [ Ractive.adaptors.foo ] );
 			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 		});
 
