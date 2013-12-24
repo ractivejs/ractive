@@ -4,6 +4,7 @@ define([
 	'utils/isNumeric',
 	'utils/isArray',
 	'utils/camelCase',
+	'utils/fillGaps',
 	'render/StringFragment/_StringFragment'
 ], function (
 	isClient,
@@ -11,6 +12,7 @@ define([
 	isNumeric,
 	isArray,
 	camelCase,
+	fillGaps,
 	StringFragment
 ) {
 
@@ -62,7 +64,7 @@ define([
 	}
 
 	Transition = function ( descriptor, root, owner, contextStack, isIntro ) {
-		var name, fragment, errorMessage;
+		var t = this, name, fragment, errorMessage;
 
 		this.root = root;
 		this.node = owner.node;
@@ -70,6 +72,19 @@ define([
 
 		// store original style attribute
 		this.originalStyle = this.node.getAttribute( 'style' );
+
+		// create t.complete() - we don't want this on the prototype,
+		// because we don't want `this` silliness when passing it as
+		// an argument
+		this.complete = function ( noReset ) {
+			if ( !noReset && t.isIntro ) {
+				t.resetStyle();
+			}
+
+			t._manager.pop( t.node );
+			t.node._ractive.transition = null;
+		};
+
 
 		name = descriptor.n || descriptor;
 
@@ -129,11 +144,6 @@ define([
 			this._fn.apply( this.root, [ this ].concat( this.params ) );
 		},
 
-		complete: function () {
-			this._manager.pop( this.node );
-			this.node._ractive.transition = null;
-		},
-
 		getStyle: function ( props ) {
 			var computedStyle, styles, i, prop, value;
 
@@ -184,13 +194,39 @@ define([
 			return this;
 		},
 
-		animateStyle: function ( to ) {
-			var t = this, propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+		animateStyle: function ( style, value, options, complete ) {
+			var t = this, propertyNames, changedProperties, computedStyle, current, to, from, transitionEndHandler, i, prop;
+
+			if ( typeof style === 'string' ) {
+				to = {};
+				to[ style ] = value;
+			} else {
+				to = style;
+
+				// shuffle arguments
+				complete = options;
+				options = value;
+			}
+
+			// As of 0.3.9, transition authors should supply an `option` object with
+			// `duration` and `easing` properties (and optional `delay`), plus a
+			// callback function that gets called after the animation completes
+
+			// TODO remove this check in a future version
+			if ( !options ) {
+				warn( 'The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
+
+				options = t;
+				complete = t.complete;
+			}
 
 			// Edge case - if duration is zero, set style synchronously and complete
-			if ( !t.duration ) {
+			if ( !options.duration ) {
 				t.setStyle( to );
-				t.complete();
+
+				if ( complete ) {
+					complete();
+				}
 			}
 
 			// Get a list of the properties we're animating
@@ -223,8 +259,9 @@ define([
 			// If we're not actually changing anything, the transitionend event
 			// will never fire! So we complete early
 			if ( !changedProperties.length ) {
-				t.resetStyle();
-				t.complete();
+				if ( complete ) {
+					complete();
+				}
 				return;
 			}
 
@@ -233,8 +270,8 @@ define([
 			setTimeout( function () {
 
 				t.node.style[ TRANSITION_PROPERTY ] = propertyNames.map( prefix ).map( hyphenate ).join( ',' );
-				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( t.easing || 'linear' );
-				t.node.style[ TRANSITION_DURATION ] = ( t.duration / 1000 ) + 's';
+				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
+				t.node.style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 				transitionEndHandler = function ( event ) {
 					var index;
@@ -253,13 +290,9 @@ define([
 
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
-					// We've abused the style attribute - we need to revert
-					// it to it's natural state, if this is an intro
-					if ( t.isIntro ) {
-						t.resetStyle();
+					if ( complete ) {
+						complete();
 					}
-
-					t.complete();
 				};
 
 				t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
@@ -272,7 +305,7 @@ define([
 						t.node.style[ prefix( prop ) ] = to[ prop ];
 					}
 				}, 0 );
-			}, t.delay || 0 );
+			}, options.delay || 0 );
 		},
 
 		resetStyle: function () {
@@ -285,6 +318,26 @@ define([
 				this.node.getAttribute( 'style' );
 				this.node.removeAttribute( 'style' );
 			}
+		},
+
+		processParams: function ( params, defaults ) {
+			if ( typeof params === 'number' ) {
+				params = { duration: params };
+			}
+
+			else if ( typeof params === 'string' ) {
+				if ( params === 'slow' ) {
+					params = { duration: 600 };
+				} else if ( params === 'fast' ) {
+					params = { duration: 200 };
+				} else {
+					params = { duration: 400 };
+				}
+			} else if ( !params ) {
+				params = {};
+			}
+
+			return fillGaps( params, defaults );
 		}
 	};
 
