@@ -1130,6 +1130,26 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 		});
 
+		test( 'Two-way binding can be set up against expressions that resolve to regular keypaths', function ( t ) {
+			var ractive, input;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<label><input value="{{ proxies[i].name }}"> name: {{ proxies[i].name }}</label>{{/items}}',
+				data: {
+					items: [{}],
+					proxies: []
+				}
+			});
+
+			input = ractive.find( 'input' );
+			input.value = 'foo';
+			ractive.updateModel();
+
+			t.deepEqual( ractive.get( 'proxies' ), [{name: 'foo'  }] );
+			t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

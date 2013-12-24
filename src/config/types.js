@@ -11,6 +11,7 @@ define({
 	DELIMCHANGE       : 10,
 	MUSTACHE          : 11,
 	TAG               : 12,
+	ATTRIBUTE         : 13,
 
 	COMPONENT         : 15,
 

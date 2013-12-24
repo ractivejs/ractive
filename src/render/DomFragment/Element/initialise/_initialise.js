@@ -8,7 +8,6 @@ define([
 	'render/DomFragment/Element/initialise/getElementNamespace',
 	'render/DomFragment/Element/initialise/createElementAttributes',
 	'render/DomFragment/Element/initialise/appendElementChildren',
-	'render/DomFragment/Element/initialise/bindElement',
 	'render/DomFragment/Element/initialise/decorate/_decorate',
 	'render/DomFragment/Element/initialise/addEventProxies/_addEventProxies',
 	'render/DomFragment/Element/initialise/updateLiveQueries',
@@ -24,7 +23,6 @@ define([
 	getElementNamespace,
 	createElementAttributes,
 	appendElementChildren,
-	bindElement,
 	decorate,
 	addEventProxies,
 	updateLiveQueries,
@@ -119,7 +117,7 @@ define([
 		if ( docFrag ) {
 			// deal with two-way bindings
 			if ( root.twoway ) {
-				bindElement( element, attributes );
+				element.bind();
 
 				// Special case - contenteditable
 				if ( element.node.getAttribute( 'contenteditable' ) && element.node._ractive.binding ) {

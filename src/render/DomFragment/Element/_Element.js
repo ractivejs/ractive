@@ -4,14 +4,16 @@ define([
 	'render/DomFragment/Element/prototype/teardown',
 	'render/DomFragment/Element/prototype/toString',
 	'render/DomFragment/Element/prototype/find',
-	'render/DomFragment/Element/prototype/findAll'
+	'render/DomFragment/Element/prototype/findAll',
+	'render/DomFragment/Element/prototype/bind'
 ], function (
 	initialise,
 
 	teardown,
 	toString,
 	find,
-	findAll
+	findAll,
+	bind
 ) {
 
 	'use strict';
@@ -47,7 +49,8 @@ define([
 
 		toString: toString,
 		find: find,
-		findAll: findAll
+		findAll: findAll,
+		bind: bind
 	};
 
 	return DomElement;

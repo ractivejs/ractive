@@ -1,4 +1,5 @@
 define([
+	'config/types',
 	'render/DomFragment/Attribute/helpers/determineNameAndNamespace',
 	'render/DomFragment/Attribute/helpers/setStaticAttribute',
 	'render/DomFragment/Attribute/helpers/determinePropertyName',
@@ -6,6 +7,7 @@ define([
 	'render/DomFragment/Attribute/prototype/update',
 	'render/StringFragment/_StringFragment'
 ], function (
+	types,
 	determineNameAndNamespace,
 	setStaticAttribute,
 	determinePropertyName,
@@ -18,6 +20,7 @@ define([
 
 	var DomAttribute = function ( options ) {
 
+		this.type = types.ATTRIBUTE;
 		this.element = options.element;
 		determineNameAndNamespace( this, options.name );
 

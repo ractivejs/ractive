@@ -1,8 +1,10 @@
 define([
+	'utils/normaliseKeypath',
 	'shared/resolveRef',
 	'shared/teardown',
 	'render/shared/Evaluator/_Evaluator'
 ], function (
+	normaliseKeypath,
 	resolveRef,
 	teardown,
 	Evaluator
@@ -10,7 +12,7 @@ define([
 
 	'use strict';
 
-	var ExpressionResolver, ReferenceScout, getKeypath;
+	var ExpressionResolver, ReferenceScout, getKeypath, keyPattern, isRegularKeypath;
 
 	ExpressionResolver = function ( mustache ) {
 
@@ -59,7 +61,10 @@ define([
 			}
 
 			this.keypath = getKeypath( this.str, this.args );
-			this.createEvaluator();
+
+			if ( this.keypath.charAt( 0 ) === '(' ) {
+				this.createEvaluator();
+			}
 
 			this.mustache.resolve( this.keypath );
 		},
@@ -128,13 +133,41 @@ define([
 		}
 	};
 
+	keyPattern = /^(?:(?:[a-zA-Z$_][a-zA-Z$_0-9]*)|(?:[0-9]|[1-9][0-9]+))$/;
+
+	isRegularKeypath = function ( keypath ) {
+		var keys, key, i;
+
+		keys = keypath.split( '.' );
+
+		i = keys.length;
+		while ( i-- ) {
+			key = keys[i];
+
+			if ( key === 'undefined' || !keyPattern.test( key ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
 	getKeypath = function ( str, args ) {
-		var unique;
+		var unique, normalised;
 
 		// get string that is unique to this expression
 		unique = str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
 			return args[ $1 ] ? args[ $1 ][1] : 'undefined';
 		});
+
+		// Special case - if we have a situation like
+		// {{ items[i].value }} then we can treat it as a
+		// regular keypath, rather than an expression keypath
+		normalised = normaliseKeypath( unique );
+
+		if ( isRegularKeypath( normalised ) ) {
+			return normalised;
+		}
 
 		// then sanitize by removing any periods or square brackets. Otherwise
 		// we can't split the keypath into keys!

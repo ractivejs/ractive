@@ -67,7 +67,7 @@ define([
 			return false;
 		}
 
-		node._ractive.binding = binding;
+		node._ractive.binding = this.element.binding = binding;
 		this.twoway = true;
 
 		// register this with the root, so that we can force an update later
@@ -90,7 +90,7 @@ define([
 	};
 
 	getInterpolator = function ( attribute ) {
-		var item;
+		var item, errorMessage;
 
 		// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
 		// Check this is a suitable candidate for two-way binding - i.e. it is
@@ -109,9 +109,13 @@ define([
 			return null;
 		}
 
-		if ( item.descriptor.x ) {
+		if ( item.keypath && item.keypath.charAt( 0 ) === '(' ) {
+			errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
+
 			if ( attribute.root.debug ) {
-				throw new Error( 'You cannot set up two-way binding against an expression' );
+				throw new Error( errorMessage );
+			} else {
+				warn( errorMessage );
 			}
 			return null;
 		}
