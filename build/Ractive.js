@@ -119,9 +119,9 @@ var shared_adaptIfNecessary = function (adaptorRegistry) {
         
         var prefixers = {};
         return function (ractive, keypath, value) {
-            var i, adaptor, wrapped;
-            i = ractive.adaptors.length;
-            while (i--) {
+            var len, i, adaptor, wrapped;
+            len = ractive.adaptors.length;
+            for (i = 0; i < len; i += 1) {
                 adaptor = ractive.adaptors[i];
                 if (typeof adaptor === 'string') {
                     if (!adaptorRegistry[adaptor]) {
@@ -181,6 +181,7 @@ var config_types = {
         DELIMCHANGE: 10,
         MUSTACHE: 11,
         TAG: 12,
+        ATTRIBUTE: 13,
         COMPONENT: 15,
         NUMBER_LITERAL: 20,
         STRING_LITERAL: 21,
@@ -2385,9 +2386,9 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
             return fn;
         }
     }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
-var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
+var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, teardown, Evaluator) {
         
-        var ExpressionResolver, ReferenceScout, getKeypath;
+        var ExpressionResolver, ReferenceScout, getKeypath, keyPattern, isRegularKeypath;
         ExpressionResolver = function (mustache) {
             var expression, i, len, ref, indexRefs;
             this.root = mustache.root;
@@ -2420,7 +2421,9 @@ var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator
                     return;
                 }
                 this.keypath = getKeypath(this.str, this.args);
-                this.createEvaluator();
+                if (this.keypath.charAt(0) === '(') {
+                    this.createEvaluator();
+                }
                 this.mustache.resolve(this.keypath);
             },
             teardown: function () {
@@ -2469,15 +2472,32 @@ var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator
                 }
             }
         };
+        keyPattern = /^(?:(?:[a-zA-Z$_][a-zA-Z$_0-9]*)|(?:[0-9]|[1-9][0-9]+))$/;
+        isRegularKeypath = function (keypath) {
+            var keys, key, i;
+            keys = keypath.split('.');
+            i = keys.length;
+            while (i--) {
+                key = keys[i];
+                if (key === 'undefined' || !keyPattern.test(key)) {
+                    return false;
+                }
+            }
+            return true;
+        };
         getKeypath = function (str, args) {
-            var unique;
+            var unique, normalised;
             unique = str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
                 return args[$1] ? args[$1][1] : 'undefined';
             });
+            normalised = normaliseKeypath(unique);
+            if (isRegularKeypath(normalised)) {
+                return normalised;
+            }
             return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
         };
         return ExpressionResolver;
-    }(shared_resolveRef, shared_teardown, render_shared_Evaluator__Evaluator);
+    }(utils_normaliseKeypath, shared_resolveRef, shared_teardown, render_shared_Evaluator__Evaluator);
 var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
@@ -2516,7 +2536,7 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
             }
         };
     }(shared_resolveRef, render_shared_ExpressionResolver);
-var render_shared_resolveMustache = function (registerDependant, unregisterDependant) {
+var render_shared_resolveMustache = function (types, registerDependant, unregisterDependant) {
         
         return function (keypath) {
             if (keypath === this.keypath) {
@@ -2528,11 +2548,14 @@ var render_shared_resolveMustache = function (registerDependant, unregisterDepen
             this.keypath = keypath;
             registerDependant(this);
             this.update();
+            if (this.root.twoway && this.parentFragment.owner.type === types.ATTRIBUTE) {
+                this.parentFragment.owner.element.bind();
+            }
             if (this.expressionResolver && this.expressionResolver.resolved) {
                 this.expressionResolver = null;
             }
         };
-    }(shared_registerDependant, shared_unregisterDependant);
+    }(config_types, shared_registerDependant, shared_unregisterDependant);
 var render_shared_updateMustache = function (isEqual) {
         
         return function () {
@@ -3338,7 +3361,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             if (!binding) {
                 return false;
             }
-            node._ractive.binding = binding;
+            node._ractive.binding = this.element.binding = binding;
             this.twoway = true;
             bindings = this.root._twowayBindings[this.keypath] || (this.root._twowayBindings[this.keypath] = []);
             bindings[bindings.length] = binding;
@@ -3352,7 +3375,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             this.value = value == undefined ? '' : value;
         };
         getInterpolator = function (attribute) {
-            var item;
+            var item, errorMessage;
             if (attribute.fragment.items.length !== 1) {
                 return null;
             }
@@ -3363,9 +3386,12 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             if (!item.keypath && !item.ref) {
                 return null;
             }
-            if (item.descriptor.x) {
+            if (item.keypath && item.keypath.charAt(0) === '(') {
+                errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
                 if (attribute.root.debug) {
-                    throw new Error('You cannot set up two-way binding against an expression');
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
                 }
                 return null;
             }
@@ -4313,9 +4339,10 @@ var render_StringFragment__StringFragment = function (types, parseJSON, initFrag
         circular.StringFragment = StringFragment;
         return StringFragment;
     }(config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, render_StringFragment_prototype_toArgsList, circular);
-var render_DomFragment_Attribute__Attribute = function (determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment) {
+var render_DomFragment_Attribute__Attribute = function (types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment) {
         
         var DomAttribute = function (options) {
+            this.type = types.ATTRIBUTE;
             this.element = options.element;
             determineNameAndNamespace(this, options.name);
             if (options.value === null || typeof options.value === 'string') {
@@ -4386,7 +4413,7 @@ var render_DomFragment_Attribute__Attribute = function (determineNameAndNamespac
             }
         };
         return DomAttribute;
-    }(render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment);
+    }(config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment);
 var render_DomFragment_Element_initialise_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
@@ -4478,34 +4505,6 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
             }
         };
     }(utils_warn, config_namespaces, render_StringFragment__StringFragment, circular);
-var render_DomFragment_Element_initialise_bindElement = function () {
-        
-        return function (element, attributes) {
-            if (element.node.getAttribute('contenteditable') && attributes.value && attributes.value.bind()) {
-                return;
-            }
-            switch (element.descriptor.e) {
-            case 'select':
-            case 'textarea':
-                if (attributes.value) {
-                    attributes.value.bind();
-                }
-                return;
-            case 'input':
-                if (element.node.type === 'radio' || element.node.type === 'checkbox') {
-                    if (attributes.name && attributes.name.bind()) {
-                        return;
-                    }
-                    if (attributes.checked && attributes.checked.bind()) {
-                        return;
-                    }
-                }
-                if (attributes.value && attributes.value.bind()) {
-                    return;
-                }
-            }
-        };
-    }();
 var render_DomFragment_Element_initialise_decorate_Decorator = function (warn, StringFragment) {
         
         var Decorator = function (descriptor, root, owner, contextStack) {
@@ -5042,7 +5041,7 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
             }
         };
     }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition);
-var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
+var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
         return function (element, options, docFrag) {
             var parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
@@ -5088,7 +5087,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
             }
             if (docFrag) {
                 if (root.twoway) {
-                    bindElement(element, attributes);
+                    element.bind();
                     if (element.node.getAttribute('contenteditable') && element.node._ractive.binding) {
                         element.node._ractive.binding.update();
                     }
@@ -5128,7 +5127,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
             }
             updateLiveQueries(element);
         };
-    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_bindElement, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
+    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
 var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
         
         return function (destroy) {
@@ -5242,7 +5241,43 @@ var render_DomFragment_Element_prototype_findAll = function () {
             }
         };
     }();
-var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll) {
+var render_DomFragment_Element_prototype_bind = function () {
+        
+        return function () {
+            var attributes = this.attributes;
+            if (!this.node) {
+                return;
+            }
+            if (this.binding) {
+                this.binding.teardown();
+                this.binding = null;
+            }
+            if (this.node.getAttribute('contenteditable') && attributes.value && attributes.value.bind()) {
+                return;
+            }
+            switch (this.descriptor.e) {
+            case 'select':
+            case 'textarea':
+                if (attributes.value) {
+                    attributes.value.bind();
+                }
+                return;
+            case 'input':
+                if (this.node.type === 'radio' || this.node.type === 'checkbox') {
+                    if (attributes.name && attributes.name.bind()) {
+                        return;
+                    }
+                    if (attributes.checked && attributes.checked.bind()) {
+                        return;
+                    }
+                }
+                if (attributes.value && attributes.value.bind()) {
+                    return;
+                }
+            }
+        };
+    }();
+var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll, bind) {
         
         var DomElement = function (options, docFrag) {
             initialise(this, options, docFrag);
@@ -5267,10 +5302,11 @@ var render_DomFragment_Element__Element = function (initialise, teardown, toStri
             },
             toString: toString,
             find: find,
-            findAll: findAll
+            findAll: findAll,
+            bind: bind
         };
         return DomElement;
-    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll);
+    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll, render_DomFragment_Element_prototype_bind);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
 var parse_utils_stripHtmlComments = function () {
@@ -8259,7 +8295,8 @@ var extend_initOptions = function () {
             'sanitize',
             'stripComments',
             'noIntro',
-            'transitionsEnabled'
+            'transitionsEnabled',
+            'adaptors'
         ];
     }();
 var extend_inheritFromParent = function (registries, initOptions, create) {
