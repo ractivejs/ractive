@@ -5,6 +5,8 @@ define([
 	'render/DomFragment/Element/prototype/toString',
 	'render/DomFragment/Element/prototype/find',
 	'render/DomFragment/Element/prototype/findAll',
+	'render/DomFragment/Element/prototype/findComponent',
+	'render/DomFragment/Element/prototype/findAllComponents',
 	'render/DomFragment/Element/prototype/bind'
 ], function (
 	initialise,
@@ -13,6 +15,8 @@ define([
 	toString,
 	find,
 	findAll,
+	findComponent,
+	findAllComponents,
 	bind
 ) {
 
@@ -50,6 +54,8 @@ define([
 		toString: toString,
 		find: find,
 		findAll: findAll,
+		findComponent: findComponent,
+		findAllComponents: findAllComponents,
 		bind: bind
 	};
 

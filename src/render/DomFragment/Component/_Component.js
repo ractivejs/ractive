@@ -39,12 +39,14 @@ define([
 			processKeyValuePair,
 			eventName,
 			propagateEvent,
-			items;
+			items,
+			ancestor,
+			query;
 
 		root = parentFragment.root;
 
 		this.type = types.COMPONENT;
-		this.name = options.descriptor.r;
+		this.name = options.descriptor.e;
 		this.index = options.index;
 
 		Component = root.components[ options.descriptor.e ];
@@ -209,6 +211,16 @@ define([
 		if ( options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o ) {
 			warn( 'The "intro", "outro" and "decorator" directives have no effect on components' );
 		}
+
+		// If there's a live query for this component type, add it
+		ancestor = root;
+		while ( ancestor ) {
+			if ( query = ancestor._liveComponentQueries[ this.name ] ) {
+				query.push( this.instance );
+			}
+
+			ancestor = ancestor._parent;
+		}
 	};
 
 	DomComponent.prototype = {
@@ -220,13 +232,23 @@ define([
 			return this.parentFragment.findNextNode( this );
 		},
 
+		detach: function () {
+			return this.instance.fragment.detach();
+		},
+
 		teardown: function () {
+			var query;
+
 			while ( this.complexParameters.length ) {
 				this.complexParameters.pop().teardown();
 			}
 
 			while ( this.observers.length ) {
 				this.observers.pop().cancel();
+			}
+
+			if ( query = this.root._liveComponentQueries[ this.name ] ) {
+				query._remove( this );
 			}
 
 			this.instance.teardown();
@@ -240,8 +262,24 @@ define([
 			return this.instance.fragment.find( selector );
 		},
 
-		findAll: function ( selector, queryResult ) {
-			return this.instance.fragment.findAll( selector, queryResult );
+		findAll: function ( selector, query ) {
+			return this.instance.fragment.findAll( selector, query );
+		},
+
+		findComponent: function ( selector ) {
+			if ( !selector || ( selector === this.name ) ) {
+				return this.instance;
+			}
+
+			return null;
+		},
+
+		findAllComponents: function ( selector, query ) {
+			query._test( this, true );
+
+			if ( this.instance.fragment ) {
+				this.instance.fragment.findAllComponents( selector, query );
+			}
 		}
 	};
 

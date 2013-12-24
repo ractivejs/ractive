@@ -332,12 +332,34 @@ define([
 			return null;
 		},
 
-		findAll: function ( selector, queryResult ) {
+		findAll: function ( selector, query ) {
 			var i, len;
 
 			len = this.fragments.length;
 			for ( i = 0; i < len; i += 1 ) {
-				this.fragments[i].findAll( selector, queryResult );
+				this.fragments[i].findAll( selector, query );
+			}
+		},
+
+		findComponent: function ( selector ) {
+			var i, len, queryResult;
+
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				if ( queryResult = this.fragments[i].findComponent( selector ) ) {
+					return queryResult;
+				}
+			}
+
+			return null;
+		},
+
+		findAllComponents: function ( selector, query ) {
+			var i, len;
+
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.fragments[i].findAllComponents( selector, query );
 			}
 		}
 	};

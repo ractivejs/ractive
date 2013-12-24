@@ -122,7 +122,8 @@ define([
 			_wrapped: { value: create( null ) },
 
 			// live queries
-			_liveQueries: { value: [] }
+			_liveQueries: { value: [] },
+			_liveComponentQueries: { value: [] }
 		});
 
 		defineProperties( ractive._deferred, {

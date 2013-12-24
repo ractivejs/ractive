@@ -7,7 +7,7 @@ define( function () {
 
 		// Add this node to the query, if applicable, and register the
 		// query on this element
-		if ( query._test( this.node, true ) && query.live ) {
+		if ( query._test( this, true ) && query.live ) {
 			( this.liveQueries || ( this.liveQueries = [] ) ).push( selector );
 			this.liveQueries[ selector ] = [ this.node ];
 		}

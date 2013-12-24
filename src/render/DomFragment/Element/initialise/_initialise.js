@@ -75,6 +75,7 @@ define([
 			// related to proxy events, two-way bindings etc
 			defineProperty( element.node, '_ractive', {
 				value: {
+					proxy: element,
 					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
 					index: parentFragment.indexRefs,
 					events: create( null ),

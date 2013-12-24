@@ -13,7 +13,7 @@ define([
 	return reassignFragment;
 
 	function reassignFragment ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, item, context;
+		var i, item, context, query;
 
 		// If this fragment was rendered with innerHTML, we have nothing to do
 		// TODO a less hacky way of determining this
@@ -45,6 +45,13 @@ define([
 
 				case types.PARTIAL:
 				reassignFragment( item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				break;
+
+				case types.COMPONENT:
+				reassignFragment( item.instance.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				if ( query = fragment.root._liveComponentQueries[ item.name ] ) {
+					query._makeDirty();
+				}
 				break;
 
 				case types.SECTION:
