@@ -229,7 +229,7 @@ define([
 				}
 
 				// is this a DOM section?
-				else if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode ) {
+				else if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
 					smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
 
 				} else {

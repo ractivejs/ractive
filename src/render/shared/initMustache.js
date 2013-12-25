@@ -21,11 +21,6 @@ define([
 		mustache.index          = options.index || 0;
 		mustache.priority       = parentFragment.priority;
 
-		// DOM only
-		if ( parentFragment.pNode ) {
-			mustache.pNode = parentFragment.pNode;
-		}
-
 		mustache.type = options.descriptor.t;
 
 

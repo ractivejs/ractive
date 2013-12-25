@@ -8,6 +8,7 @@ define([
 
 	return function ( newIndices ) {
 		var section = this,
+			parentFragment,
 			firstChange,
 			changed,
 			i,
@@ -17,6 +18,8 @@ define([
 			fragmentOptions,
 			fragment,
 			nextNode;
+
+		parentFragment = this.parentFragment;
 
 		newFragments = [];
 
@@ -74,7 +77,7 @@ define([
 		fragmentOptions = {
 			descriptor: this.descriptor.f,
 			root:       this.root,
-			pNode:      this.pNode,
+			pNode:      parentFragment.pNode,
 			owner:      this
 		};
 
@@ -102,8 +105,8 @@ define([
 		}
 
 		// reinsert fragment
-		nextNode = this.parentFragment.findNextNode( this );
-		this.pNode.insertBefore( this.docFrag, nextNode );
+		nextNode = parentFragment.findNextNode( this );
+		parentFragment.pNode.insertBefore( this.docFrag, nextNode );
 
 		this.length = newLength;
 	};

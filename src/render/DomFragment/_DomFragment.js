@@ -40,7 +40,7 @@ define([
 			this.html = options.descriptor;
 
 			if ( this.docFrag ) {
-				this.nodes = insertHtml( options.descriptor, options.pNode.tagName, this.docFrag );
+				this.nodes = insertHtml( this.html, options.pNode.tagName, this.docFrag );
 			}
 		}
 
@@ -56,8 +56,9 @@ define([
 
 			// if this was built from HTML, we just need to remove the nodes
 			if ( this.nodes ) {
-				while ( this.nodes.length ) {
-					this.docFrag.appendChild( this.nodes.pop() );
+				i = this.nodes.length;
+				while ( i-- ) {
+					this.docFrag.appendChild( this.nodes[i] );
 				}
 			}
 
