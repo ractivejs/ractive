@@ -3,10 +3,16 @@ define( function () {
 	'use strict';
 
 	return function ( component ) {
-		var query;
+		var ancestor, query;
 
-		if ( query = component.root._liveComponentQueries[ component.name ] ) {
-			query.push( component.instance );
+		// If there's a live query for this component type, add it
+		ancestor = component.root;
+		while ( ancestor ) {
+			if ( query = ancestor._liveComponentQueries[ component.name ] ) {
+				query.push( component.instance );
+			}
+
+			ancestor = ancestor._parent;
 		}
 	};
 
