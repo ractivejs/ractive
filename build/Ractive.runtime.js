@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9-pre - 2013-12-24
+	Ractive - v0.3.9-pre - 2013-12-26
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -37,6 +37,13 @@
 
 
 
+var config_svg = function () {
+        
+        if (typeof document === 'undefined') {
+            return;
+        }
+        return document && document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1');
+    }();
 var utils_create = function () {
         
         var create;
@@ -63,6 +70,32 @@ var utils_create = function () {
         }
         return create;
     }();
+var config_namespaces = {
+        html: 'http://www.w3.org/1999/xhtml',
+        mathml: 'http://www.w3.org/1998/Math/MathML',
+        svg: 'http://www.w3.org/2000/svg',
+        xlink: 'http://www.w3.org/1999/xlink',
+        xml: 'http://www.w3.org/XML/1998/namespace',
+        xmlns: 'http://www.w3.org/2000/xmlns/'
+    };
+var utils_createElement = function (svg, namespaces) {
+        
+        if (!svg) {
+            return function (type, ns) {
+                if (ns && ns !== namespaces.html) {
+                    throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/RactiveJS/Ractive/wiki/SVG-and-older-browsers for more information';
+                }
+                return document.createElement(type);
+            };
+        } else {
+            return function (type, ns) {
+                if (!ns) {
+                    return document.createElement(type);
+                }
+                return document.createElementNS(ns, type);
+            };
+        }
+    }(config_svg, config_namespaces);
 var config_isClient = function () {
         
         if (typeof document === 'object') {
@@ -84,7 +117,7 @@ var utils_defineProperty = function (isClient) {
             };
         }
     }(config_isClient);
-var utils_defineProperties = function (defineProperty, isClient) {
+var utils_defineProperties = function (createElement, defineProperty, isClient) {
         
         try {
             try {
@@ -93,7 +126,7 @@ var utils_defineProperties = function (defineProperty, isClient) {
                 throw err;
             }
             if (isClient) {
-                Object.defineProperties(document.createElement('div'), { test: { value: 0 } });
+                Object.defineProperties(createElement('div'), { test: { value: 0 } });
             }
             return Object.defineProperties;
         } catch (err) {
@@ -106,7 +139,7 @@ var utils_defineProperties = function (defineProperty, isClient) {
                 }
             };
         }
-    }(utils_defineProperty, config_isClient);
+    }(utils_createElement, utils_defineProperty, config_isClient);
 var utils_normaliseKeypath = function () {
         
         var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
@@ -1909,13 +1942,13 @@ var Ractive_prototype_find = function () {
             return this.fragment.find(selector);
         };
     }();
-var utils_matches = function (isClient) {
+var utils_matches = function (isClient, createElement) {
         
         var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
         if (!isClient) {
             return;
         }
-        div = document.createElement('div');
+        div = createElement('div');
         methodNames = [
             'matches',
             'matchesSelector'
@@ -1956,7 +1989,7 @@ var utils_matches = function (isClient) {
             }
             return false;
         };
-    }(config_isClient);
+    }(config_isClient, utils_createElement);
 var Ractive_prototype_shared_makeQuery_test = function (matches) {
         
         return function (item, noDirty) {
@@ -2000,8 +2033,8 @@ var Ractive_prototype_shared_makeQuery_sortByItemPosition = function () {
             }
             oldestA = oldestA.component || oldestA;
             oldestB = oldestB.component || oldestB;
-            fragmentA = oldestA.pFrag;
-            fragmentB = oldestB.pFrag;
+            fragmentA = oldestA.parentFragment;
+            fragmentB = oldestB.parentFragment;
             if (fragmentA === fragmentB) {
                 indexA = fragmentA.items.indexOf(oldestA);
                 indexB = fragmentB.items.indexOf(oldestB);
@@ -2016,10 +2049,10 @@ var Ractive_prototype_shared_makeQuery_sortByItemPosition = function () {
         };
         function getParent(item) {
             var parentFragment;
-            if (parentFragment = item.pFrag) {
+            if (parentFragment = item.parentFragment) {
                 return parentFragment.owner;
             }
-            if (item.component && (parentFragment = item.component.pFrag)) {
+            if (item.component && (parentFragment = item.component.parentFragment)) {
                 return parentFragment.owner;
             }
         }
@@ -2173,7 +2206,7 @@ var render_shared_initFragment = function (types, create) {
         return function (fragment, options) {
             var numItems, i, parentFragment, parentRefs, ref;
             fragment.owner = options.owner;
-            parentFragment = fragment.owner.pFrag;
+            parentFragment = fragment.owner.parentFragment;
             fragment.root = options.root;
             fragment.pNode = options.pNode;
             fragment.contextStack = options.contextStack || [];
@@ -2200,20 +2233,20 @@ var render_shared_initFragment = function (types, create) {
             numItems = options.descriptor ? options.descriptor.length : 0;
             for (i = 0; i < numItems; i += 1) {
                 fragment.items[fragment.items.length] = fragment.createItem({
-                    pFrag: fragment,
+                    parentFragment: fragment,
                     descriptor: options.descriptor[i],
                     index: i
                 });
             }
         };
     }(config_types, utils_create);
-var render_DomFragment_shared_insertHtml = function () {
+var render_DomFragment_shared_insertHtml = function (createElement) {
         
         var elementCache = {};
         return function (html, tagName, docFrag) {
             var container, nodes = [];
             if (html) {
-                container = elementCache[tagName] || (elementCache[tagName] = document.createElement(tagName));
+                container = elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
                 container.innerHTML = html;
                 while (container.firstChild) {
                     nodes[nodes.length] = container.firstChild;
@@ -2222,7 +2255,7 @@ var render_DomFragment_shared_insertHtml = function () {
             }
             return nodes;
         };
-    }();
+    }(utils_createElement);
 var render_DomFragment_Text = function (types) {
         
         var DomText, lessThan, greaterThan;
@@ -2496,7 +2529,7 @@ var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, t
             this.args = [];
             this.scouts = [];
             expression = mustache.descriptor.x;
-            indexRefs = mustache.pFrag.indexRefs;
+            indexRefs = mustache.parentFragment.indexRefs;
             this.str = expression.s;
             len = this.unresolved = this.args.length = expression.r ? expression.r.length : 0;
             if (!len) {
@@ -2602,7 +2635,7 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
             var keypath, indexRef, parentFragment;
-            parentFragment = mustache.pFrag = options.pFrag;
+            parentFragment = mustache.parentFragment = options.parentFragment;
             mustache.root = parentFragment.root;
             mustache.contextStack = parentFragment.contextStack;
             mustache.descriptor = options.descriptor;
@@ -2645,8 +2678,8 @@ var render_shared_resolveMustache = function (types, registerDependant, unregist
             this.keypath = keypath;
             registerDependant(this);
             this.update();
-            if (this.root.twoway && this.pFrag.owner.type === types.ATTRIBUTE) {
-                this.pFrag.owner.element.bind();
+            if (this.root.twoway && this.parentFragment.owner.type === types.ATTRIBUTE) {
+                this.parentFragment.owner.element.bind();
             }
             if (this.expressionResolver && this.expressionResolver.resolved) {
                 this.expressionResolver = null;
@@ -2716,7 +2749,7 @@ var render_shared_updateSection = function (isArray, isObject, create) {
             fragmentOptions = {
                 descriptor: section.descriptor.f,
                 root: section.root,
-                pNode: section.pFrag.pNode,
+                pNode: section.parentFragment.pNode,
                 owner: section
             };
             if (section.descriptor.n) {
@@ -2952,7 +2985,7 @@ var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
         
         return function (newIndices) {
             var section = this, parentFragment, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
-            parentFragment = this.pFrag;
+            parentFragment = this.parentFragment;
             newFragments = [];
             newIndices.forEach(function (newIndex, oldIndex) {
                 var by, oldKeypath, newKeypath;
@@ -3044,7 +3077,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     fragmentOptions = {
                         descriptor: this.descriptor.f,
                         root: this.root,
-                        pNode: this.pFrag.pNode,
+                        pNode: this.parentFragment.pNode,
                         owner: this
                     };
                     if (this.descriptor.i) {
@@ -3073,7 +3106,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     this.fragments[i] = this.createFragment(fragmentOptions);
                 }
                 this.length += args.length;
-                this.pFrag.pNode.insertBefore(this.docFrag, this.pFrag.findNextNode(this));
+                this.parentFragment.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
             },
             shift: function () {
                 this.splice(null, [
@@ -3108,7 +3141,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     this.fragments.splice(start, -balance);
                 } else {
                     end = start + balance;
-                    insertionPoint = this.fragments[start] ? this.fragments[start].firstNode() : this.pFrag.findNextNode(this);
+                    insertionPoint = this.fragments[start] ? this.fragments[start].firstNode() : this.parentFragment.findNextNode(this);
                     spliceArgs = [
                         start,
                         0
@@ -3119,7 +3152,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                         fragmentOptions.index = i;
                         this.fragments[i] = this.createFragment(fragmentOptions);
                     }
-                    this.pFrag.pNode.insertBefore(this.docFrag, insertionPoint);
+                    this.parentFragment.pNode.insertBefore(this.docFrag, insertionPoint);
                 }
                 this.length += balance;
                 reassignStart = start + addedItems;
@@ -3142,13 +3175,13 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 if (this.fragments[0]) {
                     return this.fragments[0].firstNode();
                 }
-                return this.pFrag.findNextNode(this);
+                return this.parentFragment.findNextNode(this);
             },
             findNextNode: function (fragment) {
                 if (this.fragments[fragment.index + 1]) {
                     return this.fragments[fragment.index + 1].firstNode();
                 }
-                return this.pFrag.findNextNode(this);
+                return this.parentFragment.findNextNode(this);
             },
             teardownFragments: function (destroy) {
                 var id, fragment;
@@ -3179,11 +3212,11 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     return;
                 }
                 if (!this.initialising && isClient) {
-                    nextNode = this.pFrag.findNextNode(this);
-                    if (nextNode && nextNode.parentNode === this.pFrag.pNode) {
-                        this.pFrag.pNode.insertBefore(this.docFrag, nextNode);
+                    nextNode = this.parentFragment.findNextNode(this);
+                    if (nextNode && nextNode.parentNode === this.parentFragment.pNode) {
+                        this.parentFragment.pNode.insertBefore(this.docFrag, nextNode);
                     } else {
-                        this.pFrag.pNode.appendChild(this.docFrag);
+                        this.parentFragment.pNode.appendChild(this.docFrag);
                     }
                 }
             },
@@ -3284,7 +3317,7 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                 if (this.nodes[0]) {
                     return this.nodes[0];
                 }
-                return this.pFrag.findNextNode(this);
+                return this.parentFragment.findNextNode(this);
             },
             render: function (html) {
                 var node, pNode;
@@ -3299,10 +3332,10 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                     this.nodes = [];
                     return;
                 }
-                pNode = this.pFrag.pNode;
+                pNode = this.parentFragment.pNode;
                 this.nodes = insertHtml(html, pNode.tagName, this.docFrag);
                 if (!this.initialising) {
-                    pNode.insertBefore(this.docFrag, this.pFrag.findNextNode(this));
+                    pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
                 }
             },
             toString: function () {
@@ -3347,14 +3380,6 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
         };
         return DomTriple;
     }(config_types, utils_matches, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_DomFragment_shared_insertHtml, shared_teardown);
-var config_namespaces = {
-        html: 'http://www.w3.org/1999/xhtml',
-        mathml: 'http://www.w3.org/1998/Math/MathML',
-        svg: 'http://www.w3.org/2000/svg',
-        xlink: 'http://www.w3.org/1999/xlink',
-        xml: 'http://www.w3.org/XML/1998/namespace',
-        xmlns: 'http://www.w3.org/2000/xmlns/'
-    };
 var render_DomFragment_Element_initialise_getElementNamespace = function (namespaces) {
         
         return function (descriptor, parentNode) {
@@ -4258,7 +4283,7 @@ var render_StringFragment_Interpolator = function (types, teardown, initMustache
             resolve: resolveMustache,
             render: function (value) {
                 this.value = value;
-                this.pFrag.bubble();
+                this.parentFragment.bubble();
             },
             teardown: function () {
                 teardown(this);
@@ -4305,7 +4330,7 @@ var render_StringFragment_Section = function (types, initMustache, updateMustach
             },
             bubble: function () {
                 this.value = this.fragments.join('');
-                this.pFrag.bubble();
+                this.parentFragment.bubble();
             },
             render: function (value) {
                 var wrapped;
@@ -4313,7 +4338,7 @@ var render_StringFragment_Section = function (types, initMustache, updateMustach
                     value = wrapped.get();
                 }
                 updateSection(this, value);
-                this.pFrag.bubble();
+                this.parentFragment.bubble();
             },
             createFragment: function (options) {
                 return new StringFragment(options);
@@ -4474,7 +4499,7 @@ var render_DomFragment_Attribute__Attribute = function (types, determineNameAndN
             }
             this.root = options.root;
             this.pNode = options.pNode;
-            this.pFrag = this.element.pFrag;
+            this.parentFragment = this.element.parentFragment;
             this.fragment = new StringFragment({
                 descriptor: options.value,
                 root: this.root,
@@ -4551,7 +4576,7 @@ var render_DomFragment_Element_initialise_createElementAttributes = function (Do
                         value: attrValue,
                         root: element.root,
                         pNode: element.node,
-                        contextStack: element.pFrag.contextStack
+                        contextStack: element.parentFragment.contextStack
                     });
                     element.attributes[element.attributes.length] = element.attributes[attrName] = attr;
                     if (attrName !== 'name') {
@@ -4583,7 +4608,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                 element.fragment = new StringFragment({
                     descriptor: descriptor.f,
                     root: element.root,
-                    contextStack: element.pFrag.contextStack,
+                    contextStack: element.parentFragment.contextStack,
                     owner: element
                 });
                 if (docFrag) {
@@ -4619,7 +4644,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     descriptor: descriptor.f,
                     root: element.root,
                     pNode: node,
-                    contextStack: element.pFrag.contextStack,
+                    contextStack: element.parentFragment.contextStack,
                     owner: element
                 });
                 if (docFrag) {
@@ -4838,7 +4863,7 @@ var render_DomFragment_Element_initialise_addEventProxies__addEventProxies = fun
                     eventNames = eventName.split('-');
                     i = eventNames.length;
                     while (i--) {
-                        addEventProxy(element, eventNames[i], proxies[eventName], element.pFrag.contextStack);
+                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
                     }
                 }
             }
@@ -4881,13 +4906,13 @@ var utils_fillGaps = function () {
             return target;
         };
     }();
-var render_DomFragment_Element_shared_executeTransition_Transition = function (isClient, warn, isNumeric, isArray, camelCase, fillGaps, StringFragment) {
+var render_DomFragment_Element_shared_executeTransition_Transition = function (isClient, createElement, warn, isNumeric, isArray, camelCase, fillGaps, StringFragment) {
         
         var Transition, testStyle, vendors, vendorPattern, unprefixPattern, prefixCache, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
         if (!isClient) {
             return;
         }
-        testStyle = document.createElement('div').style;
+        testStyle = createElement('div').style;
         (function () {
             if (testStyle.transition !== undefined) {
                 TRANSITION = 'transition';
@@ -5139,7 +5164,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
             return hyphenated;
         }
         return Transition;
-    }(config_isClient, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, utils_fillGaps, render_StringFragment__StringFragment);
+    }(config_isClient, utils_createElement, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, utils_fillGaps, render_StringFragment__StringFragment);
 var render_DomFragment_Element_shared_executeTransition__executeTransition = function (warn, Transition) {
         
         return function (descriptor, root, owner, contextStack, isIntro) {
@@ -5164,12 +5189,12 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
             }
         };
     }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition);
-var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
+var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
         return function (element, options, docFrag) {
             var parentFragment, pNode, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
             element.type = types.ELEMENT;
-            parentFragment = element.pFrag = options.pFrag;
+            parentFragment = element.parentFragment = options.parentFragment;
             pNode = parentFragment.pNode;
             contextStack = parentFragment.contextStack;
             descriptor = element.descriptor = options.descriptor;
@@ -5181,7 +5206,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
             if (pNode) {
                 namespace = element.namespace = getElementNamespace(descriptor, pNode);
                 name = namespace !== namespaces.html ? enforceCase(descriptor.e) : descriptor.e;
-                element.node = document.createElementNS(namespace, name);
+                element.node = createElement(name, namespace);
                 defineProperty(element.node, '_ractive', {
                     value: {
                         proxy: element,
@@ -5251,7 +5276,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
             }
             updateLiveQueries(element);
         };
-    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
+    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
 var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
         
         return function (destroy) {
@@ -5276,7 +5301,7 @@ var render_DomFragment_Element_prototype_teardown = function (executeTransition)
                 this.decorator.teardown();
             }
             if (this.descriptor.t2) {
-                executeTransition(this.descriptor.t2, this.root, this, this.pFrag.contextStack, false);
+                executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
             }
             if (destroy) {
                 this.root._transitionManager.detachWhenReady(this);
@@ -5521,7 +5546,7 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
             DomFragment = circular.DomFragment;
         });
         DomPartial = function (options, docFrag) {
-            var parentFragment = this.pFrag = options.pFrag, descriptor;
+            var parentFragment = this.parentFragment = options.parentFragment, descriptor;
             this.type = types.PARTIAL;
             this.name = options.descriptor.r;
             this.index = options.index;
@@ -5545,7 +5570,7 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
                 return this.fragment.firstNode();
             },
             findNextNode: function () {
-                return this.pFrag.findNextNode(this);
+                return this.parentFragment.findNextNode(this);
             },
             detach: function () {
                 return this.fragment.detach();
@@ -5574,14 +5599,14 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
 var render_DomFragment_Component_initialise_createModel_ComponentParameter = function (StringFragment) {
         
         var ComponentParameter = function (component, key, value) {
-            this.pFrag = component.pFrag;
+            this.parentFragment = component.parentFragment;
             this.component = component;
             this.key = key;
             this.fragment = new StringFragment({
                 descriptor: value,
                 root: component.root,
                 owner: this,
-                contextStack: component.pFrag.contextStack
+                contextStack: component.parentFragment.contextStack
             });
             this.selfUpdating = this.fragment.isSimple();
             this.value = this.fragment.getValue();
@@ -5622,7 +5647,7 @@ var render_DomFragment_Component_initialise_createModel__createModel = function 
         function getValue(component, key, descriptor, toBind) {
             var parameter, parsed, root, parentFragment, keypath;
             root = component.root;
-            parentFragment = component.pFrag;
+            parentFragment = component.parentFragment;
             if (typeof descriptor === 'string') {
                 parsed = parseJSON(descriptor);
                 return parsed ? parsed.value : descriptor;
@@ -5650,7 +5675,7 @@ var render_DomFragment_Component_initialise_createInstance = function () {
         
         return function (component, Component, data, docFrag, contentDescriptor) {
             var instance, parentFragment, partials, root;
-            parentFragment = component.pFrag;
+            parentFragment = component.parentFragment;
             root = component.root;
             partials = { content: contentDescriptor || [] };
             instance = new Component({
@@ -5752,7 +5777,7 @@ var render_DomFragment_Component_initialise__initialise = function (types, warn,
         
         return function (component, options, docFrag) {
             var parentFragment, root, Component, data, toBind;
-            parentFragment = component.pFrag = options.pFrag;
+            parentFragment = component.parentFragment = options.parentFragment;
             root = parentFragment.root;
             component.root = root;
             component.type = types.COMPONENT;
@@ -5784,7 +5809,7 @@ var render_DomFragment_Component__Component = function (initialise) {
                 return this.instance.fragment.firstNode();
             },
             findNextNode: function () {
-                return this.pFrag.findNextNode(this);
+                return this.parentFragment.findNextNode(this);
             },
             detach: function () {
                 return this.instance.fragment.detach();
@@ -6774,7 +6799,7 @@ var extend__extend = function (create, inheritFromParent, inheritFromChildProps,
             return Child;
         };
     }(utils_create, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
-var Ractive__Ractive = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
+var Ractive__Ractive = function (svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -6788,6 +6813,7 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
             events: { value: {} },
             components: { value: {} },
             decorators: { value: {} },
+            svg: { value: svg },
             VERSION: { value: '0.3.9-pre' }
         });
         Ractive.eventDefinitions = Ractive.events;
@@ -6804,7 +6830,7 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
         Ractive.parse = parse;
         circular.Ractive = Ractive;
         return Ractive;
-    }(utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
+    }(config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular) {
         
         if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {
