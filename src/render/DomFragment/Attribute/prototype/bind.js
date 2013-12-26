@@ -113,8 +113,6 @@ define([
 			errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
 
 			if ( attribute.root.debug ) {
-				throw new Error( errorMessage );
-			} else {
 				warn( errorMessage );
 			}
 			return null;
