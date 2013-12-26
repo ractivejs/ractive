@@ -2,6 +2,8 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 	'use strict';
 
+	window.Ractive = Ractive;
+
 	return function () {
 
 		var fixture, Widget, Decoy;

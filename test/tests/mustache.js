@@ -4,7 +4,7 @@
 // These are included to aid development; Ractive will never be able to pass
 // every test in the suite because it's doing something fundamentally different
 // to other mustache implementations.
-// 
+//
 // Unpassable tests are marked as such.
 //
 // Some tests technically fail in IE8. This is because IE8 is shit. The library
@@ -12,6 +12,8 @@
 // For the sake of sanity, these tests are also marked.
 
 define([ 'Ractive' ], function ( Ractive ) {
+
+	window.Ractive = Ractive;
 
 	return function () {
 
@@ -1200,7 +1202,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 					partials: theTest.partials,
 					preserveWhitespace: true
 				});
-				
+
 				t.htmlEqual( fixture.innerHTML, theTest.expected, theTest.desc + '\n' + theTest.template + '\n' );
 			});
 		};
@@ -1222,7 +1224,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 		for ( i=0; i<testModules.length; i+=1 ) {
 			runModule( testModules[i] );
 		}
-		
+
 	};
 
 });

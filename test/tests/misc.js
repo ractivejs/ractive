@@ -2,6 +2,8 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 	'use strict';
 
+	window.Ractive = Ractive;
+
 	return function () {
 
 		var fixture, Foo;

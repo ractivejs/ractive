@@ -2,6 +2,8 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 	'use strict';
 
+	window.Ractive = Ractive;
+
 	return function () {
 
 		var fixture = document.getElementById( 'qunit-fixture' );
@@ -39,7 +41,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 			t.equal( entered, 3 );
-			
+
 			entered = 0; // reset
 			ractive.merge( 'items', [ 'foo', 'bip', 'bar', 'baz' ] );
 			t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bip">bip</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
@@ -81,7 +83,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 			t.equal( entered, 3 );
-			
+
 			ractive.merge( 'items', [ 'foo', 'baz' ] );
 			t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li></ul>' );
 			t.equal( exited, 1 );
@@ -262,7 +264,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.ok( !bar.parentNode );
 			t.ok( baz !== ractive.nodes.baz );
 		});
-		
+
 	};
 
 });

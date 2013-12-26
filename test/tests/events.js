@@ -5,8 +5,10 @@
 
 define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
+	window.Ractive = Ractive;
+
 	return function () {
-		
+
 		var fixture = document.getElementById( 'qunit-fixture' );
 
 		module( 'Events' );
@@ -376,7 +378,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			simulant.fire( node, 'keydown', { which: 32 });
 			t.equal( tapped, true );
 		});
-			
+
 	};
 
 });
