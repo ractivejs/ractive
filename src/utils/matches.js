@@ -1,4 +1,10 @@
-define([ 'config/isClient' ], function ( isClient ) {
+define([
+	'config/isClient',
+	'utils/createElement'
+], function (
+	isClient,
+	createElement
+) {
 
 	'use strict';
 
@@ -8,7 +14,7 @@ define([ 'config/isClient' ], function ( isClient ) {
 		return;
 	}
 
-	div = document.createElement( 'div' );
+	div = createElement( 'div' );
 
 	methodNames = [ 'matches', 'matchesSelector' ];
 	vendors = [ 'o', 'ms', 'moz', 'webkit' ];

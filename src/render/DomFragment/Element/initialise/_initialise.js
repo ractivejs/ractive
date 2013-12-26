@@ -5,6 +5,7 @@ define([
 	'utils/defineProperty',
 	'utils/matches',
 	'utils/warn',
+	'utils/createElement',
 	'render/DomFragment/Element/initialise/getElementNamespace',
 	'render/DomFragment/Element/initialise/createElementAttributes',
 	'render/DomFragment/Element/initialise/appendElementChildren',
@@ -20,6 +21,7 @@ define([
 	defineProperty,
 	matches,
 	warn,
+	createElement,
 	getElementNamespace,
 	createElementAttributes,
 	appendElementChildren,
@@ -70,7 +72,7 @@ define([
 			name = ( namespace !== namespaces.html ? enforceCase( descriptor.e ) : descriptor.e );
 
 			// create the DOM node
-			element.node = document.createElementNS( namespace, name );
+			element.node = createElement( name, namespace );
 
 			// Add _ractive property to the node - we use this object to store stuff
 			// related to proxy events, two-way bindings etc

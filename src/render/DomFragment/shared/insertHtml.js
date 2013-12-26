@@ -1,4 +1,8 @@
-define( function () {
+define([
+	'utils/createElement'
+], function (
+	createElement
+) {
 
 	'use strict';
 
@@ -8,7 +12,7 @@ define( function () {
 		var container, nodes = [];
 
 		if ( html ) {
-			container = elementCache[ tagName ] || ( elementCache[ tagName ] = document.createElement( tagName ) );
+			container = elementCache[ tagName ] || ( elementCache[ tagName ] = createElement( tagName ) );
 			container.innerHTML = html;
 
 			while ( container.firstChild ) {

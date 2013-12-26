@@ -1,5 +1,6 @@
 define([
 	'config/isClient',
+	'utils/createElement',
 	'utils/warn',
 	'utils/isNumeric',
 	'utils/isArray',
@@ -8,6 +9,7 @@ define([
 	'render/StringFragment/_StringFragment'
 ], function (
 	isClient,
+	createElement,
 	warn,
 	isNumeric,
 	isArray,
@@ -38,7 +40,7 @@ define([
 		return;
 	}
 
-	testStyle = document.createElement( 'div' ).style;
+	testStyle = createElement( 'div' ).style;
 
 	// determine some facts about our environment
 	(function () {
