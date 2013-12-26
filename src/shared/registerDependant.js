@@ -15,6 +15,10 @@ define( function () {
 		deps[ deps.length ] = dependant;
 		dependant.registered = true;
 
+		if ( !keypath ) {
+			return;
+		}
+
 		// update dependants map
 		keys = keypath.split( '.' );
 

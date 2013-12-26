@@ -8,7 +8,7 @@ define( function () {
 	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 	resolveRef = function ( ractive, ref, contextStack ) {
 
-		var keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, keypath, context, ancestorErrorMessage;
+		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context, ancestorErrorMessage;
 
 		ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
@@ -18,12 +18,12 @@ define( function () {
 				return '';
 			}
 
-			return contextStack[ contextStack.length - 1 ];
+			keypath = contextStack[ contextStack.length - 1 ];
 		}
 
 		// If a reference begins with '.', it's either a restricted reference or
 		// an ancestor reference...
-		if ( ref.charAt( 0 ) === '.' ) {
+		else if ( ref.charAt( 0 ) === '.' ) {
 
 			// ...either way we need to get the innermost context
 			context = contextStack[ contextStack.length - 1 ];
@@ -41,47 +41,51 @@ define( function () {
 				}
 
 				contextKeys.push( ref );
-				return contextKeys.join( '.' );
+				keypath = contextKeys.join( '.' );
 			}
 
 			// not an ancestor reference - must be a restricted reference (prepended with ".")
 			if ( !context ) {
-				return ref.substring( 1 );
+				keypath = ref.substring( 1 );
 			}
 
-			return context + ref;
-		}
-
-		keys = ref.split( '.' );
-		lastKey = keys.pop();
-		postfix = keys.length ? '.' + keys.join( '.' ) : '';
-
-		// Clone the context stack, so we don't mutate the original
-		contextStack = contextStack.concat();
-
-		// Take each context from the stack, working backwards from the innermost context
-		while ( contextStack.length ) {
-
-			innerMostContext = contextStack.pop();
-			parentKeypath = innerMostContext + postfix;
-
-			parentValue = ractive.get( parentKeypath );
-
-			if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
-				parentValue = wrapped.get();
-			}
-
-			if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
-				keypath = innerMostContext + '.' + ref;
-				break;
+			else {
+				keypath = context + ref;
 			}
 		}
 
-		if ( !keypath && ractive.get( ref ) !== undefined ) {
-			keypath = ref;
+		else {
+			keys = ref.split( '.' );
+			lastKey = keys.pop();
+			postfix = keys.length ? '.' + keys.join( '.' ) : '';
+
+			// Clone the context stack, so we don't mutate the original
+			contextStack = contextStack.concat();
+
+			// Take each context from the stack, working backwards from the innermost context
+			while ( contextStack.length ) {
+
+				innerMostContext = contextStack.pop();
+				parentKeypath = innerMostContext + postfix;
+
+				parentValue = ractive.get( parentKeypath );
+
+				if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+					parentValue = wrapped.get();
+				}
+
+				if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
+					keypath = innerMostContext + '.' + ref;
+					break;
+				}
+			}
+
+			if ( !keypath && ractive.get( ref ) !== undefined ) {
+				keypath = ref;
+			}
 		}
 
-		return keypath;
+		return keypath.replace( /^./, '' );
 	};
 
 	return resolveRef;

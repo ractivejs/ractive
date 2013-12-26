@@ -19,6 +19,10 @@ define( function () {
 		deps.splice( index, 1 );
 		dependant.registered = false;
 
+		if ( !keypath ) {
+			return;
+		}
+
 		// update dependants map
 		keys = keypath.split( '.' );
 
