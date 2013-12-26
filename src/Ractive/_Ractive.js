@@ -1,4 +1,5 @@
 define([
+	'config/svg',
 	'utils/create',
 	'utils/defineProperties',
 	'Ractive/prototype/_prototype',
@@ -10,6 +11,7 @@ define([
 	'Ractive/initialise',
 	'circular'
 ], function (
+	svg,
 	create,
 	defineProperties,
 	prototype,
@@ -44,6 +46,9 @@ define([
 		events:      { value: {} },
 		components:  { value: {} },
 		decorators:  { value: {} },
+
+		// Support
+		svg: { value: svg },
 
 		VERSION:     { value: '<%= version %>' }
 	});
