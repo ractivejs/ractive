@@ -445,63 +445,10 @@ var utils_normaliseKeypath = function () {
         
         var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
         return function (keypath) {
-            return keypath.replace(regex, '.$1');
+            return (keypath || '').replace(regex, '.$1');
         };
     }();
 var registries_adaptors = {};
-var shared_adaptIfNecessary = function (adaptorRegistry) {
-        
-        var prefixers = {};
-        return function (ractive, keypath, value) {
-            var len, i, adaptor, wrapped;
-            len = ractive.adaptors.length;
-            for (i = 0; i < len; i += 1) {
-                adaptor = ractive.adaptors[i];
-                if (typeof adaptor === 'string') {
-                    if (!adaptorRegistry[adaptor]) {
-                        throw new Error('Missing adaptor "' + adaptor + '"');
-                    }
-                    adaptor = ractive.adaptors[i] = adaptorRegistry[adaptor];
-                }
-                if (adaptor.filter(value, keypath, ractive)) {
-                    wrapped = ractive._wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
-                    ractive._cache[keypath] = wrapped.value = value;
-                    return true;
-                }
-            }
-        };
-        function prefixKeypath(obj, prefix) {
-            var prefixed = {}, key;
-            if (!prefix) {
-                return obj;
-            }
-            prefix += '.';
-            for (key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    prefixed[prefix + key] = obj[key];
-                }
-            }
-            return prefixed;
-        }
-        function getPrefixer(rootKeypath) {
-            var rootDot;
-            if (!prefixers[rootKeypath]) {
-                rootDot = rootKeypath ? rootKeypath + '.' : '';
-                prefixers[rootKeypath] = function (relativeKeypath, value) {
-                    var obj;
-                    if (typeof relativeKeypath === 'string') {
-                        obj = {};
-                        obj[rootDot + relativeKeypath] = value;
-                        return obj;
-                    }
-                    if (typeof relativeKeypath === 'object') {
-                        return rootDot ? prefixKeypath(relativeKeypath, rootKeypath) : relativeKeypath;
-                    }
-                };
-            }
-            return prefixers[rootKeypath];
-        }
-    }(registries_adaptors);
 var config_types = {
         TEXT: 1,
         INTERPOLATOR: 2,
@@ -822,8 +769,8 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
         
         var arrayAdaptor, notifyArrayDependants, ArrayWrapper, patchArrayMethods, unpatchArrayMethods, patchedArrayProto, testObj, mutatorMethods, noop, errorMessage;
         arrayAdaptor = {
-            filter: function (ractive, object, keypath) {
-                return keypath.charAt(0) !== '(' && isArray(object) && (!object._ractive || !object._ractive.setting);
+            filter: function (object) {
+                return isArray(object) && (!object._ractive || !object._ractive.setting);
             },
             wrap: function (ractive, array, keypath) {
                 return new ArrayWrapper(ractive, array, keypath);
@@ -1035,6 +982,9 @@ var Ractive_prototype_get_magicAdaptor = function () {
             return false;
         }
         magicAdaptor = {
+            filter: function (object, keypath) {
+                return !!keypath;
+            },
             wrap: function (ractive, object, keypath) {
                 return new MagicWrapper(ractive, object, keypath);
             }
@@ -1046,11 +996,11 @@ var Ractive_prototype_get_magicAdaptor = function () {
             keys = keypath.split('.');
             this.prop = keys.pop();
             objKeypath = keys.join('.');
-            this.obj = ractive.get(objKeypath);
+            this.obj = objKeypath ? ractive.get(objKeypath) : ractive.data;
             descriptor = this.originalDescriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
             if (descriptor && descriptor.set && (wrappers = descriptor.set._ractiveWrappers)) {
                 if (wrappers.indexOf(this) === -1) {
-                    wrappers[wrappers.length] = this;
+                    wrappers.push(this);
                 }
                 return;
             }
@@ -1094,7 +1044,6 @@ var Ractive_prototype_get_magicAdaptor = function () {
             reset: function (value) {
                 this.resetting = true;
                 this.value = value;
-                this.obj[this.prop] = value;
                 this.resetting = false;
             },
             teardown: function () {
@@ -1105,14 +1054,78 @@ var Ractive_prototype_get_magicAdaptor = function () {
                 wrappers.splice(wrappers.indexOf(this), 1);
                 if (!wrappers.length) {
                     value = this.obj[this.prop];
-                    Object.defineProperty(this.obj, this.prop, this.originalDescriptor);
+                    Object.defineProperty(this.obj, this.prop, this.originalDescriptor || {
+                        writable: true,
+                        enumerable: true,
+                        configrable: true
+                    });
                     this.obj[this.prop] = value;
                 }
             }
         };
         return magicAdaptor;
     }();
-var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary, arrayAdaptor, magicAdaptor) {
+var shared_adaptIfNecessary = function (adaptorRegistry, arrayAdaptor, magicAdaptor) {
+        
+        var prefixers = {};
+        return function (ractive, keypath, value, isExpressionResult) {
+            var len, i, adaptor, wrapped;
+            len = ractive.adaptors.length;
+            for (i = 0; i < len; i += 1) {
+                adaptor = ractive.adaptors[i];
+                if (typeof adaptor === 'string') {
+                    if (!adaptorRegistry[adaptor]) {
+                        throw new Error('Missing adaptor "' + adaptor + '"');
+                    }
+                    adaptor = ractive.adaptors[i] = adaptorRegistry[adaptor];
+                }
+                if (adaptor.filter(value, keypath, ractive)) {
+                    wrapped = ractive._wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
+                    wrapped.value = value;
+                    return;
+                }
+            }
+            if (!isExpressionResult) {
+                if (ractive.magic && magicAdaptor.filter(value, keypath, ractive)) {
+                    ractive._wrapped[keypath] = magicAdaptor.wrap(ractive, value, keypath);
+                } else if (ractive.modifyArrays && arrayAdaptor.filter(value, keypath, ractive)) {
+                    ractive._wrapped[keypath] = arrayAdaptor.wrap(ractive, value, keypath);
+                }
+            }
+        };
+        function prefixKeypath(obj, prefix) {
+            var prefixed = {}, key;
+            if (!prefix) {
+                return obj;
+            }
+            prefix += '.';
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    prefixed[prefix + key] = obj[key];
+                }
+            }
+            return prefixed;
+        }
+        function getPrefixer(rootKeypath) {
+            var rootDot;
+            if (!prefixers[rootKeypath]) {
+                rootDot = rootKeypath ? rootKeypath + '.' : '';
+                prefixers[rootKeypath] = function (relativeKeypath, value) {
+                    var obj;
+                    if (typeof relativeKeypath === 'string') {
+                        obj = {};
+                        obj[rootDot + relativeKeypath] = value;
+                        return obj;
+                    }
+                    if (typeof relativeKeypath === 'object') {
+                        return rootDot ? prefixKeypath(relativeKeypath, rootKeypath) : relativeKeypath;
+                    }
+                };
+            }
+            return prefixers[rootKeypath];
+        }
+    }(registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
+var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary) {
         
         var get, _get, retrieve;
         get = function (keypath) {
@@ -1120,7 +1133,7 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
         };
         _get = function (ractive, keypath) {
             var cache, cached, value, wrapped, evaluator;
-            keypath = normaliseKeypath(keypath || '');
+            keypath = normaliseKeypath(keypath);
             cache = ractive._cache;
             if ((cached = cache[keypath]) !== undefined) {
                 return cached;
@@ -1158,22 +1171,12 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
                 }
             }
             value = parentValue[key];
-            if (adaptIfNecessary(ractive, keypath, value)) {
-                return value;
-            }
-            if (ractive.magic) {
-                ractive._wrapped[keypath] = magicAdaptor.wrap(ractive, value, keypath);
-            }
-            if (ractive.modifyArrays) {
-                if (arrayAdaptor.filter(ractive, value, keypath)) {
-                    ractive._wrapped[keypath] = arrayAdaptor.wrap(ractive, value, keypath);
-                }
-            }
+            adaptIfNecessary(ractive, keypath, value);
             ractive._cache[keypath] = value;
             return value;
         };
         return get;
-    }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
+    }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary);
 var utils_isObject = function () {
         
         var toString = Object.prototype.toString;
@@ -1197,15 +1200,14 @@ var shared_resolveRef = function () {
         
         var resolveRef;
         resolveRef = function (ractive, ref, contextStack) {
-            var keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, keypath, context, ancestorErrorMessage;
+            var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context, ancestorErrorMessage;
             ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
             if (ref === '.') {
                 if (!contextStack.length) {
                     return '';
                 }
-                return contextStack[contextStack.length - 1];
-            }
-            if (ref.charAt(0) === '.') {
+                keypath = contextStack[contextStack.length - 1];
+            } else if (ref.charAt(0) === '.') {
                 context = contextStack[contextStack.length - 1];
                 contextKeys = context ? context.split('.') : [];
                 if (ref.substr(0, 3) === '../') {
@@ -1217,33 +1219,34 @@ var shared_resolveRef = function () {
                         ref = ref.substring(3);
                     }
                     contextKeys.push(ref);
-                    return contextKeys.join('.');
+                    keypath = contextKeys.join('.');
+                } else if (!context) {
+                    keypath = ref.substring(1);
+                } else {
+                    keypath = context + ref;
                 }
-                if (!context) {
-                    return ref.substring(1);
+            } else {
+                keys = ref.split('.');
+                lastKey = keys.pop();
+                postfix = keys.length ? '.' + keys.join('.') : '';
+                contextStack = contextStack.concat();
+                while (contextStack.length) {
+                    innerMostContext = contextStack.pop();
+                    parentKeypath = innerMostContext + postfix;
+                    parentValue = ractive.get(parentKeypath);
+                    if (wrapped = ractive._wrapped[parentKeypath]) {
+                        parentValue = wrapped.get();
+                    }
+                    if (typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty(lastKey)) {
+                        keypath = innerMostContext + '.' + ref;
+                        break;
+                    }
                 }
-                return context + ref;
+                if (!keypath && ractive.get(ref) !== undefined) {
+                    keypath = ref;
+                }
             }
-            keys = ref.split('.');
-            lastKey = keys.pop();
-            postfix = keys.length ? '.' + keys.join('.') : '';
-            contextStack = contextStack.concat();
-            while (contextStack.length) {
-                innerMostContext = contextStack.pop();
-                parentKeypath = innerMostContext + postfix;
-                parentValue = ractive.get(parentKeypath);
-                if (wrapped = ractive._wrapped[parentKeypath]) {
-                    parentValue = wrapped.get();
-                }
-                if (typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty(lastKey)) {
-                    keypath = innerMostContext + '.' + ref;
-                    break;
-                }
-            }
-            if (!keypath && ractive.get(ref) !== undefined) {
-                keypath = ref;
-            }
-            return keypath;
+            return keypath ? keypath.replace(/^\./, '') : keypath;
         };
         return resolveRef;
     }();
@@ -1295,7 +1298,7 @@ var Ractive_prototype_shared_replaceData = function () {
                     }
                     obj = wrapped.get();
                 } else {
-                    if (!obj[key]) {
+                    if (!obj.hasOwnProperty(key)) {
                         if (!keypathToClear) {
                             keypathToClear = currentKeypath;
                         }
@@ -1953,6 +1956,9 @@ var shared_registerDependant = function () {
             deps = depsByKeypath[keypath] || (depsByKeypath[keypath] = []);
             deps[deps.length] = dependant;
             dependant.registered = true;
+            if (!keypath) {
+                return;
+            }
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
@@ -1981,6 +1987,9 @@ var shared_unregisterDependant = function () {
             }
             deps.splice(index, 1);
             dependant.registered = false;
+            if (!keypath) {
+                return;
+            }
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
@@ -2751,7 +2760,7 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
                 if (!isEqual(value, this.value)) {
                     clearCache(this.root, this.keypath);
                     this.root._cache[this.keypath] = value;
-                    adaptIfNecessary(this.root, this.keypath, value);
+                    adaptIfNecessary(this.root, this.keypath, value, true);
                     this.value = value;
                     notifyDependants(this.root, this.keypath);
                 }
@@ -2885,7 +2894,7 @@ var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, t
             var keypath, root;
             root = this.root = resolver.root;
             keypath = resolveRef(root, ref, contextStack);
-            if (keypath) {
+            if (keypath !== undefined) {
                 resolver.resolveRef(argNum, false, keypath);
             } else {
                 this.ref = ref;
@@ -2951,7 +2960,7 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
                     mustache.render(mustache.value);
                 } else {
                     keypath = resolveRef(mustache.root, options.descriptor.r, mustache.contextStack);
-                    if (keypath) {
+                    if (keypath !== undefined) {
                         mustache.resolve(keypath);
                     } else {
                         mustache.ref = options.descriptor.r;
@@ -2991,10 +3000,9 @@ var render_shared_updateMustache = function (isEqual) {
         
         return function () {
             var wrapped, value;
+            value = this.root.get(this.keypath);
             if (wrapped = this.root._wrapped[this.keypath]) {
                 value = wrapped.get();
-            } else {
-                value = this.root.get(this.keypath);
             }
             if (!isEqual(value, this.value)) {
                 this.render(value);
@@ -8841,7 +8849,8 @@ var extend_registries = function () {
             'transitions',
             'events',
             'components',
-            'decorators'
+            'decorators',
+            'data'
         ];
     }();
 var extend_initOptions = function () {
@@ -8867,14 +8876,13 @@ var extend_inheritFromParent = function (registries, initOptions, create) {
         
         return function (Child, Parent) {
             registries.forEach(function (property) {
-                Child[property] = create(Parent[property]);
+                if (Parent[property]) {
+                    Child[property] = create(Parent[property]);
+                }
             });
             initOptions.forEach(function (property) {
                 Child[property] = Parent[property];
             });
-            if (Parent.data) {
-                Child.data = Parent.data;
-            }
         };
     }(extend_registries, extend_initOptions, utils_create);
 var extend_wrapMethod = function () {
@@ -8920,6 +8928,8 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                 if (value) {
                     if (Child[property]) {
                         augment(Child[property], value);
+                    } else {
+                        Child[property] = value;
                     }
                 }
             });
@@ -8933,9 +8943,6 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                     }
                 }
             });
-            if (childProps.data) {
-                Child.data = augment(Child.data || {}, childProps.data);
-            }
             for (key in childProps) {
                 if (childProps.hasOwnProperty(key) && !blacklisted[key]) {
                     member = childProps[key];
@@ -9028,7 +9035,7 @@ var utils_extend = function () {
     }();
 var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperty, defineProperties, getElement, isObject, magicAdaptor, parse) {
         
-        var getObject, getArray, defaultOptions, extendable;
+        var getObject, getArray, defaultOptions, registries;
         getObject = function () {
             return {};
         };
@@ -9094,12 +9101,13 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 value: getArray
             }
         });
-        extendable = [
+        registries = [
             'components',
             'decorators',
             'events',
             'partials',
-            'transitions'
+            'transitions',
+            'data'
         ];
         return function (ractive, options) {
             var key, template, templateEl, parsedTemplate;
@@ -9156,7 +9164,6 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                     writable: true
                 }
             });
-            ractive.data = options.data;
             ractive.adaptors = options.adaptors;
             ractive.modifyArrays = options.modifyArrays;
             ractive.magic = options.magic;
@@ -9179,8 +9186,12 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 warn('ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions');
                 options.events = options.eventDefinitions;
             }
-            extendable.forEach(function (registry) {
-                ractive[registry] = extend(create(ractive.constructor[registry]), options[registry]);
+            registries.forEach(function (registry) {
+                if (ractive.constructor[registry]) {
+                    ractive[registry] = extend(create(ractive.constructor[registry] || {}), options[registry]);
+                } else if (options[registry]) {
+                    ractive[registry] = options[registry];
+                }
             });
             template = options.template;
             if (typeof template === 'string') {
@@ -9237,9 +9248,6 @@ var extend_initChildInstance = function (fillGaps, initOptions, clone, wrapMetho
                     options[property] = defaultValue;
                 }
             });
-            if (Child.data) {
-                options.data = fillGaps(options.data || {}, Child.data);
-            }
             if (child.beforeInit) {
                 child.beforeInit(options);
             }
