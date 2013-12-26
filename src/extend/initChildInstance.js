@@ -30,10 +30,6 @@ define([
 			}
 		});
 
-		if ( Child.data ) {
-			options.data = fillGaps( options.data || {}, Child.data );
-		}
-
 		if ( child.beforeInit ) {
 			child.beforeInit( options );
 		}

@@ -32,6 +32,8 @@ define([
 			if ( value ) {
 				if ( Child[ property ] ) {
 					augment( Child[ property ], value );
+				} else {
+					Child[ property ] = value;
 				}
 			}
 		});
@@ -48,10 +50,6 @@ define([
 				}
 			}
 		});
-
-		if ( childProps.data ) {
-			Child.data = augment( Child.data || {}, childProps.data );
-		}
 
 		for ( key in childProps ) {
 			if ( childProps.hasOwnProperty( key ) && !blacklisted[ key ] ) {

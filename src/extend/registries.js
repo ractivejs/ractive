@@ -2,6 +2,6 @@ define( function () {
 
 	'use strict';
 
-	return [ 'partials', 'transitions', 'events', 'components', 'decorators' ];
+	return [ 'partials', 'transitions', 'events', 'components', 'decorators', 'data' ];
 
 });

@@ -1152,6 +1152,75 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
 		});
 
+		test( 'Instances of a subclass do not have access to the default model', function ( t ) {
+			var Subclass, instance;
+
+			Subclass = Ractive.extend({
+				data: {
+					foo: 'bar',
+					obj: {
+						one: 1,
+						two: 2
+					}
+				}
+			});
+
+			instance = new Subclass({
+				el: fixture,
+				template: '{{foo}}{{obj.one}}{{obj.two}}'
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar12' );
+
+			instance.set( 'foo', 'baz' );
+			instance.set( 'obj.one', 3 );
+			instance.set( 'obj.two', 4 );
+
+			t.htmlEqual( fixture.innerHTML, 'baz34' );
+
+			t.deepEqual( Subclass.data, {
+				foo: 'bar',
+				obj: {
+					one: 1,
+					two: 2
+				}
+			});
+		});
+
+		test( 'Instances of subclasses with non-POJO default models have the correct prototype', function ( t ) {
+			var Model, Subclass, instance;
+
+			Model = function ( data ) {
+				var key;
+
+				for ( key in data ) {
+					if ( data.hasOwnProperty( key ) ) {
+						this[ key ] = data[ key ];
+					}
+				}
+			};
+
+			Model.prototype.test = function () {
+				t.ok( true );
+			};
+
+			Subclass = Ractive.extend({
+				data: new Model({
+					foo: 'bar'
+				})
+			});
+
+			instance = new Subclass({
+				el: fixture,
+				template: '{{foo}}{{bar}}',
+				data: {
+					bar: 'baz'
+				}
+			});
+
+			t.ok( instance.data instanceof Model );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

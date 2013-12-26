@@ -15,16 +15,14 @@ define([
 
 	return function ( Child, Parent ) {
 		registries.forEach( function ( property ) {
-			Child[ property ] = create( Parent[ property ] );
+			if ( Parent[ property ] ) {
+				Child[ property ] = create( Parent[ property ] );
+			}
 		});
 
 		initOptions.forEach( function ( property ) {
 			Child[ property ] = Parent[ property ];
 		});
-
-		if ( Parent.data ) {
-			Child.data = Parent.data;
-		}
 	};
 
 });

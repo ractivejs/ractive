@@ -26,7 +26,7 @@ define([
 
 	'use strict';
 
-	var getObject, getArray, defaultOptions, extendable;
+	var getObject, getArray, defaultOptions, registries;
 
 	getObject = function () { return {}; };
 	getArray = function () { return []; };
@@ -50,7 +50,7 @@ define([
 		adaptors:           { enumerable: true, value: getArray  }
 	});
 
-	extendable = [ 'components', 'decorators', 'events', 'partials', 'transitions' ];
+	registries = [ 'components', 'decorators', 'events', 'partials', 'transitions', 'data' ];
 
 	return function ( ractive, options ) {
 
@@ -140,7 +140,7 @@ define([
 		});
 
 		// options
-		ractive.data = options.data;
+		//ractive.data = options.data;
 
 		ractive.adaptors = options.adaptors;
 		ractive.modifyArrays = options.modifyArrays;
@@ -174,8 +174,8 @@ define([
 			options.events = options.eventDefinitions;
 		}
 
-		extendable.forEach( function ( registry ) {
-			ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
+		registries.forEach( function ( registry ) {
+			ractive[ registry ] = extend( create( ractive.constructor[ registry ] || {} ), options[ registry ] );
 		});
 
 
