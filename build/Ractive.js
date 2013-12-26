@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9-pre - 2013-12-23
+	Ractive - v0.3.9-pre - 2013-12-24
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -609,7 +609,7 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                     dependant = deps[k];
                     if (dependant.type === types.REFERENCE) {
                         dependant.update();
-                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode) {
+                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
                         smartUpdateQueue[smartUpdateQueue.length] = dependant;
                     } else {
                         dumbUpdateQueue[dumbUpdateQueue.length] = dependant;
@@ -1957,36 +1957,24 @@ var utils_matches = function (isClient) {
             return false;
         };
     }(config_isClient);
-var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
+var Ractive_prototype_shared_makeQuery_test = function (matches) {
         
-        var makeQuery, cancelQuery, sortQuery, dirtyQuery, testNode, removeNode, comparePosition;
-        makeQuery = function (ractive, selector, live) {
-            var query;
-            query = [];
-            defineProperties(query, {
-                selector: { value: selector },
-                live: { value: live },
-                _test: { value: testNode }
-            });
-            if (!live) {
-                return query;
+        return function (item, noDirty) {
+            var itemMatches = this._isComponentQuery ? !this.selector || item.name === this.selector : matches(item.node, this.selector);
+            if (itemMatches) {
+                this.push(item.node || item.instance);
+                if (!noDirty) {
+                    this._makeDirty();
+                }
+                return true;
             }
-            defineProperties(query, {
-                cancel: { value: cancelQuery },
-                _root: { value: ractive },
-                _sort: { value: sortQuery },
-                _dirty: {
-                    value: false,
-                    writable: true
-                },
-                _makeDirty: { value: dirtyQuery },
-                _remove: { value: removeNode }
-            });
-            return query;
         };
-        cancelQuery = function () {
+    }(utils_matches);
+var Ractive_prototype_shared_makeQuery_cancel = function () {
+        
+        return function () {
             var liveQueries, selector, index;
-            liveQueries = this._root.liveQueries;
+            liveQueries = this._root[this._isComponentQuery ? 'liveComponentQueries' : 'liveQueries'];
             selector = this.selector;
             index = liveQueries.indexOf(selector);
             if (index !== -1) {
@@ -1994,35 +1982,124 @@ var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
                 liveQueries[selector] = null;
             }
         };
-        dirtyQuery = function () {
+    }();
+var Ractive_prototype_shared_makeQuery_sortByItemPosition = function () {
+        
+        return function (a, b) {
+            var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
+            ancestryA = getAncestry(a.component || a._ractive.proxy);
+            ancestryB = getAncestry(b.component || b._ractive.proxy);
+            oldestA = ancestryA[ancestryA.length - 1];
+            oldestB = ancestryB[ancestryB.length - 1];
+            while (oldestA && oldestA === oldestB) {
+                ancestryA.pop();
+                ancestryB.pop();
+                mutualAncestor = oldestA;
+                oldestA = ancestryA[ancestryA.length - 1];
+                oldestB = ancestryB[ancestryB.length - 1];
+            }
+            oldestA = oldestA.component || oldestA;
+            oldestB = oldestB.component || oldestB;
+            fragmentA = oldestA.pFrag;
+            fragmentB = oldestB.pFrag;
+            if (fragmentA === fragmentB) {
+                indexA = fragmentA.items.indexOf(oldestA);
+                indexB = fragmentB.items.indexOf(oldestB);
+                return indexA - indexB || ancestryA.length - ancestryB.length;
+            }
+            if (fragments = mutualAncestor.fragments) {
+                indexA = fragments.indexOf(fragmentA);
+                indexB = fragments.indexOf(fragmentB);
+                return indexA - indexB || ancestryA.length - ancestryB.length;
+            }
+            throw new Error('An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!');
+        };
+        function getParent(item) {
+            var parentFragment;
+            if (parentFragment = item.pFrag) {
+                return parentFragment.owner;
+            }
+            if (item.component && (parentFragment = item.component.pFrag)) {
+                return parentFragment.owner;
+            }
+        }
+        function getAncestry(item) {
+            var ancestry, ancestor;
+            ancestry = [item];
+            ancestor = getParent(item);
+            while (ancestor) {
+                ancestry.push(ancestor);
+                ancestor = getParent(ancestor);
+            }
+            return ancestry;
+        }
+    }();
+var Ractive_prototype_shared_makeQuery_sortByDocumentPosition = function (sortByItemPosition) {
+        
+        return function (node, otherNode) {
+            var bitmask;
+            if (node.compareDocumentPosition) {
+                bitmask = node.compareDocumentPosition(otherNode);
+                return bitmask & 2 ? 1 : -1;
+            }
+            return sortByItemPosition(node, otherNode);
+        };
+    }(Ractive_prototype_shared_makeQuery_sortByItemPosition);
+var Ractive_prototype_shared_makeQuery_sort = function (sortByDocumentPosition, sortByItemPosition) {
+        
+        return function () {
+            this.sort(this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition);
+            this._dirty = false;
+        };
+    }(Ractive_prototype_shared_makeQuery_sortByDocumentPosition, Ractive_prototype_shared_makeQuery_sortByItemPosition);
+var Ractive_prototype_shared_makeQuery_dirty = function () {
+        
+        return function () {
             if (!this._dirty) {
                 this._root._deferred.liveQueries.push(this);
                 this._dirty = true;
             }
         };
-        sortQuery = function () {
-            this.sort(comparePosition);
-            this._dirty = false;
-        };
-        comparePosition = function (node, otherNode) {
-            var bitmask = node.compareDocumentPosition(otherNode);
-            return bitmask & 2 ? 1 : -1;
-        };
-        testNode = function (node, noDirty) {
-            if (matches(node, this.selector)) {
-                this.push(node);
-                if (!noDirty) {
-                    this._makeDirty();
-                }
-                return true;
-            }
-        };
-        removeNode = function (node) {
-            var index = this.indexOf(node);
+    }();
+var Ractive_prototype_shared_makeQuery_remove = function () {
+        
+        return function (item) {
+            var index = this.indexOf(this._isComponentQuery ? item.instance : item.node);
             if (index !== -1) {
                 this.splice(index, 1);
             }
         };
+    }();
+var Ractive_prototype_shared_makeQuery__makeQuery = function (defineProperties, test, cancel, sort, dirty, remove) {
+        
+        return function (ractive, selector, live, isComponentQuery) {
+            var query;
+            query = [];
+            defineProperties(query, {
+                selector: { value: selector },
+                live: { value: live },
+                _isComponentQuery: { value: isComponentQuery },
+                _test: { value: test }
+            });
+            if (!live) {
+                return query;
+            }
+            defineProperties(query, {
+                cancel: { value: cancel },
+                _root: { value: ractive },
+                _sort: { value: sort },
+                _makeDirty: { value: dirty },
+                _remove: { value: remove },
+                _dirty: {
+                    value: false,
+                    writable: true
+                }
+            });
+            return query;
+        };
+    }(utils_defineProperties, Ractive_prototype_shared_makeQuery_test, Ractive_prototype_shared_makeQuery_cancel, Ractive_prototype_shared_makeQuery_sort, Ractive_prototype_shared_makeQuery_dirty, Ractive_prototype_shared_makeQuery_remove);
+var Ractive_prototype_findAll = function (warn, matches, defineProperties, makeQuery) {
+        
         return function (selector, options) {
             var liveQueries, query;
             if (!this.el) {
@@ -2033,15 +2110,39 @@ var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
             if (query = liveQueries[selector]) {
                 return options && options.live ? query : query.slice();
             }
-            query = makeQuery(this, selector, !!options.live);
+            query = makeQuery(this, selector, !!options.live, false);
             if (query.live) {
-                this._liveQueries.push(selector);
-                this._liveQueries[selector] = query;
+                liveQueries.push(selector);
+                liveQueries[selector] = query;
             }
             this.fragment.findAll(selector, query);
             return query;
         };
-    }(utils_warn, utils_matches, utils_defineProperties);
+    }(utils_warn, utils_matches, utils_defineProperties, Ractive_prototype_shared_makeQuery__makeQuery);
+var Ractive_prototype_findComponent = function () {
+        
+        return function (selector) {
+            return this.fragment.findComponent(selector);
+        };
+    }();
+var Ractive_prototype_findAllComponents = function (warn, matches, defineProperties, makeQuery) {
+        
+        return function (selector, options) {
+            var liveQueries, query;
+            options = options || {};
+            liveQueries = this._liveComponentQueries;
+            if (query = liveQueries[selector]) {
+                return options && options.live ? query : query.slice();
+            }
+            query = makeQuery(this, selector, !!options.live, true);
+            if (query.live) {
+                liveQueries.push(selector);
+                liveQueries[selector] = query;
+            }
+            this.fragment.findAllComponents(selector, query);
+            return query;
+        };
+    }(utils_warn, utils_matches, utils_defineProperties, Ractive_prototype_shared_makeQuery__makeQuery);
 var utils_getElement = function () {
         
         return function (input) {
@@ -2072,7 +2173,7 @@ var render_shared_initFragment = function (types, create) {
         return function (fragment, options) {
             var numItems, i, parentFragment, parentRefs, ref;
             fragment.owner = options.owner;
-            parentFragment = fragment.owner.parentFragment;
+            parentFragment = fragment.owner.pFrag;
             fragment.root = options.root;
             fragment.pNode = options.pNode;
             fragment.contextStack = options.contextStack || [];
@@ -2099,7 +2200,7 @@ var render_shared_initFragment = function (types, create) {
             numItems = options.descriptor ? options.descriptor.length : 0;
             for (i = 0; i < numItems; i += 1) {
                 fragment.items[fragment.items.length] = fragment.createItem({
-                    parentFragment: fragment,
+                    pFrag: fragment,
                     descriptor: options.descriptor[i],
                     index: i
                 });
@@ -2132,7 +2233,6 @@ var render_DomFragment_Text = function (types) {
             this.descriptor = options.descriptor;
             if (docFrag) {
                 this.node = document.createTextNode(options.descriptor);
-                this.pNode = options.parentFragment.pNode;
                 docFrag.appendChild(this.node);
             }
         };
@@ -2396,7 +2496,7 @@ var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, t
             this.args = [];
             this.scouts = [];
             expression = mustache.descriptor.x;
-            indexRefs = mustache.parentFragment.indexRefs;
+            indexRefs = mustache.pFrag.indexRefs;
             this.str = expression.s;
             len = this.unresolved = this.args.length = expression.r ? expression.r.length : 0;
             if (!len) {
@@ -2502,15 +2602,12 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
             var keypath, indexRef, parentFragment;
-            parentFragment = mustache.parentFragment = options.parentFragment;
+            parentFragment = mustache.pFrag = options.pFrag;
             mustache.root = parentFragment.root;
             mustache.contextStack = parentFragment.contextStack;
             mustache.descriptor = options.descriptor;
             mustache.index = options.index || 0;
             mustache.priority = parentFragment.priority;
-            if (parentFragment.pNode) {
-                mustache.pNode = parentFragment.pNode;
-            }
             mustache.type = options.descriptor.t;
             if (options.descriptor.r) {
                 if (parentFragment.indexRefs && parentFragment.indexRefs[options.descriptor.r] !== undefined) {
@@ -2548,8 +2645,8 @@ var render_shared_resolveMustache = function (types, registerDependant, unregist
             this.keypath = keypath;
             registerDependant(this);
             this.update();
-            if (this.root.twoway && this.parentFragment.owner.type === types.ATTRIBUTE) {
-                this.parentFragment.owner.element.bind();
+            if (this.root.twoway && this.pFrag.owner.type === types.ATTRIBUTE) {
+                this.pFrag.owner.element.bind();
             }
             if (this.expressionResolver && this.expressionResolver.resolved) {
                 this.expressionResolver = null;
@@ -2619,7 +2716,7 @@ var render_shared_updateSection = function (isArray, isObject, create) {
             fragmentOptions = {
                 descriptor: section.descriptor.f,
                 root: section.root,
-                pNode: section.pNode,
+                pNode: section.pFrag.pNode,
                 owner: section
             };
             if (section.descriptor.n) {
@@ -2719,7 +2816,7 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
         
         return reassignFragment;
         function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
-            var i, item, context;
+            var i, item, context, query;
             if (fragment.html) {
                 return;
             }
@@ -2742,6 +2839,12 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
                     break;
                 case types.PARTIAL:
                     reassignFragment(item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    break;
+                case types.COMPONENT:
+                    reassignFragment(item.instance.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    if (query = fragment.root._liveComponentQueries[item.name]) {
+                        query._makeDirty();
+                    }
                     break;
                 case types.SECTION:
                 case types.INTERPOLATOR:
@@ -2848,7 +2951,8 @@ var render_DomFragment_Section_reassignFragments = function (types, reassignFrag
 var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
         
         return function (newIndices) {
-            var section = this, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
+            var section = this, parentFragment, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
+            parentFragment = this.pFrag;
             newFragments = [];
             newIndices.forEach(function (newIndex, oldIndex) {
                 var by, oldKeypath, newKeypath;
@@ -2885,7 +2989,7 @@ var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
             fragmentOptions = {
                 descriptor: this.descriptor.f,
                 root: this.root,
-                pNode: this.pNode,
+                pNode: parentFragment.pNode,
                 owner: this
             };
             if (this.descriptor.i) {
@@ -2901,8 +3005,8 @@ var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
                 }
                 this.fragments[i] = fragment;
             }
-            nextNode = this.parentFragment.findNextNode(this);
-            this.pNode.insertBefore(this.docFrag, nextNode);
+            nextNode = parentFragment.findNextNode(this);
+            parentFragment.pNode.insertBefore(this.docFrag, nextNode);
             this.length = newLength;
         };
     }(render_DomFragment_Section_reassignFragment);
@@ -2940,7 +3044,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     fragmentOptions = {
                         descriptor: this.descriptor.f,
                         root: this.root,
-                        pNode: this.pNode,
+                        pNode: this.pFrag.pNode,
                         owner: this
                     };
                     if (this.descriptor.i) {
@@ -2969,7 +3073,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     this.fragments[i] = this.createFragment(fragmentOptions);
                 }
                 this.length += args.length;
-                this.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
+                this.pFrag.pNode.insertBefore(this.docFrag, this.pFrag.findNextNode(this));
             },
             shift: function () {
                 this.splice(null, [
@@ -3004,7 +3108,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     this.fragments.splice(start, -balance);
                 } else {
                     end = start + balance;
-                    insertionPoint = this.fragments[start] ? this.fragments[start].firstNode() : this.parentFragment.findNextNode(this);
+                    insertionPoint = this.fragments[start] ? this.fragments[start].firstNode() : this.pFrag.findNextNode(this);
                     spliceArgs = [
                         start,
                         0
@@ -3015,7 +3119,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                         fragmentOptions.index = i;
                         this.fragments[i] = this.createFragment(fragmentOptions);
                     }
-                    this.pNode.insertBefore(this.docFrag, insertionPoint);
+                    this.pFrag.pNode.insertBefore(this.docFrag, insertionPoint);
                 }
                 this.length += balance;
                 reassignStart = start + addedItems;
@@ -3038,18 +3142,18 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 if (this.fragments[0]) {
                     return this.fragments[0].firstNode();
                 }
-                return this.parentFragment.findNextNode(this);
+                return this.pFrag.findNextNode(this);
             },
             findNextNode: function (fragment) {
                 if (this.fragments[fragment.index + 1]) {
                     return this.fragments[fragment.index + 1].firstNode();
                 }
-                return this.parentFragment.findNextNode(this);
+                return this.pFrag.findNextNode(this);
             },
             teardownFragments: function (destroy) {
-                var id;
-                while (this.fragments.length) {
-                    this.fragments.shift().teardown(destroy);
+                var id, fragment;
+                while (fragment = this.fragments.shift()) {
+                    fragment.teardown(destroy);
                 }
                 if (this.fragmentsById) {
                     for (id in this.fragmentsById) {
@@ -3075,11 +3179,11 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     return;
                 }
                 if (!this.initialising && isClient) {
-                    nextNode = this.parentFragment.findNextNode(this);
-                    if (nextNode && nextNode.parentNode === this.pNode) {
-                        this.pNode.insertBefore(this.docFrag, nextNode);
+                    nextNode = this.pFrag.findNextNode(this);
+                    if (nextNode && nextNode.parentNode === this.pFrag.pNode) {
+                        this.pFrag.pNode.insertBefore(this.docFrag, nextNode);
                     } else {
-                        this.pNode.appendChild(this.docFrag);
+                        this.pFrag.pNode.appendChild(this.docFrag);
                     }
                 }
             },
@@ -3117,11 +3221,28 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 }
                 return null;
             },
-            findAll: function (selector, queryResult) {
+            findAll: function (selector, query) {
                 var i, len;
                 len = this.fragments.length;
                 for (i = 0; i < len; i += 1) {
-                    this.fragments[i].findAll(selector, queryResult);
+                    this.fragments[i].findAll(selector, query);
+                }
+            },
+            findComponent: function (selector) {
+                var i, len, queryResult;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    if (queryResult = this.fragments[i].findComponent(selector)) {
+                        return queryResult;
+                    }
+                }
+                return null;
+            },
+            findAllComponents: function (selector, query) {
+                var i, len;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    this.fragments[i].findAllComponents(selector, query);
                 }
             }
         };
@@ -3146,8 +3267,9 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
             update: updateMustache,
             resolve: resolveMustache,
             detach: function () {
-                while (this.nodes.length) {
-                    this.docFrag.appendChild(this.nodes.pop());
+                var i = this.nodes.length;
+                while (i--) {
+                    this.docFrag.appendChild(this.nodes[i]);
                 }
                 return this.docFrag;
             },
@@ -3162,10 +3284,10 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                 if (this.nodes[0]) {
                     return this.nodes[0];
                 }
-                return this.parentFragment.findNextNode(this);
+                return this.pFrag.findNextNode(this);
             },
             render: function (html) {
-                var node;
+                var node, pNode;
                 if (!this.nodes) {
                     return;
                 }
@@ -3173,13 +3295,14 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                     node = this.nodes.pop();
                     node.parentNode.removeChild(node);
                 }
-                if (html === undefined) {
+                if (!html) {
                     this.nodes = [];
                     return;
                 }
-                this.nodes = insertHtml(html, this.pNode.tagName, this.docFrag);
+                pNode = this.pFrag.pNode;
+                this.nodes = insertHtml(html, pNode.tagName, this.docFrag);
                 if (!this.initialising) {
-                    this.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
+                    pNode.insertBefore(this.docFrag, this.pFrag.findNextNode(this));
                 }
             },
             toString: function () {
@@ -4135,7 +4258,7 @@ var render_StringFragment_Interpolator = function (types, teardown, initMustache
             resolve: resolveMustache,
             render: function (value) {
                 this.value = value;
-                this.parentFragment.bubble();
+                this.pFrag.bubble();
             },
             teardown: function () {
                 teardown(this);
@@ -4182,7 +4305,7 @@ var render_StringFragment_Section = function (types, initMustache, updateMustach
             },
             bubble: function () {
                 this.value = this.fragments.join('');
-                this.parentFragment.bubble();
+                this.pFrag.bubble();
             },
             render: function (value) {
                 var wrapped;
@@ -4190,7 +4313,7 @@ var render_StringFragment_Section = function (types, initMustache, updateMustach
                     value = wrapped.get();
                 }
                 updateSection(this, value);
-                this.parentFragment.bubble();
+                this.pFrag.bubble();
             },
             createFragment: function (options) {
                 return new StringFragment(options);
@@ -4351,7 +4474,7 @@ var render_DomFragment_Attribute__Attribute = function (types, determineNameAndN
             }
             this.root = options.root;
             this.pNode = options.pNode;
-            this.parentFragment = this.element.parentFragment;
+            this.pFrag = this.element.pFrag;
             this.fragment = new StringFragment({
                 descriptor: options.value,
                 root: this.root,
@@ -4428,7 +4551,7 @@ var render_DomFragment_Element_initialise_createElementAttributes = function (Do
                         value: attrValue,
                         root: element.root,
                         pNode: element.node,
-                        contextStack: element.parentFragment.contextStack
+                        contextStack: element.pFrag.contextStack
                     });
                     element.attributes[element.attributes.length] = element.attributes[attrName] = attr;
                     if (attrName !== 'name') {
@@ -4460,7 +4583,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                 element.fragment = new StringFragment({
                     descriptor: descriptor.f,
                     root: element.root,
-                    contextStack: element.parentFragment.contextStack,
+                    contextStack: element.pFrag.contextStack,
                     owner: element
                 });
                 if (docFrag) {
@@ -4496,7 +4619,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     descriptor: descriptor.f,
                     root: element.root,
                     pNode: node,
-                    contextStack: element.parentFragment.contextStack,
+                    contextStack: element.pFrag.contextStack,
                     owner: element
                 });
                 if (docFrag) {
@@ -4715,7 +4838,7 @@ var render_DomFragment_Element_initialise_addEventProxies__addEventProxies = fun
                     eventNames = eventName.split('-');
                     i = eventNames.length;
                     while (i--) {
-                        addEventProxy(element, eventNames[i], proxies[eventName], element.parentFragment.contextStack);
+                        addEventProxy(element, eventNames[i], proxies[eventName], element.pFrag.contextStack);
                     }
                 }
             }
@@ -4731,7 +4854,7 @@ var render_DomFragment_Element_initialise_updateLiveQueries = function () {
             while (i--) {
                 selector = liveQueries[i];
                 query = liveQueries[selector];
-                if (query._test(element.node)) {
+                if (query._test(element)) {
                     (element.liveQueries || (element.liveQueries = [])).push(selector);
                     element.liveQueries[selector] = [element.node];
                 }
@@ -5044,23 +5167,24 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
 var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
         return function (element, options, docFrag) {
-            var parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
+            var parentFragment, pNode, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
             element.type = types.ELEMENT;
-            parentFragment = element.parentFragment = options.parentFragment;
+            parentFragment = element.pFrag = options.pFrag;
+            pNode = parentFragment.pNode;
             contextStack = parentFragment.contextStack;
             descriptor = element.descriptor = options.descriptor;
             element.root = root = parentFragment.root;
-            element.pNode = parentFragment.pNode;
             element.index = options.index;
             element.lcName = descriptor.e.toLowerCase();
             element.eventListeners = [];
             element.customEventListeners = [];
-            if (element.pNode) {
-                namespace = element.namespace = getElementNamespace(descriptor, element.pNode);
+            if (pNode) {
+                namespace = element.namespace = getElementNamespace(descriptor, pNode);
                 name = namespace !== namespaces.html ? enforceCase(descriptor.e) : descriptor.e;
                 element.node = document.createElementNS(namespace, name);
                 defineProperty(element.node, '_ractive', {
                     value: {
+                        proxy: element,
                         keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
                         index: parentFragment.indexRefs,
                         events: create(null),
@@ -5114,10 +5238,10 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
                     executeTransition(descriptor.t1, root, element, contextStack, true);
                 }
                 if (element.node.tagName === 'OPTION') {
-                    if (element.pNode.tagName === 'SELECT' && (selectBinding = element.pNode._ractive.binding)) {
+                    if (pNode.tagName === 'SELECT' && (selectBinding = pNode._ractive.binding)) {
                         selectBinding.deferUpdate();
                     }
-                    if (element.node._ractive.value == element.pNode._ractive.value) {
+                    if (element.node._ractive.value == pNode._ractive.value) {
                         element.node.selected = true;
                     }
                 }
@@ -5152,7 +5276,7 @@ var render_DomFragment_Element_prototype_teardown = function (executeTransition)
                 this.decorator.teardown();
             }
             if (this.descriptor.t2) {
-                executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
+                executeTransition(this.descriptor.t2, this.root, this, this.pFrag.contextStack, false);
             }
             if (destroy) {
                 this.root._transitionManager.detachWhenReady(this);
@@ -5216,7 +5340,7 @@ var render_DomFragment_Element_prototype_findAll = function () {
         
         return function (selector, query) {
             var queryAllResult, i, numNodes, node, registeredNodes;
-            if (query._test(this.node, true) && query.live) {
+            if (query._test(this, true) && query.live) {
                 (this.liveQueries || (this.liveQueries = [])).push(selector);
                 this.liveQueries[selector] = [this.node];
             }
@@ -5238,6 +5362,22 @@ var render_DomFragment_Element_prototype_findAll = function () {
             }
             if (this.fragment) {
                 this.fragment.findAll(selector, query);
+            }
+        };
+    }();
+var render_DomFragment_Element_prototype_findComponent = function () {
+        
+        return function (selector) {
+            if (this.fragment) {
+                return this.fragment.findComponent(selector);
+            }
+        };
+    }();
+var render_DomFragment_Element_prototype_findAllComponents = function () {
+        
+        return function (selector, query) {
+            if (this.fragment) {
+                this.fragment.findAllComponents(selector, query);
             }
         };
     }();
@@ -5277,7 +5417,7 @@ var render_DomFragment_Element_prototype_bind = function () {
             }
         };
     }();
-var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll, bind) {
+var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll, findComponent, findAllComponents, bind) {
         
         var DomElement = function (options, docFrag) {
             initialise(this, options, docFrag);
@@ -5303,10 +5443,12 @@ var render_DomFragment_Element__Element = function (initialise, teardown, toStri
             toString: toString,
             find: find,
             findAll: findAll,
+            findComponent: findComponent,
+            findAllComponents: findAllComponents,
             bind: bind
         };
         return DomElement;
-    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll, render_DomFragment_Element_prototype_bind);
+    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll, render_DomFragment_Element_prototype_findComponent, render_DomFragment_Element_prototype_findAllComponents, render_DomFragment_Element_prototype_bind);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
 var parse_utils_stripHtmlComments = function () {
@@ -7550,7 +7692,7 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
             DomFragment = circular.DomFragment;
         });
         DomPartial = function (options, docFrag) {
-            var parentFragment = this.parentFragment = options.parentFragment, descriptor;
+            var parentFragment = this.pFrag = options.pFrag, descriptor;
             this.type = types.PARTIAL;
             this.name = options.descriptor.r;
             this.index = options.index;
@@ -7574,7 +7716,7 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
                 return this.fragment.firstNode();
             },
             findNextNode: function () {
-                return this.parentFragment.findNextNode(this);
+                return this.pFrag.findNextNode(this);
             },
             detach: function () {
                 return this.fragment.detach();
@@ -7588,23 +7730,29 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
             find: function (selector) {
                 return this.fragment.find(selector);
             },
-            findAll: function (selector, options, queryResult) {
-                return this.fragment.findAll(selector, options, queryResult);
+            findAll: function (selector, query) {
+                return this.fragment.findAll(selector, query);
+            },
+            findComponent: function (selector) {
+                return this.fragment.findComponent(selector);
+            },
+            findAllComponents: function (selector, query) {
+                return this.fragment.findAllComponents(selector, query);
             }
         };
         return DomPartial;
     }(config_types, render_DomFragment_Partial_getPartialDescriptor, circular);
-var render_DomFragment_Component_ComponentParameter = function (StringFragment) {
+var render_DomFragment_Component_initialise_createModel_ComponentParameter = function (StringFragment) {
         
-        var ComponentParameter = function (root, component, key, value, contextStack) {
-            this.parentFragment = component.parentFragment;
+        var ComponentParameter = function (component, key, value) {
+            this.pFrag = component.pFrag;
             this.component = component;
             this.key = key;
             this.fragment = new StringFragment({
                 descriptor: value,
-                root: root,
+                root: component.root,
                 owner: this,
-                contextStack: contextStack
+                contextStack: component.pFrag.contextStack
             });
             this.selfUpdating = this.fragment.isSimple();
             this.value = this.fragment.getValue();
@@ -7629,150 +7777,199 @@ var render_DomFragment_Component_ComponentParameter = function (StringFragment) 
         };
         return ComponentParameter;
     }(render_StringFragment__StringFragment);
-var render_DomFragment_Component__Component = function (types, warn, parseJSON, resolveRef, ComponentParameter) {
+var render_DomFragment_Component_initialise_createModel__createModel = function (types, parseJSON, resolveRef, ComponentParameter) {
         
-        var DomComponent;
-        DomComponent = function (options, docFrag) {
-            var self = this, parentFragment = this.parentFragment = options.parentFragment, root, Component, twoway, partials, instance, keypath, data, mappings, i, pair, observeParent, observeChild, settingParent, settingChild, key, observeOptions, processKeyValuePair, eventName, propagateEvent, items;
-            root = parentFragment.root;
-            this.type = types.COMPONENT;
-            this.name = options.descriptor.r;
-            this.index = options.index;
-            Component = root.components[options.descriptor.e];
-            if (!Component) {
-                throw new Error('Component "' + options.descriptor.e + '" not found');
-            }
-            twoway = Component.twoway !== false;
+        return function (component, attributes, toBind) {
+            var data, key;
             data = {};
-            mappings = [];
-            this.complexParameters = [];
-            processKeyValuePair = function (key, value) {
-                var parameter, parsed;
-                if (typeof value === 'string') {
-                    parsed = parseJSON(value);
-                    data[key] = parsed ? parsed.value : value;
-                    return;
-                }
-                if (value === null) {
-                    data[key] = true;
-                    return;
-                }
-                if (value.length === 1 && value[0].t === types.INTERPOLATOR && value[0].r) {
-                    if (parentFragment.indexRefs && parentFragment.indexRefs[value[0].r] !== undefined) {
-                        data[key] = parentFragment.indexRefs[value[0].r];
-                        return;
-                    }
-                    keypath = resolveRef(root, value[0].r, parentFragment.contextStack) || value[0].r;
-                    data[key] = root.get(keypath);
-                    mappings[mappings.length] = [
-                        key,
-                        keypath
-                    ];
-                    return;
-                }
-                parameter = new ComponentParameter(root, self, key, value, parentFragment.contextStack);
-                self.complexParameters[self.complexParameters.length] = parameter;
-                data[key] = parameter.value;
-            };
-            if (options.descriptor.a) {
-                for (key in options.descriptor.a) {
-                    if (options.descriptor.a.hasOwnProperty(key)) {
-                        processKeyValuePair(key, options.descriptor.a[key]);
-                    }
+            component.complexParameters = [];
+            for (key in attributes) {
+                if (attributes.hasOwnProperty(key)) {
+                    data[key] = getValue(component, key, attributes[key], toBind);
                 }
             }
-            partials = {};
-            if (options.descriptor.f) {
-                partials.content = options.descriptor.f;
+            return data;
+        };
+        function getValue(component, key, descriptor, toBind) {
+            var parameter, parsed, root, parentFragment, keypath;
+            root = component.root;
+            parentFragment = component.pFrag;
+            if (typeof descriptor === 'string') {
+                parsed = parseJSON(descriptor);
+                return parsed ? parsed.value : descriptor;
             }
-            instance = this.instance = new Component({
+            if (descriptor === null) {
+                return true;
+            }
+            if (descriptor.length === 1 && descriptor[0].t === types.INTERPOLATOR && descriptor[0].r) {
+                if (parentFragment.indexRefs && parentFragment.indexRefs[descriptor[0].r] !== undefined) {
+                    return parentFragment.indexRefs[descriptor[0].r];
+                }
+                keypath = resolveRef(root, descriptor[0].r, parentFragment.contextStack) || descriptor[0].r;
+                toBind.push({
+                    parentKeypath: key,
+                    childKeypath: keypath
+                });
+                return root.get(keypath);
+            }
+            parameter = new ComponentParameter(component, key, descriptor);
+            component.complexParameters.push(parameter);
+            return parameter.value;
+        }
+    }(config_types, utils_parseJSON, shared_resolveRef, render_DomFragment_Component_initialise_createModel_ComponentParameter);
+var render_DomFragment_Component_initialise_createInstance = function () {
+        
+        return function (component, Component, data, docFrag, contentDescriptor) {
+            var instance, parentFragment, partials, root;
+            parentFragment = component.pFrag;
+            root = component.root;
+            partials = { content: contentDescriptor || [] };
+            instance = new Component({
                 el: parentFragment.pNode.cloneNode(false),
                 data: data,
                 partials: partials,
                 _parent: root,
                 adaptors: root.adaptors
             });
-            instance.component = this;
-            while (instance.el.firstChild) {
-                docFrag.appendChild(instance.el.firstChild);
-            }
-            instance.el = parentFragment.pNode;
-            items = instance.fragment.items;
-            if (items) {
-                i = items.length;
-                while (i--) {
-                    if (items[i].pNode) {
-                        items[i].pNode = parentFragment.pNode;
-                    }
-                }
-            }
-            self.observers = [];
-            observeOptions = {
+            instance.component = component;
+            component.instance = instance;
+            instance.insert(docFrag);
+            instance.fragment.pNode = parentFragment.pNode;
+            return instance;
+        };
+    }();
+var render_DomFragment_Component_initialise_createObservers = function () {
+        
+        var observeOptions = {
                 init: false,
                 debug: true
             };
-            observeParent = function (pair) {
-                var observer = root.observe(pair[1], function (value) {
-                        if (!settingParent && !root._wrapped[pair[1]]) {
-                            settingChild = true;
-                            instance.set(pair[0], value);
-                            settingChild = false;
-                        }
-                    }, observeOptions);
-                self.observers[self.observers.length] = observer;
-            };
-            if (twoway) {
-                observeChild = function (pair) {
-                    var observer = instance.observe(pair[0], function (value) {
-                            if (!settingChild) {
-                                settingParent = true;
-                                root.set(pair[1], value);
-                                settingParent = false;
-                            }
-                        }, observeOptions);
-                    self.observers[self.observers.length] = observer;
-                    root.set(pair[1], instance.get(pair[0]));
-                };
-            }
-            i = mappings.length;
+        return function (component, toBind) {
+            var pair, i;
+            component.observers = [];
+            i = toBind.length;
             while (i--) {
-                pair = mappings[i];
-                observeParent(pair);
-                if (twoway) {
-                    observeChild(pair);
-                }
+                pair = toBind[i];
+                bind(component, pair.parentKeypath, pair.childKeypath);
             }
-            propagateEvent = function (eventName, proxy) {
-                instance.on(eventName, function () {
-                    var args = Array.prototype.slice.call(arguments);
-                    args.unshift(proxy);
-                    root.fire.apply(root, args);
-                });
-            };
-            if (options.descriptor.v) {
-                for (eventName in options.descriptor.v) {
-                    if (options.descriptor.v.hasOwnProperty(eventName)) {
-                        propagateEvent(eventName, options.descriptor.v[eventName]);
+        };
+        function bind(component, parentKeypath, childKeypath) {
+            var parentInstance, childInstance, settingParent, settingChild, observers, observer;
+            parentInstance = component.root;
+            childInstance = component.instance;
+            observers = component.observers;
+            observer = parentInstance.observe(parentKeypath, function (value) {
+                if (!settingParent && !parentInstance._wrapped[parentKeypath]) {
+                    settingChild = true;
+                    childInstance.set(childKeypath, value);
+                    settingChild = false;
+                }
+            }, observeOptions);
+            observers.push(observer);
+            if (childInstance.twoway) {
+                observer = childInstance.observe(childKeypath, function (value) {
+                    if (!settingChild) {
+                        settingParent = true;
+                        parentInstance.set(parentKeypath, value);
+                        settingParent = false;
                     }
+                }, observeOptions);
+                observers.push(observer);
+                parentInstance.set(parentKeypath, childInstance.get(childKeypath));
+            }
+        }
+    }();
+var render_DomFragment_Component_initialise_propagateEvents = function (warn) {
+        
+        var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
+        return function (component, eventsDescriptor) {
+            var eventName;
+            for (eventName in eventsDescriptor) {
+                if (eventsDescriptor.hasOwnProperty(eventName)) {
+                    propagateEvent(component.instance, component.root, eventName, eventsDescriptor[eventName]);
                 }
             }
+        };
+        function propagateEvent(childInstance, parentInstance, eventName, proxyEventName) {
+            if (typeof proxyEventName !== 'string') {
+                if (parentInstance.debug) {
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
+                    return;
+                }
+            }
+            childInstance.on(eventName, function () {
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift(proxyEventName);
+                parentInstance.fire.apply(parentInstance, args);
+            });
+        }
+    }(utils_warn);
+var render_DomFragment_Component_initialise_updateLiveQueries = function () {
+        
+        return function (component) {
+            var ancestor, query;
+            ancestor = component.root;
+            while (ancestor) {
+                if (query = ancestor._liveComponentQueries[component.name]) {
+                    query.push(component.instance);
+                }
+                ancestor = ancestor._parent;
+            }
+        };
+    }();
+var render_DomFragment_Component_initialise__initialise = function (types, warn, createModel, createInstance, createObservers, propagateEvents, updateLiveQueries) {
+        
+        return function (component, options, docFrag) {
+            var parentFragment, root, Component, data, toBind;
+            parentFragment = component.pFrag = options.pFrag;
+            root = parentFragment.root;
+            component.root = root;
+            component.type = types.COMPONENT;
+            component.name = options.descriptor.e;
+            component.index = options.index;
+            component.observers = [];
+            Component = root.components[options.descriptor.e];
+            if (!Component) {
+                throw new Error('Component "' + options.descriptor.e + '" not found');
+            }
+            toBind = [];
+            data = createModel(component, options.descriptor.a, toBind);
+            createInstance(component, Component, data, docFrag, options.descriptor.f);
+            createObservers(component, toBind);
+            propagateEvents(component);
             if (options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o) {
                 warn('The "intro", "outro" and "decorator" directives have no effect on components');
             }
+            updateLiveQueries(component);
+        };
+    }(config_types, utils_warn, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createObservers, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries);
+var render_DomFragment_Component__Component = function (initialise) {
+        
+        var DomComponent = function (options, docFrag) {
+            initialise(this, options, docFrag);
         };
         DomComponent.prototype = {
             firstNode: function () {
                 return this.instance.fragment.firstNode();
             },
             findNextNode: function () {
-                return this.parentFragment.findNextNode(this);
+                return this.pFrag.findNextNode(this);
+            },
+            detach: function () {
+                return this.instance.fragment.detach();
             },
             teardown: function () {
+                var query;
                 while (this.complexParameters.length) {
                     this.complexParameters.pop().teardown();
                 }
                 while (this.observers.length) {
                     this.observers.pop().cancel();
+                }
+                if (query = this.root._liveComponentQueries[this.name]) {
+                    query._remove(this);
                 }
                 this.instance.teardown();
             },
@@ -7782,12 +7979,24 @@ var render_DomFragment_Component__Component = function (types, warn, parseJSON, 
             find: function (selector) {
                 return this.instance.fragment.find(selector);
             },
-            findAll: function (selector, queryResult) {
-                return this.instance.fragment.findAll(selector, queryResult);
+            findAll: function (selector, query) {
+                return this.instance.fragment.findAll(selector, query);
+            },
+            findComponent: function (selector) {
+                if (!selector || selector === this.name) {
+                    return this.instance;
+                }
+                return null;
+            },
+            findAllComponents: function (selector, query) {
+                query._test(this, true);
+                if (this.instance.fragment) {
+                    this.instance.fragment.findAllComponents(selector, query);
+                }
             }
         };
         return DomComponent;
-    }(config_types, utils_warn, utils_parseJSON, shared_resolveRef, render_DomFragment_Component_ComponentParameter);
+    }(render_DomFragment_Component_initialise__initialise);
 var render_DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
@@ -7795,7 +8004,6 @@ var render_DomFragment_Comment = function (types) {
             this.descriptor = options.descriptor;
             if (docFrag) {
                 this.node = document.createComment(options.descriptor.f);
-                this.pNode = options.parentFragment.pNode;
                 docFrag.appendChild(this.node);
             }
         };
@@ -7827,7 +8035,7 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
             if (typeof options.descriptor === 'string') {
                 this.html = options.descriptor;
                 if (this.docFrag) {
-                    this.nodes = insertHtml(options.descriptor, options.pNode.tagName, this.docFrag);
+                    this.nodes = insertHtml(this.html, options.pNode.tagName, this.docFrag);
                 }
             } else {
                 initFragment(this, options);
@@ -7837,8 +8045,9 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
             detach: function () {
                 var len, i;
                 if (this.nodes) {
-                    while (this.nodes.length) {
-                        this.docFrag.appendChild(this.nodes.pop());
+                    i = this.nodes.length;
+                    while (i--) {
+                        this.docFrag.appendChild(this.nodes[i]);
                     }
                 } else if (this.items) {
                     len = this.items.length;
@@ -7951,7 +8160,7 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                     return null;
                 }
             },
-            findAll: function (selector, queryResult) {
+            findAll: function (selector, query) {
                 var i, len, item, node, queryAllResult, numNodes, j;
                 if (this.nodes) {
                     len = this.nodes.length;
@@ -7961,12 +8170,12 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                             continue;
                         }
                         if (matches(node, selector)) {
-                            queryResult.push(node);
+                            query.push(node);
                         }
                         if (queryAllResult = node.querySelectorAll(selector)) {
                             numNodes = queryAllResult.length;
                             for (j = 0; j < numNodes; j += 1) {
-                                queryResult.push(queryAllResult[j]);
+                                query.push(queryAllResult[j]);
                             }
                         }
                     }
@@ -7975,11 +8184,37 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                     for (i = 0; i < len; i += 1) {
                         item = this.items[i];
                         if (item.findAll) {
-                            item.findAll(selector, queryResult);
+                            item.findAll(selector, query);
                         }
                     }
                 }
-                return queryResult;
+                return query;
+            },
+            findComponent: function (selector) {
+                var len, i, item, queryResult;
+                if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.findComponent && (queryResult = item.findComponent(selector))) {
+                            return queryResult;
+                        }
+                    }
+                    return null;
+                }
+            },
+            findAllComponents: function (selector, query) {
+                var i, len, item;
+                if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.findAllComponents) {
+                            item.findAllComponents(selector, query);
+                        }
+                    }
+                }
+                return query;
             }
         };
         circular.DomFragment = DomFragment;
@@ -8130,7 +8365,7 @@ var Ractive_prototype_merge_queueDependants = function (types) {
                 dependant = deps[i];
                 if (dependant.type === types.REFERENCE) {
                     dependant.update();
-                } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode) {
+                } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
                     mergeQueue[mergeQueue.length] = dependant;
                 } else {
                     updateQueue[updateQueue.length] = dependant;
@@ -8242,9 +8477,10 @@ var Ractive_prototype_insert = function (getElement) {
                 throw new Error('You must specify a valid target to insert into');
             }
             target.insertBefore(this.detach(), anchor);
+            this.fragment.pNode = target;
         };
     }(utils_getElement);
-var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, toHTML, teardown, add, subtract, toggle, merge, detach, insert) {
+var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, findComponent, findAllComponents, render, renderHTML, toHTML, teardown, add, subtract, toggle, merge, detach, insert) {
         
         return {
             get: get,
@@ -8258,6 +8494,8 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             fire: fire,
             find: find,
             findAll: findAll,
+            findComponent: findComponent,
+            findAllComponents: findAllComponents,
             renderHTML: renderHTML,
             toHTML: toHTML,
             render: render,
@@ -8269,7 +8507,7 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             detach: detach,
             insert: insert
         };
-    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_toHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
+    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_findComponent, Ractive_prototype_findAllComponents, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_toHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
 var extend_registries = function () {
         
         return [
@@ -8574,7 +8812,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _animations: { value: [] },
                 nodes: { value: {} },
                 _wrapped: { value: create(null) },
-                _liveQueries: { value: [] }
+                _liveQueries: { value: [] },
+                _liveComponentQueries: { value: [] }
             });
             defineProperties(ractive._deferred, {
                 attrs: { value: [] },
