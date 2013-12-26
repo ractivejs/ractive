@@ -140,8 +140,6 @@ define([
 		});
 
 		// options
-		//ractive.data = options.data;
-
 		ractive.adaptors = options.adaptors;
 		ractive.modifyArrays = options.modifyArrays;
 		ractive.magic = options.magic;
@@ -175,7 +173,11 @@ define([
 		}
 
 		registries.forEach( function ( registry ) {
-			ractive[ registry ] = extend( create( ractive.constructor[ registry ] || {} ), options[ registry ] );
+			if ( ractive.constructor[ registry ] ) {
+				ractive[ registry ] = extend( create( ractive.constructor[ registry ] || {} ), options[ registry ] );
+			} else if ( options[ registry ] ) {
+				ractive[ registry ] = options[ registry ];
+			}
 		});
 
 

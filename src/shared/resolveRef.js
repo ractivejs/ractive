@@ -45,7 +45,7 @@ define( function () {
 			}
 
 			// not an ancestor reference - must be a restricted reference (prepended with ".")
-			if ( !context ) {
+			else if ( !context ) {
 				keypath = ref.substring( 1 );
 			}
 
@@ -85,7 +85,7 @@ define( function () {
 			}
 		}
 
-		return keypath.replace( /^./, '' );
+		return keypath ? keypath.replace( /^\./, '' ) : keypath;
 	};
 
 	return resolveRef;

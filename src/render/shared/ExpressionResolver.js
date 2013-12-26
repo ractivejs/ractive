@@ -106,7 +106,7 @@ define([
 		root = this.root = resolver.root;
 
 		keypath = resolveRef( root, ref, contextStack );
-		if ( keypath ) {
+		if ( keypath !== undefined ) {
 			resolver.resolveRef( argNum, false, keypath );
 		} else {
 			this.ref = ref;

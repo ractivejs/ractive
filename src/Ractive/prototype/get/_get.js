@@ -1,15 +1,11 @@
 define([
 	'utils/normaliseKeypath',
 	'registries/adaptors',
-	'shared/adaptIfNecessary',
-	'Ractive/prototype/get/arrayAdaptor',
-	'Ractive/prototype/get/magicAdaptor'
+	'shared/adaptIfNecessary'
 ], function (
 	normaliseKeypath,
 	adaptorRegistry,
-	adaptIfNecessary,
-	arrayAdaptor,
-	magicAdaptor
+	adaptIfNecessary
 ) {
 
 	'use strict';
@@ -31,7 +27,7 @@ define([
 			evaluator;
 
 		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
-		keypath = normaliseKeypath( keypath || '' );
+		keypath = normaliseKeypath( keypath );
 
 		cache = ractive._cache;
 
@@ -95,22 +91,7 @@ define([
 
 
 		// Do we have an adaptor for this value?
-		if ( adaptIfNecessary( ractive, keypath, value ) ) {
-			return value;
-		}
-
-
-		// If we're in 'magic' mode, wrap this object
-		if ( ractive.magic ) {
-			ractive._wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
-		}
-
-		// Should we use the in-built adaptor for plain arrays?
-		if ( ractive.modifyArrays ) {
-			if ( arrayAdaptor.filter( ractive, value, keypath ) ) {
-				ractive._wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
-			}
-		}
+		adaptIfNecessary( ractive, keypath, value );
 
 		// Update cache
 		ractive._cache[ keypath ] = value;

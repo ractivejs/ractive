@@ -5,12 +5,14 @@ define([ 'utils/isEqual' ], function ( isEqual ) {
 	return function () {
 		var wrapped, value;
 
-		// if we're getting a wrapped object, e.g. a promise, we want to
-		// get the adapted value, not the original
+		value = this.root.get( this.keypath );
+
+		// if we're getting a wrapped value, e.g. a promise, we want to
+		// get the adapted value, not the original. We need to go
+		// ractive.get() first, in case the object gets wrapped
+		// as a result of that operation
 		if ( wrapped = this.root._wrapped[ this.keypath ] ) {
 			value = wrapped.get();
-		} else {
-			value = this.root.get( this.keypath );
 		}
 
 		if ( !isEqual( value, this.value ) ) {

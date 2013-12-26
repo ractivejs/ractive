@@ -98,7 +98,7 @@ define([
 				this.root._cache[ this.keypath ] = value;
 
 				// TODO teardown previous wrapper?
-				adaptIfNecessary( this.root, this.keypath, value );
+				adaptIfNecessary( this.root, this.keypath, value, true );
 
 				this.value = value;
 				notifyDependants( this.root, this.keypath );

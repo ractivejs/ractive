@@ -1,14 +1,18 @@
 define([
-	'registries/adaptors'
+	'registries/adaptors',
+	'Ractive/prototype/get/arrayAdaptor',
+	'Ractive/prototype/get/magicAdaptor'
 ], function (
-	adaptorRegistry
+	adaptorRegistry,
+	arrayAdaptor,
+	magicAdaptor
 ) {
 
 	'use strict';
 
 	var prefixers = {};
 
-	return function ( ractive, keypath, value ) {
+	return function ( ractive, keypath, value, isExpressionResult ) {
 		var len, i, adaptor, wrapped;
 
 		// Do we have an adaptor for this value?
@@ -27,9 +31,18 @@ define([
 
 			if ( adaptor.filter( value, keypath, ractive ) ) {
 				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
-				ractive._cache[ keypath ] = wrapped.value = value;
+				wrapped.value = value;
+				return;
+			}
+		}
 
-				return true;
+		if ( !isExpressionResult ) {
+			if ( ractive.magic && magicAdaptor.filter( value, keypath, ractive ) ) {
+				ractive._wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
+			}
+
+			else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
+				ractive._wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 			}
 		}
 	};

@@ -37,7 +37,7 @@ define([
 
 			else {
 				keypath = resolveRef( mustache.root, options.descriptor.r, mustache.contextStack );
-				if ( keypath ) {
+				if ( keypath !== undefined ) {
 					mustache.resolve( keypath );
 				} else {
 					mustache.ref = options.descriptor.r;
