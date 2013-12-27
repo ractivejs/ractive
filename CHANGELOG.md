@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+* 0.3.9
+    * `ractive.findComponent()` and `ractive.findAllComponents()` methods, for getting references to components
+	* Expression results are wrapped if necessary (e.g. `{{getJSON(url)}}` wrapped by [@lluchs](https://github.com/lluchs)' [Promise adaptor](lluchs.github.io/Ractive-adaptors-Promise/))
+    * Mustaches referring to wrapped values render the facade, not the value
+    * Directive arguments are parsed more reliably
+    * Components inherit adaptors from their parents
+    * Adaptors can be set on subclasses defined with `Ractive.extend()`
+    * Changes to transitions API - [docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Transitions)
+    * SVG support is detected and exposed as `Ractive.svg`
+	* If subclass has data, it is used as prototype for instance data
 * 0.3.8
     * Reorganised project into AMD modules, using [amdclean](https://github.com/gfranko/amdclean) during build
     * Decorators - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Decorators))
