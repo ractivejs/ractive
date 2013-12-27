@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9 - 2013-12-26
+	Ractive - v0.3.9 - 2013-12-27
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
