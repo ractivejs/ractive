@@ -7,7 +7,7 @@ define([
 	makeTransitionManager,
 	clearCache
 ) {
-	
+
 	'use strict';
 
 	return function ( complete ) {

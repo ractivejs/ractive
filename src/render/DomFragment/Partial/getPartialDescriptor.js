@@ -13,7 +13,7 @@ define([
 	partials,
 	parse
 ) {
-	
+
 	'use strict';
 
 	var getPartialDescriptor,
@@ -65,7 +65,7 @@ define([
 		var partial;
 
 		if ( registryOwner.partials[ name ] ) {
-			
+
 			// If this was added manually to the registry, but hasn't been parsed,
 			// parse it now
 			if ( typeof registryOwner.partials[ name ] === 'string' ) {

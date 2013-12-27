@@ -5,7 +5,7 @@ define([
 	preDomUpdate,
 	postDomUpdate
 ) {
-	
+
 	'use strict';
 
 	return function ( ractive ) {

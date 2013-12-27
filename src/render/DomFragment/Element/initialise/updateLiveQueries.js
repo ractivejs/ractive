@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function ( element ) {
@@ -14,7 +14,7 @@ define( function () {
 			selector = liveQueries[i];
 			query = liveQueries[ selector ];
 
-			if ( query._test( element.node ) ) {
+			if ( query._test( element ) ) {
 				// keep register of applicable selectors, for when we teardown
 				( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
 				element.liveQueries[ selector ] = [ element.node ];

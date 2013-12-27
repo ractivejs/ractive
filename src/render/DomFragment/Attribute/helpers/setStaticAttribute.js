@@ -3,7 +3,7 @@ define([
 ], function (
 	namespaces
 ) {
-	
+
 	'use strict';
 
 	return function ( attribute, options ) {

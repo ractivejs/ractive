@@ -8,8 +8,6 @@ define([ 'config/types' ], function ( types ) {
 
 		if ( docFrag ) {
 			this.node = document.createComment( options.descriptor.f );
-			this.pNode = options.parentFragment.pNode;
-
 			docFrag.appendChild( this.node );
 		}
 	};

@@ -16,7 +16,7 @@ define([
 		fragmentOptions = {
 			descriptor: section.descriptor.f,
 			root:       section.root,
-			pNode:      section.pNode,
+			pNode:      section.parentFragment.pNode,
 			owner:      section
 		};
 
@@ -151,7 +151,7 @@ define([
 
 			if ( section.length > 1 ) {
 				fragmentsToRemove = section.fragments.splice( 1 );
-				
+
 				while ( fragment = fragmentsToRemove.pop() ) {
 					fragment.teardown( true );
 				}

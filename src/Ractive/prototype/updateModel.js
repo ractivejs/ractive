@@ -9,7 +9,7 @@ define([
 ) {
 
 	'use strict';
-	
+
 	return function ( keypath, cascade ) {
 		var values, deferredCheckboxes, i;
 
@@ -53,7 +53,7 @@ define([
 						deferredCheckboxes[ keypath ] = true; // for quick lookup without indexOf
 						deferredCheckboxes[ deferredCheckboxes.length ] = keypath;
 					}
-					
+
 					continue;
 				}
 
@@ -76,7 +76,7 @@ define([
 
 		// cascade
 		childDeps = ractive._depsMap[ keypath ];
-		
+
 		if ( childDeps ) {
 			i = childDeps.length;
 			while ( i-- ) {

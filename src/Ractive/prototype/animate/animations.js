@@ -1,5 +1,5 @@
 define([ 'Ractive/prototype/animate/requestAnimationFrame' ], function ( rAF ) {
-	
+
 	'use strict';
 
 	var queue = [];

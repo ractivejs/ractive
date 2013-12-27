@@ -85,7 +85,7 @@ define([
 		// Fire a change event
 		if ( !this.firingChangeEvent ) {
 			this.firingChangeEvent = true; // short-circuit any potential infinite loops
-			
+
 			changeHash = {};
 
 			i = changes.length;
@@ -103,7 +103,7 @@ define([
 
 
 	updateModel = function ( ractive, keypath, value, changes ) {
-		var cached, previous, wrapped, keypathToClear;
+		var cached, previous, wrapped, keypathToClear, evaluator;
 
 		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
 			if ( resetWrapped( ractive, keypath, value, wrapped, changes ) !== false ) {
@@ -111,11 +111,18 @@ define([
 			}
 		}
 
+		// Update evaluator value. This may be from the evaluator itself, or
+		// it may be from the wrapper that wraps an evaluator's result - it
+		// doesn't matter
+		if ( evaluator = ractive._evaluators[ keypath ] ) {
+			evaluator.value = value;
+		}
+
 		cached = ractive._cache[ keypath ];
 		previous = ractive.get( keypath );
 
 		// update the model, if necessary
-		if ( previous !== value ) {
+		if ( previous !== value && !evaluator ) {
 			keypathToClear = replaceData( ractive, keypath, value );
 		}
 

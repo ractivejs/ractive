@@ -1,5 +1,5 @@
 define([ 'config/namespaces' ], function ( namespaces ) {
-	
+
 	'use strict';
 
 	return function ( descriptor, parentNode ) {

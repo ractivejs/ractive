@@ -3,7 +3,7 @@ define([
 ], function (
 	getKeyValuePair
 ) {
-	
+
 	'use strict';
 
 	return function getKeyValuePairs ( tokenizer ) {

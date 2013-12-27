@@ -1,4 +1,5 @@
 define([
+	'config/types',
 	'render/DomFragment/Attribute/helpers/determineNameAndNamespace',
 	'render/DomFragment/Attribute/helpers/setStaticAttribute',
 	'render/DomFragment/Attribute/helpers/determinePropertyName',
@@ -6,6 +7,7 @@ define([
 	'render/DomFragment/Attribute/prototype/update',
 	'render/StringFragment/_StringFragment'
 ], function (
+	types,
 	determineNameAndNamespace,
 	setStaticAttribute,
 	determinePropertyName,
@@ -18,6 +20,7 @@ define([
 
 	var DomAttribute = function ( options ) {
 
+		this.type = types.ATTRIBUTE;
 		this.element = options.element;
 		determineNameAndNamespace( this, options.name );
 
@@ -58,12 +61,12 @@ define([
 			if ( this.pNode.tagName === 'INPUT' && this.pNode.type === 'file' ) {
 				this.isFileInputValue = true;
 			}
-		} 
-		
+		}
+
 
 		// can we establish this attribute's property name equivalent?
 		determinePropertyName( this, options );
-		
+
 		// determine whether this attribute can be marked as self-updating
 		this.selfUpdating = this.fragment.isSimple();
 
@@ -136,7 +139,7 @@ define([
 
 			// TODO deal with boolean attributes correctly
 			str = this.fragment.toString();
-			
+
 			return this.name + '=' + JSON.stringify( str );
 		}
 	};

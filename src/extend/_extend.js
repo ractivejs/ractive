@@ -40,15 +40,15 @@ define([
 
 		// Inherit options from parent
 		inheritFromParent( Child, Parent );
-		
+
 		// Add new prototype methods and init options
 		inheritFromChildProps( Child, childProps );
-		
+
 		// Parse template and any partials that need it
 		conditionallyParseTemplate( Child );
 		extractInlinePartials( Child, childProps );
 		conditionallyParsePartials( Child );
-		
+
 		Child.extend = Parent.extend;
 
 		return Child;

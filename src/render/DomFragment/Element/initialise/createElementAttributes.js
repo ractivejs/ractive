@@ -1,5 +1,5 @@
 define([ 'render/DomFragment/Attribute/_Attribute' ], function ( DomAttribute ) {
-	
+
 	'use strict';
 
 	return function ( element, attributes ) {

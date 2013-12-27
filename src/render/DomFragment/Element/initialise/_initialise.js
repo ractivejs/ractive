@@ -5,10 +5,10 @@ define([
 	'utils/defineProperty',
 	'utils/matches',
 	'utils/warn',
+	'utils/createElement',
 	'render/DomFragment/Element/initialise/getElementNamespace',
 	'render/DomFragment/Element/initialise/createElementAttributes',
 	'render/DomFragment/Element/initialise/appendElementChildren',
-	'render/DomFragment/Element/initialise/bindElement',
 	'render/DomFragment/Element/initialise/decorate/_decorate',
 	'render/DomFragment/Element/initialise/addEventProxies/_addEventProxies',
 	'render/DomFragment/Element/initialise/updateLiveQueries',
@@ -21,21 +21,22 @@ define([
 	defineProperty,
 	matches,
 	warn,
+	createElement,
 	getElementNamespace,
 	createElementAttributes,
 	appendElementChildren,
-	bindElement,
 	decorate,
 	addEventProxies,
 	updateLiveQueries,
 	executeTransition,
 	enforceCase
 ) {
-	
+
 	'use strict';
 
 	return function ( element, options, docFrag ) {
 		var parentFragment,
+			pNode,
 			contextStack,
 			descriptor,
 			namespace,
@@ -52,11 +53,11 @@ define([
 
 		// stuff we'll need later
 		parentFragment = element.parentFragment = options.parentFragment;
+		pNode = parentFragment.pNode;
 		contextStack = parentFragment.contextStack;
 		descriptor = element.descriptor = options.descriptor;
 
 		element.root = root = parentFragment.root;
-		element.pNode = parentFragment.pNode;
 		element.index = options.index;
 		element.lcName = descriptor.e.toLowerCase();
 
@@ -64,19 +65,20 @@ define([
 		element.customEventListeners = [];
 
 		// get namespace, if we're actually rendering (not server-side stringifying)
-		if ( element.pNode ) {
-			namespace = element.namespace = getElementNamespace( descriptor, element.pNode );
+		if ( pNode ) {
+			namespace = element.namespace = getElementNamespace( descriptor, pNode );
 
 			// non-HTML elements (i.e. SVG) are case-sensitive
 			name = ( namespace !== namespaces.html ? enforceCase( descriptor.e ) : descriptor.e );
 
 			// create the DOM node
-			element.node = document.createElementNS( namespace, name );
+			element.node = createElement( name, namespace );
 
 			// Add _ractive property to the node - we use this object to store stuff
 			// related to proxy events, two-way bindings etc
 			defineProperty( element.node, '_ractive', {
 				value: {
+					proxy: element,
 					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
 					index: parentFragment.indexRefs,
 					events: create( null ),
@@ -119,7 +121,7 @@ define([
 		if ( docFrag ) {
 			// deal with two-way bindings
 			if ( root.twoway ) {
-				bindElement( element, attributes );
+				element.bind();
 
 				// Special case - contenteditable
 				if ( element.node.getAttribute( 'contenteditable' ) && element.node._ractive.binding ) {
@@ -167,13 +169,13 @@ define([
 				// Special case... if this option's parent select was previously
 				// empty, it's possible that it should initialise to the value of
 				// this option.
-				if ( element.pNode.tagName === 'SELECT' && ( selectBinding = element.pNode._ractive.binding ) ) { // it should be!
+				if ( pNode.tagName === 'SELECT' && ( selectBinding = pNode._ractive.binding ) ) { // it should be!
 					selectBinding.deferUpdate();
 				}
 
 				// Special case... a select may have had its value set before a matching
 				// option was rendered. This might be that option element
-				if ( element.node._ractive.value == element.pNode._ractive.value ) {
+				if ( element.node._ractive.value == pNode._ractive.value ) {
 					element.node.selected = true;
 				}
 			}

@@ -3,7 +3,7 @@ define([
 ], function (
 	namespaces
 ) {
-	
+
 	'use strict';
 
 	// the property name equivalents for element attributes, where they differ

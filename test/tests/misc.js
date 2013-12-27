@@ -2,11 +2,36 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 	'use strict';
 
+	window.Ractive = Ractive;
+
 	return function () {
 
-		var fixture = document.getElementById( 'qunit-fixture' );
+		var fixture, Foo;
 
 		module( 'Miscellaneous' );
+
+		// some set-up
+		fixture = document.getElementById( 'qunit-fixture' );
+
+		Foo = function ( content ) {
+			this.content = content;
+		};
+
+		Ractive.adaptors.foo = {
+			filter: function ( object ) {
+				return object instanceof Foo;
+			},
+			wrap: function ( ractive, foo, keypath, prefix ) {
+				return {
+					get: function () {
+						return foo.content;
+					},
+					teardown: function () {
+
+					}
+				};
+			}
+		};
 
 		test( 'Subclass instance data extends prototype data', function ( t ) {
 			var Subclass, instance;
@@ -60,7 +85,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				template: '{{( a+b )}} {{( a+b )}} {{( a+b )}}',
 				data: { a: 1, b: 2 }
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, '3 3 3' );
 
 			t.equal( ractive._deps.length, 2 );
@@ -122,7 +147,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				el: fixture,
 				template: '<select id="select" value="{{selected}}">{{#options}}<option value="{{.}}">{{.}}</option>{{/options}}</select>'
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, '<select id="select"></select>' );
 
 			ractive.set({
@@ -221,7 +246,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( ractive.get( 'color' ), 'red' );
 			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select><p>selected red</p>' );
 		});
-		
+
 
 		test( 'If the value of a select is specified in the model, it overrides the markup', function ( t ) {
 			var ractive;
@@ -235,6 +260,28 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( ractive.get( 'color' ), 'blue' );
 			t.ok( ractive.nodes.blue.selected );
 			t.ok( !ractive.nodes.green.selected );
+		});
+
+		test( 'A select value with static options with numeric values will show the one determined by the model, whether a string or a number is used', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{i}}"><option id="_1" value="1">one</option><option id="_2" value="2">two</option><option id="_3" value="3">three</option></select>',
+				data: { i: 2 }
+			});
+
+			t.ok( !ractive.nodes._1.selected );
+			t.ok(  ractive.nodes._2.selected );
+			t.ok( !ractive.nodes._3.selected );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{i}}"><option id="_1" value="1">one</option><option id="_2" value="2">two</option><option id="_3" value="3">three</option></select>',
+				data: { i: "3" }
+			});
+
+			t.ok( !ractive.nodes._1.selected );
+			t.ok( !ractive.nodes._2.selected );
+			t.ok(  ractive.nodes._3.selected );
 		});
 
 		/*
@@ -551,7 +598,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 					component: Component
 				}
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, 'foo is falsy' );
 
 			ractive.set( 'foo', true );
@@ -577,7 +624,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
 		});
 
-		
+
 
 		test( 'findAll returns a static node list', function ( t ) {
 			var items, ractive, list;
@@ -892,7 +939,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
 				items.push({});
 				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-				
+
 				items.splice( 1, 1 );
 				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
 				items.splice( 1, 1 );
@@ -1012,6 +1059,168 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			simulant.fire( buttons[1], 'click' );
 		});
 
+		test( 'Regression test for #339', function ( t ) {
+			var ractive, selects;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<p>{{i}}: <select value="{{.color}}"><option value="red">Red</option></select></p>{{/items}}',
+				data: { items: [{}] }
+			});
+
+			selects = ractive.findAll( 'select', { live: true });
+
+			t.equal( selects[0].value, 'red' );
+
+			ractive.get( 'items' ).push({});
+
+			t.htmlEqual( fixture.innerHTML, '<p>0: <select><option value="red">Red</option></select></p><p>1: <select><option value="red">Red</option></select></p>')
+			t.deepEqual( ractive.get(), { items: [ {color: 'red'}, {color: 'red'} ] } );
+		});
+
+		test( 'Evaluators that have a value of undefined behave correctly', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{ list[index] }}',
+				data: {
+					index: 0,
+					list: [ 'foo' ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+
+			ractive.set( 'index', 1 );
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
+		test( 'Components inherit adaptors from their parent', function ( t ) {
+			var ractive;
+
+			Ractive.components.widget = Ractive.extend({
+				template: '<p>{{wrappedThing}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget wrappedThing="{{thing}}"/>',
+				adaptors: [ 'foo' ],
+				data: {
+					thing: new Foo( 'whee!' )
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
+		});
+
+		test( 'Components made with Ractive.extend() can include adaptors', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				adaptors: [ 'foo' ]
+			});
+
+			ractive = new Widget({
+				el: fixture,
+				template: '<p>{{thing}}</p>',
+				data: {
+					thing: new Foo( 'whee!' )
+				}
+			});
+
+			t.deepEqual( ractive.adaptors, [ Ractive.adaptors.foo ] );
+			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
+		});
+
+		test( 'Two-way binding can be set up against expressions that resolve to regular keypaths', function ( t ) {
+			var ractive, input;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<label><input value="{{ proxies[i].name }}"> name: {{ proxies[i].name }}</label>{{/items}}',
+				data: {
+					items: [{}],
+					proxies: []
+				}
+			});
+
+			input = ractive.find( 'input' );
+			input.value = 'foo';
+			ractive.updateModel();
+
+			t.deepEqual( ractive.get( 'proxies' ), [{name: 'foo'  }] );
+			t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
+		});
+
+		test( 'Instances of a subclass do not have access to the default model', function ( t ) {
+			var Subclass, instance;
+
+			Subclass = Ractive.extend({
+				data: {
+					foo: 'bar',
+					obj: {
+						one: 1,
+						two: 2
+					}
+				}
+			});
+
+			instance = new Subclass({
+				el: fixture,
+				template: '{{foo}}{{obj.one}}{{obj.two}}'
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar12' );
+
+			instance.set( 'foo', 'baz' );
+			instance.set( 'obj.one', 3 );
+			instance.set( 'obj.two', 4 );
+
+			t.htmlEqual( fixture.innerHTML, 'baz34' );
+
+			t.deepEqual( Subclass.data, {
+				foo: 'bar',
+				obj: {
+					one: 1,
+					two: 2
+				}
+			});
+		});
+
+		test( 'Instances of subclasses with non-POJO default models have the correct prototype', function ( t ) {
+			var Model, Subclass, instance;
+
+			Model = function ( data ) {
+				var key;
+
+				for ( key in data ) {
+					if ( data.hasOwnProperty( key ) ) {
+						this[ key ] = data[ key ];
+					}
+				}
+			};
+
+			Model.prototype.test = function () {
+				t.ok( true );
+			};
+
+			Subclass = Ractive.extend({
+				data: new Model({
+					foo: 'bar'
+				})
+			});
+
+			instance = new Subclass({
+				el: fixture,
+				template: '{{foo}}{{bar}}',
+				data: {
+					bar: 'baz'
+				}
+			});
+
+			t.ok( instance.data instanceof Model );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
@@ -1042,7 +1251,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
 		});
 
-		
+
 
 		{
 			name: 'Tearing down expression mustaches and recreating them does\'t throw errors',
@@ -1130,7 +1339,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 			}
 		}*/
-		
+
 	};
 
 });

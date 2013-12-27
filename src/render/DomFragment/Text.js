@@ -13,8 +13,6 @@ define([ 'config/types' ], function ( types ) {
 
 		if ( docFrag ) {
 			this.node = document.createTextNode( options.descriptor );
-			this.pNode = options.parentFragment.pNode;
-
 			docFrag.appendChild( this.node );
 		}
 	};

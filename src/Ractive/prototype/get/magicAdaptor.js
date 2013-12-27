@@ -11,6 +11,9 @@ define( function () {
 	}
 
 	magicAdaptor = {
+		filter: function ( object, keypath ) {
+			return !!keypath;
+		},
 		wrap: function ( ractive, object, keypath ) {
 			return new MagicWrapper( ractive, object, keypath );
 		}
@@ -23,20 +26,20 @@ define( function () {
 		this.keypath = keypath;
 
 		keys = keypath.split( '.' );
-		
+
 		this.prop = keys.pop();
-		
+
 		objKeypath = keys.join( '.' );
-		this.obj = ractive.get( objKeypath );
+		this.obj = objKeypath ? ractive.get( objKeypath ) : ractive.data;
 
 		descriptor = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
 
 		// Has this property already been wrapped?
 		if ( descriptor && descriptor.set && ( wrappers = descriptor.set._ractiveWrappers ) ) {
-		
+
 			// Yes. Register this wrapper to this property, if it hasn't been already
 			if ( wrappers.indexOf( this ) === -1 ) {
-				wrappers[ wrappers.length ] = this;
+				wrappers.push( this );
 			}
 
 			return; // already wrapped
@@ -56,7 +59,7 @@ define( function () {
 			oldGet = descriptor.get;
 			oldSet = descriptor.set;
 		}
-		
+
 		get = oldGet || function () {
 			return wrapper.value; // whichever wrapper got there first!
 		};
@@ -73,7 +76,7 @@ define( function () {
 			i = wrappers.length;
 			while ( i-- ) {
 				wrapper = wrappers[i];
-				
+
 				if ( !wrapper.resetting ) {
 					wrapper.ractive.set( wrapper.keypath, value );
 				}
@@ -94,7 +97,6 @@ define( function () {
 		reset: function ( value ) {
 			this.resetting = true;
 			this.value = value;
-			this.obj[ this.prop ] = value;
 			this.resetting = false;
 		},
 		teardown: function () {
@@ -110,7 +112,12 @@ define( function () {
 			if ( !wrappers.length ) {
 				value = this.obj[ this.prop ];
 
-				Object.defineProperty( this.obj, this.prop, this.originalDescriptor );
+				Object.defineProperty( this.obj, this.prop, this.originalDescriptor || {
+					writable: true,
+					enumerable: true,
+					configrable: true
+				});
+
 				this.obj[ this.prop ] = value;
 			}
 		}

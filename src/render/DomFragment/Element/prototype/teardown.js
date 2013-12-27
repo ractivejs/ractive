@@ -3,7 +3,7 @@ define([
 ], function (
 	executeTransition
 ) {
-	
+
 	'use strict';
 
 	return function ( destroy ) {
@@ -37,17 +37,14 @@ define([
 			this.decorator.teardown();
 		}
 
-		// Outro then detach, or just detach
+		// Outro, if necessary
 		if ( this.descriptor.t2 ) {
-			if ( destroy ) {
-				this.root._transitionManager.detachWhenReady( this );
-			}
-
 			executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
 		}
 
-		else if ( destroy ) {
-			this.detach();
+		// Detach as soon as we can
+		if ( destroy ) {
+			this.root._transitionManager.detachWhenReady( this );
 		}
 
 		// Remove this node from any live queries

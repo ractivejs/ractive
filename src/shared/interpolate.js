@@ -7,7 +7,7 @@ define([
 	isObject,
 	isNumeric
 ) {
-	
+
 	'use strict';
 
 	// TODO short circuit values that stay the same

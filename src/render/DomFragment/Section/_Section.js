@@ -43,7 +43,7 @@ define([
 		if ( docFrag ) {
 			this.docFrag = document.createDocumentFragment();
 		}
-		
+
 		this.initialising = true;
 		initMustache( this, options );
 
@@ -65,7 +65,7 @@ define([
 				fragmentOptions = {
 					descriptor: this.descriptor.f,
 					root:       this.root,
-					pNode:      this.pNode,
+					pNode:      this.parentFragment.pNode,
 					owner:      this
 				};
 
@@ -75,7 +75,9 @@ define([
 			}
 
 			if ( this[ methodName ] ) { // if not, it's sort or reverse, which doesn't affect us (i.e. our length)
+				this.rendering = true;
 				this[ methodName ]( fragmentOptions, args );
+				this.rendering = false;
 			}
 		},
 
@@ -100,11 +102,11 @@ define([
 
 				this.fragments[i] = this.createFragment( fragmentOptions );
 			}
-			
+
 			this.length += args.length;
 
 			// append docfrag in front of next node
-			this.pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			this.parentFragment.pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 		},
 
 		shift: function () {
@@ -172,7 +174,7 @@ define([
 				}
 
 				// Append docfrag in front of insertion point
-				this.pNode.insertBefore( this.docFrag, insertionPoint );
+				this.parentFragment.pNode.insertBefore( this.docFrag, insertionPoint );
 			}
 
 			this.length += balance;
@@ -221,10 +223,10 @@ define([
 		},
 
 		teardownFragments: function ( destroy ) {
-			var id;
+			var id, fragment;
 
-			while ( this.fragments.length ) {
-				this.fragments.shift().teardown( destroy );
+			while ( fragment = this.fragments.shift() ) {
+				fragment.teardown( destroy );
 			}
 
 			if ( this.fragmentsById ) {
@@ -269,8 +271,8 @@ define([
 				// items before it...
 				nextNode = this.parentFragment.findNextNode( this );
 
-				if ( nextNode && ( nextNode.parentNode === this.pNode ) ) {
-					this.pNode.insertBefore( this.docFrag, nextNode );
+				if ( nextNode && ( nextNode.parentNode === this.parentFragment.pNode ) ) {
+					this.parentFragment.pNode.insertBefore( this.docFrag, nextNode );
 				}
 
 				// ...but in some edge cases the next node will not have been attached to
@@ -279,7 +281,7 @@ define([
 					// TODO could there be a situation in which later nodes could have
 					// been attached to the parent node, i.e. we need to find a sibling
 					// to insert before?
-					this.pNode.appendChild( this.docFrag );
+					this.parentFragment.pNode.appendChild( this.docFrag );
 				}
 			}
 		},
@@ -330,16 +332,38 @@ define([
 			return null;
 		},
 
-		findAll: function ( selector, queryResult ) {
+		findAll: function ( selector, query ) {
 			var i, len;
 
 			len = this.fragments.length;
 			for ( i = 0; i < len; i += 1 ) {
-				this.fragments[i].findAll( selector, queryResult );
+				this.fragments[i].findAll( selector, query );
+			}
+		},
+
+		findComponent: function ( selector ) {
+			var i, len, queryResult;
+
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				if ( queryResult = this.fragments[i].findComponent( selector ) ) {
+					return queryResult;
+				}
+			}
+
+			return null;
+		},
+
+		findAllComponents: function ( selector, query ) {
+			var i, len;
+
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.fragments[i].findAllComponents( selector, query );
 			}
 		}
 	};
 
 	return DomSection;
-	
+
 });

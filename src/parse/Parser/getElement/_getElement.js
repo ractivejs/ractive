@@ -5,11 +5,11 @@ define([
 	types,
 	ElementStub
 ) {
-	
+
 	'use strict';
 
 	return function ( token ) {
-		// sanitize			
+		// sanitize
 		if ( this.options.sanitize && this.options.sanitize.elements ) {
 			if ( this.options.sanitize.elements.indexOf( token.name.toLowerCase() ) !== -1 ) {
 				return null;

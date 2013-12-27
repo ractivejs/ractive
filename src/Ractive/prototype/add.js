@@ -1,5 +1,5 @@
 define([ 'Ractive/prototype/shared/add' ], function ( add ) {
-	
+
 	'use strict';
 
 	return function ( keypath, d ) {

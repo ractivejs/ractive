@@ -8,7 +8,7 @@ define( function () {
 		i = needles.length;
 		while ( i-- ) {
 			index = haystack.indexOf( needles[i] );
-			
+
 			// short circuit
 			if ( !index ) {
 				return 0;
@@ -17,7 +17,7 @@ define( function () {
 			if ( index === -1 ) {
 				continue;
 			}
-			
+
 			if ( !lowest || ( index < lowest ) ) {
 				lowest = index;
 			}

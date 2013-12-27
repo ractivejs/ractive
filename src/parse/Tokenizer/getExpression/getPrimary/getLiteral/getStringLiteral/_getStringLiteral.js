@@ -5,7 +5,7 @@ define([
 	types,
 	getQuotedString
 ) {
-	
+
 	'use strict';
 
 	return function ( tokenizer ) {
@@ -15,7 +15,7 @@ define([
 
 		if ( tokenizer.getStringMatch( '"' ) ) {
 			string = getQuotedString( tokenizer, false );
-		
+
 			if ( !tokenizer.getStringMatch( '"' ) ) {
 				tokenizer.pos = start;
 				return null;

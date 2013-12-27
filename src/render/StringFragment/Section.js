@@ -15,7 +15,7 @@ define([
 	teardown,
 	circular
 ) {
-	
+
 	'use strict';
 
 	var StringSection, StringFragment;

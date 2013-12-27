@@ -7,7 +7,7 @@ define([
 	makeRegexMatcher,
 	getLowestIndex
 ) {
-	
+
 	'use strict';
 
 	var getTag,
@@ -180,7 +180,7 @@ define([
 
 	getAttributeName = makeRegexMatcher( /^[^\s"'>\/=]+/ );
 
-	
+
 
 	getAttributeValue = function ( tokenizer ) {
 		var start, value;
@@ -199,7 +199,7 @@ define([
 		value = getQuotedAttributeValue( tokenizer, "'" ) ||
 		        getQuotedAttributeValue( tokenizer, '"' ) ||
 		        getUnquotedAttributeValue( tokenizer );
-		
+
 		if ( value === null ) {
 			tokenizer.pos = start;
 			return null;

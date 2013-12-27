@@ -11,7 +11,7 @@ define([
 	getObjectLiteral,
 	getArrayLiteral
 ) {
-	
+
 	'use strict';
 
 	return function ( tokenizer ) {

@@ -14,16 +14,6 @@
 		Date.now = function () { return +new Date(); };
 	}
 
-	if ( !doc.createElementNS ) {
-		doc.createElementNS = function ( ns, type ) {
-			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
-				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/RactiveJS/Ractive/wiki/SVG-and-older-browsers for more information';
-			}
-
-			return doc.createElement( type );
-		};
-	}
-
 	if ( !String.prototype.trim ) {
 		String.prototype.trim = function () {
 			return this.replace(/^\s+/, '').replace(/\s+$/, '');
@@ -73,7 +63,7 @@
 		}());
 	}
 
-	
+
 	// Array extras
 	if ( !Array.prototype.indexOf ) {
 		Array.prototype.indexOf = function ( needle, i ) {
@@ -174,7 +164,7 @@
 
 				listeners = element.listeners || ( element.listeners = [] );
 				i = listeners.length;
-				
+
 				listeners[i] = [ listener, function (e) {
 					listener.call( element, new Event( e, element ) );
 				}];

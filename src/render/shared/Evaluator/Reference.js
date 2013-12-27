@@ -11,7 +11,7 @@ define([
 	registerDependant,
 	unregisterDependant
 ) {
-	
+
 	'use strict';
 
 	var Reference, thisPattern;
@@ -31,7 +31,7 @@ define([
 		value = root.get( keypath );
 
 		if ( typeof value === 'function' ) {
-			value = value._wrapped || wrapFunction( value, root, evaluator );
+			value = value[ '_' + root._guid ] || wrapFunction( value, root, evaluator );
 		}
 
 		this.value = evaluator.values[ argNum ] = value;
@@ -81,6 +81,8 @@ define([
 				var originalGet, result, softDependencies;
 
 				originalGet = ractive.get;
+				// TODO we should capture dependencies more intelligently than this,
+				// creating a new function a bunch of times
 				ractive.get = function ( keypath ) {
 					if ( !softDependencies ) {
 						softDependencies = [];
@@ -90,19 +92,19 @@ define([
 						softDependencies[ softDependencies.length ] = keypath;
 						softDependencies[ keypath ] = true;
 					}
-					
+
 					return originalGet.call( ractive, keypath );
 				};
-				
+
 				result = fn.apply( ractive, arguments );
-				
+
 				if ( softDependencies ) {
 					evaluator.updateSoftDependencies( softDependencies );
 				}
 
 				// reset
 				ractive.get = originalGet;
-				
+
 				return result;
 			},
 			writable: true

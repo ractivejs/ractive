@@ -5,6 +5,8 @@
 
 define([ 'Ractive', '../samples/parse' ], function ( Ractive, tests ) {
 
+	window.Ractive = Ractive;
+
 	return function () {
 
 		module( 'Parse' );
@@ -20,7 +22,7 @@ define([ 'Ractive', '../samples/parse' ], function ( Ractive, tests ) {
 		for ( i=0; i<tests.length; i+=1 ) {
 			runTest( tests[i] );
 		}
-		
+
 	};
 
 });

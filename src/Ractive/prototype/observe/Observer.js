@@ -3,7 +3,7 @@ define([
 ], function (
 	isEqual
 ) {
-	
+
 	'use strict';
 
 	var Observer = function ( ractive, keypath, callback, options ) {
@@ -20,7 +20,7 @@ define([
 				self.reallyUpdate();
 			}
 		};
-		
+
 		// Observers are notified before any DOM changes take place (though
 		// they can defer execution until afterwards)
 		this.priority = 0;

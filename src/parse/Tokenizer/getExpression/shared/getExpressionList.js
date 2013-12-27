@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function getExpressionList ( tokenizer ) {

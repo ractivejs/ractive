@@ -7,7 +7,7 @@ define([
 	stringifyStubs,
 	jsonifyStubs
 ) {
-	
+
 	'use strict';
 
 	var StringStub;

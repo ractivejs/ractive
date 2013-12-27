@@ -5,7 +5,7 @@ define([
 	types,
 	getLogicalOr
 ) {
-	
+
 	'use strict';
 
 	// The conditional operator is the lowest precedence operator, so we start here

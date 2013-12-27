@@ -9,7 +9,7 @@ define([
 	getExpressionList,
 	getRefinement
 ) {
-	
+
 	'use strict';
 
 	return function ( tokenizer ) {

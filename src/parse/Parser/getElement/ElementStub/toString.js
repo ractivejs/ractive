@@ -5,7 +5,7 @@ define([
 	stringifyStubs,
 	voidElementNames
 ) {
-	
+
 	'use strict';
 
 	var htmlElements;
@@ -47,12 +47,12 @@ define([
 		isVoid = ( voidElementNames.indexOf( this.tag.toLowerCase() ) !== -1 );
 
 		str = '<' + this.tag;
-		
+
 		if ( this.attributes ) {
 			for ( i=0, len=this.attributes.length; i<len; i+=1 ) {
 
 				name = this.attributes[i].name;
-				
+
 				// does this look like a namespaced attribute? if so we can't stringify it
 				if ( name.indexOf( ':' ) !== -1 ) {
 					return ( this.str = false );

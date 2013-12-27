@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function ( dependant ) {
@@ -13,14 +13,19 @@ define( function () {
 		deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 		deps[ deps.length ] = dependant;
+		dependant.registered = true;
+
+		if ( !keypath ) {
+			return;
+		}
 
 		// update dependants map
 		keys = keypath.split( '.' );
-		
+
 		while ( keys.length ) {
 			keys.pop();
 			parentKeypath = keys.join( '.' );
-		
+
 			map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
 
 			if ( map[ keypath ] === undefined ) {

@@ -77,7 +77,7 @@ define([
 				tokens.pop();
 			}
 		}
-		
+
 		json = new Parser( tokens, options ).result;
 
 		if ( typeof json === 'string' ) {
@@ -88,7 +88,7 @@ define([
 
 		return json;
 	};
-	
+
 	parseCompoundTemplate = function ( template, options ) {
 		var mainTemplate, remaining, partials, name, startMatch, endMatch;
 

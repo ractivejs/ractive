@@ -40,7 +40,7 @@ define([
 			this.html = options.descriptor;
 
 			if ( this.docFrag ) {
-				this.nodes = insertHtml( options.descriptor, options.pNode.tagName, this.docFrag );
+				this.nodes = insertHtml( this.html, options.pNode.tagName, this.docFrag );
 			}
 		}
 
@@ -56,8 +56,9 @@ define([
 
 			// if this was built from HTML, we just need to remove the nodes
 			if ( this.nodes ) {
-				while ( this.nodes.length ) {
-					this.docFrag.appendChild( this.nodes.pop() );
+				i = this.nodes.length;
+				while ( i-- ) {
+					this.docFrag.appendChild( this.nodes[i] );
 				}
 			}
 
@@ -146,7 +147,7 @@ define([
 
 		toString: function () {
 			var html, i, len, item;
-			
+
 			if ( this.html ) {
 				return this.html;
 			}
@@ -206,7 +207,7 @@ define([
 			}
 		},
 
-		findAll: function ( selector, queryResult ) {
+		findAll: function ( selector, query ) {
 			var i, len, item, node, queryAllResult, numNodes, j;
 
 			if ( this.nodes ) {
@@ -220,13 +221,13 @@ define([
 					}
 
 					if ( matches( node, selector ) ) {
-						queryResult.push( node );
+						query.push( node );
 					}
 
 					if ( queryAllResult = node.querySelectorAll( selector ) ) {
 						numNodes = queryAllResult.length;
 						for ( j = 0; j < numNodes; j += 1 ) {
-							queryResult.push( queryAllResult[j] );
+							query.push( queryAllResult[j] );
 						}
 					}
 				}
@@ -238,12 +239,46 @@ define([
 					item = this.items[i];
 
 					if ( item.findAll ) {
-						item.findAll( selector, queryResult );
+						item.findAll( selector, query );
 					}
 				}
 			}
 
-			return queryResult;
+			return query;
+		},
+
+		findComponent: function ( selector ) {
+			var len, i, item, queryResult;
+
+			if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					item = this.items[i];
+
+					if ( item.findComponent && ( queryResult = item.findComponent( selector ) ) ) {
+						return queryResult;
+					}
+				}
+
+				return null;
+			}
+		},
+
+		findAllComponents: function ( selector, query ) {
+			var i, len, item;
+
+			if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					item = this.items[i];
+
+					if ( item.findAllComponents ) {
+						item.findAllComponents( selector, query );
+					}
+				}
+			}
+
+			return query;
 		}
 	};
 

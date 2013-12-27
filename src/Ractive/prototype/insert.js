@@ -1,5 +1,5 @@
 define([ 'utils/getElement' ], function ( getElement ) {
-	
+
 	'use strict';
 
 	return function ( target, anchor ) {
@@ -11,6 +11,7 @@ define([ 'utils/getElement' ], function ( getElement ) {
 		}
 
 		target.insertBefore( this.detach(), anchor );
+		this.fragment.pNode = target;
 	};
 
 });

@@ -5,7 +5,7 @@ define([
 	types,
 	getTypeOf
 ) {
-	
+
 	'use strict';
 
 	var getLogicalOr, makeInfixSequenceMatcher;

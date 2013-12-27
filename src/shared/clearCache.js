@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function clearCache ( ractive, keypath ) {
@@ -12,7 +12,7 @@ define( function () {
 				ractive._wrapped[ keypath ] = null;
 			}
 		}
-		
+
 		ractive._cache[ keypath ] = undefined;
 
 		if ( cacheMap = ractive._cacheMap[ keypath ] ) {

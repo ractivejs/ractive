@@ -3,20 +3,20 @@ define([
 ], function (
 	StringFragment
 ) {
-	
+
 	'use strict';
 
-	var ComponentParameter = function ( root, component, key, value, contextStack ) {
-		
+	var ComponentParameter = function ( component, key, value ) {
+
 		this.parentFragment = component.parentFragment;
 		this.component = component;
 		this.key = key;
 
 		this.fragment = new StringFragment({
 			descriptor:   value,
-			root:         root,
+			root:         component.root,
 			owner:        this,
-			contextStack: contextStack
+			contextStack: component.parentFragment.contextStack
 		});
 
 		this.selfUpdating = this.fragment.isSimple();

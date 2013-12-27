@@ -2,13 +2,11 @@ define([
 	'config/types',
 	'utils/warn',
 	'utils/arrayContentsMatch',
-	'utils/isNumeric',
 	'shared/getValueFromCheckboxes'
 ], function (
 	types,
 	warn,
 	arrayContentsMatch,
-	isNumeric,
 	getValueFromCheckboxes
 ) {
 
@@ -69,7 +67,7 @@ define([
 			return false;
 		}
 
-		node._ractive.binding = binding;
+		node._ractive.binding = this.element.binding = binding;
 		this.twoway = true;
 
 		// register this with the root, so that we can force an update later
@@ -92,7 +90,7 @@ define([
 	};
 
 	getInterpolator = function ( attribute ) {
-		var item;
+		var item, errorMessage;
 
 		// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
 		// Check this is a suitable candidate for two-way binding - i.e. it is
@@ -102,7 +100,7 @@ define([
 		}
 
 		item = attribute.fragment.items[0];
-			
+
 		if ( item.type !== types.INTERPOLATOR ) {
 			return null;
 		}
@@ -111,9 +109,11 @@ define([
 			return null;
 		}
 
-		if ( item.descriptor.x ) {
+		if ( item.keypath && item.keypath.charAt( 0 ) === '(' ) {
+			errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
+
 			if ( attribute.root.debug ) {
-				throw new Error( 'You cannot set up two-way binding against an expression' );
+				warn( errorMessage );
 			}
 			return null;
 		}
@@ -182,7 +182,7 @@ define([
 			value = [];
 			options = this.node.options;
 			len = options.length;
-			
+
 			for ( i=0; i<len; i+=1 ) {
 				if ( options[i].selected ) {
 					value[ value.length ] = options[i]._ractive.value;
@@ -199,7 +199,7 @@ define([
 			previousValue = attribute.value;
 
 			value = this.value();
-			
+
 			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 				// either length or contents have changed, so we update the model
 				attribute.receiving = true;
@@ -245,10 +245,6 @@ define([
 		update: function () {
 			var value = this.value();
 
-			if ( isNumeric( value ) ) {
-				value = +value;
-			}
-
 			this.attr.receiving = true;
 			this.attr.value = value;
 			this.root.set( this.keypath, value );
@@ -290,7 +286,7 @@ define([
 
 		valueFromModel = this.root.get( this.keypath );
 		if ( valueFromModel !== undefined ) {
-			node.checked = ( valueFromModel === node._ractive.value );
+			node.checked = ( valueFromModel == node._ractive.value );
 		} else {
 			this.root._deferred.radios.push( this );
 		}
@@ -417,24 +413,24 @@ define([
 
 	ContentEditableBinding = function ( attribute, node ) {
 		inheritProperties( this, attribute, node );
-		
+
 		node.addEventListener( 'change', updateModel, false );
 		if ( !this.root.lazy ) {
 			node.addEventListener( 'input', updateModel, false );
-		
+
 			if ( node.attachEvent ) {
 				node.addEventListener( 'keyup', updateModel, false );
 			}
 		}
 	};
-		
+
 	ContentEditableBinding.prototype = {
 		update: function () {
 			this.attr.receiving = true;
 			this.root.set( this.keypath, this.node.innerHTML );
 			this.attr.receiving = false;
 		},
-		
+
 		teardown: function () {
 			this.node.removeEventListener( 'change', updateModel, false );
 			this.node.removeEventListener( 'input', updateModel, false );

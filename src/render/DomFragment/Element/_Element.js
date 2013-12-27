@@ -4,16 +4,22 @@ define([
 	'render/DomFragment/Element/prototype/teardown',
 	'render/DomFragment/Element/prototype/toString',
 	'render/DomFragment/Element/prototype/find',
-	'render/DomFragment/Element/prototype/findAll'
+	'render/DomFragment/Element/prototype/findAll',
+	'render/DomFragment/Element/prototype/findComponent',
+	'render/DomFragment/Element/prototype/findAllComponents',
+	'render/DomFragment/Element/prototype/bind'
 ], function (
 	initialise,
 
 	teardown,
 	toString,
 	find,
-	findAll
+	findAll,
+	findComponent,
+	findAllComponents,
+	bind
 ) {
-	
+
 	'use strict';
 
 	var DomElement = function ( options, docFrag ) {
@@ -23,7 +29,11 @@ define([
 	DomElement.prototype = {
 		detach: function () {
 			if ( this.node ) {
-				this.node.parentNode.removeChild( this.node );
+				// need to check for parent node - DOM may have been altered
+				// by something other than Ractive! e.g. jQuery UI...
+				if ( this.node.parentNode ) {
+					this.node.parentNode.removeChild( this.node );
+				}
 				return this.node;
 			}
 		},
@@ -43,7 +53,10 @@ define([
 
 		toString: toString,
 		find: find,
-		findAll: findAll
+		findAll: findAll,
+		findComponent: findComponent,
+		findAllComponents: findAllComponents,
+		bind: bind
 	};
 
 	return DomElement;

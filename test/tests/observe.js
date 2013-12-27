@@ -2,6 +2,8 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 	'use strict';
 
+	window.Ractive = Ractive;
+
 	return function () {
 
 		var fixture = document.getElementById( 'qunit-fixture' );
@@ -179,7 +181,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			expected = 2;
 			ractive.set( 'gup.foo.bar', { baz: 2 });
 		});
-		
+
 	};
 
 });

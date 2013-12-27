@@ -5,7 +5,7 @@ define([
 	warn,
 	interpolate
 ) {
-	
+
 	'use strict';
 
 	var Animation = function ( options ) {

@@ -42,7 +42,7 @@ define([
 		leadingWhitespace = /^\s+/,
 		trailingWhitespace = /\s+$/;
 
-	
+
 	ElementStub = function ( firstToken, parser, preserveWhitespace ) {
 		var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
 
@@ -70,7 +70,7 @@ define([
 
 		if ( firstToken.attrs ) {
 			filtered = filterAttributes( firstToken.attrs );
-			
+
 			attrs = filtered.attrs;
 			proxies = filtered.proxies;
 
@@ -100,7 +100,7 @@ define([
 				this.decorator = processDirective( filtered.decorator );
 			}
 		}
-		
+
 		if ( firstToken.doctype ) {
 			this.doctype = true;
 		}
@@ -130,7 +130,7 @@ define([
 			if ( next.mustacheType === types.CLOSING ) {
 				break;
 			}
-			
+
 			if ( next.type === types.TAG ) {
 
 				// closing tag
@@ -147,7 +147,7 @@ define([
 				else if ( this.siblings && ( this.siblings.indexOf( next.name.toLowerCase() ) !== -1 ) ) {
 					break;
 				}
-				
+
 			}
 
 			this.items[ this.items.length ] = parser.getStub();
@@ -184,7 +184,7 @@ define([
 
 	allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
 	closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
-	
+
 	onPattern = /^on[a-zA-Z]/;
 
 	sanitize = function ( attr ) {

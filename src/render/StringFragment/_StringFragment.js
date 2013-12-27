@@ -5,6 +5,7 @@ define([
 	'render/StringFragment/Interpolator',
 	'render/StringFragment/Section',
 	'render/StringFragment/Text',
+	'render/StringFragment/prototype/toArgsList',
 	'circular'
 ], function (
 	types,
@@ -13,9 +14,10 @@ define([
 	Interpolator,
 	Section,
 	Text,
+	toArgsList,
 	circular
 ) {
-	
+
 	'use strict';
 
 	var StringFragment = function ( options ) {
@@ -39,6 +41,7 @@ define([
 
 
 		bubble: function () {
+			this.dirty = true;
 			this.owner.bubble();
 		},
 
@@ -53,7 +56,7 @@ define([
 
 		getValue: function () {
 			var value;
-			
+
 			// Accommodate boolean attributes
 			if ( this.items.length === 1 && this.items[0].type === types.INTERPOLATOR ) {
 				value = this.items[0].value;
@@ -61,7 +64,7 @@ define([
 					return value;
 				}
 			}
-			
+
 			return this.toString();
 		},
 
@@ -106,11 +109,13 @@ define([
 
 			if ( typeof value === 'string' ) {
 				parsed = parseJSON( value );
-				value = parsed ? parsed.v : value;
+				value = parsed ? parsed.value : value;
 			}
 
 			return value;
-		}
+		},
+
+		toArgsList: toArgsList
 	};
 
 	circular.StringFragment = StringFragment;

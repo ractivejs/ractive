@@ -16,15 +16,10 @@ define([
 
 		mustache.root           = parentFragment.root;
 		mustache.contextStack   = parentFragment.contextStack;
-		
+
 		mustache.descriptor     = options.descriptor;
 		mustache.index          = options.index || 0;
 		mustache.priority       = parentFragment.priority;
-
-		// DOM only
-		if ( parentFragment.pNode ) {
-			mustache.pNode = parentFragment.pNode;
-		}
 
 		mustache.type = options.descriptor.t;
 
@@ -42,7 +37,7 @@ define([
 
 			else {
 				keypath = resolveRef( mustache.root, options.descriptor.r, mustache.contextStack );
-				if ( keypath ) {
+				if ( keypath !== undefined ) {
 					mustache.resolve( keypath );
 				} else {
 					mustache.ref = options.descriptor.r;
@@ -56,7 +51,7 @@ define([
 			mustache.expressionResolver = new ExpressionResolver( mustache );
 		}
 
-		// Special case - inverted sections 
+		// Special case - inverted sections
 		if ( mustache.descriptor.n && !mustache.hasOwnProperty( 'value' ) ) {
 			mustache.render( undefined );
 		}

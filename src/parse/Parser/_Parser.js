@@ -13,7 +13,7 @@ define([
 
 	jsonifyStubs
 ) {
-	
+
 	'use strict';
 
 	var Parser;

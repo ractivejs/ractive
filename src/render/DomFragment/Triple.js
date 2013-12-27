@@ -15,7 +15,7 @@ define([
 	insertHtml,
 	teardown
 ) {
-	
+
 	'use strict';
 
 	var DomTriple = function ( options, docFrag ) {
@@ -39,8 +39,10 @@ define([
 		resolve: resolveMustache,
 
 		detach: function () {
-			while ( this.nodes.length ) {
-				this.docFrag.appendChild( this.nodes.pop() );
+			var i = this.nodes.length;
+
+			while ( i-- ) {
+				this.docFrag.appendChild( this.nodes[i] );
 			}
 
 			return this.docFrag;
@@ -64,7 +66,7 @@ define([
 		},
 
 		render: function ( html ) {
-			var node;
+			var node, pNode;
 
 			if ( !this.nodes ) {
 				// looks like we're in a server environment...
@@ -78,21 +80,23 @@ define([
 				node.parentNode.removeChild( node );
 			}
 
-			if ( html === undefined ) {
+			if ( !html ) {
 				this.nodes = [];
 				return;
 			}
 
 			// get new nodes
-			this.nodes = insertHtml( html, this.pNode.tagName, this.docFrag );
+			pNode = this.parentFragment.pNode;
+
+			this.nodes = insertHtml( html, pNode.tagName, this.docFrag );
 
 			if ( !this.initialising ) {
-				this.pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+				pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
 		},
 
 		toString: function () {
-			return ( this.value !== undefined ? this.value : '' );
+			return ( this.value != undefined ? this.value : '' );
 		},
 
 		find: function ( selector ) {

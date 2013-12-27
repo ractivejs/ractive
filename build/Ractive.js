@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8 - 2013-12-21
+	Ractive - v0.3.9 - 2013-12-26
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -37,6 +37,13 @@
 
 
 
+var config_svg = function () {
+        
+        if (typeof document === 'undefined') {
+            return;
+        }
+        return document && document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1');
+    }();
 var utils_create = function () {
         
         var create;
@@ -63,6 +70,32 @@ var utils_create = function () {
         }
         return create;
     }();
+var config_namespaces = {
+        html: 'http://www.w3.org/1999/xhtml',
+        mathml: 'http://www.w3.org/1998/Math/MathML',
+        svg: 'http://www.w3.org/2000/svg',
+        xlink: 'http://www.w3.org/1999/xlink',
+        xml: 'http://www.w3.org/XML/1998/namespace',
+        xmlns: 'http://www.w3.org/2000/xmlns/'
+    };
+var utils_createElement = function (svg, namespaces) {
+        
+        if (!svg) {
+            return function (type, ns) {
+                if (ns && ns !== namespaces.html) {
+                    throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/RactiveJS/Ractive/wiki/SVG-and-older-browsers for more information';
+                }
+                return document.createElement(type);
+            };
+        } else {
+            return function (type, ns) {
+                if (!ns) {
+                    return document.createElement(type);
+                }
+                return document.createElementNS(ns, type);
+            };
+        }
+    }(config_svg, config_namespaces);
 var config_isClient = function () {
         
         if (typeof document === 'object') {
@@ -84,7 +117,7 @@ var utils_defineProperty = function (isClient) {
             };
         }
     }(config_isClient);
-var utils_defineProperties = function (defineProperty, isClient) {
+var utils_defineProperties = function (createElement, defineProperty, isClient) {
         
         try {
             try {
@@ -93,7 +126,7 @@ var utils_defineProperties = function (defineProperty, isClient) {
                 throw err;
             }
             if (isClient) {
-                Object.defineProperties(document.createElement('div'), { test: { value: 0 } });
+                Object.defineProperties(createElement('div'), { test: { value: 0 } });
             }
             return Object.defineProperties;
         } catch (err) {
@@ -106,12 +139,12 @@ var utils_defineProperties = function (defineProperty, isClient) {
                 }
             };
         }
-    }(utils_defineProperty, config_isClient);
+    }(utils_createElement, utils_defineProperty, config_isClient);
 var utils_normaliseKeypath = function () {
         
         var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
         return function (keypath) {
-            return keypath.replace(regex, '.$1');
+            return (keypath || '').replace(regex, '.$1');
         };
     }();
 var registries_adaptors = {};
@@ -128,6 +161,7 @@ var config_types = {
         DELIMCHANGE: 10,
         MUSTACHE: 11,
         TAG: 12,
+        ATTRIBUTE: 13,
         COMPONENT: 15,
         NUMBER_LITERAL: 20,
         STRING_LITERAL: 21,
@@ -235,6 +269,9 @@ var shared_makeTransitionManager = function () {
         
         var makeTransitionManager = function (root, callback) {
             var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
+            if (root._parent && root._parent._transitionManager) {
+                return root._parent._transitionManager;
+            }
             elementsToDetach = [];
             detachNodes = function () {
                 var i, element;
@@ -431,8 +468,8 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
         
         var arrayAdaptor, notifyArrayDependants, ArrayWrapper, patchArrayMethods, unpatchArrayMethods, patchedArrayProto, testObj, mutatorMethods, noop, errorMessage;
         arrayAdaptor = {
-            filter: function (ractive, object, keypath) {
-                return keypath.charAt(0) !== '(' && isArray(object) && (!object._ractive || !object._ractive.setting);
+            filter: function (object) {
+                return isArray(object) && (!object._ractive || !object._ractive.setting);
             },
             wrap: function (ractive, array, keypath) {
                 return new ArrayWrapper(ractive, array, keypath);
@@ -552,7 +589,7 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                     dependant = deps[k];
                     if (dependant.type === types.REFERENCE) {
                         dependant.update();
-                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode) {
+                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
                         smartUpdateQueue[smartUpdateQueue.length] = dependant;
                     } else {
                         dumbUpdateQueue[dumbUpdateQueue.length] = dependant;
@@ -644,6 +681,9 @@ var Ractive_prototype_get_magicAdaptor = function () {
             return false;
         }
         magicAdaptor = {
+            filter: function (object, keypath) {
+                return !!keypath;
+            },
             wrap: function (ractive, object, keypath) {
                 return new MagicWrapper(ractive, object, keypath);
             }
@@ -655,11 +695,11 @@ var Ractive_prototype_get_magicAdaptor = function () {
             keys = keypath.split('.');
             this.prop = keys.pop();
             objKeypath = keys.join('.');
-            this.obj = ractive.get(objKeypath);
+            this.obj = objKeypath ? ractive.get(objKeypath) : ractive.data;
             descriptor = this.originalDescriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
             if (descriptor && descriptor.set && (wrappers = descriptor.set._ractiveWrappers)) {
                 if (wrappers.indexOf(this) === -1) {
-                    wrappers[wrappers.length] = this;
+                    wrappers.push(this);
                 }
                 return;
             }
@@ -703,7 +743,6 @@ var Ractive_prototype_get_magicAdaptor = function () {
             reset: function (value) {
                 this.resetting = true;
                 this.value = value;
-                this.obj[this.prop] = value;
                 this.resetting = false;
             },
             teardown: function () {
@@ -714,22 +753,86 @@ var Ractive_prototype_get_magicAdaptor = function () {
                 wrappers.splice(wrappers.indexOf(this), 1);
                 if (!wrappers.length) {
                     value = this.obj[this.prop];
-                    Object.defineProperty(this.obj, this.prop, this.originalDescriptor);
+                    Object.defineProperty(this.obj, this.prop, this.originalDescriptor || {
+                        writable: true,
+                        enumerable: true,
+                        configrable: true
+                    });
                     this.obj[this.prop] = value;
                 }
             }
         };
         return magicAdaptor;
     }();
-var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, arrayAdaptor, magicAdaptor) {
+var shared_adaptIfNecessary = function (adaptorRegistry, arrayAdaptor, magicAdaptor) {
         
-        var get, _get, retrieve, prefix, getPrefixer, prefixers = {}, adaptIfNecessary;
+        var prefixers = {};
+        return function (ractive, keypath, value, isExpressionResult) {
+            var len, i, adaptor, wrapped;
+            len = ractive.adaptors.length;
+            for (i = 0; i < len; i += 1) {
+                adaptor = ractive.adaptors[i];
+                if (typeof adaptor === 'string') {
+                    if (!adaptorRegistry[adaptor]) {
+                        throw new Error('Missing adaptor "' + adaptor + '"');
+                    }
+                    adaptor = ractive.adaptors[i] = adaptorRegistry[adaptor];
+                }
+                if (adaptor.filter(value, keypath, ractive)) {
+                    wrapped = ractive._wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
+                    wrapped.value = value;
+                    return;
+                }
+            }
+            if (!isExpressionResult) {
+                if (ractive.magic && magicAdaptor.filter(value, keypath, ractive)) {
+                    ractive._wrapped[keypath] = magicAdaptor.wrap(ractive, value, keypath);
+                } else if (ractive.modifyArrays && arrayAdaptor.filter(value, keypath, ractive)) {
+                    ractive._wrapped[keypath] = arrayAdaptor.wrap(ractive, value, keypath);
+                }
+            }
+        };
+        function prefixKeypath(obj, prefix) {
+            var prefixed = {}, key;
+            if (!prefix) {
+                return obj;
+            }
+            prefix += '.';
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    prefixed[prefix + key] = obj[key];
+                }
+            }
+            return prefixed;
+        }
+        function getPrefixer(rootKeypath) {
+            var rootDot;
+            if (!prefixers[rootKeypath]) {
+                rootDot = rootKeypath ? rootKeypath + '.' : '';
+                prefixers[rootKeypath] = function (relativeKeypath, value) {
+                    var obj;
+                    if (typeof relativeKeypath === 'string') {
+                        obj = {};
+                        obj[rootDot + relativeKeypath] = value;
+                        return obj;
+                    }
+                    if (typeof relativeKeypath === 'object') {
+                        return rootDot ? prefixKeypath(relativeKeypath, rootKeypath) : relativeKeypath;
+                    }
+                };
+            }
+            return prefixers[rootKeypath];
+        }
+    }(registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
+var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary) {
+        
+        var get, _get, retrieve;
         get = function (keypath) {
             return _get(this, keypath);
         };
         _get = function (ractive, keypath) {
             var cache, cached, value, wrapped, evaluator;
-            keypath = normaliseKeypath(keypath || '');
+            keypath = normaliseKeypath(keypath);
             cache = ractive._cache;
             if ((cached = cache[keypath]) !== undefined) {
                 return cached;
@@ -767,71 +870,12 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ar
                 }
             }
             value = parentValue[key];
-            if (adaptIfNecessary(ractive, keypath, value)) {
-                return value;
-            }
-            if (ractive.magic) {
-                ractive._wrapped[keypath] = magicAdaptor.wrap(ractive, value, keypath);
-            }
-            if (ractive.modifyArrays) {
-                if (arrayAdaptor.filter(ractive, value, keypath)) {
-                    ractive._wrapped[keypath] = arrayAdaptor.wrap(ractive, value, keypath);
-                }
-            }
+            adaptIfNecessary(ractive, keypath, value);
             ractive._cache[keypath] = value;
             return value;
         };
-        prefix = function (obj, prefix) {
-            var prefixed = {}, key;
-            if (!prefix) {
-                return obj;
-            }
-            prefix += '.';
-            for (key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    prefixed[prefix + key] = obj[key];
-                }
-            }
-            return prefixed;
-        };
-        getPrefixer = function (rootKeypath) {
-            var rootDot;
-            if (!prefixers[rootKeypath]) {
-                rootDot = rootKeypath ? rootKeypath + '.' : '';
-                prefixers[rootKeypath] = function (relativeKeypath, value) {
-                    var obj;
-                    if (typeof relativeKeypath === 'string') {
-                        obj = {};
-                        obj[rootDot + relativeKeypath] = value;
-                        return obj;
-                    }
-                    if (typeof relativeKeypath === 'object') {
-                        return rootDot ? prefix(relativeKeypath, rootKeypath) : relativeKeypath;
-                    }
-                };
-            }
-            return prefixers[rootKeypath];
-        };
-        adaptIfNecessary = function (ractive, keypath, value) {
-            var i, adaptor, wrapped;
-            i = ractive.adaptors.length;
-            while (i--) {
-                adaptor = ractive.adaptors[i];
-                if (typeof adaptor === 'string') {
-                    if (!adaptorRegistry[adaptor]) {
-                        throw new Error('Missing adaptor "' + adaptor + '"');
-                    }
-                    adaptor = ractive.adaptors[i] = adaptorRegistry[adaptor];
-                }
-                if (adaptor.filter(value, keypath, ractive)) {
-                    wrapped = ractive._wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
-                    ractive._cache[keypath] = value;
-                    return true;
-                }
-            }
-        };
         return get;
-    }(utils_normaliseKeypath, registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
+    }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary);
 var utils_isObject = function () {
         
         var toString = Object.prototype.toString;
@@ -855,15 +899,14 @@ var shared_resolveRef = function () {
         
         var resolveRef;
         resolveRef = function (ractive, ref, contextStack) {
-            var keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, keypath, context, ancestorErrorMessage;
+            var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context, ancestorErrorMessage;
             ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
             if (ref === '.') {
                 if (!contextStack.length) {
                     return '';
                 }
-                return contextStack[contextStack.length - 1];
-            }
-            if (ref.charAt(0) === '.') {
+                keypath = contextStack[contextStack.length - 1];
+            } else if (ref.charAt(0) === '.') {
                 context = contextStack[contextStack.length - 1];
                 contextKeys = context ? context.split('.') : [];
                 if (ref.substr(0, 3) === '../') {
@@ -875,33 +918,34 @@ var shared_resolveRef = function () {
                         ref = ref.substring(3);
                     }
                     contextKeys.push(ref);
-                    return contextKeys.join('.');
+                    keypath = contextKeys.join('.');
+                } else if (!context) {
+                    keypath = ref.substring(1);
+                } else {
+                    keypath = context + ref;
                 }
-                if (!context) {
-                    return ref.substring(1);
+            } else {
+                keys = ref.split('.');
+                lastKey = keys.pop();
+                postfix = keys.length ? '.' + keys.join('.') : '';
+                contextStack = contextStack.concat();
+                while (contextStack.length) {
+                    innerMostContext = contextStack.pop();
+                    parentKeypath = innerMostContext + postfix;
+                    parentValue = ractive.get(parentKeypath);
+                    if (wrapped = ractive._wrapped[parentKeypath]) {
+                        parentValue = wrapped.get();
+                    }
+                    if (typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty(lastKey)) {
+                        keypath = innerMostContext + '.' + ref;
+                        break;
+                    }
                 }
-                return context + ref;
+                if (!keypath && ractive.get(ref) !== undefined) {
+                    keypath = ref;
+                }
             }
-            keys = ref.split('.');
-            lastKey = keys.pop();
-            postfix = keys.length ? '.' + keys.join('.') : '';
-            contextStack = contextStack.concat();
-            while (contextStack.length) {
-                innerMostContext = contextStack.pop();
-                parentKeypath = innerMostContext + postfix;
-                parentValue = ractive.get(parentKeypath);
-                if (wrapped = ractive._wrapped[parentKeypath]) {
-                    parentValue = wrapped.get();
-                }
-                if (typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty(lastKey)) {
-                    keypath = innerMostContext + '.' + ref;
-                    break;
-                }
-            }
-            if (!keypath && ractive.get(ref) !== undefined) {
-                keypath = ref;
-            }
-            return keypath;
+            return keypath ? keypath.replace(/^\./, '') : keypath;
         };
         return resolveRef;
     }();
@@ -953,7 +997,7 @@ var Ractive_prototype_shared_replaceData = function () {
                     }
                     obj = wrapped.get();
                 } else {
-                    if (!obj[key]) {
+                    if (!obj.hasOwnProperty(key)) {
                         if (!keypathToClear) {
                             keypathToClear = currentKeypath;
                         }
@@ -1018,15 +1062,18 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             return this;
         };
         updateModel = function (ractive, keypath, value, changes) {
-            var cached, previous, wrapped, keypathToClear;
+            var cached, previous, wrapped, keypathToClear, evaluator;
             if ((wrapped = ractive._wrapped[keypath]) && wrapped.reset) {
                 if (resetWrapped(ractive, keypath, value, wrapped, changes) !== false) {
                     return;
                 }
             }
+            if (evaluator = ractive._evaluators[keypath]) {
+                evaluator.value = value;
+            }
             cached = ractive._cache[keypath];
             previous = ractive.get(keypath);
-            if (previous !== value) {
+            if (previous !== value && !evaluator) {
                 keypathToClear = replaceData(ractive, keypath, value);
             } else {
                 if (value === cached && typeof value !== 'object') {
@@ -1607,6 +1654,10 @@ var shared_registerDependant = function () {
             depsByKeypath = ractive._deps[priority] || (ractive._deps[priority] = {});
             deps = depsByKeypath[keypath] || (depsByKeypath[keypath] = []);
             deps[deps.length] = dependant;
+            dependant.registered = true;
+            if (!keypath) {
+                return;
+            }
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
@@ -1630,10 +1681,14 @@ var shared_unregisterDependant = function () {
             priority = dependant.priority;
             deps = ractive._deps[priority][keypath];
             index = deps.indexOf(dependant);
-            if (index === -1) {
+            if (index === -1 || !dependant.registered) {
                 throw new Error('Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks');
             }
             deps.splice(index, 1);
+            dependant.registered = false;
+            if (!keypath) {
+                return;
+            }
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
@@ -1896,13 +1951,13 @@ var Ractive_prototype_find = function () {
             return this.fragment.find(selector);
         };
     }();
-var utils_matches = function (isClient) {
+var utils_matches = function (isClient, createElement) {
         
         var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
         if (!isClient) {
             return;
         }
-        div = document.createElement('div');
+        div = createElement('div');
         methodNames = [
             'matches',
             'matchesSelector'
@@ -1943,37 +1998,25 @@ var utils_matches = function (isClient) {
             }
             return false;
         };
-    }(config_isClient);
-var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
+    }(config_isClient, utils_createElement);
+var Ractive_prototype_shared_makeQuery_test = function (matches) {
         
-        var makeQuery, cancelQuery, sortQuery, dirtyQuery, testNode, removeNode, comparePosition;
-        makeQuery = function (ractive, selector, live) {
-            var query;
-            query = [];
-            defineProperties(query, {
-                selector: { value: selector },
-                live: { value: live },
-                _test: { value: testNode }
-            });
-            if (!live) {
-                return query;
+        return function (item, noDirty) {
+            var itemMatches = this._isComponentQuery ? !this.selector || item.name === this.selector : matches(item.node, this.selector);
+            if (itemMatches) {
+                this.push(item.node || item.instance);
+                if (!noDirty) {
+                    this._makeDirty();
+                }
+                return true;
             }
-            defineProperties(query, {
-                cancel: { value: cancelQuery },
-                _root: { value: ractive },
-                _sort: { value: sortQuery },
-                _dirty: {
-                    value: false,
-                    writable: true
-                },
-                _makeDirty: { value: dirtyQuery },
-                _remove: { value: removeNode }
-            });
-            return query;
         };
-        cancelQuery = function () {
+    }(utils_matches);
+var Ractive_prototype_shared_makeQuery_cancel = function () {
+        
+        return function () {
             var liveQueries, selector, index;
-            liveQueries = this._root.liveQueries;
+            liveQueries = this._root[this._isComponentQuery ? 'liveComponentQueries' : 'liveQueries'];
             selector = this.selector;
             index = liveQueries.indexOf(selector);
             if (index !== -1) {
@@ -1981,35 +2024,124 @@ var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
                 liveQueries[selector] = null;
             }
         };
-        dirtyQuery = function () {
+    }();
+var Ractive_prototype_shared_makeQuery_sortByItemPosition = function () {
+        
+        return function (a, b) {
+            var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
+            ancestryA = getAncestry(a.component || a._ractive.proxy);
+            ancestryB = getAncestry(b.component || b._ractive.proxy);
+            oldestA = ancestryA[ancestryA.length - 1];
+            oldestB = ancestryB[ancestryB.length - 1];
+            while (oldestA && oldestA === oldestB) {
+                ancestryA.pop();
+                ancestryB.pop();
+                mutualAncestor = oldestA;
+                oldestA = ancestryA[ancestryA.length - 1];
+                oldestB = ancestryB[ancestryB.length - 1];
+            }
+            oldestA = oldestA.component || oldestA;
+            oldestB = oldestB.component || oldestB;
+            fragmentA = oldestA.parentFragment;
+            fragmentB = oldestB.parentFragment;
+            if (fragmentA === fragmentB) {
+                indexA = fragmentA.items.indexOf(oldestA);
+                indexB = fragmentB.items.indexOf(oldestB);
+                return indexA - indexB || ancestryA.length - ancestryB.length;
+            }
+            if (fragments = mutualAncestor.fragments) {
+                indexA = fragments.indexOf(fragmentA);
+                indexB = fragments.indexOf(fragmentB);
+                return indexA - indexB || ancestryA.length - ancestryB.length;
+            }
+            throw new Error('An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!');
+        };
+        function getParent(item) {
+            var parentFragment;
+            if (parentFragment = item.parentFragment) {
+                return parentFragment.owner;
+            }
+            if (item.component && (parentFragment = item.component.parentFragment)) {
+                return parentFragment.owner;
+            }
+        }
+        function getAncestry(item) {
+            var ancestry, ancestor;
+            ancestry = [item];
+            ancestor = getParent(item);
+            while (ancestor) {
+                ancestry.push(ancestor);
+                ancestor = getParent(ancestor);
+            }
+            return ancestry;
+        }
+    }();
+var Ractive_prototype_shared_makeQuery_sortByDocumentPosition = function (sortByItemPosition) {
+        
+        return function (node, otherNode) {
+            var bitmask;
+            if (node.compareDocumentPosition) {
+                bitmask = node.compareDocumentPosition(otherNode);
+                return bitmask & 2 ? 1 : -1;
+            }
+            return sortByItemPosition(node, otherNode);
+        };
+    }(Ractive_prototype_shared_makeQuery_sortByItemPosition);
+var Ractive_prototype_shared_makeQuery_sort = function (sortByDocumentPosition, sortByItemPosition) {
+        
+        return function () {
+            this.sort(this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition);
+            this._dirty = false;
+        };
+    }(Ractive_prototype_shared_makeQuery_sortByDocumentPosition, Ractive_prototype_shared_makeQuery_sortByItemPosition);
+var Ractive_prototype_shared_makeQuery_dirty = function () {
+        
+        return function () {
             if (!this._dirty) {
                 this._root._deferred.liveQueries.push(this);
                 this._dirty = true;
             }
         };
-        sortQuery = function () {
-            this.sort(comparePosition);
-            this._dirty = false;
-        };
-        comparePosition = function (node, otherNode) {
-            var bitmask = node.compareDocumentPosition(otherNode);
-            return bitmask & 2 ? 1 : -1;
-        };
-        testNode = function (node, noDirty) {
-            if (matches(node, this.selector)) {
-                this.push(node);
-                if (!noDirty) {
-                    this._makeDirty();
-                }
-                return true;
-            }
-        };
-        removeNode = function (node) {
-            var index = this.indexOf(node);
+    }();
+var Ractive_prototype_shared_makeQuery_remove = function () {
+        
+        return function (item) {
+            var index = this.indexOf(this._isComponentQuery ? item.instance : item.node);
             if (index !== -1) {
                 this.splice(index, 1);
             }
         };
+    }();
+var Ractive_prototype_shared_makeQuery__makeQuery = function (defineProperties, test, cancel, sort, dirty, remove) {
+        
+        return function (ractive, selector, live, isComponentQuery) {
+            var query;
+            query = [];
+            defineProperties(query, {
+                selector: { value: selector },
+                live: { value: live },
+                _isComponentQuery: { value: isComponentQuery },
+                _test: { value: test }
+            });
+            if (!live) {
+                return query;
+            }
+            defineProperties(query, {
+                cancel: { value: cancel },
+                _root: { value: ractive },
+                _sort: { value: sort },
+                _makeDirty: { value: dirty },
+                _remove: { value: remove },
+                _dirty: {
+                    value: false,
+                    writable: true
+                }
+            });
+            return query;
+        };
+    }(utils_defineProperties, Ractive_prototype_shared_makeQuery_test, Ractive_prototype_shared_makeQuery_cancel, Ractive_prototype_shared_makeQuery_sort, Ractive_prototype_shared_makeQuery_dirty, Ractive_prototype_shared_makeQuery_remove);
+var Ractive_prototype_findAll = function (warn, matches, defineProperties, makeQuery) {
+        
         return function (selector, options) {
             var liveQueries, query;
             if (!this.el) {
@@ -2020,15 +2152,39 @@ var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
             if (query = liveQueries[selector]) {
                 return options && options.live ? query : query.slice();
             }
-            query = makeQuery(this, selector, !!options.live);
+            query = makeQuery(this, selector, !!options.live, false);
             if (query.live) {
-                this._liveQueries.push(selector);
-                this._liveQueries[selector] = query;
+                liveQueries.push(selector);
+                liveQueries[selector] = query;
             }
             this.fragment.findAll(selector, query);
             return query;
         };
-    }(utils_warn, utils_matches, utils_defineProperties);
+    }(utils_warn, utils_matches, utils_defineProperties, Ractive_prototype_shared_makeQuery__makeQuery);
+var Ractive_prototype_findComponent = function () {
+        
+        return function (selector) {
+            return this.fragment.findComponent(selector);
+        };
+    }();
+var Ractive_prototype_findAllComponents = function (warn, matches, defineProperties, makeQuery) {
+        
+        return function (selector, options) {
+            var liveQueries, query;
+            options = options || {};
+            liveQueries = this._liveComponentQueries;
+            if (query = liveQueries[selector]) {
+                return options && options.live ? query : query.slice();
+            }
+            query = makeQuery(this, selector, !!options.live, true);
+            if (query.live) {
+                liveQueries.push(selector);
+                liveQueries[selector] = query;
+            }
+            this.fragment.findAllComponents(selector, query);
+            return query;
+        };
+    }(utils_warn, utils_matches, utils_defineProperties, Ractive_prototype_shared_makeQuery__makeQuery);
 var utils_getElement = function () {
         
         return function (input) {
@@ -2093,20 +2249,22 @@ var render_shared_initFragment = function (types, create) {
             }
         };
     }(config_types, utils_create);
-var render_DomFragment_shared_insertHtml = function () {
+var render_DomFragment_shared_insertHtml = function (createElement) {
         
         var elementCache = {};
         return function (html, tagName, docFrag) {
             var container, nodes = [];
-            container = elementCache[tagName] || (elementCache[tagName] = document.createElement(tagName));
-            container.innerHTML = html;
-            while (container.firstChild) {
-                nodes[nodes.length] = container.firstChild;
-                docFrag.appendChild(container.firstChild);
+            if (html) {
+                container = elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
+                container.innerHTML = html;
+                while (container.firstChild) {
+                    nodes[nodes.length] = container.firstChild;
+                    docFrag.appendChild(container.firstChild);
+                }
             }
             return nodes;
         };
-    }();
+    }(utils_createElement);
 var render_DomFragment_Text = function (types) {
         
         var DomText, lessThan, greaterThan;
@@ -2117,7 +2275,6 @@ var render_DomFragment_Text = function (types) {
             this.descriptor = options.descriptor;
             if (docFrag) {
                 this.node = document.createTextNode(options.descriptor);
-                this.pNode = options.parentFragment.pNode;
                 docFrag.appendChild(this.node);
             }
         };
@@ -2167,7 +2324,7 @@ var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty
             this.priority = priority;
             value = root.get(keypath);
             if (typeof value === 'function') {
-                value = value._wrapped || wrapFunction(value, root, evaluator);
+                value = value['_' + root._guid] || wrapFunction(value, root, evaluator);
             }
             this.value = evaluator.values[argNum] = value;
             registerDependant(this);
@@ -2249,7 +2406,7 @@ var render_shared_Evaluator_SoftReference = function (isEqual, registerDependant
         };
         return SoftReference;
     }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, Reference, SoftReference) {
+var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference) {
         
         var Evaluator, cache = {};
         Evaluator = function (root, keypath, functionStr, args, priority) {
@@ -2302,8 +2459,9 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
                 if (!isEqual(value, this.value)) {
                     clearCache(this.root, this.keypath);
                     this.root._cache[this.keypath] = value;
-                    notifyDependants(this.root, this.keypath);
+                    adaptIfNecessary(this.root, this.keypath, value, true);
                     this.value = value;
+                    notifyDependants(this.root, this.keypath);
                 }
                 this.evaluating = false;
                 return this;
@@ -2369,10 +2527,10 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
             cache[str] = fn;
             return fn;
         }
-    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
-var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator) {
+    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
+var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, teardown, Evaluator) {
         
-        var ExpressionResolver, ReferenceScout, getKeypath;
+        var ExpressionResolver, ReferenceScout, getKeypath, keyPattern, isRegularKeypath;
         ExpressionResolver = function (mustache) {
             var expression, i, len, ref, indexRefs;
             this.root = mustache.root;
@@ -2405,7 +2563,9 @@ var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator
                     return;
                 }
                 this.keypath = getKeypath(this.str, this.args);
-                this.createEvaluator();
+                if (this.keypath.charAt(0) === '(') {
+                    this.createEvaluator();
+                }
                 this.mustache.resolve(this.keypath);
             },
             teardown: function () {
@@ -2433,7 +2593,7 @@ var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator
             var keypath, root;
             root = this.root = resolver.root;
             keypath = resolveRef(root, ref, contextStack);
-            if (keypath) {
+            if (keypath !== undefined) {
                 resolver.resolveRef(argNum, false, keypath);
             } else {
                 this.ref = ref;
@@ -2454,15 +2614,32 @@ var render_shared_ExpressionResolver = function (resolveRef, teardown, Evaluator
                 }
             }
         };
+        keyPattern = /^(?:(?:[a-zA-Z$_][a-zA-Z$_0-9]*)|(?:[0-9]|[1-9][0-9]+))$/;
+        isRegularKeypath = function (keypath) {
+            var keys, key, i;
+            keys = keypath.split('.');
+            i = keys.length;
+            while (i--) {
+                key = keys[i];
+                if (key === 'undefined' || !keyPattern.test(key)) {
+                    return false;
+                }
+            }
+            return true;
+        };
         getKeypath = function (str, args) {
-            var unique;
+            var unique, normalised;
             unique = str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
                 return args[$1] ? args[$1][1] : 'undefined';
             });
+            normalised = normaliseKeypath(unique);
+            if (isRegularKeypath(normalised)) {
+                return normalised;
+            }
             return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
         };
         return ExpressionResolver;
-    }(shared_resolveRef, shared_teardown, render_shared_Evaluator__Evaluator);
+    }(utils_normaliseKeypath, shared_resolveRef, shared_teardown, render_shared_Evaluator__Evaluator);
 var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
@@ -2473,9 +2650,6 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
             mustache.descriptor = options.descriptor;
             mustache.index = options.index || 0;
             mustache.priority = parentFragment.priority;
-            if (parentFragment.pNode) {
-                mustache.pNode = parentFragment.pNode;
-            }
             mustache.type = options.descriptor.t;
             if (options.descriptor.r) {
                 if (parentFragment.indexRefs && parentFragment.indexRefs[options.descriptor.r] !== undefined) {
@@ -2485,7 +2659,7 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
                     mustache.render(mustache.value);
                 } else {
                     keypath = resolveRef(mustache.root, options.descriptor.r, mustache.contextStack);
-                    if (keypath) {
+                    if (keypath !== undefined) {
                         mustache.resolve(keypath);
                     } else {
                         mustache.ref = options.descriptor.r;
@@ -2501,28 +2675,34 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
             }
         };
     }(shared_resolveRef, render_shared_ExpressionResolver);
-var render_shared_resolveMustache = function (registerDependant, unregisterDependant) {
+var render_shared_resolveMustache = function (types, registerDependant, unregisterDependant) {
         
         return function (keypath) {
             if (keypath === this.keypath) {
                 return;
             }
-            if (this.resolved) {
+            if (this.registered) {
                 unregisterDependant(this);
             }
             this.keypath = keypath;
             registerDependant(this);
             this.update();
+            if (this.root.twoway && this.parentFragment.owner.type === types.ATTRIBUTE) {
+                this.parentFragment.owner.element.bind();
+            }
             if (this.expressionResolver && this.expressionResolver.resolved) {
                 this.expressionResolver = null;
             }
-            this.resolved = true;
         };
-    }(shared_registerDependant, shared_unregisterDependant);
+    }(config_types, shared_registerDependant, shared_unregisterDependant);
 var render_shared_updateMustache = function (isEqual) {
         
         return function () {
-            var value = this.root.get(this.keypath, true);
+            var wrapped, value;
+            value = this.root.get(this.keypath);
+            if (wrapped = this.root._wrapped[this.keypath]) {
+                value = wrapped.get();
+            }
             if (!isEqual(value, this.value)) {
                 this.render(value);
                 this.value = value;
@@ -2557,7 +2737,7 @@ var render_DomFragment_Interpolator = function (types, teardown, initMustache, r
             },
             render: function (value) {
                 if (this.node) {
-                    this.node.data = value === undefined ? '' : value;
+                    this.node.data = value == undefined ? '' : value;
                 }
             },
             firstNode: function () {
@@ -2577,7 +2757,7 @@ var render_shared_updateSection = function (isArray, isObject, create) {
             fragmentOptions = {
                 descriptor: section.descriptor.f,
                 root: section.root,
-                pNode: section.pNode,
+                pNode: section.parentFragment.pNode,
                 owner: section
             };
             if (section.descriptor.n) {
@@ -2677,7 +2857,7 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
         
         return reassignFragment;
         function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
-            var i, item, context;
+            var i, item, context, query;
             if (fragment.html) {
                 return;
             }
@@ -2700,6 +2880,12 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
                     break;
                 case types.PARTIAL:
                     reassignFragment(item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    break;
+                case types.COMPONENT:
+                    reassignFragment(item.instance.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
+                    if (query = fragment.root._liveComponentQueries[item.name]) {
+                        query._makeDirty();
+                    }
                     break;
                 case types.SECTION:
                 case types.INTERPOLATOR:
@@ -2806,7 +2992,8 @@ var render_DomFragment_Section_reassignFragments = function (types, reassignFrag
 var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
         
         return function (newIndices) {
-            var section = this, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
+            var section = this, parentFragment, firstChange, changed, i, newLength, newFragments, toTeardown, fragmentOptions, fragment, nextNode;
+            parentFragment = this.parentFragment;
             newFragments = [];
             newIndices.forEach(function (newIndex, oldIndex) {
                 var by, oldKeypath, newKeypath;
@@ -2843,7 +3030,7 @@ var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
             fragmentOptions = {
                 descriptor: this.descriptor.f,
                 root: this.root,
-                pNode: this.pNode,
+                pNode: parentFragment.pNode,
                 owner: this
             };
             if (this.descriptor.i) {
@@ -2859,8 +3046,8 @@ var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
                 }
                 this.fragments[i] = fragment;
             }
-            nextNode = this.parentFragment.findNextNode(this);
-            this.pNode.insertBefore(this.docFrag, nextNode);
+            nextNode = parentFragment.findNextNode(this);
+            parentFragment.pNode.insertBefore(this.docFrag, nextNode);
             this.length = newLength;
         };
     }(render_DomFragment_Section_reassignFragment);
@@ -2898,7 +3085,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     fragmentOptions = {
                         descriptor: this.descriptor.f,
                         root: this.root,
-                        pNode: this.pNode,
+                        pNode: this.parentFragment.pNode,
                         owner: this
                     };
                     if (this.descriptor.i) {
@@ -2906,7 +3093,9 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     }
                 }
                 if (this[methodName]) {
+                    this.rendering = true;
                     this[methodName](fragmentOptions, args);
+                    this.rendering = false;
                 }
             },
             pop: function () {
@@ -2925,7 +3114,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                     this.fragments[i] = this.createFragment(fragmentOptions);
                 }
                 this.length += args.length;
-                this.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
+                this.parentFragment.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
             },
             shift: function () {
                 this.splice(null, [
@@ -2971,7 +3160,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                         fragmentOptions.index = i;
                         this.fragments[i] = this.createFragment(fragmentOptions);
                     }
-                    this.pNode.insertBefore(this.docFrag, insertionPoint);
+                    this.parentFragment.pNode.insertBefore(this.docFrag, insertionPoint);
                 }
                 this.length += balance;
                 reassignStart = start + addedItems;
@@ -3003,9 +3192,9 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 return this.parentFragment.findNextNode(this);
             },
             teardownFragments: function (destroy) {
-                var id;
-                while (this.fragments.length) {
-                    this.fragments.shift().teardown(destroy);
+                var id, fragment;
+                while (fragment = this.fragments.shift()) {
+                    fragment.teardown(destroy);
                 }
                 if (this.fragmentsById) {
                     for (id in this.fragmentsById) {
@@ -3032,10 +3221,10 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 }
                 if (!this.initialising && isClient) {
                     nextNode = this.parentFragment.findNextNode(this);
-                    if (nextNode && nextNode.parentNode === this.pNode) {
-                        this.pNode.insertBefore(this.docFrag, nextNode);
+                    if (nextNode && nextNode.parentNode === this.parentFragment.pNode) {
+                        this.parentFragment.pNode.insertBefore(this.docFrag, nextNode);
                     } else {
-                        this.pNode.appendChild(this.docFrag);
+                        this.parentFragment.pNode.appendChild(this.docFrag);
                     }
                 }
             },
@@ -3073,11 +3262,28 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
                 }
                 return null;
             },
-            findAll: function (selector, queryResult) {
+            findAll: function (selector, query) {
                 var i, len;
                 len = this.fragments.length;
                 for (i = 0; i < len; i += 1) {
-                    this.fragments[i].findAll(selector, queryResult);
+                    this.fragments[i].findAll(selector, query);
+                }
+            },
+            findComponent: function (selector) {
+                var i, len, queryResult;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    if (queryResult = this.fragments[i].findComponent(selector)) {
+                        return queryResult;
+                    }
+                }
+                return null;
+            },
+            findAllComponents: function (selector, query) {
+                var i, len;
+                len = this.fragments.length;
+                for (i = 0; i < len; i += 1) {
+                    this.fragments[i].findAllComponents(selector, query);
                 }
             }
         };
@@ -3102,8 +3308,9 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
             update: updateMustache,
             resolve: resolveMustache,
             detach: function () {
-                while (this.nodes.length) {
-                    this.docFrag.appendChild(this.nodes.pop());
+                var i = this.nodes.length;
+                while (i--) {
+                    this.docFrag.appendChild(this.nodes[i]);
                 }
                 return this.docFrag;
             },
@@ -3121,7 +3328,7 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                 return this.parentFragment.findNextNode(this);
             },
             render: function (html) {
-                var node;
+                var node, pNode;
                 if (!this.nodes) {
                     return;
                 }
@@ -3129,17 +3336,18 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                     node = this.nodes.pop();
                     node.parentNode.removeChild(node);
                 }
-                if (html === undefined) {
+                if (!html) {
                     this.nodes = [];
                     return;
                 }
-                this.nodes = insertHtml(html, this.pNode.tagName, this.docFrag);
+                pNode = this.parentFragment.pNode;
+                this.nodes = insertHtml(html, pNode.tagName, this.docFrag);
                 if (!this.initialising) {
-                    this.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
+                    pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
                 }
             },
             toString: function () {
-                return this.value !== undefined ? this.value : '';
+                return this.value != undefined ? this.value : '';
             },
             find: function (selector) {
                 var i, len, node, queryResult;
@@ -3180,14 +3388,6 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
         };
         return DomTriple;
     }(config_types, utils_matches, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_DomFragment_shared_insertHtml, shared_teardown);
-var config_namespaces = {
-        html: 'http://www.w3.org/1999/xhtml',
-        mathml: 'http://www.w3.org/1998/Math/MathML',
-        svg: 'http://www.w3.org/2000/svg',
-        xlink: 'http://www.w3.org/1999/xlink',
-        xml: 'http://www.w3.org/XML/1998/namespace',
-        xmlns: 'http://www.w3.org/2000/xmlns/'
-    };
 var render_DomFragment_Element_initialise_getElementNamespace = function (namespaces) {
         
         return function (descriptor, parentNode) {
@@ -3299,7 +3499,7 @@ var render_DomFragment_Attribute_helpers_determinePropertyName = function (names
             }
         };
     }(config_namespaces);
-var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
+var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayContentsMatch, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
@@ -3317,7 +3517,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             if (!binding) {
                 return false;
             }
-            node._ractive.binding = binding;
+            node._ractive.binding = this.element.binding = binding;
             this.twoway = true;
             bindings = this.root._twowayBindings[this.keypath] || (this.root._twowayBindings[this.keypath] = []);
             bindings[bindings.length] = binding;
@@ -3331,7 +3531,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             this.value = value == undefined ? '' : value;
         };
         getInterpolator = function (attribute) {
-            var item;
+            var item, errorMessage;
             if (attribute.fragment.items.length !== 1) {
                 return null;
             }
@@ -3342,9 +3542,10 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             if (!item.keypath && !item.ref) {
                 return null;
             }
-            if (item.descriptor.x) {
+            if (item.keypath && item.keypath.charAt(0) === '(') {
+                errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
                 if (attribute.root.debug) {
-                    throw new Error('You cannot set up two-way binding against an expression');
+                    warn(errorMessage);
                 }
                 return null;
             }
@@ -3440,9 +3641,6 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             },
             update: function () {
                 var value = this.value();
-                if (isNumeric(value)) {
-                    value = +value;
-                }
                 this.attr.receiving = true;
                 this.attr.value = value;
                 this.root.set(this.keypath, value);
@@ -3471,7 +3669,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             }
             valueFromModel = this.root.get(this.keypath);
             if (valueFromModel !== undefined) {
-                node.checked = valueFromModel === node._ractive.value;
+                node.checked = valueFromModel == node._ractive.value;
             } else {
                 this.root._deferred.radios.push(this);
             }
@@ -3624,7 +3822,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             binding.keypath = attribute.keypath;
         };
         return bindAttribute;
-    }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
+    }(config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes);
 var render_DomFragment_Attribute_prototype_update = function (isArray, namespaces) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
@@ -3710,7 +3908,7 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             var node, value;
             node = this.pNode;
             value = this.fragment.getValue();
-            node.checked = value === node._ractive.value;
+            node.checked = value == node._ractive.value;
             return this;
         };
         updateCheckboxName = function () {
@@ -3718,7 +3916,7 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             node = this.pNode;
             value = this.fragment.getValue();
             if (!isArray(value)) {
-                node.checked = value === node._ractive.value;
+                node.checked = value == node._ractive.value;
                 return this;
             }
             node.checked = value.indexOf(node._ractive.value) !== -1;
@@ -3951,7 +4149,7 @@ var parse_Tokenizer_getExpression_shared_getKey = function (getStringLiteral, ge
     }(parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_shared_getName);
 var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLiteral, getKey) {
         
-        var Tokenizer, specials, specialsPattern, numberPattern;
+        var Tokenizer, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
         specials = {
             'true': true,
             'false': false,
@@ -3960,8 +4158,11 @@ var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLitera
         };
         specialsPattern = new RegExp('^(?:' + Object.keys(specials).join('|') + ')');
         numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-        Tokenizer = function (str) {
+        placeholderPattern = /\$\{([^\}]+)\}/g;
+        placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
+        Tokenizer = function (str, values) {
             this.str = str;
+            this.values = values;
             this.pos = 0;
             this.result = this.getToken();
         };
@@ -3972,7 +4173,17 @@ var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLitera
             getStringMatch: getStringMatch,
             getToken: function () {
                 this.allowWhitespace();
-                return this.getSpecial() || this.getNumber() || this.getString() || this.getObject() || this.getArray();
+                return this.getPlaceholder() || this.getSpecial() || this.getNumber() || this.getString() || this.getObject() || this.getArray();
+            },
+            getPlaceholder: function () {
+                var match;
+                if (!this.values) {
+                    return null;
+                }
+                if ((match = placeholderAtStartPattern.exec(this.remaining())) && this.values.hasOwnProperty(match[1])) {
+                    this.pos += match[0].length;
+                    return { v: this.values[match[1]] };
+                }
             },
             getSpecial: function () {
                 var match;
@@ -3989,7 +4200,15 @@ var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLitera
                 }
             },
             getString: function () {
-                return getStringLiteral(this);
+                var stringLiteral = getStringLiteral(this), values;
+                if (stringLiteral && (values = this.values)) {
+                    return {
+                        v: stringLiteral.v.replace(placeholderPattern, function (match, $1) {
+                            return values[$1] || $1;
+                        })
+                    };
+                }
+                return stringLiteral;
             },
             getObject: function () {
                 var result, pair;
@@ -4048,9 +4267,15 @@ var utils_parseJSON = function (getStringMatch, allowWhitespace, getStringLitera
             pair.value = valueToken.v;
             return pair;
         }
-        return function (str) {
-            var tokenizer = new Tokenizer(str);
-            return tokenizer.result;
+        return function (str, values) {
+            var tokenizer = new Tokenizer(str, values);
+            if (tokenizer.result) {
+                return {
+                    value: tokenizer.result.v,
+                    remaining: tokenizer.remaining()
+                };
+            }
+            return null;
         };
     }(parse_Tokenizer_utils_getStringMatch, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_shared_getKey);
 var render_StringFragment_Interpolator = function (types, teardown, initMustache, updateMustache, resolveMustache) {
@@ -4070,11 +4295,8 @@ var render_StringFragment_Interpolator = function (types, teardown, initMustache
                 teardown(this);
             },
             toString: function () {
-                if (this.value === undefined) {
+                if (this.value == undefined) {
                     return '';
-                }
-                if (this.value === null) {
-                    return 'null';
                 }
                 return stringify(this.value);
             }
@@ -4148,7 +4370,49 @@ var render_StringFragment_Text = function (types) {
         };
         return StringText;
     }(config_types);
-var render_StringFragment__StringFragment = function (types, parseJSON, initFragment, Interpolator, Section, Text, circular) {
+var render_StringFragment_prototype_toArgsList = function (warn, parseJSON) {
+        
+        return function () {
+            var values, counter, jsonesque, guid, errorMessage, parsed, processItems;
+            if (!this.argsList || this.dirty) {
+                values = {};
+                counter = 0;
+                guid = this.root._guid;
+                processItems = function (items) {
+                    return items.map(function (item) {
+                        var placeholderId;
+                        if (item.text) {
+                            return item.text;
+                        }
+                        if (item.fragments) {
+                            return item.fragments.map(function (fragment) {
+                                return processItems(fragment.items);
+                            }).join('');
+                        }
+                        placeholderId = guid + '-' + counter++;
+                        values[placeholderId] = item.value;
+                        return '${' + placeholderId + '}';
+                    }).join('');
+                };
+                jsonesque = processItems(this.items);
+                parsed = parseJSON('[' + jsonesque + ']', values);
+                if (!parsed) {
+                    errorMessage = 'Could not parse directive arguments (' + this.toString() + '). If you think this is a bug, please file an issue at http://github.com/RactiveJS/Ractive/issues';
+                    if (this.root.debug) {
+                        throw new Error(errorMessage);
+                    } else {
+                        warn(errorMessage);
+                        this.argsList = [jsonesque];
+                    }
+                } else {
+                    this.argsList = parsed.value;
+                }
+                this.dirty = false;
+            }
+            return this.argsList;
+        };
+    }(utils_warn, utils_parseJSON);
+var render_StringFragment__StringFragment = function (types, parseJSON, initFragment, Interpolator, Section, Text, toArgsList, circular) {
         
         var StringFragment = function (options) {
             initFragment(this, options);
@@ -4170,6 +4434,7 @@ var render_StringFragment__StringFragment = function (types, parseJSON, initFrag
                 }
             },
             bubble: function () {
+                this.dirty = true;
                 this.owner.bubble();
             },
             teardown: function () {
@@ -4219,17 +4484,19 @@ var render_StringFragment__StringFragment = function (types, parseJSON, initFrag
                 var value = this.getValue(), parsed;
                 if (typeof value === 'string') {
                     parsed = parseJSON(value);
-                    value = parsed ? parsed.v : value;
+                    value = parsed ? parsed.value : value;
                 }
                 return value;
-            }
+            },
+            toArgsList: toArgsList
         };
         circular.StringFragment = StringFragment;
         return StringFragment;
-    }(config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, circular);
-var render_DomFragment_Attribute__Attribute = function (determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment) {
+    }(config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, render_StringFragment_prototype_toArgsList, circular);
+var render_DomFragment_Attribute__Attribute = function (types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment) {
         
         var DomAttribute = function (options) {
+            this.type = types.ATTRIBUTE;
             this.element = options.element;
             determineNameAndNamespace(this, options.name);
             if (options.value === null || typeof options.value === 'string') {
@@ -4300,7 +4567,7 @@ var render_DomFragment_Attribute__Attribute = function (determineNameAndNamespac
             }
         };
         return DomAttribute;
-    }(render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment);
+    }(config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment);
 var render_DomFragment_Element_initialise_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
@@ -4369,7 +4636,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                     i = liveQueries.length;
                     while (i--) {
                         selector = liveQueries[i];
-                        if (queryAllResult = node.querySelectorAll(selector) && (j = queryAllResult.length)) {
+                        if ((queryAllResult = node.querySelectorAll(selector)) && (j = queryAllResult.length)) {
                             (element.liveQueries || (element.liveQueries = [])).push(selector);
                             element.liveQueries[selector] = [];
                             while (j--) {
@@ -4392,60 +4659,38 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
             }
         };
     }(utils_warn, config_namespaces, render_StringFragment__StringFragment, circular);
-var render_DomFragment_Element_initialise_bindElement = function () {
-        
-        return function (element, attributes) {
-            if (element.node.getAttribute('contenteditable') && attributes.value && attributes.value.bind()) {
-                return;
-            }
-            switch (element.descriptor.e) {
-            case 'select':
-            case 'textarea':
-                if (attributes.value) {
-                    attributes.value.bind();
-                }
-                return;
-            case 'input':
-                if (element.node.type === 'radio' || element.node.type === 'checkbox') {
-                    if (attributes.name && attributes.name.bind()) {
-                        return;
-                    }
-                    if (attributes.checked && attributes.checked.bind()) {
-                        return;
-                    }
-                }
-                if (attributes.value && attributes.value.bind()) {
-                    return;
-                }
-            }
-        };
-    }();
 var render_DomFragment_Element_initialise_decorate_Decorator = function (warn, StringFragment) {
         
         var Decorator = function (descriptor, root, owner, contextStack) {
-            var fragment, errorMessage;
+            var name, fragment, errorMessage;
             this.root = root;
             this.node = owner.node;
-            if (typeof descriptor === 'string') {
-                this.name = descriptor;
-            } else {
-                this.name = descriptor.n;
-                if (descriptor.a) {
-                    this._params = descriptor.a;
-                } else if (descriptor.d) {
-                    fragment = new StringFragment({
-                        descriptor: descriptor.d,
-                        root: root,
-                        owner: owner,
-                        contextStack: contextStack
-                    });
-                    this._params = fragment.toJSON();
-                    fragment.teardown();
-                }
+            name = descriptor.n || descriptor;
+            if (typeof name !== 'string') {
+                fragment = new StringFragment({
+                    descriptor: name,
+                    root: this.root,
+                    owner: owner,
+                    contextStack: contextStack
+                });
+                name = fragment.toString();
+                fragment.teardown();
             }
-            this._fn = root.decorators[this.name];
-            if (!this._fn) {
-                errorMessage = 'Missing "' + descriptor.o + '" decorator. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#decorators';
+            if (descriptor.a) {
+                this.params = descriptor.a;
+            } else if (descriptor.d) {
+                fragment = new StringFragment({
+                    descriptor: descriptor.d,
+                    root: this.root,
+                    owner: owner,
+                    contextStack: contextStack
+                });
+                this.params = fragment.toArgsList();
+                fragment.teardown();
+            }
+            this.fn = root.decorators[name];
+            if (!this.fn) {
+                errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#decorators';
                 if (root.debug) {
                     throw new Error(errorMessage);
                 } else {
@@ -4456,11 +4701,11 @@ var render_DomFragment_Element_initialise_decorate_Decorator = function (warn, S
         Decorator.prototype = {
             init: function () {
                 var result, args;
-                if (this._params) {
-                    args = [this.node].concat(this._params);
-                    result = this._fn.apply(this.root, args);
+                if (this.params) {
+                    args = [this.node].concat(this.params);
+                    result = this.fn.apply(this.root, args);
                 } else {
-                    result = this._fn.call(this.root, this.node);
+                    result = this.fn.call(this.root, this.node);
                 }
                 if (!result || !result.teardown) {
                     throw new Error('Decorator definition must return an object with a teardown method');
@@ -4474,7 +4719,9 @@ var render_DomFragment_Element_initialise_decorate__decorate = function (Decorat
         
         return function (descriptor, root, owner, contextStack) {
             owner.decorator = new Decorator(descriptor, root, owner, contextStack);
-            root._deferred.decorators.push(owner.decorator);
+            if (owner.decorator.fn) {
+                root._deferred.decorators.push(owner.decorator);
+            }
         };
     }(render_DomFragment_Element_initialise_decorate_Decorator);
 var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (warn, StringFragment) {
@@ -4579,7 +4826,7 @@ var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = functi
             ].concat(this.a));
         };
         fireEventWithDynamicArgs = function (event) {
-            var args = this.d.toJSON();
+            var args = this.d.toArgsList();
             if (typeof args === 'string') {
                 args = args.substr(1, args.length - 2);
             }
@@ -4638,7 +4885,7 @@ var render_DomFragment_Element_initialise_updateLiveQueries = function () {
             while (i--) {
                 selector = liveQueries[i];
                 query = liveQueries[selector];
-                if (query._test(element.node)) {
+                if (query._test(element)) {
                     (element.liveQueries || (element.liveQueries = [])).push(selector);
                     element.liveQueries[selector] = [element.node];
                 }
@@ -4653,13 +4900,25 @@ var utils_camelCase = function () {
             });
         };
     }();
-var render_DomFragment_Element_shared_executeTransition_Transition = function (isClient, warn, isNumeric, isArray, camelCase, StringFragment) {
+var utils_fillGaps = function () {
+        
+        return function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+    }();
+var render_DomFragment_Element_shared_executeTransition_Transition = function (isClient, createElement, warn, isNumeric, isArray, camelCase, fillGaps, StringFragment) {
         
         var Transition, testStyle, vendors, vendorPattern, unprefixPattern, prefixCache, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
         if (!isClient) {
             return;
         }
-        testStyle = document.createElement('div').style;
+        testStyle = createElement('div').style;
         (function () {
             if (testStyle.transition !== undefined) {
                 TRANSITION = 'transition';
@@ -4679,31 +4938,45 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
             TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
         }
         Transition = function (descriptor, root, owner, contextStack, isIntro) {
-            var fragment, errorMessage;
+            var t = this, name, fragment, errorMessage;
             this.root = root;
             this.node = owner.node;
             this.isIntro = isIntro;
             this.originalStyle = this.node.getAttribute('style');
-            if (typeof descriptor === 'string') {
-                this.name = descriptor;
-            } else {
-                this.name = descriptor.n;
-                if (descriptor.a) {
-                    this._params = descriptor.a;
-                } else if (descriptor.d) {
-                    fragment = new StringFragment({
-                        descriptor: descriptor.d,
-                        root: root,
-                        owner: owner,
-                        contextStack: owner.parentFragment.contextStack
-                    });
-                    this._params = fragment.toJSON();
-                    fragment.teardown();
+            this.complete = function (noReset) {
+                if (!noReset && t.isIntro) {
+                    t.resetStyle();
                 }
+                t._manager.pop(t.node);
+                t.node._ractive.transition = null;
+            };
+            name = descriptor.n || descriptor;
+            if (typeof name !== 'string') {
+                fragment = new StringFragment({
+                    descriptor: name,
+                    root: this.root,
+                    owner: owner,
+                    contextStack: contextStack
+                });
+                name = fragment.toString();
+                fragment.teardown();
             }
-            this._fn = root.transitions[this.name];
+            this.name = name;
+            if (descriptor.a) {
+                this.params = descriptor.a;
+            } else if (descriptor.d) {
+                fragment = new StringFragment({
+                    descriptor: descriptor.d,
+                    root: this.root,
+                    owner: owner,
+                    contextStack: contextStack
+                });
+                this.params = fragment.toArgsList();
+                fragment.teardown();
+            }
+            this._fn = root.transitions[name];
             if (!this._fn) {
-                errorMessage = 'Missing "' + this.name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
+                errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
                 if (root.debug) {
                     throw new Error(errorMessage);
                 } else {
@@ -4718,11 +4991,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                     throw new Error('Cannot initialize a transition more than once');
                 }
                 this._inited = true;
-                this._fn.apply(this.root, [this].concat(this._params));
-            },
-            complete: function () {
-                this._manager.pop(this.node);
-                this.node._ractive.transition = null;
+                this._fn.apply(this.root, [this].concat(this.params));
             },
             getStyle: function (props) {
                 var computedStyle, styles, i, prop, value;
@@ -4762,11 +5031,26 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                 }
                 return this;
             },
-            animateStyle: function (to) {
-                var t = this, propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
-                if (!t.duration) {
+            animateStyle: function (style, value, options, complete) {
+                var t = this, propertyNames, changedProperties, computedStyle, current, to, from, transitionEndHandler, i, prop;
+                if (typeof style === 'string') {
+                    to = {};
+                    to[style] = value;
+                } else {
+                    to = style;
+                    complete = options;
+                    options = value;
+                }
+                if (!options) {
+                    warn('The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340');
+                    options = t;
+                    complete = t.complete;
+                }
+                if (!options.duration) {
                     t.setStyle(to);
-                    t.complete();
+                    if (complete) {
+                        complete();
+                    }
                 }
                 propertyNames = Object.keys(to);
                 changedProperties = [];
@@ -4785,14 +5069,15 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                     }
                 }
                 if (!changedProperties.length) {
-                    t.resetStyle();
-                    t.complete();
+                    if (complete) {
+                        complete();
+                    }
                     return;
                 }
                 setTimeout(function () {
                     t.node.style[TRANSITION_PROPERTY] = propertyNames.map(prefix).map(hyphenate).join(',');
-                    t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(t.easing || 'linear');
-                    t.node.style[TRANSITION_DURATION] = t.duration / 1000 + 's';
+                    t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
+                    t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
                     transitionEndHandler = function (event) {
                         var index;
                         index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
@@ -4804,10 +5089,9 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                         }
                         t.root.fire(t.name + ':end');
                         t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
-                        if (t.isIntro) {
-                            t.resetStyle();
+                        if (complete) {
+                            complete();
                         }
-                        t.complete();
                     };
                     t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
                     setTimeout(function () {
@@ -4817,7 +5101,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                             t.node.style[prefix(prop)] = to[prop];
                         }
                     }, 0);
-                }, t.delay || 0);
+                }, options.delay || 0);
             },
             resetStyle: function () {
                 if (this.originalStyle) {
@@ -4826,6 +5110,22 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                     this.node.getAttribute('style');
                     this.node.removeAttribute('style');
                 }
+            },
+            processParams: function (params, defaults) {
+                if (typeof params === 'number') {
+                    params = { duration: params };
+                } else if (typeof params === 'string') {
+                    if (params === 'slow') {
+                        params = { duration: 600 };
+                    } else if (params === 'fast') {
+                        params = { duration: 200 };
+                    } else {
+                        params = { duration: 400 };
+                    }
+                } else if (!params) {
+                    params = {};
+                }
+                return fillGaps(params, defaults);
             }
         };
         vendors = [
@@ -4870,12 +5170,12 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
             return hyphenated;
         }
         return Transition;
-    }(config_isClient, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, render_StringFragment__StringFragment);
+    }(config_isClient, utils_createElement, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, utils_fillGaps, render_StringFragment__StringFragment);
 var render_DomFragment_Element_shared_executeTransition__executeTransition = function (warn, Transition) {
         
         return function (descriptor, root, owner, contextStack, isIntro) {
             var transition, node, oldTransition;
-            if (!root.transitionsEnabled) {
+            if (!root.transitionsEnabled || root._parent && !root._parent.transitionsEnabled) {
                 return;
             }
             transition = new Transition(descriptor, root, owner, contextStack, isIntro);
@@ -4895,26 +5195,27 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
             }
         };
     }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition);
-var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, getElementNamespace, createElementAttributes, appendElementChildren, bindElement, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
+var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
         return function (element, options, docFrag) {
-            var parentFragment, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
+            var parentFragment, pNode, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
             element.type = types.ELEMENT;
             parentFragment = element.parentFragment = options.parentFragment;
+            pNode = parentFragment.pNode;
             contextStack = parentFragment.contextStack;
             descriptor = element.descriptor = options.descriptor;
             element.root = root = parentFragment.root;
-            element.pNode = parentFragment.pNode;
             element.index = options.index;
             element.lcName = descriptor.e.toLowerCase();
             element.eventListeners = [];
             element.customEventListeners = [];
-            if (element.pNode) {
-                namespace = element.namespace = getElementNamespace(descriptor, element.pNode);
+            if (pNode) {
+                namespace = element.namespace = getElementNamespace(descriptor, pNode);
                 name = namespace !== namespaces.html ? enforceCase(descriptor.e) : descriptor.e;
-                element.node = document.createElementNS(namespace, name);
+                element.node = createElement(name, namespace);
                 defineProperty(element.node, '_ractive', {
                     value: {
+                        proxy: element,
                         keypath: contextStack.length ? contextStack[contextStack.length - 1] : '',
                         index: parentFragment.indexRefs,
                         events: create(null),
@@ -4941,7 +5242,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
             }
             if (docFrag) {
                 if (root.twoway) {
-                    bindElement(element, attributes);
+                    element.bind();
                     if (element.node.getAttribute('contenteditable') && element.node._ractive.binding) {
                         element.node._ractive.binding.update();
                     }
@@ -4968,10 +5269,10 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
                     executeTransition(descriptor.t1, root, element, contextStack, true);
                 }
                 if (element.node.tagName === 'OPTION') {
-                    if (element.pNode.tagName === 'SELECT' && (selectBinding = element.pNode._ractive.binding)) {
+                    if (pNode.tagName === 'SELECT' && (selectBinding = pNode._ractive.binding)) {
                         selectBinding.deferUpdate();
                     }
-                    if (element.node._ractive.value == element.pNode._ractive.value) {
+                    if (element.node._ractive.value == pNode._ractive.value) {
                         element.node.selected = true;
                     }
                 }
@@ -4981,7 +5282,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
             }
             updateLiveQueries(element);
         };
-    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_bindElement, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
+    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
 var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
         
         return function (destroy) {
@@ -5006,12 +5307,10 @@ var render_DomFragment_Element_prototype_teardown = function (executeTransition)
                 this.decorator.teardown();
             }
             if (this.descriptor.t2) {
-                if (destroy) {
-                    this.root._transitionManager.detachWhenReady(this);
-                }
                 executeTransition(this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false);
-            } else if (destroy) {
-                this.detach();
+            }
+            if (destroy) {
+                this.root._transitionManager.detachWhenReady(this);
             }
             if (liveQueries = this.liveQueries) {
                 i = liveQueries.length;
@@ -5072,7 +5371,7 @@ var render_DomFragment_Element_prototype_findAll = function () {
         
         return function (selector, query) {
             var queryAllResult, i, numNodes, node, registeredNodes;
-            if (query._test(this.node, true) && query.live) {
+            if (query._test(this, true) && query.live) {
                 (this.liveQueries || (this.liveQueries = [])).push(selector);
                 this.liveQueries[selector] = [this.node];
             }
@@ -5097,7 +5396,59 @@ var render_DomFragment_Element_prototype_findAll = function () {
             }
         };
     }();
-var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll) {
+var render_DomFragment_Element_prototype_findComponent = function () {
+        
+        return function (selector) {
+            if (this.fragment) {
+                return this.fragment.findComponent(selector);
+            }
+        };
+    }();
+var render_DomFragment_Element_prototype_findAllComponents = function () {
+        
+        return function (selector, query) {
+            if (this.fragment) {
+                this.fragment.findAllComponents(selector, query);
+            }
+        };
+    }();
+var render_DomFragment_Element_prototype_bind = function () {
+        
+        return function () {
+            var attributes = this.attributes;
+            if (!this.node) {
+                return;
+            }
+            if (this.binding) {
+                this.binding.teardown();
+                this.binding = null;
+            }
+            if (this.node.getAttribute('contenteditable') && attributes.value && attributes.value.bind()) {
+                return;
+            }
+            switch (this.descriptor.e) {
+            case 'select':
+            case 'textarea':
+                if (attributes.value) {
+                    attributes.value.bind();
+                }
+                return;
+            case 'input':
+                if (this.node.type === 'radio' || this.node.type === 'checkbox') {
+                    if (attributes.name && attributes.name.bind()) {
+                        return;
+                    }
+                    if (attributes.checked && attributes.checked.bind()) {
+                        return;
+                    }
+                }
+                if (attributes.value && attributes.value.bind()) {
+                    return;
+                }
+            }
+        };
+    }();
+var render_DomFragment_Element__Element = function (initialise, teardown, toString, find, findAll, findComponent, findAllComponents, bind) {
         
         var DomElement = function (options, docFrag) {
             initialise(this, options, docFrag);
@@ -5105,7 +5456,9 @@ var render_DomFragment_Element__Element = function (initialise, teardown, toStri
         DomElement.prototype = {
             detach: function () {
                 if (this.node) {
-                    this.node.parentNode.removeChild(this.node);
+                    if (this.node.parentNode) {
+                        this.node.parentNode.removeChild(this.node);
+                    }
                     return this.node;
                 }
             },
@@ -5120,10 +5473,13 @@ var render_DomFragment_Element__Element = function (initialise, teardown, toStri
             },
             toString: toString,
             find: find,
-            findAll: findAll
+            findAll: findAll,
+            findComponent: findComponent,
+            findAllComponents: findAllComponents,
+            bind: bind
         };
         return DomElement;
-    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll);
+    }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll, render_DomFragment_Element_prototype_findComponent, render_DomFragment_Element_prototype_findAllComponents, render_DomFragment_Element_prototype_bind);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
 var parse_utils_stripHtmlComments = function () {
@@ -6834,7 +7190,7 @@ var parse_Parser_getElement_ElementStub_utils_filterAttributes = function (isArr
 var parse_Parser_getElement_ElementStub_utils_processDirective = function (types, parseJSON) {
         
         return function (directive) {
-            var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed, item;
+            var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed;
             throwError = function () {
                 throw new Error('Illegal directive');
             };
@@ -6879,26 +7235,8 @@ var parse_Parser_getElement_ElementStub_utils_processDirective = function (types
             if (directiveArgs.length) {
                 if (directiveArgs.length === 1 && directiveArgs[0].type === types.TEXT) {
                     parsed = parseJSON('[' + directiveArgs[0].value + ']');
-                    processed.args = parsed ? parsed.v : directiveArgs[0].value;
+                    processed.args = parsed ? parsed.value : directiveArgs[0].value;
                 } else {
-                    item = directiveArgs[0];
-                    if (item.type === types.TEXT) {
-                        item.value = '[' + item.value;
-                    } else {
-                        directiveArgs.unshift({
-                            type: types.TEXT,
-                            value: '['
-                        });
-                    }
-                    item = directiveArgs[directiveArgs.length - 1];
-                    if (item.type === types.TEXT) {
-                        item.value += ']';
-                    } else {
-                        directiveArgs.push({
-                            type: types.TEXT,
-                            value: ']'
-                        });
-                    }
                     processed.dynamicArgs = directiveArgs;
                 }
             }
@@ -7423,23 +7761,29 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
             find: function (selector) {
                 return this.fragment.find(selector);
             },
-            findAll: function (selector, options, queryResult) {
-                return this.fragment.findAll(selector, options, queryResult);
+            findAll: function (selector, query) {
+                return this.fragment.findAll(selector, query);
+            },
+            findComponent: function (selector) {
+                return this.fragment.findComponent(selector);
+            },
+            findAllComponents: function (selector, query) {
+                return this.fragment.findAllComponents(selector, query);
             }
         };
         return DomPartial;
     }(config_types, render_DomFragment_Partial_getPartialDescriptor, circular);
-var render_DomFragment_Component_ComponentParameter = function (StringFragment) {
+var render_DomFragment_Component_initialise_createModel_ComponentParameter = function (StringFragment) {
         
-        var ComponentParameter = function (root, component, key, value, contextStack) {
+        var ComponentParameter = function (component, key, value) {
             this.parentFragment = component.parentFragment;
             this.component = component;
             this.key = key;
             this.fragment = new StringFragment({
                 descriptor: value,
-                root: root,
+                root: component.root,
                 owner: this,
-                contextStack: contextStack
+                contextStack: component.parentFragment.contextStack
             });
             this.selfUpdating = this.fragment.isSimple();
             this.value = this.fragment.getValue();
@@ -7464,134 +7808,178 @@ var render_DomFragment_Component_ComponentParameter = function (StringFragment) 
         };
         return ComponentParameter;
     }(render_StringFragment__StringFragment);
-var render_DomFragment_Component__Component = function (types, warn, parseJSON, resolveRef, ComponentParameter) {
+var render_DomFragment_Component_initialise_createModel__createModel = function (types, parseJSON, resolveRef, ComponentParameter) {
         
-        var DomComponent;
-        DomComponent = function (options, docFrag) {
-            var self = this, parentFragment = this.parentFragment = options.parentFragment, root, Component, twoway, partials, instance, keypath, data, mappings, i, pair, observeParent, observeChild, settingParent, settingChild, key, observeOptions, processKeyValuePair, eventName, propagateEvent, items;
+        return function (component, attributes, toBind) {
+            var data, key;
+            data = {};
+            component.complexParameters = [];
+            for (key in attributes) {
+                if (attributes.hasOwnProperty(key)) {
+                    data[key] = getValue(component, key, attributes[key], toBind);
+                }
+            }
+            return data;
+        };
+        function getValue(component, key, descriptor, toBind) {
+            var parameter, parsed, root, parentFragment, keypath;
+            root = component.root;
+            parentFragment = component.parentFragment;
+            if (typeof descriptor === 'string') {
+                parsed = parseJSON(descriptor);
+                return parsed ? parsed.value : descriptor;
+            }
+            if (descriptor === null) {
+                return true;
+            }
+            if (descriptor.length === 1 && descriptor[0].t === types.INTERPOLATOR && descriptor[0].r) {
+                if (parentFragment.indexRefs && parentFragment.indexRefs[descriptor[0].r] !== undefined) {
+                    return parentFragment.indexRefs[descriptor[0].r];
+                }
+                keypath = resolveRef(root, descriptor[0].r, parentFragment.contextStack) || descriptor[0].r;
+                toBind.push({
+                    parentKeypath: key,
+                    childKeypath: keypath
+                });
+                return root.get(keypath);
+            }
+            parameter = new ComponentParameter(component, key, descriptor);
+            component.complexParameters.push(parameter);
+            return parameter.value;
+        }
+    }(config_types, utils_parseJSON, shared_resolveRef, render_DomFragment_Component_initialise_createModel_ComponentParameter);
+var render_DomFragment_Component_initialise_createInstance = function () {
+        
+        return function (component, Component, data, docFrag, contentDescriptor) {
+            var instance, parentFragment, partials, root;
+            parentFragment = component.parentFragment;
+            root = component.root;
+            partials = { content: contentDescriptor || [] };
+            instance = new Component({
+                el: parentFragment.pNode.cloneNode(false),
+                data: data,
+                partials: partials,
+                _parent: root,
+                adaptors: root.adaptors
+            });
+            instance.component = component;
+            component.instance = instance;
+            instance.insert(docFrag);
+            instance.fragment.pNode = parentFragment.pNode;
+            return instance;
+        };
+    }();
+var render_DomFragment_Component_initialise_createObservers = function () {
+        
+        var observeOptions = {
+                init: false,
+                debug: true
+            };
+        return function (component, toBind) {
+            var pair, i;
+            component.observers = [];
+            i = toBind.length;
+            while (i--) {
+                pair = toBind[i];
+                bind(component, pair.parentKeypath, pair.childKeypath);
+            }
+        };
+        function bind(component, parentKeypath, childKeypath) {
+            var parentInstance, childInstance, settingParent, settingChild, observers, observer;
+            parentInstance = component.root;
+            childInstance = component.instance;
+            observers = component.observers;
+            observer = parentInstance.observe(parentKeypath, function (value) {
+                if (!settingParent && !parentInstance._wrapped[parentKeypath]) {
+                    settingChild = true;
+                    childInstance.set(childKeypath, value);
+                    settingChild = false;
+                }
+            }, observeOptions);
+            observers.push(observer);
+            if (childInstance.twoway) {
+                observer = childInstance.observe(childKeypath, function (value) {
+                    if (!settingChild) {
+                        settingParent = true;
+                        parentInstance.set(parentKeypath, value);
+                        settingParent = false;
+                    }
+                }, observeOptions);
+                observers.push(observer);
+                parentInstance.set(parentKeypath, childInstance.get(childKeypath));
+            }
+        }
+    }();
+var render_DomFragment_Component_initialise_propagateEvents = function (warn) {
+        
+        var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
+        return function (component, eventsDescriptor) {
+            var eventName;
+            for (eventName in eventsDescriptor) {
+                if (eventsDescriptor.hasOwnProperty(eventName)) {
+                    propagateEvent(component.instance, component.root, eventName, eventsDescriptor[eventName]);
+                }
+            }
+        };
+        function propagateEvent(childInstance, parentInstance, eventName, proxyEventName) {
+            if (typeof proxyEventName !== 'string') {
+                if (parentInstance.debug) {
+                    throw new Error(errorMessage);
+                } else {
+                    warn(errorMessage);
+                    return;
+                }
+            }
+            childInstance.on(eventName, function () {
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift(proxyEventName);
+                parentInstance.fire.apply(parentInstance, args);
+            });
+        }
+    }(utils_warn);
+var render_DomFragment_Component_initialise_updateLiveQueries = function () {
+        
+        return function (component) {
+            var ancestor, query;
+            ancestor = component.root;
+            while (ancestor) {
+                if (query = ancestor._liveComponentQueries[component.name]) {
+                    query.push(component.instance);
+                }
+                ancestor = ancestor._parent;
+            }
+        };
+    }();
+var render_DomFragment_Component_initialise__initialise = function (types, warn, createModel, createInstance, createObservers, propagateEvents, updateLiveQueries) {
+        
+        return function (component, options, docFrag) {
+            var parentFragment, root, Component, data, toBind;
+            parentFragment = component.parentFragment = options.parentFragment;
             root = parentFragment.root;
-            this.type = types.COMPONENT;
-            this.name = options.descriptor.r;
-            this.index = options.index;
+            component.root = root;
+            component.type = types.COMPONENT;
+            component.name = options.descriptor.e;
+            component.index = options.index;
+            component.observers = [];
             Component = root.components[options.descriptor.e];
             if (!Component) {
                 throw new Error('Component "' + options.descriptor.e + '" not found');
             }
-            twoway = Component.twoway !== false;
-            data = {};
-            mappings = [];
-            this.complexParameters = [];
-            processKeyValuePair = function (key, value) {
-                var parameter, parsed;
-                if (typeof value === 'string') {
-                    parsed = parseJSON(value);
-                    data[key] = parsed ? parsed.v : value;
-                    return;
-                }
-                if (value === null) {
-                    data[key] = true;
-                    return;
-                }
-                if (value.length === 1 && value[0].t === types.INTERPOLATOR && value[0].r) {
-                    if (parentFragment.indexRefs && parentFragment.indexRefs[value[0].r] !== undefined) {
-                        data[key] = parentFragment.indexRefs[value[0].r];
-                        return;
-                    }
-                    keypath = resolveRef(root, value[0].r, parentFragment.contextStack) || value[0].r;
-                    data[key] = root.get(keypath);
-                    mappings[mappings.length] = [
-                        key,
-                        keypath
-                    ];
-                    return;
-                }
-                parameter = new ComponentParameter(root, self, key, value, parentFragment.contextStack);
-                self.complexParameters[self.complexParameters.length] = parameter;
-                data[key] = parameter.value;
-            };
-            if (options.descriptor.a) {
-                for (key in options.descriptor.a) {
-                    if (options.descriptor.a.hasOwnProperty(key)) {
-                        processKeyValuePair(key, options.descriptor.a[key]);
-                    }
-                }
-            }
-            partials = {};
-            if (options.descriptor.f) {
-                partials.content = options.descriptor.f;
-            }
-            instance = this.instance = new Component({
-                el: parentFragment.pNode.cloneNode(false),
-                data: data,
-                partials: partials
-            });
-            instance.component = this;
-            while (instance.el.firstChild) {
-                docFrag.appendChild(instance.el.firstChild);
-            }
-            instance.el = parentFragment.pNode;
-            items = instance.fragment.items;
-            if (items) {
-                i = items.length;
-                while (i--) {
-                    if (items[i].pNode) {
-                        items[i].pNode = parentFragment.pNode;
-                    }
-                }
-            }
-            self.observers = [];
-            observeOptions = {
-                init: false,
-                debug: true
-            };
-            observeParent = function (pair) {
-                var observer = root.observe(pair[1], function (value) {
-                        if (!settingParent && !root._wrapped[pair[1]]) {
-                            settingChild = true;
-                            instance.set(pair[0], value);
-                            settingChild = false;
-                        }
-                    }, observeOptions);
-                self.observers[self.observers.length] = observer;
-            };
-            if (twoway) {
-                observeChild = function (pair) {
-                    var observer = instance.observe(pair[0], function (value) {
-                            if (!settingChild) {
-                                settingParent = true;
-                                root.set(pair[1], value);
-                                settingParent = false;
-                            }
-                        }, observeOptions);
-                    self.observers[self.observers.length] = observer;
-                    root.set(pair[1], instance.get(pair[0]));
-                };
-            }
-            i = mappings.length;
-            while (i--) {
-                pair = mappings[i];
-                observeParent(pair);
-                if (twoway) {
-                    observeChild(pair);
-                }
-            }
-            propagateEvent = function (eventName, proxy) {
-                instance.on(eventName, function () {
-                    var args = Array.prototype.slice.call(arguments);
-                    args.unshift(proxy);
-                    root.fire.apply(root, args);
-                });
-            };
-            if (options.descriptor.v) {
-                for (eventName in options.descriptor.v) {
-                    if (options.descriptor.v.hasOwnProperty(eventName)) {
-                        propagateEvent(eventName, options.descriptor.v[eventName]);
-                    }
-                }
-            }
+            toBind = [];
+            data = createModel(component, options.descriptor.a, toBind);
+            createInstance(component, Component, data, docFrag, options.descriptor.f);
+            createObservers(component, toBind);
+            propagateEvents(component);
             if (options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o) {
                 warn('The "intro", "outro" and "decorator" directives have no effect on components');
             }
+            updateLiveQueries(component);
+        };
+    }(config_types, utils_warn, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createObservers, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries);
+var render_DomFragment_Component__Component = function (initialise) {
+        
+        var DomComponent = function (options, docFrag) {
+            initialise(this, options, docFrag);
         };
         DomComponent.prototype = {
             firstNode: function () {
@@ -7600,12 +7988,19 @@ var render_DomFragment_Component__Component = function (types, warn, parseJSON, 
             findNextNode: function () {
                 return this.parentFragment.findNextNode(this);
             },
+            detach: function () {
+                return this.instance.fragment.detach();
+            },
             teardown: function () {
+                var query;
                 while (this.complexParameters.length) {
                     this.complexParameters.pop().teardown();
                 }
                 while (this.observers.length) {
                     this.observers.pop().cancel();
+                }
+                if (query = this.root._liveComponentQueries[this.name]) {
+                    query._remove(this);
                 }
                 this.instance.teardown();
             },
@@ -7615,12 +8010,24 @@ var render_DomFragment_Component__Component = function (types, warn, parseJSON, 
             find: function (selector) {
                 return this.instance.fragment.find(selector);
             },
-            findAll: function (selector, queryResult) {
-                return this.instance.fragment.findAll(selector, queryResult);
+            findAll: function (selector, query) {
+                return this.instance.fragment.findAll(selector, query);
+            },
+            findComponent: function (selector) {
+                if (!selector || selector === this.name) {
+                    return this.instance;
+                }
+                return null;
+            },
+            findAllComponents: function (selector, query) {
+                query._test(this, true);
+                if (this.instance.fragment) {
+                    this.instance.fragment.findAllComponents(selector, query);
+                }
             }
         };
         return DomComponent;
-    }(config_types, utils_warn, utils_parseJSON, shared_resolveRef, render_DomFragment_Component_ComponentParameter);
+    }(render_DomFragment_Component_initialise__initialise);
 var render_DomFragment_Comment = function (types) {
         
         var DomComment = function (options, docFrag) {
@@ -7628,7 +8035,6 @@ var render_DomFragment_Comment = function (types) {
             this.descriptor = options.descriptor;
             if (docFrag) {
                 this.node = document.createComment(options.descriptor.f);
-                this.pNode = options.parentFragment.pNode;
                 docFrag.appendChild(this.node);
             }
         };
@@ -7660,7 +8066,7 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
             if (typeof options.descriptor === 'string') {
                 this.html = options.descriptor;
                 if (this.docFrag) {
-                    this.nodes = insertHtml(options.descriptor, options.pNode.tagName, this.docFrag);
+                    this.nodes = insertHtml(this.html, options.pNode.tagName, this.docFrag);
                 }
             } else {
                 initFragment(this, options);
@@ -7670,8 +8076,9 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
             detach: function () {
                 var len, i;
                 if (this.nodes) {
-                    while (this.nodes.length) {
-                        this.docFrag.appendChild(this.nodes.pop());
+                    i = this.nodes.length;
+                    while (i--) {
+                        this.docFrag.appendChild(this.nodes[i]);
                     }
                 } else if (this.items) {
                     len = this.items.length;
@@ -7784,7 +8191,7 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                     return null;
                 }
             },
-            findAll: function (selector, queryResult) {
+            findAll: function (selector, query) {
                 var i, len, item, node, queryAllResult, numNodes, j;
                 if (this.nodes) {
                     len = this.nodes.length;
@@ -7794,12 +8201,12 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                             continue;
                         }
                         if (matches(node, selector)) {
-                            queryResult.push(node);
+                            query.push(node);
                         }
                         if (queryAllResult = node.querySelectorAll(selector)) {
                             numNodes = queryAllResult.length;
                             for (j = 0; j < numNodes; j += 1) {
-                                queryResult.push(queryAllResult[j]);
+                                query.push(queryAllResult[j]);
                             }
                         }
                     }
@@ -7808,11 +8215,37 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                     for (i = 0; i < len; i += 1) {
                         item = this.items[i];
                         if (item.findAll) {
-                            item.findAll(selector, queryResult);
+                            item.findAll(selector, query);
                         }
                     }
                 }
-                return queryResult;
+                return query;
+            },
+            findComponent: function (selector) {
+                var len, i, item, queryResult;
+                if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.findComponent && (queryResult = item.findComponent(selector))) {
+                            return queryResult;
+                        }
+                    }
+                    return null;
+                }
+            },
+            findAllComponents: function (selector, query) {
+                var i, len, item;
+                if (this.items) {
+                    len = this.items.length;
+                    for (i = 0; i < len; i += 1) {
+                        item = this.items[i];
+                        if (item.findAllComponents) {
+                            item.findAllComponents(selector, query);
+                        }
+                    }
+                }
+                return query;
             }
         };
         circular.DomFragment = DomFragment;
@@ -7963,7 +8396,7 @@ var Ractive_prototype_merge_queueDependants = function (types) {
                 dependant = deps[i];
                 if (dependant.type === types.REFERENCE) {
                     dependant.update();
-                } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.pNode) {
+                } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
                     mergeQueue[mergeQueue.length] = dependant;
                 } else {
                     updateQueue[updateQueue.length] = dependant;
@@ -8075,9 +8508,10 @@ var Ractive_prototype_insert = function (getElement) {
                 throw new Error('You must specify a valid target to insert into');
             }
             target.insertBefore(this.detach(), anchor);
+            this.fragment.pNode = target;
         };
     }(utils_getElement);
-var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, toHTML, teardown, add, subtract, toggle, merge, detach, insert) {
+var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, findComponent, findAllComponents, render, renderHTML, toHTML, teardown, add, subtract, toggle, merge, detach, insert) {
         
         return {
             get: get,
@@ -8091,6 +8525,8 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             fire: fire,
             find: find,
             findAll: findAll,
+            findComponent: findComponent,
+            findAllComponents: findAllComponents,
             renderHTML: renderHTML,
             toHTML: toHTML,
             render: render,
@@ -8102,7 +8538,7 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             detach: detach,
             insert: insert
         };
-    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_toHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
+    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_findComponent, Ractive_prototype_findAllComponents, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_toHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
 var extend_registries = function () {
         
         return [
@@ -8110,7 +8546,8 @@ var extend_registries = function () {
             'transitions',
             'events',
             'components',
-            'decorators'
+            'decorators',
+            'data'
         ];
     }();
 var extend_initOptions = function () {
@@ -8128,21 +8565,21 @@ var extend_initOptions = function () {
             'sanitize',
             'stripComments',
             'noIntro',
-            'transitionsEnabled'
+            'transitionsEnabled',
+            'adaptors'
         ];
     }();
 var extend_inheritFromParent = function (registries, initOptions, create) {
         
         return function (Child, Parent) {
             registries.forEach(function (property) {
-                Child[property] = create(Parent[property]);
+                if (Parent[property]) {
+                    Child[property] = create(Parent[property]);
+                }
             });
             initOptions.forEach(function (property) {
                 Child[property] = Parent[property];
             });
-            if (Parent.data) {
-                Child.data = Parent.data;
-            }
         };
     }(extend_registries, extend_initOptions, utils_create);
 var extend_wrapMethod = function () {
@@ -8188,6 +8625,8 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                 if (value) {
                     if (Child[property]) {
                         augment(Child[property], value);
+                    } else {
+                        Child[property] = value;
                     }
                 }
             });
@@ -8201,9 +8640,6 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                     }
                 }
             });
-            if (childProps.data) {
-                Child.data = augment(Child.data || {}, childProps.data);
-            }
             for (key in childProps) {
                 if (childProps.hasOwnProperty(key) && !blacklisted[key]) {
                     member = childProps[key];
@@ -8280,18 +8716,6 @@ var extend_utils_clone = function () {
             return target;
         };
     }();
-var extend_utils_fillGaps = function () {
-        
-        return function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-            return target;
-        };
-    }();
 var utils_extend = function () {
         
         return function (target) {
@@ -8306,9 +8730,9 @@ var utils_extend = function () {
             return target;
         };
     }();
-var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperties, getElement, isObject, magicAdaptor, parse) {
+var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperty, defineProperties, getElement, isObject, magicAdaptor, parse) {
         
-        var getObject, getArray, defaultOptions, extendable;
+        var getObject, getArray, defaultOptions, registries;
         getObject = function () {
             return {};
         };
@@ -8374,12 +8798,13 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 value: getArray
             }
         });
-        extendable = [
+        registries = [
             'components',
             'decorators',
             'events',
             'partials',
-            'transitions'
+            'transitions',
+            'data'
         ];
         return function (ractive, options) {
             var key, template, templateEl, parsedTemplate;
@@ -8418,7 +8843,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _animations: { value: [] },
                 nodes: { value: {} },
                 _wrapped: { value: create(null) },
-                _liveQueries: { value: [] }
+                _liveQueries: { value: [] },
+                _liveComponentQueries: { value: [] }
             });
             defineProperties(ractive._deferred, {
                 attrs: { value: [] },
@@ -8435,7 +8861,6 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                     writable: true
                 }
             });
-            ractive.data = options.data;
             ractive.adaptors = options.adaptors;
             ractive.modifyArrays = options.modifyArrays;
             ractive.magic = options.magic;
@@ -8444,6 +8869,9 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.debug = options.debug;
             if (ractive.magic && !magicAdaptor) {
                 throw new Error('Getters and setters (magic mode) are not supported in this browser');
+            }
+            if (options._parent) {
+                defineProperty(ractive, '_parent', { value: options._parent });
             }
             if (options.el) {
                 ractive.el = getElement(options.el);
@@ -8455,8 +8883,12 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 warn('ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions');
                 options.events = options.eventDefinitions;
             }
-            extendable.forEach(function (registry) {
-                ractive[registry] = extend(create(ractive.constructor[registry]), options[registry]);
+            registries.forEach(function (registry) {
+                if (ractive.constructor[registry]) {
+                    ractive[registry] = extend(create(ractive.constructor[registry] || {}), options[registry]);
+                } else if (options[registry]) {
+                    ractive[registry] = options[registry];
+                }
             });
             template = options.template;
             if (typeof template === 'string') {
@@ -8501,8 +8933,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.transitionsEnabled = options.transitionsEnabled;
             ractive._initing = false;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
-var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMethod, initialise) {
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
+var extend_initChildInstance = function (fillGaps, initOptions, clone, wrapMethod, initialise) {
         
         return function (child, Child, options) {
             initOptions.forEach(function (property) {
@@ -8513,9 +8945,6 @@ var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMetho
                     options[property] = defaultValue;
                 }
             });
-            if (Child.data) {
-                options.data = fillGaps(options.data || {}, Child.data);
-            }
             if (child.beforeInit) {
                 child.beforeInit(options);
             }
@@ -8524,7 +8953,7 @@ var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMetho
                 child.init(options);
             }
         };
-    }(extend_initOptions, extend_utils_clone, extend_utils_fillGaps, extend_wrapMethod, Ractive_initialise);
+    }(utils_fillGaps, extend_initOptions, extend_utils_clone, extend_wrapMethod, Ractive_initialise);
 var extend__extend = function (create, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
         
         var Ractive;
@@ -8547,7 +8976,7 @@ var extend__extend = function (create, inheritFromParent, inheritFromChildProps,
             return Child;
         };
     }(utils_create, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
-var Ractive__Ractive = function (create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
+var Ractive__Ractive = function (svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -8561,7 +8990,8 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
             events: { value: {} },
             components: { value: {} },
             decorators: { value: {} },
-            VERSION: { value: '0.3.8' }
+            svg: { value: svg },
+            VERSION: { value: '0.3.9' }
         });
         Ractive.eventDefinitions = Ractive.events;
         Ractive.prototype.constructor = Ractive;
@@ -8577,7 +9007,7 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
         Ractive.parse = parse;
         circular.Ractive = Ractive;
         return Ractive;
-    }(utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
+    }(config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular) {
         
         if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {

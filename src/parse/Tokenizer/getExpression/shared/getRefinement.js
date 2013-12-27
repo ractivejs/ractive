@@ -5,7 +5,7 @@ define([
 	types,
 	getName
 ) {
-	
+
 	'use strict';
 
 	return function getRefinement ( tokenizer ) {

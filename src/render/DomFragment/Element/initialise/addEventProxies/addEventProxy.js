@@ -137,7 +137,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 	};
 
 	fireEventWithDynamicArgs = function ( event ) {
-		var args = this.d.toJSON();
+		var args = this.d.toArgsList();
 
 		// need to strip [] from ends if a string!
 		if ( typeof args === 'string' ) {

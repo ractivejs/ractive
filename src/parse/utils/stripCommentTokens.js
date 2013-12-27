@@ -12,7 +12,7 @@ define([ 'config/types' ], function ( types ) {
 
 			// if the current token is a comment or a delimiter change, remove it...
 			if ( current.mustacheType === types.COMMENT || current.mustacheType === types.DELIMCHANGE ) {
-				
+
 				tokens.splice( i, 1 ); // remove comment token
 
 				// ... and see if it has text nodes either side, in which case
@@ -20,7 +20,7 @@ define([ 'config/types' ], function ( types ) {
 				if ( previous && next ) {
 					if ( previous.type === types.TEXT && next.type === types.TEXT ) {
 						previous.value += next.value;
-						
+
 						tokens.splice( i, 1 ); // remove next token
 					}
 				}

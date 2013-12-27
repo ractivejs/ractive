@@ -20,7 +20,7 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 			if ( this.json ) {
 				return this.json;
 			}
-			
+
 			this.json = {
 				r: this.refs,
 				s: this.str

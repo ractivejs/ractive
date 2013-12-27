@@ -5,7 +5,7 @@ define([
 	types,
 	makeRegexMatcher
 ) {
-	
+
 	'use strict';
 
 	// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330

@@ -9,16 +9,19 @@ define([
 	getStringLiteral,
 	getKey
 ) {
-	
+
 	'use strict';
 
 	// simple JSON parser, without the restrictions of JSON parse
 	// (i.e. having to double-quote keys).
 	//
 	// This re-uses logic from the main template parser, albeit
-	// messily. Could probably use a cleanup at some point
+	// messily. Could probably use a cleanup at some point.
+	//
+	// If passed a hash of values as the second argument, ${placeholders}
+	// will be replaced with those values
 
-	var Tokenizer, specials, specialsPattern, numberPattern;
+	var Tokenizer, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
 
 	specials = {
 		'true': true,
@@ -29,9 +32,13 @@ define([
 
 	specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
 	numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+	placeholderPattern = /\$\{([^\}]+)\}/g;
+	placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
 
-	Tokenizer = function ( str ) {
+	Tokenizer = function ( str, values ) {
 		this.str = str;
+		this.values = values;
+
 		this.pos = 0;
 
 		this.result = this.getToken();
@@ -47,11 +54,26 @@ define([
 		getToken: function () {
 			this.allowWhitespace();
 
-			return this.getSpecial() ||
-			       this.getNumber()  ||
-			       this.getString()  ||
-			       this.getObject()  ||
+			return this.getPlaceholder() ||
+			       this.getSpecial()     ||
+			       this.getNumber()      ||
+			       this.getString()      ||
+			       this.getObject()      ||
 			       this.getArray();
+		},
+
+		getPlaceholder: function () {
+			var match;
+
+			if ( !this.values ) {
+				return null;
+			}
+
+			if ( ( match = placeholderAtStartPattern.exec( this.remaining() ) ) &&
+				 ( this.values.hasOwnProperty( match[1] ) ) ) {
+				this.pos += match[0].length;
+				return { v: this.values[ match[1] ] };
+			}
 		},
 
 		getSpecial: function () {
@@ -75,7 +97,17 @@ define([
 		},
 
 		getString: function () {
-			return getStringLiteral( this );
+			var stringLiteral = getStringLiteral( this ), values;
+
+			if ( stringLiteral && ( values = this.values ) ) {
+				return {
+					v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
+						return values[ $1 ] || $1;
+					})
+				};
+			}
+
+			return stringLiteral;
 		},
 
 		getObject: function () {
@@ -116,7 +148,7 @@ define([
 
 			while ( valueToken = this.getToken() ) {
 				result.push( valueToken.v );
-				
+
 				if ( this.getStringMatch( ']' ) ) {
 					return { v: result };
 				}
@@ -166,9 +198,17 @@ define([
 	}
 
 
-	return function ( str ) {
-		var tokenizer = new Tokenizer( str );
-		return tokenizer.result;
+	return function ( str, values ) {
+		var tokenizer = new Tokenizer( str, values );
+
+		if ( tokenizer.result ) {
+			return {
+				value: tokenizer.result.v,
+				remaining: tokenizer.remaining()
+			};
+		}
+
+		return null;
 	};
 
 });

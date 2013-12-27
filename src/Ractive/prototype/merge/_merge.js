@@ -21,7 +21,7 @@ define([
 	mapOldToNewIndex,
 	queueDependants
 ) {
-	
+
 	'use strict';
 
 	var identifiers = {};
@@ -55,7 +55,7 @@ define([
 		lengthUnchanged = ( currentArray.length === array.length );
 
 		if ( options && options.compare ) {
-			
+
 			// If `compare` is `true`, we use JSON.stringify to compare
 			// objects that are the same shape, but non-identical - i.e.
 			// { foo: 'bar' } !== { foo: 'bar' }
@@ -92,7 +92,7 @@ define([
 				oldArray = currentArray;
 				newArray = array;
 			}
-			
+
 		} else {
 			oldArray = currentArray;
 			newArray = array;
@@ -132,7 +132,7 @@ define([
 			}
 
 			deps = depsByKeypath[ keypath ];
-			
+
 			if ( deps ) {
 				queueDependants( keypath, deps, mergeQueue, updateQueue );
 

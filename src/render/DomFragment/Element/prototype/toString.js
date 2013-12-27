@@ -1,5 +1,5 @@
 define([ 'config/voidElementNames' ], function ( voidElementNames ) {
-	
+
 	'use strict';
 
 	return function () {

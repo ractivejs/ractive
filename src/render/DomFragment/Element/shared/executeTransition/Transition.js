@@ -1,19 +1,23 @@
 define([
 	'config/isClient',
+	'utils/createElement',
 	'utils/warn',
 	'utils/isNumeric',
 	'utils/isArray',
 	'utils/camelCase',
+	'utils/fillGaps',
 	'render/StringFragment/_StringFragment'
 ], function (
 	isClient,
+	createElement,
 	warn,
 	isNumeric,
 	isArray,
 	camelCase,
+	fillGaps,
 	StringFragment
 ) {
-	
+
 	'use strict';
 
 	var Transition,
@@ -23,7 +27,7 @@ define([
 		vendorPattern,
 		unprefixPattern,
 		prefixCache,
-		
+
 		CSS_TRANSITIONS_ENABLED,
 		TRANSITION,
 		TRANSITION_DURATION,
@@ -36,7 +40,7 @@ define([
 		return;
 	}
 
-	testStyle = document.createElement( 'div' ).style;
+	testStyle = createElement( 'div' ).style;
 
 	// determine some facts about our environment
 	(function () {
@@ -62,7 +66,7 @@ define([
 	}
 
 	Transition = function ( descriptor, root, owner, contextStack, isIntro ) {
-		var fragment, errorMessage;
+		var t = this, name, fragment, errorMessage;
 
 		this.root = root;
 		this.node = owner.node;
@@ -71,31 +75,56 @@ define([
 		// store original style attribute
 		this.originalStyle = this.node.getAttribute( 'style' );
 
-		if ( typeof descriptor === 'string' ) {
-			this.name = descriptor;
-		} else {
-			this.name = descriptor.n;
-
-			if ( descriptor.a ) {
-				this._params = descriptor.a;
-			} else if ( descriptor.d ) {
-				// TODO is there a way to interpret dynamic arguments without all the
-				// 'dependency thrashing'?
-				fragment = new StringFragment({
-					descriptor:   descriptor.d,
-					root:         root,
-					owner:        owner,
-					contextStack: owner.parentFragment.contextStack
-				});
-
-				this._params = fragment.toJSON();
-				fragment.teardown();
+		// create t.complete() - we don't want this on the prototype,
+		// because we don't want `this` silliness when passing it as
+		// an argument
+		this.complete = function ( noReset ) {
+			if ( !noReset && t.isIntro ) {
+				t.resetStyle();
 			}
+
+			t._manager.pop( t.node );
+			t.node._ractive.transition = null;
+		};
+
+
+		name = descriptor.n || descriptor;
+
+		if ( typeof name !== 'string' ) {
+			fragment = new StringFragment({
+				descriptor:   name,
+				root:         this.root,
+				owner:        owner,
+				contextStack: contextStack
+			});
+
+			name = fragment.toString();
+			fragment.teardown();
 		}
 
-		this._fn = root.transitions[ this.name ];
+		this.name = name;
+
+		if ( descriptor.a ) {
+			this.params = descriptor.a;
+		}
+
+		else if ( descriptor.d ) {
+			// TODO is there a way to interpret dynamic arguments without all the
+			// 'dependency thrashing'?
+			fragment = new StringFragment({
+				descriptor:   descriptor.d,
+				root:         this.root,
+				owner:        owner,
+				contextStack: contextStack
+			});
+
+			this.params = fragment.toArgsList();
+			fragment.teardown();
+		}
+
+		this._fn = root.transitions[ name ];
 		if ( !this._fn ) {
-			errorMessage = 'Missing "' + this.name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
+			errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
 
 			if ( root.debug ) {
 				throw new Error( errorMessage );
@@ -114,15 +143,9 @@ define([
 			}
 
 			this._inited = true;
-			this._fn.apply( this.root, [ this ].concat( this._params ) );
+			this._fn.apply( this.root, [ this ].concat( this.params ) );
 		},
 
-		complete: function () {
-			this._manager.pop( this.node );
-			this.node._ractive.transition = null;
-		},
-
-		// TODO handle prefixed styles
 		getStyle: function ( props ) {
 			var computedStyle, styles, i, prop, value;
 
@@ -165,22 +188,47 @@ define([
 			else {
 				for ( prop in style ) {
 					if ( style.hasOwnProperty( prop ) ) {
-						// TODO prefix
 						this.node.style[ prefix( prop ) ] = style[ prop ];
 					}
 				}
 			}
-			
+
 			return this;
 		},
 
-		animateStyle: function ( to ) {
-			var t = this, propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+		animateStyle: function ( style, value, options, complete ) {
+			var t = this, propertyNames, changedProperties, computedStyle, current, to, from, transitionEndHandler, i, prop;
+
+			if ( typeof style === 'string' ) {
+				to = {};
+				to[ style ] = value;
+			} else {
+				to = style;
+
+				// shuffle arguments
+				complete = options;
+				options = value;
+			}
+
+			// As of 0.3.9, transition authors should supply an `option` object with
+			// `duration` and `easing` properties (and optional `delay`), plus a
+			// callback function that gets called after the animation completes
+
+			// TODO remove this check in a future version
+			if ( !options ) {
+				warn( 'The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
+
+				options = t;
+				complete = t.complete;
+			}
 
 			// Edge case - if duration is zero, set style synchronously and complete
-			if ( !t.duration ) {
+			if ( !options.duration ) {
 				t.setStyle( to );
-				t.complete();
+
+				if ( complete ) {
+					complete();
+				}
 			}
 
 			// Get a list of the properties we're animating
@@ -213,8 +261,9 @@ define([
 			// If we're not actually changing anything, the transitionend event
 			// will never fire! So we complete early
 			if ( !changedProperties.length ) {
-				t.resetStyle();
-				t.complete();
+				if ( complete ) {
+					complete();
+				}
 				return;
 			}
 
@@ -223,8 +272,8 @@ define([
 			setTimeout( function () {
 
 				t.node.style[ TRANSITION_PROPERTY ] = propertyNames.map( prefix ).map( hyphenate ).join( ',' );
-				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( t.easing || 'linear' );
-				t.node.style[ TRANSITION_DURATION ] = ( t.duration / 1000 ) + 's';
+				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
+				t.node.style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 				transitionEndHandler = function ( event ) {
 					var index;
@@ -238,43 +287,59 @@ define([
 						// still transitioning...
 						return;
 					}
-					
+
 					t.root.fire(t.name + ':end');
 
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
-					// We've abused the style attribute - we need to revert
-					// it to it's natural state, if this is an intro
-					if ( t.isIntro ) {
-						t.resetStyle();
+					if ( complete ) {
+						complete();
 					}
-
-					t.complete();
 				};
-				
+
 				t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
 
 				setTimeout( function () {
 					var i = changedProperties.length;
-					
+
 					while ( i-- ) {
 						prop = changedProperties[i];
 						t.node.style[ prefix( prop ) ] = to[ prop ];
 					}
 				}, 0 );
-			}, t.delay || 0 );
+			}, options.delay || 0 );
 		},
 
 		resetStyle: function () {
 			if ( this.originalStyle ) {
 				this.node.setAttribute( 'style', this.originalStyle );
 			} else {
-				
+
 				// Next line is necessary, to remove empty style attribute!
 				// See http://stackoverflow.com/a/7167553
 				this.node.getAttribute( 'style' );
 				this.node.removeAttribute( 'style' );
 			}
+		},
+
+		processParams: function ( params, defaults ) {
+			if ( typeof params === 'number' ) {
+				params = { duration: params };
+			}
+
+			else if ( typeof params === 'string' ) {
+				if ( params === 'slow' ) {
+					params = { duration: 600 };
+				} else if ( params === 'fast' ) {
+					params = { duration: 200 };
+				} else {
+					params = { duration: 400 };
+				}
+			} else if ( !params ) {
+				params = {};
+			}
+
+			return fillGaps( params, defaults );
 		}
 	};
 

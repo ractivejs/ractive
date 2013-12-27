@@ -7,5 +7,5 @@ define( function () {
 	}
 
 	return false;
-	
+
 });

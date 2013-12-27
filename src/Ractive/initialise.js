@@ -4,6 +4,7 @@ define([
 	'utils/warn',
 	'utils/create',
 	'utils/extend',
+	'utils/defineProperty',
 	'utils/defineProperties',
 	'utils/getElement',
 	'utils/isObject',
@@ -15,16 +16,17 @@ define([
 	warn,
 	create,
 	extend,
+	defineProperty,
 	defineProperties,
 	getElement,
 	isObject,
 	magicAdaptor,
 	parse
 ) {
-	
+
 	'use strict';
 
-	var getObject, getArray, defaultOptions, extendable;
+	var getObject, getArray, defaultOptions, registries;
 
 	getObject = function () { return {}; };
 	getArray = function () { return []; };
@@ -48,7 +50,7 @@ define([
 		adaptors:           { enumerable: true, value: getArray  }
 	});
 
-	extendable = [ 'components', 'decorators', 'events', 'partials', 'transitions' ];
+	registries = [ 'components', 'decorators', 'events', 'partials', 'transitions', 'data' ];
 
 	return function ( ractive, options ) {
 
@@ -120,7 +122,8 @@ define([
 			_wrapped: { value: create( null ) },
 
 			// live queries
-			_liveQueries: { value: [] }
+			_liveQueries: { value: [] },
+			_liveComponentQueries: { value: [] }
 		});
 
 		defineProperties( ractive._deferred, {
@@ -137,8 +140,6 @@ define([
 		});
 
 		// options
-		ractive.data = options.data;
-
 		ractive.adaptors = options.adaptors;
 		ractive.modifyArrays = options.modifyArrays;
 		ractive.magic = options.magic;
@@ -148,6 +149,13 @@ define([
 
 		if ( ractive.magic && !magicAdaptor ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+		}
+
+		// If this is a component, store a reference to the parent
+		if ( options._parent ) {
+			defineProperty( ractive, '_parent', {
+				value: options._parent
+			});
 		}
 
 		if ( options.el ) {
@@ -164,15 +172,19 @@ define([
 			options.events = options.eventDefinitions;
 		}
 
-		extendable.forEach( function ( registry ) {
-			ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
+		registries.forEach( function ( registry ) {
+			if ( ractive.constructor[ registry ] ) {
+				ractive[ registry ] = extend( create( ractive.constructor[ registry ] || {} ), options[ registry ] );
+			} else if ( options[ registry ] ) {
+				ractive[ registry ] = options[ registry ];
+			}
 		});
-		
+
 
 
 		// Parse template, if necessary
 		template = options.template;
-		
+
 		if ( typeof template === 'string' ) {
 			if ( !parse ) {
 				throw new Error( errors.missingParser );
@@ -219,7 +231,7 @@ define([
 			sanitize: options.sanitize,
 			stripComments: options.stripComments
 		};
-		
+
 		// Temporarily disable transitions, if noIntro flag is set
 		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 

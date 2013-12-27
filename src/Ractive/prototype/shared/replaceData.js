@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function ( ractive, keypath, value ) {
@@ -21,7 +21,7 @@ define( function () {
 			obj = ractive.data;
 		}
 
-		
+
 		while ( keys.length > 1 ) {
 			key = accumulated[ accumulated.length ] = keys.shift();
 			currentKeypath = accumulated.join( '.' );
@@ -38,8 +38,8 @@ define( function () {
 				// If this branch doesn't exist yet, create a new one - if the next
 				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
 				// than an object
-				if ( !obj[ key ] ) {
-					
+				if ( !obj.hasOwnProperty( key ) ) {
+
 					// if we're creating a new branch, we may need to clear the upstream
 					// keypath
 					if ( !keypathToClear ) {

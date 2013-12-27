@@ -7,7 +7,7 @@ define([
 	getDelimiterChange,
 	getMustacheContent
 ) {
-	
+
 	'use strict';
 
 	return function () {

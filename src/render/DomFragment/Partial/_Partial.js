@@ -68,8 +68,16 @@ define([
 			return this.fragment.find( selector );
 		},
 
-		findAll: function ( selector, options, queryResult ) {
-			return this.fragment.findAll( selector, options, queryResult );
+		findAll: function ( selector, query ) {
+			return this.fragment.findAll( selector, query );
+		},
+
+		findComponent: function ( selector ) {
+			return this.fragment.findComponent( selector );
+		},
+
+		findAllComponents: function ( selector, query ) {
+			return this.fragment.findAllComponents( selector, query );
 		}
 	};
 

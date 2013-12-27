@@ -1,5 +1,5 @@
 define( function () {
-	
+
 	'use strict';
 
 	return function ( eventName ) {
@@ -16,4 +16,4 @@ define( function () {
 		}
 	};
 
-}); 
+});

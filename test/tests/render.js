@@ -5,6 +5,8 @@
 
 define([ 'Ractive', '../samples/render' ], function ( Ractive, tests ) {
 
+	window.Ractive = Ractive;
+
 	return function () {
 
 		var fixture = document.getElementById( 'qunit-fixture' ), runTest, theTest, hasSvg;
@@ -50,7 +52,7 @@ define([ 'Ractive', '../samples/render' ], function ( Ractive, tests ) {
 
 				if ( theTest.new_data ) {
 					view.set( theTest.new_data );
-					
+
 					t.htmlEqual( fixture.innerHTML, theTest.new_result );
 					t.htmlEqual( view.toHTML(), theTest.new_result );
 				}
@@ -64,7 +66,7 @@ define([ 'Ractive', '../samples/render' ], function ( Ractive, tests ) {
 
 			runTest( i );
 		}
-		
+
 	};
 
 });

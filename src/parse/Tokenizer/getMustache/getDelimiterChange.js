@@ -3,7 +3,7 @@ define([
 ], function (
 	makeRegexMatcher
 ) {
-	
+
 	'use strict';
 
 	var getDelimiter = makeRegexMatcher( /^[^\s=]+/ );

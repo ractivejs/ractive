@@ -1,4 +1,12 @@
-define([ 'utils/defineProperty', 'config/isClient' ], function ( defineProperty, isClient ) {
+define([
+	'utils/createElement',
+	'utils/defineProperty',
+	'config/isClient'
+], function (
+	createElement,
+	defineProperty,
+	isClient
+) {
 
 	'use strict';
 
@@ -11,7 +19,7 @@ define([ 'utils/defineProperty', 'config/isClient' ], function ( defineProperty,
 		}
 
 		if ( isClient ) {
-			Object.defineProperties( document.createElement( 'div' ), { test: { value: 0 } });
+			Object.defineProperties( createElement( 'div' ), { test: { value: 0 } });
 		}
 
 		return Object.defineProperties;

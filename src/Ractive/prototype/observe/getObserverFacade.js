@@ -11,7 +11,7 @@ define([
 	Observer,
 	PatternObserver
 ) {
-	
+
 	'use strict';
 
 	var wildcard = /\*/, emptyObject = {};
@@ -30,7 +30,7 @@ define([
 		} else {
 			observer = new Observer( ractive, keypath, callback, options );
 		}
-		
+
 		registerDependant( observer );
 		observer.init( options.init );
 

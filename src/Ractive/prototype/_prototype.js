@@ -10,6 +10,8 @@ define([
 	'Ractive/prototype/fire',
 	'Ractive/prototype/find',
 	'Ractive/prototype/findAll',
+	'Ractive/prototype/findComponent',
+	'Ractive/prototype/findAllComponents',
 	'Ractive/prototype/render',
 	'Ractive/prototype/renderHTML',
 	'Ractive/prototype/toHTML',
@@ -32,6 +34,8 @@ define([
 	fire,
 	find,
 	findAll,
+	findComponent,
+	findAllComponents,
 	render,
 	renderHTML,
 	toHTML,
@@ -43,7 +47,7 @@ define([
 	detach,
 	insert
 ) {
-	
+
 	'use strict';
 
 	return {
@@ -58,6 +62,8 @@ define([
 		fire: fire,
 		find: find,
 		findAll: findAll,
+		findComponent: findComponent,
+		findAllComponents: findAllComponents,
 		renderHTML: renderHTML,
 		toHTML: toHTML,
 		render: render,

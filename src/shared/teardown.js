@@ -1,5 +1,5 @@
 define([ 'shared/unregisterDependant' ], function ( unregisterDependant ) {
-	
+
 	'use strict';
 
 	return function ( thing ) {

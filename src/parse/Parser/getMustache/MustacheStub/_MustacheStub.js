@@ -14,7 +14,7 @@ define([
 		if ( token.ref ) {
 			this.ref = token.ref;
 		}
-		
+
 		if ( token.expression ) {
 			this.expr = new ExpressionStub( token.expression );
 		}

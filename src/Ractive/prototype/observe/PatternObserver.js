@@ -5,14 +5,14 @@ define([
 	isEqual,
 	getPattern
 ) {
-	
+
 	'use strict';
 
 	var PatternObserver, wildcard = /\*/;
 
 	PatternObserver = function ( ractive, keypath, callback, options ) {
 		this.root = ractive;
-		
+
 		this.callback = callback;
 		this.defer = options.defer;
 		this.debug = options.debug;

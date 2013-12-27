@@ -7,7 +7,7 @@ define([
 	getNumberLiteral,
 	getName
 ) {
-	
+
 	'use strict';
 
 	var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;

@@ -5,7 +5,7 @@ define([
 	types,
 	getExpressionList
 ) {
-	
+
 	'use strict';
 
 	return function ( tokenizer ) {

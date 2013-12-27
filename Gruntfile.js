@@ -3,9 +3,9 @@ module.exports = function(grunt) {
 
 	// Project configuration.
 	grunt.initConfig({
-		
+
 		pkg: grunt.file.readJSON( 'package.json' ),
-		
+
 		watch: {
 			js: {
 				files: [ 'src/**/*.js', 'wrapper/**/*.js' ],
@@ -22,7 +22,7 @@ module.exports = function(grunt) {
 			parse:  [ 'test/node/parse.js' ],
 			toHTML: [ 'test/node/toHTML.js' ]
 		},
-		
+
 		qunit: {
 			parse:    [ 'test/build/parse.html'    ],
 			render:   [ 'test/build/render.html'   ],
@@ -76,7 +76,7 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		
+
 		concat: {
 			options: {
 				banner: grunt.file.read( 'wrapper/banner.js' ),
@@ -101,12 +101,12 @@ module.exports = function(grunt) {
 				dest: 'build/Ractive-legacy.runtime.js'
 			}
 		},
-		
+
 		clean: {
 			tmp: [ 'tmp/' ],
 			build: [ 'build/' ]
 		},
-		
+
 		jshint: {
 			files: [ 'src/**/*.js' ],
 			options: {
@@ -135,7 +135,7 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		
+
 		uglify: {
 			runtime: {
 				src: ['<%= concat.runtime.dest %>'],
@@ -154,7 +154,7 @@ module.exports = function(grunt) {
 				dest: 'build/Ractive-legacy.min.js'
 			}
 		},
-		
+
 		copy: {
 			release: {
 				files: [{
@@ -181,12 +181,13 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	grunt.loadNpmTasks( 'grunt-contrib-requirejs' );
-	
+
 	grunt.registerTask( 'default', [
 		'test',
 		'clean:build',
 		'concat',
-		'uglify'
+		'uglify',
+		'copy:link'
 	]);
 
 	grunt.registerTask( 'test', [

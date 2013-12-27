@@ -7,13 +7,13 @@ define([
 	unregisterDependant,
 	ExpressionResolver
 ) {
-	
+
 	'use strict';
 
 	return reassignFragment;
 
 	function reassignFragment ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, item, context;
+		var i, item, context, query;
 
 		// If this fragment was rendered with innerHTML, we have nothing to do
 		// TODO a less hacky way of determining this
@@ -45,6 +45,13 @@ define([
 
 				case types.PARTIAL:
 				reassignFragment( item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				break;
+
+				case types.COMPONENT:
+				reassignFragment( item.instance.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				if ( query = fragment.root._liveComponentQueries[ item.name ] ) {
+					query._makeDirty();
+				}
 				break;
 
 				case types.SECTION:
@@ -101,7 +108,7 @@ define([
 			if ( binding = storage.binding ) {
 				if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
 					bindings = storage.root._twowayBindings[ binding.keypath ];
-					
+
 					// remove binding reference for old keypath
 					bindings.splice( bindings.indexOf( binding ), 1 );
 
@@ -141,7 +148,7 @@ define([
 			// resolver checks in? For now, the latter (nb if this changes, we
 			// need to manually set mustache.resolved = false, otherwise we
 			// come up against a nasty bug - #271)
-			
+
 			if ( mustache.expressionResolver ) {
 				mustache.expressionResolver.teardown();
 			}

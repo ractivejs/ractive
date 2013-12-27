@@ -7,7 +7,7 @@ define([
 	registerDependant,
 	unregisterDependant
 ) {
-	
+
 	'use strict';
 
 	var SoftReference = function ( root, keypath, evaluator ) {
