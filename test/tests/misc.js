@@ -1111,6 +1111,17 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.ok( instance.data instanceof Model );
 		});
 
+		test( 'Regression test for #351', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{selected}}" multiple>{{#items}}<option value="{{id}}">{{name}}</option>{{/items}}</select>'
+			});
+
+			ractive.set( 'items', [{name:'one', id:1}, {name:'two', id:2}]);
+
+			t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
