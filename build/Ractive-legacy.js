@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9 - 2013-12-27
+	Ractive - v0.3.9 - 2013-12-28
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -8112,12 +8112,15 @@ var render_DomFragment_Component_initialise_createModel_ComponentParameter = fun
 var render_DomFragment_Component_initialise_createModel__createModel = function (types, parseJSON, resolveRef, ComponentParameter) {
         
         return function (component, attributes, toBind) {
-            var data, key;
+            var data, key, value;
             data = {};
             component.complexParameters = [];
             for (key in attributes) {
                 if (attributes.hasOwnProperty(key)) {
-                    data[key] = getValue(component, key, attributes[key], toBind);
+                    value = getValue(component, key, attributes[key], toBind);
+                    if (value !== undefined) {
+                        data[key] = value;
+                    }
                 }
             }
             return data;
@@ -8139,8 +8142,8 @@ var render_DomFragment_Component_initialise_createModel__createModel = function 
                 }
                 keypath = resolveRef(root, descriptor[0].r, parentFragment.contextStack) || descriptor[0].r;
                 toBind.push({
-                    parentKeypath: key,
-                    childKeypath: keypath
+                    childKeypath: key,
+                    parentKeypath: keypath
                 });
                 return root.get(keypath);
             }
@@ -8186,7 +8189,7 @@ var render_DomFragment_Component_initialise_createObservers = function () {
             }
         };
         function bind(component, parentKeypath, childKeypath) {
-            var parentInstance, childInstance, settingParent, settingChild, observers, observer;
+            var parentInstance, childInstance, settingParent, settingChild, observers, observer, value;
             parentInstance = component.root;
             childInstance = component.instance;
             observers = component.observers;
@@ -8207,7 +8210,10 @@ var render_DomFragment_Component_initialise_createObservers = function () {
                     }
                 }, observeOptions);
                 observers.push(observer);
-                parentInstance.set(parentKeypath, childInstance.get(childKeypath));
+                value = childInstance.get(childKeypath);
+                if (value !== undefined) {
+                    parentInstance.set(parentKeypath, value);
+                }
             }
         }
     }();

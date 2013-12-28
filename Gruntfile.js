@@ -24,13 +24,14 @@ module.exports = function(grunt) {
 		},
 
 		qunit: {
-			parse:    [ 'test/build/parse.html'    ],
-			render:   [ 'test/build/render.html'   ],
-			mustache: [ 'test/build/mustache.html' ],
-			events:   [ 'test/build/events.html'   ],
-			misc:     [ 'test/build/misc.html'     ],
-			merge:    [ 'test/build/merge.html'    ],
-			observe:  [ 'test/build/observe.html'  ],
+			parse:      [ 'test/build/parse.html'      ],
+			render:     [ 'test/build/render.html'     ],
+			mustache:   [ 'test/build/mustache.html'   ],
+			events:     [ 'test/build/events.html'     ],
+			misc:       [ 'test/build/misc.html'       ],
+			components: [ 'test/build/components.html' ],
+			merge:      [ 'test/build/merge.html'      ],
+			observe:    [ 'test/build/observe.html'    ],
 			options: {
 				timeout: 30000
 			}
