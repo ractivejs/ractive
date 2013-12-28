@@ -22,7 +22,7 @@ define([
 
 
 	function bind ( component, parentKeypath, childKeypath ) {
-		var parentInstance, childInstance, settingParent, settingChild, observers, observer;
+		var parentInstance, childInstance, settingParent, settingChild, observers, observer, value;
 
 		parentInstance = component.root;
 		childInstance = component.instance;
@@ -51,7 +51,10 @@ define([
 			observers.push( observer );
 
 			// initialise - in case the component has default data etc
-			parentInstance.set( parentKeypath, childInstance.get( childKeypath ) );
+			value = childInstance.get( childKeypath );
+			if ( value !== undefined ) {
+				parentInstance.set( parentKeypath, value );
+			}
 		}
 	}
 

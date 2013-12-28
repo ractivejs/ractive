@@ -13,7 +13,7 @@ define([
 	'use strict';
 
 	return function ( component, attributes, toBind ) {
-		var data, key;
+		var data, key, value;
 
 		data = {};
 
@@ -24,7 +24,10 @@ define([
 
 		for ( key in attributes ) {
 			if ( attributes.hasOwnProperty( key ) ) {
-				data[ key ] = getValue( component, key, attributes[ key ], toBind );
+				value = getValue( component, key, attributes[ key ], toBind );
+				if ( value !== undefined ) {
+					data[ key ] = value;
+				}
 			}
 		}
 
@@ -62,7 +65,7 @@ define([
 			// We need to set up bindings between parent and child, but
 			// we can't do it yet because the child instance doesn't exist
 			// yet - so we make a note instead
-			toBind.push({ parentKeypath: key, childKeypath: keypath });
+			toBind.push({ childKeypath: key, parentKeypath: keypath });
 			return root.get( keypath );
 		}
 
