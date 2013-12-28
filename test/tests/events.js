@@ -379,6 +379,33 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( tapped, true );
 		});
 
+		test( 'Calling ractive.off() without a keypath removes all handlers', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'doesn\'t matter'
+			});
+
+			expect( 0 );
+
+			ractive.on({
+				foo: function () {
+					t.ok( false );
+				},
+				bar: function () {
+					t.ok( false );
+				},
+				baz: function () {
+					t.ok( false );
+				}
+			});
+
+			ractive.off();
+
+			ractive.fire( 'foo' );
+			ractive.fire( 'bar' );
+			ractive.fire( 'baz' );
+		});
+
 	};
 
 });

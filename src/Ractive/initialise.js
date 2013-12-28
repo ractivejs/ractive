@@ -85,7 +85,7 @@ define([
 			},
 
 			// events
-			_subs: { value: create( null ) },
+			_subs: { value: create( null ), configurable: true },
 
 			// cache
 			_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null

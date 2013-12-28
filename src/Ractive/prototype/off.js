@@ -1,4 +1,10 @@
-define( function () {
+define([
+	'utils/defineProperty',
+	'utils/create'
+], function (
+	defineProperty,
+	create
+) {
 
 	'use strict';
 
@@ -9,7 +15,7 @@ define( function () {
 		if ( !callback ) {
 			// if no event name specified, remove all callbacks for all events
 			if ( !eventName ) {
-				this._subs = {};
+				defineProperty( this, '_subs', { value: create( null ), configurable: true });
 			} else {
 				this._subs[ eventName ] = [];
 			}
