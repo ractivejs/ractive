@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9 - 2013-12-26
+	Ractive - v0.3.9 - 2013-12-28
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1630,7 +1630,9 @@ var Ractive_prototype_off = function () {
             var subscribers, index;
             if (!callback) {
                 if (!eventName) {
-                    this._subs = {};
+                    for (eventName in this._subs) {
+                        delete this._subs[eventName];
+                    }
                 } else {
                     this._subs[eventName] = [];
                 }
@@ -3614,6 +3616,14 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
                     this.root.set(this.keypath, value);
                     attribute.receiving = false;
                 }
+                return this;
+            },
+            deferUpdate: function () {
+                if (this.deferred === true) {
+                    return;
+                }
+                this.root._deferred.attrs.push(this);
+                this.deferred = true;
             },
             teardown: function () {
                 this.node.removeEventListener('change', updateModel, false);
@@ -5640,12 +5650,15 @@ var render_DomFragment_Component_initialise_createModel_ComponentParameter = fun
 var render_DomFragment_Component_initialise_createModel__createModel = function (types, parseJSON, resolveRef, ComponentParameter) {
         
         return function (component, attributes, toBind) {
-            var data, key;
+            var data, key, value;
             data = {};
             component.complexParameters = [];
             for (key in attributes) {
                 if (attributes.hasOwnProperty(key)) {
-                    data[key] = getValue(component, key, attributes[key], toBind);
+                    value = getValue(component, key, attributes[key], toBind);
+                    if (value !== undefined) {
+                        data[key] = value;
+                    }
                 }
             }
             return data;
@@ -5667,8 +5680,8 @@ var render_DomFragment_Component_initialise_createModel__createModel = function 
                 }
                 keypath = resolveRef(root, descriptor[0].r, parentFragment.contextStack) || descriptor[0].r;
                 toBind.push({
-                    parentKeypath: key,
-                    childKeypath: keypath
+                    childKeypath: key,
+                    parentKeypath: keypath
                 });
                 return root.get(keypath);
             }
@@ -5714,7 +5727,7 @@ var render_DomFragment_Component_initialise_createObservers = function () {
             }
         };
         function bind(component, parentKeypath, childKeypath) {
-            var parentInstance, childInstance, settingParent, settingChild, observers, observer;
+            var parentInstance, childInstance, settingParent, settingChild, observers, observer, value;
             parentInstance = component.root;
             childInstance = component.instance;
             observers = component.observers;
@@ -5735,7 +5748,10 @@ var render_DomFragment_Component_initialise_createObservers = function () {
                     }
                 }, observeOptions);
                 observers.push(observer);
-                parentInstance.set(parentKeypath, childInstance.get(childKeypath));
+                value = childInstance.get(childKeypath);
+                if (value !== undefined) {
+                    parentInstance.set(parentKeypath, value);
+                }
             }
         }
     }();
@@ -6655,7 +6671,10 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                         return v.toString(16);
                     })
                 },
-                _subs: { value: create(null) },
+                _subs: {
+                    value: create(null),
+                    configurable: true
+                },
                 _cache: { value: {} },
                 _cacheMap: { value: create(null) },
                 _deps: { value: [] },
