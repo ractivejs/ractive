@@ -1931,7 +1931,9 @@ var Ractive_prototype_off = function () {
             var subscribers, index;
             if (!callback) {
                 if (!eventName) {
-                    this._subs = {};
+                    for (eventName in this._subs) {
+                        delete this._subs[eventName];
+                    }
                 } else {
                     this._subs[eventName] = [];
                 }
@@ -3915,6 +3917,14 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
                     this.root.set(this.keypath, value);
                     attribute.receiving = false;
                 }
+                return this;
+            },
+            deferUpdate: function () {
+                if (this.deferred === true) {
+                    return;
+                }
+                this.root._deferred.attrs.push(this);
+                this.deferred = true;
             },
             teardown: function () {
                 this.node.removeEventListener('change', updateModel, false);
@@ -6962,7 +6972,10 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                         return v.toString(16);
                     })
                 },
-                _subs: { value: create(null) },
+                _subs: {
+                    value: create(null),
+                    configurable: true
+                },
                 _cache: { value: {} },
                 _cacheMap: { value: create(null) },
                 _deps: { value: [] },
