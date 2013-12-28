@@ -412,24 +412,6 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'Jim' );
 		});
 
-		test( 'Components are rendered in the correct place', function ( t ) {
-			var Component, ractive;
-
-			Component = Ractive.extend({
-				template: '<p>this is a component!</p>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<h2>Here is a component:</h2><component/><p>(that was a component)</p>',
-				components: {
-					component: Component
-				}
-			});
-
-			t.htmlEqual( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' );
-		});
-
 		test( 'updateModel correctly updates the value of a text input', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
@@ -584,27 +566,6 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			ractive.set( 'foo', foo );
 		});
 
-		test( 'Top-level sections in components are updated correctly', function ( t ) {
-			var ractive, Component, component;
-
-			Component = Ractive.extend({
-				template: '{{#foo}}foo is truthy{{/foo}}{{^foo}}foo is falsy{{/foo}}'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<component foo="{{foo}}"/>',
-				components: {
-					component: Component
-				}
-			});
-
-			t.htmlEqual( fixture.innerHTML, 'foo is falsy' );
-
-			ractive.set( 'foo', true );
-			t.htmlEqual( fixture.innerHTML, 'foo is truthy' );
-		});
-
 		test( 'Partials can contain inline partials', function ( t ) {
 			var partialStr, ractive;
 
@@ -623,8 +584,6 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
 		});
-
-
 
 		test( 'findAll returns a static node list', function ( t ) {
 			var items, ractive, list;
@@ -725,28 +684,6 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( options.length, 2 );
 			t.ok( !options[0].selected );
 			t.ok( options[1].selected );
-		});
-
-		test( 'Element order is maintained correctly with components with multiple top-level elements', function ( t ) {
-			var ractive, TestComponent;
-
-			TestComponent = Ractive.extend({
-				template: '{{#bool}}TRUE{{/bool}}{{^bool}}FALSE{{/bool}}'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<p>before</p><test bool="{{bool}}"/><p>after</p>',
-				components: { test: TestComponent }
-			});
-
-			t.htmlEqual( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' );
-
-			ractive.set( 'bool', true );
-			t.htmlEqual( fixture.innerHTML, '<p>before</p>TRUE<p>after</p>' );
-
-			ractive.set( 'bool', false );
-			t.htmlEqual( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' );
 		});
 
 		test( 'Bindings without explicit keypaths can survive a splice operation', function ( t ) {
@@ -988,53 +925,6 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			a.push( 1 );
 			t.htmlEqual( fixture.innerHTML, 'foo' );
-		});
-
-		test( 'Regression test for #317', function ( t ) {
-			var Widget, widget, ractive, items;
-
-			Widget = Ractive.extend({
-				template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
-				init: function () {
-					widget = this;
-				}
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<widget items="{{items}}"/><p>{{ items.join( " " ) }}</p>',
-				data: { items: [ 'a', 'b', 'c', 'd' ] },
-				components: {
-					widget: Widget
-				}
-			});
-
-			items = ractive.get( 'items' );
-
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
-
-			items.push( 'e' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
-
-			items.splice( 2, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
-
-			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
-
-
-			// reset items from within widget
-			widget.set( 'items', widget.get( 'items' ).slice() );
-			items = ractive.get( 'items' );
-
-			items.push( 'f' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: f</li></ul><p>a b d f</p>' );
-
-			items.splice( 1, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li><li>2: f</li></ul><p>a d f</p>' );
-
-			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li></ul><p>a d</p>' );
 		});
 
 		test( 'Regression test for #321', function ( t ) {
