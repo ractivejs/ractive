@@ -19,7 +19,7 @@ define([
 
 			processItems = function ( items ) {
 				return items.map( function ( item ) {
-					var placeholderId;
+					var placeholderId, wrapped, value;
 
 					if ( item.text ) {
 						return item.text;
@@ -32,7 +32,14 @@ define([
 					}
 
 					placeholderId = guid + '-' + counter++;
-					values[ placeholderId ] = item.value;
+
+					if ( wrapped = item.root._wrapped[ item.keypath ] ) {
+						value = wrapped.value;
+					} else {
+						value = item.value;
+					}
+
+					values[ placeholderId ] = value;
 
 					return '${' + placeholderId + '}';
 				}).join( '' );
