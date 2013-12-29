@@ -16,6 +16,12 @@ define([
 	// all the logic sits in a private function, so we can do _get even when
 	// ractive.get() has been overridden (i.e. by an evaluator, to do intercepts)
 	get = function ( keypath ) {
+		// capture the dependency, if we're inside an evaluator
+		if ( this._captured && !this._captured[ keypath ] ) {
+			this._captured.push( keypath );
+			this._captured[ keypath ] = true;
+		}
+
 		return _get( this, keypath );
 	};
 
