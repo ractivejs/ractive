@@ -55,7 +55,7 @@ define([
 
 		createInstance( component, Component, data, docFrag, options.descriptor.f );
 		createObservers( component, toBind );
-		propagateEvents( component );
+		propagateEvents( component, options.descriptor.v );
 
 		// intro, outro and decorator directives have no effect
 		if ( options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o ) {
