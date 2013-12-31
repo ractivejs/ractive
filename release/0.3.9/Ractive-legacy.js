@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9 - 2013-12-28
+	Ractive - v0.3.9 - 2013-12-31
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1129,6 +1129,10 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
         
         var get, _get, retrieve;
         get = function (keypath) {
+            if (this._captured && !this._captured[keypath]) {
+                this._captured.push(keypath);
+                this._captured[keypath] = true;
+            }
             return _get(this, keypath);
         };
         _get = function (ractive, keypath) {
@@ -2627,7 +2631,7 @@ var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty
             this.priority = priority;
             value = root.get(keypath);
             if (typeof value === 'function') {
-                value = value['_' + root._guid] || wrapFunction(value, root, evaluator);
+                value = wrapFunction(value, root, evaluator);
             }
             this.value = evaluator.values[argNum] = value;
             registerDependant(this);
@@ -2636,7 +2640,7 @@ var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty
             update: function () {
                 var value = this.root.get(this.keypath);
                 if (typeof value === 'function' && !value._nowrap) {
-                    value = value['_' + this.root._guid] || wrapFunction(value, this.root, this.evaluator);
+                    value = wrapFunction(value, this.root, this.evaluator);
                 }
                 if (!isEqual(value, this.value)) {
                     this.evaluator.values[this.argNum] = value;
@@ -2650,38 +2654,43 @@ var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty
         };
         return Reference;
         function wrapFunction(fn, ractive, evaluator) {
-            var prop;
+            var prop, evaluators, index;
             if (!thisPattern.test(fn.toString())) {
                 defineProperty(fn, '_nowrap', { value: true });
                 return fn;
             }
-            defineProperty(fn, '_' + ractive._guid, {
-                value: function () {
-                    var originalGet, result, softDependencies;
-                    originalGet = ractive.get;
-                    ractive.get = function (keypath) {
-                        if (!softDependencies) {
-                            softDependencies = [];
+            if (!fn['_' + ractive._guid]) {
+                defineProperty(fn, '_' + ractive._guid, {
+                    value: function () {
+                        var originalCaptured, result, i, evaluator;
+                        originalCaptured = ractive._captured;
+                        if (!originalCaptured) {
+                            ractive._captured = [];
                         }
-                        if (!softDependencies[keypath]) {
-                            softDependencies[softDependencies.length] = keypath;
-                            softDependencies[keypath] = true;
+                        result = fn.apply(ractive, arguments);
+                        if (ractive._captured.length) {
+                            i = evaluators.length;
+                            while (i--) {
+                                evaluator = evaluators[i];
+                                evaluator.updateSoftDependencies(ractive._captured);
+                            }
                         }
-                        return originalGet.call(ractive, keypath);
-                    };
-                    result = fn.apply(ractive, arguments);
-                    if (softDependencies) {
-                        evaluator.updateSoftDependencies(softDependencies);
+                        ractive._captured = originalCaptured;
+                        return result;
+                    },
+                    writable: true
+                });
+                for (prop in fn) {
+                    if (fn.hasOwnProperty(prop)) {
+                        fn['_' + ractive._guid][prop] = fn[prop];
                     }
-                    ractive.get = originalGet;
-                    return result;
-                },
-                writable: true
-            });
-            for (prop in fn) {
-                if (fn.hasOwnProperty(prop)) {
-                    fn['_' + ractive._guid][prop] = fn[prop];
                 }
+                fn['_' + ractive._guid + '_evaluators'] = [];
+            }
+            evaluators = fn['_' + ractive._guid + '_evaluators'];
+            index = evaluators.indexOf(evaluator);
+            if (index === -1) {
+                evaluators.push(evaluator);
             }
             return fn['_' + ractive._guid];
         }
@@ -2831,10 +2840,112 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
             return fn;
         }
     }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
-var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, teardown, Evaluator) {
+var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, teardown) {
         
-        var ExpressionResolver, ReferenceScout, getKeypath, keyPattern, isRegularKeypath;
-        ExpressionResolver = function (mustache) {
+        var ReferenceScout = function (resolver, ref, contextStack, argNum) {
+            var keypath, root;
+            root = this.root = resolver.root;
+            keypath = resolveRef(root, ref, contextStack);
+            if (keypath !== undefined) {
+                resolver.resolveRef(argNum, false, keypath);
+            } else {
+                this.ref = ref;
+                this.argNum = argNum;
+                this.resolver = resolver;
+                this.contextStack = contextStack;
+                root._pendingResolution[root._pendingResolution.length] = this;
+            }
+        };
+        ReferenceScout.prototype = {
+            resolve: function (keypath) {
+                this.keypath = keypath;
+                this.resolver.resolveRef(this.argNum, false, keypath);
+            },
+            teardown: function () {
+                if (!this.keypath) {
+                    teardown(this);
+                }
+            }
+        };
+        return ReferenceScout;
+    }(shared_resolveRef, shared_teardown);
+var render_shared_ExpressionResolver_isRegularKeypath = function () {
+        
+        var keyPattern = /^(?:(?:[a-zA-Z$_][a-zA-Z$_0-9]*)|(?:[0-9]|[1-9][0-9]+))$/;
+        return function (keypath) {
+            var keys, key, i;
+            keys = keypath.split('.');
+            i = keys.length;
+            while (i--) {
+                key = keys[i];
+                if (key === 'undefined' || !keyPattern.test(key)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }();
+var render_shared_ExpressionResolver_getKeypath = function (normaliseKeypath, isRegularKeypath) {
+        
+        return function (str, args) {
+            var unique, normalised;
+            unique = str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
+                return args[$1] ? args[$1][1] : 'undefined';
+            });
+            normalised = normaliseKeypath(unique);
+            if (isRegularKeypath(normalised)) {
+                return normalised;
+            }
+            return '${' + unique.replace(/[\.\[\]]/g, '-') + '}';
+        };
+    }(utils_normaliseKeypath, render_shared_ExpressionResolver_isRegularKeypath);
+var render_shared_ExpressionResolver_reassignDependants = function (registerDependant, unregisterDependant) {
+        
+        return function (ractive, oldKeypath, newKeypath) {
+            var toReassign, i, dependant;
+            toReassign = [];
+            gatherDependants(ractive, oldKeypath, toReassign);
+            i = toReassign.length;
+            while (i--) {
+                dependant = toReassign[i];
+                unregisterDependant(dependant);
+                dependant.keypath = dependant.keypath.replace(oldKeypath, newKeypath);
+                registerDependant(dependant);
+                dependant.update();
+            }
+        };
+        function cascade(ractive, oldKeypath, toReassign) {
+            var map, i;
+            map = ractive._depsMap[oldKeypath];
+            if (!map) {
+                return;
+            }
+            i = map.length;
+            while (i--) {
+                gatherDependants(ractive, map[i], toReassign);
+            }
+        }
+        function gatherDependants(ractive, oldKeypath, toReassign) {
+            var priority, dependantsByKeypath, dependants, i;
+            priority = ractive._deps.length;
+            while (priority--) {
+                dependantsByKeypath = ractive._deps[priority];
+                if (dependantsByKeypath) {
+                    dependants = dependantsByKeypath[oldKeypath];
+                    if (dependants) {
+                        i = dependants.length;
+                        while (i--) {
+                            toReassign.push(dependants[i]);
+                        }
+                    }
+                }
+            }
+            cascade(ractive, oldKeypath, toReassign);
+        }
+    }(shared_registerDependant, shared_unregisterDependant);
+var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, ReferenceScout, getKeypath, reassignDependants) {
+        
+        var ExpressionResolver = function (mustache) {
             var expression, i, len, ref, indexRefs;
             this.root = mustache.root;
             this.mustache = mustache;
@@ -2862,14 +2973,20 @@ var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, t
         };
         ExpressionResolver.prototype = {
             bubble: function () {
+                var oldKeypath;
                 if (!this.ready) {
                     return;
                 }
+                oldKeypath = this.keypath;
                 this.keypath = getKeypath(this.str, this.args);
-                if (this.keypath.charAt(0) === '(') {
+                if (this.keypath.substr(0, 2) === '${') {
                     this.createEvaluator();
                 }
-                this.mustache.resolve(this.keypath);
+                if (oldKeypath) {
+                    reassignDependants(this.root, oldKeypath, this.keypath);
+                } else {
+                    this.mustache.resolve(this.keypath);
+                }
             },
             teardown: function () {
                 while (this.scouts.length) {
@@ -2892,57 +3009,8 @@ var render_shared_ExpressionResolver = function (normaliseKeypath, resolveRef, t
                 }
             }
         };
-        ReferenceScout = function (resolver, ref, contextStack, argNum) {
-            var keypath, root;
-            root = this.root = resolver.root;
-            keypath = resolveRef(root, ref, contextStack);
-            if (keypath !== undefined) {
-                resolver.resolveRef(argNum, false, keypath);
-            } else {
-                this.ref = ref;
-                this.argNum = argNum;
-                this.resolver = resolver;
-                this.contextStack = contextStack;
-                root._pendingResolution[root._pendingResolution.length] = this;
-            }
-        };
-        ReferenceScout.prototype = {
-            resolve: function (keypath) {
-                this.keypath = keypath;
-                this.resolver.resolveRef(this.argNum, false, keypath);
-            },
-            teardown: function () {
-                if (!this.keypath) {
-                    teardown(this);
-                }
-            }
-        };
-        keyPattern = /^(?:(?:[a-zA-Z$_][a-zA-Z$_0-9]*)|(?:[0-9]|[1-9][0-9]+))$/;
-        isRegularKeypath = function (keypath) {
-            var keys, key, i;
-            keys = keypath.split('.');
-            i = keys.length;
-            while (i--) {
-                key = keys[i];
-                if (key === 'undefined' || !keyPattern.test(key)) {
-                    return false;
-                }
-            }
-            return true;
-        };
-        getKeypath = function (str, args) {
-            var unique, normalised;
-            unique = str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
-                return args[$1] ? args[$1][1] : 'undefined';
-            });
-            normalised = normaliseKeypath(unique);
-            if (isRegularKeypath(normalised)) {
-                return normalised;
-            }
-            return '(' + unique.replace(/[\.\[\]]/g, '-') + ')';
-        };
         return ExpressionResolver;
-    }(utils_normaliseKeypath, shared_resolveRef, shared_teardown, render_shared_Evaluator__Evaluator);
+    }(render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants);
 var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
@@ -2977,7 +3045,7 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
                 mustache.render(undefined);
             }
         };
-    }(shared_resolveRef, render_shared_ExpressionResolver);
+    }(shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver);
 var render_shared_resolveMustache = function (types, registerDependant, unregisterDependant) {
         
         return function (keypath) {
@@ -3274,7 +3342,7 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
                 }
             }
         }
-    }(config_types, shared_unregisterDependant, render_shared_ExpressionResolver);
+    }(config_types, shared_unregisterDependant, render_shared_ExpressionResolver__ExpressionResolver);
 var render_DomFragment_Section_reassignFragments = function (types, reassignFragment, preDomUpdate) {
         
         return function (root, section, start, end, by) {
@@ -3845,7 +3913,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             if (!item.keypath && !item.ref) {
                 return null;
             }
-            if (item.keypath && item.keypath.charAt(0) === '(') {
+            if (item.keypath && item.keypath.substr(0, 2) === '${') {
                 errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
                 if (attribute.root.debug) {
                     warn(errorMessage);
@@ -4691,7 +4759,7 @@ var render_StringFragment_prototype_toArgsList = function (warn, parseJSON) {
                 guid = this.root._guid;
                 processItems = function (items) {
                     return items.map(function (item) {
-                        var placeholderId;
+                        var placeholderId, wrapped, value;
                         if (item.text) {
                             return item.text;
                         }
@@ -4701,7 +4769,12 @@ var render_StringFragment_prototype_toArgsList = function (warn, parseJSON) {
                             }).join('');
                         }
                         placeholderId = guid + '-' + counter++;
-                        values[placeholderId] = item.value;
+                        if (wrapped = item.root._wrapped[item.keypath]) {
+                            value = wrapped.value;
+                        } else {
+                            value = item.value;
+                        }
+                        values[placeholderId] = value;
                         return '${' + placeholderId + '}';
                     }).join('');
                 };
@@ -4911,7 +4984,11 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
             DomFragment = circular.DomFragment;
         });
         updateCss = function () {
-            this.node.styleSheet.cssText = this.fragment.toString();
+            var node = this.node, content = this.fragment.toString();
+            if (node.styleSheet) {
+                node.styleSheet.cssText = content;
+            }
+            node.innerHTML = content;
         };
         updateScript = function () {
             if (!this.node.type || this.node.type === 'text/javascript') {
@@ -5673,7 +5750,7 @@ var render_DomFragment_Element_prototype_find = function (matches) {
             if (this.html && (queryResult = this.node.querySelector(selector))) {
                 return queryResult;
             }
-            if (this.fragment) {
+            if (this.fragment && this.fragment.find) {
                 return this.fragment.find(selector);
             }
         };
@@ -8286,7 +8363,7 @@ var render_DomFragment_Component_initialise__initialise = function (types, warn,
             data = createModel(component, options.descriptor.a, toBind);
             createInstance(component, Component, data, docFrag, options.descriptor.f);
             createObservers(component, toBind);
-            propagateEvents(component);
+            propagateEvents(component, options.descriptor.v);
             if (options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o) {
                 warn('The "intro", "outro" and "decorator" directives have no effect on components');
             }
