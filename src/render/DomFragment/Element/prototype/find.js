@@ -13,7 +13,7 @@ define([ 'utils/matches' ], function ( matches ) {
 			return queryResult;
 		}
 
-		if ( this.fragment ) {
+		if ( this.fragment && this.fragment.find ) {
 			return this.fragment.find( selector );
 		}
 	};
