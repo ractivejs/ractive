@@ -20,7 +20,13 @@ define([
 
 
 	updateCss = function () {
-		this.node.styleSheet.cssText = this.fragment.toString();
+		var node = this.node, content = this.fragment.toString();
+
+		if ( node.styleSheet ) {
+			node.styleSheet.cssText = content;
+		}
+
+		node.innerHTML = content;
 	};
 
 	updateScript = function () {
