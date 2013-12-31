@@ -1,7 +1,7 @@
 define([
 	'config/types',
 	'shared/unregisterDependant',
-	'render/shared/ExpressionResolver'
+	'render/shared/ExpressionResolver/_ExpressionResolver'
 ], function (
 	types,
 	unregisterDependant,

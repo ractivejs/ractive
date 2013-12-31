@@ -1,6 +1,6 @@
 define([
 	'shared/resolveRef',
-	'render/shared/ExpressionResolver'
+	'render/shared/ExpressionResolver/_ExpressionResolver'
 ], function (
 	resolveRef,
 	ExpressionResolver
