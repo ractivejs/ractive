@@ -2,21 +2,35 @@
 // and generally cleaning up after itself
 define([
 	'shared/makeTransitionManager',
-	'shared/clearCache'
+	'shared/clearCache',
+	'shared/css'
 ], function (
 	makeTransitionManager,
-	clearCache
+	clearCache,
+	css
 ) {
 
 	'use strict';
 
 	return function ( complete ) {
-		var keypath, transitionManager, previousTransitionManager;
+		var keypath, transitionManager, previousTransitionManager, actualComplete;
 
 		this.fire( 'teardown' );
 
+		if ( this.constructor.css ) {
+			actualComplete = function () {
+				if ( complete ) {
+					complete.call( this );
+				}
+
+				css.remove( this.constructor );
+			};
+		} else {
+			actualComplete = complete;
+		}
+
 		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		this._transitionManager = transitionManager = makeTransitionManager( this, actualComplete );
 
 		this.fragment.teardown( true );
 

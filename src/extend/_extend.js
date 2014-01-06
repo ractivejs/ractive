@@ -1,5 +1,7 @@
 define([
 	'utils/create',
+	'utils/defineProperties',
+	'utils/getGuid',
 	'extend/inheritFromParent',
 	'extend/inheritFromChildProps',
 	'extend/extractInlinePartials',
@@ -9,6 +11,8 @@ define([
 	'circular'
 ], function (
 	create,
+	defineProperties,
+	getGuid,
 	inheritFromParent,
 	inheritFromChildProps,
 	extractInlinePartials,
@@ -49,7 +53,12 @@ define([
 		extractInlinePartials( Child, childProps );
 		conditionallyParsePartials( Child );
 
-		Child.extend = Parent.extend;
+		defineProperties( Child, {
+			extend: { value: Parent.extend },
+
+			// each component needs a guid, for managing CSS etc
+			_guid: { value: getGuid() }
+		});
 
 		return Child;
 	};

@@ -5,9 +5,11 @@ define([
 	'Ractive/prototype/_prototype',
 	'registries/partials',
 	'registries/adaptors',
+	'registries/components',
 	'registries/easing',
 	'extend/_extend',
 	'parse/_parse',
+	'load/_load',
 	'Ractive/initialise',
 	'circular'
 ], function (
@@ -17,9 +19,11 @@ define([
 	prototype,
 	partialRegistry,
 	adaptorRegistry,
+	componentsRegistry,
 	easingRegistry,
-	Ractive_extend,
+	extend,
 	parse,
+	load,
 	initialise,
 	circular
 ) {
@@ -44,7 +48,7 @@ define([
 		easing:      { value: easingRegistry },
 		transitions: { value: {} },
 		events:      { value: {} },
-		components:  { value: {} },
+		components:  { value: componentsRegistry },
 		decorators:  { value: {} },
 
 		// Support
@@ -62,8 +66,9 @@ define([
 	Ractive.tripleDelimiters = [ '{{{', '}}}' ];
 
 	// Static methods
-	Ractive.extend = Ractive_extend;
+	Ractive.extend = extend;
 	Ractive.parse = parse;
+	Ractive.load = load;
 
 	circular.Ractive = Ractive;
 	return Ractive;
