@@ -6961,10 +6961,10 @@ var parse_Parser_getText_TextStub__TextStub = function (types) {
     }(config_types);
 var parse_Parser_getText__getText = function (types, TextStub) {
         
-        return function (token) {
+        return function (token, preserveWhitespace) {
             if (token.type === types.TEXT) {
                 this.pos += 1;
-                return new TextStub(token, this.preserveWhitespace);
+                return new TextStub(token, preserveWhitespace);
             }
             return null;
         };
@@ -7602,7 +7602,7 @@ var parse_Parser_getElement_ElementStub__ElementStub = function (types, voidElem
                 warn('The "rv-" prefix for components has been deprecated. Support will be removed in a future version');
                 this.tag = this.tag.substring(3);
             }
-            preserveWhitespace = preserveWhitespace || lowerCaseTag === 'pre';
+            preserveWhitespace = preserveWhitespace || lowerCaseTag === 'pre' || lowerCaseTag === 'style' || lowerCaseTag === 'script';
             if (firstToken.attrs) {
                 filtered = filterAttributes(firstToken.attrs);
                 attrs = filtered.attrs;
@@ -7655,7 +7655,7 @@ var parse_Parser_getElement_ElementStub__ElementStub = function (types, voidElem
                         break;
                     }
                 }
-                this.items[this.items.length] = parser.getStub();
+                this.items.push(parser.getStub(preserveWhitespace));
                 next = parser.next();
             }
             if (!preserveWhitespace) {
@@ -7715,12 +7715,12 @@ var parse_Parser__Parser = function (getText, getComment, getMustache, getElemen
             this.result = jsonifyStubs(stubs, options.noStringify);
         };
         Parser.prototype = {
-            getStub: function () {
+            getStub: function (preserveWhitespace) {
                 var token = this.next();
                 if (!token) {
                     return null;
                 }
-                return this.getText(token) || this.getComment(token) || this.getMustache(token) || this.getElement(token);
+                return this.getText(token, this.preserveWhitespace || preserveWhitespace) || this.getComment(token) || this.getMustache(token) || this.getElement(token);
             },
             getText: getText,
             getComment: getComment,
