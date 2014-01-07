@@ -36,14 +36,14 @@ define([
 	};
 
 	Parser.prototype = {
-		getStub: function () {
+		getStub: function ( preserveWhitespace ) {
 			var token = this.next();
 
 			if ( !token ) {
 				return null;
 			}
 
-			return this.getText( token )     ||
+			return this.getText( token, this.preserveWhitespace || preserveWhitespace ) ||
 			       this.getComment( token )  ||
 			       this.getMustache( token ) ||
 			       this.getElement( token );
