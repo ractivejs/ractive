@@ -38,7 +38,7 @@ define( function () {
 				// If this branch doesn't exist yet, create a new one - if the next
 				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
 				// than an object
-				if ( !obj.hasOwnProperty( key ) ) {
+				if ( !obj.hasOwnProperty( key ) || !obj[ key ] ) {
 
 					// if we're creating a new branch, we may need to clear the upstream
 					// keypath

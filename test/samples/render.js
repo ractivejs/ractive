@@ -402,6 +402,14 @@ var renderTests = [
 		template: '{{#.}}<p>{{name}}</p>{{/.}}',
 		data: [{ name: 'Alice' }, { name: 'Bob' }, { name: 'Charles' }],
 		result: '<p>Alice</p><p>Bob</p><p>Charles</p>'
+	},
+	{
+		name: 'Setting child properties of null values creates object',
+		template: '{{foo.bar}}',
+		data: { foo: null },
+		result: '',
+		new_data: { 'foo.bar': 'works' },
+		new_result: 'works'
 	}
 ];
 
