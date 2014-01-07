@@ -16,7 +16,7 @@ define([
 			container.innerHTML = html;
 
 			while ( container.firstChild ) {
-				nodes[ nodes.length ] = container.firstChild;
+				nodes.push( container.firstChild );
 				docFrag.appendChild( container.firstChild );
 			}
 		}

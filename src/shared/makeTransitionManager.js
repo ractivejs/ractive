@@ -1,4 +1,4 @@
-define( function () {
+define([ 'utils/warn' ], function ( warn ) {
 
 	'use strict';
 
@@ -6,14 +6,16 @@ define( function () {
 	// efficient) to pass e.g. transitionManager.pop as a callback, rather
 	// than wrapping a prototype method in an anonymous function each time
 	var makeTransitionManager = function ( root, callback ) {
-		var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
-
-		// components should inherit their transition manager
-		if ( root._parent && root._parent._transitionManager ) {
-			return root._parent._transitionManager;
-		}
+		var transitionManager,
+			elementsToDetach,
+			transitioningNodes,
+			detachNodes,
+			nodeHasNoTransitioningChildren,
+			checkComplete,
+			parentTransitionManager;
 
 		elementsToDetach = [];
+		transitioningNodes = [];
 
 		// detach any nodes which a) need to be detached and b) have no child nodes
 		// which are actively transitioning. This will be called each time a
@@ -36,10 +38,13 @@ define( function () {
 		nodeHasNoTransitioningChildren = function ( node ) {
 			var i, candidate;
 
-			i = transitionManager.active.length;
+			i = transitioningNodes.length;
 			while ( i-- ) {
-				candidate = transitionManager.active[i];
+				candidate = transitioningNodes[i];
 
+				// Because `node.contains( node ) === true`, this prevents
+				// nodes from detaching during their own transition, as well
+				// as during child node transitions
 				if ( node.contains( candidate ) ) {
 					// fail as soon as possible
 					return false;
@@ -49,46 +54,55 @@ define( function () {
 			return true;
 		};
 
+		checkComplete = function () {
+			if ( transitionManager._ready && !transitioningNodes.length ) {
+				if ( callback ) {
+					callback.call( root );
+				}
+
+				if ( parentTransitionManager ) {
+					parentTransitionManager.pop( root.el );
+				}
+			}
+		};
+
 		transitionManager = {
-			active: [],
 			push: function ( node ) {
-				transitionManager.active[ transitionManager.active.length ] = node;
+				transitioningNodes.push( node );
 			},
 			pop: function ( node ) {
 				var index;
 
-				index = transitionManager.active.indexOf( node );
+				index = transitioningNodes.indexOf( node );
 
 				if ( index === -1 ) {
 					// already popped this node
+					// TODO hang on, this should never happen, right?
+					warn( 'This message should not appear. If it did, an unexpected situation occurred with a transition manager. Please tell @RactiveJS (http://twitter.com/RactiveJS). Thanks!' );
 					return;
 				}
 
-				transitionManager.active.splice( index, 1 );
+				transitioningNodes.splice( index, 1 );
 
 				detachNodes();
-
-				if ( !transitionManager.active.length && transitionManager._ready ) {
-					transitionManager.complete();
-				}
-			},
-			complete: function () {
-				if ( callback ) {
-					callback.call( root );
-				}
+				checkComplete();
 			},
 			ready: function () {
 				detachNodes();
 
 				transitionManager._ready = true;
-				if ( !transitionManager.active.length ) {
-					transitionManager.complete();
-				}
+				checkComplete();
 			},
 			detachWhenReady: function ( element ) {
-				elementsToDetach[ elementsToDetach.length ] = element;
+				elementsToDetach.push( element );
 			}
 		};
+
+		// components need to notify parents when their
+		// transitions are complete
+		if ( root._parent && ( parentTransitionManager = root._parent._transitionManager ) ) {
+			parentTransitionManager.push( root.el );
+		}
 
 		return transitionManager;
 	};

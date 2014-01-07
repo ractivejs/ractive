@@ -41,7 +41,11 @@ define([
 			target.appendChild( this.fragment.docFrag );
 		}
 
-		postDomUpdate( this );
+		if ( this._parent ) {
+			this._parent._deferred.components.push( this );
+		} else {
+			postDomUpdate( this );
+		}
 
 		// transition manager has finished its work
 		this._transitionManager = null;

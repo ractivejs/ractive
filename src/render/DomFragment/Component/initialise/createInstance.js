@@ -15,10 +15,9 @@ define([
 		// Make contents available as a {{>content}} partial
 		partials = { content: contentDescriptor || [] };
 
-		// TODO don't clone parent node - instead use a document fragment (and pass in the namespaceURI
-		// of the parent node, for SVG purposes) and insert contents that way?
 		instance = new Component({
-			el: parentFragment.pNode.cloneNode( false ), // to ensure correct namespaceURI
+			el: parentFragment.pNode,
+			append: true,
 			data: data,
 			partials: partials,
 			_parent: root,
@@ -29,11 +28,16 @@ define([
 		instance.component = component;
 		component.instance = instance;
 
-		// Insert the component into the current document fragment...
+		// The component may be in the wrong place! This is because we
+		// are still populating the document fragment that will be appended
+		// to its parent node. So even though the component is *already*
+		// a child of the parent node, we need to detach it, then insert
+		// it into said document fragment, so that order is maintained
+		// (both figuratively and literally).
 		instance.insert( docFrag );
 
-		// ...and reset node reference
-		instance.fragment.pNode = parentFragment.pNode;
+		// (After inserting, we need to reset the node reference)
+		instance.fragment.pNode = instance.el = parentFragment.pNode;
 
 		return instance;
 	};

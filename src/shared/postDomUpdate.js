@@ -3,10 +3,14 @@ define( function () {
 	'use strict';
 
 	// TODO can this be neatened up at all?
-	return function ( ractive ) {
-		var deferred, focusable, query, decorator, transition, observer;
+	return function postDomUpdate ( ractive ) {
+		var deferred, component, focusable, query, decorator, transition, observer;
 
 		deferred = ractive._deferred;
+
+		while ( component = deferred.components.pop() ) {
+			postDomUpdate( component );
+		}
 
 		if ( focusable = deferred.focusable ) {
 			focusable.focus();

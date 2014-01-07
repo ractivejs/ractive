@@ -253,6 +253,27 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li></ul><p>a d</p>' );
 		});
 
+		test( 'Component complete() methods are called', function ( t ) {
+			var ractive, ractiveCompleted, widgetCompleted;
+
+			Ractive.components.widget = Ractive.extend({
+				complete: function () {
+					widgetCompleted = true;
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				complete: function () {
+					ractiveCompleted = true;
+				}
+			});
+
+			t.equal( ractiveCompleted, true );
+			t.equal( widgetCompleted, true );
+		});
+
 	};
 
 });

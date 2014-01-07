@@ -136,7 +136,8 @@ define([
 			transitions: { value: [] },
 			liveQueries: { value: [] },
 			decorators: { value: [] },
-			focusable: { value: null, writable: true }
+			focusable: { value: null, writable: true },
+			components: { value: [] }
 		});
 
 		// options

@@ -11,7 +11,7 @@ define([ 'utils/getElement' ], function ( getElement ) {
 		}
 
 		target.insertBefore( this.detach(), anchor );
-		this.fragment.pNode = target;
+		this.fragment.pNode = this.el = target;
 	};
 
 });
