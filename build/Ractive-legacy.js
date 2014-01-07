@@ -2522,6 +2522,51 @@ var utils_getElement = function () {
             return null;
         };
     }();
+var shared_css = function () {
+        
+        var styleElement, usedStyles = [], updateStyleElement;
+        updateStyleElement = function () {
+            var css = '/* Ractive.js component styles */\n' + usedStyles.join(' ');
+            if (styleElement.styleSheet) {
+                styleElement.styleSheet.cssText = css;
+            } else {
+                styleElement.innerHTML = css;
+            }
+        };
+        return {
+            add: function (Component) {
+                if (!Component.css) {
+                    return;
+                }
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.type = 'text/css';
+                    document.getElementsByTagName('head')[0].appendChild(styleElement);
+                }
+                if (!usedStyles[Component._guid]) {
+                    usedStyles[Component._guid] = 0;
+                    usedStyles.push(Component.css);
+                    updateStyleElement();
+                }
+                usedStyles[Component._guid] += 1;
+            },
+            remove: function (Component) {
+                if (!Component.css) {
+                    return;
+                }
+                usedStyles[Component._guid] -= 1;
+                if (!usedStyles[Component._guid]) {
+                    usedStyles.splice(usedStyles.indexOf(Component.css), 1);
+                    if (usedStyles.length) {
+                        updateStyleElement();
+                    } else {
+                        styleElement.parentNode.removeChild(styleElement);
+                        styleElement = null;
+                    }
+                }
+            }
+        };
+    }();
 var render_shared_initFragment = function (types, create) {
         
         return function (fragment, options) {
@@ -7968,7 +8013,7 @@ var parse_Parser__Parser = function (getText, getComment, getMustache, getElemen
             while (stub = this.getStub()) {
                 stubs.push(stub);
             }
-            this.result = jsonifyStubs(stubs);
+            this.result = jsonifyStubs(stubs, options.noStringify);
         };
         Parser.prototype = {
             getStub: function () {
@@ -8651,7 +8696,7 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
         circular.DomFragment = DomFragment;
         return DomFragment;
     }(config_types, utils_matches, render_shared_initFragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular);
-var Ractive_prototype_render = function (getElement, makeTransitionManager, preDomUpdate, postDomUpdate, DomFragment) {
+var Ractive_prototype_render = function (getElement, makeTransitionManager, preDomUpdate, postDomUpdate, css, DomFragment) {
         
         return function (target, complete) {
             var transitionManager;
@@ -8659,6 +8704,9 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, preD
                 throw new Error('You cannot call ractive.render() directly!');
             }
             this._transitionManager = transitionManager = makeTransitionManager(this, complete);
+            if (this.constructor.css) {
+                css.add(this.constructor);
+            }
             this.fragment = new DomFragment({
                 descriptor: this.template,
                 root: this,
@@ -8678,7 +8726,7 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, preD
             transitionManager.ready();
             this.rendered = true;
         };
-    }(utils_getElement, shared_makeTransitionManager, shared_preDomUpdate, shared_postDomUpdate, render_DomFragment__DomFragment);
+    }(utils_getElement, shared_makeTransitionManager, shared_preDomUpdate, shared_postDomUpdate, shared_css, render_DomFragment__DomFragment);
 var Ractive_prototype_renderHTML = function (warn) {
         
         return function () {
@@ -8692,13 +8740,23 @@ var Ractive_prototype_toHTML = function () {
             return this.fragment.toString();
         };
     }();
-var Ractive_prototype_teardown = function (makeTransitionManager, clearCache) {
+var Ractive_prototype_teardown = function (makeTransitionManager, clearCache, css) {
         
         return function (complete) {
-            var keypath, transitionManager, previousTransitionManager;
+            var keypath, transitionManager, previousTransitionManager, actualComplete;
             this.fire('teardown');
+            if (this.constructor.css) {
+                actualComplete = function () {
+                    if (complete) {
+                        complete.call(this);
+                    }
+                    css.remove(this.constructor);
+                };
+            } else {
+                actualComplete = complete;
+            }
             previousTransitionManager = this._transitionManager;
-            this._transitionManager = transitionManager = makeTransitionManager(this, complete);
+            this._transitionManager = transitionManager = makeTransitionManager(this, actualComplete);
             this.fragment.teardown(true);
             while (this._animations[0]) {
                 this._animations[0].stop();
@@ -8709,7 +8767,7 @@ var Ractive_prototype_teardown = function (makeTransitionManager, clearCache) {
             this._transitionManager = previousTransitionManager;
             transitionManager.ready();
         };
-    }(shared_makeTransitionManager, shared_clearCache);
+    }(shared_makeTransitionManager, shared_clearCache, shared_css);
 var Ractive_prototype_shared_add = function (isNumeric) {
         
         return function (root, keypath, d) {
@@ -8943,6 +9001,18 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             insert: insert
         };
     }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_findComponent, Ractive_prototype_findAllComponents, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_toHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
+var registries_components = {};
+var utils_getGuid = function () {
+        
+        return function () {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r, v;
+                r = Math.random() * 16 | 0;
+                v = c == 'x' ? r : r & 3 | 8;
+                return v.toString(16);
+            });
+        };
+    }();
 var extend_registries = function () {
         
         return [
@@ -9134,7 +9204,7 @@ var utils_extend = function () {
             return target;
         };
     }();
-var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperty, defineProperties, getElement, isObject, magicAdaptor, parse) {
+var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperty, defineProperties, getElement, isObject, getGuid, magicAdaptor, parse) {
         
         var getObject, getArray, defaultOptions, registries;
         getObject = function () {
@@ -9222,14 +9292,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                     value: true,
                     writable: true
                 },
-                _guid: {
-                    value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                        var r, v;
-                        r = Math.random() * 16 | 0;
-                        v = c == 'x' ? r : r & 3 | 8;
-                        return v.toString(16);
-                    })
-                },
+                _guid: { value: getGuid() },
                 _subs: {
                     value: create(null),
                     configurable: true
@@ -9341,7 +9404,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.transitionsEnabled = options.transitionsEnabled;
             ractive._initing = false;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
+    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, utils_getGuid, Ractive_prototype_get_magicAdaptor, parse__parse);
 var extend_initChildInstance = function (fillGaps, initOptions, clone, wrapMethod, initialise) {
         
         return function (child, Child, options) {
@@ -9362,7 +9425,7 @@ var extend_initChildInstance = function (fillGaps, initOptions, clone, wrapMetho
             }
         };
     }(utils_fillGaps, extend_initOptions, extend_utils_clone, extend_wrapMethod, Ractive_initialise);
-var extend__extend = function (create, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
+var extend__extend = function (create, defineProperties, getGuid, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
         
         var Ractive;
         circular.push(function () {
@@ -9380,11 +9443,330 @@ var extend__extend = function (create, inheritFromParent, inheritFromChildProps,
             conditionallyParseTemplate(Child);
             extractInlinePartials(Child, childProps);
             conditionallyParsePartials(Child);
-            Child.extend = Parent.extend;
+            defineProperties(Child, {
+                extend: { value: Parent.extend },
+                _guid: { value: getGuid() }
+            });
             return Child;
         };
-    }(utils_create, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
-var Ractive__Ractive = function (svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
+    }(utils_create, utils_defineProperties, utils_getGuid, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
+var utils_promise = function () {
+        
+        var promise, PENDING = {}, FULFILLED = {}, REJECTED = {}, multipleResolutionMessage;
+        multipleResolutionMessage = 'A Promise cannot be resolved or rejected multiple times';
+        promise = function (callback) {
+            var fulfilledHandlers, rejectedHandlers, state, result, makeDispatcher, dispatchFulfilledHandlers, dispatchRejectedHandlers, makeResolver, resolve, reject, pendingDispatch;
+            fulfilledHandlers = [];
+            rejectedHandlers = [];
+            state = PENDING;
+            makeDispatcher = function (handlers) {
+                return function () {
+                    var handler;
+                    while (handler = handlers.shift()) {
+                        handler(result);
+                    }
+                    pendingDispatch = false;
+                };
+            };
+            dispatchFulfilledHandlers = makeDispatcher(fulfilledHandlers);
+            dispatchRejectedHandlers = makeDispatcher(rejectedHandlers);
+            makeResolver = function (fulfilled) {
+                return function (value) {
+                    result = value;
+                    if (state !== PENDING) {
+                        throw new Error(multipleResolutionMessage);
+                    }
+                    if (fulfilled) {
+                        state = FULFILLED;
+                        wait(dispatchFulfilledHandlers);
+                    } else {
+                        state = REJECTED;
+                        wait(dispatchRejectedHandlers);
+                    }
+                };
+            };
+            resolve = makeResolver(FULFILLED, fulfilledHandlers);
+            reject = makeResolver(REJECTED, rejectedHandlers);
+            callback(resolve, reject);
+            return {
+                then: function (onFulfilled, onRejected) {
+                    return promise(function (resolve, reject) {
+                        if (typeof onFulfilled === 'function') {
+                            fulfilledHandlers.push(function (p1result) {
+                                var result;
+                                try {
+                                    result = onFulfilled(p1result);
+                                    if (isPromise(result)) {
+                                        result.then(resolve, reject);
+                                    } else {
+                                        resolve(result);
+                                    }
+                                } catch (err) {
+                                    try {
+                                        onRejected(result);
+                                    } catch (e) {
+                                    }
+                                    reject(result);
+                                }
+                            });
+                        }
+                        if (typeof onRejected === 'function') {
+                            rejectedHandlers.push(function (p1error) {
+                                try {
+                                    onRejected(p1error);
+                                } catch (e) {
+                                }
+                                reject(p1error);
+                            });
+                        }
+                        if (state !== PENDING && !pendingDispatch) {
+                            wait(state === FULFILLED ? dispatchFulfilledHandlers : dispatchRejectedHandlers);
+                        }
+                    });
+                }
+            };
+        };
+        promise.all = function (promises) {
+            return promise(function (resolve, reject) {
+                var result = [], pending, i, decrement, processPromise;
+                decrement = function () {
+                    if (!--pending) {
+                        resolve(result);
+                    }
+                };
+                processPromise = function (i) {
+                    promises[i].then(function (value) {
+                        result[i] = value;
+                        decrement();
+                    }, reject);
+                };
+                pending = i = promises.length;
+                while (i--) {
+                    processPromise(i);
+                }
+            });
+        };
+        return promise;
+        function wait(callback) {
+            setTimeout(callback, 0);
+        }
+        function isPromise(candidate) {
+            return candidate && typeof candidate.then === 'function';
+        }
+    }();
+var utils_get = function (promise) {
+        
+        return function (url) {
+            return promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url);
+                xhr.onload = function () {
+                    resolve(xhr.responseText);
+                };
+                xhr.onerror = reject;
+                xhr.send();
+            });
+        };
+    }(utils_promise);
+var utils_resolvePath = function () {
+        
+        return function (relativePath, base, force) {
+            var pathParts, relativePathParts, part;
+            if (!force) {
+                if (relativePath.charAt(0) !== '.') {
+                    return relativePath;
+                }
+            } else {
+                if (base && base.charAt(base.length - 1) !== '/') {
+                    base += '/';
+                }
+            }
+            pathParts = (base || '').split('/');
+            relativePathParts = relativePath.split('/');
+            pathParts.pop();
+            while (part = relativePathParts.shift()) {
+                if (part === '..') {
+                    pathParts.pop();
+                } else if (part !== '.') {
+                    pathParts.push(part);
+                }
+            }
+            return pathParts.join('/');
+        };
+    }();
+var load_getName = function () {
+        
+        return function (path) {
+            var pathParts, filename, lastIndex;
+            pathParts = path.split('/');
+            filename = pathParts.pop();
+            lastIndex = filename.lastIndexOf('.');
+            if (lastIndex !== -1) {
+                filename = filename.substr(0, lastIndex);
+            }
+            return filename;
+        };
+    }();
+var load_makeComponent = function (circular, get, promise, resolvePath, parse, getName) {
+        
+        var Ractive, importDirectivePattern;
+        importDirectivePattern = /^\s*@import\s+(?:(?:'([^']+)')|(?:"([^"]+)")|([^\s]+))(?:\s+as\s+([^\s]+))?\s*$/gm;
+        circular.push(function () {
+            Ractive = circular.Ractive;
+        });
+        var makeComponent = function (template, path) {
+            var scripts, script, styles, i, item, scriptElement, oldModule, factory, Component, pendingImports, imports, importPromise;
+            pendingImports = 0;
+            imports = {};
+            importPromise = promise(function (resolve, reject) {
+                template = template.replace(importDirectivePattern, function (match, singleQuotedPath, doubleQuotedPath, unquotedPath, name) {
+                    var relativePath, resolvedPath;
+                    relativePath = singleQuotedPath || doubleQuotedPath || unquotedPath;
+                    resolvedPath = resolvePath(relativePath, path);
+                    name = name || getName(resolvedPath);
+                    pendingImports += 1;
+                    get(resolvedPath).then(function (template) {
+                        return makeComponent(template, resolvedPath);
+                    }).then(function (Component) {
+                        imports[name] = Component;
+                        if (!--pendingImports) {
+                            resolve(imports);
+                        }
+                    }, reject);
+                    return '';
+                });
+                if (!pendingImports) {
+                    resolve(imports);
+                }
+            });
+            template = parse(template, { noStringify: true });
+            scripts = [];
+            styles = [];
+            i = template.length;
+            while (i--) {
+                item = template[i];
+                if (item && item.t === 7) {
+                    if (item.e === 'script' && (!item.a || !item.a.type || item.a.type === 'text/javascript')) {
+                        scripts.push(template.splice(i, 1)[0]);
+                    }
+                    if (item.e === 'style' && (!item.a || !item.a.type || item.a.type === 'text/css')) {
+                        styles.push(template.splice(i, 1)[0]);
+                    }
+                }
+            }
+            script = scripts.map(extractFragment).join(';');
+            return importPromise.then(function (imports) {
+                Component = Ractive.extend({
+                    template: template,
+                    components: imports
+                });
+                if (script) {
+                    scriptElement = document.createElement('script');
+                    scriptElement.innerHTML = '(function () {' + script + '}());';
+                    oldModule = window.module;
+                    window.module = {};
+                    document.head.appendChild(scriptElement);
+                    factory = window.module.exports;
+                    Component = factory(Component);
+                }
+                Component.css = styles.map(extractFragment).join(' ');
+                window.module = oldModule;
+                return Component;
+            });
+        };
+        return makeComponent;
+        function extractFragment(item) {
+            return item.f;
+        }
+    }(circular, utils_get, utils_promise, utils_resolvePath, parse__parse, load_getName);
+var load_loadSingle = function (circular, get, promise, resolvePath, makeComponent) {
+        
+        var Ractive;
+        circular.push(function () {
+            Ractive = circular.Ractive;
+        });
+        return function (path, callback, onerror) {
+            var promise, url;
+            url = resolvePath(path, Ractive.baseUrl, true);
+            promise = get(url).then(function (template) {
+                return makeComponent(template, url);
+            }, throwError);
+            if (callback) {
+                promise.then(callback, onerror);
+            }
+            return promise;
+        };
+        function throwError(err) {
+            throw err;
+        }
+    }(circular, utils_get, utils_promise, utils_resolvePath, load_makeComponent);
+var load_loadFromLinks = function (promise, componentsRegistry, loadSingle, getName) {
+        
+        return function (callback, onerror) {
+            var p = promise(function (resolve, reject) {
+                    var links, pending;
+                    links = Array.prototype.slice.call(document.querySelectorAll('link[rel="ractive"]'));
+                    pending = links.length;
+                    links.forEach(function (link) {
+                        var name = getNameFromLink(link);
+                        loadSingle(link.getAttribute('href')).then(function (Component) {
+                            componentsRegistry[name] = Component;
+                            if (!--pending) {
+                                resolve();
+                            }
+                        }, reject);
+                    });
+                });
+            if (callback) {
+                p.then(callback, onerror);
+            }
+            return p;
+        };
+        function getNameFromLink(link) {
+            return link.getAttribute('name') || getName(link.getAttribute('href'));
+        }
+    }(utils_promise, registries_components, load_loadSingle, load_getName);
+var load_loadMultiple = function (promise, loadSingle) {
+        
+        return function (map, callback, onerror) {
+            var p = promise(function (resolve, reject) {
+                    var pending = 0, result = {}, name, load;
+                    load = function (name) {
+                        var url = map[name];
+                        loadSingle(url).then(function (Component) {
+                            result[name] = Component;
+                            if (!--pending) {
+                                resolve(result);
+                            }
+                        }, reject);
+                    };
+                    for (name in map) {
+                        if (map.hasOwnProperty(name)) {
+                            pending += 1;
+                            load(name);
+                        }
+                    }
+                });
+            if (callback) {
+                p.then(callback, onerror);
+            }
+            return p;
+        };
+    }(utils_promise, load_loadSingle);
+var load__load = function (isObject, loadFromLinks, loadMultiple, loadSingle) {
+        
+        return function (url, callback) {
+            if (!url || typeof url === 'function') {
+                callback = url;
+                return loadFromLinks(callback);
+            }
+            if (isObject(url)) {
+                return loadMultiple(url, callback);
+            }
+            return loadSingle(url, callback);
+        };
+    }(utils_isObject, load_loadFromLinks, load_loadMultiple, load_loadSingle);
+var Ractive__Ractive = function (svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, extend, parse, load, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -9396,7 +9778,7 @@ var Ractive__Ractive = function (svg, create, defineProperties, prototype, parti
             easing: { value: easingRegistry },
             transitions: { value: {} },
             events: { value: {} },
-            components: { value: {} },
+            components: { value: componentsRegistry },
             decorators: { value: {} },
             svg: { value: svg },
             VERSION: { value: '0.4.0-pre' }
@@ -9411,11 +9793,12 @@ var Ractive__Ractive = function (svg, create, defineProperties, prototype, parti
             '{{{',
             '}}}'
         ];
-        Ractive.extend = Ractive_extend;
+        Ractive.extend = extend;
         Ractive.parse = parse;
+        Ractive.load = load;
         circular.Ractive = Ractive;
         return Ractive;
-    }(config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
+    }(config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular) {
         
         if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {
