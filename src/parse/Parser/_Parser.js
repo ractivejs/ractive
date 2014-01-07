@@ -32,7 +32,7 @@ define([
 			stubs.push( stub );
 		}
 
-		this.result = jsonifyStubs( stubs );
+		this.result = jsonifyStubs( stubs, options.noStringify );
 	};
 
 	Parser.prototype = {

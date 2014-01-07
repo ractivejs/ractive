@@ -72,7 +72,7 @@ define([
 			}
 		});
 
-		template = parse( template );
+		template = parse( template, { noStringify: true });
 
 		scripts = [];
 		styles = [];
@@ -99,6 +99,8 @@ define([
 
 		// once all subcomponents have been imported (if any), create this component
 		return importPromise.then( function ( imports ) {
+			Component = Ractive.extend({ template: template, components: imports });
+
 			if ( script ) {
 				scriptElement = document.createElement( 'script' );
 				scriptElement.innerHTML = '(function () {' + script + '}());';
@@ -109,9 +111,7 @@ define([
 				document.head.appendChild( scriptElement );
 
 				factory = window.module.exports;
-				Component = factory( Ractive, template, imports );
-			} else {
-				Component = Ractive.extend({ template: template, components: imports });
+				Component = factory( Component );
 			}
 
 			Component.css = styles.map( extractFragment ).join( ' ' );
