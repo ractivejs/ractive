@@ -3,12 +3,14 @@ define([
 	'shared/makeTransitionManager',
 	'shared/preDomUpdate',
 	'shared/postDomUpdate',
+	'shared/css',
 	'render/DomFragment/_DomFragment'
 ], function (
 	getElement,
 	makeTransitionManager,
 	preDomUpdate,
 	postDomUpdate,
+	css,
 	DomFragment
 ) {
 
@@ -26,6 +28,11 @@ define([
 		}
 
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+
+		// Add CSS, if applicable
+		if ( this.constructor.css ) {
+			css.add( this.constructor );
+		}
 
 		// Render our *root fragment*
 		this.fragment = new DomFragment({

@@ -8,6 +8,7 @@ define([
 	'utils/defineProperties',
 	'utils/getElement',
 	'utils/isObject',
+	'utils/getGuid',
 	'Ractive/prototype/get/magicAdaptor',
 	'parse/_parse'
 ], function (
@@ -20,6 +21,7 @@ define([
 	defineProperties,
 	getElement,
 	isObject,
+	getGuid,
 	magicAdaptor,
 	parse
 ) {
@@ -74,15 +76,7 @@ define([
 
 			// Generate a unique identifier, for places where you'd use a weak map if it
 			// existed
-			_guid: {
-				value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-					var r, v;
-
-					r = Math.random()*16|0;
-					v = ( c == 'x' ? r : (r&0x3|0x8) );
-					return v.toString(16);
-				})
-			},
+			_guid: { value: getGuid() },
 
 			// events
 			_subs: { value: create( null ), configurable: true },
