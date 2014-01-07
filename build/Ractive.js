@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.9 - 2013-12-31
+	Ractive - v0.4.0-pre - 2014-01-07
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -8,7 +8,7 @@
 
 	--------------------------------------------------------------
 
-	Copyright 2013 2013 Rich Harris and contributors
+	Copyright 2014 2013 Rich Harris and contributors
 
 	Permission is hereby granted, free of charge, to any person
 	obtaining a copy of this software and associated documentation
@@ -244,9 +244,12 @@ var shared_preDomUpdate = function (getValueFromCheckboxes) {
     }(shared_getValueFromCheckboxes);
 var shared_postDomUpdate = function () {
         
-        return function (ractive) {
-            var deferred, focusable, query, decorator, transition, observer;
+        return function postDomUpdate(ractive) {
+            var deferred, component, focusable, query, decorator, transition, observer;
             deferred = ractive._deferred;
+            while (component = deferred.components.pop()) {
+                postDomUpdate(component);
+            }
             if (focusable = deferred.focusable) {
                 focusable.focus();
                 deferred.focusable = null;
@@ -265,14 +268,22 @@ var shared_postDomUpdate = function () {
             }
         };
     }();
-var shared_makeTransitionManager = function () {
+var utils_warn = function () {
+        
+        if (typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
+            return function () {
+                console.warn.apply(console, arguments);
+            };
+        }
+        return function () {
+        };
+    }();
+var shared_makeTransitionManager = function (warn) {
         
         var makeTransitionManager = function (root, callback) {
-            var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
-            if (root._parent && root._parent._transitionManager) {
-                return root._parent._transitionManager;
-            }
+            var transitionManager, elementsToDetach, transitioningNodes, detachNodes, nodeHasNoTransitioningChildren, checkComplete, parentTransitionManager;
             elementsToDetach = [];
+            transitioningNodes = [];
             detachNodes = function () {
                 var i, element;
                 i = elementsToDetach.length;
@@ -286,52 +297,56 @@ var shared_makeTransitionManager = function () {
             };
             nodeHasNoTransitioningChildren = function (node) {
                 var i, candidate;
-                i = transitionManager.active.length;
+                i = transitioningNodes.length;
                 while (i--) {
-                    candidate = transitionManager.active[i];
+                    candidate = transitioningNodes[i];
                     if (node.contains(candidate)) {
                         return false;
                     }
                 }
                 return true;
             };
-            transitionManager = {
-                active: [],
-                push: function (node) {
-                    transitionManager.active[transitionManager.active.length] = node;
-                },
-                pop: function (node) {
-                    var index;
-                    index = transitionManager.active.indexOf(node);
-                    if (index === -1) {
-                        return;
-                    }
-                    transitionManager.active.splice(index, 1);
-                    detachNodes();
-                    if (!transitionManager.active.length && transitionManager._ready) {
-                        transitionManager.complete();
-                    }
-                },
-                complete: function () {
+            checkComplete = function () {
+                if (transitionManager._ready && !transitioningNodes.length) {
                     if (callback) {
                         callback.call(root);
                     }
+                    if (parentTransitionManager) {
+                        parentTransitionManager.pop(root.el);
+                    }
+                }
+            };
+            transitionManager = {
+                push: function (node) {
+                    transitioningNodes.push(node);
+                },
+                pop: function (node) {
+                    var index;
+                    index = transitioningNodes.indexOf(node);
+                    if (index === -1) {
+                        warn('This message should not appear. If it did, an unexpected situation occurred with a transition manager. Please tell @RactiveJS (http://twitter.com/RactiveJS). Thanks!');
+                        return;
+                    }
+                    transitioningNodes.splice(index, 1);
+                    detachNodes();
+                    checkComplete();
                 },
                 ready: function () {
                     detachNodes();
                     transitionManager._ready = true;
-                    if (!transitionManager.active.length) {
-                        transitionManager.complete();
-                    }
+                    checkComplete();
                 },
                 detachWhenReady: function (element) {
-                    elementsToDetach[elementsToDetach.length] = element;
+                    elementsToDetach.push(element);
                 }
             };
+            if (root._parent && (parentTransitionManager = root._parent._transitionManager)) {
+                parentTransitionManager.push(root.el);
+            }
             return transitionManager;
         };
         return makeTransitionManager;
-    }();
+    }(utils_warn);
 var shared_notifyDependants = function () {
         
         var notifyDependants, lastKey, starMaps = {};
@@ -1001,7 +1016,7 @@ var Ractive_prototype_shared_replaceData = function () {
                     }
                     obj = wrapped.get();
                 } else {
-                    if (!obj.hasOwnProperty(key)) {
+                    if (!obj.hasOwnProperty(key) || !obj[key]) {
                         if (!keypathToClear) {
                             keypathToClear = currentKeypath;
                         }
@@ -1298,16 +1313,6 @@ var Ractive_prototype_animate_animations = function (rAF) {
             };
         return animations;
     }(Ractive_prototype_animate_requestAnimationFrame);
-var utils_warn = function () {
-        
-        if (typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
-            return function () {
-                console.warn.apply(console, arguments);
-            };
-        }
-        return function () {
-        };
-    }();
 var utils_isNumeric = function () {
         
         return function (thing) {
@@ -2264,7 +2269,7 @@ var render_DomFragment_shared_insertHtml = function (createElement) {
                 container = elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
                 container.innerHTML = html;
                 while (container.firstChild) {
-                    nodes[nodes.length] = container.firstChild;
+                    nodes.push(container.firstChild);
                     docFrag.appendChild(container.firstChild);
                 }
             }
@@ -7946,7 +7951,8 @@ var render_DomFragment_Component_initialise_createInstance = function () {
             root = component.root;
             partials = { content: contentDescriptor || [] };
             instance = new Component({
-                el: parentFragment.pNode.cloneNode(false),
+                el: parentFragment.pNode,
+                append: true,
                 data: data,
                 partials: partials,
                 _parent: root,
@@ -7955,7 +7961,7 @@ var render_DomFragment_Component_initialise_createInstance = function () {
             instance.component = component;
             component.instance = instance;
             instance.insert(docFrag);
-            instance.fragment.pNode = parentFragment.pNode;
+            instance.fragment.pNode = instance.el = parentFragment.pNode;
             return instance;
         };
     }();
@@ -8362,7 +8368,11 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, preD
             if (target) {
                 target.appendChild(this.fragment.docFrag);
             }
-            postDomUpdate(this);
+            if (this._parent) {
+                this._parent._deferred.components.push(this);
+            } else {
+                postDomUpdate(this);
+            }
             this._transitionManager = null;
             transitionManager.ready();
             this.rendered = true;
@@ -8601,7 +8611,7 @@ var Ractive_prototype_insert = function (getElement) {
                 throw new Error('You must specify a valid target to insert into');
             }
             target.insertBefore(this.detach(), anchor);
-            this.fragment.pNode = target;
+            this.fragment.pNode = this.el = target;
         };
     }(utils_getElement);
 var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, findComponent, findAllComponents, render, renderHTML, toHTML, teardown, add, subtract, toggle, merge, detach, insert) {
@@ -8955,7 +8965,8 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 focusable: {
                     value: null,
                     writable: true
-                }
+                },
+                components: { value: [] }
             });
             ractive.adaptors = options.adaptors;
             ractive.modifyArrays = options.modifyArrays;
@@ -9087,7 +9098,7 @@ var Ractive__Ractive = function (svg, create, defineProperties, prototype, parti
             components: { value: {} },
             decorators: { value: {} },
             svg: { value: svg },
-            VERSION: { value: '0.3.9' }
+            VERSION: { value: '0.4.0-pre' }
         });
         Ractive.eventDefinitions = Ractive.events;
         Ractive.prototype.constructor = Ractive;
