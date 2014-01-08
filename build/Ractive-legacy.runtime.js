@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-07
+	Ractive - v0.4.0-pre - 2014-01-08
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -4465,60 +4465,57 @@ var parse_Tokenizer_utils_makeRegexMatcher = function () {
             };
         };
     }();
-var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getEscapedChars = function () {
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher = function (makeRegexMatcher) {
         
-        return function (tokenizer) {
-            var chars = '', character;
-            character = getEscapedChar(tokenizer);
-            while (character) {
-                chars += character;
-                character = getEscapedChar(tokenizer);
-            }
-            return chars || null;
+        var getStringMiddle, getEscapeSequence, getLineContinuation;
+        getStringMiddle = makeRegexMatcher(/^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/);
+        getEscapeSequence = makeRegexMatcher(/^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/);
+        getLineContinuation = makeRegexMatcher(/^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/);
+        return function (quote, okQuote) {
+            return function (tokenizer) {
+                var start, literal, done, next;
+                start = tokenizer.pos;
+                literal = '"';
+                done = false;
+                while (!done) {
+                    next = getStringMiddle(tokenizer) || getEscapeSequence(tokenizer) || tokenizer.getStringMatch(okQuote);
+                    if (next) {
+                        if (next === '"') {
+                            literal += '\\"';
+                        } else if (next === '\\\'') {
+                            literal += '\'';
+                        } else {
+                            literal += next;
+                        }
+                    } else {
+                        next = getLineContinuation(tokenizer);
+                        if (next) {
+                            literal += '\\u' + ('000' + next.charCodeAt(1).toString(16)).slice(-4);
+                        } else {
+                            done = true;
+                        }
+                    }
+                }
+                literal += '"';
+                return JSON.parse(literal);
+            };
         };
-        function getEscapedChar(tokenizer) {
-            var character;
-            if (!tokenizer.getStringMatch('\\')) {
-                return null;
-            }
-            character = tokenizer.str.charAt(tokenizer.pos);
-            tokenizer.pos += 1;
-            return character;
-        }
-    }();
-var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getQuotedString = function (makeRegexMatcher, getEscapedChars) {
+    }(parse_Tokenizer_utils_makeRegexMatcher);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getSingleQuotedString = function (makeQuotedStringMatcher) {
         
-        var getUnescapedDoubleQuotedChars = makeRegexMatcher(/^[^\\"]+/), getUnescapedSingleQuotedChars = makeRegexMatcher(/^[^\\']+/);
-        return function getQuotedString(tokenizer, singleQuotes) {
-            var start, string, escaped, unescaped, next, matcher;
-            start = tokenizer.pos;
-            string = '';
-            matcher = singleQuotes ? getUnescapedSingleQuotedChars : getUnescapedDoubleQuotedChars;
-            escaped = getEscapedChars(tokenizer);
-            if (escaped) {
-                string += escaped;
-            }
-            unescaped = matcher(tokenizer);
-            if (unescaped) {
-                string += unescaped;
-            }
-            if (!string) {
-                return '';
-            }
-            next = getQuotedString(tokenizer, singleQuotes);
-            while (next !== '') {
-                string += next;
-            }
-            return string;
-        };
-    }(parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getEscapedChars);
-var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral = function (types, getQuotedString) {
+        return makeQuotedStringMatcher('\'', '"');
+    }(parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getDoubleQuotedString = function (makeQuotedStringMatcher) {
+        
+        return makeQuotedStringMatcher('"', '\'');
+    }(parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher);
+var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral = function (types, getSingleQuotedString, getDoubleQuotedString) {
         
         return function (tokenizer) {
             var start, string;
             start = tokenizer.pos;
             if (tokenizer.getStringMatch('"')) {
-                string = getQuotedString(tokenizer, false);
+                string = getDoubleQuotedString(tokenizer);
                 if (!tokenizer.getStringMatch('"')) {
                     tokenizer.pos = start;
                     return null;
@@ -4529,7 +4526,7 @@ var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStr
                 };
             }
             if (tokenizer.getStringMatch('\'')) {
-                string = getQuotedString(tokenizer, true);
+                string = getSingleQuotedString(tokenizer);
                 if (!tokenizer.getStringMatch('\'')) {
                     tokenizer.pos = start;
                     return null;
@@ -4541,7 +4538,7 @@ var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStr
             }
             return null;
         };
-    }(config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getQuotedString);
+    }(config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getSingleQuotedString, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getDoubleQuotedString);
 var parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral = function (types, makeRegexMatcher) {
         
         var getNumber = makeRegexMatcher(/^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/);
@@ -6140,7 +6137,7 @@ var render_DomFragment_Component_initialise_createInstance = function () {
             return instance;
         };
     }();
-var render_DomFragment_Component_initialise_createObservers = function () {
+var render_DomFragment_Component_initialise_createObservers = function (isArray) {
         
         var observeOptions = {
                 init: false,
@@ -6161,7 +6158,8 @@ var render_DomFragment_Component_initialise_createObservers = function () {
             childInstance = component.instance;
             observers = component.observers;
             observer = parentInstance.observe(parentKeypath, function (value) {
-                if (!settingParent && !parentInstance._wrapped[parentKeypath]) {
+                var isSmartUpdate = isArray(value) && value._ractive && value._ractive.setting;
+                if (!settingParent && !isSmartUpdate) {
                     settingChild = true;
                     childInstance.set(childKeypath, value);
                     settingChild = false;
@@ -6183,7 +6181,7 @@ var render_DomFragment_Component_initialise_createObservers = function () {
                 }
             }
         }
-    }();
+    }(utils_isArray);
 var render_DomFragment_Component_initialise_propagateEvents = function (warn) {
         
         var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
