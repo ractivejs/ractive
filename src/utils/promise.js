@@ -69,7 +69,7 @@ define( function () {
 									onRejected( result );
 								} catch ( e ) {}
 
-								reject( result );
+								reject( err );
 							}
 						});
 					}
@@ -78,7 +78,10 @@ define( function () {
 						rejectedHandlers.push( function ( p1error ) {
 							try {
 								onRejected( p1error );
-							} catch ( e ) {}
+							} catch ( e ) {
+								reject( e );
+								return;
+							}
 
 							reject( p1error );
 						});
