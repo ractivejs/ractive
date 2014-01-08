@@ -183,6 +183,17 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	grunt.loadNpmTasks( 'grunt-contrib-requirejs' );
 
+	grunt.registerTask( 'promises-aplus-tests', 'Run the Promises/A+ test suite.', function () {
+		var promisesAplusTests, adaptor, done;
+
+		promisesAplusTests = require( 'promises-aplus-tests' );
+		adaptor = require( './test/promises-aplus-adaptor' );
+
+		done = this.async();
+
+		promisesAplusTests( adaptor, { reporter: 'dot' }, done );
+	});
+
 	grunt.registerTask( 'default', [
 		'test',
 		'clean:build',
@@ -196,7 +207,8 @@ module.exports = function(grunt) {
 		'jshint',
 		'requirejs',
 		'nodeunit',
-		'qunit'
+		'qunit',
+		'promises-aplus-tests'
 	]);
 
 	grunt.registerTask( 'release', [ 'default', 'copy:release', 'copy:link' ] );
