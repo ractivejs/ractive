@@ -30,7 +30,7 @@ define( function () {
 		dispatchFulfilledHandlers = makeDispatcher( fulfilledHandlers );
 		dispatchRejectedHandlers = makeDispatcher( rejectedHandlers );
 
-		makeResolver = function ( fulfilled ) {
+		makeResolver = function ( newState, dispatch ) {
 			return function ( value ) {
 				result = value;
 
@@ -38,18 +38,13 @@ define( function () {
 					return;
 				}
 
-				if ( fulfilled ) {
-					state = FULFILLED;
-					wait( dispatchFulfilledHandlers );
-				} else {
-					state = REJECTED;
-					wait( dispatchRejectedHandlers );
-				}
+				state = newState;
+				wait( dispatch );
 			};
 		};
 
-		resolve = makeResolver( FULFILLED, fulfilledHandlers );
-		reject = makeResolver( REJECTED, rejectedHandlers );
+		resolve = makeResolver( FULFILLED, dispatchFulfilledHandlers );
+		reject = makeResolver( REJECTED, dispatchRejectedHandlers );
 
 		callback( resolve, reject );
 
