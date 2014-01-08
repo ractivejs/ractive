@@ -5,11 +5,7 @@ define( function () {
 	var promise,
 		PENDING = {},
 		FULFILLED = {},
-		REJECTED = {},
-
-		multipleResolutionMessage;
-
-	multipleResolutionMessage = 'A Promise cannot be resolved or rejected multiple times';
+		REJECTED = {};
 
 	promise = function ( callback ) {
 		var fulfilledHandlers, rejectedHandlers, state, result, makeDispatcher, dispatchFulfilledHandlers, dispatchRejectedHandlers, makeResolver, resolve, reject, pendingDispatch;
@@ -39,7 +35,7 @@ define( function () {
 				result = value;
 
 				if ( state !== PENDING ) {
-					throw new Error( multipleResolutionMessage );
+					return;
 				}
 
 				if ( fulfilled ) {
