@@ -3,13 +3,15 @@ define([
 	'shared/teardown',
 	'render/shared/initMustache',
 	'render/shared/resolveMustache',
-	'render/shared/updateMustache'
+	'render/shared/updateMustache',
+	'render/DomFragment/shared/detach'
 ], function (
 	types,
 	teardown,
 	initMustache,
 	resolveMustache,
-	updateMustache
+	updateMustache,
+	detach
 ) {
 
 	'use strict';
@@ -34,11 +36,7 @@ define([
 	DomInterpolator.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-
-		detach: function () {
-			this.node.parentNode.removeChild( this.node );
-			return this.node;
-		},
+		detach: detach,
 
 		teardown: function ( destroy ) {
 			if ( destroy ) {

@@ -192,12 +192,14 @@ define([
 		detach: function () {
 			var i, len;
 
-			len = this.fragments.length;
-			for ( i = 0; i < len; i += 1 ) {
-				this.docFrag.appendChild( this.fragments[i].detach() );
-			}
+			if ( this.docFrag ) {
+				len = this.fragments.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.docFrag.appendChild( this.fragments[i].detach() );
+				}
 
-			return this.docFrag;
+				return this.docFrag;
+			}
 		},
 
 		teardown: function ( destroy ) {

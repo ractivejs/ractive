@@ -39,13 +39,16 @@ define([
 		resolve: resolveMustache,
 
 		detach: function () {
-			var i = this.nodes.length;
+			var i;
 
-			while ( i-- ) {
-				this.docFrag.appendChild( this.nodes[i] );
+			if ( this.docFrag ) {
+				i = this.nodes.length;
+				while ( i-- ) {
+					this.docFrag.appendChild( this.nodes[i] );
+				}
+
+				return this.docFrag;
 			}
-
-			return this.docFrag;
 		},
 
 		teardown: function ( destroy ) {

@@ -10,7 +10,7 @@ normaliseHTML = function ( html ) {
 
 renderTests.forEach( function ( theTest ) {
 	exports[ theTest.name ] = function ( test ) {
-		
+
 		var ractive = new Ractive({
 			template: theTest.template,
 			data: theTest.data,
@@ -23,6 +23,8 @@ renderTests.forEach( function ( theTest ) {
 			ractive.set( theTest.new_data );
 			test.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.new_result ) );
 		}
+
+		ractive.teardown();
 
 		test.done();
 	};
