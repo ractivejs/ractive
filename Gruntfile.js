@@ -67,7 +67,7 @@ module.exports = function(grunt) {
 					},
 
 					paths: {
-						'parse/_parse': 'empty:'
+						'parse/_parse': 'empty'
 					},
 
 					wrap: {
