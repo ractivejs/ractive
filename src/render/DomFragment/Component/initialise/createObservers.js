@@ -1,7 +1,7 @@
 define([
-
+	'utils/isArray'
 ], function (
-
+	isArray
 ) {
 
 	'use strict';
@@ -30,7 +30,9 @@ define([
 		observers = component.observers;
 
 		observer = parentInstance.observe( parentKeypath, function ( value ) {
-			if ( !settingParent && !parentInstance._wrapped[ parentKeypath ] ) {
+			var isSmartUpdate = isArray( value ) && value._ractive && value._ractive.setting;
+
+			if ( !settingParent && !isSmartUpdate ) {
 				settingChild = true;
 				childInstance.set( childKeypath, value );
 				settingChild = false;

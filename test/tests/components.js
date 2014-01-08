@@ -238,19 +238,25 @@ define([ 'Ractive' ], function ( Ractive ) {
 			items.pop();
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
 
+			ractive.set( 'items[0]', 'f' );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
+
 
 			// reset items from within widget
 			widget.set( 'items', widget.get( 'items' ).slice() );
 			items = ractive.get( 'items' );
 
-			items.push( 'f' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: f</li></ul><p>a b d f</p>' );
+			items.push( 'g' );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
 
 			items.splice( 1, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li><li>2: f</li></ul><p>a d f</p>' );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
 
 			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: d</li></ul><p>a d</p>' );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
+
+			widget.set( 'items[0]', 'h' );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
 		test( 'Component complete() methods are called', function ( t ) {
