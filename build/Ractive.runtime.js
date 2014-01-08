@@ -2321,7 +2321,17 @@ var render_DomFragment_shared_insertHtml = function (createElement) {
             return nodes;
         };
     }(utils_createElement);
-var render_DomFragment_Text = function (types) {
+var render_DomFragment_shared_detach = function () {
+        
+        return function () {
+            var node = this.node, parentNode;
+            if (node && (parentNode = node.parentNode)) {
+                parentNode.removeChild(node);
+                return node;
+            }
+        };
+    }();
+var render_DomFragment_Text = function (types, detach) {
         
         var DomText, lessThan, greaterThan;
         lessThan = /</g;
@@ -2335,10 +2345,7 @@ var render_DomFragment_Text = function (types) {
             }
         };
         DomText.prototype = {
-            detach: function () {
-                this.node.parentNode.removeChild(this.node);
-                return this.node;
-            },
+            detach: detach,
             teardown: function (destroy) {
                 if (destroy) {
                     this.detach();
@@ -2352,7 +2359,7 @@ var render_DomFragment_Text = function (types) {
             }
         };
         return DomText;
-    }(config_types);
+    }(config_types, render_DomFragment_shared_detach);
 var shared_teardown = function (unregisterDependant) {
         
         return function (thing) {
@@ -2829,7 +2836,7 @@ var render_shared_updateMustache = function (isEqual) {
             }
         };
     }(utils_isEqual);
-var render_DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache) {
+var render_DomFragment_Interpolator = function (types, teardown, initMustache, resolveMustache, updateMustache, detach) {
         
         var DomInterpolator, lessThan, greaterThan;
         lessThan = /</g;
@@ -2845,10 +2852,7 @@ var render_DomFragment_Interpolator = function (types, teardown, initMustache, r
         DomInterpolator.prototype = {
             update: updateMustache,
             resolve: resolveMustache,
-            detach: function () {
-                this.node.parentNode.removeChild(this.node);
-                return this.node;
-            },
+            detach: detach,
             teardown: function (destroy) {
                 if (destroy) {
                     this.detach();
@@ -2869,7 +2873,7 @@ var render_DomFragment_Interpolator = function (types, teardown, initMustache, r
             }
         };
         return DomInterpolator;
-    }(config_types, shared_teardown, render_shared_initMustache, render_shared_resolveMustache, render_shared_updateMustache);
+    }(config_types, shared_teardown, render_shared_initMustache, render_shared_resolveMustache, render_shared_updateMustache, render_DomFragment_shared_detach);
 var render_shared_updateSection = function (isArray, isObject, create) {
         
         return function (section, value) {
@@ -3289,11 +3293,13 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
             merge: merge,
             detach: function () {
                 var i, len;
-                len = this.fragments.length;
-                for (i = 0; i < len; i += 1) {
-                    this.docFrag.appendChild(this.fragments[i].detach());
+                if (this.docFrag) {
+                    len = this.fragments.length;
+                    for (i = 0; i < len; i += 1) {
+                        this.docFrag.appendChild(this.fragments[i].detach());
+                    }
+                    return this.docFrag;
                 }
-                return this.docFrag;
             },
             teardown: function (destroy) {
                 this.teardownFragments(destroy);
@@ -3428,11 +3434,14 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
             update: updateMustache,
             resolve: resolveMustache,
             detach: function () {
-                var i = this.nodes.length;
-                while (i--) {
-                    this.docFrag.appendChild(this.nodes[i]);
+                var i;
+                if (this.docFrag) {
+                    i = this.nodes.length;
+                    while (i--) {
+                        this.docFrag.appendChild(this.nodes[i]);
+                    }
+                    return this.docFrag;
                 }
-                return this.docFrag;
             },
             teardown: function (destroy) {
                 if (destroy) {
@@ -5616,6 +5625,8 @@ var render_DomFragment_Element__Element = function (initialise, teardown, toStri
     }(render_DomFragment_Element_initialise__initialise, render_DomFragment_Element_prototype_teardown, render_DomFragment_Element_prototype_toString, render_DomFragment_Element_prototype_find, render_DomFragment_Element_prototype_findAll, render_DomFragment_Element_prototype_findComponent, render_DomFragment_Element_prototype_findAllComponents, render_DomFragment_Element_prototype_bind);
 var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' };
 var registries_partials = {};
+var parse__parse = function () {
+    }();
 var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
         
         var getPartialDescriptor, registerPartial, getPartialFromRegistry, unpack;
@@ -5999,7 +6010,7 @@ var render_DomFragment_Component__Component = function (initialise) {
         };
         return DomComponent;
     }(render_DomFragment_Component_initialise__initialise);
-var render_DomFragment_Comment = function (types) {
+var render_DomFragment_Comment = function (types, detach) {
         
         var DomComment = function (options, docFrag) {
             this.type = types.COMMENT;
@@ -6010,10 +6021,7 @@ var render_DomFragment_Comment = function (types) {
             }
         };
         DomComment.prototype = {
-            detach: function () {
-                this.node.parentNode.removeChild(this.node);
-                return this.node;
-            },
+            detach: detach,
             teardown: function (destroy) {
                 if (destroy) {
                     this.detach();
@@ -6027,7 +6035,7 @@ var render_DomFragment_Comment = function (types) {
             }
         };
         return DomComment;
-    }(config_types);
+    }(config_types, render_DomFragment_shared_detach);
 var render_DomFragment__DomFragment = function (types, matches, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular) {
         
         var DomFragment = function (options) {
@@ -6046,18 +6054,20 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
         DomFragment.prototype = {
             detach: function () {
                 var len, i;
-                if (this.nodes) {
-                    i = this.nodes.length;
-                    while (i--) {
-                        this.docFrag.appendChild(this.nodes[i]);
+                if (this.docFrag) {
+                    if (this.nodes) {
+                        i = this.nodes.length;
+                        while (i--) {
+                            this.docFrag.appendChild(this.nodes[i]);
+                        }
+                    } else if (this.items) {
+                        len = this.items.length;
+                        for (i = 0; i < len; i += 1) {
+                            this.docFrag.appendChild(this.items[i].detach());
+                        }
                     }
-                } else if (this.items) {
-                    len = this.items.length;
-                    for (i = 0; i < len; i += 1) {
-                        this.docFrag.appendChild(this.items[i].detach());
-                    }
+                    return this.docFrag;
                 }
-                return this.docFrag;
             },
             createItem: function (options) {
                 if (typeof options.descriptor === 'string') {
