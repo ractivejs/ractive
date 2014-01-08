@@ -82,10 +82,16 @@ define( function () {
 								reject( e );
 								return;
 							}
-
-							reject( p1error );
 						});
 					}
+
+					// Always pass fulfillments and rejections through, even if there is no onFulfilled/onRejected.
+					fulfilledHandlers.push( function ( result ) {
+						resolve( result );
+					});
+					rejectedHandlers.push( function ( p1error ) {
+						reject( p1error );
+					});
 
 					if ( state !== PENDING && !pendingDispatch ) {
 						wait( state === FULFILLED ? dispatchFulfilledHandlers : dispatchRejectedHandlers );
