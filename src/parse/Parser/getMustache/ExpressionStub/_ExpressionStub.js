@@ -1,14 +1,14 @@
-define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
+define([
+	'config/types',
+	'utils/isObject'
+], function (
+	types,
+	isObject
+) {
 
 	'use strict';
 
-	var ExpressionStub,
-
-		// helpers
-		getRefs,
-		stringify;
-
-	ExpressionStub = function ( token ) {
+	var ExpressionStub = function ( token ) {
 		this.refs = [];
 
 		getRefs( token, this.refs );
@@ -30,9 +30,15 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 		}
 	};
 
+	return ExpressionStub;
+
+
+	function quoteStringLiteral ( str ) {
+		return JSON.stringify( String( str ) );
+	}
 
 	// TODO maybe refactor this?
-	getRefs = function ( token, refs ) {
+	function getRefs ( token, refs ) {
 		var i, list;
 
 		if ( token.t === types.REFERENCE ) {
@@ -64,10 +70,9 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 		if ( token.v ) {
 			getRefs( token.v, refs );
 		}
-	};
+	}
 
-
-	stringify = function ( token, refs ) {
+	function stringify ( token, refs ) {
 		var map = function ( item ) {
 			return stringify( item, refs );
 		};
@@ -79,7 +84,7 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 			return token.v;
 
 			case types.STRING_LITERAL:
-			return "'" + token.v.replace( /'/g, "\\'" ) + "'";
+			return quoteStringLiteral(token.v);
 
 			case types.ARRAY_LITERAL:
 			return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
@@ -117,8 +122,6 @@ define([ 'config/types', 'utils/isObject' ], function ( types, isObject ) {
 			default:
 			throw new Error( 'Could not stringify expression token. This error is unexpected' );
 		}
-	};
-
-	return ExpressionStub;
+	}
 
 });

@@ -180,7 +180,7 @@ var parseTests = [
 	{
 		name: "Expression with JSON object",
 		template: "{{( fn({ foo: 1, 'bar': 2, '0foo': 3, '0bar': { baz: 'test', arr: [ 1, 2, 3 ] } }) )}}",
-		parsed: [{t:2,"x":{r:["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:'test',arr:[1,2,3]}})"}}]
+		parsed: [{t:2,"x":{r:["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:\"test\",arr:[1,2,3]}})"}}]
 	},
 	{
 		name: 'Invocation refinements',
@@ -318,6 +318,16 @@ var parseTests = [
 		name: 'Ampersand mustaches are treated the same as triples',
 		template: '{{&foo}}',
 		parsed: [{t:3,r:'foo'}]
+	},
+	{
+		name: 'Backslash escapes in strings',
+		template: '{{ ["\\\\ \\" \\\\", \'\\\\ \\\' \\\\\'] }}',
+		parsed: [{t:2,x:{r:[],s:'["\\\\ \\" \\\\","\\\\ \' \\\\"]'}}]
+	},
+	{
+		name: 'Unicode escapes in strings',
+		template: '{{ "A\\u0042C" }}',
+		parsed: [{t:2,x:{r:[],s:'"ABC"'}}]
 	}
 ];
 
