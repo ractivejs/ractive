@@ -8,71 +8,50 @@ define( function () {
 		REJECTED = {};
 
 	Promise = function ( callback ) {
-		var fulfilledHandlers,
-			rejectedHandlers,
-			state,
+		var fulfilledHandlers = [],
+			rejectedHandlers = [],
+			state = PENDING,
+
 			result,
-			makeDispatcher,
-			dispatchFulfilledHandlers,
-			dispatchRejectedHandlers,
+			dispatchHandlers,
 			makeResolver,
 			fulfil,
-			reject,
-			pendingDispatch,
-			promise;
+			reject;
 
-		fulfilledHandlers = [];
-		rejectedHandlers = [];
-
-		state = PENDING;
-
-		makeDispatcher = function ( handlers ) {
-			return function () {
-				var handler;
-
-				while ( handler = handlers.shift() ) {
-					handler( result );
-				}
-
-				pendingDispatch = false;
-			};
-		};
-
-		dispatchFulfilledHandlers = makeDispatcher( fulfilledHandlers );
-		dispatchRejectedHandlers = makeDispatcher( rejectedHandlers );
-
-		makeResolver = function ( newState, dispatch ) {
+		makeResolver = function ( newState ) {
 			return function ( value ) {
-				result = value;
-
 				if ( state !== PENDING ) {
 					return;
 				}
 
+				result = value;
 				state = newState;
-				wait( dispatch );
+
+				dispatchHandlers = makeDispatcher( ( state === FULFILLED ? fulfilledHandlers : rejectedHandlers ), result );
+
+				// dispatch onFulfilled and onRejected handlers asynchronously
+				wait( dispatchHandlers );
 			};
 		};
 
-		fulfil = makeResolver( FULFILLED, dispatchFulfilledHandlers );
-		reject = makeResolver( REJECTED, dispatchRejectedHandlers );
+		fulfil = makeResolver( FULFILLED );
+		reject = makeResolver( REJECTED );
 
 		callback( fulfil, reject );
 
-		promise = {
+		return {
 			// `then()` returns a Promise - 2.2.7
 			then: function ( onFulfilled, onRejected ) {
 				var promise2 = new Promise( function ( fulfil, reject ) {
 
-					var dealWith = function ( handler, handlers, disposeOf ) {
-						// [[Resolve]](promise2, x)
+					var processResolutionHandler = function ( handler, handlers, forward ) {
 
 						// 2.2.1.1
 						if ( typeof handler === 'function' ) {
 							handlers.push( function ( p1result ) {
-								var x, then, Resolve;
+								var x, then, resolve;
 
-								var Resolve = function ( x ) {
+								resolve = function ( x ) {
 									// Promise Resolution Procedure
 
 									// 2.3.1
@@ -82,11 +61,11 @@ define( function () {
 
 									// 2.3.2
 									if ( x instanceof Promise ) {
-										x.then( fulfil, reject ); // TODO does this need to happen synchronously?
+										x.then( fulfil, reject );
 									}
 
 									// 2.3.3
-									else if ( x && typeof x === 'object' || typeof x === 'function' ) {
+									else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
 										try {
 											then = x.then; // 2.3.3.1
 										} catch ( e ) {
@@ -96,17 +75,17 @@ define( function () {
 
 										// 2.3.3.3
 										if ( typeof then === 'function' ) {
-											var called; // TODO what?
+											var called, resolvePromise, rejectPromise;
 
-											var resolvePromise = function ( y ) {
+											resolvePromise = function ( y ) {
 												if ( called ) {
 													return;
 												}
 												called = true;
-												Resolve( y );
+												resolve( y );
 											};
 
-											var rejectPromise = function ( r ) {
+											rejectPromise = function ( r ) {
 												if ( called ) {
 													return;
 												}
@@ -133,28 +112,29 @@ define( function () {
 									else {
 										fulfil( x );
 									}
-								}
+								};
 
 								try {
 									x = handler( p1result );
-									Resolve( x );
+									resolve( x );
 								} catch ( err ) {
 									reject( err );
 								}
 							});
 						} else {
-							handlers.push( function ( result ) {
-								disposeOf( result );
-							});
+							// Forward the result of promise1 to promise2, if resolution handlers
+							// are not given
+							handlers.push( forward );
 						}
 					};
 
-					dealWith( onFulfilled, fulfilledHandlers, fulfil );
-					dealWith( onRejected, rejectedHandlers, reject );
+					// 2.2
+					processResolutionHandler( onFulfilled, fulfilledHandlers, fulfil );
+					processResolutionHandler( onRejected, rejectedHandlers, reject );
 
-
-					if ( state !== PENDING && !pendingDispatch ) {
-						wait( state === FULFILLED ? dispatchFulfilledHandlers : dispatchRejectedHandlers );
+					if ( state !== PENDING ) {
+						// If the promise has resolved already, dispatch the appropriate handlers asynchronously
+						wait( dispatchHandlers );
 					}
 
 				});
@@ -162,24 +142,20 @@ define( function () {
 				return promise2;
 			}
 		};
-
-		return promise;
 	};
 
+	// TODO so far this isn't used internally... should it be offered anyway?
 	Promise.all = function ( promises ) {
-		return new Promise( function ( resolve, reject ) {
-			var result = [], pending, i, decrement, processPromise;
-
-			decrement = function () {
-				if ( !--pending ) {
-					resolve( result );
-				}
-			};
+		return new Promise( function ( fulfil, reject ) {
+			var result = [], pending, i, processPromise;
 
 			processPromise = function ( i ) {
 				promises[i].then( function ( value ) {
 					result[i] = value;
-					decrement();
+
+					if ( !--pending ) {
+						fulfil( result );
+					}
 				}, reject );
 			};
 
@@ -197,8 +173,14 @@ define( function () {
 		setTimeout( callback, 0 );
 	}
 
-	function isThenable ( candidate ) {
-		return ( candidate && typeof candidate.then === 'function' );
+	function makeDispatcher ( handlers, result ) {
+		return function () {
+			var handler;
+
+			while ( handler = handlers.shift() ) {
+				handler( result );
+			}
+		};
 	}
 
 });
