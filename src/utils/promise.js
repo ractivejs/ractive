@@ -2,13 +2,24 @@ define( function () {
 
 	'use strict';
 
-	var promise,
+	var Promise,
 		PENDING = {},
 		FULFILLED = {},
 		REJECTED = {};
 
-	promise = function ( callback ) {
-		var fulfilledHandlers, rejectedHandlers, state, result, makeDispatcher, dispatchFulfilledHandlers, dispatchRejectedHandlers, makeResolver, resolve, reject, pendingDispatch, p1;
+	Promise = function ( callback ) {
+		var fulfilledHandlers,
+			rejectedHandlers,
+			state,
+			result,
+			makeDispatcher,
+			dispatchFulfilledHandlers,
+			dispatchRejectedHandlers,
+			makeResolver,
+			fulfil,
+			reject,
+			pendingDispatch,
+			promise;
 
 		fulfilledHandlers = [];
 		rejectedHandlers = [];
@@ -43,66 +54,102 @@ define( function () {
 			};
 		};
 
-		resolve = makeResolver( FULFILLED, dispatchFulfilledHandlers );
+		fulfil = makeResolver( FULFILLED, dispatchFulfilledHandlers );
 		reject = makeResolver( REJECTED, dispatchRejectedHandlers );
 
-		callback( resolve, reject );
+		callback( fulfil, reject );
 
-		p1 = {
+		promise = {
+			// `then()` returns a Promise - 2.2.7
 			then: function ( onFulfilled, onRejected ) {
-				var p2 = promise( function ( resolve, reject ) {
+				var promise2 = new Promise( function ( fulfil, reject ) {
 
-					if ( typeof onFulfilled === 'function' ) {
-						fulfilledHandlers.push( function ( p1result ) {
-							var result;
+					var dealWith = function ( handler, handlers, disposeOf ) {
+						// [[Resolve]](promise2, x)
 
-							try {
-								result = onFulfilled( p1result );
+						// 2.2.1.1
+						if ( typeof handler === 'function' ) {
+							handlers.push( function ( p1result ) {
+								var x, then, Resolve;
 
-								if ( isPromise( result ) ) {
-									if ( result === p2 ) {
+								var Resolve = function ( x ) {
+									// Promise Resolution Procedure
+
+									// 2.3.1
+									if ( x === promise2 ) {
 										throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
 									}
 
-									result.then( resolve, reject );
-								} else {
-									resolve( result );
-								}
-							} catch ( err ) {
-								reject( err );
-							}
-						});
-					} else {
-						fulfilledHandlers.push( function ( result ) {
-							resolve( result );
-						});
-					}
-
-					if ( typeof onRejected === 'function' ) {
-						rejectedHandlers.push( function ( p1error ) {
-							var result;
-
-							try {
-								result = onRejected( p1error );
-
-								if ( isPromise( result ) ) {
-									if ( result === p2 ) {
-										throw new TypeError( 'A promise\'s rejection handler cannot return the same promise' );
+									// 2.3.2
+									if ( x instanceof Promise ) {
+										x.then( fulfil, reject ); // TODO does this need to happen synchronously?
 									}
 
-									result.then( resolve, reject );
-								} else {
-									resolve( result );
+									// 2.3.3
+									else if ( x && typeof x === 'object' || typeof x === 'function' ) {
+										try {
+											then = x.then; // 2.3.3.1
+										} catch ( e ) {
+											reject( e ); // 2.3.3.2
+											return;
+										}
+
+										// 2.3.3.3
+										if ( typeof then === 'function' ) {
+											var called; // TODO what?
+
+											var resolvePromise = function ( y ) {
+												if ( called ) {
+													return;
+												}
+												called = true;
+												Resolve( y );
+											};
+
+											var rejectPromise = function ( r ) {
+												if ( called ) {
+													return;
+												}
+												called = true;
+												reject( r );
+											};
+
+											try {
+												then.call( x, resolvePromise, rejectPromise );
+											} catch ( e ) {
+												if ( !called ) { // 2.3.3.3.4.1
+													reject( e ); // 2.3.3.3.4.2
+													return;
+												}
+											}
+										}
+
+										else {
+											fulfil( x );
+										}
+									}
+
+									else {
+										fulfil( x );
+									}
 								}
-							} catch ( err ) {
-								reject( err );
-							}
-						});
-					} else {
-						rejectedHandlers.push( function ( p1error ) {
-							reject( p1error );
-						});
-					}
+
+								try {
+									x = handler( p1result );
+									Resolve( x );
+								} catch ( err ) {
+									reject( err );
+								}
+							});
+						} else {
+							handlers.push( function ( result ) {
+								disposeOf( result );
+							});
+						}
+					};
+
+					dealWith( onFulfilled, fulfilledHandlers, fulfil );
+					dealWith( onRejected, rejectedHandlers, reject );
 
 
 					if ( state !== PENDING && !pendingDispatch ) {
@@ -111,15 +158,15 @@ define( function () {
 
 				});
 
-				return p2;
+				return promise2;
 			}
 		};
 
-		return p1;
+		return promise;
 	};
 
-	promise.all = function ( promises ) {
-		return promise( function ( resolve, reject ) {
+	Promise.all = function ( promises ) {
+		return new Promise( function ( resolve, reject ) {
 			var result = [], pending, i, decrement, processPromise;
 
 			decrement = function () {
@@ -142,14 +189,14 @@ define( function () {
 		});
 	};
 
-	return promise;
+	return Promise;
 
 	// TODO use MutationObservers or something to simulate setImmediate
 	function wait ( callback ) {
 		setTimeout( callback, 0 );
 	}
 
-	function isPromise ( candidate ) {
+	function isThenable ( candidate ) {
 		return ( candidate && typeof candidate.then === 'function' );
 	}
 
