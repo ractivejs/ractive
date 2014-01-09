@@ -73,7 +73,8 @@
     "grunt-contrib-watch": "~0.5.3",
     "grunt-contrib-requirejs": "~0.4.1",
     "amdclean": "~0.3.2",
-    "cheerio": "~0.13.0"
+    "cheerio": "~0.13.0",
+    "promises-aplus-tests": "*"
   },
   "testling": {
     "html": "test/testling.html",

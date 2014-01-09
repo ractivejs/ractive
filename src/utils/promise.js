@@ -5,11 +5,7 @@ define( function () {
 	var promise,
 		PENDING = {},
 		FULFILLED = {},
-		REJECTED = {},
-
-		multipleResolutionMessage;
-
-	multipleResolutionMessage = 'A Promise cannot be resolved or rejected multiple times';
+		REJECTED = {};
 
 	promise = function ( callback ) {
 		var fulfilledHandlers, rejectedHandlers, state, result, makeDispatcher, dispatchFulfilledHandlers, dispatchRejectedHandlers, makeResolver, resolve, reject, pendingDispatch;
@@ -34,26 +30,21 @@ define( function () {
 		dispatchFulfilledHandlers = makeDispatcher( fulfilledHandlers );
 		dispatchRejectedHandlers = makeDispatcher( rejectedHandlers );
 
-		makeResolver = function ( fulfilled ) {
+		makeResolver = function ( newState, dispatch ) {
 			return function ( value ) {
 				result = value;
 
 				if ( state !== PENDING ) {
-					throw new Error( multipleResolutionMessage );
+					return;
 				}
 
-				if ( fulfilled ) {
-					state = FULFILLED;
-					wait( dispatchFulfilledHandlers );
-				} else {
-					state = REJECTED;
-					wait( dispatchRejectedHandlers );
-				}
+				state = newState;
+				wait( dispatch );
 			};
 		};
 
-		resolve = makeResolver( FULFILLED, fulfilledHandlers );
-		reject = makeResolver( REJECTED, rejectedHandlers );
+		resolve = makeResolver( FULFILLED, dispatchFulfilledHandlers );
+		reject = makeResolver( REJECTED, dispatchRejectedHandlers );
 
 		callback( resolve, reject );
 
@@ -78,7 +69,7 @@ define( function () {
 									onRejected( result );
 								} catch ( e ) {}
 
-								reject( result );
+								reject( err );
 							}
 						});
 					}
@@ -87,11 +78,20 @@ define( function () {
 						rejectedHandlers.push( function ( p1error ) {
 							try {
 								onRejected( p1error );
-							} catch ( e ) {}
-
-							reject( p1error );
+							} catch ( e ) {
+								reject( e );
+								return;
+							}
 						});
 					}
+
+					// Always pass fulfillments and rejections through, even if there is no onFulfilled/onRejected.
+					fulfilledHandlers.push( function ( result ) {
+						resolve( result );
+					});
+					rejectedHandlers.push( function ( p1error ) {
+						reject( p1error );
+					});
 
 					if ( state !== PENDING && !pendingDispatch ) {
 						wait( state === FULFILLED ? dispatchFulfilledHandlers : dispatchRejectedHandlers );
