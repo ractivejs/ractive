@@ -123,7 +123,7 @@ define([
 		});
 
 		// options
-		ractive.adapt = options.adapt;
+		ractive.adapt = ( typeof options.adapt === 'string' ? [ options.adapt ] : options.adapt );
 		ractive.modifyArrays = options.modifyArrays;
 		ractive.magic = options.magic;
 		ractive.twoway = options.twoway;

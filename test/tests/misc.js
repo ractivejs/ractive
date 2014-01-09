@@ -1140,6 +1140,15 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
+			var Subclass, instance;
+
+			Subclass = Ractive.extend({ adapt: 'Foo' });
+			instance = new Subclass();
+
+			t.deepEqual( instance.adapt, ['Foo'] );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
