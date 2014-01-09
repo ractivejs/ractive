@@ -2,8 +2,8 @@ define([
 	'utils/warn',
 	'utils/isArray',
 	'shared/clearCache',
-	'shared/preDomUpdate',
-	'shared/processDeferredUpdates',
+	'shared/midCycleUpdate',
+	'shared/endCycleUpdate',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants',
 	'Ractive/prototype/shared/replaceData',
@@ -13,8 +13,8 @@ define([
 	warn,
 	isArray,
 	clearCache,
-	preDomUpdate,
-	processDeferredUpdates,
+	midCycleUpdate,
+	endCycleUpdate,
 	makeTransitionManager,
 	notifyDependants,
 	replaceData,
@@ -39,6 +39,7 @@ define([
 			updateQueue,
 			depsByKeypath,
 			deps,
+			endCycleUpdateRequired,
 			transitionManager,
 			previousTransitionManager,
 			upstreamQueue,
@@ -115,6 +116,10 @@ define([
 			return;
 		}
 
+		if ( !this._updateScheduled ) {
+			endCycleUpdateRequired = this._updateScheduled = true;
+		}
+
 
 		// Manage transitions
 		previousTransitionManager = this._transitionManager;
@@ -137,7 +142,7 @@ define([
 				queueDependants( keypath, deps, mergeQueue, updateQueue );
 
 				// we may have some deferred evaluators to process
-				preDomUpdate( this );
+				midCycleUpdate( this );
 
 				while ( mergeQueue.length ) {
 					mergeQueue.pop().merge( newIndices );
@@ -149,7 +154,11 @@ define([
 			}
 		}
 
-		processDeferredUpdates( this );
+		midCycleUpdate( this );
+
+		if ( endCycleUpdateRequired ) {
+			endCycleUpdate( this );
+		}
 
 		// Finally, notify direct dependants of upstream keypaths...
 		upstreamQueue = [];

@@ -3,8 +3,8 @@ define([
 	'utils/defineProperty',
 	'utils/isArray',
 	'shared/clearCache',
-	'shared/preDomUpdate',
-	'shared/postDomUpdate',
+	'shared/midCycleUpdate',
+	'shared/endCycleUpdate',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants'
 ], function (
@@ -12,8 +12,8 @@ define([
 	defineProperty,
 	isArray,
 	clearCache,
-	preDomUpdate,
-	postDomUpdate,
+	midCycleUpdate,
+	endCycleUpdate,
 	makeTransitionManager,
 	notifyDependants
 ) {
@@ -164,7 +164,7 @@ define([
 					queueDependants( keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
 					// we may have some deferred evaluators to process
-					preDomUpdate( root );
+					midCycleUpdate( root );
 
 					while ( smartUpdateQueue.length ) {
 						smartUpdateQueue.pop().smartUpdate( methodName, args );
@@ -192,7 +192,7 @@ define([
 				}
 			}
 
-			preDomUpdate( root ); // TODO determine whether this is necessary
+			midCycleUpdate( root ); // TODO determine whether this is necessary
 
 			// Finally, notify direct dependants of upstream keypaths...
 			upstreamQueue = [];
@@ -254,7 +254,13 @@ define([
 
 	mutatorMethods.forEach( function ( methodName ) {
 		var method = function () {
-			var result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {};
+			var result,
+				instances,
+				instance,
+				i,
+				previousTransitionManagers = {},
+				transitionManagers = {},
+				endCycleUpdateRequired = {};
 
 			// apply the underlying method
 			result = Array.prototype[ methodName ].apply( this, arguments );
@@ -264,6 +270,10 @@ define([
 			i = instances.length;
 			while ( i-- ) {
 				instance = instances[i];
+
+				if ( !instance._updateScheduled ) {
+					endCycleUpdateRequired[ instance._guid ] = instance._updateScheduled = true;
+				}
 
 				previousTransitionManagers[ instance._guid ] = instance._transitionManager;
 				instance._transitionManager = transitionManagers[ instance._guid ] = makeTransitionManager( instance, noop );
@@ -282,8 +292,11 @@ define([
 				instance._transitionManager = previousTransitionManagers[ instance._guid ];
 				transitionManagers[ instance._guid ].ready();
 
-				preDomUpdate( instance );
-				postDomUpdate( instance );
+				midCycleUpdate( instance );
+
+				if ( endCycleUpdateRequired[ instance._guid ] ) {
+					endCycleUpdate( instance );
+				}
 			}
 
 			return result;

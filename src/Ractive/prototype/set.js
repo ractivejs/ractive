@@ -6,7 +6,8 @@ define([
 	'shared/notifyDependants',
 	'shared/attemptKeypathResolution',
 	'shared/makeTransitionManager',
-	'shared/processDeferredUpdates',
+	'shared/midCycleUpdate',
+	'shared/endCycleUpdate',
 	'Ractive/prototype/shared/replaceData'
 ], function (
 	isObject,
@@ -16,7 +17,8 @@ define([
 	notifyDependants,
 	attemptKeypathResolution,
 	makeTransitionManager,
-	processDeferredUpdates,
+	midCycleUpdate,
+	endCycleUpdate,
 	replaceData
 ) {
 
@@ -25,17 +27,22 @@ define([
 	var set, updateModel, getUpstreamChanges, resetWrapped;
 
 	set = function ( keypath, value, complete ) {
-		var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
+		var endCycleUpdateRequired,
+			map,
+			changes,
+			upstreamChanges,
+			previousTransitionManager,
+			transitionManager,
+			i,
+			changeHash;
 
 		changes = [];
 
+		// Set multiple keypaths in one go
 		if ( isObject( keypath ) ) {
 			map = keypath;
 			complete = value;
-		}
 
-		// Set multiple keypaths in one go
-		if ( map ) {
 			for ( keypath in map ) {
 				if ( map.hasOwnProperty( keypath) ) {
 					value = map[ keypath ];
@@ -54,6 +61,12 @@ define([
 
 		if ( !changes.length ) {
 			return;
+		}
+
+		// If an end-cycle-update isn't scheduled already, we need to
+		// take care of that
+		if ( !this._updateScheduled ) {
+			endCycleUpdateRequired = this._updateScheduled = true;
 		}
 
 		// Manage transitions
@@ -76,7 +89,11 @@ define([
 		// Attributes don't reflect changes automatically if there is a possibility
 		// that they will need to change again before the .set() cycle is complete
 		// - they defer their updates until all values have been set
-		processDeferredUpdates( this );
+		midCycleUpdate( this );
+
+		if ( endCycleUpdateRequired ) {
+			endCycleUpdate( this );
+		}
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;

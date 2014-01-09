@@ -3,19 +3,25 @@ define([
 	'shared/attemptKeypathResolution',
 	'shared/clearCache',
 	'shared/notifyDependants',
-	'shared/processDeferredUpdates'
+	'shared/midCycleUpdate',
+	'shared/endCycleUpdate'
 ], function (
 	makeTransitionManager,
 	attemptKeypathResolution,
 	clearCache,
 	notifyDependants,
-	processDeferredUpdates
+	midCycleUpdate,
+	endCycleUpdate
 ) {
 
 	'use strict';
 
 	return function ( keypath, complete ) {
-		var transitionManager, previousTransitionManager;
+		var transitionManager, previousTransitionManager, endCycleUpdateRequired;
+
+		if ( !this._updateScheduled ) {
+			endCycleUpdateRequired = this._updateScheduled = true;
+		}
 
 		if ( typeof keypath === 'function' ) {
 			complete = keypath;
@@ -33,7 +39,11 @@ define([
 		clearCache( this, keypath || '' );
 		notifyDependants( this, keypath || '' );
 
-		processDeferredUpdates( this );
+		midCycleUpdate( this );
+
+		if ( endCycleUpdateRequired ) {
+			endCycleUpdate( this );
+		}
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;

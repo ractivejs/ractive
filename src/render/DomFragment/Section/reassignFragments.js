@@ -1,11 +1,11 @@
 define([
 	'config/types',
 	'render/DomFragment/Section/reassignFragment',
-	'shared/preDomUpdate'
+	'shared/midCycleUpdate'
 ], function (
 	types,
 	reassignFragment,
-	preDomUpdate
+	midCycleUpdate
 ) {
 
 	'use strict';
@@ -30,7 +30,7 @@ define([
 			reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
 		}
 
-		preDomUpdate( root );
+		midCycleUpdate( root );
 	};
 
 

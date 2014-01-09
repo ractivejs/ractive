@@ -1,15 +1,15 @@
 define([
 	'utils/getElement',
 	'shared/makeTransitionManager',
-	'shared/preDomUpdate',
-	'shared/postDomUpdate',
+	'shared/midCycleUpdate',
+	'shared/endCycleUpdate',
 	'shared/css',
 	'render/DomFragment/_DomFragment'
 ], function (
 	getElement,
 	makeTransitionManager,
-	preDomUpdate,
-	postDomUpdate,
+	midCycleUpdate,
+	endCycleUpdate,
 	css,
 	DomFragment
 ) {
@@ -27,6 +27,10 @@ define([
 			throw new Error( 'You cannot call ractive.render() directly!' );
 		}
 
+		// We flag up that we're going to perform an end-cycle update later,
+		// otherwise we may have to do it multiple times during render
+		this._updateScheduled = true;
+
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// Add CSS, if applicable
@@ -42,7 +46,7 @@ define([
 			pNode: target
 		});
 
-		preDomUpdate( this );
+		midCycleUpdate( this );
 
 		if ( target ) {
 			target.appendChild( this.fragment.docFrag );
@@ -51,7 +55,7 @@ define([
 		if ( this._parent ) {
 			this._parent._deferred.components.push( this );
 		} else {
-			postDomUpdate( this );
+			endCycleUpdate( this );
 		}
 
 		// transition manager has finished its work

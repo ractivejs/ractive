@@ -117,7 +117,9 @@ define([
 
 			// live queries
 			_liveQueries: { value: [] },
-			_liveComponentQueries: { value: [] }
+			_liveComponentQueries: { value: [] },
+
+			_updateScheduled: { value: false, writable: true }
 		});
 
 		defineProperties( ractive._deferred, {
