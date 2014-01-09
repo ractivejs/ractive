@@ -1,22 +1,22 @@
 // Adaptor for promises-aplus-tests
 
-var promise;
+var Promise;
 
 GLOBAL.define = function ( fun ) {
-	promise = fun();
+	Promise = fun();
 };
 
-require( '../src/utils/promise' );
+require( '../src/utils/Promise' );
 
 module.exports = {
 	resolved: function ( val ) {
-		return promise( function ( resolve, reject ) {
+		return new Promise( function ( resolve, reject ) {
 			resolve( val );
 		});
 	},
 
 	rejected: function ( reason ) {
-		return promise( function ( resolve, reject ) {
+		return new Promise( function ( resolve, reject ) {
 			reject( reason );
 		});
 	},
@@ -26,7 +26,7 @@ module.exports = {
 
 		obj = {};
 
-		obj.promise = promise( function ( resolve, reject ) {
+		obj.promise = new Promise( function ( resolve, reject ) {
 			obj.resolve = resolve;
 			obj.reject = reject;
 		});

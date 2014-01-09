@@ -49,74 +49,11 @@ define( function () {
 						// 2.2.1.1
 						if ( typeof handler === 'function' ) {
 							handlers.push( function ( p1result ) {
-								var x, then, resolve;
-
-								resolve = function ( x ) {
-									// Promise Resolution Procedure
-
-									// 2.3.1
-									if ( x === promise2 ) {
-										throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
-									}
-
-									// 2.3.2
-									if ( x instanceof Promise ) {
-										x.then( fulfil, reject );
-									}
-
-									// 2.3.3
-									else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
-										try {
-											then = x.then; // 2.3.3.1
-										} catch ( e ) {
-											reject( e ); // 2.3.3.2
-											return;
-										}
-
-										// 2.3.3.3
-										if ( typeof then === 'function' ) {
-											var called, resolvePromise, rejectPromise;
-
-											resolvePromise = function ( y ) {
-												if ( called ) {
-													return;
-												}
-												called = true;
-												resolve( y );
-											};
-
-											rejectPromise = function ( r ) {
-												if ( called ) {
-													return;
-												}
-												called = true;
-												reject( r );
-											};
-
-											try {
-												then.call( x, resolvePromise, rejectPromise );
-											} catch ( e ) {
-												if ( !called ) { // 2.3.3.3.4.1
-													reject( e ); // 2.3.3.3.4.2
-													called = true;
-													return;
-												}
-											}
-										}
-
-										else {
-											fulfil( x );
-										}
-									}
-
-									else {
-										fulfil( x );
-									}
-								};
+								var x;
 
 								try {
 									x = handler( p1result );
-									resolve( x );
+									resolve( promise2, x, fulfil, reject );
 								} catch ( err ) {
 									reject( err );
 								}
@@ -181,6 +118,70 @@ define( function () {
 				handler( result );
 			}
 		};
+	}
+
+	function resolve ( promise, x, fulfil, reject ) {
+		// Promise Resolution Procedure
+		var then;
+
+		// 2.3.1
+		if ( x === promise ) {
+			throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
+		}
+
+		// 2.3.2
+		if ( x instanceof Promise ) {
+			x.then( fulfil, reject );
+		}
+
+		// 2.3.3
+		else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
+			try {
+				then = x.then; // 2.3.3.1
+			} catch ( e ) {
+				reject( e ); // 2.3.3.2
+				return;
+			}
+
+			// 2.3.3.3
+			if ( typeof then === 'function' ) {
+				var called, resolvePromise, rejectPromise;
+
+				resolvePromise = function ( y ) {
+					if ( called ) {
+						return;
+					}
+					called = true;
+					resolve( promise, y, fulfil, reject );
+				};
+
+				rejectPromise = function ( r ) {
+					if ( called ) {
+						return;
+					}
+					called = true;
+					reject( r );
+				};
+
+				try {
+					then.call( x, resolvePromise, rejectPromise );
+				} catch ( e ) {
+					if ( !called ) { // 2.3.3.3.4.1
+						reject( e ); // 2.3.3.3.4.2
+						called = true;
+						return;
+					}
+				}
+			}
+
+			else {
+				fulfil( x );
+			}
+		}
+
+		else {
+			fulfil( x );
+		}
 	}
 
 });
