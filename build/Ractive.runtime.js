@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-08
+	Ractive - v0.4.0-pre - 2014-01-09
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -220,7 +220,7 @@ var shared_getValueFromCheckboxes = function () {
             return value;
         };
     }();
-var shared_preDomUpdate = function (getValueFromCheckboxes) {
+var shared_midCycleUpdate = function (getValueFromCheckboxes) {
         
         return function (ractive) {
             var deferred, evaluator, selectValue, attribute, keypath, radio;
@@ -242,13 +242,13 @@ var shared_preDomUpdate = function (getValueFromCheckboxes) {
             }
         };
     }(shared_getValueFromCheckboxes);
-var shared_postDomUpdate = function () {
+var shared_endCycleUpdate = function () {
         
-        return function postDomUpdate(ractive) {
+        return function endCycleUpdate(ractive) {
             var deferred, component, focusable, query, decorator, transition, observer;
             deferred = ractive._deferred;
             while (component = deferred.components.pop()) {
-                postDomUpdate(component);
+                endCycleUpdate(component);
             }
             if (focusable = deferred.focusable) {
                 focusable.focus();
@@ -266,6 +266,7 @@ var shared_postDomUpdate = function () {
             while (observer = deferred.observers.pop()) {
                 observer.update();
             }
+            ractive._updateScheduled = false;
         };
     }();
 var utils_warn = function () {
@@ -479,7 +480,7 @@ var shared_notifyDependants = function () {
             return starMaps[num];
         }
     }();
-var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, preDomUpdate, postDomUpdate, makeTransitionManager, notifyDependants) {
+var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, midCycleUpdate, endCycleUpdate, makeTransitionManager, notifyDependants) {
         
         var arrayAdaptor, notifyArrayDependants, ArrayWrapper, patchArrayMethods, unpatchArrayMethods, patchedArrayProto, testObj, mutatorMethods, noop, errorMessage;
         arrayAdaptor = {
@@ -564,7 +565,7 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                     deps = depsByKeypath[keypath];
                     if (deps) {
                         queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue);
-                        preDomUpdate(root);
+                        midCycleUpdate(root);
                         while (smartUpdateQueue.length) {
                             smartUpdateQueue.pop().smartUpdate(methodName, args);
                         }
@@ -585,7 +586,7 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                         notifyDependants(root, childKeypath);
                     }
                 }
-                preDomUpdate(root);
+                midCycleUpdate(root);
                 upstreamQueue = [];
                 keys = keypath.split('.');
                 while (keys.length) {
@@ -632,12 +633,15 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
         };
         mutatorMethods.forEach(function (methodName) {
             var method = function () {
-                var result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {};
+                var result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {}, endCycleUpdateRequired = {};
                 result = Array.prototype[methodName].apply(this, arguments);
                 instances = this._ractive.instances;
                 i = instances.length;
                 while (i--) {
                     instance = instances[i];
+                    if (!instance._updateScheduled) {
+                        endCycleUpdateRequired[instance._guid] = instance._updateScheduled = true;
+                    }
                     previousTransitionManagers[instance._guid] = instance._transitionManager;
                     instance._transitionManager = transitionManagers[instance._guid] = makeTransitionManager(instance, noop);
                 }
@@ -649,8 +653,10 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                     instance = instances[i];
                     instance._transitionManager = previousTransitionManagers[instance._guid];
                     transitionManagers[instance._guid].ready();
-                    preDomUpdate(instance);
-                    postDomUpdate(instance);
+                    midCycleUpdate(instance);
+                    if (endCycleUpdateRequired[instance._guid]) {
+                        endCycleUpdate(instance);
+                    }
                 }
                 return result;
             };
@@ -686,7 +692,7 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
         }
         errorMessage = 'Something went wrong in a rather interesting way';
         return arrayAdaptor;
-    }(config_types, utils_defineProperty, utils_isArray, shared_clearCache, shared_preDomUpdate, shared_postDomUpdate, shared_makeTransitionManager, shared_notifyDependants);
+    }(config_types, utils_defineProperty, utils_isArray, shared_clearCache, shared_midCycleUpdate, shared_endCycleUpdate, shared_makeTransitionManager, shared_notifyDependants);
 var Ractive_prototype_get_magicAdaptor = function () {
         
         var magicAdaptor, MagicWrapper;
@@ -986,13 +992,6 @@ var shared_attemptKeypathResolution = function (resolveRef) {
             }
         };
     }(shared_resolveRef);
-var shared_processDeferredUpdates = function (preDomUpdate, postDomUpdate) {
-        
-        return function (ractive) {
-            preDomUpdate(ractive);
-            postDomUpdate(ractive);
-        };
-    }(shared_preDomUpdate, shared_postDomUpdate);
 var Ractive_prototype_shared_replaceData = function () {
         
         return function (ractive, keypath, value) {
@@ -1030,17 +1029,15 @@ var Ractive_prototype_shared_replaceData = function () {
             return keypathToClear;
         };
     }();
-var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, processDeferredUpdates, replaceData) {
+var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, midCycleUpdate, endCycleUpdate, replaceData) {
         
         var set, updateModel, getUpstreamChanges, resetWrapped;
         set = function (keypath, value, complete) {
-            var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
+            var endCycleUpdateRequired, map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
             changes = [];
             if (isObject(keypath)) {
                 map = keypath;
                 complete = value;
-            }
-            if (map) {
                 for (keypath in map) {
                     if (map.hasOwnProperty(keypath)) {
                         value = map[keypath];
@@ -1055,6 +1052,9 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             if (!changes.length) {
                 return;
             }
+            if (!this._updateScheduled) {
+                endCycleUpdateRequired = this._updateScheduled = true;
+            }
             previousTransitionManager = this._transitionManager;
             this._transitionManager = transitionManager = makeTransitionManager(this, complete);
             upstreamChanges = getUpstreamChanges(changes);
@@ -1065,7 +1065,10 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             if (this._pendingResolution.length) {
                 attemptKeypathResolution(this);
             }
-            processDeferredUpdates(this);
+            midCycleUpdate(this);
+            if (endCycleUpdateRequired) {
+                endCycleUpdate(this);
+            }
             this._transitionManager = previousTransitionManager;
             transitionManager.ready();
             if (!this.firingChangeEvent) {
@@ -1142,11 +1145,14 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             }
         };
         return set;
-    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_processDeferredUpdates, Ractive_prototype_shared_replaceData);
-var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, processDeferredUpdates) {
+    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_midCycleUpdate, shared_endCycleUpdate, Ractive_prototype_shared_replaceData);
+var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, midCycleUpdate, endCycleUpdate) {
         
         return function (keypath, complete) {
-            var transitionManager, previousTransitionManager;
+            var transitionManager, previousTransitionManager, endCycleUpdateRequired;
+            if (!this._updateScheduled) {
+                endCycleUpdateRequired = this._updateScheduled = true;
+            }
             if (typeof keypath === 'function') {
                 complete = keypath;
                 keypath = '';
@@ -1156,7 +1162,10 @@ var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathRe
             attemptKeypathResolution(this);
             clearCache(this, keypath || '');
             notifyDependants(this, keypath || '');
-            processDeferredUpdates(this);
+            midCycleUpdate(this);
+            if (endCycleUpdateRequired) {
+                endCycleUpdate(this);
+            }
             this._transitionManager = previousTransitionManager;
             transitionManager.ready();
             if (typeof keypath === 'string') {
@@ -1166,7 +1175,7 @@ var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathRe
             }
             return this;
         };
-    }(shared_makeTransitionManager, shared_attemptKeypathResolution, shared_clearCache, shared_notifyDependants, shared_processDeferredUpdates);
+    }(shared_makeTransitionManager, shared_attemptKeypathResolution, shared_clearCache, shared_notifyDependants, shared_midCycleUpdate, shared_endCycleUpdate);
 var utils_arrayContentsMatch = function (isArray) {
         
         return function (a, b) {
@@ -3096,7 +3105,7 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
             }
         }
     }(config_types, shared_unregisterDependant, render_shared_ExpressionResolver__ExpressionResolver);
-var render_DomFragment_Section_reassignFragments = function (types, reassignFragment, preDomUpdate) {
+var render_DomFragment_Section_reassignFragments = function (types, reassignFragment, midCycleUpdate) {
         
         return function (root, section, start, end, by) {
             var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
@@ -3110,9 +3119,9 @@ var render_DomFragment_Section_reassignFragments = function (types, reassignFrag
                 fragment.index += by;
                 reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
             }
-            preDomUpdate(root);
+            midCycleUpdate(root);
         };
-    }(config_types, render_DomFragment_Section_reassignFragment, shared_preDomUpdate);
+    }(config_types, render_DomFragment_Section_reassignFragment, shared_midCycleUpdate);
 var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
         
         return function (newIndices) {
@@ -6232,13 +6241,14 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
         circular.DomFragment = DomFragment;
         return DomFragment;
     }(config_types, utils_matches, render_shared_initFragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular);
-var Ractive_prototype_render = function (getElement, makeTransitionManager, preDomUpdate, postDomUpdate, css, DomFragment) {
+var Ractive_prototype_render = function (getElement, makeTransitionManager, midCycleUpdate, endCycleUpdate, css, DomFragment) {
         
         return function (target, complete) {
             var transitionManager;
             if (!this._initing) {
                 throw new Error('You cannot call ractive.render() directly!');
             }
+            this._updateScheduled = true;
             this._transitionManager = transitionManager = makeTransitionManager(this, complete);
             if (this.constructor.css) {
                 css.add(this.constructor);
@@ -6249,20 +6259,20 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, preD
                 owner: this,
                 pNode: target
             });
-            preDomUpdate(this);
+            midCycleUpdate(this);
             if (target) {
                 target.appendChild(this.fragment.docFrag);
             }
             if (this._parent) {
                 this._parent._deferred.components.push(this);
             } else {
-                postDomUpdate(this);
+                endCycleUpdate(this);
             }
             this._transitionManager = null;
             transitionManager.ready();
             this.rendered = true;
         };
-    }(utils_getElement, shared_makeTransitionManager, shared_preDomUpdate, shared_postDomUpdate, shared_css, render_DomFragment__DomFragment);
+    }(utils_getElement, shared_makeTransitionManager, shared_midCycleUpdate, shared_endCycleUpdate, shared_css, render_DomFragment__DomFragment);
 var Ractive_prototype_renderHTML = function (warn) {
         
         return function () {
@@ -6402,11 +6412,11 @@ var Ractive_prototype_merge_queueDependants = function (types) {
             }
         };
     }(config_types);
-var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDomUpdate, processDeferredUpdates, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
+var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCycleUpdate, endCycleUpdate, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
         
         var identifiers = {};
         return function (keypath, array, options) {
-            var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, transitionManager, previousTransitionManager, upstreamQueue, keys;
+            var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, endCycleUpdateRequired, transitionManager, previousTransitionManager, upstreamQueue, keys;
             currentArray = this.get(keypath);
             if (!isArray(currentArray) || !isArray(array)) {
                 return this.set(keypath, array, options && options.complete);
@@ -6444,6 +6454,9 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDom
             if (newIndices.unchanged && lengthUnchanged) {
                 return;
             }
+            if (!this._updateScheduled) {
+                endCycleUpdateRequired = this._updateScheduled = true;
+            }
             previousTransitionManager = this._transitionManager;
             this._transitionManager = transitionManager = makeTransitionManager(this, options && options.complete);
             mergeQueue = [];
@@ -6456,7 +6469,7 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDom
                 deps = depsByKeypath[keypath];
                 if (deps) {
                     queueDependants(keypath, deps, mergeQueue, updateQueue);
-                    preDomUpdate(this);
+                    midCycleUpdate(this);
                     while (mergeQueue.length) {
                         mergeQueue.pop().merge(newIndices);
                     }
@@ -6465,7 +6478,10 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDom
                     }
                 }
             }
-            processDeferredUpdates(this);
+            midCycleUpdate(this);
+            if (endCycleUpdateRequired) {
+                endCycleUpdate(this);
+            }
             upstreamQueue = [];
             keys = keypath.split('.');
             while (keys.length) {
@@ -6490,7 +6506,7 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, preDom
             }
             return identifiers[str];
         }
-    }(utils_warn, utils_isArray, shared_clearCache, shared_preDomUpdate, shared_processDeferredUpdates, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants);
+    }(utils_warn, utils_isArray, shared_clearCache, shared_midCycleUpdate, shared_endCycleUpdate, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants);
 var Ractive_prototype_detach = function () {
         
         return function () {
@@ -6850,7 +6866,11 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 nodes: { value: {} },
                 _wrapped: { value: create(null) },
                 _liveQueries: { value: [] },
-                _liveComponentQueries: { value: [] }
+                _liveComponentQueries: { value: [] },
+                _updateScheduled: {
+                    value: false,
+                    writable: true
+                }
             });
             defineProperties(ractive._deferred, {
                 attrs: { value: [] },
@@ -6988,92 +7008,105 @@ var extend__extend = function (create, defineProperties, getGuid, inheritFromPar
     }(utils_create, utils_defineProperties, utils_getGuid, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
 var utils_promise = function () {
         
-        var promise, PENDING = {}, FULFILLED = {}, REJECTED = {}, multipleResolutionMessage;
-        multipleResolutionMessage = 'A Promise cannot be resolved or rejected multiple times';
-        promise = function (callback) {
-            var fulfilledHandlers, rejectedHandlers, state, result, makeDispatcher, dispatchFulfilledHandlers, dispatchRejectedHandlers, makeResolver, resolve, reject, pendingDispatch;
-            fulfilledHandlers = [];
-            rejectedHandlers = [];
-            state = PENDING;
-            makeDispatcher = function (handlers) {
-                return function () {
-                    var handler;
-                    while (handler = handlers.shift()) {
-                        handler(result);
-                    }
-                    pendingDispatch = false;
-                };
-            };
-            dispatchFulfilledHandlers = makeDispatcher(fulfilledHandlers);
-            dispatchRejectedHandlers = makeDispatcher(rejectedHandlers);
-            makeResolver = function (fulfilled) {
+        var Promise, PENDING = {}, FULFILLED = {}, REJECTED = {};
+        Promise = function (callback) {
+            var fulfilledHandlers = [], rejectedHandlers = [], state = PENDING, result, dispatchHandlers, makeResolver, fulfil, reject;
+            makeResolver = function (newState) {
                 return function (value) {
-                    result = value;
                     if (state !== PENDING) {
-                        throw new Error(multipleResolutionMessage);
+                        return;
                     }
-                    if (fulfilled) {
-                        state = FULFILLED;
-                        wait(dispatchFulfilledHandlers);
-                    } else {
-                        state = REJECTED;
-                        wait(dispatchRejectedHandlers);
-                    }
+                    result = value;
+                    state = newState;
+                    dispatchHandlers = makeDispatcher(state === FULFILLED ? fulfilledHandlers : rejectedHandlers, result);
+                    wait(dispatchHandlers);
                 };
             };
-            resolve = makeResolver(FULFILLED, fulfilledHandlers);
-            reject = makeResolver(REJECTED, rejectedHandlers);
-            callback(resolve, reject);
+            fulfil = makeResolver(FULFILLED);
+            reject = makeResolver(REJECTED);
+            callback(fulfil, reject);
             return {
                 then: function (onFulfilled, onRejected) {
-                    return promise(function (resolve, reject) {
-                        if (typeof onFulfilled === 'function') {
-                            fulfilledHandlers.push(function (p1result) {
-                                var result;
-                                try {
-                                    result = onFulfilled(p1result);
-                                    if (isPromise(result)) {
-                                        result.then(resolve, reject);
-                                    } else {
-                                        resolve(result);
-                                    }
-                                } catch (err) {
-                                    try {
-                                        onRejected(result);
-                                    } catch (e) {
-                                    }
-                                    reject(result);
+                    var promise2 = new Promise(function (fulfil, reject) {
+                            var processResolutionHandler = function (handler, handlers, forward) {
+                                if (typeof handler === 'function') {
+                                    handlers.push(function (p1result) {
+                                        var x, then, resolve;
+                                        resolve = function (x) {
+                                            if (x === promise2) {
+                                                throw new TypeError('A promise\'s fulfillment handler cannot return the same promise');
+                                            }
+                                            if (x instanceof Promise) {
+                                                x.then(fulfil, reject);
+                                            } else if (x && (typeof x === 'object' || typeof x === 'function')) {
+                                                try {
+                                                    then = x.then;
+                                                } catch (e) {
+                                                    reject(e);
+                                                    return;
+                                                }
+                                                if (typeof then === 'function') {
+                                                    var called, resolvePromise, rejectPromise;
+                                                    resolvePromise = function (y) {
+                                                        if (called) {
+                                                            return;
+                                                        }
+                                                        called = true;
+                                                        resolve(y);
+                                                    };
+                                                    rejectPromise = function (r) {
+                                                        if (called) {
+                                                            return;
+                                                        }
+                                                        called = true;
+                                                        reject(r);
+                                                    };
+                                                    try {
+                                                        then.call(x, resolvePromise, rejectPromise);
+                                                    } catch (e) {
+                                                        if (!called) {
+                                                            reject(e);
+                                                            called = true;
+                                                            return;
+                                                        }
+                                                    }
+                                                } else {
+                                                    fulfil(x);
+                                                }
+                                            } else {
+                                                fulfil(x);
+                                            }
+                                        };
+                                        try {
+                                            x = handler(p1result);
+                                            resolve(x);
+                                        } catch (err) {
+                                            reject(err);
+                                        }
+                                    });
+                                } else {
+                                    handlers.push(forward);
                                 }
-                            });
-                        }
-                        if (typeof onRejected === 'function') {
-                            rejectedHandlers.push(function (p1error) {
-                                try {
-                                    onRejected(p1error);
-                                } catch (e) {
-                                }
-                                reject(p1error);
-                            });
-                        }
-                        if (state !== PENDING && !pendingDispatch) {
-                            wait(state === FULFILLED ? dispatchFulfilledHandlers : dispatchRejectedHandlers);
-                        }
-                    });
+                            };
+                            processResolutionHandler(onFulfilled, fulfilledHandlers, fulfil);
+                            processResolutionHandler(onRejected, rejectedHandlers, reject);
+                            if (state !== PENDING) {
+                                wait(dispatchHandlers);
+                            }
+                        });
+                    return promise2;
                 }
             };
         };
-        promise.all = function (promises) {
-            return promise(function (resolve, reject) {
-                var result = [], pending, i, decrement, processPromise;
-                decrement = function () {
-                    if (!--pending) {
-                        resolve(result);
-                    }
-                };
+        Promise.all = function (promises) {
+            return new Promise(function (fulfil, reject) {
+                var result = [], pending, i, processPromise;
                 processPromise = function (i) {
                     promises[i].then(function (value) {
                         result[i] = value;
-                        decrement();
+                        if (!--pending) {
+                            fulfil(result);
+                        }
                     }, reject);
                 };
                 pending = i = promises.length;
@@ -7082,12 +7115,17 @@ var utils_promise = function () {
                 }
             });
         };
-        return promise;
+        return Promise;
         function wait(callback) {
             setTimeout(callback, 0);
         }
-        function isPromise(candidate) {
-            return candidate && typeof candidate.then === 'function';
+        function makeDispatcher(handlers, result) {
+            return function () {
+                var handler;
+                while (handler = handlers.shift()) {
+                    handler(result);
+                }
+            };
         }
     }();
 var utils_get = function (promise) {
