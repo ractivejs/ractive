@@ -1,11 +1,11 @@
 define([
-	'extend/registries',
-	'extend/initOptions',
-	'utils/create'
+	'config/registries',
+	'utils/create',
+	'utils/defineProperty'
 ], function (
 	registries,
-	initOptions,
-	create
+	create,
+	defineProperty
 ) {
 
 	'use strict';
@@ -20,8 +20,8 @@ define([
 			}
 		});
 
-		initOptions.forEach( function ( property ) {
-			Child[ property ] = Parent[ property ];
+		defineProperty( Child, 'defaults', {
+			value: create( Parent.defaults )
 		});
 	};
 

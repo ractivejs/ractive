@@ -1,12 +1,12 @@
 define([
+	'config/initOptions',
 	'utils/fillGaps',
-	'extend/initOptions',
 	'extend/utils/clone',
 	'extend/wrapMethod',
 	'Ractive/initialise'
 ], function (
-	fillGaps,
 	initOptions,
+	fillGaps,
 	clone,
 	wrapMethod,
 	initialise
@@ -18,15 +18,11 @@ define([
 
 	return function ( child, Child, options ) {
 
-		initOptions.forEach( function ( property ) {
-			var value = options[ property ], defaultValue = Child[ property ];
+		initOptions.keys.forEach( function ( key ) {
+			var value = options[ key ], defaultValue = Child.defaults[ key ];
 
 			if ( typeof value === 'function' && typeof defaultValue === 'function' ) {
-				options[ property ] = wrapMethod( value, defaultValue );
-			}
-
-			else if ( value === undefined && defaultValue !== undefined ) {
-				options[ property ] = defaultValue;
+				options[ key ] = wrapMethod( value, defaultValue );
 			}
 		});
 

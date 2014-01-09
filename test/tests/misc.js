@@ -1007,7 +1007,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
-				adaptors: [ 'foo' ]
+				adapt: [ 'foo' ]
 			});
 
 			ractive = new Widget({
@@ -1018,7 +1018,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				}
 			});
 
-			t.deepEqual( ractive.adaptors, [ Ractive.adaptors.foo ] );
+			t.deepEqual( ractive.adapt, [ Ractive.adaptors.foo ] );
 			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 		});
 
@@ -1120,6 +1120,24 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			ractive.set( 'items', [{name:'one', id:1}, {name:'two', id:2}]);
 
 			t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
+		});
+
+		test( 'Subclass instance complete() handlers can call _super', function ( t ) {
+			var Subclass, instance;
+
+			expect( 1 );
+
+			Subclass = Ractive.extend({
+				complete: function () {
+					return 42;
+				}
+			});
+
+			instance = new Subclass({
+				complete: function () {
+					t.equal( this._super(), 42 );
+				}
+			});
 		});
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.

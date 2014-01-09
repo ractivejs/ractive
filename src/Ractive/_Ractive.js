@@ -1,4 +1,5 @@
 define([
+	'config/initOptions',
 	'config/svg',
 	'utils/create',
 	'utils/defineProperties',
@@ -13,6 +14,7 @@ define([
 	'Ractive/initialise',
 	'circular'
 ], function (
+	initOptions,
 	svg,
 	create,
 	defineProperties,
@@ -50,6 +52,9 @@ define([
 		events:      { value: {} },
 		components:  { value: componentsRegistry },
 		decorators:  { value: {} },
+
+		// Default options
+		defaults:    { value: initOptions.defaults },
 
 		// Support
 		svg: { value: svg },

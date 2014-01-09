@@ -16,9 +16,9 @@ define([
 		var len, i, adaptor, wrapped;
 
 		// Do we have an adaptor for this value?
-		len = ractive.adaptors.length;
+		len = ractive.adapt.length;
 		for ( i = 0; i < len; i += 1 ) {
-			adaptor = ractive.adaptors[i];
+			adaptor = ractive.adapt[i];
 
 			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
 			// we need to get the actual adaptor if that's the case
@@ -26,7 +26,7 @@ define([
 				if ( !adaptorRegistry[ adaptor ] ) {
 					throw new Error( 'Missing adaptor "' + adaptor + '"' );
 				}
-				adaptor = ractive.adaptors[i] = adaptorRegistry[ adaptor ];
+				adaptor = ractive.adapt[i] = adaptorRegistry[ adaptor ];
 			}
 
 			if ( adaptor.filter( value, keypath, ractive ) ) {

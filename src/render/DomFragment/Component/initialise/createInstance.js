@@ -21,7 +21,7 @@ define([
 			data: data,
 			partials: partials,
 			_parent: root,
-			adaptors: root.adaptors
+			adapt: root.adapt
 		});
 
 		// Need to store references in both directions

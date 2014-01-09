@@ -1,6 +1,8 @@
 define([
 	'config/isClient',
 	'config/errors',
+	'config/initOptions',
+	'config/registries',
 	'utils/warn',
 	'utils/create',
 	'utils/extend',
@@ -8,12 +10,15 @@ define([
 	'utils/defineProperties',
 	'utils/getElement',
 	'utils/isObject',
+	'utils/isArray',
 	'utils/getGuid',
 	'Ractive/prototype/get/magicAdaptor',
 	'parse/_parse'
 ], function (
 	isClient,
 	errors,
+	initOptions,
+	registries,
 	warn,
 	create,
 	extend,
@@ -21,6 +26,7 @@ define([
 	defineProperties,
 	getElement,
 	isObject,
+	isArray,
 	getGuid,
 	magicAdaptor,
 	parse
@@ -28,43 +34,23 @@ define([
 
 	'use strict';
 
-	var getObject, getArray, defaultOptions, registries;
-
-	getObject = function () { return {}; };
-	getArray = function () { return []; };
-
-	defaultOptions = create( null );
-
-	defineProperties( defaultOptions, {
-		preserveWhitespace: { enumerable: true, value: false     },
-		append:             { enumerable: true, value: false     },
-		twoway:             { enumerable: true, value: true      },
-		modifyArrays:       { enumerable: true, value: true      },
-		data:               { enumerable: true, value: getObject },
-		lazy:               { enumerable: true, value: false     },
-		debug:              { enumerable: true, value: false     },
-		transitions:        { enumerable: true, value: getObject },
-		decorators:         { enumerable: true, value: getObject },
-		events:             { enumerable: true, value: getObject },
-		noIntro:            { enumerable: true, value: false     },
-		transitionsEnabled: { enumerable: true, value: true      },
-		magic:              { enumerable: true, value: false     },
-		adaptors:           { enumerable: true, value: getArray  }
-	});
-
-	registries = [ 'components', 'decorators', 'events', 'partials', 'transitions', 'data' ];
-
 	return function ( ractive, options ) {
 
-		var key, template, templateEl, parsedTemplate;
+		var template, templateEl, parsedTemplate;
+
+		if ( isArray( options.adaptors ) ) {
+			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
+			options.adapt = options.adaptors;
+			delete options.adaptors;
+		}
 
 		// Options
 		// -------
-		for ( key in defaultOptions ) {
+		initOptions.keys.forEach( function ( key ) {
 			if ( options[ key ] === undefined ) {
-				options[ key ] = ( typeof defaultOptions[ key ] === 'function' ? defaultOptions[ key ]() : defaultOptions[ key ] );
+				options[ key ] = ractive.constructor.defaults[ key ];
 			}
-		}
+		});
 
 
 		// Initialisation
@@ -137,7 +123,7 @@ define([
 		});
 
 		// options
-		ractive.adaptors = options.adaptors;
+		ractive.adapt = options.adapt;
 		ractive.modifyArrays = options.modifyArrays;
 		ractive.magic = options.magic;
 		ractive.twoway = options.twoway;
@@ -171,11 +157,16 @@ define([
 
 		registries.forEach( function ( registry ) {
 			if ( ractive.constructor[ registry ] ) {
-				ractive[ registry ] = extend( create( ractive.constructor[ registry ] || {} ), options[ registry ] );
+				ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
 			} else if ( options[ registry ] ) {
 				ractive[ registry ] = options[ registry ];
 			}
 		});
+
+		// Special case
+		if ( !ractive.data ) {
+			ractive.data = {};
+		}
 
 
 
