@@ -20,7 +20,7 @@ define([
 			}
 		});
 
-		initOptions.forEach( function ( property ) {
+		initOptions.keys().forEach( function ( property ) {
 			Child[ property ] = Parent[ property ];
 		});
 	};

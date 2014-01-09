@@ -10,7 +10,8 @@ define([
 	'utils/isObject',
 	'utils/getGuid',
 	'Ractive/prototype/get/magicAdaptor',
-	'parse/_parse'
+	'parse/_parse',
+	'extend/initOptions',
 ], function (
 	isClient,
 	errors,
@@ -23,34 +24,17 @@ define([
 	isObject,
 	getGuid,
 	magicAdaptor,
-	parse
+	parse,
+	initOptions
 ) {
 
 	'use strict';
 
-	var getObject, getArray, defaultOptions, registries;
-
-	getObject = function () { return {}; };
-	getArray = function () { return []; };
+	var defaultOptions, registries;
 
 	defaultOptions = create( null );
 
-	defineProperties( defaultOptions, {
-		preserveWhitespace: { enumerable: true, value: false     },
-		append:             { enumerable: true, value: false     },
-		twoway:             { enumerable: true, value: true      },
-		modifyArrays:       { enumerable: true, value: true      },
-		data:               { enumerable: true, value: getObject },
-		lazy:               { enumerable: true, value: false     },
-		debug:              { enumerable: true, value: false     },
-		transitions:        { enumerable: true, value: getObject },
-		decorators:         { enumerable: true, value: getObject },
-		events:             { enumerable: true, value: getObject },
-		noIntro:            { enumerable: true, value: false     },
-		transitionsEnabled: { enumerable: true, value: true      },
-		magic:              { enumerable: true, value: false     },
-		adaptors:           { enumerable: true, value: getArray  }
-	});
+	defineProperties( defaultOptions, initOptions.properties() );
 
 	registries = [ 'components', 'decorators', 'events', 'partials', 'transitions', 'data' ];
 
@@ -65,7 +49,6 @@ define([
 				options[ key ] = ( typeof defaultOptions[ key ] === 'function' ? defaultOptions[ key ]() : defaultOptions[ key ] );
 			}
 		}
-
 
 		// Initialisation
 		// --------------
@@ -170,14 +153,13 @@ define([
 		}
 
 		registries.forEach( function ( registry ) {
+
 			if ( ractive.constructor[ registry ] ) {
 				ractive[ registry ] = extend( create( ractive.constructor[ registry ] || {} ), options[ registry ] );
 			} else if ( options[ registry ] ) {
 				ractive[ registry ] = options[ registry ];
 			}
 		});
-
-
 
 		// Parse template, if necessary
 		template = options.template;
@@ -200,6 +182,7 @@ define([
 			}
 
 			else {
+
 				parsedTemplate = parse( template, options );
 			}
 		} else {
