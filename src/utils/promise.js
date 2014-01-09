@@ -119,6 +119,7 @@ define( function () {
 											} catch ( e ) {
 												if ( !called ) { // 2.3.3.3.4.1
 													reject( e ); // 2.3.3.3.4.2
+													called = true;
 													return;
 												}
 											}
