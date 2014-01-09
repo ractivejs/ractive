@@ -14,7 +14,7 @@ define([
 
 	var blacklist, blacklisted;
 
-	blacklist = registries.concat( initOptions );
+	blacklist = registries.concat( initOptions.keys() );
 	blacklisted = {};
 	blacklist.forEach( function ( property ) {
 		blacklisted[ property ] = true;
@@ -24,6 +24,7 @@ define([
 	// Parent) with the values passed to Parent.extend()
 
 	return function ( Child, childProps ) {
+
 		var key, member;
 
 		registries.forEach( function ( property ) {
@@ -38,7 +39,7 @@ define([
 			}
 		});
 
-		initOptions.forEach( function ( property ) {
+		initOptions.keys().forEach( function ( property ) {
 			var value = childProps[ property ];
 
 			if ( value !== undefined ) {
@@ -52,6 +53,7 @@ define([
 		});
 
 		for ( key in childProps ) {
+
 			if ( childProps.hasOwnProperty( key ) && !blacklisted[ key ] ) {
 				member = childProps[ key ];
 
