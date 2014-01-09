@@ -8,7 +8,7 @@ define( function () {
 		REJECTED = {};
 
 	promise = function ( callback ) {
-		var fulfilledHandlers, rejectedHandlers, state, result, makeDispatcher, dispatchFulfilledHandlers, dispatchRejectedHandlers, makeResolver, resolve, reject, pendingDispatch;
+		var fulfilledHandlers, rejectedHandlers, state, result, makeDispatcher, dispatchFulfilledHandlers, dispatchRejectedHandlers, makeResolver, resolve, reject, pendingDispatch, p1;
 
 		fulfilledHandlers = [];
 		rejectedHandlers = [];
@@ -48,9 +48,9 @@ define( function () {
 
 		callback( resolve, reject );
 
-		return {
+		p1 = {
 			then: function ( onFulfilled, onRejected ) {
-				return promise( function ( resolve, reject ) {
+				var p2 = promise( function ( resolve, reject ) {
 
 					if ( typeof onFulfilled === 'function' ) {
 						fulfilledHandlers.push( function ( p1result ) {
@@ -60,6 +60,10 @@ define( function () {
 								result = onFulfilled( p1result );
 
 								if ( isPromise( result ) ) {
+									if ( result === p2 ) {
+										throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
+									}
+
 									result.then( resolve, reject );
 								} else {
 									resolve( result );
@@ -82,6 +86,10 @@ define( function () {
 								result = onRejected( p1error );
 
 								if ( isPromise( result ) ) {
+									if ( result === p2 ) {
+										throw new TypeError( 'A promise\'s rejection handler cannot return the same promise' );
+									}
+
 									result.then( resolve, reject );
 								} else {
 									resolve( result );
@@ -102,8 +110,12 @@ define( function () {
 					}
 
 				});
+
+				return p2;
 			}
 		};
+
+		return p1;
 	};
 
 	promise.all = function ( promises ) {
