@@ -1,8 +1,6 @@
 Ractive.js - Next-generation DOM manipulation
 =============================================
 
-[![Build Status](https://travis-ci.org/RactiveJS/Ractive.png)](https://travis-ci.org/RactiveJS/Ractive)
-[![devDependency Status](https://david-dm.org/RactiveJS/Ractive/dev-status.png)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies)
 
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
 
@@ -89,4 +87,4 @@ Copyright (c) 2012-13 Rich Harris. Released under an MIT license.
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
+[![devDependency Status](https://david-dm.org/RactiveJS/Ractive/dev-status.png)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies)
