@@ -25,7 +25,7 @@ If the bug persists, it may have been fixed in the latest development version. N
 
 See the [branches page](https://github.com/RactiveJS/Ractive/branches) to find the newest development branch.
 
-The best issues contain a reproducible demonstration of the bug in the form of a [JSFiddle](http://jsfiddle.net/WE5Ga/) or similar. A good tip when using these tools is to import Ractive via [rawgithub.com](https://rawgithub.com/), e.g. https://rawgithub.com/RactiveJS/Ractive/master/Ractive.js.
+The best issues contain a reproducible demonstration of the bug in the form of a [JSFiddle](http://jsfiddle.net/VGaLu/) or similar. A good tip when using these tools is to import Ractive via [rawgithub.com](https://rawgithub.com/), e.g. https://rawgithub.com/RactiveJS/Ractive/master/Ractive.js.
 
 
 Pull requests
