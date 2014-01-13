@@ -8,7 +8,7 @@ define( function () {
 	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 	resolveRef = function ( ractive, ref, contextStack ) {
 
-		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context, ancestorErrorMessage, implicitIterator;
+		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context, ancestorErrorMessage;
 
 		ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
@@ -58,7 +58,6 @@ define( function () {
 			keys = ref.split( '.' );
 			lastKey = keys.pop();
 			postfix = keys.length ? '.' + keys.join( '.' ) : '';
-			implicitIterator = contextStack.length && contextStack[0].charAt(0) === '.';
 
 			// Clone the context stack, so we don't mutate the original
 			contextStack = contextStack.concat();
@@ -86,7 +85,7 @@ define( function () {
 			}
 		}
 
-		return keypath && !implicitIterator ? keypath.replace( /^\./, '' ) : keypath;
+		return keypath ? keypath.replace( /^\./, '' ) : keypath;
 	};
 
 	return resolveRef;
