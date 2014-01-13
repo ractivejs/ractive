@@ -31,6 +31,13 @@ define([
 			};
 		}
 
+		// Allow `ractive.observe( callback )` - i.e. observe entire model
+		if ( typeof keypath === 'function' ) {
+			options = callback;
+			callback = keypath;
+			keypath = '';
+		}
+
 		return getObserverFacade( this, keypath, callback, options );
 	};
 
