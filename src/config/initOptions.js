@@ -19,7 +19,9 @@ define( function () {
 		magic:              false,
 		adapt:              [],
 		sanitize:           false,
-		stripComments:      true
+		stripComments:      true,
+		delimiters:         [ '{{', '}}' ],
+		tripleDelimiters:   [ '{{{', '}}}' ],
 	};
 
 	initOptions = {
