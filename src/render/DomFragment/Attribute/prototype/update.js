@@ -107,7 +107,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		while ( i-- ) {
 			option = options[i];
 
-			if ( option._ractive.value == value ) { // double equals as we may be comparing numbers with strings
+			if ( option.value == value ) { // double equals as we may be comparing numbers with strings; option.value insted of option._ractive.value since there might be dynamically added options
 				option.selected = true;
 				return this;
 			}
@@ -130,7 +130,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		i = options.length;
 
 		while ( i-- ) {
-			options[i].selected = ( value.indexOf( options[i]._ractive.value ) !== -1 );
+			options[i].selected = ( value.indexOf( options[i].value ) !== -1 ); // option.value insted of option._ractive.value since there might be dynamically added options
 		}
 
 		this.value = value;

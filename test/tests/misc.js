@@ -284,6 +284,16 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.ok(  ractive.nodes._3.selected );
 		});
 
+		test( 'Setting the value of a select works with dynamically added options', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select id="s" value="{{value}}">{{{f()}}}</select>',
+				data: { value: 2, f: function() { return '<option value="1">1</option><option value="2">2</option>' }}
+			});
+
+			t.equal( ractive.nodes.s.value, 2);
+		});
+
 		/*
 		test( 'If a multiple select value with two-way binding has a selected option at render time, the model updates accordingly', function ( t ) {
 			var ractive;
