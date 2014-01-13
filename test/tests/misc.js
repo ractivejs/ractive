@@ -1132,6 +1132,21 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
 		});
 
+		test( 'Data can be an Array and implicit iteration works', function ( t ) {
+			var ractive, input;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#.}}<li> {{name}} </li>{{/.}}',
+				data: [
+					{ 'name': 'Name 1' },
+					{ 'name': 'Name 2' }
+				]
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<li>Name 1</li><li>Name 2</li>' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
