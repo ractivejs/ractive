@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-12
+	Ractive - v0.4.0-pre - 2014-01-13
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -55,7 +55,15 @@ var config_initOptions = function () {
             magic: false,
             adapt: [],
             sanitize: false,
-            stripComments: true
+            stripComments: true,
+            delimiters: [
+                '{{',
+                '}}'
+            ],
+            tripleDelimiters: [
+                '{{{',
+                '}}}'
+            ]
         };
         initOptions = {
             keys: Object.keys(defaults),
@@ -6628,35 +6636,24 @@ var parse_Tokenizer__Tokenizer = function (getMustache, getComment, getTag, getT
         };
         return Tokenizer;
     }(parse_Tokenizer_getMustache__getMustache, parse_Tokenizer_getComment_getComment, parse_Tokenizer_getTag__getTag, parse_Tokenizer_getText__getText, parse_Tokenizer_getExpression__getExpression, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_utils_getStringMatch);
-var parse_tokenize = function (stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer, circular) {
+var parse_tokenize = function (initOptions, stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer) {
         
-        var tokenize, Ractive;
-        circular.push(function () {
-            Ractive = circular.Ractive;
-        });
-        tokenize = function (template, options) {
+        return function (template, options) {
             var tokenizer, tokens;
             options = options || {};
             if (options.stripComments !== false) {
                 template = stripHtmlComments(template);
             }
             tokenizer = new Tokenizer(template, {
-                delimiters: options.delimiters || (Ractive ? Ractive.delimiters : [
-                    '{{',
-                    '}}'
-                ]),
-                tripleDelimiters: options.tripleDelimiters || (Ractive ? Ractive.tripleDelimiters : [
-                    '{{{',
-                    '}}}'
-                ])
+                delimiters: options.delimiters || initOptions.defaults.delimiters,
+                tripleDelimiters: options.tripleDelimiters || initOptions.defaults.tripleDelimiters
             });
             tokens = tokenizer.tokens;
             stripStandalones(tokens);
             stripCommentTokens(tokens);
             return tokens;
         };
-        return tokenize;
-    }(parse_utils_stripHtmlComments, parse_utils_stripStandalones, parse_utils_stripCommentTokens, parse_Tokenizer__Tokenizer, circular);
+    }(config_initOptions, parse_utils_stripHtmlComments, parse_utils_stripStandalones, parse_utils_stripCommentTokens, parse_Tokenizer__Tokenizer);
 var parse_Parser_getText_TextStub__TextStub = function (types) {
         
         var TextStub, htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;

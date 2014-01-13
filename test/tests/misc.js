@@ -626,11 +626,11 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 		test( 'Delimiters can be reset globally', function ( t ) {
 			var oldDelimiters, oldTripledDelimiters, ractive;
 
-			oldDelimiters = Ractive.delimiters;
-			oldTripledDelimiters = Ractive.tripleDelimiters;
+			oldDelimiters = Ractive.defaults.delimiters;
+			oldTripledDelimiters = Ractive.defaults.tripleDelimiters;
 
-			Ractive.delimiters = [ '[[', ']]' ];
-			Ractive.tripleDelimiters = [ '[[[', ']]]' ];
+			Ractive.defaults.delimiters = [ '[[', ']]' ];
+			Ractive.defaults.tripleDelimiters = [ '[[[', ']]]' ];
 
 			ractive = new Ractive({
 				el: fixture,
@@ -640,8 +640,8 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, 'text <strong>html</strong>' );
 
-			Ractive.delimiters = oldDelimiters;
-			Ractive.tripleDelimiters = oldTripledDelimiters;
+			Ractive.defaults.delimiters = oldDelimiters;
+			Ractive.defaults.tripleDelimiters = oldTripledDelimiters;
 		});
 
 		test( 'Teardown works without throwing an error (#205)', function ( t ) {
