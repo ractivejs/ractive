@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-09
+	Ractive - v0.4.0-pre - 2014-01-12
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -338,6 +338,32 @@
 
 
 
+var config_initOptions = function () {
+        
+        var defaults, initOptions;
+        defaults = {
+            el: null,
+            template: '',
+            complete: null,
+            preserveWhitespace: false,
+            append: false,
+            twoway: true,
+            modifyArrays: true,
+            lazy: false,
+            debug: false,
+            noIntro: false,
+            transitionsEnabled: true,
+            magic: false,
+            adapt: [],
+            sanitize: false,
+            stripComments: true
+        };
+        initOptions = {
+            keys: Object.keys(defaults),
+            defaults: defaults
+        };
+        return initOptions;
+    }();
 var config_svg = function () {
         
         if (typeof document === 'undefined') {
@@ -1091,14 +1117,14 @@ var shared_adaptIfNecessary = function (adaptorRegistry, arrayAdaptor, magicAdap
         var prefixers = {};
         return function (ractive, keypath, value, isExpressionResult) {
             var len, i, adaptor, wrapped;
-            len = ractive.adaptors.length;
+            len = ractive.adapt.length;
             for (i = 0; i < len; i += 1) {
-                adaptor = ractive.adaptors[i];
+                adaptor = ractive.adapt[i];
                 if (typeof adaptor === 'string') {
                     if (!adaptorRegistry[adaptor]) {
                         throw new Error('Missing adaptor "' + adaptor + '"');
                     }
-                    adaptor = ractive.adaptors[i] = adaptorRegistry[adaptor];
+                    adaptor = ractive.adapt[i] = adaptorRegistry[adaptor];
                 }
                 if (adaptor.filter(value, keypath, ractive)) {
                     wrapped = ractive._wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
@@ -2246,6 +2272,11 @@ var Ractive_prototype_observe__observe = function (isObject, getObserverFacade) 
                         }
                     }
                 };
+            }
+            if (typeof keypath === 'function') {
+                options = callback;
+                callback = keypath;
+                keypath = '';
             }
             return getObserverFacade(this, keypath, callback, options);
         };
@@ -6148,7 +6179,7 @@ var render_DomFragment_Component_initialise_createInstance = function () {
                 data: data,
                 partials: partials,
                 _parent: root,
-                adaptors: root.adaptors
+                adapt: root.adapt
             });
             instance.component = component;
             component.instance = instance;
@@ -6866,37 +6897,19 @@ var utils_getGuid = function () {
             });
         };
     }();
-var extend_registries = function () {
+var config_registries = function () {
         
         return [
-            'partials',
-            'transitions',
-            'events',
+            'adaptors',
             'components',
             'decorators',
+            'events',
+            'partials',
+            'transitions',
             'data'
         ];
     }();
-var extend_initOptions = function () {
-        
-        return [
-            'el',
-            'template',
-            'complete',
-            'modifyArrays',
-            'magic',
-            'twoway',
-            'lazy',
-            'append',
-            'preserveWhitespace',
-            'sanitize',
-            'stripComments',
-            'noIntro',
-            'transitionsEnabled',
-            'adaptors'
-        ];
-    }();
-var extend_inheritFromParent = function (registries, initOptions, create) {
+var extend_inheritFromParent = function (registries, create, defineProperty) {
         
         return function (Child, Parent) {
             registries.forEach(function (property) {
@@ -6904,11 +6917,9 @@ var extend_inheritFromParent = function (registries, initOptions, create) {
                     Child[property] = create(Parent[property]);
                 }
             });
-            initOptions.forEach(function (property) {
-                Child[property] = Parent[property];
-            });
+            defineProperty(Child, 'defaults', { value: create(Parent.defaults) });
         };
-    }(extend_registries, extend_initOptions, utils_create);
+    }(config_registries, utils_create, utils_defineProperty);
 var extend_wrapMethod = function () {
         
         return function (method, superMethod) {
@@ -6937,12 +6948,10 @@ var extend_utils_augment = function () {
             return target;
         };
     }();
-var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod, augment) {
+var extend_inheritFromChildProps = function (initOptions, registries, wrapMethod, augment) {
         
-        var blacklist, blacklisted;
-        blacklist = registries.concat(initOptions);
-        blacklisted = {};
-        blacklist.forEach(function (property) {
+        var blacklisted = {};
+        registries.concat(initOptions.keys).forEach(function (property) {
             blacklisted[property] = true;
         });
         return function (Child, childProps) {
@@ -6957,18 +6966,18 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                     }
                 }
             });
-            initOptions.forEach(function (property) {
-                var value = childProps[property];
+            initOptions.keys.forEach(function (key) {
+                var value = childProps[key];
                 if (value !== undefined) {
-                    if (typeof value === 'function' && typeof Child[property] === 'function') {
-                        Child[property] = wrapMethod(value, Child[property]);
+                    if (typeof value === 'function' && typeof Child[key] === 'function') {
+                        Child.defaults[key] = wrapMethod(value, Child[key]);
                     } else {
-                        Child[property] = childProps[property];
+                        Child.defaults[key] = childProps[key];
                     }
                 }
             });
             for (key in childProps) {
-                if (childProps.hasOwnProperty(key) && !blacklisted[key]) {
+                if (!blacklisted[key] && childProps.hasOwnProperty(key)) {
                     member = childProps[key];
                     if (typeof member === 'function' && typeof Child.prototype[key] === 'function') {
                         Child.prototype[key] = wrapMethod(member, Child.prototype[key]);
@@ -6978,7 +6987,7 @@ var extend_inheritFromChildProps = function (registries, initOptions, wrapMethod
                 }
             }
         };
-    }(extend_registries, extend_initOptions, extend_wrapMethod, extend_utils_augment);
+    }(config_initOptions, config_registries, extend_wrapMethod, extend_utils_augment);
 var extend_extractInlinePartials = function (isObject, augment) {
         
         return function (Child, childProps) {
@@ -7057,89 +7066,20 @@ var utils_extend = function () {
             return target;
         };
     }();
-var Ractive_initialise = function (isClient, errors, warn, create, extend, defineProperty, defineProperties, getElement, isObject, getGuid, magicAdaptor, parse) {
+var Ractive_initialise = function (isClient, errors, initOptions, registries, warn, create, extend, defineProperty, defineProperties, getElement, isObject, isArray, getGuid, magicAdaptor, parse) {
         
-        var getObject, getArray, defaultOptions, registries;
-        getObject = function () {
-            return {};
-        };
-        getArray = function () {
-            return [];
-        };
-        defaultOptions = create(null);
-        defineProperties(defaultOptions, {
-            preserveWhitespace: {
-                enumerable: true,
-                value: false
-            },
-            append: {
-                enumerable: true,
-                value: false
-            },
-            twoway: {
-                enumerable: true,
-                value: true
-            },
-            modifyArrays: {
-                enumerable: true,
-                value: true
-            },
-            data: {
-                enumerable: true,
-                value: getObject
-            },
-            lazy: {
-                enumerable: true,
-                value: false
-            },
-            debug: {
-                enumerable: true,
-                value: false
-            },
-            transitions: {
-                enumerable: true,
-                value: getObject
-            },
-            decorators: {
-                enumerable: true,
-                value: getObject
-            },
-            events: {
-                enumerable: true,
-                value: getObject
-            },
-            noIntro: {
-                enumerable: true,
-                value: false
-            },
-            transitionsEnabled: {
-                enumerable: true,
-                value: true
-            },
-            magic: {
-                enumerable: true,
-                value: false
-            },
-            adaptors: {
-                enumerable: true,
-                value: getArray
-            }
-        });
-        registries = [
-            'components',
-            'decorators',
-            'events',
-            'partials',
-            'transitions',
-            'data'
-        ];
         return function (ractive, options) {
-            var key, template, templateEl, parsedTemplate;
-            for (key in defaultOptions) {
-                if (options[key] === undefined) {
-                    options[key] = typeof defaultOptions[key] === 'function' ? defaultOptions[key]() : defaultOptions[key];
-                }
+            var template, templateEl, parsedTemplate;
+            if (isArray(options.adaptors)) {
+                warn('The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information');
+                options.adapt = options.adaptors;
+                delete options.adaptors;
             }
+            initOptions.keys.forEach(function (key) {
+                if (options[key] === undefined) {
+                    options[key] = ractive.constructor.defaults[key];
+                }
+            });
             defineProperties(ractive, {
                 _initing: {
                     value: true,
@@ -7189,7 +7129,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 },
                 components: { value: [] }
             });
-            ractive.adaptors = options.adaptors;
+            ractive.adapt = typeof options.adapt === 'string' ? [options.adapt] : options.adapt;
             ractive.modifyArrays = options.modifyArrays;
             ractive.magic = options.magic;
             ractive.twoway = options.twoway;
@@ -7213,11 +7153,14 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             }
             registries.forEach(function (registry) {
                 if (ractive.constructor[registry]) {
-                    ractive[registry] = extend(create(ractive.constructor[registry] || {}), options[registry]);
+                    ractive[registry] = extend(create(ractive.constructor[registry]), options[registry]);
                 } else if (options[registry]) {
                     ractive[registry] = options[registry];
                 }
             });
+            if (!ractive.data) {
+                ractive.data = {};
+            }
             template = options.template;
             if (typeof template === 'string') {
                 if (!parse) {
@@ -7261,16 +7204,14 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             ractive.transitionsEnabled = options.transitionsEnabled;
             ractive._initing = false;
         };
-    }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, utils_getGuid, Ractive_prototype_get_magicAdaptor, parse__parse);
-var extend_initChildInstance = function (fillGaps, initOptions, clone, wrapMethod, initialise) {
+    }(config_isClient, config_errors, config_initOptions, config_registries, utils_warn, utils_create, utils_extend, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, utils_isArray, utils_getGuid, Ractive_prototype_get_magicAdaptor, parse__parse);
+var extend_initChildInstance = function (initOptions, fillGaps, clone, wrapMethod, initialise) {
         
         return function (child, Child, options) {
-            initOptions.forEach(function (property) {
-                var value = options[property], defaultValue = Child[property];
+            initOptions.keys.forEach(function (key) {
+                var value = options[key], defaultValue = Child.defaults[key];
                 if (typeof value === 'function' && typeof defaultValue === 'function') {
-                    options[property] = wrapMethod(value, defaultValue);
-                } else if (value === undefined && defaultValue !== undefined) {
-                    options[property] = defaultValue;
+                    options[key] = wrapMethod(value, defaultValue);
                 }
             });
             if (child.beforeInit) {
@@ -7281,7 +7222,7 @@ var extend_initChildInstance = function (fillGaps, initOptions, clone, wrapMetho
                 child.init(options);
             }
         };
-    }(utils_fillGaps, extend_initOptions, extend_utils_clone, extend_wrapMethod, Ractive_initialise);
+    }(config_initOptions, utils_fillGaps, extend_utils_clone, extend_wrapMethod, Ractive_initialise);
 var extend__extend = function (create, defineProperties, getGuid, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
         
         var Ractive;
@@ -7332,55 +7273,10 @@ var utils_promise = function () {
                             var processResolutionHandler = function (handler, handlers, forward) {
                                 if (typeof handler === 'function') {
                                     handlers.push(function (p1result) {
-                                        var x, then, resolve;
-                                        resolve = function (x) {
-                                            if (x === promise2) {
-                                                throw new TypeError('A promise\'s fulfillment handler cannot return the same promise');
-                                            }
-                                            if (x instanceof Promise) {
-                                                x.then(fulfil, reject);
-                                            } else if (x && (typeof x === 'object' || typeof x === 'function')) {
-                                                try {
-                                                    then = x.then;
-                                                } catch (e) {
-                                                    reject(e);
-                                                    return;
-                                                }
-                                                if (typeof then === 'function') {
-                                                    var called, resolvePromise, rejectPromise;
-                                                    resolvePromise = function (y) {
-                                                        if (called) {
-                                                            return;
-                                                        }
-                                                        called = true;
-                                                        resolve(y);
-                                                    };
-                                                    rejectPromise = function (r) {
-                                                        if (called) {
-                                                            return;
-                                                        }
-                                                        called = true;
-                                                        reject(r);
-                                                    };
-                                                    try {
-                                                        then.call(x, resolvePromise, rejectPromise);
-                                                    } catch (e) {
-                                                        if (!called) {
-                                                            reject(e);
-                                                            called = true;
-                                                            return;
-                                                        }
-                                                    }
-                                                } else {
-                                                    fulfil(x);
-                                                }
-                                            } else {
-                                                fulfil(x);
-                                            }
-                                        };
+                                        var x;
                                         try {
                                             x = handler(p1result);
-                                            resolve(x);
+                                            resolve(promise2, x, fulfil, reject);
                                         } catch (err) {
                                             reject(err);
                                         }
@@ -7427,6 +7323,52 @@ var utils_promise = function () {
                     handler(result);
                 }
             };
+        }
+        function resolve(promise, x, fulfil, reject) {
+            var then;
+            if (x === promise) {
+                throw new TypeError('A promise\'s fulfillment handler cannot return the same promise');
+            }
+            if (x instanceof Promise) {
+                x.then(fulfil, reject);
+            } else if (x && (typeof x === 'object' || typeof x === 'function')) {
+                try {
+                    then = x.then;
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+                if (typeof then === 'function') {
+                    var called, resolvePromise, rejectPromise;
+                    resolvePromise = function (y) {
+                        if (called) {
+                            return;
+                        }
+                        called = true;
+                        resolve(promise, y, fulfil, reject);
+                    };
+                    rejectPromise = function (r) {
+                        if (called) {
+                            return;
+                        }
+                        called = true;
+                        reject(r);
+                    };
+                    try {
+                        then.call(x, resolvePromise, rejectPromise);
+                    } catch (e) {
+                        if (!called) {
+                            reject(e);
+                            called = true;
+                            return;
+                        }
+                    }
+                } else {
+                    fulfil(x);
+                }
+            } else {
+                fulfil(x);
+            }
         }
     }();
 var utils_get = function (promise) {
@@ -7484,22 +7426,43 @@ var load_getName = function () {
     }();
 var load_makeComponent = function (circular, get, promise, resolvePath, parse, getName) {
         
-        var Ractive, importDirectivePattern;
-        importDirectivePattern = /^\s*@import\s+(?:(?:'([^']+)')|(?:"([^"]+)")|([^\s]+))(?:\s+as\s+([^\s]+))?\s*$/gm;
+        var Ractive;
         circular.push(function () {
             Ractive = circular.Ractive;
         });
-        var makeComponent = function (template, path) {
-            var scripts, script, styles, i, item, scriptElement, oldModule, factory, Component, pendingImports, imports, importPromise;
-            pendingImports = 0;
+        var makeComponent = function (template, baseUrl) {
+            var links, scripts, script, styles, i, item, scriptElement, oldComponent, exports, Component, pendingImports, imports, importPromise;
+            template = parse(template, { noStringify: true });
+            links = [];
+            scripts = [];
+            styles = [];
+            i = template.length;
+            while (i--) {
+                item = template[i];
+                if (item && item.t === 7) {
+                    if (item.e === 'link' && (item.a && item.a.rel[0] === 'ractive')) {
+                        links.push(template.splice(i, 1)[0]);
+                    }
+                    if (item.e === 'script' && (!item.a || !item.a.type || item.a.type[0] === 'text/javascript')) {
+                        scripts.push(template.splice(i, 1)[0]);
+                    }
+                    if (item.e === 'style' && (!item.a || !item.a.type || item.a.type[0] === 'text/css')) {
+                        styles.push(template.splice(i, 1)[0]);
+                    }
+                }
+            }
+            pendingImports = links.length;
             imports = {};
             importPromise = promise(function (resolve, reject) {
-                template = template.replace(importDirectivePattern, function (match, singleQuotedPath, doubleQuotedPath, unquotedPath, name) {
-                    var relativePath, resolvedPath;
-                    relativePath = singleQuotedPath || doubleQuotedPath || unquotedPath;
-                    resolvedPath = resolvePath(relativePath, path);
-                    name = name || getName(resolvedPath);
-                    pendingImports += 1;
+                links.forEach(function (link) {
+                    var href, name, resolvedPath;
+                    href = link.a.href && link.a.href[0];
+                    name = link.a.name && link.a.name[0] || getName(href);
+                    if (typeof name !== 'string') {
+                        reject('Error parsing link tag');
+                        return;
+                    }
+                    resolvedPath = resolvePath(href, baseUrl);
                     get(resolvedPath).then(function (template) {
                         return makeComponent(template, resolvedPath);
                     }).then(function (Component) {
@@ -7508,29 +7471,14 @@ var load_makeComponent = function (circular, get, promise, resolvePath, parse, g
                             resolve(imports);
                         }
                     }, reject);
-                    return '';
                 });
                 if (!pendingImports) {
                     resolve(imports);
                 }
             });
-            template = parse(template, { noStringify: true });
-            scripts = [];
-            styles = [];
-            i = template.length;
-            while (i--) {
-                item = template[i];
-                if (item && item.t === 7) {
-                    if (item.e === 'script' && (!item.a || !item.a.type || item.a.type === 'text/javascript')) {
-                        scripts.push(template.splice(i, 1)[0]);
-                    }
-                    if (item.e === 'style' && (!item.a || !item.a.type || item.a.type === 'text/css')) {
-                        styles.push(template.splice(i, 1)[0]);
-                    }
-                }
-            }
             script = scripts.map(extractFragment).join(';');
             return importPromise.then(function (imports) {
+                var head = document.getElementsByTagName('head')[0];
                 Component = Ractive.extend({
                     template: template,
                     components: imports
@@ -7538,14 +7486,21 @@ var load_makeComponent = function (circular, get, promise, resolvePath, parse, g
                 if (script) {
                     scriptElement = document.createElement('script');
                     scriptElement.innerHTML = '(function () {' + script + '}());';
-                    oldModule = window.module;
-                    window.module = {};
-                    document.head.appendChild(scriptElement);
-                    factory = window.module.exports;
-                    Component = factory(Component);
+                    oldComponent = window.component;
+                    window.component = {};
+                    head.appendChild(scriptElement);
+                    exports = window.component.exports;
+                    if (typeof exports === 'function') {
+                        Component = exports(Component);
+                    } else if (typeof exports === 'object') {
+                        Component = Component.extend(exports);
+                    }
+                    head.removeChild(scriptElement);
+                    window.component = oldComponent;
                 }
-                Component.css = styles.map(extractFragment).join(' ');
-                window.module = oldModule;
+                if (styles.length) {
+                    Component.css = styles.map(extractFragment).join(' ');
+                }
                 return Component;
             });
         };
@@ -7630,18 +7585,18 @@ var load_loadMultiple = function (promise, loadSingle) {
     }(utils_promise, load_loadSingle);
 var load__load = function (isObject, loadFromLinks, loadMultiple, loadSingle) {
         
-        return function (url, callback) {
+        return function (url, callback, onError) {
             if (!url || typeof url === 'function') {
                 callback = url;
-                return loadFromLinks(callback);
+                return loadFromLinks(callback, onError);
             }
             if (isObject(url)) {
-                return loadMultiple(url, callback);
+                return loadMultiple(url, callback, onError);
             }
-            return loadSingle(url, callback);
+            return loadSingle(url, callback, onError);
         };
     }(utils_isObject, load_loadFromLinks, load_loadMultiple, load_loadSingle);
-var Ractive__Ractive = function (svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, extend, parse, load, initialise, circular) {
+var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, extend, parse, load, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -7655,6 +7610,7 @@ var Ractive__Ractive = function (svg, create, defineProperties, prototype, parti
             events: { value: {} },
             components: { value: componentsRegistry },
             decorators: { value: {} },
+            defaults: { value: initOptions.defaults },
             svg: { value: svg },
             VERSION: { value: '0.4.0-pre' }
         });
@@ -7673,7 +7629,7 @@ var Ractive__Ractive = function (svg, create, defineProperties, prototype, parti
         Ractive.load = load;
         circular.Ractive = Ractive;
         return Ractive;
-    }(config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
+    }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular) {
         
         if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {

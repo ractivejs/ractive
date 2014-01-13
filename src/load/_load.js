@@ -12,17 +12,17 @@ define([
 
 	'use strict';
 
-	return function ( url, callback ) {
+	return function ( url, callback, onError ) {
 		if ( !url || typeof url === 'function' ) {
 			callback = url;
-			return loadFromLinks( callback );
+			return loadFromLinks( callback, onError );
 		}
 
 		if ( isObject( url ) ) {
-			return loadMultiple( url, callback );
+			return loadMultiple( url, callback, onError );
 		}
 
-		return loadSingle( url, callback );
+		return loadSingle( url, callback, onError );
 	};
 
 });
