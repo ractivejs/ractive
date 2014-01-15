@@ -23,7 +23,7 @@ To get a feel for how it will make your life as a web developer easier, visit [r
 Get help
 --------
 
-If you don't find what you're looking for in the [docs](https://github.com/rich-harris/Ractive/wiki), ask a question on Stack Overflow with the `ractive` tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS) or [@Rich_Harris](http://twitter.com/Rich_Harris).
+If you don't find what you're looking for in the [docs](https://github.com/rich-harris/Ractive/wiki), ask a question on Stack Overflow with the `ractivejs` tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS) or [@Rich_Harris](http://twitter.com/Rich_Harris).
 
 
 Building
