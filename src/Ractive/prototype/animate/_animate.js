@@ -157,13 +157,7 @@ function (
 			}
 
 			else {
-				if ( root.easing && root.easing[ options.easing ] ) {
-					// use instance easing function first
-					easing = root.easing[ options.easing ];
-				} else {
-					// fallback to global easing functions
-					easing = easingRegistry[ options.easing ];
-				}
+				easing = root.easing[ options.easing ];
 			}
 
 			if ( typeof easing !== 'function' ) {
