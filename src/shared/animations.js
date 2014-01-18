@@ -1,4 +1,10 @@
-define([ 'Ractive/prototype/animate/requestAnimationFrame' ], function ( rAF ) {
+define([
+	'utils/requestAnimationFrame',
+	'utils/getTime'
+], function (
+	rAF,
+	getTime
+) {
 
 	'use strict';
 
@@ -6,12 +12,14 @@ define([ 'Ractive/prototype/animate/requestAnimationFrame' ], function ( rAF ) {
 
 	var animations = {
 		tick: function () {
-			var i, animation;
+			var i, animation, now;
+
+			now = getTime();
 
 			for ( i=0; i<queue.length; i+=1 ) {
 				animation = queue[i];
 
-				if ( !animation.tick() ) {
+				if ( !animation.tick( now ) ) {
 					// animation is complete, remove it from the stack, and decrement i so we don't miss one
 					queue.splice( i--, 1 );
 				}
