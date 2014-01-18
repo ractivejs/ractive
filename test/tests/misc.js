@@ -1177,7 +1177,21 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			ractive.set( 'bar[1]', 'd' );
 			t.deepEqual( View.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
 			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","d","c"]' );
-		})
+		});
+
+
+		test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', function ( t ) {
+			var ractive = new Ractive({
+				el: document.createElement( 'div' ),
+				template: '{{{value}}}',
+				data: {
+					'value': ' you are <i>very puzzled now</i>'
+				}
+			});
+
+			ractive.insert( fixture );
+			t.htmlEqual( fixture.innerHTML, ' you are <i>very puzzled now</i>' );
+		});
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

@@ -39,11 +39,11 @@ define([
 		resolve: resolveMustache,
 
 		detach: function () {
-			var i;
+			var len, i;
 
 			if ( this.docFrag ) {
-				i = this.nodes.length;
-				while ( i-- ) {
+				len = this.nodes.length;
+				for ( i = 0; i < len; i += 1 ) {
 					this.docFrag.appendChild( this.nodes[i] );
 				}
 
