@@ -26,7 +26,11 @@ define([
 		// TODO handle delimiters differently
 		tokenizer = new Tokenizer( template, {
 			delimiters: options.delimiters || initOptions.defaults.delimiters,
-			tripleDelimiters: options.tripleDelimiters || initOptions.defaults.tripleDelimiters
+			tripleDelimiters: options.tripleDelimiters || initOptions.defaults.tripleDelimiters,
+			interpolate: {
+				script: options.interpolateScripts !== false ? true : false,
+				style: options.interpolateStyles !== false ? true : false
+			}
 		});
 
 		// TODO and this...

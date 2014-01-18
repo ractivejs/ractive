@@ -37,12 +37,16 @@ define([
 			imports,
 			importPromise;
 
-		template = parse( template, { noStringify: true });
+		template = parse( template, {
+			noStringify: true,
+			interpolateScripts: false,
+			interpolateStyles: false
+		});
 
 		links = [];
 		scripts = [];
 		styles = [];
-		
+
 		i = template.length;
 		while ( i-- ) {
 			item = template[i];
@@ -74,7 +78,7 @@ define([
 
 				href = link.a.href && link.a.href[0];
 				name = ( link.a.name && link.a.name[0] ) || getName( href );
-				
+
 				if ( typeof name !== 'string' ) {
 					reject( 'Error parsing link tag' );
 					return;
