@@ -1,6 +1,6 @@
 define([
 	'utils/isEqual',
-	'Ractive/prototype/animate/animations',
+	'shared/animations',
 	'Ractive/prototype/animate/Animation',
 	'registries/easing'
 ],
