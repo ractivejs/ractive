@@ -1,0 +1,62 @@
+body {
+	font-family: 'Helvetica Neue', Arial, sans-serif;
+	font-weight: 200;
+	color: #555;
+	line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: 200;
+}
+
+a {
+	color: #729d34;
+}
+
+code {
+	background-color: #f9f9f9;
+	border: 1px solid #f4f4f4;
+	padding: 0.1em;
+	position: relative;
+	bottom: 0.1em;
+}
+
+a:link, a:visited {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+header {
+	padding: 1em;
+	border-bottom: 1px solid #eee;
+}
+
+header a {
+	display: inline-block;
+	font-size: 2em;
+	margin: 0 0.5em 0 0;
+}
+
+header h1 {
+	display: inline-block;
+	margin: 0;
+}
+
+main {
+	display: block;
+	min-height: 400px;
+	padding: 1em;
+}
+
+.loading {
+	color: #aaa;
+}
+
+footer {
+	padding: 1em;
+	border-top: 1px solid #eee;
+	text-align: center;
+}
