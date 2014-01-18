@@ -68,7 +68,7 @@ define([
 
 
 	retrieve = function ( ractive, keypath ) {
-		var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
+		var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
 
 		keys = keypath.split( '.' );
 		key = keys.pop();
@@ -95,9 +95,15 @@ define([
 
 		value = parentValue[ key ];
 
+		// If we end up wrapping this value with an adaptor, we
+		// may need to try and clone it if it actually lives on
+		// the prototype of this instance's `data`. Otherwise the
+		// instance could end up manipulating data that doesn't
+		// belong to it
+		shouldClone = !parentValue.hasOwnProperty( key );
 
 		// Do we have an adaptor for this value?
-		adaptIfNecessary( ractive, keypath, value );
+		value = adaptIfNecessary( ractive, keypath, value, false, shouldClone );
 
 		// Update cache
 		ractive._cache[ keypath ] = value;

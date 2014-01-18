@@ -1,8 +1,10 @@
 define([
+	'utils/clone',
 	'registries/adaptors',
 	'Ractive/prototype/get/arrayAdaptor',
 	'Ractive/prototype/get/magicAdaptor'
 ], function (
+	clone,
 	adaptorRegistry,
 	arrayAdaptor,
 	magicAdaptor
@@ -12,7 +14,7 @@ define([
 
 	var prefixers = {};
 
-	return function ( ractive, keypath, value, isExpressionResult ) {
+	return function ( ractive, keypath, value, isExpressionResult, shouldClone ) {
 		var len, i, adaptor, wrapped;
 
 		// Do we have an adaptor for this value?
@@ -32,19 +34,27 @@ define([
 			if ( adaptor.filter( value, keypath, ractive ) ) {
 				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 				wrapped.value = value;
-				return;
+				return value;
 			}
 		}
 
 		if ( !isExpressionResult ) {
 			if ( ractive.magic && magicAdaptor.filter( value, keypath, ractive ) ) {
+				if ( shouldClone ) {
+					value = clone( value );
+				}
 				ractive._wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
 			}
 
 			else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
+				if ( shouldClone ) {
+					value = value.slice();
+				}
 				ractive._wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 			}
 		}
+
+		return value;
 	};
 
 	function prefixKeypath ( obj, prefix ) {

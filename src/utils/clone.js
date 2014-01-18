@@ -1,4 +1,8 @@
-define( function () {
+define([
+	'utils/isArray'
+], function (
+	isArray
+) {
 
 	'use strict';
 

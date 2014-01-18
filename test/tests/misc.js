@@ -1157,18 +1157,26 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 					foo: {
 						a: 1,
 						b: 2
-					}
+					},
+
+					bar: [
+						'a', 'b', 'c'
+					]
 				}
 			});
 
 			ractive = new View({
 				el: fixture,
-				template: '{{ JSON.stringify(foo) }}'
+				template: '{{ JSON.stringify(foo) }} | {{ JSON.stringify(bar) }}'
 			});
 
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":2}' );
+			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":2} | ["a","b","c"]' );
 			ractive.set( 'foo.b', 3 );
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3}' );
+			t.deepEqual( View.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
+			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","b","c"]' );
+			ractive.set( 'bar[1]', 'd' );
+			t.deepEqual( View.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
+			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","d","c"]' );
 		})
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
