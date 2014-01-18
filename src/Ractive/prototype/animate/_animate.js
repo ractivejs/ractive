@@ -1,15 +1,13 @@
 define([
 	'utils/isEqual',
 	'shared/animations',
-	'Ractive/prototype/animate/Animation',
-	'registries/easing'
+	'Ractive/prototype/animate/Animation'
 ],
 
 function (
 	isEqual,
 	animations,
-	Animation,
-	easingRegistry
+	Animation
 ) {
 
 	'use strict';
