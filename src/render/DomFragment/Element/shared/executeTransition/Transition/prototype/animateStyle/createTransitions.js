@@ -1,6 +1,7 @@
 define([
 	'config/isClient',
 	'utils/warn',
+	'utils/Promise',
 	'utils/createElement',
 	'utils/camelCase',
 	'shared/interpolate',
@@ -11,6 +12,7 @@ define([
 ], function (
 	isClient,
 	warn,
+	Promise,
 	createElement,
 	camelCase,
 	interpolate,
@@ -62,7 +64,7 @@ define([
 	}
 
 
-	return function ( t, to, options, propertyNames, cssPropertiesToTransition, transitionEndHandler, complete ) {
+	return function ( t, to, options, changedProperties, transitionEndHandler, resolve ) {
 
 		// Wait a beat (otherwise the target styles will be applied immediately)
 		// TODO use a fastdom-style mechanism?
@@ -70,29 +72,29 @@ define([
 
 			var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete;
 
-			checkComplete = ( complete ? function () {
+			checkComplete = function () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
-					complete();
+					resolve();
 				}
-			} : function () {} );
+			};
 
 			// this is used to keep track of which elements can use CSS to animate
 			// which properties
 			hashPrefix = t.node.namespaceURI + t.node.tagName;
 
-			t.node.style[ TRANSITION_PROPERTY ] = propertyNames.map( prefix ).map( hyphenate ).join( ',' );
+			t.node.style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
 			t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
 			t.node.style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 			transitionEndHandler = function ( event ) {
 				var index;
 
-				index = cssPropertiesToTransition.indexOf( camelCase( unprefix( event.propertyName ) ) );
+				index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
 				if ( index !== -1 ) {
-					cssPropertiesToTransition.splice( index, 1 );
+					changedProperties.splice( index, 1 );
 				}
 
-				if ( cssPropertiesToTransition.length ) {
+				if ( changedProperties.length ) {
 					// still transitioning...
 					return;
 				}
@@ -108,10 +110,10 @@ define([
 			t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
 
 			setTimeout( function () {
-				var i = cssPropertiesToTransition.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop;
+				var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop;
 
 				while ( i-- ) {
-					prop = cssPropertiesToTransition[i];
+					prop = changedProperties[i];
 					hash = hashPrefix + prop;
 
 					if ( canUseCssTransitions[ hash ] ) {
@@ -139,17 +141,17 @@ define([
 					if ( cannotUseCssTransitions[ hash ] ) {
 						// we need to fall back to timer-based stuff
 
-						// need to remove this from cssPropertiesToTransition, otherwise transitionEndHandler
+						// need to remove this from changedProperties, otherwise transitionEndHandler
 						// will get confused
-						index = cssPropertiesToTransition.indexOf( prop );
+						index = changedProperties.indexOf( prop );
 						if ( index === -1 ) {
 							warn( 'Something very strange happened with transitions. If you see this message, please let @RactiveJS know. Thanks!' );
 						} else {
-							cssPropertiesToTransition.splice( index, 1 );
+							changedProperties.splice( index, 1 );
 						}
 
 
-						// Determine whether this property is animatable at all
+						// TODO Determine whether this property is animatable at all
 
 						// for now assume it is. First, we need to set the value to what it was...
 						t.node.style[ prefix( prop ) ] = originalValue;
@@ -186,7 +188,7 @@ define([
 				}
 
 
-				if ( !cssPropertiesToTransition.length ) {
+				if ( !changedProperties.length ) {
 					// We need to cancel the transitionEndHandler, and deal with
 					// the fact that it will never fire
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
