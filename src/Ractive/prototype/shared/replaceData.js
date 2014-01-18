@@ -1,4 +1,8 @@
-define( function () {
+define([
+	'utils/clone'
+], function (
+	clone
+) {
 
 	'use strict';
 
@@ -46,7 +50,15 @@ define( function () {
 						keypathToClear = currentKeypath;
 					}
 
-					obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
+					// We may need to shallow-clone from the prototype
+					if ( key in obj ) {
+						obj[ key ] = clone( obj[ key ] );
+					}
+
+					// Otherwise it's a brand new branch
+					else {
+						obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
+					}
 				}
 
 				obj = obj[ key ];

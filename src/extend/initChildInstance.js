@@ -1,13 +1,11 @@
 define([
 	'config/initOptions',
 	'utils/fillGaps',
-	'extend/utils/clone',
 	'extend/wrapMethod',
 	'Ractive/initialise'
 ], function (
 	initOptions,
 	fillGaps,
-	clone,
 	wrapMethod,
 	initialise
 ) {
