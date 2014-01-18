@@ -176,6 +176,7 @@ function (
 			root: root,
 			duration: duration,
 			easing: easing,
+			interpolator: options.interpolator,
 
 			// TODO wrap callbacks if necessary, to use instance as context
 			step: options.step,

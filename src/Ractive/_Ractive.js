@@ -8,6 +8,7 @@ define([
 	'registries/adaptors',
 	'registries/components',
 	'registries/easing',
+	'registries/interpolators',
 	'extend/_extend',
 	'parse/_parse',
 	'load/_load',
@@ -23,6 +24,7 @@ define([
 	adaptorRegistry,
 	componentsRegistry,
 	easingRegistry,
+	interpolatorsRegistry,
 	extend,
 	parse,
 	load,
@@ -46,12 +48,13 @@ define([
 		partials: { value: partialRegistry },
 
 		// Plugins
-		adaptors:    { value: adaptorRegistry },
-		easing:      { value: easingRegistry },
-		transitions: { value: {} },
-		events:      { value: {} },
-		components:  { value: componentsRegistry },
-		decorators:  { value: {} },
+		adaptors:      { value: adaptorRegistry },
+		easing:        { value: easingRegistry },
+		transitions:   { value: {} },
+		events:        { value: {} },
+		components:    { value: componentsRegistry },
+		decorators:    { value: {} },
+		interpolators: { value: interpolatorsRegistry },
 
 		// Default options
 		defaults:    { value: initOptions.defaults },

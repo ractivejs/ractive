@@ -20,7 +20,7 @@ define([
 			}
 		}
 
-		this.interpolator = interpolate( this.from, this.to );
+		this.interpolator = interpolate( this.from, this.to, this.root, this.interpolator );
 		this.running = true;
 	};
 
