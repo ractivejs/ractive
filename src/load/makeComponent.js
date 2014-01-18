@@ -1,14 +1,14 @@
 define([
 	'circular',
 	'utils/get',
-	'utils/promise',
+	'utils/Promise',
 	'utils/resolvePath',
 	'parse/_parse',
 	'load/getName'
 ], function (
 	circular,
 	get,
-	promise,
+	Promise,
 	resolvePath,
 	parse,
 	getName
@@ -71,7 +71,7 @@ define([
 		pendingImports = links.length;
 		imports = {};
 
-		importPromise = promise( function ( resolve, reject ) {
+		importPromise = new Promise( function ( resolve, reject ) {
 
 			links.forEach( function ( link ) {
 				var href, name, resolvedPath;

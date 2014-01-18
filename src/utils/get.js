@@ -1,14 +1,14 @@
 /*global XMLHttpRequest */
 define([
-	'utils/promise'
+	'utils/Promise'
 ], function (
-	promise
+	Promise
 ) {
 
 	'use strict';
 
 	return function ( url ) {
-		return promise( function ( resolve, reject ) {
+		return new Promise( function ( resolve, reject ) {
 			var xhr = new XMLHttpRequest();
 
 			xhr.open( 'GET', url );

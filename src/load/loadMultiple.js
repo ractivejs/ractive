@@ -1,15 +1,15 @@
 define([
-	'utils/promise',
+	'utils/Promise',
 	'load/loadSingle'
 ], function (
-	promise,
+	Promise,
 	loadSingle
 ) {
 
 	'use strict';
 
 	return function ( map, callback, onerror ) {
-		var p = promise( function ( resolve, reject ) {
+		var promise = new Promise( function ( resolve, reject ) {
 			var pending = 0, result = {}, name, load;
 
 			load = function ( name ) {
@@ -33,10 +33,10 @@ define([
 		});
 
 		if ( callback ) {
-			p.then( callback, onerror );
+			promise.then( callback, onerror );
 		}
 
-		return p;
+		return promise;
 	};
 
 });

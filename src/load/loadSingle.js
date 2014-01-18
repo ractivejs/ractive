@@ -1,7 +1,7 @@
 define([
 	'circular',
 	'utils/get',
-	'utils/promise',
+	'utils/Promise',
 	'utils/resolvePath',
 	'load/makeComponent'
 ], function (

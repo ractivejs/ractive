@@ -1,10 +1,10 @@
 define([
-	'utils/promise',
+	'utils/Promise',
 	'registries/components',
 	'load/loadSingle',
 	'load/getName'
 ], function (
-	promise,
+	Promise,
 	componentsRegistry,
 	loadSingle,
 	getName
@@ -13,7 +13,7 @@ define([
 	'use strict';
 
 	return function ( callback, onerror ) {
-		var p = promise( function ( resolve, reject ) {
+		var promise = new Promise( function ( resolve, reject ) {
 			var links, pending;
 
 			links = Array.prototype.slice.call( document.querySelectorAll( 'link[rel="ractive"]' ) );
@@ -33,10 +33,10 @@ define([
 		});
 
 		if ( callback ) {
-			p.then( callback, onerror );
+			promise.then( callback, onerror );
 		}
 
-		return p;
+		return promise;
 	};
 
 	function getNameFromLink ( link ) {
