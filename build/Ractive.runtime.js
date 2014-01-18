@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-13
+	Ractive - v0.4.0-pre - 2014-01-18
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1285,7 +1285,16 @@ var Ractive_prototype_updateModel = function (getValueFromCheckboxes, arrayConte
             }
         }
     }(shared_getValueFromCheckboxes, utils_arrayContentsMatch, utils_isEqual);
-var Ractive_prototype_animate_requestAnimationFrame = function () {
+var config_vendors = function () {
+        
+        return [
+            'o',
+            'ms',
+            'moz',
+            'webkit'
+        ];
+    }();
+var utils_requestAnimationFrame = function (vendors) {
         
         if (typeof window === 'undefined') {
             return;
@@ -1311,23 +1320,31 @@ var Ractive_prototype_animate_requestAnimationFrame = function () {
                     return id;
                 };
             }
-        }([
-            'ms',
-            'moz',
-            'webkit',
-            'o'
-        ], 0, window));
+        }(vendors, 0, window));
         return window.requestAnimationFrame;
+    }(config_vendors);
+var utils_getTime = function () {
+        
+        if (typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function') {
+            return function () {
+                return window.performance.now();
+            };
+        } else {
+            return function () {
+                return Date.now();
+            };
+        }
     }();
-var Ractive_prototype_animate_animations = function (rAF) {
+var shared_animations = function (rAF, getTime) {
         
         var queue = [];
         var animations = {
                 tick: function () {
-                    var i, animation;
+                    var i, animation, now;
+                    now = getTime();
                     for (i = 0; i < queue.length; i += 1) {
                         animation = queue[i];
-                        if (!animation.tick()) {
+                        if (!animation.tick(now)) {
                             queue.splice(i--, 1);
                         }
                     }
@@ -1355,93 +1372,148 @@ var Ractive_prototype_animate_animations = function (rAF) {
                 }
             };
         return animations;
-    }(Ractive_prototype_animate_requestAnimationFrame);
+    }(utils_requestAnimationFrame, utils_getTime);
+var circular = function () {
+        
+        return [];
+    }();
 var utils_isNumeric = function () {
         
         return function (thing) {
             return !isNaN(parseFloat(thing)) && isFinite(thing);
         };
     }();
-var shared_interpolate = function (isArray, isObject, isNumeric) {
+var registries_interpolators = function (circular, isArray, isObject, isNumeric) {
         
-        var interpolate = function (from, to) {
-            if (isNumeric(from) && isNumeric(to)) {
-                return makeNumberInterpolator(+from, +to);
+        var interpolators, interpolate, cssLengthPattern;
+        circular.push(function () {
+            interpolate = circular.interpolate;
+        });
+        cssLengthPattern = /^([+-]?[0-9]+\.?(?:[0-9]+)?)(px|em|ex|%|in|cm|mm|pt|pc)$/;
+        interpolators = {
+            number: function (from, to) {
+                var delta;
+                if (!isNumeric(from) || !isNumeric(to)) {
+                    return null;
+                }
+                from = +from;
+                to = +to;
+                delta = to - from;
+                if (!delta) {
+                    return function () {
+                        return from;
+                    };
+                }
+                return function (t) {
+                    return from + t * delta;
+                };
+            },
+            array: function (from, to) {
+                var intermediate, interpolators, len, i;
+                if (!isArray(from) || !isArray(to)) {
+                    return null;
+                }
+                intermediate = [];
+                interpolators = [];
+                i = len = Math.min(from.length, to.length);
+                while (i--) {
+                    interpolators[i] = interpolate(from[i], to[i]);
+                }
+                for (i = len; i < from.length; i += 1) {
+                    intermediate[i] = from[i];
+                }
+                for (i = len; i < to.length; i += 1) {
+                    intermediate[i] = to[i];
+                }
+                return function (t) {
+                    var i = len;
+                    while (i--) {
+                        intermediate[i] = interpolators[i](t);
+                    }
+                    return intermediate;
+                };
+            },
+            object: function (from, to) {
+                var properties, len, interpolators, intermediate, prop;
+                if (!isObject(from) || !isObject(to)) {
+                    return null;
+                }
+                properties = [];
+                intermediate = {};
+                interpolators = {};
+                for (prop in from) {
+                    if (from.hasOwnProperty(prop)) {
+                        if (to.hasOwnProperty(prop)) {
+                            properties[properties.length] = prop;
+                            interpolators[prop] = interpolate(from[prop], to[prop]);
+                        } else {
+                            intermediate[prop] = from[prop];
+                        }
+                    }
+                }
+                for (prop in to) {
+                    if (to.hasOwnProperty(prop) && !from.hasOwnProperty(prop)) {
+                        intermediate[prop] = to[prop];
+                    }
+                }
+                len = properties.length;
+                return function (t) {
+                    var i = len, prop;
+                    while (i--) {
+                        prop = properties[i];
+                        intermediate[prop] = interpolators[prop](t);
+                    }
+                    return intermediate;
+                };
+            },
+            cssLength: function (from, to) {
+                var fromMatch, toMatch, fromUnit, toUnit, fromValue, toValue, unit, delta;
+                if (from !== 0 && typeof from !== 'string' || to !== 0 && typeof to !== 'string') {
+                    return null;
+                }
+                fromMatch = cssLengthPattern.exec(from);
+                toMatch = cssLengthPattern.exec(to);
+                fromUnit = fromMatch ? fromMatch[2] : '';
+                toUnit = toMatch ? toMatch[2] : '';
+                if (fromUnit && toUnit && fromUnit !== toUnit) {
+                    return null;
+                }
+                unit = fromUnit || toUnit;
+                fromValue = fromMatch ? +fromMatch[1] : 0;
+                toValue = toMatch ? +toMatch[1] : 0;
+                delta = toValue - fromValue;
+                if (!delta) {
+                    return function () {
+                        return fromValue + unit;
+                    };
+                }
+                return function (t) {
+                    return fromValue + t * delta + unit;
+                };
             }
-            if (isArray(from) && isArray(to)) {
-                return makeArrayInterpolator(from, to);
+        };
+        return interpolators;
+    }(circular, utils_isArray, utils_isObject, utils_isNumeric);
+var shared_interpolate = function (warn, interpolators) {
+        
+        return function (from, to, ractive, type) {
+            if (from === to) {
+                return snap(to);
             }
-            if (isObject(from) && isObject(to)) {
-                return makeObjectInterpolator(from, to);
+            if (type) {
+                if (ractive.interpolators[type]) {
+                    return ractive.interpolators[type](from, to) || snap(to);
+                }
+                warn('Missing "' + type + '" interpolator. You may need to download a plugin from [TODO]');
             }
+            return interpolators.number(from, to) || interpolators.array(from, to) || interpolators.object(from, to) || interpolators.cssLength(from, to) || snap(to);
+        };
+        function snap(to) {
             return function () {
                 return to;
             };
-        };
-        return interpolate;
-        function makeNumberInterpolator(from, to) {
-            var delta = to - from;
-            if (!delta) {
-                return function () {
-                    return from;
-                };
-            }
-            return function (t) {
-                return from + t * delta;
-            };
         }
-        function makeArrayInterpolator(from, to) {
-            var intermediate, interpolators, len, i;
-            intermediate = [];
-            interpolators = [];
-            i = len = Math.min(from.length, to.length);
-            while (i--) {
-                interpolators[i] = interpolate(from[i], to[i]);
-            }
-            for (i = len; i < from.length; i += 1) {
-                intermediate[i] = from[i];
-            }
-            for (i = len; i < to.length; i += 1) {
-                intermediate[i] = to[i];
-            }
-            return function (t) {
-                var i = len;
-                while (i--) {
-                    intermediate[i] = interpolators[i](t);
-                }
-                return intermediate;
-            };
-        }
-        function makeObjectInterpolator(from, to) {
-            var properties = [], len, interpolators, intermediate, prop;
-            intermediate = {};
-            interpolators = {};
-            for (prop in from) {
-                if (from.hasOwnProperty(prop)) {
-                    if (to.hasOwnProperty(prop)) {
-                        properties[properties.length] = prop;
-                        interpolators[prop] = interpolate(from[prop], to[prop]);
-                    } else {
-                        intermediate[prop] = from[prop];
-                    }
-                }
-            }
-            for (prop in to) {
-                if (to.hasOwnProperty(prop) && !from.hasOwnProperty(prop)) {
-                    intermediate[prop] = to[prop];
-                }
-            }
-            len = properties.length;
-            return function (t) {
-                var i = len, prop;
-                while (i--) {
-                    prop = properties[i];
-                    intermediate[prop] = interpolators[prop](t);
-                }
-                return intermediate;
-            };
-        }
-    }(utils_isArray, utils_isObject, utils_isNumeric);
+    }(utils_warn, registries_interpolators);
 var Ractive_prototype_animate_Animation = function (warn, interpolate) {
         
         var Animation = function (options) {
@@ -1452,7 +1524,7 @@ var Ractive_prototype_animate_Animation = function (warn, interpolate) {
                     this[key] = options[key];
                 }
             }
-            this.interpolator = interpolate(this.from, this.to);
+            this.interpolator = interpolate(this.from, this.to, this.root, this.interpolator);
             this.running = true;
         };
         Animation.prototype = {
@@ -1504,27 +1576,7 @@ var Ractive_prototype_animate_Animation = function (warn, interpolate) {
         };
         return Animation;
     }(utils_warn, shared_interpolate);
-var registries_easing = function () {
-        
-        return {
-            linear: function (pos) {
-                return pos;
-            },
-            easeIn: function (pos) {
-                return Math.pow(pos, 3);
-            },
-            easeOut: function (pos) {
-                return Math.pow(pos - 1, 3) + 1;
-            },
-            easeInOut: function (pos) {
-                if ((pos /= 0.5) < 1) {
-                    return 0.5 * Math.pow(pos, 3);
-                }
-                return 0.5 * (Math.pow(pos - 2, 3) + 2);
-            }
-        };
-    }();
-var Ractive_prototype_animate__animate = function (isEqual, animations, Animation, easingRegistry) {
+var Ractive_prototype_animate__animate = function (isEqual, animations, Animation) {
         
         var noAnimation = {
                 stop: function () {
@@ -1619,11 +1671,7 @@ var Ractive_prototype_animate__animate = function (isEqual, animations, Animatio
                 if (typeof options.easing === 'function') {
                     easing = options.easing;
                 } else {
-                    if (root.easing && root.easing[options.easing]) {
-                        easing = root.easing[options.easing];
-                    } else {
-                        easing = easingRegistry[options.easing];
-                    }
+                    easing = root.easing[options.easing];
                 }
                 if (typeof easing !== 'function') {
                     easing = null;
@@ -1637,6 +1685,7 @@ var Ractive_prototype_animate__animate = function (isEqual, animations, Animatio
                 root: root,
                 duration: duration,
                 easing: easing,
+                interpolator: options.interpolator,
                 step: options.step,
                 complete: options.complete
             });
@@ -1644,7 +1693,7 @@ var Ractive_prototype_animate__animate = function (isEqual, animations, Animatio
             root._animations[root._animations.length] = animation;
             return animation;
         }
-    }(utils_isEqual, Ractive_prototype_animate_animations, Ractive_prototype_animate_Animation, registries_easing);
+    }(utils_isEqual, shared_animations, Ractive_prototype_animate_Animation);
 var Ractive_prototype_on = function () {
         
         return function (eventName, callback) {
@@ -2010,9 +2059,9 @@ var Ractive_prototype_find = function () {
             return this.fragment.find(selector);
         };
     }();
-var utils_matches = function (isClient, createElement) {
+var utils_matches = function (isClient, vendors, createElement) {
         
-        var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
+        var div, methodNames, unprefixed, prefixed, i, j, makeFunction;
         if (!isClient) {
             return;
         }
@@ -2020,12 +2069,6 @@ var utils_matches = function (isClient, createElement) {
         methodNames = [
             'matches',
             'matchesSelector'
-        ];
-        vendors = [
-            'o',
-            'ms',
-            'moz',
-            'webkit'
         ];
         makeFunction = function (methodName) {
             return function (node, selector) {
@@ -2057,7 +2100,7 @@ var utils_matches = function (isClient, createElement) {
             }
             return false;
         };
-    }(config_isClient, utils_createElement);
+    }(config_isClient, config_vendors, utils_createElement);
 var Ractive_prototype_shared_makeQuery_test = function (matches) {
         
         return function (item, noDirty) {
@@ -3223,10 +3266,6 @@ var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
             this.length = newLength;
         };
     }(render_DomFragment_Section_reassignFragment);
-var circular = function () {
-        
-        return [];
-    }();
 var render_DomFragment_Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, reassignFragment, reassignFragments, merge, teardown, circular) {
         
         var DomSection, DomFragment;
@@ -5083,6 +5122,218 @@ var render_DomFragment_Element_initialise_updateLiveQueries = function () {
             }
         };
     }();
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_init = function () {
+        
+        return function () {
+            if (this._inited) {
+                throw new Error('Cannot initialize a transition more than once');
+            }
+            this._inited = true;
+            this._fn.apply(this.root, [this].concat(this.params));
+        };
+    }();
+var render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix = function (isClient, vendors, createElement) {
+        
+        var prefixCache, testStyle;
+        if (!isClient) {
+            return;
+        }
+        prefixCache = {};
+        testStyle = createElement('div').style;
+        return function (prop) {
+            var i, vendor, capped;
+            if (!prefixCache[prop]) {
+                if (testStyle[prop] !== undefined) {
+                    prefixCache[prop] = prop;
+                } else {
+                    capped = prop.charAt(0).toUpperCase() + prop.substring(1);
+                    i = vendors.length;
+                    while (i--) {
+                        vendor = vendors[i];
+                        if (testStyle[vendor + capped] !== undefined) {
+                            prefixCache[prop] = vendor + capped;
+                            break;
+                        }
+                    }
+                }
+            }
+            return prefixCache[prop];
+        };
+    }(config_isClient, config_vendors, utils_createElement);
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle = function (isArray, prefix) {
+        
+        return function (props) {
+            var computedStyle, styles, i, prop, value;
+            computedStyle = window.getComputedStyle(this.node);
+            if (typeof props === 'string') {
+                value = computedStyle[prefix(props)];
+                if (value === '0px') {
+                    value = 0;
+                }
+                return value;
+            }
+            if (!isArray(props)) {
+                throw new Error('Transition#getStyle must be passed a string, or an array of strings representing CSS properties');
+            }
+            styles = {};
+            i = props.length;
+            while (i--) {
+                prop = props[i];
+                value = computedStyle[prefix(prop)];
+                if (value === '0px') {
+                    value = 0;
+                }
+                styles[prop] = value;
+            }
+            return styles;
+        };
+    }(utils_isArray, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix);
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle = function (prefix) {
+        
+        return function (style, value) {
+            var prop;
+            if (typeof style === 'string') {
+                this.node.style[prefix(style)] = value;
+            } else {
+                for (prop in style) {
+                    if (style.hasOwnProperty(prop)) {
+                        this.node.style[prefix(prop)] = style[prop];
+                    }
+                }
+            }
+            return this;
+        };
+    }(render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix);
+var utils_Promise = function () {
+        
+        var Promise, PENDING = {}, FULFILLED = {}, REJECTED = {};
+        Promise = function (callback) {
+            var fulfilledHandlers = [], rejectedHandlers = [], state = PENDING, result, dispatchHandlers, makeResolver, fulfil, reject;
+            makeResolver = function (newState) {
+                return function (value) {
+                    if (state !== PENDING) {
+                        return;
+                    }
+                    result = value;
+                    state = newState;
+                    dispatchHandlers = makeDispatcher(state === FULFILLED ? fulfilledHandlers : rejectedHandlers, result);
+                    wait(dispatchHandlers);
+                };
+            };
+            fulfil = makeResolver(FULFILLED);
+            reject = makeResolver(REJECTED);
+            callback(fulfil, reject);
+            return {
+                then: function (onFulfilled, onRejected) {
+                    var promise2 = new Promise(function (fulfil, reject) {
+                            var processResolutionHandler = function (handler, handlers, forward) {
+                                if (typeof handler === 'function') {
+                                    handlers.push(function (p1result) {
+                                        var x;
+                                        try {
+                                            x = handler(p1result);
+                                            resolve(promise2, x, fulfil, reject);
+                                        } catch (err) {
+                                            reject(err);
+                                        }
+                                    });
+                                } else {
+                                    handlers.push(forward);
+                                }
+                            };
+                            processResolutionHandler(onFulfilled, fulfilledHandlers, fulfil);
+                            processResolutionHandler(onRejected, rejectedHandlers, reject);
+                            if (state !== PENDING) {
+                                wait(dispatchHandlers);
+                            }
+                        });
+                    return promise2;
+                }
+            };
+        };
+        Promise.all = function (promises) {
+            return new Promise(function (fulfil, reject) {
+                var result = [], pending, i, processPromise;
+                processPromise = function (i) {
+                    promises[i].then(function (value) {
+                        result[i] = value;
+                        if (!--pending) {
+                            fulfil(result);
+                        }
+                    }, reject);
+                };
+                pending = i = promises.length;
+                while (i--) {
+                    processPromise(i);
+                }
+            });
+        };
+        return Promise;
+        function wait(callback) {
+            setTimeout(callback, 0);
+        }
+        function makeDispatcher(handlers, result) {
+            return function () {
+                var handler;
+                while (handler = handlers.shift()) {
+                    handler(result);
+                }
+            };
+        }
+        function resolve(promise, x, fulfil, reject) {
+            var then;
+            if (x === promise) {
+                throw new TypeError('A promise\'s fulfillment handler cannot return the same promise');
+            }
+            if (x instanceof Promise) {
+                x.then(fulfil, reject);
+            } else if (x && (typeof x === 'object' || typeof x === 'function')) {
+                try {
+                    then = x.then;
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+                if (typeof then === 'function') {
+                    var called, resolvePromise, rejectPromise;
+                    resolvePromise = function (y) {
+                        if (called) {
+                            return;
+                        }
+                        called = true;
+                        resolve(promise, y, fulfil, reject);
+                    };
+                    rejectPromise = function (r) {
+                        if (called) {
+                            return;
+                        }
+                        called = true;
+                        reject(r);
+                    };
+                    try {
+                        then.call(x, resolvePromise, rejectPromise);
+                    } catch (e) {
+                        if (!called) {
+                            reject(e);
+                            called = true;
+                            return;
+                        }
+                    }
+                } else {
+                    fulfil(x);
+                }
+            } else {
+                fulfil(x);
+            }
+        }
+    }();
+var render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix = function (vendors) {
+        
+        var unprefixPattern = new RegExp('^-(?:' + vendors.join('|') + ')-');
+        return function (prop) {
+            return prop.replace(unprefixPattern, '');
+        };
+    }(config_vendors);
 var utils_camelCase = function () {
         
         return function (hyphenatedStr) {
@@ -5091,21 +5342,84 @@ var utils_camelCase = function () {
             });
         };
     }();
-var utils_fillGaps = function () {
+var shared_Ticker = function (warn, getTime, animations) {
         
-        return function (target, source) {
-            var key;
-            for (key in source) {
-                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
-                    target[key] = source[key];
+        var Ticker = function (options) {
+            var easing;
+            this.duration = options.duration;
+            this.step = options.step;
+            this.complete = options.complete;
+            if (typeof options.easing === 'string') {
+                easing = options.root.easing[options.easing];
+                if (!easing) {
+                    warn('Missing easing function ("' + options.easing + '"). You may need to download a plugin from [TODO]');
+                    easing = linear;
                 }
+            } else if (typeof options.easing === 'function') {
+                easing = options.easing;
+            } else {
+                easing = linear;
             }
-            return target;
+            this.easing = easing;
+            this.start = getTime();
+            this.end = this.start + this.duration;
+            this.running = true;
+            animations.add(this);
         };
-    }();
-var render_DomFragment_Element_shared_executeTransition_Transition = function (isClient, createElement, warn, isNumeric, isArray, camelCase, fillGaps, StringFragment) {
+        Ticker.prototype = {
+            tick: function (now) {
+                var elapsed, eased;
+                if (!this.running) {
+                    return false;
+                }
+                if (now > this.end) {
+                    if (this.step) {
+                        this.step(1);
+                    }
+                    if (this.complete) {
+                        this.complete(1);
+                    }
+                    return false;
+                }
+                elapsed = now - this.start;
+                eased = this.easing(elapsed / this.duration);
+                if (this.step) {
+                    this.step(eased);
+                }
+                return true;
+            },
+            stop: function () {
+                if (this.abort) {
+                    this.abort();
+                }
+                this.running = false;
+            }
+        };
+        return Ticker;
+        function linear(t) {
+            return t;
+        }
+    }(utils_warn, utils_getTime, shared_animations);
+var render_DomFragment_Element_shared_executeTransition_Transition_helpers_hyphenate = function (vendors) {
         
-        var Transition, testStyle, vendors, vendorPattern, unprefixPattern, prefixCache, CSS_TRANSITIONS_ENABLED, TRANSITION, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, TRANSITIONEND;
+        var vendorPattern = new RegExp('^(?:' + vendors.join('|') + ')([A-Z])');
+        return function (str) {
+            var hyphenated;
+            if (!str) {
+                return '';
+            }
+            if (vendorPattern.test(str)) {
+                str = '-' + str;
+            }
+            hyphenated = str.replace(/[A-Z]/g, function (match) {
+                return '-' + match.toLowerCase();
+            });
+            return hyphenated;
+        };
+    }(config_vendors);
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions = function (isClient, warn, Promise, createElement, camelCase, interpolate, Ticker, prefix, unprefix, hyphenate) {
+        
+        var testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {}, cannotUseCssTransitions = {};
         if (!isClient) {
             return;
         }
@@ -5128,6 +5442,188 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
             TRANSITION_PROPERTY = TRANSITION + 'Property';
             TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
         }
+        return function (t, to, options, changedProperties, transitionEndHandler, resolve) {
+            setTimeout(function () {
+                var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete;
+                checkComplete = function () {
+                    if (jsTransitionsComplete && cssTransitionsComplete) {
+                        resolve();
+                    }
+                };
+                hashPrefix = t.node.namespaceURI + t.node.tagName;
+                t.node.style[TRANSITION_PROPERTY] = changedProperties.map(prefix).map(hyphenate).join(',');
+                t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
+                t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
+                transitionEndHandler = function (event) {
+                    var index;
+                    index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
+                    if (index !== -1) {
+                        changedProperties.splice(index, 1);
+                    }
+                    if (changedProperties.length) {
+                        return;
+                    }
+                    t.root.fire(t.name + ':end');
+                    t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
+                    cssTransitionsComplete = true;
+                    checkComplete();
+                };
+                t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
+                setTimeout(function () {
+                    var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop;
+                    while (i--) {
+                        prop = changedProperties[i];
+                        hash = hashPrefix + prop;
+                        if (canUseCssTransitions[hash]) {
+                            t.node.style[prefix(prop)] = to[prop];
+                        } else {
+                            originalValue = t.getStyle(prop);
+                        }
+                        if (canUseCssTransitions[hash] === undefined) {
+                            t.node.style[prefix(prop)] = to[prop];
+                            canUseCssTransitions[hash] = t.getStyle(prop) != to[prop];
+                            cannotUseCssTransitions[hash] = !canUseCssTransitions[hash];
+                        }
+                        if (cannotUseCssTransitions[hash]) {
+                            index = changedProperties.indexOf(prop);
+                            if (index === -1) {
+                                warn('Something very strange happened with transitions. If you see this message, please let @RactiveJS know. Thanks!');
+                            } else {
+                                changedProperties.splice(index, 1);
+                            }
+                            t.node.style[prefix(prop)] = originalValue;
+                            propertiesToTransitionInJs.push({
+                                name: prefix(prop),
+                                interpolator: interpolate(originalValue, to[prop])
+                            });
+                        }
+                    }
+                    if (propertiesToTransitionInJs.length) {
+                        new Ticker({
+                            root: t.root,
+                            duration: options.duration,
+                            easing: camelCase(options.easing),
+                            step: function (pos) {
+                                var prop, i;
+                                i = propertiesToTransitionInJs.length;
+                                while (i--) {
+                                    prop = propertiesToTransitionInJs[i];
+                                    t.node.style[prop.name] = prop.interpolator(pos);
+                                }
+                            },
+                            complete: function () {
+                                jsTransitionsComplete = true;
+                                checkComplete();
+                            }
+                        });
+                    }
+                    if (!changedProperties.length) {
+                        t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
+                        cssTransitionsComplete = true;
+                        checkComplete();
+                    }
+                }, 0);
+            }, options.delay || 0);
+        };
+    }(config_isClient, utils_warn, utils_Promise, utils_createElement, utils_camelCase, shared_interpolate, shared_Ticker, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_hyphenate);
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle = function (warn, Promise, prefix, unprefix, createTransitions) {
+        
+        return function (style, value, options, complete) {
+            var t = this, to;
+            if (typeof style === 'string') {
+                to = {};
+                to[style] = value;
+            } else {
+                to = style;
+                complete = options;
+                options = value;
+            }
+            if (!options) {
+                warn('The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340');
+                options = t;
+                complete = t.complete;
+            }
+            var promise = new Promise(function (resolve) {
+                    var propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+                    if (!options.duration) {
+                        t.setStyle(to);
+                        resolve();
+                        return;
+                    }
+                    propertyNames = Object.keys(to);
+                    changedProperties = [];
+                    computedStyle = window.getComputedStyle(t.node);
+                    from = {};
+                    i = propertyNames.length;
+                    while (i--) {
+                        prop = propertyNames[i];
+                        current = computedStyle[prefix(prop)];
+                        if (current === '0px') {
+                            current = 0;
+                        }
+                        if (current != to[prop]) {
+                            changedProperties.push(prop);
+                            t.node.style[prefix(prop)] = current;
+                        }
+                    }
+                    if (!changedProperties.length) {
+                        resolve();
+                        return;
+                    }
+                    createTransitions(t, to, options, changedProperties, transitionEndHandler, resolve);
+                });
+            if (complete) {
+                warn('t.animateStyle returns a Promise as of 0.4.0. Transition authors should do t.animateStyle(...).then(callback)');
+                promise.then(complete);
+            }
+            return promise;
+        };
+    }(utils_warn, utils_Promise, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions);
+var utils_fillGaps = function () {
+        
+        return function (target, source) {
+            var key;
+            for (key in source) {
+                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+    }();
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_processParams = function (fillGaps) {
+        
+        return function (params, defaults) {
+            if (typeof params === 'number') {
+                params = { duration: params };
+            } else if (typeof params === 'string') {
+                if (params === 'slow') {
+                    params = { duration: 600 };
+                } else if (params === 'fast') {
+                    params = { duration: 200 };
+                } else {
+                    params = { duration: 400 };
+                }
+            } else if (!params) {
+                params = {};
+            }
+            return fillGaps(params, defaults);
+        };
+    }(utils_fillGaps);
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_resetStyle = function () {
+        
+        return function () {
+            if (this.originalStyle) {
+                this.node.setAttribute('style', this.originalStyle);
+            } else {
+                this.node.getAttribute('style');
+                this.node.removeAttribute('style');
+            }
+        };
+    }();
+var render_DomFragment_Element_shared_executeTransition_Transition__Transition = function (warn, StringFragment, init, getStyle, setStyle, animateStyle, processParams, resetStyle) {
+        
+        var Transition;
         Transition = function (descriptor, root, owner, contextStack, isIntro) {
             var t = this, name, fragment, errorMessage;
             this.root = root;
@@ -5177,191 +5673,15 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
             }
         };
         Transition.prototype = {
-            init: function () {
-                if (this._inited) {
-                    throw new Error('Cannot initialize a transition more than once');
-                }
-                this._inited = true;
-                this._fn.apply(this.root, [this].concat(this.params));
-            },
-            getStyle: function (props) {
-                var computedStyle, styles, i, prop, value;
-                computedStyle = window.getComputedStyle(this.node);
-                if (typeof props === 'string') {
-                    value = computedStyle[prefix(props)];
-                    if (value === '0px') {
-                        value = 0;
-                    }
-                    return value;
-                }
-                if (!isArray(props)) {
-                    throw new Error('Transition#getStyle must be passed a string, or an array of strings representing CSS properties');
-                }
-                styles = {};
-                i = props.length;
-                while (i--) {
-                    prop = props[i];
-                    value = computedStyle[prefix(prop)];
-                    if (value === '0px') {
-                        value = 0;
-                    }
-                    styles[prop] = value;
-                }
-                return styles;
-            },
-            setStyle: function (style, value) {
-                var prop;
-                if (typeof style === 'string') {
-                    this.node.style[prefix(style)] = value;
-                } else {
-                    for (prop in style) {
-                        if (style.hasOwnProperty(prop)) {
-                            this.node.style[prefix(prop)] = style[prop];
-                        }
-                    }
-                }
-                return this;
-            },
-            animateStyle: function (style, value, options, complete) {
-                var t = this, propertyNames, changedProperties, computedStyle, current, to, from, transitionEndHandler, i, prop;
-                if (typeof style === 'string') {
-                    to = {};
-                    to[style] = value;
-                } else {
-                    to = style;
-                    complete = options;
-                    options = value;
-                }
-                if (!options) {
-                    warn('The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340');
-                    options = t;
-                    complete = t.complete;
-                }
-                if (!options.duration) {
-                    t.setStyle(to);
-                    if (complete) {
-                        complete();
-                    }
-                }
-                propertyNames = Object.keys(to);
-                changedProperties = [];
-                computedStyle = window.getComputedStyle(t.node);
-                from = {};
-                i = propertyNames.length;
-                while (i--) {
-                    prop = propertyNames[i];
-                    current = computedStyle[prefix(prop)];
-                    if (current === '0px') {
-                        current = 0;
-                    }
-                    if (current != to[prop]) {
-                        changedProperties[changedProperties.length] = prop;
-                        t.node.style[prefix(prop)] = current;
-                    }
-                }
-                if (!changedProperties.length) {
-                    if (complete) {
-                        complete();
-                    }
-                    return;
-                }
-                setTimeout(function () {
-                    t.node.style[TRANSITION_PROPERTY] = propertyNames.map(prefix).map(hyphenate).join(',');
-                    t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
-                    t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
-                    transitionEndHandler = function (event) {
-                        var index;
-                        index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
-                        if (index !== -1) {
-                            changedProperties.splice(index, 1);
-                        }
-                        if (changedProperties.length) {
-                            return;
-                        }
-                        t.root.fire(t.name + ':end');
-                        t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
-                        if (complete) {
-                            complete();
-                        }
-                    };
-                    t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
-                    setTimeout(function () {
-                        var i = changedProperties.length;
-                        while (i--) {
-                            prop = changedProperties[i];
-                            t.node.style[prefix(prop)] = to[prop];
-                        }
-                    }, 0);
-                }, options.delay || 0);
-            },
-            resetStyle: function () {
-                if (this.originalStyle) {
-                    this.node.setAttribute('style', this.originalStyle);
-                } else {
-                    this.node.getAttribute('style');
-                    this.node.removeAttribute('style');
-                }
-            },
-            processParams: function (params, defaults) {
-                if (typeof params === 'number') {
-                    params = { duration: params };
-                } else if (typeof params === 'string') {
-                    if (params === 'slow') {
-                        params = { duration: 600 };
-                    } else if (params === 'fast') {
-                        params = { duration: 200 };
-                    } else {
-                        params = { duration: 400 };
-                    }
-                } else if (!params) {
-                    params = {};
-                }
-                return fillGaps(params, defaults);
-            }
+            init: init,
+            getStyle: getStyle,
+            setStyle: setStyle,
+            animateStyle: animateStyle,
+            processParams: processParams,
+            resetStyle: resetStyle
         };
-        vendors = [
-            'o',
-            'ms',
-            'moz',
-            'webkit'
-        ];
-        vendorPattern = new RegExp('^(?:' + vendors.join('|') + ')([A-Z])');
-        unprefixPattern = new RegExp('^-(?:' + vendors.join('|') + ')-');
-        prefixCache = {};
-        function prefix(prop) {
-            var i, vendor, capped;
-            if (!prefixCache[prop]) {
-                if (testStyle[prop] !== undefined) {
-                    prefixCache[prop] = prop;
-                } else {
-                    capped = prop.charAt(0).toUpperCase() + prop.substring(1);
-                    i = vendors.length;
-                    while (i--) {
-                        vendor = vendors[i];
-                        if (testStyle[vendor + capped] !== undefined) {
-                            prefixCache[prop] = vendor + capped;
-                            break;
-                        }
-                    }
-                }
-            }
-            return prefixCache[prop];
-        }
-        function unprefix(prop) {
-            return prop.replace(unprefixPattern, '');
-        }
-        function hyphenate(str) {
-            var hyphenated;
-            if (vendorPattern.test(str)) {
-                str = '-' + str;
-            }
-            hyphenated = str.replace(/[A-Z]/g, function (match) {
-                return '-' + match.toLowerCase();
-            });
-            return hyphenated;
-        }
         return Transition;
-    }(config_isClient, utils_createElement, utils_warn, utils_isNumeric, utils_isArray, utils_camelCase, utils_fillGaps, render_StringFragment__StringFragment);
+    }(utils_warn, render_StringFragment__StringFragment, render_DomFragment_Element_shared_executeTransition_Transition_prototype_init, render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_processParams, render_DomFragment_Element_shared_executeTransition_Transition_prototype_resetStyle);
 var render_DomFragment_Element_shared_executeTransition__executeTransition = function (warn, Transition) {
         
         return function (descriptor, root, owner, contextStack, isIntro) {
@@ -5385,7 +5705,7 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
                 }
             }
         };
-    }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition);
+    }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition);
 var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
         return function (element, options, docFrag) {
@@ -6593,6 +6913,26 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
         };
     }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_findComponent, Ractive_prototype_findAllComponents, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_toHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
 var registries_components = {};
+var registries_easing = function () {
+        
+        return {
+            linear: function (pos) {
+                return pos;
+            },
+            easeIn: function (pos) {
+                return Math.pow(pos, 3);
+            },
+            easeOut: function (pos) {
+                return Math.pow(pos - 1, 3) + 1;
+            },
+            easeInOut: function (pos) {
+                if ((pos /= 0.5) < 1) {
+                    return 0.5 * Math.pow(pos, 3);
+                }
+                return 0.5 * (Math.pow(pos - 2, 3) + 2);
+            }
+        };
+    }();
 var utils_getGuid = function () {
         
         return function () {
@@ -6610,7 +6950,9 @@ var config_registries = function () {
             'adaptors',
             'components',
             'decorators',
+            'easing',
             'events',
+            'interpolators',
             'partials',
             'transitions',
             'data'
@@ -7139,7 +7481,11 @@ var load_makeComponent = function (circular, get, promise, resolvePath, parse, g
         });
         var makeComponent = function (template, baseUrl) {
             var links, scripts, script, styles, i, item, scriptElement, oldComponent, exports, Component, pendingImports, imports, importPromise;
-            template = parse(template, { noStringify: true });
+            template = parse(template, {
+                noStringify: true,
+                interpolateScripts: false,
+                interpolateStyles: false
+            });
             links = [];
             scripts = [];
             styles = [];
@@ -7303,7 +7649,7 @@ var load__load = function (isObject, loadFromLinks, loadMultiple, loadSingle) {
             return loadSingle(url, callback, onError);
         };
     }(utils_isObject, load_loadFromLinks, load_loadMultiple, load_loadSingle);
-var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, extend, parse, load, initialise, circular) {
+var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, load, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -7317,26 +7663,20 @@ var Ractive__Ractive = function (initOptions, svg, create, defineProperties, pro
             events: { value: {} },
             components: { value: componentsRegistry },
             decorators: { value: {} },
+            interpolators: { value: interpolatorsRegistry },
             defaults: { value: initOptions.defaults },
             svg: { value: svg },
             VERSION: { value: '0.4.0-pre' }
         });
         Ractive.eventDefinitions = Ractive.events;
         Ractive.prototype.constructor = Ractive;
-        Ractive.delimiters = [
-            '{{',
-            '}}'
-        ];
-        Ractive.tripleDelimiters = [
-            '{{{',
-            '}}}'
-        ];
+        Ractive.Promise = Promise;
         Ractive.extend = extend;
         Ractive.parse = parse;
         Ractive.load = load;
         circular.Ractive = Ractive;
         return Ractive;
-    }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
+    }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, registries_interpolators, utils_Promise, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular) {
         
         if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {

@@ -41,7 +41,7 @@ define([
 			complete = t.complete;
 		}
 
-		var promise = new Promise( function ( resolve, reject ) {
+		var promise = new Promise( function ( resolve ) {
 			var propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
 
 			// Edge case - if duration is zero, set style synchronously and complete
