@@ -6,6 +6,8 @@ define([
 	'utils/isArray',
 	'utils/camelCase',
 	'utils/fillGaps',
+	'shared/interpolate',
+	'shared/Ticker',
 	'render/StringFragment/_StringFragment'
 ], function (
 	isClient,
@@ -15,6 +17,8 @@ define([
 	isArray,
 	camelCase,
 	fillGaps,
+	interpolate,
+	Ticker,
 	StringFragment
 ) {
 
@@ -33,7 +37,10 @@ define([
 		TRANSITION_DURATION,
 		TRANSITION_PROPERTY,
 		TRANSITION_TIMING_FUNCTION,
-		TRANSITIONEND;
+		TRANSITIONEND,
+
+		cannotUseCssTransitions = {},
+		canUseCssTransitions = {};
 
 	if ( !isClient ) {
 		// not relevant server-side
@@ -197,7 +204,7 @@ define([
 		},
 
 		animateStyle: function ( style, value, options, complete ) {
-			var t = this, propertyNames, changedProperties, computedStyle, current, to, from, transitionEndHandler, i, prop;
+			var t = this, propertyNames, cssPropertiesToTransition, computedStyle, current, to, from, transitionEndHandler, i, prop;
 
 			if ( typeof style === 'string' ) {
 				to = {};
@@ -233,7 +240,7 @@ define([
 
 			// Get a list of the properties we're animating
 			propertyNames = Object.keys( to );
-			changedProperties = [];
+			cssPropertiesToTransition = [];
 
 			// Store the current styles
 			computedStyle = window.getComputedStyle( t.node );
@@ -250,7 +257,7 @@ define([
 
 				// we need to know if we're actually changing anything
 				if ( current != to[ prop ] ) { // use != instead of !==, so we can compare strings with numbers
-					changedProperties[ changedProperties.length ] = prop;
+					cssPropertiesToTransition.push( prop );
 
 					// make the computed style explicit, so we can animate where
 					// e.g. height='auto'
@@ -260,7 +267,7 @@ define([
 
 			// If we're not actually changing anything, the transitionend event
 			// will never fire! So we complete early
-			if ( !changedProperties.length ) {
+			if ( !cssPropertiesToTransition.length ) {
 				if ( complete ) {
 					complete();
 				}
@@ -271,6 +278,18 @@ define([
 			// TODO use a fastdom-style mechanism?
 			setTimeout( function () {
 
+				var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete;
+
+				checkComplete = ( complete ? function () {
+					if ( jsTransitionsComplete && cssTransitionsComplete ) {
+						complete();
+					}
+				} : function () {} );
+
+				// this is used to keep track of which elements can use CSS to animate
+				// which properties
+				hashPrefix = t.node.namespaceURI + t.node.tagName;
+
 				t.node.style[ TRANSITION_PROPERTY ] = propertyNames.map( prefix ).map( hyphenate ).join( ',' );
 				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
 				t.node.style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
@@ -278,12 +297,12 @@ define([
 				transitionEndHandler = function ( event ) {
 					var index;
 
-					index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
+					index = cssPropertiesToTransition.indexOf( camelCase( unprefix( event.propertyName ) ) );
 					if ( index !== -1 ) {
-						changedProperties.splice( index, 1 );
+						cssPropertiesToTransition.splice( index, 1 );
 					}
 
-					if ( changedProperties.length ) {
+					if ( cssPropertiesToTransition.length ) {
 						// still transitioning...
 						return;
 					}
@@ -292,19 +311,97 @@ define([
 
 					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
-					if ( complete ) {
-						complete();
-					}
+					cssTransitionsComplete = true;
+					checkComplete();
 				};
 
 				t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
 
 				setTimeout( function () {
-					var i = changedProperties.length;
+					var i = cssPropertiesToTransition.length, hash, originalValue, index, propertiesToTransitionInJs = [];
 
 					while ( i-- ) {
-						prop = changedProperties[i];
-						t.node.style[ prefix( prop ) ] = to[ prop ];
+						prop = cssPropertiesToTransition[i];
+						hash = hashPrefix + prop;
+
+						if ( canUseCssTransitions[ hash ] ) {
+							// We can definitely use CSS transitions, because
+							// we've already tried it and it worked
+							t.node.style[ prefix( prop ) ] = to[ prop ];
+						} else {
+							// one way or another, we'll need this
+							originalValue = t.getStyle( prop ); // TODO don't we already have this value?
+						}
+
+
+						if ( canUseCssTransitions[ hash ] === undefined ) {
+							// We're not yet sure if we can use CSS transitions -
+							// let's find out
+							t.node.style[ prefix( prop ) ] = to[ prop ];
+
+							// if this property is transitionable in this browser,
+							// the current style will be different from the target style
+							canUseCssTransitions[ hash ] = ( t.getStyle( prop ) != to[ prop ] );
+							cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
+						}
+
+
+						if ( cannotUseCssTransitions[ hash ] ) {
+							// we need to fall back to timer-based stuff
+
+							// need to remove this from cssPropertiesToTransition, otherwise transitionEndHandler
+							// will get confused
+							index = cssPropertiesToTransition.indexOf( prop );
+							if ( index === -1 ) {
+								warn( 'Something very strange happened with transitions. If you see this message, please let @RactiveJS know. Thanks!' );
+							} else {
+								cssPropertiesToTransition.splice( index, 1 );
+							}
+
+
+							// Determine whether this property is animatable at all
+
+							// for now assume it is. First, we need to set the value to what it was...
+							t.node.style[ prefix( prop ) ] = originalValue;
+
+							// ...then kick off a timer-based transition
+							propertiesToTransitionInJs.push({
+								name: prefix( prop ),
+								interpolator: interpolate( originalValue, to[ prop ] )
+							});
+						}
+					}
+
+
+					// javascript transitions
+					if ( propertiesToTransitionInJs.length ) {
+						new Ticker({
+							root: t.root,
+							duration: options.duration,
+							easing: camelCase( options.easing ),
+							step: function ( pos ) {
+								var prop, i;
+
+								i = propertiesToTransitionInJs.length;
+								while ( i-- ) {
+									prop = propertiesToTransitionInJs[i];
+									t.node.style[ prop.name ] = prop.interpolator( pos );
+								}
+							},
+							complete: function () {
+								jsTransitionsComplete = true;
+								checkComplete();
+							}
+						});
+					}
+
+
+					if ( !cssPropertiesToTransition.length ) {
+						// We need to cancel the transitionEndHandler, and deal with
+						// the fact that it will never fire
+						t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
+						cssTransitionsComplete = true;
+						checkComplete();
 					}
 				}, 0 );
 			}, options.delay || 0 );
@@ -381,6 +478,10 @@ define([
 
 	function hyphenate ( str ) {
 		var hyphenated;
+
+		if ( !str ) {
+			return ''; // edge case
+		}
 
 		if ( vendorPattern.test( str ) ) {
 			str = '-' + str;
