@@ -9,6 +9,7 @@ define([
 	'registries/components',
 	'registries/easing',
 	'registries/interpolators',
+	'utils/Promise',
 	'extend/_extend',
 	'parse/_parse',
 	'load/_load',
@@ -25,6 +26,7 @@ define([
 	componentsRegistry,
 	easingRegistry,
 	interpolatorsRegistry,
+	Promise,
 	extend,
 	parse,
 	load,
@@ -70,8 +72,8 @@ define([
 
 	Ractive.prototype.constructor = Ractive;
 
-	Ractive.delimiters = [ '{{', '}}' ];
-	Ractive.tripleDelimiters = [ '{{{', '}}}' ];
+	// Namespaced constructors
+	Ractive.Promise = Promise;
 
 	// Static methods
 	Ractive.extend = extend;
