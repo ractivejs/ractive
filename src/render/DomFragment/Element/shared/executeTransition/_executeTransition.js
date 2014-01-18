@@ -1,6 +1,6 @@
 define([
 	'utils/warn',
-	'render/DomFragment/Element/shared/executeTransition/Transition'
+	'render/DomFragment/Element/shared/executeTransition/Transition/_Transition'
 ], function (
 	warn,
 	Transition

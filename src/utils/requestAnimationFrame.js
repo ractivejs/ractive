@@ -1,4 +1,8 @@
-define( function () {
+define([
+	'config/vendors'
+], function (
+	vendors
+) {
 
 	'use strict';
 
@@ -35,7 +39,7 @@ define( function () {
 			};
 		}
 
-	}( ['ms', 'moz', 'webkit', 'o'], 0, window ));
+	}( vendors, 0, window ));
 
 	return window.requestAnimationFrame;
 
