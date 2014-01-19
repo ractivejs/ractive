@@ -1,9 +1,11 @@
 define([
 	'config/types',
+	'utils/normaliseKeypath',
 	'parse/Parser/utils/jsonifyStubs',
 	'parse/Parser/getMustache/ExpressionStub/_ExpressionStub'
 ], function (
 	types,
+	normaliseKeypath,
 	jsonifyStubs,
 	ExpressionStub
 ) {
@@ -29,7 +31,7 @@ define([
 
 		while ( next ) {
 			if ( next.mustacheType === types.CLOSING ) {
-				if ( ( next.ref.trim() === this.ref ) || this.expr ) {
+				if ( ( normaliseKeypath( next.ref.trim() ) === this.ref ) || this.expr ) {
 					parser.pos += 1;
 					break;
 				}

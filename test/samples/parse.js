@@ -328,6 +328,11 @@ var parseTests = [
 		name: 'Unicode escapes in strings',
 		template: '{{ "A\\u0042C" }}',
 		parsed: [{t:2,x:{r:[],s:'"ABC"'}}]
+	},
+	{
+		name: 'Array members in section tags',
+		template: '{{#foo[0]}}bar{{/foo[0]}}',
+		parsed: [{t:4,r:'foo.0',f:'bar'}]
 	}
 ];
 
