@@ -177,19 +177,22 @@ define([
 
 	MultipleSelectBinding.prototype = {
 		value: function () {
-			var value, options, i, len;
+			var selectedValues, options, i, len, option, optionValue;
 
-			value = [];
+			selectedValues = [];
 			options = this.node.options;
 			len = options.length;
 
 			for ( i=0; i<len; i+=1 ) {
-				if ( options[i].selected ) {
-					value[ value.length ] = options[i]._ractive.value;
+				option = options[i];
+
+				if ( option.selected ) {
+					optionValue = option._ractive ? option._ractive.value : option.value;
+					selectedValues.push( optionValue );
 				}
 			}
 
-			return value;
+			return selectedValues;
 		},
 
 		update: function () {
@@ -243,14 +246,17 @@ define([
 
 	SelectBinding.prototype = {
 		value: function () {
-			var options, i, len;
+			var options, i, len, option, optionValue;
 
 			options = this.node.options;
 			len = options.length;
 
 			for ( i=0; i<len; i+=1 ) {
+				option = options[i];
+
 				if ( options[i].selected ) {
-					return options[i]._ractive.value;
+					optionValue = option._ractive ? option._ractive.value : option.value;
+					return optionValue;
 				}
 			}
 		},

@@ -97,7 +97,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	};
 
 	updateSelect = function () {
-		var value = this.fragment.getValue(), options, option, i;
+		var value = this.fragment.getValue(), options, option, optionValue, i;
 
 		this.value = this.pNode._ractive.value = value;
 
@@ -106,8 +106,9 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 
 		while ( i-- ) {
 			option = options[i];
+			optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
 
-			if ( option._ractive.value == value ) { // double equals as we may be comparing numbers with strings
+			if ( optionValue == value ) { // double equals as we may be comparing numbers with strings
 				option.selected = true;
 				return this;
 			}
@@ -120,7 +121,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	};
 
 	updateMultipleSelect = function () {
-		var value = this.fragment.getValue(), options, i;
+		var value = this.fragment.getValue(), options, i, option, optionValue;
 
 		if ( !isArray( value ) ) {
 			value = [ value ];
@@ -130,7 +131,9 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		i = options.length;
 
 		while ( i-- ) {
-			options[i].selected = ( value.indexOf( options[i]._ractive.value ) !== -1 );
+			option = options[i];
+			optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
+			option.selected = ( value.indexOf( optionValue ) !== -1 );
 		}
 
 		this.value = value;

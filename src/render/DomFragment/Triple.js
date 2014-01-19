@@ -96,6 +96,11 @@ define([
 			if ( !this.initialising ) {
 				pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			}
+
+			// Special case - we're inserting the contents of a <select>
+			if ( pNode.tagName === 'SELECT' && pNode._ractive && pNode._ractive.binding ) {
+				pNode._ractive.binding.update();
+			}
 		},
 
 		toString: function () {

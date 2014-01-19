@@ -284,6 +284,47 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.ok(  ractive.nodes._3.selected );
 		});
 
+		test( 'Setting the value of a select works with options added via a triple', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{value}}">{{{triple}}}</select>',
+				data: {
+					value: 2,
+					triple: '<option value="1">1</option><option value="2">2</option>'
+				}
+			});
+
+			t.equal( ractive.find( 'select' ).value, 2);
+			t.ok( ractive.findAll( 'option' )[1].selected );
+
+			ractive.set( 'triple', '<option value="1" selected>1</option><option value="2">2</option>' );
+			t.equal( ractive.find( 'select' ).value, 1 );
+			t.equal( ractive.get( 'value' ), 1 );
+		});
+
+		test( 'A two-way select updates to the actual value of its selected option, not the stringified value', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{selected}}">{{#options}}<option value="{{.}}">{{description}}</option>{{/options}}</select><p>Selected {{selected.description}}</p>',
+				data: {
+					options: [
+						{ description: 'foo' },
+						{ description: 'bar' },
+						{ description: 'baz' }
+					]
+				}
+			});
+
+			t.deepEqual( ractive.get( 'selected' ), { description: 'foo' });
+
+			ractive.findAll( 'option' )[1].selected = true;
+			ractive.updateModel();
+			t.deepEqual( ractive.get( 'selected' ), { description: 'bar' });
+
+			ractive.set( 'selected', ractive.get( 'options[2]' ) );
+			t.ok( ractive.findAll( 'option' )[2].selected );
+		})
+
 		/*
 		test( 'If a multiple select value with two-way binding has a selected option at render time, the model updates accordingly', function ( t ) {
 			var ractive;
