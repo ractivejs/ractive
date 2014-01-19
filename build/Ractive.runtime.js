@@ -182,6 +182,18 @@ var utils_normaliseKeypath = function () {
         };
     }();
 var registries_adaptors = {};
+var utils_clone = function () {
+        
+        return function (source) {
+            var target = {}, key;
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                }
+            }
+            return target;
+        };
+    }();
 var config_types = {
         TEXT: 1,
         INTERPOLATOR: 2,
@@ -819,10 +831,10 @@ var Ractive_prototype_get_magicAdaptor = function () {
         };
         return magicAdaptor;
     }();
-var shared_adaptIfNecessary = function (adaptorRegistry, arrayAdaptor, magicAdaptor) {
+var shared_adaptIfNecessary = function (clone, adaptorRegistry, arrayAdaptor, magicAdaptor) {
         
         var prefixers = {};
-        return function (ractive, keypath, value, isExpressionResult) {
+        return function (ractive, keypath, value, isExpressionResult, shouldClone) {
             var len, i, adaptor, wrapped;
             len = ractive.adapt.length;
             for (i = 0; i < len; i += 1) {
@@ -836,16 +848,23 @@ var shared_adaptIfNecessary = function (adaptorRegistry, arrayAdaptor, magicAdap
                 if (adaptor.filter(value, keypath, ractive)) {
                     wrapped = ractive._wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
                     wrapped.value = value;
-                    return;
+                    return value;
                 }
             }
             if (!isExpressionResult) {
                 if (ractive.magic && magicAdaptor.filter(value, keypath, ractive)) {
+                    if (shouldClone) {
+                        value = clone(value);
+                    }
                     ractive._wrapped[keypath] = magicAdaptor.wrap(ractive, value, keypath);
                 } else if (ractive.modifyArrays && arrayAdaptor.filter(value, keypath, ractive)) {
+                    if (shouldClone) {
+                        value = value.slice();
+                    }
                     ractive._wrapped[keypath] = arrayAdaptor.wrap(ractive, value, keypath);
                 }
             }
+            return value;
         };
         function prefixKeypath(obj, prefix) {
             var prefixed = {}, key;
@@ -878,7 +897,7 @@ var shared_adaptIfNecessary = function (adaptorRegistry, arrayAdaptor, magicAdap
             }
             return prefixers[rootKeypath];
         }
-    }(registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
+    }(utils_clone, registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
 var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary) {
         
         var get, _get, retrieve;
@@ -910,7 +929,7 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
             return value;
         };
         retrieve = function (ractive, keypath) {
-            var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
+            var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
             keys = keypath.split('.');
             key = keys.pop();
             parentKeypath = keys.join('.');
@@ -929,7 +948,8 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
                 }
             }
             value = parentValue[key];
-            adaptIfNecessary(ractive, keypath, value);
+            shouldClone = !parentValue.hasOwnProperty(key);
+            value = adaptIfNecessary(ractive, keypath, value, false, shouldClone);
             ractive._cache[keypath] = value;
             return value;
         };
@@ -1026,7 +1046,7 @@ var shared_attemptKeypathResolution = function (resolveRef) {
             }
         };
     }(shared_resolveRef);
-var Ractive_prototype_shared_replaceData = function () {
+var Ractive_prototype_shared_replaceData = function (clone) {
         
         return function (ractive, keypath, value) {
             var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
@@ -1053,7 +1073,11 @@ var Ractive_prototype_shared_replaceData = function () {
                         if (!keypathToClear) {
                             keypathToClear = currentKeypath;
                         }
-                        obj[key] = /^\s*[0-9]+\s*$/.test(keys[0]) ? [] : {};
+                        if (key in obj) {
+                            obj[key] = clone(obj[key]);
+                        } else {
+                            obj[key] = /^\s*[0-9]+\s*$/.test(keys[0]) ? [] : {};
+                        }
                     }
                     obj = obj[key];
                 }
@@ -1062,7 +1086,7 @@ var Ractive_prototype_shared_replaceData = function () {
             obj[key] = value;
             return keypathToClear;
         };
-    }();
+    }(utils_clone);
 var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, midCycleUpdate, endCycleUpdate, replaceData) {
         
         var set, updateModel, getUpstreamChanges, resetWrapped;
@@ -3521,10 +3545,10 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
             update: updateMustache,
             resolve: resolveMustache,
             detach: function () {
-                var i;
+                var len, i;
                 if (this.docFrag) {
-                    i = this.nodes.length;
-                    while (i--) {
+                    len = this.nodes.length;
+                    for (i = 0; i < len; i += 1) {
                         this.docFrag.appendChild(this.nodes[i]);
                     }
                     return this.docFrag;
@@ -4194,7 +4218,7 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             if (this.isValueAttribute) {
                 node._ractive.value = value;
             }
-            if (value === undefined) {
+            if (value == undefined) {
                 value = '';
             }
             if (value !== this.value) {
@@ -5584,7 +5608,7 @@ var utils_fillGaps = function () {
         return function (target, source) {
             var key;
             for (key in source) {
-                if (source.hasOwnProperty(key) && !target.hasOwnProperty(key)) {
+                if (source.hasOwnProperty(key) && !(key in target)) {
                     target[key] = source[key];
                 }
             }
@@ -6424,8 +6448,8 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
                 var len, i;
                 if (this.docFrag) {
                     if (this.nodes) {
-                        i = this.nodes.length;
-                        while (i--) {
+                        len = this.nodes.length;
+                        for (i = 0; i < len; i += 1) {
                             this.docFrag.appendChild(this.nodes[i]);
                         }
                     } else if (this.items) {
@@ -7089,18 +7113,6 @@ var extend_conditionallyParsePartials = function (errors, parse) {
             }
         };
     }(config_errors, parse__parse);
-var extend_utils_clone = function () {
-        
-        return function (source) {
-            var target = {}, key;
-            for (key in source) {
-                if (source.hasOwnProperty(key)) {
-                    target[key] = source[key];
-                }
-            }
-            return target;
-        };
-    }();
 var utils_extend = function () {
         
         return function (target) {
@@ -7115,7 +7127,7 @@ var utils_extend = function () {
             return target;
         };
     }();
-var Ractive_initialise = function (isClient, errors, initOptions, registries, warn, create, extend, defineProperty, defineProperties, getElement, isObject, isArray, getGuid, magicAdaptor, parse) {
+var Ractive_initialise = function (isClient, errors, initOptions, registries, warn, create, extend, fillGaps, defineProperty, defineProperties, getElement, isObject, isArray, getGuid, magicAdaptor, parse) {
         
         return function (ractive, options) {
             var template, templateEl, parsedTemplate;
@@ -7229,7 +7241,7 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
                 parsedTemplate = template;
             }
             if (isObject(parsedTemplate)) {
-                extend(ractive.partials, parsedTemplate.partials);
+                fillGaps(ractive.partials, parsedTemplate.partials);
                 parsedTemplate = parsedTemplate.main;
             }
             if (parsedTemplate && parsedTemplate.length === 1 && typeof parsedTemplate[0] === 'string') {
@@ -7253,8 +7265,8 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
             ractive.transitionsEnabled = options.transitionsEnabled;
             ractive._initing = false;
         };
-    }(config_isClient, config_errors, config_initOptions, config_registries, utils_warn, utils_create, utils_extend, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, utils_isArray, utils_getGuid, Ractive_prototype_get_magicAdaptor, parse__parse);
-var extend_initChildInstance = function (initOptions, fillGaps, clone, wrapMethod, initialise) {
+    }(config_isClient, config_errors, config_initOptions, config_registries, utils_warn, utils_create, utils_extend, utils_fillGaps, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, utils_isArray, utils_getGuid, Ractive_prototype_get_magicAdaptor, parse__parse);
+var extend_initChildInstance = function (initOptions, wrapMethod, initialise) {
         
         return function (child, Child, options) {
             initOptions.keys.forEach(function (key) {
@@ -7271,7 +7283,7 @@ var extend_initChildInstance = function (initOptions, fillGaps, clone, wrapMetho
                 child.init(options);
             }
         };
-    }(config_initOptions, utils_fillGaps, extend_utils_clone, extend_wrapMethod, Ractive_initialise);
+    }(config_initOptions, extend_wrapMethod, Ractive_initialise);
 var extend__extend = function (create, defineProperties, getGuid, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
         
         var Ractive;
@@ -7297,133 +7309,10 @@ var extend__extend = function (create, defineProperties, getGuid, inheritFromPar
             return Child;
         };
     }(utils_create, utils_defineProperties, utils_getGuid, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
-var utils_promise = function () {
-        
-        var Promise, PENDING = {}, FULFILLED = {}, REJECTED = {};
-        Promise = function (callback) {
-            var fulfilledHandlers = [], rejectedHandlers = [], state = PENDING, result, dispatchHandlers, makeResolver, fulfil, reject;
-            makeResolver = function (newState) {
-                return function (value) {
-                    if (state !== PENDING) {
-                        return;
-                    }
-                    result = value;
-                    state = newState;
-                    dispatchHandlers = makeDispatcher(state === FULFILLED ? fulfilledHandlers : rejectedHandlers, result);
-                    wait(dispatchHandlers);
-                };
-            };
-            fulfil = makeResolver(FULFILLED);
-            reject = makeResolver(REJECTED);
-            callback(fulfil, reject);
-            return {
-                then: function (onFulfilled, onRejected) {
-                    var promise2 = new Promise(function (fulfil, reject) {
-                            var processResolutionHandler = function (handler, handlers, forward) {
-                                if (typeof handler === 'function') {
-                                    handlers.push(function (p1result) {
-                                        var x;
-                                        try {
-                                            x = handler(p1result);
-                                            resolve(promise2, x, fulfil, reject);
-                                        } catch (err) {
-                                            reject(err);
-                                        }
-                                    });
-                                } else {
-                                    handlers.push(forward);
-                                }
-                            };
-                            processResolutionHandler(onFulfilled, fulfilledHandlers, fulfil);
-                            processResolutionHandler(onRejected, rejectedHandlers, reject);
-                            if (state !== PENDING) {
-                                wait(dispatchHandlers);
-                            }
-                        });
-                    return promise2;
-                }
-            };
-        };
-        Promise.all = function (promises) {
-            return new Promise(function (fulfil, reject) {
-                var result = [], pending, i, processPromise;
-                processPromise = function (i) {
-                    promises[i].then(function (value) {
-                        result[i] = value;
-                        if (!--pending) {
-                            fulfil(result);
-                        }
-                    }, reject);
-                };
-                pending = i = promises.length;
-                while (i--) {
-                    processPromise(i);
-                }
-            });
-        };
-        return Promise;
-        function wait(callback) {
-            setTimeout(callback, 0);
-        }
-        function makeDispatcher(handlers, result) {
-            return function () {
-                var handler;
-                while (handler = handlers.shift()) {
-                    handler(result);
-                }
-            };
-        }
-        function resolve(promise, x, fulfil, reject) {
-            var then;
-            if (x === promise) {
-                throw new TypeError('A promise\'s fulfillment handler cannot return the same promise');
-            }
-            if (x instanceof Promise) {
-                x.then(fulfil, reject);
-            } else if (x && (typeof x === 'object' || typeof x === 'function')) {
-                try {
-                    then = x.then;
-                } catch (e) {
-                    reject(e);
-                    return;
-                }
-                if (typeof then === 'function') {
-                    var called, resolvePromise, rejectPromise;
-                    resolvePromise = function (y) {
-                        if (called) {
-                            return;
-                        }
-                        called = true;
-                        resolve(promise, y, fulfil, reject);
-                    };
-                    rejectPromise = function (r) {
-                        if (called) {
-                            return;
-                        }
-                        called = true;
-                        reject(r);
-                    };
-                    try {
-                        then.call(x, resolvePromise, rejectPromise);
-                    } catch (e) {
-                        if (!called) {
-                            reject(e);
-                            called = true;
-                            return;
-                        }
-                    }
-                } else {
-                    fulfil(x);
-                }
-            } else {
-                fulfil(x);
-            }
-        }
-    }();
-var utils_get = function (promise) {
+var utils_get = function (Promise) {
         
         return function (url) {
-            return promise(function (resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', url);
                 xhr.onload = function () {
@@ -7433,7 +7322,7 @@ var utils_get = function (promise) {
                 xhr.send();
             });
         };
-    }(utils_promise);
+    }(utils_Promise);
 var utils_resolvePath = function () {
         
         return function (relativePath, base, force) {
@@ -7473,7 +7362,7 @@ var load_getName = function () {
             return filename;
         };
     }();
-var load_makeComponent = function (circular, get, promise, resolvePath, parse, getName) {
+var load_makeComponent = function (circular, get, Promise, resolvePath, parse, getName) {
         
         var Ractive;
         circular.push(function () {
@@ -7506,7 +7395,7 @@ var load_makeComponent = function (circular, get, promise, resolvePath, parse, g
             }
             pendingImports = links.length;
             imports = {};
-            importPromise = promise(function (resolve, reject) {
+            importPromise = new Promise(function (resolve, reject) {
                 links.forEach(function (link) {
                     var href, name, resolvedPath;
                     href = link.a.href && link.a.href[0];
@@ -7561,7 +7450,7 @@ var load_makeComponent = function (circular, get, promise, resolvePath, parse, g
         function extractFragment(item) {
             return item.f;
         }
-    }(circular, utils_get, utils_promise, utils_resolvePath, parse__parse, load_getName);
+    }(circular, utils_get, utils_Promise, utils_resolvePath, parse__parse, load_getName);
 var load_loadSingle = function (circular, get, promise, resolvePath, makeComponent) {
         
         var Ractive;
@@ -7582,11 +7471,11 @@ var load_loadSingle = function (circular, get, promise, resolvePath, makeCompone
         function throwError(err) {
             throw err;
         }
-    }(circular, utils_get, utils_promise, utils_resolvePath, load_makeComponent);
-var load_loadFromLinks = function (promise, componentsRegistry, loadSingle, getName) {
+    }(circular, utils_get, utils_Promise, utils_resolvePath, load_makeComponent);
+var load_loadFromLinks = function (Promise, componentsRegistry, loadSingle, getName) {
         
         return function (callback, onerror) {
-            var p = promise(function (resolve, reject) {
+            var promise = new Promise(function (resolve, reject) {
                     var links, pending;
                     links = Array.prototype.slice.call(document.querySelectorAll('link[rel="ractive"]'));
                     pending = links.length;
@@ -7601,18 +7490,18 @@ var load_loadFromLinks = function (promise, componentsRegistry, loadSingle, getN
                     });
                 });
             if (callback) {
-                p.then(callback, onerror);
+                promise.then(callback, onerror);
             }
-            return p;
+            return promise;
         };
         function getNameFromLink(link) {
             return link.getAttribute('name') || getName(link.getAttribute('href'));
         }
-    }(utils_promise, registries_components, load_loadSingle, load_getName);
-var load_loadMultiple = function (promise, loadSingle) {
+    }(utils_Promise, registries_components, load_loadSingle, load_getName);
+var load_loadMultiple = function (Promise, loadSingle) {
         
         return function (map, callback, onerror) {
-            var p = promise(function (resolve, reject) {
+            var promise = new Promise(function (resolve, reject) {
                     var pending = 0, result = {}, name, load;
                     load = function (name) {
                         var url = map[name];
@@ -7631,11 +7520,11 @@ var load_loadMultiple = function (promise, loadSingle) {
                     }
                 });
             if (callback) {
-                p.then(callback, onerror);
+                promise.then(callback, onerror);
             }
-            return p;
+            return promise;
         };
-    }(utils_promise, load_loadSingle);
+    }(utils_Promise, load_loadSingle);
 var load__load = function (isObject, loadFromLinks, loadMultiple, loadSingle) {
         
         return function (url, callback, onError) {
