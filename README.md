@@ -6,7 +6,7 @@ Ractive.js - Next-generation DOM manipulation
 
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
 
-*<b>BETANAUTS!</b> Help improve the next version of Ractive by trying out the [pre-release 0.4.0 builds](https://github.com/Rich-Harris/Ractive/tree/0.4.0/build) and [reporting any issues](https://github.com/Rich-Harris/Ractive/issues?state=open)!*
+*<b>BETANAUTS!</b> Help improve the next version of Ractive by trying out the [pre-release 0.4.0 builds](https://github.com/RactiveJS/Ractive/tree/0.4.0/build) and [reporting any issues](https://github.com/RactiveJS/Ractive/issues?state=open)!*
 
 What is Ractive.js?
 -------------------
@@ -25,7 +25,7 @@ To get a feel for how it will make your life as a web developer easier, visit [r
 Get help
 --------
 
-If you don't find what you're looking for in the [docs](https://github.com/rich-harris/Ractive/wiki), ask a question on Stack Overflow with the `ractive` tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS) or [@Rich_Harris](http://twitter.com/Rich_Harris).
+If you don't find what you're looking for in the [docs](https://github.com/RactiveJS/Ractive/wiki), ask a question on Stack Overflow with the `ractive` tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS) or [@Rich_Harris](http://twitter.com/Rich_Harris).
 
 
 Building
