@@ -194,7 +194,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				el: fixture,
 				template: '{{#items}}<button proxy-tap="bla">Level1: {{ title }}</button>{{/items}}',
 				data: {
-					items: [{ title: 'Title1', }],
+					items: [{ title: 'Title1' }]
 				}
 			});
 

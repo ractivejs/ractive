@@ -21,7 +21,7 @@ define( function () {
 		sanitize:           false,
 		stripComments:      true,
 		delimiters:         [ '{{', '}}' ],
-		tripleDelimiters:   [ '{{{', '}}}' ],
+		tripleDelimiters:   [ '{{{', '}}}' ]
 	};
 
 	initOptions = {
