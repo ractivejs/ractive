@@ -40,40 +40,29 @@ module.exports = function(grunt) {
 		requirejs: {
 			full: {
 				options: {
-					baseUrl: 'src/',
-					name: 'Ractive',
-					out: 'tmp/Ractive.js',
-					optimize: 'none',
-					findNestedDependencies: true,
-					onBuildWrite: function( name, path, contents ) {
-						return require( 'amdclean' ).clean( contents );
-					},
-
-					wrap: {
-						startFile: 'wrapper/intro.js',
-						endFile: 'wrapper/outro.js'
-					}
+					out: 'tmp/Ractive.js'
 				}
 			},
 			runtime: {
 				options: {
-					baseUrl: 'src/',
-					name: 'Ractive',
 					out: 'tmp/Ractive.runtime.js',
-					optimize: 'none',
-					findNestedDependencies: true,
-					onBuildWrite: function( name, path, contents ) {
-						return require( 'amdclean' ).clean( contents );
-					},
-
 					paths: {
 						'parse/_parse': 'empty'
-					},
-
-					wrap: {
-						startFile: 'wrapper/intro.js',
-						endFile: 'wrapper/outro.js'
 					}
+				}
+			},
+			options: {
+				baseUrl: 'src/',
+				name: 'Ractive',
+				optimize: 'none',
+				logLevel: 2,
+				findNestedDependencies: true,
+				onBuildWrite: function( name, path, contents ) {
+					return require( 'amdclean' ).clean( contents );
+				},
+				wrap: {
+					startFile: 'wrapper/intro.js',
+					endFile: 'wrapper/outro.js'
 				}
 			}
 		},
