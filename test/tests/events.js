@@ -354,7 +354,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( tapped, true );
 		});
 
-		test( 'Pressing spacebar on a focused button results in a tap event', function ( t ) {
+		asyncTest( 'Pressing spacebar on a focused button results in a tap event', function ( t ) {
 			var ractive, node, tapped;
 
 			ractive = new Ractive({
@@ -376,7 +376,11 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			node.focus();
 			t.equal( document.activeElement, node );
 			simulant.fire( node, 'keydown', { which: 32 });
-			t.equal( tapped, true );
+
+			setTimeout( function () {
+				t.ok( tapped );
+				start();
+			}, 0 );
 		});
 
 		test( 'Calling ractive.off() without a keypath removes all handlers', function ( t ) {
