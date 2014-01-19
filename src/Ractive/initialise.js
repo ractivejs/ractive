@@ -6,6 +6,7 @@ define([
 	'utils/warn',
 	'utils/create',
 	'utils/extend',
+	'utils/fillGaps',
 	'utils/defineProperty',
 	'utils/defineProperties',
 	'utils/getElement',
@@ -22,6 +23,7 @@ define([
 	warn,
 	create,
 	extend,
+	fillGaps,
 	defineProperty,
 	defineProperties,
 	getElement,
@@ -199,7 +201,7 @@ define([
 
 		// deal with compound template
 		if ( isObject( parsedTemplate ) ) {
-			extend( ractive.partials, parsedTemplate.partials );
+			fillGaps( ractive.partials, parsedTemplate.partials );
 			parsedTemplate = parsedTemplate.main;
 		}
 
