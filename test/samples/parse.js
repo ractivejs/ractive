@@ -333,6 +333,11 @@ var parseTests = [
 		name: 'Array members in section tags',
 		template: '{{#foo[0]}}bar{{/foo[0]}}',
 		parsed: [{t:4,r:'foo.0',f:'bar'}]
+	},
+	{
+		name: 'Reference this is an invalid expression',
+		template: '{{0.foo}}',
+		parsed: [{t:2,r:'0.foo'}]
 	}
 ];
 
