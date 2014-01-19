@@ -1193,6 +1193,19 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, ' you are <i>very puzzled now</i>' );
 		});
 
+
+		test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}">',
+				data: {
+					foo: null
+				}
+			});
+
+			t.equal( ractive.find( 'input' ).value, '' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

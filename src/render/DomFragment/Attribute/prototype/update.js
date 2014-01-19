@@ -233,7 +233,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 			node._ractive.value = value;
 		}
 
-		if ( value === undefined ) {
+		if ( value == undefined ) {
 			value = '';
 		}
 
