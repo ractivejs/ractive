@@ -1247,6 +1247,29 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( ractive.find( 'input' ).value, '' );
 		});
 
+		test( 'Array mutators work when `magic` is `true` (#376)', function ( t ) {
+			var ractive, items;
+
+			items = [
+				{ name: 'one' },
+				{ name: 'two' },
+				{ name: 'three' }
+			];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{name}}{{/items}}',
+				magic: true,
+				data: {
+					items: items
+				}
+			});
+
+			ractive.data.items.push({ name: 'four' });
+
+			t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
