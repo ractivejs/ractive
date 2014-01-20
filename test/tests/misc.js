@@ -1270,6 +1270,28 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
 		});
 
+		test( 'Implicit iterators work in magic mode', function ( t ) {
+			var ractive, items;
+
+			items = [
+				{ name: 'one' },
+				{ name: 'two' },
+				{ name: 'three' }
+			];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#.}}{{name}}{{/.}}',
+				magic: true,
+				data: items
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'onetwothree' );
+
+			ractive.data[2].name = 'threefourfive';
+			t.htmlEqual( fixture.innerHTML, 'onetwothreefourfive' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

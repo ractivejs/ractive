@@ -24,6 +24,7 @@ define( function () {
 
 		this.ractive = ractive;
 		this.keypath = keypath;
+		this.value = object;
 
 		keys = keypath.split( '.' );
 
