@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-18
+	Ractive - v0.4.0-pre - 2014-01-19
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1060,6 +1060,7 @@ var Ractive_prototype_get_magicAdaptor = function () {
             var wrapper = this, keys, prop, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
             this.ractive = ractive;
             this.keypath = keypath;
+            this.value = object;
             keys = keypath.split('.');
             this.prop = keys.pop();
             objKeypath = keys.join('.');
@@ -1132,7 +1133,40 @@ var Ractive_prototype_get_magicAdaptor = function () {
         };
         return magicAdaptor;
     }();
-var shared_adaptIfNecessary = function (clone, adaptorRegistry, arrayAdaptor, magicAdaptor) {
+var Ractive_prototype_get_magicArrayAdaptor = function (magicAdaptor, arrayAdaptor) {
+        
+        if (!magicAdaptor) {
+            return false;
+        }
+        var magicArrayAdaptor, MagicArrayWrapper;
+        magicArrayAdaptor = {
+            filter: function (object, keypath) {
+                return magicAdaptor.filter(object, keypath) && arrayAdaptor.filter(object);
+            },
+            wrap: function (ractive, array, keypath) {
+                return new MagicArrayWrapper(ractive, array, keypath);
+            }
+        };
+        MagicArrayWrapper = function (ractive, array, keypath) {
+            this.value = array;
+            this.magicWrapper = magicAdaptor.wrap(ractive, array, keypath);
+            this.arrayWrapper = arrayAdaptor.wrap(ractive, array, keypath);
+        };
+        MagicArrayWrapper.prototype = {
+            get: function () {
+                return this.value;
+            },
+            teardown: function () {
+                this.arrayWrapper.teardown();
+                this.magicWrapper.teardown();
+            },
+            reset: function () {
+                return this.magicWrapper.reset();
+            }
+        };
+        return magicArrayAdaptor;
+    }(Ractive_prototype_get_magicAdaptor, Ractive_prototype_get_arrayAdaptor);
+var shared_adaptIfNecessary = function (clone, adaptorRegistry, arrayAdaptor, magicAdaptor, magicArrayAdaptor) {
         
         var prefixers = {};
         return function (ractive, keypath, value, isExpressionResult, shouldClone) {
@@ -1153,11 +1187,18 @@ var shared_adaptIfNecessary = function (clone, adaptorRegistry, arrayAdaptor, ma
                 }
             }
             if (!isExpressionResult) {
-                if (ractive.magic && magicAdaptor.filter(value, keypath, ractive)) {
-                    if (shouldClone) {
-                        value = clone(value);
+                if (ractive.magic) {
+                    if (magicArrayAdaptor.filter(value, keypath, ractive)) {
+                        if (shouldClone) {
+                            value = value.slice();
+                        }
+                        ractive._wrapped[keypath] = magicArrayAdaptor.wrap(ractive, value, keypath);
+                    } else if (magicAdaptor.filter(value, keypath, ractive)) {
+                        if (shouldClone) {
+                            value = clone(value);
+                        }
+                        ractive._wrapped[keypath] = magicAdaptor.wrap(ractive, value, keypath);
                     }
-                    ractive._wrapped[keypath] = magicAdaptor.wrap(ractive, value, keypath);
                 } else if (ractive.modifyArrays && arrayAdaptor.filter(value, keypath, ractive)) {
                     if (shouldClone) {
                         value = value.slice();
@@ -1198,7 +1239,7 @@ var shared_adaptIfNecessary = function (clone, adaptorRegistry, arrayAdaptor, ma
             }
             return prefixers[rootKeypath];
         }
-    }(utils_clone, registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor);
+    }(utils_clone, registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor, Ractive_prototype_get_magicArrayAdaptor);
 var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary) {
         
         var get, _get, retrieve;
@@ -3886,6 +3927,9 @@ var render_DomFragment_Triple = function (types, matches, initMustache, updateMu
                 if (!this.initialising) {
                     pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
                 }
+                if (pNode.tagName === 'SELECT' && pNode._ractive && pNode._ractive.binding) {
+                    pNode._ractive.binding.update();
+                }
             },
             toString: function () {
                 return this.value != undefined ? this.value : '';
@@ -4133,16 +4177,18 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
         };
         MultipleSelectBinding.prototype = {
             value: function () {
-                var value, options, i, len;
-                value = [];
+                var selectedValues, options, i, len, option, optionValue;
+                selectedValues = [];
                 options = this.node.options;
                 len = options.length;
                 for (i = 0; i < len; i += 1) {
-                    if (options[i].selected) {
-                        value[value.length] = options[i]._ractive.value;
+                    option = options[i];
+                    if (option.selected) {
+                        optionValue = option._ractive ? option._ractive.value : option.value;
+                        selectedValues.push(optionValue);
                     }
                 }
-                return value;
+                return selectedValues;
             },
             update: function () {
                 var attribute, previousValue, value;
@@ -4179,12 +4225,14 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
         };
         SelectBinding.prototype = {
             value: function () {
-                var options, i, len;
+                var options, i, len, option, optionValue;
                 options = this.node.options;
                 len = options.length;
                 for (i = 0; i < len; i += 1) {
+                    option = options[i];
                     if (options[i].selected) {
-                        return options[i]._ractive.value;
+                        optionValue = option._ractive ? option._ractive.value : option.value;
+                        return optionValue;
                     }
                 }
             },
@@ -4427,13 +4475,14 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             return this;
         };
         updateSelect = function () {
-            var value = this.fragment.getValue(), options, option, i;
+            var value = this.fragment.getValue(), options, option, optionValue, i;
             this.value = this.pNode._ractive.value = value;
             options = this.pNode.options;
             i = options.length;
             while (i--) {
                 option = options[i];
-                if (option._ractive.value == value) {
+                optionValue = option._ractive ? option._ractive.value : option.value;
+                if (optionValue == value) {
                     option.selected = true;
                     return this;
                 }
@@ -4441,14 +4490,16 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             return this;
         };
         updateMultipleSelect = function () {
-            var value = this.fragment.getValue(), options, i;
+            var value = this.fragment.getValue(), options, i, option, optionValue;
             if (!isArray(value)) {
                 value = [value];
             }
             options = this.pNode.options;
             i = options.length;
             while (i--) {
-                options[i].selected = value.indexOf(options[i]._ractive.value) !== -1;
+                option = options[i];
+                optionValue = option._ractive ? option._ractive.value : option.value;
+                option.selected = value.indexOf(optionValue) !== -1;
             }
             this.value = value;
             return this;
@@ -6444,7 +6495,7 @@ var parse_Tokenizer_getMustache_getMustacheContent = function (types, makeRegexM
         
         var getIndexRef = makeRegexMatcher(/^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/), arrayMember = /^[0-9][1-9]*$/;
         return function (tokenizer, isTriple) {
-            var start, mustache, type, expr, i, remaining, index;
+            var start, mustache, type, expr, i, remaining, index, delimiter;
             start = tokenizer.pos;
             mustache = { type: isTriple ? types.TRIPLE : types.MUSTACHE };
             if (!isTriple) {
@@ -6479,6 +6530,18 @@ var parse_Tokenizer_getMustache_getMustacheContent = function (types, makeRegexM
             if (!expr) {
                 tokenizer.allowWhitespace();
                 expr = tokenizer.getExpression();
+                remaining = tokenizer.remaining();
+                delimiter = isTriple ? tokenizer.tripleDelimiters[1] : tokenizer.delimiters[1];
+                if (remaining.substr(0, delimiter.length) !== delimiter && remaining.charAt(0) !== ':') {
+                    tokenizer.pos = start;
+                    remaining = tokenizer.remaining();
+                    index = remaining.indexOf(tokenizer.delimiters[1]);
+                    if (index !== -1) {
+                        mustache.ref = remaining.substr(0, index).trim();
+                        tokenizer.pos += index;
+                        return mustache;
+                    }
+                }
             }
             while (expr.t === types.BRACKETED && expr.x) {
                 expr = expr.x;
