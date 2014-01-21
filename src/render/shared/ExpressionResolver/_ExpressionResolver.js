@@ -1,11 +1,13 @@
 define([
 	'render/shared/Evaluator/_Evaluator',
 	'render/shared/ExpressionResolver/ReferenceScout',
+	'render/shared/ExpressionResolver/getUniqueString',
 	'render/shared/ExpressionResolver/getKeypath',
 	'render/shared/ExpressionResolver/reassignDependants'
 ], function (
 	Evaluator,
 	ReferenceScout,
+	getUniqueString,
 	getKeypath,
 	reassignDependants
 ) {
@@ -61,7 +63,8 @@ define([
 			}
 
 			oldKeypath = this.keypath;
-			this.keypath = getKeypath( this.str, this.args );
+			this.uniqueString = getUniqueString( this.str, this.args );
+			this.keypath = getKeypath( this.uniqueString );
 
 			if ( this.keypath.substr( 0, 2 ) === '${' ) {
 				this.createEvaluator();
@@ -96,7 +99,7 @@ define([
 		createEvaluator: function () {
 			// only if it doesn't exist yet!
 			if ( !this.root._evaluators[ this.keypath ] ) {
-				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.str, this.args, this.mustache.priority );
+				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.mustache.priority );
 			}
 
 			else {

@@ -1,4 +1,5 @@
 define([
+	'utils/warn',
 	'utils/isEqual',
 	'utils/defineProperty',
 	'shared/clearCache',
@@ -9,6 +10,7 @@ define([
 	'render/shared/Evaluator/Reference',
 	'render/shared/Evaluator/SoftReference'
 ], function (
+	warn,
 	isEqual,
 	defineProperty,
 	clearCache,
@@ -24,10 +26,11 @@ define([
 
 	var Evaluator, cache = {};
 
-	Evaluator = function ( root, keypath, functionStr, args, priority ) {
+	Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority ) {
 		var i, arg;
 
 		this.root = root;
+		this.uniqueString = uniqueString;
 		this.keypath = keypath;
 		this.priority = priority;
 
@@ -87,10 +90,10 @@ define([
 				value = this.fn.apply( null, this.values );
 			} catch ( err ) {
 				if ( this.root.debug ) {
-					throw err;
-				} else {
-					value = undefined;
+					warn( 'Error evaluating "' + this.uniqueString + '": ' + err.message || err );
 				}
+
+				value = undefined;
 			}
 
 			if ( !isEqual( value, this.value ) ) {
