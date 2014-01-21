@@ -13,16 +13,10 @@
 	<script src='../vendor/simulant.js'></script>
 	<script src='../vendor/require.js'></script>
 
-	<script src='../../src/legacy.js'></script>
-
 	<script>
-		require.config({
-			baseUrl: '../../src/'
-		});
-
-		require([ '../test/tests/parse' ], function ( parse ) {
-			parse();
-		});
+		_modules = [ 'parse' ];
 	</script>
+
+	<script src='runTests.js'></script>
 </body>
 </html>

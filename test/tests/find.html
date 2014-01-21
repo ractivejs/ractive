@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>Mustache | Ractive Test Suite</title>
+	<title>Find | Ractive Test Suite</title>
 	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
 </head>
 <body>
@@ -13,16 +13,10 @@
 	<script src='../vendor/simulant.js'></script>
 	<script src='../vendor/require.js'></script>
 
-	<script src='../../src/legacy.js'></script>
-
 	<script>
-		require.config({
-			baseUrl: '../../src/'
-		});
-
-		require([ '../test/tests/mustache' ], function ( mustache ) {
-			mustache();
-		});
+		_modules = [ 'find' ];
 	</script>
+
+	<script src='runTests.js'></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
+define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 	'use strict';
 
@@ -749,22 +749,6 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			}
 		});
 
-		test( 'Attempting to set up two-way binding against an expression throws an error', function ( t ) {
-			var ractive;
-
-			expect( 1 );
-
-			try {
-				ractive = new Ractive({
-					el: fixture,
-					template: '<input value="{{ foo[bar] }}">',
-					debug: true
-				});
-			} catch ( err ) {
-				t.ok( err );
-			}
-		});
-
 		test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to implode', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
@@ -1035,7 +1019,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget wrappedThing="{{thing}}"/>',
-				adaptors: [ 'foo' ],
+				adapt: [ 'foo' ],
 				data: {
 					thing: new Foo( 'whee!' )
 				}

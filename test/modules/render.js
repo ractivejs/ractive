@@ -3,7 +3,7 @@
 //
 // TODO: add moar tests
 
-define([ 'Ractive', '../samples/render' ], function ( Ractive, tests ) {
+define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 	window.Ractive = Ractive;
 

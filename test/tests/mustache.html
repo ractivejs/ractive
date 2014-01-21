@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>Events | Ractive Test Suite</title>
+	<title>Mustache | Ractive Test Suite</title>
 	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
 </head>
 <body>
@@ -13,17 +13,10 @@
 	<script src='../vendor/simulant.js'></script>
 	<script src='../vendor/require.js'></script>
 
-	<script src='../../src/legacy.js'></script>
-
 	<script>
-		QUnit.config.autostart = false;
-
-		require.config({ baseUrl: '../../tmp' });
-
-		require([ '../test/tests/events' ], function ( events ) {
-			events();
-			QUnit.start();
-		});
+		_modules = [ 'mustache' ];
 	</script>
+
+	<script src='runTests.js'></script>
 </body>
 </html>

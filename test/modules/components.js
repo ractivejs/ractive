@@ -260,9 +260,9 @@ define([ 'Ractive' ], function ( Ractive ) {
 		});
 
 		test( 'Component complete() methods are called', function ( t ) {
-			var ractive, ractiveCompleted, widgetCompleted;
+			var ractive, ractiveCompleted, Widget, widgetCompleted;
 
-			Ractive.components.widget = Ractive.extend({
+			Widget = Ractive.extend({
 				complete: function () {
 					widgetCompleted = true;
 				}
@@ -273,6 +273,9 @@ define([ 'Ractive' ], function ( Ractive ) {
 				template: '<widget/>',
 				complete: function () {
 					ractiveCompleted = true;
+				},
+				components: {
+					widget: Widget
 				}
 			});
 

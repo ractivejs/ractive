@@ -21,8 +21,12 @@ define([ 'Ractive' ], function ( Ractive ) {
 			template: '<p>I am a decoy</p>'
 		});
 
-		Ractive.components.widget = Widget;
-		Ractive.components.decoy = Decoy;
+		Ractive = Ractive.extend({
+			components: {
+				widget: Widget,
+				decoy: Decoy
+			}
+		});
 
 		test( 'find() works with a string-only template', function ( t ) {
 			var ractive;
@@ -177,8 +181,6 @@ define([ 'Ractive' ], function ( Ractive ) {
 			});
 
 			widgets = ractive.findAllComponents( 'widget', { live: true });
-
-			window.widgets = widgets;
 
 			t.equal( widgets.length, 3 );
 			t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget && widgets[2] instanceof Widget );
