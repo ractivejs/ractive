@@ -17,7 +17,7 @@ define([
 
 		// If this fragment was rendered with innerHTML, we have nothing to do
 		// TODO a less hacky way of determining this
-		if ( fragment.html ) {
+		if ( fragment.html !== undefined ) {
 			return;
 		}
 

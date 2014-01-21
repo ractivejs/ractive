@@ -1,12 +1,24 @@
 define([
+	'legacy',
+	'config/isClient',
 	'utils/isArray',
 	'render/DomFragment/Element/shared/executeTransition/Transition/helpers/prefix',
 ], function (
+	legacy,
+	isClient,
 	isArray,
 	prefix
 ) {
 
 	'use strict';
+
+	var getComputedStyle;
+
+	if ( !isClient ) {
+		return;
+	}
+
+	getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
 	return function ( props ) {
 		var computedStyle, styles, i, prop, value;

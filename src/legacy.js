@@ -1,8 +1,16 @@
-(function ( win ) {
+define( function () {
 
 	'use strict';
 
-	var doc = win.document;
+	var win, doc, exportedShims;
+
+	if ( typeof window === 'undefined' ) {
+		return;
+	}
+
+	win = window;
+	doc = win.document;
+	exportedShims = {};
 
 	if ( !doc ) {
 		return;
@@ -221,9 +229,12 @@
 	}
 
 
+	// The getComputedStyle polyfill interacts badly with jQuery, so we don't attach
+	// it to window. Instead, we export it for other modules to use as needed
+
 	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
 	if ( !win.getComputedStyle ) {
-		win.getComputedStyle = (function () {
+		exportedShims.getComputedStyle = (function () {
 			function getPixelSize(element, style, property, fontSize) {
 				var
 				sizeWithSuffix = style[property],
@@ -297,4 +308,6 @@
 		}());
 	}
 
-}( typeof window !== 'undefined' ? window : this ));
+	return exportedShims;
+
+});

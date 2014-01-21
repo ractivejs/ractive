@@ -1,10 +1,14 @@
 define([
+	'legacy',
+	'config/isClient',
 	'utils/warn',
 	'utils/Promise',
 	'render/DomFragment/Element/shared/executeTransition/Transition/helpers/prefix',
 	'render/DomFragment/Element/shared/executeTransition/Transition/helpers/unprefix',
 	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/animateStyle/createTransitions'
 ], function (
+	legacy,
+	isClient,
 	warn,
 	Promise,
 	prefix,
@@ -13,6 +17,14 @@ define([
 ) {
 
 	'use strict';
+
+	var getComputedStyle;
+
+	if ( !isClient ) {
+		return;
+	}
+
+	getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
 	return function ( style, value, options, complete ) {
 
