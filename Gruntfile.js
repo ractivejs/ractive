@@ -24,14 +24,14 @@ module.exports = function(grunt) {
 		},
 
 		qunit: {
-			parse:      [ 'test/build/parse.html'      ],
-			render:     [ 'test/build/render.html'     ],
-			mustache:   [ 'test/build/mustache.html'   ],
-			events:     [ 'test/build/events.html'     ],
-			misc:       [ 'test/build/misc.html'       ],
-			components: [ 'test/build/components.html' ],
-			merge:      [ 'test/build/merge.html'      ],
-			observe:    [ 'test/build/observe.html'    ],
+			parse:      [ 'test/tests/parse.html'      ],
+			render:     [ 'test/tests/render.html'     ],
+			mustache:   [ 'test/tests/mustache.html'   ],
+			events:     [ 'test/tests/events.html'     ],
+			misc:       [ 'test/tests/misc.html'       ],
+			components: [ 'test/tests/components.html' ],
+			merge:      [ 'test/tests/merge.html'      ],
+			observe:    [ 'test/tests/observe.html'    ],
 			options: {
 				timeout: 30000
 			}
@@ -40,14 +40,31 @@ module.exports = function(grunt) {
 		requirejs: {
 			full: {
 				options: {
-					out: 'tmp/Ractive.js'
+					out: 'tmp/Ractive.js',
+					paths: {
+						'legacy': 'empty/legacy'
+					}
+				}
+			},
+			legacy: {
+				options: {
+					out: 'tmp/Ractive-legacy.js'
 				}
 			},
 			runtime: {
 				options: {
 					out: 'tmp/Ractive.runtime.js',
 					paths: {
-						'parse/_parse': 'empty'
+						'parse/_parse': 'empty/parse',
+						'legacy': 'empty/legacy'
+					}
+				}
+			},
+			runtime_legacy: {
+				options: {
+					out: 'tmp/Ractive.runtime-legacy.js',
+					paths: {
+						'parse/_parse': 'empty/parse'
 					}
 				}
 			},
