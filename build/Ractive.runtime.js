@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-19
+	Ractive - v0.4.0-pre - 2014-01-20
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -2630,12 +2630,13 @@ var render_shared_Evaluator_SoftReference = function (isEqual, registerDependant
         };
         return SoftReference;
     }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference) {
+var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference) {
         
         var Evaluator, cache = {};
-        Evaluator = function (root, keypath, functionStr, args, priority) {
+        Evaluator = function (root, keypath, uniqueString, functionStr, args, priority) {
             var i, arg;
             this.root = root;
+            this.uniqueString = uniqueString;
             this.keypath = keypath;
             this.priority = priority;
             this.fn = getFunctionFromString(functionStr, args.length);
@@ -2675,10 +2676,9 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
                     value = this.fn.apply(null, this.values);
                 } catch (err) {
                     if (this.root.debug) {
-                        throw err;
-                    } else {
-                        value = undefined;
+                        warn('Error evaluating "' + this.uniqueString + '": ' + err.message || err);
                     }
+                    value = undefined;
                 }
                 if (!isEqual(value, this.value)) {
                     clearCache(this.root, this.keypath);
@@ -2751,7 +2751,7 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
             cache[str] = fn;
             return fn;
         }
-    }(utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
+    }(utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
 var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, teardown) {
         
         var ReferenceScout = function (resolver, ref, contextStack, argNum) {
@@ -2781,6 +2781,14 @@ var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, tear
         };
         return ReferenceScout;
     }(shared_resolveRef, shared_teardown);
+var render_shared_ExpressionResolver_getUniqueString = function () {
+        
+        return function (str, args) {
+            return str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
+                return args[$1] ? args[$1][1] : 'undefined';
+            });
+        };
+    }();
 var render_shared_ExpressionResolver_isRegularKeypath = function () {
         
         var keyPattern = /^(?:(?:[a-zA-Z$_][a-zA-Z$_0-9]*)|(?:[0-9]|[1-9][0-9]+))$/;
@@ -2799,16 +2807,13 @@ var render_shared_ExpressionResolver_isRegularKeypath = function () {
     }();
 var render_shared_ExpressionResolver_getKeypath = function (normaliseKeypath, isRegularKeypath) {
         
-        return function (str, args) {
-            var unique, normalised;
-            unique = str.replace(/\$\{([0-9]+)\}/g, function (match, $1) {
-                return args[$1] ? args[$1][1] : 'undefined';
-            });
-            normalised = normaliseKeypath(unique);
+        return function (uniqueString) {
+            var normalised;
+            normalised = normaliseKeypath(uniqueString);
             if (isRegularKeypath(normalised)) {
                 return normalised;
             }
-            return '${' + unique.replace(/[\.\[\]]/g, '-') + '}';
+            return '${' + normalised.replace(/[\.\[\]]/g, '-') + '}';
         };
     }(utils_normaliseKeypath, render_shared_ExpressionResolver_isRegularKeypath);
 var render_shared_ExpressionResolver_reassignDependants = function (registerDependant, unregisterDependant) {
@@ -2855,7 +2860,7 @@ var render_shared_ExpressionResolver_reassignDependants = function (registerDepe
             cascade(ractive, oldKeypath, toReassign);
         }
     }(shared_registerDependant, shared_unregisterDependant);
-var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, ReferenceScout, getKeypath, reassignDependants) {
+var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, ReferenceScout, getUniqueString, getKeypath, reassignDependants) {
         
         var ExpressionResolver = function (mustache) {
             var expression, i, len, ref, indexRefs;
@@ -2890,7 +2895,8 @@ var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, 
                     return;
                 }
                 oldKeypath = this.keypath;
-                this.keypath = getKeypath(this.str, this.args);
+                this.uniqueString = getUniqueString(this.str, this.args);
+                this.keypath = getKeypath(this.uniqueString);
                 if (this.keypath.substr(0, 2) === '${') {
                     this.createEvaluator();
                 }
@@ -2915,14 +2921,14 @@ var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, 
             },
             createEvaluator: function () {
                 if (!this.root._evaluators[this.keypath]) {
-                    this.root._evaluators[this.keypath] = new Evaluator(this.root, this.keypath, this.str, this.args, this.mustache.priority);
+                    this.root._evaluators[this.keypath] = new Evaluator(this.root, this.keypath, this.uniqueString, this.str, this.args, this.mustache.priority);
                 } else {
                     this.root._evaluators[this.keypath].refresh();
                 }
             }
         };
         return ExpressionResolver;
-    }(render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants);
+    }(render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants);
 var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
@@ -3138,7 +3144,7 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
         return reassignFragment;
         function reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath) {
             var i, item, context, query;
-            if (fragment.html) {
+            if (fragment.html !== undefined) {
                 return;
             }
             if (fragment.indexRefs && fragment.indexRefs[indexRef] !== undefined) {
@@ -5207,6 +5213,8 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_ini
             this._fn.apply(this.root, [this].concat(this.params));
         };
     }();
+var legacy = function () {
+    }();
 var render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix = function (isClient, vendors, createElement) {
         
         var prefixCache, testStyle;
@@ -5235,8 +5243,13 @@ var render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefi
             return prefixCache[prop];
         };
     }(config_isClient, config_vendors, utils_createElement);
-var render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle = function (isArray, prefix) {
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle = function (legacy, isClient, isArray, prefix) {
         
+        var getComputedStyle;
+        if (!isClient) {
+            return;
+        }
+        getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
         return function (props) {
             var computedStyle, styles, i, prop, value;
             computedStyle = window.getComputedStyle(this.node);
@@ -5262,7 +5275,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_get
             }
             return styles;
         };
-    }(utils_isArray, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix);
+    }(legacy, config_isClient, utils_isArray, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix);
 var render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle = function (prefix) {
         
         return function (style, value) {
@@ -5601,8 +5614,13 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_ani
             }, options.delay || 0);
         };
     }(config_isClient, utils_warn, utils_Promise, utils_createElement, utils_camelCase, shared_interpolate, shared_Ticker, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_hyphenate);
-var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle = function (warn, Promise, prefix, unprefix, createTransitions) {
+var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle = function (legacy, isClient, warn, Promise, prefix, unprefix, createTransitions) {
         
+        var getComputedStyle;
+        if (!isClient) {
+            return;
+        }
+        getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
         return function (style, value, options, complete) {
             var t = this, to;
             if (typeof style === 'string') {
@@ -5653,7 +5671,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_ani
             }
             return promise;
         };
-    }(utils_warn, utils_Promise, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions);
+    }(legacy, config_isClient, utils_warn, utils_Promise, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions);
 var utils_fillGaps = function () {
         
         return function (target, source) {
@@ -7617,16 +7635,20 @@ var Ractive__Ractive = function (initOptions, svg, create, defineProperties, pro
         circular.Ractive = Ractive;
         return Ractive;
     }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, registries_interpolators, utils_Promise, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
-var Ractive = function (Ractive, circular) {
+var Ractive = function (Ractive, circular, legacy) {
         
-        if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {
-            window.Node.prototype.contains = window.HTMLElement.prototype.contains;
-        }
+        var FUNCTION = 'function';
         while (circular.length) {
             circular.pop()();
         }
+        if (typeof Date.now !== FUNCTION || typeof String.prototype.trim !== FUNCTION || typeof Object.keys !== FUNCTION || typeof Array.prototype.indexOf !== FUNCTION || typeof Array.prototype.forEach !== FUNCTION || typeof Array.prototype.map !== FUNCTION || typeof Array.prototype.filter !== FUNCTION || typeof window !== 'undefined' && typeof window.addEventListener !== FUNCTION) {
+            throw new Error('It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.');
+        }
+        if (typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains) {
+            window.Node.prototype.contains = window.HTMLElement.prototype.contains;
+        }
         return Ractive;
-    }(Ractive__Ractive, circular);
+    }(Ractive__Ractive, circular, legacy);
 // export as Common JS module...
 if ( typeof module !== "undefined" && module.exports ) {
 	module.exports = Ractive;
