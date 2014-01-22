@@ -1275,7 +1275,32 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			ractive.data[2].name = 'threefourfive';
 			t.htmlEqual( fixture.innerHTML, 'onetwothreefourfive' );
 		});
+		
+		test( 'Referencing parent data context in magic mode does not break decorators', function ( t ) {
+			var ractive, data;
 
+			data = {
+				item: { name: 'one' },
+				foo: {
+					bar: 'biz'
+				}
+			};
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{foo}}"></span>{{/item}}',
+				magic: true,
+				data: data,
+				decorators: {
+					decorateme: function(node, foo){
+						node.innerHTML = foo ? foo.bar : 'fail';
+						return { teardown: function () {} };
+					}
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bizone<span>biz</span>' );
+		});
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
