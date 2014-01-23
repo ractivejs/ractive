@@ -34,6 +34,30 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>blah</p>' );
 		});
 
+		test( 'Static object data is propagated from parent to child', function ( t ) {
+			var Widget, ractive, widget;
+
+			Widget = Ractive.extend({
+				template: '<p>{{foo.bar}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{ { bar: \'biz\' } }}"/>',
+				components: {
+					widget: Widget
+				}
+			});
+
+			widget = ractive.findComponent( 'widget' );
+			t.deepEqual( widget.get( 'foo' ), { bar: 'biz' } );
+			t.htmlEqual( fixture.innerHTML, '<p>biz</p>' );
+
+			widget.set('foo.bar', 'bah')
+			t.deepEqual( widget.get( 'foo' ), { bar: 'bah' } );
+			t.htmlEqual( fixture.innerHTML, '<p>bah</p>' );
+		});
+
 		test( 'Dynamic data is propagated from parent to child, and (two-way) bindings are created', function ( t ) {
 			var Widget, ractive, widget;
 
