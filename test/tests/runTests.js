@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	var isBuild, config;
+	var isBuild, config, i, prefixedModules = [];
 
 	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
 		isBuild = true;
@@ -29,9 +29,13 @@
 
 	require.config( config );
 
-	require( _modules.map( function ( test ) {
-		return 'modules/' + test;
-	}), function () {
+	// can't use .map() because of IE...
+	i = _modules.length;
+	while ( i-- ) {
+		prefixedModules[i] = 'modules/' + _modules[i];
+	}
+
+	require( prefixedModules, function () {
 		Array.prototype.slice.call( arguments ).forEach( function ( testSet ) {
 			testSet();
 		});
