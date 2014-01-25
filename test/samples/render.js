@@ -343,16 +343,42 @@ var renderTests = [
 	},
 	{
 		name: 'Triples work correctly inside table elements',
-		template: '<table>{{{row}}}</table>',
-		data: { row: '<tr><td>works</td></tr>' },
-		result: '<table><tr><td>works</td></tr></table>',
-		new_data: { row: '<tr><td>still works</td></tr>' },
-		new_result: '<table><tr><td>still works</td></tr></table>'
+		template: '<table>{{{row}}}</table>' +
+		          '<table><thead>{{{headerRow}}}</thead></table>' +
+		          '<table><tbody>{{{row}}}</tbody></table>' +
+		          '<table><tr>{{{cell}}}</tr></table>' +
+		          '<table><tr><td>{{{cellContents}}}</td></tr></table>' +
+		          '<table><tr><th>{{{cellContents}}}</th></tr></table>',
+		data: {
+			row: '<tr><td>works</td></tr>',
+			headerRow: '<tr><th>works</th></tr>',
+			cell: '<td>works</td>',
+			cellContents: 'works'
+		},
+		result: '<table><tr><td>works</td></tr></table>' +
+		        '<table><thead><tr><th>works</th></tr></thead></table>' +
+		        '<table><tbody><tr><td>works</td></tr></tbody></table>' +
+		        '<table><tr><td>works</td></tr></table>' +
+		        '<table><tr><td>works</td></tr></table>' +
+		        '<table><tr><th>works</th></tr></table>',
+		new_data: {
+			row: '<tr><td>still works</td></tr>',
+			headerRow: '<tr><th>still works</th></tr>',
+			cell: '<td>still works</td>',
+			cellContents: 'still works'
+		},
+		new_result: '<table><tr><td>still works</td></tr></table>' +
+		            '<table><thead><tr><th>still works</th></tr></thead></table>' +
+		            '<table><tbody><tr><td>still works</td></tr></tbody></table>' +
+		            '<table><tr><td>still works</td></tr></table>' +
+		            '<table><tr><td>still works</td></tr></table>' +
+		            '<table><tr><th>still works</th></tr></table>'
 	},
 	{
 		name: 'Class name on an SVG element',
 		template: '<svg><text class="label">foo</text></svg>',
-		result: '<svg><text class=label>foo</text></svg>'
+		result: '<svg><text class=label>foo</text></svg>',
+		svg: true
 	},
 	{
 		name: 'Multiple angle brackets are correctly escaped, both with render() and renderHTML()',
