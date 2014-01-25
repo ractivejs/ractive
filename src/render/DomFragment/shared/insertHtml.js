@@ -14,10 +14,11 @@ define([
 		ieBug = true;
 
 		ieBlacklist = {
-			TABLE: [ '<table class="x">', '</table>' ],
-			THEAD: [ '<table><thead class="x">', '</thead></table>' ],
-			TBODY: [ '<table><tbody class="x">', '</tbody></table>' ],
-			TR: [ '<table><tr class="x">', '</tr></table>' ]
+			TABLE:  [ '<table class="x">', '</table>' ],
+			THEAD:  [ '<table><thead class="x">', '</thead></table>' ],
+			TBODY:  [ '<table><tbody class="x">', '</tbody></table>' ],
+			TR:     [ '<table><tr class="x">', '</tr></table>' ],
+			SELECT: [ '<select class="x">', '</select>' ]
 		}
 	}
 

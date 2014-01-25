@@ -375,6 +375,14 @@ var renderTests = [
 		            '<table><tr><th>still works</th></tr></table>'
 	},
 	{
+		name: 'Triples work correctly inside select elements',
+		template: '<select>{{{options}}}</select>',
+		data: { options: '<option value="1">one</option><option value="2">two</option><option value="3">three</option>' },
+		result: '<select><option value="1">one</option><option value="2">two</option><option value="3">three</option></select>',
+		new_data: { options: '<option value="4">four</option><option value="5">five</option><option value="6">six</option>' },
+		new_result: '<select><option value="4">four</option><option value="5">five</option><option value="6">six</option></select>'
+	},
+	{
 		name: 'Class name on an SVG element',
 		template: '<svg><text class="label">foo</text></svg>',
 		result: '<svg><text class=label>foo</text></svg>',
