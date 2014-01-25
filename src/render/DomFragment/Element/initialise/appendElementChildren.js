@@ -37,7 +37,7 @@ define([
 			// But this would be a terrible idea with unpredictable results, so let's not.
 		}
 
-		this.node.innerHTML = this.fragment.toString();
+		this.node.text = this.fragment.toString();
 	};
 
 
@@ -56,7 +56,7 @@ define([
 			if ( docFrag ) {
 				if ( element.lcName === 'script' ) {
 					element.bubble = updateScript;
-					element.node.innerHTML = element.fragment.toString(); // bypass warning initially
+					element.node.text = element.fragment.toString(); // bypass warning initially
 				} else {
 					element.bubble = updateCss;
 					element.bubble();
