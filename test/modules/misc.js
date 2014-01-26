@@ -1288,7 +1288,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{../foo}}"></span>{{/item}}',
+				template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{foo}}"></span>{{/item}}',
 				magic: true,
 				data: data,
 				decorators: {
