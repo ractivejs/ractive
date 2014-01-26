@@ -60,3 +60,28 @@ footer {
 	border-top: 1px solid #eee;
 	text-align: center;
 }
+
+footer a {
+	position: relative;
+	margin: 0 1.5em 0 0;
+}
+
+footer a:after {
+	position: absolute;
+	right: -1em;
+	content: '\2022';
+	color: #aaa;
+}
+
+footer a:last-child {
+	margin: 0;
+}
+
+footer a:last-child:after {
+	content: '';
+}
+
+/* IE8... */
+header, main, footer {
+	display: block;
+}
