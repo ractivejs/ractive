@@ -185,6 +185,8 @@ define([
 							checkComplete();
 						}
 					});
+				} else {
+					jsTransitionsComplete = true;
 				}
 
 

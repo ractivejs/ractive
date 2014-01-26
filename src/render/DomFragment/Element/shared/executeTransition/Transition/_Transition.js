@@ -40,8 +40,8 @@ define([
 				t.resetStyle();
 			}
 
-			t._manager.pop( t.node );
 			t.node._ractive.transition = null;
+			t._manager.pop( t.node );
 		};
 
 
