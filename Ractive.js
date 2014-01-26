@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-26
+	Ractive - v0.4.0-pre - 2014-01-20
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -5604,8 +5604,6 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_ani
                                 checkComplete();
                             }
                         });
-                    } else {
-                        jsTransitionsComplete = true;
                     }
                     if (!changedProperties.length) {
                         t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
@@ -5729,8 +5727,8 @@ var render_DomFragment_Element_shared_executeTransition_Transition__Transition =
                 if (!noReset && t.isIntro) {
                     t.resetStyle();
                 }
-                t.node._ractive.transition = null;
                 t._manager.pop(t.node);
+                t.node._ractive.transition = null;
             };
             name = descriptor.n || descriptor;
             if (typeof name !== 'string') {
