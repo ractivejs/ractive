@@ -37,6 +37,7 @@
 
 	require( prefixedModules, function () {
 		Array.prototype.slice.call( arguments ).forEach( function ( testSet ) {
+			Ractive.defaults.magic = true;
 			testSet();
 		});
 

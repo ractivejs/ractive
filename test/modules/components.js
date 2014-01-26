@@ -34,6 +34,30 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>blah</p>' );
 		});
 
+		test( 'Static object data is propagated from parent to child', function ( t ) {
+			var Widget, ractive, widget;
+
+			Widget = Ractive.extend({
+				template: '<p>{{foo.bar}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{ { bar: \'biz\' } }}"/>',
+				components: {
+					widget: Widget
+				}
+			});
+
+			widget = ractive.findComponent( 'widget' );
+			t.deepEqual( widget.get( 'foo' ), { bar: 'biz' } );
+			t.htmlEqual( fixture.innerHTML, '<p>biz</p>' );
+
+			widget.set('foo.bar', 'bah')
+			t.deepEqual( widget.get( 'foo' ), { bar: 'bah' } );
+			t.htmlEqual( fixture.innerHTML, '<p>bah</p>' );
+		});
+
 		test( 'Dynamic data is propagated from parent to child, and (two-way) bindings are created', function ( t ) {
 			var Widget, ractive, widget;
 
@@ -85,6 +109,32 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			t.ok( !( widget.data.hasOwnProperty( 'foo' ) ) );
 			t.htmlEqual( fixture.innerHTML, '<p></p>' );
+		});
+
+		test( 'Missing data on the parent is added when set', function ( t ) {
+			var Widget, ractive, widget;
+
+			Widget = Ractive.extend({
+				template: '<p>{{foo}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{missing}}"/>',
+				components: {
+					widget: Widget
+				}
+			});
+
+			widget = ractive.findComponent( 'widget' );
+
+			t.ok( !( widget.data.hasOwnProperty( 'foo' ) ) );
+			t.htmlEqual( fixture.innerHTML, '<p></p>' );
+
+			ractive.set('missing', 'found')
+			t.ok( widget.data.hasOwnProperty( 'foo' ) );
+			t.htmlEqual( fixture.innerHTML, '<p>found</p>' );
+
 		});
 
 		test( 'Data on the child is propagated to the parent, if it is not missing', function ( t ) {
