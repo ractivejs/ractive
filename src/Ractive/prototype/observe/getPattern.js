@@ -1,4 +1,8 @@
-define( function () {
+define([
+	'utils/isArray'
+], function (
+	isArray
+) {
 
 	'use strict';
 
@@ -14,7 +18,9 @@ define( function () {
 			value = ( ractive._wrapped[ keypath ] ? ractive._wrapped[ keypath ].get() : ractive.get( keypath ) );
 
 			for ( key in value ) {
-				newToGet.push( keypath + '.' + key );
+				if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
+					newToGet.push( keypath + '.' + key );
+				}
 			}
 		};
 

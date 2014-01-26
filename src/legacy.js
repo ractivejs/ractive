@@ -113,11 +113,20 @@ define( function () {
 
 	if ( !Array.prototype.map ) {
 		Array.prototype.map = function ( mapper, context ) {
-			var i, len, mapped = [];
+			var array = this, i, len, mapped = [], isActuallyString;
 
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
-					mapped[i] = mapper.call( context, this[i], i, this );
+			// incredibly, if you do something like
+			// Array.prototype.map.call( someString, iterator )
+			// then `this` will become an instance of String in IE8.
+			// And in IE8, you then can't do string[i]. Facepalm.
+			if ( array instanceof String ) {
+				array = array.toString();
+				isActuallyString = true;
+			}
+
+			for ( i=0, len=array.length; i<len; i+=1 ) {
+				if ( array.hasOwnProperty( i ) || isActuallyString ) {
+					mapped[i] = mapper.call( context, array[i], i, array );
 				}
 			}
 
