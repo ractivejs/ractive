@@ -89,7 +89,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( exited, 1 );
 
 			t.ok( foo === ractive.nodes.foo );
-			t.ok( !bar.parentNode );
+			t.ok( isOrphan( bar ) );
 			t.ok( baz === ractive.nodes.baz );
 		});
 
@@ -132,7 +132,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( exited, 1 );
 
 			t.ok( foo === ractive.nodes.foo );
-			t.ok( !bar.parentNode );
+			t.ok( isOrphan( bar ) );
 			t.ok( baz === ractive.nodes.baz );
 		});
 
@@ -175,7 +175,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( exited, 1 );
 
 			t.ok( foo === ractive.nodes.foo );
-			t.ok( !bar.parentNode );
+			t.ok( isOrphan( bar ) );
 			t.ok( baz === ractive.nodes.baz );
 		});
 
@@ -218,7 +218,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( exited, 1 );
 
 			t.ok( foo === ractive.nodes.foo );
-			t.ok( !bar.parentNode );
+			t.ok( isOrphan( bar ) );
 			t.ok( baz === ractive.nodes.baz );
 		});
 
@@ -261,10 +261,16 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( exited, 3 );
 
 			t.ok( foo !== ractive.nodes.foo );
-			t.ok( !bar.parentNode );
+			t.ok( isOrphan( bar ) );
 			t.ok( baz !== ractive.nodes.baz );
 		});
 
 	};
+
+	function isOrphan ( node ) {
+		// IE8... when you detach a node from its parent it thinks the document
+		// is its parent
+		return !node.parentNode || node.parentNode instanceof HTMLDocument;
+	}
 
 });

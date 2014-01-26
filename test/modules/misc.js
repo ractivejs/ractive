@@ -228,11 +228,11 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<select value="{{color}}"><option value="red">red</option><option value="blue">blue</option><option value="green" selected>green</option></select><p>selected {{color}}</p>'
+				template: '<select value="{{color}}"><option value="red">red</option><option value="blue">blue</option><option value="green" selected>green</option></select> <p>selected {{color}}</p>'
 			});
 
 			t.equal( ractive.get( 'color' ), 'green' );
-			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green" selected>green</option></select><p>selected green</p>' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green" selected>green</option></select> <p>selected green</p>' );
 		});
 
 		test( 'If a select value with two-way binding has no selected option at render time, the model defaults to the top value', function ( t ) {
@@ -240,11 +240,11 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<select value="{{color}}"><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select><p>selected {{color}}</p>'
+				template: '<select value="{{color}}"><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select> <p>selected {{color}}</p>'
 			});
 
 			t.equal( ractive.get( 'color' ), 'red' );
-			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select><p>selected red</p>' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select> <p>selected red</p>' );
 		});
 
 
@@ -810,9 +810,9 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			partialScr = document.createElement( 'script' );
 			partialScr.id = 'thePartial';
 			partialScr.type = 'text/ractive';
-			partialScr.innerHTML = '{{one}}{{two}}{{three}}';
+			partialScr.text = '{{one}}{{two}}{{three}}';
 
-			document.body.appendChild( partialScr );
+			document.getElementsByTagName('body')[0].appendChild( partialScr );
 
 			ractive = new Ractive({
 				el: fixture,
@@ -1231,50 +1231,68 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.equal( ractive.find( 'input' ).value, '' );
 		});
 
-		test( 'Array mutators work when `magic` is `true` (#376)', function ( t ) {
-			var ractive, items;
-
-			items = [
-				{ name: 'one' },
-				{ name: 'two' },
-				{ name: 'three' }
-			];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#items}}{{name}}{{/items}}',
-				magic: true,
-				data: {
-					items: items
+		// only run these tests if magic mode is supported
+		try {
+			var obj = {}, _foo;
+			Object.defineProperty( obj, 'foo', {
+				get: function () {
+					return _foo;
+				},
+				set: function ( value ) {
+					_foo = value;
 				}
 			});
 
-			ractive.data.items.push({ name: 'four' });
+			test( 'Array mutators work when `magic` is `true` (#376)', function ( t ) {
+				var ractive, items;
 
-			t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
-		});
+				items = [
+					{ name: 'one' },
+					{ name: 'two' },
+					{ name: 'three' }
+				];
 
-		test( 'Implicit iterators work in magic mode', function ( t ) {
-			var ractive, items;
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{#items}}{{name}}{{/items}}',
+					magic: true,
+					data: {
+						items: items
+					}
+				});
 
-			items = [
-				{ name: 'one' },
-				{ name: 'two' },
-				{ name: 'three' }
-			];
+				ractive.data.items.push({ name: 'four' });
 
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#.}}{{name}}{{/.}}',
-				magic: true,
-				data: items
+				t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
 			});
 
-			t.htmlEqual( fixture.innerHTML, 'onetwothree' );
+			test( 'Implicit iterators work in magic mode', function ( t ) {
+				var ractive, items;
 
-			ractive.data[2].name = 'threefourfive';
-			t.htmlEqual( fixture.innerHTML, 'onetwothreefourfive' );
-		});
+				items = [
+					{ name: 'one' },
+					{ name: 'two' },
+					{ name: 'three' }
+				];
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{#.}}{{name}}{{/.}}',
+					magic: true,
+					data: items
+				});
+
+				t.htmlEqual( fixture.innerHTML, 'onetwothree' );
+
+				ractive.data[2].name = 'threefourfive';
+				t.htmlEqual( fixture.innerHTML, 'onetwothreefourfive' );
+			});
+
+			obj.foo = 'bar';
+		} catch ( err ) {
+			// do nothing
+		}
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

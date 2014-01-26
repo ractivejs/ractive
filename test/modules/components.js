@@ -193,17 +193,17 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<p>before</p><test bool="{{bool}}"/><p>after</p>',
+				template: '<p>before</p> <test bool="{{bool}}"/> <p>after</p>',
 				components: { test: TestComponent }
 			});
 
-			t.htmlEqual( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>before</p> FALSE <p>after</p>' );
 
 			ractive.set( 'bool', true );
-			t.htmlEqual( fixture.innerHTML, '<p>before</p>TRUE<p>after</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>before</p> TRUE <p>after</p>' );
 
 			ractive.set( 'bool', false );
-			t.htmlEqual( fixture.innerHTML, '<p>before</p>FALSE<p>after</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>before</p> FALSE <p>after</p>' );
 		});
 
 		test( 'Regression test for #317', function ( t ) {
