@@ -203,26 +203,6 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' );
 		});
 
-		test( 'Array splice works when simultaneously adding and removing items', function ( t ) {
-			var items, ractive;
-
-			items = [ 'zero', 'one', 'two', 'four' ];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#items:i}}<span data-text="{{i}}:{{.}}">{{i}}:{{.}}</span>{{/items}}',
-				data: { items: items }
-			});
-
-			t.htmlEqual( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:four">3:four</span>' );
-
-			items.splice( 3, 0, 'three' );
-			t.htmlEqual( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:three">3:three</span><span data-text="4:four">4:four</span>' );
-
-			items.splice( 3, 1, 'THREE' );
-			t.htmlEqual( fixture.innerHTML, '<span data-text="0:zero">0:zero</span><span data-text="1:one">1:one</span><span data-text="2:two">2:two</span><span data-text="3:THREE">3:THREE</span><span data-text="4:four">4:four</span>' );
-		});
-
 		test( 'If a select value with two-way binding has a selected option at render time, the model updates accordingly', function ( t ) {
 			var ractive;
 
@@ -624,44 +604,6 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			});
 
 			t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
-		});
-
-		test( 'findAll returns a static node list', function ( t ) {
-			var items, ractive, list;
-
-			items = [ 'a', 'b', 'c' ];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
-				data: { items: items }
-			});
-
-			list = ractive.findAll( 'li' );
-			t.equal( list.length, 3 );
-
-			items.push( 'd' );
-			t.equal( items.length, 4 );
-			t.equal( list.length, 3 );
-		});
-
-		test( 'findAll with live: true returns a live node list', function ( t ) {
-			var items, ractive, list;
-
-			items = [ 'a', 'b', 'c' ];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
-				data: { items: items }
-			});
-
-			list = ractive.findAll( 'li', { live: true });
-			t.equal( list.length, 3 );
-
-			items.push( 'd' );
-			t.equal( items.length, 4 );
-			t.equal( list.length, 4 );
 		});
 
 		test( 'Delimiters can be reset globally', function ( t ) {
@@ -1306,7 +1248,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{../foo}}"></span>{{/item}}',
+				template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{foo}}"></span>{{/item}}',
 				magic: true,
 				data: data,
 				decorators: {
