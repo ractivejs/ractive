@@ -1,4 +1,10 @@
-define( function () {
+define([
+	'utils/createBranch',
+	'utils/isArray'
+], function (
+	createBranch,
+	isArray
+) {
 
 	'use strict';
 
@@ -11,8 +17,25 @@ define( function () {
 	}
 
 	magicAdaptor = {
-		filter: function ( object, keypath ) {
-			return !!keypath;
+		filter: function ( object, keypath, ractive ) {
+			var keys, key, parentKeypath, parentValue;
+
+			if ( !keypath ) {
+				return false;
+			}
+
+			keys = keypath.split( '.' );
+			key = keys.pop();
+			parentKeypath = keys.join( '.' );
+			parentValue = ractive.get( parentKeypath );
+
+			// if parentValue is an array that doesn't include this member,
+			// we should return false otherwise lengths will get messed up
+			if ( isArray( parentValue ) && /^[0-9]+$/.test( key ) ) {
+				return false;
+			}
+
+			return ( parentValue && typeof parentValue === 'object' );
 		},
 		wrap: function ( ractive, object, keypath ) {
 			return new MagicWrapper( ractive, object, keypath );
@@ -20,7 +43,7 @@ define( function () {
 	};
 
 	MagicWrapper = function ( ractive, object, keypath ) {
-		var wrapper = this, keys, prop, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
+		var wrapper = this, keys, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
 
 		this.ractive = ractive;
 		this.keypath = keypath;
@@ -49,7 +72,12 @@ define( function () {
 
 		// No, it hasn't been wrapped. Is this descriptor configurable?
 		if ( descriptor && !descriptor.configurable ) {
-			throw new Error( 'Cannot use magic mode with property "' + prop + '" - object is not configurable' );
+			// Special case - array length
+			if ( this.prop === 'length' ) {
+				return;
+			}
+
+			throw new Error( 'Cannot use magic mode with property "' + this.prop + '" - object is not configurable' );
 		}
 
 
@@ -77,6 +105,7 @@ define( function () {
 			i = wrappers.length;
 			while ( i-- ) {
 				wrapper = wrappers[i];
+				wrapper.value = value;
 
 				if ( !wrapper.resetting ) {
 					wrapper.ractive.set( wrapper.keypath, value );
@@ -96,18 +125,32 @@ define( function () {
 			return this.value;
 		},
 		reset: function ( value ) {
-			this.resetting = true;
 			this.value = value;
-			this.resetting = false;
+		},
+		set: function ( keypath ) {
+			if ( !this.obj[ this.prop ] ) {
+				this.resetting = true;
+				this.obj[ this.prop ] = createBranch( keypath.split( '.' )[0] );
+				this.resetting = false;
+			}
 		},
 		teardown: function () {
-			var descriptor, set, value, wrappers;
+			var descriptor, set, value, wrappers, index;
 
 			descriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
-			set = descriptor.set;
+			set = descriptor && descriptor.set;
+
+			if ( !set ) {
+				// most likely, this was an array member that was spliced out
+				return;
+			}
+
 			wrappers = set._ractiveWrappers;
 
-			wrappers.splice( wrappers.indexOf( this ), 1 );
+			index = wrappers.indexOf( this );
+			if ( index !== -1 ) {
+				wrappers.splice( index, 1 );
+			}
 
 			// Last one out, turn off the lights
 			if ( !wrappers.length ) {
@@ -116,7 +159,7 @@ define( function () {
 				Object.defineProperty( this.obj, this.prop, this.originalDescriptor || {
 					writable: true,
 					enumerable: true,
-					configrable: true
+					configurable: true
 				});
 
 				this.obj[ this.prop ] = value;

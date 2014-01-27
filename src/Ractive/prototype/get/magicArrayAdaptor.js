@@ -1,6 +1,6 @@
 define([
 	'Ractive/prototype/get/magicAdaptor',
-	'Ractive/prototype/get/arrayAdaptor'
+	'Ractive/prototype/get/arrayAdaptor/_arrayAdaptor'
 ], function (
 	magicAdaptor,
 	arrayAdaptor
@@ -15,8 +15,8 @@ define([
 	var magicArrayAdaptor, MagicArrayWrapper;
 
 	magicArrayAdaptor = {
-		filter: function ( object, keypath ) {
-			return magicAdaptor.filter( object, keypath ) && arrayAdaptor.filter( object );
+		filter: function ( object, keypath, ractive ) {
+			return magicAdaptor.filter( object, keypath, ractive ) && arrayAdaptor.filter( object );
 		},
 
 		wrap: function ( ractive, array, keypath ) {
