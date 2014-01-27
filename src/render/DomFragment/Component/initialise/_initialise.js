@@ -3,7 +3,7 @@ define([
 	'utils/warn',
 	'render/DomFragment/Component/initialise/createModel/_createModel',
 	'render/DomFragment/Component/initialise/createInstance',
-	'render/DomFragment/Component/initialise/createObservers',
+	'render/DomFragment/Component/initialise/createBindings',
 	'render/DomFragment/Component/initialise/propagateEvents',
 	'render/DomFragment/Component/initialise/updateLiveQueries'
 ], function (
@@ -11,7 +11,7 @@ define([
 	warn,
 	createModel,
 	createInstance,
-	createObservers,
+	createBindings,
 	propagateEvents,
 	updateLiveQueries
 ) {
@@ -33,10 +33,6 @@ define([
 		component.name = options.descriptor.e;
 		component.index = options.index;
 
-		// we may need to create some observers to handle data-binding
-		// between parent and child
-		component.observers = [];
-
 		// get the component constructor
 		Component = root.components[ options.descriptor.e ];
 
@@ -54,7 +50,7 @@ define([
 		data = createModel( component, options.descriptor.a, toBind );
 
 		createInstance( component, Component, data, docFrag, options.descriptor.f );
-		createObservers( component, toBind );
+		createBindings( component, toBind );
 		propagateEvents( component, options.descriptor.v );
 
 		// intro, outro and decorator directives have no effect

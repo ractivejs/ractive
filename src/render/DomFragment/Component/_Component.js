@@ -31,8 +31,8 @@ define([
 				this.complexParameters.pop().teardown();
 			}
 
-			while ( this.observers.length ) {
-				this.observers.pop().cancel();
+			while ( this.bindings.length ) {
+				this.bindings.pop().teardown();
 			}
 
 			if ( query = this.root._liveComponentQueries[ this.name ] ) {
