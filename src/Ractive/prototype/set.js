@@ -120,10 +120,11 @@ define([
 
 
 	updateModel = function ( ractive, keypath, value, changes ) {
-		var cached, previous, wrapped, keypathToClear, evaluator;
+		var cached, previous, wrapped, evaluator;
 
 		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
 			if ( resetWrapped( ractive, keypath, value, wrapped, changes ) !== false ) {
+				clearCache( ractive, keypath );
 				return;
 			}
 		}
@@ -140,7 +141,7 @@ define([
 
 		// update the model, if necessary
 		if ( previous !== value && !evaluator ) {
-			keypathToClear = replaceData( ractive, keypath, value );
+			replaceData( ractive, keypath, value );
 		}
 
 		else {
@@ -151,9 +152,6 @@ define([
 			}
 		}
 
-
-		// Clear cache
-		clearCache( ractive, keypathToClear || keypath );
 
 		// add this keypath to the list of changes
 		changes[ changes.length ] = keypath;

@@ -1,7 +1,11 @@
 define([
-	'utils/clone'
+	'utils/clone',
+	'utils/createBranch',
+	'shared/clearCache'
 ], function (
-	clone
+	clone,
+	createBranch,
+	clearCache
 ) {
 
 	'use strict';
@@ -36,29 +40,28 @@ define([
 				}
 
 				obj = wrapped.get();
+				//keypathToClear = currentKeypath;
 			}
 
 			else {
-				// If this branch doesn't exist yet, create a new one - if the next
-				// key matches /^\s*[0-9]+\s*$/, assume we want an array branch rather
-				// than an object
-				if ( !obj.hasOwnProperty( key ) || !obj[ key ] ) {
 
-					// if we're creating a new branch, we may need to clear the upstream
-					// keypath
+				// If the keypath we're updating currently points to data that belongs
+				// to this.constructor.data, rather than this.data, we need to clone
+				// it so that we don't end up modifying data that doesn't belong to us
+				if ( !obj.hasOwnProperty( key ) && key in obj ) {
 					if ( !keypathToClear ) {
 						keypathToClear = currentKeypath;
 					}
+					obj[ key ] = clone( obj[ key ] );
+				}
 
-					// We may need to shallow-clone from the prototype
-					if ( key in obj ) {
-						obj[ key ] = clone( obj[ key ] );
+				// If this branch doesn't exist yet, create a new one - if the next
+				// key is numeric, assume we want an array branch rather than an object
+				if ( !obj[ key ] ) {
+					if ( !keypathToClear ) {
+						keypathToClear = currentKeypath;
 					}
-
-					// Otherwise it's a brand new branch
-					else {
-						obj[ key ] = ( /^\s*[0-9]+\s*$/.test( keys[0] ) ? [] : {} );
-					}
+					obj[ key ] = createBranch( keys[0] );
 				}
 
 				obj = obj[ key ];
@@ -68,7 +71,7 @@ define([
 		key = keys[0];
 		obj[ key ] = value;
 
-		return keypathToClear;
+		clearCache( ractive, keypathToClear || keypath );
 	};
 
 });

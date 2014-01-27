@@ -104,9 +104,6 @@ define([
 		newIndices = mapOldToNewIndex( oldArray, newArray );
 
 
-		// Clear the cache
-		clearCache( this, keypath );
-
 		// Update the model
 		// TODO allow existing array to be updated in place, rather than replaced?
 		replaceData( this, keypath, array );
