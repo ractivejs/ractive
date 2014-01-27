@@ -1,11 +1,13 @@
 define([
 	'config/initOptions',
 	'config/registries',
+	'utils/defineProperty',
 	'extend/wrapMethod',
 	'extend/utils/augment'
 ], function (
 	initOptions,
 	registries,
+	defineProperty,
 	wrapMethod,
 	augment
 ) {
@@ -60,6 +62,13 @@ define([
 					Child.prototype[ key ] = member;
 				}
 			}
+		}
+
+		// Special case - CSS
+		if ( childProps.css ) {
+			defineProperty( Child, 'css', {
+				value: childProps.css
+			});
 		}
 	};
 

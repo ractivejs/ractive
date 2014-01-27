@@ -23,6 +23,13 @@ define([
 		defineProperty( Child, 'defaults', {
 			value: create( Parent.defaults )
 		});
+
+		// Special case - CSS
+		if ( Parent.css ) {
+			defineProperty( Child, 'css', {
+				value: Parent.css
+			});
+		}
 	};
 
 });

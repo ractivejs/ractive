@@ -109,9 +109,16 @@ define([
 
 		// once all subcomponents have been imported (if any), create this component
 		return importPromise.then( function ( imports ) {
-			var head = document.getElementsByTagName( 'head' )[0];
+			var head, options;
 
-			Component = Ractive.extend({ template: template, components: imports });
+			head = document.getElementsByTagName( 'head' )[0];
+			options = { template: template, components: imports };
+
+			if ( styles.length ) {
+				options.css = styles.map( extractFragment ).join( ' ' );
+			}
+
+			Component = Ractive.extend( options );
 
 			if ( script ) {
 				scriptElement = document.createElement( 'script' );
@@ -132,10 +139,6 @@ define([
 
 				head.removeChild( scriptElement );
 				window.component = oldComponent;
-			}
-
-			if ( styles.length ) {
-				Component.css = styles.map( extractFragment ).join( ' ' );
 			}
 
 			return Component;
