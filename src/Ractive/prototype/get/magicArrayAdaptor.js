@@ -39,8 +39,8 @@ define([
 			this.arrayWrapper.teardown();
 			this.magicWrapper.teardown();
 		},
-		reset: function () {
-			return this.magicWrapper.reset();
+		reset: function ( value ) {
+			return this.magicWrapper.reset( value );
 		}
 	};
 
