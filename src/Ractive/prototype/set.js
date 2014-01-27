@@ -152,9 +152,11 @@ define([
 			}
 		}
 
-
 		// add this keypath to the list of changes
-		changes[ changes.length ] = keypath;
+		changes.push( keypath );
+
+		// clear the cache
+		clearCache( ractive, keypath );
 	};
 
 	getUpstreamChanges = function ( changes ) {

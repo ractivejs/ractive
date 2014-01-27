@@ -40,7 +40,6 @@ define([
 				}
 
 				obj = wrapped.get();
-				//keypathToClear = currentKeypath;
 			}
 
 			else {
