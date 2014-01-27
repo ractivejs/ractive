@@ -1,11 +1,13 @@
 define([
 	'utils/clone',
+	'utils/isObject',
 	'registries/adaptors',
-	'Ractive/prototype/get/arrayAdaptor',
+	'Ractive/prototype/get/arrayAdaptor/_arrayAdaptor',
 	'Ractive/prototype/get/magicAdaptor',
 	'Ractive/prototype/get/magicArrayAdaptor'
 ], function (
 	clone,
+	isObject,
 	adaptorRegistry,
 	arrayAdaptor,
 	magicAdaptor,
@@ -51,7 +53,7 @@ define([
 				}
 
 				else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-					if ( shouldClone ) {
+					if ( shouldClone && isObject( value ) ) {
 						value = clone( value );
 					}
 					ractive._wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
