@@ -2,15 +2,13 @@ define( function () {
 
 	'use strict';
 
-	var resolveRef;
+	var ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
 	// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-	resolveRef = function ( ractive, ref, contextStack ) {
+	return function ( ractive, ref, contextStack ) {
 
-		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context, ancestorErrorMessage;
-
-		ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
 
 		// Implicit iterators - i.e. {{.}} - are a special case
 		if ( ref === '.' ) {
@@ -74,7 +72,7 @@ define( function () {
 					parentValue = wrapped.get();
 				}
 
-				if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
+				if ( typeof parentValue === 'object' && parentValue !== null && parentValue[ lastKey ] !== undefined ) {
 					keypath = innerMostContext + '.' + ref;
 					break;
 				}
@@ -87,7 +85,5 @@ define( function () {
 
 		return keypath ? keypath.replace( /^\./, '' ) : keypath;
 	};
-
-	return resolveRef;
 
 });
