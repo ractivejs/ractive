@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-22
+	Ractive - v0.4.0-pre - 2014-01-27
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -182,16 +182,37 @@ var utils_normaliseKeypath = function () {
         };
     }();
 var registries_adaptors = {};
-var utils_clone = function () {
+var utils_isArray = function () {
+        
+        var toString = Object.prototype.toString;
+        return function (thing) {
+            return toString.call(thing) === '[object Array]';
+        };
+    }();
+var utils_clone = function (isArray) {
         
         return function (source) {
-            var target = {}, key;
+            var target, key;
+            if (!source || typeof source !== 'object') {
+                return source;
+            }
+            if (isArray(source)) {
+                return source.slice();
+            }
+            target = {};
             for (key in source) {
                 if (source.hasOwnProperty(key)) {
                     target[key] = source[key];
                 }
             }
             return target;
+        };
+    }(utils_isArray);
+var utils_isObject = function () {
+        
+        var toString = Object.prototype.toString;
+        return function (thing) {
+            return typeof thing === 'object' && toString.call(thing) === '[object Object]';
         };
     }();
 var config_types = {
@@ -225,13 +246,6 @@ var config_types = {
         INFIX_OPERATOR: 36,
         INVOCATION: 40
     };
-var utils_isArray = function () {
-        
-        var toString = Object.prototype.toString;
-        return function (thing) {
-            return toString.call(thing) === '[object Array]';
-        };
-    }();
 var shared_clearCache = function () {
         
         return function clearCache(ractive, keypath) {
@@ -394,6 +408,58 @@ var shared_makeTransitionManager = function (warn) {
         };
         return makeTransitionManager;
     }(utils_warn);
+var Ractive_prototype_get_arrayAdaptor_getSpliceEquivalent = function () {
+        
+        return function (array, methodName, args) {
+            switch (methodName) {
+            case 'splice':
+                return args;
+            case 'sort':
+            case 'reverse':
+                return null;
+            case 'pop':
+                if (array.length) {
+                    return [-1];
+                }
+                return null;
+            case 'push':
+                return [
+                    array.length,
+                    0
+                ].concat(args);
+            case 'shift':
+                return [
+                    0,
+                    1
+                ];
+            case 'unshift':
+                return [
+                    0,
+                    0
+                ].concat(args);
+            }
+        };
+    }();
+var Ractive_prototype_get_arrayAdaptor_summariseSpliceOperation = function () {
+        
+        return function (array, args) {
+            var start, addedItems, removedItems, balance;
+            if (!args) {
+                return null;
+            }
+            start = +(args[0] < 0 ? array.length + args[0] : args[0]);
+            addedItems = Math.max(0, args.length - 2);
+            removedItems = args[1] !== undefined ? args[1] : array.length - start;
+            removedItems = Math.min(removedItems, array.length - start);
+            balance = addedItems - removedItems;
+            return {
+                start: start,
+                balance: balance,
+                added: addedItems,
+                removed: removedItems
+            };
+        };
+    }();
 var shared_notifyDependants = function () {
         
         var notifyDependants, lastKey, starMaps = {};
@@ -526,160 +592,96 @@ var shared_notifyDependants = function () {
             return starMaps[num];
         }
     }();
-var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArray, clearCache, midCycleUpdate, endCycleUpdate, makeTransitionManager, notifyDependants) {
+var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCache, midCycleUpdate, notifyDependants) {
         
-        var arrayAdaptor, notifyArrayDependants, ArrayWrapper, patchArrayMethods, unpatchArrayMethods, patchedArrayProto, testObj, mutatorMethods, noop, errorMessage;
-        arrayAdaptor = {
-            filter: function (object) {
-                return isArray(object) && (!object._ractive || !object._ractive.setting);
-            },
-            wrap: function (ractive, array, keypath) {
-                return new ArrayWrapper(ractive, array, keypath);
+        return function (wrapper, array, methodName, spliceSummary) {
+            var root, keypath, depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
+            root = wrapper.root;
+            keypath = wrapper.keypath;
+            if (methodName === 'sort' || methodName === 'reverse') {
+                root.set(keypath, array);
+                return;
+            }
+            if (!spliceSummary) {
+                return;
+            }
+            for (i = spliceSummary.start; i < array.length - spliceSummary.balance; i += 1) {
+                clearCache(root, keypath + '.' + i);
+            }
+            smartUpdateQueue = [];
+            dumbUpdateQueue = [];
+            for (i = 0; i < root._deps.length; i += 1) {
+                depsByKeypath = root._deps[i];
+                if (!depsByKeypath) {
+                    continue;
+                }
+                deps = depsByKeypath[keypath];
+                if (deps) {
+                    queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue);
+                    midCycleUpdate(root);
+                    while (smartUpdateQueue.length) {
+                        smartUpdateQueue.pop().smartUpdate(methodName, spliceSummary);
+                    }
+                    while (dumbUpdateQueue.length) {
+                        dumbUpdateQueue.pop().update();
+                    }
+                }
+            }
+            if (spliceSummary.added && spliceSummary.removed) {
+                changed = Math.max(spliceSummary.added, spliceSummary.removed);
+                start = spliceSummary.start;
+                end = start + changed;
+                lengthUnchanged = spliceSummary.added === spliceSummary.removed;
+                for (i = start; i < end; i += 1) {
+                    childKeypath = keypath + '.' + i;
+                    notifyDependants(root, childKeypath);
+                }
+            }
+            midCycleUpdate(root);
+            upstreamQueue = [];
+            keys = keypath.split('.');
+            while (keys.length) {
+                keys.pop();
+                upstreamQueue[upstreamQueue.length] = keys.join('.');
+            }
+            notifyDependants.multiple(root, upstreamQueue, true);
+            if (!lengthUnchanged) {
+                clearCache(root, keypath + '.length');
+                notifyDependants(root, keypath + '.length', true);
             }
         };
-        ArrayWrapper = function (ractive, array, keypath) {
-            this.root = ractive;
-            this.value = array;
-            this.keypath = keypath;
-            if (!array._ractive) {
-                defineProperty(array, '_ractive', {
-                    value: {
-                        wrappers: [],
-                        instances: [],
-                        setting: false
-                    },
-                    configurable: true
-                });
-                patchArrayMethods(array);
-            }
-            if (!array._ractive.instances[ractive._guid]) {
-                array._ractive.instances[ractive._guid] = 0;
-                array._ractive.instances.push(ractive);
-            }
-            array._ractive.instances[ractive._guid] += 1;
-            array._ractive.wrappers.push(this);
-        };
-        ArrayWrapper.prototype = {
-            get: function () {
-                return this.value;
-            },
-            teardown: function () {
-                var array, storage, wrappers, instances, index;
-                array = this.value;
-                storage = array._ractive;
-                wrappers = storage.wrappers;
-                instances = storage.instances;
-                if (storage.setting) {
-                    return false;
-                }
-                index = wrappers.indexOf(this);
-                if (index === -1) {
-                    throw new Error(errorMessage);
-                }
-                wrappers.splice(index, 1);
-                if (!wrappers.length) {
-                    delete array._ractive;
-                    unpatchArrayMethods(this.value);
+        function queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue) {
+            var k, dependant;
+            k = deps.length;
+            while (k--) {
+                dependant = deps[k];
+                if (dependant.type === types.REFERENCE) {
+                    dependant.update();
+                } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
+                    smartUpdateQueue[smartUpdateQueue.length] = dependant;
                 } else {
-                    instances[this.root._guid] -= 1;
-                    if (!instances[this.root._guid]) {
-                        index = instances.indexOf(this.root);
-                        if (index === -1) {
-                            throw new Error(errorMessage);
-                        }
-                        instances.splice(index, 1);
-                    }
+                    dumbUpdateQueue[dumbUpdateQueue.length] = dependant;
                 }
             }
-        };
-        notifyArrayDependants = function (array, methodName, args) {
-            var notifyKeypathDependants, queueDependants, wrappers, wrapper, i;
-            notifyKeypathDependants = function (root, keypath) {
-                var depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
-                if (methodName === 'sort' || methodName === 'reverse') {
-                    root.set(keypath, array);
-                    return;
-                }
-                clearCache(root, keypath);
-                smartUpdateQueue = [];
-                dumbUpdateQueue = [];
-                for (i = 0; i < root._deps.length; i += 1) {
-                    depsByKeypath = root._deps[i];
-                    if (!depsByKeypath) {
-                        continue;
-                    }
-                    deps = depsByKeypath[keypath];
-                    if (deps) {
-                        queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue);
-                        midCycleUpdate(root);
-                        while (smartUpdateQueue.length) {
-                            smartUpdateQueue.pop().smartUpdate(methodName, args);
-                        }
-                        while (dumbUpdateQueue.length) {
-                            dumbUpdateQueue.pop().update();
-                        }
-                    }
-                }
-                if (methodName === 'splice' && args.length > 2 && args[1]) {
-                    changed = Math.min(args[1], args.length - 2);
-                    start = args[0];
-                    end = start + changed;
-                    if (args[1] === args.length - 2) {
-                        lengthUnchanged = true;
-                    }
-                    for (i = start; i < end; i += 1) {
-                        childKeypath = keypath + '.' + i;
-                        notifyDependants(root, childKeypath);
-                    }
-                }
-                midCycleUpdate(root);
-                upstreamQueue = [];
-                keys = keypath.split('.');
-                while (keys.length) {
-                    keys.pop();
-                    upstreamQueue[upstreamQueue.length] = keys.join('.');
-                }
-                notifyDependants.multiple(root, upstreamQueue, true);
-                if (!lengthUnchanged) {
-                    notifyDependants(root, keypath + '.length', true);
-                }
-            };
-            queueDependants = function (keypath, deps, smartUpdateQueue, dumbUpdateQueue) {
-                var k, dependant;
-                k = deps.length;
-                while (k--) {
-                    dependant = deps[k];
-                    if (dependant.type === types.REFERENCE) {
-                        dependant.update();
-                    } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
-                        smartUpdateQueue[smartUpdateQueue.length] = dependant;
-                    } else {
-                        dumbUpdateQueue[dumbUpdateQueue.length] = dependant;
-                    }
-                }
-            };
-            wrappers = array._ractive.wrappers;
-            i = wrappers.length;
-            while (i--) {
-                wrapper = wrappers[i];
-                notifyKeypathDependants(wrapper.root, wrapper.keypath);
-            }
-        };
-        patchedArrayProto = [];
-        mutatorMethods = [
-            'pop',
-            'push',
-            'reverse',
-            'shift',
-            'sort',
-            'splice',
-            'unshift'
-        ];
-        noop = function () {
-        };
+        }
+    }(config_types, shared_clearCache, shared_midCycleUpdate, shared_notifyDependants);
+var Ractive_prototype_get_arrayAdaptor_patch = function (defineProperty, clearCache, midCycleUpdate, endCycleUpdate, makeTransitionManager, getSpliceEquivalent, summariseSpliceOperation, processWrapper) {
+        
+        var patchedArrayProto = [], mutatorMethods = [
+                'pop',
+                'push',
+                'reverse',
+                'shift',
+                'sort',
+                'splice',
+                'unshift'
+            ], noop = function () {
+            }, testObj, patchArrayMethods, unpatchArrayMethods;
         mutatorMethods.forEach(function (methodName) {
             var method = function () {
-                var result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {}, endCycleUpdateRequired = {};
+                var spliceEquivalent, spliceSummary, result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {}, endCycleUpdateRequired = {};
+                spliceEquivalent = getSpliceEquivalent(this, methodName, Array.prototype.slice.call(arguments));
+                spliceSummary = summariseSpliceOperation(this, spliceEquivalent);
                 result = Array.prototype[methodName].apply(this, arguments);
                 instances = this._ractive.instances;
                 i = instances.length;
@@ -692,7 +694,10 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                     instance._transitionManager = transitionManagers[instance._guid] = makeTransitionManager(instance, noop);
                 }
                 this._ractive.setting = true;
-                notifyArrayDependants(this, methodName, arguments);
+                i = this._ractive.wrappers.length;
+                while (i--) {
+                    processWrapper(this._ractive.wrappers[i], this, methodName, spliceSummary);
+                }
                 this._ractive.setting = false;
                 i = instances.length;
                 while (i--) {
@@ -736,10 +741,86 @@ var Ractive_prototype_get_arrayAdaptor = function (types, defineProperty, isArra
                 }
             };
         }
+        patchArrayMethods.unpatch = unpatchArrayMethods;
+        return patchArrayMethods;
+    }(utils_defineProperty, shared_clearCache, shared_midCycleUpdate, shared_endCycleUpdate, shared_makeTransitionManager, Ractive_prototype_get_arrayAdaptor_getSpliceEquivalent, Ractive_prototype_get_arrayAdaptor_summariseSpliceOperation, Ractive_prototype_get_arrayAdaptor_processWrapper);
+var Ractive_prototype_get_arrayAdaptor__arrayAdaptor = function (types, defineProperty, isArray, patch) {
+        
+        var arrayAdaptor, ArrayWrapper, errorMessage;
+        arrayAdaptor = {
+            filter: function (object) {
+                return isArray(object) && (!object._ractive || !object._ractive.setting);
+            },
+            wrap: function (ractive, array, keypath) {
+                return new ArrayWrapper(ractive, array, keypath);
+            }
+        };
+        ArrayWrapper = function (ractive, array, keypath) {
+            this.root = ractive;
+            this.value = array;
+            this.keypath = keypath;
+            if (!array._ractive) {
+                defineProperty(array, '_ractive', {
+                    value: {
+                        wrappers: [],
+                        instances: [],
+                        setting: false
+                    },
+                    configurable: true
+                });
+                patch(array);
+            }
+            if (!array._ractive.instances[ractive._guid]) {
+                array._ractive.instances[ractive._guid] = 0;
+                array._ractive.instances.push(ractive);
+            }
+            array._ractive.instances[ractive._guid] += 1;
+            array._ractive.wrappers.push(this);
+        };
+        ArrayWrapper.prototype = {
+            get: function () {
+                return this.value;
+            },
+            teardown: function () {
+                var array, storage, wrappers, instances, index;
+                array = this.value;
+                storage = array._ractive;
+                wrappers = storage.wrappers;
+                instances = storage.instances;
+                if (storage.setting) {
+                    return false;
+                }
+                index = wrappers.indexOf(this);
+                if (index === -1) {
+                    throw new Error(errorMessage);
+                }
+                wrappers.splice(index, 1);
+                if (!wrappers.length) {
+                    delete array._ractive;
+                    patch.unpatch(this.value);
+                } else {
+                    instances[this.root._guid] -= 1;
+                    if (!instances[this.root._guid]) {
+                        index = instances.indexOf(this.root);
+                        if (index === -1) {
+                            throw new Error(errorMessage);
+                        }
+                        instances.splice(index, 1);
+                    }
+                }
+            }
+        };
         errorMessage = 'Something went wrong in a rather interesting way';
         return arrayAdaptor;
-    }(config_types, utils_defineProperty, utils_isArray, shared_clearCache, shared_midCycleUpdate, shared_endCycleUpdate, shared_makeTransitionManager, shared_notifyDependants);
-var Ractive_prototype_get_magicAdaptor = function () {
+    }(config_types, utils_defineProperty, utils_isArray, Ractive_prototype_get_arrayAdaptor_patch);
+var utils_createBranch = function () {
+        
+        var numeric = /^\s*[0-9]+\s*$/;
+        return function (key) {
+            return numeric.test(key) ? [] : {};
+        };
+    }();
+var Ractive_prototype_get_magicAdaptor = function (createBranch, isArray) {
         
         var magicAdaptor, MagicWrapper;
         try {
@@ -748,15 +829,26 @@ var Ractive_prototype_get_magicAdaptor = function () {
             return false;
         }
         magicAdaptor = {
-            filter: function (object, keypath) {
-                return !!keypath;
+            filter: function (object, keypath, ractive) {
+                var keys, key, parentKeypath, parentValue;
+                if (!keypath) {
+                    return false;
+                }
+                keys = keypath.split('.');
+                key = keys.pop();
+                parentKeypath = keys.join('.');
+                parentValue = ractive.get(parentKeypath);
+                if (isArray(parentValue) && /^[0-9]+$/.test(key)) {
+                    return false;
+                }
+                return parentValue && typeof parentValue === 'object';
             },
             wrap: function (ractive, object, keypath) {
                 return new MagicWrapper(ractive, object, keypath);
             }
         };
         MagicWrapper = function (ractive, object, keypath) {
-            var wrapper = this, keys, prop, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
+            var wrapper = this, keys, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
             this.ractive = ractive;
             this.keypath = keypath;
             this.value = object;
@@ -772,7 +864,10 @@ var Ractive_prototype_get_magicAdaptor = function () {
                 return;
             }
             if (descriptor && !descriptor.configurable) {
-                throw new Error('Cannot use magic mode with property "' + prop + '" - object is not configurable');
+                if (this.prop === 'length') {
+                    return;
+                }
+                throw new Error('Cannot use magic mode with property "' + this.prop + '" - object is not configurable');
             }
             if (descriptor) {
                 this.value = descriptor.value;
@@ -791,6 +886,7 @@ var Ractive_prototype_get_magicAdaptor = function () {
                 i = wrappers.length;
                 while (i--) {
                     wrapper = wrappers[i];
+                    wrapper.value = value;
                     if (!wrapper.resetting) {
                         wrapper.ractive.set(wrapper.keypath, value);
                     }
@@ -809,29 +905,40 @@ var Ractive_prototype_get_magicAdaptor = function () {
                 return this.value;
             },
             reset: function (value) {
-                this.resetting = true;
                 this.value = value;
-                this.resetting = false;
+            },
+            set: function (keypath) {
+                if (!this.obj[this.prop]) {
+                    this.resetting = true;
+                    this.obj[this.prop] = createBranch(keypath.split('.')[0]);
+                    this.resetting = false;
+                }
             },
             teardown: function () {
-                var descriptor, set, value, wrappers;
+                var descriptor, set, value, wrappers, index;
                 descriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
-                set = descriptor.set;
+                set = descriptor && descriptor.set;
+                if (!set) {
+                    return;
+                }
                 wrappers = set._ractiveWrappers;
-                wrappers.splice(wrappers.indexOf(this), 1);
+                index = wrappers.indexOf(this);
+                if (index !== -1) {
+                    wrappers.splice(index, 1);
+                }
                 if (!wrappers.length) {
                     value = this.obj[this.prop];
                     Object.defineProperty(this.obj, this.prop, this.originalDescriptor || {
                         writable: true,
                         enumerable: true,
-                        configrable: true
+                        configurable: true
                     });
                     this.obj[this.prop] = value;
                 }
             }
         };
         return magicAdaptor;
-    }();
+    }(utils_createBranch, utils_isArray);
 var Ractive_prototype_get_magicArrayAdaptor = function (magicAdaptor, arrayAdaptor) {
         
         if (!magicAdaptor) {
@@ -839,8 +946,8 @@ var Ractive_prototype_get_magicArrayAdaptor = function (magicAdaptor, arrayAdapt
         }
         var magicArrayAdaptor, MagicArrayWrapper;
         magicArrayAdaptor = {
-            filter: function (object, keypath) {
-                return magicAdaptor.filter(object, keypath) && arrayAdaptor.filter(object);
+            filter: function (object, keypath, ractive) {
+                return magicAdaptor.filter(object, keypath, ractive) && arrayAdaptor.filter(object);
             },
             wrap: function (ractive, array, keypath) {
                 return new MagicArrayWrapper(ractive, array, keypath);
@@ -859,13 +966,13 @@ var Ractive_prototype_get_magicArrayAdaptor = function (magicAdaptor, arrayAdapt
                 this.arrayWrapper.teardown();
                 this.magicWrapper.teardown();
             },
-            reset: function () {
-                return this.magicWrapper.reset();
+            reset: function (value) {
+                return this.magicWrapper.reset(value);
             }
         };
         return magicArrayAdaptor;
-    }(Ractive_prototype_get_magicAdaptor, Ractive_prototype_get_arrayAdaptor);
-var shared_adaptIfNecessary = function (clone, adaptorRegistry, arrayAdaptor, magicAdaptor, magicArrayAdaptor) {
+    }(Ractive_prototype_get_magicAdaptor, Ractive_prototype_get_arrayAdaptor__arrayAdaptor);
+var shared_adaptIfNecessary = function (clone, isObject, adaptorRegistry, arrayAdaptor, magicAdaptor, magicArrayAdaptor) {
         
         var prefixers = {};
         return function (ractive, keypath, value, isExpressionResult, shouldClone) {
@@ -938,7 +1045,7 @@ var shared_adaptIfNecessary = function (clone, adaptorRegistry, arrayAdaptor, ma
             }
             return prefixers[rootKeypath];
         }
-    }(utils_clone, registries_adaptors, Ractive_prototype_get_arrayAdaptor, Ractive_prototype_get_magicAdaptor, Ractive_prototype_get_magicArrayAdaptor);
+    }(utils_clone, utils_isObject, registries_adaptors, Ractive_prototype_get_arrayAdaptor__arrayAdaptor, Ractive_prototype_get_magicAdaptor, Ractive_prototype_get_magicArrayAdaptor);
 var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary) {
         
         var get, _get, retrieve;
@@ -996,13 +1103,6 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
         };
         return get;
     }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary);
-var utils_isObject = function () {
-        
-        var toString = Object.prototype.toString;
-        return function (thing) {
-            return typeof thing === 'object' && toString.call(thing) === '[object Object]';
-        };
-    }();
 var utils_isEqual = function () {
         
         return function (a, b) {
@@ -1017,10 +1117,9 @@ var utils_isEqual = function () {
     }();
 var shared_resolveRef = function () {
         
-        var resolveRef;
-        resolveRef = function (ractive, ref, contextStack) {
-            var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context, ancestorErrorMessage;
-            ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+        var ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+        return function (ractive, ref, contextStack) {
+            var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
             if (ref === '.') {
                 if (!contextStack.length) {
                     return '';
@@ -1056,7 +1155,7 @@ var shared_resolveRef = function () {
                     if (wrapped = ractive._wrapped[parentKeypath]) {
                         parentValue = wrapped.get();
                     }
-                    if (typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty(lastKey)) {
+                    if (typeof parentValue === 'object' && parentValue !== null && parentValue[lastKey] !== undefined) {
                         keypath = innerMostContext + '.' + ref;
                         break;
                     }
@@ -1067,7 +1166,6 @@ var shared_resolveRef = function () {
             }
             return keypath ? keypath.replace(/^\./, '') : keypath;
         };
-        return resolveRef;
     }();
 var shared_attemptKeypathResolution = function (resolveRef) {
         
@@ -1087,7 +1185,7 @@ var shared_attemptKeypathResolution = function (resolveRef) {
             }
         };
     }(shared_resolveRef);
-var Ractive_prototype_shared_replaceData = function (clone) {
+var Ractive_prototype_shared_replaceData = function (clone, createBranch, clearCache) {
         
         return function (ractive, keypath, value) {
             var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
@@ -1110,24 +1208,26 @@ var Ractive_prototype_shared_replaceData = function (clone) {
                     }
                     obj = wrapped.get();
                 } else {
-                    if (!obj.hasOwnProperty(key) || !obj[key]) {
+                    if (!obj.hasOwnProperty(key) && key in obj) {
                         if (!keypathToClear) {
                             keypathToClear = currentKeypath;
                         }
-                        if (key in obj) {
-                            obj[key] = clone(obj[key]);
-                        } else {
-                            obj[key] = /^\s*[0-9]+\s*$/.test(keys[0]) ? [] : {};
+                        obj[key] = clone(obj[key]);
+                    }
+                    if (!obj[key]) {
+                        if (!keypathToClear) {
+                            keypathToClear = currentKeypath;
                         }
+                        obj[key] = createBranch(keys[0]);
                     }
                     obj = obj[key];
                 }
             }
             key = keys[0];
             obj[key] = value;
-            return keypathToClear;
+            clearCache(ractive, keypathToClear || keypath);
         };
-    }(utils_clone);
+    }(utils_clone, utils_createBranch, shared_clearCache);
 var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, midCycleUpdate, endCycleUpdate, replaceData) {
         
         var set, updateModel, getUpstreamChanges, resetWrapped;
@@ -1183,9 +1283,10 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             return this;
         };
         updateModel = function (ractive, keypath, value, changes) {
-            var cached, previous, wrapped, keypathToClear, evaluator;
+            var cached, previous, wrapped, evaluator;
             if ((wrapped = ractive._wrapped[keypath]) && wrapped.reset) {
                 if (resetWrapped(ractive, keypath, value, wrapped, changes) !== false) {
+                    clearCache(ractive, keypath);
                     return;
                 }
             }
@@ -1195,14 +1296,14 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             cached = ractive._cache[keypath];
             previous = ractive.get(keypath);
             if (previous !== value && !evaluator) {
-                keypathToClear = replaceData(ractive, keypath, value);
+                replaceData(ractive, keypath, value);
             } else {
                 if (value === cached && typeof value !== 'object') {
                     return;
                 }
             }
-            clearCache(ractive, keypathToClear || keypath);
-            changes[changes.length] = keypath;
+            changes.push(keypath);
+            clearCache(ractive, keypath);
         };
         getUpstreamChanges = function (changes) {
             var upstreamChanges = [''], i, keypath, keys, upstreamKeypath;
@@ -1926,7 +2027,7 @@ var Ractive_prototype_observe_Observer = function (isEqual) {
         };
         return Observer;
     }(utils_isEqual);
-var Ractive_prototype_observe_getPattern = function () {
+var Ractive_prototype_observe_getPattern = function (isArray) {
         
         return function (ractive, pattern) {
             var keys, key, values, toGet, newToGet, expand, concatenate;
@@ -1936,7 +2037,9 @@ var Ractive_prototype_observe_getPattern = function () {
                 var value, key;
                 value = ractive._wrapped[keypath] ? ractive._wrapped[keypath].get() : ractive.get(keypath);
                 for (key in value) {
-                    newToGet.push(keypath + '.' + key);
+                    if (value.hasOwnProperty(key) && (key !== '_ractive' || !isArray(value))) {
+                        newToGet.push(keypath + '.' + key);
+                    }
                 }
             };
             concatenate = function (keypath) {
@@ -1961,7 +2064,7 @@ var Ractive_prototype_observe_getPattern = function () {
             });
             return values;
         };
-    }();
+    }(utils_isArray);
 var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
         
         var PatternObserver, wildcard = /\*/;
@@ -2463,12 +2566,45 @@ var render_shared_initFragment = function (types, create) {
     }(config_types, utils_create);
 var render_DomFragment_shared_insertHtml = function (createElement) {
         
-        var elementCache = {};
+        var elementCache = {}, ieBug, ieBlacklist;
+        try {
+            createElement('table').innerHTML = 'foo';
+        } catch (err) {
+            ieBug = true;
+            ieBlacklist = {
+                TABLE: [
+                    '<table class="x">',
+                    '</table>'
+                ],
+                THEAD: [
+                    '<table><thead class="x">',
+                    '</thead></table>'
+                ],
+                TBODY: [
+                    '<table><tbody class="x">',
+                    '</tbody></table>'
+                ],
+                TR: [
+                    '<table><tr class="x">',
+                    '</tr></table>'
+                ],
+                SELECT: [
+                    '<select class="x">',
+                    '</select>'
+                ]
+            };
+        }
         return function (html, tagName, docFrag) {
-            var container, nodes = [];
+            var container, nodes = [], wrapper;
             if (html) {
-                container = elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
-                container.innerHTML = html;
+                if (ieBug && (wrapper = ieBlacklist[tagName])) {
+                    container = element('DIV');
+                    container.innerHTML = wrapper[0] + html + wrapper[1];
+                    container = container.querySelector('.x');
+                } else {
+                    container = element(tagName);
+                    container.innerHTML = html;
+                }
                 while (container.firstChild) {
                     nodes.push(container.firstChild);
                     docFrag.appendChild(container.firstChild);
@@ -2476,6 +2612,9 @@ var render_DomFragment_shared_insertHtml = function (createElement) {
             }
             return nodes;
         };
+        function element(tagName) {
+            return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
+        }
     }(utils_createElement);
 var render_DomFragment_shared_detach = function () {
         
@@ -3275,6 +3414,50 @@ var render_DomFragment_Section_reassignFragments = function (types, reassignFrag
             midCycleUpdate(root);
         };
     }(config_types, render_DomFragment_Section_reassignFragment, shared_midCycleUpdate);
+var render_DomFragment_Section_helpers_splice = function (reassignFragments) {
+        
+        return function (section, spliceSummary) {
+            var insertionPoint, balance, i, start, end, insertStart, insertEnd, spliceArgs, fragmentOptions;
+            balance = spliceSummary.balance;
+            if (!balance) {
+                return;
+            }
+            start = spliceSummary.start;
+            if (balance < 0) {
+                end = start - balance;
+                for (i = start; i < end; i += 1) {
+                    section.fragments[i].teardown(true);
+                }
+                section.fragments.splice(start, -balance);
+            } else {
+                fragmentOptions = {
+                    descriptor: section.descriptor.f,
+                    root: section.root,
+                    pNode: section.parentFragment.pNode,
+                    owner: section
+                };
+                if (section.descriptor.i) {
+                    fragmentOptions.indexRef = section.descriptor.i;
+                }
+                insertStart = start + spliceSummary.removed;
+                insertEnd = start + spliceSummary.added;
+                insertionPoint = section.fragments[insertStart] ? section.fragments[insertStart].firstNode() : section.parentFragment.findNextNode(section);
+                spliceArgs = [
+                    insertStart,
+                    0
+                ].concat(new Array(balance));
+                section.fragments.splice.apply(section.fragments, spliceArgs);
+                for (i = insertStart; i < insertEnd; i += 1) {
+                    fragmentOptions.contextStack = section.contextStack.concat(section.keypath + '.' + i);
+                    fragmentOptions.index = i;
+                    section.fragments[i] = section.createFragment(fragmentOptions);
+                }
+                section.parentFragment.pNode.insertBefore(section.docFrag, insertionPoint);
+            }
+            section.length += balance;
+            reassignFragments(section.root, section, start, section.length, balance);
+        };
+    }(render_DomFragment_Section_reassignFragments);
 var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
         
         return function (newIndices) {
@@ -3337,7 +3520,7 @@ var render_DomFragment_Section_prototype_merge = function (reassignFragment) {
             this.length = newLength;
         };
     }(render_DomFragment_Section_reassignFragment);
-var render_DomFragment_Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, reassignFragment, reassignFragments, merge, teardown, circular) {
+var render_DomFragment_Section__Section = function (types, isClient, initMustache, updateMustache, resolveMustache, updateSection, splice, merge, teardown, circular) {
         
         var DomSection, DomFragment;
         circular.push(function () {
@@ -3361,92 +3544,10 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
         DomSection.prototype = {
             update: updateMustache,
             resolve: resolveMustache,
-            smartUpdate: function (methodName, args) {
-                var fragmentOptions;
-                if (methodName === 'push' || methodName === 'unshift' || methodName === 'splice') {
-                    fragmentOptions = {
-                        descriptor: this.descriptor.f,
-                        root: this.root,
-                        pNode: this.parentFragment.pNode,
-                        owner: this
-                    };
-                    if (this.descriptor.i) {
-                        fragmentOptions.indexRef = this.descriptor.i;
-                    }
-                }
-                if (this[methodName]) {
-                    this.rendering = true;
-                    this[methodName](fragmentOptions, args);
-                    this.rendering = false;
-                }
-            },
-            pop: function () {
-                if (this.length) {
-                    this.fragments.pop().teardown(true);
-                    this.length -= 1;
-                }
-            },
-            push: function (fragmentOptions, args) {
-                var start, end, i;
-                start = this.length;
-                end = start + args.length;
-                for (i = start; i < end; i += 1) {
-                    fragmentOptions.contextStack = this.contextStack.concat(this.keypath + '.' + i);
-                    fragmentOptions.index = i;
-                    this.fragments[i] = this.createFragment(fragmentOptions);
-                }
-                this.length += args.length;
-                this.parentFragment.pNode.insertBefore(this.docFrag, this.parentFragment.findNextNode(this));
-            },
-            shift: function () {
-                this.splice(null, [
-                    0,
-                    1
-                ]);
-            },
-            unshift: function (fragmentOptions, args) {
-                this.splice(fragmentOptions, [
-                    0,
-                    0
-                ].concat(new Array(args.length)));
-            },
-            splice: function (fragmentOptions, args) {
-                var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart;
-                if (!args.length) {
-                    return;
-                }
-                start = +(args[0] < 0 ? this.length + args[0] : args[0]);
-                addedItems = Math.max(0, args.length - 2);
-                removedItems = args[1] !== undefined ? args[1] : this.length - start;
-                removedItems = Math.min(removedItems, this.length - start);
-                balance = addedItems - removedItems;
-                if (!balance) {
-                    return;
-                }
-                if (balance < 0) {
-                    end = start - balance;
-                    for (i = start; i < end; i += 1) {
-                        this.fragments[i].teardown(true);
-                    }
-                    this.fragments.splice(start, -balance);
-                } else {
-                    end = start + balance;
-                    insertionPoint = this.fragments[start] ? this.fragments[start].firstNode() : this.parentFragment.findNextNode(this);
-                    spliceArgs = [
-                        start,
-                        0
-                    ].concat(new Array(balance));
-                    this.fragments.splice.apply(this.fragments, spliceArgs);
-                    for (i = start; i < end; i += 1) {
-                        fragmentOptions.contextStack = this.contextStack.concat(this.keypath + '.' + i);
-                        fragmentOptions.index = i;
-                        this.fragments[i] = this.createFragment(fragmentOptions);
-                    }
-                    this.parentFragment.pNode.insertBefore(this.docFrag, insertionPoint);
-                }
-                this.length += balance;
-                reassignStart = start + addedItems;
-                reassignFragments(this.root, this, reassignStart, this.length, balance);
+            smartUpdate: function (methodName, spliceSummary) {
+                this.rendering = true;
+                splice(this, spliceSummary);
+                this.rendering = false;
             },
             merge: merge,
             detach: function () {
@@ -3572,7 +3673,7 @@ var render_DomFragment_Section__Section = function (types, isClient, initMustach
             }
         };
         return DomSection;
-    }(config_types, config_isClient, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_shared_updateSection, render_DomFragment_Section_reassignFragment, render_DomFragment_Section_reassignFragments, render_DomFragment_Section_prototype_merge, shared_teardown, circular);
+    }(config_types, config_isClient, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_shared_updateSection, render_DomFragment_Section_helpers_splice, render_DomFragment_Section_prototype_merge, shared_teardown, circular);
 var render_DomFragment_Triple = function (types, matches, initMustache, updateMustache, resolveMustache, insertHtml, teardown) {
         
         var DomTriple = function (options, docFrag) {
@@ -4917,7 +5018,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
             if (!this.node.type || this.node.type === 'text/javascript') {
                 warn('Script tag was updated. This does not cause the code to be re-evaluated!');
             }
-            this.node.innerHTML = this.fragment.toString();
+            this.node.text = this.fragment.toString();
         };
         return function (element, node, descriptor, docFrag) {
             var liveQueries, i, selector, queryAllResult, j;
@@ -4931,7 +5032,7 @@ var render_DomFragment_Element_initialise_appendElementChildren = function (warn
                 if (docFrag) {
                     if (element.lcName === 'script') {
                         element.bubble = updateScript;
-                        element.node.innerHTML = element.fragment.toString();
+                        element.node.text = element.fragment.toString();
                     } else {
                         element.bubble = updateCss;
                         element.bubble();
@@ -5604,6 +5705,8 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_ani
                                 checkComplete();
                             }
                         });
+                    } else {
+                        jsTransitionsComplete = true;
                     }
                     if (!changedProperties.length) {
                         t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
@@ -5727,8 +5830,8 @@ var render_DomFragment_Element_shared_executeTransition_Transition__Transition =
                 if (!noReset && t.isIntro) {
                     t.resetStyle();
                 }
-                t._manager.pop(t.node);
                 t.node._ractive.transition = null;
+                t._manager.pop(t.node);
             };
             name = descriptor.n || descriptor;
             if (typeof name !== 'string') {
@@ -9084,7 +9187,6 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCyc
                 newArray = array;
             }
             newIndices = mapOldToNewIndex(oldArray, newArray);
-            clearCache(this, keypath);
             replaceData(this, keypath, array);
             if (newIndices.unchanged && lengthUnchanged) {
                 return;
