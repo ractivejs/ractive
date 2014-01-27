@@ -34,18 +34,24 @@
 	}
 
 	function stubNode ( node ) {
-		var stub, i;
+		var stub, i, attr;
 
 		if ( node.nodeType === 3 ) {
 			return node.data;
 		}
 
 		if ( node.nodeType === 1 ) {
-			stub = { tag: node.tagName, children: [] };
+			stub = { tag: node.tagName, children: [], attributes: {} };
 
 			i = node.childNodes.length;
 			while ( i-- ) {
 				stub.children[i] = stubNode( node.childNodes[i] );
+			}
+
+			i = node.attributes.length;
+			while ( i-- ) {
+				attr = node.attributes[i];
+				stub.attributes[ attr.name ] = attr.value;
 			}
 
 			return stub;
