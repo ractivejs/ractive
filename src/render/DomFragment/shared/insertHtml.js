@@ -19,7 +19,7 @@ define([
 			TBODY:  [ '<table><tbody class="x">', '</tbody></table>' ],
 			TR:     [ '<table><tr class="x">', '</tr></table>' ],
 			SELECT: [ '<select class="x">', '</select>' ]
-		}
+		};
 	}
 
 	return function ( html, tagName, docFrag ) {

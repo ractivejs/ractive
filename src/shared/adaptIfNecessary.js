@@ -53,7 +53,7 @@ define([
 				}
 
 				else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-					if ( shouldClone && isObject( value ) ) {
+					if ( shouldClone ) {
 						value = clone( value );
 					}
 					ractive._wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
