@@ -217,7 +217,7 @@ module.exports = function(grunt) {
 		'requirejs',
 		'nodeunit',
 		'qunit:all',
-		'promises-aplus-tests'
+		//'promises-aplus-tests'
 	]);
 
 	grunt.registerTask( 'release', [ 'default', 'copy:release', 'copy:link' ] );
