@@ -5,8 +5,7 @@ define([
 	'render/shared/updateMustache',
 	'render/shared/resolveMustache',
 	'render/shared/updateSection',
-	'render/DomFragment/Section/reassignFragment',
-	'render/DomFragment/Section/reassignFragments',
+	'render/DomFragment/Section/helpers/splice',
 	'render/DomFragment/Section/prototype/merge',
 	'shared/teardown',
 	'circular'
@@ -17,8 +16,7 @@ define([
 	updateMustache,
 	resolveMustache,
 	updateSection,
-	reassignFragment,
-	reassignFragments,
+	splice,
 	merge,
 	teardown,
 	circular
@@ -58,133 +56,10 @@ define([
 		update: updateMustache,
 		resolve: resolveMustache,
 
-		smartUpdate: function ( methodName, args ) {
-			var fragmentOptions;
-
-			if ( methodName === 'push' || methodName === 'unshift' || methodName === 'splice' ) {
-				fragmentOptions = {
-					descriptor: this.descriptor.f,
-					root:       this.root,
-					pNode:      this.parentFragment.pNode,
-					owner:      this
-				};
-
-				if ( this.descriptor.i ) {
-					fragmentOptions.indexRef = this.descriptor.i;
-				}
-			}
-
-			if ( this[ methodName ] ) { // if not, it's sort or reverse, which doesn't affect us (i.e. our length)
-				this.rendering = true;
-				this[ methodName ]( fragmentOptions, args );
-				this.rendering = false;
-			}
-		},
-
-		pop: function () {
-			// teardown last fragment
-			if ( this.length ) {
-				this.fragments.pop().teardown( true );
-				this.length -= 1;
-			}
-		},
-
-		push: function ( fragmentOptions, args ) {
-			var start, end, i;
-
-			// append list item to context stack
-			start = this.length;
-			end = start + args.length;
-
-			for ( i=start; i<end; i+=1 ) {
-				fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
-				fragmentOptions.index = i;
-
-				this.fragments[i] = this.createFragment( fragmentOptions );
-			}
-
-			this.length += args.length;
-
-			// append docfrag in front of next node
-			this.parentFragment.pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
-		},
-
-		shift: function () {
-			this.splice( null, [ 0, 1 ] );
-		},
-
-		unshift: function ( fragmentOptions, args ) {
-			this.splice( fragmentOptions, [ 0, 0 ].concat( new Array( args.length ) ) );
-		},
-
-		splice: function ( fragmentOptions, args ) {
-			var insertionPoint, addedItems, removedItems, balance, i, start, end, spliceArgs, reassignStart;
-
-			if ( !args.length ) {
-				return;
-			}
-
-			// figure out where the changes started...
-			start = +( args[0] < 0 ? this.length + args[0] : args[0] );
-
-			// ...and how many items were added to or removed from the array
-			addedItems = Math.max( 0, args.length - 2 );
-			removedItems = ( args[1] !== undefined ? args[1] : this.length - start );
-
-			// It's possible to do e.g. [ 1, 2, 3 ].splice( 2, 2 ) - i.e. the second argument
-			// means removing more items from the end of the array than there are. In these
-			// cases we need to curb JavaScript's enthusiasm or we'll get out of sync
-			removedItems = Math.min( removedItems, this.length - start );
-
-			balance = addedItems - removedItems;
-
-			if ( !balance ) {
-				// The array length hasn't changed - we don't need to add or remove anything
-				return;
-			}
-
-			// If more items were removed than added, we need to remove some things from the DOM
-			if ( balance < 0 ) {
-				end = start - balance;
-
-				for ( i=start; i<end; i+=1 ) {
-					this.fragments[i].teardown( true );
-				}
-
-				// Keep in sync
-				this.fragments.splice( start, -balance );
-			}
-
-			// Otherwise we need to add some things to the DOM
-			else {
-				end = start + balance;
-
-				// Figure out where these new nodes need to be inserted
-				insertionPoint = ( this.fragments[ start ] ? this.fragments[ start ].firstNode() : this.parentFragment.findNextNode( this ) );
-
-				// Make room for the new fragments. (Just trust me, this works...)
-				spliceArgs = [ start, 0 ].concat( new Array( balance ) );
-				this.fragments.splice.apply( this.fragments, spliceArgs );
-
-				for ( i=start; i<end; i+=1 ) {
-					fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
-					fragmentOptions.index = i;
-
-					this.fragments[i] = this.createFragment( fragmentOptions );
-				}
-
-				// Append docfrag in front of insertion point
-				this.parentFragment.pNode.insertBefore( this.docFrag, insertionPoint );
-			}
-
-			this.length += balance;
-
-
-			// Now we need to reassign existing fragments (e.g. items.4 -> items.3 - the keypaths,
-			// context stacks and index refs will have changed)
-			reassignStart = ( start + addedItems );
-
-			reassignFragments( this.root, this, reassignStart, this.length, balance );
+		smartUpdate: function ( methodName, spliceSummary ) {
+			this.rendering = true;
+			splice( this, spliceSummary );
+			this.rendering = false;
 		},
 
 		merge: merge,
