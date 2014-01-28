@@ -29,7 +29,8 @@ define([
 			data,
 			toBind,
 			undefs,
-			pendingResolution,
+			newlyUnresolved,
+			notInPreviousSnapshot,
 			i;
 
 		parentFragment = component.parentFragment = options.parentFragment;
@@ -73,10 +74,21 @@ define([
 		attemptKeypathResolution( component.instance );
 
 		// Attempt to resolve unresolved dependants with ancestor data contexts
-		pendingResolution = component.instance._pendingResolution;
-		i = pendingResolution.length;
-		while ( i-- ) { // we can't use forEach, or a for loop, in case dependants resolve synchronously
-			resolveWithAncestors( component, pendingResolution[i] );
+		newlyUnresolved = component.instance._pendingResolution.slice();
+
+		notInPreviousSnapshot = function ( unresolved ) {
+			return newlyUnresolved.indexOf( unresolved ) === -1;
+		};
+
+		while ( newlyUnresolved.length ) {
+			i = newlyUnresolved.length;
+			while ( i-- ) {
+				resolveWithAncestors( component, newlyUnresolved[i] );
+			}
+
+			// This resolution process may have created more unresolveds! (It's unlikely, but possible).
+			// So we need to repeat the process
+			newlyUnresolved = component.instance._pendingResolution.filter( notInPreviousSnapshot );
 		}
 
 		// intro, outro and decorator directives have no effect

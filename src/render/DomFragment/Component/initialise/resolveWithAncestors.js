@@ -12,6 +12,11 @@ define([
 	return function ( component, dependant ) {
 		var instance, parent, proxy, keypath, contextStack, resolve, makeResolver;
 
+		// This dependant might already have resolved as a result of a sibling's resolution
+		if ( dependant.keypath ) {
+			return;
+		}
+
 		instance = dependant.root;
 
 		makeResolver = function ( instance ) {
