@@ -21,7 +21,7 @@ define([ 'render/DomFragment/Attribute/_Attribute' ], function ( DomAttribute ) 
 				});
 
 				// store against both index and name, for fast iteration and lookup
-				element.attributes[ element.attributes.length ] = element.attributes[ attrName ] = attr;
+				element.attributes.push( element.attributes[ attrName ] = attr );
 
 				// The name attribute is a special case - it is the only two-way attribute that updates
 				// the viewmodel based on the value of another attribute. For that reason it must wait

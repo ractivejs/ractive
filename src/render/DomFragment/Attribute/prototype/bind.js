@@ -72,7 +72,7 @@ define([
 
 		// register this with the root, so that we can force an update later
 		bindings = this.root._twowayBindings[ this.keypath ] || ( this.root._twowayBindings[ this.keypath ] = [] );
-		bindings[ bindings.length ] = binding;
+		bindings.push( binding );
 
 		return true;
 	};

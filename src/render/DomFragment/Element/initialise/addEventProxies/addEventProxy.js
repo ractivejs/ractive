@@ -47,7 +47,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 
 	MasterEventHandler.prototype = {
 		add: function ( proxy ) {
-			this.proxies[ this.proxies.length ] = new ProxyEvent( this.element, this.root, proxy, this.contextStack );
+			this.proxies.push( new ProxyEvent( this.element, this.root, proxy, this.contextStack ) );
 		},
 
 		// TODO teardown when element torn down

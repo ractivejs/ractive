@@ -78,7 +78,7 @@ function (
 						}
 					}
 
-					animations[ animations.length ] = animate( this, k, keypath[k], options );
+					animations.push( animate( this, k, keypath[k], options ) );
 				}
 			}
 
@@ -100,13 +100,16 @@ function (
 					};
 				}
 
-				animations[ animations.length ] = dummy = animate( this, null, null, dummyOptions );
+				dummy = animate( this, null, null, dummyOptions );
+				animations.push( dummy );
 			}
 
 			return {
 				stop: function () {
-					while ( animations.length ) {
-						animations.pop().stop();
+					var animation;
+
+					while ( animation = animations.pop() ) {
+						animation.stop();
 					}
 
 					if ( dummy ) {
@@ -182,7 +185,7 @@ function (
 		});
 
 		animations.add( animation );
-		root._animations[ root._animations.length ] = animation;
+		root._animations.push( animation );
 
 		return animation;
 	}

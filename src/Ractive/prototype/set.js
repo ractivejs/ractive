@@ -172,7 +172,7 @@ define([
 				upstreamKeypath = keys.join( '.' );
 
 				if ( !upstreamChanges[ upstreamKeypath ] ) {
-					upstreamChanges[ upstreamChanges.length ] = upstreamKeypath;
+					upstreamChanges.push( upstreamKeypath );
 					upstreamChanges[ upstreamKeypath ] = true;
 				}
 			}
@@ -211,7 +211,7 @@ define([
 				}
 			}
 
-			changes[ changes.length ] = keypath;
+			changes.push( keypath );
 		}
 	};
 

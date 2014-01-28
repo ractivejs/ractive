@@ -89,7 +89,7 @@ define([
 		keys = keypath.split( '.' );
 		while ( keys.length ) {
 			keys.pop();
-			upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
+			upstreamQueue.push( keys.join( '.' ) );
 		}
 
 		notifyDependants.multiple( root, upstreamQueue, true );
@@ -120,10 +120,10 @@ define([
 
 			// is this a DOM section?
 			else if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
-				smartUpdateQueue[ smartUpdateQueue.length ] = dependant;
+				smartUpdateQueue.push( dependant );
 
 			} else {
-				dumbUpdateQueue[ dumbUpdateQueue.length ] = dependant;
+				dumbUpdateQueue.push( dependant );
 			}
 		}
 	}

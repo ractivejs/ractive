@@ -89,7 +89,7 @@ define([
 			ractive._cacheMap[ parentKeypath ] = [ keypath ];
 		} else {
 			if ( cacheMap.indexOf( keypath ) === -1 ) {
-				cacheMap[ cacheMap.length ] = keypath;
+				cacheMap.push( keypath );
 			}
 		}
 

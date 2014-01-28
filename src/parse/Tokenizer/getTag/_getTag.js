@@ -149,7 +149,7 @@ define([
 		attrs = [];
 
 		while ( attr !== null ) {
-			attrs[ attrs.length ] = attr;
+			attrs.push( attr );
 
 			tokenizer.allowWhitespace();
 			attr = getAttribute( tokenizer );
@@ -239,7 +239,7 @@ define([
 
 		token = tokenizer.getMustache() || getUnquotedAttributeValueToken( tokenizer );
 		while ( token !== null ) {
-			tokens[ tokens.length ] = token;
+			tokens.push( token );
 			token = tokenizer.getMustache() || getUnquotedAttributeValueToken( tokenizer );
 		}
 
@@ -263,7 +263,7 @@ define([
 
 		token = tokenizer.getMustache() || getQuotedStringToken( tokenizer, quoteMark );
 		while ( token !== null ) {
-			tokens[ tokens.length ] = token;
+			tokens.push( token );
 			token = tokenizer.getMustache() || getQuotedStringToken( tokenizer, quoteMark );
 		}
 

@@ -31,7 +31,8 @@ define([
 
 
 		while ( keys.length > 1 ) {
-			key = accumulated[ accumulated.length ] = keys.shift();
+			key = keys.shift();
+			accumulated.push( key );
 			currentKeypath = accumulated.join( '.' );
 
 			if ( wrapped = ractive._wrapped[ currentKeypath ] ) {

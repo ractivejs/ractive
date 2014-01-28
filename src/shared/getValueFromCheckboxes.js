@@ -21,7 +21,7 @@ define( function () {
 			checkbox = checkboxes[i];
 
 			if ( checkbox.hasAttribute( 'checked' ) || checkbox.checked ) {
-				value[ value.length ] = checkbox._ractive.value;
+				value.push( checkbox._ractive.value );
 			}
 		}
 

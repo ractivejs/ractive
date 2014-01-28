@@ -51,7 +51,7 @@ define([
 						// we will need to see which checkboxes with the same name are checked,
 						// but we only want to do so once
 						deferredCheckboxes[ keypath ] = true; // for quick lookup without indexOf
-						deferredCheckboxes[ deferredCheckboxes.length ] = keypath;
+						deferredCheckboxes.push( keypath );
 					}
 
 					continue;

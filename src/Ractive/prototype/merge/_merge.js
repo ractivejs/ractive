@@ -163,7 +163,7 @@ define([
 		keys = keypath.split( '.' );
 		while ( keys.length ) {
 			keys.pop();
-			upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
+			upstreamQueue.push( keys.join( '.' ) );
 		}
 
 		notifyDependants.multiple( this, upstreamQueue, true );

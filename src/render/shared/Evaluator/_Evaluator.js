@@ -164,7 +164,7 @@ define([
 				keypath = softDeps[i];
 				if ( !this.softRefs[ keypath ] ) {
 					ref = new SoftReference( this.root, keypath, this );
-					this.softRefs[ this.softRefs.length ] = ref;
+					this.softRefs.push( ref );
 					this.softRefs[ keypath ] = true;
 				}
 			}

@@ -18,7 +18,7 @@ define([
 			for ( k in keypath ) {
 				if ( keypath.hasOwnProperty( k ) ) {
 					callback = keypath[k];
-					observers[ observers.length ] = getObserverFacade( this, k, callback, options );
+					observers.push( getObserverFacade( this, k, callback, options ) );
 				}
 			}
 

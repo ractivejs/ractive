@@ -41,7 +41,7 @@ define([
 				}
 			}
 
-			this.items[ this.items.length ] = parser.getStub();
+			this.items.push( parser.getStub() );
 			next = parser.next();
 		}
 	};

@@ -22,7 +22,7 @@ define([
 			this.resolver = resolver;
 			this.contextStack = contextStack;
 
-			root._pendingResolution[ root._pendingResolution.length ] = this;
+			root._pendingResolution.push( this );
 		}
 	};
 

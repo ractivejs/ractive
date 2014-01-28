@@ -46,7 +46,7 @@ define([
 			}
 
 			else {
-				this.scouts[ this.scouts.length ] = new ReferenceScout( this, ref, mustache.contextStack, i );
+				this.scouts.push( new ReferenceScout( this, ref, mustache.contextStack, i ) );
 			}
 		}
 

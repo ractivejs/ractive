@@ -33,7 +33,7 @@ define([
 		},
 
 		add: function ( animation ) {
-			queue[ queue.length ] = animation;
+			queue.push( animation );
 
 			if ( !animations.running ) {
 				animations.running = true;

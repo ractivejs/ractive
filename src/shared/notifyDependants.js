@@ -158,7 +158,7 @@ define( function () {
 			wildcardKeypath = starMap[i].map( mapper ).join( '.' );
 
 			if ( !result[ wildcardKeypath ] ) {
-				result[ result.length ] = wildcardKeypath;
+				result.push( wildcardKeypath );
 				result[ wildcardKeypath ] = true;
 			}
 		}

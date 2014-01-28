@@ -12,7 +12,7 @@ define( function () {
 		depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
 		deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
-		deps[ deps.length ] = dependant;
+		deps.push( dependant );
 		dependant.registered = true;
 
 		if ( !keypath ) {

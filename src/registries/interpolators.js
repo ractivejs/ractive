@@ -91,7 +91,7 @@ define([
 			for ( prop in from ) {
 				if ( from.hasOwnProperty( prop ) ) {
 					if ( to.hasOwnProperty( prop ) ) {
-						properties[ properties.length ] = prop;
+						properties.push( prop );
 						interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] );
 					}
 

@@ -20,10 +20,10 @@ define([
 
 			// is this a DOM section?
 			else if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
-				mergeQueue[ mergeQueue.length ] = dependant;
+				mergeQueue.push( dependant );
 
 			} else {
-				updateQueue[ updateQueue.length ] = dependant;
+				updateQueue.push( dependant );
 			}
 		}
 	};
