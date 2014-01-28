@@ -78,8 +78,18 @@ define( function () {
 				}
 			}
 
-			if ( !keypath && ractive.get( ref ) !== undefined ) {
-				keypath = ref;
+			// Still no keypath?
+			if ( !keypath ) {
+				// We need both of these - the first enables components to treat data contexts
+				// like lexical scopes in JavaScript functions...
+				if ( ractive.data.hasOwnProperty( ref ) ) {
+					keypath = ref;
+				}
+
+				// while the second deals with references like `foo.bar`
+				else if ( ractive.get( ref ) !== undefined ) {
+					keypath = ref;
+				}
 			}
 		}
 

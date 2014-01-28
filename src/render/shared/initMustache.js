@@ -1,8 +1,10 @@
 define([
 	'shared/resolveRef',
+	'shared/registerUnresolved',
 	'render/shared/ExpressionResolver/_ExpressionResolver'
 ], function (
 	resolveRef,
+	registerUnresolved,
 	ExpressionResolver
 ) {
 
@@ -41,7 +43,7 @@ define([
 					mustache.resolve( keypath );
 				} else {
 					mustache.ref = options.descriptor.r;
-					mustache.root._pendingResolution[ mustache.root._pendingResolution.length ] = mustache;
+					registerUnresolved( mustache );
 				}
 			}
 		}

@@ -64,24 +64,25 @@ define([
 		}
 	};
 
-	return function ( component, toBind ) {
-		var pair, i;
 
-		component.bindings = [];
+	return function ( component, parentInstance, parentKeypath, childKeypath, options ) {
+		var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
 
-		i = toBind.length;
-		while ( i-- ) {
-			pair = toBind[i];
-			bind( component.root, component.instance, pair.parentKeypath, pair.childKeypath, component.bindings, component.parentFragment.priority );
+		hash = parentKeypath + '=' + childKeypath;
+		bindings = component.bindings;
+
+		if ( bindings[ hash ] ) {
+			// TODO does this ever happen?
+			return;
 		}
-	};
 
+		bindings[ hash ] = true;
 
-	function bind ( parentInstance, childInstance, parentKeypath, childKeypath, bindings, priority ) {
-		var parentToChildBinding, childToParentBinding;
+		childInstance = component.instance;
+		priority = component.parentFragment.priority;
 
 		parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath, priority );
-		parentToChildBinding.init();
+		parentToChildBinding.init( options && options.propagateDown );
 		bindings.push( parentToChildBinding );
 
 		if ( childInstance.twoway ) {
@@ -94,6 +95,6 @@ define([
 			// propagate child data upwards, if it exists already
 			childToParentBinding.init( true );
 		}
-	}
+	};
 
 });

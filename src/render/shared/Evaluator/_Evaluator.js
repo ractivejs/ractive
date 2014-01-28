@@ -47,7 +47,7 @@ define([
 				}
 
 				else {
-					this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
+					this.refs.push( new Reference( root, arg[1], this, i, priority ) );
 				}
 			}
 

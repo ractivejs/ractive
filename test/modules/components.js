@@ -90,7 +90,9 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>shmup</p>' );
 		});
 
-		test( 'Missing data on the parent is not propagated', function ( t ) {
+		// Commenting out this test for the moment - is this a desirable feature?
+		// It prevents JavaScript closure-like behaviour with data contexts
+		/*test( 'Missing data on the parent is not propagated', function ( t ) {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -109,7 +111,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			t.ok( !( widget.data.hasOwnProperty( 'foo' ) ) );
 			t.htmlEqual( fixture.innerHTML, '<p></p>' );
-		});
+		});*/
 
 		test( 'Missing data on the parent is added when set', function ( t ) {
 			var Widget, ractive, widget;
@@ -128,7 +130,6 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			widget = ractive.findComponent( 'widget' );
 
-			t.ok( !( widget.data.hasOwnProperty( 'foo' ) ) );
 			t.htmlEqual( fixture.innerHTML, '<p></p>' );
 
 			ractive.set('missing', 'found')
@@ -331,6 +332,36 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			t.equal( ractiveCompleted, true );
 			t.equal( widgetCompleted, true );
+		});
+
+		test( 'Components can access outer data context, in the same way JavaScript functions can access outer lexical scope', function ( t ) {
+			var ractive, Widget;
+
+			Widget = Ractive.extend({
+				template: '<p>{{foo || "missing"}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/><widget foo="{{bar}}"/><widget foo="{{baz}}"/>',
+				data: {
+					foo: 'one',
+					bar: 'two'
+				},
+				components: {
+					widget: Widget
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>one</p><p>two</p><p>missing</p>' );
+
+			ractive.set({
+				foo: 'three',
+				bar: 'four',
+				baz: 'five'
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>three</p><p>four</p><p>five</p>' );
 		});
 
 	};

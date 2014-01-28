@@ -17,11 +17,11 @@ define( function () {
 			data: data,
 			partials: partials,
 			_parent: root,
+			_component: component,
 			adapt: root.adapt
 		});
 
-		// Need to store references in both directions
-		instance.component = component;
+		// Need to store a reference
 		component.instance = instance;
 
 		// The component may be in the wrong place! This is because we

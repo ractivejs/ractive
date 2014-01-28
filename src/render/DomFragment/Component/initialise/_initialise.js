@@ -1,19 +1,23 @@
 define([
 	'config/types',
 	'utils/warn',
+	'shared/attemptKeypathResolution',
 	'render/DomFragment/Component/initialise/createModel/_createModel',
 	'render/DomFragment/Component/initialise/createInstance',
-	'render/DomFragment/Component/initialise/createBindings',
+	'render/DomFragment/Component/initialise/createBindings/_createBindings',
 	'render/DomFragment/Component/initialise/propagateEvents',
-	'render/DomFragment/Component/initialise/updateLiveQueries'
+	'render/DomFragment/Component/initialise/updateLiveQueries',
+	'render/DomFragment/Component/initialise/resolveWithAncestors'
 ], function (
 	types,
 	warn,
+	attemptKeypathResolution,
 	createModel,
 	createInstance,
 	createBindings,
 	propagateEvents,
-	updateLiveQueries
+	updateLiveQueries,
+	resolveWithAncestors
 ) {
 
 	'use strict';
@@ -23,7 +27,8 @@ define([
 			root,
 			Component,
 			data,
-			toBind;
+			toBind,
+			undefs;
 
 		parentFragment = component.parentFragment = options.parentFragment;
 		root = parentFragment.root;
@@ -47,11 +52,28 @@ define([
 		// This may involve setting up some bindings, but we can't do it
 		// yet so we take some notes instead
 		toBind = [];
-		data = createModel( component, options.descriptor.a, toBind );
+		undefs = [];
+		data = createModel( component, options.descriptor.a, toBind, undefs );
 
 		createInstance( component, Component, data, docFrag, options.descriptor.f );
 		createBindings( component, toBind );
 		propagateEvents( component, options.descriptor.v );
+
+		// add any undefined keys to the model, so that we don't bypass them when
+		// dealing with unresolveds
+		undefs.forEach( function ( key ) {
+			if ( !component.instance.data.hasOwnProperty( key ) ) {
+				component.instance.data[ key ] = undefined;
+			}
+		});
+
+		// Adding the undefined keys may mean we can resolve some dependants
+		attemptKeypathResolution( component.instance );
+
+		// Attempt to resolve unresolved dependants with ancestor data contexts
+		component.instance._pendingResolution.forEach( function ( unresolved ) {
+			resolveWithAncestors( component, unresolved );
+		});
 
 		// intro, outro and decorator directives have no effect
 		if ( options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o ) {

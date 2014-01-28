@@ -12,7 +12,7 @@ define([
 
 	'use strict';
 
-	return function ( component, attributes, toBind ) {
+	return function ( component, attributes, toBind, undefs ) {
 		var data, key, value;
 
 		data = {};
@@ -25,8 +25,11 @@ define([
 		for ( key in attributes ) {
 			if ( attributes.hasOwnProperty( key ) ) {
 				value = getValue( component, key, attributes[ key ], toBind );
+
 				if ( value !== undefined ) {
 					data[ key ] = value;
+				} else {
+					undefs.push( key );
 				}
 			}
 		}

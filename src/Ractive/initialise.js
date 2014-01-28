@@ -137,9 +137,10 @@ define([
 		}
 
 		// If this is a component, store a reference to the parent
-		if ( options._parent ) {
-			defineProperty( ractive, '_parent', {
-				value: options._parent
+		if ( options._parent && options._component ) {
+			defineProperties( ractive, {
+				_parent: { value: options._parent },
+				component: { value: options._component }
 			});
 		}
 
