@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-27
+	Ractive - v0.4.0-pre - 2014-01-28
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -597,7 +597,7 @@ var shared_getValueFromCheckboxes = function () {
             for (i = 0; i < len; i += 1) {
                 checkbox = checkboxes[i];
                 if (checkbox.hasAttribute('checked') || checkbox.checked) {
-                    value[value.length] = checkbox._ractive.value;
+                    value.push(checkbox._ractive.value);
                 }
             }
             return value;
@@ -886,7 +886,7 @@ var shared_notifyDependants = function () {
             while (i--) {
                 wildcardKeypath = starMap[i].map(mapper).join('.');
                 if (!result[wildcardKeypath]) {
-                    result[result.length] = wildcardKeypath;
+                    result.push(wildcardKeypath);
                     result[wildcardKeypath] = true;
                 }
             }
@@ -965,7 +965,7 @@ var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCa
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
-                upstreamQueue[upstreamQueue.length] = keys.join('.');
+                upstreamQueue.push(keys.join('.'));
             }
             notifyDependants.multiple(root, upstreamQueue, true);
             if (!lengthUnchanged) {
@@ -981,9 +981,9 @@ var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCa
                 if (dependant.type === types.REFERENCE) {
                     dependant.update();
                 } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
-                    smartUpdateQueue[smartUpdateQueue.length] = dependant;
+                    smartUpdateQueue.push(dependant);
                 } else {
-                    dumbUpdateQueue[dumbUpdateQueue.length] = dependant;
+                    dumbUpdateQueue.push(dependant);
                 }
             }
         }
@@ -1415,7 +1415,7 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
                 ractive._cacheMap[parentKeypath] = [keypath];
             } else {
                 if (cacheMap.indexOf(keypath) === -1) {
-                    cacheMap[cacheMap.length] = keypath;
+                    cacheMap.push(keypath);
                 }
             }
             value = parentValue[key];
@@ -1483,8 +1483,12 @@ var shared_resolveRef = function () {
                         break;
                     }
                 }
-                if (!keypath && ractive.get(ref) !== undefined) {
-                    keypath = ref;
+                if (!keypath) {
+                    if (ractive.data.hasOwnProperty(ref)) {
+                        keypath = ref;
+                    } else if (ractive.get(ref) !== undefined) {
+                        keypath = ref;
+                    }
                 }
             }
             return keypath ? keypath.replace(/^\./, '') : keypath;
@@ -1523,7 +1527,8 @@ var Ractive_prototype_shared_replaceData = function (clone, createBranch, clearC
                 obj = ractive.data;
             }
             while (keys.length > 1) {
-                key = accumulated[accumulated.length] = keys.shift();
+                key = keys.shift();
+                accumulated.push(key);
                 currentKeypath = accumulated.join('.');
                 if (wrapped = ractive._wrapped[currentKeypath]) {
                     if (wrapped.set) {
@@ -1638,7 +1643,7 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
                     keys.pop();
                     upstreamKeypath = keys.join('.');
                     if (!upstreamChanges[upstreamKeypath]) {
-                        upstreamChanges[upstreamChanges.length] = upstreamKeypath;
+                        upstreamChanges.push(upstreamKeypath);
                         upstreamChanges[upstreamKeypath] = true;
                     }
                 }
@@ -1664,7 +1669,7 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
                         clearCache(ractive, cacheMap[i]);
                     }
                 }
-                changes[changes.length] = keypath;
+                changes.push(keypath);
             }
         };
         return set;
@@ -1748,7 +1753,7 @@ var Ractive_prototype_updateModel = function (getValueFromCheckboxes, arrayConte
                     if (binding.checkboxName) {
                         if (binding.changed() && !deferredCheckboxes[keypath]) {
                             deferredCheckboxes[keypath] = true;
-                            deferredCheckboxes[deferredCheckboxes.length] = keypath;
+                            deferredCheckboxes.push(keypath);
                         }
                         continue;
                     }
@@ -1844,7 +1849,7 @@ var shared_animations = function (rAF, getTime) {
                     }
                 },
                 add: function (animation) {
-                    queue[queue.length] = animation;
+                    queue.push(animation);
                     if (!animations.running) {
                         animations.running = true;
                         animations.tick();
@@ -1933,7 +1938,7 @@ var registries_interpolators = function (circular, isArray, isObject, isNumeric)
                 for (prop in from) {
                     if (from.hasOwnProperty(prop)) {
                         if (to.hasOwnProperty(prop)) {
-                            properties[properties.length] = prop;
+                            properties.push(prop);
                             interpolators[prop] = interpolate(from[prop], to[prop]);
                         } else {
                             intermediate[prop] = from[prop];
@@ -2105,7 +2110,7 @@ var Ractive_prototype_animate__animate = function (isEqual, animations, Animatio
                                 options.complete = collectValue;
                             }
                         }
-                        animations[animations.length] = animate(this, k, keypath[k], options);
+                        animations.push(animate(this, k, keypath[k], options));
                     }
                 }
                 if (step || complete) {
@@ -2123,12 +2128,14 @@ var Ractive_prototype_animate__animate = function (isEqual, animations, Animatio
                             complete(t, currentValues);
                         };
                     }
-                    animations[animations.length] = dummy = animate(this, null, null, dummyOptions);
+                    dummy = animate(this, null, null, dummyOptions);
+                    animations.push(dummy);
                 }
                 return {
                     stop: function () {
-                        while (animations.length) {
-                            animations.pop().stop();
+                        var animation;
+                        while (animation = animations.pop()) {
+                            animation.stop();
                         }
                         if (dummy) {
                             dummy.stop();
@@ -2179,7 +2186,7 @@ var Ractive_prototype_animate__animate = function (isEqual, animations, Animatio
                 complete: options.complete
             });
             animations.add(animation);
-            root._animations[root._animations.length] = animation;
+            root._animations.push(animation);
             return animation;
         }
     }(utils_isEqual, shared_animations, Ractive_prototype_animate_Animation);
@@ -2191,13 +2198,14 @@ var Ractive_prototype_on = function () {
                 listeners = [];
                 for (n in eventName) {
                     if (eventName.hasOwnProperty(n)) {
-                        listeners[listeners.length] = this.on(n, eventName[n]);
+                        listeners.push(this.on(n, eventName[n]));
                     }
                 }
                 return {
                     cancel: function () {
-                        while (listeners.length) {
-                            listeners.pop().cancel();
+                        var listener;
+                        while (listener = listeners.pop()) {
+                            listener.cancel();
                         }
                     }
                 };
@@ -2245,7 +2253,7 @@ var shared_registerDependant = function () {
             priority = dependant.priority;
             depsByKeypath = ractive._deps[priority] || (ractive._deps[priority] = {});
             deps = depsByKeypath[keypath] || (depsByKeypath[keypath] = []);
-            deps[deps.length] = dependant;
+            deps.push(dependant);
             dependant.registered = true;
             if (!keypath) {
                 return;
@@ -2509,7 +2517,7 @@ var Ractive_prototype_observe__observe = function (isObject, getObserverFacade) 
                 for (k in keypath) {
                     if (keypath.hasOwnProperty(k)) {
                         callback = keypath[k];
-                        observers[observers.length] = getObserverFacade(this, k, callback, options);
+                        observers.push(getObserverFacade(this, k, callback, options));
                     }
                 }
                 return {
@@ -2991,6 +2999,12 @@ var shared_teardown = function (unregisterDependant) {
             }
         };
     }(shared_unregisterDependant);
+var shared_registerUnresolved = function () {
+        
+        return function (dependant) {
+            dependant.root._pendingResolution.push(dependant);
+        };
+    }();
 var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
         
         var Reference, thisPattern;
@@ -3110,7 +3124,7 @@ var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty
                     if (arg[0]) {
                         this.values[i] = arg[1];
                     } else {
-                        this.refs[this.refs.length] = new Reference(root, arg[1], this, i, priority);
+                        this.refs.push(new Reference(root, arg[1], this, i, priority));
                     }
                 } else {
                     this.values[i] = undefined;
@@ -3191,7 +3205,7 @@ var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty
                     keypath = softDeps[i];
                     if (!this.softRefs[keypath]) {
                         ref = new SoftReference(this.root, keypath, this);
-                        this.softRefs[this.softRefs.length] = ref;
+                        this.softRefs.push(ref);
                         this.softRefs[keypath] = true;
                     }
                 }
@@ -3214,7 +3228,7 @@ var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty
             return fn;
         }
     }(utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
-var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, teardown) {
+var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, registerUnresolved, teardown) {
         
         var ReferenceScout = function (resolver, ref, contextStack, argNum) {
             var keypath, root;
@@ -3227,7 +3241,7 @@ var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, tear
                 this.argNum = argNum;
                 this.resolver = resolver;
                 this.contextStack = contextStack;
-                root._pendingResolution[root._pendingResolution.length] = this;
+                registerUnresolved(this);
             }
         };
         ReferenceScout.prototype = {
@@ -3242,7 +3256,7 @@ var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, tear
             }
         };
         return ReferenceScout;
-    }(shared_resolveRef, shared_teardown);
+    }(shared_resolveRef, shared_registerUnresolved, shared_teardown);
 var render_shared_ExpressionResolver_getUniqueString = function () {
         
         return function (str, args) {
@@ -3344,7 +3358,7 @@ var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, 
                 if (indexRefs && indexRefs[ref] !== undefined) {
                     this.resolveRef(i, true, indexRefs[ref]);
                 } else {
-                    this.scouts[this.scouts.length] = new ReferenceScout(this, ref, mustache.contextStack, i);
+                    this.scouts.push(new ReferenceScout(this, ref, mustache.contextStack, i));
                 }
             }
             this.ready = true;
@@ -3391,7 +3405,7 @@ var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, 
         };
         return ExpressionResolver;
     }(render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants);
-var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
+var render_shared_initMustache = function (resolveRef, registerUnresolved, ExpressionResolver) {
         
         return function (mustache, options) {
             var keypath, indexRef, parentFragment;
@@ -3414,7 +3428,7 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
                         mustache.resolve(keypath);
                     } else {
                         mustache.ref = options.descriptor.r;
-                        mustache.root._pendingResolution[mustache.root._pendingResolution.length] = mustache;
+                        registerUnresolved(mustache);
                     }
                 }
             }
@@ -3425,7 +3439,7 @@ var render_shared_initMustache = function (resolveRef, ExpressionResolver) {
                 mustache.render(undefined);
             }
         };
-    }(shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver);
+    }(shared_resolveRef, shared_registerUnresolved, render_shared_ExpressionResolver__ExpressionResolver);
 var render_shared_resolveMustache = function (types, registerDependant, unregisterDependant) {
         
         return function (keypath) {
@@ -4234,7 +4248,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             node._ractive.binding = this.element.binding = binding;
             this.twoway = true;
             bindings = this.root._twowayBindings[this.keypath] || (this.root._twowayBindings[this.keypath] = []);
-            bindings[bindings.length] = binding;
+            bindings.push(binding);
             return true;
         };
         updateModel = function () {
@@ -5315,7 +5329,7 @@ var render_DomFragment_Element_initialise_createElementAttributes = function (Do
                         pNode: element.node,
                         contextStack: element.parentFragment.contextStack
                     });
-                    element.attributes[element.attributes.length] = element.attributes[attrName] = attr;
+                    element.attributes.push(element.attributes[attrName] = attr);
                     if (attrName !== 'name') {
                         attr.update();
                     }
@@ -5487,7 +5501,7 @@ var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = functi
         };
         MasterEventHandler.prototype = {
             add: function (proxy) {
-                this.proxies[this.proxies.length] = new ProxyEvent(this.element, this.root, proxy, this.contextStack);
+                this.proxies.push(new ProxyEvent(this.element, this.root, proxy, this.contextStack));
             },
             teardown: function () {
                 var i;
@@ -6867,7 +6881,7 @@ var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowes
             }
             attrs = [];
             while (attr !== null) {
-                attrs[attrs.length] = attr;
+                attrs.push(attr);
                 tokenizer.allowWhitespace();
                 attr = getAttribute(tokenizer);
             }
@@ -6925,7 +6939,7 @@ var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowes
             tokens = [];
             token = tokenizer.getMustache() || getUnquotedAttributeValueToken(tokenizer);
             while (token !== null) {
-                tokens[tokens.length] = token;
+                tokens.push(token);
                 token = tokenizer.getMustache() || getUnquotedAttributeValueToken(tokenizer);
             }
             if (!tokens.length) {
@@ -6942,7 +6956,7 @@ var parse_Tokenizer_getTag__getTag = function (types, makeRegexMatcher, getLowes
             tokens = [];
             token = tokenizer.getMustache() || getQuotedStringToken(tokenizer, quoteMark);
             while (token !== null) {
-                tokens[tokens.length] = token;
+                tokens.push(token);
                 token = tokenizer.getMustache() || getQuotedStringToken(tokenizer, quoteMark);
             }
             if (!tokenizer.getStringMatch(quoteMark)) {
@@ -8081,7 +8095,7 @@ var parse_Parser_getMustache_SectionStub__SectionStub = function (types, normali
                         throw new Error('Could not parse template: Illegal closing section');
                     }
                 }
-                this.items[this.items.length] = parser.getStub();
+                this.items.push(parser.getStub());
                 next = parser.next();
             }
         };
@@ -8200,14 +8214,14 @@ var parse_Parser_getElement_ElementStub_utils_filterAttributes = function (isArr
                     filtered.outro = deepClone(item);
                 } else if (item.name.substr(0, 6) === 'proxy-') {
                     item.name = item.name.substring(6);
-                    proxies[proxies.length] = item;
+                    proxies.push(item);
                 } else if (item.name.substr(0, 3) === 'on-') {
                     item.name = item.name.substring(3);
-                    proxies[proxies.length] = item;
+                    proxies.push(item);
                 } else if (item.name === 'decorator') {
                     filtered.decorator = item;
                 } else {
-                    attrs[attrs.length] = item;
+                    attrs.push(item);
                 }
             }
             filtered.attrs = attrs;
@@ -8250,13 +8264,13 @@ var parse_Parser_getElement_ElementStub_utils_processDirective = function (types
                 if (token.type === types.TEXT) {
                     colonIndex = token.value.indexOf(':');
                     if (colonIndex === -1) {
-                        directiveName[directiveName.length] = token;
+                        directiveName.push(token);
                     } else {
                         if (colonIndex) {
-                            directiveName[directiveName.length] = {
+                            directiveName.push({
                                 type: types.TEXT,
                                 value: token.value.substr(0, colonIndex)
-                            };
+                            });
                         }
                         if (token.value.length > colonIndex + 1) {
                             directiveArgs[0] = {
@@ -8267,7 +8281,7 @@ var parse_Parser_getElement_ElementStub_utils_processDirective = function (types
                         break;
                     }
                 } else {
-                    directiveName[directiveName.length] = token;
+                    directiveName.push(token);
                 }
             }
             directiveArgs = directiveArgs.concat(tokens);
@@ -8854,7 +8868,7 @@ var render_DomFragment_Component_initialise_createModel_ComponentParameter = fun
     }(render_StringFragment__StringFragment);
 var render_DomFragment_Component_initialise_createModel__createModel = function (types, parseJSON, resolveRef, ComponentParameter) {
         
-        return function (component, attributes, toBind) {
+        return function (component, attributes, toBind, undefs) {
             var data, key, value;
             data = {};
             component.complexParameters = [];
@@ -8863,6 +8877,8 @@ var render_DomFragment_Component_initialise_createModel__createModel = function 
                     value = getValue(component, key, attributes[key], toBind);
                     if (value !== undefined) {
                         data[key] = value;
+                    } else {
+                        undefs.push(key);
                     }
                 }
             }
@@ -8908,60 +8924,88 @@ var render_DomFragment_Component_initialise_createInstance = function () {
                 data: data,
                 partials: partials,
                 _parent: root,
+                _component: component,
                 adapt: root.adapt
             });
-            instance.component = component;
             component.instance = instance;
             instance.insert(docFrag);
             instance.fragment.pNode = instance.el = parentFragment.pNode;
             return instance;
         };
     }();
-var render_DomFragment_Component_initialise_createObservers = function (isArray) {
+var render_DomFragment_Component_initialise_createBindings_createBinding = function (isArray, isEqual, registerDependant, unregisterDependant) {
         
-        var observeOptions = {
-                init: false,
-                debug: true
-            };
+        var Binding = function (ractive, keypath, otherInstance, otherKeypath, priority) {
+            this.root = ractive;
+            this.keypath = keypath;
+            this.priority = priority;
+            this.otherInstance = otherInstance;
+            this.otherKeypath = otherKeypath;
+            registerDependant(this);
+        };
+        Binding.prototype = {
+            init: function (propagate) {
+                var value = this.root.get(this.keypath);
+                if (propagate && value !== undefined) {
+                    this.update();
+                } else {
+                    this.value = value;
+                }
+            },
+            update: function () {
+                var value;
+                if (this.counterpart && this.counterpart.setting) {
+                    return;
+                }
+                value = this.root.get(this.keypath);
+                if (isArray(value) && value._ractive && value._ractive.setting) {
+                    return;
+                }
+                if (!isEqual(value, this.value)) {
+                    this.setting = true;
+                    this.otherInstance.set(this.otherKeypath, value);
+                    this.value = value;
+                    this.setting = false;
+                }
+            },
+            teardown: function () {
+                unregisterDependant(this);
+            }
+        };
+        return function (component, parentInstance, parentKeypath, childKeypath, options) {
+            var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
+            hash = parentKeypath + '=' + childKeypath;
+            bindings = component.bindings;
+            if (bindings[hash]) {
+                return;
+            }
+            bindings[hash] = true;
+            childInstance = component.instance;
+            priority = component.parentFragment.priority;
+            parentToChildBinding = new Binding(parentInstance, parentKeypath, childInstance, childKeypath, priority);
+            parentToChildBinding.init(options && options.propagateDown);
+            bindings.push(parentToChildBinding);
+            if (childInstance.twoway) {
+                childToParentBinding = new Binding(childInstance, childKeypath, parentInstance, parentKeypath, 1);
+                bindings.push(childToParentBinding);
+                parentToChildBinding.counterpart = childToParentBinding;
+                childToParentBinding.counterpart = parentToChildBinding;
+                childToParentBinding.init(true);
+            }
+        };
+    }(utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant);
+var render_DomFragment_Component_initialise_createBindings__createBindings = function (createBinding) {
+        
         return function (component, toBind) {
             var pair, i;
-            component.observers = [];
+            component.bindings = [];
             i = toBind.length;
             while (i--) {
                 pair = toBind[i];
-                bind(component, pair.parentKeypath, pair.childKeypath);
+                createBinding(component, component.root, pair.parentKeypath, pair.childKeypath);
             }
         };
-        function bind(component, parentKeypath, childKeypath) {
-            var parentInstance, childInstance, settingParent, settingChild, observers, observer, value;
-            parentInstance = component.root;
-            childInstance = component.instance;
-            observers = component.observers;
-            observer = parentInstance.observe(parentKeypath, function (value) {
-                var isSmartUpdate = isArray(value) && value._ractive && value._ractive.setting;
-                if (!settingParent && !isSmartUpdate) {
-                    settingChild = true;
-                    childInstance.set(childKeypath, value);
-                    settingChild = false;
-                }
-            }, observeOptions);
-            observers.push(observer);
-            if (childInstance.twoway) {
-                observer = childInstance.observe(childKeypath, function (value) {
-                    if (!settingChild) {
-                        settingParent = true;
-                        parentInstance.set(parentKeypath, value);
-                        settingParent = false;
-                    }
-                }, observeOptions);
-                observers.push(observer);
-                value = childInstance.get(childKeypath);
-                if (value !== undefined) {
-                    parentInstance.set(parentKeypath, value);
-                }
-            }
-        }
-    }(utils_isArray);
+    }(render_DomFragment_Component_initialise_createBindings_createBinding);
 var render_DomFragment_Component_initialise_propagateEvents = function (warn) {
         
         var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
@@ -9002,32 +9046,74 @@ var render_DomFragment_Component_initialise_updateLiveQueries = function () {
             }
         };
     }();
-var render_DomFragment_Component_initialise__initialise = function (types, warn, createModel, createInstance, createObservers, propagateEvents, updateLiveQueries) {
+var render_DomFragment_Component_initialise_resolveWithAncestors = function (resolveRef, createBinding) {
+        
+        return function (component, dependant) {
+            var instance, parent, proxy, keypath, contextStack, resolve, makeResolver;
+            instance = dependant.root;
+            makeResolver = function (instance) {
+                return function (keypath) {
+                    if (dependant.keypath) {
+                        return;
+                    }
+                    createBinding(component, instance, keypath, dependant.ref, { propagateDown: true });
+                };
+            };
+            while (parent = instance._parent) {
+                contextStack = instance.component.parentFragment.contextStack;
+                keypath = resolveRef(parent, dependant.ref, contextStack);
+                resolve = makeResolver(parent);
+                if (keypath) {
+                    resolve(keypath);
+                    return;
+                } else {
+                    proxy = {
+                        root: parent,
+                        ref: dependant.ref,
+                        contextStack: contextStack,
+                        resolve: resolve
+                    };
+                    parent._pendingResolution.push(proxy);
+                }
+                instance = parent;
+            }
+        };
+    }(shared_resolveRef, render_DomFragment_Component_initialise_createBindings_createBinding);
+var render_DomFragment_Component_initialise__initialise = function (types, warn, attemptKeypathResolution, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries, resolveWithAncestors) {
         
         return function (component, options, docFrag) {
-            var parentFragment, root, Component, data, toBind;
+            var parentFragment, root, Component, data, toBind, undefs;
             parentFragment = component.parentFragment = options.parentFragment;
             root = parentFragment.root;
             component.root = root;
             component.type = types.COMPONENT;
             component.name = options.descriptor.e;
             component.index = options.index;
-            component.observers = [];
             Component = root.components[options.descriptor.e];
             if (!Component) {
                 throw new Error('Component "' + options.descriptor.e + '" not found');
             }
             toBind = [];
-            data = createModel(component, options.descriptor.a, toBind);
+            undefs = [];
+            data = createModel(component, options.descriptor.a, toBind, undefs);
             createInstance(component, Component, data, docFrag, options.descriptor.f);
-            createObservers(component, toBind);
+            createBindings(component, toBind);
             propagateEvents(component, options.descriptor.v);
+            undefs.forEach(function (key) {
+                if (!component.instance.data.hasOwnProperty(key)) {
+                    component.instance.data[key] = undefined;
+                }
+            });
+            attemptKeypathResolution(component.instance);
+            component.instance._pendingResolution.forEach(function (unresolved) {
+                resolveWithAncestors(component, unresolved);
+            });
             if (options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o) {
                 warn('The "intro", "outro" and "decorator" directives have no effect on components');
             }
             updateLiveQueries(component);
         };
-    }(config_types, utils_warn, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createObservers, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries);
+    }(config_types, utils_warn, shared_attemptKeypathResolution, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createBindings__createBindings, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries, render_DomFragment_Component_initialise_resolveWithAncestors);
 var render_DomFragment_Component__Component = function (initialise) {
         
         var DomComponent = function (options, docFrag) {
@@ -9048,8 +9134,8 @@ var render_DomFragment_Component__Component = function (initialise) {
                 while (this.complexParameters.length) {
                     this.complexParameters.pop().teardown();
                 }
-                while (this.observers.length) {
-                    this.observers.pop().cancel();
+                while (this.bindings.length) {
+                    this.bindings.pop().teardown();
                 }
                 if (query = this.root._liveComponentQueries[this.name]) {
                     query._remove(this);
@@ -9466,9 +9552,9 @@ var Ractive_prototype_merge_queueDependants = function (types) {
                 if (dependant.type === types.REFERENCE) {
                     dependant.update();
                 } else if (dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag) {
-                    mergeQueue[mergeQueue.length] = dependant;
+                    mergeQueue.push(dependant);
                 } else {
-                    updateQueue[updateQueue.length] = dependant;
+                    updateQueue.push(dependant);
                 }
             }
         };
@@ -9546,7 +9632,7 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCyc
             keys = keypath.split('.');
             while (keys.length) {
                 keys.pop();
-                upstreamQueue[upstreamQueue.length] = keys.join('.');
+                upstreamQueue.push(keys.join('.'));
             }
             notifyDependants.multiple(this, upstreamQueue, true);
             if (oldArray.length !== newArray.length) {
@@ -9668,6 +9754,9 @@ var extend_inheritFromParent = function (registries, create, defineProperty) {
                 }
             });
             defineProperty(Child, 'defaults', { value: create(Parent.defaults) });
+            if (Parent.css) {
+                defineProperty(Child, 'css', { value: Parent.css });
+            }
         };
     }(config_registries, utils_create, utils_defineProperty);
 var extend_wrapMethod = function () {
@@ -9698,7 +9787,7 @@ var extend_utils_augment = function () {
             return target;
         };
     }();
-var extend_inheritFromChildProps = function (initOptions, registries, wrapMethod, augment) {
+var extend_inheritFromChildProps = function (initOptions, registries, defineProperty, wrapMethod, augment) {
         
         var blacklisted = {};
         registries.concat(initOptions.keys).forEach(function (property) {
@@ -9736,8 +9825,11 @@ var extend_inheritFromChildProps = function (initOptions, registries, wrapMethod
                     }
                 }
             }
+            if (childProps.css) {
+                defineProperty(Child, 'css', { value: childProps.css });
+            }
         };
-    }(config_initOptions, config_registries, extend_wrapMethod, extend_utils_augment);
+    }(config_initOptions, config_registries, utils_defineProperty, extend_wrapMethod, extend_utils_augment);
 var extend_extractInlinePartials = function (isObject, augment) {
         
         return function (Child, childProps) {
@@ -9876,8 +9968,11 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
             if (ractive.magic && !magicAdaptor) {
                 throw new Error('Getters and setters (magic mode) are not supported in this browser');
             }
-            if (options._parent) {
-                defineProperty(ractive, '_parent', { value: options._parent });
+            if (options._parent && options._component) {
+                defineProperties(ractive, {
+                    _parent: { value: options._parent },
+                    component: { value: options._component }
+                });
             }
             if (options.el) {
                 ractive.el = getElement(options.el);
@@ -10097,11 +10192,16 @@ var load_makeComponent = function (circular, get, Promise, resolvePath, parse, g
             });
             script = scripts.map(extractFragment).join(';');
             return importPromise.then(function (imports) {
-                var head = document.getElementsByTagName('head')[0];
-                Component = Ractive.extend({
+                var head, options;
+                head = document.getElementsByTagName('head')[0];
+                options = {
                     template: template,
                     components: imports
-                });
+                };
+                if (styles.length) {
+                    options.css = styles.map(extractFragment).join(' ');
+                }
+                Component = Ractive.extend(options);
                 if (script) {
                     scriptElement = document.createElement('script');
                     scriptElement.innerHTML = '(function () {' + script + '}());';
@@ -10116,9 +10216,6 @@ var load_makeComponent = function (circular, get, Promise, resolvePath, parse, g
                     }
                     head.removeChild(scriptElement);
                     window.component = oldComponent;
-                }
-                if (styles.length) {
-                    Component.css = styles.map(extractFragment).join(' ');
                 }
                 return Component;
             });
