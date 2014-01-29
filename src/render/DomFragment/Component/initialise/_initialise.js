@@ -28,7 +28,9 @@ define([
 			Component,
 			data,
 			toBind,
-			undefs;
+			undefs,
+			pendingResolution,
+			i;
 
 		parentFragment = component.parentFragment = options.parentFragment;
 		root = parentFragment.root;
@@ -71,9 +73,11 @@ define([
 		attemptKeypathResolution( component.instance );
 
 		// Attempt to resolve unresolved dependants with ancestor data contexts
-		component.instance._pendingResolution.forEach( function ( unresolved ) {
-			resolveWithAncestors( component, unresolved );
-		});
+		pendingResolution = component.instance._pendingResolution;
+		i = pendingResolution.length;
+		while ( i-- ) { // we can't use forEach, or a for loop, in case dependants resolve synchronously
+			resolveWithAncestors( component, pendingResolution[i] );
+		}
 
 		// intro, outro and decorator directives have no effect
 		if ( options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o ) {
