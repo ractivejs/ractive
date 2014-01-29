@@ -1,28 +1,40 @@
 define([
+	'state/deferred/transitions',
 	'utils/warn',
 	'render/DomFragment/Element/shared/executeTransition/Transition/_Transition'
 ], function (
+	deferredTransitions,
 	warn,
 	Transition
 ) {
 
 	'use strict';
 
-	return function ( descriptor, root, owner, contextStack, isIntro ) {
+	return function ( descriptor, ractive, owner, contextStack, isIntro ) {
 		var transition,
 			node,
+			instance,
+			manager,
 			oldTransition;
 
-		if ( !root.transitionsEnabled || ( root._parent && !root._parent.transitionsEnabled ) ) {
+		if ( !ractive.transitionsEnabled || ( ractive._parent && !ractive._parent.transitionsEnabled ) ) {
 			return;
 		}
 
 		// get transition name, args and function
-		transition = new Transition( descriptor, root, owner, contextStack, isIntro );
+		transition = new Transition( descriptor, ractive, owner, contextStack, isIntro );
 
 		if ( transition._fn ) {
 			node = transition.node;
-			transition._manager = root._transitionManager;
+
+			// Attach to a transition manager (either this instance's, or whichever
+			// ancestor triggered the transition)
+			instance = ractive;
+			do {
+				manager = instance._transitionManager;
+				instance = instance._parent;
+			} while ( !manager );
+			transition._manager = manager;
 
 			// Existing transition (i.e. we're outroing before intro is complete)?
 			// End it prematurely
@@ -37,7 +49,7 @@ define([
 			if ( isIntro ) {
 				// we don't want to call the transition function until this node
 				// exists on the DOM
-				root._deferred.transitions.push( transition );
+				deferredTransitions.push( transition );
 			} else {
 				transition.init();
 			}

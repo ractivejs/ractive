@@ -1,4 +1,8 @@
-define( function () {
+define([
+	'state/deferred/transitions'
+], function (
+	deferredTransitions
+) {
 
 	'use strict';
 
@@ -25,7 +29,7 @@ define( function () {
 			decorator.init();
 		}
 
-		while ( transition = deferred.transitions.pop() ) {
+		while ( transition = deferredTransitions.pop() ) {
 			transition.init(); // TODO rename...
 		}
 
