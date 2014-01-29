@@ -1,7 +1,6 @@
 define([
 	'config/types',
 	'utils/warn',
-	'shared/attemptKeypathResolution',
 	'render/DomFragment/Component/initialise/createModel/_createModel',
 	'render/DomFragment/Component/initialise/createInstance',
 	'render/DomFragment/Component/initialise/createBindings',
@@ -10,7 +9,6 @@ define([
 ], function (
 	types,
 	warn,
-	attemptKeypathResolution,
 	createModel,
 	createInstance,
 	createBindings,

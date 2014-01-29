@@ -1,13 +1,13 @@
 define([
+	'state/pendingResolution',
 	'shared/makeTransitionManager',
-	'shared/attemptKeypathResolution',
 	'shared/clearCache',
 	'shared/notifyDependants',
 	'shared/midCycleUpdate',
 	'shared/endCycleUpdate'
 ], function (
+	pendingResolution,
 	makeTransitionManager,
-	attemptKeypathResolution,
 	clearCache,
 	notifyDependants,
 	midCycleUpdate,
@@ -34,7 +34,7 @@ define([
 
 		// if we're using update, it's possible that we've introduced new values, and
 		// some unresolved references can be dealt with
-		attemptKeypathResolution( this );
+		pendingResolution.check();
 
 		clearCache( this, keypath || '' );
 		notifyDependants( this, keypath || '' );

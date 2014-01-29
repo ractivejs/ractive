@@ -79,9 +79,6 @@ define([
 
 			_patternObservers: { value: [] },
 
-			// unresolved dependants
-			_pendingResolution: { value: [] },
-
 			// Create arrays for deferred attributes and evaluators etc
 			_deferred: { value: {} },
 

@@ -1,10 +1,10 @@
 define([
+	'state/pendingResolution',
 	'shared/resolveRef',
-	'shared/registerUnresolved',
 	'shared/teardown'
 ], function (
+	pendingResolution,
 	resolveRef,
-	registerUnresolved,
 	teardown
 ) {
 
@@ -24,7 +24,7 @@ define([
 			this.resolver = resolver;
 			this.contextStack = contextStack;
 
-			registerUnresolved( this );
+			pendingResolution.push( this );
 		}
 	};
 

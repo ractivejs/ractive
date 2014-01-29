@@ -1,21 +1,21 @@
 define([
+	'state/pendingResolution',
 	'utils/isObject',
 	'utils/isEqual',
 	'utils/normaliseKeypath',
 	'shared/clearCache',
 	'shared/notifyDependants',
-	'shared/attemptKeypathResolution',
 	'shared/makeTransitionManager',
 	'shared/midCycleUpdate',
 	'shared/endCycleUpdate',
 	'Ractive/prototype/shared/replaceData'
 ], function (
+	pendingResolution,
 	isObject,
 	isEqual,
 	normaliseKeypath,
 	clearCache,
 	notifyDependants,
-	attemptKeypathResolution,
 	makeTransitionManager,
 	midCycleUpdate,
 	endCycleUpdate,
@@ -82,9 +82,7 @@ define([
 		notifyDependants.multiple( this, changes );
 
 		// Attempt to resolve any unresolved keypaths...
-		if ( this._pendingResolution.length ) {
-			attemptKeypathResolution( this );
-		}
+		pendingResolution.check();
 
 		// Attributes don't reflect changes automatically if there is a possibility
 		// that they will need to change again before the .set() cycle is complete

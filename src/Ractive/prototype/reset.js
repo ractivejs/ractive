@@ -1,11 +1,11 @@
 define([
+	'state/pendingResolution',
 	'utils/makeTransitionManager',
-	'shared/attemptKeypathResolution',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
+	pendingResolution,
 	makeTransitionManager,
-	attemptKeypathResolution,
 	clearCache,
 	notifyDependants
 ) {
@@ -31,9 +31,7 @@ define([
 		this.data = data || {};
 
 		// Attempt to resolve any unresolved keypaths...
-		if ( this._pendingResolution.length ) {
-			attemptKeypathResolution( this );
-		}
+		pendingResolution.check();
 
 		clearCache( this, '' );
 		notifyDependants( this, '' );
