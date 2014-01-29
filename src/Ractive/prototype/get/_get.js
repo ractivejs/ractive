@@ -1,10 +1,14 @@
 define([
 	'utils/normaliseKeypath',
+    'utils/isObject',
+    'utils/isArray',
 	'registries/adaptors',
 	'shared/adaptIfNecessary',
 	'Ractive/prototype/get/getFromParent'
 ], function (
 	normaliseKeypath,
+	isObject,
+	isArray,
 	adaptorRegistry,
 	adaptIfNecessary,
 	getFromParent
@@ -109,7 +113,8 @@ define([
 
 		// If this property doesn't exist, we return a sentinel value
 		// so that we know to query parent scope (if such there be)
-		if ( !( key in parentValue ) ) {
+		if ( (isObject(parentValue) || isArray(parentValue)) && !( key in parentValue ) ) {
+		// if ( !( key in parentValue ) ) {
 			return ractive._cache[ keypath ] = MISSING;
 		}
 
