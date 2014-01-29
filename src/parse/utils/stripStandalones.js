@@ -13,8 +13,8 @@ define([ 'config/types' ], function ( types ) {
 			backOne = tokens[i-1];
 			backTwo = tokens[i-2];
 
-			// if we're at the end of a [text][mustache][text] sequence...
-			if ( current.type === types.TEXT && ( backOne.type === types.MUSTACHE ) && backTwo.type === types.TEXT ) {
+			// if we're at the end of a [text][mustache][text] sequence, where [mustache] isn't a partial...
+			if ( current.type === types.TEXT && ( backOne.type === types.MUSTACHE && backOne.mustacheType !== types.PARTIAL ) && backTwo.type === types.TEXT ) {
 
 				// ... and the mustache is a standalone (i.e. line breaks either side)...
 				if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {

@@ -16,7 +16,7 @@ define([
 			}
 		}
 
-		return new ElementStub( token, this );
+		return new ElementStub( token, this, this.preserveWhitespace );
 	};
 
 });
