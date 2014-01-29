@@ -847,7 +847,8 @@ define([ 'Ractive' ], function ( Ractive ) {
 						partials: {
 							partial: ">"
 						},
-						oldIe: true
+						oldIe: true,
+						unpassable: true
 					},
 					{
 						name: "Standalone Without Previous Line",

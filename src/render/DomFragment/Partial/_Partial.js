@@ -1,10 +1,12 @@
 define([
 	'config/types',
 	'render/DomFragment/Partial/getPartialDescriptor',
+	'render/DomFragment/Partial/applyIndent',
 	'circular'
 ], function (
 	types,
 	getPartialDescriptor,
+	applyIndent,
 	circular
 ) {
 
@@ -61,7 +63,23 @@ define([
 		},
 
 		toString: function () {
-			return this.fragment.toString();
+			var string, previousItem, lastLine, match;
+
+			string = this.fragment.toString();
+
+			previousItem = this.parentFragment.items[ this.index - 1 ];
+
+			if ( !previousItem || ( previousItem.type !== types.TEXT ) ) {
+				return string;
+			}
+
+			lastLine = previousItem.descriptor.split( '\n' ).pop();
+
+			if ( match = /^\s+$/.exec( lastLine ) ) {
+				return applyIndent( string, match[0] );
+			}
+
+			return string;
 		},
 
 		find: function ( selector ) {
