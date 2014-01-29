@@ -22,6 +22,7 @@ define([
 
 			if ( value !== undefined ) {
 				createComponentBinding( child.component, parent, keypathToTest, keypath );
+				child._cache[ keypath ] = value;
 				return value;
 			}
 		}
@@ -29,6 +30,7 @@ define([
 		value = parent.get( keypath );
 		if ( value !== undefined ) {
 			createComponentBinding( child.component, parent, keypath, keypath );
+			child._cache[ keypath ] = value;
 			return value;
 		}
 	};
