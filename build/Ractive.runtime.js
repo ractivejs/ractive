@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-28
+	Ractive - v0.4.0-pre - 2014-01-29
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -1046,15 +1046,177 @@ var shared_adaptIfNecessary = function (clone, isObject, adaptorRegistry, arrayA
             return prefixers[rootKeypath];
         }
     }(utils_clone, utils_isObject, registries_adaptors, Ractive_prototype_get_arrayAdaptor__arrayAdaptor, Ractive_prototype_get_magicAdaptor, Ractive_prototype_get_magicArrayAdaptor);
-var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary) {
+var utils_isEqual = function () {
         
-        var get, _get, retrieve;
+        return function (a, b) {
+            if (a === null && b === null) {
+                return true;
+            }
+            if (typeof a === 'object' || typeof b === 'object') {
+                return false;
+            }
+            return a === b;
+        };
+    }();
+var shared_registerDependant = function () {
+        
+        return function (dependant) {
+            var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
+            ractive = dependant.root;
+            keypath = dependant.keypath;
+            priority = dependant.priority;
+            depsByKeypath = ractive._deps[priority] || (ractive._deps[priority] = {});
+            deps = depsByKeypath[keypath] || (depsByKeypath[keypath] = []);
+            deps.push(dependant);
+            dependant.registered = true;
+            if (!keypath) {
+                return;
+            }
+            keys = keypath.split('.');
+            while (keys.length) {
+                keys.pop();
+                parentKeypath = keys.join('.');
+                map = ractive._depsMap[parentKeypath] || (ractive._depsMap[parentKeypath] = []);
+                if (map[keypath] === undefined) {
+                    map[keypath] = 0;
+                    map[map.length] = keypath;
+                }
+                map[keypath] += 1;
+                keypath = parentKeypath;
+            }
+        };
+    }();
+var shared_unregisterDependant = function () {
+        
+        return function (dependant) {
+            var deps, index, keys, parentKeypath, map, ractive, keypath, priority;
+            ractive = dependant.root;
+            keypath = dependant.keypath;
+            priority = dependant.priority;
+            deps = ractive._deps[priority][keypath];
+            index = deps.indexOf(dependant);
+            if (index === -1 || !dependant.registered) {
+                throw new Error('Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks');
+            }
+            deps.splice(index, 1);
+            dependant.registered = false;
+            if (!keypath) {
+                return;
+            }
+            keys = keypath.split('.');
+            while (keys.length) {
+                keys.pop();
+                parentKeypath = keys.join('.');
+                map = ractive._depsMap[parentKeypath];
+                map[keypath] -= 1;
+                if (!map[keypath]) {
+                    map.splice(map.indexOf(keypath), 1);
+                    map[keypath] = undefined;
+                }
+                keypath = parentKeypath;
+            }
+        };
+    }();
+var shared_createComponentBinding = function (isArray, isEqual, registerDependant, unregisterDependant) {
+        
+        var Binding = function (ractive, keypath, otherInstance, otherKeypath, priority) {
+            this.root = ractive;
+            this.keypath = keypath;
+            this.priority = priority;
+            this.otherInstance = otherInstance;
+            this.otherKeypath = otherKeypath;
+            registerDependant(this);
+        };
+        Binding.prototype = {
+            init: function (propagate) {
+                var value = this.root.get(this.keypath);
+                if (propagate && value !== undefined) {
+                    this.update();
+                } else {
+                    this.value = value;
+                }
+            },
+            update: function () {
+                var value;
+                if (this.counterpart && this.counterpart.setting) {
+                    return;
+                }
+                value = this.root.get(this.keypath);
+                if (isArray(value) && value._ractive && value._ractive.setting) {
+                    return;
+                }
+                if (!isEqual(value, this.value)) {
+                    this.setting = true;
+                    this.otherInstance.set(this.otherKeypath, value);
+                    this.value = value;
+                    this.setting = false;
+                }
+            },
+            teardown: function () {
+                unregisterDependant(this);
+            }
+        };
+        return function (component, parentInstance, parentKeypath, childKeypath, options) {
+            var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
+            hash = parentKeypath + '=' + childKeypath;
+            bindings = component.bindings;
+            if (bindings[hash]) {
+                return;
+            }
+            bindings[hash] = true;
+            childInstance = component.instance;
+            priority = component.parentFragment.priority;
+            parentToChildBinding = new Binding(parentInstance, parentKeypath, childInstance, childKeypath, priority);
+            parentToChildBinding.init(options && options.propagateDown);
+            bindings.push(parentToChildBinding);
+            if (childInstance.twoway) {
+                childToParentBinding = new Binding(childInstance, childKeypath, parentInstance, parentKeypath, 1);
+                bindings.push(childToParentBinding);
+                parentToChildBinding.counterpart = childToParentBinding;
+                childToParentBinding.counterpart = parentToChildBinding;
+                childToParentBinding.init(true);
+            }
+        };
+    }(utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant);
+var Ractive_prototype_get_getFromParent = function (createComponentBinding) {
+        
+        return function (child, keypath) {
+            var parent, contextStack, keypathToTest, value, i;
+            parent = child._parent;
+            if (!parent) {
+                return;
+            }
+            contextStack = child.component.parentFragment.contextStack;
+            i = contextStack.length;
+            while (i--) {
+                keypathToTest = contextStack[i] + '.' + keypath;
+                value = parent.get(keypathToTest);
+                if (value !== undefined) {
+                    createComponentBinding(child.component, parent, keypathToTest, keypath);
+                    return value;
+                }
+            }
+            value = parent.get(keypath);
+            if (value !== undefined) {
+                createComponentBinding(child.component, parent, keypath, keypath);
+                return value;
+            }
+        };
+    }(shared_createComponentBinding);
+var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary, getFromParent) {
+        
+        var get, _get, retrieve, MISSING = {};
         get = function (keypath) {
+            var value;
             if (this._captured && !this._captured[keypath]) {
                 this._captured.push(keypath);
                 this._captured[keypath] = true;
             }
-            return _get(this, keypath);
+            value = _get(this, keypath);
+            if (value === MISSING) {
+                value = getFromParent(this, keypath);
+            }
+            return value;
         };
         _get = function (ractive, keypath) {
             var cache, cached, value, wrapped, evaluator;
@@ -1095,6 +1257,9 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
                     cacheMap.push(keypath);
                 }
             }
+            if (!(key in parentValue)) {
+                return ractive._cache[keypath] = MISSING;
+            }
             value = parentValue[key];
             shouldClone = !parentValue.hasOwnProperty(key);
             value = adaptIfNecessary(ractive, keypath, value, false, shouldClone);
@@ -1102,19 +1267,7 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
             return value;
         };
         return get;
-    }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary);
-var utils_isEqual = function () {
-        
-        return function (a, b) {
-            if (a === null && b === null) {
-                return true;
-            }
-            if (typeof a === 'object' || typeof b === 'object') {
-                return false;
-            }
-            return a === b;
-        };
-    }();
+    }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary, Ractive_prototype_get_getFromParent);
 var shared_resolveRef = function () {
         
         var ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
@@ -1918,65 +2071,6 @@ var Ractive_prototype_off = function () {
                 if (index !== -1) {
                     subscribers.splice(index, 1);
                 }
-            }
-        };
-    }();
-var shared_registerDependant = function () {
-        
-        return function (dependant) {
-            var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority;
-            ractive = dependant.root;
-            keypath = dependant.keypath;
-            priority = dependant.priority;
-            depsByKeypath = ractive._deps[priority] || (ractive._deps[priority] = {});
-            deps = depsByKeypath[keypath] || (depsByKeypath[keypath] = []);
-            deps.push(dependant);
-            dependant.registered = true;
-            if (!keypath) {
-                return;
-            }
-            keys = keypath.split('.');
-            while (keys.length) {
-                keys.pop();
-                parentKeypath = keys.join('.');
-                map = ractive._depsMap[parentKeypath] || (ractive._depsMap[parentKeypath] = []);
-                if (map[keypath] === undefined) {
-                    map[keypath] = 0;
-                    map[map.length] = keypath;
-                }
-                map[keypath] += 1;
-                keypath = parentKeypath;
-            }
-        };
-    }();
-var shared_unregisterDependant = function () {
-        
-        return function (dependant) {
-            var deps, index, keys, parentKeypath, map, ractive, keypath, priority;
-            ractive = dependant.root;
-            keypath = dependant.keypath;
-            priority = dependant.priority;
-            deps = ractive._deps[priority][keypath];
-            index = deps.indexOf(dependant);
-            if (index === -1 || !dependant.registered) {
-                throw new Error('Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks');
-            }
-            deps.splice(index, 1);
-            dependant.registered = false;
-            if (!keypath) {
-                return;
-            }
-            keys = keypath.split('.');
-            while (keys.length) {
-                keys.pop();
-                parentKeypath = keys.join('.');
-                map = ractive._depsMap[parentKeypath];
-                map[keypath] -= 1;
-                if (!map[keypath]) {
-                    map.splice(map.indexOf(keypath), 1);
-                    map[keypath] = undefined;
-                }
-                keypath = parentKeypath;
             }
         };
     }();
@@ -6205,7 +6299,37 @@ var config_errors = { missingParser: 'Missing Ractive.parse - cannot parse templ
 var registries_partials = {};
 var parse__parse = function () {
     }();
-var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse) {
+var render_DomFragment_Partial_deIndent = function () {
+        
+        var empty = /^\s*$/, leadingWhitespace = /^\s*/;
+        return function (str) {
+            var lines, firstLine, lastLine, minIndent;
+            lines = str.split('\n');
+            firstLine = lines[0];
+            if (firstLine !== undefined && empty.test(firstLine)) {
+                lines.shift();
+            }
+            lastLine = lines[lines.length - 1];
+            if (lastLine !== undefined && empty.test(lastLine)) {
+                lines.pop();
+            }
+            minIndent = lines.reduce(reducer, null);
+            if (minIndent) {
+                str = lines.map(function (line) {
+                    return line.replace(minIndent, '');
+                }).join('\n');
+            }
+            return str;
+        };
+        function reducer(previous, line) {
+            var lineIndent = leadingWhitespace.exec(line)[0];
+            if (previous === null || lineIndent.length < previous.length) {
+                return lineIndent;
+            }
+            return previous;
+        }
+    }();
+var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient, warn, isObject, partials, parse, deIndent) {
         
         var getPartialDescriptor, registerPartial, getPartialFromRegistry, unpack;
         getPartialDescriptor = function (root, name) {
@@ -6219,7 +6343,7 @@ var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient
                     if (!parse) {
                         throw new Error(errors.missingParser);
                     }
-                    registerPartial(parse(el.innerHTML), name, partials);
+                    registerPartial(parse(deIndent(el.text), root.parseOptions), name, partials);
                 }
             }
             partial = partials[name];
@@ -6234,17 +6358,17 @@ var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient
             }
             return unpack(partial);
         };
-        getPartialFromRegistry = function (registryOwner, name) {
+        getPartialFromRegistry = function (ractive, name) {
             var partial;
-            if (registryOwner.partials[name]) {
-                if (typeof registryOwner.partials[name] === 'string') {
+            if (ractive.partials[name]) {
+                if (typeof ractive.partials[name] === 'string') {
                     if (!parse) {
                         throw new Error(errors.missingParser);
                     }
-                    partial = parse(registryOwner.partials[name], registryOwner.parseOptions);
-                    registerPartial(partial, name, registryOwner.partials);
+                    partial = parse(ractive.partials[name], ractive.parseOptions);
+                    registerPartial(partial, name, ractive.partials);
                 }
-                return unpack(registryOwner.partials[name]);
+                return unpack(ractive.partials[name]);
             }
         };
         registerPartial = function (partial, name, registry) {
@@ -6267,8 +6391,21 @@ var render_DomFragment_Partial_getPartialDescriptor = function (errors, isClient
             return partial;
         };
         return getPartialDescriptor;
-    }(config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__parse);
-var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor, circular) {
+    }(config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__parse, render_DomFragment_Partial_deIndent);
+var render_DomFragment_Partial_applyIndent = function () {
+        
+        return function (string, indent) {
+            var indented;
+            if (!indent) {
+                return string;
+            }
+            indented = string.split('\n').map(function (line, notFirstLine) {
+                return notFirstLine ? indent + line : line;
+            }).join('\n');
+            return indented;
+        };
+    }();
+var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor, applyIndent, circular) {
         
         var DomPartial, DomFragment;
         circular.push(function () {
@@ -6308,7 +6445,17 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
                 this.fragment.teardown(destroy);
             },
             toString: function () {
-                return this.fragment.toString();
+                var string, previousItem, lastLine, match;
+                string = this.fragment.toString();
+                previousItem = this.parentFragment.items[this.index - 1];
+                if (!previousItem || previousItem.type !== types.TEXT) {
+                    return string;
+                }
+                lastLine = previousItem.descriptor.split('\n').pop();
+                if (match = /^\s+$/.exec(lastLine)) {
+                    return applyIndent(string, match[0]);
+                }
+                return string;
             },
             find: function (selector) {
                 return this.fragment.find(selector);
@@ -6324,7 +6471,7 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
             }
         };
         return DomPartial;
-    }(config_types, render_DomFragment_Partial_getPartialDescriptor, circular);
+    }(config_types, render_DomFragment_Partial_getPartialDescriptor, render_DomFragment_Partial_applyIndent, circular);
 var render_DomFragment_Component_initialise_createModel_ComponentParameter = function (StringFragment) {
         
         var ComponentParameter = function (component, key, value) {
@@ -6362,17 +6509,15 @@ var render_DomFragment_Component_initialise_createModel_ComponentParameter = fun
     }(render_StringFragment__StringFragment);
 var render_DomFragment_Component_initialise_createModel__createModel = function (types, parseJSON, resolveRef, ComponentParameter) {
         
-        return function (component, attributes, toBind, undefs) {
+        return function (component, defaultData, attributes, toBind) {
             var data, key, value;
             data = {};
             component.complexParameters = [];
             for (key in attributes) {
                 if (attributes.hasOwnProperty(key)) {
                     value = getValue(component, key, attributes[key], toBind);
-                    if (value !== undefined) {
+                    if (value !== undefined || defaultData[key] === undefined) {
                         data[key] = value;
-                    } else {
-                        undefs.push(key);
                     }
                 }
             }
@@ -6421,85 +6566,19 @@ var render_DomFragment_Component_initialise_createInstance = function () {
                 _component: component,
                 adapt: root.adapt
             });
-            component.instance = instance;
             instance.insert(docFrag);
             instance.fragment.pNode = instance.el = parentFragment.pNode;
             return instance;
         };
     }();
-var render_DomFragment_Component_initialise_createBindings_createBinding = function (isArray, isEqual, registerDependant, unregisterDependant) {
-        
-        var Binding = function (ractive, keypath, otherInstance, otherKeypath, priority) {
-            this.root = ractive;
-            this.keypath = keypath;
-            this.priority = priority;
-            this.otherInstance = otherInstance;
-            this.otherKeypath = otherKeypath;
-            registerDependant(this);
-        };
-        Binding.prototype = {
-            init: function (propagate) {
-                var value = this.root.get(this.keypath);
-                if (propagate && value !== undefined) {
-                    this.update();
-                } else {
-                    this.value = value;
-                }
-            },
-            update: function () {
-                var value;
-                if (this.counterpart && this.counterpart.setting) {
-                    return;
-                }
-                value = this.root.get(this.keypath);
-                if (isArray(value) && value._ractive && value._ractive.setting) {
-                    return;
-                }
-                if (!isEqual(value, this.value)) {
-                    this.setting = true;
-                    this.otherInstance.set(this.otherKeypath, value);
-                    this.value = value;
-                    this.setting = false;
-                }
-            },
-            teardown: function () {
-                unregisterDependant(this);
-            }
-        };
-        return function (component, parentInstance, parentKeypath, childKeypath, options) {
-            var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
-            hash = parentKeypath + '=' + childKeypath;
-            bindings = component.bindings;
-            if (bindings[hash]) {
-                return;
-            }
-            bindings[hash] = true;
-            childInstance = component.instance;
-            priority = component.parentFragment.priority;
-            parentToChildBinding = new Binding(parentInstance, parentKeypath, childInstance, childKeypath, priority);
-            parentToChildBinding.init(options && options.propagateDown);
-            bindings.push(parentToChildBinding);
-            if (childInstance.twoway) {
-                childToParentBinding = new Binding(childInstance, childKeypath, parentInstance, parentKeypath, 1);
-                bindings.push(childToParentBinding);
-                parentToChildBinding.counterpart = childToParentBinding;
-                childToParentBinding.counterpart = parentToChildBinding;
-                childToParentBinding.init(true);
-            }
-        };
-    }(utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var render_DomFragment_Component_initialise_createBindings__createBindings = function (createBinding) {
+var render_DomFragment_Component_initialise_createBindings = function (createComponentBinding) {
         
         return function (component, toBind) {
-            var pair, i;
-            component.bindings = [];
-            i = toBind.length;
-            while (i--) {
-                pair = toBind[i];
-                createBinding(component, component.root, pair.parentKeypath, pair.childKeypath);
-            }
+            toBind.forEach(function (pair) {
+                createComponentBinding(component, component.root, pair.parentKeypath, pair.childKeypath);
+            });
         };
-    }(render_DomFragment_Component_initialise_createBindings_createBinding);
+    }(shared_createComponentBinding);
 var render_DomFragment_Component_initialise_propagateEvents = function (warn) {
         
         var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
@@ -6540,74 +6619,32 @@ var render_DomFragment_Component_initialise_updateLiveQueries = function () {
             }
         };
     }();
-var render_DomFragment_Component_initialise_resolveWithAncestors = function (resolveRef, createBinding) {
-        
-        return function (component, dependant) {
-            var instance, parent, proxy, keypath, contextStack, resolve, makeResolver;
-            instance = dependant.root;
-            makeResolver = function (instance) {
-                return function (keypath) {
-                    if (dependant.keypath) {
-                        return;
-                    }
-                    createBinding(component, instance, keypath, dependant.ref, { propagateDown: true });
-                };
-            };
-            while (parent = instance._parent) {
-                contextStack = instance.component.parentFragment.contextStack;
-                keypath = resolveRef(parent, dependant.ref, contextStack);
-                resolve = makeResolver(parent);
-                if (keypath) {
-                    resolve(keypath);
-                    return;
-                } else {
-                    proxy = {
-                        root: parent,
-                        ref: dependant.ref,
-                        contextStack: contextStack,
-                        resolve: resolve
-                    };
-                    parent._pendingResolution.push(proxy);
-                }
-                instance = parent;
-            }
-        };
-    }(shared_resolveRef, render_DomFragment_Component_initialise_createBindings_createBinding);
-var render_DomFragment_Component_initialise__initialise = function (types, warn, attemptKeypathResolution, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries, resolveWithAncestors) {
+var render_DomFragment_Component_initialise__initialise = function (types, warn, attemptKeypathResolution, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries) {
         
         return function (component, options, docFrag) {
-            var parentFragment, root, Component, data, toBind, undefs;
+            var parentFragment, root, Component, data, toBind;
             parentFragment = component.parentFragment = options.parentFragment;
             root = parentFragment.root;
             component.root = root;
             component.type = types.COMPONENT;
             component.name = options.descriptor.e;
             component.index = options.index;
+            component.bindings = [];
             Component = root.components[options.descriptor.e];
             if (!Component) {
                 throw new Error('Component "' + options.descriptor.e + '" not found');
             }
             toBind = [];
-            undefs = [];
-            data = createModel(component, options.descriptor.a, toBind, undefs);
+            data = createModel(component, Component.data || {}, options.descriptor.a, toBind);
             createInstance(component, Component, data, docFrag, options.descriptor.f);
             createBindings(component, toBind);
             propagateEvents(component, options.descriptor.v);
-            undefs.forEach(function (key) {
-                if (!component.instance.data.hasOwnProperty(key)) {
-                    component.instance.data[key] = undefined;
-                }
-            });
-            attemptKeypathResolution(component.instance);
-            component.instance._pendingResolution.forEach(function (unresolved) {
-                resolveWithAncestors(component, unresolved);
-            });
             if (options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o) {
                 warn('The "intro", "outro" and "decorator" directives have no effect on components');
             }
             updateLiveQueries(component);
         };
-    }(config_types, utils_warn, shared_attemptKeypathResolution, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createBindings__createBindings, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries, render_DomFragment_Component_initialise_resolveWithAncestors);
+    }(config_types, utils_warn, shared_attemptKeypathResolution, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createBindings, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries);
 var render_DomFragment_Component__Component = function (initialise) {
         
         var DomComponent = function (options, docFrag) {
@@ -7467,6 +7504,7 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
                     _parent: { value: options._parent },
                     component: { value: options._component }
                 });
+                options._component.instance = ractive;
             }
             if (options.el) {
                 ractive.el = getElement(options.el);
