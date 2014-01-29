@@ -364,6 +364,116 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>three</p><p>four</p><p>five</p>' );
 		});
 
+
+		test( 'Nested components can access outer-most data context', function ( t ) {
+			var ractive, Widget;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: {
+					widget: Ractive.extend({
+						template: '<grandwidget/>',
+						components: {
+							grandwidget: Ractive.extend({
+								template: 'hello {{world}}'
+							})
+						},
+					})
+				},
+				data: { world: 'mars' }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'hello mars' );
+			ractive.set('world', 'venus');
+			t.htmlEqual( fixture.innerHTML, 'hello venus' );
+		});
+
+		test( 'Nested components registered at parent Ractive can access outer-most data context', function ( t ) {
+			var ractive, Widget;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: {
+					widget: Ractive.extend({
+						template: '<grandwidget/>'
+					}),
+					grandwidget: Ractive.extend({
+						template: 'hello {{world}}'
+					})
+				},
+				data: { world: 'mars' }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'hello mars' );
+			ractive.set('world', 'venus');
+			t.htmlEqual( fixture.innerHTML, 'hello venus' );
+		});
+
+		test( 'Nested components registered at global Ractive can access outer-most data context', function ( t ) {
+			var ractive, Widget;
+
+			Ractive.components.widget = Ractive.extend({ template: '<grandwidget/>' });
+			Ractive.components.grandwidget = Ractive.extend({ template: 'hello {{world}}' });
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				data: { world: 'mars' }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'hello mars' );
+			ractive.set('world', 'venus');
+			t.htmlEqual( fixture.innerHTML, 'hello venus' );
+
+			/* This works, but is it risky to polute global for other tests? */
+			delete Ractive.components.widget
+			delete Ractive.components.grandwidget
+		});
+
+		test( 'Data passed into component updates inside component in magic mode', function ( t ) {
+			var ractive, Widget;
+
+			Widget = Ractive.extend({
+				template: '{{world}}',
+				magic: true,
+				complete: function(){
+					this.data.world = 'venus'
+				}
+			});
+
+			var data = { world: 'mars' }
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{world}}<widget world="{{world}}"/>',
+				magic: true,
+				components: { widget: Widget },
+				data: data
+			});
+			t.htmlEqual( fixture.innerHTML, 'venusvenus' );
+		});
+
+		test( 'Data passed into component updates from outside component in magic mode', function ( t ) {
+			var ractive, Widget;
+
+			Widget = Ractive.extend({
+				template: '{{world}}',
+				magic: true
+			});
+
+			var data = { world: 'mars' }
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{world}}<widget world="{{world}}"/>',
+				magic: true,
+				components: { widget: Widget },
+				data: data
+			});
+			data.world = 'venus'
+			t.htmlEqual( fixture.innerHTML, 'venusvenus' );
+		});
+
 	};
 
 });
