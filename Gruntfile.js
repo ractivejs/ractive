@@ -65,7 +65,7 @@ module.exports = function(grunt) {
 			},
 			runtime_legacy: {
 				options: {
-					out: 'tmp/Ractive.runtime-legacy.js',
+					out: 'tmp/Ractive-legacy.runtime.js',
 					paths: {
 						'parse/_parse': 'empty/parse'
 					}
@@ -142,7 +142,7 @@ module.exports = function(grunt) {
 			'build/Ractive.min.js': 'build/Ractive.js',
 			'build/Ractive-legacy.min.js': 'build/Ractive-legacy.js',
 			'build/Ractive.runtime.min.js': 'build/Ractive.runtime.js',
-			'build/Ractive.runtime-legacy.min.js': 'build/Ractive.runtime-legacy.js'
+			'build/Ractive-legacy.runtime.min.js': 'build/Ractive-legacy.runtime.js'
 		},
 
 		copy: {
