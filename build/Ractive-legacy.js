@@ -302,7 +302,11 @@ var shared_midCycleUpdate = function (getValueFromCheckboxes) {
             }
         };
     }(shared_getValueFromCheckboxes);
-var shared_endCycleUpdate = function () {
+var state_deferred_transitions = function () {
+        
+        return [];
+    }();
+var shared_endCycleUpdate = function (deferredTransitions) {
         
         return function endCycleUpdate(ractive) {
             var deferred, component, focusable, query, decorator, transition, observer;
@@ -320,7 +324,7 @@ var shared_endCycleUpdate = function () {
             while (decorator = deferred.decorators.pop()) {
                 decorator.init();
             }
-            while (transition = deferred.transitions.pop()) {
+            while (transition = deferredTransitions.pop()) {
                 transition.init();
             }
             while (observer = deferred.observers.pop()) {
@@ -328,7 +332,7 @@ var shared_endCycleUpdate = function () {
             }
             ractive._updateScheduled = false;
         };
-    }();
+    }(state_deferred_transitions);
 var utils_warn = function () {
         
         if (typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
@@ -1193,12 +1197,14 @@ var Ractive_prototype_get_getFromParent = function (createComponentBinding) {
                 value = parent.get(keypathToTest);
                 if (value !== undefined) {
                     createComponentBinding(child.component, parent, keypathToTest, keypath);
+                    child._cache[keypath] = value;
                     return value;
                 }
             }
             value = parent.get(keypath);
             if (value !== undefined) {
                 createComponentBinding(child.component, parent, keypath, keypath);
+                child._cache[keypath] = value;
                 return value;
             }
         };
@@ -1268,6 +1274,15 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
         };
         return get;
     }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary, Ractive_prototype_get_getFromParent);
+var utils_removeFromArray = function () {
+        
+        return function (array, member) {
+            var index = array.indexOf(member);
+            if (index !== -1) {
+                array.splice(index, 1);
+            }
+        };
+    }();
 var shared_resolveRef = function () {
         
         var ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
@@ -1324,24 +1339,32 @@ var shared_resolveRef = function () {
             return keypath ? keypath.replace(/^\./, '') : keypath;
         };
     }();
-var shared_attemptKeypathResolution = function (resolveRef) {
+var state_pendingResolution = function (removeFromArray, resolveRef) {
         
-        var push = Array.prototype.push;
-        return function (ractive) {
-            var unresolved, keypath, leftover;
-            while (unresolved = ractive._pendingResolution.pop()) {
-                keypath = resolveRef(ractive, unresolved.ref, unresolved.contextStack);
+        var pendingResolution = [];
+        pendingResolution.check = function () {
+            var clone, unresolved, keypath;
+            if (!pendingResolution.length) {
+                return;
+            }
+            clone = pendingResolution.splice(0);
+            while (unresolved = clone.pop()) {
+                if (unresolved.keypath) {
+                    continue;
+                }
+                keypath = resolveRef(unresolved.root, unresolved.ref, unresolved.contextStack);
                 if (keypath !== undefined) {
                     unresolved.resolve(keypath);
                 } else {
-                    (leftover || (leftover = [])).push(unresolved);
+                    pendingResolution.push(unresolved);
                 }
             }
-            if (leftover) {
-                push.apply(ractive._pendingResolution, leftover);
-            }
         };
-    }(shared_resolveRef);
+        pendingResolution.remove = function (thing) {
+            removeFromArray(pendingResolution, thing);
+        };
+        return pendingResolution;
+    }(utils_removeFromArray, shared_resolveRef);
 var Ractive_prototype_shared_replaceData = function (clone, createBranch, clearCache) {
         
         return function (ractive, keypath, value) {
@@ -1386,7 +1409,7 @@ var Ractive_prototype_shared_replaceData = function (clone, createBranch, clearC
             clearCache(ractive, keypathToClear || keypath);
         };
     }(utils_clone, utils_createBranch, shared_clearCache);
-var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, attemptKeypathResolution, makeTransitionManager, midCycleUpdate, endCycleUpdate, replaceData) {
+var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, makeTransitionManager, midCycleUpdate, endCycleUpdate, replaceData) {
         
         var set, updateModel, getUpstreamChanges, resetWrapped;
         set = function (keypath, value, complete) {
@@ -1419,9 +1442,7 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
                 notifyDependants.multiple(this, upstreamChanges, true);
             }
             notifyDependants.multiple(this, changes);
-            if (this._pendingResolution.length) {
-                attemptKeypathResolution(this);
-            }
+            pendingResolution.check();
             midCycleUpdate(this);
             if (endCycleUpdateRequired) {
                 endCycleUpdate(this);
@@ -1503,8 +1524,8 @@ var Ractive_prototype_set = function (isObject, isEqual, normaliseKeypath, clear
             }
         };
         return set;
-    }(utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_attemptKeypathResolution, shared_makeTransitionManager, shared_midCycleUpdate, shared_endCycleUpdate, Ractive_prototype_shared_replaceData);
-var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathResolution, clearCache, notifyDependants, midCycleUpdate, endCycleUpdate) {
+    }(state_pendingResolution, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, shared_midCycleUpdate, shared_endCycleUpdate, Ractive_prototype_shared_replaceData);
+var Ractive_prototype_update = function (pendingResolution, makeTransitionManager, clearCache, notifyDependants, midCycleUpdate, endCycleUpdate) {
         
         return function (keypath, complete) {
             var transitionManager, previousTransitionManager, endCycleUpdateRequired;
@@ -1517,7 +1538,7 @@ var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathRe
             }
             previousTransitionManager = this._transitionManager;
             this._transitionManager = transitionManager = makeTransitionManager(this, complete);
-            attemptKeypathResolution(this);
+            pendingResolution.check();
             clearCache(this, keypath || '');
             notifyDependants(this, keypath || '');
             midCycleUpdate(this);
@@ -1533,7 +1554,7 @@ var Ractive_prototype_update = function (makeTransitionManager, attemptKeypathRe
             }
             return this;
         };
-    }(shared_makeTransitionManager, shared_attemptKeypathResolution, shared_clearCache, shared_notifyDependants, shared_midCycleUpdate, shared_endCycleUpdate);
+    }(state_pendingResolution, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants, shared_midCycleUpdate, shared_endCycleUpdate);
 var utils_arrayContentsMatch = function (isArray) {
         
         return function (a, b) {
@@ -2757,25 +2778,16 @@ var render_DomFragment_Text = function (types, detach) {
         };
         return DomText;
     }(config_types, render_DomFragment_shared_detach);
-var shared_teardown = function (unregisterDependant) {
+var shared_teardown = function (pendingResolution, unregisterDependant) {
         
         return function (thing) {
             if (!thing.keypath) {
-                var index = thing.root._pendingResolution.indexOf(thing);
-                if (index !== -1) {
-                    thing.root._pendingResolution.splice(index, 1);
-                }
+                pendingResolution.remove(thing);
             } else {
                 unregisterDependant(thing);
             }
         };
-    }(shared_unregisterDependant);
-var shared_registerUnresolved = function () {
-        
-        return function (dependant) {
-            dependant.root._pendingResolution.push(dependant);
-        };
-    }();
+    }(state_pendingResolution, shared_unregisterDependant);
 var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
         
         var Reference, thisPattern;
@@ -2999,7 +3011,7 @@ var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty
             return fn;
         }
     }(utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
-var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, registerUnresolved, teardown) {
+var render_shared_ExpressionResolver_ReferenceScout = function (pendingResolution, resolveRef, teardown) {
         
         var ReferenceScout = function (resolver, ref, contextStack, argNum) {
             var keypath, root;
@@ -3012,7 +3024,7 @@ var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, regi
                 this.argNum = argNum;
                 this.resolver = resolver;
                 this.contextStack = contextStack;
-                registerUnresolved(this);
+                pendingResolution.push(this);
             }
         };
         ReferenceScout.prototype = {
@@ -3027,7 +3039,7 @@ var render_shared_ExpressionResolver_ReferenceScout = function (resolveRef, regi
             }
         };
         return ReferenceScout;
-    }(shared_resolveRef, shared_registerUnresolved, shared_teardown);
+    }(state_pendingResolution, shared_resolveRef, shared_teardown);
 var render_shared_ExpressionResolver_getUniqueString = function () {
         
         return function (str, args) {
@@ -3176,7 +3188,7 @@ var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, 
         };
         return ExpressionResolver;
     }(render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants);
-var render_shared_initMustache = function (resolveRef, registerUnresolved, ExpressionResolver) {
+var render_shared_initMustache = function (pendingResolution, resolveRef, ExpressionResolver) {
         
         return function (mustache, options) {
             var keypath, indexRef, parentFragment;
@@ -3199,7 +3211,7 @@ var render_shared_initMustache = function (resolveRef, registerUnresolved, Expre
                         mustache.resolve(keypath);
                     } else {
                         mustache.ref = options.descriptor.r;
-                        registerUnresolved(mustache);
+                        pendingResolution.push(mustache);
                     }
                 }
             }
@@ -3210,7 +3222,7 @@ var render_shared_initMustache = function (resolveRef, registerUnresolved, Expre
                 mustache.render(undefined);
             }
         };
-    }(shared_resolveRef, shared_registerUnresolved, render_shared_ExpressionResolver__ExpressionResolver);
+    }(state_pendingResolution, shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver);
 var render_shared_resolveMustache = function (types, registerDependant, unregisterDependant) {
         
         return function (keypath) {
@@ -6224,30 +6236,35 @@ var render_DomFragment_Element_shared_executeTransition_Transition__Transition =
         };
         return Transition;
     }(utils_warn, render_StringFragment__StringFragment, render_DomFragment_Element_shared_executeTransition_Transition_prototype_init, render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_processParams, render_DomFragment_Element_shared_executeTransition_Transition_prototype_resetStyle);
-var render_DomFragment_Element_shared_executeTransition__executeTransition = function (warn, Transition) {
+var render_DomFragment_Element_shared_executeTransition__executeTransition = function (deferredTransitions, warn, Transition) {
         
-        return function (descriptor, root, owner, contextStack, isIntro) {
-            var transition, node, oldTransition;
-            if (!root.transitionsEnabled || root._parent && !root._parent.transitionsEnabled) {
+        return function (descriptor, ractive, owner, contextStack, isIntro) {
+            var transition, node, instance, manager, oldTransition;
+            if (!ractive.transitionsEnabled || ractive._parent && !ractive._parent.transitionsEnabled) {
                 return;
             }
-            transition = new Transition(descriptor, root, owner, contextStack, isIntro);
+            transition = new Transition(descriptor, ractive, owner, contextStack, isIntro);
             if (transition._fn) {
                 node = transition.node;
-                transition._manager = root._transitionManager;
+                instance = ractive;
+                do {
+                    manager = instance._transitionManager;
+                    instance = instance._parent;
+                } while (!manager);
+                transition._manager = manager;
                 if (oldTransition = node._ractive.transition) {
                     oldTransition.complete();
                 }
                 node._ractive.transition = transition;
                 transition._manager.push(node);
                 if (isIntro) {
-                    root._deferred.transitions.push(transition);
+                    deferredTransitions.push(transition);
                 } else {
                     transition.init();
                 }
             }
         };
-    }(utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition);
+    }(state_deferred_transitions, utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition);
 var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
         return function (element, options, docFrag) {
@@ -9040,7 +9057,7 @@ var render_DomFragment_Component_initialise_updateLiveQueries = function () {
             }
         };
     }();
-var render_DomFragment_Component_initialise__initialise = function (types, warn, attemptKeypathResolution, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries) {
+var render_DomFragment_Component_initialise__initialise = function (types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries) {
         
         return function (component, options, docFrag) {
             var parentFragment, root, Component, data, toBind;
@@ -9065,7 +9082,7 @@ var render_DomFragment_Component_initialise__initialise = function (types, warn,
             }
             updateLiveQueries(component);
         };
-    }(config_types, utils_warn, shared_attemptKeypathResolution, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createBindings, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries);
+    }(config_types, utils_warn, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createBindings, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries);
 var render_DomFragment_Component__Component = function (initialise) {
         
         var DomComponent = function (options, docFrag) {
@@ -9877,7 +9894,6 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
                 _deps: { value: [] },
                 _depsMap: { value: create(null) },
                 _patternObservers: { value: [] },
-                _pendingResolution: { value: [] },
                 _deferred: { value: {} },
                 _evaluators: { value: create(null) },
                 _twowayBindings: { value: {} },
