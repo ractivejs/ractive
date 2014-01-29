@@ -1,28 +1,42 @@
 define([
 	'utils/normaliseKeypath',
 	'registries/adaptors',
-	'shared/adaptIfNecessary'
+	'shared/adaptIfNecessary',
+	'Ractive/prototype/get/getFromParent'
 ], function (
 	normaliseKeypath,
 	adaptorRegistry,
-	adaptIfNecessary
+	adaptIfNecessary,
+	getFromParent
 ) {
 
 	'use strict';
 
-	var get, _get, retrieve;
+	var get, _get, retrieve, MISSING = {};
 
 
 	// all the logic sits in a private function, so we can do _get even when
 	// ractive.get() has been overridden (i.e. by an evaluator, to do intercepts)
+	// TODO does that still happen?
 	get = function ( keypath ) {
+		var value;
+
 		// capture the dependency, if we're inside an evaluator
 		if ( this._captured && !this._captured[ keypath ] ) {
 			this._captured.push( keypath );
 			this._captured[ keypath ] = true;
 		}
 
-		return _get( this, keypath );
+		value = _get( this, keypath );
+
+		// If the property doesn't exist on this viewmodel, we
+		// can try going up a scope. This will create bindings
+		// between parent and child if possible
+		if ( value === MISSING ) {
+			value = getFromParent( this, keypath );
+		}
+
+		return value;
 	};
 
 	_get = function ( ractive, keypath ) {
@@ -91,6 +105,12 @@ define([
 			if ( cacheMap.indexOf( keypath ) === -1 ) {
 				cacheMap.push( keypath );
 			}
+		}
+
+		// If this property doesn't exist, we return a sentinel value
+		// so that we know to query parent scope (if such there be)
+		if ( !( key in parentValue ) ) {
+			return ractive._cache[ keypath ] = MISSING;
 		}
 
 		value = parentValue[ key ];

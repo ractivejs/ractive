@@ -142,6 +142,9 @@ define([
 				_parent: { value: options._parent },
 				component: { value: options._component }
 			});
+
+			// And store a reference to the instance on the component
+			options._component.instance = ractive;
 		}
 
 		if ( options.el ) {

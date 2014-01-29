@@ -21,9 +21,6 @@ define( function () {
 			adapt: root.adapt
 		});
 
-		// Need to store a reference
-		component.instance = instance;
-
 		// The component may be in the wrong place! This is because we
 		// are still populating the document fragment that will be appended
 		// to its parent node. So even though the component is *already*
