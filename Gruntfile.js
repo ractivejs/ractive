@@ -94,21 +94,13 @@ module.exports = function(grunt) {
 					data: { version: '<%= pkg.version %>' }
 				}
 			},
-			full: {
-				src: [ 'tmp/Ractive.js'  ],
-				dest: 'build/Ractive.js'
-			},
-			runtime: {
-				src: [ 'tmp/Ractive.runtime.js'  ],
-				dest: 'build/Ractive.runtime.js'
-			},
-			full_legacy: {
-				src: [ 'src/legacy.js', 'tmp/Ractive.js'  ],
-				dest: 'build/Ractive-legacy.js'
-			},
-			runtime_legacy: {
-				src: [ 'src/legacy.js', 'tmp/Ractive.runtime.js'  ],
-				dest: 'build/Ractive-legacy.runtime.js'
+			all: {
+				files: [{
+					expand: true,
+					cwd: 'tmp/',
+					src: '*.js',
+					dest: 'build/'
+				}]
 			}
 		},
 
@@ -147,22 +139,10 @@ module.exports = function(grunt) {
 		},
 
 		uglify: {
-			runtime: {
-				src: ['<%= concat.runtime.dest %>'],
-				dest: 'build/Ractive.runtime.min.js'
-			},
-			full: {
-				src: ['<%= concat.full.dest %>'],
-				dest: 'build/Ractive.min.js'
-			},
-			runtime_legacy: {
-				src: ['<%= concat.runtime_legacy.dest %>'],
-				dest: 'build/Ractive-legacy.runtime.min.js'
-			},
-			full_legacy: {
-				src: ['<%= concat.full_legacy.dest %>'],
-				dest: 'build/Ractive-legacy.min.js'
-			}
+			'build/Ractive.min.js': 'build/Ractive.js',
+			'build/Ractive-legacy.min.js': 'build/Ractive-legacy.js',
+			'build/Ractive.runtime.min.js': 'build/Ractive.runtime.js',
+			'build/Ractive.runtime-legacy.min.js': 'build/Ractive.runtime-legacy.js'
 		},
 
 		copy: {
