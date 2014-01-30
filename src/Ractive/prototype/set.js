@@ -24,9 +24,7 @@ define([
 
 	'use strict';
 
-	var set, updateModel, getUpstreamChanges, resetWrapped;
-
-	set = function ( keypath, value, complete ) {
+	return function ( keypath, value, complete ) {
 		var endCycleUpdateRequired,
 			map,
 			changes,
@@ -117,14 +115,14 @@ define([
 	};
 
 
-	updateModel = function ( ractive, keypath, value, changes ) {
+	function updateModel ( ractive, keypath, value, changes ) {
 		var cached, previous, wrapped, evaluator;
 
-		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
-			if ( resetWrapped( ractive, keypath, value, wrapped, changes ) !== false ) {
-				clearCache( ractive, keypath );
-				return;
-			}
+		// If we're dealing with a wrapped value, try and use its reset method
+		wrapped = ractive._wrapped[ keypath ];
+
+		if ( wrapped && wrapped.reset && ( wrapped.get() !== value ) ) {
+			wrapped.reset( value );
 		}
 
 		// Update evaluator value. This may be from the evaluator itself, or
@@ -137,17 +135,13 @@ define([
 		cached = ractive._cache[ keypath ];
 		previous = ractive.get( keypath );
 
-		// update the model, if necessary
-		if ( previous !== value && !evaluator ) {
-			replaceData( ractive, keypath, value );
+		if ( value === cached && typeof value !== 'object' ) {
+			return;
 		}
 
-		else {
-			// if the value is the same as the cached value AND the value is a primitive,
-			// we don't need to do anything else
-			if ( value === cached && typeof value !== 'object' ) {
-				return;
-			}
+		// update the model, if necessary
+		if ( !evaluator && ( !wrapped || !wrapped.reset ) ) {
+			replaceData( ractive, keypath, value );
 		}
 
 		// add this keypath to the list of changes
@@ -155,9 +149,9 @@ define([
 
 		// clear the cache
 		clearCache( ractive, keypath );
-	};
+	}
 
-	getUpstreamChanges = function ( changes ) {
+	function getUpstreamChanges ( changes ) {
 		var upstreamChanges = [ '' ], i, keypath, keys, upstreamKeypath;
 
 		i = changes.length;
@@ -177,42 +171,6 @@ define([
 		}
 
 		return upstreamChanges;
-	};
-
-
-	resetWrapped = function ( ractive, keypath, value, wrapped, changes ) {
-		var previous, cached, cacheMap, i;
-
-		previous = wrapped.get();
-
-		if ( !isEqual( previous, value ) ) {
-			if ( wrapped.reset( value ) === false ) {
-				return false;
-			}
-		}
-
-		value = wrapped.get();
-		cached = ractive._cache[ keypath ];
-
-		if ( !isEqual( cached, value ) ) {
-			ractive._cache[ keypath ] = value;
-
-			// Clear downstream keypaths only. Otherwise this wrapper will be torn down!
-			// TODO is there a way to intelligently detect whether a wrapper should be
-			// torn down?
-			cacheMap = ractive._cacheMap[ keypath ];
-
-			if ( cacheMap ) {
-				i = cacheMap.length;
-				while ( i-- ) {
-					clearCache( ractive, cacheMap[i] );
-				}
-			}
-
-			changes.push( keypath );
-		}
-	};
-
-	return set;
+	}
 
 });

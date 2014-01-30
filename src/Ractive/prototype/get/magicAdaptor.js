@@ -94,7 +94,7 @@ define([
 		};
 
 		set = function ( value ) {
-			var wrappers, wrapper, i;
+			var wrappers, wrapper, len, i;
 
 			if ( oldSet ) {
 				oldSet( value );
@@ -102,14 +102,22 @@ define([
 
 			wrappers = set._ractiveWrappers;
 
-			i = wrappers.length;
+			len = wrappers.length;
+
+			// First, reset all values...
+			i = len;
+			while ( i-- ) {
+				wrappers[i].value = value;
+			}
+
+			// ...then notify dependants
+			i = len;
 			while ( i-- ) {
 				wrapper = wrappers[i];
-				wrapper.value = value;
 
-				if ( !wrapper.resetting ) {
-					wrapper.ractive.set( wrapper.keypath, value );
-				}
+				wrapper.resetting = true;
+				wrapper.ractive.update( wrapper.keypath );
+				wrapper.resetting = false;
 			}
 		};
 
@@ -125,7 +133,8 @@ define([
 			return this.value;
 		},
 		reset: function ( value ) {
-			this.value = value;
+			this.obj[ this.prop ] = value; // trigger set() accessor
+			return false; // don't teardown
 		},
 		set: function ( keypath ) {
 			if ( !this.obj[ this.prop ] ) {
@@ -136,6 +145,13 @@ define([
 		},
 		teardown: function () {
 			var descriptor, set, value, wrappers, index;
+
+			// If this method was called because the cache was being cleared as a
+			// result of a set()/update() call made by this wrapper, we return false
+			// so that it doesn't get torn down
+			if ( this.resetting ) {
+				return false;
+			}
 
 			descriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
 			set = descriptor && descriptor.set;
