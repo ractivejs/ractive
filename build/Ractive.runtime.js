@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-29
+	Ractive - v0.4.0-pre - 2014-01-30
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -882,18 +882,22 @@ var Ractive_prototype_get_magicAdaptor = function (createBranch, isArray) {
                 return wrapper.value;
             };
             set = function (value) {
-                var wrappers, wrapper, i;
+                var wrappers, wrapper, len, i;
                 if (oldSet) {
                     oldSet(value);
                 }
                 wrappers = set._ractiveWrappers;
-                i = wrappers.length;
+                len = wrappers.length;
+                i = len;
+                while (i--) {
+                    wrappers[i].value = value;
+                }
+                i = len;
                 while (i--) {
                     wrapper = wrappers[i];
-                    wrapper.value = value;
-                    if (!wrapper.resetting) {
-                        wrapper.ractive.set(wrapper.keypath, value);
-                    }
+                    wrapper.resetting = true;
+                    wrapper.ractive.update(wrapper.keypath);
+                    wrapper.resetting = false;
                 }
             };
             set._ractiveWrappers = [this];
@@ -909,7 +913,8 @@ var Ractive_prototype_get_magicAdaptor = function (createBranch, isArray) {
                 return this.value;
             },
             reset: function (value) {
-                this.value = value;
+                this.obj[this.prop] = value;
+                return false;
             },
             set: function (keypath) {
                 if (!this.obj[this.prop]) {
@@ -920,6 +925,9 @@ var Ractive_prototype_get_magicAdaptor = function (createBranch, isArray) {
             },
             teardown: function () {
                 var descriptor, set, value, wrappers, index;
+                if (this.resetting) {
+                    return false;
+                }
                 descriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
                 set = descriptor && descriptor.set;
                 if (!set) {
@@ -1411,8 +1419,7 @@ var Ractive_prototype_shared_replaceData = function (clone, createBranch, clearC
     }(utils_clone, utils_createBranch, shared_clearCache);
 var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, makeTransitionManager, midCycleUpdate, endCycleUpdate, replaceData) {
         
-        var set, updateModel, getUpstreamChanges, resetWrapped;
-        set = function (keypath, value, complete) {
+        return function (keypath, value, complete) {
             var endCycleUpdateRequired, map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
             changes = [];
             if (isObject(keypath)) {
@@ -1461,30 +1468,27 @@ var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, norm
             }
             return this;
         };
-        updateModel = function (ractive, keypath, value, changes) {
+        function updateModel(ractive, keypath, value, changes) {
             var cached, previous, wrapped, evaluator;
-            if ((wrapped = ractive._wrapped[keypath]) && wrapped.reset) {
-                if (resetWrapped(ractive, keypath, value, wrapped, changes) !== false) {
-                    clearCache(ractive, keypath);
-                    return;
-                }
+            wrapped = ractive._wrapped[keypath];
+            if (wrapped && wrapped.reset && wrapped.get() !== value) {
+                wrapped.reset(value);
             }
             if (evaluator = ractive._evaluators[keypath]) {
                 evaluator.value = value;
             }
             cached = ractive._cache[keypath];
             previous = ractive.get(keypath);
-            if (previous !== value && !evaluator) {
+            if (value === cached && typeof value !== 'object') {
+                return;
+            }
+            if (!evaluator && (!wrapped || !wrapped.reset)) {
                 replaceData(ractive, keypath, value);
-            } else {
-                if (value === cached && typeof value !== 'object') {
-                    return;
-                }
             }
             changes.push(keypath);
             clearCache(ractive, keypath);
-        };
-        getUpstreamChanges = function (changes) {
+        }
+        function getUpstreamChanges(changes) {
             var upstreamChanges = [''], i, keypath, keys, upstreamKeypath;
             i = changes.length;
             while (i--) {
@@ -1500,30 +1504,7 @@ var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, norm
                 }
             }
             return upstreamChanges;
-        };
-        resetWrapped = function (ractive, keypath, value, wrapped, changes) {
-            var previous, cached, cacheMap, i;
-            previous = wrapped.get();
-            if (!isEqual(previous, value)) {
-                if (wrapped.reset(value) === false) {
-                    return false;
-                }
-            }
-            value = wrapped.get();
-            cached = ractive._cache[keypath];
-            if (!isEqual(cached, value)) {
-                ractive._cache[keypath] = value;
-                cacheMap = ractive._cacheMap[keypath];
-                if (cacheMap) {
-                    i = cacheMap.length;
-                    while (i--) {
-                        clearCache(ractive, cacheMap[i]);
-                    }
-                }
-                changes.push(keypath);
-            }
-        };
-        return set;
+        }
     }(state_pendingResolution, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, shared_midCycleUpdate, shared_endCycleUpdate, Ractive_prototype_shared_replaceData);
 var Ractive_prototype_update = function (pendingResolution, makeTransitionManager, clearCache, notifyDependants, midCycleUpdate, endCycleUpdate) {
         
