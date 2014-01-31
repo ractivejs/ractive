@@ -263,6 +263,26 @@ var shared_clearCache = function () {
             }
         };
     }();
+var state_failedLookups = function () {
+        
+        var failed, dirty, failedLookups;
+        failed = {};
+        dirty = false;
+        failedLookups = function (keypath) {
+            return failed[keypath];
+        };
+        failedLookups.add = function (keypath) {
+            failed[keypath] = true;
+            dirty = true;
+        };
+        failedLookups.purge = function () {
+            if (dirty) {
+                failed = {};
+                dirty = false;
+            }
+        };
+        return failedLookups;
+    }();
 var shared_getValueFromCheckboxes = function () {
         
         return function (ractive, keypath) {
@@ -280,7 +300,7 @@ var shared_getValueFromCheckboxes = function () {
             return value;
         };
     }();
-var shared_midCycleUpdate = function (getValueFromCheckboxes) {
+var shared_midCycleUpdate = function (failedLookups, getValueFromCheckboxes) {
         
         return function (ractive) {
             var deferred, evaluator, selectValue, attribute, keypath, radio;
@@ -300,8 +320,9 @@ var shared_midCycleUpdate = function (getValueFromCheckboxes) {
             while (radio = deferred.radios.pop()) {
                 radio.update();
             }
+            failedLookups.purge();
         };
-    }(shared_getValueFromCheckboxes);
+    }(state_failedLookups, shared_getValueFromCheckboxes);
 var state_deferred_transitions = function () {
         
         return [];
@@ -1168,7 +1189,7 @@ var shared_createComponentBinding = function (isArray, isEqual, registerDependan
                 unregisterDependant(this);
             }
         };
-        return function (component, parentInstance, parentKeypath, childKeypath, options) {
+        return function createComponentBinding(component, parentInstance, parentKeypath, childKeypath) {
             var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
             hash = parentKeypath + '=' + childKeypath;
             bindings = component.bindings;
@@ -1179,24 +1200,27 @@ var shared_createComponentBinding = function (isArray, isEqual, registerDependan
             childInstance = component.instance;
             priority = component.parentFragment.priority;
             parentToChildBinding = new Binding(parentInstance, parentKeypath, childInstance, childKeypath, priority);
-            parentToChildBinding.init(options && options.propagateDown);
+            parentToChildBinding.init();
             bindings.push(parentToChildBinding);
             if (childInstance.twoway) {
                 childToParentBinding = new Binding(childInstance, childKeypath, parentInstance, parentKeypath, 1);
                 bindings.push(childToParentBinding);
                 parentToChildBinding.counterpart = childToParentBinding;
                 childToParentBinding.counterpart = parentToChildBinding;
-                childToParentBinding.init(true);
             }
         };
     }(utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var Ractive_prototype_get_getFromParent = function (createComponentBinding) {
+var Ractive_prototype_get_FAILED_PARENT_LOOKUP = {};
+var Ractive_prototype_get_getFromParent = function (failedLookups, createComponentBinding, FAILED_PARENT_LOOKUP) {
         
-        return function (child, keypath) {
+        return function getFromParent(child, keypath) {
             var parent, contextStack, keypathToTest, value, i;
             parent = child._parent;
             if (!parent) {
                 return;
+            }
+            if (failedLookups(child._guid + keypath)) {
+                return FAILED_PARENT_LOOKUP;
             }
             contextStack = child.component.parentFragment.contextStack;
             i = contextStack.length;
@@ -1215,11 +1239,14 @@ var Ractive_prototype_get_getFromParent = function (createComponentBinding) {
                 child._cache[keypath] = value;
                 return value;
             }
+            failedLookups.add(child._guid + keypath);
+            return FAILED_PARENT_LOOKUP;
         };
-    }(shared_createComponentBinding);
-var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary, getFromParent) {
+    }(state_failedLookups, shared_createComponentBinding, Ractive_prototype_get_FAILED_PARENT_LOOKUP);
+var Ractive_prototype_get_FAILED_LOOKUP = {};
+var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, adaptIfNecessary, getFromParent, FAILED_LOOKUP, FAILED_PARENT_LOOKUP) {
         
-        var get, _get, retrieve, MISSING = {};
+        var get, _get, retrieve;
         get = function (keypath) {
             var value;
             if (this._captured && !this._captured[keypath]) {
@@ -1227,8 +1254,11 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
                 this._captured[keypath] = true;
             }
             value = _get(this, keypath);
-            if (value === MISSING) {
+            if (value === FAILED_LOOKUP && value !== FAILED_PARENT_LOOKUP) {
                 value = getFromParent(this, keypath);
+            }
+            if (value === FAILED_PARENT_LOOKUP) {
+                return;
             }
             return value;
         };
@@ -1271,8 +1301,8 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
                     cacheMap.push(keypath);
                 }
             }
-            if (!(key in parentValue)) {
-                return ractive._cache[keypath] = MISSING;
+            if (typeof parentValue === 'object' && !(key in parentValue)) {
+                return ractive._cache[keypath] = FAILED_LOOKUP;
             }
             value = parentValue[key];
             shouldClone = !parentValue.hasOwnProperty(key);
@@ -1281,7 +1311,7 @@ var Ractive_prototype_get__get = function (normaliseKeypath, adaptorRegistry, ad
             return value;
         };
         return get;
-    }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary, Ractive_prototype_get_getFromParent);
+    }(utils_normaliseKeypath, registries_adaptors, shared_adaptIfNecessary, Ractive_prototype_get_getFromParent, Ractive_prototype_get_FAILED_LOOKUP, Ractive_prototype_get_FAILED_PARENT_LOOKUP);
 var utils_removeFromArray = function () {
         
         return function (array, member) {
@@ -1294,7 +1324,7 @@ var utils_removeFromArray = function () {
 var shared_resolveRef = function () {
         
         var ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
-        return function (ractive, ref, contextStack) {
+        return function resolveRef(ractive, ref, contextStack) {
             var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
             if (ref === '.') {
                 if (!contextStack.length) {
@@ -8994,7 +9024,12 @@ var render_DomFragment_Component_initialise_createBindings = function (createCom
         
         return function (component, toBind) {
             toBind.forEach(function (pair) {
+                var childValue;
                 createComponentBinding(component, component.root, pair.parentKeypath, pair.childKeypath);
+                childValue = component.instance.get(pair.childKeypath);
+                if (childValue !== undefined) {
+                    component.root.set(pair.parentKeypath, childValue);
+                }
             });
         };
     }(shared_createComponentBinding);
