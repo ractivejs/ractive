@@ -389,28 +389,6 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'hello venus' );
 		});
 
-		test( 'Nested components registered at parent Ractive can access outer-most data context', function ( t ) {
-			var ractive, Widget;
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<widget/>',
-				components: {
-					widget: Ractive.extend({
-						template: '<grandwidget/>'
-					}),
-					grandwidget: Ractive.extend({
-						template: 'hello {{world}}'
-					})
-				},
-				data: { world: 'mars' }
-			});
-
-			t.htmlEqual( fixture.innerHTML, 'hello mars' );
-			ractive.set('world', 'venus');
-			t.htmlEqual( fixture.innerHTML, 'hello venus' );
-		});
-
 		test( 'Nested components registered at global Ractive can access outer-most data context', function ( t ) {
 			var ractive, Widget;
 
@@ -478,22 +456,20 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 		});
 
-		test( 'Component data passed but non-existant on parent data', function ( t ) {
+		test( 'Component data passed but non-existent on parent data', function ( t ) {
 			var ractive, Widget;
 
 			Widget = Ractive.extend({
-				template: '{{exists}}{{missing}}',
-				// magic: true
+				template: '{{exists}}{{missing}}'
 			});
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<widget exists="{{exists}}" missing={{missing}}/>',
-				// magic: true,
+				template: '<widget exists="{{exists}}" missing="{{missing}}"/>',
 				components: { widget: Widget },
 				data: { exists: 'exists' }
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, 'exists' );
 		});
 
@@ -510,7 +486,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 				components: { widget: Widget },
 				data: { exists: 'exists' }
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, 'exists' );
 		});
 
@@ -525,13 +501,13 @@ define([ 'Ractive' ], function ( Ractive ) {
 				el: fixture,
 				template: '{{#stuff:exists}}<widget exists="{{exists}}" also="{{.}}"/>{{/stuff}}',
 				components: { widget: Widget },
-				data: { 
+				data: {
 					stuff: {
 						exists: 'also'
 					}
 				 }
 			});
-			
+
 			t.htmlEqual( fixture.innerHTML, 'existsalso' );
 		});
 
