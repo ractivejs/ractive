@@ -1,17 +1,25 @@
 define([
-	'shared/createComponentBinding'
+	'state/failedLookups',
+	'shared/createComponentBinding',
+	'Ractive/prototype/get/FAILED_PARENT_LOOKUP'
 ], function (
-	createComponentBinding
+	failedLookups,
+	createComponentBinding,
+	FAILED_PARENT_LOOKUP
 ) {
 
 	'use strict';
 
-	return function ( child, keypath ) {
+	return function getFromParent ( child, keypath ) {
 		var parent, contextStack, keypathToTest, value, i;
 
 		parent = child._parent;
 		if ( !parent ) {
 			return;
+		}
+
+		if ( failedLookups( child._guid + keypath ) ) {
+			return FAILED_PARENT_LOOKUP;
 		}
 
 		contextStack = child.component.parentFragment.contextStack;
@@ -33,6 +41,10 @@ define([
 			child._cache[ keypath ] = value;
 			return value;
 		}
+
+		// Short-circuit this process next time
+		failedLookups.add( child._guid + keypath );
+		return FAILED_PARENT_LOOKUP;
 	};
 
 });

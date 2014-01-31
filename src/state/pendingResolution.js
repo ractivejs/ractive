@@ -10,6 +10,7 @@ define([
 
 	var pendingResolution = [];
 
+	// TODO optimise when/why this happens!
 	pendingResolution.check = function () {
 		var clone, unresolved, keypath;
 

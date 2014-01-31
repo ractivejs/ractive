@@ -2,17 +2,21 @@ define([
 	'utils/normaliseKeypath',
 	'registries/adaptors',
 	'shared/adaptIfNecessary',
-	'Ractive/prototype/get/getFromParent'
+	'Ractive/prototype/get/getFromParent',
+	'Ractive/prototype/get/FAILED_LOOKUP',
+	'Ractive/prototype/get/FAILED_PARENT_LOOKUP'
 ], function (
 	normaliseKeypath,
 	adaptorRegistry,
 	adaptIfNecessary,
-	getFromParent
+	getFromParent,
+	FAILED_LOOKUP,
+	FAILED_PARENT_LOOKUP
 ) {
 
 	'use strict';
 
-	var get, _get, retrieve, MISSING = {};
+	var get, _get, retrieve;
 
 
 	// all the logic sits in a private function, so we can do _get even when
@@ -32,8 +36,12 @@ define([
 		// If the property doesn't exist on this viewmodel, we
 		// can try going up a scope. This will create bindings
 		// between parent and child if possible
-		if ( value === MISSING ) {
+		if ( value === FAILED_LOOKUP && value !== FAILED_PARENT_LOOKUP ) {
 			value = getFromParent( this, keypath );
+		}
+
+		if ( value === FAILED_PARENT_LOOKUP ) {
+			return;
 		}
 
 		return value;
@@ -110,7 +118,7 @@ define([
 		// If this property doesn't exist, we return a sentinel value
 		// so that we know to query parent scope (if such there be)
 		if ( !( key in parentValue ) ) {
-			return ractive._cache[ keypath ] = MISSING;
+			return ractive._cache[ keypath ] = FAILED_LOOKUP;
 		}
 
 		value = parentValue[ key ];

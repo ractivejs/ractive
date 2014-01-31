@@ -6,7 +6,7 @@ define( function () {
 
 	// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-	return function ( ractive, ref, contextStack ) {
+	return function resolveRef ( ractive, ref, contextStack ) {
 
 		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
 

@@ -65,7 +65,7 @@ define([
 	};
 
 
-	return function ( component, parentInstance, parentKeypath, childKeypath, options ) {
+	return function createComponentBinding ( component, parentInstance, parentKeypath, childKeypath ) {
 		var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
 
 		hash = parentKeypath + '=' + childKeypath;
@@ -82,7 +82,7 @@ define([
 		priority = component.parentFragment.priority;
 
 		parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath, priority );
-		parentToChildBinding.init( options && options.propagateDown );
+		parentToChildBinding.init();
 		bindings.push( parentToChildBinding );
 
 		if ( childInstance.twoway ) {
@@ -93,7 +93,7 @@ define([
 			childToParentBinding.counterpart = parentToChildBinding;
 
 			// propagate child data upwards, if it exists already
-			childToParentBinding.init( true );
+			//childToParentBinding.init( true );
 		}
 	};
 

@@ -1,4 +1,10 @@
-define([ 'shared/getValueFromCheckboxes' ], function ( getValueFromCheckboxes ) {
+define([
+	'state/failedLookups',
+	'shared/getValueFromCheckboxes'
+], function (
+	failedLookups,
+	getValueFromCheckboxes
+) {
 
 	'use strict';
 
@@ -27,6 +33,8 @@ define([ 'shared/getValueFromCheckboxes' ], function ( getValueFromCheckboxes ) 
 		while ( radio = deferred.radios.pop() ) {
 			radio.update();
 		}
+
+		failedLookups.purge();
 	};
 
 });
