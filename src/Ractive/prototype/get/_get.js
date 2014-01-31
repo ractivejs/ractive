@@ -1,6 +1,6 @@
 define([
 	'utils/normaliseKeypath',
-	'registries/adaptors',
+    'registries/adaptors',
 	'shared/adaptIfNecessary',
 	'Ractive/prototype/get/getFromParent',
 	'Ractive/prototype/get/FAILED_LOOKUP',
@@ -117,7 +117,7 @@ define([
 
 		// If this property doesn't exist, we return a sentinel value
 		// so that we know to query parent scope (if such there be)
-		if ( !( key in parentValue ) ) {
+		if ( typeof parentValue === 'object' && !( key in parentValue ) ) {
 			return ractive._cache[ keypath ] = FAILED_LOOKUP;
 		}
 
