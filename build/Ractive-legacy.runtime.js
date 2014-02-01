@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-30
+	Ractive - v0.4.0-pre - 2014-01-31
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -37,7 +37,247 @@
 
 
 
-var config_initOptions = function () {
+var legacy = function () {
+        
+        var win, doc, exportedShims;
+        if (typeof window === 'undefined') {
+            return;
+        }
+        win = window;
+        doc = win.document;
+        exportedShims = {};
+        if (!doc) {
+            return;
+        }
+        if (!Date.now) {
+            Date.now = function () {
+                return +new Date();
+            };
+        }
+        if (!String.prototype.trim) {
+            String.prototype.trim = function () {
+                return this.replace(/^\s+/, '').replace(/\s+$/, '');
+            };
+        }
+        if (!Object.keys) {
+            Object.keys = function () {
+                var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !{ toString: null }.propertyIsEnumerable('toString'), dontEnums = [
+                        'toString',
+                        'toLocaleString',
+                        'valueOf',
+                        'hasOwnProperty',
+                        'isPrototypeOf',
+                        'propertyIsEnumerable',
+                        'constructor'
+                    ], dontEnumsLength = dontEnums.length;
+                return function (obj) {
+                    if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
+                        throw new TypeError('Object.keys called on non-object');
+                    }
+                    var result = [];
+                    for (var prop in obj) {
+                        if (hasOwnProperty.call(obj, prop)) {
+                            result.push(prop);
+                        }
+                    }
+                    if (hasDontEnumBug) {
+                        for (var i = 0; i < dontEnumsLength; i++) {
+                            if (hasOwnProperty.call(obj, dontEnums[i])) {
+                                result.push(dontEnums[i]);
+                            }
+                        }
+                    }
+                    return result;
+                };
+            }();
+        }
+        if (!Array.prototype.indexOf) {
+            Array.prototype.indexOf = function (needle, i) {
+                var len;
+                if (i === undefined) {
+                    i = 0;
+                }
+                if (i < 0) {
+                    i += this.length;
+                }
+                if (i < 0) {
+                    i = 0;
+                }
+                for (len = this.length; i < len; i++) {
+                    if (this.hasOwnProperty(i) && this[i] === needle) {
+                        return i;
+                    }
+                }
+                return -1;
+            };
+        }
+        if (!Array.prototype.forEach) {
+            Array.prototype.forEach = function (callback, context) {
+                var i, len;
+                for (i = 0, len = this.length; i < len; i += 1) {
+                    if (this.hasOwnProperty(i)) {
+                        callback.call(context, this[i], i, this);
+                    }
+                }
+            };
+        }
+        if (!Array.prototype.map) {
+            Array.prototype.map = function (mapper, context) {
+                var array = this, i, len, mapped = [], isActuallyString;
+                if (array instanceof String) {
+                    array = array.toString();
+                    isActuallyString = true;
+                }
+                for (i = 0, len = array.length; i < len; i += 1) {
+                    if (array.hasOwnProperty(i) || isActuallyString) {
+                        mapped[i] = mapper.call(context, array[i], i, array);
+                    }
+                }
+                return mapped;
+            };
+        }
+        if (!Array.prototype.filter) {
+            Array.prototype.filter = function (filter, context) {
+                var i, len, filtered = [];
+                for (i = 0, len = this.length; i < len; i += 1) {
+                    if (this.hasOwnProperty(i) && filter.call(context, this[i], i, this)) {
+                        filtered[filtered.length] = this[i];
+                    }
+                }
+                return filtered;
+            };
+        }
+        if (!win.addEventListener) {
+            (function (win, doc) {
+                var Event, addEventListener, removeEventListener, head, style, origCreateElement;
+                Event = function (e, element) {
+                    var property, instance = this;
+                    for (property in e) {
+                        instance[property] = e[property];
+                    }
+                    instance.currentTarget = element;
+                    instance.target = e.srcElement || element;
+                    instance.timeStamp = +new Date();
+                    instance.preventDefault = function () {
+                        e.returnValue = false;
+                    };
+                    instance.stopPropagation = function () {
+                        e.cancelBubble = true;
+                    };
+                };
+                addEventListener = function (type, listener) {
+                    var element = this, listeners, i;
+                    listeners = element.listeners || (element.listeners = []);
+                    i = listeners.length;
+                    listeners[i] = [
+                        listener,
+                        function (e) {
+                            listener.call(element, new Event(e, element));
+                        }
+                    ];
+                    element.attachEvent('on' + type, listeners[i][1]);
+                };
+                removeEventListener = function (type, listener) {
+                    var element = this, listeners, i;
+                    if (!element.listeners) {
+                        return;
+                    }
+                    listeners = element.listeners;
+                    i = listeners.length;
+                    while (i--) {
+                        if (listeners[i][0] === listener) {
+                            element.detachEvent('on' + type, listeners[i][1]);
+                        }
+                    }
+                };
+                win.addEventListener = doc.addEventListener = addEventListener;
+                win.removeEventListener = doc.removeEventListener = removeEventListener;
+                if ('Element' in win) {
+                    Element.prototype.addEventListener = addEventListener;
+                    Element.prototype.removeEventListener = removeEventListener;
+                } else {
+                    origCreateElement = doc.createElement;
+                    doc.createElement = function (tagName) {
+                        var el = origCreateElement(tagName);
+                        el.addEventListener = addEventListener;
+                        el.removeEventListener = removeEventListener;
+                        return el;
+                    };
+                    head = doc.getElementsByTagName('head')[0];
+                    style = doc.createElement('style');
+                    head.insertBefore(style, head.firstChild);
+                }
+            }(win, doc));
+        }
+        if (!win.getComputedStyle) {
+            exportedShims.getComputedStyle = function () {
+                function getPixelSize(element, style, property, fontSize) {
+                    var sizeWithSuffix = style[property], size = parseFloat(sizeWithSuffix), suffix = sizeWithSuffix.split(/\d/)[0], rootSize;
+                    fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
+                    rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
+                    return suffix == 'em' ? size * fontSize : suffix == 'in' ? size * 96 : suffix == 'pt' ? size * 96 / 72 : suffix == '%' ? size / 100 * rootSize : size;
+                }
+                function setShortStyleProperty(style, property) {
+                    var borderSuffix = property == 'border' ? 'Width' : '', t = property + 'Top' + borderSuffix, r = property + 'Right' + borderSuffix, b = property + 'Bottom' + borderSuffix, l = property + 'Left' + borderSuffix;
+                    style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]] : style[t] == style[b] && style[l] == style[r] ? [
+                        style[t],
+                        style[r]
+                    ] : style[l] == style[r] ? [
+                        style[t],
+                        style[r],
+                        style[b]
+                    ] : [
+                        style[t],
+                        style[r],
+                        style[b],
+                        style[l]
+                    ]).join(' ');
+                }
+                function CSSStyleDeclaration(element) {
+                    var currentStyle, style, fontSize, property;
+                    currentStyle = element.currentStyle;
+                    style = this;
+                    fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
+                    for (property in currentStyle) {
+                        if (/width|height|margin.|padding.|border.+W/.test(property) && style[property] !== 'auto') {
+                            style[property] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
+                        } else if (property === 'styleFloat') {
+                            style.float = currentStyle[property];
+                        } else {
+                            style[property] = currentStyle[property];
+                        }
+                    }
+                    setShortStyleProperty(style, 'margin');
+                    setShortStyleProperty(style, 'padding');
+                    setShortStyleProperty(style, 'border');
+                    style.fontSize = fontSize + 'px';
+                    return style;
+                }
+                CSSStyleDeclaration.prototype = {
+                    constructor: CSSStyleDeclaration,
+                    getPropertyPriority: function () {
+                    },
+                    getPropertyValue: function (prop) {
+                        return this[prop] || '';
+                    },
+                    item: function () {
+                    },
+                    removeProperty: function () {
+                    },
+                    setProperty: function () {
+                    },
+                    getPropertyCSSValue: function () {
+                    }
+                };
+                function getComputedStyle(element) {
+                    return new CSSStyleDeclaration(element);
+                }
+                return getComputedStyle;
+            }();
+        }
+        return exportedShims;
+    }();
+var config_initOptions = function (legacy) {
         
         var defaults, initOptions;
         defaults = {
@@ -70,7 +310,7 @@ var config_initOptions = function () {
             defaults: defaults
         };
         return initOptions;
-    }();
+    }(legacy);
 var config_svg = function () {
         
         if (typeof document === 'undefined') {
@@ -5445,246 +5685,6 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_ini
             this._fn.apply(this.root, [this].concat(this.params));
         };
     }();
-var legacy = function () {
-        
-        var win, doc, exportedShims;
-        if (typeof window === 'undefined') {
-            return;
-        }
-        win = window;
-        doc = win.document;
-        exportedShims = {};
-        if (!doc) {
-            return;
-        }
-        if (!Date.now) {
-            Date.now = function () {
-                return +new Date();
-            };
-        }
-        if (!String.prototype.trim) {
-            String.prototype.trim = function () {
-                return this.replace(/^\s+/, '').replace(/\s+$/, '');
-            };
-        }
-        if (!Object.keys) {
-            Object.keys = function () {
-                var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !{ toString: null }.propertyIsEnumerable('toString'), dontEnums = [
-                        'toString',
-                        'toLocaleString',
-                        'valueOf',
-                        'hasOwnProperty',
-                        'isPrototypeOf',
-                        'propertyIsEnumerable',
-                        'constructor'
-                    ], dontEnumsLength = dontEnums.length;
-                return function (obj) {
-                    if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
-                        throw new TypeError('Object.keys called on non-object');
-                    }
-                    var result = [];
-                    for (var prop in obj) {
-                        if (hasOwnProperty.call(obj, prop)) {
-                            result.push(prop);
-                        }
-                    }
-                    if (hasDontEnumBug) {
-                        for (var i = 0; i < dontEnumsLength; i++) {
-                            if (hasOwnProperty.call(obj, dontEnums[i])) {
-                                result.push(dontEnums[i]);
-                            }
-                        }
-                    }
-                    return result;
-                };
-            }();
-        }
-        if (!Array.prototype.indexOf) {
-            Array.prototype.indexOf = function (needle, i) {
-                var len;
-                if (i === undefined) {
-                    i = 0;
-                }
-                if (i < 0) {
-                    i += this.length;
-                }
-                if (i < 0) {
-                    i = 0;
-                }
-                for (len = this.length; i < len; i++) {
-                    if (this.hasOwnProperty(i) && this[i] === needle) {
-                        return i;
-                    }
-                }
-                return -1;
-            };
-        }
-        if (!Array.prototype.forEach) {
-            Array.prototype.forEach = function (callback, context) {
-                var i, len;
-                for (i = 0, len = this.length; i < len; i += 1) {
-                    if (this.hasOwnProperty(i)) {
-                        callback.call(context, this[i], i, this);
-                    }
-                }
-            };
-        }
-        if (!Array.prototype.map) {
-            Array.prototype.map = function (mapper, context) {
-                var array = this, i, len, mapped = [], isActuallyString;
-                if (array instanceof String) {
-                    array = array.toString();
-                    isActuallyString = true;
-                }
-                for (i = 0, len = array.length; i < len; i += 1) {
-                    if (array.hasOwnProperty(i) || isActuallyString) {
-                        mapped[i] = mapper.call(context, array[i], i, array);
-                    }
-                }
-                return mapped;
-            };
-        }
-        if (!Array.prototype.filter) {
-            Array.prototype.filter = function (filter, context) {
-                var i, len, filtered = [];
-                for (i = 0, len = this.length; i < len; i += 1) {
-                    if (this.hasOwnProperty(i) && filter.call(context, this[i], i, this)) {
-                        filtered[filtered.length] = this[i];
-                    }
-                }
-                return filtered;
-            };
-        }
-        if (!win.addEventListener) {
-            (function (win, doc) {
-                var Event, addEventListener, removeEventListener, head, style, origCreateElement;
-                Event = function (e, element) {
-                    var property, instance = this;
-                    for (property in e) {
-                        instance[property] = e[property];
-                    }
-                    instance.currentTarget = element;
-                    instance.target = e.srcElement || element;
-                    instance.timeStamp = +new Date();
-                    instance.preventDefault = function () {
-                        e.returnValue = false;
-                    };
-                    instance.stopPropagation = function () {
-                        e.cancelBubble = true;
-                    };
-                };
-                addEventListener = function (type, listener) {
-                    var element = this, listeners, i;
-                    listeners = element.listeners || (element.listeners = []);
-                    i = listeners.length;
-                    listeners[i] = [
-                        listener,
-                        function (e) {
-                            listener.call(element, new Event(e, element));
-                        }
-                    ];
-                    element.attachEvent('on' + type, listeners[i][1]);
-                };
-                removeEventListener = function (type, listener) {
-                    var element = this, listeners, i;
-                    if (!element.listeners) {
-                        return;
-                    }
-                    listeners = element.listeners;
-                    i = listeners.length;
-                    while (i--) {
-                        if (listeners[i][0] === listener) {
-                            element.detachEvent('on' + type, listeners[i][1]);
-                        }
-                    }
-                };
-                win.addEventListener = doc.addEventListener = addEventListener;
-                win.removeEventListener = doc.removeEventListener = removeEventListener;
-                if ('Element' in win) {
-                    Element.prototype.addEventListener = addEventListener;
-                    Element.prototype.removeEventListener = removeEventListener;
-                } else {
-                    origCreateElement = doc.createElement;
-                    doc.createElement = function (tagName) {
-                        var el = origCreateElement(tagName);
-                        el.addEventListener = addEventListener;
-                        el.removeEventListener = removeEventListener;
-                        return el;
-                    };
-                    head = doc.getElementsByTagName('head')[0];
-                    style = doc.createElement('style');
-                    head.insertBefore(style, head.firstChild);
-                }
-            }(win, doc));
-        }
-        if (!win.getComputedStyle) {
-            exportedShims.getComputedStyle = function () {
-                function getPixelSize(element, style, property, fontSize) {
-                    var sizeWithSuffix = style[property], size = parseFloat(sizeWithSuffix), suffix = sizeWithSuffix.split(/\d/)[0], rootSize;
-                    fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
-                    rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
-                    return suffix == 'em' ? size * fontSize : suffix == 'in' ? size * 96 : suffix == 'pt' ? size * 96 / 72 : suffix == '%' ? size / 100 * rootSize : size;
-                }
-                function setShortStyleProperty(style, property) {
-                    var borderSuffix = property == 'border' ? 'Width' : '', t = property + 'Top' + borderSuffix, r = property + 'Right' + borderSuffix, b = property + 'Bottom' + borderSuffix, l = property + 'Left' + borderSuffix;
-                    style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]] : style[t] == style[b] && style[l] == style[r] ? [
-                        style[t],
-                        style[r]
-                    ] : style[l] == style[r] ? [
-                        style[t],
-                        style[r],
-                        style[b]
-                    ] : [
-                        style[t],
-                        style[r],
-                        style[b],
-                        style[l]
-                    ]).join(' ');
-                }
-                function CSSStyleDeclaration(element) {
-                    var currentStyle, style, fontSize, property;
-                    currentStyle = element.currentStyle;
-                    style = this;
-                    fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
-                    for (property in currentStyle) {
-                        if (/width|height|margin.|padding.|border.+W/.test(property) && style[property] !== 'auto') {
-                            style[property] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
-                        } else if (property === 'styleFloat') {
-                            style.float = currentStyle[property];
-                        } else {
-                            style[property] = currentStyle[property];
-                        }
-                    }
-                    setShortStyleProperty(style, 'margin');
-                    setShortStyleProperty(style, 'padding');
-                    setShortStyleProperty(style, 'border');
-                    style.fontSize = fontSize + 'px';
-                    return style;
-                }
-                CSSStyleDeclaration.prototype = {
-                    constructor: CSSStyleDeclaration,
-                    getPropertyPriority: function () {
-                    },
-                    getPropertyValue: function (prop) {
-                        return this[prop] || '';
-                    },
-                    item: function () {
-                    },
-                    removeProperty: function () {
-                    },
-                    setProperty: function () {
-                    },
-                    getPropertyCSSValue: function () {
-                    }
-                };
-                function getComputedStyle(element) {
-                    return new CSSStyleDeclaration(element);
-                }
-                return getComputedStyle;
-            }();
-        }
-        return exportedShims;
-    }();
 var render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix = function (isClient, vendors, createElement) {
         
         var prefixCache, testStyle;
@@ -7883,238 +7883,7 @@ var extend__extend = function (create, defineProperties, getGuid, inheritFromPar
             return Child;
         };
     }(utils_create, utils_defineProperties, utils_getGuid, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
-var utils_get = function (Promise) {
-        
-        return function (url) {
-            return new Promise(function (resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.onload = function () {
-                    resolve(xhr.responseText);
-                };
-                xhr.onerror = reject;
-                xhr.send();
-            });
-        };
-    }(utils_Promise);
-var utils_resolvePath = function () {
-        
-        return function (relativePath, base, force) {
-            var pathParts, relativePathParts, part;
-            if (!force) {
-                if (relativePath.charAt(0) !== '.') {
-                    return relativePath;
-                }
-            } else {
-                if (base && base.charAt(base.length - 1) !== '/') {
-                    base += '/';
-                }
-            }
-            pathParts = (base || '').split('/');
-            relativePathParts = relativePath.split('/');
-            pathParts.pop();
-            while (part = relativePathParts.shift()) {
-                if (part === '..') {
-                    pathParts.pop();
-                } else if (part !== '.') {
-                    pathParts.push(part);
-                }
-            }
-            return pathParts.join('/');
-        };
-    }();
-var load_getName = function () {
-        
-        return function (path) {
-            var pathParts, filename, lastIndex;
-            pathParts = path.split('/');
-            filename = pathParts.pop();
-            lastIndex = filename.lastIndexOf('.');
-            if (lastIndex !== -1) {
-                filename = filename.substr(0, lastIndex);
-            }
-            return filename;
-        };
-    }();
-var load_makeComponent = function (circular, get, Promise, resolvePath, parse, getName) {
-        
-        var Ractive;
-        circular.push(function () {
-            Ractive = circular.Ractive;
-        });
-        var makeComponent = function (template, baseUrl) {
-            var links, scripts, script, styles, i, item, scriptElement, oldComponent, exports, Component, pendingImports, imports, importPromise;
-            template = parse(template, {
-                noStringify: true,
-                interpolateScripts: false,
-                interpolateStyles: false
-            });
-            links = [];
-            scripts = [];
-            styles = [];
-            i = template.length;
-            while (i--) {
-                item = template[i];
-                if (item && item.t === 7) {
-                    if (item.e === 'link' && (item.a && item.a.rel[0] === 'ractive')) {
-                        links.push(template.splice(i, 1)[0]);
-                    }
-                    if (item.e === 'script' && (!item.a || !item.a.type || item.a.type[0] === 'text/javascript')) {
-                        scripts.push(template.splice(i, 1)[0]);
-                    }
-                    if (item.e === 'style' && (!item.a || !item.a.type || item.a.type[0] === 'text/css')) {
-                        styles.push(template.splice(i, 1)[0]);
-                    }
-                }
-            }
-            pendingImports = links.length;
-            imports = {};
-            importPromise = new Promise(function (resolve, reject) {
-                links.forEach(function (link) {
-                    var href, name, resolvedPath;
-                    href = link.a.href && link.a.href[0];
-                    name = link.a.name && link.a.name[0] || getName(href);
-                    if (typeof name !== 'string') {
-                        reject('Error parsing link tag');
-                        return;
-                    }
-                    resolvedPath = resolvePath(href, baseUrl);
-                    get(resolvedPath).then(function (template) {
-                        return makeComponent(template, resolvedPath);
-                    }).then(function (Component) {
-                        imports[name] = Component;
-                        if (!--pendingImports) {
-                            resolve(imports);
-                        }
-                    }, reject);
-                });
-                if (!pendingImports) {
-                    resolve(imports);
-                }
-            });
-            script = scripts.map(extractFragment).join(';');
-            return importPromise.then(function (imports) {
-                var head, options;
-                head = document.getElementsByTagName('head')[0];
-                options = {
-                    template: template,
-                    components: imports
-                };
-                if (styles.length) {
-                    options.css = styles.map(extractFragment).join(' ');
-                }
-                Component = Ractive.extend(options);
-                if (script) {
-                    scriptElement = document.createElement('script');
-                    scriptElement.innerHTML = '(function () {' + script + '}());';
-                    oldComponent = window.component;
-                    window.component = {};
-                    head.appendChild(scriptElement);
-                    exports = window.component.exports;
-                    if (typeof exports === 'function') {
-                        Component = exports(Component);
-                    } else if (typeof exports === 'object') {
-                        Component = Component.extend(exports);
-                    }
-                    head.removeChild(scriptElement);
-                    window.component = oldComponent;
-                }
-                return Component;
-            });
-        };
-        return makeComponent;
-        function extractFragment(item) {
-            return item.f;
-        }
-    }(circular, utils_get, utils_Promise, utils_resolvePath, parse__parse, load_getName);
-var load_loadSingle = function (circular, get, promise, resolvePath, makeComponent) {
-        
-        var Ractive;
-        circular.push(function () {
-            Ractive = circular.Ractive;
-        });
-        return function (path, callback, onerror) {
-            var promise, url;
-            url = resolvePath(path, Ractive.baseUrl, true);
-            promise = get(url).then(function (template) {
-                return makeComponent(template, url);
-            }, throwError);
-            if (callback) {
-                promise.then(callback, onerror);
-            }
-            return promise;
-        };
-        function throwError(err) {
-            throw err;
-        }
-    }(circular, utils_get, utils_Promise, utils_resolvePath, load_makeComponent);
-var load_loadFromLinks = function (Promise, componentsRegistry, loadSingle, getName) {
-        
-        return function (callback, onerror) {
-            var promise = new Promise(function (resolve, reject) {
-                    var links, pending;
-                    links = Array.prototype.slice.call(document.querySelectorAll('link[rel="ractive"]'));
-                    pending = links.length;
-                    links.forEach(function (link) {
-                        var name = getNameFromLink(link);
-                        loadSingle(link.getAttribute('href')).then(function (Component) {
-                            componentsRegistry[name] = Component;
-                            if (!--pending) {
-                                resolve();
-                            }
-                        }, reject);
-                    });
-                });
-            if (callback) {
-                promise.then(callback, onerror);
-            }
-            return promise;
-        };
-        function getNameFromLink(link) {
-            return link.getAttribute('name') || getName(link.getAttribute('href'));
-        }
-    }(utils_Promise, registries_components, load_loadSingle, load_getName);
-var load_loadMultiple = function (Promise, loadSingle) {
-        
-        return function (map, callback, onerror) {
-            var promise = new Promise(function (resolve, reject) {
-                    var pending = 0, result = {}, name, load;
-                    load = function (name) {
-                        var url = map[name];
-                        loadSingle(url).then(function (Component) {
-                            result[name] = Component;
-                            if (!--pending) {
-                                resolve(result);
-                            }
-                        }, reject);
-                    };
-                    for (name in map) {
-                        if (map.hasOwnProperty(name)) {
-                            pending += 1;
-                            load(name);
-                        }
-                    }
-                });
-            if (callback) {
-                promise.then(callback, onerror);
-            }
-            return promise;
-        };
-    }(utils_Promise, load_loadSingle);
-var load__load = function (isObject, loadFromLinks, loadMultiple, loadSingle) {
-        
-        return function (url, callback, onError) {
-            if (!url || typeof url === 'function') {
-                callback = url;
-                return loadFromLinks(callback, onError);
-            }
-            if (isObject(url)) {
-                return loadMultiple(url, callback, onError);
-            }
-            return loadSingle(url, callback, onError);
-        };
-    }(utils_isObject, load_loadFromLinks, load_loadMultiple, load_loadSingle);
-var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, load, initialise, circular) {
+var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -8138,10 +7907,9 @@ var Ractive__Ractive = function (initOptions, svg, create, defineProperties, pro
         Ractive.Promise = Promise;
         Ractive.extend = extend;
         Ractive.parse = parse;
-        Ractive.load = load;
         circular.Ractive = Ractive;
         return Ractive;
-    }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, registries_interpolators, utils_Promise, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
+    }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, registries_interpolators, utils_Promise, extend__extend, parse__parse, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular, legacy) {
         
         var FUNCTION = 'function';

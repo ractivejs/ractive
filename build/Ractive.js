@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-30
+	Ractive - v0.4.0-pre - 2014-01-31
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -37,7 +37,9 @@
 
 
 
-var config_initOptions = function () {
+var legacy = function () {
+    }();
+var config_initOptions = function (legacy) {
         
         var defaults, initOptions;
         defaults = {
@@ -70,7 +72,7 @@ var config_initOptions = function () {
             defaults: defaults
         };
         return initOptions;
-    }();
+    }(legacy);
 var config_svg = function () {
         
         if (typeof document === 'undefined') {
@@ -5445,8 +5447,6 @@ var render_DomFragment_Element_shared_executeTransition_Transition_prototype_ini
             this._fn.apply(this.root, [this].concat(this.params));
         };
     }();
-var legacy = function () {
-    }();
 var render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix = function (isClient, vendors, createElement) {
         
         var prefixCache, testStyle;
@@ -9828,238 +9828,7 @@ var extend__extend = function (create, defineProperties, getGuid, inheritFromPar
             return Child;
         };
     }(utils_create, utils_defineProperties, utils_getGuid, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
-var utils_get = function (Promise) {
-        
-        return function (url) {
-            return new Promise(function (resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', url);
-                xhr.onload = function () {
-                    resolve(xhr.responseText);
-                };
-                xhr.onerror = reject;
-                xhr.send();
-            });
-        };
-    }(utils_Promise);
-var utils_resolvePath = function () {
-        
-        return function (relativePath, base, force) {
-            var pathParts, relativePathParts, part;
-            if (!force) {
-                if (relativePath.charAt(0) !== '.') {
-                    return relativePath;
-                }
-            } else {
-                if (base && base.charAt(base.length - 1) !== '/') {
-                    base += '/';
-                }
-            }
-            pathParts = (base || '').split('/');
-            relativePathParts = relativePath.split('/');
-            pathParts.pop();
-            while (part = relativePathParts.shift()) {
-                if (part === '..') {
-                    pathParts.pop();
-                } else if (part !== '.') {
-                    pathParts.push(part);
-                }
-            }
-            return pathParts.join('/');
-        };
-    }();
-var load_getName = function () {
-        
-        return function (path) {
-            var pathParts, filename, lastIndex;
-            pathParts = path.split('/');
-            filename = pathParts.pop();
-            lastIndex = filename.lastIndexOf('.');
-            if (lastIndex !== -1) {
-                filename = filename.substr(0, lastIndex);
-            }
-            return filename;
-        };
-    }();
-var load_makeComponent = function (circular, get, Promise, resolvePath, parse, getName) {
-        
-        var Ractive;
-        circular.push(function () {
-            Ractive = circular.Ractive;
-        });
-        var makeComponent = function (template, baseUrl) {
-            var links, scripts, script, styles, i, item, scriptElement, oldComponent, exports, Component, pendingImports, imports, importPromise;
-            template = parse(template, {
-                noStringify: true,
-                interpolateScripts: false,
-                interpolateStyles: false
-            });
-            links = [];
-            scripts = [];
-            styles = [];
-            i = template.length;
-            while (i--) {
-                item = template[i];
-                if (item && item.t === 7) {
-                    if (item.e === 'link' && (item.a && item.a.rel[0] === 'ractive')) {
-                        links.push(template.splice(i, 1)[0]);
-                    }
-                    if (item.e === 'script' && (!item.a || !item.a.type || item.a.type[0] === 'text/javascript')) {
-                        scripts.push(template.splice(i, 1)[0]);
-                    }
-                    if (item.e === 'style' && (!item.a || !item.a.type || item.a.type[0] === 'text/css')) {
-                        styles.push(template.splice(i, 1)[0]);
-                    }
-                }
-            }
-            pendingImports = links.length;
-            imports = {};
-            importPromise = new Promise(function (resolve, reject) {
-                links.forEach(function (link) {
-                    var href, name, resolvedPath;
-                    href = link.a.href && link.a.href[0];
-                    name = link.a.name && link.a.name[0] || getName(href);
-                    if (typeof name !== 'string') {
-                        reject('Error parsing link tag');
-                        return;
-                    }
-                    resolvedPath = resolvePath(href, baseUrl);
-                    get(resolvedPath).then(function (template) {
-                        return makeComponent(template, resolvedPath);
-                    }).then(function (Component) {
-                        imports[name] = Component;
-                        if (!--pendingImports) {
-                            resolve(imports);
-                        }
-                    }, reject);
-                });
-                if (!pendingImports) {
-                    resolve(imports);
-                }
-            });
-            script = scripts.map(extractFragment).join(';');
-            return importPromise.then(function (imports) {
-                var head, options;
-                head = document.getElementsByTagName('head')[0];
-                options = {
-                    template: template,
-                    components: imports
-                };
-                if (styles.length) {
-                    options.css = styles.map(extractFragment).join(' ');
-                }
-                Component = Ractive.extend(options);
-                if (script) {
-                    scriptElement = document.createElement('script');
-                    scriptElement.innerHTML = '(function () {' + script + '}());';
-                    oldComponent = window.component;
-                    window.component = {};
-                    head.appendChild(scriptElement);
-                    exports = window.component.exports;
-                    if (typeof exports === 'function') {
-                        Component = exports(Component);
-                    } else if (typeof exports === 'object') {
-                        Component = Component.extend(exports);
-                    }
-                    head.removeChild(scriptElement);
-                    window.component = oldComponent;
-                }
-                return Component;
-            });
-        };
-        return makeComponent;
-        function extractFragment(item) {
-            return item.f;
-        }
-    }(circular, utils_get, utils_Promise, utils_resolvePath, parse__parse, load_getName);
-var load_loadSingle = function (circular, get, promise, resolvePath, makeComponent) {
-        
-        var Ractive;
-        circular.push(function () {
-            Ractive = circular.Ractive;
-        });
-        return function (path, callback, onerror) {
-            var promise, url;
-            url = resolvePath(path, Ractive.baseUrl, true);
-            promise = get(url).then(function (template) {
-                return makeComponent(template, url);
-            }, throwError);
-            if (callback) {
-                promise.then(callback, onerror);
-            }
-            return promise;
-        };
-        function throwError(err) {
-            throw err;
-        }
-    }(circular, utils_get, utils_Promise, utils_resolvePath, load_makeComponent);
-var load_loadFromLinks = function (Promise, componentsRegistry, loadSingle, getName) {
-        
-        return function (callback, onerror) {
-            var promise = new Promise(function (resolve, reject) {
-                    var links, pending;
-                    links = Array.prototype.slice.call(document.querySelectorAll('link[rel="ractive"]'));
-                    pending = links.length;
-                    links.forEach(function (link) {
-                        var name = getNameFromLink(link);
-                        loadSingle(link.getAttribute('href')).then(function (Component) {
-                            componentsRegistry[name] = Component;
-                            if (!--pending) {
-                                resolve();
-                            }
-                        }, reject);
-                    });
-                });
-            if (callback) {
-                promise.then(callback, onerror);
-            }
-            return promise;
-        };
-        function getNameFromLink(link) {
-            return link.getAttribute('name') || getName(link.getAttribute('href'));
-        }
-    }(utils_Promise, registries_components, load_loadSingle, load_getName);
-var load_loadMultiple = function (Promise, loadSingle) {
-        
-        return function (map, callback, onerror) {
-            var promise = new Promise(function (resolve, reject) {
-                    var pending = 0, result = {}, name, load;
-                    load = function (name) {
-                        var url = map[name];
-                        loadSingle(url).then(function (Component) {
-                            result[name] = Component;
-                            if (!--pending) {
-                                resolve(result);
-                            }
-                        }, reject);
-                    };
-                    for (name in map) {
-                        if (map.hasOwnProperty(name)) {
-                            pending += 1;
-                            load(name);
-                        }
-                    }
-                });
-            if (callback) {
-                promise.then(callback, onerror);
-            }
-            return promise;
-        };
-    }(utils_Promise, load_loadSingle);
-var load__load = function (isObject, loadFromLinks, loadMultiple, loadSingle) {
-        
-        return function (url, callback, onError) {
-            if (!url || typeof url === 'function') {
-                callback = url;
-                return loadFromLinks(callback, onError);
-            }
-            if (isObject(url)) {
-                return loadMultiple(url, callback, onError);
-            }
-            return loadSingle(url, callback, onError);
-        };
-    }(utils_isObject, load_loadFromLinks, load_loadMultiple, load_loadSingle);
-var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, load, initialise, circular) {
+var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
@@ -10083,10 +9852,9 @@ var Ractive__Ractive = function (initOptions, svg, create, defineProperties, pro
         Ractive.Promise = Promise;
         Ractive.extend = extend;
         Ractive.parse = parse;
-        Ractive.load = load;
         circular.Ractive = Ractive;
         return Ractive;
-    }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, registries_interpolators, utils_Promise, extend__extend, parse__parse, load__load, Ractive_initialise, circular);
+    }(config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, registries_interpolators, utils_Promise, extend__extend, parse__parse, Ractive_initialise, circular);
 var Ractive = function (Ractive, circular, legacy) {
         
         var FUNCTION = 'function';
