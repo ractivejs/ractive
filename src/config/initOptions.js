@@ -1,4 +1,6 @@
-define( function () {
+define([
+	'legacy' // for Object.keys polyfill
+], function () {
 
 	'use strict';
 
