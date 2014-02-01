@@ -12,7 +12,6 @@ define([
 	'utils/Promise',
 	'extend/_extend',
 	'parse/_parse',
-	'load/_load',
 	'Ractive/initialise',
 	'circular'
 ], function (
@@ -29,7 +28,6 @@ define([
 	Promise,
 	extend,
 	parse,
-	load,
 	initialise,
 	circular
 ) {
@@ -78,7 +76,6 @@ define([
 	// Static methods
 	Ractive.extend = extend;
 	Ractive.parse = parse;
-	Ractive.load = load;
 
 	circular.Ractive = Ractive;
 	return Ractive;
