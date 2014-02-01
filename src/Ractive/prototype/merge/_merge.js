@@ -3,7 +3,6 @@ define([
 	'utils/warn',
 	'utils/isArray',
 	'shared/clearCache',
-	'shared/midCycleUpdate',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants',
 	'Ractive/prototype/shared/replaceData',
@@ -14,7 +13,6 @@ define([
 	warn,
 	isArray,
 	clearCache,
-	midCycleUpdate,
 	makeTransitionManager,
 	notifyDependants,
 	replaceData,
@@ -135,9 +133,6 @@ define([
 			if ( deps ) {
 				queueDependants( keypath, deps, mergeQueue, updateQueue );
 
-				// we may have some deferred evaluators to process
-				midCycleUpdate( this );
-
 				while ( mergeQueue.length ) {
 					mergeQueue.pop().merge( newIndices );
 				}
@@ -147,8 +142,6 @@ define([
 				}
 			}
 		}
-
-		midCycleUpdate( this );
 
 		scheduler.end();
 

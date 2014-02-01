@@ -2,7 +2,6 @@ define([
 	'state/scheduler',
 	'utils/defineProperty',
 	'shared/clearCache',
-	'shared/midCycleUpdate',
 	'shared/makeTransitionManager',
 	'Ractive/prototype/get/arrayAdaptor/getSpliceEquivalent',
 	'Ractive/prototype/get/arrayAdaptor/summariseSpliceOperation',
@@ -11,7 +10,6 @@ define([
 	scheduler,
 	defineProperty,
 	clearCache,
-	midCycleUpdate,
 	makeTransitionManager,
 	getSpliceEquivalent,
 	summariseSpliceOperation,
@@ -73,8 +71,6 @@ define([
 
 				instance._transitionManager = previousTransitionManagers[ instance._guid ];
 				transitionManagers[ instance._guid ].ready();
-
-				midCycleUpdate( instance );
 			}
 
 			scheduler.end();

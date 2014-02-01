@@ -1,12 +1,10 @@
 define([
 	'config/types',
 	'shared/clearCache',
-	'shared/midCycleUpdate',
 	'shared/notifyDependants'
 ], function (
 	types,
 	clearCache,
-	midCycleUpdate,
 	notifyDependants
 ) {
 
@@ -54,9 +52,6 @@ define([
 			if ( deps ) {
 				queueDependants( keypath, deps, smartUpdateQueue, dumbUpdateQueue );
 
-				// we may have some deferred evaluators to process
-				midCycleUpdate( root );
-
 				while ( smartUpdateQueue.length ) {
 					smartUpdateQueue.pop().smartUpdate( methodName, spliceSummary );
 				}
@@ -80,8 +75,6 @@ define([
 				notifyDependants( root, childKeypath );
 			}
 		}
-
-		midCycleUpdate( root ); // TODO determine whether this is necessary
 
 		// Finally, notify direct dependants of upstream keypaths...
 		upstreamQueue = [];

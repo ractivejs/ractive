@@ -7,7 +7,6 @@ define([
 	'shared/clearCache',
 	'shared/notifyDependants',
 	'shared/makeTransitionManager',
-	'shared/midCycleUpdate',
 	'Ractive/prototype/shared/replaceData'
 ], function (
 	scheduler,
@@ -18,7 +17,6 @@ define([
 	clearCache,
 	notifyDependants,
 	makeTransitionManager,
-	midCycleUpdate,
 	replaceData
 ) {
 
@@ -78,11 +76,6 @@ define([
 
 		// Attempt to resolve any unresolved keypaths...
 		pendingResolution.check();
-
-		// Attributes don't reflect changes automatically if there is a possibility
-		// that they will need to change again before the .set() cycle is complete
-		// - they defer their updates until all values have been set
-		midCycleUpdate( this );
 
 		scheduler.end();
 

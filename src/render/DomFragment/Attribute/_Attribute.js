@@ -1,4 +1,5 @@
 define([
+	'state/scheduler',
 	'config/types',
 	'render/DomFragment/Attribute/helpers/determineNameAndNamespace',
 	'render/DomFragment/Attribute/helpers/setStaticAttribute',
@@ -7,6 +8,7 @@ define([
 	'render/DomFragment/Attribute/prototype/update',
 	'render/StringFragment/_StringFragment'
 ], function (
+	scheduler,
 	types,
 	determineNameAndNamespace,
 	setStaticAttribute,
@@ -119,7 +121,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred && this.ready ) {
-				this.root._deferred.attrs.push( this );
+				scheduler.addAttribute( this );
 				this.deferred = true;
 			}
 		},

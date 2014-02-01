@@ -1,11 +1,9 @@
 define([
 	'config/types',
-	'render/DomFragment/Section/reassignFragment',
-	'shared/midCycleUpdate'
+	'render/DomFragment/Section/reassignFragment'
 ], function (
 	types,
-	reassignFragment,
-	midCycleUpdate
+	reassignFragment
 ) {
 
 	'use strict';
@@ -29,8 +27,6 @@ define([
 
 			reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
 		}
-
-		midCycleUpdate( root );
 	};
 
 

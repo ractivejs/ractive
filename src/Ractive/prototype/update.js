@@ -3,15 +3,13 @@ define([
 	'state/pendingResolution',
 	'shared/makeTransitionManager',
 	'shared/clearCache',
-	'shared/notifyDependants',
-	'shared/midCycleUpdate'
+	'shared/notifyDependants'
 ], function (
 	scheduler,
 	pendingResolution,
 	makeTransitionManager,
 	clearCache,
-	notifyDependants,
-	midCycleUpdate
+	notifyDependants
 ) {
 
 	'use strict';
@@ -36,8 +34,6 @@ define([
 
 		clearCache( this, keypath || '' );
 		notifyDependants( this, keypath || '' );
-
-		midCycleUpdate( this );
 
 		scheduler.end();
 

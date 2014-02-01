@@ -1,21 +1,46 @@
-define( function () {
+define([
+	'state/failedLookups',
+	'shared/getValueFromCheckboxes'
+], function (
+	failedLookups,
+	getValueFromCheckboxes
+) {
 
 	'use strict';
 
-	var inFlight = 0,
+	var dirty = false,
+		flushing = false,
+		inFlight = 0,
 		toFocus = null,
 		liveQueries = [],
 		decorators = [],
 		transitions = [],
-		observers = [];
+		observers = [],
+		attributes = [],
+		evaluators = [],
+		selectValues = [],
+		checkboxKeypaths = {},
+		checkboxes = [],
+		radios = [];
 
 	return {
 		start: function () {
+			if ( flushing ) {
+				return;
+			}
+
 			inFlight += 1;
 		},
 
 		end: function () {
+			if ( flushing ) {
+				return;
+			}
+
 			if ( !--inFlight ) {
+				flushing = true;
+				flushChanges();
+				flushing = false;
 				land();
 			}
 		},
@@ -38,31 +63,88 @@ define( function () {
 
 		addObserver: function ( observer ) {
 			observers.push( observer );
+		},
+
+		addAttribute: function ( attribute ) {
+			attributes.push( attribute );
+		},
+
+		// changes that may cause additional changes...
+		addEvaluator: function ( evaluator ) {
+			dirty = true;
+			evaluators.push( evaluator );
+		},
+
+		addSelectValue: function ( selectValue ) {
+			dirty = true;
+			selectValues.push( selectValue );
+		},
+
+		addCheckbox: function ( checkbox ) {
+			if ( !checkboxKeypaths[ checkbox.keypath ] ) {
+				dirty = true;
+				checkboxes.push( checkbox );
+			}
+		},
+
+		addRadio: function ( radio ) {
+			dirty = true;
+			radios.push( radio );
 		}
 	};
 
 	function land () {
-		var query, decorator, transition, observer;
+		var thing;
 
 		if ( toFocus ) {
 			toFocus.focus();
 			toFocus = null;
 		}
 
-		while ( query = liveQueries.pop() ) {
-			query._sort();
+		while ( thing = attributes.pop() ) {
+			thing.update().deferred = false;
 		}
 
-		while ( decorator = decorators.pop() ) {
-			decorator.init();
+		while ( thing = liveQueries.pop() ) {
+			thing._sort();
 		}
 
-		while ( transition = transitions.pop() ) {
-			transition.init();
+		while ( thing = decorators.pop() ) {
+			thing.init();
 		}
 
-		while ( observer = observers.pop() ) {
-			observer.update();
+		while ( thing = transitions.pop() ) {
+			thing.init();
+		}
+
+		while ( thing = observers.pop() ) {
+			thing.update();
+		}
+	}
+
+	function flushChanges () {
+		var thing;
+
+		while ( dirty ) {
+			dirty = false;
+
+			failedLookups.purge();
+
+			while ( thing = evaluators.pop() ) {
+				thing.update().deferred = false;
+			}
+
+			while ( thing = selectValues.pop() ) {
+				thing.deferredUpdate();
+			}
+
+			while ( thing = checkboxes.pop() ) {
+				thing.root.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+			}
+
+			while ( thing = radios.pop() ) {
+				thing.update();
+			}
 		}
 	}
 

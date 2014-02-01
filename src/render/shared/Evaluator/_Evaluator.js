@@ -1,4 +1,5 @@
 define([
+	'state/scheduler',
 	'utils/warn',
 	'utils/isEqual',
 	'utils/defineProperty',
@@ -10,6 +11,7 @@ define([
 	'render/shared/Evaluator/Reference',
 	'render/shared/Evaluator/SoftReference'
 ], function (
+	scheduler,
 	warn,
 	isEqual,
 	defineProperty,
@@ -71,7 +73,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// cascading. Only if we're already resolved, obviously
 			else if ( !this.deferred ) {
-				this.root._deferred.evals.push( this );
+				scheduler.addEvaluator( this );
 				this.deferred = true;
 			}
 		},

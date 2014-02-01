@@ -1,4 +1,12 @@
-define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces ) {
+define([
+	'state/scheduler',
+	'config/namespaces',
+	'utils/isArray'
+], function (
+	scheduler,
+	namespaces,
+	isArray
+) {
 
 	'use strict';
 
@@ -92,7 +100,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		// because select values depend partly on the values of their children, and their
 		// children may be entering and leaving the DOM, we wait until updates are
 		// complete before updating
-		this.root._deferred.selectValues.push( this );
+		scheduler.addSelectValue( this );
 		return this;
 	};
 

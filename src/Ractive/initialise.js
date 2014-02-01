@@ -79,9 +79,6 @@ define([
 
 			_patternObservers: { value: [] },
 
-			// Create arrays for deferred attributes and evaluators etc
-			_deferred: { value: {} },
-
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },
 
@@ -105,14 +102,6 @@ define([
 			_liveComponentQueries: { value: [] },
 
 			_updateScheduled: { value: false, writable: true }
-		});
-
-		defineProperties( ractive._deferred, {
-			attrs: { value: [] },
-			evals: { value: [] },
-			selectValues: { value: [] },
-			checkboxes: { value: [] },
-			radios: { value: [] }
 		});
 
 		// options

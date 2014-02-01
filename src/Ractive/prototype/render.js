@@ -2,14 +2,12 @@ define([
 	'state/scheduler',
 	'utils/getElement',
 	'shared/makeTransitionManager',
-	'shared/midCycleUpdate',
 	'shared/css',
 	'render/DomFragment/_DomFragment'
 ], function (
 	scheduler,
 	getElement,
 	makeTransitionManager,
-	midCycleUpdate,
 	css,
 	DomFragment
 ) {
@@ -47,8 +45,6 @@ define([
 			owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
 			pNode: target
 		});
-
-		midCycleUpdate( this );
 
 		if ( target ) {
 			target.appendChild( this.fragment.docFrag );
