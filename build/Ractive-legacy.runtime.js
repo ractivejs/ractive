@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-01-31
+	Ractive - v0.4.0-pre - 2014-02-01
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -486,23 +486,6 @@ var config_types = {
         INFIX_OPERATOR: 36,
         INVOCATION: 40
     };
-var shared_clearCache = function () {
-        
-        return function clearCache(ractive, keypath) {
-            var cacheMap, wrappedProperty;
-            if (wrappedProperty = ractive._wrapped[keypath]) {
-                if (wrappedProperty.teardown() !== false) {
-                    ractive._wrapped[keypath] = null;
-                }
-            }
-            ractive._cache[keypath] = undefined;
-            if (cacheMap = ractive._cacheMap[keypath]) {
-                while (cacheMap.length) {
-                    clearCache(ractive, cacheMap.pop());
-                }
-            }
-        };
-    }();
 var state_failedLookups = function () {
         
         var failed, dirty, failedLookups;
@@ -540,60 +523,123 @@ var shared_getValueFromCheckboxes = function () {
             return value;
         };
     }();
-var shared_midCycleUpdate = function (failedLookups, getValueFromCheckboxes) {
+var state_scheduler = function (failedLookups, getValueFromCheckboxes) {
         
-        return function (ractive) {
-            var deferred, evaluator, selectValue, attribute, keypath, radio;
-            deferred = ractive._deferred;
-            while (evaluator = deferred.evals.pop()) {
-                evaluator.update().deferred = false;
+        var dirty = false, flushing = false, inFlight = 0, toFocus = null, liveQueries = [], decorators = [], transitions = [], observers = [], attributes = [], evaluators = [], selectValues = [], checkboxKeypaths = {}, checkboxes = [], radios = [];
+        return {
+            start: function () {
+                if (flushing) {
+                    return;
+                }
+                inFlight += 1;
+            },
+            end: function () {
+                if (flushing) {
+                    return;
+                }
+                if (!--inFlight) {
+                    flushing = true;
+                    flushChanges();
+                    flushing = false;
+                    land();
+                }
+            },
+            focus: function (node) {
+                toFocus = node;
+            },
+            addLiveQuery: function (query) {
+                liveQueries.push(query);
+            },
+            addDecorator: function (decorator) {
+                decorators.push(decorator);
+            },
+            addTransition: function (transition) {
+                transitions.push(transition);
+            },
+            addObserver: function (observer) {
+                observers.push(observer);
+            },
+            addAttribute: function (attribute) {
+                attributes.push(attribute);
+            },
+            addEvaluator: function (evaluator) {
+                dirty = true;
+                evaluators.push(evaluator);
+            },
+            addSelectValue: function (selectValue) {
+                dirty = true;
+                selectValues.push(selectValue);
+            },
+            addCheckbox: function (checkbox) {
+                if (!checkboxKeypaths[checkbox.keypath]) {
+                    dirty = true;
+                    checkboxes.push(checkbox);
+                }
+            },
+            addRadio: function (radio) {
+                dirty = true;
+                radios.push(radio);
             }
-            while (selectValue = deferred.selectValues.pop()) {
-                selectValue.deferredUpdate();
-            }
-            while (attribute = deferred.attrs.pop()) {
-                attribute.update().deferred = false;
-            }
-            while (keypath = deferred.checkboxes.pop()) {
-                ractive.set(keypath, getValueFromCheckboxes(ractive, keypath));
-            }
-            while (radio = deferred.radios.pop()) {
-                radio.update();
-            }
-            failedLookups.purge();
         };
+        function land() {
+            var thing;
+            if (toFocus) {
+                toFocus.focus();
+                toFocus = null;
+            }
+            while (thing = attributes.pop()) {
+                thing.update().deferred = false;
+            }
+            while (thing = liveQueries.pop()) {
+                thing._sort();
+            }
+            while (thing = decorators.pop()) {
+                thing.init();
+            }
+            while (thing = transitions.pop()) {
+                thing.init();
+            }
+            while (thing = observers.pop()) {
+                thing.update();
+            }
+        }
+        function flushChanges() {
+            var thing;
+            while (dirty) {
+                dirty = false;
+                failedLookups.purge();
+                while (thing = evaluators.pop()) {
+                    thing.update().deferred = false;
+                }
+                while (thing = selectValues.pop()) {
+                    thing.deferredUpdate();
+                }
+                while (thing = checkboxes.pop()) {
+                    thing.root.set(thing.keypath, getValueFromCheckboxes(thing.root, thing.keypath));
+                }
+                while (thing = radios.pop()) {
+                    thing.update();
+                }
+            }
+        }
     }(state_failedLookups, shared_getValueFromCheckboxes);
-var state_deferred_transitions = function () {
+var shared_clearCache = function () {
         
-        return [];
-    }();
-var shared_endCycleUpdate = function (deferredTransitions) {
-        
-        return function endCycleUpdate(ractive) {
-            var deferred, component, focusable, query, decorator, transition, observer;
-            deferred = ractive._deferred;
-            while (component = deferred.components.pop()) {
-                endCycleUpdate(component);
+        return function clearCache(ractive, keypath) {
+            var cacheMap, wrappedProperty;
+            if (wrappedProperty = ractive._wrapped[keypath]) {
+                if (wrappedProperty.teardown() !== false) {
+                    ractive._wrapped[keypath] = null;
+                }
             }
-            if (focusable = deferred.focusable) {
-                focusable.focus();
-                deferred.focusable = null;
+            ractive._cache[keypath] = undefined;
+            if (cacheMap = ractive._cacheMap[keypath]) {
+                while (cacheMap.length) {
+                    clearCache(ractive, cacheMap.pop());
+                }
             }
-            while (query = deferred.liveQueries.pop()) {
-                query._sort();
-            }
-            while (decorator = deferred.decorators.pop()) {
-                decorator.init();
-            }
-            while (transition = deferredTransitions.pop()) {
-                transition.init();
-            }
-            while (observer = deferred.observers.pop()) {
-                observer.update();
-            }
-            ractive._updateScheduled = false;
         };
-    }(state_deferred_transitions);
+    }();
 var utils_warn = function () {
         
         if (typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function') {
@@ -857,7 +903,7 @@ var shared_notifyDependants = function () {
             return starMaps[num];
         }
     }();
-var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCache, midCycleUpdate, notifyDependants) {
+var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCache, notifyDependants) {
         
         return function (wrapper, array, methodName, spliceSummary) {
             var root, keypath, depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
@@ -883,7 +929,6 @@ var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCa
                 deps = depsByKeypath[keypath];
                 if (deps) {
                     queueDependants(keypath, deps, smartUpdateQueue, dumbUpdateQueue);
-                    midCycleUpdate(root);
                     while (smartUpdateQueue.length) {
                         smartUpdateQueue.pop().smartUpdate(methodName, spliceSummary);
                     }
@@ -902,7 +947,6 @@ var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCa
                     notifyDependants(root, childKeypath);
                 }
             }
-            midCycleUpdate(root);
             upstreamQueue = [];
             keys = keypath.split('.');
             while (keys.length) {
@@ -929,8 +973,8 @@ var Ractive_prototype_get_arrayAdaptor_processWrapper = function (types, clearCa
                 }
             }
         }
-    }(config_types, shared_clearCache, shared_midCycleUpdate, shared_notifyDependants);
-var Ractive_prototype_get_arrayAdaptor_patch = function (defineProperty, clearCache, midCycleUpdate, endCycleUpdate, makeTransitionManager, getSpliceEquivalent, summariseSpliceOperation, processWrapper) {
+    }(config_types, shared_clearCache, shared_notifyDependants);
+var Ractive_prototype_get_arrayAdaptor_patch = function (scheduler, defineProperty, clearCache, makeTransitionManager, getSpliceEquivalent, summariseSpliceOperation, processWrapper) {
         
         var patchedArrayProto = [], mutatorMethods = [
                 'pop',
@@ -944,7 +988,8 @@ var Ractive_prototype_get_arrayAdaptor_patch = function (defineProperty, clearCa
             }, testObj, patchArrayMethods, unpatchArrayMethods;
         mutatorMethods.forEach(function (methodName) {
             var method = function () {
-                var spliceEquivalent, spliceSummary, result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {}, endCycleUpdateRequired = {};
+                var spliceEquivalent, spliceSummary, result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {};
+                scheduler.start();
                 spliceEquivalent = getSpliceEquivalent(this, methodName, Array.prototype.slice.call(arguments));
                 spliceSummary = summariseSpliceOperation(this, spliceEquivalent);
                 result = Array.prototype[methodName].apply(this, arguments);
@@ -952,9 +997,6 @@ var Ractive_prototype_get_arrayAdaptor_patch = function (defineProperty, clearCa
                 i = instances.length;
                 while (i--) {
                     instance = instances[i];
-                    if (!instance._updateScheduled) {
-                        endCycleUpdateRequired[instance._guid] = instance._updateScheduled = true;
-                    }
                     previousTransitionManagers[instance._guid] = instance._transitionManager;
                     instance._transitionManager = transitionManagers[instance._guid] = makeTransitionManager(instance, noop);
                 }
@@ -969,11 +1011,8 @@ var Ractive_prototype_get_arrayAdaptor_patch = function (defineProperty, clearCa
                     instance = instances[i];
                     instance._transitionManager = previousTransitionManagers[instance._guid];
                     transitionManagers[instance._guid].ready();
-                    midCycleUpdate(instance);
-                    if (endCycleUpdateRequired[instance._guid]) {
-                        endCycleUpdate(instance);
-                    }
                 }
+                scheduler.end();
                 return result;
             };
             defineProperty(patchedArrayProto, methodName, { value: method });
@@ -1008,7 +1047,7 @@ var Ractive_prototype_get_arrayAdaptor_patch = function (defineProperty, clearCa
         }
         patchArrayMethods.unpatch = unpatchArrayMethods;
         return patchArrayMethods;
-    }(utils_defineProperty, shared_clearCache, shared_midCycleUpdate, shared_endCycleUpdate, shared_makeTransitionManager, Ractive_prototype_get_arrayAdaptor_getSpliceEquivalent, Ractive_prototype_get_arrayAdaptor_summariseSpliceOperation, Ractive_prototype_get_arrayAdaptor_processWrapper);
+    }(state_scheduler, utils_defineProperty, shared_clearCache, shared_makeTransitionManager, Ractive_prototype_get_arrayAdaptor_getSpliceEquivalent, Ractive_prototype_get_arrayAdaptor_summariseSpliceOperation, Ractive_prototype_get_arrayAdaptor_processWrapper);
 var Ractive_prototype_get_arrayAdaptor__arrayAdaptor = function (types, defineProperty, isArray, patch) {
         
         var arrayAdaptor, ArrayWrapper, errorMessage;
@@ -1687,10 +1726,10 @@ var Ractive_prototype_shared_replaceData = function (clone, createBranch, clearC
             clearCache(ractive, keypathToClear || keypath);
         };
     }(utils_clone, utils_createBranch, shared_clearCache);
-var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, makeTransitionManager, midCycleUpdate, endCycleUpdate, replaceData) {
+var Ractive_prototype_set = function (scheduler, pendingResolution, isObject, isEqual, normaliseKeypath, clearCache, notifyDependants, makeTransitionManager, replaceData) {
         
         return function (keypath, value, complete) {
-            var endCycleUpdateRequired, map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
+            var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
             changes = [];
             if (isObject(keypath)) {
                 map = keypath;
@@ -1709,9 +1748,7 @@ var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, norm
             if (!changes.length) {
                 return;
             }
-            if (!this._updateScheduled) {
-                endCycleUpdateRequired = this._updateScheduled = true;
-            }
+            scheduler.start();
             previousTransitionManager = this._transitionManager;
             this._transitionManager = transitionManager = makeTransitionManager(this, complete);
             upstreamChanges = getUpstreamChanges(changes);
@@ -1720,10 +1757,7 @@ var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, norm
             }
             notifyDependants.multiple(this, changes);
             pendingResolution.check();
-            midCycleUpdate(this);
-            if (endCycleUpdateRequired) {
-                endCycleUpdate(this);
-            }
+            scheduler.end();
             this._transitionManager = previousTransitionManager;
             transitionManager.ready();
             if (!this.firingChangeEvent) {
@@ -1775,14 +1809,12 @@ var Ractive_prototype_set = function (pendingResolution, isObject, isEqual, norm
             }
             return upstreamChanges;
         }
-    }(state_pendingResolution, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, shared_midCycleUpdate, shared_endCycleUpdate, Ractive_prototype_shared_replaceData);
-var Ractive_prototype_update = function (pendingResolution, makeTransitionManager, clearCache, notifyDependants, midCycleUpdate, endCycleUpdate) {
+    }(state_scheduler, state_pendingResolution, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, Ractive_prototype_shared_replaceData);
+var Ractive_prototype_update = function (scheduler, pendingResolution, makeTransitionManager, clearCache, notifyDependants) {
         
         return function (keypath, complete) {
-            var transitionManager, previousTransitionManager, endCycleUpdateRequired;
-            if (!this._updateScheduled) {
-                endCycleUpdateRequired = this._updateScheduled = true;
-            }
+            var transitionManager, previousTransitionManager;
+            scheduler.start();
             if (typeof keypath === 'function') {
                 complete = keypath;
                 keypath = '';
@@ -1792,10 +1824,7 @@ var Ractive_prototype_update = function (pendingResolution, makeTransitionManage
             pendingResolution.check();
             clearCache(this, keypath || '');
             notifyDependants(this, keypath || '');
-            midCycleUpdate(this);
-            if (endCycleUpdateRequired) {
-                endCycleUpdate(this);
-            }
+            scheduler.end();
             this._transitionManager = previousTransitionManager;
             transitionManager.ready();
             if (typeof keypath === 'string') {
@@ -1805,7 +1834,7 @@ var Ractive_prototype_update = function (pendingResolution, makeTransitionManage
             }
             return this;
         };
-    }(state_pendingResolution, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants, shared_midCycleUpdate, shared_endCycleUpdate);
+    }(state_scheduler, state_pendingResolution, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants);
 var utils_arrayContentsMatch = function (isArray) {
         
         return function (a, b) {
@@ -2346,7 +2375,7 @@ var Ractive_prototype_off = function () {
             }
         };
     }();
-var Ractive_prototype_observe_Observer = function (isEqual) {
+var Ractive_prototype_observe_Observer = function (scheduler, isEqual) {
         
         var Observer = function (ractive, keypath, callback, options) {
             var self = this;
@@ -2373,7 +2402,7 @@ var Ractive_prototype_observe_Observer = function (isEqual) {
             },
             update: function () {
                 if (this.defer && this.ready) {
-                    this.root._deferred.observers.push(this.proxy);
+                    scheduler.addObserver(this.proxy);
                     return;
                 }
                 this.reallyUpdate();
@@ -2400,7 +2429,7 @@ var Ractive_prototype_observe_Observer = function (isEqual) {
             }
         };
         return Observer;
-    }(utils_isEqual);
+    }(state_scheduler, utils_isEqual);
 var Ractive_prototype_observe_getPattern = function (isArray) {
         
         return function (ractive, pattern) {
@@ -2439,7 +2468,7 @@ var Ractive_prototype_observe_getPattern = function (isArray) {
             return values;
         };
     }(utils_isArray);
-var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
+var Ractive_prototype_observe_PatternObserver = function (scheduler, isEqual, getPattern) {
         
         var PatternObserver, wildcard = /\*/;
         PatternObserver = function (ractive, keypath, callback, options) {
@@ -2482,7 +2511,7 @@ var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
                     return;
                 }
                 if (this.defer && this.ready) {
-                    this.root._deferred.observers.push(this.getProxy(keypath));
+                    scheduler.addObserver(this.getProxy(keypath));
                     return;
                 }
                 this.reallyUpdate(keypath);
@@ -2519,7 +2548,7 @@ var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
             }
         };
         return PatternObserver;
-    }(utils_isEqual, Ractive_prototype_observe_getPattern);
+    }(state_scheduler, utils_isEqual, Ractive_prototype_observe_getPattern);
 var Ractive_prototype_observe_getObserverFacade = function (normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver) {
         
         var wildcard = /\*/, emptyObject = {};
@@ -2738,15 +2767,15 @@ var Ractive_prototype_shared_makeQuery_sort = function (sortByDocumentPosition, 
             this._dirty = false;
         };
     }(Ractive_prototype_shared_makeQuery_sortByDocumentPosition, Ractive_prototype_shared_makeQuery_sortByItemPosition);
-var Ractive_prototype_shared_makeQuery_dirty = function () {
+var Ractive_prototype_shared_makeQuery_dirty = function (scheduler) {
         
         return function () {
             if (!this._dirty) {
-                this._root._deferred.liveQueries.push(this);
+                scheduler.addLiveQuery(this);
                 this._dirty = true;
             }
         };
-    }();
+    }(state_scheduler);
 var Ractive_prototype_shared_makeQuery_remove = function () {
         
         return function (item) {
@@ -3140,7 +3169,7 @@ var render_shared_Evaluator_SoftReference = function (isEqual, registerDependant
         };
         return SoftReference;
     }(utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference) {
+var render_shared_Evaluator__Evaluator = function (scheduler, warn, isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference) {
         
         var Evaluator, cache = {};
         Evaluator = function (root, keypath, uniqueString, functionStr, args, priority) {
@@ -3172,7 +3201,7 @@ var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty
                 if (this.selfUpdating) {
                     this.update();
                 } else if (!this.deferred) {
-                    this.root._deferred.evals.push(this);
+                    scheduler.addEvaluator(this);
                     this.deferred = true;
                 }
             },
@@ -3261,7 +3290,7 @@ var render_shared_Evaluator__Evaluator = function (warn, isEqual, defineProperty
             cache[str] = fn;
             return fn;
         }
-    }(utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
+    }(state_scheduler, utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
 var render_shared_ExpressionResolver_ReferenceScout = function (pendingResolution, resolveRef, teardown) {
         
         var ReferenceScout = function (resolver, ref, contextStack, argNum) {
@@ -3768,7 +3797,7 @@ var render_DomFragment_Section_reassignFragment = function (types, unregisterDep
             }
         }
     }(config_types, shared_unregisterDependant, render_shared_ExpressionResolver__ExpressionResolver);
-var render_DomFragment_Section_reassignFragments = function (types, reassignFragment, midCycleUpdate) {
+var render_DomFragment_Section_reassignFragments = function (types, reassignFragment) {
         
         return function (root, section, start, end, by) {
             var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
@@ -3782,9 +3811,8 @@ var render_DomFragment_Section_reassignFragments = function (types, reassignFrag
                 fragment.index += by;
                 reassignFragment(fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath);
             }
-            midCycleUpdate(root);
         };
-    }(config_types, render_DomFragment_Section_reassignFragment, shared_midCycleUpdate);
+    }(config_types, render_DomFragment_Section_reassignFragment);
 var render_DomFragment_Section_helpers_splice = function (reassignFragments) {
         
         return function (section, spliceSummary) {
@@ -4261,7 +4289,7 @@ var render_DomFragment_Attribute_helpers_determinePropertyName = function (names
             }
         };
     }(config_namespaces);
-var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayContentsMatch, getValueFromCheckboxes) {
+var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, warn, arrayContentsMatch, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
@@ -4384,7 +4412,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
                 if (this.deferred === true) {
                     return;
                 }
-                this.root._deferred.attrs.push(this);
+                scheduler.addAttribute(this);
                 this.deferred = true;
             },
             teardown: function () {
@@ -4425,7 +4453,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
                 if (this.deferred === true) {
                     return;
                 }
-                this.root._deferred.attrs.push(this);
+                scheduler.addAttribute(this);
                 this.deferred = true;
             },
             teardown: function () {
@@ -4445,7 +4473,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             if (valueFromModel !== undefined) {
                 node.checked = valueFromModel == node._ractive.value;
             } else {
-                this.root._deferred.radios.push(this);
+                scheduler.addRadio(this);
             }
         };
         RadioNameBinding.prototype = {
@@ -4479,9 +4507,7 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
                 checked = valueFromModel.indexOf(node._ractive.value) !== -1;
                 node.checked = checked;
             } else {
-                if (this.root._deferred.checkboxes.indexOf(this.keypath) === -1) {
-                    this.root._deferred.checkboxes.push(this.keypath);
-                }
+                scheduler.addCheckbox(this);
             }
         };
         CheckboxNameBinding.prototype = {
@@ -4596,8 +4622,8 @@ var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayCo
             binding.keypath = attribute.keypath;
         };
         return bindAttribute;
-    }(config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes);
-var render_DomFragment_Attribute_prototype_update = function (isArray, namespaces) {
+    }(state_scheduler, config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes);
+var render_DomFragment_Attribute_prototype_update = function (scheduler, namespaces, isArray) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
         updateAttribute = function () {
@@ -4648,7 +4674,7 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             this.deferredUpdate();
         };
         deferSelect = function () {
-            this.root._deferred.selectValues.push(this);
+            scheduler.addSelectValue(this);
             return this;
         };
         updateSelect = function () {
@@ -4775,7 +4801,7 @@ var render_DomFragment_Attribute_prototype_update = function (isArray, namespace
             return this;
         };
         return updateAttribute;
-    }(utils_isArray, config_namespaces);
+    }(state_scheduler, config_namespaces, utils_isArray);
 var parse_Tokenizer_utils_getStringMatch = function () {
         
         return function (string) {
@@ -5272,7 +5298,7 @@ var render_StringFragment__StringFragment = function (types, parseJSON, initFrag
         circular.StringFragment = StringFragment;
         return StringFragment;
     }(config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, render_StringFragment_prototype_toArgsList, circular);
-var render_DomFragment_Attribute__Attribute = function (types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment) {
+var render_DomFragment_Attribute__Attribute = function (scheduler, types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment) {
         
         var DomAttribute = function (options) {
             this.type = types.ATTRIBUTE;
@@ -5329,7 +5355,7 @@ var render_DomFragment_Attribute__Attribute = function (types, determineNameAndN
                 if (this.selfUpdating) {
                     this.update();
                 } else if (!this.deferred && this.ready) {
-                    this.root._deferred.attrs.push(this);
+                    scheduler.addAttribute(this);
                     this.deferred = true;
                 }
             },
@@ -5346,7 +5372,7 @@ var render_DomFragment_Attribute__Attribute = function (types, determineNameAndN
             }
         };
         return DomAttribute;
-    }(config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment);
+    }(state_scheduler, config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment);
 var render_DomFragment_Element_initialise_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
@@ -5498,15 +5524,15 @@ var render_DomFragment_Element_initialise_decorate_Decorator = function (warn, S
         };
         return Decorator;
     }(utils_warn, render_StringFragment__StringFragment);
-var render_DomFragment_Element_initialise_decorate__decorate = function (Decorator) {
+var render_DomFragment_Element_initialise_decorate__decorate = function (scheduler, Decorator) {
         
         return function (descriptor, root, owner, contextStack) {
             owner.decorator = new Decorator(descriptor, root, owner, contextStack);
             if (owner.decorator.fn) {
-                root._deferred.decorators.push(owner.decorator);
+                scheduler.addDecorator(owner.decorator);
             }
         };
-    }(render_DomFragment_Element_initialise_decorate_Decorator);
+    }(state_scheduler, render_DomFragment_Element_initialise_decorate_Decorator);
 var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (warn, StringFragment) {
         
         var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
@@ -6247,7 +6273,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition__Transition =
         };
         return Transition;
     }(utils_warn, render_StringFragment__StringFragment, render_DomFragment_Element_shared_executeTransition_Transition_prototype_init, render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_processParams, render_DomFragment_Element_shared_executeTransition_Transition_prototype_resetStyle);
-var render_DomFragment_Element_shared_executeTransition__executeTransition = function (deferredTransitions, warn, Transition) {
+var render_DomFragment_Element_shared_executeTransition__executeTransition = function (scheduler, warn, Transition) {
         
         return function (descriptor, ractive, owner, contextStack, isIntro) {
             var transition, node, instance, manager, oldTransition;
@@ -6269,14 +6295,14 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
                 node._ractive.transition = transition;
                 transition._manager.push(node);
                 if (isIntro) {
-                    deferredTransitions.push(transition);
+                    scheduler.addTransition(transition);
                 } else {
                     transition.init();
                 }
             }
         };
-    }(state_deferred_transitions, utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition);
-var render_DomFragment_Element_initialise__initialise = function (types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
+    }(state_scheduler, utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition);
+var render_DomFragment_Element_initialise__initialise = function (scheduler, types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase) {
         
         return function (element, options, docFrag) {
             var parentFragment, pNode, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
@@ -6358,12 +6384,12 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
                     }
                 }
                 if (element.node.autofocus) {
-                    root._deferred.focusable = element.node;
+                    scheduler.focus(element.node);
                 }
             }
             updateLiveQueries(element);
         };
-    }(config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
+    }(state_scheduler, config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase);
 var render_DomFragment_Element_prototype_teardown = function (executeTransition) {
         
         return function (destroy) {
@@ -6738,7 +6764,7 @@ var render_DomFragment_Partial__Partial = function (types, getPartialDescriptor,
         };
         return DomPartial;
     }(config_types, render_DomFragment_Partial_getPartialDescriptor, render_DomFragment_Partial_applyIndent, circular);
-var render_DomFragment_Component_initialise_createModel_ComponentParameter = function (StringFragment) {
+var render_DomFragment_Component_initialise_createModel_ComponentParameter = function (scheduler, StringFragment) {
         
         var ComponentParameter = function (component, key, value) {
             this.parentFragment = component.parentFragment;
@@ -6758,7 +6784,7 @@ var render_DomFragment_Component_initialise_createModel_ComponentParameter = fun
                 if (this.selfUpdating) {
                     this.update();
                 } else if (!this.deferred && this.ready) {
-                    this.root._deferred.attrs.push(this);
+                    scheduler.addAttribute(this);
                     this.deferred = true;
                 }
             },
@@ -6772,7 +6798,7 @@ var render_DomFragment_Component_initialise_createModel_ComponentParameter = fun
             }
         };
         return ComponentParameter;
-    }(render_StringFragment__StringFragment);
+    }(state_scheduler, render_StringFragment__StringFragment);
 var render_DomFragment_Component_initialise_createModel__createModel = function (types, parseJSON, resolveRef, ComponentParameter) {
         
         return function (component, defaultData, attributes, toBind) {
@@ -7190,10 +7216,11 @@ var render_DomFragment__DomFragment = function (types, matches, initFragment, in
         circular.DomFragment = DomFragment;
         return DomFragment;
     }(config_types, utils_matches, render_shared_initFragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular);
-var Ractive_prototype_render = function (getElement, makeTransitionManager, midCycleUpdate, endCycleUpdate, css, DomFragment) {
+var Ractive_prototype_render = function (scheduler, getElement, makeTransitionManager, css, DomFragment) {
         
         return function (target, complete) {
             var transitionManager;
+            scheduler.start();
             if (!this._initing) {
                 throw new Error('You cannot call ractive.render() directly!');
             }
@@ -7208,20 +7235,15 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, midC
                 owner: this,
                 pNode: target
             });
-            midCycleUpdate(this);
             if (target) {
                 target.appendChild(this.fragment.docFrag);
-            }
-            if (this._parent) {
-                this._parent._deferred.components.push(this);
-            } else {
-                endCycleUpdate(this);
             }
             this._transitionManager = null;
             transitionManager.ready();
             this.rendered = true;
+            scheduler.end();
         };
-    }(utils_getElement, shared_makeTransitionManager, shared_midCycleUpdate, shared_endCycleUpdate, shared_css, render_DomFragment__DomFragment);
+    }(state_scheduler, utils_getElement, shared_makeTransitionManager, shared_css, render_DomFragment__DomFragment);
 var Ractive_prototype_renderHTML = function (warn) {
         
         return function () {
@@ -7361,11 +7383,11 @@ var Ractive_prototype_merge_queueDependants = function (types) {
             }
         };
     }(config_types);
-var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCycleUpdate, endCycleUpdate, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
+var Ractive_prototype_merge__merge = function (scheduler, warn, isArray, clearCache, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants) {
         
         var identifiers = {};
         return function (keypath, array, options) {
-            var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, endCycleUpdateRequired, transitionManager, previousTransitionManager, upstreamQueue, keys;
+            var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, transitionManager, previousTransitionManager, upstreamQueue, keys;
             currentArray = this.get(keypath);
             if (!isArray(currentArray) || !isArray(array)) {
                 return this.set(keypath, array, options && options.complete);
@@ -7402,9 +7424,7 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCyc
             if (newIndices.unchanged && lengthUnchanged) {
                 return;
             }
-            if (!this._updateScheduled) {
-                endCycleUpdateRequired = this._updateScheduled = true;
-            }
+            scheduler.start();
             previousTransitionManager = this._transitionManager;
             this._transitionManager = transitionManager = makeTransitionManager(this, options && options.complete);
             mergeQueue = [];
@@ -7417,7 +7437,6 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCyc
                 deps = depsByKeypath[keypath];
                 if (deps) {
                     queueDependants(keypath, deps, mergeQueue, updateQueue);
-                    midCycleUpdate(this);
                     while (mergeQueue.length) {
                         mergeQueue.pop().merge(newIndices);
                     }
@@ -7426,10 +7445,7 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCyc
                     }
                 }
             }
-            midCycleUpdate(this);
-            if (endCycleUpdateRequired) {
-                endCycleUpdate(this);
-            }
+            scheduler.end();
             upstreamQueue = [];
             keys = keypath.split('.');
             while (keys.length) {
@@ -7454,7 +7470,7 @@ var Ractive_prototype_merge__merge = function (warn, isArray, clearCache, midCyc
             }
             return identifiers[str];
         }
-    }(utils_warn, utils_isArray, shared_clearCache, shared_midCycleUpdate, shared_endCycleUpdate, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants);
+    }(state_scheduler, utils_warn, utils_isArray, shared_clearCache, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants);
 var Ractive_prototype_detach = function () {
         
         return function () {
@@ -7727,7 +7743,6 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
                 _deps: { value: [] },
                 _depsMap: { value: create(null) },
                 _patternObservers: { value: [] },
-                _deferred: { value: {} },
                 _evaluators: { value: create(null) },
                 _twowayBindings: { value: {} },
                 _transitionManager: {
@@ -7743,22 +7758,6 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
                     value: false,
                     writable: true
                 }
-            });
-            defineProperties(ractive._deferred, {
-                attrs: { value: [] },
-                evals: { value: [] },
-                selectValues: { value: [] },
-                checkboxes: { value: [] },
-                radios: { value: [] },
-                observers: { value: [] },
-                transitions: { value: [] },
-                liveQueries: { value: [] },
-                decorators: { value: [] },
-                focusable: {
-                    value: null,
-                    writable: true
-                },
-                components: { value: [] }
             });
             ractive.adapt = typeof options.adapt === 'string' ? [options.adapt] : options.adapt;
             ractive.modifyArrays = options.modifyArrays;
