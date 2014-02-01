@@ -1,17 +1,17 @@
 define([
+	'state/scheduler',
 	'utils/defineProperty',
 	'shared/clearCache',
 	'shared/midCycleUpdate',
-	'shared/endCycleUpdate',
 	'shared/makeTransitionManager',
 	'Ractive/prototype/get/arrayAdaptor/getSpliceEquivalent',
 	'Ractive/prototype/get/arrayAdaptor/summariseSpliceOperation',
 	'Ractive/prototype/get/arrayAdaptor/processWrapper'
 ], function (
+	scheduler,
 	defineProperty,
 	clearCache,
 	midCycleUpdate,
-	endCycleUpdate,
 	makeTransitionManager,
 	getSpliceEquivalent,
 	summariseSpliceOperation,
@@ -36,8 +36,9 @@ define([
 				instance,
 				i,
 				previousTransitionManagers = {},
-				transitionManagers = {},
-				endCycleUpdateRequired = {};
+				transitionManagers = {};
+
+			scheduler.start();
 
 			// push, pop, shift and unshift can all be represented as a splice operation.
 			// this makes life easier later
@@ -52,10 +53,6 @@ define([
 			i = instances.length;
 			while ( i-- ) {
 				instance = instances[i];
-
-				if ( !instance._updateScheduled ) {
-					endCycleUpdateRequired[ instance._guid ] = instance._updateScheduled = true;
-				}
 
 				previousTransitionManagers[ instance._guid ] = instance._transitionManager;
 				instance._transitionManager = transitionManagers[ instance._guid ] = makeTransitionManager( instance, noop );
@@ -78,12 +75,9 @@ define([
 				transitionManagers[ instance._guid ].ready();
 
 				midCycleUpdate( instance );
-
-				if ( endCycleUpdateRequired[ instance._guid ] ) {
-					endCycleUpdate( instance );
-				}
 			}
 
+			scheduler.end();
 			return result;
 		};
 

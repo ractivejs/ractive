@@ -1,15 +1,15 @@
 define([
+	'state/scheduler',
 	'utils/getElement',
 	'shared/makeTransitionManager',
 	'shared/midCycleUpdate',
-	'shared/endCycleUpdate',
 	'shared/css',
 	'render/DomFragment/_DomFragment'
 ], function (
+	scheduler,
 	getElement,
 	makeTransitionManager,
 	midCycleUpdate,
-	endCycleUpdate,
 	css,
 	DomFragment
 ) {
@@ -18,6 +18,8 @@ define([
 
 	return function ( target, complete ) {
 		var transitionManager;
+
+		scheduler.start();
 
 		// This method is part of the API for one reason only - so that it can be
 		// overwritten by components that don't want to use the templating system
@@ -52,17 +54,13 @@ define([
 			target.appendChild( this.fragment.docFrag );
 		}
 
-		if ( this._parent ) {
-			this._parent._deferred.components.push( this );
-		} else {
-			endCycleUpdate( this );
-		}
-
 		// transition manager has finished its work
 		this._transitionManager = null;
 		transitionManager.ready();
 
 		this.rendered = true;
+
+		scheduler.end();
 	};
 
 });

@@ -1,4 +1,5 @@
 define([
+	'state/scheduler',
 	'config/types',
 	'config/namespaces',
 	'utils/create',
@@ -15,6 +16,7 @@ define([
 	'render/DomFragment/Element/shared/executeTransition/_executeTransition',
 	'render/DomFragment/shared/enforceCase'
 ], function (
+	scheduler,
 	types,
 	namespaces,
 	create,
@@ -184,7 +186,7 @@ define([
 				// Special case. Some browsers (*cough* Firefix *cough*) have a problem
 				// with dynamically-generated elements having autofocus, and they won't
 				// allow you to programmatically focus the element until it's in the DOM
-				root._deferred.focusable = element.node;
+				scheduler.focus( element.node );
 			}
 		}
 

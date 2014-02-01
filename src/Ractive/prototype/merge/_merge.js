@@ -1,20 +1,20 @@
 define([
+	'state/scheduler',
 	'utils/warn',
 	'utils/isArray',
 	'shared/clearCache',
 	'shared/midCycleUpdate',
-	'shared/endCycleUpdate',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants',
 	'Ractive/prototype/shared/replaceData',
 	'Ractive/prototype/merge/mapOldToNewIndex',
 	'Ractive/prototype/merge/queueDependants'
 ], function (
+	scheduler,
 	warn,
 	isArray,
 	clearCache,
 	midCycleUpdate,
-	endCycleUpdate,
 	makeTransitionManager,
 	notifyDependants,
 	replaceData,
@@ -39,7 +39,6 @@ define([
 			updateQueue,
 			depsByKeypath,
 			deps,
-			endCycleUpdateRequired,
 			transitionManager,
 			previousTransitionManager,
 			upstreamQueue,
@@ -113,9 +112,7 @@ define([
 			return;
 		}
 
-		if ( !this._updateScheduled ) {
-			endCycleUpdateRequired = this._updateScheduled = true;
-		}
+		scheduler.start();
 
 
 		// Manage transitions
@@ -153,9 +150,7 @@ define([
 
 		midCycleUpdate( this );
 
-		if ( endCycleUpdateRequired ) {
-			endCycleUpdate( this );
-		}
+		scheduler.end();
 
 		// Finally, notify direct dependants of upstream keypaths...
 		upstreamQueue = [];

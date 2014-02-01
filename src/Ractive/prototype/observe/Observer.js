@@ -1,6 +1,8 @@
 define([
+	'state/scheduler',
 	'utils/isEqual'
 ], function (
+	scheduler,
 	isEqual
 ) {
 
@@ -40,7 +42,7 @@ define([
 
 		update: function () {
 			if ( this.defer && this.ready ) {
-				this.root._deferred.observers.push( this.proxy );
+				scheduler.addObserver( this.proxy );
 				return;
 			}
 

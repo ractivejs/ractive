@@ -1,7 +1,9 @@
 define([
+	'state/scheduler',
 	'utils/isEqual',
 	'Ractive/prototype/observe/getPattern'
 ], function (
+	scheduler,
 	isEqual,
 	getPattern
 ) {
@@ -66,7 +68,7 @@ define([
 			}
 
 			if ( this.defer && this.ready ) {
-				this.root._deferred.observers.push( this.getProxy( keypath ) );
+				scheduler.addObserver( this.getProxy( keypath ) );
 				return;
 			}
 

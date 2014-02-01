@@ -112,13 +112,7 @@ define([
 			evals: { value: [] },
 			selectValues: { value: [] },
 			checkboxes: { value: [] },
-			radios: { value: [] },
-			observers: { value: [] },
-			transitions: { value: [] },
-			liveQueries: { value: [] },
-			decorators: { value: [] },
-			focusable: { value: null, writable: true },
-			components: { value: [] }
+			radios: { value: [] }
 		});
 
 		// options

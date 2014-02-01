@@ -1,27 +1,25 @@
 define([
+	'state/scheduler',
 	'state/pendingResolution',
 	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants',
-	'shared/midCycleUpdate',
-	'shared/endCycleUpdate'
+	'shared/midCycleUpdate'
 ], function (
+	scheduler,
 	pendingResolution,
 	makeTransitionManager,
 	clearCache,
 	notifyDependants,
-	midCycleUpdate,
-	endCycleUpdate
+	midCycleUpdate
 ) {
 
 	'use strict';
 
 	return function ( keypath, complete ) {
-		var transitionManager, previousTransitionManager, endCycleUpdateRequired;
+		var transitionManager, previousTransitionManager;
 
-		if ( !this._updateScheduled ) {
-			endCycleUpdateRequired = this._updateScheduled = true;
-		}
+		scheduler.start();
 
 		if ( typeof keypath === 'function' ) {
 			complete = keypath;
@@ -41,9 +39,7 @@ define([
 
 		midCycleUpdate( this );
 
-		if ( endCycleUpdateRequired ) {
-			endCycleUpdate( this );
-		}
+		scheduler.end();
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;

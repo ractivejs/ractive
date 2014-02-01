@@ -1,4 +1,5 @@
 define([
+	'state/scheduler',
 	'state/pendingResolution',
 	'utils/isObject',
 	'utils/isEqual',
@@ -7,9 +8,9 @@ define([
 	'shared/notifyDependants',
 	'shared/makeTransitionManager',
 	'shared/midCycleUpdate',
-	'shared/endCycleUpdate',
 	'Ractive/prototype/shared/replaceData'
 ], function (
+	scheduler,
 	pendingResolution,
 	isObject,
 	isEqual,
@@ -18,15 +19,13 @@ define([
 	notifyDependants,
 	makeTransitionManager,
 	midCycleUpdate,
-	endCycleUpdate,
 	replaceData
 ) {
 
 	'use strict';
 
 	return function ( keypath, value, complete ) {
-		var endCycleUpdateRequired,
-			map,
+		var map,
 			changes,
 			upstreamChanges,
 			previousTransitionManager,
@@ -63,9 +62,7 @@ define([
 
 		// If an end-cycle-update isn't scheduled already, we need to
 		// take care of that
-		if ( !this._updateScheduled ) {
-			endCycleUpdateRequired = this._updateScheduled = true;
-		}
+		scheduler.start();
 
 		// Manage transitions
 		previousTransitionManager = this._transitionManager;
@@ -87,9 +84,7 @@ define([
 		// - they defer their updates until all values have been set
 		midCycleUpdate( this );
 
-		if ( endCycleUpdateRequired ) {
-			endCycleUpdate( this );
-		}
+		scheduler.end();
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;

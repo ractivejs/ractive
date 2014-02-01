@@ -1,9 +1,9 @@
 define([
-	'state/deferred/transitions',
+	'state/scheduler',
 	'utils/warn',
 	'render/DomFragment/Element/shared/executeTransition/Transition/_Transition'
 ], function (
-	deferredTransitions,
+	scheduler,
 	warn,
 	Transition
 ) {
@@ -49,7 +49,7 @@ define([
 			if ( isIntro ) {
 				// we don't want to call the transition function until this node
 				// exists on the DOM
-				deferredTransitions.push( transition );
+				scheduler.addTransition( transition );
 			} else {
 				transition.init();
 			}
