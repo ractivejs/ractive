@@ -182,6 +182,38 @@ define([ 'Ractive' ], function ( Ractive ) {
 			ractive.set( 'gup.foo.bar', { baz: 2 });
 		});
 
+		test( 'Observers can observe multiple keypaths, separated by a space', function ( t ) {
+			var ractive, results;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: 'irrelevant'
+			});
+
+			results = {};
+
+			ractive.observe( 'foo bar baz', function ( n, o, k ) {
+				results[ k ] = n;
+			});
+
+			ractive.observe({
+				'a b': function ( n, o, k ) {
+					results[ k ] = n;
+				}
+			})
+
+			ractive.set( 'foo', 'one' );
+			ractive.set({
+				bar: 'two',
+				baz: 'three'
+			});
+
+			ractive.set( 'a', 1 );
+			ractive.set( 'b', 2 );
+
+			t.deepEqual( results, { foo: 'one', bar: 'two', baz: 'three', a: 1, b: 2 });
+		});
+
 	};
 
 });
