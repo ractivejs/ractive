@@ -1261,6 +1261,50 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, 'bizone<span>biz</span>' );
 		});
+
+		test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on object that inherits from Foo and Bar', function ( t ) {
+			var Human, Spider, Spiderman, spiderman;
+
+			Human = Ractive.extend({
+				template: '<p>type: {{type}}</p>',
+
+				talk: function () {
+					return 'hello';
+				}
+			});
+
+			Spider = Ractive.extend({
+				// registries
+				data: {
+					type: 'arachnid'
+				},
+
+				// defaults
+				magic: true,
+
+				// methods
+				climb: function () {
+					return 'climbing';
+				},
+
+				talk: function () {
+					return this._super() + ' my name is Peter Parker';
+				}
+			});
+
+			Spiderman = Human.extend( Spider );
+
+			spiderman = new Spiderman({
+				el: fixture
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>type: arachnid</p>' );
+			t.ok( spiderman.magic );
+			t.equal( spiderman.climb(), 'climbing' );
+			t.equal( spiderman.talk(), 'hello my name is Peter Parker' );
+		});
+
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

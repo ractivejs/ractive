@@ -2,6 +2,7 @@ define([
 	'utils/create',
 	'utils/defineProperties',
 	'utils/getGuid',
+	'utils/extend',
 	'extend/inheritFromParent',
 	'extend/inheritFromChildProps',
 	'extend/extractInlinePartials',
@@ -13,6 +14,7 @@ define([
 	create,
 	defineProperties,
 	getGuid,
+	extendObject,
 	inheritFromParent,
 	inheritFromChildProps,
 	extractInlinePartials,
@@ -30,9 +32,15 @@ define([
 		Ractive = circular.Ractive;
 	});
 
-	return function ( childProps ) {
+	return function extend ( childProps ) {
 
 		var Parent = this, Child;
+
+		// if we're extending with another Ractive instance, inherit its
+		// prototype methods and default options as well
+		if ( childProps.prototype instanceof Ractive ) {
+			return Parent.extend( extendObject( {}, childProps, childProps.prototype, childProps.defaults ) );
+		}
 
 		// create Child constructor
 		Child = function ( options ) {
