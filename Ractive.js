@@ -2345,13 +2345,15 @@ var Ractive_prototype_observe_getObserverFacade = function (normaliseKeypath, re
 var Ractive_prototype_observe__observe = function (isObject, getObserverFacade) {
         
         return function observe(keypath, callback, options) {
-            var observers = [], k;
+            var observers, map, keypaths, i;
             if (isObject(keypath)) {
                 options = callback;
-                for (k in keypath) {
-                    if (keypath.hasOwnProperty(k)) {
-                        callback = keypath[k];
-                        observers.push(getObserverFacade(this, k, callback, options));
+                map = keypath;
+                observers = [];
+                for (keypath in map) {
+                    if (map.hasOwnProperty(keypath)) {
+                        callback = map[keypath];
+                        observers.push(this.observe(keypath, callback, options));
                     }
                 }
                 return {
@@ -2366,8 +2368,27 @@ var Ractive_prototype_observe__observe = function (isObject, getObserverFacade) 
                 options = callback;
                 callback = keypath;
                 keypath = '';
+                return getObserverFacade(this, keypath, callback, options);
             }
-            return getObserverFacade(this, keypath, callback, options);
+            keypaths = keypath.split(' ');
+            if (keypaths.length === 1) {
+                return getObserverFacade(this, keypath, callback, options);
+            }
+            observers = [];
+            i = keypaths.length;
+            while (i--) {
+                keypath = keypaths[i];
+                if (keypath) {
+                    observers.push(getObserverFacade(this, keypath, callback, options));
+                }
+            }
+            return {
+                cancel: function () {
+                    while (observers.length) {
+                        observers.pop().cancel();
+                    }
+                }
+            };
         };
     }(utils_isObject, Ractive_prototype_observe_getObserverFacade);
 var Ractive_prototype_fire = function () {
@@ -9494,6 +9515,20 @@ var utils_getGuid = function () {
             });
         };
     }();
+var utils_extend = function () {
+        
+        return function (target) {
+            var prop, source, sources = Array.prototype.slice.call(arguments, 1);
+            while (source = sources.shift()) {
+                for (prop in source) {
+                    if (source.hasOwnProperty(prop)) {
+                        target[prop] = source[prop];
+                    }
+                }
+            }
+            return target;
+        };
+    }();
 var config_registries = function () {
         
         return [
@@ -9645,20 +9680,6 @@ var extend_conditionallyParsePartials = function (errors, parse) {
             }
         };
     }(config_errors, parse__parse);
-var utils_extend = function () {
-        
-        return function (target) {
-            var prop, source, sources = Array.prototype.slice.call(arguments, 1);
-            while (source = sources.shift()) {
-                for (prop in source) {
-                    if (source.hasOwnProperty(prop)) {
-                        target[prop] = source[prop];
-                    }
-                }
-            }
-            return target;
-        };
-    }();
 var Ractive_initialise = function (isClient, errors, initOptions, registries, warn, create, extend, fillGaps, defineProperty, defineProperties, getElement, isObject, isArray, getGuid, magicAdaptor, parse) {
         
         return function (ractive, options) {
@@ -9802,14 +9823,17 @@ var extend_initChildInstance = function (initOptions, wrapMethod, initialise) {
             }
         };
     }(config_initOptions, extend_wrapMethod, Ractive_initialise);
-var extend__extend = function (create, defineProperties, getGuid, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
+var extend__extend = function (create, defineProperties, getGuid, extendObject, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular) {
         
         var Ractive;
         circular.push(function () {
             Ractive = circular.Ractive;
         });
-        return function (childProps) {
+        return function extend(childProps) {
             var Parent = this, Child;
+            if (childProps.prototype instanceof Ractive) {
+                return Parent.extend(extendObject({}, childProps, childProps.prototype, childProps.defaults));
+            }
             Child = function (options) {
                 initChildInstance(this, Child, options || {});
             };
@@ -9826,7 +9850,7 @@ var extend__extend = function (create, defineProperties, getGuid, inheritFromPar
             });
             return Child;
         };
-    }(utils_create, utils_defineProperties, utils_getGuid, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
+    }(utils_create, utils_defineProperties, utils_getGuid, utils_extend, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
 var Ractive__Ractive = function (initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
