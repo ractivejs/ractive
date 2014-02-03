@@ -24,7 +24,7 @@ define([
 
 	var identifiers = {};
 
-	return function ( keypath, array, options ) {
+	return function merge ( keypath, array, options ) {
 
 		var currentArray,
 			oldArray,
