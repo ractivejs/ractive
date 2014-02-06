@@ -74,9 +74,6 @@ define([
 
 		notifyDependants.multiple( this, changes );
 
-		// Attempt to resolve any unresolved keypaths...
-		pendingResolution.check();
-
 		scheduler.end();
 
 		// transition manager has finished its work

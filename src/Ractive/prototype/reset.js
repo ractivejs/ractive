@@ -30,9 +30,6 @@ define([
 
 		this.data = data || {};
 
-		// Attempt to resolve any unresolved keypaths...
-		pendingResolution.check();
-
 		clearCache( this, '' );
 		notifyDependants( this, '' );
 

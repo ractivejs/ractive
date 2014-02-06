@@ -30,8 +30,6 @@ define([
 
 		// if we're using update, it's possible that we've introduced new values, and
 		// some unresolved references can be dealt with
-		pendingResolution.check();
-
 		clearCache( this, keypath || '' );
 		notifyDependants( this, keypath || '' );
 

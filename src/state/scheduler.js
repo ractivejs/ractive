@@ -1,8 +1,10 @@
 define([
 	'state/failedLookups',
+	'state/pendingResolution',
 	'shared/getValueFromCheckboxes'
 ], function (
 	failedLookups,
+	pendingResolution,
 	getValueFromCheckboxes
 ) {
 
@@ -34,6 +36,7 @@ define([
 
 		end: function () {
 			if ( flushing ) {
+				pendingResolution.check();
 				return;
 			}
 
@@ -124,6 +127,8 @@ define([
 
 	function flushChanges () {
 		var thing;
+
+		pendingResolution.check();
 
 		while ( dirty ) {
 			dirty = false;
