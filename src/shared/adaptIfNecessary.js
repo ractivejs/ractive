@@ -18,7 +18,7 @@ define([
 
 	var prefixers = {};
 
-	return function ( ractive, keypath, value, isExpressionResult, shouldClone ) {
+	return function adaptIfNecessary ( ractive, keypath, value, isExpressionResult, shouldClone ) {
 		var len, i, adaptor, wrapped;
 
 		// Do we have an adaptor for this value?

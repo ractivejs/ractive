@@ -10,7 +10,7 @@ define([
 
 	'use strict';
 
-	return function ( section, value ) {
+	return function updateSection ( section, value ) {
 		var fragmentOptions;
 
 		fragmentOptions = {

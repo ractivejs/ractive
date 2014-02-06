@@ -14,7 +14,7 @@ define([
 
 	'use strict';
 
-	return function ( target, complete ) {
+	return function Ractive_prototype_render ( target, complete ) {
 		var transitionManager;
 
 		scheduler.start();

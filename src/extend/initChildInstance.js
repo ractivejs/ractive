@@ -12,7 +12,7 @@ define([
 
 	// The Child constructor contains the default init options for this class
 
-	return function ( child, Child, options ) {
+	return function initChildInstance ( child, Child, options ) {
 
 		initOptions.keys.forEach( function ( key ) {
 			var value = options[ key ], defaultValue = Child.defaults[ key ];

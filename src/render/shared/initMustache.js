@@ -10,7 +10,7 @@ define([
 
 	'use strict';
 
-	return function ( mustache, options ) {
+	return function initMustache ( mustache, options ) {
 
 		var keypath, indexRef, parentFragment;
 

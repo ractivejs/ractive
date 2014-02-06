@@ -36,7 +36,7 @@ define([
 
 	'use strict';
 
-	return function ( element, options, docFrag ) {
+	return function initialiseElement ( element, options, docFrag ) {
 		var parentFragment,
 			pNode,
 			contextStack,

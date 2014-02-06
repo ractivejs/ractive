@@ -2,7 +2,7 @@ define([ 'utils/isEqual' ], function ( isEqual ) {
 
 	'use strict';
 
-	return function () {
+	return function updateMustache () {
 		var wrapped, value;
 
 		value = this.root.get( this.keypath );

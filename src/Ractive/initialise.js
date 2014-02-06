@@ -36,7 +36,7 @@ define([
 
 	'use strict';
 
-	return function ( ractive, options ) {
+	return function initialiseRactiveInstance ( ractive, options ) {
 
 		var template, templateEl, parsedTemplate;
 

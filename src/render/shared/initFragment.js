@@ -8,7 +8,7 @@ define([
 
 	'use strict';
 
-	return function ( fragment, options ) {
+	return function initFragment ( fragment, options ) {
 
 		var numItems, i, parentFragment, parentRefs, ref;
 
