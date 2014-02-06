@@ -25,6 +25,9 @@ define([
 	get = function ( keypath ) {
 		var value;
 
+		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
+		keypath = normaliseKeypath( keypath );
+
 		// capture the dependency, if we're inside an evaluator
 		if ( this._captured && !this._captured[ keypath ] ) {
 			this._captured.push( keypath );
@@ -53,9 +56,6 @@ define([
 			value,
 			wrapped,
 			evaluator;
-
-		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
-		keypath = normaliseKeypath( keypath );
 
 		cache = ractive._cache;
 
