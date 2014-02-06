@@ -2,7 +2,7 @@ define([
 	'state/scheduler',
 	'utils/getElement',
 	'shared/makeTransitionManager',
-	'shared/css',
+	'state/css',
 	'render/DomFragment/_DomFragment'
 ], function (
 	scheduler,
