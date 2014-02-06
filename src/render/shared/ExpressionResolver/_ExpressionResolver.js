@@ -97,9 +97,14 @@ define([
 		},
 
 		createEvaluator: function () {
+			var evaluator;
+
 			// only if it doesn't exist yet!
 			if ( !this.root._evaluators[ this.keypath ] ) {
-				this.root._evaluators[ this.keypath ] = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.mustache.priority );
+				evaluator = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.mustache.priority );
+
+				this.root._evaluators[ this.keypath ] = evaluator;
+				evaluator.update();
 			}
 
 			else {
