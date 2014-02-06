@@ -13,7 +13,7 @@ define([
 	'use strict';
 
 	return function ( complete ) {
-		var keypath, transitionManager, previousTransitionManager, actualComplete;
+		var keypath, transitionManager, previousTransitionManager, shouldDestroy, actualComplete;
 
 		this.fire( 'teardown' );
 
@@ -32,7 +32,11 @@ define([
 		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, actualComplete );
 
-		this.fragment.teardown( true );
+		// If this is a component, and the component isn't marked for destruction,
+		// don't detach nodes from the DOM unnecessarily
+		shouldDestroy = !this.component || this.component.shouldDestroy;
+
+		this.fragment.teardown( shouldDestroy );
 
 		// Cancel any animations in progress
 		while ( this._animations[0] ) {

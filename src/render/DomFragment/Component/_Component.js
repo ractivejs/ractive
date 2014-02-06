@@ -24,7 +24,7 @@ define([
 			return this.instance.fragment.detach();
 		},
 
-		teardown: function () {
+		teardown: function ( destroy ) {
 			var query;
 
 			while ( this.complexParameters.length ) {
@@ -39,6 +39,8 @@ define([
 				query._remove( this );
 			}
 
+			// Add this flag so that we don't unnecessarily destroy the component's nodes
+			this.shouldDestroy = destroy;
 			this.instance.teardown();
 		},
 
