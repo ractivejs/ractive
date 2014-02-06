@@ -24,9 +24,10 @@ define([
 
 		if ( node.styleSheet ) {
 			node.styleSheet.cssText = content;
+		} else {
+			node.innerHTML = content;
 		}
 
-		node.innerHTML = content;
 	};
 
 	updateScript = function () {
@@ -41,7 +42,7 @@ define([
 	};
 
 
-	return function ( element, node, descriptor, docFrag ) {
+	return function appendElementChildren ( element, node, descriptor, docFrag ) {
 		var liveQueries, i, selector, queryAllResult, j;
 
 		// Special case - script and style tags
