@@ -3,7 +3,7 @@ define( function () {
 	'use strict';
 
 	return function registerDependant ( dependant ) {
-		var depsByKeypath, deps, keys, parentKeypath, ractive, keypath, priority;
+		var depsByKeypath, deps, ractive, keypath, priority;
 
 		ractive = dependant.root;
 		keypath = dependant.keypath;

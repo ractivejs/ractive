@@ -3,7 +3,7 @@ define( function () {
 	'use strict';
 
 	return function unregisterDependant ( dependant ) {
-		var deps, index, keys, parentKeypath, map, ractive, keypath, priority;
+		var deps, index, ractive, keypath, priority;
 
 		ractive = dependant.root;
 		keypath = dependant.keypath;
