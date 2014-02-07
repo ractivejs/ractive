@@ -1,6 +1,5 @@
 define([
 	'state/scheduler',
-	'state/pendingResolution',
 	'utils/isObject',
 	'utils/isEqual',
 	'utils/normaliseKeypath',
@@ -11,7 +10,6 @@ define([
 	'Ractive/prototype/shared/replaceData'
 ], function (
 	scheduler,
-	pendingResolution,
 	isObject,
 	isEqual,
 	normaliseKeypath,

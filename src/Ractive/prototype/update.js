@@ -1,12 +1,10 @@
 define([
 	'state/scheduler',
-	'state/pendingResolution',
 	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
 	scheduler,
-	pendingResolution,
 	makeTransitionManager,
 	clearCache,
 	notifyDependants

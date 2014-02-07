@@ -1,10 +1,8 @@
 define([
-	'state/pendingResolution',
 	'utils/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
-	pendingResolution,
 	makeTransitionManager,
 	clearCache,
 	notifyDependants
