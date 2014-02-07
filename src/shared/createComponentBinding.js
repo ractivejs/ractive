@@ -34,22 +34,20 @@ define([
 				return;
 			}
 
-			this.updating = true;
-
 			value = this.root.get( this.keypath );
 
 			// Is this a smart array update? If so, it'll update on its
 			// own, we shouldn't do anything
-			if ( isArray( value ) && value._ractive && value._ractive.updating ) {
+			if ( isArray( value ) && value._ractive && value._ractive.setting ) {
 				return;
 			}
 
 			if ( !isEqual( value, this.value ) ) {
+				this.updating = true;
 				this.otherInstance.set( this.otherKeypath, value );
 				this.value = value;
+				this.updating = false;
 			}
-
-			this.updating = false;
 		},
 
 		teardown: function () {
