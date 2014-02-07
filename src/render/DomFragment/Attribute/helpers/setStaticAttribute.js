@@ -6,7 +6,7 @@ define([
 
 	'use strict';
 
-	return function ( attribute, options ) {
+	return function setStaticAttribute ( attribute, options ) {
 		var node, value = ( options.value === null ? '' : options.value );
 
 		if ( node = options.pNode ) {

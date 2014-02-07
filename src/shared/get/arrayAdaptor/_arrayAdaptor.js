@@ -2,7 +2,7 @@ define([
 	'config/types',
 	'utils/defineProperty',
 	'utils/isArray',
-	'Ractive/prototype/get/arrayAdaptor/patch'
+	'shared/get/arrayAdaptor/patch'
 ], function (
 	types,
 	defineProperty,

@@ -1,7 +1,7 @@
 define([
 	'state/failedLookups',
 	'shared/createComponentBinding',
-	'Ractive/prototype/get/FAILED_PARENT_LOOKUP'
+	'shared/get/FAILED_PARENT_LOOKUP'
 ], function (
 	failedLookups,
 	createComponentBinding,

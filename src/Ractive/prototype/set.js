@@ -4,6 +4,7 @@ define([
 	'utils/isObject',
 	'utils/isEqual',
 	'utils/normaliseKeypath',
+	'shared/get/_get',
 	'shared/clearCache',
 	'shared/notifyDependants',
 	'shared/makeTransitionManager',
@@ -14,6 +15,7 @@ define([
 	isObject,
 	isEqual,
 	normaliseKeypath,
+	get,
 	clearCache,
 	notifyDependants,
 	makeTransitionManager,
@@ -88,7 +90,7 @@ define([
 
 			i = changes.length;
 			while ( i-- ) {
-				changeHash[ changes[i] ] = this.get( changes[i] );
+				changeHash[ changes[i] ] = get( this, changes[i] );
 			}
 
 			this.fire( 'change', changeHash );
@@ -118,7 +120,7 @@ define([
 		}
 
 		cached = ractive._cache[ keypath ];
-		previous = ractive.get( keypath );
+		previous = get( ractive, keypath );
 
 		if ( value === cached && typeof value !== 'object' ) {
 			return;

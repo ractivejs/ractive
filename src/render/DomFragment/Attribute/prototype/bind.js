@@ -3,13 +3,15 @@ define([
 	'config/types',
 	'utils/warn',
 	'utils/arrayContentsMatch',
-	'shared/getValueFromCheckboxes'
+	'shared/getValueFromCheckboxes',
+	'shared/get/_get'
 ], function (
 	scheduler,
 	types,
 	warn,
 	arrayContentsMatch,
-	getValueFromCheckboxes
+	getValueFromCheckboxes,
+	get
 ) {
 
 	'use strict';
@@ -87,7 +89,7 @@ define([
 	};
 
 	update = function () {
-		var value = this._ractive.root.get( this._ractive.binding.keypath );
+		var value = get( this._ractive.root, this._ractive.binding.keypath );
 		this.value = value == undefined ? '' : value;
 	};
 
@@ -169,7 +171,7 @@ define([
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 
 		if ( valueFromModel === undefined ) {
 			// get value from DOM, if possible
@@ -238,7 +240,7 @@ define([
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 
 		if ( valueFromModel === undefined ) {
 			// get value from DOM, if possible
@@ -305,7 +307,7 @@ define([
 			node.addEventListener( 'click', updateModel, false );
 		}
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel == node._ractive.value );
 		} else {
@@ -350,7 +352,7 @@ define([
 			node.addEventListener( 'click', updateModel, false );
 		}
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 
 		// if the model already specifies this value, check/uncheck accordingly
 		if ( valueFromModel !== undefined ) {

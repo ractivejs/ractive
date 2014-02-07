@@ -1,5 +1,5 @@
 define([
-	'Ractive/prototype/get/_get',
+	'Ractive/prototype/get',
 	'Ractive/prototype/set',
 	'Ractive/prototype/update',
 	'Ractive/prototype/updateModel',

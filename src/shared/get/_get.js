@@ -1,12 +1,10 @@
 define([
-	'utils/normaliseKeypath',
-    'registries/adaptors',
+	'registries/adaptors',
 	'shared/adaptIfNecessary',
-	'Ractive/prototype/get/getFromParent',
-	'Ractive/prototype/get/FAILED_LOOKUP',
-	'Ractive/prototype/get/FAILED_PARENT_LOOKUP'
+	'shared/get/getFromParent',
+	'shared/get/FAILED_LOOKUP',
+	'shared/get/FAILED_PARENT_LOOKUP'
 ], function (
-	normaliseKeypath,
 	adaptorRegistry,
 	adaptIfNecessary,
 	getFromParent,
@@ -18,29 +16,25 @@ define([
 
 	var get, _get, retrieve;
 
+	// TODO tidy up!
 
-	// all the logic sits in a private function, so we can do _get even when
-	// ractive.get() has been overridden (i.e. by an evaluator, to do intercepts)
-	// TODO does that still happen?
-	get = function ( keypath ) {
+
+	get = function ( ractive, keypath ) {
 		var value;
 
-		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
-		keypath = normaliseKeypath( keypath );
-
 		// capture the dependency, if we're inside an evaluator
-		if ( this._captured && !this._captured[ keypath ] ) {
-			this._captured.push( keypath );
-			this._captured[ keypath ] = true;
+		if ( ractive._captured && !ractive._captured[ keypath ] ) {
+			ractive._captured.push( keypath );
+			ractive._captured[ keypath ] = true;
 		}
 
-		value = _get( this, keypath );
+		value = _get( ractive, keypath );
 
 		// If the property doesn't exist on this viewmodel, we
 		// can try going up a scope. This will create bindings
 		// between parent and child if possible
 		if ( value === FAILED_LOOKUP && value !== FAILED_PARENT_LOOKUP ) {
-			value = getFromParent( this, keypath );
+			value = getFromParent( ractive, keypath );
 		}
 
 		if ( value === FAILED_PARENT_LOOKUP ) {

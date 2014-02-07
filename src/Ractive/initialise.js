@@ -13,7 +13,7 @@ define([
 	'utils/isObject',
 	'utils/isArray',
 	'utils/getGuid',
-	'Ractive/prototype/get/magicAdaptor',
+	'shared/get/magicAdaptor',
 	'parse/_parse'
 ], function (
 	isClient,

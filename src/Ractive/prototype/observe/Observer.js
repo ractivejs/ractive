@@ -1,9 +1,11 @@
 define([
 	'state/scheduler',
-	'utils/isEqual'
+	'utils/isEqual',
+	'shared/get/_get'
 ], function (
 	scheduler,
-	isEqual
+	isEqual,
+	get
 ) {
 
 	'use strict';
@@ -36,7 +38,7 @@ define([
 			if ( immediate !== false ) {
 				this.update();
 			} else {
-				this.value = this.root.get( this.keypath );
+				this.value = get( this.root, this.keypath );
 			}
 		},
 
@@ -53,7 +55,7 @@ define([
 			var oldValue, newValue;
 
 			oldValue = this.value;
-			newValue = this.root.get( this.keypath );
+			newValue = get( this.root, this.keypath );
 
 			this.value = newValue;
 

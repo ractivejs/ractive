@@ -3,9 +3,9 @@ define([
 	'utils/defineProperty',
 	'shared/clearCache',
 	'shared/makeTransitionManager',
-	'Ractive/prototype/get/arrayAdaptor/getSpliceEquivalent',
-	'Ractive/prototype/get/arrayAdaptor/summariseSpliceOperation',
-	'Ractive/prototype/get/arrayAdaptor/processWrapper'
+	'shared/get/arrayAdaptor/getSpliceEquivalent',
+	'shared/get/arrayAdaptor/summariseSpliceOperation',
+	'shared/get/arrayAdaptor/processWrapper'
 ], function (
 	scheduler,
 	defineProperty,

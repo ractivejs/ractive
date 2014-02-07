@@ -1,10 +1,12 @@
 define([
 	'state/scheduler',
 	'utils/isEqual',
+	'shared/get/_get',
 	'Ractive/prototype/observe/getPattern'
 ], function (
 	scheduler,
 	isEqual,
+	get,
 	getPattern
 ) {
 
@@ -76,7 +78,7 @@ define([
 		},
 
 		reallyUpdate: function ( keypath ) {
-			var value = this.root.get( keypath );
+			var value = get( this.root, keypath );
 
 			// Prevent infinite loops
 			if ( this.updating ) {

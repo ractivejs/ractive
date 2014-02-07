@@ -2,9 +2,9 @@ define([
 	'utils/clone',
 	'utils/isObject',
 	'registries/adaptors',
-	'Ractive/prototype/get/arrayAdaptor/_arrayAdaptor',
-	'Ractive/prototype/get/magicAdaptor',
-	'Ractive/prototype/get/magicArrayAdaptor'
+	'shared/get/arrayAdaptor/_arrayAdaptor',
+	'shared/get/magicAdaptor',
+	'shared/get/magicArrayAdaptor'
 ], function (
 	clone,
 	isObject,

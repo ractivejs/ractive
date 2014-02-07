@@ -1,6 +1,6 @@
 define([
-	'Ractive/prototype/get/magicAdaptor',
-	'Ractive/prototype/get/arrayAdaptor/_arrayAdaptor'
+	'shared/get/magicAdaptor',
+	'shared/get/arrayAdaptor/_arrayAdaptor'
 ], function (
 	magicAdaptor,
 	arrayAdaptor
