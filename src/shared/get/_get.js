@@ -14,21 +14,39 @@ define([
 
 	'use strict';
 
-	var get, _get, retrieve;
+	function get ( ractive, keypath ) {
+		var cache = ractive._cache,
+			value,
+			wrapped,
+			evaluator;
 
-	// TODO tidy up!
+		if ( cache[ keypath ] === undefined ) {
 
+			// Is this a wrapped property?
+			if ( wrapped = ractive._wrapped[ keypath ] ) {
+				value = wrapped.value;
+			}
 
-	get = function ( ractive, keypath ) {
-		var value;
+			// Is it the root?
+			else if ( !keypath ) {
+				adaptIfNecessary( ractive, '', ractive.data );
+				value = ractive.data;
+			}
 
-		// capture the dependency, if we're inside an evaluator
-		if ( ractive._captured && !ractive._captured[ keypath ] ) {
-			ractive._captured.push( keypath );
-			ractive._captured[ keypath ] = true;
+			// Is this an uncached evaluator value?
+			else if ( evaluator = ractive._evaluators[ keypath ] ) {
+				value = evaluator.value;
+			}
+
+			// No? Then we need to retrieve the value one key at a time
+			else {
+				value = retrieve( ractive, keypath );
+			}
+
+			cache[ keypath ] = value;
+		} else {
+			value = cache[ keypath ];
 		}
-
-		value = _get( ractive, keypath );
 
 		// If the property doesn't exist on this viewmodel, we
 		// can try going up a scope. This will create bindings
@@ -42,55 +60,19 @@ define([
 		}
 
 		return value;
-	};
+	}
 
-	_get = function ( ractive, keypath ) {
-		var cache,
-			cached,
-			value,
-			wrapped,
-			evaluator;
-
-		cache = ractive._cache;
-
-		if ( ( cached = cache[ keypath ] ) !== undefined ) {
-			return cached;
-		}
-
-		// Is this a wrapped property?
-		if ( wrapped = ractive._wrapped[ keypath ] ) {
-			value = wrapped.value;
-		}
-
-		// Is it the root?
-		else if ( !keypath ) {
-			adaptIfNecessary( ractive, '', ractive.data );
-			value = ractive.data;
-		}
-
-		// Is this an uncached evaluator value?
-		else if ( evaluator = ractive._evaluators[ keypath ] ) {
-			value = evaluator.value;
-		}
-
-		// No? Then we need to retrieve the value one key at a time
-		else {
-			value = retrieve( ractive, keypath );
-		}
-
-		cache[ keypath ] = value;
-		return value;
-	};
+	return get;
 
 
-	retrieve = function ( ractive, keypath ) {
+	function retrieve ( ractive, keypath ) {
 		var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
 
 		keys = keypath.split( '.' );
 		key = keys.pop();
 		parentKeypath = keys.join( '.' );
 
-		parentValue = _get( ractive, parentKeypath );
+		parentValue = get( ractive, parentKeypath );
 
 		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 			parentValue = wrapped.get();
@@ -130,8 +112,6 @@ define([
 		// Update cache
 		ractive._cache[ keypath ] = value;
 		return value;
-	};
-
-	return get;
+	}
 
 });
