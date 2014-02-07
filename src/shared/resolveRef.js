@@ -1,14 +1,26 @@
-define( function () {
+define([
+	'circular',
+	'utils/normaliseKeypath'
+], function (
+	circular,
+	normaliseKeypath
+) {
 
 	'use strict';
 
-	var ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+	var get, ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+
+	circular.push( function () {
+		get = circular.get;
+	});
 
 	// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
 	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
 	return function resolveRef ( ractive, ref, contextStack ) {
 
 		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
+
+		ref = normaliseKeypath( ref );
 
 		// Implicit iterators - i.e. {{.}} - are a special case
 		if ( ref === '.' ) {
@@ -66,30 +78,28 @@ define( function () {
 				innerMostContext = contextStack.pop();
 				parentKeypath = innerMostContext + postfix;
 
-				parentValue = ractive.get( parentKeypath );
+				parentValue = get( ractive, parentKeypath );
 
 				if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 					parentValue = wrapped.get();
 				}
 
-				if ( typeof parentValue === 'object' && parentValue !== null && parentValue[ lastKey ] !== undefined ) {
-					keypath = innerMostContext + '.' + ref;
-					break;
+				if ( typeof parentValue === 'object' && parentValue !== null && lastKey in parentValue ) {
+					return innerMostContext + '.' + ref;
 				}
 			}
 
 			// Still no keypath?
-			if ( !keypath ) {
-				// We need both of these - the first enables components to treat data contexts
-				// like lexical scopes in JavaScript functions...
-				if ( ractive.data.hasOwnProperty( ref ) ) {
-					keypath = ref;
-				}
 
-				// while the second deals with references like `foo.bar`
-				else if ( ractive.get( ref ) !== undefined ) {
-					keypath = ref;
-				}
+			// We need both of these - the first enables components to treat data contexts
+			// like lexical scopes in JavaScript functions...
+			if ( ractive.data.hasOwnProperty( ref ) ) {
+				keypath = ref;
+			}
+
+			// while the second deals with references like `foo.bar`
+			else if ( get( ractive, ref ) !== undefined ) {
+				keypath = ref;
 			}
 		}
 

@@ -1,11 +1,13 @@
 define([
 	'state/failedLookups',
-	'state/pendingResolution',
-	'shared/getValueFromCheckboxes'
+	'utils/removeFromArray',
+	'shared/getValueFromCheckboxes',
+	'shared/resolveRef'
 ], function (
 	failedLookups,
-	pendingResolution,
-	getValueFromCheckboxes
+	removeFromArray,
+	getValueFromCheckboxes,
+	resolveRef
 ) {
 
 	'use strict';
@@ -14,16 +16,19 @@ define([
 		flushing = false,
 		inFlight = 0,
 		toFocus = null,
+
 		liveQueries = [],
 		decorators = [],
 		transitions = [],
 		observers = [],
 		attributes = [],
+
 		evaluators = [],
 		selectValues = [],
 		checkboxKeypaths = {},
 		checkboxes = [],
-		radios = [];
+		radios = [],
+		unresolved = [];
 
 	return {
 		start: function () {
@@ -36,7 +41,7 @@ define([
 
 		end: function () {
 			if ( flushing ) {
-				pendingResolution.check();
+				attemptKeypathResolution();
 				return;
 			}
 
@@ -44,6 +49,7 @@ define([
 				flushing = true;
 				flushChanges();
 				flushing = false;
+
 				land();
 			}
 		},
@@ -93,6 +99,15 @@ define([
 		addRadio: function ( radio ) {
 			dirty = true;
 			radios.push( radio );
+		},
+
+		addUnresolved: function ( thing ) {
+			dirty = true;
+			unresolved.push( thing );
+		},
+
+		removeUnresolved: function ( thing ) {
+			removeFromArray( unresolved, thing );
 		}
 	};
 
@@ -128,7 +143,7 @@ define([
 	function flushChanges () {
 		var thing;
 
-		pendingResolution.check();
+		attemptKeypathResolution();
 
 		while ( dirty ) {
 			dirty = false;
@@ -149,6 +164,32 @@ define([
 
 			while ( thing = radios.pop() ) {
 				thing.update();
+			}
+		}
+	}
+
+	function attemptKeypathResolution () {
+		var array, thing, keypath;
+
+		if ( !unresolved.length ) {
+			return;
+		}
+
+		// see if we can resolve any unresolved references
+		array = unresolved.splice( 0 );
+		while ( thing = array.pop() ) {
+			if ( thing.keypath ) {
+				continue; // it did resolve after all
+			}
+
+			keypath = resolveRef( thing.root, thing.ref, thing.contextStack );
+
+			if ( keypath !== undefined ) {
+				// If we've resolved the keypath, we can initialise this item
+				thing.resolve( keypath );
+			} else {
+				// If we can't resolve the reference, try again next time
+				unresolved.push( thing );
 			}
 		}
 	}

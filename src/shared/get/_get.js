@@ -1,10 +1,12 @@
 define([
+	'circular',
 	'registries/adaptors',
 	'shared/adaptIfNecessary',
 	'shared/get/getFromParent',
 	'shared/get/FAILED_LOOKUP',
 	'shared/get/FAILED_PARENT_LOOKUP'
 ], function (
+	circular,
 	adaptorRegistry,
 	adaptIfNecessary,
 	getFromParent,
@@ -62,6 +64,7 @@ define([
 		return value;
 	}
 
+	circular.get = get;
 	return get;
 
 

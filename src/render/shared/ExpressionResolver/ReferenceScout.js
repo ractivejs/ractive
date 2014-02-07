@@ -1,9 +1,9 @@
 define([
-	'state/pendingResolution',
+	'state/scheduler',
 	'shared/resolveRef',
 	'shared/teardown'
 ], function (
-	pendingResolution,
+	scheduler,
 	resolveRef,
 	teardown
 ) {
@@ -24,7 +24,7 @@ define([
 			this.resolver = resolver;
 			this.contextStack = contextStack;
 
-			pendingResolution.push( this );
+			scheduler.addUnresolved( this );
 		}
 	};
 

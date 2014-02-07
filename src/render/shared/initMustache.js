@@ -1,9 +1,9 @@
 define([
-	'state/pendingResolution',
+	'state/scheduler',
 	'shared/resolveRef',
 	'render/shared/ExpressionResolver/_ExpressionResolver'
 ], function (
-	pendingResolution,
+	scheduler,
 	resolveRef,
 	ExpressionResolver
 ) {
@@ -43,7 +43,7 @@ define([
 					mustache.resolve( keypath );
 				} else {
 					mustache.ref = options.descriptor.r;
-					pendingResolution.push( mustache );
+					scheduler.addUnresolved( mustache );
 				}
 			}
 		}
