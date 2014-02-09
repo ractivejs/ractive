@@ -77,7 +77,6 @@ module.exports = function(grunt) {
 				optimize: 'none',
 				logLevel: 2,
 				onBuildWrite: function( name, path, contents ) {
-					contents = contents.replace( /['"]use strict["'];/, '' );
 					return require( 'amdclean' ).clean( contents ) + '\n';
 				},
 				wrap: {
