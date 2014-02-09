@@ -21,6 +21,7 @@
     }
   ],
   "jam": {
+    "name": "Ractive",
     "main": "Ractive.js",
     "include": [
       "Ractive.js",
