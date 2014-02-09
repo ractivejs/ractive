@@ -76,7 +76,6 @@ module.exports = function(grunt) {
 				name: 'Ractive',
 				optimize: 'none',
 				logLevel: 2,
-				findNestedDependencies: true,
 				onBuildWrite: function( name, path, contents ) {
 					return require( 'amdclean' ).clean( contents );
 				},
