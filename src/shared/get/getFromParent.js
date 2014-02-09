@@ -19,7 +19,7 @@ define([
 		}
 
 		if ( failedLookups( child._guid + keypath ) ) {
-			return FAILED_PARENT_LOOKUP;
+			return;
 		}
 
 		contextStack = child.component.parentFragment.contextStack;
@@ -44,7 +44,6 @@ define([
 
 		// Short-circuit this process next time
 		failedLookups.add( child._guid + keypath );
-		return FAILED_PARENT_LOOKUP;
 	};
 
 });

@@ -22,6 +22,7 @@ define([
 		adapt:              [],
 		sanitize:           false,
 		stripComments:      true,
+		isolated:           false,
 		delimiters:         [ '{{', '}}' ],
 		tripleDelimiters:   [ '{{{', '}}}' ]
 	};

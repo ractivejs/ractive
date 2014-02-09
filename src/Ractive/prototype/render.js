@@ -27,10 +27,6 @@ define([
 			throw new Error( 'You cannot call ractive.render() directly!' );
 		}
 
-		// We flag up that we're going to perform an end-cycle update later,
-		// otherwise we may have to do it multiple times during render
-		this._updateScheduled = true;
-
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// Add CSS, if applicable

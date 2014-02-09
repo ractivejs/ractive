@@ -511,6 +511,27 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'existsalso' );
 		});
 
+		test( 'Isolated components do not interact with ancestor viewmodels', function ( t ) {
+			var ractive, Widget;
+
+			Widget = Ractive.extend({
+				template: '{{foo}}.{{bar}}',
+				isolated: true
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{foo}}"/>',
+				components: { widget: Widget },
+				data: {
+					foo: 'you should see me',
+					bar: 'but not me'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'you should see me.' );
+		});
+
 	};
 
 });

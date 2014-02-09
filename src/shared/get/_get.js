@@ -53,12 +53,12 @@ define([
 		// If the property doesn't exist on this viewmodel, we
 		// can try going up a scope. This will create bindings
 		// between parent and child if possible
-		if ( value === FAILED_LOOKUP && value !== FAILED_PARENT_LOOKUP ) {
-			value = getFromParent( ractive, keypath );
-		}
-
-		if ( value === FAILED_PARENT_LOOKUP ) {
-			return;
+		if ( value === FAILED_LOOKUP ) {
+			if ( ractive._parent && !ractive.isolated ) {
+				value = getFromParent( ractive, keypath );
+			} else {
+				value = undefined;
+			}
 		}
 
 		return value;

@@ -36,6 +36,8 @@ define([
 
 	'use strict';
 
+	var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
+
 	return function initialiseRactiveInstance ( ractive, options ) {
 
 		var template, templateEl, parsedTemplate;
@@ -53,6 +55,20 @@ define([
 				options[ key ] = ractive.constructor.defaults[ key ];
 			}
 		});
+
+		// options
+		flags.forEach( function ( flag ) {
+			ractive[ flag ] = options[ flag ];
+		});
+
+		// special cases
+		if ( typeof ractive.adapt === 'string' ) {
+			ractive.adapt = [ ractive.adapt ];
+		}
+
+		if ( ractive.magic && !magicAdaptor ) {
+			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+		}
 
 
 		// Initialisation
@@ -99,22 +115,8 @@ define([
 
 			// live queries
 			_liveQueries: { value: [] },
-			_liveComponentQueries: { value: [] },
-
-			_updateScheduled: { value: false, writable: true }
+			_liveComponentQueries: { value: [] }
 		});
-
-		// options
-		ractive.adapt = ( typeof options.adapt === 'string' ? [ options.adapt ] : options.adapt );
-		ractive.modifyArrays = options.modifyArrays;
-		ractive.magic = options.magic;
-		ractive.twoway = options.twoway;
-		ractive.lazy = options.lazy;
-		ractive.debug = options.debug;
-
-		if ( ractive.magic && !magicAdaptor ) {
-			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-		}
 
 		// If this is a component, store a reference to the parent
 		if ( options._parent && options._component ) {
