@@ -1,3 +1,0 @@
-(function ( global ) {
-
-'use strict';

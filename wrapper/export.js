@@ -16,4 +16,3 @@ else {
 	global.Ractive = Ractive;
 }
 
-}( typeof window !== 'undefined' ? window : this ));

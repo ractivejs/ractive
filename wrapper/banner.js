@@ -1,5 +1,5 @@
 /*
-	
+
 	Ractive - v<%= pkg.version %> - <%= grunt.template.today( 'yyyy-mm-dd' ) %>
 	==============================================================
 
@@ -32,4 +32,8 @@
 	OTHER DEALINGS IN THE SOFTWARE.
 
 */
+
+(function ( global ) {
+
+	'use strict';
 

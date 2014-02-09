@@ -78,11 +78,10 @@ module.exports = function(grunt) {
 				logLevel: 2,
 				onBuildWrite: function( name, path, contents ) {
 					contents = contents.replace( /['"]use strict["'];/, '' );
-					return require( 'amdclean' ).clean( contents );
+					return require( 'amdclean' ).clean( contents ) + '\n';
 				},
 				wrap: {
-					startFile: 'wrapper/intro.js',
-					endFile: 'wrapper/outro.js'
+					endFile: 'wrapper/export.js'
 				}
 			}
 		},
@@ -90,6 +89,7 @@ module.exports = function(grunt) {
 		concat: {
 			options: {
 				banner: grunt.file.read( 'wrapper/banner.js' ),
+				footer: grunt.file.read( 'wrapper/footer.js' ),
 				process: {
 					data: { version: '<%= pkg.version %>' }
 				}
@@ -138,6 +138,17 @@ module.exports = function(grunt) {
 			}
 		},
 
+		jsbeautifier: {
+			files: 'build/**',
+			options: {
+				js: {
+					indentWithTabs: true,
+					spaceBeforeConditional: true,
+					spaceInParen: true
+				}
+			}
+		},
+
 		uglify: {
 			'build/Ractive.min.js': 'build/Ractive.js',
 			'build/Ractive-legacy.min.js': 'build/Ractive-legacy.js',
@@ -171,6 +182,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	grunt.loadNpmTasks( 'grunt-contrib-requirejs' );
+	grunt.loadNpmTasks('grunt-jsbeautifier');
 
 	grunt.registerTask( 'promises-aplus-tests', 'Run the Promises/A+ test suite.', function () {
 		var promisesAplusTests, adaptor, done;
@@ -187,6 +199,7 @@ module.exports = function(grunt) {
 		'test',
 		'clean:build',
 		'concat',
+		'jsbeautifier',
 		'uglify',
 		'copy:link'
 	]);

@@ -12,9 +12,6 @@ define([
 		var parent, contextStack, keypathToTest, value, i;
 
 		parent = child._parent;
-		if ( !parent ) {
-			return;
-		}
 
 		if ( failedLookups( child._guid + keypath ) ) {
 			return;
