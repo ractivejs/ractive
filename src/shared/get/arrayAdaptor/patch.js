@@ -64,6 +64,9 @@ define([
 			}
 			this._ractive.setting = false;
 
+			// apply changes
+			scheduler.end();
+
 			// initialise transition managers
 			i = instances.length;
 			while ( i-- ) {
@@ -73,7 +76,6 @@ define([
 				transitionManagers[ instance._guid ].ready();
 			}
 
-			scheduler.end();
 			return result;
 		};
 

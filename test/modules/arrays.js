@@ -89,6 +89,29 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>dave</li><li>eric</li><li>charles</li></ul>' );
 		});
 
+		test( 'Regression test for #425', function ( t ) {
+			var items, ractive;
+
+			items = [];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items.length < limit}}<p>{{items.length}} / {{limit}}</p>{{/items.length < limit}}',
+				data: {
+					items: items,
+					limit: 3
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>0 / 3</p>' );
+
+			items.push( 'x', 'y' );
+			t.htmlEqual( fixture.innerHTML, '<p>2 / 3</p>' );
+
+			items.push( 'z' );
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
 	};
 
 });
