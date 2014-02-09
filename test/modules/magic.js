@@ -119,6 +119,32 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture2.innerHTML, 'Pepe: king prawn' );
 		});
 
+		test( 'Magic mode works with existing accessors', function ( t ) {
+			var _foo, data, ractive;
+
+			_foo = 'Bar';
+
+			data = {
+				get foo () {
+					return _foo.toLowerCase();
+				},
+				set foo ( value ) {
+					_foo = value;
+				}
+			};
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{foo}}',
+				data: data
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+
+			data.foo = 'BAZ';
+			t.htmlEqual( fixture.innerHTML, 'baz' );
+		});
+
 	};
 
 });

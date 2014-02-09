@@ -37,17 +37,17 @@ define([
 
 			return ( parentValue && typeof parentValue === 'object' );
 		},
-		wrap: function ( ractive, object, keypath ) {
-			return new MagicWrapper( ractive, object, keypath );
+		wrap: function ( ractive, property, keypath ) {
+			return new MagicWrapper( ractive, property, keypath );
 		}
 	};
 
-	MagicWrapper = function ( ractive, object, keypath ) {
+	MagicWrapper = function ( ractive, property, keypath ) {
 		var wrapper = this, keys, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
 
 		this.ractive = ractive;
 		this.keypath = keypath;
-		this.value = object;
+		this.value = property;
 
 		keys = keypath.split( '.' );
 
@@ -83,8 +83,6 @@ define([
 
 		// Time to wrap this property
 		if ( descriptor ) {
-			this.value = descriptor.value;
-
 			oldGet = descriptor.get;
 			oldSet = descriptor.set;
 		}
@@ -98,6 +96,10 @@ define([
 
 			if ( oldSet ) {
 				oldSet( value );
+			}
+
+			if ( oldGet ) {
+				value = oldGet();
 			}
 
 			wrappers = set._ractiveWrappers;
