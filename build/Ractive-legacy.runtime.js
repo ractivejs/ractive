@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.4.0-pre - 2014-02-06
+	Ractive - v0.4.0-pre - 2014-02-08
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -296,6 +296,7 @@ var config_initOptions = function (legacy) {
             adapt: [],
             sanitize: false,
             stripComments: true,
+            isolated: false,
             delimiters: [
                 '{{',
                 '}}'
@@ -417,9 +418,13 @@ var utils_defineProperties = function (createElement, defineProperty, isClient) 
 var utils_normaliseKeypath = function () {
         
         var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-        return function (keypath) {
+        return function normaliseKeypath(keypath) {
             return (keypath || '').replace(regex, '.$1');
         };
+    }();
+var circular = function () {
+        
+        return [];
     }();
 var registries_adaptors = {};
 var utils_isArray = function () {
@@ -515,11 +520,32 @@ var utils_removeFromArray = function () {
             }
         };
     }();
-var shared_resolveRef = function () {
+var shared_getValueFromCheckboxes = function () {
         
-        var ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+        return function (ractive, keypath) {
+            var value, checkboxes, checkbox, len, i, rootEl;
+            value = [];
+            rootEl = ractive.rendered ? ractive.el : ractive.fragment.docFrag;
+            checkboxes = rootEl.querySelectorAll('input[type="checkbox"][name="{{' + keypath + '}}"]');
+            len = checkboxes.length;
+            for (i = 0; i < len; i += 1) {
+                checkbox = checkboxes[i];
+                if (checkbox.hasAttribute('checked') || checkbox.checked) {
+                    value.push(checkbox._ractive.value);
+                }
+            }
+            return value;
+        };
+    }();
+var shared_resolveRef = function (circular, normaliseKeypath) {
+        
+        var get, ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+        circular.push(function () {
+            get = circular.get;
+        });
         return function resolveRef(ractive, ref, contextStack) {
             var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
+            ref = normaliseKeypath(ref);
             if (ref === '.') {
                 if (!contextStack.length) {
                     return '';
@@ -551,72 +577,26 @@ var shared_resolveRef = function () {
                 while (contextStack.length) {
                     innerMostContext = contextStack.pop();
                     parentKeypath = innerMostContext + postfix;
-                    parentValue = ractive.get(parentKeypath);
+                    parentValue = get(ractive, parentKeypath);
                     if (wrapped = ractive._wrapped[parentKeypath]) {
                         parentValue = wrapped.get();
                     }
-                    if (typeof parentValue === 'object' && parentValue !== null && parentValue[lastKey] !== undefined) {
-                        keypath = innerMostContext + '.' + ref;
-                        break;
+                    if (typeof parentValue === 'object' && parentValue !== null && lastKey in parentValue) {
+                        return innerMostContext + '.' + ref;
                     }
                 }
-                if (!keypath) {
-                    if (ractive.data.hasOwnProperty(ref)) {
-                        keypath = ref;
-                    } else if (ractive.get(ref) !== undefined) {
-                        keypath = ref;
-                    }
+                if (ractive.data.hasOwnProperty(ref)) {
+                    keypath = ref;
+                } else if (get(ractive, ref) !== undefined) {
+                    keypath = ref;
                 }
             }
             return keypath ? keypath.replace(/^\./, '') : keypath;
         };
-    }();
-var state_pendingResolution = function (removeFromArray, resolveRef) {
+    }(circular, utils_normaliseKeypath);
+var state_scheduler = function (failedLookups, removeFromArray, getValueFromCheckboxes, resolveRef) {
         
-        var pendingResolution = [];
-        pendingResolution.check = function () {
-            var clone, unresolved, keypath;
-            if (!pendingResolution.length) {
-                return;
-            }
-            clone = pendingResolution.splice(0);
-            while (unresolved = clone.pop()) {
-                if (unresolved.keypath) {
-                    continue;
-                }
-                keypath = resolveRef(unresolved.root, unresolved.ref, unresolved.contextStack);
-                if (keypath !== undefined) {
-                    unresolved.resolve(keypath);
-                } else {
-                    pendingResolution.push(unresolved);
-                }
-            }
-        };
-        pendingResolution.remove = function (thing) {
-            removeFromArray(pendingResolution, thing);
-        };
-        return pendingResolution;
-    }(utils_removeFromArray, shared_resolveRef);
-var shared_getValueFromCheckboxes = function () {
-        
-        return function (ractive, keypath) {
-            var value, checkboxes, checkbox, len, i, rootEl;
-            value = [];
-            rootEl = ractive.rendered ? ractive.el : ractive.fragment.docFrag;
-            checkboxes = rootEl.querySelectorAll('input[type="checkbox"][name="{{' + keypath + '}}"]');
-            len = checkboxes.length;
-            for (i = 0; i < len; i += 1) {
-                checkbox = checkboxes[i];
-                if (checkbox.hasAttribute('checked') || checkbox.checked) {
-                    value.push(checkbox._ractive.value);
-                }
-            }
-            return value;
-        };
-    }();
-var state_scheduler = function (failedLookups, pendingResolution, getValueFromCheckboxes) {
-        
-        var dirty = false, flushing = false, inFlight = 0, toFocus = null, liveQueries = [], decorators = [], transitions = [], observers = [], attributes = [], evaluators = [], selectValues = [], checkboxKeypaths = {}, checkboxes = [], radios = [];
+        var dirty = false, flushing = false, inFlight = 0, toFocus = null, liveQueries = [], decorators = [], transitions = [], observers = [], attributes = [], evaluators = [], selectValues = [], checkboxKeypaths = {}, checkboxes = [], radios = [], unresolved = [];
         return {
             start: function () {
                 if (flushing) {
@@ -626,7 +606,7 @@ var state_scheduler = function (failedLookups, pendingResolution, getValueFromCh
             },
             end: function () {
                 if (flushing) {
-                    pendingResolution.check();
+                    attemptKeypathResolution();
                     return;
                 }
                 if (!--inFlight) {
@@ -671,6 +651,13 @@ var state_scheduler = function (failedLookups, pendingResolution, getValueFromCh
             addRadio: function (radio) {
                 dirty = true;
                 radios.push(radio);
+            },
+            addUnresolved: function (thing) {
+                dirty = true;
+                unresolved.push(thing);
+            },
+            removeUnresolved: function (thing) {
+                removeFromArray(unresolved, thing);
             }
         };
         function land() {
@@ -697,7 +684,7 @@ var state_scheduler = function (failedLookups, pendingResolution, getValueFromCh
         }
         function flushChanges() {
             var thing;
-            pendingResolution.check();
+            attemptKeypathResolution();
             while (dirty) {
                 dirty = false;
                 failedLookups.purge();
@@ -715,7 +702,25 @@ var state_scheduler = function (failedLookups, pendingResolution, getValueFromCh
                 }
             }
         }
-    }(state_failedLookups, state_pendingResolution, shared_getValueFromCheckboxes);
+        function attemptKeypathResolution() {
+            var array, thing, keypath;
+            if (!unresolved.length) {
+                return;
+            }
+            array = unresolved.splice(0);
+            while (thing = array.pop()) {
+                if (thing.keypath) {
+                    continue;
+                }
+                keypath = resolveRef(thing.root, thing.ref, thing.contextStack);
+                if (keypath !== undefined) {
+                    thing.resolve(keypath);
+                } else {
+                    unresolved.push(thing);
+                }
+            }
+        }
+    }(state_failedLookups, utils_removeFromArray, shared_getValueFromCheckboxes, shared_resolveRef);
 var shared_clearCache = function () {
         
         return function clearCache(ractive, keypath) {
@@ -1240,15 +1245,15 @@ var shared_get_magicAdaptor = function (createBranch, isArray) {
                 }
                 return parentValue && typeof parentValue === 'object';
             },
-            wrap: function (ractive, object, keypath) {
-                return new MagicWrapper(ractive, object, keypath);
+            wrap: function (ractive, property, keypath) {
+                return new MagicWrapper(ractive, property, keypath);
             }
         };
-        MagicWrapper = function (ractive, object, keypath) {
+        MagicWrapper = function (ractive, property, keypath) {
             var wrapper = this, keys, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
             this.ractive = ractive;
             this.keypath = keypath;
-            this.value = object;
+            this.value = property;
             keys = keypath.split('.');
             this.prop = keys.pop();
             objKeypath = keys.join('.');
@@ -1267,7 +1272,6 @@ var shared_get_magicAdaptor = function (createBranch, isArray) {
                 throw new Error('Cannot use magic mode with property "' + this.prop + '" - object is not configurable');
             }
             if (descriptor) {
-                this.value = descriptor.value;
                 oldGet = descriptor.get;
                 oldSet = descriptor.set;
             }
@@ -1278,6 +1282,9 @@ var shared_get_magicAdaptor = function (createBranch, isArray) {
                 var wrappers, wrapper, len, i;
                 if (oldSet) {
                     oldSet(value);
+                }
+                if (oldGet) {
+                    value = oldGet();
                 }
                 wrappers = set._ractiveWrappers;
                 len = wrappers.length;
@@ -1539,19 +1546,12 @@ var shared_createComponentBinding = function (isArray, isEqual, registerDependan
             this.otherInstance = otherInstance;
             this.otherKeypath = otherKeypath;
             registerDependant(this);
+            this.value = this.root.get(this.keypath);
         };
         Binding.prototype = {
-            init: function (propagate) {
-                var value = this.root.get(this.keypath);
-                if (propagate && value !== undefined) {
-                    this.update();
-                } else {
-                    this.value = value;
-                }
-            },
             update: function () {
                 var value;
-                if (this.counterpart && this.counterpart.setting) {
+                if (this.updating || this.counterpart && this.counterpart.updating) {
                     return;
                 }
                 value = this.root.get(this.keypath);
@@ -1559,10 +1559,10 @@ var shared_createComponentBinding = function (isArray, isEqual, registerDependan
                     return;
                 }
                 if (!isEqual(value, this.value)) {
-                    this.setting = true;
+                    this.updating = true;
                     this.otherInstance.set(this.otherKeypath, value);
                     this.value = value;
-                    this.setting = false;
+                    this.updating = false;
                 }
             },
             teardown: function () {
@@ -1580,7 +1580,6 @@ var shared_createComponentBinding = function (isArray, isEqual, registerDependan
             childInstance = component.instance;
             priority = component.parentFragment.priority;
             parentToChildBinding = new Binding(parentInstance, parentKeypath, childInstance, childKeypath, priority);
-            parentToChildBinding.init();
             bindings.push(parentToChildBinding);
             if (childInstance.twoway) {
                 childToParentBinding = new Binding(childInstance, childKeypath, parentInstance, parentKeypath, 1);
@@ -1590,8 +1589,7 @@ var shared_createComponentBinding = function (isArray, isEqual, registerDependan
             }
         };
     }(utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant);
-var shared_get_FAILED_PARENT_LOOKUP = {};
-var shared_get_getFromParent = function (failedLookups, createComponentBinding, FAILED_PARENT_LOOKUP) {
+var shared_get_getFromParent = function (failedLookups, createComponentBinding) {
         
         return function getFromParent(child, keypath) {
             var parent, contextStack, keypathToTest, value, i;
@@ -1600,7 +1598,7 @@ var shared_get_getFromParent = function (failedLookups, createComponentBinding, 
                 return;
             }
             if (failedLookups(child._guid + keypath)) {
-                return FAILED_PARENT_LOOKUP;
+                return;
             }
             contextStack = child.component.parentFragment.contextStack;
             i = contextStack.length;
@@ -1620,53 +1618,45 @@ var shared_get_getFromParent = function (failedLookups, createComponentBinding, 
                 return value;
             }
             failedLookups.add(child._guid + keypath);
-            return FAILED_PARENT_LOOKUP;
         };
-    }(state_failedLookups, shared_createComponentBinding, shared_get_FAILED_PARENT_LOOKUP);
+    }(state_failedLookups, shared_createComponentBinding);
 var shared_get_FAILED_LOOKUP = {};
-var shared_get__get = function (adaptorRegistry, adaptIfNecessary, getFromParent, FAILED_LOOKUP, FAILED_PARENT_LOOKUP) {
+var shared_get__get = function (circular, adaptorRegistry, adaptIfNecessary, getFromParent, FAILED_LOOKUP) {
         
-        var get, _get, retrieve;
-        get = function (ractive, keypath) {
-            var value;
-            if (ractive._captured && !ractive._captured[keypath]) {
-                ractive._captured.push(keypath);
-                ractive._captured[keypath] = true;
-            }
-            value = _get(ractive, keypath);
-            if (value === FAILED_LOOKUP && value !== FAILED_PARENT_LOOKUP) {
-                value = getFromParent(ractive, keypath);
-            }
-            if (value === FAILED_PARENT_LOOKUP) {
-                return;
-            }
-            return value;
-        };
-        _get = function (ractive, keypath) {
-            var cache, cached, value, wrapped, evaluator;
-            cache = ractive._cache;
-            if ((cached = cache[keypath]) !== undefined) {
-                return cached;
-            }
-            if (wrapped = ractive._wrapped[keypath]) {
-                value = wrapped.value;
-            } else if (!keypath) {
-                adaptIfNecessary(ractive, '', ractive.data);
-                value = ractive.data;
-            } else if (evaluator = ractive._evaluators[keypath]) {
-                value = evaluator.value;
+        function get(ractive, keypath) {
+            var cache = ractive._cache, value, wrapped, evaluator;
+            if (cache[keypath] === undefined) {
+                if (wrapped = ractive._wrapped[keypath]) {
+                    value = wrapped.value;
+                } else if (!keypath) {
+                    adaptIfNecessary(ractive, '', ractive.data);
+                    value = ractive.data;
+                } else if (evaluator = ractive._evaluators[keypath]) {
+                    value = evaluator.value;
+                } else {
+                    value = retrieve(ractive, keypath);
+                }
+                cache[keypath] = value;
             } else {
-                value = retrieve(ractive, keypath);
+                value = cache[keypath];
             }
-            cache[keypath] = value;
+            if (value === FAILED_LOOKUP) {
+                if (ractive._parent && !ractive.isolated) {
+                    value = getFromParent(ractive, keypath);
+                } else {
+                    value = undefined;
+                }
+            }
             return value;
-        };
-        retrieve = function (ractive, keypath) {
+        }
+        circular.get = get;
+        return get;
+        function retrieve(ractive, keypath) {
             var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
             keys = keypath.split('.');
             key = keys.pop();
             parentKeypath = keys.join('.');
-            parentValue = _get(ractive, parentKeypath);
+            parentValue = get(ractive, parentKeypath);
             if (wrapped = ractive._wrapped[parentKeypath]) {
                 parentValue = wrapped.get();
             }
@@ -1688,13 +1678,16 @@ var shared_get__get = function (adaptorRegistry, adaptIfNecessary, getFromParent
             value = adaptIfNecessary(ractive, keypath, value, false, shouldClone);
             ractive._cache[keypath] = value;
             return value;
-        };
-        return get;
-    }(registries_adaptors, shared_adaptIfNecessary, shared_get_getFromParent, shared_get_FAILED_LOOKUP, shared_get_FAILED_PARENT_LOOKUP);
+        }
+    }(circular, registries_adaptors, shared_adaptIfNecessary, shared_get_getFromParent, shared_get_FAILED_LOOKUP);
 var Ractive_prototype_get = function (normaliseKeypath, get) {
         
-        return function (keypath) {
+        return function Ractive_prototype_get(keypath) {
             keypath = normaliseKeypath(keypath);
+            if (this._captured && !this._captured[keypath]) {
+                this._captured.push(keypath);
+                this._captured[keypath] = true;
+            }
             return get(this, keypath);
         };
     }(utils_normaliseKeypath, shared_get__get);
@@ -1742,7 +1735,7 @@ var Ractive_prototype_shared_replaceData = function (clone, createBranch, clearC
             clearCache(ractive, keypathToClear || keypath);
         };
     }(utils_clone, utils_createBranch, shared_clearCache);
-var Ractive_prototype_set = function (scheduler, pendingResolution, isObject, isEqual, normaliseKeypath, get, clearCache, notifyDependants, makeTransitionManager, replaceData) {
+var Ractive_prototype_set = function (scheduler, isObject, isEqual, normaliseKeypath, get, clearCache, notifyDependants, makeTransitionManager, replaceData) {
         
         return function (keypath, value, complete) {
             var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
@@ -1824,8 +1817,8 @@ var Ractive_prototype_set = function (scheduler, pendingResolution, isObject, is
             }
             return upstreamChanges;
         }
-    }(state_scheduler, state_pendingResolution, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_get__get, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, Ractive_prototype_shared_replaceData);
-var Ractive_prototype_update = function (scheduler, pendingResolution, makeTransitionManager, clearCache, notifyDependants) {
+    }(state_scheduler, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_get__get, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, Ractive_prototype_shared_replaceData);
+var Ractive_prototype_update = function (scheduler, makeTransitionManager, clearCache, notifyDependants) {
         
         return function (keypath, complete) {
             var transitionManager, previousTransitionManager;
@@ -1848,7 +1841,7 @@ var Ractive_prototype_update = function (scheduler, pendingResolution, makeTrans
             }
             return this;
         };
-    }(state_scheduler, state_pendingResolution, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants);
+    }(state_scheduler, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants);
 var utils_arrayContentsMatch = function (isArray) {
         
         return function (a, b) {
@@ -2012,10 +2005,6 @@ var shared_animations = function (rAF, getTime) {
             };
         return animations;
     }(utils_requestAnimationFrame, utils_getTime);
-var circular = function () {
-        
-        return [];
-    }();
 var utils_isNumeric = function () {
         
         return function (thing) {
@@ -3093,16 +3082,16 @@ var render_DomFragment_Text = function (types, detach) {
         };
         return DomText;
     }(config_types, render_DomFragment_shared_detach);
-var shared_teardown = function (pendingResolution, unregisterDependant) {
+var shared_teardown = function (scheduler, unregisterDependant) {
         
         return function (thing) {
             if (!thing.keypath) {
-                pendingResolution.remove(thing);
+                scheduler.removeUnresolved(thing);
             } else {
                 unregisterDependant(thing);
             }
         };
-    }(state_pendingResolution, shared_unregisterDependant);
+    }(state_scheduler, shared_unregisterDependant);
 var render_shared_Evaluator_Reference = function (types, isEqual, defineProperty, registerDependant, unregisterDependant) {
         
         var Reference, thisPattern;
@@ -3324,7 +3313,7 @@ var render_shared_Evaluator__Evaluator = function (scheduler, warn, isEqual, def
             return fn;
         }
     }(state_scheduler, utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference);
-var render_shared_ExpressionResolver_ReferenceScout = function (pendingResolution, resolveRef, teardown) {
+var render_shared_ExpressionResolver_ReferenceScout = function (scheduler, resolveRef, teardown) {
         
         var ReferenceScout = function (resolver, ref, contextStack, argNum) {
             var keypath, root;
@@ -3337,7 +3326,7 @@ var render_shared_ExpressionResolver_ReferenceScout = function (pendingResolutio
                 this.argNum = argNum;
                 this.resolver = resolver;
                 this.contextStack = contextStack;
-                pendingResolution.push(this);
+                scheduler.addUnresolved(this);
             }
         };
         ReferenceScout.prototype = {
@@ -3352,7 +3341,7 @@ var render_shared_ExpressionResolver_ReferenceScout = function (pendingResolutio
             }
         };
         return ReferenceScout;
-    }(state_pendingResolution, shared_resolveRef, shared_teardown);
+    }(state_scheduler, shared_resolveRef, shared_teardown);
 var render_shared_ExpressionResolver_getUniqueString = function () {
         
         return function (str, args) {
@@ -3504,7 +3493,7 @@ var render_shared_ExpressionResolver__ExpressionResolver = function (Evaluator, 
         };
         return ExpressionResolver;
     }(render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants);
-var render_shared_initMustache = function (pendingResolution, resolveRef, ExpressionResolver) {
+var render_shared_initMustache = function (scheduler, resolveRef, ExpressionResolver) {
         
         return function initMustache(mustache, options) {
             var keypath, indexRef, parentFragment;
@@ -3527,7 +3516,7 @@ var render_shared_initMustache = function (pendingResolution, resolveRef, Expres
                         mustache.resolve(keypath);
                     } else {
                         mustache.ref = options.descriptor.r;
-                        pendingResolution.push(mustache);
+                        scheduler.addUnresolved(mustache);
                     }
                 }
             }
@@ -3538,7 +3527,7 @@ var render_shared_initMustache = function (pendingResolution, resolveRef, Expres
                 mustache.render(undefined);
             }
         };
-    }(state_pendingResolution, shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver);
+    }(state_scheduler, shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver);
 var render_shared_resolveMustache = function (types, registerDependant, unregisterDependant) {
         
         return function resolveMustache(keypath) {
@@ -4327,7 +4316,7 @@ var render_DomFragment_Attribute_helpers_determinePropertyName = function (names
             }
         };
     }(config_namespaces);
-var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, warn, arrayContentsMatch, getValueFromCheckboxes) {
+var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, warn, arrayContentsMatch, getValueFromCheckboxes, get) {
         
         var bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
@@ -4355,7 +4344,7 @@ var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, wa
             this._ractive.binding.update();
         };
         update = function () {
-            var value = this._ractive.root.get(this._ractive.binding.keypath);
+            var value = get(this._ractive.root, this._ractive.binding.keypath);
             this.value = value == undefined ? '' : value;
         };
         getInterpolator = function (attribute) {
@@ -4413,7 +4402,7 @@ var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, wa
             var valueFromModel;
             inheritProperties(this, attribute, node);
             node.addEventListener('change', updateModel, false);
-            valueFromModel = this.root.get(this.keypath);
+            valueFromModel = get(this.root, this.keypath);
             if (valueFromModel === undefined) {
                 this.update();
             }
@@ -4461,7 +4450,7 @@ var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, wa
             var valueFromModel;
             inheritProperties(this, attribute, node);
             node.addEventListener('change', updateModel, false);
-            valueFromModel = this.root.get(this.keypath);
+            valueFromModel = get(this.root, this.keypath);
             if (valueFromModel === undefined) {
                 this.update();
             }
@@ -4507,7 +4496,7 @@ var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, wa
             if (node.attachEvent) {
                 node.addEventListener('click', updateModel, false);
             }
-            valueFromModel = this.root.get(this.keypath);
+            valueFromModel = get(this.root, this.keypath);
             if (valueFromModel !== undefined) {
                 node.checked = valueFromModel == node._ractive.value;
             } else {
@@ -4540,7 +4529,7 @@ var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, wa
             if (node.attachEvent) {
                 node.addEventListener('click', updateModel, false);
             }
-            valueFromModel = this.root.get(this.keypath);
+            valueFromModel = get(this.root, this.keypath);
             if (valueFromModel !== undefined) {
                 checked = valueFromModel.indexOf(node._ractive.value) !== -1;
                 node.checked = checked;
@@ -4660,7 +4649,7 @@ var render_DomFragment_Attribute_prototype_bind = function (scheduler, types, wa
             binding.keypath = attribute.keypath;
         };
         return bindAttribute;
-    }(state_scheduler, config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes);
+    }(state_scheduler, config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes, shared_get__get);
 var render_DomFragment_Attribute_prototype_update = function (scheduler, namespaces, isArray) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
@@ -7264,7 +7253,6 @@ var Ractive_prototype_render = function (scheduler, getElement, makeTransitionMa
             if (!this._initing) {
                 throw new Error('You cannot call ractive.render() directly!');
             }
-            this._updateScheduled = true;
             this._transitionManager = transitionManager = makeTransitionManager(this, complete);
             if (this.constructor.css) {
                 css.add(this.constructor);
@@ -7757,6 +7745,15 @@ var extend_conditionallyParsePartials = function (errors, parse) {
     }(config_errors, parse__parse);
 var Ractive_initialise = function (isClient, errors, initOptions, registries, warn, create, extend, fillGaps, defineProperty, defineProperties, getElement, isObject, isArray, getGuid, magicAdaptor, parse) {
         
+        var flags = [
+                'adapt',
+                'modifyArrays',
+                'magic',
+                'twoway',
+                'lazy',
+                'debug',
+                'isolated'
+            ];
         return function initialiseRactiveInstance(ractive, options) {
             var template, templateEl, parsedTemplate;
             if (isArray(options.adaptors)) {
@@ -7769,6 +7766,15 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
                     options[key] = ractive.constructor.defaults[key];
                 }
             });
+            flags.forEach(function (flag) {
+                ractive[flag] = options[flag];
+            });
+            if (typeof ractive.adapt === 'string') {
+                ractive.adapt = [ractive.adapt];
+            }
+            if (ractive.magic && !magicAdaptor) {
+                throw new Error('Getters and setters (magic mode) are not supported in this browser');
+            }
             defineProperties(ractive, {
                 _initing: {
                     value: true,
@@ -7794,21 +7800,8 @@ var Ractive_initialise = function (isClient, errors, initOptions, registries, wa
                 nodes: { value: {} },
                 _wrapped: { value: create(null) },
                 _liveQueries: { value: [] },
-                _liveComponentQueries: { value: [] },
-                _updateScheduled: {
-                    value: false,
-                    writable: true
-                }
+                _liveComponentQueries: { value: [] }
             });
-            ractive.adapt = typeof options.adapt === 'string' ? [options.adapt] : options.adapt;
-            ractive.modifyArrays = options.modifyArrays;
-            ractive.magic = options.magic;
-            ractive.twoway = options.twoway;
-            ractive.lazy = options.lazy;
-            ractive.debug = options.debug;
-            if (ractive.magic && !magicAdaptor) {
-                throw new Error('Getters and setters (magic mode) are not supported in this browser');
-            }
             if (options._parent && options._component) {
                 defineProperties(ractive, {
                     _parent: { value: options._parent },

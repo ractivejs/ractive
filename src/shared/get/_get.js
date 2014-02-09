@@ -3,15 +3,13 @@ define([
 	'registries/adaptors',
 	'shared/adaptIfNecessary',
 	'shared/get/getFromParent',
-	'shared/get/FAILED_LOOKUP',
-	'shared/get/FAILED_PARENT_LOOKUP'
+	'shared/get/FAILED_LOOKUP'
 ], function (
 	circular,
 	adaptorRegistry,
 	adaptIfNecessary,
 	getFromParent,
-	FAILED_LOOKUP,
-	FAILED_PARENT_LOOKUP
+	FAILED_LOOKUP
 ) {
 
 	'use strict';

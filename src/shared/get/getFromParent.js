@@ -1,11 +1,9 @@
 define([
 	'state/failedLookups',
-	'shared/createComponentBinding',
-	'shared/get/FAILED_PARENT_LOOKUP'
+	'shared/createComponentBinding'
 ], function (
 	failedLookups,
-	createComponentBinding,
-	FAILED_PARENT_LOOKUP
+	createComponentBinding
 ) {
 
 	'use strict';
