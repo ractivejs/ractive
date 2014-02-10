@@ -1,11 +1,9 @@
 define([
 	'utils/isArray',
-	'utils/isObject',
-	'utils/create'
+	'utils/isObject'
 ], function (
 	isArray,
-	isObject,
-	create
+	isObject
 ) {
 
 	'use strict';

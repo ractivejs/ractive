@@ -98,7 +98,7 @@ define([
 		},
 
 		teardownFragments: function ( destroy ) {
-			var id, fragment;
+			var fragment;
 
 			while ( fragment = this.fragments.shift() ) {
 				fragment.teardown( destroy );
@@ -118,7 +118,7 @@ define([
 		},
 
 		toString: function () {
-			var str, i, id, len;
+			var str, i, len;
 
 			str = '';
 
