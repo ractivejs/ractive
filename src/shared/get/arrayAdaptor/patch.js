@@ -73,7 +73,7 @@ define([
 				instance = instances[i];
 
 				instance._transitionManager = previousTransitionManagers[ instance._guid ];
-				transitionManagers[ instance._guid ].ready();
+				transitionManagers[ instance._guid ].init();
 			}
 
 			return result;

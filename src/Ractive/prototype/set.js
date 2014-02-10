@@ -78,7 +78,7 @@ define([
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;
-		transitionManager.ready();
+		transitionManager.init();
 
 		// Fire a change event
 		if ( !this.firingChangeEvent ) {

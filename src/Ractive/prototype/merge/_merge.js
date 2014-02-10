@@ -169,7 +169,7 @@ define([
 
 		// transition manager has finished its work
 		this._transitionManager = previousTransitionManager;
-		transitionManager.ready();
+		transitionManager.init();
 	};
 
 	function stringify ( item ) {

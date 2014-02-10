@@ -86,6 +86,11 @@ define( function () {
 		return new Promise( function ( fulfil, reject ) {
 			var result = [], pending, i, processPromise;
 
+			if ( !promises.length ) {
+				fulfil( result );
+				return;
+			}
+
 			processPromise = function ( i ) {
 				promises[i].then( function ( value ) {
 					result[i] = value;

@@ -44,7 +44,8 @@ define([
 
 		// Detach as soon as we can
 		if ( destroy ) {
-			this.root._transitionManager.detachWhenReady( this );
+			this.root._detachQueue.push( this );
+			//this.root._transitionManager.detachWhenReady( this );
 		}
 
 		// Remove this node from any live queries

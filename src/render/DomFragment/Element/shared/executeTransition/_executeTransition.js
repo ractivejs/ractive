@@ -44,7 +44,7 @@ define([
 
 			node._ractive.transition = transition;
 
-			transition._manager.push( node );
+			transition._manager.push( transition );
 
 			if ( isIntro ) {
 				// we don't want to call the transition function until this node

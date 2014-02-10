@@ -35,13 +35,13 @@ define([
 		// create t.complete() - we don't want this on the prototype,
 		// because we don't want `this` silliness when passing it as
 		// an argument
-		this.complete = function ( noReset ) {
+		t.complete = function ( noReset ) {
 			if ( !noReset && t.isIntro ) {
 				t.resetStyle();
 			}
 
 			t.node._ractive.transition = null;
-			t._manager.pop( t.node );
+			t._manager.remove( t );
 		};
 
 
