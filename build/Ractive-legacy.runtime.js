@@ -1,6 +1,6 @@
 /*
 
-	Ractive - v0.4.0-pre - 2014-02-09
+	Ractive - v0.4.0-pre - 2014-02-10
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -39,6 +39,7 @@
 
 
 	var legacy = function() {
+
 		var win, doc, exportedShims;
 		if ( typeof window === 'undefined' ) {
 			return;
@@ -293,6 +294,7 @@
 	}();
 
 	var config_initOptions = function( legacy ) {
+
 		var defaults, initOptions;
 		defaults = {
 			el: null,
@@ -328,6 +330,7 @@
 	}( legacy );
 
 	var config_svg = function() {
+
 		if ( typeof document === 'undefined' ) {
 			return;
 		}
@@ -335,6 +338,7 @@
 	}();
 
 	var utils_create = function() {
+
 		var create;
 		try {
 			Object.create( null );
@@ -369,6 +373,7 @@
 	};
 
 	var utils_createElement = function( svg, namespaces ) {
+
 		if ( !svg ) {
 			return function( type, ns ) {
 				if ( ns && ns !== namespaces.html ) {
@@ -389,6 +394,7 @@
 	var config_isClient = typeof document === 'object';
 
 	var utils_defineProperty = function( isClient ) {
+
 		try {
 			Object.defineProperty( {}, 'test', {
 				value: 0
@@ -407,6 +413,7 @@
 	}( config_isClient );
 
 	var utils_defineProperties = function( createElement, defineProperty, isClient ) {
+
 		try {
 			try {
 				Object.defineProperties( {}, {
@@ -438,6 +445,7 @@
 	}( utils_createElement, utils_defineProperty, config_isClient );
 
 	var utils_normaliseKeypath = function() {
+
 		var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 		return function normaliseKeypath( keypath ) {
 			return ( keypath || '' ).replace( regex, '.$1' );
@@ -451,6 +459,7 @@
 	var registries_adaptors = {};
 
 	var utils_isArray = function() {
+
 		var toString = Object.prototype.toString;
 		return function( thing ) {
 			return toString.call( thing ) === '[object Array]';
@@ -458,6 +467,7 @@
 	}();
 
 	var utils_clone = function( isArray ) {
+
 		return function( source ) {
 			var target, key;
 			if ( !source || typeof source !== 'object' ) {
@@ -477,6 +487,7 @@
 	}( utils_isArray );
 
 	var utils_isObject = function() {
+
 		var toString = Object.prototype.toString;
 		return function( thing ) {
 			return typeof thing === 'object' && toString.call( thing ) === '[object Object]';
@@ -516,6 +527,7 @@
 	};
 
 	var state_failedLookups = function() {
+
 		var failed, dirty, failedLookups;
 		failed = {};
 		dirty = false;
@@ -558,6 +570,7 @@
 	};
 
 	var shared_resolveRef = function( circular, normaliseKeypath ) {
+
 		var get, ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 		circular.push( function() {
 			get = circular.get;
@@ -615,6 +628,7 @@
 	}( circular, utils_normaliseKeypath );
 
 	var state_scheduler = function( failedLookups, removeFromArray, getValueFromCheckboxes, resolveRef ) {
+
 		var dirty = false,
 			flushing = false,
 			inFlight = 0,
@@ -624,6 +638,7 @@
 			transitions = [],
 			observers = [],
 			attributes = [],
+			components = [],
 			evaluators = [],
 			selectValues = [],
 			checkboxKeypaths = {}, checkboxes = [],
@@ -666,6 +681,9 @@
 			addAttribute: function( attribute ) {
 				attributes.push( attribute );
 			},
+			addComponent: function( component ) {
+				components.push( component );
+			},
 			addEvaluator: function( evaluator ) {
 				dirty = true;
 				evaluators.push( evaluator );
@@ -698,6 +716,9 @@
 			if ( toFocus ) {
 				toFocus.focus();
 				toFocus = null;
+			}
+			while ( thing = components.pop() ) {
+				thing.instance.init( thing.options );
 			}
 			while ( thing = attributes.pop() ) {
 				thing.update().deferred = false;
@@ -774,6 +795,7 @@
 
 	/* global console */
 	var utils_warn = function() {
+
 		if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
 			return function() {
 				console.warn.apply( console, arguments );
@@ -782,74 +804,46 @@
 		return function() {};
 	}();
 
-	var shared_makeTransitionManager = function( warn ) {
-		var makeTransitionManager = function( root, callback ) {
-			var transitionManager, elementsToDetach, transitioningNodes, detachNodes, nodeHasNoTransitioningChildren, checkComplete, parentTransitionManager;
-			elementsToDetach = [];
-			transitioningNodes = [];
-			detachNodes = function() {
-				var i, element;
-				i = elementsToDetach.length;
-				while ( i-- ) {
-					element = elementsToDetach[ i ];
-					if ( nodeHasNoTransitioningChildren( element.node ) ) {
-						element.detach();
-						elementsToDetach.splice( i, 1 );
-					}
-				}
-			};
-			nodeHasNoTransitioningChildren = function( node ) {
-				var i, candidate;
-				i = transitioningNodes.length;
-				while ( i-- ) {
-					candidate = transitioningNodes[ i ];
-					if ( node.contains( candidate ) ) {
-						return false;
-					}
-				}
-				return true;
-			};
-			checkComplete = function() {
-				if ( transitionManager._ready && !transitioningNodes.length ) {
-					if ( callback ) {
-						callback.call( root );
-					}
-					if ( parentTransitionManager ) {
-						parentTransitionManager.pop( root.el );
-					}
-				}
-			};
-			transitionManager = {
-				push: function( node ) {
-					transitioningNodes.push( node );
-				},
-				pop: function( node ) {
-					var index;
-					index = transitioningNodes.indexOf( node );
-					if ( index === -1 ) {
-						warn( 'This message should not appear. If it did, an unexpected situation occurred with a transition manager. Please tell @RactiveJS (http://twitter.com/RactiveJS). Thanks!' );
-						return;
-					}
-					transitioningNodes.splice( index, 1 );
-					detachNodes();
-					checkComplete();
-				},
-				ready: function() {
-					detachNodes();
-					transitionManager._ready = true;
-					checkComplete();
-				},
-				detachWhenReady: function( element ) {
-					elementsToDetach.push( element );
-				}
-			};
-			if ( root._parent && ( parentTransitionManager = root._parent._transitionManager ) ) {
-				parentTransitionManager.push( root.el );
+	var shared_makeTransitionManager = function( warn, removeFromArray ) {
+
+		var makeTransitionManager, checkComplete, remove, init;
+		makeTransitionManager = function( ractive, callback ) {
+			var transitionManager = [];
+			transitionManager.remove = remove;
+			transitionManager.init = init;
+			transitionManager._check = checkComplete;
+			transitionManager._root = ractive;
+			transitionManager._callback = callback;
+			if ( ractive._parent && ( transitionManager._parent = ractive._parent._transitionManager ) ) {
+				transitionManager._parent.push( transitionManager );
 			}
 			return transitionManager;
 		};
+		checkComplete = function() {
+			var ractive, element;
+			if ( this._ready && !this.length ) {
+				ractive = this._root;
+				while ( element = ractive._detachQueue.pop() ) {
+					element.detach();
+				}
+				if ( typeof this._callback === 'function' ) {
+					this._callback.call( ractive );
+				}
+				if ( this._parent ) {
+					this._parent.remove( this );
+				}
+			}
+		};
+		remove = function( transition ) {
+			removeFromArray( this, transition );
+			this._check();
+		};
+		init = function() {
+			this._ready = true;
+			this._check();
+		};
 		return makeTransitionManager;
-	}( utils_warn );
+	}( utils_warn, utils_removeFromArray );
 
 	var shared_get_arrayAdaptor_getSpliceEquivalent = function( array, methodName, args ) {
 		switch ( methodName ) {
@@ -900,6 +894,7 @@
 	};
 
 	var shared_notifyDependants = function() {
+
 		var notifyDependants, lastKey, starMaps = {};
 		lastKey = /[^\.]+$/;
 		notifyDependants = function( ractive, keypath, onlyDirect ) {
@@ -1039,6 +1034,7 @@
 	}();
 
 	var shared_get_arrayAdaptor_processWrapper = function( types, clearCache, notifyDependants ) {
+
 		return function( wrapper, array, methodName, spliceSummary ) {
 			var root, keypath, depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
 			root = wrapper.root;
@@ -1111,6 +1107,7 @@
 	}( config_types, shared_clearCache, shared_notifyDependants );
 
 	var shared_get_arrayAdaptor_patch = function( scheduler, defineProperty, clearCache, makeTransitionManager, getSpliceEquivalent, summariseSpliceOperation, processWrapper ) {
+
 		var patchedArrayProto = [],
 			mutatorMethods = [
 				'pop',
@@ -1142,13 +1139,13 @@
 					processWrapper( this._ractive.wrappers[ i ], this, methodName, spliceSummary );
 				}
 				this._ractive.setting = false;
+				scheduler.end();
 				i = instances.length;
 				while ( i-- ) {
 					instance = instances[ i ];
 					instance._transitionManager = previousTransitionManagers[ instance._guid ];
-					transitionManagers[ instance._guid ].ready();
+					transitionManagers[ instance._guid ].init();
 				}
-				scheduler.end();
 				return result;
 			};
 			defineProperty( patchedArrayProto, methodName, {
@@ -1188,6 +1185,7 @@
 	}( state_scheduler, utils_defineProperty, shared_clearCache, shared_makeTransitionManager, shared_get_arrayAdaptor_getSpliceEquivalent, shared_get_arrayAdaptor_summariseSpliceOperation, shared_get_arrayAdaptor_processWrapper );
 
 	var shared_get_arrayAdaptor__arrayAdaptor = function( types, defineProperty, isArray, patch ) {
+
 		var arrayAdaptor, ArrayWrapper, errorMessage;
 		arrayAdaptor = {
 			filter: function( object ) {
@@ -1257,6 +1255,7 @@
 	}( config_types, utils_defineProperty, utils_isArray, shared_get_arrayAdaptor_patch );
 
 	var utils_createBranch = function() {
+
 		var numeric = /^\s*[0-9]+\s*$/;
 		return function( key ) {
 			return numeric.test( key ) ? [] : {};
@@ -1264,6 +1263,7 @@
 	}();
 
 	var shared_get_magicAdaptor = function( createBranch, isArray ) {
+
 		var magicAdaptor, MagicWrapper;
 		try {
 			Object.defineProperty( {}, 'test', {
@@ -1396,6 +1396,7 @@
 	}( utils_createBranch, utils_isArray );
 
 	var shared_get_magicArrayAdaptor = function( magicAdaptor, arrayAdaptor ) {
+
 		if ( !magicAdaptor ) {
 			return false;
 		}
@@ -1429,6 +1430,7 @@
 	}( shared_get_magicAdaptor, shared_get_arrayAdaptor__arrayAdaptor );
 
 	var shared_adaptIfNecessary = function( clone, isObject, adaptorRegistry, arrayAdaptor, magicAdaptor, magicArrayAdaptor ) {
+
 		var prefixers = {};
 		return function adaptIfNecessary( ractive, keypath, value, isExpressionResult, shouldClone ) {
 			var len, i, adaptor, wrapped;
@@ -1515,6 +1517,7 @@
 	};
 
 	var shared_registerDependant = function() {
+
 		return function registerDependant( dependant ) {
 			var depsByKeypath, deps, ractive, keypath, priority;
 			ractive = dependant.root;
@@ -1548,6 +1551,7 @@
 	}();
 
 	var shared_unregisterDependant = function() {
+
 		return function unregisterDependant( dependant ) {
 			var deps, index, ractive, keypath, priority;
 			ractive = dependant.root;
@@ -1584,6 +1588,7 @@
 	}();
 
 	var shared_createComponentBinding = function( isArray, isEqual, registerDependant, unregisterDependant ) {
+
 		var Binding = function( ractive, keypath, otherInstance, otherKeypath, priority ) {
 			this.root = ractive;
 			this.keypath = keypath;
@@ -1636,6 +1641,7 @@
 	}( utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant );
 
 	var shared_get_getFromParent = function( failedLookups, createComponentBinding ) {
+
 		return function getFromParent( child, keypath ) {
 			var parent, contextStack, keypathToTest, value, i;
 			parent = child._parent;
@@ -1666,6 +1672,7 @@
 	var shared_get_FAILED_LOOKUP = {};
 
 	var shared_get__get = function( circular, adaptorRegistry, adaptIfNecessary, getFromParent, FAILED_LOOKUP ) {
+
 		function get( ractive, keypath ) {
 			var cache = ractive._cache,
 				value, wrapped, evaluator;
@@ -1727,6 +1734,7 @@
 	}( circular, registries_adaptors, shared_adaptIfNecessary, shared_get_getFromParent, shared_get_FAILED_LOOKUP );
 
 	var Ractive_prototype_get = function( normaliseKeypath, get ) {
+
 		return function Ractive_prototype_get( keypath ) {
 			keypath = normaliseKeypath( keypath );
 			if ( this._captured && !this._captured[ keypath ] ) {
@@ -1738,6 +1746,7 @@
 	}( utils_normaliseKeypath, shared_get__get );
 
 	var Ractive_prototype_shared_replaceData = function( clone, createBranch, clearCache ) {
+
 		return function( ractive, keypath, value ) {
 			var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
 			keys = keypath.split( '.' );
@@ -1782,6 +1791,7 @@
 	}( utils_clone, utils_createBranch, shared_clearCache );
 
 	var Ractive_prototype_set = function( scheduler, isObject, isEqual, normaliseKeypath, get, clearCache, notifyDependants, makeTransitionManager, replaceData ) {
+
 		return function( keypath, value, complete ) {
 			var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
 			changes = [];
@@ -1812,7 +1822,7 @@
 			notifyDependants.multiple( this, changes );
 			scheduler.end();
 			this._transitionManager = previousTransitionManager;
-			transitionManager.ready();
+			transitionManager.init();
 			if ( !this.firingChangeEvent ) {
 				this.firingChangeEvent = true;
 				changeHash = {};
@@ -1868,6 +1878,7 @@
 	}( state_scheduler, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_get__get, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, Ractive_prototype_shared_replaceData );
 
 	var Ractive_prototype_update = function( scheduler, makeTransitionManager, clearCache, notifyDependants ) {
+
 		return function( keypath, complete ) {
 			var transitionManager, previousTransitionManager;
 			scheduler.start();
@@ -1881,7 +1892,7 @@
 			notifyDependants( this, keypath || '' );
 			scheduler.end();
 			this._transitionManager = previousTransitionManager;
-			transitionManager.ready();
+			transitionManager.init();
 			if ( typeof keypath === 'string' ) {
 				this.fire( 'update', keypath );
 			} else {
@@ -1892,6 +1903,7 @@
 	}( state_scheduler, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants );
 
 	var utils_arrayContentsMatch = function( isArray ) {
+
 		return function( a, b ) {
 			var i;
 			if ( !isArray( a ) || !isArray( b ) ) {
@@ -1911,6 +1923,7 @@
 	}( utils_isArray );
 
 	var Ractive_prototype_updateModel = function( getValueFromCheckboxes, arrayContentsMatch, isEqual ) {
+
 		return function( keypath, cascade ) {
 			var values, deferredCheckboxes, i;
 			if ( typeof keypath !== 'string' ) {
@@ -1975,6 +1988,7 @@
 	];
 
 	var utils_requestAnimationFrame = function( vendors ) {
+
 		if ( typeof window === 'undefined' ) {
 			return;
 		}
@@ -2004,6 +2018,7 @@
 	}( config_vendors );
 
 	var utils_getTime = function() {
+
 		if ( typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function' ) {
 			return function() {
 				return window.performance.now();
@@ -2016,6 +2031,7 @@
 	}();
 
 	var shared_animations = function( rAF, getTime ) {
+
 		var queue = [];
 		var animations = {
 			tick: function() {
@@ -2059,6 +2075,7 @@
 	};
 
 	var registries_interpolators = function( circular, isArray, isObject, isNumeric ) {
+
 		var interpolators, interpolate, cssLengthPattern;
 		circular.push( function() {
 			interpolate = circular.interpolate;
@@ -2171,6 +2188,7 @@
 	}( circular, utils_isArray, utils_isObject, utils_isNumeric );
 
 	var shared_interpolate = function( warn, interpolators ) {
+
 		return function( from, to, ractive, type ) {
 			if ( from === to ) {
 				return snap( to );
@@ -2192,6 +2210,7 @@
 	}( utils_warn, registries_interpolators );
 
 	var Ractive_prototype_animate_Animation = function( warn, interpolate ) {
+
 		var Animation = function( options ) {
 			var key;
 			this.startTime = Date.now();
@@ -2254,6 +2273,7 @@
 	}( utils_warn, shared_interpolate );
 
 	var Ractive_prototype_animate__animate = function( isEqual, animations, Animation ) {
+
 		var noAnimation = {
 			stop: function() {}
 		};
@@ -2425,6 +2445,7 @@
 	};
 
 	var Ractive_prototype_observe_Observer = function( scheduler, isEqual, get ) {
+
 		var Observer = function( ractive, keypath, callback, options ) {
 			var self = this;
 			this.root = ractive;
@@ -2480,6 +2501,7 @@
 	}( state_scheduler, utils_isEqual, shared_get__get );
 
 	var Ractive_prototype_observe_getPattern = function( isArray ) {
+
 		return function( ractive, pattern ) {
 			var keys, key, values, toGet, newToGet, expand, concatenate;
 			keys = pattern.split( '.' );
@@ -2518,6 +2540,7 @@
 	}( utils_isArray );
 
 	var Ractive_prototype_observe_PatternObserver = function( scheduler, isEqual, get, getPattern ) {
+
 		var PatternObserver, wildcard = /\*/;
 		PatternObserver = function( ractive, keypath, callback, options ) {
 			this.root = ractive;
@@ -2599,6 +2622,7 @@
 	}( state_scheduler, utils_isEqual, shared_get__get, Ractive_prototype_observe_getPattern );
 
 	var Ractive_prototype_observe_getObserverFacade = function( normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver ) {
+
 		var wildcard = /\*/,
 			emptyObject = {};
 		return function getObserverFacade( ractive, keypath, callback, options ) {
@@ -2631,6 +2655,7 @@
 	}( utils_normaliseKeypath, shared_registerDependant, shared_unregisterDependant, Ractive_prototype_observe_Observer, Ractive_prototype_observe_PatternObserver );
 
 	var Ractive_prototype_observe__observe = function( isObject, getObserverFacade ) {
+
 		return function observe( keypath, callback, options ) {
 			var observers, map, keypaths, i;
 			if ( isObject( keypath ) ) {
@@ -2698,6 +2723,7 @@
 	};
 
 	var utils_matches = function( isClient, vendors, createElement ) {
+
 		var div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 		if ( !isClient ) {
 			return;
@@ -2740,6 +2766,7 @@
 	}( config_isClient, config_vendors, utils_createElement );
 
 	var Ractive_prototype_shared_makeQuery_test = function( matches ) {
+
 		return function( item, noDirty ) {
 			var itemMatches = this._isComponentQuery ? !this.selector || item.name === this.selector : matches( item.node, this.selector );
 			if ( itemMatches ) {
@@ -2764,6 +2791,7 @@
 	};
 
 	var Ractive_prototype_shared_makeQuery_sortByItemPosition = function() {
+
 		return function( a, b ) {
 			var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
 			ancestryA = getAncestry( a.component || a._ractive.proxy );
@@ -2817,6 +2845,7 @@
 	}();
 
 	var Ractive_prototype_shared_makeQuery_sortByDocumentPosition = function( sortByItemPosition ) {
+
 		return function( node, otherNode ) {
 			var bitmask;
 			if ( node.compareDocumentPosition ) {
@@ -2828,6 +2857,7 @@
 	}( Ractive_prototype_shared_makeQuery_sortByItemPosition );
 
 	var Ractive_prototype_shared_makeQuery_sort = function( sortByDocumentPosition, sortByItemPosition ) {
+
 		return function() {
 			this.sort( this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition );
 			this._dirty = false;
@@ -2835,6 +2865,7 @@
 	}( Ractive_prototype_shared_makeQuery_sortByDocumentPosition, Ractive_prototype_shared_makeQuery_sortByItemPosition );
 
 	var Ractive_prototype_shared_makeQuery_dirty = function( scheduler ) {
+
 		return function() {
 			if ( !this._dirty ) {
 				scheduler.addLiveQuery( this );
@@ -2851,6 +2882,7 @@
 	};
 
 	var Ractive_prototype_shared_makeQuery__makeQuery = function( defineProperties, test, cancel, sort, dirty, remove ) {
+
 		return function( ractive, selector, live, isComponentQuery ) {
 			var query;
 			query = [];
@@ -2897,6 +2929,7 @@
 	}( utils_defineProperties, Ractive_prototype_shared_makeQuery_test, Ractive_prototype_shared_makeQuery_cancel, Ractive_prototype_shared_makeQuery_sort, Ractive_prototype_shared_makeQuery_dirty, Ractive_prototype_shared_makeQuery_remove );
 
 	var Ractive_prototype_findAll = function( warn, matches, defineProperties, makeQuery ) {
+
 		return function( selector, options ) {
 			var liveQueries, query;
 			if ( !this.el ) {
@@ -2922,6 +2955,7 @@
 	};
 
 	var Ractive_prototype_findAllComponents = function( warn, matches, defineProperties, makeQuery ) {
+
 		return function( selector, options ) {
 			var liveQueries, query;
 			options = options || {};
@@ -2963,6 +2997,7 @@
 	};
 
 	var state_css = function() {
+
 		var styleElement, usedStyles = [],
 			updateStyleElement;
 		updateStyleElement = function() {
@@ -3009,6 +3044,7 @@
 	}();
 
 	var render_shared_initFragment = function( types, create ) {
+
 		return function initFragment( fragment, options ) {
 			var numItems, i, parentFragment, parentRefs, ref;
 			fragment.owner = options.owner;
@@ -3048,6 +3084,7 @@
 	}( config_types, utils_create );
 
 	var render_DomFragment_shared_insertHtml = function( createElement ) {
+
 		var elementCache = {}, ieBug, ieBlacklist;
 		try {
 			createElement( 'table' ).innerHTML = 'foo';
@@ -3111,6 +3148,7 @@
 	};
 
 	var render_DomFragment_Text = function( types, detach ) {
+
 		var DomText, lessThan, greaterThan;
 		lessThan = /</g;
 		greaterThan = />/g;
@@ -3140,6 +3178,7 @@
 	}( config_types, render_DomFragment_shared_detach );
 
 	var shared_teardown = function( scheduler, unregisterDependant ) {
+
 		return function( thing ) {
 			if ( !thing.keypath ) {
 				scheduler.removeUnresolved( thing );
@@ -3150,6 +3189,7 @@
 	}( state_scheduler, shared_unregisterDependant );
 
 	var render_shared_Evaluator_Reference = function( types, isEqual, defineProperty, registerDependant, unregisterDependant ) {
+
 		var Reference, thisPattern;
 		thisPattern = /this/;
 		Reference = function( root, keypath, evaluator, argNum, priority ) {
@@ -3231,6 +3271,7 @@
 	}( config_types, utils_isEqual, utils_defineProperty, shared_registerDependant, shared_unregisterDependant );
 
 	var render_shared_Evaluator_SoftReference = function( isEqual, registerDependant, unregisterDependant ) {
+
 		var SoftReference = function( root, keypath, evaluator ) {
 			this.root = root;
 			this.keypath = keypath;
@@ -3254,6 +3295,7 @@
 	}( utils_isEqual, shared_registerDependant, shared_unregisterDependant );
 
 	var render_shared_Evaluator__Evaluator = function( scheduler, warn, isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference ) {
+
 		var Evaluator, cache = {};
 		Evaluator = function( root, keypath, uniqueString, functionStr, args, priority ) {
 			var i, arg;
@@ -3375,6 +3417,7 @@
 	}( state_scheduler, utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference );
 
 	var render_shared_ExpressionResolver_ReferenceScout = function( scheduler, resolveRef, teardown ) {
+
 		var ReferenceScout = function( resolver, ref, contextStack, argNum ) {
 			var keypath, root;
 			root = this.root = resolver.root;
@@ -3410,6 +3453,7 @@
 	};
 
 	var render_shared_ExpressionResolver_isRegularKeypath = function() {
+
 		var keyPattern = /^(?:(?:[a-zA-Z$_][a-zA-Z$_0-9]*)|(?:[0-9]|[1-9][0-9]+))$/;
 		return function( keypath ) {
 			var keys, key, i;
@@ -3426,6 +3470,7 @@
 	}();
 
 	var render_shared_ExpressionResolver_getKeypath = function( normaliseKeypath, isRegularKeypath ) {
+
 		return function( uniqueString ) {
 			var normalised;
 			normalised = normaliseKeypath( uniqueString );
@@ -3437,6 +3482,7 @@
 	}( utils_normaliseKeypath, render_shared_ExpressionResolver_isRegularKeypath );
 
 	var render_shared_ExpressionResolver_reassignDependants = function( registerDependant, unregisterDependant ) {
+
 		return function( ractive, oldKeypath, newKeypath ) {
 			var toReassign, i, dependant;
 			toReassign = [];
@@ -3483,6 +3529,7 @@
 	}( shared_registerDependant, shared_unregisterDependant );
 
 	var render_shared_ExpressionResolver__ExpressionResolver = function( Evaluator, ReferenceScout, getUniqueString, getKeypath, reassignDependants ) {
+
 		var ExpressionResolver = function( mustache ) {
 			var expression, i, len, ref, indexRefs;
 			this.root = mustache.root;
@@ -3555,6 +3602,7 @@
 	}( render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants );
 
 	var render_shared_initMustache = function( scheduler, resolveRef, ExpressionResolver ) {
+
 		return function initMustache( mustache, options ) {
 			var keypath, indexRef, parentFragment;
 			parentFragment = mustache.parentFragment = options.parentFragment;
@@ -3590,6 +3638,7 @@
 	}( state_scheduler, shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver );
 
 	var render_shared_resolveMustache = function( types, registerDependant, unregisterDependant ) {
+
 		return function resolveMustache( keypath ) {
 			if ( keypath === this.keypath ) {
 				return;
@@ -3610,6 +3659,7 @@
 	}( config_types, shared_registerDependant, shared_unregisterDependant );
 
 	var render_shared_updateMustache = function( isEqual ) {
+
 		return function updateMustache() {
 			var wrapped, value;
 			value = this.root.get( this.keypath );
@@ -3624,6 +3674,7 @@
 	}( utils_isEqual );
 
 	var render_DomFragment_Interpolator = function( types, teardown, initMustache, resolveMustache, updateMustache, detach ) {
+
 		var DomInterpolator, lessThan, greaterThan;
 		lessThan = /</g;
 		greaterThan = />/g;
@@ -3662,6 +3713,7 @@
 	}( config_types, shared_teardown, render_shared_initMustache, render_shared_resolveMustache, render_shared_updateMustache, render_DomFragment_shared_detach );
 
 	var render_DomFragment_Section_reassignFragment = function( types, unregisterDependant, ExpressionResolver ) {
+
 		return reassignFragment;
 
 		function reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
@@ -3784,6 +3836,7 @@
 	}( config_types, shared_unregisterDependant, render_shared_ExpressionResolver__ExpressionResolver );
 
 	var render_DomFragment_Section_reassignFragments = function( types, reassignFragment ) {
+
 		return function( root, section, start, end, by ) {
 			var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
 			indexRef = section.descriptor.i;
@@ -3800,6 +3853,7 @@
 	}( config_types, render_DomFragment_Section_reassignFragment );
 
 	var render_DomFragment_Section_helpers_splice = function( reassignFragments ) {
+
 		return function( section, spliceSummary ) {
 			var insertionPoint, balance, i, start, end, insertStart, insertEnd, spliceArgs, fragmentOptions;
 			balance = spliceSummary.balance;
@@ -3844,6 +3898,7 @@
 	}( render_DomFragment_Section_reassignFragments );
 
 	var render_DomFragment_Section_prototype_merge = function( reassignFragment ) {
+
 		var toTeardown = [];
 		return function sectionMerge( newIndices ) {
 			var section = this,
@@ -3904,7 +3959,8 @@
 		};
 	}( render_DomFragment_Section_reassignFragment );
 
-	var render_shared_updateSection = function( isArray, isObject, create ) {
+	var render_shared_updateSection = function( isArray, isObject ) {
+
 		return function updateSection( section, value ) {
 			var fragmentOptions;
 			fragmentOptions = {
@@ -3954,24 +4010,29 @@
 		}
 
 		function updateListObjectSection( section, value, fragmentOptions ) {
-			var id, fragmentsById;
-			fragmentsById = section.fragmentsById || ( section.fragmentsById = create( null ) );
-			for ( id in fragmentsById ) {
-				if ( value[ id ] === undefined && fragmentsById[ id ] ) {
-					fragmentsById[ id ].teardown( true );
-					fragmentsById[ id ] = null;
+			var id, i, hasKey, fragment;
+			hasKey = section.hasKey || ( section.hasKey = {} );
+			i = section.fragments.length;
+			while ( i-- ) {
+				fragment = section.fragments[ i ];
+				if ( !( fragment.index in value ) ) {
+					section.fragments[ i ].teardown( true );
+					section.fragments.splice( i, 1 );
+					hasKey[ fragment.index ] = false;
 				}
 			}
 			for ( id in value ) {
-				if ( value[ id ] !== undefined && !fragmentsById[ id ] ) {
+				if ( !hasKey[ id ] ) {
 					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + id );
 					fragmentOptions.index = id;
 					if ( section.descriptor.i ) {
 						fragmentOptions.indexRef = section.descriptor.i;
 					}
-					fragmentsById[ id ] = section.createFragment( fragmentOptions );
+					section.fragments.push( section.createFragment( fragmentOptions ) );
+					hasKey[ id ] = true;
 				}
 			}
+			section.length = section.fragments.length;
 		}
 
 		function updateContextSection( section, fragmentOptions ) {
@@ -4009,9 +4070,10 @@
 				section.length = 0;
 			}
 		}
-	}( utils_isArray, utils_isObject, utils_create );
+	}( utils_isArray, utils_isObject );
 
 	var render_DomFragment_Section_prototype_render = function( isClient, updateSection ) {
+
 		return function DomSection_prototype_render( value ) {
 			var nextNode, wrapped;
 			if ( wrapped = this.root._wrapped[ this.keypath ] ) {
@@ -4038,6 +4100,7 @@
 	}( config_isClient, render_shared_updateSection );
 
 	var render_DomFragment_Section__Section = function( types, initMustache, updateMustache, resolveMustache, splice, merge, render, teardown, circular ) {
+
 		var DomSection, DomFragment;
 		circular.push( function() {
 			DomFragment = circular.DomFragment;
@@ -4093,17 +4156,9 @@
 				return this.parentFragment.findNextNode( this );
 			},
 			teardownFragments: function( destroy ) {
-				var id, fragment;
+				var fragment;
 				while ( fragment = this.fragments.shift() ) {
 					fragment.teardown( destroy );
-				}
-				if ( this.fragmentsById ) {
-					for ( id in this.fragmentsById ) {
-						if ( this.fragments[ id ] ) {
-							this.fragmentsById[ id ].teardown( destroy );
-							this.fragmentsById[ id ] = null;
-						}
-					}
 				}
 			},
 			render: render,
@@ -4115,19 +4170,12 @@
 				return fragment;
 			},
 			toString: function() {
-				var str, i, id, len;
+				var str, i, len;
 				str = '';
 				i = 0;
 				len = this.length;
 				for ( i = 0; i < len; i += 1 ) {
 					str += this.fragments[ i ].toString();
-				}
-				if ( this.fragmentsById ) {
-					for ( id in this.fragmentsById ) {
-						if ( this.fragmentsById[ id ] ) {
-							str += this.fragmentsById[ id ].toString();
-						}
-					}
 				}
 				return str;
 			},
@@ -4170,6 +4218,7 @@
 	}( config_types, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_DomFragment_Section_helpers_splice, render_DomFragment_Section_prototype_merge, render_DomFragment_Section_prototype_render, shared_teardown, circular );
 
 	var render_DomFragment_Triple = function( types, matches, initMustache, updateMustache, resolveMustache, insertHtml, teardown ) {
+
 		var DomTriple = function( options, docFrag ) {
 			this.type = types.TRIPLE;
 			if ( docFrag ) {
@@ -4275,6 +4324,7 @@
 	}( config_types, utils_matches, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_DomFragment_shared_insertHtml, shared_teardown );
 
 	var render_DomFragment_Element_initialise_getElementNamespace = function( namespaces ) {
+
 		return function( descriptor, parentNode ) {
 			if ( descriptor.a && descriptor.a.xmlns ) {
 				return descriptor.a.xmlns;
@@ -4284,6 +4334,7 @@
 	}( config_namespaces );
 
 	var render_DomFragment_shared_enforceCase = function() {
+
 		var svgCamelCaseElements, svgCamelCaseAttributes, createMap, map;
 		svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split( ' ' );
 		svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split( ' ' );
@@ -4302,6 +4353,7 @@
 	}();
 
 	var render_DomFragment_Attribute_helpers_determineNameAndNamespace = function( namespaces, enforceCase ) {
+
 		return function( attribute, name ) {
 			var colonIndex, namespacePrefix;
 			colonIndex = name.indexOf( ':' );
@@ -4324,6 +4376,7 @@
 	}( config_namespaces, render_DomFragment_shared_enforceCase );
 
 	var render_DomFragment_Attribute_helpers_setStaticAttribute = function( namespaces ) {
+
 		return function setStaticAttribute( attribute, options ) {
 			var node, value = options.value === null ? '' : options.value;
 			if ( node = options.pNode ) {
@@ -4350,6 +4403,7 @@
 	}( config_namespaces );
 
 	var render_DomFragment_Attribute_helpers_determinePropertyName = function( namespaces ) {
+
 		var propertyNames = {
 			'accept-charset': 'acceptCharset',
 			accesskey: 'accessKey',
@@ -4386,7 +4440,10 @@
 	}( config_namespaces );
 
 	var render_DomFragment_Attribute_prototype_bind = function( scheduler, types, warn, arrayContentsMatch, getValueFromCheckboxes, get ) {
-		var bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
+
+		var singleMustacheError = 'For two-way binding to work, attribute value must be a single interpolator (e.g. value="{{foo}}")',
+			expressionError = 'You cannot set up two-way binding against an expression ',
+			bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
 		bindAttribute = function() {
 			var node = this.pNode,
 				interpolator, binding, bindings;
@@ -4417,21 +4474,16 @@
 			this.value = value == undefined ? '' : value;
 		};
 		getInterpolator = function( attribute ) {
-			var item, errorMessage;
-			if ( attribute.fragment.items.length !== 1 ) {
-				return null;
-			}
-			item = attribute.fragment.items[ 0 ];
-			if ( item.type !== types.INTERPOLATOR ) {
-				return null;
-			}
-			if ( !item.keypath && !item.ref ) {
+			var item = attribute.fragment.items[ 0 ];
+			if ( attribute.fragment.items.length !== 1 || item.type !== types.INTERPOLATOR || !item.keypath && !item.ref ) {
+				if ( attribute.root.debug ) {
+					warn( singleMustacheError );
+				}
 				return null;
 			}
 			if ( item.keypath && item.keypath.substr( 0, 2 ) === '${' ) {
-				errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
 				if ( attribute.root.debug ) {
-					warn( errorMessage );
+					warn( expressionError + item.keypath );
 				}
 				return null;
 			}
@@ -4722,6 +4774,7 @@
 	}( state_scheduler, config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes, shared_get__get );
 
 	var render_DomFragment_Attribute_prototype_update = function( scheduler, namespaces, isArray ) {
+
 		var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
 		updateAttribute = function() {
 			var node;
@@ -4913,6 +4966,7 @@
 	};
 
 	var parse_Tokenizer_utils_allowWhitespace = function() {
+
 		var leadingWhitespace = /^\s+/;
 		return function() {
 			var match = leadingWhitespace.exec( this.remaining() );
@@ -4936,6 +4990,7 @@
 	};
 
 	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher = function( makeRegexMatcher ) {
+
 		var getStringMiddle, getEscapeSequence, getLineContinuation;
 		getStringMiddle = makeRegexMatcher( /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/ );
 		getEscapeSequence = makeRegexMatcher( /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/ );
@@ -4972,14 +5027,17 @@
 	}( parse_Tokenizer_utils_makeRegexMatcher );
 
 	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getSingleQuotedString = function( makeQuotedStringMatcher ) {
+
 		return makeQuotedStringMatcher( '\'', '"' );
 	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher );
 
 	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getDoubleQuotedString = function( makeQuotedStringMatcher ) {
+
 		return makeQuotedStringMatcher( '"', '\'' );
 	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher );
 
 	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral = function( types, getSingleQuotedString, getDoubleQuotedString ) {
+
 		return function( tokenizer ) {
 			var start, string;
 			start = tokenizer.pos;
@@ -5010,6 +5068,7 @@
 	}( config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getSingleQuotedString, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getDoubleQuotedString );
 
 	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral = function( types, makeRegexMatcher ) {
+
 		var getNumber = makeRegexMatcher( /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/ );
 		return function( tokenizer ) {
 			var result;
@@ -5024,10 +5083,12 @@
 	}( config_types, parse_Tokenizer_utils_makeRegexMatcher );
 
 	var parse_Tokenizer_getExpression_shared_getName = function( makeRegexMatcher ) {
+
 		return makeRegexMatcher( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
 	}( parse_Tokenizer_utils_makeRegexMatcher );
 
 	var parse_Tokenizer_getExpression_shared_getKey = function( getStringLiteral, getNumberLiteral, getName ) {
+
 		var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 		return function( tokenizer ) {
 			var token;
@@ -5044,6 +5105,7 @@
 	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_shared_getName );
 
 	var utils_parseJSON = function( getStringMatch, allowWhitespace, getStringLiteral, getKey ) {
+
 		var Tokenizer, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
 		specials = {
 			'true': true,
@@ -5189,6 +5251,7 @@
 	}( parse_Tokenizer_utils_getStringMatch, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_shared_getKey );
 
 	var render_StringFragment_Interpolator = function( types, teardown, initMustache, updateMustache, resolveMustache ) {
+
 		var StringInterpolator = function( options ) {
 			this.type = types.INTERPOLATOR;
 			initMustache( this, options );
@@ -5221,6 +5284,7 @@
 	}( config_types, shared_teardown, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache );
 
 	var render_StringFragment_Section = function( types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular ) {
+
 		var StringSection, StringFragment;
 		circular.push( function() {
 			StringFragment = circular.StringFragment;
@@ -5267,6 +5331,7 @@
 	}( config_types, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache, render_shared_updateSection, shared_teardown, circular );
 
 	var render_StringFragment_Text = function( types ) {
+
 		var StringText = function( text ) {
 			this.type = types.TEXT;
 			this.text = text;
@@ -5281,6 +5346,7 @@
 	}( config_types );
 
 	var render_StringFragment_prototype_toArgsList = function( warn, parseJSON ) {
+
 		return function() {
 			var values, counter, jsonesque, guid, errorMessage, parsed, processItems;
 			if ( !this.argsList || this.dirty ) {
@@ -5328,6 +5394,7 @@
 	}( utils_warn, utils_parseJSON );
 
 	var render_StringFragment__StringFragment = function( types, parseJSON, initFragment, Interpolator, Section, Text, toArgsList, circular ) {
+
 		var StringFragment = function( options ) {
 			initFragment( this, options );
 		};
@@ -5410,6 +5477,7 @@
 	}( config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, render_StringFragment_prototype_toArgsList, circular );
 
 	var render_DomFragment_Attribute__Attribute = function( scheduler, types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment ) {
+
 		var DomAttribute = function( options ) {
 			this.type = types.ATTRIBUTE;
 			this.element = options.element;
@@ -5485,6 +5553,7 @@
 	}( state_scheduler, config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Element_initialise_createElementAttributes = function( DomAttribute ) {
+
 		return function( element, attributes ) {
 			var attrName, attrValue, attr;
 			element.attributes = [];
@@ -5510,6 +5579,7 @@
 	}( render_DomFragment_Attribute__Attribute );
 
 	var render_DomFragment_Element_initialise_appendElementChildren = function( warn, namespaces, StringFragment, circular ) {
+
 		var DomFragment, updateCss, updateScript;
 		circular.push( function() {
 			DomFragment = circular.DomFragment;
@@ -5582,6 +5652,7 @@
 	}( utils_warn, config_namespaces, render_StringFragment__StringFragment, circular );
 
 	var render_DomFragment_Element_initialise_decorate_Decorator = function( warn, StringFragment ) {
+
 		var Decorator = function( descriptor, root, owner, contextStack ) {
 			var name, fragment, errorMessage;
 			this.root = root;
@@ -5638,6 +5709,7 @@
 	}( utils_warn, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Element_initialise_decorate__decorate = function( scheduler, Decorator ) {
+
 		return function( descriptor, root, owner, contextStack ) {
 			owner.decorator = new Decorator( descriptor, root, owner, contextStack );
 			if ( owner.decorator.fn ) {
@@ -5647,6 +5719,7 @@
 	}( state_scheduler, render_DomFragment_Element_initialise_decorate_Decorator );
 
 	var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function( warn, StringFragment ) {
+
 		var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
 		addEventProxy = function( element, triggerEventName, proxyDescriptor, contextStack, indexRefs ) {
 			var events, master;
@@ -5782,6 +5855,7 @@
 	}( utils_warn, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Element_initialise_addEventProxies__addEventProxies = function( addEventProxy ) {
+
 		return function( element, proxies ) {
 			var i, eventName, eventNames;
 			for ( eventName in proxies ) {
@@ -5820,6 +5894,7 @@
 	};
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix = function( isClient, vendors, createElement ) {
+
 		var prefixCache, testStyle;
 		if ( !isClient ) {
 			return;
@@ -5848,6 +5923,7 @@
 	}( config_isClient, config_vendors, utils_createElement );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle = function( legacy, isClient, isArray, prefix ) {
+
 		var getComputedStyle;
 		if ( !isClient ) {
 			return;
@@ -5881,6 +5957,7 @@
 	}( legacy, config_isClient, utils_isArray, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle = function( prefix ) {
+
 		return function( style, value ) {
 			var prop;
 			if ( typeof style === 'string' ) {
@@ -5897,6 +5974,7 @@
 	}( render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix );
 
 	var utils_Promise = function() {
+
 		var Promise, PENDING = {}, FULFILLED = {}, REJECTED = {};
 		Promise = function( callback ) {
 			var fulfilledHandlers = [],
@@ -5949,6 +6027,10 @@
 			return new Promise( function( fulfil, reject ) {
 				var result = [],
 					pending, i, processPromise;
+				if ( !promises.length ) {
+					fulfil( result );
+					return;
+				}
 				processPromise = function( i ) {
 					promises[ i ].then( function( value ) {
 						result[ i ] = value;
@@ -6027,6 +6109,7 @@
 	}();
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix = function( vendors ) {
+
 		var unprefixPattern = new RegExp( '^-(?:' + vendors.join( '|' ) + ')-' );
 		return function( prop ) {
 			return prop.replace( unprefixPattern, '' );
@@ -6040,6 +6123,7 @@
 	};
 
 	var shared_Ticker = function( warn, getTime, animations ) {
+
 		var Ticker = function( options ) {
 			var easing;
 			this.duration = options.duration;
@@ -6099,6 +6183,7 @@
 	}( utils_warn, utils_getTime, shared_animations );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_helpers_hyphenate = function( vendors ) {
+
 		var vendorPattern = new RegExp( '^(?:' + vendors.join( '|' ) + ')([A-Z])' );
 		return function( str ) {
 			var hyphenated;
@@ -6116,6 +6201,7 @@
 	}( config_vendors );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions = function( isClient, warn, Promise, createElement, camelCase, interpolate, Ticker, prefix, unprefix, hyphenate ) {
+
 		var testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {}, cannotUseCssTransitions = {};
 		if ( !isClient ) {
 			return;
@@ -6229,6 +6315,7 @@
 	}( config_isClient, utils_warn, utils_Promise, utils_createElement, utils_camelCase, shared_interpolate, shared_Ticker, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_hyphenate );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle = function( legacy, isClient, warn, Promise, prefix, unprefix, createTransitions ) {
+
 		var getComputedStyle;
 		if ( !isClient ) {
 			return;
@@ -6298,6 +6385,7 @@
 	};
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_processParams = function( fillGaps ) {
+
 		return function( params, defaults ) {
 			if ( typeof params === 'number' ) {
 				params = {
@@ -6334,6 +6422,7 @@
 	};
 
 	var render_DomFragment_Element_shared_executeTransition_Transition__Transition = function( warn, StringFragment, init, getStyle, setStyle, animateStyle, processParams, resetStyle ) {
+
 		var Transition;
 		Transition = function( descriptor, root, owner, contextStack, isIntro ) {
 			var t = this,
@@ -6342,12 +6431,12 @@
 			this.node = owner.node;
 			this.isIntro = isIntro;
 			this.originalStyle = this.node.getAttribute( 'style' );
-			this.complete = function( noReset ) {
+			t.complete = function( noReset ) {
 				if ( !noReset && t.isIntro ) {
 					t.resetStyle();
 				}
 				t.node._ractive.transition = null;
-				t._manager.pop( t.node );
+				t._manager.remove( t );
 			};
 			name = descriptor.n || descriptor;
 			if ( typeof name !== 'string' ) {
@@ -6396,6 +6485,7 @@
 	}( utils_warn, render_StringFragment__StringFragment, render_DomFragment_Element_shared_executeTransition_Transition_prototype_init, render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_processParams, render_DomFragment_Element_shared_executeTransition_Transition_prototype_resetStyle );
 
 	var render_DomFragment_Element_shared_executeTransition__executeTransition = function( scheduler, warn, Transition ) {
+
 		return function( descriptor, ractive, owner, contextStack, isIntro ) {
 			var transition, node, instance, manager, oldTransition;
 			if ( !ractive.transitionsEnabled || ractive._parent && !ractive._parent.transitionsEnabled ) {
@@ -6414,7 +6504,7 @@
 					oldTransition.complete();
 				}
 				node._ractive.transition = transition;
-				transition._manager.push( node );
+				transition._manager.push( transition );
 				if ( isIntro ) {
 					scheduler.addTransition( transition );
 				} else {
@@ -6425,6 +6515,7 @@
 	}( state_scheduler, utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition );
 
 	var render_DomFragment_Element_initialise__initialise = function( scheduler, types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase ) {
+
 		return function initialiseElement( element, options, docFrag ) {
 			var parentFragment, pNode, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
 			element.type = types.ELEMENT;
@@ -6513,6 +6604,7 @@
 	}( state_scheduler, config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase );
 
 	var render_DomFragment_Element_prototype_teardown = function( executeTransition ) {
+
 		return function( destroy ) {
 			var eventName, binding, bindings, i, liveQueries, selector, query, nodesToRemove, j;
 			if ( this.fragment ) {
@@ -6538,7 +6630,7 @@
 				executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
 			}
 			if ( destroy ) {
-				this.root._transitionManager.detachWhenReady( this );
+				this.root._detachQueue.push( this );
 			}
 			if ( liveQueries = this.liveQueries ) {
 				i = liveQueries.length;
@@ -6559,6 +6651,7 @@
 	var config_voidElementNames = 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split( ' ' );
 
 	var render_DomFragment_Element_prototype_toString = function( voidElementNames ) {
+
 		return function() {
 			var str, i, len;
 			str = '<' + ( this.descriptor.y ? '!doctype' : this.descriptor.e );
@@ -6580,6 +6673,7 @@
 	}( config_voidElementNames );
 
 	var render_DomFragment_Element_prototype_find = function( matches ) {
+
 		return function( selector ) {
 			var queryResult;
 			if ( matches( this.node, selector ) ) {
@@ -6668,6 +6762,7 @@
 	};
 
 	var render_DomFragment_Element__Element = function( initialise, teardown, toString, find, findAll, findComponent, findAllComponents, bind ) {
+
 		var DomElement = function( options, docFrag ) {
 			initialise( this, options, docFrag );
 		};
@@ -6704,9 +6799,10 @@
 
 	var registries_partials = {};
 
-	var parse__parse = function() {}();
+	var parse__parse = undefined;
 
 	var render_DomFragment_Partial_deIndent = function() {
+
 		var empty = /^\s*$/,
 			leadingWhitespace = /^\s*/;
 		return function( str ) {
@@ -6739,6 +6835,7 @@
 	}();
 
 	var render_DomFragment_Partial_getPartialDescriptor = function( errors, isClient, warn, isObject, partials, parse, deIndent ) {
+
 		var getPartialDescriptor, registerPartial, getPartialFromRegistry, unpack;
 		getPartialDescriptor = function( root, name ) {
 			var el, partial, errorMessage;
@@ -6813,6 +6910,7 @@
 	};
 
 	var render_DomFragment_Partial__Partial = function( types, getPartialDescriptor, applyIndent, circular ) {
+
 		var DomPartial, DomFragment;
 		circular.push( function() {
 			DomFragment = circular.DomFragment;
@@ -6881,6 +6979,7 @@
 	}( config_types, render_DomFragment_Partial_getPartialDescriptor, render_DomFragment_Partial_applyIndent, circular );
 
 	var render_DomFragment_Component_initialise_createModel_ComponentParameter = function( scheduler, StringFragment ) {
+
 		var ComponentParameter = function( component, key, value ) {
 			this.parentFragment = component.parentFragment;
 			this.component = component;
@@ -6916,6 +7015,7 @@
 	}( state_scheduler, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Component_initialise_createModel__createModel = function( types, parseJSON, resolveRef, ComponentParameter ) {
+
 		return function( component, defaultData, attributes, toBind ) {
 			var data, key, value;
 			data = {};
@@ -6981,6 +7081,7 @@
 	};
 
 	var render_DomFragment_Component_initialise_createBindings = function( createComponentBinding ) {
+
 		return function( component, toBind ) {
 			toBind.forEach( function( pair ) {
 				var childValue;
@@ -6994,6 +7095,7 @@
 	}( shared_createComponentBinding );
 
 	var render_DomFragment_Component_initialise_propagateEvents = function( warn ) {
+
 		var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
 		return function( component, eventsDescriptor ) {
 			var eventName;
@@ -7033,6 +7135,7 @@
 	};
 
 	var render_DomFragment_Component_initialise__initialise = function( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries ) {
+
 		return function( component, options, docFrag ) {
 			var parentFragment, root, Component, data, toBind;
 			parentFragment = component.parentFragment = options.parentFragment;
@@ -7059,6 +7162,7 @@
 	}( config_types, utils_warn, render_DomFragment_Component_initialise_createModel__createModel, render_DomFragment_Component_initialise_createInstance, render_DomFragment_Component_initialise_createBindings, render_DomFragment_Component_initialise_propagateEvents, render_DomFragment_Component_initialise_updateLiveQueries );
 
 	var render_DomFragment_Component__Component = function( initialise ) {
+
 		var DomComponent = function( options, docFrag ) {
 			initialise( this, options, docFrag );
 		};
@@ -7112,6 +7216,7 @@
 	}( render_DomFragment_Component_initialise__initialise );
 
 	var render_DomFragment_Comment = function( types, detach ) {
+
 		var DomComment = function( options, docFrag ) {
 			this.type = types.COMMENT;
 			this.descriptor = options.descriptor;
@@ -7138,6 +7243,7 @@
 	}( config_types, render_DomFragment_shared_detach );
 
 	var render_DomFragment__DomFragment = function( types, matches, initFragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular ) {
+
 		var DomFragment = function( options ) {
 			if ( options.pNode ) {
 				this.docFrag = document.createDocumentFragment();
@@ -7334,6 +7440,7 @@
 	}( config_types, utils_matches, render_shared_initFragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular );
 
 	var Ractive_prototype_render = function( scheduler, getElement, makeTransitionManager, css, DomFragment ) {
+
 		return function Ractive_prototype_render( target, complete ) {
 			var transitionManager;
 			scheduler.start();
@@ -7353,14 +7460,15 @@
 			if ( target ) {
 				target.appendChild( this.fragment.docFrag );
 			}
-			this._transitionManager = null;
-			transitionManager.ready();
 			this.rendered = true;
 			scheduler.end();
+			this._transitionManager = null;
+			transitionManager.init();
 		};
 	}( state_scheduler, utils_getElement, shared_makeTransitionManager, state_css, render_DomFragment__DomFragment );
 
 	var Ractive_prototype_renderHTML = function( warn ) {
+
 		return function() {
 			warn( 'renderHTML() has been deprecated and will be removed in a future version. Please use toHTML() instead' );
 			return this.toHTML();
@@ -7374,6 +7482,7 @@
 	// Teardown. This goes through the root fragment and all its children, removing observers
 	// and generally cleaning up after itself
 	var Ractive_prototype_teardown = function( makeTransitionManager, clearCache, css ) {
+
 		return function( complete ) {
 			var keypath, transitionManager, previousTransitionManager, shouldDestroy, actualComplete;
 			this.fire( 'teardown' );
@@ -7398,11 +7507,12 @@
 				clearCache( this, keypath );
 			}
 			this._transitionManager = previousTransitionManager;
-			transitionManager.ready();
+			transitionManager.init();
 		};
 	}( shared_makeTransitionManager, shared_clearCache, state_css );
 
 	var Ractive_prototype_shared_add = function( isNumeric ) {
+
 		return function( root, keypath, d ) {
 			var value;
 			if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
@@ -7426,12 +7536,14 @@
 	}( utils_isNumeric );
 
 	var Ractive_prototype_add = function( add ) {
+
 		return function( keypath, d ) {
 			add( this, keypath, d === undefined ? 1 : d );
 		};
 	}( Ractive_prototype_shared_add );
 
 	var Ractive_prototype_subtract = function( add ) {
+
 		return function( keypath, d ) {
 			add( this, keypath, d === undefined ? -1 : -d );
 		};
@@ -7480,6 +7592,7 @@
 	};
 
 	var Ractive_prototype_merge_queueDependants = function( types ) {
+
 		return function queueDependants( keypath, deps, mergeQueue, updateQueue ) {
 			var i, dependant;
 			i = deps.length;
@@ -7497,6 +7610,7 @@
 	}( config_types );
 
 	var Ractive_prototype_merge__merge = function( scheduler, warn, isArray, clearCache, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants ) {
+
 		var identifiers = {};
 		return function merge( keypath, array, options ) {
 			var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, transitionManager, previousTransitionManager, upstreamQueue, keys;
@@ -7569,7 +7683,7 @@
 				notifyDependants( this, keypath + '.length', true );
 			}
 			this._transitionManager = previousTransitionManager;
-			transitionManager.ready();
+			transitionManager.init();
 		};
 
 		function stringify( item ) {
@@ -7591,6 +7705,7 @@
 	};
 
 	var Ractive_prototype_insert = function( getElement ) {
+
 		return function( target, anchor ) {
 			target = getElement( target );
 			anchor = getElement( anchor ) || null;
@@ -7603,6 +7718,7 @@
 	}( utils_getElement );
 
 	var Ractive_prototype__prototype = function( get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, findComponent, findAllComponents, render, renderHTML, toHTML, teardown, add, subtract, toggle, merge, detach, insert ) {
+
 		return {
 			get: get,
 			set: set,
@@ -7704,6 +7820,7 @@
 	];
 
 	var extend_inheritFromParent = function( registries, create, defineProperty ) {
+
 		return function( Child, Parent ) {
 			registries.forEach( function( property ) {
 				if ( Parent[ property ] ) {
@@ -7747,6 +7864,7 @@
 	};
 
 	var extend_inheritFromChildProps = function( initOptions, registries, defineProperty, wrapMethod, augment ) {
+
 		var blacklisted = {};
 		registries.concat( initOptions.keys ).forEach( function( property ) {
 			blacklisted[ property ] = true;
@@ -7792,6 +7910,7 @@
 	}( config_initOptions, config_registries, utils_defineProperty, extend_wrapMethod, extend_utils_augment );
 
 	var extend_extractInlinePartials = function( isObject, augment ) {
+
 		return function( Child, childProps ) {
 			if ( isObject( Child.template ) ) {
 				if ( !Child.partials ) {
@@ -7807,6 +7926,7 @@
 	}( utils_isObject, extend_utils_augment );
 
 	var extend_conditionallyParseTemplate = function( errors, isClient, parse ) {
+
 		return function( Child ) {
 			var templateEl;
 			if ( typeof Child.template === 'string' ) {
@@ -7828,6 +7948,7 @@
 	}( config_errors, config_isClient, parse__parse );
 
 	var extend_conditionallyParsePartials = function( errors, parse ) {
+
 		return function( Child ) {
 			var key;
 			if ( Child.partials ) {
@@ -7844,6 +7965,7 @@
 	}( config_errors, parse__parse );
 
 	var Ractive_initialise = function( isClient, errors, initOptions, registries, warn, create, extend, fillGaps, defineProperty, defineProperties, getElement, isObject, isArray, getGuid, magicAdaptor, parse ) {
+
 		var flags = [
 			'adapt',
 			'modifyArrays',
@@ -7925,6 +8047,9 @@
 				},
 				_liveComponentQueries: {
 					value: []
+				},
+				_detachQueue: {
+					value: []
 				}
 			} );
 			if ( options._parent && options._component ) {
@@ -8003,7 +8128,8 @@
 		};
 	}( config_isClient, config_errors, config_initOptions, config_registries, utils_warn, utils_create, utils_extend, utils_fillGaps, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, utils_isArray, utils_getGuid, shared_get_magicAdaptor, parse__parse );
 
-	var extend_initChildInstance = function( initOptions, wrapMethod, initialise ) {
+	var extend_initChildInstance = function( initOptions, scheduler, wrapMethod, initialise ) {
+
 		return function initChildInstance( child, Child, options ) {
 			initOptions.keys.forEach( function( key ) {
 				var value = options[ key ],
@@ -8017,12 +8143,16 @@
 			}
 			initialise( child, options );
 			if ( child.init ) {
-				child.init( options );
+				scheduler.addComponent( {
+					instance: child,
+					options: options
+				} );
 			}
 		};
-	}( config_initOptions, extend_wrapMethod, Ractive_initialise );
+	}( config_initOptions, state_scheduler, extend_wrapMethod, Ractive_initialise );
 
 	var extend__extend = function( create, defineProperties, getGuid, extendObject, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular ) {
+
 		var Ractive;
 		circular.push( function() {
 			Ractive = circular.Ractive;
@@ -8056,6 +8186,7 @@
 	}( utils_create, utils_defineProperties, utils_getGuid, utils_extend, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular );
 
 	var Ractive__Ractive = function( initOptions, svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, initialise, circular ) {
+
 		var Ractive = function( options ) {
 			initialise( this, options );
 		};
@@ -8107,6 +8238,7 @@
 	}( config_initOptions, config_svg, utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_components, registries_easing, registries_interpolators, utils_Promise, extend__extend, parse__parse, Ractive_initialise, circular );
 
 	var Ractive = function( Ractive, circular, legacy ) {
+
 		var FUNCTION = 'function';
 		while ( circular.length ) {
 			circular.pop()();
