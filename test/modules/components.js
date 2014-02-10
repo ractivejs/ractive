@@ -532,6 +532,28 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'you should see me.' );
 		});
 
+		test( 'Top-level list sections in components do not cause elements to be out of order (#412 regression)', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{#numbers:o}}<p>{{.}}</p>{{/numbers}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<h1>Names</h1><widget numbers="{{first}}"/><widget numbers="{{second}}"/>',
+				components: {
+					widget: Widget
+				},
+				data: {
+					first: { one: 'one', two: 'two' },
+					second: { three: 'three', four: 'four' }
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>' );
+		});
+
 	};
 
 });

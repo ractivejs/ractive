@@ -87,21 +87,26 @@ define([
 	}
 
 	function updateListObjectSection ( section, value, fragmentOptions ) {
-		var id, fragmentsById;
+		var id, i, hasKey, fragment;
 
-		fragmentsById = section.fragmentsById || ( section.fragmentsById = create( null ) );
+		hasKey = section.hasKey || ( section.hasKey = {} );
 
 		// remove any fragments that should no longer exist
-		for ( id in fragmentsById ) {
-			if ( value[ id ] === undefined && fragmentsById[ id ] ) {
-				fragmentsById[ id ].teardown( true );
-				fragmentsById[ id ] = null;
+		i = section.fragments.length;
+		while ( i-- ) {
+			fragment = section.fragments[i];
+
+			if ( !( fragment.index in value ) ) {
+				section.fragments[i].teardown( true );
+				section.fragments.splice( i, 1 );
+
+				hasKey[ fragment.index ] = false;
 			}
 		}
 
 		// add any that haven't been created yet
 		for ( id in value ) {
-			if ( value[ id ] !== undefined && !fragmentsById[ id ] ) {
+			if ( !hasKey[ id ] ) {
 				fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + id );
 				fragmentOptions.index = id;
 
@@ -109,9 +114,12 @@ define([
 					fragmentOptions.indexRef = section.descriptor.i;
 				}
 
-				fragmentsById[ id ] = section.createFragment( fragmentOptions );
+				section.fragments.push( section.createFragment( fragmentOptions ) );
+				hasKey[ id ] = true;
 			}
 		}
+
+		section.length = section.fragments.length;
 	}
 
 	function updateContextSection ( section, fragmentOptions ) {

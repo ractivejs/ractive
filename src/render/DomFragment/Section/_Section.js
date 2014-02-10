@@ -103,15 +103,6 @@ define([
 			while ( fragment = this.fragments.shift() ) {
 				fragment.teardown( destroy );
 			}
-
-			if ( this.fragmentsById ) {
-				for ( id in this.fragmentsById ) {
-					if ( this.fragments[ id ] ) {
-						this.fragmentsById[ id ].teardown( destroy );
-						this.fragmentsById[ id ] = null;
-					}
-				}
-			}
 		},
 
 		render: render,
@@ -136,14 +127,6 @@ define([
 
 			for ( i=0; i<len; i+=1 ) {
 				str += this.fragments[i].toString();
-			}
-
-			if ( this.fragmentsById ) {
-				for ( id in this.fragmentsById ) {
-					if ( this.fragmentsById[ id ] ) {
-						str += this.fragmentsById[ id ].toString();
-					}
-				}
 			}
 
 			return str;
