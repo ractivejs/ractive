@@ -22,6 +22,7 @@ define([
 		transitions = [],
 		observers = [],
 		attributes = [],
+		components = [],
 
 		evaluators = [],
 		selectValues = [],
@@ -78,6 +79,10 @@ define([
 			attributes.push( attribute );
 		},
 
+		addComponent: function ( component ) {
+			components.push( component );
+		},
+
 		// changes that may cause additional changes...
 		addEvaluator: function ( evaluator ) {
 			dirty = true;
@@ -117,6 +122,10 @@ define([
 		if ( toFocus ) {
 			toFocus.focus();
 			toFocus = null;
+		}
+
+		while ( thing = components.pop() ) {
+			thing.instance.init( thing.options );
 		}
 
 		while ( thing = attributes.pop() ) {

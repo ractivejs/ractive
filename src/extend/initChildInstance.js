@@ -1,9 +1,11 @@
 define([
 	'config/initOptions',
+	'state/scheduler',
 	'extend/wrapMethod',
 	'Ractive/initialise'
 ], function (
 	initOptions,
+	scheduler,
 	wrapMethod,
 	initialise
 ) {
@@ -29,7 +31,7 @@ define([
 		initialise( child, options );
 
 		if ( child.init ) {
-			child.init( options );
+			scheduler.addComponent({ instance: child, options: options });
 		}
 	};
 
