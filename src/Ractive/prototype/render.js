@@ -46,13 +46,13 @@ define([
 			target.appendChild( this.fragment.docFrag );
 		}
 
+		scheduler.end();
+
 		// transition manager has finished its work
 		this._transitionManager = null;
 		transitionManager.ready();
 
 		this.rendered = true;
-
-		scheduler.end();
 	};
 
 });
