@@ -16,7 +16,10 @@ define([
 
 	'use strict';
 
-	var bindAttribute,
+	var singleMustacheError = 'For two-way binding to work, attribute value must be a single interpolator (e.g. value="{{foo}}")',
+		expressionError = 'You cannot set up two-way binding against an expression ',
+
+		bindAttribute,
 
 		getInterpolator,
 		updateModel,
@@ -94,30 +97,21 @@ define([
 	};
 
 	getInterpolator = function ( attribute ) {
-		var item, errorMessage;
+		var item = attribute.fragment.items[0];
 
 		// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
 		// Check this is a suitable candidate for two-way binding - i.e. it is
 		// a single interpolator, which isn't an expression
-		if ( attribute.fragment.items.length !== 1 ) {
-			return null;
-		}
-
-		item = attribute.fragment.items[0];
-
-		if ( item.type !== types.INTERPOLATOR ) {
-			return null;
-		}
-
-		if ( !item.keypath && !item.ref ) {
+		if (  attribute.fragment.items.length !== 1 || item.type !== types.INTERPOLATOR || ( !item.keypath && !item.ref ) ) {
+			if ( attribute.root.debug ) {
+				warn( singleMustacheError );
+			}
 			return null;
 		}
 
 		if ( item.keypath && item.keypath.substr( 0, 2 ) === '${' ) {
-			errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
-
 			if ( attribute.root.debug ) {
-				warn( errorMessage );
+				warn( expressionError + item.keypath );
 			}
 			return null;
 		}
