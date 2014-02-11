@@ -2,11 +2,13 @@ define([
 	'config/types',
 	'utils/parseJSON',
 	'shared/resolveRef',
+	'shared/get/_get',
 	'render/DomFragment/Component/initialise/createModel/ComponentParameter'
 ], function (
 	types,
 	parseJSON,
 	resolveRef,
+	get,
 	ComponentParameter
 ) {
 
@@ -36,9 +38,9 @@ define([
 	};
 
 	function getValue ( component, key, descriptor, toBind ) {
-		var parameter, parsed, root, parentFragment, keypath;
+		var parameter, parsed, parentInstance, parentFragment, keypath;
 
-		root = component.root;
+		parentInstance = component.root;
 		parentFragment = component.parentFragment;
 
 		// If this is a static value, great
@@ -61,13 +63,13 @@ define([
 			}
 
 			// TODO what about references that resolve late? Should these be considered?
-			keypath = resolveRef( root, descriptor[0].r, parentFragment.contextStack ) || descriptor[0].r;
+			keypath = resolveRef( parentInstance, descriptor[0].r, parentFragment.contextStack ) || descriptor[0].r;
 
 			// We need to set up bindings between parent and child, but
 			// we can't do it yet because the child instance doesn't exist
 			// yet - so we make a note instead
 			toBind.push({ childKeypath: key, parentKeypath: keypath });
-			return root.get( keypath );
+			return get( parentInstance, keypath );
 		}
 
 		// We have a 'complex parameter' - we need to create a full-blown string

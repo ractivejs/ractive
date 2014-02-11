@@ -1,9 +1,11 @@
 define([
+	'circular',
 	'utils/isArray',
 	'utils/isEqual',
 	'shared/registerDependant',
 	'shared/unregisterDependant'
 ], function (
+	circular,
 	isArray,
 	isEqual,
 	registerDependant,
@@ -11,6 +13,12 @@ define([
 ) {
 
 	'use strict';
+
+	var get;
+
+	circular.push( function () {
+		get = circular.get;
+	});
 
 	var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
 		this.root = ractive;
@@ -22,7 +30,7 @@ define([
 
 		registerDependant( this );
 
-		this.value = this.root.get( this.keypath );
+		this.value = get( this.root, this.keypath );
 	};
 
 	Binding.prototype = {
@@ -34,7 +42,7 @@ define([
 				return;
 			}
 
-			value = this.root.get( this.keypath );
+			value = get( this.root, this.keypath );
 
 			// Is this a smart array update? If so, it'll update on its
 			// own, we shouldn't do anything

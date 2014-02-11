@@ -22,7 +22,7 @@ define([
 
 	'use strict';
 
-	return function ( keypath, value, complete ) {
+	return function Ractive_prototype_set ( keypath, value, complete ) {
 		var map,
 			changes,
 			upstreamChanges,

@@ -1,1 +1,1 @@
-define({});
+define({ FAILED_LOOKUP: true });

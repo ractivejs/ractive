@@ -18,7 +18,7 @@ define([
 
 	'use strict';
 
-	return function ( component, options, docFrag ) {
+	return function initialiseComponent ( component, options, docFrag ) {
 		var parentFragment,
 			root,
 			Component,

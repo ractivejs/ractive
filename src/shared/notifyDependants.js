@@ -2,11 +2,11 @@ define( function () {
 
 	'use strict';
 
-	var notifyDependants, lastKey, starMaps = {};
+	var lastKey, starMaps = {};
 
 	lastKey = /[^\.]+$/;
 
-	notifyDependants = function ( ractive, keypath, onlyDirect ) {
+	function notifyDependants ( ractive, keypath, onlyDirect ) {
 		var i;
 
 		// Notify any pattern observers
@@ -17,9 +17,9 @@ define( function () {
 		for ( i=0; i<ractive._deps.length; i+=1 ) { // can't cache ractive._deps.length, it may change
 			notifyDependantsAtPriority( ractive, keypath, i, onlyDirect );
 		}
-	};
+	}
 
-	notifyDependants.multiple = function ( ractive, keypaths, onlyDirect ) {
+	notifyDependants.multiple = function notifyMultipleDependants ( ractive, keypaths, onlyDirect ) {
 		var i, j, len;
 
 		len = keypaths.length;
