@@ -5653,15 +5653,16 @@
 
 	var render_DomFragment_Element_initialise_decorate_Decorator = function( warn, StringFragment ) {
 
-		var Decorator = function( descriptor, root, owner, contextStack ) {
-			var name, fragment, errorMessage;
-			this.root = root;
-			this.node = owner.node;
+		var Decorator = function( descriptor, ractive, owner, contextStack ) {
+			var decorator = this,
+				name, fragment, errorMessage;
+			decorator.root = ractive;
+			decorator.node = owner.node;
 			name = descriptor.n || descriptor;
 			if ( typeof name !== 'string' ) {
 				fragment = new StringFragment( {
 					descriptor: name,
-					root: this.root,
+					root: ractive,
 					owner: owner,
 					contextStack: contextStack
 				} );
@@ -5669,21 +5670,25 @@
 				fragment.teardown();
 			}
 			if ( descriptor.a ) {
-				this.params = descriptor.a;
+				decorator.params = descriptor.a;
 			} else if ( descriptor.d ) {
-				fragment = new StringFragment( {
+				decorator.fragment = new StringFragment( {
 					descriptor: descriptor.d,
-					root: this.root,
+					root: ractive,
 					owner: owner,
 					contextStack: contextStack
 				} );
-				this.params = fragment.toArgsList();
-				fragment.teardown();
+				decorator.params = decorator.fragment.toArgsList();
+				decorator.fragment.bubble = function() {
+					this.dirty = true;
+					decorator.params = this.toArgsList();
+					decorator.update();
+				};
 			}
-			this.fn = root.decorators[ name ];
-			if ( !this.fn ) {
+			decorator.fn = ractive.decorators[ name ];
+			if ( !decorator.fn ) {
 				errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#decorators';
-				if ( root.debug ) {
+				if ( ractive.debug ) {
 					throw new Error( errorMessage );
 				} else {
 					warn( errorMessage );
@@ -5702,7 +5707,21 @@
 				if ( !result || !result.teardown ) {
 					throw new Error( 'Decorator definition must return an object with a teardown method' );
 				}
-				this.teardown = result.teardown;
+				this.actual = result;
+			},
+			update: function() {
+				if ( this.actual.update ) {
+					this.actual.update.apply( this.root, this.params );
+				} else {
+					this.actual.teardown( true );
+					this.init();
+				}
+			},
+			teardown: function( updating ) {
+				this.actual.teardown();
+				if ( !updating ) {
+					this.fragment.teardown();
+				}
 			}
 		};
 		return Decorator;
