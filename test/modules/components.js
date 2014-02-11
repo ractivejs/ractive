@@ -554,6 +554,37 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>' );
 		});
 
+		test( 'Children do not nuke parent data when inheriting from ancestors', function ( t ) {
+			var Widget, Block, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>value: {{thing.value}}</p>'
+			});
+
+			Block = Ractive.extend({
+				template: '<widget thing="{{things.one}}"/><widget thing="{{things.two}}"/><widget thing="{{things.three}}"/>',
+				components: { widget: Widget }
+			});
+
+			// YOUR CODE GOES HERE
+			ractive = new Ractive({
+				el: fixture,
+				template: '<block/>',
+				data: {
+					things: {
+						one: { value: 1 },
+						two: { value: 2 },
+						three: { value: 3 }
+					}
+				},
+				components: {
+					block: Block
+				}
+			});
+
+			t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } )
+		});
+
 	};
 
 });
