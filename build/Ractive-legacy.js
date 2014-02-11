@@ -1,6 +1,6 @@
 /*
 
-	Ractive - v0.4.0-pre - 2014-02-10
+	Ractive - v0.4.0-pre - 2014-02-11
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -638,7 +638,6 @@
 			transitions = [],
 			observers = [],
 			attributes = [],
-			components = [],
 			evaluators = [],
 			selectValues = [],
 			checkboxKeypaths = {}, checkboxes = [],
@@ -681,9 +680,6 @@
 			addAttribute: function( attribute ) {
 				attributes.push( attribute );
 			},
-			addComponent: function( component ) {
-				components.push( component );
-			},
 			addEvaluator: function( evaluator ) {
 				dirty = true;
 				evaluators.push( evaluator );
@@ -716,9 +712,6 @@
 			if ( toFocus ) {
 				toFocus.focus();
 				toFocus = null;
-			}
-			while ( thing = components.pop() ) {
-				thing.instance.init( thing.options );
 			}
 			while ( thing = attributes.pop() ) {
 				thing.update().deferred = false;
@@ -9750,9 +9743,22 @@
 			}
 			this.rendered = true;
 			scheduler.end();
+			if ( !this._parent ) {
+				initChildren( this );
+			}
 			this._transitionManager = null;
 			transitionManager.init();
 		};
+
+		function initChildren( instance ) {
+			var child;
+			while ( child = instance._childInitQueue.pop() ) {
+				if ( child.instance.init ) {
+					child.instance.init( child.options );
+				}
+				initChildren( child.instance );
+			}
+		}
 	}( state_scheduler, utils_getElement, shared_makeTransitionManager, state_css, render_DomFragment__DomFragment );
 
 	var Ractive_prototype_renderHTML = function( warn ) {
@@ -10338,6 +10344,9 @@
 				},
 				_detachQueue: {
 					value: []
+				},
+				_childInitQueue: {
+					value: []
 				}
 			} );
 			if ( options._parent && options._component ) {
@@ -10430,11 +10439,13 @@
 				child.beforeInit( options );
 			}
 			initialise( child, options );
-			if ( child.init ) {
-				scheduler.addComponent( {
+			if ( options._parent && !options._parent.rendered ) {
+				options._parent._childInitQueue.push( {
 					instance: child,
 					options: options
 				} );
+			} else if ( child.init ) {
+				child.init( options );
 			}
 		};
 	}( config_initOptions, state_scheduler, extend_wrapMethod, Ractive_initialise );
