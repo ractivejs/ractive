@@ -118,7 +118,10 @@ define([
 			_liveComponentQueries: { value: [] },
 
 			// nodes to detach at the end of a mutation
-			_detachQueue: { value: [] }
+			_detachQueue: { value: [] },
+
+			// components to init at the end of a mutation
+			_childInitQueue: { value: [] }
 		});
 
 		// If this is a component, store a reference to the parent

@@ -49,9 +49,29 @@ define([
 		this.rendered = true;
 		scheduler.end();
 
+		// If this is a top-level instance (i.e. it was created with `var ractive = new Ractive()`,
+		// or `widget = new Widget()` etc), we need to initialise any child components now that
+		// they're in the DOM
+		if ( !this._parent ) {
+			initChildren( this );
+		}
+
 		// transition manager has finished its work
 		this._transitionManager = null;
 		transitionManager.init();
 	};
+
+	function initChildren ( instance ) {
+		var child;
+
+		while ( child = instance._childInitQueue.pop() ) {
+			if ( child.instance.init ) {
+				child.instance.init( child.options );
+			}
+
+			// now do the same for grandchildren, etc
+			initChildren( child.instance );
+		}
+	}
 
 });

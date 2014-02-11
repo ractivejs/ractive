@@ -30,8 +30,15 @@ define([
 
 		initialise( child, options );
 
-		if ( child.init ) {
-			scheduler.addComponent({ instance: child, options: options });
+		// If this is an inline component (i.e. NOT created with `var widget = new Widget()`,
+		// but rather `<widget/>` or similar), we don't want to call the `init` method until
+		// the component is in the DOM. That makes it easier for component authors to do stuff
+		// like `this.width = this.find('*').clientWidth` or whatever without using
+		// ugly setTimeout hacks.
+		if ( options._parent && !options._parent.rendered ) {
+			options._parent._childInitQueue.push({ instance: child, options: options });
+		} else if ( child.init ) {
+			child.init( options );
 		}
 	};
 
