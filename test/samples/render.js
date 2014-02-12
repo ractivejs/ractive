@@ -444,6 +444,22 @@ var renderTests = [
 		result: '',
 		new_data: { 'foo.bar': 'works' },
 		new_result: 'works'
+	},
+	{
+		name: 'Children of sections with partially resolved evaluator',
+		template: '{{# foo || {} }}{{bar}}{{/ foo || {} }}',
+		data: {},
+		result: '',
+		new_data: { foo: { bar: 'works' } },
+		new_result: 'works'
+	},
+	{
+		name: 'Different expressions that share a keypath in unresolved state',
+		template: '{{identity(foo)}} / {{identity(bar)}}',
+		data: { identity: function ( val ) { return val; } },
+		result: ' / ',
+		new_data: { foo: 'one', bar: 'two', identity: function ( val ) { return val; } },
+		new_result: 'one / two'
 	}
 ];
 
