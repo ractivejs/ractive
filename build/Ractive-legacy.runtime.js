@@ -569,22 +569,29 @@
 		return value;
 	};
 
-	var shared_resolveRef = function( circular, normaliseKeypath ) {
+	var shared_getInnerContext = function( fragment ) {
+		do {
+			if ( fragment.context ) {
+				return fragment.context;
+			}
+		} while ( fragment = fragment.parent );
+		return '';
+	};
+
+	var shared_resolveRef = function( circular, normaliseKeypath, getInnerContext ) {
 
 		var get, ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 		circular.push( function() {
 			get = circular.get;
 		} );
-		return function resolveRef( ractive, ref, contextStack ) {
-			var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
+		return function( ractive, ref, fragment ) {
+			var context, contextKeys, keys, lastKey, postfix, parentKeypath, parentValue, wrapped;
 			ref = normaliseKeypath( ref );
 			if ( ref === '.' ) {
-				if ( !contextStack.length ) {
-					return '';
-				}
-				keypath = contextStack[ contextStack.length - 1 ];
-			} else if ( ref.charAt( 0 ) === '.' ) {
-				context = contextStack[ contextStack.length - 1 ];
+				return getInnerContext( fragment );
+			}
+			if ( ref.charAt( 0 ) === '.' ) {
+				context = getInnerContext( fragment );
 				contextKeys = context ? context.split( '.' ) : [];
 				if ( ref.substr( 0, 3 ) === '../' ) {
 					while ( ref.substr( 0, 3 ) === '../' ) {
@@ -595,37 +602,37 @@
 						ref = ref.substring( 3 );
 					}
 					contextKeys.push( ref );
-					keypath = contextKeys.join( '.' );
-				} else if ( !context ) {
-					keypath = ref.substring( 1 );
-				} else {
-					keypath = context + ref;
+					return contextKeys.join( '.' );
 				}
-			} else {
-				keys = ref.split( '.' );
-				lastKey = keys.pop();
-				postfix = keys.length ? '.' + keys.join( '.' ) : '';
-				contextStack = contextStack.concat();
-				while ( contextStack.length ) {
-					innerMostContext = contextStack.pop();
-					parentKeypath = innerMostContext + postfix;
-					parentValue = get( ractive, parentKeypath );
-					if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
-						parentValue = wrapped.get();
-					}
-					if ( typeof parentValue === 'object' && parentValue !== null && lastKey in parentValue ) {
-						return innerMostContext + '.' + ref;
-					}
+				if ( !context ) {
+					return ref.substring( 1 );
 				}
-				if ( ractive.data.hasOwnProperty( ref ) ) {
-					keypath = ref;
-				} else if ( get( ractive, ref ) !== undefined ) {
-					keypath = ref;
-				}
+				return context + ref;
 			}
-			return keypath ? keypath.replace( /^\./, '' ) : keypath;
+			keys = ref.split( '.' );
+			lastKey = keys.pop();
+			postfix = keys.length ? '.' + keys.join( '.' ) : '';
+			do {
+				context = fragment.context;
+				if ( !context ) {
+					continue;
+				}
+				parentKeypath = context + postfix;
+				parentValue = get( ractive, parentKeypath );
+				if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+					parentValue = wrapped.get();
+				}
+				if ( typeof parentValue === 'object' && parentValue !== null && lastKey in parentValue ) {
+					return context + '.' + ref;
+				}
+			} while ( fragment = fragment.parent );
+			if ( ractive.data.hasOwnProperty( ref ) ) {
+				return ref;
+			} else if ( get( ractive, ref ) !== undefined ) {
+				return ref;
+			}
 		};
-	}( circular, utils_normaliseKeypath );
+	}( circular, utils_normaliseKeypath, shared_getInnerContext );
 
 	var state_scheduler = function( failedLookups, removeFromArray, getValueFromCheckboxes, resolveRef ) {
 
@@ -761,7 +768,7 @@
 				if ( thing.keypath ) {
 					continue;
 				}
-				keypath = resolveRef( thing.root, thing.ref, thing.contextStack );
+				keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );
 				if ( keypath !== undefined ) {
 					thing.resolve( keypath );
 				} else {
@@ -888,9 +895,10 @@
 
 	var shared_notifyDependants = function() {
 
-		var notifyDependants, lastKey, starMaps = {};
+		var lastKey, starMaps = {};
 		lastKey = /[^\.]+$/;
-		notifyDependants = function( ractive, keypath, onlyDirect ) {
+
+		function notifyDependants( ractive, keypath, onlyDirect ) {
 			var i;
 			if ( ractive._patternObservers.length ) {
 				notifyPatternObservers( ractive, keypath, keypath, onlyDirect, true );
@@ -898,8 +906,8 @@
 			for ( i = 0; i < ractive._deps.length; i += 1 ) {
 				notifyDependantsAtPriority( ractive, keypath, i, onlyDirect );
 			}
-		};
-		notifyDependants.multiple = function( ractive, keypaths, onlyDirect ) {
+		}
+		notifyDependants.multiple = function notifyMultipleDependants( ractive, keypaths, onlyDirect ) {
 			var i, j, len;
 			len = keypaths.length;
 			if ( ractive._patternObservers.length ) {
@@ -1580,8 +1588,12 @@
 		}
 	}();
 
-	var shared_createComponentBinding = function( isArray, isEqual, registerDependant, unregisterDependant ) {
+	var shared_createComponentBinding = function( circular, isArray, isEqual, registerDependant, unregisterDependant ) {
 
+		var get;
+		circular.push( function() {
+			get = circular.get;
+		} );
 		var Binding = function( ractive, keypath, otherInstance, otherKeypath, priority ) {
 			this.root = ractive;
 			this.keypath = keypath;
@@ -1589,7 +1601,7 @@
 			this.otherInstance = otherInstance;
 			this.otherKeypath = otherKeypath;
 			registerDependant( this );
-			this.value = this.root.get( this.keypath );
+			this.value = get( this.root, this.keypath );
 		};
 		Binding.prototype = {
 			update: function() {
@@ -1597,7 +1609,7 @@
 				if ( this.updating || this.counterpart && this.counterpart.updating ) {
 					return;
 				}
-				value = this.root.get( this.keypath );
+				value = get( this.root, this.keypath );
 				if ( isArray( value ) && value._ractive && value._ractive.setting ) {
 					return;
 				}
@@ -1631,38 +1643,91 @@
 				childToParentBinding.counterpart = parentToChildBinding;
 			}
 		};
-	}( utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant );
+	}( circular, utils_isArray, utils_isEqual, shared_registerDependant, shared_unregisterDependant );
 
-	var shared_get_getFromParent = function( failedLookups, createComponentBinding ) {
+	var Ractive_prototype_shared_replaceData = function( clone, createBranch, clearCache ) {
+
+		return function( ractive, keypath, value ) {
+			var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
+			keys = keypath.split( '.' );
+			accumulated = [];
+			if ( wrapped = ractive._wrapped[ '' ] ) {
+				if ( wrapped.set ) {
+					wrapped.set( keys.join( '.' ), value );
+				}
+				obj = wrapped.get();
+			} else {
+				obj = ractive.data;
+			}
+			while ( keys.length > 1 ) {
+				key = keys.shift();
+				accumulated.push( key );
+				currentKeypath = accumulated.join( '.' );
+				if ( wrapped = ractive._wrapped[ currentKeypath ] ) {
+					if ( wrapped.set ) {
+						wrapped.set( keys.join( '.' ), value );
+					}
+					obj = wrapped.get();
+				} else {
+					if ( !obj.hasOwnProperty( key ) && key in obj ) {
+						if ( !keypathToClear ) {
+							keypathToClear = currentKeypath;
+						}
+						obj[ key ] = clone( obj[ key ] );
+					}
+					if ( !obj[ key ] ) {
+						if ( !keypathToClear ) {
+							keypathToClear = currentKeypath;
+						}
+						obj[ key ] = createBranch( keys[ 0 ] );
+					}
+					obj = obj[ key ];
+				}
+			}
+			key = keys[ 0 ];
+			obj[ key ] = value;
+			clearCache( ractive, keypathToClear || keypath );
+		};
+	}( utils_clone, utils_createBranch, shared_clearCache );
+
+	var shared_get_getFromParent = function( failedLookups, createComponentBinding, replaceData ) {
 
 		return function getFromParent( child, keypath ) {
-			var parent, contextStack, keypathToTest, value, i;
+			var parent, fragment, keypathToTest, value;
 			parent = child._parent;
 			if ( failedLookups( child._guid + keypath ) ) {
 				return;
 			}
-			contextStack = child.component.parentFragment.contextStack;
-			i = contextStack.length;
-			while ( i-- ) {
-				keypathToTest = contextStack[ i ] + '.' + keypath;
+			fragment = child.component.parentFragment;
+			do {
+				if ( !fragment.context ) {
+					continue;
+				}
+				keypathToTest = fragment.context + '.' + keypath;
 				value = parent.get( keypathToTest );
 				if ( value !== undefined ) {
-					createComponentBinding( child.component, parent, keypathToTest, keypath );
-					child._cache[ keypath ] = value;
+					createLateComponentBinding( parent, child, keypathToTest, keypath, value );
 					return value;
 				}
-			}
+			} while ( fragment = fragment.parent );
 			value = parent.get( keypath );
 			if ( value !== undefined ) {
-				createComponentBinding( child.component, parent, keypath, keypath );
-				child._cache[ keypath ] = value;
+				createLateComponentBinding( parent, child, keypath, keypath, value );
 				return value;
 			}
 			failedLookups.add( child._guid + keypath );
 		};
-	}( state_failedLookups, shared_createComponentBinding );
 
-	var shared_get_FAILED_LOOKUP = {};
+		function createLateComponentBinding( parent, child, parentKeypath, childKeypath, value ) {
+			replaceData( child, childKeypath, value );
+			child._cache[ childKeypath ] = value;
+			createComponentBinding( child.component, parent, parentKeypath, childKeypath );
+		}
+	}( state_failedLookups, shared_createComponentBinding, Ractive_prototype_shared_replaceData );
+
+	var shared_get_FAILED_LOOKUP = {
+		FAILED_LOOKUP: true
+	};
 
 	var shared_get__get = function( circular, adaptorRegistry, adaptIfNecessary, getFromParent, FAILED_LOOKUP ) {
 
@@ -1738,54 +1803,9 @@
 		};
 	}( utils_normaliseKeypath, shared_get__get );
 
-	var Ractive_prototype_shared_replaceData = function( clone, createBranch, clearCache ) {
-
-		return function( ractive, keypath, value ) {
-			var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
-			keys = keypath.split( '.' );
-			accumulated = [];
-			if ( wrapped = ractive._wrapped[ '' ] ) {
-				if ( wrapped.set ) {
-					wrapped.set( keys.join( '.' ), value );
-				}
-				obj = wrapped.get();
-			} else {
-				obj = ractive.data;
-			}
-			while ( keys.length > 1 ) {
-				key = keys.shift();
-				accumulated.push( key );
-				currentKeypath = accumulated.join( '.' );
-				if ( wrapped = ractive._wrapped[ currentKeypath ] ) {
-					if ( wrapped.set ) {
-						wrapped.set( keys.join( '.' ), value );
-					}
-					obj = wrapped.get();
-				} else {
-					if ( !obj.hasOwnProperty( key ) && key in obj ) {
-						if ( !keypathToClear ) {
-							keypathToClear = currentKeypath;
-						}
-						obj[ key ] = clone( obj[ key ] );
-					}
-					if ( !obj[ key ] ) {
-						if ( !keypathToClear ) {
-							keypathToClear = currentKeypath;
-						}
-						obj[ key ] = createBranch( keys[ 0 ] );
-					}
-					obj = obj[ key ];
-				}
-			}
-			key = keys[ 0 ];
-			obj[ key ] = value;
-			clearCache( ractive, keypathToClear || keypath );
-		};
-	}( utils_clone, utils_createBranch, shared_clearCache );
-
 	var Ractive_prototype_set = function( scheduler, isObject, isEqual, normaliseKeypath, get, clearCache, notifyDependants, makeTransitionManager, replaceData ) {
 
-		return function( keypath, value, complete ) {
+		return function Ractive_prototype_set( keypath, value, complete ) {
 			var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
 			changes = [];
 			if ( isObject( keypath ) ) {
@@ -3041,10 +3061,10 @@
 		return function initFragment( fragment, options ) {
 			var numItems, i, parentFragment, parentRefs, ref;
 			fragment.owner = options.owner;
-			parentFragment = fragment.owner.parentFragment;
+			parentFragment = fragment.parent = fragment.owner.parentFragment;
 			fragment.root = options.root;
 			fragment.pNode = options.pNode;
-			fragment.contextStack = options.contextStack || [];
+			fragment.context = options.context;
 			if ( fragment.owner.type === types.SECTION ) {
 				fragment.index = options.index;
 			}
@@ -3411,24 +3431,24 @@
 
 	var render_shared_ExpressionResolver_ReferenceScout = function( scheduler, resolveRef, teardown ) {
 
-		var ReferenceScout = function( resolver, ref, contextStack, argNum ) {
-			var keypath, root;
-			root = this.root = resolver.root;
-			keypath = resolveRef( root, ref, contextStack );
+		var ReferenceScout = function( resolver, ref, parentFragment, argNum ) {
+			var keypath, ractive;
+			ractive = this.root = resolver.root;
+			this.ref = ref;
+			this.parentFragment = parentFragment;
+			keypath = resolveRef( ractive, ref, parentFragment );
 			if ( keypath !== undefined ) {
-				resolver.resolveRef( argNum, false, keypath );
+				resolver.resolve( argNum, false, keypath );
 			} else {
-				this.ref = ref;
 				this.argNum = argNum;
 				this.resolver = resolver;
-				this.contextStack = contextStack;
 				scheduler.addUnresolved( this );
 			}
 		};
 		ReferenceScout.prototype = {
 			resolve: function( keypath ) {
 				this.keypath = keypath;
-				this.resolver.resolveRef( this.argNum, false, keypath );
+				this.resolver.resolve( this.argNum, false, keypath );
 			},
 			teardown: function() {
 				if ( !this.keypath ) {
@@ -3474,54 +3494,7 @@
 		};
 	}( utils_normaliseKeypath, render_shared_ExpressionResolver_isRegularKeypath );
 
-	var render_shared_ExpressionResolver_reassignDependants = function( registerDependant, unregisterDependant ) {
-
-		return function( ractive, oldKeypath, newKeypath ) {
-			var toReassign, i, dependant;
-			toReassign = [];
-			gatherDependants( ractive, oldKeypath, toReassign );
-			i = toReassign.length;
-			while ( i-- ) {
-				dependant = toReassign[ i ];
-				unregisterDependant( dependant );
-				dependant.keypath = dependant.keypath.replace( oldKeypath, newKeypath );
-				registerDependant( dependant );
-				dependant.update();
-			}
-		};
-
-		function cascade( ractive, oldKeypath, toReassign ) {
-			var map, i;
-			map = ractive._depsMap[ oldKeypath ];
-			if ( !map ) {
-				return;
-			}
-			i = map.length;
-			while ( i-- ) {
-				gatherDependants( ractive, map[ i ], toReassign );
-			}
-		}
-
-		function gatherDependants( ractive, oldKeypath, toReassign ) {
-			var priority, dependantsByKeypath, dependants, i;
-			priority = ractive._deps.length;
-			while ( priority-- ) {
-				dependantsByKeypath = ractive._deps[ priority ];
-				if ( dependantsByKeypath ) {
-					dependants = dependantsByKeypath[ oldKeypath ];
-					if ( dependants ) {
-						i = dependants.length;
-						while ( i-- ) {
-							toReassign.push( dependants[ i ] );
-						}
-					}
-				}
-			}
-			cascade( ractive, oldKeypath, toReassign );
-		}
-	}( shared_registerDependant, shared_unregisterDependant );
-
-	var render_shared_ExpressionResolver__ExpressionResolver = function( Evaluator, ReferenceScout, getUniqueString, getKeypath, reassignDependants ) {
+	var render_shared_ExpressionResolver__ExpressionResolver = function( Evaluator, ReferenceScout, getUniqueString, getKeypath ) {
 
 		var ExpressionResolver = function( mustache ) {
 			var expression, i, len, ref, indexRefs;
@@ -3541,9 +3514,9 @@
 			for ( i = 0; i < len; i += 1 ) {
 				ref = expression.r[ i ];
 				if ( indexRefs && indexRefs[ ref ] !== undefined ) {
-					this.resolveRef( i, true, indexRefs[ ref ] );
+					this.resolve( i, true, indexRefs[ ref ] );
 				} else {
-					this.scouts.push( new ReferenceScout( this, ref, mustache.contextStack, i ) );
+					this.scouts.push( new ReferenceScout( this, ref, mustache.parentFragment, i ) );
 				}
 			}
 			this.ready = true;
@@ -3561,18 +3534,14 @@
 				if ( this.keypath.substr( 0, 2 ) === '${' ) {
 					this.createEvaluator();
 				}
-				if ( oldKeypath ) {
-					reassignDependants( this.root, oldKeypath, this.keypath );
-				} else {
-					this.mustache.resolve( this.keypath );
-				}
+				this.mustache.resolve( this.keypath );
 			},
 			teardown: function() {
 				while ( this.scouts.length ) {
 					this.scouts.pop().teardown();
 				}
 			},
-			resolveRef: function( argNum, isIndexRef, value ) {
+			resolve: function( argNum, isIndexRef, value ) {
 				this.args[ argNum ] = [
 					isIndexRef,
 					value
@@ -3592,7 +3561,7 @@
 			}
 		};
 		return ExpressionResolver;
-	}( render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath, render_shared_ExpressionResolver_reassignDependants );
+	}( render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath );
 
 	var render_shared_initMustache = function( scheduler, resolveRef, ExpressionResolver ) {
 
@@ -3600,7 +3569,6 @@
 			var keypath, indexRef, parentFragment;
 			parentFragment = mustache.parentFragment = options.parentFragment;
 			mustache.root = parentFragment.root;
-			mustache.contextStack = parentFragment.contextStack;
 			mustache.descriptor = options.descriptor;
 			mustache.index = options.index || 0;
 			mustache.priority = parentFragment.priority;
@@ -3612,7 +3580,7 @@
 					mustache.value = indexRef;
 					mustache.render( mustache.value );
 				} else {
-					keypath = resolveRef( mustache.root, options.descriptor.r, mustache.contextStack );
+					keypath = resolveRef( mustache.root, options.descriptor.r, mustache.parentFragment );
 					if ( keypath !== undefined ) {
 						mustache.resolve( keypath );
 					} else {
@@ -3630,14 +3598,140 @@
 		};
 	}( state_scheduler, shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver );
 
-	var render_shared_resolveMustache = function( types, registerDependant, unregisterDependant ) {
+	var render_DomFragment_Section_reassignFragment = function( types, unregisterDependant, ExpressionResolver ) {
+
+		return reassignFragment;
+
+		function reassignFragment( fragment, indexRef, newIndex, oldKeypath, newKeypath ) {
+			var i, item, query;
+			if ( fragment.html !== undefined ) {
+				return;
+			}
+			if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
+				fragment.indexRefs[ indexRef ] = newIndex;
+			}
+			if ( fragment.context && fragment.context.substr( 0, oldKeypath.length ) === oldKeypath ) {
+				fragment.context = fragment.context.replace( oldKeypath, newKeypath );
+			}
+			i = fragment.items.length;
+			while ( i-- ) {
+				item = fragment.items[ i ];
+				switch ( item.type ) {
+					case types.ELEMENT:
+						reassignElement( item, indexRef, newIndex, oldKeypath, newKeypath );
+						break;
+					case types.PARTIAL:
+						reassignFragment( item.fragment, indexRef, newIndex, oldKeypath, newKeypath );
+						break;
+					case types.COMPONENT:
+						reassignFragment( item.instance.fragment, indexRef, newIndex, oldKeypath, newKeypath );
+						if ( query = fragment.root._liveComponentQueries[ item.name ] ) {
+							query._makeDirty();
+						}
+						break;
+					case types.SECTION:
+					case types.INTERPOLATOR:
+					case types.TRIPLE:
+						reassignMustache( item, indexRef, newIndex, oldKeypath, newKeypath );
+						break;
+				}
+			}
+		}
+
+		function reassignElement( element, indexRef, newIndex, oldKeypath, newKeypath ) {
+			var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
+			i = element.attributes.length;
+			while ( i-- ) {
+				attribute = element.attributes[ i ];
+				if ( attribute.fragment ) {
+					reassignFragment( attribute.fragment, indexRef, newIndex, oldKeypath, newKeypath );
+					if ( attribute.twoway ) {
+						attribute.updateBindings();
+					}
+				}
+			}
+			if ( storage = element.node._ractive ) {
+				if ( storage.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+					storage.keypath = storage.keypath.replace( oldKeypath, newKeypath );
+				}
+				if ( indexRef !== undefined ) {
+					storage.index[ indexRef ] = newIndex;
+				}
+				for ( masterEventName in storage.events ) {
+					proxies = storage.events[ masterEventName ].proxies;
+					i = proxies.length;
+					while ( i-- ) {
+						proxy = proxies[ i ];
+						if ( typeof proxy.n === 'object' ) {
+							reassignFragment( proxy.a, indexRef, newIndex, oldKeypath, newKeypath );
+						}
+						if ( proxy.d ) {
+							reassignFragment( proxy.d, indexRef, newIndex, oldKeypath, newKeypath );
+						}
+					}
+				}
+				if ( binding = storage.binding ) {
+					if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+						bindings = storage.root._twowayBindings[ binding.keypath ];
+						bindings.splice( bindings.indexOf( binding ), 1 );
+						binding.keypath = binding.keypath.replace( oldKeypath, newKeypath );
+						bindings = storage.root._twowayBindings[ binding.keypath ] || ( storage.root._twowayBindings[ binding.keypath ] = [] );
+						bindings.push( binding );
+					}
+				}
+			}
+			if ( element.fragment ) {
+				reassignFragment( element.fragment, indexRef, newIndex, oldKeypath, newKeypath );
+			}
+			if ( liveQueries = element.liveQueries ) {
+				ractive = element.root;
+				i = liveQueries.length;
+				while ( i-- ) {
+					ractive._liveQueries[ liveQueries[ i ] ]._makeDirty();
+				}
+			}
+		}
+
+		function reassignMustache( mustache, indexRef, newIndex, oldKeypath, newKeypath ) {
+			var i;
+			if ( mustache.descriptor.x ) {
+				if ( mustache.expressionResolver ) {
+					mustache.expressionResolver.teardown();
+				}
+				mustache.expressionResolver = new ExpressionResolver( mustache );
+			}
+			if ( mustache.keypath ) {
+				if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
+					mustache.resolve( mustache.keypath.replace( oldKeypath, newKeypath ) );
+				}
+			} else if ( mustache.indexRef === indexRef ) {
+				mustache.value = newIndex;
+				mustache.render( newIndex );
+			}
+			if ( mustache.fragments ) {
+				i = mustache.fragments.length;
+				while ( i-- ) {
+					reassignFragment( mustache.fragments[ i ], indexRef, newIndex, oldKeypath, newKeypath );
+				}
+			}
+		}
+	}( config_types, shared_unregisterDependant, render_shared_ExpressionResolver__ExpressionResolver );
+
+	var render_shared_resolveMustache = function( types, registerDependant, unregisterDependant, reassignFragment ) {
 
 		return function resolveMustache( keypath ) {
+			var i;
 			if ( keypath === this.keypath ) {
 				return;
 			}
 			if ( this.registered ) {
 				unregisterDependant( this );
+				if ( this.type === types.SECTION ) {
+					i = this.fragments.length;
+					while ( i-- ) {
+						reassignFragment( this.fragments[ i ], null, null, this.keypath, keypath );
+					}
+				}
 			}
 			this.keypath = keypath;
 			registerDependant( this );
@@ -3649,7 +3743,7 @@
 				this.expressionResolver = null;
 			}
 		};
-	}( config_types, shared_registerDependant, shared_unregisterDependant );
+	}( config_types, shared_registerDependant, shared_unregisterDependant, render_DomFragment_Section_reassignFragment );
 
 	var render_shared_updateMustache = function( isEqual ) {
 
@@ -3705,129 +3799,6 @@
 		return DomInterpolator;
 	}( config_types, shared_teardown, render_shared_initMustache, render_shared_resolveMustache, render_shared_updateMustache, render_DomFragment_shared_detach );
 
-	var render_DomFragment_Section_reassignFragment = function( types, unregisterDependant, ExpressionResolver ) {
-
-		return reassignFragment;
-
-		function reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-			var i, item, context, query;
-			if ( fragment.html !== undefined ) {
-				return;
-			}
-			if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
-				fragment.indexRefs[ indexRef ] = newIndex;
-			}
-			i = fragment.contextStack.length;
-			while ( i-- ) {
-				context = fragment.contextStack[ i ];
-				if ( context.substr( 0, oldKeypath.length ) === oldKeypath ) {
-					fragment.contextStack[ i ] = context.replace( oldKeypath, newKeypath );
-				}
-			}
-			i = fragment.items.length;
-			while ( i-- ) {
-				item = fragment.items[ i ];
-				switch ( item.type ) {
-					case types.ELEMENT:
-						reassignElement( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-						break;
-					case types.PARTIAL:
-						reassignFragment( item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-						break;
-					case types.COMPONENT:
-						reassignFragment( item.instance.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-						if ( query = fragment.root._liveComponentQueries[ item.name ] ) {
-							query._makeDirty();
-						}
-						break;
-					case types.SECTION:
-					case types.INTERPOLATOR:
-					case types.TRIPLE:
-						reassignMustache( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-						break;
-				}
-			}
-		}
-
-		function reassignElement( element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-			var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
-			i = element.attributes.length;
-			while ( i-- ) {
-				attribute = element.attributes[ i ];
-				if ( attribute.fragment ) {
-					reassignFragment( attribute.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-					if ( attribute.twoway ) {
-						attribute.updateBindings();
-					}
-				}
-			}
-			if ( storage = element.node._ractive ) {
-				if ( storage.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-					storage.keypath = storage.keypath.replace( oldKeypath, newKeypath );
-				}
-				if ( indexRef !== undefined ) {
-					storage.index[ indexRef ] = newIndex;
-				}
-				for ( masterEventName in storage.events ) {
-					proxies = storage.events[ masterEventName ].proxies;
-					i = proxies.length;
-					while ( i-- ) {
-						proxy = proxies[ i ];
-						if ( typeof proxy.n === 'object' ) {
-							reassignFragment( proxy.a, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-						}
-						if ( proxy.d ) {
-							reassignFragment( proxy.d, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-						}
-					}
-				}
-				if ( binding = storage.binding ) {
-					if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-						bindings = storage.root._twowayBindings[ binding.keypath ];
-						bindings.splice( bindings.indexOf( binding ), 1 );
-						binding.keypath = binding.keypath.replace( oldKeypath, newKeypath );
-						bindings = storage.root._twowayBindings[ binding.keypath ] || ( storage.root._twowayBindings[ binding.keypath ] = [] );
-						bindings.push( binding );
-					}
-				}
-			}
-			if ( element.fragment ) {
-				reassignFragment( element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-			}
-			if ( liveQueries = element.liveQueries ) {
-				ractive = element.root;
-				i = liveQueries.length;
-				while ( i-- ) {
-					ractive._liveQueries[ liveQueries[ i ] ]._makeDirty();
-				}
-			}
-		}
-
-		function reassignMustache( mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-			var i;
-			if ( mustache.descriptor.x ) {
-				if ( mustache.expressionResolver ) {
-					mustache.expressionResolver.teardown();
-				}
-				mustache.expressionResolver = new ExpressionResolver( mustache );
-			}
-			if ( mustache.keypath ) {
-				if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-					mustache.resolve( mustache.keypath.replace( oldKeypath, newKeypath ) );
-				}
-			} else if ( mustache.indexRef === indexRef ) {
-				mustache.value = newIndex;
-				mustache.render( newIndex );
-			}
-			if ( mustache.fragments ) {
-				i = mustache.fragments.length;
-				while ( i-- ) {
-					reassignFragment( mustache.fragments[ i ], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
-				}
-			}
-		}
-	}( config_types, shared_unregisterDependant, render_shared_ExpressionResolver__ExpressionResolver );
-
 	var render_DomFragment_Section_reassignFragments = function( types, reassignFragment ) {
 
 		return function( root, section, start, end, by ) {
@@ -3840,7 +3811,7 @@
 				oldKeypath = section.keypath + '.' + ( i - by );
 				newKeypath = section.keypath + '.' + i;
 				fragment.index += by;
-				reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignFragment( fragment, indexRef, newIndex, oldKeypath, newKeypath );
 			}
 		};
 	}( config_types, render_DomFragment_Section_reassignFragment );
@@ -3879,7 +3850,7 @@
 				].concat( new Array( balance ) );
 				section.fragments.splice.apply( section.fragments, spliceArgs );
 				for ( i = insertStart; i < insertEnd; i += 1 ) {
-					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
+					fragmentOptions.context = section.keypath + '.' + i;
 					fragmentOptions.index = i;
 					section.fragments[ i ] = section.createFragment( fragmentOptions );
 				}
@@ -3941,7 +3912,7 @@
 				if ( fragment = reassignedFragments[ i ] ) {
 					this.docFrag.appendChild( fragment.detach( false ) );
 				} else {
-					fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+					fragmentOptions.context = this.keypath + '.' + i;
 					fragmentOptions.index = i;
 					fragment = this.createFragment( fragmentOptions );
 				}
@@ -3990,7 +3961,7 @@
 			} else {
 				if ( length > section.length ) {
 					for ( i = section.length; i < length; i += 1 ) {
-						fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
+						fragmentOptions.context = section.keypath + '.' + i;
 						fragmentOptions.index = i;
 						if ( section.descriptor.i ) {
 							fragmentOptions.indexRef = section.descriptor.i;
@@ -4016,7 +3987,7 @@
 			}
 			for ( id in value ) {
 				if ( !hasKey[ id ] ) {
-					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + id );
+					fragmentOptions.context = section.keypath + '.' + id;
 					fragmentOptions.index = id;
 					if ( section.descriptor.i ) {
 						fragmentOptions.indexRef = section.descriptor.i;
@@ -4030,7 +4001,7 @@
 
 		function updateContextSection( section, fragmentOptions ) {
 			if ( !section.length ) {
-				fragmentOptions.contextStack = section.contextStack.concat( section.keypath );
+				fragmentOptions.context = section.keypath;
 				fragmentOptions.index = 0;
 				section.fragments[ 0 ] = section.createFragment( fragmentOptions );
 				section.length = 1;
@@ -4047,7 +4018,6 @@
 			}
 			if ( doRender ) {
 				if ( !section.length ) {
-					fragmentOptions.contextStack = section.contextStack;
 					fragmentOptions.index = 0;
 					section.fragments[ 0 ] = section.createFragment( fragmentOptions );
 					section.length = 1;
@@ -5485,8 +5455,7 @@
 			this.fragment = new StringFragment( {
 				descriptor: options.value,
 				root: this.root,
-				owner: this,
-				contextStack: options.contextStack
+				owner: this
 			} );
 			if ( !this.pNode ) {
 				return;
@@ -5558,8 +5527,7 @@
 						name: attrName,
 						value: attrValue,
 						root: element.root,
-						pNode: element.node,
-						contextStack: element.parentFragment.contextStack
+						pNode: element.node
 					} );
 					element.attributes.push( element.attributes[ attrName ] = attr );
 					if ( attrName !== 'name' ) {
@@ -5598,7 +5566,6 @@
 				element.fragment = new StringFragment( {
 					descriptor: descriptor.f,
 					root: element.root,
-					contextStack: element.parentFragment.contextStack,
 					owner: element
 				} );
 				if ( docFrag ) {
@@ -5634,7 +5601,6 @@
 					descriptor: descriptor.f,
 					root: element.root,
 					pNode: node,
-					contextStack: element.parentFragment.contextStack,
 					owner: element
 				} );
 				if ( docFrag ) {
@@ -5646,7 +5612,7 @@
 
 	var render_DomFragment_Element_initialise_decorate_Decorator = function( warn, StringFragment ) {
 
-		var Decorator = function( descriptor, ractive, owner, contextStack ) {
+		var Decorator = function( descriptor, ractive, owner ) {
 			var decorator = this,
 				name, fragment, errorMessage;
 			decorator.root = ractive;
@@ -5656,8 +5622,7 @@
 				fragment = new StringFragment( {
 					descriptor: name,
 					root: ractive,
-					owner: owner,
-					contextStack: contextStack
+					owner: owner
 				} );
 				name = fragment.toString();
 				fragment.teardown();
@@ -5668,8 +5633,7 @@
 				decorator.fragment = new StringFragment( {
 					descriptor: descriptor.d,
 					root: ractive,
-					owner: owner,
-					contextStack: contextStack
+					owner: owner
 				} );
 				decorator.params = decorator.fragment.toArgsList();
 				decorator.fragment.bubble = function() {
@@ -5722,8 +5686,8 @@
 
 	var render_DomFragment_Element_initialise_decorate__decorate = function( scheduler, Decorator ) {
 
-		return function( descriptor, root, owner, contextStack ) {
-			owner.decorator = new Decorator( descriptor, root, owner, contextStack );
+		return function( descriptor, root, owner ) {
+			owner.decorator = new Decorator( descriptor, root, owner );
 			if ( owner.decorator.fn ) {
 				scheduler.addDecorator( owner.decorator );
 			}
@@ -5733,19 +5697,18 @@
 	var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function( warn, StringFragment ) {
 
 		var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
-		addEventProxy = function( element, triggerEventName, proxyDescriptor, contextStack, indexRefs ) {
+		addEventProxy = function( element, triggerEventName, proxyDescriptor, indexRefs ) {
 			var events, master;
 			events = element.node._ractive.events;
-			master = events[ triggerEventName ] || ( events[ triggerEventName ] = new MasterEventHandler( element, triggerEventName, contextStack, indexRefs ) );
+			master = events[ triggerEventName ] || ( events[ triggerEventName ] = new MasterEventHandler( element, triggerEventName, indexRefs ) );
 			master.add( proxyDescriptor );
 		};
-		MasterEventHandler = function( element, eventName, contextStack ) {
+		MasterEventHandler = function( element, eventName ) {
 			var definition;
 			this.element = element;
 			this.root = element.root;
 			this.node = element.node;
 			this.name = eventName;
-			this.contextStack = contextStack;
 			this.proxies = [];
 			if ( definition = this.root.events[ eventName ] ) {
 				this.custom = definition( this.node, getCustomHandler( eventName ) );
@@ -5758,7 +5721,7 @@
 		};
 		MasterEventHandler.prototype = {
 			add: function( proxy ) {
-				this.proxies.push( new ProxyEvent( this.element, this.root, proxy, this.contextStack ) );
+				this.proxies.push( new ProxyEvent( this.element, this.root, proxy ) );
 			},
 			teardown: function() {
 				var i;
@@ -5779,7 +5742,7 @@
 				}
 			}
 		};
-		ProxyEvent = function( element, ractive, descriptor, contextStack ) {
+		ProxyEvent = function( element, ractive, descriptor ) {
 			var name;
 			this.root = ractive;
 			name = descriptor.n || descriptor;
@@ -5789,8 +5752,7 @@
 				this.n = new StringFragment( {
 					descriptor: descriptor.n,
 					root: this.root,
-					owner: element,
-					contextStack: contextStack
+					owner: element
 				} );
 			}
 			if ( descriptor.a ) {
@@ -5802,8 +5764,7 @@
 				this.d = new StringFragment( {
 					descriptor: descriptor.d,
 					root: this.root,
-					owner: element,
-					contextStack: contextStack
+					owner: element
 				} );
 				this.fire = fireEventWithDynamicArgs;
 				return;
@@ -5875,7 +5836,7 @@
 					eventNames = eventName.split( '-' );
 					i = eventNames.length;
 					while ( i-- ) {
-						addEventProxy( element, eventNames[ i ], proxies[ eventName ], element.parentFragment.contextStack );
+						addEventProxy( element, eventNames[ i ], proxies[ eventName ] );
 					}
 				}
 			}
@@ -6436,7 +6397,7 @@
 	var render_DomFragment_Element_shared_executeTransition_Transition__Transition = function( warn, StringFragment, init, getStyle, setStyle, animateStyle, processParams, resetStyle ) {
 
 		var Transition;
-		Transition = function( descriptor, root, owner, contextStack, isIntro ) {
+		Transition = function( descriptor, root, owner, isIntro ) {
 			var t = this,
 				name, fragment, errorMessage;
 			this.root = root;
@@ -6455,8 +6416,7 @@
 				fragment = new StringFragment( {
 					descriptor: name,
 					root: this.root,
-					owner: owner,
-					contextStack: contextStack
+					owner: owner
 				} );
 				name = fragment.toString();
 				fragment.teardown();
@@ -6468,8 +6428,7 @@
 				fragment = new StringFragment( {
 					descriptor: descriptor.d,
 					root: this.root,
-					owner: owner,
-					contextStack: contextStack
+					owner: owner
 				} );
 				this.params = fragment.toArgsList();
 				fragment.teardown();
@@ -6498,12 +6457,12 @@
 
 	var render_DomFragment_Element_shared_executeTransition__executeTransition = function( scheduler, warn, Transition ) {
 
-		return function( descriptor, ractive, owner, contextStack, isIntro ) {
+		return function( descriptor, ractive, owner, isIntro ) {
 			var transition, node, instance, manager, oldTransition;
 			if ( !ractive.transitionsEnabled || ractive._parent && !ractive._parent.transitionsEnabled ) {
 				return;
 			}
-			transition = new Transition( descriptor, ractive, owner, contextStack, isIntro );
+			transition = new Transition( descriptor, ractive, owner, isIntro );
 			if ( transition._fn ) {
 				node = transition.node;
 				instance = ractive;
@@ -6526,14 +6485,13 @@
 		};
 	}( state_scheduler, utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition );
 
-	var render_DomFragment_Element_initialise__initialise = function( scheduler, types, namespaces, create, defineProperty, matches, warn, createElement, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase ) {
+	var render_DomFragment_Element_initialise__initialise = function( scheduler, types, namespaces, create, defineProperty, matches, warn, createElement, getInnerContext, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase ) {
 
 		return function initialiseElement( element, options, docFrag ) {
-			var parentFragment, pNode, contextStack, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
+			var parentFragment, pNode, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
 			element.type = types.ELEMENT;
 			parentFragment = element.parentFragment = options.parentFragment;
 			pNode = parentFragment.pNode;
-			contextStack = parentFragment.contextStack;
 			descriptor = element.descriptor = options.descriptor;
 			element.root = root = parentFragment.root;
 			element.index = options.index;
@@ -6547,7 +6505,7 @@
 				defineProperty( element.node, '_ractive', {
 					value: {
 						proxy: element,
-						keypath: contextStack.length ? contextStack[ contextStack.length - 1 ] : '',
+						keypath: getInnerContext( parentFragment ),
 						index: parentFragment.indexRefs,
 						events: create( null ),
 						root: root
@@ -6594,10 +6552,10 @@
 				}
 				docFrag.appendChild( element.node );
 				if ( descriptor.o ) {
-					decorate( descriptor.o, root, element, contextStack );
+					decorate( descriptor.o, root, element );
 				}
 				if ( descriptor.t1 ) {
-					executeTransition( descriptor.t1, root, element, contextStack, true );
+					executeTransition( descriptor.t1, root, element, true );
 				}
 				if ( element.node.tagName === 'OPTION' ) {
 					if ( pNode.tagName === 'SELECT' && ( selectBinding = pNode._ractive.binding ) ) {
@@ -6613,7 +6571,7 @@
 			}
 			updateLiveQueries( element );
 		};
-	}( state_scheduler, config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase );
+	}( state_scheduler, config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, shared_getInnerContext, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase );
 
 	var render_DomFragment_Element_prototype_teardown = function( executeTransition ) {
 
@@ -6639,7 +6597,7 @@
 				this.decorator.teardown();
 			}
 			if ( this.descriptor.t2 ) {
-				executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
+				executeTransition( this.descriptor.t2, this.root, this, false );
 			}
 			if ( destroy ) {
 				this.root._detachQueue.push( this );
@@ -6941,7 +6899,6 @@
 				descriptor: descriptor,
 				root: parentFragment.root,
 				pNode: parentFragment.pNode,
-				contextStack: parentFragment.contextStack,
 				owner: this
 			} );
 			if ( docFrag ) {
@@ -6999,8 +6956,7 @@
 			this.fragment = new StringFragment( {
 				descriptor: value,
 				root: component.root,
-				owner: this,
-				contextStack: component.parentFragment.contextStack
+				owner: this
 			} );
 			this.selfUpdating = this.fragment.isSimple();
 			this.value = this.fragment.getValue();
@@ -7026,7 +6982,7 @@
 		return ComponentParameter;
 	}( state_scheduler, render_StringFragment__StringFragment );
 
-	var render_DomFragment_Component_initialise_createModel__createModel = function( types, parseJSON, resolveRef, ComponentParameter ) {
+	var render_DomFragment_Component_initialise_createModel__createModel = function( types, parseJSON, resolveRef, get, ComponentParameter ) {
 
 		return function( component, defaultData, attributes, toBind ) {
 			var data, key, value;
@@ -7044,8 +7000,8 @@
 		};
 
 		function getValue( component, key, descriptor, toBind ) {
-			var parameter, parsed, root, parentFragment, keypath;
-			root = component.root;
+			var parameter, parsed, parentInstance, parentFragment, keypath;
+			parentInstance = component.root;
 			parentFragment = component.parentFragment;
 			if ( typeof descriptor === 'string' ) {
 				parsed = parseJSON( descriptor );
@@ -7058,18 +7014,18 @@
 				if ( parentFragment.indexRefs && parentFragment.indexRefs[ descriptor[ 0 ].r ] !== undefined ) {
 					return parentFragment.indexRefs[ descriptor[ 0 ].r ];
 				}
-				keypath = resolveRef( root, descriptor[ 0 ].r, parentFragment.contextStack ) || descriptor[ 0 ].r;
+				keypath = resolveRef( parentInstance, descriptor[ 0 ].r, parentFragment ) || descriptor[ 0 ].r;
 				toBind.push( {
 					childKeypath: key,
 					parentKeypath: keypath
 				} );
-				return root.get( keypath );
+				return get( parentInstance, keypath );
 			}
 			parameter = new ComponentParameter( component, key, descriptor );
 			component.complexParameters.push( parameter );
 			return parameter.value;
 		}
-	}( config_types, utils_parseJSON, shared_resolveRef, render_DomFragment_Component_initialise_createModel_ComponentParameter );
+	}( config_types, utils_parseJSON, shared_resolveRef, shared_get__get, render_DomFragment_Component_initialise_createModel_ComponentParameter );
 
 	var render_DomFragment_Component_initialise_createInstance = function( component, Component, data, docFrag, contentDescriptor ) {
 		var instance, parentFragment, partials, root;
@@ -7092,19 +7048,19 @@
 		return instance;
 	};
 
-	var render_DomFragment_Component_initialise_createBindings = function( createComponentBinding ) {
+	var render_DomFragment_Component_initialise_createBindings = function( createComponentBinding, get ) {
 
-		return function( component, toBind ) {
-			toBind.forEach( function( pair ) {
+		return function createInitialComponentBindings( component, toBind ) {
+			toBind.forEach( function createInitialComponentBinding( pair ) {
 				var childValue;
 				createComponentBinding( component, component.root, pair.parentKeypath, pair.childKeypath );
-				childValue = component.instance.get( pair.childKeypath );
+				childValue = get( component.instance, pair.childKeypath );
 				if ( childValue !== undefined ) {
 					component.root.set( pair.parentKeypath, childValue );
 				}
 			} );
 		};
-	}( shared_createComponentBinding );
+	}( shared_createComponentBinding, shared_get__get );
 
 	var render_DomFragment_Component_initialise_propagateEvents = function( warn ) {
 
@@ -7148,7 +7104,7 @@
 
 	var render_DomFragment_Component_initialise__initialise = function( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries ) {
 
-		return function( component, options, docFrag ) {
+		return function initialiseComponent( component, options, docFrag ) {
 			var parentFragment, root, Component, data, toBind;
 			parentFragment = component.parentFragment = options.parentFragment;
 			root = parentFragment.root;
