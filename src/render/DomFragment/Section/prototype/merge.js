@@ -92,7 +92,7 @@ define([
 			}
 
 			else {
-				fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+				fragmentOptions.context = this.keypath + '.' + i;
 				fragmentOptions.index = i;
 
 				fragment = this.createFragment( fragmentOptions );

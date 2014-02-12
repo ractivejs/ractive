@@ -14,12 +14,12 @@ define([
 
 		// The item that owns this fragment - an element, section, partial, or attribute
 		fragment.owner = options.owner;
-		parentFragment = fragment.owner.parentFragment;
+		parentFragment = fragment.parent = fragment.owner.parentFragment;
 
 		// inherited properties
 		fragment.root = options.root;
 		fragment.pNode = options.pNode;
-		fragment.contextStack = options.contextStack || [];
+		fragment.context = options.context;
 
 		// If parent item is a section, this may not be the only fragment
 		// that belongs to it - we need to make a note of the index

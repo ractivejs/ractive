@@ -54,7 +54,7 @@ define([
 			section.fragments.splice.apply( section.fragments, spliceArgs );
 
 			for ( i=insertStart; i<insertEnd; i+=1 ) {
-				fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
+				fragmentOptions.context = section.keypath + '.' + i;
 				fragmentOptions.index = i;
 
 				section.fragments[i] = section.createFragment( fragmentOptions );

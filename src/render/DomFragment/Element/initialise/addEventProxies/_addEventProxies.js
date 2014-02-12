@@ -11,7 +11,7 @@ define([ 'render/DomFragment/Element/initialise/addEventProxies/addEventProxy' ]
 				i = eventNames.length;
 
 				while ( i-- ) {
-					addEventProxy( element, eventNames[i], proxies[ eventName ], element.parentFragment.contextStack );
+					addEventProxy( element, eventNames[i], proxies[ eventName ] );
 				}
 			}
 		}

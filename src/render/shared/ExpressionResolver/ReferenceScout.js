@@ -10,19 +10,19 @@ define([
 
 	'use strict';
 
-	var ReferenceScout = function ( resolver, ref, contextStack, argNum ) {
-		var keypath, root;
+	var ReferenceScout = function ( resolver, ref, parentFragment, argNum ) {
+		var keypath, ractive;
 
-		root = this.root = resolver.root;
+		ractive = this.root = resolver.root;
+		this.ref = ref;
+		this.parentFragment = parentFragment;
 
-		keypath = resolveRef( root, ref, contextStack );
+		keypath = resolveRef( ractive, ref, parentFragment );
 		if ( keypath !== undefined ) {
-			resolver.resolveRef( argNum, false, keypath );
+			resolver.resolve( argNum, false, keypath );
 		} else {
-			this.ref = ref;
 			this.argNum = argNum;
 			this.resolver = resolver;
-			this.contextStack = contextStack;
 
 			scheduler.addUnresolved( this );
 		}
@@ -31,7 +31,7 @@ define([
 	ReferenceScout.prototype = {
 		resolve: function ( keypath ) {
 			this.keypath = keypath;
-			this.resolver.resolveRef( this.argNum, false, keypath );
+			this.resolver.resolve( this.argNum, false, keypath );
 		},
 
 		teardown: function () {

@@ -22,7 +22,7 @@ define([
 
 	var Transition;
 
-	Transition = function ( descriptor, root, owner, contextStack, isIntro ) {
+	Transition = function ( descriptor, root, owner, isIntro ) {
 		var t = this, name, fragment, errorMessage;
 
 		this.root = root;
@@ -51,8 +51,7 @@ define([
 			fragment = new StringFragment({
 				descriptor:   name,
 				root:         this.root,
-				owner:        owner,
-				contextStack: contextStack
+				owner:        owner
 			});
 
 			name = fragment.toString();
@@ -71,8 +70,7 @@ define([
 			fragment = new StringFragment({
 				descriptor:   descriptor.d,
 				root:         this.root,
-				owner:        owner,
-				contextStack: contextStack
+				owner:        owner
 			});
 
 			this.params = fragment.toArgsList();

@@ -17,8 +17,7 @@ define([
 		this.fragment = new StringFragment({
 			descriptor:   value,
 			root:         component.root,
-			owner:        this,
-			contextStack: component.parentFragment.contextStack
+			owner:        this
 		});
 
 		this.selfUpdating = this.fragment.isSimple();

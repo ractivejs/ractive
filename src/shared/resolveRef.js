@@ -1,9 +1,11 @@
 define([
 	'circular',
-	'utils/normaliseKeypath'
+	'utils/normaliseKeypath',
+	'shared/getInnerContext'
 ], function (
 	circular,
-	normaliseKeypath
+	normaliseKeypath,
+	getInnerContext
 ) {
 
 	'use strict';
@@ -14,29 +16,22 @@ define([
 		get = circular.get;
 	});
 
-	// Resolve a full keypath from `ref` within the given `contextStack` (e.g.
-	// `'bar.baz'` within the context stack `['foo']` might resolve to `'foo.bar.baz'`
-	return function resolveRef ( ractive, ref, contextStack ) {
-
-		var keypath, keys, lastKey, contextKeys, innerMostContext, postfix, parentKeypath, parentValue, wrapped, context;
+	return function ( ractive, ref, fragment ) {
+		var context, contextKeys, keys, lastKey, postfix, parentKeypath, parentValue, wrapped;
 
 		ref = normaliseKeypath( ref );
 
 		// Implicit iterators - i.e. {{.}} - are a special case
 		if ( ref === '.' ) {
-			if ( !contextStack.length ) {
-				return '';
-			}
-
-			keypath = contextStack[ contextStack.length - 1 ];
+			return getInnerContext( fragment );
 		}
 
 		// If a reference begins with '.', it's either a restricted reference or
 		// an ancestor reference...
-		else if ( ref.charAt( 0 ) === '.' ) {
+		if ( ref.charAt( 0 ) === '.' ) {
 
 			// ...either way we need to get the innermost context
-			context = contextStack[ contextStack.length - 1 ];
+			context = getInnerContext( fragment );
 			contextKeys = context ? context.split( '.' ) : [];
 
 			// ancestor references (starting "../") go up the tree
@@ -51,59 +46,55 @@ define([
 				}
 
 				contextKeys.push( ref );
-				keypath = contextKeys.join( '.' );
+				return contextKeys.join( '.' );
 			}
 
 			// not an ancestor reference - must be a restricted reference (prepended with ".")
-			else if ( !context ) {
-				keypath = ref.substring( 1 );
+			if ( !context ) {
+				return ref.substring( 1 );
 			}
 
-			else {
-				keypath = context + ref;
-			}
+			return context + ref;
 		}
 
-		else {
-			keys = ref.split( '.' );
-			lastKey = keys.pop();
-			postfix = keys.length ? '.' + keys.join( '.' ) : '';
+		// Now we need to try and resolve the reference against any
+		// contexts set by parent list/object sections
+		keys = ref.split( '.' );
+		lastKey = keys.pop();
+		postfix = keys.length ? '.' + keys.join( '.' ) : '';
 
-			// Clone the context stack, so we don't mutate the original
-			contextStack = contextStack.concat();
+		do {
+			context = fragment.context;
 
-			// Take each context from the stack, working backwards from the innermost context
-			while ( contextStack.length ) {
-
-				innerMostContext = contextStack.pop();
-				parentKeypath = innerMostContext + postfix;
-
-				parentValue = get( ractive, parentKeypath );
-
-				if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
-					parentValue = wrapped.get();
-				}
-
-				if ( typeof parentValue === 'object' && parentValue !== null && lastKey in parentValue ) {
-					return innerMostContext + '.' + ref;
-				}
+			if ( !context ) {
+				continue;
 			}
 
-			// Still no keypath?
+			parentKeypath = context + postfix;
+			parentValue = get( ractive, parentKeypath );
 
-			// We need both of these - the first enables components to treat data contexts
-			// like lexical scopes in JavaScript functions...
-			if ( ractive.data.hasOwnProperty( ref ) ) {
-				keypath = ref;
+			if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+				parentValue = wrapped.get();
 			}
 
-			// while the second deals with references like `foo.bar`
-			else if ( get( ractive, ref ) !== undefined ) {
-				keypath = ref;
+			if ( typeof parentValue === 'object' && parentValue !== null && lastKey in parentValue ) {
+				return context + '.' + ref;
 			}
+		} while ( fragment = fragment.parent );
+
+
+		// Still no keypath?
+
+		// We need both of these - the first enables components to treat data contexts
+		// like lexical scopes in JavaScript functions...
+		if ( ractive.data.hasOwnProperty( ref ) ) {
+			return ref;
 		}
 
-		return keypath ? keypath.replace( /^\./, '' ) : keypath;
+		// while the second deals with references like `foo.bar`
+		else if ( get( ractive, ref ) !== undefined ) {
+			return ref;
+		}
 	};
 
 });

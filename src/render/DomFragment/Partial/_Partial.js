@@ -36,7 +36,6 @@ define([
 			descriptor:   descriptor,
 			root:         parentFragment.root,
 			pNode:        parentFragment.pNode,
-			contextStack: parentFragment.contextStack,
 			owner:        this
 		});
 

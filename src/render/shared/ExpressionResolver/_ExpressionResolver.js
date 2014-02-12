@@ -2,14 +2,12 @@ define([
 	'render/shared/Evaluator/_Evaluator',
 	'render/shared/ExpressionResolver/ReferenceScout',
 	'render/shared/ExpressionResolver/getUniqueString',
-	'render/shared/ExpressionResolver/getKeypath',
-	'render/shared/ExpressionResolver/reassignDependants'
+	'render/shared/ExpressionResolver/getKeypath'
 ], function (
 	Evaluator,
 	ReferenceScout,
 	getUniqueString,
-	getKeypath,
-	reassignDependants
+	getKeypath
 ) {
 
 	'use strict';
@@ -42,11 +40,11 @@ define([
 
 			// is this an index ref?
 			if ( indexRefs && indexRefs[ ref ] !== undefined ) {
-				this.resolveRef( i, true, indexRefs[ ref ] );
+				this.resolve( i, true, indexRefs[ ref ] );
 			}
 
 			else {
-				this.scouts.push( new ReferenceScout( this, ref, mustache.contextStack, i ) );
+				this.scouts.push( new ReferenceScout( this, ref, mustache.parentFragment, i ) );
 			}
 		}
 
@@ -70,15 +68,7 @@ define([
 				this.createEvaluator();
 			}
 
-			if ( oldKeypath ) {
-				// need to reassign all dependants, inc. downstream, of
-				// old keypath to the new one
-				reassignDependants( this.root, oldKeypath, this.keypath );
-			}
-
-			else {
-				this.mustache.resolve( this.keypath );
-			}
+			this.mustache.resolve( this.keypath );
 		},
 
 		teardown: function () {
@@ -87,7 +77,7 @@ define([
 			}
 		},
 
-		resolveRef: function ( argNum, isIndexRef, value ) {
+		resolve: function ( argNum, isIndexRef, value ) {
 			this.args[ argNum ] = [ isIndexRef, value ];
 			this.bubble();
 

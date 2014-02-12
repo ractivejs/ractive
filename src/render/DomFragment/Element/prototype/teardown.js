@@ -39,7 +39,7 @@ define([
 
 		// Outro, if necessary
 		if ( this.descriptor.t2 ) {
-			executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
+			executeTransition( this.descriptor.t2, this.root, this, false );
 		}
 
 		// Detach as soon as we can

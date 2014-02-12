@@ -7,6 +7,7 @@ define([
 	'utils/matches',
 	'utils/warn',
 	'utils/createElement',
+	'shared/getInnerContext',
 	'render/DomFragment/Element/initialise/getElementNamespace',
 	'render/DomFragment/Element/initialise/createElementAttributes',
 	'render/DomFragment/Element/initialise/appendElementChildren',
@@ -24,6 +25,7 @@ define([
 	matches,
 	warn,
 	createElement,
+	getInnerContext,
 	getElementNamespace,
 	createElementAttributes,
 	appendElementChildren,
@@ -39,7 +41,6 @@ define([
 	return function initialiseElement ( element, options, docFrag ) {
 		var parentFragment,
 			pNode,
-			contextStack,
 			descriptor,
 			namespace,
 			name,
@@ -56,7 +57,6 @@ define([
 		// stuff we'll need later
 		parentFragment = element.parentFragment = options.parentFragment;
 		pNode = parentFragment.pNode;
-		contextStack = parentFragment.contextStack;
 		descriptor = element.descriptor = options.descriptor;
 
 		element.root = root = parentFragment.root;
@@ -81,7 +81,7 @@ define([
 			defineProperty( element.node, '_ractive', {
 				value: {
 					proxy: element,
-					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
+					keypath: getInnerContext( parentFragment ),
 					index: parentFragment.indexRefs,
 					events: create( null ),
 					root: root
@@ -159,12 +159,12 @@ define([
 
 			// apply decorator(s)
 			if ( descriptor.o ) {
-				decorate( descriptor.o, root, element, contextStack );
+				decorate( descriptor.o, root, element );
 			}
 
 			// trigger intro transition
 			if ( descriptor.t1 ) {
-				executeTransition( descriptor.t1, root, element, contextStack, true );
+				executeTransition( descriptor.t1, root, element, true );
 			}
 
 			if ( element.node.tagName === 'OPTION' ) {

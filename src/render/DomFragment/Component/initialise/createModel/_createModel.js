@@ -63,7 +63,7 @@ define([
 			}
 
 			// TODO what about references that resolve late? Should these be considered?
-			keypath = resolveRef( parentInstance, descriptor[0].r, parentFragment.contextStack ) || descriptor[0].r;
+			keypath = resolveRef( parentInstance, descriptor[0].r, parentFragment ) || descriptor[0].r;
 
 			// We need to set up bindings between parent and child, but
 			// we can't do it yet because the child instance doesn't exist

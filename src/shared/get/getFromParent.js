@@ -11,7 +11,7 @@ define([
 	'use strict';
 
 	return function getFromParent ( child, keypath ) {
-		var parent, contextStack, keypathToTest, value, i;
+		var parent, fragment, keypathToTest, value;
 
 		parent = child._parent;
 
@@ -19,17 +19,20 @@ define([
 			return;
 		}
 
-		contextStack = child.component.parentFragment.contextStack;
-		i = contextStack.length;
-		while ( i-- ) {
-			keypathToTest = contextStack[i] + '.' + keypath;
+		fragment = child.component.parentFragment;
+		do {
+			if ( !fragment.context ) {
+				continue;
+			}
+
+			keypathToTest = fragment.context + '.' + keypath;
 			value = parent.get( keypathToTest );
 
 			if ( value !== undefined ) {
 				createLateComponentBinding( parent, child, keypathToTest, keypath, value );
 				return value;
 			}
-		}
+		} while ( fragment = fragment.parent );
 
 		value = parent.get( keypath );
 		if ( value !== undefined ) {

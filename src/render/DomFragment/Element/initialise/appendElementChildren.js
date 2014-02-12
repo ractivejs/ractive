@@ -50,7 +50,6 @@ define([
 			element.fragment = new StringFragment({
 				descriptor:   descriptor.f,
 				root:         element.root,
-				contextStack: element.parentFragment.contextStack,
 				owner:        element
 			});
 
@@ -97,7 +96,6 @@ define([
 				descriptor:   descriptor.f,
 				root:         element.root,
 				pNode:        node,
-				contextStack: element.parentFragment.contextStack,
 				owner:        element
 			});
 

@@ -182,7 +182,7 @@ define([
 				continue; // it did resolve after all
 			}
 
-			keypath = resolveRef( thing.root, thing.ref, thing.contextStack );
+			keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );
 
 			if ( keypath !== undefined ) {
 				// If we've resolved the keypath, we can initialise this item

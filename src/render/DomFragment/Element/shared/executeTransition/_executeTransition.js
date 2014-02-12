@@ -10,7 +10,7 @@ define([
 
 	'use strict';
 
-	return function ( descriptor, ractive, owner, contextStack, isIntro ) {
+	return function ( descriptor, ractive, owner, isIntro ) {
 		var transition,
 			node,
 			instance,
@@ -22,7 +22,7 @@ define([
 		}
 
 		// get transition name, args and function
-		transition = new Transition( descriptor, ractive, owner, contextStack, isIntro );
+		transition = new Transition( descriptor, ractive, owner, isIntro );
 
 		if ( transition._fn ) {
 			node = transition.node;

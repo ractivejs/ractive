@@ -8,8 +8,8 @@ define([
 
 	'use strict';
 
-	return function ( descriptor, root, owner, contextStack ) {
-		owner.decorator = new Decorator( descriptor, root, owner, contextStack );
+	return function ( descriptor, root, owner ) {
+		owner.decorator = new Decorator( descriptor, root, owner );
 
 		if ( owner.decorator.fn ) {
 			scheduler.addDecorator( owner.decorator );

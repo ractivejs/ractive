@@ -17,7 +17,6 @@ define([
 		parentFragment = mustache.parentFragment = options.parentFragment;
 
 		mustache.root           = parentFragment.root;
-		mustache.contextStack   = parentFragment.contextStack;
 
 		mustache.descriptor     = options.descriptor;
 		mustache.index          = options.index || 0;
@@ -38,7 +37,8 @@ define([
 			}
 
 			else {
-				keypath = resolveRef( mustache.root, options.descriptor.r, mustache.contextStack );
+				keypath = resolveRef( mustache.root, options.descriptor.r, mustache.parentFragment );
+
 				if ( keypath !== undefined ) {
 					mustache.resolve( keypath );
 				} else {

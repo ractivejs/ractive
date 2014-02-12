@@ -43,8 +43,7 @@ define([
 		this.fragment = new StringFragment({
 			descriptor:   options.value,
 			root:         this.root,
-			owner:        this,
-			contextStack: options.contextStack
+			owner:        this
 		});
 
 

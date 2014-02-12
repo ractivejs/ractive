@@ -12,8 +12,8 @@ define([
 
 	return reassignFragment;
 
-	function reassignFragment ( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
-		var i, item, context, query;
+	function reassignFragment ( fragment, indexRef, newIndex, oldKeypath, newKeypath ) {
+		var i, item, query;
 
 		// If this fragment was rendered with innerHTML, we have nothing to do
 		// TODO a less hacky way of determining this
@@ -26,12 +26,8 @@ define([
 		}
 
 		// fix context stack
-		i = fragment.contextStack.length;
-		while ( i-- ) {
-			context = fragment.contextStack[i];
-			if ( context.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				fragment.contextStack[i] = context.replace( oldKeypath, newKeypath );
-			}
+		if ( fragment.context && fragment.context.substr( 0, oldKeypath.length ) === oldKeypath ) {
+			fragment.context = fragment.context.replace( oldKeypath, newKeypath );
 		}
 
 		i = fragment.items.length;
@@ -40,15 +36,15 @@ define([
 
 			switch ( item.type ) {
 				case types.ELEMENT:
-				reassignElement( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignElement( item, indexRef, newIndex, oldKeypath, newKeypath );
 				break;
 
 				case types.PARTIAL:
-				reassignFragment( item.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignFragment( item.fragment, indexRef, newIndex, oldKeypath, newKeypath );
 				break;
 
 				case types.COMPONENT:
-				reassignFragment( item.instance.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignFragment( item.instance.fragment, indexRef, newIndex, oldKeypath, newKeypath );
 				if ( query = fragment.root._liveComponentQueries[ item.name ] ) {
 					query._makeDirty();
 				}
@@ -57,13 +53,13 @@ define([
 				case types.SECTION:
 				case types.INTERPOLATOR:
 				case types.TRIPLE:
-				reassignMustache( item, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignMustache( item, indexRef, newIndex, oldKeypath, newKeypath );
 				break;
 			}
 		}
 	}
 
-	function reassignElement ( element, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
+	function reassignElement ( element, indexRef, newIndex, oldKeypath, newKeypath ) {
 		var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
 
 		i = element.attributes.length;
@@ -71,7 +67,7 @@ define([
 			attribute = element.attributes[i];
 
 			if ( attribute.fragment ) {
-				reassignFragment( attribute.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignFragment( attribute.fragment, indexRef, newIndex, oldKeypath, newKeypath );
 
 				if ( attribute.twoway ) {
 					attribute.updateBindings();
@@ -96,11 +92,11 @@ define([
 					proxy = proxies[i];
 
 					if ( typeof proxy.n === 'object' ) {
-						reassignFragment( proxy.a, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+						reassignFragment( proxy.a, indexRef, newIndex, oldKeypath, newKeypath );
 					}
 
 					if ( proxy.d ) {
-						reassignFragment( proxy.d, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+						reassignFragment( proxy.d, indexRef, newIndex, oldKeypath, newKeypath );
 					}
 				}
 			}
@@ -124,7 +120,7 @@ define([
 
 		// reassign children
 		if ( element.fragment ) {
-			reassignFragment( element.fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+			reassignFragment( element.fragment, indexRef, newIndex, oldKeypath, newKeypath );
 		}
 
 		// Update live queries, if necessary
@@ -138,7 +134,7 @@ define([
 		}
 	}
 
-	function reassignMustache ( mustache, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath ) {
+	function reassignMustache ( mustache, indexRef, newIndex, oldKeypath, newKeypath ) {
 		var i;
 
 		// expression mustache?
@@ -176,7 +172,7 @@ define([
 		if ( mustache.fragments ) {
 			i = mustache.fragments.length;
 			while ( i-- ) {
-				reassignFragment( mustache.fragments[i], indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+				reassignFragment( mustache.fragments[i], indexRef, newIndex, oldKeypath, newKeypath );
 			}
 		}
 	}

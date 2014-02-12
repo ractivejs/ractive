@@ -8,7 +8,7 @@ define([
 
 	'use strict';
 
-	var Decorator = function ( descriptor, ractive, owner, contextStack ) {
+	var Decorator = function ( descriptor, ractive, owner ) {
 		var decorator = this, name, fragment, errorMessage;
 
 		decorator.root = ractive;
@@ -20,8 +20,7 @@ define([
 			fragment = new StringFragment({
 				descriptor:   name,
 				root:         ractive,
-				owner:        owner,
-				contextStack: contextStack
+				owner:        owner
 			});
 
 			name = fragment.toString();
@@ -36,8 +35,7 @@ define([
 			decorator.fragment = new StringFragment({
 				descriptor:   descriptor.d,
 				root:         ractive,
-				owner:        owner,
-				contextStack: contextStack
+				owner:        owner
 			});
 
 			decorator.params = decorator.fragment.toArgsList();

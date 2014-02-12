@@ -25,7 +25,7 @@ define([
 			// change the fragment index
 			fragment.index += by;
 
-			reassignFragment( fragment, indexRef, oldIndex, newIndex, by, oldKeypath, newKeypath );
+			reassignFragment( fragment, indexRef, newIndex, oldKeypath, newKeypath );
 		}
 	};
 

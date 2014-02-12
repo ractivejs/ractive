@@ -69,7 +69,7 @@ define([
 				// add any new ones
 				for ( i=section.length; i<length; i+=1 ) {
 					// append list item to context stack
-					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
+					fragmentOptions.context = section.keypath + '.' + i;
 					fragmentOptions.index = i;
 
 					if ( section.descriptor.i ) {
@@ -105,7 +105,7 @@ define([
 		// add any that haven't been created yet
 		for ( id in value ) {
 			if ( !hasKey[ id ] ) {
-				fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + id );
+				fragmentOptions.context = section.keypath + '.' + id;
 				fragmentOptions.index = id;
 
 				if ( section.descriptor.i ) {
@@ -126,7 +126,7 @@ define([
 		// will update themselves without any prompting)
 		if ( !section.length ) {
 			// append this section to the context stack
-			fragmentOptions.contextStack = section.contextStack.concat( section.keypath );
+			fragmentOptions.context = section.keypath;
 			fragmentOptions.index = 0;
 
 			section.fragments[0] = section.createFragment( fragmentOptions );
@@ -148,7 +148,6 @@ define([
 		if ( doRender ) {
 			if ( !section.length ) {
 				// no change to context stack
-				fragmentOptions.contextStack = section.contextStack;
 				fragmentOptions.index = 0;
 
 				section.fragments[0] = section.createFragment( fragmentOptions );
