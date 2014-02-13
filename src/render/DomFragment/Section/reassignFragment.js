@@ -129,7 +129,7 @@ define([
 
 			i = liveQueries.length;
 			while ( i-- ) {
-				ractive._liveQueries[ liveQueries[i] ]._makeDirty();
+				liveQueries[i]._makeDirty();
 			}
 		}
 	}

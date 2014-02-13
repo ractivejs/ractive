@@ -17,17 +17,10 @@ define([
 			return this[ 'json_' + noStringify ];
 		}
 
-		if ( this.component ) {
-			json = {
-				t: types.COMPONENT,
-				e: this.component
-			};
-		} else {
-			json = {
-				t: types.ELEMENT,
-				e: this.tag
-			};
-		}
+		json = {
+			t: types.ELEMENT,
+			e: this.tag
+		};
 
 		if ( this.doctype ) {
 			json.y = 1;

@@ -19,11 +19,6 @@ define([
 			return this.str;
 		}
 
-		// components can't be stringified
-		if ( this.component ) {
-			return ( this.str = false );
-		}
-
 		// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
 		// element is to use with innerHTML, and SVG doesn't support that method.
 		// Note: table elements and select children are excluded from this, because IE (of course)

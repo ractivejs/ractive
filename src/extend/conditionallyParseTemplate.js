@@ -26,7 +26,7 @@ define([
 					throw new Error( 'Could not find template element (' + Child.defaults.template + ')' );
 				}
 			} else {
-				Child.defaults.template = parse( Child.defaults.template, Child ); // all the relevant options are on Child
+				Child.defaults.template = parse( Child.defaults.template, Child.defaults ); // all the relevant options are on Child.defaults
 			}
 		}
 	};

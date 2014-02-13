@@ -2,11 +2,13 @@ define([
 	'utils/warn',
 	'config/namespaces',
 	'render/StringFragment/_StringFragment',
+	'render/DomFragment/Element/shared/getMatchingStaticNodes',
 	'circular'
 ], function (
 	warn,
 	namespaces,
 	StringFragment,
+	getMatchingStaticNodes,
 	circular
 ) {
 
@@ -43,8 +45,6 @@ define([
 
 
 	return function appendElementChildren ( element, node, descriptor, docFrag ) {
-		var liveQueries, i, selector, queryAllResult, j;
-
 		// Special case - script and style tags
 		if ( element.lcName === 'script' || element.lcName === 'style' ) {
 			element.fragment = new StringFragment({
@@ -74,20 +74,8 @@ define([
 				node.innerHTML = element.html;
 
 				// Update live queries, if applicable
-				liveQueries = element.root._liveQueries;
-				i = liveQueries.length;
-				while ( i-- ) {
-					selector = liveQueries[i];
-
-					if ( ( queryAllResult = node.querySelectorAll( selector ) ) && ( j = queryAllResult.length ) ) {
-						( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
-						element.liveQueries[ selector ] = [];
-
-						while ( j-- ) {
-							element.liveQueries[ selector ][j] = queryAllResult[j];
-						}
-					}
-				}
+				element.matchingStaticNodes = {}; // so we can remove matches made with querySelectorAll at teardown time
+				updateLiveQueries( element );
 			}
 		}
 
@@ -104,5 +92,25 @@ define([
 			}
 		}
 	};
+
+	function updateLiveQueries ( element ) {
+		var instance, liveQueries, node, selector, query, matchingStaticNodes, i;
+
+		node = element.node;
+		instance = element.root;
+
+		do {
+			liveQueries = instance._liveQueries;
+
+			i = liveQueries.length;
+			while ( i-- ) {
+				selector = liveQueries[i];
+				query = liveQueries[ selector ];
+
+				matchingStaticNodes = getMatchingStaticNodes( element, selector );
+				query.push.apply( query, matchingStaticNodes );
+			}
+		} while ( instance = instance._parent );
+	}
 
 });

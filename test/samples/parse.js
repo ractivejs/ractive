@@ -2,7 +2,7 @@ var parseTests = [
 	{
 		name: "Empty string",
 		template: "",
-		parsed: [""]
+		parsed: []
 	},
 	{
 		name: "Mustache-less text",
@@ -52,7 +52,7 @@ var parseTests = [
 	{
 		name: "Element with unquoted attributes",
 		template: "<div class=test></div>",
-		parsed: ["<div class=test></div>"]
+		parsed: [{"a":{"class":"test"},"e":"div","t":7}]
 	},
 	{
 		name: "Element with unquoted attributes and a mustache",
@@ -67,7 +67,7 @@ var parseTests = [
 	{
 		name: "Template with blacklisted elements (sanitize)",
 		template: "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
-		parsed: [""],
+		parsed: [],
 		options: {
 			sanitize: true
 		}
@@ -75,7 +75,7 @@ var parseTests = [
 	{
 		name: "Template with blacklisted elements and mustaches (sanitize)",
 		template: "<link rel='{{rel}}'>",
-		parsed: [""],
+		parsed: [],
 		options: {
 			sanitize: true
 		}
@@ -83,7 +83,7 @@ var parseTests = [
 	{
 		name: "Template with blacklisted elements (don't sanitize)",
 		template: "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
-		parsed: ["<style type=text/css>body { font-family: 'Comic Sans MS'; }</style>"],
+		parsed: [{"a":{"type":"text/css"},"e":"style","f":"body { font-family: 'Comic Sans MS'; }","t":7}],
 		options: {
 			sanitize: false
 		}
@@ -200,12 +200,12 @@ var parseTests = [
 	{
 		name: 'Sloppy whitespace in tags',
 		template: '<div class = "foo"></div>',
-		parsed: ['<div class=foo></div>']
+		parsed: [{"a":{"class":"foo"},"e":"div","t":7}]
 	},
 	{
 		name: 'HTML entities are treated correctly in pure string templates',
 		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;',
-		parsed: ['Non&nbsp;breaking&nbsp;spaces&nbsp;']
+		parsed: ['Non\u00A0breaking\u00A0spaces\u00A0']
 	},
 	{
 		name: 'HTML entities are treated correctly in regular templates',
@@ -215,7 +215,7 @@ var parseTests = [
 	{
 		name: 'HTML entities are treated correctly in pure string templates if semi-colon is omitted',
 		template: 'Non&nbspbreaking&nbspspaces&nbsp',
-		parsed: ['Non&nbspbreaking&nbspspaces&nbsp']
+		parsed: ['Non\u00A0breaking\u00A0spaces\u00A0']
 	},
 	{
 		name: 'HTML entities are treated correctly in regular templates if semi-colon is omitted',
@@ -275,7 +275,7 @@ var parseTests = [
 	{
 		name: 'Comments are stripped by default',
 		template: '<!-- this will disappear --><p>foo <!-- so will this --></p>',
-		parsed: ['<p>foo</p>']
+		parsed: [{"e":"p","f":"foo","t":7}]
 	},
 	{
 		name: 'Comments are left if required (with mustache)',
@@ -286,7 +286,7 @@ var parseTests = [
 	{
 		name: 'Comments are left if required (with plain text)',
 		template: '<!-- this will not disappear --><p>foo <!-- nor will this --></p>',
-		parsed: ['<!-- this will not disappear --><p>foo <!-- nor will this --></p>'],
+		parsed: [{"f":" this will not disappear ","t":9},{"e":"p","f":"foo <!-- nor will this -->","t":7}],
 		options: { stripComments: false }
 	},
 	{

@@ -227,7 +227,34 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			ractive.set( 'shown', true );
 			t.equal( widgets.length, 3 );
+
+			ractive.set( 'shown', false );
+			t.equal( widgets.length, 0 );
 		});
+
+		test( 'Nodes belonging to components are removed from live queries when those components are torn down', function ( t ) {
+			var Widget, ractive, divs;
+
+			Widget = Ractive.extend({
+				template: '<div>this should be removed</div>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#widgets}}<widget/>{{/widgets}}',
+				components: {
+					widget: Widget
+				}
+			});
+
+			divs = ractive.findAll( 'div', { live: true });
+			t.equal( divs.length, 0 );
+
+			[ 3, 2, 5, 10, 0 ].forEach( function ( length ) {
+				ractive.set( 'widgets', new Array( length ) );
+				t.equal( divs.length, length );
+			});
+		})
 
 
 		// TODO add tests (and add the functionality)...

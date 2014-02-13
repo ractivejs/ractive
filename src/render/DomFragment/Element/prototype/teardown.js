@@ -7,7 +7,7 @@ define([
 	'use strict';
 
 	return function ( destroy ) {
-		var eventName, binding, bindings, i, liveQueries, selector, query, nodesToRemove, j;
+		var eventName, binding, bindings;
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
@@ -49,21 +49,28 @@ define([
 		}
 
 		// Remove this node from any live queries
-		if ( liveQueries = this.liveQueries ) {
-			i = liveQueries.length;
-			while ( i-- ) {
-				selector = liveQueries[i];
+		if ( this.liveQueries ) {
+			removeFromLiveQueries( this );
+		}
+	};
 
-				if ( nodesToRemove = this.liveQueries[ selector ] ) {
-					j = nodesToRemove.length;
-					query = this.root._liveQueries[ selector ];
+	function removeFromLiveQueries ( element ) {
+		var query, selector, matchingStaticNodes, i, j;
 
-					while ( j-- ) {
-						query._remove( nodesToRemove[j] );
-					}
+		i = element.liveQueries.length;
+		while ( i-- ) {
+			query = element.liveQueries[i];
+			selector = query.selector;
+
+			query._remove( element.node );
+
+			if ( element.matchingStaticNodes && ( matchingStaticNodes = element.matchingStaticNodes[ selector ] ) ) {
+				j = matchingStaticNodes.length;
+				while ( j-- ) {
+					query.remove( matchingStaticNodes[j] );
 				}
 			}
 		}
-	};
+	}
 
 });

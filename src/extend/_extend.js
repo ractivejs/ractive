@@ -39,7 +39,7 @@ define([
 		// if we're extending with another Ractive instance, inherit its
 		// prototype methods and default options as well
 		if ( childProps.prototype instanceof Ractive ) {
-			return Parent.extend( extendObject( {}, childProps, childProps.prototype, childProps.defaults ) );
+			childProps = ( extendObject( {}, childProps, childProps.prototype, childProps.defaults ) );
 		}
 
 		// create Child constructor
@@ -57,9 +57,11 @@ define([
 		inheritFromChildProps( Child, childProps );
 
 		// Parse template and any partials that need it
-		conditionallyParseTemplate( Child );
-		extractInlinePartials( Child, childProps );
-		conditionallyParsePartials( Child );
+		if ( childProps.template ) { // ignore inherited templates!
+			conditionallyParseTemplate( Child );
+			extractInlinePartials( Child, childProps );
+			conditionallyParsePartials( Child );
+		}
 
 		defineProperties( Child, {
 			extend: { value: Parent.extend },

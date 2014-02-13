@@ -25,8 +25,6 @@ define([
 		},
 
 		teardown: function ( destroy ) {
-			var query;
-
 			while ( this.complexParameters.length ) {
 				this.complexParameters.pop().teardown();
 			}
@@ -35,9 +33,7 @@ define([
 				this.bindings.pop().teardown();
 			}
 
-			if ( query = this.root._liveComponentQueries[ this.name ] ) {
-				query._remove( this );
-			}
+			removeFromLiveComponentQueries( this );
 
 			// Add this flag so that we don't unnecessarily destroy the component's nodes
 			this.shouldDestroy = destroy;
@@ -74,5 +70,18 @@ define([
 	};
 
 	return DomComponent;
+
+
+	function removeFromLiveComponentQueries ( component ) {
+		var instance, query;
+
+		instance = component.root;
+
+		do {
+			if ( query = instance._liveComponentQueries[ component.name ] ) {
+				query._remove( component );
+			}
+		} while ( instance = instance._parent );
+	}
 
 });

@@ -2,10 +2,10 @@ define([ 'parse/Parser/utils/stringifyStubs' ], function ( stringifyStubs ) {
 
 	'use strict';
 
-	return function ( items, noStringify ) {
+	return function ( items, noStringify, topLevel ) {
 		var str, json;
 
-		if ( !noStringify ) {
+		if ( !topLevel && !noStringify ) {
 			str = stringifyStubs( items );
 			if ( str !== false ) {
 				return str;
