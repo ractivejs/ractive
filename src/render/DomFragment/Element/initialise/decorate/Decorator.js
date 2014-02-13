@@ -44,7 +44,9 @@ define([
 				this.dirty = true;
 				decorator.params = this.toArgsList();
 
-				decorator.update();
+				if ( decorator.ready ) {
+					decorator.update();
+				}
 			};
 		}
 
@@ -78,6 +80,7 @@ define([
 
 			// TODO does this make sense?
 			this.actual = result;
+			this.ready = true;
 		},
 
 		update: function () {
