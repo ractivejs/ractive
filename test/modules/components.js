@@ -585,6 +585,52 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } )
 		});
 
+		test ('Data bound with an iterator index updates from child', function  ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{item}}',
+				init: function() {
+					this.set('item', this.get('item') + 1);
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:itemIndex}}<widget item="{{items[itemIndex]}}" />{{/items}}',
+				data: {
+					items: [1, 2, 3, 4, 5]
+				},
+				components: {
+					widget: Widget
+				}
+			});
+
+			t.deepEqual( ractive.get('items'), [2, 3, 4, 5, 6]);
+
+		});
+
+		test ('Data originally undefined updates and rerenders', function  ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{#item}}{{.}}{{/item}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<widget item="{{.}}" />{{/items}}',
+				data: {},
+				components: {
+					widget: Widget
+				}
+			});
+
+			ractive.set('items', [[1,2,3], [4,5,6], [7,8,9]]);
+			t.htmlEqual( fixture.innerHTML, '123456789');
+
+		});
+
 	};
 
 });
