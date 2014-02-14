@@ -1,5 +1,5 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/defineProperty',
 	'shared/clearCache',
 	'shared/makeTransitionManager',
@@ -7,7 +7,7 @@ define([
 	'shared/get/arrayAdaptor/summariseSpliceOperation',
 	'shared/get/arrayAdaptor/processWrapper'
 ], function (
-	scheduler,
+	runloop,
 	defineProperty,
 	clearCache,
 	makeTransitionManager,
@@ -32,11 +32,9 @@ define([
 				result,
 				instances,
 				instance,
-				i,
-				previousTransitionManagers = {},
-				transitionManagers = {};
+				i;
 
-			scheduler.start();
+			runloop.start( this );
 
 			// push, pop, shift and unshift can all be represented as a splice operation.
 			// this makes life easier later
@@ -51,9 +49,7 @@ define([
 			i = instances.length;
 			while ( i-- ) {
 				instance = instances[i];
-
-				previousTransitionManagers[ instance._guid ] = instance._transitionManager;
-				instance._transitionManager = transitionManagers[ instance._guid ] = makeTransitionManager( instance, noop );
+				instance._transitionManager = makeTransitionManager( instance, noop );
 			}
 
 			// trigger changes
@@ -65,15 +61,13 @@ define([
 			this._ractive.setting = false;
 
 			// apply changes
-			scheduler.end();
+			runloop.end();
 
 			// initialise transition managers
 			i = instances.length;
 			while ( i-- ) {
 				instance = instances[i];
-
-				instance._transitionManager = previousTransitionManagers[ instance._guid ];
-				transitionManagers[ instance._guid ].init();
+				instance._transitionManager.init();
 			}
 
 			return result;

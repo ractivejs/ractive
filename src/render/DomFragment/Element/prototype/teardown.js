@@ -6,7 +6,7 @@ define([
 
 	'use strict';
 
-	return function ( destroy ) {
+	return function Element_prototype_teardown ( destroy ) {
 		var eventName, binding, bindings;
 
 		// Children first. that way, any transitions on child elements will be
@@ -44,8 +44,7 @@ define([
 
 		// Detach as soon as we can
 		if ( destroy ) {
-			this.root._detachQueue.push( this );
-			//this.root._transitionManager.detachWhenReady( this );
+			this.root._transitionManager.detachQueue.push( this );
 		}
 
 		// Remove this node from any live queries

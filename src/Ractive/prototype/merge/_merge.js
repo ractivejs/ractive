@@ -1,5 +1,5 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/warn',
 	'utils/isArray',
 	'shared/clearCache',
@@ -9,7 +9,7 @@ define([
 	'Ractive/prototype/merge/mapOldToNewIndex',
 	'Ractive/prototype/merge/queueDependants'
 ], function (
-	scheduler,
+	runloop,
 	warn,
 	isArray,
 	clearCache,
@@ -38,7 +38,6 @@ define([
 			depsByKeypath,
 			deps,
 			transitionManager,
-			previousTransitionManager,
 			upstreamQueue,
 			keys;
 
@@ -110,11 +109,10 @@ define([
 			return;
 		}
 
-		scheduler.start();
+		runloop.start( this );
 
 
 		// Manage transitions
-		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, options && options.complete );
 
 		// Go through all dependant priority levels, finding merge targets
@@ -143,7 +141,7 @@ define([
 			}
 		}
 
-		scheduler.end();
+		runloop.end();
 
 		// Finally, notify direct dependants of upstream keypaths...
 		upstreamQueue = [];
@@ -168,7 +166,6 @@ define([
 
 
 		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
 		transitionManager.init();
 	};
 

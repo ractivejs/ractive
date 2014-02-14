@@ -1,11 +1,11 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/getElement',
 	'shared/makeTransitionManager',
-	'state/css',
+	'global/css',
 	'render/DomFragment/_DomFragment'
 ], function (
-	scheduler,
+	runloop,
 	getElement,
 	makeTransitionManager,
 	css,
@@ -17,7 +17,7 @@ define([
 	return function Ractive_prototype_render ( target, complete ) {
 		var transitionManager;
 
-		scheduler.start();
+		runloop.start( this );
 
 		// This method is part of the API for one reason only - so that it can be
 		// overwritten by components that don't want to use the templating system
@@ -47,7 +47,7 @@ define([
 		}
 
 		this.rendered = true;
-		scheduler.end();
+		runloop.end();
 
 		// If this is a top-level instance (i.e. it was created with `var ractive = new Ractive()`,
 		// or `widget = new Widget()` etc), we need to initialise any child components now that
@@ -57,7 +57,6 @@ define([
 		}
 
 		// transition manager has finished its work
-		this._transitionManager = null;
 		transitionManager.init();
 	};
 

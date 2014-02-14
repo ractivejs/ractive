@@ -1,9 +1,9 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/isEqual',
 	'shared/get/_get'
 ], function (
-	scheduler,
+	runloop,
 	isEqual,
 	get
 ) {
@@ -44,7 +44,7 @@ define([
 
 		update: function () {
 			if ( this.defer && this.ready ) {
-				scheduler.addObserver( this.proxy );
+				runloop.addObserver( this.proxy );
 				return;
 			}
 

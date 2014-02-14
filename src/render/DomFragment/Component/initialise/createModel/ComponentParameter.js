@@ -1,8 +1,8 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'render/StringFragment/_StringFragment'
 ], function (
-	scheduler,
+	runloop,
 	StringFragment
 ) {
 
@@ -35,7 +35,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred && this.ready ) {
-				scheduler.addAttribute( this );
+				runloop.addAttribute( this );
 				this.deferred = true;
 			}
 		},

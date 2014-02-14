@@ -1,9 +1,9 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/warn',
 	'render/DomFragment/Element/shared/executeTransition/Transition/_Transition'
 ], function (
-	scheduler,
+	runloop,
 	warn,
 	Transition
 ) {
@@ -49,7 +49,7 @@ define([
 			if ( isIntro ) {
 				// we don't want to call the transition function until this node
 				// exists on the DOM
-				scheduler.addTransition( transition );
+				runloop.addTransition( transition );
 			} else {
 				transition.init();
 			}

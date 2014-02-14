@@ -1,9 +1,9 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'config/namespaces',
 	'utils/isArray'
 ], function (
-	scheduler,
+	runloop,
 	namespaces,
 	isArray
 ) {
@@ -100,7 +100,7 @@ define([
 		// because select values depend partly on the values of their children, and their
 		// children may be entering and leaving the DOM, we wait until updates are
 		// complete before updating
-		scheduler.addSelectValue( this );
+		runloop.addSelectValue( this );
 		return this;
 	};
 

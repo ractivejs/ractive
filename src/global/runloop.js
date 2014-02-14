@@ -1,9 +1,11 @@
 define([
-	'state/failedLookups',
+	'circular',
+	'global/failedLookups',
 	'utils/removeFromArray',
 	'shared/getValueFromCheckboxes',
 	'shared/resolveRef'
 ], function (
+	circular,
 	failedLookups,
 	removeFromArray,
 	getValueFromCheckboxes,
@@ -11,6 +13,13 @@ define([
 ) {
 
 	'use strict';
+
+	var get, set;
+
+	circular.push( function () {
+		get = circular.get;
+		set = circular.set;
+	});
 
 	var dirty = false,
 		flushing = false,
@@ -28,10 +37,17 @@ define([
 		checkboxKeypaths = {},
 		checkboxes = [],
 		radios = [],
-		unresolved = [];
+		unresolved = [],
+
+		instances = [];
 
 	return {
-		start: function () {
+		start: function ( instance ) {
+			if ( !instances[ instance._guid ] ) {
+				instances.push( instance );
+				instances[ instances._guid ] = true;
+			}
+
 			if ( flushing ) {
 				return;
 			}
@@ -112,7 +128,7 @@ define([
 	};
 
 	function land () {
-		var thing;
+		var thing, changedKeypath, changeHash;
 
 		if ( toFocus ) {
 			toFocus.focus();
@@ -138,6 +154,22 @@ define([
 		while ( thing = observers.pop() ) {
 			thing.update();
 		}
+
+		// Change events are fired last
+		while ( thing = instances.pop() ) {
+			instances[ thing._guid ] = false;
+			thing._transitionManager = null;
+
+			if ( thing._changes.length ) {
+				changeHash = {};
+
+				while ( changedKeypath = thing._changes.pop() ) {
+					changeHash[ changedKeypath ] = get( thing, changedKeypath );
+				}
+
+				thing.fire( 'change', changeHash );
+			}
+		}
 	}
 
 	function flushChanges () {
@@ -159,7 +191,7 @@ define([
 			}
 
 			while ( thing = checkboxes.pop() ) {
-				thing.root.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+				set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			}
 
 			while ( thing = radios.pop() ) {

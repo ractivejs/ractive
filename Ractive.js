@@ -1,6 +1,6 @@
 /*
 
-	Ractive - v0.4.0-pre - 2014-02-11
+	Ractive - v0.4.0-pre - 2014-02-14
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -273,7 +273,7 @@
 		INVOCATION: 40
 	};
 
-	var state_failedLookups = function() {
+	var global_failedLookups = function() {
 
 		var failed, dirty, failedLookups;
 		failed = {};
@@ -381,8 +381,13 @@
 		};
 	}( circular, utils_normaliseKeypath, shared_getInnerContext );
 
-	var state_scheduler = function( failedLookups, removeFromArray, getValueFromCheckboxes, resolveRef ) {
+	var global_runloop = function( circular, failedLookups, removeFromArray, getValueFromCheckboxes, resolveRef ) {
 
+		var get, set;
+		circular.push( function() {
+			get = circular.get;
+			set = circular.set;
+		} );
 		var dirty = false,
 			flushing = false,
 			inFlight = 0,
@@ -396,9 +401,14 @@
 			selectValues = [],
 			checkboxKeypaths = {}, checkboxes = [],
 			radios = [],
-			unresolved = [];
+			unresolved = [],
+			instances = [];
 		return {
-			start: function() {
+			start: function( instance ) {
+				if ( !instances[ instance._guid ] ) {
+					instances.push( instance );
+					instances[ instances._guid ] = true;
+				}
 				if ( flushing ) {
 					return;
 				}
@@ -462,7 +472,7 @@
 		};
 
 		function land() {
-			var thing;
+			var thing, changedKeypath, changeHash;
 			if ( toFocus ) {
 				toFocus.focus();
 				toFocus = null;
@@ -482,6 +492,17 @@
 			while ( thing = observers.pop() ) {
 				thing.update();
 			}
+			while ( thing = instances.pop() ) {
+				instances[ thing._guid ] = false;
+				thing._transitionManager = null;
+				if ( thing._changes.length ) {
+					changeHash = {};
+					while ( changedKeypath = thing._changes.pop() ) {
+						changeHash[ changedKeypath ] = get( thing, changedKeypath );
+					}
+					thing.fire( 'change', changeHash );
+				}
+			}
 		}
 
 		function flushChanges() {
@@ -497,7 +518,7 @@
 					thing.deferredUpdate();
 				}
 				while ( thing = checkboxes.pop() ) {
-					thing.root.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+					set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 				}
 				while ( thing = radios.pop() ) {
 					thing.update();
@@ -523,7 +544,7 @@
 				}
 			}
 		}
-	}( state_failedLookups, utils_removeFromArray, shared_getValueFromCheckboxes, shared_resolveRef );
+	}( circular, global_failedLookups, utils_removeFromArray, shared_getValueFromCheckboxes, shared_resolveRef );
 
 	var shared_clearCache = function clearCache( ractive, keypath ) {
 		var cacheMap, wrappedProperty;
@@ -556,11 +577,13 @@
 		var makeTransitionManager, checkComplete, remove, init;
 		makeTransitionManager = function( ractive, callback ) {
 			var transitionManager = [];
+			transitionManager.detachQueue = [];
 			transitionManager.remove = remove;
 			transitionManager.init = init;
 			transitionManager._check = checkComplete;
 			transitionManager._root = ractive;
 			transitionManager._callback = callback;
+			transitionManager._previous = ractive._transitionManager;
 			if ( ractive._parent && ( transitionManager._parent = ractive._parent._transitionManager ) ) {
 				transitionManager._parent.push( transitionManager );
 			}
@@ -570,7 +593,7 @@
 			var ractive, element;
 			if ( this._ready && !this.length ) {
 				ractive = this._root;
-				while ( element = ractive._detachQueue.pop() ) {
+				while ( element = this.detachQueue.pop() ) {
 					element.detach();
 				}
 				if ( typeof this._callback === 'function' ) {
@@ -588,6 +611,9 @@
 		init = function() {
 			this._ready = true;
 			this._check();
+			if ( this._previous ) {
+				this._root._transitionManager = this._previous;
+			}
 		};
 		return makeTransitionManager;
 	}( utils_warn, utils_removeFromArray );
@@ -854,7 +880,7 @@
 		}
 	}( config_types, shared_clearCache, shared_notifyDependants );
 
-	var shared_get_arrayAdaptor_patch = function( scheduler, defineProperty, clearCache, makeTransitionManager, getSpliceEquivalent, summariseSpliceOperation, processWrapper ) {
+	var shared_get_arrayAdaptor_patch = function( runloop, defineProperty, clearCache, makeTransitionManager, getSpliceEquivalent, summariseSpliceOperation, processWrapper ) {
 
 		var patchedArrayProto = [],
 			mutatorMethods = [
@@ -869,8 +895,8 @@
 			noop = function() {}, testObj, patchArrayMethods, unpatchArrayMethods;
 		mutatorMethods.forEach( function( methodName ) {
 			var method = function() {
-				var spliceEquivalent, spliceSummary, result, instances, instance, i, previousTransitionManagers = {}, transitionManagers = {};
-				scheduler.start();
+				var spliceEquivalent, spliceSummary, result, instances, instance, i;
+				runloop.start( this );
 				spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
 				spliceSummary = summariseSpliceOperation( this, spliceEquivalent );
 				result = Array.prototype[ methodName ].apply( this, arguments );
@@ -878,8 +904,7 @@
 				i = instances.length;
 				while ( i-- ) {
 					instance = instances[ i ];
-					previousTransitionManagers[ instance._guid ] = instance._transitionManager;
-					instance._transitionManager = transitionManagers[ instance._guid ] = makeTransitionManager( instance, noop );
+					instance._transitionManager = makeTransitionManager( instance, noop );
 				}
 				this._ractive.setting = true;
 				i = this._ractive.wrappers.length;
@@ -887,12 +912,11 @@
 					processWrapper( this._ractive.wrappers[ i ], this, methodName, spliceSummary );
 				}
 				this._ractive.setting = false;
-				scheduler.end();
+				runloop.end();
 				i = instances.length;
 				while ( i-- ) {
 					instance = instances[ i ];
-					instance._transitionManager = previousTransitionManagers[ instance._guid ];
-					transitionManagers[ instance._guid ].init();
+					instance._transitionManager.init();
 				}
 				return result;
 			};
@@ -930,7 +954,7 @@
 		}
 		patchArrayMethods.unpatch = unpatchArrayMethods;
 		return patchArrayMethods;
-	}( state_scheduler, utils_defineProperty, shared_clearCache, shared_makeTransitionManager, shared_get_arrayAdaptor_getSpliceEquivalent, shared_get_arrayAdaptor_summariseSpliceOperation, shared_get_arrayAdaptor_processWrapper );
+	}( global_runloop, utils_defineProperty, shared_clearCache, shared_makeTransitionManager, shared_get_arrayAdaptor_getSpliceEquivalent, shared_get_arrayAdaptor_summariseSpliceOperation, shared_get_arrayAdaptor_processWrapper );
 
 	var shared_get_arrayAdaptor__arrayAdaptor = function( types, defineProperty, isArray, patch ) {
 
@@ -1010,7 +1034,7 @@
 		};
 	}();
 
-	var shared_get_magicAdaptor = function( createBranch, isArray ) {
+	var shared_get_magicAdaptor = function( createBranch, isArray, clearCache, notifyDependants ) {
 
 		var magicAdaptor, MagicWrapper;
 		try {
@@ -1087,7 +1111,8 @@
 				while ( i-- ) {
 					wrapper = wrappers[ i ];
 					wrapper.resetting = true;
-					wrapper.ractive.update( wrapper.keypath );
+					clearCache( wrapper.ractive, wrapper.keypath );
+					notifyDependants( wrapper.ractive, wrapper.keypath );
 					wrapper.resetting = false;
 				}
 			};
@@ -1141,7 +1166,7 @@
 			}
 		};
 		return magicAdaptor;
-	}( utils_createBranch, utils_isArray );
+	}( utils_createBranch, utils_isArray, shared_clearCache, shared_notifyDependants );
 
 	var shared_get_magicArrayAdaptor = function( magicAdaptor, arrayAdaptor ) {
 
@@ -1470,7 +1495,7 @@
 			child._cache[ childKeypath ] = value;
 			createComponentBinding( child.component, parent, parentKeypath, childKeypath );
 		}
-	}( state_failedLookups, shared_createComponentBinding, Ractive_prototype_shared_replaceData );
+	}( global_failedLookups, shared_createComponentBinding, Ractive_prototype_shared_replaceData );
 
 	var shared_get_FAILED_LOOKUP = {
 		FAILED_LOOKUP: true
@@ -1550,53 +1575,9 @@
 		};
 	}( utils_normaliseKeypath, shared_get__get );
 
-	var Ractive_prototype_set = function( scheduler, isObject, isEqual, normaliseKeypath, get, clearCache, notifyDependants, makeTransitionManager, replaceData ) {
+	var shared_set = function( circular, get, clearCache, notifyDependants, replaceData ) {
 
-		return function Ractive_prototype_set( keypath, value, complete ) {
-			var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
-			changes = [];
-			if ( isObject( keypath ) ) {
-				map = keypath;
-				complete = value;
-				for ( keypath in map ) {
-					if ( map.hasOwnProperty( keypath ) ) {
-						value = map[ keypath ];
-						keypath = normaliseKeypath( keypath );
-						updateModel( this, keypath, value, changes );
-					}
-				}
-			} else {
-				keypath = normaliseKeypath( keypath );
-				updateModel( this, keypath, value, changes );
-			}
-			if ( !changes.length ) {
-				return;
-			}
-			scheduler.start();
-			previousTransitionManager = this._transitionManager;
-			this._transitionManager = transitionManager = makeTransitionManager( this, complete );
-			upstreamChanges = getUpstreamChanges( changes );
-			if ( upstreamChanges.length ) {
-				notifyDependants.multiple( this, upstreamChanges, true );
-			}
-			notifyDependants.multiple( this, changes );
-			scheduler.end();
-			this._transitionManager = previousTransitionManager;
-			transitionManager.init();
-			if ( !this.firingChangeEvent ) {
-				this.firingChangeEvent = true;
-				changeHash = {};
-				i = changes.length;
-				while ( i-- ) {
-					changeHash[ changes[ i ] ] = get( this, changes[ i ] );
-				}
-				this.fire( 'change', changeHash );
-				this.firingChangeEvent = false;
-			}
-			return this;
-		};
-
-		function updateModel( ractive, keypath, value, changes ) {
+		function set( ractive, keypath, value ) {
 			var cached, previous, wrapped, evaluator;
 			wrapped = ractive._wrapped[ keypath ];
 			if ( wrapped && wrapped.reset && wrapped.get() !== value ) {
@@ -1613,9 +1594,48 @@
 			if ( !evaluator && ( !wrapped || !wrapped.reset ) ) {
 				replaceData( ractive, keypath, value );
 			}
-			changes.push( keypath );
+			ractive._changes.push( keypath );
 			clearCache( ractive, keypath );
+			notifyDependants( ractive, keypath );
+			return true;
 		}
+		circular.set = set;
+		return set;
+	}( circular, shared_get__get, shared_clearCache, shared_notifyDependants, Ractive_prototype_shared_replaceData );
+
+	var Ractive_prototype_set = function( runloop, isObject, isEqual, normaliseKeypath, get, set, clearCache, notifyDependants, makeTransitionManager ) {
+
+		return function Ractive_prototype_set( keypath, value, complete ) {
+			var map, changes, upstreamChanges, transitionManager;
+			changes = [];
+			runloop.start( this );
+			this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+			if ( isObject( keypath ) ) {
+				map = keypath;
+				complete = value;
+				for ( keypath in map ) {
+					if ( map.hasOwnProperty( keypath ) ) {
+						value = map[ keypath ];
+						keypath = normaliseKeypath( keypath );
+						if ( set( this, keypath, value ) ) {
+							changes.push( keypath );
+						}
+					}
+				}
+			} else {
+				keypath = normaliseKeypath( keypath );
+				if ( set( this, keypath, value ) ) {
+					changes.push( keypath );
+				}
+			}
+			upstreamChanges = getUpstreamChanges( changes );
+			if ( upstreamChanges.length ) {
+				notifyDependants.multiple( this, upstreamChanges, true );
+			}
+			runloop.end();
+			transitionManager.init();
+			return this;
+		};
 
 		function getUpstreamChanges( changes ) {
 			var upstreamChanges = [ '' ],
@@ -1635,23 +1655,21 @@
 			}
 			return upstreamChanges;
 		}
-	}( state_scheduler, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_get__get, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager, Ractive_prototype_shared_replaceData );
+	}( global_runloop, utils_isObject, utils_isEqual, utils_normaliseKeypath, shared_get__get, shared_set, shared_clearCache, shared_notifyDependants, shared_makeTransitionManager );
 
-	var Ractive_prototype_update = function( scheduler, makeTransitionManager, clearCache, notifyDependants ) {
+	var Ractive_prototype_update = function( runloop, makeTransitionManager, clearCache, notifyDependants ) {
 
 		return function( keypath, complete ) {
-			var transitionManager, previousTransitionManager;
-			scheduler.start();
+			var transitionManager;
+			runloop.start( this );
 			if ( typeof keypath === 'function' ) {
 				complete = keypath;
 				keypath = '';
 			}
-			previousTransitionManager = this._transitionManager;
 			this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 			clearCache( this, keypath || '' );
 			notifyDependants( this, keypath || '' );
-			scheduler.end();
-			this._transitionManager = previousTransitionManager;
+			runloop.end();
 			transitionManager.init();
 			if ( typeof keypath === 'string' ) {
 				this.fire( 'update', keypath );
@@ -1660,7 +1678,7 @@
 			}
 			return this;
 		};
-	}( state_scheduler, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants );
+	}( global_runloop, shared_makeTransitionManager, shared_clearCache, shared_notifyDependants );
 
 	var utils_arrayContentsMatch = function( isArray ) {
 
@@ -1684,7 +1702,7 @@
 
 	var Ractive_prototype_updateModel = function( getValueFromCheckboxes, arrayContentsMatch, isEqual ) {
 
-		return function( keypath, cascade ) {
+		return function Ractive_prototype_updateModel( keypath, cascade ) {
 			var values, deferredCheckboxes, i;
 			if ( typeof keypath !== 'string' ) {
 				keypath = '';
@@ -2204,7 +2222,7 @@
 		}
 	};
 
-	var Ractive_prototype_observe_Observer = function( scheduler, isEqual, get ) {
+	var Ractive_prototype_observe_Observer = function( runloop, isEqual, get ) {
 
 		var Observer = function( ractive, keypath, callback, options ) {
 			var self = this;
@@ -2231,7 +2249,7 @@
 			},
 			update: function() {
 				if ( this.defer && this.ready ) {
-					scheduler.addObserver( this.proxy );
+					runloop.addObserver( this.proxy );
 					return;
 				}
 				this.reallyUpdate();
@@ -2258,7 +2276,7 @@
 			}
 		};
 		return Observer;
-	}( state_scheduler, utils_isEqual, shared_get__get );
+	}( global_runloop, utils_isEqual, shared_get__get );
 
 	var Ractive_prototype_observe_getPattern = function( isArray ) {
 
@@ -2299,7 +2317,7 @@
 		};
 	}( utils_isArray );
 
-	var Ractive_prototype_observe_PatternObserver = function( scheduler, isEqual, get, getPattern ) {
+	var Ractive_prototype_observe_PatternObserver = function( runloop, isEqual, get, getPattern ) {
 
 		var PatternObserver, wildcard = /\*/;
 		PatternObserver = function( ractive, keypath, callback, options ) {
@@ -2342,7 +2360,7 @@
 					return;
 				}
 				if ( this.defer && this.ready ) {
-					scheduler.addObserver( this.getProxy( keypath ) );
+					runloop.addObserver( this.getProxy( keypath ) );
 					return;
 				}
 				this.reallyUpdate( keypath );
@@ -2379,7 +2397,7 @@
 			}
 		};
 		return PatternObserver;
-	}( state_scheduler, utils_isEqual, shared_get__get, Ractive_prototype_observe_getPattern );
+	}( global_runloop, utils_isEqual, shared_get__get, Ractive_prototype_observe_getPattern );
 
 	var Ractive_prototype_observe_getObserverFacade = function( normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver ) {
 
@@ -2624,18 +2642,18 @@
 		};
 	}( Ractive_prototype_shared_makeQuery_sortByDocumentPosition, Ractive_prototype_shared_makeQuery_sortByItemPosition );
 
-	var Ractive_prototype_shared_makeQuery_dirty = function( scheduler ) {
+	var Ractive_prototype_shared_makeQuery_dirty = function( runloop ) {
 
 		return function() {
 			if ( !this._dirty ) {
-				scheduler.addLiveQuery( this );
+				runloop.addLiveQuery( this );
 				this._dirty = true;
 			}
 		};
-	}( state_scheduler );
+	}( global_runloop );
 
-	var Ractive_prototype_shared_makeQuery_remove = function( item ) {
-		var index = this.indexOf( this._isComponentQuery ? item.instance : item.node );
+	var Ractive_prototype_shared_makeQuery_remove = function( nodeOrComponent ) {
+		var index = this.indexOf( this._isComponentQuery ? nodeOrComponent.instance : nodeOrComponent );
 		if ( index !== -1 ) {
 			this.splice( index, 1 );
 		}
@@ -2756,7 +2774,7 @@
 		return null;
 	};
 
-	var state_css = function() {
+	var global_css = function() {
 
 		var styleElement, usedStyles = [],
 			updateStyleElement;
@@ -2937,16 +2955,16 @@
 		return DomText;
 	}( config_types, render_DomFragment_shared_detach );
 
-	var shared_teardown = function( scheduler, unregisterDependant ) {
+	var shared_teardown = function( runloop, unregisterDependant ) {
 
 		return function( thing ) {
 			if ( !thing.keypath ) {
-				scheduler.removeUnresolved( thing );
+				runloop.removeUnresolved( thing );
 			} else {
 				unregisterDependant( thing );
 			}
 		};
-	}( state_scheduler, shared_unregisterDependant );
+	}( global_runloop, shared_unregisterDependant );
 
 	var render_shared_Evaluator_Reference = function( types, isEqual, defineProperty, registerDependant, unregisterDependant ) {
 
@@ -3054,7 +3072,7 @@
 		return SoftReference;
 	}( utils_isEqual, shared_registerDependant, shared_unregisterDependant );
 
-	var render_shared_Evaluator__Evaluator = function( scheduler, warn, isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference ) {
+	var render_shared_Evaluator__Evaluator = function( runloop, warn, isEqual, defineProperty, clearCache, notifyDependants, registerDependant, unregisterDependant, adaptIfNecessary, Reference, SoftReference ) {
 
 		var Evaluator, cache = {};
 		Evaluator = function( root, keypath, uniqueString, functionStr, args, priority ) {
@@ -3085,7 +3103,7 @@
 				if ( this.selfUpdating ) {
 					this.update();
 				} else if ( !this.deferred ) {
-					scheduler.addEvaluator( this );
+					runloop.addEvaluator( this );
 					this.deferred = true;
 				}
 			},
@@ -3174,9 +3192,9 @@
 			cache[ str ] = fn;
 			return fn;
 		}
-	}( state_scheduler, utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference );
+	}( global_runloop, utils_warn, utils_isEqual, utils_defineProperty, shared_clearCache, shared_notifyDependants, shared_registerDependant, shared_unregisterDependant, shared_adaptIfNecessary, render_shared_Evaluator_Reference, render_shared_Evaluator_SoftReference );
 
-	var render_shared_ExpressionResolver_ReferenceScout = function( scheduler, resolveRef, teardown ) {
+	var render_shared_ExpressionResolver_ReferenceScout = function( runloop, resolveRef, teardown ) {
 
 		var ReferenceScout = function( resolver, ref, parentFragment, argNum ) {
 			var keypath, ractive;
@@ -3189,7 +3207,7 @@
 			} else {
 				this.argNum = argNum;
 				this.resolver = resolver;
-				scheduler.addUnresolved( this );
+				runloop.addUnresolved( this );
 			}
 		};
 		ReferenceScout.prototype = {
@@ -3204,7 +3222,7 @@
 			}
 		};
 		return ReferenceScout;
-	}( state_scheduler, shared_resolveRef, shared_teardown );
+	}( global_runloop, shared_resolveRef, shared_teardown );
 
 	var render_shared_ExpressionResolver_getUniqueString = function( str, args ) {
 		return str.replace( /\$\{([0-9]+)\}/g, function( match, $1 ) {
@@ -3310,7 +3328,7 @@
 		return ExpressionResolver;
 	}( render_shared_Evaluator__Evaluator, render_shared_ExpressionResolver_ReferenceScout, render_shared_ExpressionResolver_getUniqueString, render_shared_ExpressionResolver_getKeypath );
 
-	var render_shared_initMustache = function( scheduler, resolveRef, ExpressionResolver ) {
+	var render_shared_initMustache = function( runloop, resolveRef, ExpressionResolver ) {
 
 		return function initMustache( mustache, options ) {
 			var keypath, indexRef, parentFragment;
@@ -3332,7 +3350,7 @@
 						mustache.resolve( keypath );
 					} else {
 						mustache.ref = options.descriptor.r;
-						scheduler.addUnresolved( mustache );
+						runloop.addUnresolved( mustache );
 					}
 				}
 			}
@@ -3343,7 +3361,7 @@
 				mustache.render( undefined );
 			}
 		};
-	}( state_scheduler, shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver );
+	}( global_runloop, shared_resolveRef, render_shared_ExpressionResolver__ExpressionResolver );
 
 	var render_DomFragment_Section_reassignFragment = function( types, unregisterDependant, ExpressionResolver ) {
 
@@ -3434,7 +3452,7 @@
 				ractive = element.root;
 				i = liveQueries.length;
 				while ( i-- ) {
-					ractive._liveQueries[ liveQueries[ i ] ]._makeDirty();
+					liveQueries[ i ]._makeDirty();
 				}
 			}
 		}
@@ -4149,7 +4167,7 @@
 		};
 	}( config_namespaces );
 
-	var render_DomFragment_Attribute_prototype_bind = function( scheduler, types, warn, arrayContentsMatch, getValueFromCheckboxes, get ) {
+	var render_DomFragment_Attribute_prototype_bind = function( runloop, types, warn, arrayContentsMatch, getValueFromCheckboxes, get, set ) {
 
 		var singleMustacheError = 'For two-way binding to work, attribute value must be a single interpolator (e.g. value="{{foo}}")',
 			expressionError = 'You cannot set up two-way binding against an expression ',
@@ -4165,7 +4183,10 @@
 				return false;
 			}
 			this.interpolator = interpolator;
-			this.keypath = interpolator.keypath || interpolator.descriptor.r;
+			if ( !interpolator.keypath ) {
+				interpolator.resolve( interpolator.descriptor.r );
+			}
+			this.keypath = interpolator.keypath;
 			binding = getBinding( this );
 			if ( !binding ) {
 				return false;
@@ -4261,7 +4282,7 @@
 				if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 					attribute.receiving = true;
 					attribute.value = value;
-					this.root.set( this.keypath, value );
+					set( this.root, this.keypath, value );
 					attribute.receiving = false;
 				}
 				return this;
@@ -4270,7 +4291,7 @@
 				if ( this.deferred === true ) {
 					return;
 				}
-				scheduler.addAttribute( this );
+				runloop.addAttribute( this );
 				this.deferred = true;
 			},
 			teardown: function() {
@@ -4303,7 +4324,7 @@
 				var value = this.value();
 				this.attr.receiving = true;
 				this.attr.value = value;
-				this.root.set( this.keypath, value );
+				set( this.root, this.keypath, value );
 				this.attr.receiving = false;
 				return this;
 			},
@@ -4311,7 +4332,7 @@
 				if ( this.deferred === true ) {
 					return;
 				}
-				scheduler.addAttribute( this );
+				runloop.addAttribute( this );
 				this.deferred = true;
 			},
 			teardown: function() {
@@ -4331,7 +4352,7 @@
 			if ( valueFromModel !== undefined ) {
 				node.checked = valueFromModel == node._ractive.value;
 			} else {
-				scheduler.addRadio( this );
+				runloop.addRadio( this );
 			}
 		};
 		RadioNameBinding.prototype = {
@@ -4342,7 +4363,7 @@
 				var node = this.node;
 				if ( node.checked ) {
 					this.attr.receiving = true;
-					this.root.set( this.keypath, this.value() );
+					set( this.root, this.keypath, this.value() );
 					this.attr.receiving = false;
 				}
 			},
@@ -4365,7 +4386,7 @@
 				checked = valueFromModel.indexOf( node._ractive.value ) !== -1;
 				node.checked = checked;
 			} else {
-				scheduler.addCheckbox( this );
+				runloop.addCheckbox( this );
 			}
 		};
 		CheckboxNameBinding.prototype = {
@@ -4375,7 +4396,7 @@
 			update: function() {
 				this.checked = this.node.checked;
 				this.attr.receiving = true;
-				this.root.set( this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
+				set( this.root, this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
 				this.attr.receiving = false;
 			},
 			teardown: function() {
@@ -4396,7 +4417,7 @@
 			},
 			update: function() {
 				this.attr.receiving = true;
-				this.root.set( this.keypath, this.value() );
+				set( this.root, this.keypath, this.value() );
 				this.attr.receiving = false;
 			},
 			teardown: function() {
@@ -4413,7 +4434,7 @@
 				return this.attr.pNode.files;
 			},
 			update: function() {
-				this.attr.root.set( this.attr.keypath, this.value() );
+				set( this.attr.root, this.attr.keypath, this.value() );
 			},
 			teardown: function() {
 				this.node.removeEventListener( 'change', updateModel, false );
@@ -4432,7 +4453,7 @@
 		ContentEditableBinding.prototype = {
 			update: function() {
 				this.attr.receiving = true;
-				this.root.set( this.keypath, this.node.innerHTML );
+				set( this.root, this.keypath, this.node.innerHTML );
 				this.attr.receiving = false;
 			},
 			teardown: function() {
@@ -4464,7 +4485,7 @@
 				var attribute = this.attr,
 					value = this.value();
 				attribute.receiving = true;
-				attribute.root.set( attribute.keypath, value );
+				set( attribute.root, attribute.keypath, value );
 				attribute.receiving = false;
 			},
 			teardown: function() {
@@ -4481,9 +4502,9 @@
 			binding.keypath = attribute.keypath;
 		};
 		return bindAttribute;
-	}( state_scheduler, config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes, shared_get__get );
+	}( global_runloop, config_types, utils_warn, utils_arrayContentsMatch, shared_getValueFromCheckboxes, shared_get__get, shared_set );
 
-	var render_DomFragment_Attribute_prototype_update = function( scheduler, namespaces, isArray ) {
+	var render_DomFragment_Attribute_prototype_update = function( runloop, namespaces, isArray ) {
 
 		var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
 		updateAttribute = function() {
@@ -4534,7 +4555,7 @@
 			this.deferredUpdate();
 		};
 		deferSelect = function() {
-			scheduler.addSelectValue( this );
+			runloop.addSelectValue( this );
 			return this;
 		};
 		updateSelect = function() {
@@ -4663,7 +4684,7 @@
 			return this;
 		};
 		return updateAttribute;
-	}( state_scheduler, config_namespaces, utils_isArray );
+	}( global_runloop, config_namespaces, utils_isArray );
 
 	var parse_Tokenizer_utils_getStringMatch = function( string ) {
 		var substr;
@@ -5186,7 +5207,7 @@
 		return StringFragment;
 	}( config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, render_StringFragment_prototype_toArgsList, circular );
 
-	var render_DomFragment_Attribute__Attribute = function( scheduler, types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment ) {
+	var render_DomFragment_Attribute__Attribute = function( runloop, types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment ) {
 
 		var DomAttribute = function( options ) {
 			this.type = types.ATTRIBUTE;
@@ -5242,7 +5263,7 @@
 				if ( this.selfUpdating ) {
 					this.update();
 				} else if ( !this.deferred && this.ready ) {
-					scheduler.addAttribute( this );
+					runloop.addAttribute( this );
 					this.deferred = true;
 				}
 			},
@@ -5259,7 +5280,7 @@
 			}
 		};
 		return DomAttribute;
-	}( state_scheduler, config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment );
+	}( global_runloop, config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Element_initialise_createElementAttributes = function( DomAttribute ) {
 
@@ -5286,7 +5307,14 @@
 		};
 	}( render_DomFragment_Attribute__Attribute );
 
-	var render_DomFragment_Element_initialise_appendElementChildren = function( warn, namespaces, StringFragment, circular ) {
+	var render_DomFragment_Element_shared_getMatchingStaticNodes = function getMatchingStaticNodes( element, selector ) {
+		if ( !element.matchingStaticNodes[ selector ] ) {
+			element.matchingStaticNodes[ selector ] = Array.prototype.slice.call( element.node.querySelectorAll( selector ) );
+		}
+		return element.matchingStaticNodes[ selector ];
+	};
+
+	var render_DomFragment_Element_initialise_appendElementChildren = function( warn, namespaces, StringFragment, getMatchingStaticNodes, circular ) {
 
 		var DomFragment, updateCss, updateScript;
 		circular.push( function() {
@@ -5308,7 +5336,6 @@
 			this.node.text = this.fragment.toString();
 		};
 		return function appendElementChildren( element, node, descriptor, docFrag ) {
-			var liveQueries, i, selector, queryAllResult, j;
 			if ( element.lcName === 'script' || element.lcName === 'style' ) {
 				element.fragment = new StringFragment( {
 					descriptor: descriptor.f,
@@ -5330,18 +5357,8 @@
 				element.html = descriptor.f;
 				if ( docFrag ) {
 					node.innerHTML = element.html;
-					liveQueries = element.root._liveQueries;
-					i = liveQueries.length;
-					while ( i-- ) {
-						selector = liveQueries[ i ];
-						if ( ( queryAllResult = node.querySelectorAll( selector ) ) && ( j = queryAllResult.length ) ) {
-							( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
-							element.liveQueries[ selector ] = [];
-							while ( j-- ) {
-								element.liveQueries[ selector ][ j ] = queryAllResult[ j ];
-							}
-						}
-					}
+					element.matchingStaticNodes = {};
+					updateLiveQueries( element );
 				}
 			} else {
 				element.fragment = new DomFragment( {
@@ -5355,7 +5372,23 @@
 				}
 			}
 		};
-	}( utils_warn, config_namespaces, render_StringFragment__StringFragment, circular );
+
+		function updateLiveQueries( element ) {
+			var instance, liveQueries, node, selector, query, matchingStaticNodes, i;
+			node = element.node;
+			instance = element.root;
+			do {
+				liveQueries = instance._liveQueries;
+				i = liveQueries.length;
+				while ( i-- ) {
+					selector = liveQueries[ i ];
+					query = liveQueries[ selector ];
+					matchingStaticNodes = getMatchingStaticNodes( element, selector );
+					query.push.apply( query, matchingStaticNodes );
+				}
+			} while ( instance = instance._parent );
+		}
+	}( utils_warn, config_namespaces, render_StringFragment__StringFragment, render_DomFragment_Element_shared_getMatchingStaticNodes, circular );
 
 	var render_DomFragment_Element_initialise_decorate_Decorator = function( warn, StringFragment ) {
 
@@ -5386,7 +5419,9 @@
 				decorator.fragment.bubble = function() {
 					this.dirty = true;
 					decorator.params = this.toArgsList();
-					decorator.update();
+					if ( decorator.ready ) {
+						decorator.update();
+					}
 				};
 			}
 			decorator.fn = ractive.decorators[ name ];
@@ -5412,6 +5447,7 @@
 					throw new Error( 'Decorator definition must return an object with a teardown method' );
 				}
 				this.actual = result;
+				this.ready = true;
 			},
 			update: function() {
 				if ( this.actual.update ) {
@@ -5431,15 +5467,15 @@
 		return Decorator;
 	}( utils_warn, render_StringFragment__StringFragment );
 
-	var render_DomFragment_Element_initialise_decorate__decorate = function( scheduler, Decorator ) {
+	var render_DomFragment_Element_initialise_decorate__decorate = function( runloop, Decorator ) {
 
 		return function( descriptor, root, owner ) {
 			owner.decorator = new Decorator( descriptor, root, owner );
 			if ( owner.decorator.fn ) {
-				scheduler.addDecorator( owner.decorator );
+				runloop.addDecorator( owner.decorator );
 			}
 		};
-	}( state_scheduler, render_DomFragment_Element_initialise_decorate_Decorator );
+	}( global_runloop, render_DomFragment_Element_initialise_decorate_Decorator );
 
 	var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function( warn, StringFragment ) {
 
@@ -5591,18 +5627,19 @@
 	}( render_DomFragment_Element_initialise_addEventProxies_addEventProxy );
 
 	var render_DomFragment_Element_initialise_updateLiveQueries = function( element ) {
-		var ractive, liveQueries, i, selector, query;
-		ractive = element.root;
-		liveQueries = ractive._liveQueries;
-		i = liveQueries.length;
-		while ( i-- ) {
-			selector = liveQueries[ i ];
-			query = liveQueries[ selector ];
-			if ( query._test( element ) ) {
-				( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
-				element.liveQueries[ selector ] = [ element.node ];
+		var instance, liveQueries, i, selector, query;
+		instance = element.root;
+		do {
+			liveQueries = instance._liveQueries;
+			i = liveQueries.length;
+			while ( i-- ) {
+				selector = liveQueries[ i ];
+				query = liveQueries[ selector ];
+				if ( query._test( element ) ) {
+					( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
+				}
 			}
-		}
+		} while ( instance = instance._parent );
 	};
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_init = function() {
@@ -6202,7 +6239,7 @@
 		return Transition;
 	}( utils_warn, render_StringFragment__StringFragment, render_DomFragment_Element_shared_executeTransition_Transition_prototype_init, render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle, render_DomFragment_Element_shared_executeTransition_Transition_prototype_processParams, render_DomFragment_Element_shared_executeTransition_Transition_prototype_resetStyle );
 
-	var render_DomFragment_Element_shared_executeTransition__executeTransition = function( scheduler, warn, Transition ) {
+	var render_DomFragment_Element_shared_executeTransition__executeTransition = function( runloop, warn, Transition ) {
 
 		return function( descriptor, ractive, owner, isIntro ) {
 			var transition, node, instance, manager, oldTransition;
@@ -6224,15 +6261,15 @@
 				node._ractive.transition = transition;
 				transition._manager.push( transition );
 				if ( isIntro ) {
-					scheduler.addTransition( transition );
+					runloop.addTransition( transition );
 				} else {
 					transition.init();
 				}
 			}
 		};
-	}( state_scheduler, utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition );
+	}( global_runloop, utils_warn, render_DomFragment_Element_shared_executeTransition_Transition__Transition );
 
-	var render_DomFragment_Element_initialise__initialise = function( scheduler, types, namespaces, create, defineProperty, matches, warn, createElement, getInnerContext, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase ) {
+	var render_DomFragment_Element_initialise__initialise = function( runloop, types, namespaces, create, defineProperty, matches, warn, createElement, getInnerContext, getElementNamespace, createElementAttributes, appendElementChildren, decorate, addEventProxies, updateLiveQueries, executeTransition, enforceCase ) {
 
 		return function initialiseElement( element, options, docFrag ) {
 			var parentFragment, pNode, descriptor, namespace, name, attributes, width, height, loadHandler, root, selectBinding, errorMessage;
@@ -6313,17 +6350,17 @@
 					}
 				}
 				if ( element.node.autofocus ) {
-					scheduler.focus( element.node );
+					runloop.focus( element.node );
 				}
 			}
 			updateLiveQueries( element );
 		};
-	}( state_scheduler, config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, shared_getInnerContext, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase );
+	}( global_runloop, config_types, config_namespaces, utils_create, utils_defineProperty, utils_matches, utils_warn, utils_createElement, shared_getInnerContext, render_DomFragment_Element_initialise_getElementNamespace, render_DomFragment_Element_initialise_createElementAttributes, render_DomFragment_Element_initialise_appendElementChildren, render_DomFragment_Element_initialise_decorate__decorate, render_DomFragment_Element_initialise_addEventProxies__addEventProxies, render_DomFragment_Element_initialise_updateLiveQueries, render_DomFragment_Element_shared_executeTransition__executeTransition, render_DomFragment_shared_enforceCase );
 
 	var render_DomFragment_Element_prototype_teardown = function( executeTransition ) {
 
-		return function( destroy ) {
-			var eventName, binding, bindings, i, liveQueries, selector, query, nodesToRemove, j;
+		return function Element_prototype_teardown( destroy ) {
+			var eventName, binding, bindings;
 			if ( this.fragment ) {
 				this.fragment.teardown( false );
 			}
@@ -6347,22 +6384,28 @@
 				executeTransition( this.descriptor.t2, this.root, this, false );
 			}
 			if ( destroy ) {
-				this.root._detachQueue.push( this );
+				this.root._transitionManager.detachQueue.push( this );
 			}
-			if ( liveQueries = this.liveQueries ) {
-				i = liveQueries.length;
-				while ( i-- ) {
-					selector = liveQueries[ i ];
-					if ( nodesToRemove = this.liveQueries[ selector ] ) {
-						j = nodesToRemove.length;
-						query = this.root._liveQueries[ selector ];
-						while ( j-- ) {
-							query._remove( nodesToRemove[ j ] );
-						}
+			if ( this.liveQueries ) {
+				removeFromLiveQueries( this );
+			}
+		};
+
+		function removeFromLiveQueries( element ) {
+			var query, selector, matchingStaticNodes, i, j;
+			i = element.liveQueries.length;
+			while ( i-- ) {
+				query = element.liveQueries[ i ];
+				selector = query.selector;
+				query._remove( element.node );
+				if ( element.matchingStaticNodes && ( matchingStaticNodes = element.matchingStaticNodes[ selector ] ) ) {
+					j = matchingStaticNodes.length;
+					while ( j-- ) {
+						query.remove( matchingStaticNodes[ j ] );
 					}
 				}
 			}
-		};
+		}
 	}( render_DomFragment_Element_shared_executeTransition__executeTransition );
 
 	var config_voidElementNames = 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split( ' ' );
@@ -6405,32 +6448,24 @@
 		};
 	}( utils_matches );
 
-	var render_DomFragment_Element_prototype_findAll = function( selector, query ) {
-		var queryAllResult, i, numNodes, node, registeredNodes;
-		if ( query._test( this, true ) && query.live ) {
-			( this.liveQueries || ( this.liveQueries = [] ) ).push( selector );
-			this.liveQueries[ selector ] = [ this.node ];
-		}
-		if ( this.html && ( queryAllResult = this.node.querySelectorAll( selector ) ) && ( numNodes = queryAllResult.length ) ) {
-			if ( query.live ) {
-				if ( !this.liveQueries[ selector ] ) {
-					( this.liveQueries || ( this.liveQueries = [] ) ).push( selector );
-					this.liveQueries[ selector ] = [];
-				}
-				registeredNodes = this.liveQueries[ selector ];
+	var render_DomFragment_Element_prototype_findAll = function( getMatchingStaticNodes ) {
+
+		return function( selector, query ) {
+			var matchingStaticNodes, matchedSelf;
+			if ( query._test( this, true ) && query.live ) {
+				( this.liveQueries || ( this.liveQueries = [] ) ).push( query );
 			}
-			for ( i = 0; i < numNodes; i += 1 ) {
-				node = queryAllResult[ i ];
-				query.push( node );
-				if ( query.live ) {
-					registeredNodes.push( node );
+			if ( this.html ) {
+				matchingStaticNodes = getMatchingStaticNodes( this, selector );
+				if ( query.live && !matchedSelf ) {
+					( this.liveQueries || ( this.liveQueries = [] ) ).push( query );
 				}
 			}
-		}
-		if ( this.fragment ) {
-			this.fragment.findAll( selector, query );
-		}
-	};
+			if ( this.fragment ) {
+				this.fragment.findAll( selector, query );
+			}
+		};
+	}( render_DomFragment_Element_shared_getMatchingStaticNodes );
 
 	var render_DomFragment_Element_prototype_findComponent = function( selector ) {
 		if ( this.fragment ) {
@@ -8090,9 +8125,9 @@
 
 	var parse_Parser_utils_jsonifyStubs = function( stringifyStubs ) {
 
-		return function( items, noStringify ) {
+		return function( items, noStringify, topLevel ) {
 			var str, json;
-			if ( !noStringify ) {
+			if ( !topLevel && !noStringify ) {
 				str = stringifyStubs( items );
 				if ( str !== false ) {
 					return str;
@@ -8430,17 +8465,10 @@
 			if ( this[ 'json_' + noStringify ] ) {
 				return this[ 'json_' + noStringify ];
 			}
-			if ( this.component ) {
-				json = {
-					t: types.COMPONENT,
-					e: this.component
-				};
-			} else {
-				json = {
-					t: types.ELEMENT,
-					e: this.tag
-				};
-			}
+			json = {
+				t: types.ELEMENT,
+				e: this.tag
+			};
 			if ( this.doctype ) {
 				json.y = 1;
 			}
@@ -8494,9 +8522,6 @@
 			var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
 			if ( this.str !== undefined ) {
 				return this.str;
-			}
-			if ( this.component ) {
-				return this.str = false;
 			}
 			if ( htmlElements.indexOf( this.tag.toLowerCase() ) === -1 ) {
 				return this.str = false;
@@ -8682,7 +8707,7 @@
 			while ( stub = this.getStub() ) {
 				stubs.push( stub );
 			}
-			this.result = jsonifyStubs( stubs, options.noStringify );
+			this.result = jsonifyStubs( stubs, options.noStringify, true );
 		};
 		Parser.prototype = {
 			getStub: function( preserveWhitespace ) {
@@ -8963,7 +8988,7 @@
 		return DomPartial;
 	}( config_types, render_DomFragment_Partial_getPartialDescriptor, render_DomFragment_Partial_applyIndent, circular );
 
-	var render_DomFragment_Component_initialise_createModel_ComponentParameter = function( scheduler, StringFragment ) {
+	var render_DomFragment_Component_initialise_createModel_ComponentParameter = function( runloop, StringFragment ) {
 
 		var ComponentParameter = function( component, key, value ) {
 			this.parentFragment = component.parentFragment;
@@ -8982,7 +9007,7 @@
 				if ( this.selfUpdating ) {
 					this.update();
 				} else if ( !this.deferred && this.ready ) {
-					scheduler.addAttribute( this );
+					runloop.addAttribute( this );
 					this.deferred = true;
 				}
 			},
@@ -8996,7 +9021,7 @@
 			}
 		};
 		return ComponentParameter;
-	}( state_scheduler, render_StringFragment__StringFragment );
+	}( global_runloop, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Component_initialise_createModel__createModel = function( types, parseJSON, resolveRef, get, ComponentParameter ) {
 
@@ -9064,7 +9089,7 @@
 		return instance;
 	};
 
-	var render_DomFragment_Component_initialise_createBindings = function( createComponentBinding, get ) {
+	var render_DomFragment_Component_initialise_createBindings = function( createComponentBinding, get, set ) {
 
 		return function createInitialComponentBindings( component, toBind ) {
 			toBind.forEach( function createInitialComponentBinding( pair ) {
@@ -9072,11 +9097,11 @@
 				createComponentBinding( component, component.root, pair.parentKeypath, pair.childKeypath );
 				childValue = get( component.instance, pair.childKeypath );
 				if ( childValue !== undefined ) {
-					component.root.set( pair.parentKeypath, childValue );
+					set( component.root, pair.parentKeypath, childValue );
 				}
 			} );
 		};
-	}( shared_createComponentBinding, shared_get__get );
+	}( shared_createComponentBinding, shared_get__get, shared_set );
 
 	var render_DomFragment_Component_initialise_propagateEvents = function( warn ) {
 
@@ -9161,16 +9186,13 @@
 				return this.instance.fragment.detach();
 			},
 			teardown: function( destroy ) {
-				var query;
 				while ( this.complexParameters.length ) {
 					this.complexParameters.pop().teardown();
 				}
 				while ( this.bindings.length ) {
 					this.bindings.pop().teardown();
 				}
-				if ( query = this.root._liveComponentQueries[ this.name ] ) {
-					query._remove( this );
-				}
+				removeFromLiveComponentQueries( this );
 				this.shouldDestroy = destroy;
 				this.instance.teardown();
 			},
@@ -9197,6 +9219,16 @@
 			}
 		};
 		return DomComponent;
+
+		function removeFromLiveComponentQueries( component ) {
+			var instance, query;
+			instance = component.root;
+			do {
+				if ( query = instance._liveComponentQueries[ component.name ] ) {
+					query._remove( component );
+				}
+			} while ( instance = instance._parent );
+		}
 	}( render_DomFragment_Component_initialise__initialise );
 
 	var render_DomFragment_Comment = function( types, detach ) {
@@ -9423,11 +9455,11 @@
 		return DomFragment;
 	}( config_types, utils_matches, render_shared_initFragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular );
 
-	var Ractive_prototype_render = function( scheduler, getElement, makeTransitionManager, css, DomFragment ) {
+	var Ractive_prototype_render = function( runloop, getElement, makeTransitionManager, css, DomFragment ) {
 
 		return function Ractive_prototype_render( target, complete ) {
 			var transitionManager;
-			scheduler.start();
+			runloop.start( this );
 			if ( !this._initing ) {
 				throw new Error( 'You cannot call ractive.render() directly!' );
 			}
@@ -9445,11 +9477,10 @@
 				target.appendChild( this.fragment.docFrag );
 			}
 			this.rendered = true;
-			scheduler.end();
+			runloop.end();
 			if ( !this._parent ) {
 				initChildren( this );
 			}
-			this._transitionManager = null;
 			transitionManager.init();
 		};
 
@@ -9462,7 +9493,7 @@
 				initChildren( child.instance );
 			}
 		}
-	}( state_scheduler, utils_getElement, shared_makeTransitionManager, state_css, render_DomFragment__DomFragment );
+	}( global_runloop, utils_getElement, shared_makeTransitionManager, global_css, render_DomFragment__DomFragment );
 
 	var Ractive_prototype_renderHTML = function( warn ) {
 
@@ -9481,7 +9512,7 @@
 	var Ractive_prototype_teardown = function( makeTransitionManager, clearCache, css ) {
 
 		return function( complete ) {
-			var keypath, transitionManager, previousTransitionManager, shouldDestroy, actualComplete;
+			var keypath, transitionManager, shouldDestroy, actualComplete;
 			this.fire( 'teardown' );
 			if ( this.constructor.css ) {
 				actualComplete = function() {
@@ -9493,7 +9524,6 @@
 			} else {
 				actualComplete = complete;
 			}
-			previousTransitionManager = this._transitionManager;
 			this._transitionManager = transitionManager = makeTransitionManager( this, actualComplete );
 			shouldDestroy = !this.component || this.component.shouldDestroy;
 			this.fragment.teardown( shouldDestroy );
@@ -9503,10 +9533,9 @@
 			for ( keypath in this._cache ) {
 				clearCache( this, keypath );
 			}
-			this._transitionManager = previousTransitionManager;
 			transitionManager.init();
 		};
-	}( shared_makeTransitionManager, shared_clearCache, state_css );
+	}( shared_makeTransitionManager, shared_clearCache, global_css );
 
 	var Ractive_prototype_shared_add = function( isNumeric ) {
 
@@ -9606,11 +9635,11 @@
 		};
 	}( config_types );
 
-	var Ractive_prototype_merge__merge = function( scheduler, warn, isArray, clearCache, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants ) {
+	var Ractive_prototype_merge__merge = function( runloop, warn, isArray, clearCache, makeTransitionManager, notifyDependants, replaceData, mapOldToNewIndex, queueDependants ) {
 
 		var identifiers = {};
 		return function merge( keypath, array, options ) {
-			var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, transitionManager, previousTransitionManager, upstreamQueue, keys;
+			var currentArray, oldArray, newArray, identifier, lengthUnchanged, i, newIndices, mergeQueue, updateQueue, depsByKeypath, deps, transitionManager, upstreamQueue, keys;
 			currentArray = this.get( keypath );
 			if ( !isArray( currentArray ) || !isArray( array ) ) {
 				return this.set( keypath, array, options && options.complete );
@@ -9647,8 +9676,7 @@
 			if ( newIndices.unchanged && lengthUnchanged ) {
 				return;
 			}
-			scheduler.start();
-			previousTransitionManager = this._transitionManager;
+			runloop.start( this );
 			this._transitionManager = transitionManager = makeTransitionManager( this, options && options.complete );
 			mergeQueue = [];
 			updateQueue = [];
@@ -9668,7 +9696,7 @@
 					}
 				}
 			}
-			scheduler.end();
+			runloop.end();
 			upstreamQueue = [];
 			keys = keypath.split( '.' );
 			while ( keys.length ) {
@@ -9679,7 +9707,6 @@
 			if ( oldArray.length !== newArray.length ) {
 				notifyDependants( this, keypath + '.length', true );
 			}
-			this._transitionManager = previousTransitionManager;
 			transitionManager.init();
 		};
 
@@ -9695,7 +9722,7 @@
 			}
 			return identifiers[ str ];
 		}
-	}( state_scheduler, utils_warn, utils_isArray, shared_clearCache, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants );
+	}( global_runloop, utils_warn, utils_isArray, shared_clearCache, shared_makeTransitionManager, shared_notifyDependants, Ractive_prototype_shared_replaceData, Ractive_prototype_merge_mapOldToNewIndex, Ractive_prototype_merge_queueDependants );
 
 	var Ractive_prototype_detach = function() {
 		return this.fragment.detach();
@@ -9909,15 +9936,15 @@
 	var extend_extractInlinePartials = function( isObject, augment ) {
 
 		return function( Child, childProps ) {
-			if ( isObject( Child.template ) ) {
+			if ( isObject( Child.defaults.template ) ) {
 				if ( !Child.partials ) {
 					Child.partials = {};
 				}
-				augment( Child.partials, Child.template.partials );
+				augment( Child.partials, Child.defaults.template.partials );
 				if ( childProps.partials ) {
 					augment( Child.partials, childProps.partials );
 				}
-				Child.template = Child.template.main;
+				Child.defaults.template = Child.defaults.template.main;
 			}
 		};
 	}( utils_isObject, extend_utils_augment );
@@ -9926,19 +9953,19 @@
 
 		return function( Child ) {
 			var templateEl;
-			if ( typeof Child.template === 'string' ) {
+			if ( typeof Child.defaults.template === 'string' ) {
 				if ( !parse ) {
 					throw new Error( errors.missingParser );
 				}
-				if ( Child.template.charAt( 0 ) === '#' && isClient ) {
-					templateEl = document.getElementById( Child.template.substring( 1 ) );
+				if ( Child.defaults.template.charAt( 0 ) === '#' && isClient ) {
+					templateEl = document.getElementById( Child.defaults.template.substring( 1 ) );
 					if ( templateEl && templateEl.tagName === 'SCRIPT' ) {
-						Child.template = parse( templateEl.innerHTML, Child );
+						Child.defaults.template = parse( templateEl.innerHTML, Child );
 					} else {
-						throw new Error( 'Could not find template element (' + Child.template + ')' );
+						throw new Error( 'Could not find template element (' + Child.defaults.template + ')' );
 					}
 				} else {
-					Child.template = parse( Child.template, Child );
+					Child.defaults.template = parse( Child.defaults.template, Child.defaults );
 				}
 			}
 		};
@@ -10045,10 +10072,10 @@
 				_liveComponentQueries: {
 					value: []
 				},
-				_detachQueue: {
+				_childInitQueue: {
 					value: []
 				},
-				_childInitQueue: {
+				_changes: {
 					value: []
 				}
 			} );
@@ -10128,7 +10155,7 @@
 		};
 	}( config_isClient, config_errors, config_initOptions, config_registries, utils_warn, utils_create, utils_extend, utils_fillGaps, utils_defineProperty, utils_defineProperties, utils_getElement, utils_isObject, utils_isArray, utils_getGuid, shared_get_magicAdaptor, parse__parse );
 
-	var extend_initChildInstance = function( initOptions, scheduler, wrapMethod, initialise ) {
+	var extend_initChildInstance = function( initOptions, runloop, wrapMethod, initialise ) {
 
 		return function initChildInstance( child, Child, options ) {
 			initOptions.keys.forEach( function( key ) {
@@ -10151,7 +10178,7 @@
 				child.init( options );
 			}
 		};
-	}( config_initOptions, state_scheduler, extend_wrapMethod, Ractive_initialise );
+	}( config_initOptions, global_runloop, extend_wrapMethod, Ractive_initialise );
 
 	var extend__extend = function( create, defineProperties, getGuid, extendObject, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular ) {
 
@@ -10163,7 +10190,7 @@
 			var Parent = this,
 				Child;
 			if ( childProps.prototype instanceof Ractive ) {
-				return Parent.extend( extendObject( {}, childProps, childProps.prototype, childProps.defaults ) );
+				childProps = extendObject( {}, childProps, childProps.prototype, childProps.defaults );
 			}
 			Child = function( options ) {
 				initChildInstance( this, Child, options || {} );
@@ -10172,9 +10199,11 @@
 			Child.prototype.constructor = Child;
 			inheritFromParent( Child, Parent );
 			inheritFromChildProps( Child, childProps );
-			conditionallyParseTemplate( Child );
-			extractInlinePartials( Child, childProps );
-			conditionallyParsePartials( Child );
+			if ( childProps.template ) {
+				conditionallyParseTemplate( Child );
+				extractInlinePartials( Child, childProps );
+				conditionallyParsePartials( Child );
+			}
 			defineProperties( Child, {
 				extend: {
 					value: Parent.extend
