@@ -118,7 +118,10 @@ define([
 			_liveComponentQueries: { value: [] },
 
 			// components to init at the end of a mutation
-			_childInitQueue: { value: [] }
+			_childInitQueue: { value: [] },
+
+			// data changes
+			_changes: { value: [] }
 		});
 
 		// If this is a component, store a reference to the parent

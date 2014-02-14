@@ -13,7 +13,7 @@ define([
 	'use strict';
 
 	return function ( complete ) {
-		var keypath, transitionManager, previousTransitionManager, shouldDestroy, actualComplete;
+		var keypath, transitionManager, shouldDestroy, actualComplete;
 
 		this.fire( 'teardown' );
 
@@ -29,7 +29,6 @@ define([
 			actualComplete = complete;
 		}
 
-		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, actualComplete );
 
 		// If this is a component, and the component isn't marked for destruction,
@@ -49,7 +48,6 @@ define([
 		}
 
 		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
 		transitionManager.init();
 	};
 

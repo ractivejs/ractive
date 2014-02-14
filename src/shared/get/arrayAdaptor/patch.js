@@ -32,11 +32,9 @@ define([
 				result,
 				instances,
 				instance,
-				i,
-				previousTransitionManagers = {},
-				transitionManagers = {};
+				i;
 
-			scheduler.start();
+			scheduler.start( this );
 
 			// push, pop, shift and unshift can all be represented as a splice operation.
 			// this makes life easier later
@@ -51,9 +49,7 @@ define([
 			i = instances.length;
 			while ( i-- ) {
 				instance = instances[i];
-
-				previousTransitionManagers[ instance._guid ] = instance._transitionManager;
-				instance._transitionManager = transitionManagers[ instance._guid ] = makeTransitionManager( instance, noop );
+				instance._transitionManager = makeTransitionManager( instance, noop );
 			}
 
 			// trigger changes
@@ -71,9 +67,7 @@ define([
 			i = instances.length;
 			while ( i-- ) {
 				instance = instances[i];
-
-				instance._transitionManager = previousTransitionManagers[ instance._guid ];
-				transitionManagers[ instance._guid ].init();
+				instance._transitionManager.init();
 			}
 
 			return result;

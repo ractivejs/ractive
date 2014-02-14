@@ -38,7 +38,6 @@ define([
 			depsByKeypath,
 			deps,
 			transitionManager,
-			previousTransitionManager,
 			upstreamQueue,
 			keys;
 
@@ -110,11 +109,10 @@ define([
 			return;
 		}
 
-		scheduler.start();
+		scheduler.start( this );
 
 
 		// Manage transitions
-		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, options && options.complete );
 
 		// Go through all dependant priority levels, finding merge targets
@@ -168,7 +166,6 @@ define([
 
 
 		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
 		transitionManager.init();
 	};
 

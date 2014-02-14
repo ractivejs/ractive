@@ -10,7 +10,7 @@ define([
 
 	'use strict';
 
-	return function ( keypath, cascade ) {
+	return function Ractive_prototype_updateModel ( keypath, cascade ) {
 		var values, deferredCheckboxes, i;
 
 		if ( typeof keypath !== 'string' ) {

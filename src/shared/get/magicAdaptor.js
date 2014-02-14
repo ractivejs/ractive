@@ -1,9 +1,13 @@
 define([
 	'utils/createBranch',
-	'utils/isArray'
+	'utils/isArray',
+	'shared/clearCache',
+	'shared/notifyDependants'
 ], function (
 	createBranch,
-	isArray
+	isArray,
+	clearCache,
+	notifyDependants
 ) {
 
 	'use strict';
@@ -118,7 +122,8 @@ define([
 				wrapper = wrappers[i];
 
 				wrapper.resetting = true;
-				wrapper.ractive.update( wrapper.keypath );
+				clearCache( wrapper.ractive, wrapper.keypath );
+				notifyDependants( wrapper.ractive, wrapper.keypath );
 				wrapper.resetting = false;
 			}
 		};

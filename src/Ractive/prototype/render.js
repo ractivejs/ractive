@@ -17,7 +17,7 @@ define([
 	return function Ractive_prototype_render ( target, complete ) {
 		var transitionManager;
 
-		scheduler.start();
+		scheduler.start( this );
 
 		// This method is part of the API for one reason only - so that it can be
 		// overwritten by components that don't want to use the templating system
@@ -57,7 +57,6 @@ define([
 		}
 
 		// transition manager has finished its work
-		this._transitionManager = null;
 		transitionManager.init();
 	};
 

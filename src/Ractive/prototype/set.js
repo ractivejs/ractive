@@ -4,20 +4,20 @@ define([
 	'utils/isEqual',
 	'utils/normaliseKeypath',
 	'shared/get/_get',
+	'shared/set/_set',
 	'shared/clearCache',
 	'shared/notifyDependants',
-	'shared/makeTransitionManager',
-	'Ractive/prototype/shared/replaceData'
+	'shared/makeTransitionManager'
 ], function (
 	scheduler,
 	isObject,
 	isEqual,
 	normaliseKeypath,
 	get,
+	set,
 	clearCache,
 	notifyDependants,
-	makeTransitionManager,
-	replaceData
+	makeTransitionManager
 ) {
 
 	'use strict';
@@ -26,12 +26,14 @@ define([
 		var map,
 			changes,
 			upstreamChanges,
-			previousTransitionManager,
-			transitionManager,
-			i,
-			changeHash;
+			transitionManager;
 
 		changes = [];
+
+		scheduler.start( this );
+
+		// Manage transitions
+		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// Set multiple keypaths in one go
 		if ( isObject( keypath ) ) {
@@ -43,7 +45,9 @@ define([
 					value = map[ keypath ];
 					keypath = normaliseKeypath( keypath );
 
-					updateModel( this, keypath, value, changes );
+					if ( set( this, keypath, value ) ) {
+						changes.push( keypath );
+					}
 				}
 			}
 		}
@@ -51,20 +55,10 @@ define([
 		// Set a single keypath
 		else {
 			keypath = normaliseKeypath( keypath );
-			updateModel( this, keypath, value, changes );
+			if ( set( this, keypath, value ) ) {
+				changes.push( keypath );
+			}
 		}
-
-		if ( !changes.length ) {
-			return;
-		}
-
-		// If an end-cycle-update isn't scheduled already, we need to
-		// take care of that
-		scheduler.start();
-
-		// Manage transitions
-		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// ...and notify dependants
 		upstreamChanges = getUpstreamChanges( changes );
@@ -72,69 +66,12 @@ define([
 			notifyDependants.multiple( this, upstreamChanges, true );
 		}
 
-		notifyDependants.multiple( this, changes );
-
 		scheduler.end();
 
-		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
 		transitionManager.init();
-
-		// Fire a change event
-		if ( !this.firingChangeEvent ) {
-			this.firingChangeEvent = true; // short-circuit any potential infinite loops
-
-			changeHash = {};
-
-			i = changes.length;
-			while ( i-- ) {
-				changeHash[ changes[i] ] = get( this, changes[i] );
-			}
-
-			this.fire( 'change', changeHash );
-
-			this.firingChangeEvent = false;
-		}
 
 		return this;
 	};
-
-
-	function updateModel ( ractive, keypath, value, changes ) {
-		var cached, previous, wrapped, evaluator;
-
-		// If we're dealing with a wrapped value, try and use its reset method
-		wrapped = ractive._wrapped[ keypath ];
-
-		if ( wrapped && wrapped.reset && ( wrapped.get() !== value ) ) {
-			wrapped.reset( value );
-		}
-
-		// Update evaluator value. This may be from the evaluator itself, or
-		// it may be from the wrapper that wraps an evaluator's result - it
-		// doesn't matter
-		if ( evaluator = ractive._evaluators[ keypath ] ) {
-			evaluator.value = value;
-		}
-
-		cached = ractive._cache[ keypath ];
-		previous = get( ractive, keypath );
-
-		if ( value === cached && typeof value !== 'object' ) {
-			return;
-		}
-
-		// update the model, if necessary
-		if ( !evaluator && ( !wrapped || !wrapped.reset ) ) {
-			replaceData( ractive, keypath, value );
-		}
-
-		// add this keypath to the list of changes
-		changes.push( keypath );
-
-		// clear the cache
-		clearCache( ractive, keypath );
-	}
 
 	function getUpstreamChanges ( changes ) {
 		var upstreamChanges = [ '' ], i, keypath, keys, upstreamKeypath;
