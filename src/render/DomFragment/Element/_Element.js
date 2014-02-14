@@ -1,4 +1,6 @@
 define([
+	'global/runloop',
+	'global/css',
 	'render/DomFragment/Element/initialise/_initialise',
 
 	'render/DomFragment/Element/prototype/teardown',
@@ -9,6 +11,8 @@ define([
 	'render/DomFragment/Element/prototype/findAllComponents',
 	'render/DomFragment/Element/prototype/bind'
 ], function (
+	runloop,
+	css,
 	initialise,
 
 	teardown,
@@ -28,6 +32,8 @@ define([
 
 	DomElement.prototype = {
 		detach: function () {
+			var Component;
+
 			if ( this.node ) {
 				// need to check for parent node - DOM may have been altered
 				// by something other than Ractive! e.g. jQuery UI...
@@ -35,6 +41,17 @@ define([
 					this.node.parentNode.removeChild( this.node );
 				}
 				return this.node;
+			}
+
+			// If this element has child components with their own CSS, that CSS needs to
+			// be removed now
+			// TODO optimise this
+			if ( this.cssDetachQueue.length ) {
+				runloop.start();
+				while ( Component === this.cssDetachQueue.pop() ) {
+					css.remove( Component );
+				}
+				runloop.end();
 			}
 		},
 

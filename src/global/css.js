@@ -1,18 +1,42 @@
-define( function () {
+define([
+	'circular',
+	'config/isClient',
+	'utils/removeFromArray'
+], function (
+	circular,
+	isClient,
+	removeFromArray
+) {
 
 	'use strict';
 
-	var styleElement, usedStyles = [], updateStyleElement;
+	var runloop,
+		styleElement,
+		head,
+		styleSheet,
+		inDom,
+		prefix = '/* Ractive.js component styles */\n',
+		componentsInPage = {},
+		styles = [];
 
-	updateStyleElement = function () {
-		var css = '/* Ractive.js component styles */\n' + usedStyles.join( ' ' );
+	if ( !isClient ) {
+		return;
+	}
 
-		if ( styleElement.styleSheet ) { // IE
-			styleElement.styleSheet.cssText =css;
-		} else {
-			styleElement.innerHTML =css;
-		}
-	};
+	circular.push( function () {
+		runloop = circular.runloop;
+	});
+
+	styleElement = document.createElement( 'style' );
+	styleElement.type = 'text/css';
+
+	head = document.getElementsByTagName( 'head' )[0];
+
+	inDom = false;
+
+	// Internet Exploder won't let you use styleSheet.innerHTML - we have to
+	// use styleSheet.cssText instead
+	styleSheet = styleElement.styleSheet;
 
 	return {
 		add: function ( Component ) {
@@ -20,23 +44,17 @@ define( function () {
 				return;
 			}
 
-			if ( !styleElement ) {
-				styleElement = document.createElement( 'style' );
-				styleElement.type = 'text/css';
-				document.getElementsByTagName( 'head' )[0].appendChild( styleElement );
-			}
-
-			if ( !usedStyles[ Component._guid ] ) {
+			if ( !componentsInPage[ Component._guid ] ) {
 				// we create this counter so that we can in/decrement it as
 				// instances are added and removed. When all components are
 				// removed, the style is too
-				usedStyles[ Component._guid ] = 0;
-				usedStyles.push( Component.css );
+				componentsInPage[ Component._guid ] = 0;
+				styles.push( Component.css );
 
-				updateStyleElement();
+				runloop.scheduleCssUpdate();
 			}
 
-			usedStyles[ Component._guid ] += 1;
+			componentsInPage[ Component._guid ] += 1;
 		},
 
 		remove: function ( Component ) {
@@ -44,17 +62,34 @@ define( function () {
 				return;
 			}
 
-			usedStyles[ Component._guid ] -= 1;
+			componentsInPage[ Component._guid ] -= 1;
 
-			if ( !usedStyles[ Component._guid ] ) {
-				usedStyles.splice( usedStyles.indexOf( Component.css ), 1 );
+			if ( !componentsInPage[ Component._guid ] ) {
+				removeFromArray( styles, Component.css );
 
-				if ( usedStyles.length ) {
-					updateStyleElement();
+				runloop.scheduleCssUpdate();
+			}
+		},
+
+		update: function () {
+			var css;
+
+			if ( styles.length ) {
+				css = prefix + styles.join( ' ' );
+
+				if ( styleSheet ) {
+					styleSheet.cssText = css;
 				} else {
-					styleElement.parentNode.removeChild( styleElement );
-					styleElement = null;
+					styleElement.innerHTML = css;
 				}
+
+				if ( !inDom ) {
+					head.appendChild( styleElement );
+				}
+			}
+
+			else if ( inDom ) {
+				head.removeChild( styleElement );
 			}
 		}
 	};

@@ -1,12 +1,14 @@
 define([
 	'circular',
 	'global/failedLookups',
+	'global/css',
 	'utils/removeFromArray',
 	'shared/getValueFromCheckboxes',
 	'shared/resolveRef'
 ], function (
 	circular,
 	failedLookups,
+	css,
 	removeFromArray,
 	getValueFromCheckboxes,
 	resolveRef
@@ -14,15 +16,18 @@ define([
 
 	'use strict';
 
-	var get, set;
-
 	circular.push( function () {
 		get = circular.get;
 		set = circular.set;
 	});
 
-	var dirty = false,
+	var runloop,
+		get,
+		set,
+
+		dirty = false,
 		flushing = false,
+		pendingCssChanges,
 		inFlight = 0,
 		toFocus = null,
 
@@ -41,7 +46,7 @@ define([
 
 		instances = [];
 
-	return {
+	runloop = {
 		start: function ( instance ) {
 			if ( !instances[ instance._guid ] ) {
 				instances.push( instance );
@@ -94,6 +99,16 @@ define([
 			attributes.push( attribute );
 		},
 
+		scheduleCssUpdate: function () {
+			// if runloop isn't currently active, we need to trigger change immediately
+			if ( !inFlight && !flushing ) {
+				// TODO does this ever happen?
+				css.update();
+			} else {
+				pendingCssChanges = true;
+			}
+		},
+
 		// changes that may cause additional changes...
 		addEvaluator: function ( evaluator ) {
 			dirty = true;
@@ -126,6 +141,10 @@ define([
 			removeFromArray( unresolved, thing );
 		}
 	};
+
+	circular.runloop = runloop;
+	return runloop;
+
 
 	function land () {
 		var thing, changedKeypath, changeHash;
@@ -169,6 +188,11 @@ define([
 
 				thing.fire( 'change', changeHash );
 			}
+		}
+
+		if ( pendingCssChanges ) {
+			css.update();
+			pendingCssChanges = false;
 		}
 	}
 

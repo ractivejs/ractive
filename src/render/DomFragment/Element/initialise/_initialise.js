@@ -66,6 +66,8 @@ define([
 		element.eventListeners = [];
 		element.customEventListeners = [];
 
+		element.cssDetachQueue = [];
+
 		// get namespace, if we're actually rendering (not server-side stringifying)
 		if ( pNode ) {
 			namespace = element.namespace = getElementNamespace( descriptor, pNode );
