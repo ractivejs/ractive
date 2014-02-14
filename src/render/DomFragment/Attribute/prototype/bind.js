@@ -5,7 +5,7 @@ define([
 	'utils/arrayContentsMatch',
 	'shared/getValueFromCheckboxes',
 	'shared/get/_get',
-	'shared/set/_set'
+	'shared/set'
 ], function (
 	runloop,
 	types,

@@ -4,7 +4,7 @@ define([
 	'utils/isEqual',
 	'utils/normaliseKeypath',
 	'shared/get/_get',
-	'shared/set/_set',
+	'shared/set',
 	'shared/clearCache',
 	'shared/notifyDependants',
 	'shared/makeTransitionManager'

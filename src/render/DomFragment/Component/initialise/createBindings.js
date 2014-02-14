@@ -1,7 +1,7 @@
 define([
 	'shared/createComponentBinding',
 	'shared/get/_get',
-	'shared/set/_set'
+	'shared/set'
 ], function (
 	createComponentBinding,
 	get,
