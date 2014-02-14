@@ -16,6 +16,8 @@ define([
 	makeTransitionManager = function ( ractive, callback ) {
 		var transitionManager = [];
 
+		transitionManager.detachQueue = [];
+
 		transitionManager.remove = remove;
 		transitionManager.init = init;
 
@@ -39,7 +41,7 @@ define([
 		if ( this._ready && !this.length ) {
 			ractive = this._root;
 
-			while ( element = ractive._detachQueue.pop() ) {
+			while ( element = this.detachQueue.pop() ) {
 				element.detach();
 			}
 
