@@ -1,5 +1,5 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/warn',
 	'utils/isArray',
 	'shared/clearCache',
@@ -9,7 +9,7 @@ define([
 	'Ractive/prototype/merge/mapOldToNewIndex',
 	'Ractive/prototype/merge/queueDependants'
 ], function (
-	scheduler,
+	runloop,
 	warn,
 	isArray,
 	clearCache,
@@ -109,7 +109,7 @@ define([
 			return;
 		}
 
-		scheduler.start( this );
+		runloop.start( this );
 
 
 		// Manage transitions
@@ -141,7 +141,7 @@ define([
 			}
 		}
 
-		scheduler.end();
+		runloop.end();
 
 		// Finally, notify direct dependants of upstream keypaths...
 		upstreamQueue = [];

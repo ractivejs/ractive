@@ -1,9 +1,9 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'shared/resolveRef',
 	'render/shared/ExpressionResolver/_ExpressionResolver'
 ], function (
-	scheduler,
+	runloop,
 	resolveRef,
 	ExpressionResolver
 ) {
@@ -43,7 +43,7 @@ define([
 					mustache.resolve( keypath );
 				} else {
 					mustache.ref = options.descriptor.r;
-					scheduler.addUnresolved( mustache );
+					runloop.addUnresolved( mustache );
 				}
 			}
 		}

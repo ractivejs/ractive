@@ -1,10 +1,10 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/isEqual',
 	'shared/get/_get',
 	'Ractive/prototype/observe/getPattern'
 ], function (
-	scheduler,
+	runloop,
 	isEqual,
 	get,
 	getPattern
@@ -70,7 +70,7 @@ define([
 			}
 
 			if ( this.defer && this.ready ) {
-				scheduler.addObserver( this.getProxy( keypath ) );
+				runloop.addObserver( this.getProxy( keypath ) );
 				return;
 			}
 

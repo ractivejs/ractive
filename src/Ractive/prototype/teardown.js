@@ -3,7 +3,7 @@
 define([
 	'shared/makeTransitionManager',
 	'shared/clearCache',
-	'state/css'
+	'global/css'
 ], function (
 	makeTransitionManager,
 	clearCache,

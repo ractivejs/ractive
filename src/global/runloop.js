@@ -1,6 +1,6 @@
 define([
 	'circular',
-	'state/failedLookups',
+	'global/failedLookups',
 	'utils/removeFromArray',
 	'shared/getValueFromCheckboxes',
 	'shared/resolveRef'

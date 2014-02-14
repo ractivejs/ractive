@@ -1,11 +1,11 @@
 define([
 	'config/initOptions',
-	'state/scheduler',
+	'global/runloop',
 	'extend/wrapMethod',
 	'Ractive/initialise'
 ], function (
 	initOptions,
-	scheduler,
+	runloop,
 	wrapMethod,
 	initialise
 ) {

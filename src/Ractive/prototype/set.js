@@ -1,5 +1,5 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/isObject',
 	'utils/isEqual',
 	'utils/normaliseKeypath',
@@ -9,7 +9,7 @@ define([
 	'shared/notifyDependants',
 	'shared/makeTransitionManager'
 ], function (
-	scheduler,
+	runloop,
 	isObject,
 	isEqual,
 	normaliseKeypath,
@@ -30,7 +30,7 @@ define([
 
 		changes = [];
 
-		scheduler.start( this );
+		runloop.start( this );
 
 		// Manage transitions
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
@@ -66,7 +66,7 @@ define([
 			notifyDependants.multiple( this, upstreamChanges, true );
 		}
 
-		scheduler.end();
+		runloop.end();
 
 		transitionManager.init();
 

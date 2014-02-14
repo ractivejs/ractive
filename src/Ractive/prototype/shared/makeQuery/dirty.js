@@ -1,14 +1,14 @@
 define([
-	'state/scheduler'
+	'global/runloop'
 ], function (
-	scheduler
+	runloop
 ) {
 
 	'use strict';
 
 	return function () {
 		if ( !this._dirty ) {
-			scheduler.addLiveQuery( this );
+			runloop.addLiveQuery( this );
 			this._dirty = true;
 		}
 	};

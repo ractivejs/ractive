@@ -1,5 +1,5 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'config/types',
 	'utils/warn',
 	'utils/arrayContentsMatch',
@@ -7,7 +7,7 @@ define([
 	'shared/get/_get',
 	'shared/set/_set'
 ], function (
-	scheduler,
+	runloop,
 	types,
 	warn,
 	arrayContentsMatch,
@@ -224,7 +224,7 @@ define([
 
 			// TODO we're hijacking an existing bit of functionality here...
 			// the whole deferred updates thing could use a spring clean
-			scheduler.addAttribute( this );
+			runloop.addAttribute( this );
 			this.deferred = true;
 		},
 
@@ -282,7 +282,7 @@ define([
 
 			// TODO we're hijacking an existing bit of functionality here...
 			// the whole deferred updates thing could use a spring clean
-			scheduler.addAttribute( this );
+			runloop.addAttribute( this );
 			this.deferred = true;
 		},
 
@@ -310,7 +310,7 @@ define([
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel == node._ractive.value );
 		} else {
-			scheduler.addRadio( this );
+			runloop.addRadio( this );
 		}
 	};
 
@@ -361,7 +361,7 @@ define([
 
 		// otherwise make a note that we will need to update the model later
 		else {
-			scheduler.addCheckbox( this );
+			runloop.addCheckbox( this );
 		}
 	};
 

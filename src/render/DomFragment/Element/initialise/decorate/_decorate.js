@@ -1,8 +1,8 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'render/DomFragment/Element/initialise/decorate/Decorator'
 ], function (
-	scheduler,
+	runloop,
 	Decorator
 ) {
 
@@ -12,7 +12,7 @@ define([
 		owner.decorator = new Decorator( descriptor, root, owner );
 
 		if ( owner.decorator.fn ) {
-			scheduler.addDecorator( owner.decorator );
+			runloop.addDecorator( owner.decorator );
 		}
 	};
 

@@ -1,10 +1,10 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
-	scheduler,
+	runloop,
 	makeTransitionManager,
 	clearCache,
 	notifyDependants
@@ -15,7 +15,7 @@ define([
 	return function ( keypath, complete ) {
 		var transitionManager;
 
-		scheduler.start( this );
+		runloop.start( this );
 
 		if ( typeof keypath === 'function' ) {
 			complete = keypath;
@@ -30,7 +30,7 @@ define([
 		clearCache( this, keypath || '' );
 		notifyDependants( this, keypath || '' );
 
-		scheduler.end();
+		runloop.end();
 
 		// transition manager has finished its work
 		transitionManager.init();
