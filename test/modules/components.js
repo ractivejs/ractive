@@ -585,6 +585,61 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } )
 		});
 
+		(function(){
+			function run(mode, setter) {
+				test('Setting current object of list works through sibling components, with: ' + mode, function ( t ) {
+					var Current, Selector, data, selector, ractive, magic = ( mode === 'magic' );
+
+					console.log(magic)
+
+					Current = Ractive.extend({
+						template: '{{item.name}}',
+						magic: magic
+					});
+					Selector = Ractive.extend({
+						template: '{{#items}}{{.name}}{{/items}}',
+						magic: magic,
+						select: function(index){
+							setter.call( this, index );
+						}
+					});
+
+					var data = {
+						items: [
+							{ name: 'one' },
+							{ name: 'two' },
+							{ name: 'three' }
+						]
+					};
+					data.current = data.items[0];
+
+					ractive = new Ractive({
+						el: fixture,
+						template: '<selector/><current item="{{current}}"/>',
+						magic: magic,
+						components: {
+							selector: Selector,
+							current: Current
+						},
+						data: data
+					});
+
+					t.htmlEqual( fixture.innerHTML, 'onetwothreeone' );
+					selector = ractive.findComponent('selector');
+					t.ok(selector);
+					selector.select(1);
+					t.htmlEqual( fixture.innerHTML, 'onetwothreetwo' );
+				});
+			}
+
+			run('ractive.set', function(index) {
+				this.set( 'current', this.data.items[index] );
+			});
+			run('magic', function(index) {
+				this.data.current = this.data.items[index];
+			});
+		})();
+
 	};
 
 });
