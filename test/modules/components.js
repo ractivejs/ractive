@@ -590,14 +590,12 @@ define([ 'Ractive' ], function ( Ractive ) {
 				test('Setting current object of list works through sibling components, with: ' + mode, function ( t ) {
 					var Current, Selector, data, selector, ractive, magic = ( mode === 'magic' );
 
-					console.log(magic)
-
 					Current = Ractive.extend({
 						template: '{{item.name}}',
 						magic: magic
 					});
 					Selector = Ractive.extend({
-						template: '{{#items}}{{.name}}{{/items}}',
+						template: '{{#items}}{{name}}{{/items}}',
 						magic: magic,
 						select: function(index){
 							setter.call( this, index );
@@ -629,6 +627,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 					t.ok(selector);
 					selector.select(1);
 					t.htmlEqual( fixture.innerHTML, 'onetwothreetwo' );
+					t.equal(data.current.name, 'two', 'data changed')
 				});
 			}
 
@@ -639,6 +638,91 @@ define([ 'Ractive' ], function ( Ractive ) {
 				this.data.current = this.data.items[index];
 			});
 		})();
+
+		test('Component event captured by root Ractive instance', function ( t ) {
+			var Widget, widget, data, ractive;
+
+			expect( 2 )
+
+			Widget = Ractive.extend({
+				template: '<p/>',
+				fake: function(){
+					this.fire('customevent')
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget on-customevent="listen"/>',
+				components: {
+					widget: Widget
+				},
+				init: function(){
+					this.on('listen', function(){
+						t.ok()
+					})
+				},
+				data: {}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p></p>' );
+			widget = ractive.findComponent('widget');
+			widget.fake();
+		});
+
+		test('Component removed when event captured by parent removes instance ', function ( t ) {
+			var Widget, Listener, listener, data, ractive;
+
+			data = {
+				items: [
+					{ name: 'one' },
+					{ name: 'two' },
+					{ name: 'three' }
+				]
+			};
+
+			Widget = Ractive.extend({
+				template: '{{name}}',
+				fake: function(item){
+					this.fire('delete', item);
+				}
+			});
+
+			Listener = Ractive.extend({
+				template:  '{{#items}}<widget on-delete="remove"/>{{/items}}',
+				components: {
+					widget: Widget
+				},
+				init: function(){
+					var items = this.data.items;
+					this.on('remove', function(item){
+						var index = items.indexOf(item)
+						items.splice(index, 1);
+					})
+				},
+				fake: function(item){
+					this.findComponent('widget').fake(item);
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<listener/>',
+				components: {
+					listener: Listener
+				},
+				data: data
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'onetwothree' );
+
+			listener = ractive.findComponent('listener');
+			listener.fake(data.items[1]);
+
+			t.htmlEqual( fixture.innerHTML, 'onethree' );
+			t.equal(data.items.length, 2, 'Data items length is updated')
+
+		});
 
 	};
 
