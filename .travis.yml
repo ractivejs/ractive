@@ -3,7 +3,7 @@ python:
 - '0.10'
 before_script:
  - npm install -g grunt-cli; chmod u+x deploy-edge-to-cdn.sh; grunt
-script: ./deploy-edge-to-cdn.sh
+script: ./scripts/deploy-edge-to-cdn.sh
 env:
  global:
   - GH_REF: github.com/RactiveJS/cdn.ractivejs.org.git
