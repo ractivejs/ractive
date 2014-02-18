@@ -1,14 +1,16 @@
 define([
+	'circular',
 	'utils/warn',
 	'registries/interpolators'
 ], function (
+	circular,
 	warn,
 	interpolators
 ) {
 
 	'use strict';
 
-	return function ( from, to, ractive, type ) {
+	var interpolate = function ( from, to, ractive, type ) {
 		if ( from === to ) {
 			return snap( to );
 		}
@@ -27,6 +29,9 @@ define([
 		       interpolators.cssLength( from, to ) ||
 		       snap( to );
 	};
+
+	circular.interpolate = interpolate;
+	return interpolate;
 
 	function snap ( to ) {
 		return function () { return to; };
