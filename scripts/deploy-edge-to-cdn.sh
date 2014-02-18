@@ -5,6 +5,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	echo "Deploying edge version to CDN..."
 
 	git clone https://github.com/RactiveJS/cdn.ractivejs.org.git cdn
+	git checkout -b gh-pages origin/gh-pages
 
 	rm -r cdn/edge
 	cp -r build/ cdn/edge
@@ -16,5 +17,5 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	git add .
 	git commit -m "Updated edge version"
 
-	git push --force "https://${GH_TOKEN}@${GH_REF}" master:gh-pages > /dev/null 2>&1
+	git push "https://${GH_TOKEN}@${GH_REF}"
 fi
