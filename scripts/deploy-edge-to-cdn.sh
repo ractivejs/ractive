@@ -7,7 +7,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	git clone https://github.com/RactiveJS/cdn.ractivejs.org.git cdn
 
 	rm -r cdn/edge
-	cp build cdn/edge
+	cp -r build/ cdn/edge
 
 	cd cdn
 
