@@ -4,10 +4,6 @@
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	echo "Deploying edge version to CDN..."
 
-	# DEBUGGING print token and reference
-	echo "${GH_TOKEN}"
-	echo "${GH_REF}"
-
 	git clone https://github.com/RactiveJS/cdn.ractivejs.org.git cdn
 	git checkout -b gh-pages origin/gh-pages
 
