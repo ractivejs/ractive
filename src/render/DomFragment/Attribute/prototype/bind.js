@@ -211,6 +211,7 @@ define([
 				attribute.receiving = true;
 				attribute.value = value;
 				set( this.root, this.keypath, value );
+				runloop.trigger();
 				attribute.receiving = false;
 			}
 
@@ -270,6 +271,7 @@ define([
 			this.attr.receiving = true;
 			this.attr.value = value;
 			set( this.root, this.keypath, value );
+			runloop.trigger();
 			this.attr.receiving = false;
 
 			return this;
@@ -325,6 +327,7 @@ define([
 			if ( node.checked ) {
 				this.attr.receiving = true;
 				set( this.root, this.keypath, this.value() );
+				runloop.trigger();
 				this.attr.receiving = false;
 			}
 		},
@@ -375,6 +378,7 @@ define([
 
 			this.attr.receiving = true;
 			set( this.root, this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
+			runloop.trigger();
 			this.attr.receiving = false;
 		},
 
@@ -402,6 +406,7 @@ define([
 		update: function () {
 			this.attr.receiving = true;
 			set( this.root, this.keypath, this.value() );
+			runloop.trigger();
 			this.attr.receiving = false;
 		},
 
@@ -424,6 +429,7 @@ define([
 
 		update: function () {
 			set( this.attr.root, this.attr.keypath, this.value() );
+			runloop.trigger();
 		},
 
 		teardown: function () {
@@ -448,6 +454,7 @@ define([
 		update: function () {
 			this.attr.receiving = true;
 			set( this.root, this.keypath, this.node.innerHTML );
+			runloop.trigger();
 			this.attr.receiving = false;
 		},
 
@@ -491,6 +498,7 @@ define([
 
 			attribute.receiving = true;
 			set( attribute.root, attribute.keypath, value );
+			runloop.trigger();
 			attribute.receiving = false;
 		},
 

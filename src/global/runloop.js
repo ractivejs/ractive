@@ -75,6 +75,19 @@ define([
 			}
 		},
 
+		trigger: function () {
+			if ( inFlight || flushing ) {
+				attemptKeypathResolution();
+				return;
+			}
+
+			flushing = true;
+			flushChanges();
+			flushing = false;
+
+			land();
+		},
+
 		focus: function ( node ) {
 			toFocus = node;
 		},
