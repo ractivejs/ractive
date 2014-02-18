@@ -2,9 +2,9 @@ language: node_js
 node_js:
 - '0.10'
 before_script:
- - npm install -g grunt-cli; chmod u+x scripts/deploy-edge-to-cdn.sh; grunt
+- npm install -g grunt-cli; chmod u+x scripts/deploy-edge-to-cdn.sh; grunt
 script: ./scripts/deploy-edge-to-cdn.sh
 env:
- global:
+  global:
   - GH_REF: github.com/RactiveJS/cdn.ractivejs.org.git
-  - secure: cbcfTCrT0Ynfuf5CMhmFLOyxtu5z9easMY84VDADa2lF12eKVNgidvTHx83yPhX7BDd9pPQcYF8DzmLAxQE7S2lkhcuuNwoy2/d6MT7RTShBsaf/0y2Rkr0xkJ6p618xnuls9DnkOg2HNchq2IASUXTcCkhr/0eediyjglWdjWU=
+  - secure: "Im9llzCevi//x5imashpbg53Mjh/Svqz/BGFDoGXehsuIWV65MnVl4yqVnTXHOZK4hcv8XiJMfb1t+S9ySl98BRtrGy6iKIznKTFCdbUorwib0hQqX9YEPVTc6awC1RI7xzfMF8D6bZpD61ibLgm9mmSeI1U33lFAHL/gCQuwTs="
