@@ -2,7 +2,7 @@ language: node_js
 python:
 - '0.10'
 before_script:
- - npm install -g grunt-cli; chmod u+x deploy-edge-to-cdn.sh; grunt
+ - npm install -g grunt-cli; chmod u+x scripts/deploy-edge-to-cdn.sh; grunt
 script: ./scripts/deploy-edge-to-cdn.sh
 env:
  global:
