@@ -4,18 +4,23 @@
 if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 	echo "Deploying edge version to CDN..."
 
+	# DEBUGGING print token and reference
+	echo "${GH_TOKEN}"
+	echo "${GH_REF}"
+
 	git clone https://github.com/RactiveJS/cdn.ractivejs.org.git cdn
 	git checkout -b gh-pages origin/gh-pages
 
 	rm -r cdn/edge
 	cp -r build/ cdn/edge
 
-	cd cdn
+	( cd cdn
 
-	git config user.name "Travis-CI"
-	git config user.email "richard.a.harris+travis@gmail.com"
-	git add .
-	git commit -m "Updated edge version"
+		git config user.name "Travis-CI"
+		git config user.email "richard.a.harris+travis@gmail.com"
+		git add .
+		git commit -m "Updated edge version"
 
-	git push "https://${GH_TOKEN}@${GH_REF}"
+		git push "https://${GH_TOKEN}@${GH_REF}"
+	)
 fi
