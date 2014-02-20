@@ -163,11 +163,6 @@ module.exports = function(grunt) {
 					src: [ '**/*' ],
 					dest: 'release/<%= pkg.version %>/'
 				}]
-			},
-			link: {
-				files: {
-					'Ractive.js': 'build/Ractive.js'
-				}
 			}
 		}
 	});
@@ -199,8 +194,7 @@ module.exports = function(grunt) {
 		'clean:build',
 		'concat',
 		'jsbeautifier',
-		'uglify',
-		'copy:link'
+		'uglify'
 	]);
 
 	grunt.registerTask( 'test', [
