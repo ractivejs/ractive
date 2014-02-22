@@ -105,7 +105,7 @@ module.exports = function(grunt) {
 
 		clean: {
 			tmp: [ 'tmp/' ],
-			build: [ 'build/' ]
+			build: [ 'build/**/*.js' ]
 		},
 
 		jshint: {
@@ -138,7 +138,7 @@ module.exports = function(grunt) {
 		},
 
 		jsbeautifier: {
-			files: 'build/**',
+			files: 'build/**/*.js',
 			options: {
 				js: {
 					indentWithTabs: true,
