@@ -1,10 +1,14 @@
 define([
-	'state/failedLookups',
+	'circular',
+	'global/failedLookups',
+	'global/css',
 	'utils/removeFromArray',
 	'shared/getValueFromCheckboxes',
 	'shared/resolveRef'
 ], function (
+	circular,
 	failedLookups,
+	css,
 	removeFromArray,
 	getValueFromCheckboxes,
 	resolveRef
@@ -12,8 +16,18 @@ define([
 
 	'use strict';
 
-	var dirty = false,
+	circular.push( function () {
+		get = circular.get;
+		set = circular.set;
+	});
+
+	var runloop,
+		get,
+		set,
+
+		dirty = false,
 		flushing = false,
+		pendingCssChanges,
 		inFlight = 0,
 		toFocus = null,
 
@@ -28,10 +42,17 @@ define([
 		checkboxKeypaths = {},
 		checkboxes = [],
 		radios = [],
-		unresolved = [];
+		unresolved = [],
 
-	return {
-		start: function () {
+		instances = [];
+
+	runloop = {
+		start: function ( instance ) {
+			if ( !instances[ instance._guid ] ) {
+				instances.push( instance );
+				instances[ instances._guid ] = true;
+			}
+
 			if ( flushing ) {
 				return;
 			}
@@ -52,6 +73,19 @@ define([
 
 				land();
 			}
+		},
+
+		trigger: function () {
+			if ( inFlight || flushing ) {
+				attemptKeypathResolution();
+				return;
+			}
+
+			flushing = true;
+			flushChanges();
+			flushing = false;
+
+			land();
 		},
 
 		focus: function ( node ) {
@@ -76,6 +110,16 @@ define([
 
 		addAttribute: function ( attribute ) {
 			attributes.push( attribute );
+		},
+
+		scheduleCssUpdate: function () {
+			// if runloop isn't currently active, we need to trigger change immediately
+			if ( !inFlight && !flushing ) {
+				// TODO does this ever happen?
+				css.update();
+			} else {
+				pendingCssChanges = true;
+			}
 		},
 
 		// changes that may cause additional changes...
@@ -111,8 +155,12 @@ define([
 		}
 	};
 
+	circular.runloop = runloop;
+	return runloop;
+
+
 	function land () {
-		var thing;
+		var thing, changedKeypath, changeHash;
 
 		if ( toFocus ) {
 			toFocus.focus();
@@ -138,6 +186,27 @@ define([
 		while ( thing = observers.pop() ) {
 			thing.update();
 		}
+
+		// Change events are fired last
+		while ( thing = instances.pop() ) {
+			instances[ thing._guid ] = false;
+			thing._transitionManager = null;
+
+			if ( thing._changes.length ) {
+				changeHash = {};
+
+				while ( changedKeypath = thing._changes.pop() ) {
+					changeHash[ changedKeypath ] = get( thing, changedKeypath );
+				}
+
+				thing.fire( 'change', changeHash );
+			}
+		}
+
+		if ( pendingCssChanges ) {
+			css.update();
+			pendingCssChanges = false;
+		}
 	}
 
 	function flushChanges () {
@@ -159,7 +228,7 @@ define([
 			}
 
 			while ( thing = checkboxes.pop() ) {
-				thing.root.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+				set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			}
 
 			while ( thing = radios.pop() ) {

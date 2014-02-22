@@ -1,10 +1,10 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
-	scheduler,
+	runloop,
 	makeTransitionManager,
 	clearCache,
 	notifyDependants
@@ -13,9 +13,9 @@ define([
 	'use strict';
 
 	return function ( keypath, complete ) {
-		var transitionManager, previousTransitionManager;
+		var transitionManager;
 
-		scheduler.start();
+		runloop.start( this );
 
 		if ( typeof keypath === 'function' ) {
 			complete = keypath;
@@ -23,7 +23,6 @@ define([
 		}
 
 		// manage transitions
-		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// if we're using update, it's possible that we've introduced new values, and
@@ -31,10 +30,9 @@ define([
 		clearCache( this, keypath || '' );
 		notifyDependants( this, keypath || '' );
 
-		scheduler.end();
+		runloop.end();
 
 		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
 		transitionManager.init();
 
 		if ( typeof keypath === 'string' ) {

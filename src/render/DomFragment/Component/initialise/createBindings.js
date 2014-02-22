@@ -1,9 +1,11 @@
 define([
 	'shared/createComponentBinding',
-	'shared/get/_get'
+	'shared/get/_get',
+	'shared/set'
 ], function (
 	createComponentBinding,
-	get
+	get,
+	set
 ) {
 
 	'use strict';
@@ -16,7 +18,7 @@ define([
 
 			childValue = get( component.instance, pair.childKeypath );
 			if ( childValue !== undefined ) {
-				component.root.set( pair.parentKeypath, childValue );
+				set( component.root, pair.parentKeypath, childValue );
 			}
 		});
 	};

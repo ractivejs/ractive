@@ -1,17 +1,19 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'config/types',
 	'utils/warn',
 	'utils/arrayContentsMatch',
 	'shared/getValueFromCheckboxes',
-	'shared/get/_get'
+	'shared/get/_get',
+	'shared/set'
 ], function (
-	scheduler,
+	runloop,
 	types,
 	warn,
 	arrayContentsMatch,
 	getValueFromCheckboxes,
-	get
+	get,
+	set
 ) {
 
 	'use strict';
@@ -66,7 +68,10 @@ define([
 		// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
 		// be explicit when using two-way data-binding about what keypath you're
 		// updating. Using it in lists is probably a recipe for confusion...
-		this.keypath = interpolator.keypath || interpolator.descriptor.r;
+		if ( !interpolator.keypath ) {
+			interpolator.resolve( interpolator.descriptor.r );
+		}
+		this.keypath = interpolator.keypath;
 
 		binding = getBinding( this );
 
@@ -205,7 +210,8 @@ define([
 				// either length or contents have changed, so we update the model
 				attribute.receiving = true;
 				attribute.value = value;
-				this.root.set( this.keypath, value );
+				set( this.root, this.keypath, value );
+				runloop.trigger();
 				attribute.receiving = false;
 			}
 
@@ -219,7 +225,7 @@ define([
 
 			// TODO we're hijacking an existing bit of functionality here...
 			// the whole deferred updates thing could use a spring clean
-			scheduler.addAttribute( this );
+			runloop.addAttribute( this );
 			this.deferred = true;
 		},
 
@@ -264,7 +270,8 @@ define([
 
 			this.attr.receiving = true;
 			this.attr.value = value;
-			this.root.set( this.keypath, value );
+			set( this.root, this.keypath, value );
+			runloop.trigger();
 			this.attr.receiving = false;
 
 			return this;
@@ -277,7 +284,7 @@ define([
 
 			// TODO we're hijacking an existing bit of functionality here...
 			// the whole deferred updates thing could use a spring clean
-			scheduler.addAttribute( this );
+			runloop.addAttribute( this );
 			this.deferred = true;
 		},
 
@@ -305,7 +312,7 @@ define([
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel == node._ractive.value );
 		} else {
-			scheduler.addRadio( this );
+			runloop.addRadio( this );
 		}
 	};
 
@@ -319,7 +326,8 @@ define([
 
 			if ( node.checked ) {
 				this.attr.receiving = true;
-				this.root.set( this.keypath, this.value() );
+				set( this.root, this.keypath, this.value() );
+				runloop.trigger();
 				this.attr.receiving = false;
 			}
 		},
@@ -356,7 +364,7 @@ define([
 
 		// otherwise make a note that we will need to update the model later
 		else {
-			scheduler.addCheckbox( this );
+			runloop.addCheckbox( this );
 		}
 	};
 
@@ -369,7 +377,8 @@ define([
 			this.checked = this.node.checked;
 
 			this.attr.receiving = true;
-			this.root.set( this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
+			set( this.root, this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
+			runloop.trigger();
 			this.attr.receiving = false;
 		},
 
@@ -396,7 +405,8 @@ define([
 
 		update: function () {
 			this.attr.receiving = true;
-			this.root.set( this.keypath, this.value() );
+			set( this.root, this.keypath, this.value() );
+			runloop.trigger();
 			this.attr.receiving = false;
 		},
 
@@ -418,7 +428,8 @@ define([
 		},
 
 		update: function () {
-			this.attr.root.set( this.attr.keypath, this.value() );
+			set( this.attr.root, this.attr.keypath, this.value() );
+			runloop.trigger();
 		},
 
 		teardown: function () {
@@ -442,7 +453,8 @@ define([
 	ContentEditableBinding.prototype = {
 		update: function () {
 			this.attr.receiving = true;
-			this.root.set( this.keypath, this.node.innerHTML );
+			set( this.root, this.keypath, this.node.innerHTML );
+			runloop.trigger();
 			this.attr.receiving = false;
 		},
 
@@ -485,7 +497,8 @@ define([
 			var attribute = this.attr, value = this.value();
 
 			attribute.receiving = true;
-			attribute.root.set( attribute.keypath, value );
+			set( attribute.root, attribute.keypath, value );
+			runloop.trigger();
 			attribute.receiving = false;
 		},
 

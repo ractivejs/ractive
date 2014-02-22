@@ -11,7 +11,7 @@ define([
 	'use strict';
 
 	return function ( data, complete ) {
-		var transitionManager, previousTransitionManager;
+		var transitionManager;
 
 		if ( typeof data === 'function' ) {
 			complete = data;
@@ -23,7 +23,6 @@ define([
 		}
 
 		// Manage transitions
-		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		this.data = data || {};
@@ -34,7 +33,6 @@ define([
 		this.fire( 'reset', data );
 
 		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
 		transitionManager.ready();
 	};
 

@@ -1,5 +1,5 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'config/types',
 	'config/namespaces',
 	'utils/create',
@@ -17,7 +17,7 @@ define([
 	'render/DomFragment/Element/shared/executeTransition/_executeTransition',
 	'render/DomFragment/shared/enforceCase'
 ], function (
-	scheduler,
+	runloop,
 	types,
 	namespaces,
 	create,
@@ -65,6 +65,8 @@ define([
 
 		element.eventListeners = [];
 		element.customEventListeners = [];
+
+		element.cssDetachQueue = [];
 
 		// get namespace, if we're actually rendering (not server-side stringifying)
 		if ( pNode ) {
@@ -186,7 +188,7 @@ define([
 				// Special case. Some browsers (*cough* Firefix *cough*) have a problem
 				// with dynamically-generated elements having autofocus, and they won't
 				// allow you to programmatically focus the element until it's in the DOM
-				scheduler.focus( element.node );
+				runloop.focus( element.node );
 			}
 		}
 

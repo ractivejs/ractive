@@ -1,5 +1,5 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'utils/warn',
 	'utils/isEqual',
 	'utils/defineProperty',
@@ -11,7 +11,7 @@ define([
 	'render/shared/Evaluator/Reference',
 	'render/shared/Evaluator/SoftReference'
 ], function (
-	scheduler,
+	runloop,
 	warn,
 	isEqual,
 	defineProperty,
@@ -72,7 +72,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// cascading. Only if we're already resolved, obviously
 			else if ( !this.deferred ) {
-				scheduler.addEvaluator( this );
+				runloop.addEvaluator( this );
 				this.deferred = true;
 			}
 		},

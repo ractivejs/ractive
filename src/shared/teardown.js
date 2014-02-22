@@ -1,8 +1,8 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'shared/unregisterDependant'
 ], function (
-	scheduler,
+	runloop,
 	unregisterDependant
 ) {
 
@@ -11,7 +11,7 @@ define([
 	return function ( thing ) {
 		if ( !thing.keypath ) {
 			// this was on the 'unresolved' list, we need to remove it
-			scheduler.removeUnresolved( thing );
+			runloop.removeUnresolved( thing );
 		} else {
 			// this was registered as a dependant
 			unregisterDependant( thing );

@@ -16,6 +16,8 @@ define([
 	makeTransitionManager = function ( ractive, callback ) {
 		var transitionManager = [];
 
+		transitionManager.detachQueue = [];
+
 		transitionManager.remove = remove;
 		transitionManager.init = init;
 
@@ -23,6 +25,7 @@ define([
 
 		transitionManager._root = ractive;
 		transitionManager._callback = callback;
+		transitionManager._previous = ractive._transitionManager;
 
 		// components need to notify parents when their
 		// transitions are complete
@@ -39,7 +42,7 @@ define([
 		if ( this._ready && !this.length ) {
 			ractive = this._root;
 
-			while ( element = ractive._detachQueue.pop() ) {
+			while ( element = this.detachQueue.pop() ) {
 				element.detach();
 			}
 
@@ -61,6 +64,11 @@ define([
 	init = function () {
 		this._ready = true;
 		this._check();
+
+		// Revert to previous transition manager, if applicable
+		if ( this._previous ) {
+			this._root._transitionManager = this._previous;
+		}
 	};
 
 	return makeTransitionManager;

@@ -1,5 +1,5 @@
 define([
-	'state/failedLookups',
+	'global/failedLookups',
 	'shared/createComponentBinding',
 	'Ractive/prototype/shared/replaceData'
 ], function (

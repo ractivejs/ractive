@@ -6,8 +6,14 @@ define([
 
 	'use strict';
 
-	return function ( destroy ) {
+	return function Element_prototype_teardown ( destroy ) {
 		var eventName, binding, bindings;
+
+		// Detach as soon as we can
+		if ( destroy ) {
+			this.willDetach = true;
+			this.root._transitionManager.detachQueue.push( this );
+		}
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
@@ -40,12 +46,6 @@ define([
 		// Outro, if necessary
 		if ( this.descriptor.t2 ) {
 			executeTransition( this.descriptor.t2, this.root, this, false );
-		}
-
-		// Detach as soon as we can
-		if ( destroy ) {
-			this.root._detachQueue.push( this );
-			//this.root._transitionManager.detachWhenReady( this );
 		}
 
 		// Remove this node from any live queries

@@ -7,3 +7,5 @@ sandbox/*
 !sandbox/sample/
 tmp/
 FIX.js
+build/*
+!build/README.md

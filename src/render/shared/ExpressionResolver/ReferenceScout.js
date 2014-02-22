@@ -1,9 +1,9 @@
 define([
-	'state/scheduler',
+	'global/runloop',
 	'shared/resolveRef',
 	'shared/teardown'
 ], function (
-	scheduler,
+	runloop,
 	resolveRef,
 	teardown
 ) {
@@ -24,7 +24,7 @@ define([
 			this.argNum = argNum;
 			this.resolver = resolver;
 
-			scheduler.addUnresolved( this );
+			runloop.addUnresolved( this );
 		}
 	};
 
