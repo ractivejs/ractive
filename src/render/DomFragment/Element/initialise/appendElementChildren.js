@@ -81,10 +81,11 @@ define([
 
 		else {
 			element.fragment = new DomFragment({
-				descriptor:   descriptor.f,
-				root:         element.root,
-				pNode:        node,
-				owner:        element
+				descriptor:    descriptor.f,
+				root:          element.root,
+				pNode:         node,
+				owner:         element,
+				pElement:      element,
 			});
 
 			if ( docFrag ) {

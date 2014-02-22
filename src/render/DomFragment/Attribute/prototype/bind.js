@@ -23,7 +23,6 @@ define([
 
 		bindAttribute,
 
-		getInterpolator,
 		updateModel,
 		update,
 		getBinding,
@@ -40,17 +39,17 @@ define([
 	bindAttribute = function () {
 		var node = this.pNode, interpolator, binding, bindings;
 
-		if ( !this.fragment ) {
-			return false; // report failure
-		}
-
-		interpolator = getInterpolator( this );
+		interpolator = this.interpolator;
 
 		if ( !interpolator ) {
-			return false; // report failure
+			warn( singleMustacheError );
+			return false;
 		}
 
-		this.interpolator = interpolator;
+		if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
+			warn( expressionError + interpolator.keypath );
+			return false;
+		}
 
 		// Hmmm. Not sure if this is the best way to handle this ambiguity...
 		//
@@ -101,29 +100,6 @@ define([
 		this.value = value == undefined ? '' : value;
 	};
 
-	getInterpolator = function ( attribute ) {
-		var item = attribute.fragment.items[0];
-
-		// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
-		// Check this is a suitable candidate for two-way binding - i.e. it is
-		// a single interpolator, which isn't an expression
-		if (  attribute.fragment.items.length !== 1 || item.type !== types.INTERPOLATOR || ( !item.keypath && !item.ref ) ) {
-			if ( attribute.root.debug ) {
-				warn( singleMustacheError );
-			}
-			return null;
-		}
-
-		if ( item.keypath && item.keypath.substr( 0, 2 ) === '${' ) {
-			if ( attribute.root.debug ) {
-				warn( expressionError + item.keypath );
-			}
-			return null;
-		}
-
-		return item;
-	};
-
 	getBinding = function ( attribute ) {
 		var node = attribute.pNode;
 
@@ -150,7 +126,7 @@ define([
 		}
 
 		if ( attribute.lcName !== 'value' ) {
-			warn( 'This is... odd' );
+			throw new Error( 'Attempted to set up an illegal two-way binding. This error is unexpected - if you can, please file an issue at https://github.com/RactiveJS/Ractive, or contact @RactiveJS on Twitter. Thanks!' );
 		}
 
 		if ( node.type === 'file' ) {
