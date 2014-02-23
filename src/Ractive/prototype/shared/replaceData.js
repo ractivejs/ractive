@@ -72,7 +72,7 @@ define([
 
 		key = keys[0];
 
-		if ( wrapped = ractive._wrapped[ currentKeypath ] ) {
+		if ( ( wrapped = ractive._wrapped[ currentKeypath ] ) && wrapped.set ) {
 			wrapped.set( key, value );
 		} else {
 			obj[ key ] = value;
