@@ -71,7 +71,12 @@ define([
 		}
 
 		key = keys[0];
-		obj[ key ] = value;
+
+		if ( wrapped = ractive._wrapped[ currentKeypath ] ) {
+			wrapped.set( key, value );
+		} else {
+			obj[ key ] = value;
+		}
 
 		clearCache( ractive, keypathToClear || keypath );
 	};
