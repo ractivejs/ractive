@@ -96,7 +96,7 @@ define([
 	};
 
 	update = function () {
-		var value = get( this._ractive.root, this._ractive.binding.keypath );
+		var value = get( this._ractive.root, this._ractive.binding.keypath, true );
 		this.value = value == undefined ? '' : value;
 	};
 

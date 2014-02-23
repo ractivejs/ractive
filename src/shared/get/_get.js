@@ -16,7 +16,7 @@ define([
 
 	'use strict';
 
-	function get ( ractive, keypath ) {
+	function get ( ractive, keypath, evaluateWrapped ) {
 		var cache = ractive._cache,
 			value,
 			wrapped,
@@ -59,6 +59,10 @@ define([
 			} else {
 				value = undefined;
 			}
+		}
+
+		if ( evaluateWrapped && ( wrapped = ractive._wrapped[ keypath ] ) ) {
+			value = wrapped.get();
 		}
 
 		return value;
