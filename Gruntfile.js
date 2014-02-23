@@ -111,28 +111,28 @@ module.exports = function(grunt) {
 		jshint: {
 			files: [ 'src/**/*.js' ],
 			options: {
-				proto: true,
-				smarttabs: true,
 				boss: true,
+				eqnull: true,
 				evil: true,
 				laxbreak: true,
+				proto: true,
+				smarttabs: true,
+				strict: true,
 				undef: true,
 				unused: true,
 				'-W018': true,
 				'-W041': false,
-				eqnull: true,
-				strict: true,
 				globals: {
-					define: true,
-					require: true,
-					Element: true,
-					window: true,
-					setTimeout: true,
-					setInterval: true,
 					clearInterval: true,
-					module: true,
+					define: true,
 					document: true,
-					loadCircularDependency: true
+					Element: true,
+					loadCircularDependency: true,
+					module: true,
+					require: true,
+					setInterval: true,
+					setTimeout: true,
+					window: true
 				}
 			}
 		},
