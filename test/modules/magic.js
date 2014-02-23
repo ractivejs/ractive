@@ -145,6 +145,26 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'baz' );
 		});
 
+		test( 'Setting properties in magic mode triggers change events', function ( t ) {
+			var ractive, foo;
+
+			foo = { bar: 'baz' };
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{foo.bar}}',
+				data: { foo: foo }
+			});
+
+			expect( 1 );
+
+			ractive.on( 'change', function ( changeHash ) {
+				t.deepEqual( changeHash, { 'foo.bar': 'qux' });
+			});
+
+			foo.bar = 'qux';
+		});
+
 	};
 
 });

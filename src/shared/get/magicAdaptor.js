@@ -1,9 +1,11 @@
 define([
+	'global/runloop',
 	'utils/createBranch',
 	'utils/isArray',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
+	runloop,
 	createBranch,
 	isArray,
 	clearCache,
@@ -122,8 +124,13 @@ define([
 				wrapper = wrappers[i];
 
 				wrapper.resetting = true;
+
+				runloop.start( wrapper.ractive );
+				wrapper.ractive._changes.push( wrapper.keypath );
 				clearCache( wrapper.ractive, wrapper.keypath );
 				notifyDependants( wrapper.ractive, wrapper.keypath );
+				runloop.end();
+
 				wrapper.resetting = false;
 			}
 		};
