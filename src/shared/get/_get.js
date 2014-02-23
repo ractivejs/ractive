@@ -1,12 +1,14 @@
 define([
 	'circular',
 	'registries/adaptors',
+	'utils/hasOwnProperty',
 	'shared/adaptIfNecessary',
 	'shared/get/getFromParent',
 	'shared/get/FAILED_LOOKUP'
 ], function (
 	circular,
 	adaptorRegistry,
+	hasOwnProperty,
 	adaptIfNecessary,
 	getFromParent,
 	FAILED_LOOKUP
@@ -105,7 +107,7 @@ define([
 		// the prototype of this instance's `data`. Otherwise the
 		// instance could end up manipulating data that doesn't
 		// belong to it
-		shouldClone = !parentValue.hasOwnProperty( key );
+		shouldClone = !hasOwnProperty.call( parentValue, key );
 
 		// Do we have an adaptor for this value?
 		value = adaptIfNecessary( ractive, keypath, value, false, shouldClone );

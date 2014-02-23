@@ -1,8 +1,10 @@
 define([
+	'utils/hasOwnProperty',
 	'utils/clone',
 	'utils/createBranch',
 	'shared/clearCache'
 ], function (
+	hasOwnProperty,
 	clone,
 	createBranch,
 	clearCache
@@ -48,7 +50,7 @@ define([
 				// If the keypath we're updating currently points to data that belongs
 				// to this.constructor.data, rather than this.data, we need to clone
 				// it so that we don't end up modifying data that doesn't belong to us
-				if ( !obj.hasOwnProperty( key ) && key in obj ) {
+				if ( !hasOwnProperty.call( obj, key ) && key in obj ) {
 					if ( !keypathToClear ) {
 						keypathToClear = currentKeypath;
 					}

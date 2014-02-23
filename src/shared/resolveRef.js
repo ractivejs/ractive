@@ -1,10 +1,12 @@
 define([
 	'circular',
 	'utils/normaliseKeypath',
+	'utils/hasOwnProperty',
 	'shared/getInnerContext'
 ], function (
 	circular,
 	normaliseKeypath,
+	hasOwnProperty,
 	getInnerContext
 ) {
 
@@ -87,7 +89,7 @@ define([
 
 		// We need both of these - the first enables components to treat data contexts
 		// like lexical scopes in JavaScript functions...
-		if ( ractive.data.hasOwnProperty( ref ) ) {
+		if ( hasOwnProperty.call( ractive.data, ref ) ) {
 			return ref;
 		}
 
