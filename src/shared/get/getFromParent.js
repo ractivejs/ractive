@@ -1,14 +1,22 @@
 define([
+	'circular',
 	'global/failedLookups',
 	'shared/createComponentBinding',
 	'Ractive/prototype/shared/replaceData'
 ], function (
+	circular,
 	failedLookups,
 	createComponentBinding,
 	replaceData
 ) {
 
 	'use strict';
+
+	var get;
+
+	circular.push( function () {
+		get = circular.get;
+	});
 
 	return function getFromParent ( child, keypath ) {
 		var parent, fragment, keypathToTest, value;
@@ -26,7 +34,7 @@ define([
 			}
 
 			keypathToTest = fragment.context + '.' + keypath;
-			value = parent.get( keypathToTest );
+			value = get( parent, keypathToTest );
 
 			if ( value !== undefined ) {
 				createLateComponentBinding( parent, child, keypathToTest, keypath, value );
@@ -34,7 +42,7 @@ define([
 			}
 		} while ( fragment = fragment.parent );
 
-		value = parent.get( keypath );
+		value = get( parent, keypath );
 		if ( value !== undefined ) {
 			createLateComponentBinding( parent, child, keypath, keypath, value );
 			return value;
@@ -46,8 +54,6 @@ define([
 
 	function createLateComponentBinding ( parent, child, parentKeypath, childKeypath, value ) {
 		replaceData( child, childKeypath, value );
-		child._cache[ childKeypath ] = value;
-
 		createComponentBinding( child.component, parent, parentKeypath, childKeypath );
 	}
 
