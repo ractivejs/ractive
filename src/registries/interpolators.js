@@ -1,10 +1,12 @@
 define([
 	'circular',
+	'utils/hasOwnProperty',
 	'utils/isArray',
 	'utils/isObject',
 	'utils/isNumeric'
 ], function (
 	circular,
+	hasOwnProperty,
 	isArray,
 	isObject,
 	isNumeric
@@ -89,8 +91,8 @@ define([
 			interpolators = {};
 
 			for ( prop in from ) {
-				if ( from.hasOwnProperty( prop ) ) {
-					if ( to.hasOwnProperty( prop ) ) {
+				if ( hasOwnProperty.call( from, prop ) ) {
+					if ( hasOwnProperty.call( to, prop ) ) {
 						properties.push( prop );
 						interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] );
 					}
@@ -102,7 +104,7 @@ define([
 			}
 
 			for ( prop in to ) {
-				if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
+				if ( hasOwnProperty.call( to, prop ) && !hasOwnProperty.call( from, prop ) ) {
 					intermediate[ prop ] = to[ prop ];
 				}
 			}

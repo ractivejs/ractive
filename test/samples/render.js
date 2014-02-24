@@ -460,6 +460,35 @@ var renderTests = [
 		result: ' / ',
 		new_data: { foo: 'one', bar: 'two', identity: function ( val ) { return val; } },
 		new_result: 'one / two'
+	},
+
+	// Elements with two-way bindings should render correctly with .toHTML() - #446
+	{
+		nodeOnly: true,
+		name: 'Two-way select bindings',
+		template: '<select value="{{foo}}"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		data: {},
+		result: '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		new_data: { foo: 'c' },
+		new_result: '<select><option value="a">a</option><option value="b">b</option><option value="c" selected>c</option></select>'
+	},
+	{
+		nodeOnly: true,
+		name: 'Two-way multiple select bindings',
+		template: '<select multiple value="{{foo}}"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		data: {},
+		result: '<select multiple><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		new_data: { foo: [ 'b', 'c' ] },
+		new_result: '<select multiple><option value="a">a</option><option value="b" selected>b</option><option value="c" selected>c</option></select>'
+	},
+	{
+		nodeOnly: true,
+		name: 'Two-way radio buttons',
+		template: '<input type="radio" name="{{foo}}" value="one"><input type="radio" name="{{foo}}" value="two">',
+		data: { foo: 'one' },
+		result: '<input type="radio" name="{{foo}}" value="one" checked><input type="radio" name="{{foo}}" value="two">',
+		new_data: { foo: 'two' },
+		new_result: '<input type="radio" name="{{foo}}" value="one"><input type="radio" name="{{foo}}" value="two" checked>'
 	}
 ];
 

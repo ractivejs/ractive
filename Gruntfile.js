@@ -1,211 +1,30 @@
 /*global module:false*/
-module.exports = function(grunt) {
+module.exports = function ( grunt ) {
 
-	// Project configuration.
-	grunt.initConfig({
+	var config, dependency;
 
-		pkg: grunt.file.readJSON( 'package.json' ),
+	config = {
+		pkg: grunt.file.readJSON( 'package.json' )
+	};
 
-		watch: {
-			js: {
-				files: [ 'src/**/*.js', 'wrapper/**/*.js' ],
-				tasks: [ 'clean:tmp', 'requirejs' ],
-				options: {
-					interrupt: true,
-					force: true
-				}
-			}
-		},
+	// Read config files from the `grunt/config/` folder
+	grunt.file.expand( 'grunt/config/*.js' ).forEach( function ( path ) {
+		var property = /grunt\/config\/(.+)\.js/.exec( path )[1],
+			module = require( './' + path );
+		config[ property ] = typeof module === 'function' ? module( grunt ) : module;
+	});
 
-		nodeunit: {
-			basic:  [ 'test/node/basic.js' ],
-			parse:  [ 'test/node/parse.js' ],
-			toHTML: [ 'test/node/toHTML.js' ]
-		},
+	// Initialise grunt
+	grunt.initConfig( config );
 
-		qunit: {
-			all:        [ 'test/tests/index.html'      ],
-			parse:      [ 'test/tests/parse.html'      ],
-			render:     [ 'test/tests/render.html'     ],
-			mustache:   [ 'test/tests/mustache.html'   ],
-			events:     [ 'test/tests/events.html'     ],
-			misc:       [ 'test/tests/misc.html'       ],
-			components: [ 'test/tests/components.html' ],
-			merge:      [ 'test/tests/merge.html'      ],
-			observe:    [ 'test/tests/observe.html'    ],
-			find:       [ 'test/tests/find.html'       ],
-			arrays:     [ 'test/tests/arrays.html'     ],
-			options: {
-				timeout: 30000
-			}
-		},
-
-		requirejs: {
-			full: {
-				options: {
-					out: 'tmp/Ractive.js',
-					paths: {
-						'legacy': 'empty/legacy'
-					}
-				}
-			},
-			legacy: {
-				options: {
-					out: 'tmp/Ractive-legacy.js'
-				}
-			},
-			runtime: {
-				options: {
-					out: 'tmp/Ractive.runtime.js',
-					paths: {
-						'parse/_parse': 'empty/parse',
-						'legacy': 'empty/legacy'
-					}
-				}
-			},
-			runtime_legacy: {
-				options: {
-					out: 'tmp/Ractive-legacy.runtime.js',
-					paths: {
-						'parse/_parse': 'empty/parse'
-					}
-				}
-			},
-			options: {
-				baseUrl: 'src/',
-				name: 'Ractive',
-				optimize: 'none',
-				logLevel: 2,
-				onBuildWrite: function( name, path, contents ) {
-					return require( 'amdclean' ).clean( contents ) + '\n';
-				},
-				wrap: {
-					endFile: 'wrapper/export.js'
-				}
-			}
-		},
-
-		concat: {
-			options: {
-				banner: grunt.file.read( 'wrapper/banner.js' ),
-				footer: grunt.file.read( 'wrapper/footer.js' ),
-				process: {
-					data: { version: '<%= pkg.version %>' }
-				}
-			},
-			all: {
-				files: [{
-					expand: true,
-					cwd: 'tmp/',
-					src: '*.js',
-					dest: 'build/'
-				}]
-			}
-		},
-
-		clean: {
-			tmp: [ 'tmp/' ],
-			build: [ 'build/' ]
-		},
-
-		jshint: {
-			files: [ 'src/**/*.js' ],
-			options: {
-				proto: true,
-				smarttabs: true,
-				boss: true,
-				evil: true,
-				laxbreak: true,
-				undef: true,
-				unused: true,
-				'-W018': true,
-				'-W041': false,
-				eqnull: true,
-				strict: true,
-				globals: {
-					define: true,
-					require: true,
-					Element: true,
-					window: true,
-					setTimeout: true,
-					setInterval: true,
-					clearInterval: true,
-					module: true,
-					document: true,
-					loadCircularDependency: true
-				}
-			}
-		},
-
-		jsbeautifier: {
-			files: 'build/**',
-			options: {
-				js: {
-					indentWithTabs: true,
-					spaceBeforeConditional: true,
-					spaceInParen: true
-				}
-			}
-		},
-
-		uglify: {
-			'build/Ractive.min.js': 'build/Ractive.js',
-			'build/Ractive-legacy.min.js': 'build/Ractive-legacy.js',
-			'build/Ractive.runtime.min.js': 'build/Ractive.runtime.js',
-			'build/Ractive-legacy.runtime.min.js': 'build/Ractive-legacy.runtime.js'
-		},
-
-		copy: {
-			release: {
-				files: [{
-					expand: true,
-					cwd: 'build/',
-					src: [ '**/*' ],
-					dest: 'release/<%= pkg.version %>/'
-				}]
-			}
+	// Load development dependencies specified in package.json
+	for ( dependency in config.pkg.devDependencies ) {
+		if ( /^grunt-/.test( dependency) ) {
+			grunt.loadNpmTasks( dependency );
 		}
-	});
+	}
 
-	grunt.loadNpmTasks( 'grunt-contrib-jshint' );
-	grunt.loadNpmTasks( 'grunt-contrib-clean' );
-	grunt.loadNpmTasks( 'grunt-contrib-nodeunit' );
-	grunt.loadNpmTasks( 'grunt-contrib-qunit' );
-	grunt.loadNpmTasks( 'grunt-contrib-concat' );
-	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
-	grunt.loadNpmTasks( 'grunt-contrib-copy' );
-	grunt.loadNpmTasks( 'grunt-contrib-watch' );
-	grunt.loadNpmTasks( 'grunt-contrib-requirejs' );
-	grunt.loadNpmTasks('grunt-jsbeautifier');
-
-	grunt.registerTask( 'promises-aplus-tests', 'Run the Promises/A+ test suite.', function () {
-		var promisesAplusTests, adaptor, done;
-
-		promisesAplusTests = require( 'promises-aplus-tests' );
-		adaptor = require( './test/promises-aplus-adaptor' );
-
-		done = this.async();
-
-		promisesAplusTests( adaptor, { reporter: 'dot' }, done );
-	});
-
-	grunt.registerTask( 'default', [
-		'test',
-		'clean:build',
-		'concat',
-		'jsbeautifier',
-		'uglify'
-	]);
-
-	grunt.registerTask( 'test', [
-		'clean:tmp',
-		'jshint',
-		'requirejs',
-		'nodeunit',
-		'qunit:all',
-		//'promises-aplus-tests'
-	]);
-
-	grunt.registerTask( 'release', [ 'default', 'copy:release', 'copy:link' ] );
+	// Load tasks from the `grunt-tasks/` folder
+	grunt.loadTasks( 'grunt/tasks' );
 
 };

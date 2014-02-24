@@ -642,7 +642,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 		test('Component event captured by root Ractive instance', function ( t ) {
 			var Widget, widget, data, ractive;
 
-			expect( 2 )
+			expect( 2 );
 
 			Widget = Ractive.extend({
 				template: '<p/>',
@@ -657,12 +657,11 @@ define([ 'Ractive' ], function ( Ractive ) {
 				components: {
 					widget: Widget
 				},
-				init: function(){
-					this.on('listen', function(){
-						t.ok()
-					})
-				},
 				data: {}
+			});
+
+			ractive.on( 'listen', function () {
+				t.ok( true );
 			});
 
 			t.htmlEqual( fixture.innerHTML, '<p></p>' );

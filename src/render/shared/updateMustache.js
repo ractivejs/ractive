@@ -1,19 +1,15 @@
-define([ 'utils/isEqual' ], function ( isEqual ) {
+define([
+	'utils/isEqual',
+	'shared/get/_get'
+], function (
+	isEqual,
+	get
+) {
 
 	'use strict';
 
 	return function updateMustache () {
-		var wrapped, value;
-
-		value = this.root.get( this.keypath );
-
-		// if we're getting a wrapped value, e.g. a promise, we want to
-		// get the adapted value, not the original. We need to do
-		// ractive.get() first, in case the object gets wrapped
-		// as a result of that operation
-		if ( wrapped = this.root._wrapped[ this.keypath ] ) {
-			value = wrapped.get();
-		}
+		var value = get( this.root, this.keypath, true );
 
 		if ( !isEqual( value, this.value ) ) {
 			this.render( value );

@@ -23,6 +23,7 @@ define([
 
 		if ( wrapped && wrapped.reset && ( wrapped.get() !== value ) ) {
 			wrapped.reset( value );
+			value = wrapped.get();
 		}
 
 		// Update evaluator value. This may be from the evaluator itself, or

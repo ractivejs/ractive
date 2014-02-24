@@ -72,7 +72,7 @@
     "grunt-contrib-copy": "~0.5.0",
     "grunt-contrib-watch": "~0.5.3",
     "grunt-contrib-requirejs": "~0.4.1",
-    "amdclean": "1.1.0",
+    "amdclean": "~1.2.1",
     "cheerio": "~0.13.0",
     "promises-aplus-tests": "*",
     "grunt-jsbeautifier": "~0.2.6"

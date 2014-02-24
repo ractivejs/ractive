@@ -19,6 +19,7 @@ define([
 		// inherited properties
 		fragment.root = options.root;
 		fragment.pNode = options.pNode;
+		fragment.pElement = options.pElement;
 		fragment.context = options.context;
 
 		// If parent item is a section, this may not be the only fragment
@@ -59,8 +60,9 @@ define([
 		for ( i=0; i<numItems; i+=1 ) {
 			fragment.items[ fragment.items.length ] = fragment.createItem({
 				parentFragment: fragment,
-				descriptor: options.descriptor[i],
-				index: i
+				pElement:       options.pElement,
+				descriptor:     options.descriptor[i],
+				index:          i
 			});
 		}
 

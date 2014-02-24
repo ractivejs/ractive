@@ -41,17 +41,27 @@
 		}
 
 		if ( node.nodeType === 1 ) {
-			stub = { tag: node.tagName, children: [], attributes: {} };
+			stub = { _tag: node.tagName };
 
-			i = node.childNodes.length;
-			while ( i-- ) {
-				stub.children[i] = stubNode( node.childNodes[i] );
+			if ( ( node.childNodes.length === 1 ) && ( node.childNodes[0].nodeType === 3 ) ) {
+				stub.text = node.childNodes[0].data;
+			} else {
+				stub.children = [];
+
+				i = node.childNodes.length;
+				while ( i-- ) {
+					stub.children[i] = stubNode( node.childNodes[i] );
+				}
+			}
+
+			if ( i = node.attributes.length ) {
+				stub.attributes = {};
 			}
 
 			i = node.attributes.length;
 			while ( i-- ) {
 				attr = node.attributes[i];
-				stub.attributes[ attr.name ] = attr.value;
+				stub.attributes[ attr.name ] = attr.value || true;
 			}
 
 			return stub;

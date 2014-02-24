@@ -141,8 +141,6 @@ define([
 			}
 		}
 
-		runloop.end();
-
 		// Finally, notify direct dependants of upstream keypaths...
 		upstreamQueue = [];
 
@@ -163,7 +161,7 @@ define([
 			notifyDependants( this, keypath + '.length', true );
 		}
 
-
+		runloop.end();
 
 		// transition manager has finished its work
 		transitionManager.init();

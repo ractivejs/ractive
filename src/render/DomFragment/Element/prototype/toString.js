@@ -1,15 +1,33 @@
-define([ 'config/voidElementNames' ], function ( voidElementNames ) {
+define([
+	'config/voidElementNames',
+	'utils/isArray'
+], function (
+	voidElementNames,
+	isArray
+) {
 
 	'use strict';
 
 	return function () {
-		var str, i, len;
+		var str, i, len, attrStr;
 
 		str = '<' + ( this.descriptor.y ? '!doctype' : this.descriptor.e );
 
 		len = this.attributes.length;
 		for ( i=0; i<len; i+=1 ) {
-			str += ' ' + this.attributes[i].toString();
+			if ( attrStr = this.attributes[i].toString() ) {
+				str += ' ' + attrStr;
+			}
+		}
+
+		// Special case - selected options
+		if ( this.lcName === 'option' && optionIsSelected( this ) ) {
+			str += ' selected';
+		}
+
+		// Special case - two-way radio name bindings
+		if ( this.lcName === 'input' && inputIsCheckedRadio( this ) ) {
+			str += ' checked';
 		}
 
 		str += '>';
@@ -25,7 +43,55 @@ define([ 'config/voidElementNames' ], function ( voidElementNames ) {
 			str += '</' + this.descriptor.e + '>';
 		}
 
+		this.stringifying = false;
 		return str;
 	};
+
+
+	function optionIsSelected ( element ) {
+		var optionValue, selectValueAttribute, selectValueInterpolator, selectValue, i;
+
+		optionValue = element.attributes.value.value;
+
+		selectValueAttribute = element.select.attributes.value;
+		selectValueInterpolator = selectValueAttribute.interpolator;
+
+		if ( !selectValueInterpolator ) {
+			return;
+		}
+
+		selectValue = element.root.get( selectValueInterpolator.keypath || selectValueInterpolator.ref );
+
+		if ( selectValue == optionValue ) {
+			return true;
+		}
+
+		if ( element.select.attributes.multiple && isArray( selectValue ) ) {
+			i = selectValue.length;
+			while ( i-- ) {
+				if ( selectValue[i] == optionValue ) {
+					return true;
+				}
+			}
+		}
+	}
+
+	function inputIsCheckedRadio ( element ) {
+		var attributes, typeAttribute, valueAttribute, nameAttribute;
+
+		attributes = element.attributes;
+
+		typeAttribute  = attributes.type;
+		valueAttribute = attributes.value;
+		nameAttribute  = attributes.name;
+
+		if ( !typeAttribute || ( typeAttribute.value !== 'radio' ) || !valueAttribute || !nameAttribute.interpolator ) {
+			return;
+		}
+
+		if ( valueAttribute.value === nameAttribute.interpolator.value ) {
+			return true;
+		}
+	}
 
 });

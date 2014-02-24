@@ -9,7 +9,7 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 	return function () {
 
-		var fixture = document.getElementById( 'qunit-fixture' ), runTest, theTest, hasSvg;
+		var fixture = document.getElementById( 'qunit-fixture' ), runTest, theTest, hasSvg, i;
 
 		module ( 'Render' );
 
@@ -35,6 +35,10 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		runTest = function ( i ) {
 			var theTest = tests[i];
+
+			if ( theTest.nodeOnly ) {
+				return;
+			}
 
 			test( theTest.name, function ( t ) {
 				var view;

@@ -8,7 +8,7 @@
 
 	--------------------------------------------------------------
 
-	Copyright <%= grunt.template.today( 'yyyy' ) %> 2013 Rich Harris and contributors
+	Copyright <%= grunt.template.today( 'yyyy' ) %> Rich Harris and contributors
 
 	Permission is hereby granted, free of charge, to any person
 	obtaining a copy of this software and associated documentation

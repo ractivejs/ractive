@@ -59,6 +59,8 @@ define([
 		pNode = parentFragment.pNode;
 		descriptor = element.descriptor = options.descriptor;
 
+		element.parent = options.pElement;
+
 		element.root = root = parentFragment.root;
 		element.index = options.index;
 		element.lcName = descriptor.e.toLowerCase();
@@ -192,7 +194,21 @@ define([
 			}
 		}
 
+		// If this is an option element, we need to store a reference to its select
+		if ( element.lcName === 'option' ) {
+			element.select = findParentSelect( element.parent );
+		}
+
 		updateLiveQueries( element );
 	};
+
+
+	function findParentSelect ( element ) {
+		do {
+			if ( element.lcName === 'select' ) {
+				return element;
+			}
+		} while ( element = element.parent );
+	}
 
 });

@@ -1,12 +1,14 @@
 define([
 	'circular',
 	'registries/adaptors',
+	'utils/hasOwnProperty',
 	'shared/adaptIfNecessary',
 	'shared/get/getFromParent',
 	'shared/get/FAILED_LOOKUP'
 ], function (
 	circular,
 	adaptorRegistry,
+	hasOwnProperty,
 	adaptIfNecessary,
 	getFromParent,
 	FAILED_LOOKUP
@@ -14,7 +16,7 @@ define([
 
 	'use strict';
 
-	function get ( ractive, keypath ) {
+	function get ( ractive, keypath, evaluateWrapped ) {
 		var cache = ractive._cache,
 			value,
 			wrapped,
@@ -57,6 +59,10 @@ define([
 			} else {
 				value = undefined;
 			}
+		}
+
+		if ( evaluateWrapped && ( wrapped = ractive._wrapped[ keypath ] ) ) {
+			value = wrapped.get();
 		}
 
 		return value;
@@ -105,7 +111,7 @@ define([
 		// the prototype of this instance's `data`. Otherwise the
 		// instance could end up manipulating data that doesn't
 		// belong to it
-		shouldClone = !parentValue.hasOwnProperty( key );
+		shouldClone = !hasOwnProperty.call( parentValue, key );
 
 		// Do we have an adaptor for this value?
 		value = adaptIfNecessary( ractive, keypath, value, false, shouldClone );
