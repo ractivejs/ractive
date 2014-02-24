@@ -46,8 +46,6 @@ define([
 
 	function createLateComponentBinding ( parent, child, parentKeypath, childKeypath, value ) {
 		replaceData( child, childKeypath, value );
-		child._cache[ childKeypath ] = value;
-
 		createComponentBinding( child.component, parent, parentKeypath, childKeypath );
 	}
 

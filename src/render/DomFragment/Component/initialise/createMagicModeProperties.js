@@ -57,7 +57,8 @@ define([
 				delete instance.data[ key ];
 				set( instance, key, value );
 			},
-			configurable: true
+			configurable: true,
+			enumerable: true
 		});
 	}
 
