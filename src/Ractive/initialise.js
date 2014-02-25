@@ -56,6 +56,14 @@ define([
 
 		var key, template, templateEl, parsedTemplate;
 
+		if(options.window && typeof window == 'undefined') {
+			window = options.window;
+		}
+
+		if(options.document && typeof document == 'undefined') {
+			document = options.document;
+		}			
+
 		// Options
 		// -------
 		for ( key in defaultOptions ) {
