@@ -1,5 +1,15 @@
-module.exports = {
-	basic:  [ 'test/node/basic.js' ],
-	parse:  [ 'test/node/parse.js' ],
-	toHTML: [ 'test/node/toHTML.js' ]
+module.exports = function ( grunt ) {
+
+	'use strict';
+
+	var nodeunitConfig = {};
+
+	grunt.file.expand( 'test/node/*.js' ).forEach( function ( path ) {
+		var testName = /test\/node\/(.+)\.js/.exec( path )[1];
+
+		nodeunitConfig[ testName ] = path;
+	});
+
+	return nodeunitConfig;
+
 };

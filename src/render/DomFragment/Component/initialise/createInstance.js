@@ -23,17 +23,19 @@ define( function () {
 			adapt: root.adapt
 		});
 
-		// The component may be in the wrong place! This is because we
-		// are still populating the document fragment that will be appended
-		// to its parent node. So even though the component is *already*
-		// a child of the parent node, we need to detach it, then insert
-		// it into said document fragment, so that order is maintained
-		// (both figuratively and literally).
-		instance.insert( docFrag );
+		if ( docFrag ) {
+			// The component may be in the wrong place! This is because we
+			// are still populating the document fragment that will be appended
+			// to its parent node. So even though the component is *already*
+			// a child of the parent node, we need to detach it, then insert
+			// it into said document fragment, so that order is maintained
+			// (both figuratively and literally).
+			instance.insert( docFrag );
 
-		// (After inserting, we need to reset the node reference)
-		instance.fragment.pNode = instance.el = parentFragment.pNode;
-		instance.fragment.parent = parentFragment;
+			// (After inserting, we need to reset the node reference)
+			instance.fragment.pNode = instance.el = parentFragment.pNode;
+			instance.fragment.parent = parentFragment;
+		}
 
 		return instance;
 	};
