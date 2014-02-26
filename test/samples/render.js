@@ -461,6 +461,21 @@ var renderTests = [
 		new_data: { foo: 'one', bar: 'two', identity: function ( val ) { return val; } },
 		new_result: 'one / two'
 	},
+	{
+		name: 'Properties of functions render correctly (#451)',
+		template: '{{foo.prop}}-{{#foo}}{{prop}}{{/foo}}',
+		data: (function () {
+			var foo = function () {}, columns = [{ bar: foo }];
+			foo.prop = 'works';
+			return {
+				columns: columns,
+				foo: foo
+			};
+		}()),
+		result: 'works-works',
+		new_data: { 'foo.prop': 'still works' },
+		new_result: 'still works-still works'
+	},
 
 	// Elements with two-way bindings should render correctly with .toHTML() - #446
 	{

@@ -34,7 +34,7 @@ define([
 
 
 		// if value is a hash...
-		else if ( isObject( value ) ) {
+		else if ( isObject( value ) || typeof value === 'function' ) {
 			if ( section.descriptor.i ) {
 				updateListObjectSection( section, value, fragmentOptions );
 			} else {

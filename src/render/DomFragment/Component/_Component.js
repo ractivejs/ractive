@@ -7,7 +7,6 @@ define([
 	'use strict';
 
 	var DomComponent = function ( options, docFrag ) {
-		// TODO support server environments?
 		initialise( this, options, docFrag );
 	};
 

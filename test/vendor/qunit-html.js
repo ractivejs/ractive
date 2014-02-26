@@ -22,7 +22,7 @@
 
 	function normalize ( html ) {
 		testDiv.innerHTML = trim( html );
-		return stubNode( testDiv ).children;
+		return stubNode( testDiv ).children || stubNode( testDiv ).text;
 	}
 
 	function trim ( str ) {
