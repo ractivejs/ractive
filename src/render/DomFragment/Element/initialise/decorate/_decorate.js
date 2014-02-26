@@ -9,9 +9,10 @@ define([
 	'use strict';
 
 	return function ( descriptor, root, owner ) {
-		owner.decorator = new Decorator( descriptor, root, owner );
+		var decorator = new Decorator( descriptor, root, owner );
 
-		if ( owner.decorator.fn ) {
+		if ( decorator.fn ) {
+			owner.decorator = decorator;
 			runloop.addDecorator( owner.decorator );
 		}
 	};
