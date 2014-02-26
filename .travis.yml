@@ -8,3 +8,7 @@ env:
   global:
   - GH_REF: github.com/RactiveJS/cdn.ractivejs.org.git
   - secure: "Im9llzCevi//x5imashpbg53Mjh/Svqz/BGFDoGXehsuIWV65MnVl4yqVnTXHOZK4hcv8XiJMfb1t+S9ySl98BRtrGy6iKIznKTFCdbUorwib0hQqX9YEPVTc6awC1RI7xzfMF8D6bZpD61ibLgm9mmSeI1U33lFAHL/gCQuwTs="
+branches:
+  only:
+    - master
+    - 0.4.0
