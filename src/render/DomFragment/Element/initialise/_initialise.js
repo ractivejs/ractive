@@ -80,6 +80,13 @@ define([
 			// create the DOM node
 			element.node = createElement( name, namespace );
 
+			// Is this a top-level node of a component? If so, we may need to add
+			// a data-rvcguid attribute, for CSS encapsulation
+			if ( root.css && pNode === root.el ) {
+				element.node.setAttribute( 'data-rvcguid', root.constructor._guid || root._guid );
+			}
+
+
 			// Add _ractive property to the node - we use this object to store stuff
 			// related to proxy events, two-way bindings etc
 			defineProperty( element.node, '_ractive', {

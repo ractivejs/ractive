@@ -3,13 +3,15 @@ define([
 	'config/registries',
 	'utils/defineProperty',
 	'extend/wrapMethod',
-	'extend/utils/augment'
+	'extend/utils/augment',
+	'extend/utils/transformCss'
 ], function (
 	initOptions,
 	registries,
 	defineProperty,
 	wrapMethod,
-	augment
+	augment,
+	transformCss
 ) {
 
 	'use strict';
@@ -67,7 +69,7 @@ define([
 		// Special case - CSS
 		if ( childProps.css ) {
 			defineProperty( Child, 'css', {
-				value: childProps.css
+				value: transformCss( childProps.css, Child._guid )
 			});
 		}
 	};
