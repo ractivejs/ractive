@@ -79,7 +79,7 @@ define([
 				parentValue = wrapped.get();
 			}
 
-			if ( typeof parentValue === 'object' && parentValue !== null && lastKey in parentValue ) {
+			if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && lastKey in parentValue ) {
 				return context + '.' + ref;
 			}
 		} while ( fragment = fragment.parent );
