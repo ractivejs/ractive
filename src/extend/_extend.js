@@ -50,6 +50,13 @@ define([
 		Child.prototype = create( Parent.prototype );
 		Child.prototype.constructor = Child;
 
+		defineProperties( Child, {
+			extend: { value: Parent.extend },
+
+			// each component needs a guid, for managing CSS etc
+			_guid: { value: getGuid() }
+		});
+
 		// Inherit options from parent
 		inheritFromParent( Child, Parent );
 
@@ -62,13 +69,6 @@ define([
 			extractInlinePartials( Child, childProps );
 			conditionallyParsePartials( Child );
 		}
-
-		defineProperties( Child, {
-			extend: { value: Parent.extend },
-
-			// each component needs a guid, for managing CSS etc
-			_guid: { value: getGuid() }
-		});
 
 		return Child;
 	};

@@ -1,11 +1,13 @@
 define([
 	'config/registries',
 	'utils/create',
-	'utils/defineProperty'
+	'utils/defineProperty',
+	'extend/utils/transformCss'
 ], function (
 	registries,
 	create,
-	defineProperty
+	defineProperty,
+	transformCss
 ) {
 
 	'use strict';
@@ -27,7 +29,7 @@ define([
 		// Special case - CSS
 		if ( Parent.css ) {
 			defineProperty( Child, 'css', {
-				value: Parent.css
+				value: transformCss( Parent.css, Child._guid )
 			});
 		}
 	};
