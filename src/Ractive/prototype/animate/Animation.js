@@ -43,9 +43,7 @@ define([
 						this.step( 1, this.to );
 					}
 
-					if ( this.complete ) {
-						this.complete( 1, this.to );
-					}
+					this.complete( this.to );
 
 					index = this.root._animations.indexOf( this );
 

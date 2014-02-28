@@ -2,11 +2,13 @@
 // and generally cleaning up after itself
 define([
 	'config/types',
+	'utils/Promise',
 	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'global/css'
 ], function (
 	types,
+	Promise,
 	makeTransitionManager,
 	clearCache,
 	css
@@ -14,8 +16,8 @@ define([
 
 	'use strict';
 
-	return function ( complete ) {
-		var keypath, transitionManager, shouldDestroy, originalComplete, fragment, nearestDetachingElement, failedLookup;
+	return function ( callback ) {
+		var keypath, promise, fulfilPromise, transitionManager, shouldDestroy, originalCallback, fragment, nearestDetachingElement, failedLookup;
 
 		this.fire( 'teardown' );
 
@@ -27,10 +29,10 @@ define([
 			// We need to find the nearest detaching element. When it gets removed
 			// from the DOM, it's safe to remove our CSS
 			if ( shouldDestroy ) {
-				originalComplete = complete;
-				complete = function () {
-					if ( originalComplete ) {
-						originalComplete.call( this );
+				originalCallback = callback;
+				callback = function () {
+					if ( originalCallback ) {
+						originalCallback.call( this );
 					}
 
 					css.remove( this.constructor );
@@ -56,7 +58,8 @@ define([
 			}
 		}
 
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
 
 		this.fragment.teardown( shouldDestroy );
 
@@ -77,6 +80,12 @@ define([
 
 		// transition manager has finished its work
 		transitionManager.init();
+
+		if ( callback ) {
+			promise.then( callback.bind( this ) );
+		}
+
+		return promise;
 	};
 
 });
