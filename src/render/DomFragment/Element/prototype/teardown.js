@@ -12,7 +12,7 @@ define([
 		// Detach as soon as we can
 		if ( destroy ) {
 			this.willDetach = true;
-			this.root._transitionManager.detachQueue.push( this );
+			findTransitionManager( this.root ).detachQueue.push( this );
 		}
 
 		// Children first. that way, any transitions on child elements will be
@@ -71,6 +71,16 @@ define([
 				}
 			}
 		}
+	}
+
+	function findTransitionManager ( instance ) {
+		var transitionManager;
+
+		do {
+			if ( transitionManager = instance._transitionManager ) {
+				return transitionManager;
+			}
+		} while ( instance = instance._parent );
 	}
 
 });
