@@ -3,13 +3,17 @@ define([
 	'global/css',
 	'utils/removeFromArray',
 	'shared/getValueFromCheckboxes',
-	'shared/resolveRef'
+	'shared/resolveRef',
+	'shared/getUpstreamChanges',
+	'shared/notifyDependants'
 ], function (
 	circular,
 	css,
 	removeFromArray,
 	getValueFromCheckboxes,
-	resolveRef
+	resolveRef,
+	getUpstreamChanges,
+	notifyDependants
 ) {
 
 	'use strict';
@@ -46,7 +50,7 @@ define([
 
 	runloop = {
 		start: function ( instance ) {
-			if ( !instances[ instance._guid ] ) {
+			if ( instance && !instances[ instance._guid ] ) {
 				instances.push( instance );
 				instances[ instances._guid ] = true;
 			}
@@ -208,9 +212,19 @@ define([
 	}
 
 	function flushChanges () {
-		var thing;
+		var thing, upstreamChanges, i;
 
 		attemptKeypathResolution();
+
+		i = instances.length;
+		while ( i-- ) {
+			thing = instances[i];
+
+			if ( thing._changes.length ) {
+				upstreamChanges = getUpstreamChanges( thing._changes );
+				notifyDependants.multiple( thing, upstreamChanges, true );
+			}
+		}
 
 		while ( dirty ) {
 			dirty = false;

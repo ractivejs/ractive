@@ -1,9 +1,11 @@
 define([
 	'utils/requestAnimationFrame',
-	'utils/getTime'
+	'utils/getTime',
+	'global/runloop'
 ], function (
 	rAF,
-	getTime
+	getTime,
+	runloop
 ) {
 
 	'use strict';
@@ -16,6 +18,8 @@ define([
 
 			now = getTime();
 
+			runloop.start();
+
 			for ( i=0; i<queue.length; i+=1 ) {
 				animation = queue[i];
 
@@ -24,6 +28,8 @@ define([
 					queue.splice( i--, 1 );
 				}
 			}
+
+			runloop.end();
 
 			if ( queue.length ) {
 				rAF( animations.tick );
@@ -37,7 +43,7 @@ define([
 
 			if ( !animations.running ) {
 				animations.running = true;
-				animations.tick();
+				rAF( animations.tick );
 			}
 		},
 

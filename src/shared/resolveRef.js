@@ -18,7 +18,7 @@ define([
 		get = circular.get;
 	});
 
-	return function ( ractive, ref, fragment ) {
+	return function resolveRef ( ractive, ref, fragment ) {
 		var context, contextKeys, keys, lastKey, postfix, parentKeypath, parentValue, wrapped;
 
 		ref = normaliseKeypath( ref );

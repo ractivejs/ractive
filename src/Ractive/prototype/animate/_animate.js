@@ -1,14 +1,18 @@
 define([
 	'utils/isEqual',
 	'utils/Promise',
+	'utils/normaliseKeypath',
 	'shared/animations',
+	'shared/get/_get',
 	'Ractive/prototype/animate/Animation'
 ],
 
 function (
 	isEqual,
 	Promise,
+	normaliseKeypath,
 	animations,
+	get,
 	Animation
 ) {
 
@@ -144,8 +148,12 @@ function (
 	function animate ( root, keypath, to, options ) {
 		var easing, duration, animation, from;
 
+		if ( keypath ) {
+			keypath = normaliseKeypath( keypath );
+		}
+
 		if ( keypath !== null ) {
-			from = root.get( keypath );
+			from = get( root, keypath );
 		}
 
 		// cancel any existing animation
