@@ -16,7 +16,7 @@ define([
 
 	'use strict';
 
-	function get ( ractive, keypath, evaluateWrapped ) {
+	function get ( ractive, keypath, options ) {
 		var cache = ractive._cache,
 			value,
 			wrapped,
@@ -55,13 +55,13 @@ define([
 		// between parent and child if possible
 		if ( value === FAILED_LOOKUP ) {
 			if ( ractive._parent && !ractive.isolated ) {
-				value = getFromParent( ractive, keypath );
+				value = getFromParent( ractive, keypath, options );
 			} else {
 				value = undefined;
 			}
 		}
 
-		if ( evaluateWrapped && ( wrapped = ractive._wrapped[ keypath ] ) ) {
+		if ( options && options.evaluateWrapped && ( wrapped = ractive._wrapped[ keypath ] ) ) {
 			value = wrapped.get();
 		}
 

@@ -121,7 +121,10 @@ define([
 			_childInitQueue: { value: [] },
 
 			// data changes
-			_changes: { value: [] }
+			_changes: { value: [] },
+
+			// failed lookups, when we try to access data from ancestor scopes
+			_failedLookups: { value: [] }
 		});
 
 		// If this is a component, store a reference to the parent

@@ -8,7 +8,11 @@ define([
 
 	'use strict';
 
+	var options = { isTopLevel: true };
+
 	return function Ractive_prototype_get ( keypath ) {
+		var value;
+
 		keypath = normaliseKeypath( keypath );
 
 		// capture the dependency, if we're inside an evaluator
@@ -17,7 +21,8 @@ define([
 			this._captured[ keypath ] = true;
 		}
 
-		return get( this, keypath );
+		value = get( this, keypath, options );
+		return value;
 	};
 
 });

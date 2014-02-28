@@ -24,6 +24,7 @@ define([
 		bindAttribute,
 
 		updateModel,
+		getOptions,
 		update,
 		getBinding,
 		inheritProperties,
@@ -95,8 +96,10 @@ define([
 		this._ractive.binding.update();
 	};
 
+	getOptions = { evaluateWrapped: true };
+
 	update = function () {
-		var value = get( this._ractive.root, this._ractive.binding.keypath, true );
+		var value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
 		this.value = value == undefined ? '' : value;
 	};
 

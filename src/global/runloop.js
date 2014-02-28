@@ -1,13 +1,11 @@
 define([
 	'circular',
-	'global/failedLookups',
 	'global/css',
 	'utils/removeFromArray',
 	'shared/getValueFromCheckboxes',
 	'shared/resolveRef'
 ], function (
 	circular,
-	failedLookups,
 	css,
 	removeFromArray,
 	getValueFromCheckboxes,
@@ -216,8 +214,6 @@ define([
 
 		while ( dirty ) {
 			dirty = false;
-
-			failedLookups.purge();
 
 			while ( thing = evaluators.pop() ) {
 				thing.update().deferred = false;

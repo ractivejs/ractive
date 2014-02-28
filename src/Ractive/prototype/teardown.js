@@ -15,7 +15,7 @@ define([
 	'use strict';
 
 	return function ( complete ) {
-		var keypath, transitionManager, shouldDestroy, originalComplete, fragment, nearestDetachingElement;
+		var keypath, transitionManager, shouldDestroy, originalComplete, fragment, nearestDetachingElement, failedLookup;
 
 		this.fire( 'teardown' );
 
@@ -68,6 +68,11 @@ define([
 		// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 		for ( keypath in this._cache ) {
 			clearCache( this, keypath );
+		}
+
+		// Teardown any failed lookups - we don't need them to resolve any more
+		while ( failedLookup = this._failedLookups.pop() ) {
+			failedLookup.teardown();
 		}
 
 		// transition manager has finished its work

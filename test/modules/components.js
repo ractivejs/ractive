@@ -585,6 +585,36 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } )
 		});
 
+		test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{status()}}'
+			});
+
+			// YOUR CODE GOES HERE
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{status()}}-<widget/>',
+				data: {
+					status: function () {
+						return this.get( '_status' );
+					}
+				},
+				components: {
+					widget: Widget
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '-' );
+
+			ractive.set( '_status', 'foo' );
+			t.htmlEqual( fixture.innerHTML, 'foo-foo' );
+
+			ractive.set( '_status', 'bar' );
+			t.htmlEqual( fixture.innerHTML, 'bar-bar' );
+		});
+
 	};
 
 });
