@@ -3,6 +3,7 @@ define([
 	'utils/isObject',
 	'utils/isEqual',
 	'utils/normaliseKeypath',
+	'utils/Promise',
 	'shared/get/_get',
 	'shared/set',
 	'shared/clearCache',
@@ -13,6 +14,7 @@ define([
 	isObject,
 	isEqual,
 	normaliseKeypath,
+	Promise,
 	get,
 	set,
 	clearCache,
@@ -22,10 +24,12 @@ define([
 
 	'use strict';
 
-	return function Ractive_prototype_set ( keypath, value, complete ) {
+	return function Ractive_prototype_set ( keypath, value, callback ) {
 		var map,
 			changes,
 			upstreamChanges,
+			promise,
+			fulfilPromise,
 			transitionManager;
 
 		changes = [];
@@ -33,12 +37,13 @@ define([
 		runloop.start( this );
 
 		// Manage transitions
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
 
 		// Set multiple keypaths in one go
 		if ( isObject( keypath ) ) {
 			map = keypath;
-			complete = value;
+			callback = value;
 
 			for ( keypath in map ) {
 				if ( map.hasOwnProperty( keypath) ) {
@@ -67,10 +72,13 @@ define([
 		}
 
 		runloop.end();
-
 		transitionManager.init();
 
-		return this;
+		if ( callback ) {
+			promise.then( callback.bind( this ) );
+		}
+
+		return promise;
 	};
 
 	function getUpstreamChanges ( changes ) {

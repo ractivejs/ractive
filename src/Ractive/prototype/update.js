@@ -1,10 +1,12 @@
 define([
 	'global/runloop',
+	'utils/Promise',
 	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
 	runloop,
+	Promise,
 	makeTransitionManager,
 	clearCache,
 	notifyDependants
@@ -12,18 +14,19 @@ define([
 
 	'use strict';
 
-	return function ( keypath, complete ) {
-		var transitionManager;
+	return function ( keypath, callback ) {
+		var promise, fulfilPromise, transitionManager;
 
 		runloop.start( this );
 
 		if ( typeof keypath === 'function' ) {
-			complete = keypath;
+			callback = keypath;
 			keypath = '';
 		}
 
 		// manage transitions
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
 
 		// if we're using update, it's possible that we've introduced new values, and
 		// some unresolved references can be dealt with
@@ -41,7 +44,11 @@ define([
 			this.fire( 'update' );
 		}
 
-		return this;
+		if ( callback ) {
+			promise.then( callback.bind( this ) );
+		}
+
+		return promise;
 	};
 
 });
