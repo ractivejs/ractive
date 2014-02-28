@@ -2,13 +2,14 @@ define( function () {
 
 	'use strict';
 
-	return function transformCss( css, guid ) {
-		var selectorsPattern, transformed, addGuid;
+	var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
+		pseudoSelectorPattern = /([^:]*)(::?[^:]+)?/;
 
-		selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
+	return function transformCss( css, guid ) {
+		var transformed, addGuid;
 
 		addGuid = function ( selector ) {
-			var simpleSelectors, dataAttr, prepended, appended, i, transformed = [];
+			var simpleSelectors, dataAttr, prepended, appended, pseudo, i, transformed = [];
 
 			// For each simple selector within the selector, we need to create a version
 			// that a) combines with the guid, and b) is inside the guid
@@ -18,7 +19,10 @@ define( function () {
 			i = simpleSelectors.length;
 			while ( i-- ) {
 				appended = simpleSelectors.slice();
-				appended[i] += dataAttr;
+
+				// Pseudo-selectors should go after the attribute selector
+				pseudo = pseudoSelectorPattern.exec( appended[i] );
+				appended[i] = pseudo[1] + dataAttr + ( pseudo[2] || '' );
 
 				prepended = simpleSelectors.slice();
 				prepended[i] = dataAttr + ' ' + prepended[i];
