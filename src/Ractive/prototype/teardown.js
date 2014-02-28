@@ -17,7 +17,7 @@ define([
 	'use strict';
 
 	return function ( callback ) {
-		var keypath, promise, fulfilPromise, transitionManager, shouldDestroy, originalCallback, fragment, nearestDetachingElement, failedLookup;
+		var keypath, promise, fulfilPromise, transitionManager, shouldDestroy, originalCallback, fragment, nearestDetachingElement, unresolvedImplicitDependency;
 
 		this.fire( 'teardown' );
 
@@ -74,8 +74,8 @@ define([
 		}
 
 		// Teardown any failed lookups - we don't need them to resolve any more
-		while ( failedLookup = this._failedLookups.pop() ) {
-			failedLookup.teardown();
+		while ( unresolvedImplicitDependency = this._unresolvedImplicitDependencies.pop() ) {
+			unresolvedImplicitDependency.teardown();
 		}
 
 		// transition manager has finished its work

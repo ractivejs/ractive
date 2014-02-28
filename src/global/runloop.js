@@ -258,7 +258,7 @@ define([
 		array = unresolved.splice( 0 );
 		while ( thing = array.pop() ) {
 			if ( thing.keypath ) {
-				continue; // it did resolve after all
+				continue; // it did resolve after all. TODO does this ever happen?
 			}
 
 			keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );

@@ -14,10 +14,11 @@ define([
 
 	'use strict';
 
-	var get;
+	var get, set;
 
 	circular.push( function () {
 		get = circular.get;
+		set = circular.set;
 	});
 
 	var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
@@ -52,7 +53,7 @@ define([
 
 			if ( !isEqual( value, this.value ) ) {
 				this.updating = true;
-				this.otherInstance.set( this.otherKeypath, value );
+				set( this.otherInstance, this.otherKeypath, value );
 				this.value = value;
 				this.updating = false;
 			}

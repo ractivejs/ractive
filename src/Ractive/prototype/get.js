@@ -1,9 +1,11 @@
 define([
 	'utils/normaliseKeypath',
-	'shared/get/_get'
+	'shared/get/_get',
+	'shared/get/UnresolvedImplicitDependency'
 ], function (
 	normaliseKeypath,
-	get
+	get,
+	UnresolvedImplicitDependency
 ) {
 
 	'use strict';
@@ -15,13 +17,21 @@ define([
 
 		keypath = normaliseKeypath( keypath );
 
+		value = get( this, keypath, options );
+
 		// capture the dependency, if we're inside an evaluator
 		if ( this._captured && !this._captured[ keypath ] ) {
 			this._captured.push( keypath );
 			this._captured[ keypath ] = true;
+
+			// if we couldn't resolve the keypath, we need to make it as a failed
+			// lookup, so that the evaluator updates correctly once we CAN
+			// resolve the keypath
+			if ( value === undefined && !this._unresolvedImplicitDependencies[ keypath ] ) {
+				new UnresolvedImplicitDependency( this, keypath );
+			}
 		}
 
-		value = get( this, keypath, options );
 		return value;
 	};
 

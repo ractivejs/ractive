@@ -124,7 +124,7 @@ define([
 			_changes: { value: [] },
 
 			// failed lookups, when we try to access data from ancestor scopes
-			_failedLookups: { value: [] }
+			_unresolvedImplicitDependencies: { value: [] }
 		});
 
 		// If this is a component, store a reference to the parent
