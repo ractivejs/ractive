@@ -6,7 +6,7 @@ define([
 	'shared/clearCache',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants',
-	'Ractive/prototype/shared/replaceData',
+	'shared/replaceData',
 	'Ractive/prototype/merge/mapOldToNewIndex',
 	'Ractive/prototype/merge/queueDependants'
 ], function (
@@ -68,7 +68,7 @@ define([
 				identifier = getIdentifier( options.compare );
 			}
 
-			else if ( typeof options.compare == 'function' ) {
+			else if ( typeof options.compare === 'function' ) {
 				identifier = options.compare;
 			}
 

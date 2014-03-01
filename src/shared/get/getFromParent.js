@@ -2,7 +2,7 @@ define([
 	'circular',
 	'global/runloop',
 	'shared/createComponentBinding',
-	'Ractive/prototype/shared/replaceData'
+	'shared/replaceData'
 ], function (
 	circular,
 	runloop,

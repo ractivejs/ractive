@@ -3,7 +3,7 @@ define([
 	'shared/get/_get',
 	'shared/clearCache',
 	'shared/notifyDependants',
-	'Ractive/prototype/shared/replaceData'
+	'shared/replaceData'
 ], function (
 	circular,
 	get,
