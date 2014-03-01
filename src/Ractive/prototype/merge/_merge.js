@@ -2,6 +2,7 @@ define([
 	'global/runloop',
 	'utils/warn',
 	'utils/isArray',
+	'utils/Promise',
 	'shared/clearCache',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants',
@@ -12,6 +13,7 @@ define([
 	runloop,
 	warn,
 	isArray,
+	Promise,
 	clearCache,
 	makeTransitionManager,
 	notifyDependants,
@@ -37,6 +39,8 @@ define([
 			updateQueue,
 			depsByKeypath,
 			deps,
+			promise,
+			fulfilPromise,
 			transitionManager,
 			upstreamQueue,
 			keys;
@@ -106,14 +110,19 @@ define([
 
 		if ( newIndices.unchanged && lengthUnchanged ) {
 			// noop - but we still needed to replace the data
-			return;
+			return Promise.resolve();
 		}
 
 		runloop.start( this );
 
 
 		// Manage transitions
-		this._transitionManager = transitionManager = makeTransitionManager( this, options && options.complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
+
+		if ( options && options.complete ) {
+			promise.then( options.complete );
+		}
 
 		// Go through all dependant priority levels, finding merge targets
 		mergeQueue = [];
@@ -165,6 +174,8 @@ define([
 
 		// transition manager has finished its work
 		transitionManager.init();
+
+		return promise;
 	};
 
 	function stringify ( item ) {
