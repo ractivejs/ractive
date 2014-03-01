@@ -26,12 +26,9 @@ define([
 
 	return function Ractive_prototype_set ( keypath, value, callback ) {
 		var map,
-			changes,
 			promise,
 			fulfilPromise,
 			transitionManager;
-
-		changes = [];
 
 		runloop.start( this );
 
@@ -49,9 +46,7 @@ define([
 					value = map[ keypath ];
 					keypath = normaliseKeypath( keypath );
 
-					if ( set( this, keypath, value ) ) {
-						changes.push( keypath );
-					}
+					set( this, keypath, value );
 				}
 			}
 		}
@@ -59,9 +54,7 @@ define([
 		// Set a single keypath
 		else {
 			keypath = normaliseKeypath( keypath );
-			if ( set( this, keypath, value ) ) {
-				changes.push( keypath );
-			}
+			set( this, keypath, value );
 		}
 
 		runloop.end();
