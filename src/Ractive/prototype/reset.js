@@ -1,8 +1,12 @@
 define([
-	'utils/makeTransitionManager',
+	'utils/Promise',
+	'global/runloop',
+	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
+	Promise,
+	runloop,
 	makeTransitionManager,
 	clearCache,
 	notifyDependants
@@ -10,30 +14,49 @@ define([
 
 	'use strict';
 
-	return function ( data, complete ) {
-		var transitionManager;
+	return function ( data, callback ) {
+		var promise, fulfilPromise, transitionManager, wrapper;
 
 		if ( typeof data === 'function' ) {
-			complete = data;
+			callback = data;
 			data = {};
+		} else {
+			data = data || {};
 		}
 
-		if ( data !== undefined && typeof data !== 'object' ) {
+		if ( typeof data !== 'object' ) {
 			throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
 		}
 
-		// Manage transitions
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		runloop.start( this );
 
-		this.data = data || {};
+		// Manage transitions
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
+
+		if ( callback ) {
+			promise.then( callback );
+		}
+
+		// If the root object is wrapped, try and use the wrapper's reset value
+		if ( ( wrapper = this._wrapped[ '' ] ) && wrapper.reset ) {
+			if ( wrapper.reset( data ) === false ) {
+				// reset was rejected, we need to replace the object
+				this.data = data;
+			}
+		} else {
+			this.data = data;
+		}
 
 		clearCache( this, '' );
 		notifyDependants( this, '' );
 
+		runloop.end();
+		transitionManager.init();
+
 		this.fire( 'reset', data );
 
-		// transition manager has finished its work
-		transitionManager.ready();
+		return promise;
 	};
 
 });

@@ -40,6 +40,8 @@ define([ 'Ractive' ], function ( Ractive ) {
 			reset: function ( newData ) {
 				var attr;
 
+				this.attributes = {};
+
 				for ( attr in newData ) {
 					if ( newData.hasOwnProperty( attr ) ) {
 						this.set( attr, newData[ attr ] );
@@ -139,11 +141,11 @@ define([ 'Ractive' ], function ( Ractive ) {
 						var attr;
 
 						if ( newData instanceof Model ) {
-							return true; // teardown
+							return false; // teardown
 						}
 
 						if ( !newData || typeof newData !== 'object' ) {
-							return true;
+							return false;
 						}
 
 						object.reset( newData );
@@ -189,6 +191,38 @@ define([ 'Ractive' ], function ( Ractive ) {
 				percent: 50
 			});
 			t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>50</p>' );
+		});
+
+		test( 'ractive.reset() calls are forwarded to wrappers if the root data object is wrapped', function ( t ) {
+			var model, ractive;
+
+			model = new Model({
+				foo: 'BAR',
+				unwanted: 'here'
+			});
+
+			model.transform( 'foo', function ( newValue, oldValue ) {
+				return newValue.toLowerCase();
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{foo}}</p>{{unwanted}}',
+				data: model,
+				adapt: [ adaptor ]
+			});
+
+			ractive.reset({ foo: 'BAZ' });
+			t.htmlEqual( fixture.innerHTML, '<p>baz</p>' );
+
+			model = new Model({ foo: 'QUX' });
+
+			model.transform( 'foo', function ( newValue, oldValue ) {
+				return newValue.toLowerCase();
+			});
+
+			ractive.reset( model );
+			t.htmlEqual( fixture.innerHTML, '<p>qux</p>' );
 		});
 
 	};
