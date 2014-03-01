@@ -41,25 +41,32 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 			}
 
 			test( theTest.name, function ( t ) {
-				var view;
+				[ false, true ].forEach( function ( magic ) {
+					var view, data;
 
-				view = new Ractive({
-					el: fixture,
-					data: theTest.data,
-					template: theTest.template,
-					partials: theTest.partials,
-					debug: true
+					data = typeof theTest.data === 'function' ? theTest.data() : deepClone( theTest.data );
+
+					view = new Ractive({
+						el: fixture,
+						data: data,
+						template: theTest.template,
+						partials: theTest.partials,
+						debug: true,
+						magic: magic
+					});
+
+					t.htmlEqual( fixture.innerHTML, theTest.result );
+					t.htmlEqual( view.toHTML(), theTest.result );
+
+					if ( theTest.new_data ) {
+						view.set( theTest.new_data );
+
+						t.htmlEqual( fixture.innerHTML, theTest.new_result );
+						t.htmlEqual( view.toHTML(), theTest.new_result );
+					}
+
+					view.teardown();
 				});
-
-				t.htmlEqual( fixture.innerHTML, theTest.result );
-				t.htmlEqual( view.toHTML(), theTest.result );
-
-				if ( theTest.new_data ) {
-					view.set( theTest.new_data );
-
-					t.htmlEqual( fixture.innerHTML, theTest.new_result );
-					t.htmlEqual( view.toHTML(), theTest.new_result );
-				}
 			});
 		};
 
@@ -72,5 +79,27 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 		}
 
 	};
+
+	function deepClone ( source ) {
+		var target, key;
+
+		if ( !source || typeof source !== 'object' ) {
+			return source;
+		}
+
+		if ( Array.isArray( source ) ) {
+			return source.slice();
+		}
+
+		target = {};
+
+		for ( key in source ) {
+			if ( source.hasOwnProperty( key ) ) {
+				target[ key ] = deepClone( source[ key ] );
+			}
+		}
+
+		return target;
+	}
 
 });
