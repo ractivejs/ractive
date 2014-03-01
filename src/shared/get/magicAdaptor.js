@@ -41,7 +41,7 @@ define([
 				return false;
 			}
 
-			return ( parentValue && typeof parentValue === 'object' );
+			return ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) );
 		},
 		wrap: function ( ractive, property, keypath ) {
 			return new MagicWrapper( ractive, property, keypath );
@@ -150,10 +150,11 @@ define([
 			this.obj[ this.prop ] = value; // trigger set() accessor
 			return false; // don't teardown
 		},
-		set: function ( keypath ) {
+		set: function ( key, value ) {
 			if ( !this.obj[ this.prop ] ) {
 				this.resetting = true;
-				this.obj[ this.prop ] = createBranch( keypath.split( '.' )[0] );
+				this.obj[ this.prop ] = createBranch( key );
+				this.obj[ this.prop ][ key ] = value;
 				this.resetting = false;
 			}
 		},
