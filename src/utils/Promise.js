@@ -77,11 +77,14 @@ define( function () {
 				});
 
 				return promise2;
+			},
+
+			catch: function ( onRejected ) {
+				return this.then( null, onRejected );
 			}
 		};
 	};
 
-	// TODO so far this isn't used internally... should it be offered anyway?
 	Promise.all = function ( promises ) {
 		return new Promise( function ( fulfil, reject ) {
 			var result = [], pending, i, processPromise;
@@ -105,6 +108,18 @@ define( function () {
 			while ( i-- ) {
 				processPromise( i );
 			}
+		});
+	};
+
+	Promise.resolve = function ( value ) {
+		return new Promise( function ( fulfil ) {
+			fulfil( value );
+		});
+	};
+
+	Promise.reject = function ( reason ) {
+		return new Promise( function ( fulfil, reject ) {
+			reject( reason );
 		});
 	};
 
