@@ -55,11 +55,9 @@ define([
 				instances[ instances._guid ] = true;
 			}
 
-			if ( flushing ) {
-				return;
+			if ( !flushing ) {
+				inFlight += 1;
 			}
-
-			inFlight += 1;
 		},
 
 		end: function () {

@@ -123,7 +123,11 @@ define([
 			while ( i-- ) {
 				wrapper = wrappers[i];
 
-				wrapper.resetting = true;
+				if ( wrapper.updating ) {
+					continue;
+				}
+
+				wrapper.updating = true;
 
 				runloop.start( wrapper.ractive );
 				wrapper.ractive._changes.push( wrapper.keypath );
@@ -131,7 +135,7 @@ define([
 				notifyDependants( wrapper.ractive, wrapper.keypath );
 				runloop.end();
 
-				wrapper.resetting = false;
+				wrapper.updating = false;
 			}
 		};
 
@@ -147,14 +151,24 @@ define([
 			return this.value;
 		},
 		reset: function ( value ) {
+			if ( this.updating ) {
+				return;
+			}
+
+			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
-			return false; // don't teardown
+			clearCache( this.ractive, this.keypath );
+			this.updating = false;
 		},
 		set: function ( key, value ) {
+			if ( this.updating ) {
+				return;
+			}
+
 			if ( !this.obj[ this.prop ] ) {
-				this.resetting = true;
+				this.updating = true;
 				this.obj[ this.prop ] = createBranch( key );
-				this.resetting = false;
+				this.updating = false;
 			}
 
 			this.obj[ this.prop ][ key ] = value;
@@ -165,7 +179,7 @@ define([
 			// If this method was called because the cache was being cleared as a
 			// result of a set()/update() call made by this wrapper, we return false
 			// so that it doesn't get torn down
-			if ( this.resetting ) {
+			if ( this.updating ) {
 				return false;
 			}
 

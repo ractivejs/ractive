@@ -15,6 +15,12 @@ define([
 	return function ( ractive, keypath, value ) {
 		var keys, accumulated, wrapped, obj, key, currentKeypath, keypathToClear;
 
+		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
+			if ( wrapped.reset( value ) !== false ) {
+				return;
+			}
+		}
+
 		keys = keypath.split( '.' );
 		accumulated = [];
 

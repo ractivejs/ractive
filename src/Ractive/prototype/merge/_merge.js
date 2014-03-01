@@ -8,7 +8,7 @@ define([
 	'shared/notifyDependants',
 	'shared/replaceData',
 	'Ractive/prototype/merge/mapOldToNewIndex',
-	'Ractive/prototype/merge/queueDependants'
+	'Ractive/prototype/merge/propagateChanges'
 ], function (
 	runloop,
 	warn,
@@ -19,31 +19,24 @@ define([
 	notifyDependants,
 	replaceData,
 	mapOldToNewIndex,
-	queueDependants
+	propagateChanges
 ) {
 
 	'use strict';
 
-	var identifiers = {};
+	var comparators = {};
 
 	return function merge ( keypath, array, options ) {
 
 		var currentArray,
 			oldArray,
 			newArray,
-			identifier,
+			comparator,
 			lengthUnchanged,
-			i,
 			newIndices,
-			mergeQueue,
-			updateQueue,
-			depsByKeypath,
-			deps,
 			promise,
 			fulfilPromise,
-			transitionManager,
-			upstreamQueue,
-			keys;
+			transitionManager;
 
 		currentArray = this.get( keypath );
 
@@ -57,28 +50,11 @@ define([
 
 		if ( options && options.compare ) {
 
-			// If `compare` is `true`, we use JSON.stringify to compare
-			// objects that are the same shape, but non-identical - i.e.
-			// { foo: 'bar' } !== { foo: 'bar' }
-			if ( options.compare === true ) {
-				identifier = stringify;
-			}
-
-			else if ( typeof options.compare === 'string' ) {
-				identifier = getIdentifier( options.compare );
-			}
-
-			else if ( typeof options.compare === 'function' ) {
-				identifier = options.compare;
-			}
-
-			else {
-				throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
-			}
+			comparator = getComparatorFunction( options.compare );
 
 			try {
-				oldArray = currentArray.map( identifier );
-				newArray = array.map( identifier );
+				oldArray = currentArray.map( comparator );
+				newArray = array.map( comparator );
 			} catch ( err ) {
 				// fallback to an identity check - worst case scenario we have
 				// to do more DOM manipulation than we thought...
@@ -104,76 +80,23 @@ define([
 		newIndices = mapOldToNewIndex( oldArray, newArray );
 
 
-		// Update the model
-		// TODO allow existing array to be updated in place, rather than replaced?
-		replaceData( this, keypath, array );
-
-		if ( newIndices.unchanged && lengthUnchanged ) {
-			// noop - but we still needed to replace the data
-			return Promise.resolve();
-		}
-
-		runloop.start( this );
-
-
 		// Manage transitions
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
 
+		runloop.start( this );
+		// Update the model
+		// TODO allow existing array to be updated in place, rather than replaced?
+		replaceData( this, keypath, array );
+		propagateChanges( this, keypath, newIndices, lengthUnchanged );
+		runloop.end();
+
+		transitionManager.init();
+
+		// attach callback as fulfilment handler, if specified
 		if ( options && options.complete ) {
 			promise.then( options.complete );
 		}
-
-		// Go through all dependant priority levels, finding merge targets
-		mergeQueue = [];
-		updateQueue = [];
-
-		for ( i=0; i<this._deps.length; i+=1 ) { // we can't cache this._deps.length as it may change!
-			depsByKeypath = this._deps[i];
-
-			if ( !depsByKeypath ) {
-				continue;
-			}
-
-			deps = depsByKeypath[ keypath ];
-
-			if ( deps ) {
-				queueDependants( keypath, deps, mergeQueue, updateQueue );
-
-				while ( mergeQueue.length ) {
-					mergeQueue.pop().merge( newIndices );
-				}
-
-				while ( updateQueue.length ) {
-					updateQueue.pop().update();
-				}
-			}
-		}
-
-		// Finally, notify direct dependants of upstream keypaths...
-		upstreamQueue = [];
-
-		keys = keypath.split( '.' );
-		while ( keys.length ) {
-			keys.pop();
-			upstreamQueue.push( keys.join( '.' ) );
-		}
-
-		notifyDependants.multiple( this, upstreamQueue, true );
-
-		// length property has changed - notify dependants
-		// TODO in some cases (e.g. todo list example, when marking all as complete, then
-		// adding a new item (which should deactivate the 'all complete' checkbox
-		// but doesn't) this needs to happen before other updates. But doing so causes
-		// other mental problems. not sure what's going on...
-		if ( oldArray.length !== newArray.length ) {
-			notifyDependants( this, keypath + '.length', true );
-		}
-
-		runloop.end();
-
-		// transition manager has finished its work
-		transitionManager.init();
 
 		return promise;
 	};
@@ -182,14 +105,29 @@ define([
 		return JSON.stringify( item );
 	}
 
-	function getIdentifier ( str ) {
-		if ( !identifiers[ str ] ) {
-			identifiers[ str ] = function ( item ) {
-				return item[ str ];
-			};
+	function getComparatorFunction ( comparator ) {
+		// If `compare` is `true`, we use JSON.stringify to compare
+		// objects that are the same shape, but non-identical - i.e.
+		// { foo: 'bar' } !== { foo: 'bar' }
+		if ( comparator === true ) {
+			return stringify;
 		}
 
-		return identifiers[ str ];
+		if ( typeof comparator === 'string' ) {
+			if ( !comparators[ comparator ] ) {
+				comparators[ comparator ] = function ( item ) {
+					return item[ comparator ];
+				};
+			}
+
+			return comparators[ comparator ];
+		}
+
+		if ( typeof comparator === 'function' ) {
+			return comparator;
+		}
+
+		throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
 	}
 
 });
