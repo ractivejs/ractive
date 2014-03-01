@@ -59,7 +59,8 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 					t.htmlEqual( view.toHTML(), theTest.result );
 
 					if ( theTest.new_data ) {
-						view.set( theTest.new_data );
+						data = typeof theTest.new_data === 'function' ? theTest.new_data() : deepClone( theTest.new_data );
+						view.set( data );
 
 						t.htmlEqual( fixture.innerHTML, theTest.new_result );
 						t.htmlEqual( view.toHTML(), theTest.new_result );
