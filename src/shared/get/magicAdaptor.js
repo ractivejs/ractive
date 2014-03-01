@@ -154,9 +154,10 @@ define([
 			if ( !this.obj[ this.prop ] ) {
 				this.resetting = true;
 				this.obj[ this.prop ] = createBranch( key );
-				this.obj[ this.prop ][ key ] = value;
 				this.resetting = false;
 			}
+
+			this.obj[ this.prop ][ key ] = value;
 		},
 		teardown: function () {
 			var descriptor, set, value, wrappers, index;
