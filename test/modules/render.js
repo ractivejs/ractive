@@ -5,8 +5,6 @@
 
 define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 
-	window.Ractive = Ractive;
-
 	return function () {
 
 		var fixture = document.getElementById( 'qunit-fixture' ), runTest, theTest, hasSvg, i;

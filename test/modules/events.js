@@ -5,8 +5,6 @@
 
 define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
-	window.Ractive = Ractive;
-
 	return function () {
 
 		var fixture = document.getElementById( 'qunit-fixture' );

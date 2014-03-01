@@ -13,8 +13,6 @@
 
 define([ 'Ractive' ], function ( Ractive ) {
 
-	window.Ractive = Ractive;
-
 	return function () {
 
 		var fixture, testModules, runTest, runModule, i, isOldIe;
