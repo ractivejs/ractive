@@ -24,7 +24,7 @@ define([
 
 	magicAdaptor = {
 		filter: function ( object, keypath, ractive ) {
-			var keys, key, parentKeypath, parentValue;
+			var keys, key, parentKeypath, parentWrapper, parentValue;
 
 			if ( !keypath ) {
 				return false;
@@ -33,6 +33,13 @@ define([
 			keys = keypath.split( '.' );
 			key = keys.pop();
 			parentKeypath = keys.join( '.' );
+
+			// If the parent value is a wrapper, other than a magic wrapper,
+			// we shouldn't wrap this property
+			if ( ( parentWrapper = ractive._wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
+				return false;
+			}
+
 			parentValue = ractive.get( parentKeypath );
 
 			// if parentValue is an array that doesn't include this member,
@@ -50,6 +57,8 @@ define([
 
 	MagicWrapper = function ( ractive, property, keypath ) {
 		var wrapper = this, keys, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
+
+		this.magic = true;
 
 		this.ractive = ractive;
 		this.keypath = keypath;

@@ -27,6 +27,8 @@ define([
 	MagicArrayWrapper = function ( ractive, array, keypath ) {
 		this.value = array;
 
+		this.magic = true;
+
 		this.magicWrapper = magicAdaptor.wrap( ractive, array, keypath );
 		this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
 	};
