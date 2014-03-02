@@ -7,9 +7,24 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 	return function () {
 
-		var fixture = document.getElementById( 'qunit-fixture' ), runTest, theTest, hasSvg, i;
+		var fixture = document.getElementById( 'qunit-fixture' ), runTest, theTest, magicModes, hasSvg, i;
 
 		module ( 'Render' );
+
+		try {
+			var obj = {}, _foo;
+			Object.defineProperty( obj, 'foo', {
+				get: function () {
+					return _foo;
+				},
+				set: function ( value ) {
+					_foo = value;
+				}
+			});
+			magicModes = [ false, true ];
+		} catch ( err ) {
+			magicModes = [ false ];
+		}
 
 		hasSvg = document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
 
@@ -39,7 +54,7 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 			}
 
 			test( theTest.name, function ( t ) {
-				[ false, true ].forEach( function ( magic ) {
+				magicModes.forEach( function ( magic ) {
 					var view, data;
 
 					data = typeof theTest.data === 'function' ? theTest.data() : deepClone( theTest.data );
@@ -86,7 +101,7 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 			return source;
 		}
 
-		if ( Array.isArray( source ) ) {
+		if ( isArray( source ) ) {
 			return source.slice();
 		}
 
@@ -99,6 +114,10 @@ define([ 'Ractive', 'samples/render' ], function ( Ractive, tests ) {
 		}
 
 		return target;
+	}
+
+	function isArray ( thing ) {
+		return Object.prototype.toString.call( thing ) === '[object Array]';
 	}
 
 });

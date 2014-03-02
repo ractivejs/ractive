@@ -652,7 +652,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 					value_id: 42,
 					values: [
 						{ id: 1, name: "Boo" },
-						{ id: 42, name: "Here 'tis" },
+						{ id: 42, name: "Here 'tis" }
 					]
 				}
 			});
@@ -1251,7 +1251,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 				},
 
 				// defaults
-				magic: true,
+				lazy: true,
 
 				// methods
 				climb: function () {
@@ -1270,7 +1270,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			});
 
 			t.htmlEqual( fixture.innerHTML, '<p>type: arachnid</p>' );
-			t.ok( spiderman.magic );
+			t.ok( spiderman.lazy );
 			t.equal( spiderman.climb(), 'climbing' );
 			t.equal( spiderman.talk(), 'hello my name is Peter Parker' );
 		});

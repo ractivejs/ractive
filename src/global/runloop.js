@@ -253,7 +253,7 @@ define([
 		}
 
 		// see if we can resolve any unresolved references
-		array = unresolved.splice( 0 );
+		array = unresolved.splice( 0, unresolved.length );
 		while ( thing = array.pop() ) {
 			if ( thing.keypath ) {
 				continue; // it did resolve after all. TODO does this ever happen?

@@ -134,6 +134,41 @@ define( function () {
 		};
 	}
 
+	if ( typeof Array.prototype.reduce !== 'function' ) {
+		Array.prototype.reduce = function(callback, opt_initialValue){
+			var i, value, len, valueIsSet;
+
+			if ('function' !== typeof callback) {
+				throw new TypeError(callback + ' is not a function');
+			}
+
+			len = this.length;
+			valueIsSet = false;
+
+			if ( arguments.length > 1 ) {
+				value = opt_initialValue;
+				valueIsSet = true;
+			}
+
+			for ( i = 0; i < len; i += 1) {
+				if ( this.hasOwnProperty( i ) ) {
+					if ( valueIsSet ) {
+						value = callback(value, this[i], i, this);
+					}
+				} else {
+					value = this[i];
+					valueIsSet = true;
+				}
+			}
+
+			if ( !valueIsSet ) {
+				throw new TypeError( 'Reduce of empty array with no initial value' );
+			}
+
+			return value;
+		};
+	}
+
 	if ( !Array.prototype.filter ) {
 		Array.prototype.filter = function ( filter, context ) {
 			var i, len, filtered = [];

@@ -6,6 +6,21 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 		var fixture, fixture2, makeObj;
 
+		// only run these tests if magic mode is supported
+		try {
+			var obj = {}, _foo;
+			Object.defineProperty( obj, 'foo', {
+				get: function () {
+					return _foo;
+				},
+				set: function ( value ) {
+					_foo = value;
+				}
+			});
+		} catch ( err ) {
+			return;
+		}
+
 		module( 'Magic mode' );
 
 		// some set-up
@@ -122,14 +137,18 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			_foo = 'Bar';
 
-			data = {
-				get foo () {
+			data = {};
+
+			Object.defineProperty( data, 'foo', {
+				get: function () {
 					return _foo.toLowerCase();
 				},
-				set foo ( value ) {
+				set: function ( value ) {
 					_foo = value;
-				}
-			};
+				},
+				configurable: true,
+				enumerable: true
+			});
 
 			ractive = new Ractive({
 				el: fixture,

@@ -16,7 +16,9 @@ define( function () {
 			dispatchHandlers,
 			makeResolver,
 			fulfil,
-			reject;
+			reject,
+
+			promise;
 
 		makeResolver = function ( newState ) {
 			return function ( value ) {
@@ -39,7 +41,7 @@ define( function () {
 
 		callback( fulfil, reject );
 
-		return {
+		promise = {
 			// `then()` returns a Promise - 2.2.7
 			then: function ( onFulfilled, onRejected ) {
 				var promise2 = new Promise( function ( fulfil, reject ) {
@@ -77,12 +79,14 @@ define( function () {
 				});
 
 				return promise2;
-			},
-
-			catch: function ( onRejected ) {
-				return this.then( null, onRejected );
 			}
 		};
+
+		promise[ 'catch' ] = function ( onRejected ) {
+			return this.then( null, onRejected );
+		};
+
+		return promise;
 	};
 
 	Promise.all = function ( promises ) {
