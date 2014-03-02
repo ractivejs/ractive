@@ -409,6 +409,34 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			ractive.fire( 'baz' );
 		});
 
+		test( 'Changes triggered by two-way bindings propagate properly (#460)', function ( t ) {
+			var changes, ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<label><input type="checkbox" checked="{{completed}}"> {{description}}</label>{{/items}}<p class="result">{{ items.filter( completed ).length }}</p>',
+				data: {
+					items: [
+						{ completed: true, description: 'fix this bug' },
+						{ completed: false, description: 'fix other bugs' },
+						{ completed: false, description: 'housework' }
+					],
+					completed: function ( item ) {
+						return !!item.completed;
+					}
+				}
+			});
+
+			ractive.on( 'change', function ( c ) {
+				changes = c;
+			});
+
+			t.htmlEqual( ractive.find( '.result' ).innerHTML, '1' );
+
+			simulant.fire( ractive.findAll( 'input' )[1], 'click' );
+			t.htmlEqual( ractive.find( '.result' ).innerHTML, '2' );
+
+			t.deepEqual( changes, { 'items.1.completed': true });
+		});
+
 	};
 
 });
