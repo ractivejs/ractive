@@ -1,6 +1,5 @@
 define([
 	'circular',
-	'registries/adaptors',
 	'utils/hasOwnProperty',
 	'utils/clone',
 	'shared/adaptIfNecessary',
@@ -8,7 +7,6 @@ define([
 	'shared/get/FAILED_LOOKUP'
 ], function (
 	circular,
-	adaptorRegistry,
 	hasOwnProperty,
 	clone,
 	adaptIfNecessary,

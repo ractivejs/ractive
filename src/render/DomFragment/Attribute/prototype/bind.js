@@ -1,6 +1,5 @@
 define([
 	'global/runloop',
-	'config/types',
 	'utils/warn',
 	'utils/arrayContentsMatch',
 	'shared/getValueFromCheckboxes',
@@ -8,7 +7,6 @@ define([
 	'shared/set'
 ], function (
 	runloop,
-	types,
 	warn,
 	arrayContentsMatch,
 	getValueFromCheckboxes,

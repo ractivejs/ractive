@@ -1,12 +1,6 @@
 define([
-	'utils/warn',
-	'utils/matches',
-	'utils/defineProperties',
 	'Ractive/prototype/shared/makeQuery/_makeQuery'
 ], function (
-	warn,
-	matches,
-	defineProperties,
 	makeQuery
 ) {
 

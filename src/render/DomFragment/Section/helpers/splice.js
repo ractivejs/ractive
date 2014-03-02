@@ -69,7 +69,7 @@ define([
 
 		// Now we need to reassign existing fragments (e.g. items.4 -> items.3 - the keypaths,
 		// context stacks and index refs will have changed)
-		reassignFragments( section.root, section, start, section.length, balance );
+		reassignFragments( section, start, section.length, balance );
 	};
 
 });

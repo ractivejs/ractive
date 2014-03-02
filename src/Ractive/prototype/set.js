@@ -1,25 +1,15 @@
 define([
 	'global/runloop',
 	'utils/isObject',
-	'utils/isEqual',
 	'utils/normaliseKeypath',
 	'utils/Promise',
-	'shared/get/_get',
-	'shared/set',
-	'shared/clearCache',
-	'shared/notifyDependants',
-	'shared/makeTransitionManager'
+	'shared/set'
 ], function (
 	runloop,
 	isObject,
-	isEqual,
 	normaliseKeypath,
 	Promise,
-	get,
-	set,
-	clearCache,
-	notifyDependants,
-	makeTransitionManager
+	set
 ) {
 
 	'use strict';
@@ -27,14 +17,10 @@ define([
 	return function Ractive_prototype_set ( keypath, value, callback ) {
 		var map,
 			promise,
-			fulfilPromise,
-			transitionManager;
+			fulfilPromise;
 
-		runloop.start( this );
-
-		// Manage transitions
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
+		runloop.start( this, fulfilPromise );
 
 		// Set multiple keypaths in one go
 		if ( isObject( keypath ) ) {
@@ -58,7 +44,6 @@ define([
 		}
 
 		runloop.end();
-		transitionManager.init();
 
 		if ( callback ) {
 			promise.then( callback.bind( this ) );

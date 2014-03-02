@@ -1,14 +1,12 @@
 define([
-	'config/types',
 	'render/DomFragment/Section/reassignFragment'
 ], function (
-	types,
 	reassignFragment
 ) {
 
 	'use strict';
 
-	return function ( root, section, start, end, by ) {
+	return function ( section, start, end, by ) {
 		var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
 
 		indexRef = section.descriptor.i;

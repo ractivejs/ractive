@@ -1,7 +1,6 @@
 define([
 	'config/isClient',
 	'utils/warn',
-	'utils/Promise',
 	'utils/createElement',
 	'utils/camelCase',
 	'shared/interpolate',
@@ -12,7 +11,6 @@ define([
 ], function (
 	isClient,
 	warn,
-	Promise,
 	createElement,
 	camelCase,
 	interpolate,

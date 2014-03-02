@@ -1,11 +1,9 @@
 define([
 	'config/initOptions',
-	'global/runloop',
 	'extend/wrapMethod',
 	'Ractive/initialise'
 ], function (
 	initOptions,
-	runloop,
 	wrapMethod,
 	initialise
 ) {

@@ -1,13 +1,11 @@
 define([
 	'utils/Promise',
 	'global/runloop',
-	'shared/makeTransitionManager',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
 	Promise,
 	runloop,
-	makeTransitionManager,
 	clearCache,
 	notifyDependants
 ) {
@@ -15,7 +13,7 @@ define([
 	'use strict';
 
 	return function ( data, callback ) {
-		var promise, fulfilPromise, transitionManager, wrapper;
+		var promise, fulfilPromise, wrapper;
 
 		if ( typeof data === 'function' ) {
 			callback = data;
@@ -28,15 +26,13 @@ define([
 			throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
 		}
 
-		runloop.start( this );
-
-		// Manage transitions
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
 
 		if ( callback ) {
 			promise.then( callback );
 		}
+
+		runloop.start( this, fulfilPromise );
 
 		// If the root object is wrapped, try and use the wrapper's reset value
 		if ( ( wrapper = this._wrapped[ '' ] ) && wrapper.reset ) {
@@ -52,7 +48,6 @@ define([
 		notifyDependants( this, '' );
 
 		runloop.end();
-		transitionManager.init();
 
 		this.fire( 'reset', data );
 

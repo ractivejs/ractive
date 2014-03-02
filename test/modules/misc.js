@@ -1087,7 +1087,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
 		});
 
-		test( 'Subclass instance complete() handlers can call _super', function ( t ) {
+		asyncTest( 'Subclass instance complete() handlers can call _super', function ( t ) {
 			var Subclass, instance;
 
 			expect( 1 );
@@ -1101,6 +1101,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			instance = new Subclass({
 				complete: function () {
 					t.equal( this._super(), 42 );
+					start();
 				}
 			});
 		});

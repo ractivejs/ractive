@@ -3,9 +3,6 @@ define([
 	'utils/warn',
 	'utils/isArray',
 	'utils/Promise',
-	'shared/clearCache',
-	'shared/makeTransitionManager',
-	'shared/notifyDependants',
 	'shared/set',
 	'Ractive/prototype/merge/mapOldToNewIndex',
 	'Ractive/prototype/merge/propagateChanges'
@@ -14,9 +11,6 @@ define([
 	warn,
 	isArray,
 	Promise,
-	clearCache,
-	makeTransitionManager,
-	notifyDependants,
 	set,
 	mapOldToNewIndex,
 	propagateChanges
@@ -35,8 +29,7 @@ define([
 			lengthUnchanged,
 			newIndices,
 			promise,
-			fulfilPromise,
-			transitionManager;
+			fulfilPromise;
 
 		currentArray = this.get( keypath );
 
@@ -82,16 +75,13 @@ define([
 
 		// Manage transitions
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
+		runloop.start( this, fulfilPromise );
 
-		runloop.start( this );
 		// Update the model
 		// TODO allow existing array to be updated in place, rather than replaced?
 		set( this, keypath, array, true );
 		propagateChanges( this, keypath, newIndices, lengthUnchanged );
 		runloop.end();
-
-		transitionManager.init();
 
 		// attach callback as fulfilment handler, if specified
 		if ( options && options.complete ) {

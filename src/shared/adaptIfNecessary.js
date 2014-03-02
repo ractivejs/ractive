@@ -1,13 +1,9 @@
 define([
-	'utils/clone',
-	'utils/isObject',
 	'registries/adaptors',
 	'shared/get/arrayAdaptor/_arrayAdaptor',
 	'shared/get/magicAdaptor',
 	'shared/get/magicArrayAdaptor'
 ], function (
-	clone,
-	isObject,
 	adaptorRegistry,
 	arrayAdaptor,
 	magicAdaptor,

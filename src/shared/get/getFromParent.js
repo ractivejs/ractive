@@ -1,11 +1,9 @@
 define([
 	'circular',
-	'global/runloop',
 	'shared/createComponentBinding',
 	'shared/set'
 ], function (
 	circular,
-	runloop,
 	createComponentBinding,
 	set
 ) {
