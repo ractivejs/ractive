@@ -109,7 +109,6 @@ define([
 			}
 
 			wrappers = set._ractiveWrappers;
-
 			len = wrappers.length;
 
 			// First, reset all values...

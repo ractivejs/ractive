@@ -18,7 +18,7 @@ define([
 
 	var prefixers = {};
 
-	return function adaptIfNecessary ( ractive, keypath, value, isExpressionResult, shouldClone ) {
+	return function adaptIfNecessary ( ractive, keypath, value, isExpressionResult ) {
 		var len, i, adaptor, wrapped;
 
 		// Do we have an adaptor for this value?
@@ -46,24 +46,15 @@ define([
 
 			if ( ractive.magic ) {
 				if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
-					if ( shouldClone ) {
-						value = value.slice();
-					}
 					ractive._wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
 				}
 
 				else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-					if ( shouldClone ) {
-						value = clone( value );
-					}
 					ractive._wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
 				}
 			}
 
 			else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
-				if ( shouldClone ) {
-					value = value.slice();
-				}
 				ractive._wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 			}
 		}

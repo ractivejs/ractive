@@ -6,7 +6,7 @@ define([
 	'shared/clearCache',
 	'shared/makeTransitionManager',
 	'shared/notifyDependants',
-	'shared/replaceData',
+	'shared/set',
 	'Ractive/prototype/merge/mapOldToNewIndex',
 	'Ractive/prototype/merge/propagateChanges'
 ], function (
@@ -17,7 +17,7 @@ define([
 	clearCache,
 	makeTransitionManager,
 	notifyDependants,
-	replaceData,
+	set,
 	mapOldToNewIndex,
 	propagateChanges
 ) {
@@ -87,7 +87,7 @@ define([
 		runloop.start( this );
 		// Update the model
 		// TODO allow existing array to be updated in place, rather than replaced?
-		replaceData( this, keypath, array );
+		set( this, keypath, array, true );
 		propagateChanges( this, keypath, newIndices, lengthUnchanged );
 		runloop.end();
 

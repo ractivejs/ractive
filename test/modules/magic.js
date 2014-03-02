@@ -39,10 +39,10 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, 'Rizzo: rat' );
 
-			muppet.name = 'Rizzo';
-			muppet.type = 'rat';
+			muppet.name = 'Fozzie';
+			muppet.type = 'bear';
 
-			t.htmlEqual( fixture.innerHTML, 'Rizzo: rat' );
+			t.htmlEqual( fixture.innerHTML, 'Fozzie: bear' );
 		});
 
 		test( 'Multiple instances can share an object', function ( t ) {
