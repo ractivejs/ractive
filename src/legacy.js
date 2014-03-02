@@ -184,6 +184,31 @@ define( function () {
 	}
 
 
+	if ( typeof Function.prototype.bind !== 'function' ) {
+		Function.prototype.bind = function ( context ) {
+			var args, fn, Empty, bound, slice = [].slice;
+
+			if ( typeof this !== 'function' ) {
+				throw new TypeError( 'Function.prototype.bind called on non-function' );
+			}
+
+			args = slice.call( arguments, 1 );
+		    fn = this;
+		    Empty = function () {};
+
+		    bound = function () {
+				var ctx = this instanceof Empty && context ? this : context;
+				return fn.apply( ctx, args.concat( slice.call( arguments ) ) );
+			};
+
+			Empty.prototype = this.prototype;
+			bound.prototype = new Empty();
+
+			return bound;
+		};
+	}
+
+
 
 	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
 	// addEventListener polyfill IE6+
