@@ -18,6 +18,8 @@ define([
 		root = wrapper.root;
 		keypath = wrapper.keypath;
 
+		root._changes.push( keypath );
+
 		// If this is a sort or reverse, we just do root.set()...
 		// TODO use merge logic?
 		if ( methodName === 'sort' || methodName === 'reverse' ) {
