@@ -41,12 +41,13 @@ define([
 			i = this._ractive.wrappers.length;
 			while ( i-- ) {
 				wrapper = this._ractive.wrappers[i];
+
 				runloop.start( wrapper.root );
-				processWrapper( this._ractive.wrappers[i], this, methodName, spliceSummary );
+				processWrapper( wrapper, this, methodName, spliceSummary );
 				runloop.end();
 			}
-			this._ractive.setting = false;
 
+			this._ractive.setting = false;
 			return result;
 		};
 

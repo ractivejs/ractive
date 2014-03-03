@@ -1,17 +1,19 @@
 define([
 	'config/types',
 	'shared/clearCache',
-	'shared/notifyDependants'
+	'shared/notifyDependants',
+	'shared/set'
 ], function (
 	types,
 	clearCache,
-	notifyDependants
+	notifyDependants,
+	set
 ) {
 
 	'use strict';
 
 	return function ( wrapper, array, methodName, spliceSummary ) {
-		var root, keypath, depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
+		var root, keypath, depsByKeypath, deps, clearEnd, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
 
 		root = wrapper.root;
 		keypath = wrapper.keypath;
@@ -19,7 +21,7 @@ define([
 		// If this is a sort or reverse, we just do root.set()...
 		// TODO use merge logic?
 		if ( methodName === 'sort' || methodName === 'reverse' ) {
-			root.set( keypath, array );
+			set( root, keypath, array );
 			return;
 		}
 
@@ -31,7 +33,8 @@ define([
 
 		// ...otherwise we do a smart update whereby elements are added/removed
 		// in the right place. But we do need to clear the cache downstream
-		for ( i = spliceSummary.start; i < array.length - spliceSummary.balance; i += 1 ) {
+		clearEnd = ( !spliceSummary.balance ? spliceSummary.added : array.length - Math.min( spliceSummary.balance, 0 ) );
+		for ( i = spliceSummary.start; i < clearEnd; i += 1 ) {
 			clearCache( root, keypath + '.' + i );
 		}
 
@@ -75,17 +78,6 @@ define([
 				notifyDependants( root, childKeypath );
 			}
 		}
-
-		// Finally, notify direct dependants of upstream keypaths...
-		upstreamQueue = [];
-
-		keys = keypath.split( '.' );
-		while ( keys.length ) {
-			keys.pop();
-			upstreamQueue.push( keys.join( '.' ) );
-		}
-
-		notifyDependants.multiple( root, upstreamQueue, true );
 
 		// length property has changed - notify dependants
 		// TODO in some cases (e.g. todo list example, when marking all as complete, then
