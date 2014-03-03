@@ -76,6 +76,7 @@
     "amdclean": "~1.2.1",
     "cheerio": "~0.13.0",
     "promises-aplus-tests": "*",
+    "grunt-git-describe": "~2.3.2",
     "grunt-jsbeautifier": "~0.2.6"
   },
   "testling": {

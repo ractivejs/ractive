@@ -1,6 +1,6 @@
 /*
 
-	Ractive - v<%= pkg.version %> - <%= grunt.template.today( 'yyyy-mm-dd' ) %>
+	Ractive - <%= pkg.version %> - <%= grunt.template.today( 'yyyy-mm-dd' ) %>
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
