@@ -13,7 +13,7 @@ define([
 	'use strict';
 
 	return function ( wrapper, array, methodName, spliceSummary ) {
-		var root, keypath, depsByKeypath, deps, clearEnd, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
+		var root, keypath, clearEnd, updateDependant, i, changed, start, end, childKeypath, lengthUnchanged;
 
 		root = wrapper.root;
 		keypath = wrapper.keypath;
@@ -40,32 +40,24 @@ define([
 			clearCache( root, keypath + '.' + i );
 		}
 
-		// Find dependants. If any are DOM sections, we do a smart update
-		// rather than a ractive.set() blunderbuss
-		smartUpdateQueue = [];
-		dumbUpdateQueue = [];
-
-		for ( i=0; i<root._deps.length; i+=1 ) { // we can't cache root._deps.length as it may change!
-			depsByKeypath = root._deps[i];
-
-			if ( !depsByKeypath ) {
-				continue;
+		// Propagate changes
+		updateDependant = function ( dependant ) {
+			// is this a DOM section?
+			if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
+				dependant.splice( spliceSummary );
+			} else {
+				dependant.update();
 			}
+		};
 
-			deps = depsByKeypath[ keypath ];
+		// Go through all dependant priority levels, finding smart update targets
+		root._deps.forEach( function ( depsByKeypath ) {
+			var dependants = depsByKeypath[ keypath ];
 
-			if ( deps ) {
-				queueDependants( keypath, deps, smartUpdateQueue, dumbUpdateQueue );
-
-				while ( smartUpdateQueue.length ) {
-					smartUpdateQueue.pop().smartUpdate( methodName, spliceSummary );
-				}
-
-				while ( dumbUpdateQueue.length ) {
-					dumbUpdateQueue.pop().update();
-				}
+			if ( dependants ) {
+				dependants.forEach( updateDependant );
 			}
-		}
+		});
 
 		// if we're removing old items and adding new ones, simultaneously, we need to force an update
 		if ( spliceSummary.added && spliceSummary.removed ) {
@@ -91,28 +83,5 @@ define([
 			notifyDependants( root, keypath + '.length', true );
 		}
 	};
-
-	// TODO can we get rid of this whole queueing nonsense?
-	function queueDependants ( keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
-		var k, dependant;
-
-		k = deps.length;
-		while ( k-- ) {
-			dependant = deps[k];
-
-			// references need to get processed before mustaches
-			if ( dependant.type === types.REFERENCE ) {
-				dependant.update();
-			}
-
-			// is this a DOM section?
-			else if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
-				smartUpdateQueue.push( dependant );
-
-			} else {
-				dumbUpdateQueue.push( dependant );
-			}
-		}
-	}
 
 });
