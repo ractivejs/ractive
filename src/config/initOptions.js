@@ -19,6 +19,7 @@ define([
 		noIntro:            false,
 		transitionsEnabled: true,
 		magic:              false,
+		noCssTransform:     false, 
 		adapt:              [],
 		sanitize:           false,
 		stripComments:      true,
