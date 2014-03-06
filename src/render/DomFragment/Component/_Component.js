@@ -56,6 +56,10 @@ define([
 				return this.instance;
 			}
 
+			if ( this.instance.fragment ) {
+				return this.instance.fragment.findComponent( selector );
+			}
+						
 			return null;
 		},
 

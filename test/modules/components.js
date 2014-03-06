@@ -619,6 +619,30 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'bar-bar' );
 		});
 
+
+		test( 'findComponent and findAllComponents work through {{>content}}', function ( t ) {
+
+		    Ractive.components.wrapper = Ractive.extend({
+		        template: '<p>{{>content}}</p>'    
+		    });
+		    Ractive.components.component = Ractive.extend({});
+		                                                     
+		    var ractive = new Ractive({
+		        el: fixture,
+		        template: '<component/>'
+		    });
+		    
+		    var r = new Ractive({
+		        template: '<wrapper><component/></wrapper>'
+		    });
+		    
+		    var find = r.findComponent('component'),
+		        findAll = r.findAllComponents('component');
+		    
+		    t.ok( find, 'component found' );
+		    t.equal( findAll.length, 1);
+		});
+
 	};
 
 });
