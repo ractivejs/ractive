@@ -1,4 +1,8 @@
-define([ 'utils/isNumeric' ], function ( isNumeric ) {
+define([
+	'utils/isNumeric'
+], function (
+	isNumeric
+) {
 
 	'use strict';
 
@@ -6,26 +10,16 @@ define([ 'utils/isNumeric' ], function ( isNumeric ) {
 		var value;
 
 		if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
-			if ( root.debug ) {
-				throw new Error( 'Bad arguments' );
-			}
-			return;
+			throw new Error( 'Bad arguments' );
 		}
 
-		value = root.get( keypath );
-
-		if ( value === undefined ) {
-			value = 0;
-		}
+		value = +root.get( keypath ) || 0;
 
 		if ( !isNumeric( value ) ) {
-			if ( root.debug ) {
-				throw new Error( 'Cannot add to a non-numeric value' );
-			}
-			return;
+			throw new Error( 'Cannot add to a non-numeric value' );
 		}
 
-		root.set( keypath, value + d );
+		return root.set( keypath, value + d );
 	};
 
 });

@@ -3,9 +3,9 @@ define([
 	'render/shared/initMustache',
 	'render/shared/updateMustache',
 	'render/shared/resolveMustache',
-	'render/DomFragment/Section/helpers/splice',
 	'render/DomFragment/Section/prototype/merge',
 	'render/DomFragment/Section/prototype/render',
+	'render/DomFragment/Section/prototype/splice',
 	'shared/teardown',
 	'circular'
 ], function (
@@ -13,9 +13,9 @@ define([
 	initMustache,
 	updateMustache,
 	resolveMustache,
-	splice,
 	merge,
 	render,
+	splice,
 	teardown,
 	circular
 ) {
@@ -53,13 +53,7 @@ define([
 	DomSection.prototype = {
 		update: updateMustache,
 		resolve: resolveMustache,
-
-		smartUpdate: function ( methodName, spliceSummary ) {
-			this.rendering = true;
-			splice( this, spliceSummary );
-			this.rendering = false;
-		},
-
+		splice: splice,
 		merge: merge,
 
 		detach: function () {

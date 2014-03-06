@@ -47,7 +47,7 @@ define([
 
 				// special case - checkbox name bindings
 				if ( binding.checkboxName ) {
-					if ( binding.changed() && !deferredCheckboxes[ keypath ] ) {
+					if ( binding.changed() && ( deferredCheckboxes[ keypath ] !== true ) ) {
 						// we will need to see which checkboxes with the same name are checked,
 						// but we only want to do so once
 						deferredCheckboxes[ keypath ] = true; // for quick lookup without indexOf

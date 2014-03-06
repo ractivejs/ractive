@@ -1,25 +1,29 @@
 define([
 	'config/types',
 	'shared/clearCache',
-	'shared/notifyDependants'
+	'shared/notifyDependants',
+	'shared/set'
 ], function (
 	types,
 	clearCache,
-	notifyDependants
+	notifyDependants,
+	set
 ) {
 
 	'use strict';
 
 	return function ( wrapper, array, methodName, spliceSummary ) {
-		var root, keypath, depsByKeypath, deps, keys, upstreamQueue, smartUpdateQueue, dumbUpdateQueue, i, changed, start, end, childKeypath, lengthUnchanged;
+		var root, keypath, clearEnd, updateDependant, i, changed, start, end, childKeypath, lengthUnchanged;
 
 		root = wrapper.root;
 		keypath = wrapper.keypath;
 
+		root._changes.push( keypath );
+
 		// If this is a sort or reverse, we just do root.set()...
 		// TODO use merge logic?
 		if ( methodName === 'sort' || methodName === 'reverse' ) {
-			root.set( keypath, array );
+			set( root, keypath, array );
 			return;
 		}
 
@@ -31,36 +35,29 @@ define([
 
 		// ...otherwise we do a smart update whereby elements are added/removed
 		// in the right place. But we do need to clear the cache downstream
-		for ( i = spliceSummary.start; i < array.length - spliceSummary.balance; i += 1 ) {
+		clearEnd = ( !spliceSummary.balance ? spliceSummary.added : array.length - Math.min( spliceSummary.balance, 0 ) );
+		for ( i = spliceSummary.start; i < clearEnd; i += 1 ) {
 			clearCache( root, keypath + '.' + i );
 		}
 
-		// Find dependants. If any are DOM sections, we do a smart update
-		// rather than a ractive.set() blunderbuss
-		smartUpdateQueue = [];
-		dumbUpdateQueue = [];
-
-		for ( i=0; i<root._deps.length; i+=1 ) { // we can't cache root._deps.length as it may change!
-			depsByKeypath = root._deps[i];
-
-			if ( !depsByKeypath ) {
-				continue;
+		// Propagate changes
+		updateDependant = function ( dependant ) {
+			// is this a DOM section?
+			if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
+				dependant.splice( spliceSummary );
+			} else {
+				dependant.update();
 			}
+		};
 
-			deps = depsByKeypath[ keypath ];
+		// Go through all dependant priority levels, finding smart update targets
+		root._deps.forEach( function ( depsByKeypath ) {
+			var dependants = depsByKeypath[ keypath ];
 
-			if ( deps ) {
-				queueDependants( keypath, deps, smartUpdateQueue, dumbUpdateQueue );
-
-				while ( smartUpdateQueue.length ) {
-					smartUpdateQueue.pop().smartUpdate( methodName, spliceSummary );
-				}
-
-				while ( dumbUpdateQueue.length ) {
-					dumbUpdateQueue.pop().update();
-				}
+			if ( dependants ) {
+				dependants.forEach( updateDependant );
 			}
-		}
+		});
 
 		// if we're removing old items and adding new ones, simultaneously, we need to force an update
 		if ( spliceSummary.added && spliceSummary.removed ) {
@@ -76,17 +73,6 @@ define([
 			}
 		}
 
-		// Finally, notify direct dependants of upstream keypaths...
-		upstreamQueue = [];
-
-		keys = keypath.split( '.' );
-		while ( keys.length ) {
-			keys.pop();
-			upstreamQueue.push( keys.join( '.' ) );
-		}
-
-		notifyDependants.multiple( root, upstreamQueue, true );
-
 		// length property has changed - notify dependants
 		// TODO in some cases (e.g. todo list example, when marking all as complete, then
 		// adding a new item (which should deactivate the 'all complete' checkbox
@@ -97,28 +83,5 @@ define([
 			notifyDependants( root, keypath + '.length', true );
 		}
 	};
-
-	// TODO can we get rid of this whole queueing nonsense?
-	function queueDependants ( keypath, deps, smartUpdateQueue, dumbUpdateQueue ) {
-		var k, dependant;
-
-		k = deps.length;
-		while ( k-- ) {
-			dependant = deps[k];
-
-			// references need to get processed before mustaches
-			if ( dependant.type === types.REFERENCE ) {
-				dependant.update();
-			}
-
-			// is this a DOM section?
-			else if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
-				smartUpdateQueue.push( dependant );
-
-			} else {
-				dumbUpdateQueue.push( dependant );
-			}
-		}
-	}
 
 });

@@ -5,7 +5,8 @@ define([
 	'shared/getValueFromCheckboxes',
 	'shared/resolveRef',
 	'shared/getUpstreamChanges',
-	'shared/notifyDependants'
+	'shared/notifyDependants',
+	'shared/makeTransitionManager'
 ], function (
 	circular,
 	css,
@@ -13,7 +14,8 @@ define([
 	getValueFromCheckboxes,
 	resolveRef,
 	getUpstreamChanges,
-	notifyDependants
+	notifyDependants,
+	makeTransitionManager
 ) {
 
 	'use strict';
@@ -46,20 +48,22 @@ define([
 		radios = [],
 		unresolved = [],
 
-		instances = [];
+		instances = [],
+		transitionManager;
 
 	runloop = {
-		start: function ( instance ) {
+		start: function ( instance, callback ) {
 			if ( instance && !instances[ instance._guid ] ) {
 				instances.push( instance );
 				instances[ instances._guid ] = true;
 			}
 
-			if ( flushing ) {
-				return;
-			}
+			if ( !flushing ) {
+				inFlight += 1;
 
-			inFlight += 1;
+				// create a new transition manager
+				transitionManager = makeTransitionManager( callback );
+			}
 		},
 
 		end: function () {
@@ -75,6 +79,9 @@ define([
 
 				land();
 			}
+
+			transitionManager.init();
+			transitionManager = transitionManager._previous;
 		},
 
 		trigger: function () {
@@ -103,6 +110,8 @@ define([
 		},
 
 		addTransition: function ( transition ) {
+			transition._manager = transitionManager;
+			transitionManager.push( transition );
 			transitions.push( transition );
 		},
 
@@ -154,6 +163,11 @@ define([
 
 		removeUnresolved: function ( thing ) {
 			removeFromArray( unresolved, thing );
+		},
+
+		// synchronise node detachments with transition ends
+		detachWhenReady: function ( thing ) {
+			transitionManager.detachQueue.push( thing );
 		}
 	};
 
@@ -192,7 +206,6 @@ define([
 		// Change events are fired last
 		while ( thing = instances.pop() ) {
 			instances[ thing._guid ] = false;
-			thing._transitionManager = null;
 
 			if ( thing._changes.length ) {
 				changeHash = {};
@@ -255,7 +268,7 @@ define([
 		}
 
 		// see if we can resolve any unresolved references
-		array = unresolved.splice( 0 );
+		array = unresolved.splice( 0, unresolved.length );
 		while ( thing = array.pop() ) {
 			if ( thing.keypath ) {
 				continue; // it did resolve after all. TODO does this ever happen?

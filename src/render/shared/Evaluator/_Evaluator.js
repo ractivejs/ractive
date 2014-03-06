@@ -2,11 +2,8 @@ define([
 	'global/runloop',
 	'utils/warn',
 	'utils/isEqual',
-	'utils/defineProperty',
 	'shared/clearCache',
 	'shared/notifyDependants',
-	'shared/registerDependant',
-	'shared/unregisterDependant',
 	'shared/adaptIfNecessary',
 	'render/shared/Evaluator/Reference',
 	'render/shared/Evaluator/SoftReference'
@@ -14,11 +11,8 @@ define([
 	runloop,
 	warn,
 	isEqual,
-	defineProperty,
 	clearCache,
 	notifyDependants,
-	registerDependant,
-	unregisterDependant,
 	adaptIfNecessary,
 	Reference,
 	SoftReference

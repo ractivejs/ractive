@@ -1,7 +1,6 @@
 define([
 	'config/initOptions',
 	'config/svg',
-	'utils/create',
 	'utils/defineProperties',
 	'Ractive/prototype/_prototype',
 	'registries/partials',
@@ -17,7 +16,6 @@ define([
 ], function (
 	initOptions,
 	svg,
-	create,
 	defineProperties,
 	prototype,
 	partialRegistry,

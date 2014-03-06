@@ -1,6 +1,8 @@
 define([
+	'global/runloop',
 	'render/DomFragment/Element/shared/executeTransition/_executeTransition'
 ], function (
+	runloop,
 	executeTransition
 ) {
 
@@ -12,7 +14,7 @@ define([
 		// Detach as soon as we can
 		if ( destroy ) {
 			this.willDetach = true;
-			findTransitionManager( this.root ).detachQueue.push( this );
+			runloop.detachWhenReady( this );
 		}
 
 		// Children first. that way, any transitions on child elements will be
@@ -71,16 +73,6 @@ define([
 				}
 			}
 		}
-	}
-
-	function findTransitionManager ( instance ) {
-		var transitionManager;
-
-		do {
-			if ( transitionManager = instance._transitionManager ) {
-				return transitionManager;
-			}
-		} while ( instance = instance._parent );
 	}
 
 });

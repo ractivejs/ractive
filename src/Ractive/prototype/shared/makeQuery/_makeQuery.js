@@ -17,9 +17,7 @@ define([
 	'use strict';
 
 	return function ( ractive, selector, live, isComponentQuery ) {
-		var query;
-
-		query = [];
+		var query = [];
 
 		defineProperties( query, {
 			selector: { value: selector },

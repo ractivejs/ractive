@@ -1,13 +1,11 @@
 define([
 	'circular',
-	'global/runloop',
 	'shared/createComponentBinding',
-	'Ractive/prototype/shared/replaceData'
+	'shared/set'
 ], function (
 	circular,
-	runloop,
 	createComponentBinding,
-	replaceData
+	set
 ) {
 
 	'use strict';
@@ -46,7 +44,7 @@ define([
 	};
 
 	function createLateComponentBinding ( parent, child, parentKeypath, childKeypath, value ) {
-		replaceData( child, childKeypath, value );
+		set( child, childKeypath, value, true );
 		createComponentBinding( child.component, parent, parentKeypath, childKeypath );
 	}
 

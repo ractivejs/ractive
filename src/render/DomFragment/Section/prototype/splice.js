@@ -6,8 +6,8 @@ define([
 
 	'use strict';
 
-	return function ( section, spliceSummary ) {
-		var insertionPoint, balance, i, start, end, insertStart, insertEnd, spliceArgs, fragmentOptions;
+	return function ( spliceSummary ) {
+		var section = this, insertionPoint, balance, i, start, end, insertStart, insertEnd, spliceArgs, fragmentOptions;
 
 		balance = spliceSummary.balance;
 
@@ -16,6 +16,7 @@ define([
 			return;
 		}
 
+		section.rendering = true;
 		start = spliceSummary.start;
 
 		// If more items were removed than added, we need to remove some things from the DOM
@@ -69,7 +70,8 @@ define([
 
 		// Now we need to reassign existing fragments (e.g. items.4 -> items.3 - the keypaths,
 		// context stacks and index refs will have changed)
-		reassignFragments( section.root, section, start, section.length, balance );
+		reassignFragments( section, start, section.length, balance );
+		section.rendering = false;
 	};
 
 });

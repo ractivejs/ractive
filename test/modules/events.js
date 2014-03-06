@@ -5,8 +5,6 @@
 
 define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 
-	window.Ractive = Ractive;
-
 	return function () {
 
 		var fixture = document.getElementById( 'qunit-fixture' );
@@ -409,6 +407,38 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 			ractive.fire( 'foo' );
 			ractive.fire( 'bar' );
 			ractive.fire( 'baz' );
+		});
+
+		test( 'Changes triggered by two-way bindings propagate properly (#460)', function ( t ) {
+			var changes, ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<label><input type="checkbox" checked="{{completed}}"> {{description}}</label>{{/items}}<p class="result">{{ items.filter( completed ).length }}</p>{{# items.filter( completed ).length }}<p class="conditional">foo</p>{{/ items.filter( completed ).length }}',
+				data: {
+					items: [
+						{ completed: true, description: 'fix this bug' },
+						{ completed: false, description: 'fix other bugs' },
+						{ completed: false, description: 'housework' }
+					],
+					completed: function ( item ) {
+						return !!item.completed;
+					}
+				}
+			});
+
+			ractive.on( 'change', function ( c ) {
+				changes = c;
+			});
+
+			t.htmlEqual( ractive.find( '.result' ).innerHTML, '1' );
+
+			simulant.fire( ractive.findAll( 'input' )[1], 'click' );
+			t.htmlEqual( ractive.find( '.result' ).innerHTML, '2' );
+
+			t.deepEqual( changes, { 'items.1.completed': true });
+
+			simulant.fire( ractive.findAll( 'input' )[0], 'click' );
+			simulant.fire( ractive.findAll( 'input' )[1], 'click' );
+			t.htmlEqual( ractive.find( '.result' ).innerHTML, '0' );
 		});
 
 	};

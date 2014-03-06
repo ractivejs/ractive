@@ -24,7 +24,7 @@ define([
 
 	magicAdaptor = {
 		filter: function ( object, keypath, ractive ) {
-			var keys, key, parentKeypath, parentValue;
+			var keys, key, parentKeypath, parentWrapper, parentValue;
 
 			if ( !keypath ) {
 				return false;
@@ -33,6 +33,13 @@ define([
 			keys = keypath.split( '.' );
 			key = keys.pop();
 			parentKeypath = keys.join( '.' );
+
+			// If the parent value is a wrapper, other than a magic wrapper,
+			// we shouldn't wrap this property
+			if ( ( parentWrapper = ractive._wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
+				return false;
+			}
+
 			parentValue = ractive.get( parentKeypath );
 
 			// if parentValue is an array that doesn't include this member,
@@ -41,7 +48,7 @@ define([
 				return false;
 			}
 
-			return ( parentValue && typeof parentValue === 'object' );
+			return ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) );
 		},
 		wrap: function ( ractive, property, keypath ) {
 			return new MagicWrapper( ractive, property, keypath );
@@ -50,6 +57,8 @@ define([
 
 	MagicWrapper = function ( ractive, property, keypath ) {
 		var wrapper = this, keys, objKeypath, descriptor, wrappers, oldGet, oldSet, get, set;
+
+		this.magic = true;
 
 		this.ractive = ractive;
 		this.keypath = keypath;
@@ -109,7 +118,6 @@ define([
 			}
 
 			wrappers = set._ractiveWrappers;
-
 			len = wrappers.length;
 
 			// First, reset all values...
@@ -123,7 +131,11 @@ define([
 			while ( i-- ) {
 				wrapper = wrappers[i];
 
-				wrapper.resetting = true;
+				if ( wrapper.updating ) {
+					continue;
+				}
+
+				wrapper.updating = true;
 
 				runloop.start( wrapper.ractive );
 				wrapper.ractive._changes.push( wrapper.keypath );
@@ -131,7 +143,7 @@ define([
 				notifyDependants( wrapper.ractive, wrapper.keypath );
 				runloop.end();
 
-				wrapper.resetting = false;
+				wrapper.updating = false;
 			}
 		};
 
@@ -147,15 +159,27 @@ define([
 			return this.value;
 		},
 		reset: function ( value ) {
-			this.obj[ this.prop ] = value; // trigger set() accessor
-			return false; // don't teardown
-		},
-		set: function ( keypath ) {
-			if ( !this.obj[ this.prop ] ) {
-				this.resetting = true;
-				this.obj[ this.prop ] = createBranch( keypath.split( '.' )[0] );
-				this.resetting = false;
+			if ( this.updating ) {
+				return;
 			}
+
+			this.updating = true;
+			this.obj[ this.prop ] = value; // trigger set() accessor
+			clearCache( this.ractive, this.keypath );
+			this.updating = false;
+		},
+		set: function ( key, value ) {
+			if ( this.updating ) {
+				return;
+			}
+
+			if ( !this.obj[ this.prop ] ) {
+				this.updating = true;
+				this.obj[ this.prop ] = createBranch( key );
+				this.updating = false;
+			}
+
+			this.obj[ this.prop ][ key ] = value;
 		},
 		teardown: function () {
 			var descriptor, set, value, wrappers, index;
@@ -163,7 +187,7 @@ define([
 			// If this method was called because the cache was being cleared as a
 			// result of a set()/update() call made by this wrapper, we return false
 			// so that it doesn't get torn down
-			if ( this.resetting ) {
+			if ( this.updating ) {
 				return false;
 			}
 

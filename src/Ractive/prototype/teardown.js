@@ -2,22 +2,22 @@
 // and generally cleaning up after itself
 define([
 	'config/types',
+	'global/css',
+	'global/runloop',
 	'utils/Promise',
-	'shared/makeTransitionManager',
-	'shared/clearCache',
-	'global/css'
+	'shared/clearCache'
 ], function (
 	types,
+	css,
+	runloop,
 	Promise,
-	makeTransitionManager,
-	clearCache,
-	css
+	clearCache
 ) {
 
 	'use strict';
 
 	return function ( callback ) {
-		var keypath, promise, fulfilPromise, transitionManager, shouldDestroy, originalCallback, fragment, nearestDetachingElement, unresolvedImplicitDependency;
+		var keypath, promise, fulfilPromise, shouldDestroy, originalCallback, fragment, nearestDetachingElement, unresolvedImplicitDependency;
 
 		this.fire( 'teardown' );
 
@@ -59,7 +59,7 @@ define([
 		}
 
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-		this._transitionManager = transitionManager = makeTransitionManager( this, fulfilPromise );
+		runloop.start( this, fulfilPromise );
 
 		this.fragment.teardown( shouldDestroy );
 
@@ -78,8 +78,7 @@ define([
 			unresolvedImplicitDependency.teardown();
 		}
 
-		// transition manager has finished its work
-		transitionManager.init();
+		runloop.end();
 
 		if ( callback ) {
 			promise.then( callback.bind( this ) );

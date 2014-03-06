@@ -1,62 +1,80 @@
 define([
 	'circular',
-	'shared/get/_get',
+	'utils/isEqual',
+	'utils/createBranch',
 	'shared/clearCache',
-	'shared/notifyDependants',
-	'Ractive/prototype/shared/replaceData'
+	'shared/notifyDependants'
 ], function (
 	circular,
-	get,
+	isEqual,
+	createBranch,
 	clearCache,
-	notifyDependants,
-	replaceData
+	notifyDependants
 ) {
 
 	'use strict';
 
-	// returns `true` if this operation results in a change
-	function set ( ractive, keypath, value ) {
-		var cached, previous, wrapped, evaluator;
+	var get;
 
-		// If we're dealing with a wrapped value, try and use its reset method
-		wrapped = ractive._wrapped[ keypath ];
+	circular.push( function () {
+		get = circular.get;
+	});
 
-		if ( wrapped && wrapped.reset && ( wrapped.get() !== value ) ) {
-			wrapped.reset( value );
-			value = wrapped.get();
+	function set ( ractive, keypath, value, silent ) {
+		var keys, lastKey, parentKeypath, parentValue, wrapper, evaluator, dontTeardownWrapper;
+
+		if ( isEqual( ractive._cache[ keypath ], value ) ) {
+			return;
+		}
+
+		wrapper = ractive._wrapped[ keypath ];
+		evaluator = ractive._evaluators[ keypath ];
+
+		if ( wrapper && wrapper.reset ) {
+			wrapper.reset( value );
+			value = wrapper.get();
+
+			dontTeardownWrapper = true;
 		}
 
 		// Update evaluator value. This may be from the evaluator itself, or
 		// it may be from the wrapper that wraps an evaluator's result - it
 		// doesn't matter
-		if ( evaluator = ractive._evaluators[ keypath ] ) {
+		if ( evaluator ) {
 			evaluator.value = value;
 		}
 
-		cached = ractive._cache[ keypath ];
-		previous = get( ractive, keypath );
+		if ( !evaluator && ( !wrapper || !wrapper.reset ) ) {
+			keys = keypath.split( '.' );
+			lastKey = keys.pop();
 
-		if ( value === cached && typeof value !== 'object' ) {
-			return;
+			parentKeypath = keys.join( '.' );
+
+			wrapper = ractive._wrapped[ parentKeypath ];
+
+			if ( wrapper && wrapper.set ) {
+				wrapper.set( lastKey, value );
+			} else {
+				parentValue = wrapper ? wrapper.get() : get( ractive, parentKeypath );
+
+				if ( !parentValue ) {
+					parentValue = createBranch( lastKey );
+					set( ractive, parentKeypath, parentValue );
+				}
+
+				parentValue[ lastKey ] = value;
+			}
 		}
 
-		// update the model, if necessary
-		if ( !evaluator && ( !wrapped || !wrapped.reset ) ) {
-			replaceData( ractive, keypath, value );
+		clearCache( ractive, keypath, dontTeardownWrapper );
+
+		if ( !silent ) {
+			ractive._changes.push( keypath );
+			notifyDependants( ractive, keypath );
 		}
-
-		// add this keypath to the list of changes
-		ractive._changes.push( keypath );
-
-		// clear the cache
-		clearCache( ractive, keypath );
-		notifyDependants( ractive, keypath );
-
-		return true;
 	}
 
 	circular.set = set;
-
 	return set;
 
 });

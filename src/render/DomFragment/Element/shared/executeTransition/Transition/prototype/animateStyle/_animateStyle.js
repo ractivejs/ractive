@@ -4,7 +4,6 @@ define([
 	'utils/warn',
 	'utils/Promise',
 	'render/DomFragment/Element/shared/executeTransition/Transition/helpers/prefix',
-	'render/DomFragment/Element/shared/executeTransition/Transition/helpers/unprefix',
 	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/animateStyle/createTransitions'
 ], function (
 	legacy,
@@ -12,7 +11,6 @@ define([
 	warn,
 	Promise,
 	prefix,
-	unprefix,
 	createTransitions
 ) {
 

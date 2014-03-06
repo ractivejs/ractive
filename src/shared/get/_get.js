@@ -1,14 +1,14 @@
 define([
 	'circular',
-	'registries/adaptors',
 	'utils/hasOwnProperty',
+	'utils/clone',
 	'shared/adaptIfNecessary',
 	'shared/get/getFromParent',
 	'shared/get/FAILED_LOOKUP'
 ], function (
 	circular,
-	adaptorRegistry,
 	hasOwnProperty,
+	clone,
 	adaptIfNecessary,
 	getFromParent,
 	FAILED_LOOKUP
@@ -104,17 +104,15 @@ define([
 			return ractive._cache[ keypath ] = FAILED_LOOKUP;
 		}
 
-		value = parentValue[ key ];
-
-		// If we end up wrapping this value with an adaptor, we
-		// may need to try and clone it if it actually lives on
-		// the prototype of this instance's `data`. Otherwise the
-		// instance could end up manipulating data that doesn't
-		// belong to it
+		// If this value actually lives on the prototype of this
+		// instance's `data`, and not as an own property, we need to
+		// clone it. Otherwise the instance could end up manipulating
+		// data that doesn't belong to it
 		shouldClone = !hasOwnProperty.call( parentValue, key );
+		value = shouldClone ? clone( parentValue[ key ] ) : parentValue[ key ];
 
 		// Do we have an adaptor for this value?
-		value = adaptIfNecessary( ractive, keypath, value, false, shouldClone );
+		value = adaptIfNecessary( ractive, keypath, value, false );
 
 		// Update cache
 		ractive._cache[ keypath ] = value;
