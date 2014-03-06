@@ -62,7 +62,7 @@ define([
 		// Support
 		svg: { value: svg },
 
-		VERSION:     { value: '<%= version %>' }
+		VERSION:     { value: '<%= pkg.version %>' }
 	});
 
 	// TODO deprecated

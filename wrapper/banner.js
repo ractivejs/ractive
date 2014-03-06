@@ -37,3 +37,5 @@
 
 	'use strict';
 
+	var noConflict = global.Ractive;
+

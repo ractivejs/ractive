@@ -42,7 +42,8 @@ module.exports = {
 			}) + '\n';
 		},
 		wrap: {
-			endFile: 'wrapper/export.js'
+			startFile: 'wrapper/banner.js',
+			endFile: 'wrapper/footer.js'
 		}
 	}
 };
