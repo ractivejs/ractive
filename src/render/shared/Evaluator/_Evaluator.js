@@ -94,10 +94,9 @@ define([
 			if ( !isEqual( value, this.value ) ) {
 				this.value = value;
 
-				// TODO teardown previous wrapper?
-				adaptIfNecessary( this.root, this.keypath, value, true );
-
 				clearCache( this.root, this.keypath );
+
+				adaptIfNecessary( this.root, this.keypath, value, true );
 				notifyDependants( this.root, this.keypath );
 			}
 
