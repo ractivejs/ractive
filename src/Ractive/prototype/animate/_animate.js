@@ -18,8 +18,8 @@ function (
 
 	'use strict';
 
-	var noAnimation = {
-		stop: function () {}
+	var noop = function () {}, noAnimation = {
+		stop: noop
 	};
 
 
@@ -82,12 +82,9 @@ function (
 						if ( step ) {
 							options.step = collectValue;
 						}
-
-						if ( complete ) {
-							options.complete = collectValue;
-						}
 					}
 
+					options.complete = complete ? collectValue : noop;
 					animations.push( animate( this, k, keypath[k], options ) );
 				}
 			}
@@ -105,10 +102,12 @@ function (
 				}
 
 				if ( complete ) {
-					dummyOptions.complete = function ( t ) {
+					promise.then( function ( t ) {
 						complete( t, currentValues );
-					};
+					});
 				}
+
+				dummyOptions.complete = fulfilPromise;
 
 				dummy = animate( this, null, null, dummyOptions );
 				animations.push( dummy );
