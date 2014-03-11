@@ -645,6 +645,33 @@ define([ 'Ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'findComponent and findAllComponents work through {{>content}}', function ( t ) {
+
+			var Wrapper, Component, ractive;
+
+			Component = Ractive.extend({});
+			Wrapper = Ractive.extend({
+				template: '<p>{{>content}}</p>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive = new Ractive({
+				template: '<wrapper><component/></wrapper>',
+				components: {
+					wrapper: Wrapper,
+					component: Component
+				}
+			});
+
+			var find = ractive.findComponent('component'),
+				findAll = ractive.findAllComponents('component');
+
+			t.ok( find, 'component not found' );
+			t.equal( findAll.length, 1);
+		});
+
 	};
 
 });
