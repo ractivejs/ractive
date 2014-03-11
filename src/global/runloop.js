@@ -62,7 +62,7 @@ define([
 				inFlight += 1;
 
 				// create a new transition manager
-				transitionManager = makeTransitionManager( callback );
+				transitionManager = makeTransitionManager( callback, transitionManager );
 			}
 		},
 

@@ -9,10 +9,9 @@ define([
 	var makeTransitionManager,
 		checkComplete,
 		remove,
-		init,
-		previous = null;
+		init;
 
-	makeTransitionManager = function ( callback ) {
+	makeTransitionManager = function ( callback, previous ) {
 		var transitionManager = [];
 
 		transitionManager.detachQueue = [];
@@ -41,8 +40,8 @@ define([
 				this._callback();
 			}
 
-			if ( this._parent ) {
-				this._parent.remove( this );
+			if ( this._previous ) {
+				this._previous.remove( this );
 			}
 		}
 	};
