@@ -17,6 +17,7 @@ define([
 
 		if ( this.html ) {
 			matchingStaticNodes = getMatchingStaticNodes( this, selector );
+			query.push.apply( query, matchingStaticNodes );
 
 			if ( query.live && !matchedSelf ) {
 				( this.liveQueries || ( this.liveQueries = [] ) ).push( query );

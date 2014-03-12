@@ -73,6 +73,21 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( divs.length, 3 );
 		});
 
+		test( 'findAll() works with a string-only template', function ( t ) {
+			var ractive, paragraphs;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div><p>foo</p><p>bar</p></div>'
+			});
+
+			paragraphs = ractive.findAll( 'p' );
+
+			t.ok( paragraphs.length === 2 );
+			t.ok( paragraphs[0].innerHTML === 'foo' );
+			t.ok( paragraphs[1].innerHTML === 'bar' );
+		});
+
 		test( 'findAll() with { live: true } gets an updating array of all nodes matching a selector', function ( t ) {
 			var ractive, lis;
 
