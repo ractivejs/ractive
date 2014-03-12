@@ -4,12 +4,21 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture;
+		var fixture, colorTester, colors;
 
 		module( 'CSS encapsulation' );
 
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
+
+		// normalise colours
+		colorTester = document.createElement( 'div' );
+		document.getElementsByTagName( 'body' )[0].appendChild( colorTester );
+
+		colors = {};
+		[ 'red', 'green', 'blue', 'black' ].forEach( function ( color ) {
+			colors[ color ] = normaliseColor( color );
+		});
 
 		test( 'CSS is applied to components', function ( t ) {
 			var Widget, ractive;
@@ -23,7 +32,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 				el: fixture
 			});
 
-			t.equal( getComputedStyle( ractive.find( 'p' ) ).color, 'rgb(255, 0, 0)' );
+			t.equal( getComputedStyle( ractive.find( 'p' ) ).color, colors.red );
 		});
 
 		test( 'CSS is encapsulated', function ( t ) {
@@ -44,8 +53,8 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			paragraphs = ractive.findAll( 'p' );
 
-			t.equal( getComputedStyle( paragraphs[0] ).color, 'rgb(0, 0, 0)' );
-			t.equal( getComputedStyle( paragraphs[1] ).color, 'rgb(255, 0, 0)' );
+			t.equal( getComputedStyle( paragraphs[0] ).color, colors.black );
+			t.equal( getComputedStyle( paragraphs[1] ).color, colors.red );
 		});
 
 		test( 'Comments do not break transformed CSS', function ( t ) {
@@ -60,7 +69,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 				el: fixture
 			});
 
-			t.equal( getComputedStyle( ractive.find( 'p' ) ).color, 'rgb(0, 0, 255)' );
+			t.equal( getComputedStyle( ractive.find( 'p' ) ).color, colors.blue );
 		});
 
 		test( 'Multiple pseudo-selectors work', function ( t ) {
@@ -79,12 +88,39 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			paragraphs = ractive.findAll( 'p' );
 
-			t.equal( getComputedStyle( paragraphs[0] ).color, 'rgb(0, 0, 0)' );
-			t.equal( getComputedStyle( paragraphs[1] ).color, 'rgb(0, 0, 0)' );
-			t.equal( getComputedStyle( paragraphs[2] ).color, 'rgb(0, 0, 255)' );
-			t.equal( getComputedStyle( paragraphs[3] ).color, 'rgb(0, 0, 0)' );
+			t.equal( getComputedStyle( paragraphs[0] ).color, colors.black );
+			t.equal( getComputedStyle( paragraphs[1] ).color, colors.black );
+			t.equal( getComputedStyle( paragraphs[2] ).color, colors.blue );
+			t.equal( getComputedStyle( paragraphs[3] ).color, colors.black );
 		});
 
+		test( 'Combinators work', function ( t ) {
+			var Widget, ractive, paragraphs;
+
+			Widget = Ractive.extend({
+				template: '<div><p>black</p><p>green</p></div>',
+				css: 'p + p { color: green; }'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div><p>black</p><p>black</p></div><widget/>',
+				components: { widget: Widget }
+			});
+
+			paragraphs = ractive.findAll( 'p' );
+
+			t.equal( getComputedStyle( paragraphs[0] ).color, colors.black );
+			t.equal( getComputedStyle( paragraphs[1] ).color, colors.black );
+			t.equal( getComputedStyle( paragraphs[2] ).color, colors.black );
+			t.equal( getComputedStyle( paragraphs[3] ).color, colors.green );
+		});
+
+
+		function normaliseColor ( color ) {
+			colorTester.style.color = color;
+			return getComputedStyle( colorTester ).color;
+		}
 	};
 
 });

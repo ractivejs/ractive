@@ -4,28 +4,38 @@ define( function () {
 
 	var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 		commentsPattern = /\/\*.*?\*\//g,
-		pseudoSelectorPattern = /([^:]*)(::?.+)?/;
+		selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g;
 
 	return function transformCss( css, guid ) {
 		var transformed, addGuid;
 
 		addGuid = function ( selector ) {
-			var simpleSelectors, dataAttr, prepended, appended, pseudo, i, transformed = [];
+			var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
+
+			selectorUnits = [];
+
+			while ( match = selectorUnitPattern.exec( selector ) ) {
+				selectorUnits.push({
+					str: match[0],
+					base: match[1],
+					modifiers: match[2]
+				});
+			}
 
 			// For each simple selector within the selector, we need to create a version
 			// that a) combines with the guid, and b) is inside the guid
-			simpleSelectors = selector.split( ' ' ).filter( excludeEmpty );
 			dataAttr = '[data-rvcguid="' + guid + '"]';
+			base = selectorUnits.map( extractString );
 
-			i = simpleSelectors.length;
+			i = selectorUnits.length;
 			while ( i-- ) {
-				appended = simpleSelectors.slice();
+				appended = base.slice();
 
 				// Pseudo-selectors should go after the attribute selector
-				pseudo = pseudoSelectorPattern.exec( appended[i] );
-				appended[i] = pseudo[1] + dataAttr + ( pseudo[2] || '' );
+				unit = selectorUnits[i];
+				appended[i] = unit.base + dataAttr + unit.modifiers || '';
 
-				prepended = simpleSelectors.slice();
+				prepended = base.slice();
 				prepended[i] = dataAttr + ' ' + prepended[i];
 
 				transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );
@@ -56,9 +66,8 @@ define( function () {
 		return str.replace( /^\s+/, '' ).replace( /\s+$/, '' );
 	}
 
-	function excludeEmpty ( str ) {
-		// remove items that contain only whitespace
-		return !/^\s*$/.test( str );
+	function extractString ( unit ) {
+		return unit.str;
 	}
 
 });
