@@ -29,8 +29,8 @@ define([
 		// Special case - CSS
 		if ( Parent.css ) {
 			defineProperty( Child, 'css', {
-				value: Parent.root.noCssTransform 
-					? Parent.css 
+				value: Parent.defaults.noCssTransform
+					? Parent.css
 					: transformCss( Parent.css, Child._guid )
 			});
 		}

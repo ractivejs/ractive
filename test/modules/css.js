@@ -57,6 +57,32 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( getComputedStyle( paragraphs[1] ).color, colors.red );
 		});
 
+		asyncTest( 'CSS encapsulation transformation is optional', function ( t ) {
+			var Widget, ractive, paragraphs;
+
+			Widget = Ractive.extend({
+				template: '<p>red</p>',
+				css: 'p { color: red; }',
+				noCssTransform: true
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>red</p><widget/>',
+				components: {
+					widget: Widget
+				}
+			});
+
+			paragraphs = ractive.findAll( 'p' );
+
+			t.equal( getComputedStyle( paragraphs[0] ).color, colors.red );
+			t.equal( getComputedStyle( paragraphs[1] ).color, colors.red );
+
+			// we need to clean up after ourselves otherwise the global styles remain in the DOM!
+			ractive.teardown().then( start );
+		});
+
 		test( 'Comments do not break transformed CSS', function ( t ) {
 			var Widget, ractive;
 
