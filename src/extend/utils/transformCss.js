@@ -3,7 +3,8 @@ define( function () {
 	'use strict';
 
 	var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
-		pseudoSelectorPattern = /([^:]*)(::?[^:]+)?/;
+		commentsPattern = /\/\*.*?\*\//g,
+		pseudoSelectorPattern = /([^:]*)(::?.+)?/;
 
 	return function transformCss( css, guid ) {
 		var transformed, addGuid;
@@ -33,7 +34,9 @@ define( function () {
 			return transformed.join( ', ' );
 		};
 
-		transformed = css.replace( selectorsPattern, function ( match, $1 ) {
+		transformed = css
+		.replace( commentsPattern, '' )
+		.replace( selectorsPattern, function ( match, $1 ) {
 			var selectors, transformed;
 
 			selectors = $1.split( ',' ).map( trim );
