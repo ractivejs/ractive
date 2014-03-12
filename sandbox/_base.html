@@ -35,7 +35,9 @@
 	<!-- JS -->
 	<script src='../require.js'></script>
 	<script>
-		var ractive;
+		var ractive, fixture;
+
+		fixture = document.querySelector( 'main' ); // so we can copy and paste into test suite more easily
 
 		// Configure RequireJS to load Ractive from the src/ folder
 		require.config({ baseUrl: '../../src/' });
@@ -45,7 +47,7 @@
 
 			// YOUR CODE GOES HERE
 			ractive = new Ractive({
-				el: 'main',
+				el: fixture,
 				template: '#template',
 				data: {
 					foo: 'world'
