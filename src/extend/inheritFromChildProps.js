@@ -68,8 +68,14 @@ define([
 
 		// Special case - CSS
 		if ( childProps.css ) {
+			var noCssTransform = Child.hasOwnProperty('noCssTransform')
+				? Child.noCssTransform
+				: initOptions.defaults.noCssTransform;
+
 			defineProperty( Child, 'css', {
-				value: transformCss( childProps.css, Child._guid )
+				value: noCssTransform 
+					? childProps.css 
+					: transformCss( childProps.css, Child._guid )
 			});
 		}
 	};
