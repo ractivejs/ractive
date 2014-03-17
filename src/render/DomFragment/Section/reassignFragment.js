@@ -164,7 +164,7 @@ define([
 		}
 
 		// index ref mustache?
-		else if ( mustache.indexRef === indexRef ) {
+		else if ( indexRef !== undefined && mustache.indexRef === indexRef ) {
 			mustache.value = newIndex;
 			mustache.render( newIndex );
 		}
