@@ -37,7 +37,6 @@ define( function () {
 
 			// (After inserting, we need to reset the node reference)
 			instance.fragment.pNode = instance.el = parentFragment.pNode;
-			instance.fragment.parent = parentFragment;
 		}
 
 		return instance;
