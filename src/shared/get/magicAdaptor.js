@@ -56,7 +56,7 @@ define([
 	};
 
 	MagicWrapper = function ( ractive, value, keypath ) {
-		var wrapper = this, keys, objKeypath, descriptor, siblings;
+		var keys, objKeypath, descriptor, siblings;
 
 		this.magic = true;
 
