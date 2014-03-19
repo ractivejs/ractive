@@ -672,6 +672,38 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( findAll.length, 1);
 		});
 
+		test( 'Indirect changes propagate across components in magic mode (#480)', function ( t ) {
+			var Blocker, ractive, blocker;
+
+			Blocker = Ractive.extend({
+				template: '{{foo.bar.baz}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo.bar.baz}}"><blocker foo="{{foo}}"/>',
+				data: { foo: { bar: { baz: 50 } } },
+				magic: true,
+				components: { blocker: Blocker }
+			});
+
+			ractive.set( 'foo.bar.baz', 42 );
+			t.equal( ractive.get( 'foo.bar.baz' ), 42 );
+
+			ractive.data.foo.bar.baz = 1337;
+			t.equal( ractive.data.foo.bar.baz, 1337 );
+			t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
+
+			blocker = ractive.findComponent( 'blocker' );
+
+			blocker.set( 'foo.bar.baz', 42 );
+			t.equal( blocker.get( 'foo.bar.baz' ), 42 );
+
+			blocker.data.foo.bar.baz = 1337;
+			t.equal( blocker.data.foo.bar.baz, 1337 );
+			t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
+		});
+
 	};
 
 });
