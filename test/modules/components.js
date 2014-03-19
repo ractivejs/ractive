@@ -704,6 +704,28 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
 		});
 
+		test( 'Correct value is given to node._ractive.keypath when a component is torn down and re-rendered (#470)', function ( t ) {
+			var ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo}}<widget visible="{{visible}}"/>{{/foo}}',
+				data: { foo: {}, visible: true },
+				components: {
+					widget: Ractive.extend({
+						template: '{{#visible}}<p>{{test}}</p>{{/visible}}'
+					})
+				}
+			});
+
+			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+
+			ractive.set( 'visible', false );
+			ractive.set( 'visible', true );
+
+			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+		});
+
 	};
 
 });
