@@ -9,7 +9,7 @@ define([
 	'use strict';
 
 	return reassignFragment;
-
+	
 	function reassignFragment ( fragment, indexRef, newIndex, oldKeypath, newKeypath ) {
 		var i, item, query;
 
@@ -24,10 +24,8 @@ define([
 		}
 
 		// fix context stack
-		if ( fragment.context && fragment.context.substr( 0, oldKeypath.length ) === oldKeypath ) {
-			fragment.context = fragment.context.replace( oldKeypath, newKeypath );
-		}
-
+		assignNewKeypath(fragment, 'context', oldKeypath, newKeypath);
+		
 		i = fragment.items.length;
 		while ( i-- ) {
 			item = fragment.items[i];
@@ -57,6 +55,26 @@ define([
 		}
 	}
 
+	function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
+
+		if ( !target[property] || target[property] === newKeypath ) { return; }
+		
+		target[property] = getNewKeypath(target[property], oldKeypath, newKeypath);
+	}
+
+	function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
+
+		//exact match
+		if( targetKeypath === oldKeypath ) {
+			return newKeypath;	
+		} 
+
+		//partial match based on leading keypath segments
+		if (targetKeypath.substr( 0, oldKeypath.length + 1 ) === oldKeypath + '.'){
+			return targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
+		}		
+	}
+
 	function reassignElement ( element, indexRef, newIndex, oldKeypath, newKeypath ) {
 		var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
 
@@ -74,9 +92,7 @@ define([
 		}
 
 		if ( storage = element.node._ractive ) {
-			if ( storage.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				storage.keypath = storage.keypath.replace( oldKeypath, newKeypath );
-			}
+			assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
 
 			if ( indexRef !== undefined ) {
 				storage.index[ indexRef ] = newIndex;
@@ -133,7 +149,7 @@ define([
 	}
 
 	function reassignMustache ( mustache, indexRef, newIndex, oldKeypath, newKeypath ) {
-		var i;
+		var updated, i;
 
 		// expression mustache?
 		if ( mustache.descriptor.x ) {
@@ -152,11 +168,11 @@ define([
 
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
-			if ( mustache.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				mustache.resolve( mustache.keypath.replace( oldKeypath, newKeypath ) );
+			updated =  getNewKeypath( mustache.keypath, oldKeypath, newKeypath );
+			if(updated){
+				mustache.resolve( updated );
 			}
 		}
-
 		// index ref mustache?
 		else if ( mustache.indexRef === indexRef ) {
 			mustache.value = newIndex;
