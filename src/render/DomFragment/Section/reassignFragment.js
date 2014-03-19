@@ -78,7 +78,7 @@ define([
 				storage.keypath = storage.keypath.replace( oldKeypath, newKeypath );
 			}
 
-			if ( indexRef !== undefined ) {
+			if ( indexRef != undefined ) {
 				storage.index[ indexRef ] = newIndex;
 			}
 

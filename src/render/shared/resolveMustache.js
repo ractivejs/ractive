@@ -28,6 +28,7 @@ define([
 
 			// is this a section? if so, we may have children that need
 			// to be reassigned
+			// TODO only DOM sections?
 			if ( this.type === types.SECTION ) {
 				i = this.fragments.length;
 				while ( i-- ) {
