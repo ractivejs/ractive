@@ -24,7 +24,10 @@ define([
 		transitionManager._callback = callback;
 		transitionManager._previous = previous;
 
-		previous = transitionManager;
+		if ( previous ) {
+			previous.push( transitionManager );
+		}
+
 		return transitionManager;
 	};
 
