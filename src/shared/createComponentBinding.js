@@ -53,8 +53,14 @@ define([
 
 			if ( !isEqual( value, this.value ) ) {
 				this.updating = true;
+
+				// TODO maybe the case that `value === this.value` - should that result
+				// in an update rather than a set?
 				set( this.otherInstance, this.otherKeypath, value );
 				this.value = value;
+
+				// TODO will the counterpart update after this line, during
+				// the runloop end cycle? may be a problem...
 				this.updating = false;
 			}
 		},
