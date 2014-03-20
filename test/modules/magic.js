@@ -215,6 +215,37 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","d","c"]' );
 		});
 
+		test( 'A magic component is magic regardless of whether its parent is magic', function ( t ) {
+			var Magician, ractive;
+
+			expect( 3 );
+
+			Magician = Ractive.extend({
+				template: '<p>{{magician}}</p>',
+				magic: true,
+				data: { magician: 'Harry Houdini' },
+				changeMagician: function () {
+					this.data.magician = 'David Copperfield'
+				},
+				init: function () {
+					t.ok( this.magic );
+				}
+			});
+
+			window.Magician = Magician;
+
+			ractive = new Ractive({
+				el: fixture,
+				magic: false,
+				template: '<magician/>',
+				components: { magician: Magician }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>Harry Houdini</p>' );
+			ractive.findComponent( 'magician' ).changeMagician();
+			t.htmlEqual( fixture.innerHTML, '<p>David Copperfield</p>' );
+		});
+
 	};
 
 });
