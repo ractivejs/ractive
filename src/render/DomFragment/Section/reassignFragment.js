@@ -19,12 +19,14 @@ define([
 			return;
 		}
 
-		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
+		// assign new context keypath if needed
+		assignNewKeypath(fragment, 'context', oldKeypath, newKeypath);
+
+		if ( fragment.indexRefs 
+			&& fragment.indexRefs[ indexRef ] !== undefined 
+			&& fragment.indexRefs[ indexRef ] !== newIndex) {
 			fragment.indexRefs[ indexRef ] = newIndex;
 		}
-
-		// fix context stack
-		assignNewKeypath(fragment, 'context', oldKeypath, newKeypath);
 		
 		i = fragment.items.length;
 		while ( i-- ) {
@@ -56,9 +58,7 @@ define([
 	}
 
 	function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
-
 		if ( !target[property] || target[property] === newKeypath ) { return; }
-		
 		target[property] = getNewKeypath(target[property], oldKeypath, newKeypath);
 	}
 
@@ -92,6 +92,8 @@ define([
 		}
 
 		if ( storage = element.node._ractive ) {
+
+			//adjust keypath if needed
 			assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
 
 			if ( indexRef != undefined ) {
@@ -169,7 +171,10 @@ define([
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
 			updated =  getNewKeypath( mustache.keypath, oldKeypath, newKeypath );
+			
+			//was a new keypath created?
 			if(updated){
+				//resolve it
 				mustache.resolve( updated );
 			}
 		}
