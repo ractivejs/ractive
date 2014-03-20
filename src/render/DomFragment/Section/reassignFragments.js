@@ -7,6 +7,13 @@ define([
 	'use strict';
 
 	return function ( section, start, end, by ) {
+
+		//nothing to do if only end of array was modified...
+		//push
+		if( start + by === end ) { return; }
+		//pop
+		if( start === end ) { return; }
+
 		var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
 
 		indexRef = section.descriptor.i;

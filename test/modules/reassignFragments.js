@@ -1,7 +1,9 @@
 define([ 
+	'Ractive',
 	'render/DomFragment/Section/reassignFragment',
 	'config/types'
 ], function ( 
+	Ractive,
 	reassignFragment,
 	types
 ) {
@@ -10,8 +12,13 @@ define([
 
 	return function () {
 
-		module( 'DomFragment' );
-		
+		var fixture;
+
+		module( 'ReassignFragments' );
+
+		// some set-up
+		fixture = document.getElementById( 'qunit-fixture' );
+
 		function contextUpdate(opt){
 			test( 'update context path: ' + opt.test, function ( t ) {
 				var resolved,
@@ -22,12 +29,7 @@ define([
 							attributes: [],
 							node: { 
 								_ractive: {
-									keypath: opt.target /*,
-									//not tested as does a full replace
-									binding: {
-										keypath: opt.target
-									}
-									*/
+									keypath: opt.target
 								}
 							}
 						},{
@@ -45,7 +47,11 @@ define([
 				
 				t.equal( fragment.context, opt.expected );
 				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );
-				t.equal( resolved, opt.expected );
+				if(opt.target!==opt.newKeypath){
+					t.equal( resolved, opt.expected );
+				}
+
+				t.htmlEqual( fixture.innerHTML, '' );
 			});
 		}
 
@@ -73,16 +79,44 @@ define([
 			expected: 'items.11'
 		});
 
-		/* the root keypath '' does not currently update, but maybe that's not a valid case? */
-		/*
-		contextUpdate({
-			test: 'root context',
-			target: '',
-			oldKeypath: '',
-			newKeypath: 'items.11',
-			expected: 'items.11'
-		});
-		*/
-	}
-});
+		test('Section with item that has expression only called once when created', function(t){
+			var called = 0,
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{#items}}{{format(.)}}{{/items}}',
+					data: {
+						items: [],
+						format: function(){
+							called++;
+						}
+					}
+				});
 
+			ractive.get('items').push('item');
+			t.equal( called, 1 );
+		})
+
+		test('Section with item indexRef expression changes correctly', function(t){
+			var called = 0,
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{#items:i}}{{format(.,i)}},{{/items}}',
+					data: {
+						items: [1,2,3,4,5],
+						format: function(x,i){
+							return x+i;
+						}
+					}
+				});
+
+			t.htmlEqual( fixture.innerHTML, '1,3,5,7,9,');
+
+			var items = ractive.get('items');
+			items.splice(1,2,10);
+			t.deepEqual(items, [1,10,4,5]);
+			t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
+		})
+
+	};
+
+});
