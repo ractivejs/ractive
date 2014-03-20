@@ -97,8 +97,7 @@ define([
 		})
 
 		test('Section with item indexRef expression changes correctly', function(t){
-			var called = 0,
-				ractive = new Ractive({
+			var ractive = new Ractive({
 					el: fixture,
 					template: '{{#items:i}}{{format(.,i)}},{{/items}}',
 					data: {
