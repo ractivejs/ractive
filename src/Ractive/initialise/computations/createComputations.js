@@ -14,10 +14,8 @@ define([
 		var key, signature;
 
 		for ( key in computed ) {
-			if ( hasOwnProperty.call( computed, key ) ) {
-				signature = getComputationSignature( computed[ key ] );
-				ractive._computations[ key ] = new Computation( ractive, key, signature );
-			}
+			signature = getComputationSignature( computed[ key ] );
+			ractive._computations[ key ] = new Computation( ractive, key, signature );
 		}
 	};
 

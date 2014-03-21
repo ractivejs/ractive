@@ -92,6 +92,57 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>First name: John</p><p>Last name: Belushi</p><p>Full name: John Belushi</p>' );
 		});
 
+		test( 'Components can have default computed properties', function ( t ) {
+			var Box, ractive;
+
+			Box = Ractive.extend({
+				template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
+				computed: {
+					area: '${width} * ${height}'
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<box width="{{width}}" height="{{height}}"/>',
+				data: {
+					width: 100,
+					height: 100
+				},
+				components: { box: Box }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div style="width: 100px; height: 100px;">10000px squared</div>' );
+
+			ractive.set( 'width', 200 );
+			t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
+		});
+
+		test( 'Instance can augment default computed properties of components', function ( t ) {
+			var Box, ractive;
+
+			Box = Ractive.extend({
+				template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
+				computed: {
+					area: '${width} * ${height}'
+				}
+			});
+
+			ractive = new Box({
+				el: fixture,
+				data: {
+					width: 100,
+					height: 100
+				},
+				computed: { irrelevant: '"foo"' }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div style="width: 100px; height: 100px;">10000px squared</div>' );
+
+			ractive.set( 'width', 200 );
+			t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
+		});
+
 	};
 
 });
