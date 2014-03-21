@@ -58,8 +58,16 @@ define([
 	}
 
 	function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
-		if ( !target[property] || target[property] === newKeypath ) { return; }
+		if ( !target[property] || startsWith(target[property], newKeypath) ) { return; }
 		target[property] = getNewKeypath(target[property], oldKeypath, newKeypath);
+	}
+
+	function startsWith( target, keypath) {
+		return target === keypath || startsWithKeypath(target, keypath);
+	}
+
+	function startsWithKeypath( target, keypath) {
+		return target.substr( 0, keypath.length + 1 ) === keypath + '.';
 	}
 
 	function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
@@ -70,7 +78,7 @@ define([
 		} 
 
 		//partial match based on leading keypath segments
-		if (targetKeypath.substr( 0, oldKeypath.length + 1 ) === oldKeypath + '.'){
+		if ( startsWithKeypath(targetKeypath, oldKeypath) ){
 			return targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
 		}		
 	}

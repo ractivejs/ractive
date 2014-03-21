@@ -116,6 +116,31 @@ define([
 			t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
 		})
 
+		test('Section with nested sections and inner context does splice()', function(t){
+			var template = '{{#model:i}}{{#thing}}' + 
+								'{{# .inner.length > 1}}' + 
+        							'<p>{{{format(inner)}}}</p>' + 
+        						'{{/ inner}}' + 
+    						'{{/thing}}{{/model}}'
+    		var called = 0
+
+			var ractive = new Ractive({
+					el: fixture,
+					template: template,
+					data: {
+						model: [ { thing: { inner: [3,4] } } ],
+						format: function(a){
+							called++;
+							return a;
+						}
+					}
+				});
+
+			t.htmlEqual( fixture.innerHTML, '<p>3,4</p>');
+			ractive.get('model').splice(0, 0, {thing: {inner: [1,2]}});
+			t.htmlEqual( fixture.innerHTML, '<p>1,2</p><p>3,4</p>');
+		})
+
 	};
 
 });
