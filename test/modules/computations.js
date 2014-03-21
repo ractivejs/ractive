@@ -118,7 +118,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
 		});
 
-		test( 'Instance can augment default computed properties of components', function ( t ) {
+		test( 'Instances can augment default computed properties of components', function ( t ) {
 			var Box, ractive;
 
 			Box = Ractive.extend({
@@ -141,6 +141,23 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			ractive.set( 'width', 200 );
 			t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
+		});
+
+		test( 'Computed values can depend on other computed values', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{number}} - {{squared}} - {{cubed}}',
+				data: { number: 5 },
+				computed: {
+					squared: '${number} * ${number}',
+					cubed: '${squared} * ${number}'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '5 - 25 - 125' );
+
+			ractive.add( 'number', 1 );
+			t.htmlEqual( fixture.innerHTML, '6 - 36 - 216' );
 		});
 
 	};
