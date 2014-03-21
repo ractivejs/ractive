@@ -726,6 +726,37 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 		});
 
+		test( 'Nested components fire the init() event correctly', function ( t ) {
+			var ractive, Outer, Inner, completeCount = 0, outerInitCount = 0, outerCompleteCount = 0, innerInitCount = 0, innerCompleteCount = 0;
+
+			Inner = Ractive.extend({
+				init: function () {
+					innerInitCount += 1;
+				}
+			});
+
+			Outer = Ractive.extend({
+				template: '<inner/>',
+				init: function () {
+					outerInitCount += 1;
+				},
+				components: { inner: Inner }
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo}}<outer/>{{/foo}}',
+				data: { foo: false },
+				components: { outer: Outer }
+			});
+
+			ractive.set( 'foo', true );
+
+			// initCounts should all have incremented synchronously
+			t.equal( outerInitCount, 1 );
+			t.equal( innerInitCount, 1 );
+		});
+
 	};
 
 });
