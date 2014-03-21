@@ -187,11 +187,11 @@ define([
 
 			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 				// either length or contents have changed, so we update the model
-				attribute.receiving = true;
+				runloop.addBinding( attribute );
 				attribute.value = value;
 				set( this.root, this.keypath, value );
 				runloop.trigger();
-				attribute.receiving = false;
+
 			}
 
 			return this;
@@ -247,11 +247,10 @@ define([
 		update: function () {
 			var value = this.value();
 
-			this.attr.receiving = true;
+			runloop.addBinding( this.attr );
 			this.attr.value = value;
 			set( this.root, this.keypath, value );
 			runloop.trigger();
-			this.attr.receiving = false;
 
 			return this;
 		},
@@ -304,10 +303,10 @@ define([
 			var node = this.node;
 
 			if ( node.checked ) {
-				this.attr.receiving = true;
+				runloop.addBinding( this.attr );
 				set( this.root, this.keypath, this.value() );
 				runloop.trigger();
-				this.attr.receiving = false;
+
 			}
 		},
 
@@ -355,10 +354,9 @@ define([
 		update: function () {
 			this.checked = this.node.checked;
 
-			this.attr.receiving = true;
+			runloop.addBinding( this.attr );
 			set( this.root, this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
 			runloop.trigger();
-			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -383,10 +381,9 @@ define([
 		},
 
 		update: function () {
-			this.attr.receiving = true;
+			runloop.addBinding( this.attr );
 			set( this.root, this.keypath, this.value() );
 			runloop.trigger();
-			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -431,10 +428,9 @@ define([
 
 	ContentEditableBinding.prototype = {
 		update: function () {
-			this.attr.receiving = true;
+			runloop.addBinding( this.attr );
 			set( this.root, this.keypath, this.node.innerHTML );
 			runloop.trigger();
-			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -475,10 +471,9 @@ define([
 		update: function () {
 			var attribute = this.attr, value = this.value();
 
-			attribute.receiving = true;
+			runloop.addBinding( attribute );
 			set( attribute.root, attribute.keypath, value );
 			runloop.trigger();
-			attribute.receiving = false;
 		},
 
 		teardown: function () {

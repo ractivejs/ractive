@@ -223,7 +223,7 @@ define([
 		}
 
 		if ( value !== this.value ) {
-			if ( !this.receiving ) {
+			if ( !this.active ) {
 				node.innerHTML = value;
 			}
 
@@ -253,7 +253,7 @@ define([
 
 				// with two-way binding, only update if the change wasn't initiated by the user
 				// otherwise the cursor will often be sent to the wrong place
-				if ( !this.receiving ) {
+				if ( !this.active ) {
 					node[ this.propertyName ] = value;
 				}
 

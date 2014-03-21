@@ -21,14 +21,19 @@ define([
 	});
 
 	function set ( ractive, keypath, value, silent ) {
-		var keys, lastKey, parentKeypath, parentValue, wrapper, evaluator, dontTeardownWrapper;
+		var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
 		if ( isEqual( ractive._cache[ keypath ], value ) ) {
 			return;
 		}
 
+		computation = ractive._computations[ keypath ];
 		wrapper = ractive._wrapped[ keypath ];
 		evaluator = ractive._evaluators[ keypath ];
+
+		if ( computation && !computation.setting ) {
+			computation.set( value );
+		}
 
 		if ( wrapper && wrapper.reset ) {
 			wrapper.reset( value );
@@ -44,7 +49,7 @@ define([
 			evaluator.value = value;
 		}
 
-		if ( !evaluator && ( !wrapper || !wrapper.reset ) ) {
+		if ( !computation && !evaluator && ( !wrapper || !wrapper.reset ) ) {
 			keys = keypath.split( '.' );
 			lastKey = keys.pop();
 

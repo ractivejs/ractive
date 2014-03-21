@@ -14,7 +14,8 @@ define([
 	'utils/getGuid',
 	'utils/Promise',
 	'shared/get/magicAdaptor',
-	'parse/_parse'
+	'parse/_parse',
+	'Ractive/initialise/computations/createComputations'
 ], function (
 	isClient,
 	errors,
@@ -31,7 +32,8 @@ define([
 	getGuid,
 	Promise,
 	magicAdaptor,
-	parse
+	parse,
+	createComputations
 ) {
 
 	'use strict';
@@ -98,6 +100,9 @@ define([
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },
 
+			// Computed properties
+			_computations: { value: create( null ) },
+
 			// two-way bindings
 			_twowayBindings: { value: {} },
 
@@ -160,6 +165,11 @@ define([
 		// Special case
 		if ( !ractive.data ) {
 			ractive.data = {};
+		}
+
+		// Set up any computed values
+		if ( options.computed ) {
+			createComputations( ractive, options.computed );
 		}
 
 
