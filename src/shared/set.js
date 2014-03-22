@@ -30,11 +30,15 @@ define([
 		wrapper = ractive._wrapped[ keypath ];
 		evaluator = ractive._evaluators[ keypath ];
 
+		// If we have a wrapper with a `reset()` method, we try and use it. If the
+		// `reset()` method returns false, the wrapper should be torn down, and
+		// (most likely) a new one should be created later
 		if ( wrapper && wrapper.reset ) {
-			wrapper.reset( value );
-			value = wrapper.get();
+			dontTeardownWrapper = ( wrapper.reset( value ) !== false );
 
-			dontTeardownWrapper = true;
+			if ( dontTeardownWrapper ) {
+				value = wrapper.get();
+			}
 		}
 
 		// Update evaluator value. This may be from the evaluator itself, or
@@ -44,7 +48,7 @@ define([
 			evaluator.value = value;
 		}
 
-		if ( !evaluator && ( !wrapper || !wrapper.reset ) ) {
+		if ( !evaluator && !dontTeardownWrapper ) {
 			keys = keypath.split( '.' );
 			lastKey = keys.pop();
 
