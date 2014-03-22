@@ -726,8 +726,8 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 		});
 
-		test( 'Nested components fire the init() event correctly', function ( t ) {
-			var ractive, Outer, Inner, completeCount = 0, outerInitCount = 0, outerCompleteCount = 0, innerInitCount = 0, innerCompleteCount = 0;
+		test( 'Nested components fire the init() event correctly (#511)', function ( t ) {
+			var ractive, Outer, Inner, outerInitCount = 0, innerInitCount = 0;
 
 			Inner = Ractive.extend({
 				init: function () {
@@ -752,9 +752,9 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			ractive.set( 'foo', true );
 
-			// initCounts should all have incremented synchronously
-			t.equal( outerInitCount, 1 );
-			t.equal( innerInitCount, 1 );
+			// initCounts should have incremented synchronously
+			t.equal( outerInitCount, 1, '<outer/> component should call init()' );
+			t.equal( innerInitCount, 1, '<inner/> component should call init()' );
 		});
 
 	};

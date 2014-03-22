@@ -33,7 +33,7 @@ define([
 		// the component is in the DOM. That makes it easier for component authors to do stuff
 		// like `this.width = this.find('*').clientWidth` or whatever without using
 		// ugly setTimeout hacks.
-		if ( options._parent && !options._parent.rendered ) {
+		if ( options._parent && options._parent._rendering ) {
 			options._parent._childInitQueue.push({ instance: child, options: options });
 		} else if ( child.init ) {
 			child.init( options );
