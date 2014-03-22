@@ -227,8 +227,6 @@ define([
 	function flushChanges () {
 		var thing, upstreamChanges, i;
 
-		attemptKeypathResolution();
-
 		i = instances.length;
 		while ( i-- ) {
 			thing = instances[i];
@@ -238,6 +236,8 @@ define([
 				notifyDependants.multiple( thing, upstreamChanges, true );
 			}
 		}
+
+		attemptKeypathResolution();
 
 		while ( dirty ) {
 			dirty = false;

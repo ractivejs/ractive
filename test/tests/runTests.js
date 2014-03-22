@@ -9,11 +9,12 @@
 		QUnit.config.autostart = false;
 
 		config = {
+			baseUrl: '../../src/',
 			paths: {
-				Ractive: '../../tmp/Ractive-legacy',
-				modules: '../modules',
-				samples: '../samples',
-				vendor: '../vendor'
+				Ractive: '../tmp/Ractive-legacy',
+				modules: '../test/modules',
+				samples: '../test/samples',
+				vendor: '../test/vendor'
 			}
 		};
 	} else {

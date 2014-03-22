@@ -757,6 +757,26 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( innerInitCount, 1, '<inner/> component should call init()' );
 		});
 
+		test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<one foo="{{foo}}"/><two foo="{{foo}}"/>',
+				components: {
+					one: Ractive.extend({ template: '<p>{{foo.bar}}</p>' }),
+					two: Ractive.extend({ template: '<p>{{foo.bar}}</p>' })
+				}
+			});
+
+			ractive.set( 'foo', {} );
+			t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
+
+			ractive.findComponent( 'one' ).set( 'foo.bar', 'baz' );
+			t.htmlEqual( fixture.innerHTML, '<p>baz</p><p>baz</p>' );
+
+			ractive.findComponent( 'two' ).set( 'foo.bar', 'qux' );
+			t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
+		});
+
 	};
 
 });

@@ -19,12 +19,14 @@ define([
 			return;
 		}
 
-		if ( fragment.indexRefs && fragment.indexRefs[ indexRef ] !== undefined ) {
+		// assign new context keypath if needed
+		assignNewKeypath(fragment, 'context', oldKeypath, newKeypath);
+
+		if ( fragment.indexRefs 
+			&& fragment.indexRefs[ indexRef ] !== undefined 
+			&& fragment.indexRefs[ indexRef ] !== newIndex) {
 			fragment.indexRefs[ indexRef ] = newIndex;
 		}
-
-		// fix context stack
-		assignNewKeypath(fragment, 'context', oldKeypath, newKeypath);
 		
 		i = fragment.items.length;
 		while ( i-- ) {
@@ -56,10 +58,16 @@ define([
 	}
 
 	function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
-
-		if ( !target[property] || target[property] === newKeypath ) { return; }
-		
+		if ( !target[property] || startsWith(target[property], newKeypath) ) { return; }
 		target[property] = getNewKeypath(target[property], oldKeypath, newKeypath);
+	}
+
+	function startsWith( target, keypath) {
+		return target === keypath || startsWithKeypath(target, keypath);
+	}
+
+	function startsWithKeypath( target, keypath) {
+		return target.substr( 0, keypath.length + 1 ) === keypath + '.';
 	}
 
 	function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
@@ -70,7 +78,7 @@ define([
 		} 
 
 		//partial match based on leading keypath segments
-		if (targetKeypath.substr( 0, oldKeypath.length + 1 ) === oldKeypath + '.'){
+		if ( startsWithKeypath(targetKeypath, oldKeypath) ){
 			return targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
 		}		
 	}
@@ -92,6 +100,8 @@ define([
 		}
 
 		if ( storage = element.node._ractive ) {
+
+			//adjust keypath if needed
 			assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
 
 			if ( indexRef != undefined ) {
@@ -169,7 +179,10 @@ define([
 		// normal keypath mustache?
 		if ( mustache.keypath ) {
 			updated =  getNewKeypath( mustache.keypath, oldKeypath, newKeypath );
+			
+			//was a new keypath created?
 			if(updated){
+				//resolve it
 				mustache.resolve( updated );
 			}
 		}
