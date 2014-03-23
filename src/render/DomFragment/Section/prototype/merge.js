@@ -1,5 +1,5 @@
 define([
-	'render/DomFragment/Section/reassignFragment'
+	'shared/reassignFragment/_reassignFragment'
 ], function (
 	reassignFragment
 ) {

@@ -65,6 +65,17 @@ define([
 			}
 		},
 
+		reassign: function ( newKeypath ) {
+			unregisterDependant( this );
+			unregisterDependant( this.counterpart );
+
+			this.keypath = newKeypath;
+			this.counterpart.otherKeypath = newKeypath;
+
+			registerDependant( this );
+			registerDependant( this.counterpart );
+		},
+
 		teardown: function () {
 			unregisterDependant( this );
 		}

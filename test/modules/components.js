@@ -777,6 +777,24 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
 		});
 
+		test( 'Index references propagate down to non-isolated components', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<widget letter="{{.}}"/>{{/items}}',
+				data: { items: [ 'a', 'b', 'c' ] },
+				components: {
+					widget: Ractive.extend({
+						template: '<p>{{i}}: {{letter}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: b</p><p>2: c</p>' );
+
+			ractive.get( 'items' ).splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
+		});
+
 	};
 
 });
