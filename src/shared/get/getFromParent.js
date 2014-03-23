@@ -17,11 +17,19 @@ define([
 	});
 
 	return function getFromParent ( child, keypath ) {
-		var parent, fragment, keypathToTest, value;
+		var parent, fragment, keypathToTest, value, index;
 
 		parent = child._parent;
 
 		fragment = child.component.parentFragment;
+
+		// Special case - index refs
+		if ( fragment.indexRefs && ( index = fragment.indexRefs[ keypath ] ) !== undefined ) {
+			// create an index ref binding, so that it can be reassigned letter if necessary
+			child.component.indexRefBindings[ keypath ] = keypath;
+			return index;
+		}
+
 		do {
 			if ( !fragment.context ) {
 				continue;
