@@ -17,14 +17,12 @@ define([
 
 	ExpressionStub.prototype = {
 		toJSON: function () {
-			if ( this.json ) {
-				return this.json;
+			if ( !this.json ) {
+				this.json = {
+					r: this.refs,
+					s: this.str
+				};
 			}
-
-			this.json = {
-				r: this.refs,
-				s: this.str
-			};
 
 			return this.json;
 		}

@@ -14,7 +14,7 @@ define([
 		arrayMember = /^[0-9][1-9]*$/;
 
 	return function ( tokenizer, isTriple ) {
-		var start, mustache, type, expr, i, remaining, index, delimiter;
+		var start, mustache, type, expr, i, remaining, index, delimiter, keypathExpression;
 
 		start = tokenizer.pos;
 
@@ -103,6 +103,8 @@ define([
 			mustache.ref = expr.n;
 		} else if ( expr.t === types.NUMBER_LITERAL && arrayMember.test( expr.v ) ) {
 			mustache.ref = expr.v;
+		} else if ( keypathExpression = getKeypathExpression( expr ) ) {
+			mustache.keypathExpression = keypathExpression;
 		} else {
 			mustache.expression = expr;
 		}
@@ -115,5 +117,23 @@ define([
 
 		return mustache;
 	};
+
+	function getKeypathExpression ( expr ) {
+		var members = [];
+
+		while ( expr.t === types.MEMBER && expr.r.t === types.REFINEMENT ) {
+			members.unshift( expr.r );
+			expr = expr.x;
+		}
+
+		if ( expr.t !== types.REFERENCE ) {
+			return null;
+		}
+
+		return {
+			r: expr.n,
+			m: members
+		};
+	}
 
 });

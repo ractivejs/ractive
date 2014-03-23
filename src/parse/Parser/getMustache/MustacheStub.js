@@ -1,8 +1,10 @@
 define([
 	'config/types',
-	'parse/Parser/getMustache/ExpressionStub/_ExpressionStub'
+	'parse/Parser/getMustache/KeypathExpressionStub',
+	'parse/Parser/getMustache/ExpressionStub'
 ], function (
 	types,
+	KeypathExpressionStub,
 	ExpressionStub
 ) {
 
@@ -13,6 +15,10 @@ define([
 
 		if ( token.ref ) {
 			this.ref = token.ref;
+		}
+
+		if ( token.keypathExpression ) {
+			this.keypathExpr = new KeypathExpressionStub( token.keypathExpression );
 		}
 
 		if ( token.expression ) {
@@ -36,6 +42,10 @@ define([
 
 			if ( this.ref ) {
 				json.r = this.ref;
+			}
+
+			if ( this.keypathExpr ) {
+				json.kx = this.keypathExpr.toJSON();
 			}
 
 			if ( this.expr ) {
