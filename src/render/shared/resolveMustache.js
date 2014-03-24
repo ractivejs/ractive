@@ -2,7 +2,7 @@ define([
 	'config/types',
 	'shared/registerDependant',
 	'shared/unregisterDependant',
-	'render/DomFragment/Section/reassignFragment' // TODO move this!
+	'shared/reassignFragment/_reassignFragment'
 ], function (
 	types,
 	registerDependant,

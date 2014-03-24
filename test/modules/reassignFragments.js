@@ -1,8 +1,8 @@
-define([ 
+define([
 	'Ractive',
-	'render/DomFragment/Section/reassignFragment',
+	'shared/reassignFragment/_reassignFragment',
 	'config/types'
-], function ( 
+], function (
 	Ractive,
 	reassignFragment,
 	types
@@ -22,12 +22,12 @@ define([
 		function contextUpdate(opt){
 			test( 'update context path: ' + opt.test, function ( t ) {
 				var resolved,
-					fragment = { 
+					fragment = {
 						context: opt.target,
-						items: [{ 
+						items: [{
 							type: types.ELEMENT,
 							attributes: [],
-							node: { 
+							node: {
 								_ractive: {
 									keypath: opt.target
 								}
@@ -40,11 +40,11 @@ define([
 							resolve: function(keypath){
 								resolved = keypath
 							}
-						}] 
+						}]
 					};
 
 				reassignFragment(fragment, undefined, undefined, opt.oldKeypath, opt.newKeypath);
-				
+
 				t.equal( fragment.context, opt.expected );
 				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );
 				if(opt.target!==opt.newKeypath){
@@ -97,8 +97,7 @@ define([
 		})
 
 		test('Section with item indexRef expression changes correctly', function(t){
-			var called = 0,
-				ractive = new Ractive({
+			var ractive = new Ractive({
 					el: fixture,
 					template: '{{#items:i}}{{format(.,i)}},{{/items}}',
 					data: {
@@ -116,6 +115,71 @@ define([
 			t.deepEqual(items, [1,10,4,5]);
 			t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
 		})
+
+		test('Section with nested sections and inner context does splice()', function(t){
+			var template = '{{#model:i}}{{#thing}}' +
+								'{{# .inner.length > 1}}' +
+        							'<p>{{{format(inner)}}}</p>' +
+        						'{{/ inner}}' +
+    						'{{/thing}}{{/model}}'
+    		var called = 0
+
+			var ractive = new Ractive({
+					el: fixture,
+					template: template,
+					data: {
+						model: [ { thing: { inner: [3,4] } } ],
+						format: function(a){
+							called++;
+							return a;
+						}
+					}
+				});
+
+			t.htmlEqual( fixture.innerHTML, '<p>3,4</p>');
+			ractive.get('model').splice(0, 0, {thing: {inner: [1,2]}});
+			t.htmlEqual( fixture.innerHTML, '<p>1,2</p><p>3,4</p>');
+		})
+
+		test( 'Components in a list can be reassigned', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<widget letter="{{.}}"/>{{/items}}',
+				data: { items: [ 'a', 'b', 'c' ] },
+				components: {
+					widget: Ractive.extend({
+						template: '<p>{{letter}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>a</p><p>b</p><p>c</p>' );
+
+			ractive.get( 'items' ).splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>a</p><p>c</p>' );
+
+			ractive.set( 'items[0]', 'd' );
+			ractive.set( 'items[1]', 'e' );
+			t.htmlEqual( fixture.innerHTML, '<p>d</p><p>e</p>' );
+		});
+
+		test( 'Index references can be used as key attributes on components, and reassignment works', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<widget index="{{i}}" letter="{{.}}"/>{{/items}}',
+				data: { items: [ 'a', 'b', 'c' ] },
+				components: {
+					widget: Ractive.extend({
+						template: '<p>{{index}}: {{letter}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: b</p><p>2: c</p>' );
+
+			ractive.get( 'items' ).splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
+		});
 
 	};
 

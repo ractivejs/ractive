@@ -38,7 +38,7 @@ define([
 	};
 
 	function getValue ( component, key, descriptor, toBind ) {
-		var parameter, parsed, parentInstance, parentFragment, keypath;
+		var parameter, parsed, parentInstance, parentFragment, keypath, indexRef;
 
 		parentInstance = component.root;
 		parentFragment = component.parentFragment;
@@ -58,8 +58,9 @@ define([
 		if ( descriptor.length === 1 && descriptor[0].t === types.INTERPOLATOR && descriptor[0].r ) {
 
 			// Is it an index reference?
-			if ( parentFragment.indexRefs && parentFragment.indexRefs[ descriptor[0].r ] !== undefined ) {
-				return parentFragment.indexRefs[ descriptor[0].r ];
+			if ( parentFragment.indexRefs && parentFragment.indexRefs[ ( indexRef = descriptor[0].r ) ] !== undefined ) {
+				component.indexRefBindings[ indexRef ] = key;
+				return parentFragment.indexRefs[ indexRef ];
 			}
 
 			// TODO what about references that resolve late? Should these be considered?

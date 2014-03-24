@@ -726,6 +726,37 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 		});
 
+		test( 'Nested components fire the init() event correctly (#511)', function ( t ) {
+			var ractive, Outer, Inner, outerInitCount = 0, innerInitCount = 0;
+
+			Inner = Ractive.extend({
+				init: function () {
+					innerInitCount += 1;
+				}
+			});
+
+			Outer = Ractive.extend({
+				template: '<inner/>',
+				init: function () {
+					outerInitCount += 1;
+				},
+				components: { inner: Inner }
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo}}<outer/>{{/foo}}',
+				data: { foo: false },
+				components: { outer: Outer }
+			});
+
+			ractive.set( 'foo', true );
+
+			// initCounts should have incremented synchronously
+			t.equal( outerInitCount, 1, '<outer/> component should call init()' );
+			t.equal( innerInitCount, 1, '<inner/> component should call init()' );
+		});
+
 		test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
@@ -744,7 +775,24 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			ractive.findComponent( 'two' ).set( 'foo.bar', 'qux' );
 			t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
+		});
 
+		test( 'Index references propagate down to non-isolated components', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<widget letter="{{.}}"/>{{/items}}',
+				data: { items: [ 'a', 'b', 'c' ] },
+				components: {
+					widget: Ractive.extend({
+						template: '<p>{{i}}: {{letter}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: b</p><p>2: c</p>' );
+
+			ractive.get( 'items' ).splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
 
 	};

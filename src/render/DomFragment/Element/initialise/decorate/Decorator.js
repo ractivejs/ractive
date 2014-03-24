@@ -97,7 +97,7 @@ define([
 		teardown: function ( updating ) {
 			this.actual.teardown();
 
-			if ( !updating ) {
+			if ( !updating && this.fragment ) {
 				this.fragment.teardown();
 			}
 		}

@@ -2,11 +2,13 @@ define([
 	'config/types',
 	'utils/normaliseKeypath',
 	'parse/Parser/utils/jsonifyStubs',
-	'parse/Parser/getMustache/ExpressionStub/_ExpressionStub'
+	'parse/Parser/getMustache/KeypathExpressionStub',
+	'parse/Parser/getMustache/ExpressionStub'
 ], function (
 	types,
 	normaliseKeypath,
 	jsonifyStubs,
+	KeypathExpressionStub,
 	ExpressionStub
 ) {
 
@@ -19,6 +21,10 @@ define([
 		this.indexRef = firstToken.indexRef;
 
 		this.inverted = ( firstToken.mustacheType === types.INVERTED );
+
+		if ( firstToken.keypathExpression ) {
+			this.keypathExpr = new KeypathExpressionStub( firstToken.keypathExpression );
+		}
 
 		if ( firstToken.expression ) {
 			this.expr = new ExpressionStub( firstToken.expression );

@@ -223,6 +223,30 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>qux</p>' );
 		});
 
+		test( 'If a wrapper\'s reset() method returns false, it should be torn down (#467)', function ( t ) {
+			var model1, model2, ractive;
+
+			model1 = new Model({
+				foo: 'bar'
+			});
+
+			model2 = new Model({
+				foo: 'baz'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{model.foo}}</p>',
+				data: { model: model1 },
+				adapt: [ adaptor ]
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>bar</p>' );
+
+			ractive.set( 'model', model2 );
+			t.htmlEqual( fixture.innerHTML, '<p>baz</p>' );
+		});
+
 	};
 
 });

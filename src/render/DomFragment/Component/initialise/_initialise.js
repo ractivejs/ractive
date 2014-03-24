@@ -32,6 +32,7 @@ define([
 		component.type = types.COMPONENT;
 		component.name = options.descriptor.e;
 		component.index = options.index;
+		component.indexRefBindings = {};
 		component.bindings = [];
 
 		// get the component constructor
