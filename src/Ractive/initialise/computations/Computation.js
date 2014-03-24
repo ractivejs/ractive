@@ -1,8 +1,10 @@
 define([
+	'utils/warn',
 	'global/runloop',
 	'shared/set',
 	'Ractive/initialise/computations/Watcher'
 ], function (
+	warn,
 	runloop,
 	set,
 	Watcher
@@ -37,7 +39,7 @@ define([
 		},
 
 		update: function () {
-			var ractive, originalCaptured, result;
+			var ractive, originalCaptured, result, errored;
 
 			ractive = this.ractive;
 			originalCaptured = ractive._captured;
@@ -46,17 +48,27 @@ define([
 				ractive._captured = [];
 			}
 
-			result = this.getter.call( ractive );
+			try {
+				result = this.getter.call( ractive );
+			} catch ( err ) {
+				if ( ractive.debug ) {
+					warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
+				}
+
+				errored = true;
+			}
 
 			diff( this, this.watchers, ractive._captured );
 
 			// reset
 			ractive._captured = originalCaptured;
 
-			this.setting = true;
-			this.value = result;
-			set( ractive, this.key, result );
-			this.setting = false;
+			if ( !errored ) {
+				this.setting = true;
+				this.value = result;
+				set( ractive, this.key, result );
+				this.setting = false;
+			}
 
 			this.deferred = false;
 		},

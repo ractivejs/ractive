@@ -160,6 +160,21 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '6 - 36 - 216' );
 		});
 
+		test( 'Computations that cause errors are considered undefined', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{uppercaseBar}}',
+				computed: {
+					uppercaseBar: '${foo}.bar.toUpperCase()'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '' );
+
+			ractive.set( 'foo.bar', 'works' );
+			t.htmlEqual( fixture.innerHTML, 'WORKS' );
+		})
+
 	};
 
 });

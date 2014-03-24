@@ -68,7 +68,7 @@ define([
 
 				if ( !parentValue ) {
 					parentValue = createBranch( lastKey );
-					set( ractive, parentKeypath, parentValue );
+					set( ractive, parentKeypath, parentValue, true );
 				}
 
 				parentValue[ lastKey ] = value;
