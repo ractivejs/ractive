@@ -21,14 +21,19 @@ define([
 	});
 
 	function set ( ractive, keypath, value, silent ) {
-		var keys, lastKey, parentKeypath, parentValue, wrapper, evaluator, dontTeardownWrapper;
+		var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
 		if ( isEqual( ractive._cache[ keypath ], value ) ) {
 			return;
 		}
 
+		computation = ractive._computations[ keypath ];
 		wrapper = ractive._wrapped[ keypath ];
 		evaluator = ractive._evaluators[ keypath ];
+
+		if ( computation && !computation.setting ) {
+			computation.set( value );
+		}
 
 		// If we have a wrapper with a `reset()` method, we try and use it. If the
 		// `reset()` method returns false, the wrapper should be torn down, and
@@ -48,7 +53,7 @@ define([
 			evaluator.value = value;
 		}
 
-		if ( !evaluator && !dontTeardownWrapper ) {
+		if ( !computation && !evaluator && !dontTeardownWrapper ) {
 			keys = keypath.split( '.' );
 			lastKey = keys.pop();
 

@@ -19,13 +19,19 @@ define([
 	function get ( ractive, keypath, options ) {
 		var cache = ractive._cache,
 			value,
+			computation,
 			wrapped,
 			evaluator;
 
 		if ( cache[ keypath ] === undefined ) {
 
+			// Is this a computed property?
+			if ( computation = ractive._computations[ keypath ] ) {
+				value = computation.value;
+			}
+
 			// Is this a wrapped property?
-			if ( wrapped = ractive._wrapped[ keypath ] ) {
+			else if ( wrapped = ractive._wrapped[ keypath ] ) {
 				value = wrapped.value;
 			}
 

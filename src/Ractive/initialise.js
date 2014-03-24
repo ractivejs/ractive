@@ -14,7 +14,8 @@ define([
 	'utils/getGuid',
 	'utils/Promise',
 	'shared/get/magicAdaptor',
-	'parse/_parse'
+	'parse/_parse',
+	'Ractive/initialise/computations/createComputations'
 ], function (
 	isClient,
 	errors,
@@ -31,7 +32,8 @@ define([
 	getGuid,
 	Promise,
 	magicAdaptor,
-	parse
+	parse,
+	createComputations
 ) {
 
 	'use strict';
@@ -40,7 +42,7 @@ define([
 
 	return function initialiseRactiveInstance ( ractive, options ) {
 
-		var template, templateEl, parsedTemplate, promise, fulfilPromise;
+		var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed;
 
 		if ( isArray( options.adaptors ) ) {
 			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
@@ -50,9 +52,10 @@ define([
 
 		// Options
 		// -------
+		defaults = ractive.constructor.defaults;
 		initOptions.keys.forEach( function ( key ) {
 			if ( options[ key ] === undefined ) {
-				options[ key ] = ractive.constructor.defaults[ key ];
+				options[ key ] = defaults[ key ];
 			}
 		});
 
@@ -97,6 +100,9 @@ define([
 
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },
+
+			// Computed properties
+			_computations: { value: create( null ) },
 
 			// two-way bindings
 			_twowayBindings: { value: {} },
@@ -160,6 +166,15 @@ define([
 		// Special case
 		if ( !ractive.data ) {
 			ractive.data = {};
+		}
+
+		// Set up any computed values
+		computed = defaults.computed
+			? extend( create( defaults.computed ), options.computed )
+			: options.computed;
+
+		if ( computed ) {
+			createComputations( ractive, computed );
 		}
 
 
