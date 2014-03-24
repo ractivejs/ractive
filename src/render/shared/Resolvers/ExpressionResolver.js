@@ -21,17 +21,13 @@ define([
 		this.root = ractive;
 		this.callback = callback;
 		this.owner = owner;
+		this.str = expression.s;
 		this.args = args = [];
-		this.resolvers = [];
 
 		this.unresolved = [];
 		this.pending = 0;
 
-		this.watchers = [];
-
 		indexRefs = parentFragment.indexRefs;
-
-		this.str = expression.s;
 
 		// some expressions don't have references. edge case, but, yeah.
 		if ( !expression.r || !expression.r.length ) {
