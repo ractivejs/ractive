@@ -23,36 +23,33 @@ define([
 	var Evaluator, cache = {};
 
 	Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority ) {
-		var i, arg;
+		var evaluator = this;
 
-		this.root = root;
-		this.uniqueString = uniqueString;
-		this.keypath = keypath;
-		this.priority = priority;
+		evaluator.root = root;
+		evaluator.uniqueString = uniqueString;
+		evaluator.keypath = keypath;
+		evaluator.priority = priority;
 
-		this.fn = getFunctionFromString( functionStr, args.length );
-		this.values = [];
-		this.refs = [];
+		evaluator.fn = getFunctionFromString( functionStr, args.length );
+		evaluator.values = [];
+		evaluator.refs = [];
 
-		i = args.length;
-		while ( i-- ) {
-			if ( arg = args[i] ) {
-				if ( arg[0] ) {
-					// this is an index ref... we don't need to register a dependant
-					this.values[i] = arg[1];
-				}
+		args.forEach( function ( arg, i ) {
+			if ( !arg ) {
+				return;
+			}
 
-				else {
-					this.refs.push( new Reference( root, arg[1], this, i, priority ) );
-				}
+			if ( arg.isIndexRef ) {
+				// this is an index ref... we don't need to register a dependant
+				evaluator.values[i] = arg.value;
 			}
 
 			else {
-				this.values[i] = undefined;
+				evaluator.refs.push( new Reference( root, arg.keypath, evaluator, i, priority ) );
 			}
-		}
+		});
 
-		this.selfUpdating = ( this.refs.length <= 1 );
+		evaluator.selfUpdating = ( evaluator.refs.length <= 1 );
 	};
 
 	Evaluator.prototype = {

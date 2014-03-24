@@ -1,7 +1,7 @@
 define([
 	'circular',
 	'shared/reassignFragment/utils/getNewKeypath',
-	'render/shared/ExpressionResolver/_ExpressionResolver'
+	'render/shared/Resolvers/ExpressionResolver'
 ], function (
 	circular,
 	getNewKeypath,
@@ -27,11 +27,13 @@ define([
 			// need to manually set mustache.resolved = false, otherwise we
 			// come up against a nasty bug - #271)
 
-			if ( mustache.expressionResolver ) {
-				mustache.expressionResolver.teardown();
+			if ( mustache.resolver ) {
+				mustache.resolver.teardown();
 			}
 
-			mustache.expressionResolver = new ExpressionResolver( mustache );
+			mustache.resolver = new ExpressionResolver( mustache, mustache.parentFragment, mustache.descriptor.x, function ( keypath ) {
+				mustache.resolve( keypath );
+			});
 		}
 
 		// normal keypath mustache?
