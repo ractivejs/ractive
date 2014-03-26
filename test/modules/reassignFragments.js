@@ -1,5 +1,5 @@
 define([
-	'Ractive',
+	'ractive',
 	'shared/reassignFragment/_reassignFragment',
 	'config/types'
 ], function (

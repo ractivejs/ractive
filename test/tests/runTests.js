@@ -11,7 +11,7 @@
 		config = {
 			baseUrl: '../../src/',
 			paths: {
-				Ractive: '../tmp/Ractive-legacy',
+				ractive: '../tmp/ractive-legacy',
 				modules: '../test/modules',
 				samples: '../test/samples',
 				vendor: '../test/vendor'
@@ -36,7 +36,7 @@
 		prefixedModules[i] = 'modules/' + _modules[i];
 	}
 
-	require( [ 'Ractive' ].concat( prefixedModules ), function ( Ractive ) {
+	require( [ 'ractive' ].concat( prefixedModules ), function ( Ractive ) {
 		window.Ractive = Ractive;
 
 		Ractive.defaults.magic = /magic=true/.test( window.location.search );

@@ -41,7 +41,7 @@
 
 	// AMD?
 	else if ( typeof define === 'function' && define.amd ) {
-		define([ 'Ractive' ], factory );
+		define([ 'ractive' ], factory );
 	}
 
 	// browser global
@@ -165,7 +165,7 @@
 					node: currentTarget,
 					original: event
 				});
-				
+
 				cancel();
 			};
 
