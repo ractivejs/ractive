@@ -814,7 +814,39 @@ define([ 'Ractive' ], function ( Ractive ) {
 			} catch ( err ) {
 				t.ok( true );
 			}
+		});
 
+		test( 'Data will propagate up through multiple component boundaries (#520)', function ( t ) {
+			var ractive, Outer, Inner, inner;
+
+			Inner = Ractive.extend({
+				template: '{{input.value}}',
+				update: function ( val ) {
+					this.set( 'input', { value: val });
+				}
+			});
+
+			Outer = Ractive.extend({
+				template: '{{#inputs}}<inner input="{{this}}"/>{{/inputs}}',
+				components: { inner: Inner }
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#simulation}}<outer inputs="{{inputs}}"/>{{/simulation}}',
+				components: { outer: Outer },
+				data: {
+					simulation: { inputs: [{ value: 1 }] }
+				}
+			});
+
+			t.equal( ractive.get( 'simulation.inputs[0].value' ), 1 );
+
+			inner = ractive.findComponent( 'inner' );
+
+			inner.update( 2 );
+			t.equal( ractive.get( 'simulation.inputs[0].value' ), 2 );
+			t.htmlEqual( fixture.innerHTML, '2' );
 		});
 
 	};

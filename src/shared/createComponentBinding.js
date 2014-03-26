@@ -1,11 +1,13 @@
 define([
 	'circular',
+	'global/runloop',
 	'utils/isArray',
 	'utils/isEqual',
 	'shared/registerDependant',
 	'shared/unregisterDependant'
 ], function (
 	circular,
+	runloop,
 	isArray,
 	isEqual,
 	registerDependant,
@@ -56,6 +58,7 @@ define([
 
 				// TODO maybe the case that `value === this.value` - should that result
 				// in an update rather than a set?
+				runloop.addInstance( this.otherInstance );
 				set( this.otherInstance, this.otherKeypath, value );
 				this.value = value;
 
