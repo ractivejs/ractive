@@ -795,6 +795,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
 
+		test( 'Component removed from DOM on tear-down with teardown override that calls _super', function ( t ) {
+
+			var Widget = Ractive.extend({
+					template: 'foo',
+					teardown: function(){
+						this._super();
+					}
+				});
+			var ractive = new Ractive({
+					el: fixture,
+					template: '{{#item}}<widget/>{{/item}}',
+					data: { item: {} },
+					components: {
+						widget: Widget
+					}
+				});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+
+			ractive.set( 'item' );
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
 		test( 'Component names cannot include underscores (#483)', function ( t ) {
 			var Component, ractive;
 
@@ -847,6 +870,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			inner.update( 2 );
 			t.equal( ractive.get( 'simulation.inputs[0].value' ), 2 );
 			t.htmlEqual( fixture.innerHTML, '2' );
+
 		});
 
 	};
