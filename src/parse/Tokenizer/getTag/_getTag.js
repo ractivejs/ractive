@@ -137,6 +137,12 @@ define([
 
 		start = tokenizer.pos;
 
+		// if the next character isn't whitespace, there are no attributes...
+		if ( !tokenizer.getStringMatch( ' ' ) ) {
+			return null;
+		}
+
+		// ...but allow arbitrary amounts of whitespace
 		tokenizer.allowWhitespace();
 
 		attr = getAttribute( tokenizer );

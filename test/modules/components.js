@@ -1,4 +1,4 @@
-define([ 'Ractive' ], function ( Ractive ) {
+define([ 'ractive' ], function ( Ractive ) {
 
 	'use strict';
 
@@ -802,7 +802,7 @@ define([ 'Ractive' ], function ( Ractive ) {
 					teardown: function(){
 						this._super();
 					}
-				})
+				});
 			var ractive = new Ractive({
 					el: fixture,
 					template: '{{#item}}<widget/>{{/item}}',
@@ -816,6 +816,61 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			ractive.set( 'item' );
 			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
+		test( 'Component names cannot include underscores (#483)', function ( t ) {
+			var Component, ractive;
+
+			expect( 1 );
+
+			Component = Ractive.extend({ template: '{{foo}}' });
+
+			try {
+				ractive = new Ractive({
+					el: fixture,
+					template: '<no_lo_dash/>',
+					components: {
+						no_lo_dash: Component
+					}
+				});
+				t.ok( false );
+			} catch ( err ) {
+				t.ok( true );
+			}
+		});
+
+		test( 'Data will propagate up through multiple component boundaries (#520)', function ( t ) {
+			var ractive, Outer, Inner, inner;
+
+			Inner = Ractive.extend({
+				template: '{{input.value}}',
+				update: function ( val ) {
+					this.set( 'input', { value: val });
+				}
+			});
+
+			Outer = Ractive.extend({
+				template: '{{#inputs}}<inner input="{{this}}"/>{{/inputs}}',
+				components: { inner: Inner }
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#simulation}}<outer inputs="{{inputs}}"/>{{/simulation}}',
+				components: { outer: Outer },
+				data: {
+					simulation: { inputs: [{ value: 1 }] }
+				}
+			});
+
+			t.equal( ractive.get( 'simulation.inputs[0].value' ), 1 );
+
+			inner = ractive.findComponent( 'inner' );
+
+			inner.update( 2 );
+			t.equal( ractive.get( 'simulation.inputs[0].value' ), 2 );
+			t.htmlEqual( fixture.innerHTML, '2' );
+
 		});
 
 	};

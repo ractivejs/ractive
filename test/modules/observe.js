@@ -1,4 +1,4 @@
-define([ 'Ractive' ], function ( Ractive ) {
+define([ 'ractive' ], function ( Ractive ) {
 
 	'use strict';
 
