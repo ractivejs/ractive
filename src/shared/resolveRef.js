@@ -19,7 +19,7 @@ define([
 	});
 
 	return function resolveRef ( ractive, ref, fragment ) {
-		var context, contextKeys, keys, lastKey, postfix, parentKeypath, parentValue, wrapped;
+		var context, contextKeys, keys, lastKey, postfix, parentKeypath, parentValue, wrapped, hasContextChain;
 
 		ref = normaliseKeypath( ref );
 
@@ -72,6 +72,8 @@ define([
 				continue;
 			}
 
+			hasContextChain = true;
+
 			parentKeypath = context + postfix;
 			parentValue = get( ractive, parentKeypath );
 
@@ -86,6 +88,12 @@ define([
 
 
 		// Still no keypath?
+
+		// If there's no context chain, and the instance is either a) isolated or
+		// b) an orphan, then we know that the keypath is identical to the reference
+		if ( !hasContextChain && ( !ractive._parent || ractive.isolated ) ) {
+			return ref;
+		}
 
 		// We need both of these - the first enables components to treat data contexts
 		// like lexical scopes in JavaScript functions...
