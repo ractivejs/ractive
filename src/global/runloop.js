@@ -55,10 +55,7 @@ define([
 
 	runloop = {
 		start: function ( instance, callback ) {
-			if ( instance && !instances[ instance._guid ] ) {
-				instances.push( instance );
-				instances[ instances._guid ] = true;
-			}
+			this.addInstance( instance );
 
 			if ( !flushing ) {
 				inFlight += 1;
@@ -101,6 +98,13 @@ define([
 
 		focus: function ( node ) {
 			toFocus = node;
+		},
+
+		addInstance: function ( instance ) {
+			if ( instance && !instances[ instance._guid ] ) {
+				instances.push( instance );
+				instances[ instances._guid ] = true;
+			}
 		},
 
 		addLiveQuery: function ( query ) {
