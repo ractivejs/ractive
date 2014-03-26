@@ -795,6 +795,28 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
 
+		test( 'Component names cannot include underscores (#483)', function ( t ) {
+			var Component, ractive;
+
+			expect( 1 );
+
+			Component = Ractive.extend({ template: '{{foo}}' });
+
+			try {
+				ractive = new Ractive({
+					el: fixture,
+					template: '<no_lo_dash/>',
+					components: {
+						no_lo_dash: Component
+					}
+				});
+				t.ok( false );
+			} catch ( err ) {
+				t.ok( true );
+			}
+
+		});
+
 	};
 
 });
