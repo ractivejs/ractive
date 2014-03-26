@@ -36,14 +36,20 @@
 		prefixedModules[i] = 'modules/' + _modules[i];
 	}
 
+	console.log( 'about to load test modules ' + prefixedModules.join( ',' ) );
+
 	require( [ 'ractive' ].concat( prefixedModules ), function ( Ractive ) {
 		window.Ractive = Ractive;
+
+		console.log( 'loaded test modules. continuing...' );
 
 		Ractive.defaults.magic = /magic=true/.test( window.location.search );
 
 		Array.prototype.slice.call( arguments, 1 ).forEach( function ( testSet ) {
 			testSet();
 		});
+
+		console.log( 'isBuild? ' + isBuild );
 
 		if ( isBuild ) {
 			QUnit.start();
