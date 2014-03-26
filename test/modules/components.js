@@ -795,6 +795,29 @@ define([ 'Ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
 
+		test( 'Component removed from DOM on tear-down with teardown override that calls _super', function ( t ) {
+
+			var Widget = Ractive.extend({
+					template: 'foo',
+					teardown: function(){
+						this._super();
+					}
+				})
+			var ractive = new Ractive({
+					el: fixture,
+					template: '{{#item}}<widget/>{{/item}}',
+					data: { item: {} },
+					components: {
+						widget: Widget
+					}
+				});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+
+			ractive.set( 'item' );
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
 	};
 
 });
