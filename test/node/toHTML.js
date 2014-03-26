@@ -1,6 +1,6 @@
 var Ractive, renderTests, cheerio, normaliseHTML;
 
-Ractive = require( '../../tmp/Ractive' );
+Ractive = require( '../../tmp/ractive' );
 renderTests = require( '../samples/render' );
 cheerio = require( 'cheerio' );
 

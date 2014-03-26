@@ -1,7 +1,7 @@
 module.exports = {
 	full: {
 		options: {
-			out: 'tmp/Ractive.js',
+			out: 'tmp/ractive.js',
 			paths: {
 				'legacy': 'empty/legacy'
 			}
@@ -9,12 +9,12 @@ module.exports = {
 	},
 	legacy: {
 		options: {
-			out: 'tmp/Ractive-legacy.js'
+			out: 'tmp/ractive-legacy.js'
 		}
 	},
 	runtime: {
 		options: {
-			out: 'tmp/Ractive.runtime.js',
+			out: 'tmp/ractive.runtime.js',
 			paths: {
 				'parse/_parse': 'empty/parse',
 				'legacy': 'empty/legacy'
@@ -23,7 +23,7 @@ module.exports = {
 	},
 	runtime_legacy: {
 		options: {
-			out: 'tmp/Ractive-legacy.runtime.js',
+			out: 'tmp/ractive-legacy.runtime.js',
 			paths: {
 				'parse/_parse': 'empty/parse'
 			}
