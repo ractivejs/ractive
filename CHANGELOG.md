@@ -25,8 +25,8 @@ Changelog
 * 0.3.7
     * [Adaptors](http://docs.ractivejs.org/latest/adaptors) - use external libraries like Backbone seamlessly with Ractive
     * Dependency tracking within functions, by monitoring `ractive.get()`)
-    * Create live nodelists with the `findAll()` method ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.findAll%28%29)
-    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to `ractive.observe()` ([docs](https://github.com/RactiveJS/Ractive/wiki/ractive.observe%28%29))
+    * Create live nodelists with the [`findAll()`](http://docs.ractivejs.org/latest/ractive-findall) method
+    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to [`ractive.observe()`](http://docs.ractivejs.org/latest/ractive-observe)
     * Triples behave correctly inside table elements etc (issue #167)
     * Delimiters ('{{' and '}}') can be overridden globally with `Ractive.delimiters` and `Ractive.tripleDelimiters`
     * Fix #130 (event handler parameters and array modification)
