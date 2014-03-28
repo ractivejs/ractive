@@ -1,6 +1,6 @@
 {
 	"name": "ractive",
-	"version": "0.3.9",
+	"version": "0.4.0-pre2",
 	"main": "build/ractive.js",
 	"ignore": [
 		"**/.*",

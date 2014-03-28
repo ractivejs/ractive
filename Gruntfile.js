@@ -6,7 +6,10 @@ module.exports = function ( grunt ) {
 	var config, dependency;
 
 	config = {
-		pkg: grunt.file.readJSON( 'package.json' )
+		pkg: grunt.file.readJSON( 'package.json' ),
+		intro: grunt.file.read( 'wrapper/intro.js' ),
+		outro: grunt.file.read( 'wrapper/outro.js' ),
+		banner: grunt.file.read( 'wrapper/banner.js' )
 	};
 
 	// Read config files from the `grunt/config/` folder

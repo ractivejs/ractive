@@ -40,10 +40,6 @@ module.exports = {
 			return require( 'amdclean' ).clean({
 				code: contents
 			}) + '\n';
-		},
-		wrap: {
-			startFile: 'wrapper/banner.js',
-			endFile: 'wrapper/footer.js'
 		}
 	}
 };
