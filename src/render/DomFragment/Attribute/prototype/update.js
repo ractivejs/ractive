@@ -234,7 +234,7 @@ define([
 	};
 
 	updateEverythingElse = function () {
-		var node, value;
+		var node, value, binding;
 
 		node = this.pNode;
 		value = this.fragment.getValue();
@@ -255,6 +255,11 @@ define([
 				// otherwise the cursor will often be sent to the wrong place
 				if ( !this.active ) {
 					node[ this.propertyName ] = value;
+				}
+
+				// special case - a selected option whose select element has two-way binding
+				if ( node.tagName === 'OPTION' && node.selected && ( binding = this.element.select.binding ) ) {
+					binding.update();
 				}
 
 				this.value = value;

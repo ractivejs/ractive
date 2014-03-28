@@ -93,6 +93,23 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.get( 'test2' ), 'c' );
 		});
 
+		test( 'A select whose options are re-rendered will update its binding', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{selected}}">{{#options}}<option>{{.}}</option>{{/options}}</select><p>selected: {{selected}}</p>',
+				data: {
+					options: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option></select><p>selected: a</p>' );
+
+			ractive.set( 'selected', 'b' );
+			ractive.set( 'options', [ 'd', 'e', 'f' ] );
+			t.equal( ractive.get( 'selected' ), 'e' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: e</p>' );
+		});
+
 	};
 
 });
