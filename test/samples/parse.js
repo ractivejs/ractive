@@ -338,6 +338,11 @@ var parseTests = [
 		name: 'Reference this is an invalid expression',
 		template: '{{0.foo}}',
 		parsed: [{t:2,r:'0.foo'}]
+	},
+	{
+		name: 'Tag with newline before attributes',
+		template: '<img\nsrc="{{foo}}">',
+		parsed: [{t:7,e:'img',a:{src:[{t:2,r:'foo'}]}}]
 	}
 ];
 

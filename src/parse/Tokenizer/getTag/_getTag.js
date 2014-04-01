@@ -138,7 +138,7 @@ define([
 		start = tokenizer.pos;
 
 		// if the next character isn't whitespace, there are no attributes...
-		if ( !tokenizer.getStringMatch( ' ' ) ) {
+		if ( !tokenizer.getStringMatch( ' ' ) && !tokenizer.getStringMatch( '\n' ) ) {
 			return null;
 		}
 
