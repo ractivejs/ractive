@@ -1,8 +1,4 @@
-define([
-	'shared/reassignFragment/_reassignFragment'
-], function (
-	reassignFragment
-) {
+define([], function () {
 
 	'use strict';
 
@@ -30,7 +26,7 @@ define([
 			// change the fragment index
 			fragment.index += by;
 
-			reassignFragment( fragment, indexRef, newIndex, oldKeypath, newKeypath );
+			fragment.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 		}
 	};
 

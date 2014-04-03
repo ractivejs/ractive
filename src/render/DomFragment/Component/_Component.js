@@ -1,7 +1,9 @@
 define([
-	'render/DomFragment/Component/initialise/_initialise'
+	'render/DomFragment/Component/initialise/_initialise',
+	'render/shared/utils/getNewKeypath'
 ], function (
-	initialise
+	initialise,
+	getNewKeypath
 ) {
 
 	'use strict';
@@ -37,6 +39,36 @@ define([
 			// Add this flag so that we don't unnecessarily destroy the component's nodes
 			this.shouldDestroy = destroy;
 			this.instance.teardown();
+		},
+
+		reassign: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			var childInstance = this.instance, 
+				parentInstance = childInstance._parent, 
+				indexRefAlias, query;
+
+			this.bindings.forEach( function ( binding ) {
+				var updated;
+
+				if ( binding.root !== parentInstance ) {
+					return; // we only want parent -> child bindings for this
+				}
+
+				if ( binding.keypath === indexRef ) {
+					childInstance.set( binding.otherKeypath, newIndex );
+				}
+
+				if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
+					binding.reassign( updated );
+				}
+			});
+
+			if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
+				childInstance.set( indexRefAlias, newIndex );
+			}
+
+			if ( query = this.root._liveComponentQueries[ this.name ] ) {
+				query._makeDirty();
+			}
 		},
 
 		toString: function () {
