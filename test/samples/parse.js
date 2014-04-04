@@ -343,6 +343,16 @@ var parseTests = [
 		name: 'Tag with newline before attributes',
 		template: '<img\nsrc="{{foo}}">',
 		parsed: [{t:7,e:'img',a:{src:[{t:2,r:'foo'}]}}]
+	},
+	{
+		name: 'Expression section',
+		template: '{{#[1,2,3]}}{{.}}{{/}}',
+		parsed: [{"t":4,"x":{"r":[],"s":"[1,2,3]"},"f":[{"t":2,"r":"."}]}]
+	},
+	{
+		name: 'Keypath expression section',
+		template: '{{#foo[bar]}}{{.}}{{/}}',
+		parsed: [{"t":4,"kx":{"r":"foo","m":[{"t":30,"n":"bar"}]},"f":[{"t":2,"r":"."}]}]
 	}
 ];
 
