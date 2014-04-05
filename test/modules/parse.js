@@ -29,6 +29,13 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 			/(?=.*foo)(?=.*bar)/)
 		});
 
+		test('Illegal closing section: closing must be contained in openning', function(t){
+			throws( function(){
+				Ractive.parse( '{{#foo}}{{/foo:i}}' );
+			},
+			/(?=.*foo)(?=.*foo:i)/)
+		});
+
 	};
 
 });
