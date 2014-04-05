@@ -52,6 +52,43 @@ define([ 'ractive', '../vendor/ractive-events-tap' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, fakeEvent );
 		});
 
+		test( 'Arugments for fire are optional on custom events', function ( t ) {
+			var ractive, fakeEvent, originalNode;
+
+			expect( 2 );
+
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-custom="someEvent">click me</span>',
+				events: {
+					custom: function(node, fire) {
+						node.addEventListener('click', click);
+
+						function click() {
+							fire();
+						}
+    				
+					    return { 
+					        teardown: function () {
+					            node.removeEventListener('click', click);
+					        } 
+					    }
+					}
+				}
+			});
+
+			originalNode = ractive.find('#test')
+
+			ractive.on( 'someEvent', function ( event ) {
+				t.ok( true );
+				t.equal(event.node, originalNode)
+			});
+
+			fakeEvent = simulant( 'click' );
+			simulant.fire( ractive.nodes.test, fakeEvent );
+		});
+
 		test( 'event.keypath is set to the innermost context', function ( t ) {
 			var ractive;
 

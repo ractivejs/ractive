@@ -24,16 +24,28 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 	};
 
 	MasterEventHandler = function ( element, eventName ) {
-		var definition;
+		var definition, handler, node;
 
 		this.element = element;
 		this.root = element.root;
-		this.node = element.node;
+		this.node = node = element.node;
 		this.name = eventName;
 		this.proxies = [];
 
 		if ( definition = this.root.events[ eventName ] ) {
-			this.custom = definition( this.node, getCustomHandler( eventName ) );
+
+			handler = getCustomHandler( eventName );
+
+			this.custom = definition( this.node, function( event ){
+				event = event || {};
+				if( !event.node ) {
+					event.node = node;
+				}
+
+				handler(event);
+
+			} );
+
 		} else {
 			// Looks like we're dealing with a standard DOM event... but let's check
 			if ( !( 'on' + eventName in this.node ) ) {
