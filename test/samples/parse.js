@@ -353,6 +353,21 @@ var parseTests = [
 		name: 'Keypath expression section',
 		template: '{{#foo[bar]}}{{.}}{{/}}',
 		parsed: [{"t":4,"kx":{"r":"foo","m":[{"t":30,"n":"bar"}]},"f":[{"t":2,"r":"."}]}]
+	},
+	{
+		name: 'List section with index ref and full closing',
+		template: '{{#foo:i}}{{.}}{{/foo:i}}',
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+	},
+	{
+		name: 'List section with index ref and ref only closing',
+		template: '{{#foo:i}}{{.}}{{/foo}}',
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+	},
+	{
+		name: 'List section with index ref and empty closing',
+		template: '{{#foo:i}}{{.}}{{/}}',
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
 	}
 ];
 
