@@ -1,16 +1,12 @@
 define([
 	'config/types',
 	'shared/teardown',
-	'render/shared/initMustache',
-	'render/shared/resolveMustache',
-	'render/shared/updateMustache',
+	'render/shared/Mustache/_Mustache',
 	'render/DomFragment/shared/detach'
 ], function (
 	types,
 	teardown,
-	initMustache,
-	resolveMustache,
-	updateMustache,
+	Mustache,
 	detach
 ) {
 
@@ -30,12 +26,13 @@ define([
 		}
 
 		// extend Mustache
-		initMustache( this, options );
+		Mustache.init( this, options );
 	};
 
 	DomInterpolator.prototype = {
-		update: updateMustache,
-		resolve: resolveMustache,
+		update: Mustache.update,
+		resolve: Mustache.resolve,
+		reassign: Mustache.reassign,
 		detach: detach,
 
 		teardown: function ( destroy ) {

@@ -1,6 +1,6 @@
 define([
-	'shared/reassignFragment/utils/startsWith',
-	'shared/reassignFragment/utils/getNewKeypath'
+	'render/shared/utils/startsWith',
+	'render/shared/utils/getNewKeypath'
 ], function (
 	startsWith,
 	getNewKeypath

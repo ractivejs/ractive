@@ -1,27 +1,24 @@
 define([
 	'config/types',
 	'shared/teardown',
-	'render/shared/initMustache',
-	'render/shared/updateMustache',
-	'render/shared/resolveMustache'
+	'render/shared/Mustache/_Mustache',
 ], function (
 	types,
 	teardown,
-	initMustache,
-	updateMustache,
-	resolveMustache
+	Mustache
 ) {
 
 	'use strict';
 
 	var StringInterpolator = function ( options ) {
 		this.type = types.INTERPOLATOR;
-		initMustache( this, options );
+		Mustache.init( this, options );
 	};
 
 	StringInterpolator.prototype = {
-		update: updateMustache,
-		resolve: resolveMustache,
+		update: Mustache.update,
+		resolve: Mustache.resolve,
+		reassign: Mustache.reassign,
 
 		render: function ( value ) {
 			this.value = value;

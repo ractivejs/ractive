@@ -1,13 +1,11 @@
 define([
 	'config/types',
 	'shared/registerDependant',
-	'shared/unregisterDependant',
-	'shared/reassignFragment/_reassignFragment'
+	'shared/unregisterDependant'
 ], function (
 	types,
 	registerDependant,
-	unregisterDependant,
-	reassignFragment
+	unregisterDependant
 ) {
 
 	'use strict';
@@ -32,7 +30,7 @@ define([
 			if ( this.type === types.SECTION ) {
 				i = this.fragments.length;
 				while ( i-- ) {
-					reassignFragment( this.fragments[i], null, null, this.keypath, keypath );
+					this.fragments[i].reassign( null, null, this.keypath, keypath );
 				}
 			}
 		}

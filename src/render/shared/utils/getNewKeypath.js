@@ -1,5 +1,5 @@
 define([
-	'shared/reassignFragment/utils/startsWithKeypath'
+	'render/shared/utils/startsWithKeypath'
 ], function (
 	startsWithKeypath
 ) {

@@ -1,36 +1,20 @@
 define([
-	'circular',
-	'shared/reassignFragment/utils/assignNewKeypath'
+	'render/shared/utils/assignNewKeypath'
 ], function (
-	circular,
 	assignNewKeypath
 ) {
 
 	'use strict';
 
-	var reassignFragment;
+	return function reassignElement ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		var i, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
 
-	circular.push( function () {
-		reassignFragment = circular.reassignFragment;
-	});
-
-	return function reassignElement ( element, indexRef, newIndex, oldKeypath, newKeypath ) {
-		var i, attribute, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
-
-		i = element.attributes.length;
+		i = this.attributes.length;
 		while ( i-- ) {
-			attribute = element.attributes[i];
-
-			if ( attribute.fragment ) {
-				reassignFragment( attribute.fragment, indexRef, newIndex, oldKeypath, newKeypath );
-
-				if ( attribute.twoway ) {
-					attribute.updateBindings();
-				}
-			}
+			this.attributes[i].reassign( indexRef, newIndex, oldKeypath, newKeypath );
 		}
 
-		if ( storage = element.node._ractive ) {
+		if ( storage = this.node._ractive ) {
 
 			//adjust keypath if needed
 			assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
@@ -47,11 +31,11 @@ define([
 					proxy = proxies[i];
 
 					if ( typeof proxy.n === 'object' ) {
-						reassignFragment( proxy.a, indexRef, newIndex, oldKeypath, newKeypath );
+						proxy.a.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 					}
 
 					if ( proxy.d ) {
-						reassignFragment( proxy.d, indexRef, newIndex, oldKeypath, newKeypath );
+						proxy.d.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 					}
 				}
 			}
@@ -74,13 +58,13 @@ define([
 		}
 
 		// reassign children
-		if ( element.fragment ) {
-			reassignFragment( element.fragment, indexRef, newIndex, oldKeypath, newKeypath );
+		if ( this.fragment ) {
+			this.fragment.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 		}
 
 		// Update live queries, if necessary
-		if ( liveQueries = element.liveQueries ) {
-			ractive = element.root;
+		if ( liveQueries = this.liveQueries ) {
+			ractive = this.root;
 
 			i = liveQueries.length;
 			while ( i-- ) {

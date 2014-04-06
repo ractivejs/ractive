@@ -1,16 +1,12 @@
 define([
 	'config/types',
-	'render/shared/initMustache',
-	'render/shared/updateMustache',
-	'render/shared/resolveMustache',
+	'render/shared/Mustache/_Mustache',
 	'render/shared/updateSection',
 	'shared/teardown',
 	'circular'
 ], function (
 	types,
-	initMustache,
-	updateMustache,
-	resolveMustache,
+	Mustache,
 	updateSection,
 	teardown,
 	circular
@@ -29,12 +25,13 @@ define([
 		this.fragments = [];
 		this.length = 0;
 
-		initMustache( this, options );
+		Mustache.init( this, options );
 	};
 
 	StringSection.prototype = {
-		update: updateMustache,
-		resolve: resolveMustache,
+		update: Mustache.update,
+		resolve: Mustache.resolve,
+		reassign: Mustache.reassign,
 
 		teardown: function () {
 			this.teardownFragments();

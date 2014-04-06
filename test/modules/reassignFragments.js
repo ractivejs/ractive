@@ -1,10 +1,14 @@
 define([
 	'ractive',
-	'shared/reassignFragment/_reassignFragment',
+	'render/shared/reassignFragment',
+	'render/DomFragment/Element/_Element',
+	'render/DomFragment/Triple',
 	'config/types'
 ], function (
 	Ractive,
 	reassignFragment,
+	DomElement,
+	Triple,
 	types
 ) {
 
@@ -24,26 +28,40 @@ define([
 				var resolved,
 					fragment = {
 						context: opt.target,
-						items: [{
-							type: types.ELEMENT,
-							attributes: [],
-							node: {
-								_ractive: {
-									keypath: opt.target
-								}
-							}
-						},{
-							type: types.TRIPLE,
-							descriptor: {},
-							keypath: opt.target,
-							indexRef: 1,
-							resolve: function(keypath){
-								resolved = keypath
-							}
-						}]
-					};
+						items: [],
+						pNode: {},
+						root: { 
+							'_liveQueries': [],
+							'_deps': [] ,
+							'_depsMap': [],
+							'_cache': [],
+							'_computations': [],
+							'_wrapped': [],
+							'_evaluators': [],
+							adapt: []
+						},
+						indexRefs: { i: opt.oldKeypath.replace('items.','')}
+					},
+					el = new DomElement({
+						parentFragment: fragment,
+						descriptor: { e: 'div' }
+					}),
+					triple = new Triple({
+						parentFragment: fragment,
+						descriptor: { 
+							t: types.TRIPLE,
+							r: '.'
+						}
+					});
 
-				reassignFragment(fragment, undefined, undefined, opt.oldKeypath, opt.newKeypath);
+				triple.resolve = function(keypath){
+				 	resolved = keypath
+				};
+
+				fragment.items.push(el, triple);
+
+				fragment.reassign = reassignFragment;
+				fragment.reassign( 'i', opt.newKeypath.replace('items.',''), opt.oldKeypath, opt.newKeypath);
 
 				t.equal( fragment.context, opt.expected );
 				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );

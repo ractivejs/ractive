@@ -1,6 +1,7 @@
 define([
 	'config/types',
 	'utils/parseJSON',
+	'render/shared/reassignFragment',
 	'render/shared/initFragment',
 	'render/StringFragment/Interpolator',
 	'render/StringFragment/Section',
@@ -10,6 +11,7 @@ define([
 ], function (
 	types,
 	parseJSON,
+	reassignFragment,
 	initFragment,
 	Interpolator,
 	Section,
@@ -25,6 +27,8 @@ define([
 	};
 
 	StringFragment.prototype = {
+		reassign: reassignFragment,
+
 		createItem: function ( options ) {
 			if ( typeof options.descriptor === 'string' ) {
 				return new Text( options.descriptor );
@@ -38,7 +42,6 @@ define([
 				default: throw 'Something went wrong in a rather interesting way';
 			}
 		},
-
 
 		bubble: function () {
 			this.dirty = true;

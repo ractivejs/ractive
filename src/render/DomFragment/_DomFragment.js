@@ -1,6 +1,7 @@
 define([
 	'config/types',
 	'utils/matches',
+	'render/shared/reassignFragment',
 	'render/shared/initFragment',
 	'render/DomFragment/shared/insertHtml',
 	'render/DomFragment/Text',
@@ -15,6 +16,7 @@ define([
 ], function (
 	types,
 	matches,
+	reassignFragment,
 	initFragment,
 	insertHtml,
 	Text,
@@ -51,6 +53,8 @@ define([
 	};
 
 	DomFragment.prototype = {
+		reassign: reassignFragment,
+		
 		detach: function () {
 			var len, i;
 
