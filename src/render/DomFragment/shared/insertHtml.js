@@ -1,6 +1,8 @@
 define([
+	'config/namespaces',
 	'utils/createElement'
 ], function (
+	namespaces,
 	createElement
 ) {
 
@@ -22,13 +24,19 @@ define([
 		};
 	}
 
-	return function ( html, tagName, docFrag ) {
+	return function ( html, tagName, namespace, docFrag ) {
 		var container, nodes = [], wrapper;
 
 		if ( html ) {
 			if ( ieBug && ( wrapper = ieBlacklist[ tagName ] ) ) {
 				container = element( 'DIV' );
 				container.innerHTML = wrapper[0] + html + wrapper[1];
+				container = container.querySelector( '.x' );
+			}
+
+			else if ( namespace === namespaces.svg ) {
+				container = element( 'DIV' );
+				container.innerHTML = '<svg class="x">' + html + '</svg>';
 				container = container.querySelector( '.x' );
 			}
 

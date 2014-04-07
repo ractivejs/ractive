@@ -88,7 +88,7 @@ define([
 			// get new nodes
 			pNode = this.parentFragment.pNode;
 
-			this.nodes = insertHtml( html, pNode.tagName, this.docFrag );
+			this.nodes = insertHtml( html, pNode.tagName, pNode.namespaceURI, this.docFrag );
 
 			if ( !this.initialising ) {
 				pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
