@@ -212,6 +212,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( results, { foo: 'one', bar: 'two', baz: 'three', a: 1, b: 2 });
 		});
 
+		test( 'Pattern observers fire when ractive.update() is called without parameters', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'whatever',
+				data: { items: [ 'a', 'b', 'c' ] }
+			});
+
+			expect( 2 );
+
+			ractive.observe( 'items.*', function ( n, o, k ) {
+				t.equal( k, 'items.1' );
+				t.equal( n, 'd' );
+			}, { init: false });
+
+			ractive.get( 'items' )[1] = 'd';
+			ractive.update();
+		});
+
 	};
 
 });
