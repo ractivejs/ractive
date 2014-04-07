@@ -19,7 +19,7 @@ define([
 		};
 	} else {
 		return function ( type, ns ) {
-			if ( !ns ) {
+			if ( !ns || ns === namespaces.html ) {
 				return document.createElement( type );
 			}
 
