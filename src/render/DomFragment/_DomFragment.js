@@ -42,7 +42,7 @@ define([
 			this.html = options.descriptor;
 
 			if ( this.docFrag ) {
-				this.nodes = insertHtml( this.html, options.pNode.tagName, this.docFrag );
+				this.nodes = insertHtml( this.html, options.pNode.tagName, options.pNode.namespaceURI, this.docFrag );
 			}
 		}
 
@@ -54,7 +54,7 @@ define([
 
 	DomFragment.prototype = {
 		reassign: reassignFragment,
-		
+
 		detach: function () {
 			var len, i;
 
