@@ -7,7 +7,7 @@ define([
 	'use strict';
 
 	return function ( spliceSummary ) {
-		var section = this, insertionPoint, balance, i, start, end, insertStart, insertEnd, spliceArgs, fragmentOptions;
+		var section = this, insertionPoint, balance, i, start, end, insertStart, insertEnd, spliceArgs, fragmentOptions, reassignStart;
 
 		balance = spliceSummary.balance;
 
@@ -69,8 +69,14 @@ define([
 
 
 		// Now we need to reassign existing fragments (e.g. items.4 -> items.3 - the keypaths,
-		// context stacks and index refs will have changed)
-		reassignFragments( section, start, section.length, balance );
+		// context stacks and index refs will have changed).
+
+		// If we removed more items than we added, we need to reassign from the splice index up
+		// to the end of the array. Otherwise, we can skip the first ( added - removed ) fragments
+		// since they were newly created
+		reassignStart = start + Math.max( balance, 0 );
+
+		reassignFragments( section, reassignStart, section.length, balance );
 		section.rendering = false;
 	};
 
