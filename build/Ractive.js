@@ -9072,13 +9072,14 @@ var extend__extend = function (create, inheritFromParent, inheritFromChildProps,
             return Child;
         };
     }(utils_create, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular);
-var Ractive__Ractive = function (svg, create, defineProperties, prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
+var Ractive__Ractive = function (svg, create, defineProperties, _prototype, partialRegistry, adaptorRegistry, easingRegistry, Ractive_extend, parse, initialise, circular) {
         
         var Ractive = function (options) {
             initialise(this, options);
         };
+        Ractive.prototype=_prototype;
         defineProperties(Ractive, {
-            prototype: { value: prototype },
+            //prototype: { value: prototype },
             partials: { value: partialRegistry },
             adaptors: { value: adaptorRegistry },
             easing: { value: easingRegistry },
