@@ -1314,6 +1314,20 @@ define([ 'ractive', 'vendor/ractive-events-tap' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+		test( 'Triples work inside SVG elements', function ( t ) {
+			var text, ractive = new Ractive({
+				el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
+				template: '{{{code}}}',
+				data: {
+					code: '<text>works</text>'
+				}
+			});
+
+			text = ractive.find( 'text' );
+			t.ok( !!text );
+			t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
