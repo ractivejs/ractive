@@ -1,9 +1,7 @@
 define([
-	'utils/hasOwnProperty',
 	'Ractive/initialise/computations/getComputationSignature',
 	'Ractive/initialise/computations/Computation'
 ], function (
-	hasOwnProperty,
 	getComputationSignature,
 	Computation
 ) {

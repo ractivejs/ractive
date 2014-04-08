@@ -19,7 +19,7 @@ define([
 	getLineContinuation = makeRegexMatcher( /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/ );
 
 	// Helper for defining getDoubleQuotedString and getSingleQuotedString.
-	return function ( quote, okQuote ) {
+	return function ( okQuote ) {
 		return function ( tokenizer ) {
 			var start, literal, done, next;
 

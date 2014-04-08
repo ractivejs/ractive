@@ -1,8 +1,6 @@
 define([
-	'config/types',
 	'parse/Parser/getElement/ElementStub/_ElementStub'
 ], function (
-	types,
 	ElementStub
 ) {
 

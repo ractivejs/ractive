@@ -1,8 +1,6 @@
 define([
-	'config/types',
 	'render/shared/utils/assignNewKeypath'
 ], function (
-	types,
 	assignNewKeypath
 ) {
 
