@@ -2,12 +2,14 @@ define([
 	'utils/removeFromArray',
 	'shared/resolveRef',
 	'shared/Unresolved',
-	'render/shared/Evaluator/_Evaluator'
+	'render/shared/Evaluator/_Evaluator',
+	'render/shared/utils/getNewKeypath'
 ], function (
 	removeFromArray,
 	resolveRef,
 	Unresolved,
-	Evaluator
+	Evaluator,
+	getNewKeypath
 ) {
 
 	'use strict';
@@ -43,7 +45,7 @@ define([
 			// Is this an index reference?
 			if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
 				args[i] = {
-					isIndexRef: true,
+					indexRef: reference,
 					value: index
 				};
 				return;
@@ -73,13 +75,10 @@ define([
 
 	ExpressionResolver.prototype = {
 		bubble: function () {
-			var oldKeypath;
-
 			if ( !this.ready ) {
 				return;
 			}
 
-			oldKeypath = this.keypath;
 			this.uniqueString = getUniqueString( this.str, this.args );
 			this.keypath = getKeypath( this.uniqueString );
 
@@ -120,6 +119,28 @@ define([
 				// will have become de-synced from the model if we're in a
 				// reassignment cycle
 				this.root._evaluators[ this.keypath ].refresh();
+			}
+		},
+
+		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+			var changed;
+
+			this.args.forEach( function ( arg ) {
+				var changedKeypath;
+
+				if ( arg.keypath && ( changedKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
+					arg.keypath = changedKeypath;
+					changed = true;
+				}
+
+				else if ( arg.indexRef === indexRef ) {
+					arg.value = newIndex;
+					changed = true;
+				}
+			});
+
+			if ( changed ) {
+				this.bubble();
 			}
 		}
 	};

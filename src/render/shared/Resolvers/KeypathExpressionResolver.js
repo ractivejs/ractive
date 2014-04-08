@@ -34,6 +34,7 @@ define([
 		this.pending = 0;
 		this.unresolved = [];
 		members = this.members = [];
+		this.indexRefMembers = [];
 		this.keypathObservers = [];
 		this.expressionResolvers = [];
 
@@ -52,6 +53,13 @@ define([
 				indexRefs = parentFragment.indexRefs;
 				if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
 					members[i] = index;
+
+					// make a note of it, in case of reassignments
+					resolver.indexRefMembers.push({
+						ref: ref,
+						index: i
+					});
+
 					return;
 				}
 
@@ -136,6 +144,23 @@ define([
 
 			while ( unresolved = this.unresolved.pop() ) {
 				unresolved.teardown();
+			}
+		},
+
+		reassign: function ( indexRef, newIndex ) {
+			var changed, i, member;
+
+			i = this.indexRefMembers.length;
+			while ( i-- ) {
+				member = this.indexRefMembers[i];
+				if ( member.ref === indexRef ) {
+					changed = true;
+					this.members[ member.index ] = newIndex;
+				}
+			}
+
+			if ( changed ) {
+				this.bubble();
 			}
 		}
 	};

@@ -110,6 +110,92 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
 
+		test( 'Component bindings will survive a splice', function ( t ) {
+			var Widget, people, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>{{person.name}}</p>'
+			});
+
+			people = [
+				{ name: 'alice' },
+				{ name: 'bob' },
+				{ name: 'charles' }
+			];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#people}}<widget person="{{this}}"/>{{/people}}',
+				data: { people: people },
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p>');
+
+			people.splice( 0, 0, { name: 'daisy' });
+			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>bob</p><p>charles</p>');
+
+			people.splice( 2, 1, { name: 'erica' }, { name: 'fenton' });
+			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
+		});
+
+		test( 'Component \'backwash\' is prevented during a splice (#406)', function ( t ) {
+			var Widget, people, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>{{person.name}}</p>'
+			});
+
+			people = [
+				{ name: 'alice' },
+				{ name: 'bob' },
+				{ name: 'charles' }
+			];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#people}}<widget person="{{this}}"/>{{/people}}{{#people}}<widget person="{{this}}"/>{{/people}}',
+				data: { people: people },
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p><p>alice</p><p>bob</p><p>charles</p>');
+
+			people.splice( 0, 0, { name: 'daisy' });
+			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>bob</p><p>charles</p><p>daisy</p><p>alice</p><p>bob</p><p>charles</p>');
+
+			people.splice( 2, 1, { name: 'erica' }, { name: 'fenton' });
+			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p><p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
+		});
+
+		test( 'Keypath expression resolvers survive a splice operation', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#rows:r}}{{#columns:c}}<p>{{columns[c]}}{{r}}{{rows[r][this]}}</p>{{/columns}}<strong>{{rows[r][selectedColumn]}}</strong>{{/rows}}',
+				data: {
+					rows: [
+						{ foo: 'a', bar: 'b', baz: 'c' },
+						{ foo: 'd', bar: 'e', baz: 'f' },
+						{ foo: 'g', bar: 'h', baz: 'i' }
+					],
+					columns: [ 'foo', 'bar', 'baz' ],
+					selectedColumn: 'foo'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>foo0a</p><p>bar0b</p><p>baz0c</p><strong>a</strong><p>foo1d</p><p>bar1e</p><p>baz1f</p><strong>d</strong><p>foo2g</p><p>bar2h</p><p>baz2i</p><strong>g</strong>' );
+
+			ractive.get( 'rows' ).splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>foo0a</p><p>bar0b</p><p>baz0c</p><strong>a</strong><p>foo1g</p><p>bar1h</p><p>baz1i</p><strong>g</strong>');
+
+			ractive.set( 'rows[1].foo', 'G' );
+			t.htmlEqual( fixture.innerHTML, '<p>foo0a</p><p>bar0b</p><p>baz0c</p><strong>a</strong><p>foo1G</p><p>bar1h</p><p>baz1i</p><strong>G</strong>');
+
+			ractive.get( 'columns' ).splice( 0, 1 );
+			ractive.set( 'selectedColumn', 'baz' );
+			t.htmlEqual( fixture.innerHTML, '<p>bar0b</p><p>baz0c</p><strong>c</strong><p>bar1h</p><p>baz1i</p><strong>i</strong>');
+		});
+
 	};
 
 });
