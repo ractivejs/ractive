@@ -368,6 +368,12 @@ var parseTests = [
 		name: 'List section with index ref and empty closing',
 		template: '{{#foo:i}}{{.}}{{/}}',
 		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+	},
+	//From GH#541:
+	{
+		name: 'Inverted list section closing',
+		template: '{{#steps:stepIndex}}{{^ hiddenSteps[stepIndex]}}<p>{{hiddenSteps[stepIndex]}}</p>{{/ hiddenSteps[stepIndex]}}{{/steps}}',
+		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":true,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}] 
 	}
 ];
 
