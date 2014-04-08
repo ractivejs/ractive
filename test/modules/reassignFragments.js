@@ -1,12 +1,12 @@
 define([
 	'ractive',
-	'render/shared/reassignFragment',
+	'render/shared/Fragment/_Fragment',
 	'render/DomFragment/Element/_Element',
 	'render/DomFragment/Triple',
 	'config/types'
 ], function (
 	Ractive,
-	reassignFragment,
+	Fragment,
 	DomElement,
 	Triple,
 	types
@@ -60,7 +60,7 @@ define([
 
 				fragment.items.push(el, triple);
 
-				fragment.reassign = reassignFragment;
+				fragment.reassign = Fragment.reassign;
 				fragment.reassign( 'i', opt.newKeypath.replace('items.',''), opt.oldKeypath, opt.newKeypath);
 
 				t.equal( fragment.context, opt.expected );
@@ -198,6 +198,24 @@ define([
 			ractive.get( 'items' ).splice( 1, 1 );
 			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
+
+		test('Section with partials that use indexRef update correctly', function(t){
+			var ractive = new Ractive({
+					el: fixture,
+					template: '{{#items:i}}{{>partial}},{{/items}}',
+					partials: {
+						partial: '{{i}}'
+					},
+					data: { items: [1,2,3,4,5] }
+				});
+
+			t.htmlEqual( fixture.innerHTML, '0,1,2,3,4,');
+
+			var items = ractive.get('items');
+			items.splice(1,2,10);
+			t.deepEqual(items, [1,10,4,5]);
+			t.htmlEqual( fixture.innerHTML, '0,1,2,3,');
+		})
 
 	};
 

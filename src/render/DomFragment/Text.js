@@ -26,6 +26,8 @@ define([
 	DomText.prototype = {
 		detach: detach,
 
+		reassign: function () {}, //no-op
+
 		teardown: function ( destroy ) {
 			if ( destroy ) {
 				this.detach();

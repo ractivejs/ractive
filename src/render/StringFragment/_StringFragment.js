@@ -1,8 +1,7 @@
 define([
 	'config/types',
 	'utils/parseJSON',
-	'render/shared/reassignFragment',
-	'render/shared/initFragment',
+	'render/shared/Fragment/_Fragment',
 	'render/StringFragment/Interpolator',
 	'render/StringFragment/Section',
 	'render/StringFragment/Text',
@@ -11,8 +10,7 @@ define([
 ], function (
 	types,
 	parseJSON,
-	reassignFragment,
-	initFragment,
+	Fragment,
 	Interpolator,
 	Section,
 	Text,
@@ -23,11 +21,11 @@ define([
 	'use strict';
 
 	var StringFragment = function ( options ) {
-		initFragment( this, options );
+		Fragment.init( this, options );
 	};
 
 	StringFragment.prototype = {
-		reassign: reassignFragment,
+		reassign: Fragment.reassign,
 
 		createItem: function ( options ) {
 			if ( typeof options.descriptor === 'string' ) {
