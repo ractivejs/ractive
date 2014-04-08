@@ -139,6 +139,35 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
 		});
 
+		test( 'Component \'backwash\' is prevented during a splice (#406)', function ( t ) {
+			var Widget, people, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>{{person.name}}</p>'
+			});
+
+			people = [
+				{ name: 'alice' },
+				{ name: 'bob' },
+				{ name: 'charles' }
+			];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#people}}<widget person="{{this}}"/>{{/people}}{{#people}}<widget person="{{this}}"/>{{/people}}',
+				data: { people: people },
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p><p>alice</p><p>bob</p><p>charles</p>');
+
+			people.splice( 0, 0, { name: 'daisy' });
+			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>bob</p><p>charles</p><p>daisy</p><p>alice</p><p>bob</p><p>charles</p>');
+
+			people.splice( 2, 1, { name: 'erica' }, { name: 'fenton' });
+			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p><p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
+		});
+
 	};
 
 });
