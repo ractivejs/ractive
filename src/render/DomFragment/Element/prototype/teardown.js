@@ -1,6 +1,8 @@
 define([
+	'global/runloop',
 	'render/DomFragment/Element/shared/executeTransition/_executeTransition'
 ], function (
+	runloop,
 	executeTransition
 ) {
 
@@ -12,7 +14,7 @@ define([
 		// Detach as soon as we can
 		if ( destroy ) {
 			this.willDetach = true;
-			this.root._transitionManager.detachQueue.push( this );
+			runloop.detachWhenReady( this );
 		}
 
 		// Children first. that way, any transitions on child elements will be

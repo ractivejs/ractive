@@ -9,11 +9,12 @@
 		QUnit.config.autostart = false;
 
 		config = {
+			baseUrl: '../../src/',
 			paths: {
-				Ractive: '../../tmp/Ractive-legacy',
-				modules: '../modules',
-				samples: '../samples',
-				vendor: '../vendor'
+				ractive: '../tmp/ractive-legacy',
+				modules: '../test/modules',
+				samples: '../test/samples',
+				vendor: '../test/vendor'
 			}
 		};
 	} else {
@@ -35,8 +36,12 @@
 		prefixedModules[i] = 'modules/' + _modules[i];
 	}
 
-	require( prefixedModules, function () {
-		Array.prototype.slice.call( arguments ).forEach( function ( testSet ) {
+	require( [ 'ractive' ].concat( prefixedModules ), function ( Ractive ) {
+		window.Ractive = Ractive;
+
+		Ractive.defaults.magic = /magic=true/.test( window.location.search );
+
+		Array.prototype.slice.call( arguments, 1 ).forEach( function ( testSet ) {
 			testSet();
 		});
 

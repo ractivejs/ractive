@@ -1,13 +1,11 @@
 define([
 	'circular',
-	'global/failedLookups',
 	'shared/createComponentBinding',
-	'Ractive/prototype/shared/replaceData'
+	'shared/set'
 ], function (
 	circular,
-	failedLookups,
 	createComponentBinding,
-	replaceData
+	set
 ) {
 
 	'use strict';
@@ -19,15 +17,19 @@ define([
 	});
 
 	return function getFromParent ( child, keypath ) {
-		var parent, fragment, keypathToTest, value;
+		var parent, fragment, keypathToTest, value, index;
 
 		parent = child._parent;
 
-		if ( failedLookups( child._guid + keypath ) ) {
-			return;
+		fragment = child.component.parentFragment;
+
+		// Special case - index refs
+		if ( fragment.indexRefs && ( index = fragment.indexRefs[ keypath ] ) !== undefined ) {
+			// create an index ref binding, so that it can be reassigned letter if necessary
+			child.component.indexRefBindings[ keypath ] = keypath;
+			return index;
 		}
 
-		fragment = child.component.parentFragment;
 		do {
 			if ( !fragment.context ) {
 				continue;
@@ -47,13 +49,10 @@ define([
 			createLateComponentBinding( parent, child, keypath, keypath, value );
 			return value;
 		}
-
-		// Short-circuit this process next time
-		failedLookups.add( child._guid + keypath );
 	};
 
 	function createLateComponentBinding ( parent, child, parentKeypath, childKeypath, value ) {
-		replaceData( child, childKeypath, value );
+		set( child, childKeypath, value, true );
 		createComponentBinding( child.component, parent, parentKeypath, childKeypath );
 	}
 

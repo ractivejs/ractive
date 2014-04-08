@@ -19,12 +19,14 @@ define([
 		noIntro:            false,
 		transitionsEnabled: true,
 		magic:              false,
+		noCssTransform:     false,
 		adapt:              [],
 		sanitize:           false,
 		stripComments:      true,
 		isolated:           false,
 		delimiters:         [ '{{', '}}' ],
-		tripleDelimiters:   [ '{{{', '}}}' ]
+		tripleDelimiters:   [ '{{{', '}}}' ],
+		computed:           null
 	};
 
 	initOptions = {

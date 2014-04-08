@@ -17,7 +17,6 @@ module.exports = {
 			define: true,
 			document: true,
 			Element: true,
-			loadCircularDependency: true,
 			module: true,
 			require: true,
 			setInterval: true,

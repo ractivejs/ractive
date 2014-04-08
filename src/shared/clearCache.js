@@ -2,14 +2,16 @@ define( function () {
 
 	'use strict';
 
-	return function clearCache ( ractive, keypath ) {
+	return function clearCache ( ractive, keypath, dontTeardownWrapper ) {
 		var cacheMap, wrappedProperty;
 
-		// Is there a wrapped property at this keypath?
-		if ( wrappedProperty = ractive._wrapped[ keypath ] ) {
-			// Did we unwrap it?
-			if ( wrappedProperty.teardown() !== false ) {
-				ractive._wrapped[ keypath ] = null;
+		if ( !dontTeardownWrapper ) {
+			// Is there a wrapped property at this keypath?
+			if ( wrappedProperty = ractive._wrapped[ keypath ] ) {
+				// Did we unwrap it?
+				if ( wrappedProperty.teardown() !== false ) {
+					ractive._wrapped[ keypath ] = null;
+				}
 			}
 		}
 

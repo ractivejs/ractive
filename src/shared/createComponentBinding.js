@@ -1,11 +1,13 @@
 define([
 	'circular',
+	'global/runloop',
 	'utils/isArray',
 	'utils/isEqual',
 	'shared/registerDependant',
 	'shared/unregisterDependant'
 ], function (
 	circular,
+	runloop,
 	isArray,
 	isEqual,
 	registerDependant,
@@ -14,10 +16,11 @@ define([
 
 	'use strict';
 
-	var get;
+	var get, set;
 
 	circular.push( function () {
 		get = circular.get;
+		set = circular.set;
 	});
 
 	var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
@@ -52,10 +55,28 @@ define([
 
 			if ( !isEqual( value, this.value ) ) {
 				this.updating = true;
-				this.otherInstance.set( this.otherKeypath, value );
+
+				// TODO maybe the case that `value === this.value` - should that result
+				// in an update rather than a set?
+				runloop.addInstance( this.otherInstance );
+				set( this.otherInstance, this.otherKeypath, value );
 				this.value = value;
+
+				// TODO will the counterpart update after this line, during
+				// the runloop end cycle? may be a problem...
 				this.updating = false;
 			}
+		},
+
+		reassign: function ( newKeypath ) {
+			unregisterDependant( this );
+			unregisterDependant( this.counterpart );
+
+			this.keypath = newKeypath;
+			this.counterpart.otherKeypath = newKeypath;
+
+			registerDependant( this );
+			registerDependant( this.counterpart );
 		},
 
 		teardown: function () {

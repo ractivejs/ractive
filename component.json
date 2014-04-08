@@ -1,14 +1,14 @@
 {
-  "name": "Ractive",
-  "repo": "RactiveJS/Ractive",
+  "name": "ractive",
+  "repo": "ractivejs/ractive",
   "description": "Next-generation DOM manipulation",
   "version": "0.3.9",
   "keywords": [],
   "dependencies": {},
   "development": {},
   "license": "MIT",
-  "main": "build/Ractive.js",
+  "main": "build/ractive.js",
   "scripts": [
-    "build/Ractive.js"
+    "build/ractive.js"
   ]
 }

@@ -1,8 +1,6 @@
 define([
-	'utils/warn',
 	'utils/removeFromArray'
 ], function (
-	warn,
 	removeFromArray
 ) {
 
@@ -13,7 +11,7 @@ define([
 		remove,
 		init;
 
-	makeTransitionManager = function ( ractive, callback ) {
+	makeTransitionManager = function ( callback, previous ) {
 		var transitionManager = [];
 
 		transitionManager.detachQueue = [];
@@ -23,35 +21,30 @@ define([
 
 		transitionManager._check = checkComplete;
 
-		transitionManager._root = ractive;
 		transitionManager._callback = callback;
-		transitionManager._previous = ractive._transitionManager;
+		transitionManager._previous = previous;
 
-		// components need to notify parents when their
-		// transitions are complete
-		if ( ractive._parent && ( transitionManager._parent = ractive._parent._transitionManager ) ) {
-			transitionManager._parent.push( transitionManager );
+		if ( previous ) {
+			previous.push( transitionManager );
 		}
 
 		return transitionManager;
 	};
 
 	checkComplete = function () {
-		var ractive, element;
+		var element;
 
 		if ( this._ready && !this.length ) {
-			ractive = this._root;
-
 			while ( element = this.detachQueue.pop() ) {
 				element.detach();
 			}
 
 			if ( typeof this._callback === 'function' ) {
-				this._callback.call( ractive );
+				this._callback();
 			}
 
-			if ( this._parent ) {
-				this._parent.remove( this );
+			if ( this._previous ) {
+				this._previous.remove( this );
 			}
 		}
 	};
@@ -64,11 +57,6 @@ define([
 	init = function () {
 		this._ready = true;
 		this._check();
-
-		// Revert to previous transition manager, if applicable
-		if ( this._previous ) {
-			this._root._transitionManager = this._previous;
-		}
 	};
 
 	return makeTransitionManager;

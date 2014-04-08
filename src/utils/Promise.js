@@ -16,7 +16,9 @@ define( function () {
 			dispatchHandlers,
 			makeResolver,
 			fulfil,
-			reject;
+			reject,
+
+			promise;
 
 		makeResolver = function ( newState ) {
 			return function ( value ) {
@@ -39,7 +41,7 @@ define( function () {
 
 		callback( fulfil, reject );
 
-		return {
+		promise = {
 			// `then()` returns a Promise - 2.2.7
 			then: function ( onFulfilled, onRejected ) {
 				var promise2 = new Promise( function ( fulfil, reject ) {
@@ -79,9 +81,14 @@ define( function () {
 				return promise2;
 			}
 		};
+
+		promise[ 'catch' ] = function ( onRejected ) {
+			return this.then( null, onRejected );
+		};
+
+		return promise;
 	};
 
-	// TODO so far this isn't used internally... should it be offered anyway?
 	Promise.all = function ( promises ) {
 		return new Promise( function ( fulfil, reject ) {
 			var result = [], pending, i, processPromise;
@@ -105,6 +112,18 @@ define( function () {
 			while ( i-- ) {
 				processPromise( i );
 			}
+		});
+	};
+
+	Promise.resolve = function ( value ) {
+		return new Promise( function ( fulfil ) {
+			fulfil( value );
+		});
+	};
+
+	Promise.reject = function ( reason ) {
+		return new Promise( function ( fulfil, reject ) {
+			reject( reason );
 		});
 	};
 

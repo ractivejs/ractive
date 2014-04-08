@@ -9,9 +9,7 @@ define([
 	'use strict';
 
 	return function updateSection ( section, value ) {
-		var fragmentOptions;
-
-		fragmentOptions = {
+		var fragmentOptions = {
 			descriptor: section.descriptor.f,
 			root:       section.root,
 			pNode:      section.parentFragment.pNode,

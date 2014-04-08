@@ -3,11 +3,10 @@ module.exports = function ( grunt ) {
 	'use strict';
 
 	grunt.registerTask( 'default', [
+		'build',
 		'test',
-		'clean:build',
-		'concat',
-		'jsbeautifier',
-		'uglify'
+		'uglify',
+		'concat:banner'
 	]);
 
 };

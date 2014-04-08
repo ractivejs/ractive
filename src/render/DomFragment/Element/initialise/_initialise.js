@@ -4,11 +4,11 @@ define([
 	'config/namespaces',
 	'utils/create',
 	'utils/defineProperty',
-	'utils/matches',
 	'utils/warn',
 	'utils/createElement',
 	'shared/getInnerContext',
 	'render/DomFragment/Element/initialise/getElementNamespace',
+	'render/DomFragment/Element/initialise/createElementAttribute',
 	'render/DomFragment/Element/initialise/createElementAttributes',
 	'render/DomFragment/Element/initialise/appendElementChildren',
 	'render/DomFragment/Element/initialise/decorate/_decorate',
@@ -22,11 +22,11 @@ define([
 	namespaces,
 	create,
 	defineProperty,
-	matches,
 	warn,
 	createElement,
 	getInnerContext,
 	getElementNamespace,
+	createElementAttribute,
 	createElementAttributes,
 	appendElementChildren,
 	decorate,
@@ -184,6 +184,13 @@ define([
 				// this option.
 				if ( pNode.tagName === 'SELECT' && ( selectBinding = pNode._ractive.binding ) ) { // it should be!
 					selectBinding.deferUpdate();
+				}
+
+				// If a value attribute was not given, we need to create one based on
+				// the content of the node, so that `<option>foo</option>` behaves the
+				// same as `<option value='foo'>foo</option>` with two-way binding
+				if ( !attributes.value ) {
+					createElementAttribute( element, 'value', descriptor.f );
 				}
 
 				// Special case... a select may have had its value set before a matching

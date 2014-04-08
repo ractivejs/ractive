@@ -1,10 +1,8 @@
 define([
-	'config/types',
 	'utils/defineProperty',
 	'utils/isArray',
 	'shared/get/arrayAdaptor/patch'
 ], function (
-	types,
 	defineProperty,
 	isArray,
 	patch

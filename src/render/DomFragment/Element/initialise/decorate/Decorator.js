@@ -53,7 +53,7 @@ define([
 		decorator.fn = ractive.decorators[ name ];
 
 		if ( !decorator.fn ) {
-			errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#decorators';
+			errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
 
 			if ( ractive.debug ) {
 				throw new Error( errorMessage );
@@ -97,7 +97,7 @@ define([
 		teardown: function ( updating ) {
 			this.actual.teardown();
 
-			if ( !updating ) {
+			if ( !updating && this.fragment ) {
 				this.fragment.teardown();
 			}
 		}

@@ -34,7 +34,7 @@ define([
 
 	return function extend ( childProps ) {
 
-		var Parent = this, Child;
+		var Parent = this, Child, adaptor, i;
 
 		// if we're extending with another Ractive instance, inherit its
 		// prototype methods and default options as well
@@ -62,6 +62,16 @@ define([
 
 		// Add new prototype methods and init options
 		inheritFromChildProps( Child, childProps );
+
+		// Special case - adaptors. Convert to function if possible
+		if ( Child.adaptors && ( i = Child.defaults.adapt.length ) ) {
+			while ( i-- ) {
+				adaptor = Child.defaults.adapt[i];
+				if ( typeof adaptor === 'string' ) {
+					Child.defaults.adapt[i] = Child.adaptors[ adaptor ] || adaptor;
+				}
+			}
+		}
 
 		// Parse template and any partials that need it
 		if ( childProps.template ) { // ignore inherited templates!

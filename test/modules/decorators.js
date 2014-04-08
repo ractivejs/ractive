@@ -1,8 +1,6 @@
-define([ 'Ractive' ], function ( Ractive ) {
+define([ 'ractive' ], function ( Ractive ) {
 
 	'use strict';
-
-	window.Ractive = Ractive;
 
 	return function () {
 
@@ -158,6 +156,24 @@ define([ 'Ractive' ], function ( Ractive ) {
 			});
 
 			t.htmlEqual( fixture.innerHTML, 'bizone<span>biz</span>' );
+		});
+
+		test( 'Decorator without arguments can be torn down (#453)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo}}<p decorator="bar">foo</p>{{/foo}}',
+				data: { foo: true },
+				decorators: {
+					bar: function( node ) {
+						return { teardown: function () {} }
+					}
+				}
+			});
+
+			expect( 1 );
+
+			ractive.set("foo", false);
+			t.ok( true );
 		});
 
 	};

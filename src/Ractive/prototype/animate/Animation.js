@@ -1,9 +1,13 @@
 define([
 	'utils/warn',
-	'shared/interpolate'
+	'global/runloop',
+	'shared/interpolate',
+	'shared/set'
 ], function (
 	warn,
-	interpolate
+	runloop,
+	interpolate,
+	set
 ) {
 
 	'use strict';
@@ -36,16 +40,16 @@ define([
 
 				if ( elapsed >= this.duration ) {
 					if ( keypath !== null ) {
-						this.root.set( keypath, this.to );
+						runloop.start( this.root );
+						set( this.root, keypath, this.to );
+						runloop.end();
 					}
 
 					if ( this.step ) {
 						this.step( 1, this.to );
 					}
 
-					if ( this.complete ) {
-						this.complete( 1, this.to );
-					}
+					this.complete( this.to );
 
 					index = this.root._animations.indexOf( this );
 
@@ -64,7 +68,9 @@ define([
 
 				if ( keypath !== null ) {
 					value = this.interpolator( t );
-					this.root.set( keypath, value );
+					runloop.start( this.root );
+					set( this.root, keypath, value );
+					runloop.end();
 				}
 
 				if ( this.step ) {

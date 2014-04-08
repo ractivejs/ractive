@@ -8,14 +8,14 @@ Changelog
     * Directive arguments are parsed more reliably
     * Components inherit adaptors from their parents
     * Adaptors can be set on subclasses defined with `Ractive.extend()`
-    * Changes to transitions API - [docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Transitions)
+    * Changes to transitions API - [docs on the wiki](http://docs.ractivejs.org/latest/transitions)
     * SVG support is detected and exposed as `Ractive.svg`
 	* If subclass has data, it is used as prototype for instance data
 * 0.3.8
     * Reorganised project into AMD modules, using [amdclean](https://github.com/gfranko/amdclean) during build
-    * Decorators - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Decorators))
-    * Moved plugins (adaptors, decorators, custom events, transitions) out of the main codebase and into [separate repositories](https://github.com/RactiveJS/Ractive/wiki/Plugins). Note: [plugin APIs](https://github.com/RactiveJS/Ractive/wiki/Plugin-APIs) have changed!
-    * `ractive.merge()` - merge items from one array into another (e.g. updating with data from a server) ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.merge%28%29))
+    * Decorators - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc ([docs on the wiki](http://docs.ractivejs.org/latest/decorators))
+    * Moved plugins (adaptors, decorators, custom events, transitions) out of the main codebase and into [separate repositories](http://docs.ractivejs.org/latest/plugins). Note: [plugin APIs](http://docs.ractivejs.org/latest/plugin-apis) have changed!
+    * `ractive.merge()` - merge items from one array into another (e.g. updating with data from a server) ([docs on the wiki](http://docs.ractivejs.org/latest/ractive-merge))
     * Pattern observers - observe e.g. `items[*].status`
     * Contenteditable support (thanks [@aphitiel](https://github.com/aphitiel) and [@Nijikokun](https://github.com/Nijikokun))
     * `ractive.insert()` and `ractive.detach()` methods for moving a Ractive instance in and out of the DOM without destroying it
@@ -23,10 +23,10 @@ Changelog
     * `ractive.findAll( selector, { live: true })` maintains a live list of elements matching any CSS selector
     * Various bugfixes
 * 0.3.7
-    * Adaptors - use external libraries like Backbone seamlessly with Ractive ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Adaptors))
+    * Adaptors - use external libraries like Backbone seamlessly with Ractive ([docs on the wiki](http://docs.ractivejs.org/latest/adaptors))
     * Dependency tracking within functions, by monitoring `ractive.get()`)
-    * Create live nodelists with the `findAll()` method ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.findAll%28%29)
-    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to `ractive.observe()` ([docs](https://github.com/RactiveJS/Ractive/wiki/ractive.observe%28%29))
+    * Create live nodelists with the `findAll()` method ([docs on the wiki](http://docs.ractivejs.org/latest/ractive-findall)
+    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to `ractive.observe()` ([docs](http://docs.ractivejs.org/latest/ractive-observe))
     * Triples behave correctly inside table elements etc (issue #167)
     * Delimiters ('{{' and '}}') can be overridden globally with `Ractive.delimiters` and `Ractive.tripleDelimiters`
     * Fix #130 (event handler parameters and array modification)

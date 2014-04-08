@@ -2,20 +2,22 @@
 // and generally cleaning up after itself
 define([
 	'config/types',
-	'shared/makeTransitionManager',
-	'shared/clearCache',
-	'global/css'
+	'global/css',
+	'global/runloop',
+	'utils/Promise',
+	'shared/clearCache'
 ], function (
 	types,
-	makeTransitionManager,
-	clearCache,
-	css
+	css,
+	runloop,
+	Promise,
+	clearCache
 ) {
 
 	'use strict';
 
-	return function ( complete ) {
-		var keypath, transitionManager, shouldDestroy, originalComplete, fragment, nearestDetachingElement;
+	return function ( callback ) {
+		var keypath, promise, fulfilPromise, shouldDestroy, originalCallback, fragment, nearestDetachingElement, unresolvedImplicitDependency;
 
 		this.fire( 'teardown' );
 
@@ -27,10 +29,10 @@ define([
 			// We need to find the nearest detaching element. When it gets removed
 			// from the DOM, it's safe to remove our CSS
 			if ( shouldDestroy ) {
-				originalComplete = complete;
-				complete = function () {
-					if ( originalComplete ) {
-						originalComplete.call( this );
+				originalCallback = callback;
+				callback = function () {
+					if ( originalCallback ) {
+						originalCallback.call( this );
 					}
 
 					css.remove( this.constructor );
@@ -56,7 +58,8 @@ define([
 			}
 		}
 
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		runloop.start( this, fulfilPromise );
 
 		this.fragment.teardown( shouldDestroy );
 
@@ -70,8 +73,18 @@ define([
 			clearCache( this, keypath );
 		}
 
-		// transition manager has finished its work
-		transitionManager.init();
+		// Teardown any failed lookups - we don't need them to resolve any more
+		while ( unresolvedImplicitDependency = this._unresolvedImplicitDependencies.pop() ) {
+			unresolvedImplicitDependency.teardown();
+		}
+
+		runloop.end();
+
+		if ( callback ) {
+			promise.then( callback.bind( this ) );
+		}
+
+		return promise;
 	};
 
 });

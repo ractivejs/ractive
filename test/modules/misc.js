@@ -1,8 +1,6 @@
-define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
+define([ 'ractive', 'vendor/ractive-events-tap' ], function ( Ractive ) {
 
 	'use strict';
-
-	window.Ractive = Ractive;
 
 	return function () {
 
@@ -654,7 +652,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 					value_id: 42,
 					values: [
 						{ id: 1, name: "Boo" },
-						{ id: 42, name: "Here 'tis" },
+						{ id: 42, name: "Here 'tis" }
 					]
 				}
 			});
@@ -1089,7 +1087,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
 		});
 
-		test( 'Subclass instance complete() handlers can call _super', function ( t ) {
+		asyncTest( 'Subclass instance complete() handlers can call _super', function ( t ) {
 			var Subclass, instance;
 
 			expect( 1 );
@@ -1103,6 +1101,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			instance = new Subclass({
 				complete: function () {
 					t.equal( this._super(), 42 );
+					start();
 				}
 			});
 		});
@@ -1253,7 +1252,7 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 				},
 
 				// defaults
-				magic: true,
+				lazy: true,
 
 				// methods
 				climb: function () {
@@ -1272,9 +1271,61 @@ define([ 'Ractive', 'vendor/Ractive-events-tap' ], function ( Ractive ) {
 			});
 
 			t.htmlEqual( fixture.innerHTML, '<p>type: arachnid</p>' );
-			t.ok( spiderman.magic );
+			t.ok( spiderman.lazy );
 			t.equal( spiderman.climb(), 'climbing' );
 			t.equal( spiderman.talk(), 'hello my name is Peter Parker' );
+		});
+
+
+		test( 'Regression test for #460', function ( t ) {
+			var items, ractive, baz;
+
+			items = [
+				{ desc: 'foo' },
+				{ desc: 'bar' },
+				{ desc: 'baz' }
+			]
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<p>{{desc}}:{{missing[data]}}</p>{{/items}}',
+				data: { items: items }
+			});
+
+			baz = items.pop();
+			t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
+
+			items.push( baz );
+			t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
+		});
+
+		test( 'Regression test for #457', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#step.current == step.current}}<p>{{foo}}</p>{{/step.current == step.current}}'
+			});
+
+			ractive.set({
+				"foo": "bar",
+				"step": {
+					"current": 2
+				}
+			});
+			t.ok( true );
+		});
+
+		test( 'Triples work inside SVG elements', function ( t ) {
+			var text, ractive = new Ractive({
+				el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
+				template: '{{{code}}}',
+				data: {
+					code: '<text>works</text>'
+				}
+			});
+
+			text = ractive.find( 'text' );
+			t.ok( !!text );
+			t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
 		});
 
 

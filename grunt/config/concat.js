@@ -1,19 +1,26 @@
-module.exports = function ( grunt ) {
-	return {
+module.exports = {
+	closure: {
+		files: [{
+			expand: true,
+			cwd: 'tmp/',
+			src: '*.js',
+			dest: 'tmp/'
+		}],
 		options: {
-			banner: grunt.file.read( 'wrapper/banner.js' ),
-			footer: grunt.file.read( 'wrapper/footer.js' ),
-			process: {
-				data: { version: '<%= pkg.version %>' }
-			}
-		},
-		all: {
-			files: [{
-				expand: true,
-				cwd: 'tmp/',
-				src: '*.js',
-				dest: 'build/'
-			}]
+			banner: '<%= intro %>',
+			footer: '<%= outro %>'
 		}
-	};
+	},
+	banner: {
+		files: [{
+			expand: true,
+			cwd: 'tmp/',
+			src: '*.js',
+			dest: 'build/'
+		}],
+		options: {
+			process: true,
+			banner: '<%= banner %>'
+		}
+	}
 };

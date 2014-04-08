@@ -1,6 +1,6 @@
 module.exports = {
-	'build/Ractive.min.js': 'build/Ractive.js',
-	'build/Ractive-legacy.min.js': 'build/Ractive-legacy.js',
-	'build/Ractive.runtime.min.js': 'build/Ractive.runtime.js',
-	'build/Ractive-legacy.runtime.min.js': 'build/Ractive-legacy.runtime.js'
+	'tmp/ractive.min.js': 'tmp/ractive.js',
+	'tmp/ractive-legacy.min.js': 'tmp/ractive-legacy.js',
+	'tmp/ractive.runtime.min.js': 'tmp/ractive.runtime.js',
+	'tmp/ractive-legacy.runtime.min.js': 'tmp/ractive-legacy.runtime.js'
 };

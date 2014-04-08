@@ -1,16 +1,12 @@
 define([
 	'global/runloop',
 	'utils/defineProperty',
-	'shared/clearCache',
-	'shared/makeTransitionManager',
 	'shared/get/arrayAdaptor/getSpliceEquivalent',
 	'shared/get/arrayAdaptor/summariseSpliceOperation',
 	'shared/get/arrayAdaptor/processWrapper'
 ], function (
 	runloop,
 	defineProperty,
-	clearCache,
-	makeTransitionManager,
 	getSpliceEquivalent,
 	summariseSpliceOperation,
 	processWrapper
@@ -20,7 +16,6 @@ define([
 
 	var patchedArrayProto = [],
 		mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ],
-		noop = function () {},
 		testObj,
 		patchArrayMethods,
 		unpatchArrayMethods;
@@ -30,11 +25,8 @@ define([
 			var spliceEquivalent,
 				spliceSummary,
 				result,
-				instances,
-				instance,
+				wrapper,
 				i;
-
-			runloop.start( this );
 
 			// push, pop, shift and unshift can all be represented as a splice operation.
 			// this makes life easier later
@@ -44,32 +36,18 @@ define([
 			// apply the underlying method
 			result = Array.prototype[ methodName ].apply( this, arguments );
 
-			// create transition managers
-			instances = this._ractive.instances;
-			i = instances.length;
-			while ( i-- ) {
-				instance = instances[i];
-				instance._transitionManager = makeTransitionManager( instance, noop );
-			}
-
 			// trigger changes
 			this._ractive.setting = true;
 			i = this._ractive.wrappers.length;
 			while ( i-- ) {
-				processWrapper( this._ractive.wrappers[i], this, methodName, spliceSummary );
+				wrapper = this._ractive.wrappers[i];
+
+				runloop.start( wrapper.root );
+				processWrapper( wrapper, this, methodName, spliceSummary );
+				runloop.end();
 			}
+
 			this._ractive.setting = false;
-
-			// apply changes
-			runloop.end();
-
-			// initialise transition managers
-			i = instances.length;
-			while ( i-- ) {
-				instance = instances[i];
-				instance._transitionManager.init();
-			}
-
 			return result;
 		};
 

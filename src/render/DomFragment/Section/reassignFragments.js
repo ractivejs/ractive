@@ -1,31 +1,22 @@
-define([
-	'config/types',
-	'render/DomFragment/Section/reassignFragment'
-], function (
-	types,
-	reassignFragment
-) {
+define([], function () {
 
 	'use strict';
 
-	return function ( root, section, start, end, by ) {
-		var i, fragment, indexRef, oldIndex, newIndex, oldKeypath, newKeypath;
+	return function ( section, start, end, by ) {
+
+		var i, fragment, indexRef, oldKeypath, newKeypath;
 
 		indexRef = section.descriptor.i;
 
 		for ( i=start; i<end; i+=1 ) {
 			fragment = section.fragments[i];
 
-			oldIndex = i - by;
-			newIndex = i;
-
 			oldKeypath = section.keypath + '.' + ( i - by );
 			newKeypath = section.keypath + '.' + i;
 
 			// change the fragment index
-			fragment.index += by;
-
-			reassignFragment( fragment, indexRef, newIndex, oldKeypath, newKeypath );
+			fragment.index = i;
+			fragment.reassign( indexRef, i, oldKeypath, newKeypath );
 		}
 	};
 

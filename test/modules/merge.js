@@ -1,8 +1,6 @@
-define([ 'Ractive' ], function ( Ractive ) {
+define([ 'ractive' ], function ( Ractive ) {
 
 	'use strict';
-
-	window.Ractive = Ractive;
 
 	return function () {
 

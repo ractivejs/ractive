@@ -1,7 +1,7 @@
 define([
 	'config/types',
 	'utils/matches',
-	'render/shared/initFragment',
+	'render/shared/Fragment/_Fragment',
 	'render/DomFragment/shared/insertHtml',
 	'render/DomFragment/Text',
 	'render/DomFragment/Interpolator',
@@ -15,7 +15,7 @@ define([
 ], function (
 	types,
 	matches,
-	initFragment,
+	Fragment,
 	insertHtml,
 	Text,
 	Interpolator,
@@ -40,17 +40,19 @@ define([
 			this.html = options.descriptor;
 
 			if ( this.docFrag ) {
-				this.nodes = insertHtml( this.html, options.pNode.tagName, this.docFrag );
+				this.nodes = insertHtml( this.html, options.pNode.tagName, options.pNode.namespaceURI, this.docFrag );
 			}
 		}
 
 		else {
 			// otherwise we need to make a proper fragment
-			initFragment( this, options );
+			Fragment.init( this, options );
 		}
 	};
 
 	DomFragment.prototype = {
+		reassign: Fragment.reassign,
+
 		detach: function () {
 			var len, i;
 

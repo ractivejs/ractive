@@ -69,7 +69,9 @@ define([
 		// Special case - CSS
 		if ( childProps.css ) {
 			defineProperty( Child, 'css', {
-				value: transformCss( childProps.css, Child._guid )
+				value: Child.defaults.noCssTransform
+					? childProps.css
+					: transformCss( childProps.css, Child._guid )
 			});
 		}
 	};

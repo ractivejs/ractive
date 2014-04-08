@@ -1,7 +1,6 @@
 define([
 	'config/initOptions',
 	'config/svg',
-	'utils/create',
 	'utils/defineProperties',
 	'Ractive/prototype/_prototype',
 	'registries/partials',
@@ -17,9 +16,8 @@ define([
 ], function (
 	initOptions,
 	svg,
-	create,
 	defineProperties,
-	prototype,
+	proto,
 	partialRegistry,
 	adaptorRegistry,
 	componentsRegistry,
@@ -38,11 +36,10 @@ define([
 		initialise( this, options );
 	};
 
+	Ractive.prototype = proto;
+
 	// Read-only properties
 	defineProperties( Ractive, {
-
-		// Prototype methods
-		prototype: { value: prototype },
 
 		// Shared properties
 		partials: { value: partialRegistry },
@@ -62,7 +59,7 @@ define([
 		// Support
 		svg: { value: svg },
 
-		VERSION:     { value: '<%= version %>' }
+		VERSION:     { value: '<%= pkg.version %>' }
 	});
 
 	// TODO deprecated

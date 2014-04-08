@@ -57,6 +57,10 @@ define([
 			return this.fragment.detach();
 		},
 
+		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+			return this.fragment.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+		},
+
 		teardown: function ( destroy ) {
 			this.fragment.teardown( destroy );
 		},

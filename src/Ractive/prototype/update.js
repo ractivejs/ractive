@@ -1,47 +1,42 @@
 define([
 	'global/runloop',
-	'shared/makeTransitionManager',
+	'utils/Promise',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
 	runloop,
-	makeTransitionManager,
+	Promise,
 	clearCache,
 	notifyDependants
 ) {
 
 	'use strict';
 
-	return function ( keypath, complete ) {
-		var transitionManager;
-
-		runloop.start( this );
+	return function ( keypath, callback ) {
+		var promise, fulfilPromise;
 
 		if ( typeof keypath === 'function' ) {
-			complete = keypath;
+			callback = keypath;
 			keypath = '';
+		} else {
+			keypath = keypath || '';
 		}
 
-		// manage transitions
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		runloop.start( this, fulfilPromise );
 
-		// if we're using update, it's possible that we've introduced new values, and
-		// some unresolved references can be dealt with
-		clearCache( this, keypath || '' );
-		notifyDependants( this, keypath || '' );
+		clearCache( this, keypath );
+		notifyDependants( this, keypath );
 
 		runloop.end();
 
-		// transition manager has finished its work
-		transitionManager.init();
+		this.fire( 'update', keypath );
 
-		if ( typeof keypath === 'string' ) {
-			this.fire( 'update', keypath );
-		} else {
-			this.fire( 'update' );
+		if ( callback ) {
+			promise.then( callback.bind( this ) );
 		}
 
-		return this;
+		return promise;
 	};
 
 });

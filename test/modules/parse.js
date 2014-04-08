@@ -3,9 +3,7 @@
 //
 // TODO: add moar samples
 
-define([ 'Ractive', 'samples/parse' ], function ( Ractive, tests ) {
-
-	window.Ractive = Ractive;
+define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 
 	return function () {
 
@@ -22,6 +20,21 @@ define([ 'Ractive', 'samples/parse' ], function ( Ractive, tests ) {
 		for ( i=0; i<tests.length; i+=1 ) {
 			runTest( tests[i] );
 		}
+
+		//TODO: create structure like above to run parsing error tests
+		test('Illegal closing section: ref mismatch', function(t){
+			throws( function(){
+				Ractive.parse( '{{#foo}}{{/bar}}' );
+			},
+			/(?=.*foo)(?=.*bar)/)
+		});
+
+		test('Illegal closing section: closing must be contained in openning', function(t){
+			throws( function(){
+				Ractive.parse( '{{#foo}}{{/foo:i}}' );
+			},
+			/(?=.*foo)(?=.*foo:i)/)
+		});
 
 	};
 

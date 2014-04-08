@@ -1,23 +1,19 @@
 define([
 	'global/runloop',
-	'utils/getElement',
-	'shared/makeTransitionManager',
 	'global/css',
 	'render/DomFragment/_DomFragment'
 ], function (
 	runloop,
-	getElement,
-	makeTransitionManager,
 	css,
 	DomFragment
 ) {
 
 	'use strict';
 
-	return function Ractive_prototype_render ( target, complete ) {
-		var transitionManager;
+	return function Ractive_prototype_render ( target, callback ) {
 
-		runloop.start( this );
+		this._rendering = true;
+		runloop.start( this, callback );
 
 		// This method is part of the API for one reason only - so that it can be
 		// overwritten by components that don't want to use the templating system
@@ -26,8 +22,6 @@ define([
 		if ( !this._initing ) {
 			throw new Error( 'You cannot call ractive.render() directly!' );
 		}
-
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// Add CSS, if applicable
 		if ( this.constructor.css ) {
@@ -46,18 +40,14 @@ define([
 			target.appendChild( this.fragment.docFrag );
 		}
 
-		this.rendered = true;
-		runloop.end();
-
-		// If this is a top-level instance (i.e. it was created with `var ractive = new Ractive()`,
-		// or `widget = new Widget()` etc), we need to initialise any child components now that
-		// they're in the DOM
-		if ( !this._parent ) {
+		// If this is *isn't* a child of a component that's in the process of rendering,
+		// it should call any `init()` methods at this point
+		if ( !this._parent || !this._parent._rendering ) {
 			initChildren( this );
 		}
 
-		// transition manager has finished its work
-		transitionManager.init();
+		delete this._rendering;
+		runloop.end();
 	};
 
 	function initChildren ( instance ) {

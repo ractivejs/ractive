@@ -79,7 +79,7 @@ define([
 
 		this._fn = root.transitions[ name ];
 		if ( !this._fn ) {
-			errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#transitions';
+			errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
 
 			if ( root.debug ) {
 				throw new Error( errorMessage );

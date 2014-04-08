@@ -1,17 +1,13 @@
 define([
 	'config/types',
 	'utils/matches',
-	'render/shared/initMustache',
-	'render/shared/updateMustache',
-	'render/shared/resolveMustache',
+	'render/shared/Mustache/_Mustache',
 	'render/DomFragment/shared/insertHtml',
 	'shared/teardown'
 ], function (
 	types,
 	matches,
-	initMustache,
-	updateMustache,
-	resolveMustache,
+	Mustache,
 	insertHtml,
 	teardown
 ) {
@@ -27,7 +23,7 @@ define([
 		}
 
 		this.initialising = true;
-		initMustache( this, options );
+		Mustache.init( this, options );
 		if ( docFrag ) {
 			docFrag.appendChild( this.docFrag );
 		}
@@ -35,8 +31,9 @@ define([
 	};
 
 	DomTriple.prototype = {
-		update: updateMustache,
-		resolve: resolveMustache,
+		update: Mustache.update,
+		resolve: Mustache.resolve,
+		reassign: Mustache.reassign,
 
 		detach: function () {
 			var len, i;
@@ -91,7 +88,7 @@ define([
 			// get new nodes
 			pNode = this.parentFragment.pNode;
 
-			this.nodes = insertHtml( html, pNode.tagName, this.docFrag );
+			this.nodes = insertHtml( html, pNode.tagName, pNode.namespaceURI, this.docFrag );
 
 			if ( !this.initialising ) {
 				pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );

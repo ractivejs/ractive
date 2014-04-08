@@ -1,7 +1,7 @@
 define([
 	'config/types',
 	'utils/parseJSON',
-	'render/shared/initFragment',
+	'render/shared/Fragment/_Fragment',
 	'render/StringFragment/Interpolator',
 	'render/StringFragment/Section',
 	'render/StringFragment/Text',
@@ -10,7 +10,7 @@ define([
 ], function (
 	types,
 	parseJSON,
-	initFragment,
+	Fragment,
 	Interpolator,
 	Section,
 	Text,
@@ -21,10 +21,12 @@ define([
 	'use strict';
 
 	var StringFragment = function ( options ) {
-		initFragment( this, options );
+		Fragment.init( this, options );
 	};
 
 	StringFragment.prototype = {
+		reassign: Fragment.reassign,
+
 		createItem: function ( options ) {
 			if ( typeof options.descriptor === 'string' ) {
 				return new Text( options.descriptor );
@@ -38,7 +40,6 @@ define([
 				default: throw 'Something went wrong in a rather interesting way';
 			}
 		},
-
 
 		bubble: function () {
 			this.dirty = true;

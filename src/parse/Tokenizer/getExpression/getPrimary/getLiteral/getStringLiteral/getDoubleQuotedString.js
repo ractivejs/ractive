@@ -6,6 +6,6 @@ define([
 
 	'use strict';
 
-	return makeQuotedStringMatcher( '"', "'" );
+	return makeQuotedStringMatcher( "'" );
 
 });

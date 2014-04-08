@@ -3,12 +3,12 @@ define([], function () {
 	'use strict';
 
 	return function ( oldArray, newArray ) {
-		var usedIndices, mapper, firstUnusedIndex, newIndices, changed;
+		var usedIndices, firstUnusedIndex, newIndices, changed;
 
 		usedIndices = {};
 		firstUnusedIndex = 0;
 
-		mapper = function ( item, i ) {
+		newIndices = oldArray.map( function ( item, i ) {
 			var index, start, len;
 
 			start = firstUnusedIndex;
@@ -37,11 +37,9 @@ define([], function () {
 
 			usedIndices[ index ] = true;
 			return index;
-		};
+		});
 
-		newIndices = oldArray.map( mapper );
 		newIndices.unchanged = !changed;
-
 		return newIndices;
 	};
 

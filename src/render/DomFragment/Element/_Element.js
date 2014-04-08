@@ -2,8 +2,8 @@ define([
 	'global/runloop',
 	'global/css',
 	'render/DomFragment/Element/initialise/_initialise',
-
 	'render/DomFragment/Element/prototype/teardown',
+	'render/DomFragment/Element/prototype/reassign',
 	'render/DomFragment/Element/prototype/toString',
 	'render/DomFragment/Element/prototype/find',
 	'render/DomFragment/Element/prototype/findAll',
@@ -14,8 +14,8 @@ define([
 	runloop,
 	css,
 	initialise,
-
 	teardown,
+	reassign,
 	toString,
 	find,
 	findAll,
@@ -56,6 +56,8 @@ define([
 		},
 
 		teardown: teardown,
+
+		reassign: reassign,
 
 		firstNode: function () {
 			return this.node;

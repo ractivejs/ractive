@@ -1,17 +1,21 @@
 define([
 	'circular',
-	'global/failedLookups',
 	'global/css',
 	'utils/removeFromArray',
 	'shared/getValueFromCheckboxes',
-	'shared/resolveRef'
+	'shared/resolveRef',
+	'shared/getUpstreamChanges',
+	'shared/notifyDependants',
+	'shared/makeTransitionManager'
 ], function (
 	circular,
-	failedLookups,
 	css,
 	removeFromArray,
 	getValueFromCheckboxes,
-	resolveRef
+	resolveRef,
+	getUpstreamChanges,
+	notifyDependants,
+	makeTransitionManager
 ) {
 
 	'use strict';
@@ -36,28 +40,29 @@ define([
 		transitions = [],
 		observers = [],
 		attributes = [],
+		activeBindings = [],
 
 		evaluators = [],
+		computations = [],
 		selectValues = [],
 		checkboxKeypaths = {},
 		checkboxes = [],
 		radios = [],
 		unresolved = [],
 
-		instances = [];
+		instances = [],
+		transitionManager;
 
 	runloop = {
-		start: function ( instance ) {
-			if ( !instances[ instance._guid ] ) {
-				instances.push( instance );
-				instances[ instances._guid ] = true;
-			}
+		start: function ( instance, callback ) {
+			this.addInstance( instance );
 
-			if ( flushing ) {
-				return;
-			}
+			if ( !flushing ) {
+				inFlight += 1;
 
-			inFlight += 1;
+				// create a new transition manager
+				transitionManager = makeTransitionManager( callback, transitionManager );
+			}
 		},
 
 		end: function () {
@@ -73,6 +78,9 @@ define([
 
 				land();
 			}
+
+			transitionManager.init();
+			transitionManager = transitionManager._previous;
 		},
 
 		trigger: function () {
@@ -92,6 +100,13 @@ define([
 			toFocus = node;
 		},
 
+		addInstance: function ( instance ) {
+			if ( instance && !instances[ instance._guid ] ) {
+				instances.push( instance );
+				instances[ instances._guid ] = true;
+			}
+		},
+
 		addLiveQuery: function ( query ) {
 			liveQueries.push( query );
 		},
@@ -101,6 +116,8 @@ define([
 		},
 
 		addTransition: function ( transition ) {
+			transition._manager = transitionManager;
+			transitionManager.push( transition );
 			transitions.push( transition );
 		},
 
@@ -110,6 +127,11 @@ define([
 
 		addAttribute: function ( attribute ) {
 			attributes.push( attribute );
+		},
+
+		addBinding: function ( binding ) {
+			binding.active = true;
+			activeBindings.push( binding );
 		},
 
 		scheduleCssUpdate: function () {
@@ -126,6 +148,11 @@ define([
 		addEvaluator: function ( evaluator ) {
 			dirty = true;
 			evaluators.push( evaluator );
+		},
+
+		addComputation: function ( thing ) {
+			dirty = true;
+			computations.push( thing );
 		},
 
 		addSelectValue: function ( selectValue ) {
@@ -152,6 +179,11 @@ define([
 
 		removeUnresolved: function ( thing ) {
 			removeFromArray( unresolved, thing );
+		},
+
+		// synchronise node detachments with transition ends
+		detachWhenReady: function ( thing ) {
+			transitionManager.detachQueue.push( thing );
 		}
 	};
 
@@ -187,10 +219,13 @@ define([
 			thing.update();
 		}
 
+		while ( thing = activeBindings.pop() ) {
+			thing.active = false;
+		}
+
 		// Change events are fired last
 		while ( thing = instances.pop() ) {
 			instances[ thing._guid ] = false;
-			thing._transitionManager = null;
 
 			if ( thing._changes.length ) {
 				changeHash = {};
@@ -210,14 +245,26 @@ define([
 	}
 
 	function flushChanges () {
-		var thing;
+		var thing, upstreamChanges, i;
+
+		i = instances.length;
+		while ( i-- ) {
+			thing = instances[i];
+
+			if ( thing._changes.length ) {
+				upstreamChanges = getUpstreamChanges( thing._changes );
+				notifyDependants.multiple( thing, upstreamChanges, true );
+			}
+		}
 
 		attemptKeypathResolution();
 
 		while ( dirty ) {
 			dirty = false;
 
-			failedLookups.purge();
+			while ( thing = computations.pop() ) {
+				thing.update();
+			}
 
 			while ( thing = evaluators.pop() ) {
 				thing.update().deferred = false;
@@ -245,10 +292,10 @@ define([
 		}
 
 		// see if we can resolve any unresolved references
-		array = unresolved.splice( 0 );
+		array = unresolved.splice( 0, unresolved.length );
 		while ( thing = array.pop() ) {
 			if ( thing.keypath ) {
-				continue; // it did resolve after all
+				continue; // it did resolve after all. TODO does this ever happen?
 			}
 
 			keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );

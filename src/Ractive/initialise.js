@@ -7,14 +7,15 @@ define([
 	'utils/create',
 	'utils/extend',
 	'utils/fillGaps',
-	'utils/defineProperty',
 	'utils/defineProperties',
 	'utils/getElement',
 	'utils/isObject',
 	'utils/isArray',
 	'utils/getGuid',
+	'utils/Promise',
 	'shared/get/magicAdaptor',
-	'parse/_parse'
+	'parse/_parse',
+	'Ractive/initialise/computations/createComputations'
 ], function (
 	isClient,
 	errors,
@@ -24,14 +25,15 @@ define([
 	create,
 	extend,
 	fillGaps,
-	defineProperty,
 	defineProperties,
 	getElement,
 	isObject,
 	isArray,
 	getGuid,
+	Promise,
 	magicAdaptor,
-	parse
+	parse,
+	createComputations
 ) {
 
 	'use strict';
@@ -40,7 +42,7 @@ define([
 
 	return function initialiseRactiveInstance ( ractive, options ) {
 
-		var template, templateEl, parsedTemplate;
+		var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed;
 
 		if ( isArray( options.adaptors ) ) {
 			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
@@ -50,9 +52,10 @@ define([
 
 		// Options
 		// -------
+		defaults = ractive.constructor.defaults;
 		initOptions.keys.forEach( function ( key ) {
 			if ( options[ key ] === undefined ) {
-				options[ key ] = ractive.constructor.defaults[ key ];
+				options[ key ] = defaults[ key ];
 			}
 		});
 
@@ -98,11 +101,11 @@ define([
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },
 
+			// Computed properties
+			_computations: { value: create( null ) },
+
 			// two-way bindings
 			_twowayBindings: { value: {} },
-
-			// transition manager
-			_transitionManager: { value: null, writable: true },
 
 			// animations (so we can stop any in progress at teardown)
 			_animations: { value: [] },
@@ -121,7 +124,10 @@ define([
 			_childInitQueue: { value: [] },
 
 			// data changes
-			_changes: { value: [] }
+			_changes: { value: [] },
+
+			// failed lookups, when we try to access data from ancestor scopes
+			_unresolvedImplicitDependencies: { value: [] }
 		});
 
 		// If this is a component, store a reference to the parent
@@ -160,6 +166,15 @@ define([
 		// Special case
 		if ( !ractive.data ) {
 			ractive.data = {};
+		}
+
+		// Set up any computed values
+		computed = defaults.computed
+			? extend( create( defaults.computed ), options.computed )
+			: options.computed;
+
+		if ( computed ) {
+			createComputations( ractive, computed );
 		}
 
 
@@ -228,7 +243,12 @@ define([
 			ractive.el.innerHTML = '';
 		}
 
-		ractive.render( ractive.el, options.complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		ractive.render( ractive.el, fulfilPromise );
+
+		if ( options.complete ) {
+			promise.then( options.complete.bind( ractive ) );
+		}
 
 		// reset transitionsEnabled
 		ractive.transitionsEnabled = options.transitionsEnabled;

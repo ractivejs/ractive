@@ -10,7 +10,7 @@ Got a question or need help?
 If you're having trouble getting Ractive to do what you want, there are a couple of places to get help before submitting an issue:
 
 * [Stack Overflow questions tagged ractivejs](http://stackoverflow.com/questions/tagged/ractivejs)
-* [The Ractive wiki](https://github.com/RactiveJS/Ractive/wiki)
+* [docs.ractivejs.org](https://docs.ractivejs.org)
 * [@RactiveJS on Twitter](http://twitter.com/RactiveJS)
 
 Of course, if you've encountered a bug, then the best course of action is to raise an issue (if no-one else has!).

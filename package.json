@@ -1,9 +1,9 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.4.0-pre",
+  "version": "0.4.0-pre2",
   "homepage": "http://ractivejs.org",
-  "main": "build/Ractive.js",
+  "main": "build/ractive.js",
   "keywords": [
     "template",
     "templating",
@@ -21,17 +21,18 @@
     }
   ],
   "jam": {
-    "main": "Ractive.js",
+    "name": "ractive",
+    "main": "ractive.js",
     "include": [
-      "Ractive.js",
-      "build/Ractive.js",
-      "build/Ractive.runtime.js",
-      "build/Ractive.min.js",
-      "build/Ractive.runtime.min.js",
-      "build/Ractive-legacy.js",
-      "build/Ractive-legacy.runtime.js",
-      "build/Ractive-legacy.min.js",
-      "build/Ractive-legacy.runtime.min.js",
+      "ractive.js",
+      "build/ractive.js",
+      "build/ractive.runtime.js",
+      "build/ractive.min.js",
+      "build/ractive.runtime.min.js",
+      "build/ractive-legacy.js",
+      "build/ractive-legacy.runtime.js",
+      "build/ractive-legacy.min.js",
+      "build/ractive-legacy.runtime.min.js",
       "README.md"
     ]
   },
@@ -40,7 +41,7 @@
     "Templating"
   ],
   "bugs": {
-    "url": "https://github.com/RactiveJS/Ractive/issues"
+    "url": "https://github.com/ractivejs/ractive/issues"
   },
   "contributors": [
     {
@@ -58,9 +59,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/RactiveJS/Ractive.git"
+    "url": "https://github.com/ractivejs/ractive.git"
   },
-  "github": "https://github.com/RactiveJS/Ractive",
+  "github": "https://github.com/ractivejs/ractive",
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.8.0",
@@ -75,6 +76,7 @@
     "amdclean": "~1.2.1",
     "cheerio": "~0.13.0",
     "promises-aplus-tests": "*",
+    "grunt-git-describe": "~2.3.2",
     "grunt-jsbeautifier": "~0.2.6"
   },
   "testling": {

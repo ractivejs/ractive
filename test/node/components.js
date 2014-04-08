@@ -1,4 +1,4 @@
-var Ractive = require( '../../tmp/Ractive' );
+var Ractive = require( '../../tmp/ractive' );
 
 exports[ 'A template can include templates in a non-DOM environment' ] = function ( t ) {
 	var ractive, Widget;

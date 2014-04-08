@@ -2,8 +2,6 @@ define([
 	'config/types',
 	'config/voidElementNames',
 	'utils/warn',
-	'utils/camelCase',
-	'parse/Parser/utils/stringifyStubs',
 
 	'parse/Parser/getElement/ElementStub/utils/siblingsByTagName',
 	'parse/Parser/getElement/ElementStub/utils/filterAttributes',
@@ -17,8 +15,6 @@ define([
 	types,
 	voidElementNames,
 	warn,
-	camelCase,
-	stringifyStubs,
 
 	siblingsByTagName,
 	filterAttributes,

@@ -1,21 +1,17 @@
 define([
 	'config/types',
-	'render/shared/initMustache',
-	'render/shared/updateMustache',
-	'render/shared/resolveMustache',
-	'render/DomFragment/Section/helpers/splice',
+	'render/shared/Mustache/_Mustache',
 	'render/DomFragment/Section/prototype/merge',
 	'render/DomFragment/Section/prototype/render',
+	'render/DomFragment/Section/prototype/splice',
 	'shared/teardown',
 	'circular'
 ], function (
 	types,
-	initMustache,
-	updateMustache,
-	resolveMustache,
-	splice,
+	Mustache,
 	merge,
 	render,
+	splice,
 	teardown,
 	circular
 ) {
@@ -41,7 +37,7 @@ define([
 		}
 
 		this.initialising = true;
-		initMustache( this, options );
+		Mustache.init( this, options );
 
 		if ( docFrag ) {
 			docFrag.appendChild( this.docFrag );
@@ -51,15 +47,10 @@ define([
 	};
 
 	DomSection.prototype = {
-		update: updateMustache,
-		resolve: resolveMustache,
-
-		smartUpdate: function ( methodName, spliceSummary ) {
-			this.rendering = true;
-			splice( this, spliceSummary );
-			this.rendering = false;
-		},
-
+		update: Mustache.update,
+		resolve: Mustache.resolve,
+		reassign: Mustache.reassign,
+		splice: splice,
 		merge: merge,
 
 		detach: function () {
