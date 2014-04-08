@@ -39,7 +39,7 @@ define([
 				return;
 			}
 
-			if ( arg.isIndexRef ) {
+			if ( arg.indexRef ) {
 				// this is an index ref... we don't need to register a dependant
 				evaluator.values[i] = arg.value;
 			}
