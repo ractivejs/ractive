@@ -17,7 +17,7 @@ define([
 	initOptions,
 	svg,
 	defineProperties,
-	prototype,
+	proto,
 	partialRegistry,
 	adaptorRegistry,
 	componentsRegistry,
@@ -36,11 +36,10 @@ define([
 		initialise( this, options );
 	};
 
+	Ractive.prototype = proto;
+
 	// Read-only properties
 	defineProperties( Ractive, {
-
-		// Prototype methods
-		prototype: { value: prototype },
 
 		// Shared properties
 		partials: { value: partialRegistry },
