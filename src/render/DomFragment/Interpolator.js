@@ -42,7 +42,7 @@ define([
 
 			teardown( this );
 		},
-
+		
 		render: function ( value ) {
 			if ( this.node ) {
 				this.node.data = ( value == undefined ? '' : value );

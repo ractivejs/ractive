@@ -12,6 +12,8 @@ define([ 'config/types' ], function ( types ) {
 			return this.text;
 		},
 
+		reassign: function () {}, //no-op
+
 		teardown: function () {} // no-op
 	};
 

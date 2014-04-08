@@ -1,8 +1,7 @@
 define([
 	'config/types',
 	'utils/matches',
-	'render/shared/reassignFragment',
-	'render/shared/initFragment',
+	'render/shared/Fragment/_Fragment',
 	'render/DomFragment/shared/insertHtml',
 	'render/DomFragment/Text',
 	'render/DomFragment/Interpolator',
@@ -16,8 +15,7 @@ define([
 ], function (
 	types,
 	matches,
-	reassignFragment,
-	initFragment,
+	Fragment,
 	insertHtml,
 	Text,
 	Interpolator,
@@ -48,12 +46,12 @@ define([
 
 		else {
 			// otherwise we need to make a proper fragment
-			initFragment( this, options );
+			Fragment.init( this, options );
 		}
 	};
 
 	DomFragment.prototype = {
-		reassign: reassignFragment,
+		reassign: Fragment.reassign,
 
 		detach: function () {
 			var len, i;
