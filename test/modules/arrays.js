@@ -111,27 +111,31 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		test( 'Component bindings will survive a splice', function ( t ) {
-			var Widget, names, ractive;
+			var Widget, people, ractive;
 
 			Widget = Ractive.extend({
-				template: '<p>{{name}}</p>'
+				template: '<p>{{person.name}}</p>'
 			});
 
-			names = baseItems.slice();
+			people = [
+				{ name: 'alice' },
+				{ name: 'bob' },
+				{ name: 'charles' }
+			];
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '{{#names}}<widget name="{{this}}"/>{{/names}}',
-				data: { names: names },
+				template: '{{#people}}<widget person="{{this}}"/>{{/people}}',
+				data: { people: people },
 				components: { widget: Widget }
 			});
 
 			t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p>');
 
-			names.splice( 0, 0, 'daisy' );
+			people.splice( 0, 0, { name: 'daisy' });
 			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>bob</p><p>charles</p>');
 
-			names.splice( 2, 1, 'erica', 'fenton' );
+			people.splice( 2, 1, { name: 'erica' }, { name: 'fenton' });
 			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
 		});
 
