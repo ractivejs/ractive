@@ -16,6 +16,7 @@ define([
 		if ( this.html !== undefined ) {
 			return;
 		}
+
 		// assign new context keypath if needed
 		assignNewKeypath(this, 'context', oldKeypath, newKeypath);
 

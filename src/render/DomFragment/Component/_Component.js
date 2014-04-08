@@ -42,8 +42,8 @@ define([
 		},
 
 		reassign: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var childInstance = this.instance, 
-				parentInstance = childInstance._parent, 
+			var childInstance = this.instance,
+				parentInstance = childInstance._parent,
 				indexRefAlias, query;
 
 			this.bindings.forEach( function ( binding ) {
