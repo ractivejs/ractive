@@ -7,7 +7,7 @@ define([
 	'use strict';
 
 	return function ( spliceSummary ) {
-		var section = this, insertionPoint, balance, i, start, end, insertStart, insertEnd, spliceArgs, fragmentOptions, reassignStart, reassignEnd;
+		var section = this, balance, start, insertStart, insertEnd, spliceArgs;
 
 		balance = spliceSummary.balance;
 

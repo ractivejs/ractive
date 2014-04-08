@@ -1,15 +1,13 @@
 define([
-	'render/shared/utils/getNewKeypath',
-	'render/shared/Resolvers/ExpressionResolver'
+	'render/shared/utils/getNewKeypath'
 ], function (
-	getNewKeypath,
-	ExpressionResolver
+	getNewKeypath
 ) {
 
 	'use strict';
 
 	return function reassignMustache ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		var updated, i, self = this;
+		var updated, i;
 
 		// expression mustache?
 		if ( this.resolver ) {
@@ -20,12 +18,13 @@ define([
 		else if ( this.keypath ) {
 			updated =  getNewKeypath( this.keypath, oldKeypath, newKeypath );
 
-			//was a new keypath created?
-			if(updated){
-				//resolve it
+			// was a new keypath created?
+			if ( updated ) {
+				// resolve it
 				this.resolve( updated );
 			}
 		}
+
 		// index ref mustache?
 		else if ( indexRef !== undefined && this.indexRef === indexRef ) {
 			this.value = newIndex;

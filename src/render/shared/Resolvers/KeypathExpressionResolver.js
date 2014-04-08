@@ -147,7 +147,7 @@ define([
 			}
 		},
 
-		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		reassign: function ( indexRef, newIndex ) {
 			var changed, i, member;
 
 			i = this.indexRefMembers.length;
