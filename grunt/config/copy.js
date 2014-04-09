@@ -6,5 +6,9 @@ module.exports = {
 			src: [ '**/*' ],
 			dest: 'release/<%= pkg.version %>/'
 		}]
+	},
+	link: {
+		src: 'build/ractive.js',
+		dest: 'ractive.js'
 	}
 };
