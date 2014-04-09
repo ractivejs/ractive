@@ -7,8 +7,6 @@ define([
 	'use strict';
 
 	return function reassignFragment ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		var i, item;
-
 		// If this fragment was rendered with innerHTML, we have nothing to do
 		// TODO a less hacky way of determining this
 		if ( this.html !== undefined ) {
@@ -23,7 +21,7 @@ define([
 			&& this.indexRefs[ indexRef ] !== newIndex) {
 			this.indexRefs[ indexRef ] = newIndex;
 		}
-		
+
 		this.items.forEach(function(item){
 			item.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 		});
