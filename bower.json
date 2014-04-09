@@ -1,7 +1,7 @@
 {
 	"name": "ractive",
-	"version": "0.4.0-pre2",
-	"main": "build/ractive.js",
+	"version": "0.4.0",
+	"main": "ractive.js",
 	"ignore": [
 		"**/.*",
 		"node_modules",

@@ -1,12 +1,8 @@
 Ractive.js - Next-generation DOM manipulation
 =============================================
 
-[![Build Status](https://travis-ci.org/RactiveJS/Ractive.png)](https://travis-ci.org/RactiveJS/Ractive)
-[![devDependency Status](https://david-dm.org/RactiveJS/Ractive/dev-status.png)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies)
 
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
-
-*<b>BETANAUTS!</b> Help improve the next version of Ractive by trying out the [pre-release 0.4.0 builds](https://github.com/RactiveJS/Ractive/tree/0.4.0/build) and [reporting any issues](https://github.com/RactiveJS/Ractive/issues?state=open)!*
 
 What is Ractive.js?
 -------------------
@@ -19,13 +15,13 @@ It's a JavaScript library for building reactive user interfaces in a way that do
 
 ...among many others. It takes a radically different approach to DOM manipulation - one that saves both you and the browser unnecessary work.
 
-To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](https://github.com/RactiveJS/Ractive/wiki/60-second-setup).
+To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](https://github.com/ractivejs/ractive/wiki/60-second-setup).
 
 
 Get help
 --------
 
-If you don't find what you're looking for in the [docs](https://github.com/RactiveJS/Ractive/wiki), ask a question on Stack Overflow with the `ractive` tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS) or [@Rich_Harris](http://twitter.com/Rich_Harris).
+If you don't find what you're looking for in the [docs](http://docs.ractivejs.org/latest), ask a question on Stack Overflow with the `ractive` tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS).
 
 
 Building
@@ -71,9 +67,7 @@ $ grunt release
 Contributing
 ------------
 
-If you have feature suggestions or bug reports, please [raise an issue on GitHub](https://github.com/RactiveJS/Ractive/issues) after checking it's not a duplicate.
-
-Pull requests are always welcome! In lieu of a formal styleguide, please try to follow the existing conventions.
+Pull requests and issues are always welcome! Please read [CONTRIBUTING.md](https://github.com/ractivejs/ractive/blob/master/CONTRIBUTING.md) to learn how to contribute.
 
 
 Browser support
@@ -85,8 +79,8 @@ Tested successfully in IE8+ and all modern browsers. If your experience differs 
 License
 -------
 
-Copyright (c) 2012-13 Rich Harris. Released under an MIT license.
+Copyright (c) 2012-14 Rich Harris and contributors. Released under an [MIT license](https://github.com/ractivejs/ractive/blob/master/LICENSE.md).
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
+[![devDependency Status](https://david-dm.org/RactiveJS/Ractive/dev-status.png)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies)

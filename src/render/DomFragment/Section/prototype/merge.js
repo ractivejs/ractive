@@ -2,8 +2,6 @@ define([], function () {
 
 	'use strict';
 
-	var toTeardown = [];
-
 	return function sectionMerge ( newIndices ) {
 		var section = this,
 			parentFragment,
@@ -34,7 +32,7 @@ define([], function () {
 
 			// does this fragment need to be torn down?
 			if ( newIndex === -1 ) {
-				toTeardown.push( section.fragments[ oldIndex ] );
+				section.fragments[ oldIndex ].teardown( true );
 				return;
 			}
 
@@ -45,13 +43,9 @@ define([], function () {
 			oldKeypath = section.keypath + '.' + oldIndex;
 			newKeypath = section.keypath + '.' + newIndex;
 
-			fragment.reassign( section.descriptor.i, oldIndex, newIndex, by, oldKeypath, newKeypath );
+			fragment.reassign( section.descriptor.i, newIndex, oldKeypath, newKeypath );
 			reassignedFragments[ newIndex ] = fragment;
 		});
-
-		while ( fragment = toTeardown.pop() ) {
-			fragment.teardown( true );
-		}
 
 		// If nothing changed with the existing fragments, then we start adding
 		// new fragments at the end...
