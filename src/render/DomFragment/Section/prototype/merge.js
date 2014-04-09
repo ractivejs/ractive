@@ -47,10 +47,6 @@ define([], function () {
 			reassignedFragments[ newIndex ] = fragment;
 		});
 
-		// while ( fragment = toTeardown.pop() ) {
-		// 	fragment.teardown( true );
-		// }
-
 		// If nothing changed with the existing fragments, then we start adding
 		// new fragments at the end...
 		if ( firstChange === undefined ) {
