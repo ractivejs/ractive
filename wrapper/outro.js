@@ -12,8 +12,11 @@ else if ( typeof define === "function" && define.amd ) {
 }
 
 // ... or as browser global
-else {
-	global.Ractive = Ractive;
-}
+global.Ractive = Ractive;
+
+Ractive.noConflict = function () {
+	global.Ractive = noConflict;
+	return Ractive;
+};
 
 }( typeof window !== 'undefined' ? window : this ));

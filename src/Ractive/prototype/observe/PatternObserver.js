@@ -1,8 +1,12 @@
 define([
+	'global/runloop',
 	'utils/isEqual',
+	'shared/get/_get',
 	'Ractive/prototype/observe/getPattern'
 ], function (
+	runloop,
 	isEqual,
+	get,
 	getPattern
 ) {
 
@@ -66,7 +70,7 @@ define([
 			}
 
 			if ( this.defer && this.ready ) {
-				this.root._deferred.observers.push( this.getProxy( keypath ) );
+				runloop.addObserver( this.getProxy( keypath ) );
 				return;
 			}
 
@@ -74,7 +78,7 @@ define([
 		},
 
 		reallyUpdate: function ( keypath ) {
-			var value = this.root.get( keypath );
+			var value = get( this.root, keypath );
 
 			// Prevent infinite loops
 			if ( this.updating ) {

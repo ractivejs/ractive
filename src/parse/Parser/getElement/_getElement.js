@@ -1,8 +1,6 @@
 define([
-	'config/types',
 	'parse/Parser/getElement/ElementStub/_ElementStub'
 ], function (
-	types,
 	ElementStub
 ) {
 
@@ -16,7 +14,7 @@ define([
 			}
 		}
 
-		return new ElementStub( token, this );
+		return new ElementStub( token, this, this.preserveWhitespace );
 	};
 
 });

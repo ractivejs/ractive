@@ -14,7 +14,12 @@ define([
 		remaining = this.remaining();
 
 		barrier = this.inside ? '</' + this.inside : '<';
-		index = getLowestIndex( remaining, [ barrier, this.delimiters[0], this.tripleDelimiters[0] ] );
+
+		if ( this.inside && !this.interpolate[ this.inside ] ) {
+			index = remaining.indexOf( barrier );
+		} else {
+			index = getLowestIndex( remaining, [ barrier, this.delimiters[0], this.tripleDelimiters[0] ] );
+		}
 
 		if ( !index ) {
 			return null;

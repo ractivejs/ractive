@@ -2,17 +2,19 @@ define([
 	'config/types',
 	'utils/parseJSON',
 	'shared/resolveRef',
+	'shared/get/_get',
 	'render/DomFragment/Component/initialise/createModel/ComponentParameter'
 ], function (
 	types,
 	parseJSON,
 	resolveRef,
+	get,
 	ComponentParameter
 ) {
 
 	'use strict';
 
-	return function ( component, attributes, toBind ) {
+	return function ( component, defaultData, attributes, toBind ) {
 		var data, key, value;
 
 		data = {};
@@ -25,7 +27,8 @@ define([
 		for ( key in attributes ) {
 			if ( attributes.hasOwnProperty( key ) ) {
 				value = getValue( component, key, attributes[ key ], toBind );
-				if ( value !== undefined ) {
+
+				if ( value !== undefined || ( defaultData[ key ] === undefined ) ) {
 					data[ key ] = value;
 				}
 			}
@@ -35,9 +38,9 @@ define([
 	};
 
 	function getValue ( component, key, descriptor, toBind ) {
-		var parameter, parsed, root, parentFragment, keypath;
+		var parameter, parsed, parentInstance, parentFragment, keypath, indexRef;
 
-		root = component.root;
+		parentInstance = component.root;
 		parentFragment = component.parentFragment;
 
 		// If this is a static value, great
@@ -55,18 +58,19 @@ define([
 		if ( descriptor.length === 1 && descriptor[0].t === types.INTERPOLATOR && descriptor[0].r ) {
 
 			// Is it an index reference?
-			if ( parentFragment.indexRefs && parentFragment.indexRefs[ descriptor[0].r ] !== undefined ) {
-				return parentFragment.indexRefs[ descriptor[0].r ];
+			if ( parentFragment.indexRefs && parentFragment.indexRefs[ ( indexRef = descriptor[0].r ) ] !== undefined ) {
+				component.indexRefBindings[ indexRef ] = key;
+				return parentFragment.indexRefs[ indexRef ];
 			}
 
 			// TODO what about references that resolve late? Should these be considered?
-			keypath = resolveRef( root, descriptor[0].r, parentFragment.contextStack ) || descriptor[0].r;
+			keypath = resolveRef( parentInstance, descriptor[0].r, parentFragment ) || descriptor[0].r;
 
 			// We need to set up bindings between parent and child, but
 			// we can't do it yet because the child instance doesn't exist
 			// yet - so we make a note instead
 			toBind.push({ childKeypath: key, parentKeypath: keypath });
-			return root.get( keypath );
+			return get( parentInstance, keypath );
 		}
 
 		// We have a 'complex parameter' - we need to create a full-blown string

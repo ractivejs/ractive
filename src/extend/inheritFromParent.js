@@ -1,11 +1,13 @@
 define([
-	'extend/registries',
-	'extend/initOptions',
-	'utils/create'
+	'config/registries',
+	'utils/create',
+	'utils/defineProperty',
+	'extend/utils/transformCss'
 ], function (
 	registries,
-	initOptions,
-	create
+	create,
+	defineProperty,
+	transformCss
 ) {
 
 	'use strict';
@@ -20,9 +22,18 @@ define([
 			}
 		});
 
-		initOptions.forEach( function ( property ) {
-			Child[ property ] = Parent[ property ];
+		defineProperty( Child, 'defaults', {
+			value: create( Parent.defaults )
 		});
+
+		// Special case - CSS
+		if ( Parent.css ) {
+			defineProperty( Child, 'css', {
+				value: Parent.defaults.noCssTransform
+					? Parent.css
+					: transformCss( Parent.css, Child._guid )
+			});
+		}
 	};
 
 });

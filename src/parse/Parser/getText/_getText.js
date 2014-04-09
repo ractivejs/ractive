@@ -8,10 +8,10 @@ define([
 
 	'use strict';
 
-	return function ( token ) {
+	return function ( token, preserveWhitespace ) {
 		if ( token.type === types.TEXT ) {
 			this.pos += 1;
-			return new TextStub( token, this.preserveWhitespace );
+			return new TextStub( token, preserveWhitespace );
 		}
 
 		return null;

@@ -1,67 +1,76 @@
 define([
 	'config/isClient',
 	'config/errors',
+	'config/initOptions',
+	'config/registries',
 	'utils/warn',
 	'utils/create',
 	'utils/extend',
-	'utils/defineProperty',
+	'utils/fillGaps',
 	'utils/defineProperties',
 	'utils/getElement',
 	'utils/isObject',
-	'Ractive/prototype/get/magicAdaptor',
-	'parse/_parse'
+	'utils/isArray',
+	'utils/getGuid',
+	'utils/Promise',
+	'shared/get/magicAdaptor',
+	'parse/_parse',
+	'Ractive/initialise/computations/createComputations'
 ], function (
 	isClient,
 	errors,
+	initOptions,
+	registries,
 	warn,
 	create,
 	extend,
-	defineProperty,
+	fillGaps,
 	defineProperties,
 	getElement,
 	isObject,
+	isArray,
+	getGuid,
+	Promise,
 	magicAdaptor,
-	parse
+	parse,
+	createComputations
 ) {
 
 	'use strict';
 
-	var getObject, getArray, defaultOptions, registries;
+	var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
 
-	getObject = function () { return {}; };
-	getArray = function () { return []; };
+	return function initialiseRactiveInstance ( ractive, options ) {
 
-	defaultOptions = create( null );
+		var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed;
 
-	defineProperties( defaultOptions, {
-		preserveWhitespace: { enumerable: true, value: false     },
-		append:             { enumerable: true, value: false     },
-		twoway:             { enumerable: true, value: true      },
-		modifyArrays:       { enumerable: true, value: true      },
-		data:               { enumerable: true, value: getObject },
-		lazy:               { enumerable: true, value: false     },
-		debug:              { enumerable: true, value: false     },
-		transitions:        { enumerable: true, value: getObject },
-		decorators:         { enumerable: true, value: getObject },
-		events:             { enumerable: true, value: getObject },
-		noIntro:            { enumerable: true, value: false     },
-		transitionsEnabled: { enumerable: true, value: true      },
-		magic:              { enumerable: true, value: false     },
-		adaptors:           { enumerable: true, value: getArray  }
-	});
-
-	registries = [ 'components', 'decorators', 'events', 'partials', 'transitions', 'data' ];
-
-	return function ( ractive, options ) {
-
-		var key, template, templateEl, parsedTemplate;
+		if ( isArray( options.adaptors ) ) {
+			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
+			options.adapt = options.adaptors;
+			delete options.adaptors;
+		}
 
 		// Options
 		// -------
-		for ( key in defaultOptions ) {
+		defaults = ractive.constructor.defaults;
+		initOptions.keys.forEach( function ( key ) {
 			if ( options[ key ] === undefined ) {
-				options[ key ] = ( typeof defaultOptions[ key ] === 'function' ? defaultOptions[ key ]() : defaultOptions[ key ] );
+				options[ key ] = defaults[ key ];
 			}
+		});
+
+		// options
+		flags.forEach( function ( flag ) {
+			ractive[ flag ] = options[ flag ];
+		});
+
+		// special cases
+		if ( typeof ractive.adapt === 'string' ) {
+			ractive.adapt = [ ractive.adapt ];
+		}
+
+		if ( ractive.magic && !magicAdaptor ) {
+			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 		}
 
 
@@ -74,15 +83,7 @@ define([
 
 			// Generate a unique identifier, for places where you'd use a weak map if it
 			// existed
-			_guid: {
-				value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-					var r, v;
-
-					r = Math.random()*16|0;
-					v = ( c == 'x' ? r : (r&0x3|0x8) );
-					return v.toString(16);
-				})
-			},
+			_guid: { value: getGuid() },
 
 			// events
 			_subs: { value: create( null ), configurable: true },
@@ -97,20 +98,14 @@ define([
 
 			_patternObservers: { value: [] },
 
-			// unresolved dependants
-			_pendingResolution: { value: [] },
-
-			// Create arrays for deferred attributes and evaluators etc
-			_deferred: { value: {} },
-
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },
 
+			// Computed properties
+			_computations: { value: create( null ) },
+
 			// two-way bindings
 			_twowayBindings: { value: {} },
-
-			// transition manager
-			_transitionManager: { value: null, writable: true },
 
 			// animations (so we can stop any in progress at teardown)
 			_animations: { value: [] },
@@ -123,39 +118,27 @@ define([
 
 			// live queries
 			_liveQueries: { value: [] },
-			_liveComponentQueries: { value: [] }
+			_liveComponentQueries: { value: [] },
+
+			// components to init at the end of a mutation
+			_childInitQueue: { value: [] },
+
+			// data changes
+			_changes: { value: [] },
+
+			// failed lookups, when we try to access data from ancestor scopes
+			_unresolvedImplicitDependencies: { value: [] }
 		});
-
-		defineProperties( ractive._deferred, {
-			attrs: { value: [] },
-			evals: { value: [] },
-			selectValues: { value: [] },
-			checkboxes: { value: [] },
-			radios: { value: [] },
-			observers: { value: [] },
-			transitions: { value: [] },
-			liveQueries: { value: [] },
-			decorators: { value: [] },
-			focusable: { value: null, writable: true }
-		});
-
-		// options
-		ractive.adaptors = options.adaptors;
-		ractive.modifyArrays = options.modifyArrays;
-		ractive.magic = options.magic;
-		ractive.twoway = options.twoway;
-		ractive.lazy = options.lazy;
-		ractive.debug = options.debug;
-
-		if ( ractive.magic && !magicAdaptor ) {
-			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-		}
 
 		// If this is a component, store a reference to the parent
-		if ( options._parent ) {
-			defineProperty( ractive, '_parent', {
-				value: options._parent
+		if ( options._parent && options._component ) {
+			defineProperties( ractive, {
+				_parent: { value: options._parent },
+				component: { value: options._component }
 			});
+
+			// And store a reference to the instance on the component
+			options._component.instance = ractive;
 		}
 
 		if ( options.el ) {
@@ -174,11 +157,25 @@ define([
 
 		registries.forEach( function ( registry ) {
 			if ( ractive.constructor[ registry ] ) {
-				ractive[ registry ] = extend( create( ractive.constructor[ registry ] || {} ), options[ registry ] );
+				ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
 			} else if ( options[ registry ] ) {
 				ractive[ registry ] = options[ registry ];
 			}
 		});
+
+		// Special case
+		if ( !ractive.data ) {
+			ractive.data = {};
+		}
+
+		// Set up any computed values
+		computed = defaults.computed
+			? extend( create( defaults.computed ), options.computed )
+			: options.computed;
+
+		if ( computed ) {
+			createComputations( ractive, computed );
+		}
 
 
 
@@ -211,7 +208,7 @@ define([
 
 		// deal with compound template
 		if ( isObject( parsedTemplate ) ) {
-			extend( ractive.partials, parsedTemplate.partials );
+			fillGaps( ractive.partials, parsedTemplate.partials );
 			parsedTemplate = parsedTemplate.main;
 		}
 
@@ -246,7 +243,12 @@ define([
 			ractive.el.innerHTML = '';
 		}
 
-		ractive.render( ractive.el, options.complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+		ractive.render( ractive.el, fulfilPromise );
+
+		if ( options.complete ) {
+			promise.then( options.complete.bind( ractive ) );
+		}
 
 		// reset transitionsEnabled
 		ractive.transitionsEnabled = options.transitionsEnabled;

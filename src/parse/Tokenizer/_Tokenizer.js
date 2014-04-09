@@ -29,8 +29,10 @@ define([
 
 		this.str = str;
 		this.pos = 0;
+
 		this.delimiters = options.delimiters;
 		this.tripleDelimiters = options.tripleDelimiters;
+		this.interpolate = options.interpolate;
 
 		this.tokens = [];
 

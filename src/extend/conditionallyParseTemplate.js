@@ -13,20 +13,20 @@ define([
 	return function ( Child ) {
 		var templateEl;
 
-		if ( typeof Child.template === 'string' ) {
+		if ( typeof Child.defaults.template === 'string' ) {
 			if ( !parse ) {
 				throw new Error( errors.missingParser );
 			}
 
-			if ( Child.template.charAt( 0 ) === '#' && isClient ) {
-				templateEl = document.getElementById( Child.template.substring( 1 ) );
+			if ( Child.defaults.template.charAt( 0 ) === '#' && isClient ) {
+				templateEl = document.getElementById( Child.defaults.template.substring( 1 ) );
 				if ( templateEl && templateEl.tagName === 'SCRIPT' ) {
-					Child.template = parse( templateEl.innerHTML, Child );
+					Child.defaults.template = parse( templateEl.innerHTML, Child );
 				} else {
-					throw new Error( 'Could not find template element (' + Child.template + ')' );
+					throw new Error( 'Could not find template element (' + Child.defaults.template + ')' );
 				}
 			} else {
-				Child.template = parse( Child.template, Child ); // all the relevant options are on Child
+				Child.defaults.template = parse( Child.defaults.template, Child.defaults ); // all the relevant options are on Child.defaults
 			}
 		}
 	};

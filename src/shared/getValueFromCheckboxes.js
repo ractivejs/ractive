@@ -12,7 +12,7 @@ define( function () {
 
 		// if we're still in the initial render, we need to find the inputs from the as-yet off-DOM
 		// document fragment. otherwise, the root element
-		rootEl = ractive.rendered ? ractive.el : ractive.fragment.docFrag;
+		rootEl = ractive._rendering ? ractive.fragment.docFrag : ractive.el;
 		checkboxes = rootEl.querySelectorAll( 'input[type="checkbox"][name="{{' + keypath + '}}"]' );
 
 		len = checkboxes.length;
@@ -21,7 +21,7 @@ define( function () {
 			checkbox = checkboxes[i];
 
 			if ( checkbox.hasAttribute( 'checked' ) || checkbox.checked ) {
-				value[ value.length ] = checkbox._ractive.value;
+				value.push( checkbox._ractive.value );
 			}
 		}
 

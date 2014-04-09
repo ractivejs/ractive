@@ -1,4 +1,12 @@
-define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces ) {
+define([
+	'global/runloop',
+	'config/namespaces',
+	'utils/isArray'
+], function (
+	runloop,
+	namespaces,
+	isArray
+) {
 
 	'use strict';
 
@@ -92,12 +100,12 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		// because select values depend partly on the values of their children, and their
 		// children may be entering and leaving the DOM, we wait until updates are
 		// complete before updating
-		this.root._deferred.selectValues.push( this );
+		runloop.addSelectValue( this );
 		return this;
 	};
 
 	updateSelect = function () {
-		var value = this.fragment.getValue(), options, option, i;
+		var value = this.fragment.getValue(), options, option, optionValue, i;
 
 		this.value = this.pNode._ractive.value = value;
 
@@ -106,8 +114,9 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 
 		while ( i-- ) {
 			option = options[i];
+			optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
 
-			if ( option._ractive.value == value ) { // double equals as we may be comparing numbers with strings
+			if ( optionValue == value ) { // double equals as we may be comparing numbers with strings
 				option.selected = true;
 				return this;
 			}
@@ -120,7 +129,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	};
 
 	updateMultipleSelect = function () {
-		var value = this.fragment.getValue(), options, i;
+		var value = this.fragment.getValue(), options, i, option, optionValue;
 
 		if ( !isArray( value ) ) {
 			value = [ value ];
@@ -130,7 +139,9 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		i = options.length;
 
 		while ( i-- ) {
-			options[i].selected = ( value.indexOf( options[i]._ractive.value ) !== -1 );
+			option = options[i];
+			optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
+			option.selected = ( value.indexOf( optionValue ) !== -1 );
 		}
 
 		this.value = value;
@@ -212,7 +223,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		}
 
 		if ( value !== this.value ) {
-			if ( !this.receiving ) {
+			if ( !this.active ) {
 				node.innerHTML = value;
 			}
 
@@ -223,7 +234,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 	};
 
 	updateEverythingElse = function () {
-		var node, value;
+		var node, value, binding;
 
 		node = this.pNode;
 		value = this.fragment.getValue();
@@ -233,7 +244,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 			node._ractive.value = value;
 		}
 
-		if ( value === undefined ) {
+		if ( value == undefined ) {
 			value = '';
 		}
 
@@ -242,8 +253,13 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 
 				// with two-way binding, only update if the change wasn't initiated by the user
 				// otherwise the cursor will often be sent to the wrong place
-				if ( !this.receiving ) {
+				if ( !this.active ) {
 					node[ this.propertyName ] = value;
+				}
+
+				// special case - a selected option whose select element has two-way binding
+				if ( node.tagName === 'OPTION' && node.selected && ( binding = this.element.select.binding ) ) {
+					binding.update();
 				}
 
 				this.value = value;

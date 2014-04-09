@@ -8,20 +8,19 @@ define([
 
 	'use strict';
 
-	var Decorator = function ( descriptor, root, owner, contextStack ) {
-		var name, fragment, errorMessage;
+	var Decorator = function ( descriptor, ractive, owner ) {
+		var decorator = this, name, fragment, errorMessage;
 
-		this.root = root;
-		this.node = owner.node;
+		decorator.root = ractive;
+		decorator.node = owner.node;
 
 		name = descriptor.n || descriptor;
 
 		if ( typeof name !== 'string' ) {
 			fragment = new StringFragment({
 				descriptor:   name,
-				root:         this.root,
-				owner:        owner,
-				contextStack: contextStack
+				root:         ractive,
+				owner:        owner
 			});
 
 			name = fragment.toString();
@@ -29,27 +28,34 @@ define([
 		}
 
 		if ( descriptor.a ) {
-			this.params = descriptor.a;
+			decorator.params = descriptor.a;
 		}
 
 		else if ( descriptor.d ) {
-			fragment = new StringFragment({
+			decorator.fragment = new StringFragment({
 				descriptor:   descriptor.d,
-				root:         this.root,
-				owner:        owner,
-				contextStack: contextStack
+				root:         ractive,
+				owner:        owner
 			});
 
-			this.params = fragment.toArgsList();
-			fragment.teardown();
+			decorator.params = decorator.fragment.toArgsList();
+
+			decorator.fragment.bubble = function () {
+				this.dirty = true;
+				decorator.params = this.toArgsList();
+
+				if ( decorator.ready ) {
+					decorator.update();
+				}
+			};
 		}
 
-		this.fn = root.decorators[ name ];
+		decorator.fn = ractive.decorators[ name ];
 
-		if ( !this.fn ) {
-			errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#decorators';
+		if ( !decorator.fn ) {
+			errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
 
-			if ( root.debug ) {
+			if ( ractive.debug ) {
 				throw new Error( errorMessage );
 			} else {
 				warn( errorMessage );
@@ -73,7 +79,27 @@ define([
 			}
 
 			// TODO does this make sense?
-			this.teardown = result.teardown;
+			this.actual = result;
+			this.ready = true;
+		},
+
+		update: function () {
+			if ( this.actual.update ) {
+				this.actual.update.apply( this.root, this.params );
+			}
+
+			else {
+				this.actual.teardown( true );
+				this.init();
+			}
+		},
+
+		teardown: function ( updating ) {
+			this.actual.teardown();
+
+			if ( !updating && this.fragment ) {
+				this.fragment.teardown();
+			}
 		}
 	};
 

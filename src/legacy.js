@@ -1,8 +1,16 @@
-(function ( win ) {
+define( function () {
 
 	'use strict';
 
-	var doc = win.document;
+	var win, doc, exportedShims;
+
+	if ( typeof window === 'undefined' ) {
+		return;
+	}
+
+	win = window;
+	doc = win.document;
+	exportedShims = {};
 
 	if ( !doc ) {
 		return;
@@ -105,15 +113,59 @@
 
 	if ( !Array.prototype.map ) {
 		Array.prototype.map = function ( mapper, context ) {
-			var i, len, mapped = [];
+			var array = this, i, len, mapped = [], isActuallyString;
 
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
-					mapped[i] = mapper.call( context, this[i], i, this );
+			// incredibly, if you do something like
+			// Array.prototype.map.call( someString, iterator )
+			// then `this` will become an instance of String in IE8.
+			// And in IE8, you then can't do string[i]. Facepalm.
+			if ( array instanceof String ) {
+				array = array.toString();
+				isActuallyString = true;
+			}
+
+			for ( i=0, len=array.length; i<len; i+=1 ) {
+				if ( array.hasOwnProperty( i ) || isActuallyString ) {
+					mapped[i] = mapper.call( context, array[i], i, array );
 				}
 			}
 
 			return mapped;
+		};
+	}
+
+	if ( typeof Array.prototype.reduce !== 'function' ) {
+		Array.prototype.reduce = function(callback, opt_initialValue){
+			var i, value, len, valueIsSet;
+
+			if ('function' !== typeof callback) {
+				throw new TypeError(callback + ' is not a function');
+			}
+
+			len = this.length;
+			valueIsSet = false;
+
+			if ( arguments.length > 1 ) {
+				value = opt_initialValue;
+				valueIsSet = true;
+			}
+
+			for ( i = 0; i < len; i += 1) {
+				if ( this.hasOwnProperty( i ) ) {
+					if ( valueIsSet ) {
+						value = callback(value, this[i], i, this);
+					}
+				} else {
+					value = this[i];
+					valueIsSet = true;
+				}
+			}
+
+			if ( !valueIsSet ) {
+				throw new TypeError( 'Reduce of empty array with no initial value' );
+			}
+
+			return value;
 		};
 	}
 
@@ -128,6 +180,31 @@
 			}
 
 			return filtered;
+		};
+	}
+
+
+	if ( typeof Function.prototype.bind !== 'function' ) {
+		Function.prototype.bind = function ( context ) {
+			var args, fn, Empty, bound, slice = [].slice;
+
+			if ( typeof this !== 'function' ) {
+				throw new TypeError( 'Function.prototype.bind called on non-function' );
+			}
+
+			args = slice.call( arguments, 1 );
+		    fn = this;
+		    Empty = function () {};
+
+		    bound = function () {
+				var ctx = this instanceof Empty && context ? this : context;
+				return fn.apply( ctx, args.concat( slice.call( arguments ) ) );
+			};
+
+			Empty.prototype = this.prototype;
+			bound.prototype = new Empty();
+
+			return bound;
 		};
 	}
 
@@ -221,9 +298,12 @@
 	}
 
 
+	// The getComputedStyle polyfill interacts badly with jQuery, so we don't attach
+	// it to window. Instead, we export it for other modules to use as needed
+
 	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
 	if ( !win.getComputedStyle ) {
-		win.getComputedStyle = (function () {
+		exportedShims.getComputedStyle = (function () {
 			function getPixelSize(element, style, property, fontSize) {
 				var
 				sizeWithSuffix = style[property],
@@ -297,4 +377,6 @@
 		}());
 	}
 
-}( typeof window !== 'undefined' ? window : this ));
+	return exportedShims;
+
+});

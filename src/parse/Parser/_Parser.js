@@ -32,18 +32,18 @@ define([
 			stubs.push( stub );
 		}
 
-		this.result = jsonifyStubs( stubs );
+		this.result = jsonifyStubs( stubs, options.noStringify, true );
 	};
 
 	Parser.prototype = {
-		getStub: function () {
+		getStub: function ( preserveWhitespace ) {
 			var token = this.next();
 
 			if ( !token ) {
 				return null;
 			}
 
-			return this.getText( token )     ||
+			return this.getText( token, this.preserveWhitespace || preserveWhitespace ) ||
 			       this.getComment( token )  ||
 			       this.getMustache( token ) ||
 			       this.getElement( token );

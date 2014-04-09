@@ -3,23 +3,25 @@ define( function () {
 	'use strict';
 
 	return function ( element ) {
-		var ractive, liveQueries, i, selector, query;
+		var instance, liveQueries, i, selector, query;
 
 		// Does this need to be added to any live queries?
-		ractive = element.root;
-		liveQueries = ractive._liveQueries;
+		instance = element.root;
 
-		i = liveQueries.length;
-		while ( i-- ) {
-			selector = liveQueries[i];
-			query = liveQueries[ selector ];
+		do {
+			liveQueries = instance._liveQueries;
 
-			if ( query._test( element ) ) {
-				// keep register of applicable selectors, for when we teardown
-				( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
-				element.liveQueries[ selector ] = [ element.node ];
+			i = liveQueries.length;
+			while ( i-- ) {
+				selector = liveQueries[i];
+				query = liveQueries[ selector ];
+
+				if ( query._test( element ) ) {
+					// keep register of applicable selectors, for when we teardown
+					( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
+				}
 			}
-		}
+		} while ( instance = instance._parent );
 	};
 
 });

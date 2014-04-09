@@ -1,26 +1,20 @@
 define([
+	'config/initOptions',
 	'parse/utils/stripHtmlComments',
 	'parse/utils/stripStandalones',
 	'parse/utils/stripCommentTokens',
-	'parse/Tokenizer/_Tokenizer',
-	'circular'
+	'parse/Tokenizer/_Tokenizer'
 ], function (
+	initOptions,
 	stripHtmlComments,
 	stripStandalones,
 	stripCommentTokens,
-	Tokenizer,
-	circular
+	Tokenizer
 ) {
 
 	'use strict';
 
-	var tokenize, Ractive;
-
-	circular.push( function () {
-		Ractive = circular.Ractive;
-	});
-
-	tokenize = function ( template, options ) {
+	return function ( template, options ) {
 		var tokenizer, tokens;
 
 		options = options || {};
@@ -31,8 +25,12 @@ define([
 
 		// TODO handle delimiters differently
 		tokenizer = new Tokenizer( template, {
-			delimiters: options.delimiters || ( Ractive ? Ractive.delimiters : [ '{{', '}}' ] ),
-			tripleDelimiters: options.tripleDelimiters || ( Ractive ? Ractive.tripleDelimiters : [ '{{{', '}}}' ] )
+			delimiters: options.delimiters || initOptions.defaults.delimiters,
+			tripleDelimiters: options.tripleDelimiters || initOptions.defaults.tripleDelimiters,
+			interpolate: {
+				script: options.interpolateScripts !== false ? true : false,
+				style: options.interpolateStyles !== false ? true : false
+			}
 		});
 
 		// TODO and this...
@@ -43,7 +41,5 @@ define([
 
 		return tokens;
 	};
-
-	return tokenize;
 
 });

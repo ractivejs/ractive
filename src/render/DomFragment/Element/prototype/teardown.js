@@ -1,13 +1,21 @@
 define([
+	'global/runloop',
 	'render/DomFragment/Element/shared/executeTransition/_executeTransition'
 ], function (
+	runloop,
 	executeTransition
 ) {
 
 	'use strict';
 
-	return function ( destroy ) {
-		var eventName, binding, bindings, i, liveQueries, selector, query, nodesToRemove, j;
+	return function Element_prototype_teardown ( destroy ) {
+		var eventName, binding, bindings;
+
+		// Detach as soon as we can
+		if ( destroy ) {
+			this.willDetach = true;
+			runloop.detachWhenReady( this );
+		}
 
 		// Children first. that way, any transitions on child elements will be
 		// handled by the current transitionManager
@@ -39,30 +47,32 @@ define([
 
 		// Outro, if necessary
 		if ( this.descriptor.t2 ) {
-			executeTransition( this.descriptor.t2, this.root, this, this.parentFragment.contextStack, false );
-		}
-
-		// Detach as soon as we can
-		if ( destroy ) {
-			this.root._transitionManager.detachWhenReady( this );
+			executeTransition( this.descriptor.t2, this.root, this, false );
 		}
 
 		// Remove this node from any live queries
-		if ( liveQueries = this.liveQueries ) {
-			i = liveQueries.length;
-			while ( i-- ) {
-				selector = liveQueries[i];
+		if ( this.liveQueries ) {
+			removeFromLiveQueries( this );
+		}
+	};
 
-				if ( nodesToRemove = this.liveQueries[ selector ] ) {
-					j = nodesToRemove.length;
-					query = this.root._liveQueries[ selector ];
+	function removeFromLiveQueries ( element ) {
+		var query, selector, matchingStaticNodes, i, j;
 
-					while ( j-- ) {
-						query._remove( nodesToRemove[j] );
-					}
+		i = element.liveQueries.length;
+		while ( i-- ) {
+			query = element.liveQueries[i];
+			selector = query.selector;
+
+			query._remove( element.node );
+
+			if ( element.matchingStaticNodes && ( matchingStaticNodes = element.matchingStaticNodes[ selector ] ) ) {
+				j = matchingStaticNodes.length;
+				while ( j-- ) {
+					query.remove( matchingStaticNodes[j] );
 				}
 			}
 		}
-	};
+	}
 
 });

@@ -1,22 +1,23 @@
 define([
-	'extend/registries',
-	'extend/initOptions',
+	'config/initOptions',
+	'config/registries',
+	'utils/defineProperty',
 	'extend/wrapMethod',
-	'extend/utils/augment'
+	'extend/utils/augment',
+	'extend/utils/transformCss'
 ], function (
-	registries,
 	initOptions,
+	registries,
+	defineProperty,
 	wrapMethod,
-	augment
+	augment,
+	transformCss
 ) {
 
 	'use strict';
 
-	var blacklist, blacklisted;
-
-	blacklist = registries.concat( initOptions );
-	blacklisted = {};
-	blacklist.forEach( function ( property ) {
+	var blacklisted = {};
+	registries.concat( initOptions.keys ).forEach( function ( property ) {
 		blacklisted[ property ] = true;
 	});
 
@@ -38,21 +39,21 @@ define([
 			}
 		});
 
-		initOptions.forEach( function ( property ) {
-			var value = childProps[ property ];
+		initOptions.keys.forEach( function ( key ) {
+			var value = childProps[ key ];
 
 			if ( value !== undefined ) {
 				// we may need to wrap a function (e.g. the `complete` option)
-				if ( typeof value === 'function' && typeof Child[ property ] === 'function' ) {
-					Child[ property ] = wrapMethod( value, Child[ property ] );
+				if ( typeof value === 'function' && typeof Child[ key ] === 'function' ) {
+					Child.defaults[ key ] = wrapMethod( value, Child[ key ] );
 				} else {
-					Child[ property ] = childProps[ property ];
+					Child.defaults[ key ] = childProps[ key ];
 				}
 			}
 		});
 
 		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) && !blacklisted[ key ] ) {
+			if ( !blacklisted[ key ] && childProps.hasOwnProperty( key ) ) {
 				member = childProps[ key ];
 
 				// if this is a method that overwrites a prototype method, we may need
@@ -63,6 +64,15 @@ define([
 					Child.prototype[ key ] = member;
 				}
 			}
+		}
+
+		// Special case - CSS
+		if ( childProps.css ) {
+			defineProperty( Child, 'css', {
+				value: Child.defaults.noCssTransform
+					? childProps.css
+					: transformCss( childProps.css, Child._guid )
+			});
 		}
 	};
 

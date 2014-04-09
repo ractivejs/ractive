@@ -1,7 +1,7 @@
 define([
 	'config/types',
 	'utils/matches',
-	'render/shared/initFragment',
+	'render/shared/Fragment/_Fragment',
 	'render/DomFragment/shared/insertHtml',
 	'render/DomFragment/Text',
 	'render/DomFragment/Interpolator',
@@ -15,7 +15,7 @@ define([
 ], function (
 	types,
 	matches,
-	initFragment,
+	Fragment,
 	insertHtml,
 	Text,
 	Interpolator,
@@ -40,37 +40,41 @@ define([
 			this.html = options.descriptor;
 
 			if ( this.docFrag ) {
-				this.nodes = insertHtml( this.html, options.pNode.tagName, this.docFrag );
+				this.nodes = insertHtml( this.html, options.pNode.tagName, options.pNode.namespaceURI, this.docFrag );
 			}
 		}
 
 		else {
 			// otherwise we need to make a proper fragment
-			initFragment( this, options );
+			Fragment.init( this, options );
 		}
 	};
 
 	DomFragment.prototype = {
+		reassign: Fragment.reassign,
+
 		detach: function () {
 			var len, i;
 
-			// if this was built from HTML, we just need to remove the nodes
-			if ( this.nodes ) {
-				i = this.nodes.length;
-				while ( i-- ) {
-					this.docFrag.appendChild( this.nodes[i] );
+			if ( this.docFrag ) {
+				// if this was built from HTML, we just need to remove the nodes
+				if ( this.nodes ) {
+					len = this.nodes.length;
+					for ( i = 0; i < len; i += 1 ) {
+						this.docFrag.appendChild( this.nodes[i] );
+					}
 				}
-			}
 
-			// otherwise we need to detach each item
-			else if ( this.items ) {
-				len = this.items.length;
-				for ( i = 0; i < len; i += 1 ) {
-					this.docFrag.appendChild( this.items[i].detach() );
+				// otherwise we need to detach each item
+				else if ( this.items ) {
+					len = this.items.length;
+					for ( i = 0; i < len; i += 1 ) {
+						this.docFrag.appendChild( this.items[i].detach() );
+					}
 				}
-			}
 
-			return this.docFrag;
+				return this.docFrag;
+			}
 		},
 
 		createItem: function ( options ) {

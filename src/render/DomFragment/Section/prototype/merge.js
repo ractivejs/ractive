@@ -1,34 +1,30 @@
-define([
-	'render/DomFragment/Section/reassignFragment'
-], function (
-	reassignFragment
-) {
+define([], function () {
 
 	'use strict';
 
-	return function ( newIndices ) {
+	var toTeardown = [];
+
+	return function sectionMerge ( newIndices ) {
 		var section = this,
 			parentFragment,
 			firstChange,
-			changed,
 			i,
 			newLength,
-			newFragments,
-			toTeardown,
+			reassignedFragments,
 			fragmentOptions,
 			fragment,
 			nextNode;
 
 		parentFragment = this.parentFragment;
 
-		newFragments = [];
+		reassignedFragments = [];
 
 		// first, reassign existing fragments
-		newIndices.forEach( function ( newIndex, oldIndex ) {
-			var by, oldKeypath, newKeypath;
+		newIndices.forEach( function reassignIfNecessary ( newIndex, oldIndex ) {
+			var fragment, by, oldKeypath, newKeypath;
 
 			if ( newIndex === oldIndex ) {
-				newFragments[ newIndex ] = section.fragments[ oldIndex ];
+				reassignedFragments[ newIndex ] = section.fragments[ oldIndex ];
 				return;
 			}
 
@@ -38,27 +34,23 @@ define([
 
 			// does this fragment need to be torn down?
 			if ( newIndex === -1 ) {
-				( toTeardown || ( toTeardown = [] ) ).push( section.fragments[ oldIndex ] );
+				toTeardown.push( section.fragments[ oldIndex ] );
 				return;
 			}
 
 			// Otherwise, it needs to be reassigned to a new index
+			fragment = section.fragments[ oldIndex ];
+
 			by = newIndex - oldIndex;
 			oldKeypath = section.keypath + '.' + oldIndex;
 			newKeypath = section.keypath + '.' + newIndex;
 
-			reassignFragment( section.fragments[ oldIndex ], section.descriptor.i, oldIndex, newIndex, by, oldKeypath, newKeypath );
-
-			newFragments[ newIndex ] = section.fragments[ oldIndex ];
-
-			changed = true;
-
+			fragment.reassign( section.descriptor.i, oldIndex, newIndex, by, oldKeypath, newKeypath );
+			reassignedFragments[ newIndex ] = fragment;
 		});
 
-		if ( toTeardown ) {
-			while ( fragment = toTeardown.pop() ) {
-				fragment.teardown( true );
-			}
+		while ( fragment = toTeardown.pop() ) {
+			fragment.teardown( true );
 		}
 
 		// If nothing changed with the existing fragments, then we start adding
@@ -67,7 +59,8 @@ define([
 			firstChange = this.length;
 		}
 
-		newLength = this.root.get( this.keypath ).length;
+		this.length = newLength = this.root.get( this.keypath ).length;
+
 		if ( newLength === firstChange ) {
 			// ...unless there are no new fragments to add
 			return;
@@ -90,12 +83,12 @@ define([
 		for ( i = firstChange; i < newLength; i += 1 ) {
 
 			// is this an existing fragment?
-			if ( fragment = newFragments[i] ) {
+			if ( fragment = reassignedFragments[i] ) {
 				this.docFrag.appendChild( fragment.detach( false ) );
 			}
 
 			else {
-				fragmentOptions.contextStack = this.contextStack.concat( this.keypath + '.' + i );
+				fragmentOptions.context = this.keypath + '.' + i;
 				fragmentOptions.index = i;
 
 				fragment = this.createFragment( fragmentOptions );
@@ -107,8 +100,6 @@ define([
 		// reinsert fragment
 		nextNode = parentFragment.findNextNode( this );
 		parentFragment.pNode.insertBefore( this.docFrag, nextNode );
-
-		this.length = newLength;
 	};
 
 });

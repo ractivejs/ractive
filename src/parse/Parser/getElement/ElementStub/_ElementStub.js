@@ -2,8 +2,6 @@ define([
 	'config/types',
 	'config/voidElementNames',
 	'utils/warn',
-	'utils/camelCase',
-	'parse/Parser/utils/stringifyStubs',
 
 	'parse/Parser/getElement/ElementStub/utils/siblingsByTagName',
 	'parse/Parser/getElement/ElementStub/utils/filterAttributes',
@@ -17,8 +15,6 @@ define([
 	types,
 	voidElementNames,
 	warn,
-	camelCase,
-	stringifyStubs,
 
 	siblingsByTagName,
 	filterAttributes,
@@ -66,7 +62,7 @@ define([
 		}
 
 		// if this is a <pre> element, preserve whitespace within
-		preserveWhitespace = ( preserveWhitespace || lowerCaseTag === 'pre' );
+		preserveWhitespace = ( preserveWhitespace || lowerCaseTag === 'pre' || lowerCaseTag === 'style' || lowerCaseTag === 'script' );
 
 		if ( firstToken.attrs ) {
 			filtered = filterAttributes( firstToken.attrs );
@@ -150,7 +146,7 @@ define([
 
 			}
 
-			this.items[ this.items.length ] = parser.getStub();
+			this.items.push( parser.getStub( preserveWhitespace ) );
 
 			next = parser.next();
 		}

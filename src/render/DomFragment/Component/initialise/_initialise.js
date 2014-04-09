@@ -3,7 +3,7 @@ define([
 	'utils/warn',
 	'render/DomFragment/Component/initialise/createModel/_createModel',
 	'render/DomFragment/Component/initialise/createInstance',
-	'render/DomFragment/Component/initialise/createObservers',
+	'render/DomFragment/Component/initialise/createBindings',
 	'render/DomFragment/Component/initialise/propagateEvents',
 	'render/DomFragment/Component/initialise/updateLiveQueries'
 ], function (
@@ -11,14 +11,14 @@ define([
 	warn,
 	createModel,
 	createInstance,
-	createObservers,
+	createBindings,
 	propagateEvents,
 	updateLiveQueries
 ) {
 
 	'use strict';
 
-	return function ( component, options, docFrag ) {
+	return function initialiseComponent ( component, options, docFrag ) {
 		var parentFragment,
 			root,
 			Component,
@@ -32,10 +32,8 @@ define([
 		component.type = types.COMPONENT;
 		component.name = options.descriptor.e;
 		component.index = options.index;
-
-		// we may need to create some observers to handle data-binding
-		// between parent and child
-		component.observers = [];
+		component.indexRefBindings = {};
+		component.bindings = [];
 
 		// get the component constructor
 		Component = root.components[ options.descriptor.e ];
@@ -51,10 +49,10 @@ define([
 		// This may involve setting up some bindings, but we can't do it
 		// yet so we take some notes instead
 		toBind = [];
-		data = createModel( component, options.descriptor.a, toBind );
+		data = createModel( component, Component.data || {}, options.descriptor.a, toBind );
 
 		createInstance( component, Component, data, docFrag, options.descriptor.f );
-		createObservers( component, toBind );
+		createBindings( component, toBind );
 		propagateEvents( component, options.descriptor.v );
 
 		// intro, outro and decorator directives have no effect

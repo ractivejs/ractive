@@ -27,16 +27,16 @@ define([ 'config/types', 'utils/parseJSON' ], function ( types, parseJSON ) {
 				colonIndex = token.value.indexOf( ':' );
 
 				if ( colonIndex === -1 ) {
-					directiveName[ directiveName.length ] = token;
+					directiveName.push( token );
 				} else {
 
 					// is the colon the first character?
 					if ( colonIndex ) {
 						// no
-						directiveName[ directiveName.length ] = {
+						directiveName.push({
 							type: types.TEXT,
 							value: token.value.substr( 0, colonIndex )
-						};
+						});
 					}
 
 					// if there is anything after the colon in this token, treat
@@ -53,7 +53,7 @@ define([ 'config/types', 'utils/parseJSON' ], function ( types, parseJSON ) {
 			}
 
 			else {
-				directiveName[ directiveName.length ] = token;
+				directiveName.push( token );
 			}
 		}
 

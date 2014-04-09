@@ -1,17 +1,13 @@
 define([
 	'config/types',
 	'utils/matches',
-	'render/shared/initMustache',
-	'render/shared/updateMustache',
-	'render/shared/resolveMustache',
+	'render/shared/Mustache/_Mustache',
 	'render/DomFragment/shared/insertHtml',
 	'shared/teardown'
 ], function (
 	types,
 	matches,
-	initMustache,
-	updateMustache,
-	resolveMustache,
+	Mustache,
 	insertHtml,
 	teardown
 ) {
@@ -27,7 +23,7 @@ define([
 		}
 
 		this.initialising = true;
-		initMustache( this, options );
+		Mustache.init( this, options );
 		if ( docFrag ) {
 			docFrag.appendChild( this.docFrag );
 		}
@@ -35,17 +31,21 @@ define([
 	};
 
 	DomTriple.prototype = {
-		update: updateMustache,
-		resolve: resolveMustache,
+		update: Mustache.update,
+		resolve: Mustache.resolve,
+		reassign: Mustache.reassign,
 
 		detach: function () {
-			var i = this.nodes.length;
+			var len, i;
 
-			while ( i-- ) {
-				this.docFrag.appendChild( this.nodes[i] );
+			if ( this.docFrag ) {
+				len = this.nodes.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.docFrag.appendChild( this.nodes[i] );
+				}
+
+				return this.docFrag;
 			}
-
-			return this.docFrag;
 		},
 
 		teardown: function ( destroy ) {
@@ -88,10 +88,15 @@ define([
 			// get new nodes
 			pNode = this.parentFragment.pNode;
 
-			this.nodes = insertHtml( html, pNode.tagName, this.docFrag );
+			this.nodes = insertHtml( html, pNode.tagName, pNode.namespaceURI, this.docFrag );
 
 			if ( !this.initialising ) {
 				pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+			}
+
+			// Special case - we're inserting the contents of a <select>
+			if ( pNode.tagName === 'SELECT' && pNode._ractive && pNode._ractive.binding ) {
+				pNode._ractive.binding.update();
 			}
 		},
 

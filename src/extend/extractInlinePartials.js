@@ -10,13 +10,13 @@ define([
 
 	return function ( Child, childProps ) {
 		// does our template contain inline partials?
-		if ( isObject( Child.template ) ) {
+		if ( isObject( Child.defaults.template ) ) {
 			if ( !Child.partials ) {
 				Child.partials = {};
 			}
 
 			// get those inline partials
-			augment( Child.partials, Child.template.partials );
+			augment( Child.partials, Child.defaults.template.partials );
 
 			// but we also need to ensure that any explicit partials override inline ones
 			if ( childProps.partials ) {
@@ -24,7 +24,7 @@ define([
 			}
 
 			// move template to where it belongs
-			Child.template = Child.template.main;
+			Child.defaults.template = Child.defaults.template.main;
 		}
 	};
 

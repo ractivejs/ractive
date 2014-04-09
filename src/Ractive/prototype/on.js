@@ -11,14 +11,16 @@ define( function () {
 
 			for ( n in eventName ) {
 				if ( eventName.hasOwnProperty( n ) ) {
-					listeners[ listeners.length ] = this.on( n, eventName[ n ] );
+					listeners.push( this.on( n, eventName[ n ] ) );
 				}
 			}
 
 			return {
 				cancel: function () {
-					while ( listeners.length ) {
-						listeners.pop().cancel();
+					var listener;
+
+					while ( listener = listeners.pop() ) {
+						listener.cancel();
 					}
 				}
 			};

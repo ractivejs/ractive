@@ -1,12 +1,14 @@
 define([
+	'global/runloop',
 	'config/types',
 	'config/namespaces',
 	'utils/create',
 	'utils/defineProperty',
-	'utils/matches',
 	'utils/warn',
 	'utils/createElement',
+	'shared/getInnerContext',
 	'render/DomFragment/Element/initialise/getElementNamespace',
+	'render/DomFragment/Element/initialise/createElementAttribute',
 	'render/DomFragment/Element/initialise/createElementAttributes',
 	'render/DomFragment/Element/initialise/appendElementChildren',
 	'render/DomFragment/Element/initialise/decorate/_decorate',
@@ -15,14 +17,16 @@ define([
 	'render/DomFragment/Element/shared/executeTransition/_executeTransition',
 	'render/DomFragment/shared/enforceCase'
 ], function (
+	runloop,
 	types,
 	namespaces,
 	create,
 	defineProperty,
-	matches,
 	warn,
 	createElement,
+	getInnerContext,
 	getElementNamespace,
+	createElementAttribute,
 	createElementAttributes,
 	appendElementChildren,
 	decorate,
@@ -34,10 +38,9 @@ define([
 
 	'use strict';
 
-	return function ( element, options, docFrag ) {
+	return function initialiseElement ( element, options, docFrag ) {
 		var parentFragment,
 			pNode,
-			contextStack,
 			descriptor,
 			namespace,
 			name,
@@ -54,8 +57,9 @@ define([
 		// stuff we'll need later
 		parentFragment = element.parentFragment = options.parentFragment;
 		pNode = parentFragment.pNode;
-		contextStack = parentFragment.contextStack;
 		descriptor = element.descriptor = options.descriptor;
+
+		element.parent = options.pElement;
 
 		element.root = root = parentFragment.root;
 		element.index = options.index;
@@ -63,6 +67,8 @@ define([
 
 		element.eventListeners = [];
 		element.customEventListeners = [];
+
+		element.cssDetachQueue = [];
 
 		// get namespace, if we're actually rendering (not server-side stringifying)
 		if ( pNode ) {
@@ -74,12 +80,19 @@ define([
 			// create the DOM node
 			element.node = createElement( name, namespace );
 
+			// Is this a top-level node of a component? If so, we may need to add
+			// a data-rvcguid attribute, for CSS encapsulation
+			if ( root.css && pNode === root.el ) {
+				element.node.setAttribute( 'data-rvcguid', root.constructor._guid || root._guid );
+			}
+
+
 			// Add _ractive property to the node - we use this object to store stuff
 			// related to proxy events, two-way bindings etc
 			defineProperty( element.node, '_ractive', {
 				value: {
 					proxy: element,
-					keypath: ( contextStack.length ? contextStack[ contextStack.length - 1 ] : '' ),
+					keypath: getInnerContext( parentFragment ),
 					index: parentFragment.indexRefs,
 					events: create( null ),
 					root: root
@@ -157,12 +170,12 @@ define([
 
 			// apply decorator(s)
 			if ( descriptor.o ) {
-				decorate( descriptor.o, root, element, contextStack );
+				decorate( descriptor.o, root, element );
 			}
 
 			// trigger intro transition
 			if ( descriptor.t1 ) {
-				executeTransition( descriptor.t1, root, element, contextStack, true );
+				executeTransition( descriptor.t1, root, element, true );
 			}
 
 			if ( element.node.tagName === 'OPTION' ) {
@@ -171,6 +184,13 @@ define([
 				// this option.
 				if ( pNode.tagName === 'SELECT' && ( selectBinding = pNode._ractive.binding ) ) { // it should be!
 					selectBinding.deferUpdate();
+				}
+
+				// If a value attribute was not given, we need to create one based on
+				// the content of the node, so that `<option>foo</option>` behaves the
+				// same as `<option value='foo'>foo</option>` with two-way binding
+				if ( !attributes.value ) {
+					createElementAttribute( element, 'value', descriptor.f );
 				}
 
 				// Special case... a select may have had its value set before a matching
@@ -184,11 +204,25 @@ define([
 				// Special case. Some browsers (*cough* Firefix *cough*) have a problem
 				// with dynamically-generated elements having autofocus, and they won't
 				// allow you to programmatically focus the element until it's in the DOM
-				root._deferred.focusable = element.node;
+				runloop.focus( element.node );
 			}
+		}
+
+		// If this is an option element, we need to store a reference to its select
+		if ( element.lcName === 'option' ) {
+			element.select = findParentSelect( element.parent );
 		}
 
 		updateLiveQueries( element );
 	};
+
+
+	function findParentSelect ( element ) {
+		do {
+			if ( element.lcName === 'select' ) {
+				return element;
+			}
+		} while ( element = element.parent );
+	}
 
 });

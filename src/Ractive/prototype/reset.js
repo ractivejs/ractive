@@ -1,48 +1,57 @@
 define([
-	'utils/makeTransitionManager',
-	'shared/attemptKeypathResolution',
+	'utils/Promise',
+	'global/runloop',
 	'shared/clearCache',
 	'shared/notifyDependants'
 ], function (
-	makeTransitionManager,
-	attemptKeypathResolution,
+	Promise,
+	runloop,
 	clearCache,
 	notifyDependants
 ) {
 
 	'use strict';
 
-	return function ( data, complete ) {
-		var transitionManager, previousTransitionManager;
+	return function ( data, callback ) {
+		var promise, fulfilPromise, wrapper;
 
 		if ( typeof data === 'function' ) {
-			complete = data;
+			callback = data;
 			data = {};
+		} else {
+			data = data || {};
 		}
 
-		if ( data !== undefined && typeof data !== 'object' ) {
+		if ( typeof data !== 'object' ) {
 			throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
 		}
 
-		// Manage transitions
-		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
-		this.data = data || {};
+		if ( callback ) {
+			promise.then( callback );
+		}
 
-		// Attempt to resolve any unresolved keypaths...
-		if ( this._pendingResolution.length ) {
-			attemptKeypathResolution( this );
+		runloop.start( this, fulfilPromise );
+
+		// If the root object is wrapped, try and use the wrapper's reset value
+		if ( ( wrapper = this._wrapped[ '' ] ) && wrapper.reset ) {
+			if ( wrapper.reset( data ) === false ) {
+				// reset was rejected, we need to replace the object
+				this.data = data;
+			}
+		} else {
+			this.data = data;
 		}
 
 		clearCache( this, '' );
 		notifyDependants( this, '' );
 
+		runloop.end();
+
 		this.fire( 'reset', data );
 
-		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
-		transitionManager.ready();
+		return promise;
 	};
 
 });

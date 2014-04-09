@@ -343,16 +343,50 @@ var renderTests = [
 	},
 	{
 		name: 'Triples work correctly inside table elements',
-		template: '<table>{{{row}}}</table>',
-		data: { row: '<tr><td>works</td></tr>' },
-		result: '<table><tr><td>works</td></tr></table>',
-		new_data: { row: '<tr><td>still works</td></tr>' },
-		new_result: '<table><tr><td>still works</td></tr></table>'
+		template: '<table>{{{row}}}</table>' +
+		          '<table><thead>{{{headerRow}}}</thead></table>' +
+		          '<table><tbody>{{{row}}}</tbody></table>' +
+		          '<table><tr>{{{cell}}}</tr></table>' +
+		          '<table><tr><td>{{{cellContents}}}</td></tr></table>' +
+		          '<table><tr><th>{{{cellContents}}}</th></tr></table>',
+		data: {
+			row: '<tr><td>works</td></tr>',
+			headerRow: '<tr><th>works</th></tr>',
+			cell: '<td>works</td>',
+			cellContents: 'works'
+		},
+		result: '<table><tr><td>works</td></tr></table>' +
+		        '<table><thead><tr><th>works</th></tr></thead></table>' +
+		        '<table><tbody><tr><td>works</td></tr></tbody></table>' +
+		        '<table><tr><td>works</td></tr></table>' +
+		        '<table><tr><td>works</td></tr></table>' +
+		        '<table><tr><th>works</th></tr></table>',
+		new_data: {
+			row: '<tr><td>still works</td></tr>',
+			headerRow: '<tr><th>still works</th></tr>',
+			cell: '<td>still works</td>',
+			cellContents: 'still works'
+		},
+		new_result: '<table><tr><td>still works</td></tr></table>' +
+		            '<table><thead><tr><th>still works</th></tr></thead></table>' +
+		            '<table><tbody><tr><td>still works</td></tr></tbody></table>' +
+		            '<table><tr><td>still works</td></tr></table>' +
+		            '<table><tr><td>still works</td></tr></table>' +
+		            '<table><tr><th>still works</th></tr></table>'
+	},
+	{
+		name: 'Triples work correctly inside select elements',
+		template: '<select>{{{options}}}</select>',
+		data: { options: '<option value="1">one</option><option value="2">two</option><option value="3">three</option>' },
+		result: '<select><option value="1">one</option><option value="2">two</option><option value="3">three</option></select>',
+		new_data: { options: '<option value="4">four</option><option value="5">five</option><option value="6">six</option>' },
+		new_result: '<select><option value="4">four</option><option value="5">five</option><option value="6">six</option></select>'
 	},
 	{
 		name: 'Class name on an SVG element',
 		template: '<svg><text class="label">foo</text></svg>',
-		result: '<svg><text class=label>foo</text></svg>'
+		result: '<svg><text class=label>foo</text></svg>',
+		svg: true
 	},
 	{
 		name: 'Multiple angle brackets are correctly escaped, both with render() and renderHTML()',
@@ -402,6 +436,74 @@ var renderTests = [
 		template: '{{#.}}<p>{{name}}</p>{{/.}}',
 		data: [{ name: 'Alice' }, { name: 'Bob' }, { name: 'Charles' }],
 		result: '<p>Alice</p><p>Bob</p><p>Charles</p>'
+	},
+	{
+		name: 'Setting child properties of null values creates object',
+		template: '{{foo.bar}}',
+		data: { foo: null },
+		result: '',
+		new_data: { 'foo.bar': 'works' },
+		new_result: 'works'
+	},
+	{
+		name: 'Children of sections with partially resolved evaluator',
+		template: '{{# foo || {} }}{{bar}}{{/ foo || {} }}',
+		data: {},
+		result: '',
+		new_data: { foo: { bar: 'works' } },
+		new_result: 'works'
+	},
+	{
+		name: 'Different expressions that share a keypath in unresolved state',
+		template: '{{identity(foo)}} / {{identity(bar)}}',
+		data: { identity: function ( val ) { return val; } },
+		result: ' / ',
+		new_data: { foo: 'one', bar: 'two', identity: function ( val ) { return val; } },
+		new_result: 'one / two'
+	},
+	{
+		name: 'Properties of functions render correctly (#451)',
+		template: '{{foo.prop}}-{{#foo}}{{prop}}{{/foo}}',
+		data: function () {
+			var foo = function () {}, columns = [{ bar: foo }];
+			foo.prop = 'works';
+			return {
+				columns: columns,
+				foo: foo
+			};
+		},
+		result: 'works-works',
+		new_data: { 'foo.prop': 'still works' },
+		new_result: 'still works-still works'
+	},
+
+	// Elements with two-way bindings should render correctly with .toHTML() - #446
+	{
+		nodeOnly: true,
+		name: 'Two-way select bindings',
+		template: '<select value="{{foo}}"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		data: {},
+		result: '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		new_data: { foo: 'c' },
+		new_result: '<select><option value="a">a</option><option value="b">b</option><option value="c" selected>c</option></select>'
+	},
+	{
+		nodeOnly: true,
+		name: 'Two-way multiple select bindings',
+		template: '<select multiple value="{{foo}}"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		data: {},
+		result: '<select multiple><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		new_data: { foo: [ 'b', 'c' ] },
+		new_result: '<select multiple><option value="a">a</option><option value="b" selected>b</option><option value="c" selected>c</option></select>'
+	},
+	{
+		nodeOnly: true,
+		name: 'Two-way radio buttons',
+		template: '<input type="radio" name="{{foo}}" value="one"><input type="radio" name="{{foo}}" value="two">',
+		data: { foo: 'one' },
+		result: '<input type="radio" name="{{foo}}" value="one" checked><input type="radio" name="{{foo}}" value="two">',
+		new_data: { foo: 'two' },
+		new_result: '<input type="radio" name="{{foo}}" value="one"><input type="radio" name="{{foo}}" value="two" checked>'
 	}
 ];
 

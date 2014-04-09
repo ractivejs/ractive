@@ -2,11 +2,13 @@ define([
 	'utils/warn',
 	'config/namespaces',
 	'render/StringFragment/_StringFragment',
+	'render/DomFragment/Element/shared/getMatchingStaticNodes',
 	'circular'
 ], function (
 	warn,
 	namespaces,
 	StringFragment,
+	getMatchingStaticNodes,
 	circular
 ) {
 
@@ -24,9 +26,10 @@ define([
 
 		if ( node.styleSheet ) {
 			node.styleSheet.cssText = content;
+		} else {
+			node.innerHTML = content;
 		}
 
-		node.innerHTML = content;
 	};
 
 	updateScript = function () {
@@ -37,26 +40,23 @@ define([
 			// But this would be a terrible idea with unpredictable results, so let's not.
 		}
 
-		this.node.innerHTML = this.fragment.toString();
+		this.node.text = this.fragment.toString();
 	};
 
 
-	return function ( element, node, descriptor, docFrag ) {
-		var liveQueries, i, selector, queryAllResult, j;
-
+	return function appendElementChildren ( element, node, descriptor, docFrag ) {
 		// Special case - script and style tags
 		if ( element.lcName === 'script' || element.lcName === 'style' ) {
 			element.fragment = new StringFragment({
 				descriptor:   descriptor.f,
 				root:         element.root,
-				contextStack: element.parentFragment.contextStack,
 				owner:        element
 			});
 
 			if ( docFrag ) {
 				if ( element.lcName === 'script' ) {
 					element.bubble = updateScript;
-					element.node.innerHTML = element.fragment.toString(); // bypass warning initially
+					element.node.text = element.fragment.toString(); // bypass warning initially
 				} else {
 					element.bubble = updateCss;
 					element.bubble();
@@ -74,30 +74,18 @@ define([
 				node.innerHTML = element.html;
 
 				// Update live queries, if applicable
-				liveQueries = element.root._liveQueries;
-				i = liveQueries.length;
-				while ( i-- ) {
-					selector = liveQueries[i];
-
-					if ( ( queryAllResult = node.querySelectorAll( selector ) ) && ( j = queryAllResult.length ) ) {
-						( element.liveQueries || ( element.liveQueries = [] ) ).push( selector );
-						element.liveQueries[ selector ] = [];
-
-						while ( j-- ) {
-							element.liveQueries[ selector ][j] = queryAllResult[j];
-						}
-					}
-				}
+				element.matchingStaticNodes = {}; // so we can remove matches made with querySelectorAll at teardown time
+				updateLiveQueries( element );
 			}
 		}
 
 		else {
 			element.fragment = new DomFragment({
-				descriptor:   descriptor.f,
-				root:         element.root,
-				pNode:        node,
-				contextStack: element.parentFragment.contextStack,
-				owner:        element
+				descriptor:    descriptor.f,
+				root:          element.root,
+				pNode:         node,
+				owner:         element,
+				pElement:      element,
 			});
 
 			if ( docFrag ) {
@@ -105,5 +93,25 @@ define([
 			}
 		}
 	};
+
+	function updateLiveQueries ( element ) {
+		var instance, liveQueries, node, selector, query, matchingStaticNodes, i;
+
+		node = element.node;
+		instance = element.root;
+
+		do {
+			liveQueries = instance._liveQueries;
+
+			i = liveQueries.length;
+			while ( i-- ) {
+				selector = liveQueries[i];
+				query = liveQueries[ selector ];
+
+				matchingStaticNodes = getMatchingStaticNodes( element, selector );
+				query.push.apply( query, matchingStaticNodes );
+			}
+		} while ( instance = instance._parent );
+	}
 
 });

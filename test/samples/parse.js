@@ -2,7 +2,7 @@ var parseTests = [
 	{
 		name: "Empty string",
 		template: "",
-		parsed: [""]
+		parsed: []
 	},
 	{
 		name: "Mustache-less text",
@@ -52,7 +52,7 @@ var parseTests = [
 	{
 		name: "Element with unquoted attributes",
 		template: "<div class=test></div>",
-		parsed: ["<div class=test></div>"]
+		parsed: [{"a":{"class":"test"},"e":"div","t":7}]
 	},
 	{
 		name: "Element with unquoted attributes and a mustache",
@@ -67,7 +67,7 @@ var parseTests = [
 	{
 		name: "Template with blacklisted elements (sanitize)",
 		template: "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
-		parsed: [""],
+		parsed: [],
 		options: {
 			sanitize: true
 		}
@@ -75,7 +75,7 @@ var parseTests = [
 	{
 		name: "Template with blacklisted elements and mustaches (sanitize)",
 		template: "<link rel='{{rel}}'>",
-		parsed: [""],
+		parsed: [],
 		options: {
 			sanitize: true
 		}
@@ -83,7 +83,7 @@ var parseTests = [
 	{
 		name: "Template with blacklisted elements (don't sanitize)",
 		template: "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
-		parsed: ["<style type=text/css>body { font-family: 'Comic Sans MS'; }</style>"],
+		parsed: [{"a":{"type":"text/css"},"e":"style","f":"body { font-family: 'Comic Sans MS'; }","t":7}],
 		options: {
 			sanitize: false
 		}
@@ -180,7 +180,7 @@ var parseTests = [
 	{
 		name: "Expression with JSON object",
 		template: "{{( fn({ foo: 1, 'bar': 2, '0foo': 3, '0bar': { baz: 'test', arr: [ 1, 2, 3 ] } }) )}}",
-		parsed: [{t:2,"x":{r:["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:'test',arr:[1,2,3]}})"}}]
+		parsed: [{t:2,"x":{r:["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:\"test\",arr:[1,2,3]}})"}}]
 	},
 	{
 		name: 'Invocation refinements',
@@ -200,12 +200,12 @@ var parseTests = [
 	{
 		name: 'Sloppy whitespace in tags',
 		template: '<div class = "foo"></div>',
-		parsed: ['<div class=foo></div>']
+		parsed: [{"a":{"class":"foo"},"e":"div","t":7}]
 	},
 	{
 		name: 'HTML entities are treated correctly in pure string templates',
 		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;',
-		parsed: ['Non&nbsp;breaking&nbsp;spaces&nbsp;']
+		parsed: ['Non\u00A0breaking\u00A0spaces\u00A0']
 	},
 	{
 		name: 'HTML entities are treated correctly in regular templates',
@@ -215,7 +215,7 @@ var parseTests = [
 	{
 		name: 'HTML entities are treated correctly in pure string templates if semi-colon is omitted',
 		template: 'Non&nbspbreaking&nbspspaces&nbsp',
-		parsed: ['Non&nbspbreaking&nbspspaces&nbsp']
+		parsed: ['Non\u00A0breaking\u00A0spaces\u00A0']
 	},
 	{
 		name: 'HTML entities are treated correctly in regular templates if semi-colon is omitted',
@@ -275,7 +275,7 @@ var parseTests = [
 	{
 		name: 'Comments are stripped by default',
 		template: '<!-- this will disappear --><p>foo <!-- so will this --></p>',
-		parsed: ['<p>foo</p>']
+		parsed: [{"e":"p","f":"foo","t":7}]
 	},
 	{
 		name: 'Comments are left if required (with mustache)',
@@ -286,7 +286,7 @@ var parseTests = [
 	{
 		name: 'Comments are left if required (with plain text)',
 		template: '<!-- this will not disappear --><p>foo <!-- nor will this --></p>',
-		parsed: ['<!-- this will not disappear --><p>foo <!-- nor will this --></p>'],
+		parsed: [{"f":" this will not disappear ","t":9},{"e":"p","f":"foo <!-- nor will this -->","t":7}],
 		options: { stripComments: false }
 	},
 	{
@@ -318,6 +318,62 @@ var parseTests = [
 		name: 'Ampersand mustaches are treated the same as triples',
 		template: '{{&foo}}',
 		parsed: [{t:3,r:'foo'}]
+	},
+	{
+		name: 'Backslash escapes in strings',
+		template: '{{ ["\\\\ \\" \\\\", \'\\\\ \\\' \\\\\'] }}',
+		parsed: [{t:2,x:{r:[],s:'["\\\\ \\" \\\\","\\\\ \' \\\\"]'}}]
+	},
+	{
+		name: 'Unicode escapes in strings',
+		template: '{{ "A\\u0042C" }}',
+		parsed: [{t:2,x:{r:[],s:'"ABC"'}}]
+	},
+	{
+		name: 'Array members in section tags',
+		template: '{{#foo[0]}}bar{{/foo[0]}}',
+		parsed: [{t:4,r:'foo.0',f:'bar'}]
+	},
+	{
+		name: 'Reference this is an invalid expression',
+		template: '{{0.foo}}',
+		parsed: [{t:2,r:'0.foo'}]
+	},
+	{
+		name: 'Tag with newline before attributes',
+		template: '<img\nsrc="{{foo}}">',
+		parsed: [{t:7,e:'img',a:{src:[{t:2,r:'foo'}]}}]
+	},
+	{
+		name: 'Expression section',
+		template: '{{#[1,2,3]}}{{.}}{{/}}',
+		parsed: [{"t":4,"x":{"r":[],"s":"[1,2,3]"},"f":[{"t":2,"r":"."}]}]
+	},
+	{
+		name: 'Keypath expression section',
+		template: '{{#foo[bar]}}{{.}}{{/}}',
+		parsed: [{"t":4,"kx":{"r":"foo","m":[{"t":30,"n":"bar"}]},"f":[{"t":2,"r":"."}]}]
+	},
+	{
+		name: 'List section with index ref and full closing',
+		template: '{{#foo:i}}{{.}}{{/foo:i}}',
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+	},
+	{
+		name: 'List section with index ref and ref only closing',
+		template: '{{#foo:i}}{{.}}{{/foo}}',
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+	},
+	{
+		name: 'List section with index ref and empty closing',
+		template: '{{#foo:i}}{{.}}{{/}}',
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+	},
+	//From GH#541:
+	{
+		name: 'Inverted list section closing',
+		template: '{{#steps:stepIndex}}{{^ hiddenSteps[stepIndex]}}<p>{{hiddenSteps[stepIndex]}}</p>{{/ hiddenSteps[stepIndex]}}{{/steps}}',
+		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":true,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}] 
 	}
 ];
 

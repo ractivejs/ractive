@@ -14,7 +14,7 @@ define([
 		arrayMember = /^[0-9][1-9]*$/;
 
 	return function ( tokenizer, isTriple ) {
-		var start, mustache, type, expr, i, remaining, index;
+		var start, mustache, type, expr, i, remaining, index, delimiter, keypathExpression;
 
 		start = tokenizer.pos;
 
@@ -70,6 +70,27 @@ define([
 
 			// get expression
 			expr = tokenizer.getExpression();
+
+			// With certain valid references that aren't valid expressions,
+			// e.g. {{1.foo}}, we have a problem: it looks like we've got an
+			// expression, but the expression didn't consume the entire
+			// reference. So we need to check that the mustache delimiters
+			// appear next, unless there's an index reference (i.e. a colon)
+			remaining = tokenizer.remaining();
+			delimiter = isTriple ? tokenizer.tripleDelimiters[1] : tokenizer.delimiters[1];
+
+			if ( ( remaining.substr( 0, delimiter.length ) !== delimiter ) && ( remaining.charAt( 0 ) !== ':' ) ) {
+				tokenizer.pos = start;
+
+				remaining = tokenizer.remaining();
+				index = remaining.indexOf( tokenizer.delimiters[1] );
+
+				if ( index !== -1 ) {
+					mustache.ref = remaining.substr( 0, index ).trim();
+					tokenizer.pos += index;
+					return mustache;
+				}
+			}
 		}
 
 		while ( expr.t === types.BRACKETED && expr.x ) {
@@ -82,6 +103,8 @@ define([
 			mustache.ref = expr.n;
 		} else if ( expr.t === types.NUMBER_LITERAL && arrayMember.test( expr.v ) ) {
 			mustache.ref = expr.v;
+		} else if ( keypathExpression = getKeypathExpression( expr ) ) {
+			mustache.keypathExpression = keypathExpression;
 		} else {
 			mustache.expression = expr;
 		}
@@ -94,5 +117,23 @@ define([
 
 		return mustache;
 	};
+
+	function getKeypathExpression ( expr ) {
+		var members = [];
+
+		while ( expr.t === types.MEMBER && expr.r.t === types.REFINEMENT ) {
+			members.unshift( expr.r );
+			expr = expr.x;
+		}
+
+		if ( expr.t !== types.REFERENCE ) {
+			return null;
+		}
+
+		return {
+			r: expr.n,
+			m: members
+		};
+	}
 
 });

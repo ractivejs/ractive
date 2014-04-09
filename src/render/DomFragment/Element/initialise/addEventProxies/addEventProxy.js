@@ -14,23 +14,22 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 		genericHandler,
 		getCustomHandler;
 
-	addEventProxy = function ( element, triggerEventName, proxyDescriptor, contextStack, indexRefs ) {
+	addEventProxy = function ( element, triggerEventName, proxyDescriptor, indexRefs ) {
 		var events, master;
 
 		events = element.node._ractive.events;
-		master = events[ triggerEventName ] || ( events[ triggerEventName ] = new MasterEventHandler( element, triggerEventName, contextStack, indexRefs ) );
+		master = events[ triggerEventName ] || ( events[ triggerEventName ] = new MasterEventHandler( element, triggerEventName, indexRefs ) );
 
 		master.add( proxyDescriptor );
 	};
 
-	MasterEventHandler = function ( element, eventName, contextStack ) {
+	MasterEventHandler = function ( element, eventName ) {
 		var definition;
 
 		this.element = element;
 		this.root = element.root;
 		this.node = element.node;
 		this.name = eventName;
-		this.contextStack = contextStack; // TODO do we need to pass contextStack down everywhere? Doesn't it belong to the parentFragment?
 		this.proxies = [];
 
 		if ( definition = this.root.events[ eventName ] ) {
@@ -38,7 +37,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 		} else {
 			// Looks like we're dealing with a standard DOM event... but let's check
 			if ( !( 'on' + eventName in this.node ) ) {
-				warn( 'Missing "' + this.name + '" event. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#events' );
+				warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
 			}
 
 			this.node.addEventListener( eventName, genericHandler, false );
@@ -47,7 +46,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 
 	MasterEventHandler.prototype = {
 		add: function ( proxy ) {
-			this.proxies[ this.proxies.length ] = new ProxyEvent( this.element, this.root, proxy, this.contextStack );
+			this.proxies.push( new ProxyEvent( this.element, this.root, proxy ) );
 		},
 
 		// TODO teardown when element torn down
@@ -75,7 +74,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 		}
 	};
 
-	ProxyEvent = function ( element, ractive, descriptor, contextStack ) {
+	ProxyEvent = function ( element, ractive, descriptor ) {
 		var name;
 
 		this.root = ractive;
@@ -88,8 +87,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 			this.n = new StringFragment({
 				descriptor:   descriptor.n,
 				root:         this.root,
-				owner:        element,
-				contextStack: contextStack
+				owner:        element
 			});
 		}
 
@@ -103,8 +101,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 			this.d = new StringFragment({
 				descriptor:   descriptor.d,
 				root:         this.root,
-				owner:        element,
-				contextStack: contextStack
+				owner:        element
 			});
 			this.fire = fireEventWithDynamicArgs;
 			return;

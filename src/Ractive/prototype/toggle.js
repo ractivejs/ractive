@@ -2,7 +2,7 @@ define( function () {
 
 	'use strict';
 
-	return function ( keypath ) {
+	return function ( keypath, callback ) {
 		var value;
 
 		if ( typeof keypath !== 'string' ) {
@@ -13,7 +13,7 @@ define( function () {
 		}
 
 		value = this.get( keypath );
-		this.set( keypath, !value );
+		return this.set( keypath, !value, callback );
 	};
 
 });

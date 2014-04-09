@@ -6,7 +6,7 @@ define( function () {
 		var key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) && !target.hasOwnProperty( key ) ) {
+			if ( source.hasOwnProperty( key ) && !( key in target ) ) {
 				target[ key ] = source[ key ];
 			}
 		}

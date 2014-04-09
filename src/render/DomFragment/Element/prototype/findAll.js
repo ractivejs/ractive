@@ -1,34 +1,26 @@
-define( function () {
+define([
+	'render/DomFragment/Element/shared/getMatchingStaticNodes'
+], function (
+	getMatchingStaticNodes
+) {
 
 	'use strict';
 
 	return function ( selector, query ) {
-		var queryAllResult, i, numNodes, node, registeredNodes;
+		var matchingStaticNodes, matchedSelf;
 
 		// Add this node to the query, if applicable, and register the
 		// query on this element
 		if ( query._test( this, true ) && query.live ) {
-			( this.liveQueries || ( this.liveQueries = [] ) ).push( selector );
-			this.liveQueries[ selector ] = [ this.node ];
+			( this.liveQueries || ( this.liveQueries = [] ) ).push( query );
 		}
 
-		if ( this.html && ( queryAllResult = this.node.querySelectorAll( selector ) ) && ( numNodes = queryAllResult.length ) ) {
-			if ( query.live ) {
-				if ( !this.liveQueries[ selector ] ) {
-					( this.liveQueries || ( this.liveQueries = [] ) ).push( selector );
-					this.liveQueries[ selector ] = [];
-				}
+		if ( this.html ) {
+			matchingStaticNodes = getMatchingStaticNodes( this, selector );
+			query.push.apply( query, matchingStaticNodes );
 
-				registeredNodes = this.liveQueries[ selector ];
-			}
-
-			for ( i = 0; i < numNodes; i += 1 ) {
-				node = queryAllResult[i];
-				query.push( node );
-
-				if ( query.live ) {
-					registeredNodes.push( node );
-				}
+			if ( query.live && !matchedSelf ) {
+				( this.liveQueries || ( this.liveQueries = [] ) ).push( query );
 			}
 		}
 

@@ -1,14 +1,16 @@
 define([
 	'config/isClient',
+	'config/vendors',
 	'utils/createElement'
 ], function (
 	isClient,
+	vendors,
 	createElement
 ) {
 
 	'use strict';
 
-	var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
+	var div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
 	if ( !isClient ) {
 		return;
@@ -17,7 +19,6 @@ define([
 	div = createElement( 'div' );
 
 	methodNames = [ 'matches', 'matchesSelector' ];
-	vendors = [ 'o', 'ms', 'moz', 'webkit' ];
 
 	makeFunction = function ( methodName ) {
 		return function ( node, selector ) {

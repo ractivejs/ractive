@@ -1,96 +1,62 @@
-define( function () {
+define([
+	'utils/removeFromArray'
+], function (
+	removeFromArray
+) {
 
 	'use strict';
 
-	// We're not using a constructor here because it's convenient (and more
-	// efficient) to pass e.g. transitionManager.pop as a callback, rather
-	// than wrapping a prototype method in an anonymous function each time
-	var makeTransitionManager = function ( root, callback ) {
-		var transitionManager, elementsToDetach, detachNodes, nodeHasNoTransitioningChildren;
+	var makeTransitionManager,
+		checkComplete,
+		remove,
+		init;
 
-		// components should inherit their transition manager
-		if ( root._parent && root._parent._transitionManager ) {
-			return root._parent._transitionManager;
+	makeTransitionManager = function ( callback, previous ) {
+		var transitionManager = [];
+
+		transitionManager.detachQueue = [];
+
+		transitionManager.remove = remove;
+		transitionManager.init = init;
+
+		transitionManager._check = checkComplete;
+
+		transitionManager._callback = callback;
+		transitionManager._previous = previous;
+
+		if ( previous ) {
+			previous.push( transitionManager );
 		}
 
-		elementsToDetach = [];
-
-		// detach any nodes which a) need to be detached and b) have no child nodes
-		// which are actively transitioning. This will be called each time a
-		// transition completes
-		detachNodes = function () {
-			var i, element;
-
-			i = elementsToDetach.length;
-			while ( i-- ) {
-				element = elementsToDetach[i];
-
-				// see if this node can be detached yet
-				if ( nodeHasNoTransitioningChildren( element.node ) ) {
-					element.detach();
-					elementsToDetach.splice( i, 1 );
-				}
-			}
-		};
-
-		nodeHasNoTransitioningChildren = function ( node ) {
-			var i, candidate;
-
-			i = transitionManager.active.length;
-			while ( i-- ) {
-				candidate = transitionManager.active[i];
-
-				if ( node.contains( candidate ) ) {
-					// fail as soon as possible
-					return false;
-				}
-			}
-
-			return true;
-		};
-
-		transitionManager = {
-			active: [],
-			push: function ( node ) {
-				transitionManager.active[ transitionManager.active.length ] = node;
-			},
-			pop: function ( node ) {
-				var index;
-
-				index = transitionManager.active.indexOf( node );
-
-				if ( index === -1 ) {
-					// already popped this node
-					return;
-				}
-
-				transitionManager.active.splice( index, 1 );
-
-				detachNodes();
-
-				if ( !transitionManager.active.length && transitionManager._ready ) {
-					transitionManager.complete();
-				}
-			},
-			complete: function () {
-				if ( callback ) {
-					callback.call( root );
-				}
-			},
-			ready: function () {
-				detachNodes();
-
-				transitionManager._ready = true;
-				if ( !transitionManager.active.length ) {
-					transitionManager.complete();
-				}
-			},
-			detachWhenReady: function ( element ) {
-				elementsToDetach[ elementsToDetach.length ] = element;
-			}
-		};
-
 		return transitionManager;
+	};
+
+	checkComplete = function () {
+		var element;
+
+		if ( this._ready && !this.length ) {
+			while ( element = this.detachQueue.pop() ) {
+				element.detach();
+			}
+
+			if ( typeof this._callback === 'function' ) {
+				this._callback();
+			}
+
+			if ( this._previous ) {
+				this._previous.remove( this );
+			}
+		}
+	};
+
+	remove = function ( transition ) {
+		removeFromArray( this, transition );
+		this._check();
+	};
+
+	init = function () {
+		this._ready = true;
+		this._check();
 	};
 
 	return makeTransitionManager;

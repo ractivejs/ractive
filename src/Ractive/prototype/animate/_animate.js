@@ -1,27 +1,33 @@
 define([
 	'utils/isEqual',
-	'Ractive/prototype/animate/animations',
-	'Ractive/prototype/animate/Animation',
-	'registries/easing'
+	'utils/Promise',
+	'utils/normaliseKeypath',
+	'shared/animations',
+	'shared/get/_get',
+	'Ractive/prototype/animate/Animation'
 ],
 
 function (
 	isEqual,
+	Promise,
+	normaliseKeypath,
 	animations,
-	Animation,
-	easingRegistry
+	get,
+	Animation
 ) {
 
 	'use strict';
 
-	var noAnimation = {
-		stop: function () {}
+	var noop = function () {}, noAnimation = {
+		stop: noop
 	};
 
 
 	return function ( keypath, to, options ) {
 
-		var k,
+		var promise,
+			fulfilPromise,
+			k,
 			animation,
 			animations,
 			easing,
@@ -33,6 +39,8 @@ function (
 			collectValue,
 			dummy,
 			dummyOptions;
+
+		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
 		// animate multiple keypaths
 		if ( typeof keypath === 'object' ) {
@@ -74,13 +82,10 @@ function (
 						if ( step ) {
 							options.step = collectValue;
 						}
-
-						if ( complete ) {
-							options.complete = collectValue;
-						}
 					}
 
-					animations[ animations.length ] = animate( this, k, keypath[k], options );
+					options.complete = complete ? collectValue : noop;
+					animations.push( animate( this, k, keypath[k], options ) );
 				}
 			}
 
@@ -97,18 +102,23 @@ function (
 				}
 
 				if ( complete ) {
-					dummyOptions.complete = function ( t ) {
+					promise.then( function ( t ) {
 						complete( t, currentValues );
-					};
+					});
 				}
 
-				animations[ animations.length ] = dummy = animate( this, null, null, dummyOptions );
+				dummyOptions.complete = fulfilPromise;
+
+				dummy = animate( this, null, null, dummyOptions );
+				animations.push( dummy );
 			}
 
 			return {
 				stop: function () {
-					while ( animations.length ) {
-						animations.pop().stop();
+					var animation;
+
+					while ( animation = animations.pop() ) {
+						animation.stop();
 					}
 
 					if ( dummy ) {
@@ -121,20 +131,28 @@ function (
 		// animate a single keypath
 		options = options || {};
 
+		if ( options.complete ) {
+			promise.then( options.complete );
+		}
+
+		options.complete = fulfilPromise;
 		animation = animate( this, keypath, to, options );
 
-		return {
-			stop: function () {
-				animation.stop();
-			}
+		promise.stop = function () {
+			animation.stop();
 		};
+		return promise;
 	};
 
 	function animate ( root, keypath, to, options ) {
 		var easing, duration, animation, from;
 
+		if ( keypath ) {
+			keypath = normaliseKeypath( keypath );
+		}
+
 		if ( keypath !== null ) {
-			from = root.get( keypath );
+			from = get( root, keypath );
 		}
 
 		// cancel any existing animation
@@ -144,7 +162,7 @@ function (
 		// don't bother animating values that stay the same
 		if ( isEqual( from, to ) ) {
 			if ( options.complete ) {
-				options.complete( 1, options.to );
+				options.complete( options.to );
 			}
 
 			return noAnimation;
@@ -157,13 +175,7 @@ function (
 			}
 
 			else {
-				if ( root.easing && root.easing[ options.easing ] ) {
-					// use instance easing function first
-					easing = root.easing[ options.easing ];
-				} else {
-					// fallback to global easing functions
-					easing = easingRegistry[ options.easing ];
-				}
+				easing = root.easing[ options.easing ];
 			}
 
 			if ( typeof easing !== 'function' ) {
@@ -182,6 +194,7 @@ function (
 			root: root,
 			duration: duration,
 			easing: easing,
+			interpolator: options.interpolator,
 
 			// TODO wrap callbacks if necessary, to use instance as context
 			step: options.step,
@@ -189,7 +202,7 @@ function (
 		});
 
 		animations.add( animation );
-		root._animations[ root._animations.length ] = animation;
+		root._animations.push( animation );
 
 		return animation;
 	}

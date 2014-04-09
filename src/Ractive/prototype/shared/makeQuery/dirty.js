@@ -1,10 +1,14 @@
-define( function () {
+define([
+	'global/runloop'
+], function (
+	runloop
+) {
 
 	'use strict';
 
 	return function () {
 		if ( !this._dirty ) {
-			this._root._deferred.liveQueries.push( this );
+			runloop.addLiveQuery( this );
 			this._dirty = true;
 		}
 	};

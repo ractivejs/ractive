@@ -1,20 +1,18 @@
 define([
+	'global/runloop',
+	'utils/warn',
 	'utils/isEqual',
-	'utils/defineProperty',
 	'shared/clearCache',
 	'shared/notifyDependants',
-	'shared/registerDependant',
-	'shared/unregisterDependant',
 	'shared/adaptIfNecessary',
 	'render/shared/Evaluator/Reference',
 	'render/shared/Evaluator/SoftReference'
 ], function (
+	runloop,
+	warn,
 	isEqual,
-	defineProperty,
 	clearCache,
 	notifyDependants,
-	registerDependant,
-	unregisterDependant,
 	adaptIfNecessary,
 	Reference,
 	SoftReference
@@ -24,37 +22,34 @@ define([
 
 	var Evaluator, cache = {};
 
-	Evaluator = function ( root, keypath, functionStr, args, priority ) {
-		var i, arg;
+	Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority ) {
+		var evaluator = this;
 
-		this.root = root;
-		this.keypath = keypath;
-		this.priority = priority;
+		evaluator.root = root;
+		evaluator.uniqueString = uniqueString;
+		evaluator.keypath = keypath;
+		evaluator.priority = priority;
 
-		this.fn = getFunctionFromString( functionStr, args.length );
-		this.values = [];
-		this.refs = [];
+		evaluator.fn = getFunctionFromString( functionStr, args.length );
+		evaluator.values = [];
+		evaluator.refs = [];
 
-		i = args.length;
-		while ( i-- ) {
-			if ( arg = args[i] ) {
-				if ( arg[0] ) {
-					// this is an index ref... we don't need to register a dependant
-					this.values[i] = arg[1];
-				}
+		args.forEach( function ( arg, i ) {
+			if ( !arg ) {
+				return;
+			}
 
-				else {
-					this.refs[ this.refs.length ] = new Reference( root, arg[1], this, i, priority );
-				}
+			if ( arg.indexRef ) {
+				// this is an index ref... we don't need to register a dependant
+				evaluator.values[i] = arg.value;
 			}
 
 			else {
-				this.values[i] = undefined;
+				evaluator.refs.push( new Reference( root, arg.keypath, evaluator, i, priority ) );
 			}
-		}
+		});
 
-		this.selfUpdating = ( this.refs.length <= 1 );
-		this.update();
+		evaluator.selfUpdating = ( evaluator.refs.length <= 1 );
 	};
 
 	Evaluator.prototype = {
@@ -68,7 +63,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// cascading. Only if we're already resolved, obviously
 			else if ( !this.deferred ) {
-				this.root._deferred.evals.push( this );
+				runloop.addEvaluator( this );
 				this.deferred = true;
 			}
 		},
@@ -87,20 +82,18 @@ define([
 				value = this.fn.apply( null, this.values );
 			} catch ( err ) {
 				if ( this.root.debug ) {
-					throw err;
-				} else {
-					value = undefined;
+					warn( 'Error evaluating "' + this.uniqueString + '": ' + err.message || err );
 				}
+
+				value = undefined;
 			}
 
 			if ( !isEqual( value, this.value ) ) {
-				clearCache( this.root, this.keypath );
-				this.root._cache[ this.keypath ] = value;
-
-				// TODO teardown previous wrapper?
-				adaptIfNecessary( this.root, this.keypath, value, true );
-
 				this.value = value;
+
+				clearCache( this.root, this.keypath );
+
+				adaptIfNecessary( this.root, this.keypath, value, true );
 				notifyDependants( this.root, this.keypath );
 			}
 
@@ -161,7 +154,7 @@ define([
 				keypath = softDeps[i];
 				if ( !this.softRefs[ keypath ] ) {
 					ref = new SoftReference( this.root, keypath, this );
-					this.softRefs[ this.softRefs.length ] = ref;
+					this.softRefs.push( ref );
 					this.softRefs[ keypath ] = true;
 				}
 			}

@@ -1,4 +1,10 @@
-define([ 'config/types' ], function ( types ) {
+define([
+	'config/types',
+	'render/DomFragment/shared/detach'
+], function (
+	types,
+	detach
+) {
 
 	'use strict';
 
@@ -13,10 +19,7 @@ define([ 'config/types' ], function ( types ) {
 	};
 
 	DomComment.prototype = {
-		detach: function () {
-			this.node.parentNode.removeChild( this.node );
-			return this.node;
-		},
+		detach: detach,
 
 		teardown: function ( destroy ) {
 			if ( destroy ) {

@@ -1,7 +1,11 @@
 define([
-	'utils/isEqual'
+	'global/runloop',
+	'utils/isEqual',
+	'shared/get/_get'
 ], function (
-	isEqual
+	runloop,
+	isEqual,
+	get
 ) {
 
 	'use strict';
@@ -34,13 +38,13 @@ define([
 			if ( immediate !== false ) {
 				this.update();
 			} else {
-				this.value = this.root.get( this.keypath );
+				this.value = get( this.root, this.keypath );
 			}
 		},
 
 		update: function () {
 			if ( this.defer && this.ready ) {
-				this.root._deferred.observers.push( this.proxy );
+				runloop.addObserver( this.proxy );
 				return;
 			}
 
@@ -51,7 +55,7 @@ define([
 			var oldValue, newValue;
 
 			oldValue = this.value;
-			newValue = this.root.get( this.keypath );
+			newValue = get( this.root, this.keypath );
 
 			this.value = newValue;
 

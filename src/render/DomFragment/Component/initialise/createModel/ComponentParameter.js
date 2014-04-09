@@ -1,6 +1,8 @@
 define([
+	'global/runloop',
 	'render/StringFragment/_StringFragment'
 ], function (
+	runloop,
 	StringFragment
 ) {
 
@@ -15,8 +17,7 @@ define([
 		this.fragment = new StringFragment({
 			descriptor:   value,
 			root:         component.root,
-			owner:        this,
-			contextStack: component.parentFragment.contextStack
+			owner:        this
 		});
 
 		this.selfUpdating = this.fragment.isSimple();
@@ -34,7 +35,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred && this.ready ) {
-				this.root._deferred.attrs.push( this );
+				runloop.addAttribute( this );
 				this.deferred = true;
 			}
 		},

@@ -1,21 +1,28 @@
 define([
-	'config/types',
+	'global/runloop',
 	'utils/warn',
 	'utils/arrayContentsMatch',
-	'shared/getValueFromCheckboxes'
+	'shared/getValueFromCheckboxes',
+	'shared/get/_get',
+	'shared/set'
 ], function (
-	types,
+	runloop,
 	warn,
 	arrayContentsMatch,
-	getValueFromCheckboxes
+	getValueFromCheckboxes,
+	get,
+	set
 ) {
 
 	'use strict';
 
-	var bindAttribute,
+	var singleMustacheError = 'For two-way binding to work, attribute value must be a single interpolator (e.g. value="{{foo}}")',
+		expressionError = 'You cannot set up two-way binding against an expression ',
 
-		getInterpolator,
+		bindAttribute,
+
 		updateModel,
+		getOptions,
 		update,
 		getBinding,
 		inheritProperties,
@@ -31,17 +38,17 @@ define([
 	bindAttribute = function () {
 		var node = this.pNode, interpolator, binding, bindings;
 
-		if ( !this.fragment ) {
-			return false; // report failure
-		}
-
-		interpolator = getInterpolator( this );
+		interpolator = this.interpolator;
 
 		if ( !interpolator ) {
-			return false; // report failure
+			warn( singleMustacheError );
+			return false;
 		}
 
-		this.interpolator = interpolator;
+		if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
+			warn( expressionError + interpolator.keypath );
+			return false;
+		}
 
 		// Hmmm. Not sure if this is the best way to handle this ambiguity...
 		//
@@ -59,7 +66,10 @@ define([
 		// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
 		// be explicit when using two-way data-binding about what keypath you're
 		// updating. Using it in lists is probably a recipe for confusion...
-		this.keypath = interpolator.keypath || interpolator.descriptor.r;
+		if ( !interpolator.keypath ) {
+			interpolator.resolve( interpolator.descriptor.r );
+		}
+		this.keypath = interpolator.keypath;
 
 		binding = getBinding( this );
 
@@ -72,7 +82,7 @@ define([
 
 		// register this with the root, so that we can force an update later
 		bindings = this.root._twowayBindings[ this.keypath ] || ( this.root._twowayBindings[ this.keypath ] = [] );
-		bindings[ bindings.length ] = binding;
+		bindings.push( binding );
 
 		return true;
 	};
@@ -81,44 +91,16 @@ define([
 	// This is the handler for DOM events that would lead to a change in the model
 	// (i.e. change, sometimes, input, and occasionally click and keyup)
 	updateModel = function () {
+		runloop.start( this._ractive.root );
 		this._ractive.binding.update();
+		runloop.end();
 	};
+
+	getOptions = { evaluateWrapped: true };
 
 	update = function () {
-		var value = this._ractive.root.get( this._ractive.binding.keypath );
+		var value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
 		this.value = value == undefined ? '' : value;
-	};
-
-	getInterpolator = function ( attribute ) {
-		var item, errorMessage;
-
-		// TODO refactor this? Couldn't the interpolator have got a keypath via an expression?
-		// Check this is a suitable candidate for two-way binding - i.e. it is
-		// a single interpolator, which isn't an expression
-		if ( attribute.fragment.items.length !== 1 ) {
-			return null;
-		}
-
-		item = attribute.fragment.items[0];
-
-		if ( item.type !== types.INTERPOLATOR ) {
-			return null;
-		}
-
-		if ( !item.keypath && !item.ref ) {
-			return null;
-		}
-
-		if ( item.keypath && item.keypath.substr( 0, 2 ) === '${' ) {
-			errorMessage = 'You cannot set up two-way binding against an expression ' + item.keypath;
-
-			if ( attribute.root.debug ) {
-				warn( errorMessage );
-			}
-			return null;
-		}
-
-		return item;
 	};
 
 	getBinding = function ( attribute ) {
@@ -147,7 +129,7 @@ define([
 		}
 
 		if ( attribute.lcName !== 'value' ) {
-			warn( 'This is... odd' );
+			throw new Error( 'Attempted to set up an illegal two-way binding. This error is unexpected - if you can, please file an issue at https://github.com/RactiveJS/Ractive, or contact @RactiveJS on Twitter. Thanks!' );
 		}
 
 		if ( node.type === 'file' ) {
@@ -167,7 +149,7 @@ define([
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 
 		if ( valueFromModel === undefined ) {
 			// get value from DOM, if possible
@@ -177,19 +159,22 @@ define([
 
 	MultipleSelectBinding.prototype = {
 		value: function () {
-			var value, options, i, len;
+			var selectedValues, options, i, len, option, optionValue;
 
-			value = [];
+			selectedValues = [];
 			options = this.node.options;
 			len = options.length;
 
 			for ( i=0; i<len; i+=1 ) {
-				if ( options[i].selected ) {
-					value[ value.length ] = options[i]._ractive.value;
+				option = options[i];
+
+				if ( option.selected ) {
+					optionValue = option._ractive ? option._ractive.value : option.value;
+					selectedValues.push( optionValue );
 				}
 			}
 
-			return value;
+			return selectedValues;
 		},
 
 		update: function () {
@@ -202,10 +187,11 @@ define([
 
 			if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
 				// either length or contents have changed, so we update the model
-				attribute.receiving = true;
+				runloop.addBinding( attribute );
 				attribute.value = value;
-				this.root.set( this.keypath, value );
-				attribute.receiving = false;
+				set( this.root, this.keypath, value );
+				runloop.trigger();
+
 			}
 
 			return this;
@@ -218,7 +204,7 @@ define([
 
 			// TODO we're hijacking an existing bit of functionality here...
 			// the whole deferred updates thing could use a spring clean
-			this.root._deferred.attrs.push( this );
+			runloop.addAttribute( this );
 			this.deferred = true;
 		},
 
@@ -233,7 +219,7 @@ define([
 		inheritProperties( this, attribute, node );
 		node.addEventListener( 'change', updateModel, false );
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 
 		if ( valueFromModel === undefined ) {
 			// get value from DOM, if possible
@@ -243,14 +229,17 @@ define([
 
 	SelectBinding.prototype = {
 		value: function () {
-			var options, i, len;
+			var options, i, len, option, optionValue;
 
 			options = this.node.options;
 			len = options.length;
 
 			for ( i=0; i<len; i+=1 ) {
+				option = options[i];
+
 				if ( options[i].selected ) {
-					return options[i]._ractive.value;
+					optionValue = option._ractive ? option._ractive.value : option.value;
+					return optionValue;
 				}
 			}
 		},
@@ -258,10 +247,10 @@ define([
 		update: function () {
 			var value = this.value();
 
-			this.attr.receiving = true;
+			runloop.addBinding( this.attr );
 			this.attr.value = value;
-			this.root.set( this.keypath, value );
-			this.attr.receiving = false;
+			set( this.root, this.keypath, value );
+			runloop.trigger();
 
 			return this;
 		},
@@ -273,7 +262,7 @@ define([
 
 			// TODO we're hijacking an existing bit of functionality here...
 			// the whole deferred updates thing could use a spring clean
-			this.root._deferred.attrs.push( this );
+			runloop.addAttribute( this );
 			this.deferred = true;
 		},
 
@@ -297,11 +286,11 @@ define([
 			node.addEventListener( 'click', updateModel, false );
 		}
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel == node._ractive.value );
 		} else {
-			this.root._deferred.radios.push( this );
+			runloop.addRadio( this );
 		}
 	};
 
@@ -314,9 +303,10 @@ define([
 			var node = this.node;
 
 			if ( node.checked ) {
-				this.attr.receiving = true;
-				this.root.set( this.keypath, this.value() );
-				this.attr.receiving = false;
+				runloop.addBinding( this.attr );
+				set( this.root, this.keypath, this.value() );
+				runloop.trigger();
+
 			}
 		},
 
@@ -342,7 +332,7 @@ define([
 			node.addEventListener( 'click', updateModel, false );
 		}
 
-		valueFromModel = this.root.get( this.keypath );
+		valueFromModel = get( this.root, this.keypath );
 
 		// if the model already specifies this value, check/uncheck accordingly
 		if ( valueFromModel !== undefined ) {
@@ -352,9 +342,7 @@ define([
 
 		// otherwise make a note that we will need to update the model later
 		else {
-			if ( this.root._deferred.checkboxes.indexOf( this.keypath ) === -1 ) {
-				this.root._deferred.checkboxes.push( this.keypath );
-			}
+			runloop.addCheckbox( this );
 		}
 	};
 
@@ -366,9 +354,9 @@ define([
 		update: function () {
 			this.checked = this.node.checked;
 
-			this.attr.receiving = true;
-			this.root.set( this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
-			this.attr.receiving = false;
+			runloop.addBinding( this.attr );
+			set( this.root, this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
+			runloop.trigger();
 		},
 
 		teardown: function () {
@@ -393,9 +381,9 @@ define([
 		},
 
 		update: function () {
-			this.attr.receiving = true;
-			this.root.set( this.keypath, this.value() );
-			this.attr.receiving = false;
+			runloop.addBinding( this.attr );
+			set( this.root, this.keypath, this.value() );
+			runloop.trigger();
 		},
 
 		teardown: function () {
@@ -416,7 +404,8 @@ define([
 		},
 
 		update: function () {
-			this.attr.root.set( this.attr.keypath, this.value() );
+			set( this.attr.root, this.attr.keypath, this.value() );
+			runloop.trigger();
 		},
 
 		teardown: function () {
@@ -439,9 +428,9 @@ define([
 
 	ContentEditableBinding.prototype = {
 		update: function () {
-			this.attr.receiving = true;
-			this.root.set( this.keypath, this.node.innerHTML );
-			this.attr.receiving = false;
+			runloop.addBinding( this.attr );
+			set( this.root, this.keypath, this.node.innerHTML );
+			runloop.trigger();
 		},
 
 		teardown: function () {
@@ -482,9 +471,9 @@ define([
 		update: function () {
 			var attribute = this.attr, value = this.value();
 
-			attribute.receiving = true;
-			attribute.root.set( attribute.keypath, value );
-			attribute.receiving = false;
+			runloop.addBinding( attribute );
+			set( attribute.root, attribute.keypath, value );
+			runloop.trigger();
 		},
 
 		teardown: function () {

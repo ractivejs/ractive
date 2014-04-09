@@ -38,12 +38,12 @@ define([ 'utils/isArray' ], function ( isArray ) {
 			// Proxy?
 			else if ( item.name.substr( 0, 6 ) === 'proxy-' ) {
 				item.name = item.name.substring( 6 );
-				proxies[ proxies.length ] = item;
+				proxies.push( item );
 			}
 
 			else if ( item.name.substr( 0, 3 ) === 'on-' ) {
 				item.name = item.name.substring( 3 );
-				proxies[ proxies.length ] = item;
+				proxies.push( item );
 			}
 
 			// Decorator?
@@ -53,7 +53,7 @@ define([ 'utils/isArray' ], function ( isArray ) {
 
 			// Attribute?
 			else {
-				attrs[ attrs.length ] = item;
+				attrs.push( item );
 			}
 		}
 

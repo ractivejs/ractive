@@ -2,8 +2,8 @@ define( function () {
 
 	'use strict';
 
-	return function ( dependant ) {
-		var deps, index, keys, parentKeypath, map, ractive, keypath, priority;
+	return function unregisterDependant ( dependant ) {
+		var deps, index, ractive, keypath, priority;
 
 		ractive = dependant.root;
 		keypath = dependant.keypath;
@@ -22,6 +22,12 @@ define( function () {
 		if ( !keypath ) {
 			return;
 		}
+
+		updateDependantsMap( ractive, keypath );
+	};
+
+	function updateDependantsMap ( ractive, keypath ) {
+		var keys, parentKeypath, map;
 
 		// update dependants map
 		keys = keypath.split( '.' );
@@ -42,6 +48,6 @@ define( function () {
 
 			keypath = parentKeypath;
 		}
-	};
+	}
 
 });

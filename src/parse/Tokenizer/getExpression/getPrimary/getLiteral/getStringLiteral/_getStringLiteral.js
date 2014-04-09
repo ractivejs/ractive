@@ -1,9 +1,11 @@
 define([
 	'config/types',
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/getQuotedString'
+	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/getSingleQuotedString',
+	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/getDoubleQuotedString',
 ], function (
 	types,
-	getQuotedString
+	getSingleQuotedString,
+	getDoubleQuotedString
 ) {
 
 	'use strict';
@@ -14,7 +16,7 @@ define([
 		start = tokenizer.pos;
 
 		if ( tokenizer.getStringMatch( '"' ) ) {
-			string = getQuotedString( tokenizer, false );
+			string = getDoubleQuotedString( tokenizer );
 
 			if ( !tokenizer.getStringMatch( '"' ) ) {
 				tokenizer.pos = start;
@@ -28,7 +30,7 @@ define([
 		}
 
 		if ( tokenizer.getStringMatch( "'" ) ) {
-			string = getQuotedString( tokenizer, true );
+			string = getSingleQuotedString( tokenizer );
 
 			if ( !tokenizer.getStringMatch( "'" ) ) {
 				tokenizer.pos = start;

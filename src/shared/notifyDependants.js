@@ -2,11 +2,11 @@ define( function () {
 
 	'use strict';
 
-	var notifyDependants, lastKey, starMaps = {};
+	var lastKey, starMaps = {};
 
 	lastKey = /[^\.]+$/;
 
-	notifyDependants = function ( ractive, keypath, onlyDirect ) {
+	function notifyDependants ( ractive, keypath, onlyDirect ) {
 		var i;
 
 		// Notify any pattern observers
@@ -17,9 +17,9 @@ define( function () {
 		for ( i=0; i<ractive._deps.length; i+=1 ) { // can't cache ractive._deps.length, it may change
 			notifyDependantsAtPriority( ractive, keypath, i, onlyDirect );
 		}
-	};
+	}
 
-	notifyDependants.multiple = function ( ractive, keypaths, onlyDirect ) {
+	notifyDependants.multiple = function notifyMultipleDependants ( ractive, keypaths, onlyDirect ) {
 		var i, j, len;
 
 		len = keypaths.length;
@@ -118,7 +118,7 @@ define( function () {
 					child = children[i]; // foo.*.baz
 
 					key = lastKey.exec( child )[0]; // 'baz'
-					childActualKeypath = actualKeypath + '.' + key; // 'foo.bar.baz'
+					childActualKeypath = actualKeypath ? actualKeypath + '.' + key : key; // 'foo.bar.baz'
 
 					notifyPatternObservers( ractive, child, childActualKeypath ); // ractive, 'foo.*.baz', 'foo.bar.baz'
 				}
@@ -158,7 +158,7 @@ define( function () {
 			wildcardKeypath = starMap[i].map( mapper ).join( '.' );
 
 			if ( !result[ wildcardKeypath ] ) {
-				result[ result.length ] = wildcardKeypath;
+				result.push( wildcardKeypath );
 				result[ wildcardKeypath ] = true;
 			}
 		}

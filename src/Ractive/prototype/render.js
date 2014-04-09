@@ -1,21 +1,19 @@
 define([
-	'utils/getElement',
-	'shared/makeTransitionManager',
-	'shared/preDomUpdate',
-	'shared/postDomUpdate',
+	'global/runloop',
+	'global/css',
 	'render/DomFragment/_DomFragment'
 ], function (
-	getElement,
-	makeTransitionManager,
-	preDomUpdate,
-	postDomUpdate,
+	runloop,
+	css,
 	DomFragment
 ) {
 
 	'use strict';
 
-	return function ( target, complete ) {
-		var transitionManager;
+	return function Ractive_prototype_render ( target, callback ) {
+
+		this._rendering = true;
+		runloop.start( this, callback );
 
 		// This method is part of the API for one reason only - so that it can be
 		// overwritten by components that don't want to use the templating system
@@ -25,7 +23,10 @@ define([
 			throw new Error( 'You cannot call ractive.render() directly!' );
 		}
 
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+		// Add CSS, if applicable
+		if ( this.constructor.css ) {
+			css.add( this.constructor );
+		}
 
 		// Render our *root fragment*
 		this.fragment = new DomFragment({
@@ -35,19 +36,31 @@ define([
 			pNode: target
 		});
 
-		preDomUpdate( this );
-
 		if ( target ) {
 			target.appendChild( this.fragment.docFrag );
 		}
 
-		postDomUpdate( this );
+		// If this is *isn't* a child of a component that's in the process of rendering,
+		// it should call any `init()` methods at this point
+		if ( !this._parent || !this._parent._rendering ) {
+			initChildren( this );
+		}
 
-		// transition manager has finished its work
-		this._transitionManager = null;
-		transitionManager.ready();
-
-		this.rendered = true;
+		delete this._rendering;
+		runloop.end();
 	};
+
+	function initChildren ( instance ) {
+		var child;
+
+		while ( child = instance._childInitQueue.pop() ) {
+			if ( child.instance.init ) {
+				child.instance.init( child.options );
+			}
+
+			// now do the same for grandchildren, etc
+			initChildren( child.instance );
+		}
+	}
 
 });

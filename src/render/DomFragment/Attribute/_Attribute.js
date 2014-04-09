@@ -1,16 +1,20 @@
 define([
+	'global/runloop',
 	'config/types',
 	'render/DomFragment/Attribute/helpers/determineNameAndNamespace',
 	'render/DomFragment/Attribute/helpers/setStaticAttribute',
 	'render/DomFragment/Attribute/helpers/determinePropertyName',
+	'render/DomFragment/Attribute/helpers/getInterpolator',
 	'render/DomFragment/Attribute/prototype/bind',
 	'render/DomFragment/Attribute/prototype/update',
 	'render/StringFragment/_StringFragment'
 ], function (
+	runloop,
 	types,
 	determineNameAndNamespace,
 	setStaticAttribute,
 	determinePropertyName,
+	getInterpolator,
 	bind,
 	update,
 	StringFragment
@@ -41,10 +45,14 @@ define([
 		this.fragment = new StringFragment({
 			descriptor:   options.value,
 			root:         this.root,
-			owner:        this,
-			contextStack: options.contextStack
+			owner:        this
 		});
 
+
+		// Store a reference to this attribute's interpolator, if its fragment
+		// takes the form `{{foo}}`. This is necessary for two-way binding and
+		// for correctly rendering HTML later
+		this.interpolator = getInterpolator( this );
 
 		// if we're not rendering (i.e. we're just stringifying), we can stop here
 		if ( !this.pNode ) {
@@ -62,7 +70,6 @@ define([
 				this.isFileInputValue = true;
 			}
 		}
-
 
 		// can we establish this attribute's property name equivalent?
 		determinePropertyName( this, options );
@@ -88,6 +95,16 @@ define([
 			if ( this.propertyName === 'name' ) {
 				// replace actual name attribute
 				this.pNode.name = '{{' + this.keypath + '}}';
+			}
+		},
+
+		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+			if ( this.fragment ) {
+				this.fragment.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+
+				if ( this.twoway ) {
+					this.updateBindings();
+				}
 			}
 		},
 
@@ -119,16 +136,26 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred && this.ready ) {
-				this.root._deferred.attrs.push( this );
+				runloop.addAttribute( this );
 				this.deferred = true;
 			}
 		},
 
 		toString: function () {
-			var str;
+			var str, interpolator;
 
 			if ( this.value === null ) {
 				return this.name;
+			}
+
+			// Special case - select values (should not be stringified)
+			if ( this.name === 'value' && this.element.lcName === 'select' ) {
+				return;
+			}
+
+			// Special case - radio names
+			if ( this.name === 'name' && this.element.lcName === 'input' && ( interpolator = this.interpolator ) ) {
+				return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 			}
 
 			// TODO don't use JSON.stringify?

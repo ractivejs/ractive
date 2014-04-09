@@ -4,14 +4,16 @@ define([
 	'utils/warn',
 	'utils/isObject',
 	'registries/partials',
-	'parse/_parse'
+	'parse/_parse',
+	'render/DomFragment/Partial/deIndent'
 ], function (
 	errors,
 	isClient,
 	warn,
 	isObject,
 	partials,
-	parse
+	parse,
+	deIndent
 ) {
 
 	'use strict';
@@ -39,7 +41,7 @@ define([
 					throw new Error( errors.missingParser );
 				}
 
-				registerPartial( parse( el.innerHTML ), name, partials );
+				registerPartial( parse( deIndent( el.text ), root.parseOptions ), name, partials );
 			}
 		}
 
@@ -61,23 +63,23 @@ define([
 		return unpack( partial );
 	};
 
-	getPartialFromRegistry = function ( registryOwner, name ) {
+	getPartialFromRegistry = function ( ractive, name ) {
 		var partial;
 
-		if ( registryOwner.partials[ name ] ) {
+		if ( ractive.partials[ name ] ) {
 
 			// If this was added manually to the registry, but hasn't been parsed,
 			// parse it now
-			if ( typeof registryOwner.partials[ name ] === 'string' ) {
+			if ( typeof ractive.partials[ name ] === 'string' ) {
 				if ( !parse ) {
 					throw new Error( errors.missingParser );
 				}
 
-				partial = parse( registryOwner.partials[ name ], registryOwner.parseOptions );
-				registerPartial( partial, name, registryOwner.partials );
+				partial = parse( ractive.partials[ name ], ractive.parseOptions );
+				registerPartial( partial, name, ractive.partials );
 			}
 
-			return unpack( registryOwner.partials[ name ] );
+			return unpack( ractive.partials[ name ] );
 		}
 	};
 

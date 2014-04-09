@@ -1,22 +1,19 @@
 define([
 	'utils/isArray',
-	'utils/isObject',
-	'utils/create'
+	'utils/isObject'
 ], function (
 	isArray,
-	isObject,
-	create
+	isObject
 ) {
 
 	'use strict';
 
-	return function ( section, value ) {
-		var fragmentOptions;
-
-		fragmentOptions = {
+	return function updateSection ( section, value ) {
+		var fragmentOptions = {
 			descriptor: section.descriptor.f,
 			root:       section.root,
 			pNode:      section.parentFragment.pNode,
+			pElement:   section.parentFragment.pElement,
 			owner:      section
 		};
 
@@ -35,7 +32,7 @@ define([
 
 
 		// if value is a hash...
-		else if ( isObject( value ) ) {
+		else if ( isObject( value ) || typeof value === 'function' ) {
 			if ( section.descriptor.i ) {
 				updateListObjectSection( section, value, fragmentOptions );
 			} else {
@@ -71,7 +68,7 @@ define([
 				// add any new ones
 				for ( i=section.length; i<length; i+=1 ) {
 					// append list item to context stack
-					fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + i );
+					fragmentOptions.context = section.keypath + '.' + i;
 					fragmentOptions.index = i;
 
 					if ( section.descriptor.i ) {
@@ -87,31 +84,39 @@ define([
 	}
 
 	function updateListObjectSection ( section, value, fragmentOptions ) {
-		var id, fragmentsById;
+		var id, i, hasKey, fragment;
 
-		fragmentsById = section.fragmentsById || ( section.fragmentsById = create( null ) );
+		hasKey = section.hasKey || ( section.hasKey = {} );
 
 		// remove any fragments that should no longer exist
-		for ( id in fragmentsById ) {
-			if ( value[ id ] === undefined && fragmentsById[ id ] ) {
-				fragmentsById[ id ].teardown( true );
-				fragmentsById[ id ] = null;
+		i = section.fragments.length;
+		while ( i-- ) {
+			fragment = section.fragments[i];
+
+			if ( !( fragment.index in value ) ) {
+				section.fragments[i].teardown( true );
+				section.fragments.splice( i, 1 );
+
+				hasKey[ fragment.index ] = false;
 			}
 		}
 
 		// add any that haven't been created yet
 		for ( id in value ) {
-			if ( value[ id ] !== undefined && !fragmentsById[ id ] ) {
-				fragmentOptions.contextStack = section.contextStack.concat( section.keypath + '.' + id );
+			if ( !hasKey[ id ] ) {
+				fragmentOptions.context = section.keypath + '.' + id;
 				fragmentOptions.index = id;
 
 				if ( section.descriptor.i ) {
 					fragmentOptions.indexRef = section.descriptor.i;
 				}
 
-				fragmentsById[ id ] = section.createFragment( fragmentOptions );
+				section.fragments.push( section.createFragment( fragmentOptions ) );
+				hasKey[ id ] = true;
 			}
 		}
+
+		section.length = section.fragments.length;
 	}
 
 	function updateContextSection ( section, fragmentOptions ) {
@@ -120,7 +125,7 @@ define([
 		// will update themselves without any prompting)
 		if ( !section.length ) {
 			// append this section to the context stack
-			fragmentOptions.contextStack = section.contextStack.concat( section.keypath );
+			fragmentOptions.context = section.keypath;
 			fragmentOptions.index = 0;
 
 			section.fragments[0] = section.createFragment( fragmentOptions );
@@ -142,7 +147,6 @@ define([
 		if ( doRender ) {
 			if ( !section.length ) {
 				// no change to context stack
-				fragmentOptions.contextStack = section.contextStack;
 				fragmentOptions.index = 0;
 
 				section.fragments[0] = section.createFragment( fragmentOptions );
