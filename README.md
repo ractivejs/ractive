@@ -4,8 +4,6 @@ Ractive.js - Next-generation DOM manipulation
 
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
 
-*<b>BETANAUTS!</b> Help improve the next version of Ractive by trying out the [pre-release 0.4.0 builds](https://github.com/ractivejs/ractive/tree/0.4.0/build) and [reporting any issues](https://github.com/ractivejs/ractive/issues?state=open)!*
-
 What is Ractive.js?
 -------------------
 
@@ -69,9 +67,7 @@ $ grunt release
 Contributing
 ------------
 
-If you have feature suggestions or bug reports, please [raise an issue on GitHub](https://github.com/ractivejs/ractive/issues) after checking it's not a duplicate.
-
-Pull requests are always welcome! In lieu of a formal styleguide, please try to follow the existing conventions.
+Pull requests and issues are always welcome! Please read [CONTRIBUTING.md](https://github.com/ractivejs/ractive/blob/master/CONTRIBUTING.md) to learn how to contribute.
 
 
 Browser support
@@ -83,7 +79,7 @@ Tested successfully in IE8+ and all modern browsers. If your experience differs 
 License
 -------
 
-Copyright (c) 2012-13 Rich Harris. Released under an MIT license.
+Copyright (c) 2012-14 Rich Harris and contributors. Released under an [MIT license](https://github.com/ractivejs/ractive/blob/master/LICENSE.md).
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
