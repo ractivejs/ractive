@@ -5,7 +5,8 @@ define([
 	'shared/Unresolved',
 	'shared/registerDependant',
 	'shared/unregisterDependant',
-	'render/shared/Resolvers/ExpressionResolver'
+	'render/shared/Resolvers/ExpressionResolver',
+	'render/shared/utils/getNewKeypath'
 ], function (
 	types,
 	removeFromArray,
@@ -13,23 +14,22 @@ define([
 	Unresolved,
 	registerDependant,
 	unregisterDependant,
-	ExpressionResolver
+	ExpressionResolver,
+	getNewKeypath
 ) {
 
 	'use strict';
 
 	var KeypathExpressionResolver = function ( mustache, descriptor, callback ) {
-		var resolver = this, ractive, parentFragment, keypath, dynamic, members;
+		var resolver = this, ractive, parentFragment, refKeypath, keypath, dynamic, members;
 
 		ractive = mustache.root;
 		parentFragment = mustache.parentFragment;
 
-		this.ref = descriptor.r;
 		this.root = mustache.root;
 		this.mustache = mustache;
 
 		this.callback = callback;
-
 
 		this.pending = 0;
 		this.unresolved = [];
@@ -37,6 +37,19 @@ define([
 		this.indexRefMembers = [];
 		this.keypathObservers = [];
 		this.expressionResolvers = [];
+
+		refKeypath = resolveRef( ractive, descriptor.r, parentFragment );
+
+		if ( refKeypath !== undefined ) {
+			this.ref = refKeypath;
+		} else {
+			this.ref = descriptor.r;
+			new Unresolved( ractive, this.ref, parentFragment, function ( keypath ) {
+				console.log('unresolved!')
+				//what to do?
+			})
+			//incr pending and push to unresolved?
+		}
 
 		descriptor.m.forEach( function ( member, i ) {
 			var ref, indexRefs, index, createKeypathObserver, unresolved, expressionResolver;
@@ -147,8 +160,14 @@ define([
 			}
 		},
 
-		reassign: function ( indexRef, newIndex ) {
-			var changed, i, member;
+		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+			var changed, changedKeypath, i, member;
+
+			//TODO: what if unresolved?
+			if ( changedKeypath = getNewKeypath( this.ref, oldKeypath, newKeypath ) ) {
+				this.ref = changedKeypath;
+				changed = true;
+			}
 
 			i = this.indexRefMembers.length;
 			while ( i-- ) {
