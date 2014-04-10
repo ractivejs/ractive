@@ -72,7 +72,14 @@ define([
 
 			if ( docFrag ) {
 				node.innerHTML = element.html;
-
+			    /*
+			    var newTextNode = document.createTextNode(element.html);
+			    while ( node.firstChild ) {
+			        node.removeChild( node.firstChild );
+			    }
+			    node.appendChild( newTextNode);
+				*/
+				
 				// Update live queries, if applicable
 				element.matchingStaticNodes = {}; // so we can remove matches made with querySelectorAll at teardown time
 				updateLiveQueries( element );
