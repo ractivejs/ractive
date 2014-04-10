@@ -44,11 +44,11 @@ define([
 			this.ref = refKeypath;
 		} else {
 			this.ref = descriptor.r;
-			new Unresolved( ractive, this.ref, parentFragment, function ( keypath ) {
-				console.log('unresolved!')
+			new Unresolved( ractive, this.ref, parentFragment, function ( /*keypath*/ ) {
+				//console.log('unresolved!');
 				//what to do?
-			})
-			//incr pending and push to unresolved?
+			});
+			//increment pending and push to unresolved?
 		}
 
 		descriptor.m.forEach( function ( member, i ) {
