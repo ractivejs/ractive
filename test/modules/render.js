@@ -92,6 +92,16 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			runTest( i );
 		}
 
+		test('Style elements have content inserted that becomes .textContent gh #569', function(t){
+			var ractive = new Ractive({
+					el: fixture,
+					template: '<svg><style id="style">text { font-size: 40px }</style></svg>'
+				}),
+			 	style = document.getElementById('style');
+			 	t.ok( style );
+			 	t.equal( style.textContent, 'text { font-size: 40px }' )
+		});
+
 	};
 
 	function deepClone ( source ) {

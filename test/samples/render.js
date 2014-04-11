@@ -476,6 +476,11 @@ var renderTests = [
 		new_data: { 'foo.prop': 'still works' },
 		new_result: 'still works-still works'
 	},
+	{
+		name: 'style tags in svg',
+		template: '<svg><style>text { font-size: 40px }</style></svg>',
+		result: '<svg><style>text { font-size: 40px }</style></svg>'
+	},
 
 	// Elements with two-way bindings should render correctly with .toHTML() - #446
 	{
