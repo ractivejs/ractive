@@ -374,6 +374,90 @@ var parseTests = [
 		name: 'Inverted list section closing',
 		template: '{{#steps:stepIndex}}{{^ hiddenSteps[stepIndex]}}<p>{{hiddenSteps[stepIndex]}}</p>{{/ hiddenSteps[stepIndex]}}{{/steps}}',
 		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":true,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}] 
+	},
+	{
+		name: 'Illegal closing tag 1',
+		template: '<div> </div',
+		error:
+			'Unexpected character  (expected ">") on line 1:12:\n' +
+			'<div> </div\n' +
+			'           ^----'
+	},
+	{
+		name: 'Illegal closing tag 2',
+		template: '<div> </!!div>',
+		error:
+			'Unexpected character ! (expected tag name) on line 1:9:\n' +
+			'<div> </!!div>\n' +
+			'        ^----'
+	},
+	{
+		name: 'Illegal closing tag 3',
+		template: '<div> </div !!>',
+		error:
+			'Unexpected character   (expected ">") on line 1:12:\n' +
+			'<div> </div !!>\n' +
+			'           ^----'
+	},
+	{
+		name: 'Unclosed comment',
+		template: 'ok <!--',
+		error:
+			'Illegal HTML - expected closing comment sequence (\'-->\')'
+	},
+	{
+		name: 'Illegal closing comment',
+		template: 'ok -->',
+		error:
+			'Illegal HTML - unexpected closing comment sequence (\'-->\')'
+	},
+	{
+		name: 'Expected property name',
+		template: '{{property.}}',
+		error:
+			'Tokenizer failed: unexpected string "}}" (expected a property name) on line 1:12:\n' +
+			'{{property.}}\n' +
+			'           ^----'
+	},
+	{
+		name: 'Expected ]',
+		template: '{{foo[234}}',
+		error:
+			'Tokenizer failed: unexpected string "}}" (expected "]") on line 1:10:\n' +
+			'{{foo[234}}\n' +
+			'         ^----'
+	},
+	{
+		name: 'Illegal closing section for {{#foo}}',
+		template: '{{#foo}}wew{{/wee}}',
+		error:
+			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 1:12:\n' +
+			'{{#foo}}wew{{/wee}}\n' +
+			'           ^----'
+	},
+	{
+		name: 'Multiline illegal closing section for {{#foo}}',
+		template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}',
+		error:
+			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
+			'     {{#foo}}wew{{/wee}}\n' +
+			'                ^----'
+	},
+	{
+		name: 'Multiline illegal closing section for {{#foo}} #2',
+		template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}\nfoo',
+		error:
+			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 2:17:\n' +
+			'     {{#foo}}wew{{/wee}}\n' +
+			'                ^----'
+	},
+	{
+		name: 'Illegal closing section for {{##(foo*5)}}',
+		template: '{{#(foo*5)}}foo{{/garbage}}',
+		error:
+			'Could not parse template: Illegal closing section for {{#(foo*5)}}: {{/garbage}}. Expected {{/()}} on line 1:16:\n' +
+			'{{#(foo*5)}}foo{{/garbage}}\n' +
+			'               ^----'
 	}
 ];
 
