@@ -49,20 +49,16 @@ define([
 
 
 	function optionIsSelected ( element ) {
-		var optionValue, selectValueAttribute, selectValueInterpolator, selectValue, i;
+		var optionValue, selectValueInterpolator, selectValue, i;
 
-		optionValue = element.attributes.value.value;
-
-		selectValueAttribute = element.select.attributes.value;
-		selectValueInterpolator = selectValueAttribute.interpolator;
-
+		selectValueInterpolator = getInterpolator(element.select);
 		if ( !selectValueInterpolator ) {
 			return;
 		}
 
-		selectValue = element.root.get( selectValueInterpolator.keypath || selectValueInterpolator.ref );
+		selectValue = getValueAttributeFrom( selectValueInterpolator, element.select.root );
 
-		if ( selectValue == optionValue ) {
+		if ( selectValue == getValueAttribute( element ) ) {
 			return true;
 		}
 
@@ -74,6 +70,16 @@ define([
 				}
 			}
 		}
+	}
+
+	function getValueAttribute ( element ) {
+		return getValueAttributeFrom( getInterpolator( element ), element.root );
+	}
+	function getInterpolator ( element ) {
+		return element.attributes.value.interpolator;
+	}
+	function getValueAttributeFrom ( interpolator, root ) {
+		return root.get( interpolator.keypath || interpolator.ref );
 	}
 
 	function inputIsCheckedRadio ( element ) {
