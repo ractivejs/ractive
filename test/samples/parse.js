@@ -431,7 +431,7 @@ var parseTests = [
 		name: 'Illegal closing section for {{#foo}}',
 		template: '{{#foo}}wew{{/wee}}',
 		error:
-			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 1:12:\n' +
+			'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 1:12:\n' +
 			'{{#foo}}wew{{/wee}}\n' +
 			'           ^----'
 	},
@@ -439,7 +439,7 @@ var parseTests = [
 		name: 'Multiline illegal closing section for {{#foo}}',
 		template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}',
 		error:
-			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
+			'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
 			'     {{#foo}}wew{{/wee}}\n' +
 			'                ^----'
 	},
@@ -447,17 +447,9 @@ var parseTests = [
 		name: 'Multiline illegal closing section for {{#foo}} #2',
 		template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}\nfoo',
 		error:
-			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 2:17:\n' +
+			'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 2:17:\n' +
 			'     {{#foo}}wew{{/wee}}\n' +
 			'                ^----'
-	},
-	{
-		name: 'Illegal closing section for {{##(foo*5)}}',
-		template: '{{#(foo*5)}}foo{{/garbage}}',
-		error:
-			'Could not parse template: Illegal closing section for {{#(foo*5)}}: {{/garbage}}. Expected {{/()}} on line 1:16:\n' +
-			'{{#(foo*5)}}foo{{/garbage}}\n' +
-			'               ^----'
 	}
 ];
 
