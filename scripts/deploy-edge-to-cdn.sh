@@ -4,20 +4,24 @@
 if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 	echo "Deploying edge version to CDN..."
 
-	git clone https://Rich-Harris:${GH_TOKEN}@${GH_REF} gh-pages
-	git checkout -b gh-pages origin/gh-pages
+	echo "Cloning repo..."
+	git clone https://Rich-Harris:${GH_TOKEN}@${GH_REF} cdn
 
-	rm -r gh-pages/edge
-	cp -r build/ gh-pages/edge
+	echo "Copying latest builds..."
+	rm -r cdn/edge
+	cp -r build/ cdn/edge
 
-	( cd gh-pages
+	( cd cdn
 
+		echo "Setting credentials..."
 		git remote rm origin
 		git remote add origin https://Rich-Harris:${GH_TOKEN}@${GH_REF}
 
+		echo "Adding files..."
 		git add -A
 		git commit -m "Updated edge version"
 
+		echo "Pushing to GitHub..."
 		git push
 	)
 fi
