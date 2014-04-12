@@ -32,6 +32,7 @@ define([
 
 	'use strict';
 
+	// Main Ractive required object
 	var Ractive = function ( options ) {
 		initialise( this, options );
 	};
