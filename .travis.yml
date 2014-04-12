@@ -7,8 +7,8 @@ script: ./scripts/deploy-edge-to-cdn.sh
 env:
   global:
   - GH_REF: github.com/ractivejs/cdn.ractivejs.org.git
-  - secure: "dnPSiJmQuKhMh8skVLUjFegc+resP5wZV9scVxrSzkJNOzqLPE9Z8nm4c95gh6MzfHEz6YWz3gKfUfJeyHgpp1zfo+1EfOmit78GxZf+aj7GW1lBpPXFpobpTE1ZVTizu3/M6AojRXB7eIqSGJsUQvZAY8t1dldUDbocwveXqA0="
+  - secure: "oobn6L9yAObPkAEfI2la7Qn/tBNXfAmI4gRMn3pKxnJJgQ9imWAcvHmYEkXDqIpFDDiLQjw8P/h2Es74h7WgB9Qp4SvXCipE5ySkJ54buZfLM3tsIbkg+meJHSr/nEYPoT7hbMx9c+lVxGbO1A+afKftxOZEDL619QvpM4G1iAI="
 branches:
   only:
     - master
-    - 0.4.0
+    - dev
