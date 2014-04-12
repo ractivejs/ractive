@@ -12,10 +12,8 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 
 	( cd cdn
 
-		git config user.name "Travis-CI"
-		git config user.email "richard.a.harris+travis@gmail.com"
-		git config credential.helper "store --file=.git/credentials"
-		echo "https://${GH_TOKEN}:@github.com" > .git/credentials
+		git remote rm origin
+		git remote add origin https://Rich-Harris:${GH_TOKEN}@github.com/ractivejs/cdn.ractivejs.org.git
 
 		git add -A
 		git commit -m "Updated edge version"
