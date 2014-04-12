@@ -17,11 +17,14 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 		git remote rm origin
 		git remote add origin https://Rich-Harris:${GH_TOKEN}@${GH_REF}
 
+		git config --global user.email "richard.a.harris+travis@gmail.com"
+		git config --global user.name "Travis-CI"
+
 		echo "Adding files..."
 		git add -A
 		git commit -m "Updated edge version"
 
 		echo "Pushing to GitHub..."
-		git push
+		git push origin gh-pages
 	)
 fi
