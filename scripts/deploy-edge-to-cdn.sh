@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # deploy script based on https://medium.com/philosophy-logic/53a8270e87db
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 	echo "Deploying edge version to CDN..."
 
 	git clone https://github.com/RactiveJS/cdn.ractivejs.org.git cdn
