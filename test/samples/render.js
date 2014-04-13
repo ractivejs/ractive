@@ -476,6 +476,11 @@ var renderTests = [
 		new_data: { 'foo.prop': 'still works' },
 		new_result: 'still works-still works'
 	},
+	{
+		name: 'style tags in svg',
+		template: '<svg><style>text { font-size: 40px }</style></svg>',
+		result: '<svg><style>text { font-size: 40px }</style></svg>'
+	},
 
 	// Elements with two-way bindings should render correctly with .toHTML() - #446
 	{
@@ -486,6 +491,15 @@ var renderTests = [
 		result: '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
 		new_data: { foo: 'c' },
 		new_result: '<select><option value="a">a</option><option value="b">b</option><option value="c" selected>c</option></select>'
+	},
+	{
+		nodeOnly: true,
+		name: 'Two-way select bindings inside list',
+		template: '<select value="{{selected}}">{{#items}}<option value="{{.}}">{{.}}</option>{{/items}}</select>',
+		data: { selected: 2, items: [1,2,3] },
+		result: '<select><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>',
+		new_data: { selected: 3 },
+		new_result: '<select><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option></select>'
 	},
 	{
 		nodeOnly: true,

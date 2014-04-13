@@ -25,10 +25,16 @@ define([
 		var node = this.node, content = this.fragment.toString();
 
 		if ( node.styleSheet ) {
-			node.styleSheet.cssText = content;
+		    node.styleSheet.cssText = content;
 		} else {
-			node.innerHTML = content;
+
+		    while ( node.hasChildNodes() ) {
+		        node.removeChild( node.firstChild );
+		    }
+
+		    node.appendChild( document.createTextNode(content) );
 		}
+		
 
 	};
 
@@ -72,7 +78,7 @@ define([
 
 			if ( docFrag ) {
 				node.innerHTML = element.html;
-
+				
 				// Update live queries, if applicable
 				element.matchingStaticNodes = {}; // so we can remove matches made with querySelectorAll at teardown time
 				updateLiveQueries( element );

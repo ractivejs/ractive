@@ -30,7 +30,7 @@ define([
 
 		value = root.get( keypath );
 
-		if ( typeof value === 'function' ) {
+		if ( typeof value === 'function' && !value._nowrap ) {
 			value = wrapFunction( value, root, evaluator );
 		}
 
