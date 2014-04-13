@@ -494,6 +494,15 @@ var renderTests = [
 	},
 	{
 		nodeOnly: true,
+		name: 'Two-way select bindings inside list',
+		template: '<select value="{{selected}}">{{#items}}<option value="{{.}}">{{.}}</option>{{/items}}</select>',
+		data: { selected: 2, items: [1,2,3] },
+		result: '<select><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>',
+		new_data: { selected: 3 },
+		new_result: '<select><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option></select>'
+	},
+	{
+		nodeOnly: true,
 		name: 'Two-way multiple select bindings',
 		template: '<select multiple value="{{foo}}"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
 		data: {},
