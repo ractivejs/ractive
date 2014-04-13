@@ -49,16 +49,32 @@ define([
 
 
 	function optionIsSelected ( element ) {
-		var optionValue, selectValueInterpolator, selectValue, i;
+		var optionValue, optionValueAttribute, optionValueInterpolator,
+			selectValueAttribute, selectValueInterpolator, 
+			selectValue, i;
 
-		selectValueInterpolator = getInterpolator(element.select);
+		optionValueAttribute = element.attributes.value;
+
+		if(optionValueAttribute.value){
+			optionValue = optionValueAttribute.value;
+		} else {
+			optionValueInterpolator = optionValueAttribute.interpolator;
+			if( !optionValueInterpolator ) {
+				return;
+			}
+			optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );
+		}
+		
+		selectValueAttribute = element.select.attributes.value;
+		selectValueInterpolator = selectValueAttribute.interpolator;
+
 		if ( !selectValueInterpolator ) {
 			return;
 		}
 
-		selectValue = getValueAttributeFrom( selectValueInterpolator, element.select.root );
+		selectValue = element.root.get( selectValueInterpolator.keypath || selectValueInterpolator.ref );
 
-		if ( selectValue == getValueAttribute( element ) ) {
+		if ( selectValue == optionValue ) {
 			return true;
 		}
 
@@ -70,16 +86,6 @@ define([
 				}
 			}
 		}
-	}
-
-	function getValueAttribute ( element ) {
-		return getValueAttributeFrom( getInterpolator( element ), element.root );
-	}
-	function getInterpolator ( element ) {
-		return element.attributes.value.interpolator;
-	}
-	function getValueAttributeFrom ( interpolator, root ) {
-		return root.get( interpolator.keypath || interpolator.ref );
 	}
 
 	function inputIsCheckedRadio ( element ) {
