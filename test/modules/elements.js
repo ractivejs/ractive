@@ -8,7 +8,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'elements' );
 
-		test( 'option elements set select parent before initializing parent', function ( t ) {
+		test( 'option element with custom selected logic works without error and correctly', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
 				template: 
