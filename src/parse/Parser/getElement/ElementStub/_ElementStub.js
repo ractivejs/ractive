@@ -153,19 +153,20 @@ define([
 
 
 		// if we're not preserving whitespace, we can eliminate inner leading and trailing whitespace
+		// TODO tidy this up
 		if ( !preserveWhitespace ) {
 			item = this.items[0];
-			if ( item && item.type === types.TEXT ) {
-				item.text = item.text.replace( leadingWhitespace, '' );
-				if ( !item.text ) {
+			if ( typeof item === 'string' ) {
+				this.items[0] = item.replace( leadingWhitespace, '' );
+				if ( !this.items[0] ) {
 					this.items.shift();
 				}
 			}
 
 			item = this.items[ this.items.length - 1 ];
-			if ( item && item.type === types.TEXT ) {
-				item.text = item.text.replace( trailingWhitespace, '' );
-				if ( !item.text ) {
+			if ( typeof item === 'string' ) {
+				this.items[ this.items.length - 1 ] = item.replace( trailingWhitespace, '' );
+				if ( !this.items[ this.items.length - 1 ] ) {
 					this.items.pop();
 				}
 			}

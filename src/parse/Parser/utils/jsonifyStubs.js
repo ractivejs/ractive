@@ -13,7 +13,15 @@ define([ 'parse/Parser/utils/stringifyStubs' ], function ( stringifyStubs ) {
 		}
 
 		json = items.map( function ( item ) {
-			return item.toJSON( noStringify );
+			var result;
+
+			// TEMP - this will be removed shortly
+			if ( item.toJSON ) {
+				result = item.toJSON( noStringify );
+				return result;
+			}
+
+			return item;
 		});
 
 		return json;
