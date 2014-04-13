@@ -38,24 +38,6 @@ renderTests.forEach( function ( theTest ) {
 	};
 });
 
-/*
-exports[ 'select tag renders option selected' ] = function ( test ) { 
-	ractive = new Ractive({
-				template: '<select value="{{selected}}" data-selected="{{selected}}">{{#items}}<option value="{{.}}">{{.}}</option>{{/}}</select>',
-				data: {
-					selected: 2,
-					items: [1,2,3]
-				}
-	});
-
-	test.equal( 
-		ractive.toHTML() , 
-		'<select><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>'
-	);
-
-	test.done();
-};
-*/
 
 function deepClone ( source ) {
 	var target, key;
