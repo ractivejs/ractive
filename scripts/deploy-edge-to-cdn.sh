@@ -25,6 +25,6 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 		git commit -m "Updated edge version"
 
 		echo "Pushing to GitHub..."
-		git push origin gh-pages
+		git push --quiet origin gh-pages 2> /dev/null
 	)
 fi
