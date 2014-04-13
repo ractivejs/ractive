@@ -1,10 +1,8 @@
 define([
 	'config/types',
-	'parse/Parser/getText/TextStub/_TextStub',
-	'parse/Parser/getText/TextStub/decodeCharacterReferences'
+	'parse/Parser/getText/decodeCharacterReferences'
 ], function (
 	types,
-	TextStub,
 	decodeCharacterReferences
 ) {
 
@@ -20,8 +18,6 @@ define([
 
 			text = ( preserveWhitespace ? token.value : token.value.replace( whitespace, ' ' ) );
 			return decodeCharacterReferences( text );
-
-			//return new TextStub( token, preserveWhitespace );
 		}
 
 		return null;

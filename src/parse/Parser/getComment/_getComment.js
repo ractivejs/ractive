@@ -1,9 +1,7 @@
 define([
-	'config/types',
-	'parse/Parser/getComment/CommentStub/_CommentStub'
+	'config/types'
 ], function (
-	types,
-	CommentStub
+	types
 ) {
 
 	'use strict';
@@ -11,7 +9,11 @@ define([
 	return function ( token ) {
 		if ( token.type === types.COMMENT ) {
 			this.pos += 1;
-			return new CommentStub( token, this.preserveWhitespace );
+
+			return {
+				t: types.COMMENT,
+				f: token.content
+			};
 		}
 
 		return null;

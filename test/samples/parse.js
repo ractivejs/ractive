@@ -278,15 +278,9 @@ var parseTests = [
 		parsed: [{"e":"p","f":"foo","t":7}]
 	},
 	{
-		name: 'Comments are left if required (with mustache)',
+		name: 'Comments are left if required',
 		template: '<!-- this will not disappear --><p>{{foo}} <!-- nor will this --></p>',
 		parsed: [{t:9,f:' this will not disappear '},{t:7,e:'p',f:[{t:2,r:'foo'},' ',{t:9,f:' nor will this '}]}],
-		options: { stripComments: false }
-	},
-	{
-		name: 'Comments are left if required (with plain text)',
-		template: '<!-- this will not disappear --><p>foo <!-- nor will this --></p>',
-		parsed: [{"f":" this will not disappear ","t":9},{"e":"p","f":"foo <!-- nor will this -->","t":7}],
 		options: { stripComments: false }
 	},
 	{
@@ -357,23 +351,23 @@ var parseTests = [
 	{
 		name: 'List section with index ref and full closing',
 		template: '{{#foo:i}}{{.}}{{/foo:i}}',
-		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}]
 	},
 	{
 		name: 'List section with index ref and ref only closing',
 		template: '{{#foo:i}}{{.}}{{/foo}}',
-		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}]
 	},
 	{
 		name: 'List section with index ref and empty closing',
 		template: '{{#foo:i}}{{.}}{{/}}',
-		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}] 
+		parsed: [{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}]
 	},
 	//From GH#541:
 	{
 		name: 'Inverted list section closing',
 		template: '{{#steps:stepIndex}}{{^ hiddenSteps[stepIndex]}}<p>{{hiddenSteps[stepIndex]}}</p>{{/ hiddenSteps[stepIndex]}}{{/steps}}',
-		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":true,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}] 
+		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":true,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}]
 	},
 	{
 		name: 'Illegal closing tag 1',
