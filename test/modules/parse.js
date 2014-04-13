@@ -11,9 +11,19 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 
 		runTest = function ( theTest ) {
 			test( theTest.name, function ( t ) {
-				var parsed = Ractive.parse( theTest.template, theTest.options );
+                if (theTest.error) {
+                    var error = "No error thrown";
+                    try {
+                        Ractive.parse( theTest.template, theTest.options );
+                    } catch (e) {
+                        error = String(e.message || e);
+                    }
+                    t.deepEqual(error, theTest.error);
+                } else {
+                    var parsed = Ractive.parse( theTest.template, theTest.options );
 
-				t.deepEqual( parsed, theTest.parsed );
+                    t.deepEqual( parsed, theTest.parsed );
+                }
 			});
 		};
 

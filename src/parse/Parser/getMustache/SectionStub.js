@@ -59,7 +59,7 @@ define([
 		if ( opening.substr( 0, closing.length) !== closing ) {
 
 			throw new Error( 'Could not parse template: Illegal closing section {{/' 
-				+ closing + '}}. Expected {{/' + stub.ref + '}}.' );
+				+ closing + '}}. Expected {{/' + stub.ref + '}} on line '+ token.getLinePos() );
 
 		}
 	}

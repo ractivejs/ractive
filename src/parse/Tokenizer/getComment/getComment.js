@@ -17,7 +17,7 @@ define([
 		endIndex = remaining.indexOf( '-->' );
 
 		if ( endIndex === -1 ) {
-			throw new Error( 'Unexpected end of input (expected "-->" to close comment)' );
+			throw new Error( 'Unexpected end of input (expected "-->" to close comment) on line '+this.getLinePos() );
 		}
 
 		content = remaining.substr( 0, endIndex );
