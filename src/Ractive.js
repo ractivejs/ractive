@@ -1,4 +1,11 @@
-define([ 'Ractive/_Ractive', 'circular', 'legacy' ], function ( Ractive, circular ) {
+define([
+	'Ractive/_Ractive',
+	'circular',
+	'legacy'
+], function (
+	Ractive,
+	circular
+) {
 
 	'use strict';
 

@@ -32,7 +32,7 @@ Pull requests
 
 **Pull requests against the master branch will not be merged!**
 
-All pull requests are welcome. You should create a new branch, based on the newest development branch (currently [0.4.0](https://github.com/RactiveJS/Ractive/tree/0.4.0)), and submit the PR against that dev branch.
+All pull requests are welcome. You should create a new branch, based on the [dev branch](https://github.com/RactiveJS/Ractive/tree/dev), and submit the PR against the dev branch.
 
 *Caveat for what follows: If in doubt, submit the request - a PR that needs tweaking is infinitely more valuable than a request that wasn't made because you were worrying about meeting these requirements.*
 

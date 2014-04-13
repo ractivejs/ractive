@@ -5,11 +5,15 @@
 	"ignore": [
 		"**/.*",
 		"node_modules",
+		"build",
 		"release",
 		"sandbox",
 		"src",
 		"test",
 		"wrapper",
-		"Gruntfile.js"
+		"Gruntfile.js",
+		"component.json",
+		"scripts",
+		"grunt"
 	]
 }
