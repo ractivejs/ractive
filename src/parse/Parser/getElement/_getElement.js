@@ -66,7 +66,7 @@ define([
 
 			// Process directives (proxy events, transitions, and decorators)
 			if ( proxies.length ) {
-				stub.v = {}
+				stub.v = {};
 
 				proxies.map( processDirective ).forEach( function ( directive ) {
 					stub.v[ directive.directiveType ] = jsonifyDirective( directive );

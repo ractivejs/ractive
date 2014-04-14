@@ -38,7 +38,7 @@ define([
 			}
 		}
 
-		attribute.value = options.value;
+		attribute.value = options.value || null;
 	};
 
 });

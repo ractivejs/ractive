@@ -1,11 +1,9 @@
 define([
 	'config/types',
-	'utils/parseJSON',
-	'parse/Parser/getElement/utils/jsonifyDirective'
+	'utils/parseJSON'
 ], function (
 	types,
-	parseJSON,
-	jsonifyDirective
+	parseJSON
 ) {
 
 	'use strict';
