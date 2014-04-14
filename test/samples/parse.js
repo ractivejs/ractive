@@ -180,7 +180,7 @@ var parseTests = [
 	{
 		name: 'Boolean attributes',
 		template: '<input value="{{value}}" autofocus>',
-		parsed: [{t:7,e:"input",a:{"autofocus":null,"value":[{t:2,r:"value"}]}}]
+		parsed: [{t:7,e:"input",a:{"autofocus":0,"value":[{t:2,r:"value"}]}}]
 	},
 	{
 		name: 'Methods on `this`',
@@ -260,7 +260,7 @@ var parseTests = [
 	{
 		name: 'Doctype declarations are handled',
 		template: '<!doctype html><html><head></head><body></body></html>',
-		parsed: [{t:7,e:'doctype',y:1,a:{html:null}},{t:7,e:'html',f:[{t:7,e:'head'},{t:7,e:'body'}]}]
+		parsed: [{t:7,e:'doctype',y:1,a:{html:0}},{t:7,e:'html',f:[{t:7,e:'head'},{t:7,e:'body'}]}]
 	},
 	{
 		name: 'Comments are stripped by default',

@@ -14,7 +14,6 @@ define([
 		attributes.forEach( function ( attribute ) {
 			var value;
 
-			// TODO use 0 instead of null
 			if ( attribute.value ) {
 				value = getStringFragment( attribute.value );
 
@@ -22,7 +21,7 @@ define([
 					value = value[0];
 				}
 			} else {
-				value = null;
+				value = 0;
 			}
 
 			a[ attribute.name ] = value;
