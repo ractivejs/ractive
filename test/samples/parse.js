@@ -270,7 +270,7 @@ var parseTests = [
 	{
 		name: 'Comments are left if required',
 		template: '<!-- this will not disappear --><p>{{foo}} <!-- nor will this --></p>',
-		parsed: [{t:9,f:' this will not disappear '},{t:7,e:'p',f:[{t:2,r:'foo'},' ',{t:9,f:' nor will this '}]}],
+		parsed: [{t:9,c:' this will not disappear '},{t:7,e:'p',f:[{t:2,r:'foo'},' ',{t:9,c:' nor will this '}]}],
 		options: { stripComments: false }
 	},
 	{

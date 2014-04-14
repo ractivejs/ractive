@@ -12,7 +12,7 @@ define([
 
 			return {
 				t: types.COMMENT,
-				f: token.content
+				c: token.content
 			};
 		}
 
