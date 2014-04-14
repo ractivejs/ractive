@@ -1,7 +1,7 @@
 define([
 	'config/types',
-	'parse/Parser/getMustache/KeypathExpressionStub',
-	'parse/Parser/getMustache/ExpressionStub'
+	'parse/Parser/shared/KeypathExpressionStub',
+	'parse/Parser/shared/ExpressionStub'
 ], function (
 	types,
 	KeypathExpressionStub,

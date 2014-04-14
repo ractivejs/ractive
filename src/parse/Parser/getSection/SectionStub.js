@@ -2,8 +2,8 @@ define([
 	'config/types',
 	'utils/normaliseKeypath',
 	'parse/Parser/utils/jsonifyStubs',
-	'parse/Parser/getMustache/KeypathExpressionStub',
-	'parse/Parser/getMustache/ExpressionStub'
+	'parse/Parser/shared/KeypathExpressionStub',
+	'parse/Parser/shared/ExpressionStub'
 ], function (
 	types,
 	normaliseKeypath,
@@ -49,7 +49,7 @@ define([
 	};
 
 	function validateClosing(stub, token){
-		var opening = stub.ref, 
+		var opening = stub.ref,
 			closing = normaliseKeypath( token.ref.trim() );
 
 		if ( !opening || !closing ) { return; }
@@ -58,12 +58,12 @@ define([
 
 		if ( opening.substr( 0, closing.length) !== closing ) {
 
-			throw new Error( 'Could not parse template: Illegal closing section {{/' 
+			throw new Error( 'Could not parse template: Illegal closing section {{/'
 				+ closing + '}}. Expected {{/' + stub.ref + '}} on line '+ token.getLinePos() );
 
 		}
 	}
-						
+
 	SectionStub.prototype = {
 		toJSON: function ( noStringify ) {
 			var json;
