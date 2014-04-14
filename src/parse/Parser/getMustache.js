@@ -1,9 +1,13 @@
 define([
 	'config/types',
+	'utils/normaliseKeypath',
+	'parse/Parser/utils/jsonifyStubs',
 	'parse/Parser/shared/KeypathExpressionStub',
 	'parse/Parser/shared/ExpressionStub'
 ], function (
 	types,
+	normaliseKeypath,
+	jsonifyStubs,
 	KeypathExpressionStub,
 	ExpressionStub
 ) {
@@ -11,17 +15,25 @@ define([
 	'use strict';
 
 	return function ( token ) {
-		var stub;
+		var stub, isSection, type, nextToken, fragment;
 
 		if ( token.type === types.MUSTACHE || token.type === types.TRIPLE ) {
 			if ( token.mustacheType === types.SECTION || token.mustacheType === types.INVERTED ) {
-				return null;
+				isSection = true;
 			}
 
 			this.pos += 1;
 
+			if ( token.type === types.TRIPLE ) {
+				type = types.TRIPLE;
+			} else if ( isSection ) {
+				type = types.SECTION;
+			} else {
+				type = token.mustacheType;
+			}
+
 			stub = {
-				t: ( token.type === types.TRIPLE ? token.type : token.mustacheType )
+				t: type
 			};
 
 			if ( token.ref ) {
@@ -36,6 +48,35 @@ define([
 				stub.x = new ExpressionStub( token.expression ).toJSON();
 			}
 
+
+			if ( isSection ) {
+				if ( token.mustacheType === types.INVERTED ) {
+					stub.n = true; // TODO change this to `1` - more compact
+				}
+
+				if ( token.indexRef ) {
+					stub.i = token.indexRef;
+				}
+
+				fragment = [];
+
+				nextToken = this.next();
+				while ( nextToken ) {
+					if ( nextToken.mustacheType === types.CLOSING ) {
+						validateClosing(stub, nextToken);
+						this.pos += 1;
+						break;
+					}
+
+					fragment.push( this.getStub() );
+					nextToken = this.next();
+				}
+
+				if ( fragment.length ) {
+					stub.f = jsonifyStubs( fragment );
+				}
+			}
+
 			// TEMP
 			Object.defineProperty( stub, 'toString', {
 				value: function () { return false; }
@@ -44,5 +85,20 @@ define([
 			return stub;
 		}
 	};
+
+	function validateClosing(stub, token){
+		var opening = stub.r,
+			closing = normaliseKeypath( token.ref.trim() );
+
+		if ( !opening || !closing ) { return; }
+
+		if( stub.i ) { opening += ':' + stub.i; }
+
+		if ( opening.substr( 0, closing.length) !== closing ) {
+
+			throw new Error( 'Could not parse template: Illegal closing section {{/'
+				+ closing + '}}. Expected {{/' + stub.r + '}} on line '+ token.getLinePos() );
+		}
+	}
 
 });

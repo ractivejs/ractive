@@ -2,7 +2,6 @@ define([
 	'parse/Parser/getText',
 	'parse/Parser/getComment',
 	'parse/Parser/getMustache',
-	'parse/Parser/getSection/_getSection',
 	'parse/Parser/getElement/_getElement',
 
 	'parse/Parser/utils/jsonifyStubs'
@@ -10,7 +9,6 @@ define([
 	getText,
 	getComment,
 	getMustache,
-	getSection,
 	getElement,
 
 	jsonifyStubs
@@ -47,7 +45,6 @@ define([
 
 			return this.getText( token, this.preserveWhitespace || preserveWhitespace ) ||
 			       this.getComment( token )  ||
-			       this.getSection( token )  ||
 			       this.getMustache( token ) ||
 			       this.getElement( token );
 		},
@@ -55,7 +52,6 @@ define([
 		getText: getText,
 		getComment: getComment,
 		getMustache: getMustache,
-		getSection: getSection,
 		getElement: getElement,
 
 		next: function () {
