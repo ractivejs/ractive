@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'parse/Parser/getText/decodeCharacterReferences'
+	'parse/Parser/utils/decodeCharacterReferences'
 ], function (
 	types,
 	decodeCharacterReferences

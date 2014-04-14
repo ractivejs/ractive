@@ -1,6 +1,6 @@
 define([
-	'parse/Parser/getText/_getText',
-	'parse/Parser/getMustache/_getMustache'
+	'parse/Parser/getText',
+	'parse/Parser/getMustache'
 ], function (
 	getText,
 	getMustache

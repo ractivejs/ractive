@@ -1,7 +1,7 @@
 define([
-	'parse/Parser/getText/_getText',
-	'parse/Parser/getComment/_getComment',
-	'parse/Parser/getMustache/_getMustache',
+	'parse/Parser/getText',
+	'parse/Parser/getComment',
+	'parse/Parser/getMustache',
 	'parse/Parser/getSection/_getSection',
 	'parse/Parser/getElement/_getElement',
 
