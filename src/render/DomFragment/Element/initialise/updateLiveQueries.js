@@ -14,7 +14,7 @@ define( function () {
 			i = liveQueries.length;
 			while ( i-- ) {
 				selector = liveQueries[i];
-				query = liveQueries[ selector ];
+				query = liveQueries[ '_' + selector ];
 
 				if ( query._test( element ) ) {
 					// keep register of applicable selectors, for when we teardown

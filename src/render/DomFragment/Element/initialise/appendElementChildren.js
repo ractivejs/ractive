@@ -34,7 +34,7 @@ define([
 
 		    node.appendChild( document.createTextNode(content) );
 		}
-		
+
 
 	};
 
@@ -78,7 +78,7 @@ define([
 
 			if ( docFrag ) {
 				node.innerHTML = element.html;
-				
+
 				// Update live queries, if applicable
 				element.matchingStaticNodes = {}; // so we can remove matches made with querySelectorAll at teardown time
 				updateLiveQueries( element );
@@ -112,7 +112,7 @@ define([
 			i = liveQueries.length;
 			while ( i-- ) {
 				selector = liveQueries[i];
-				query = liveQueries[ selector ];
+				query = liveQueries[ '_' + selector ];
 
 				matchingStaticNodes = getMatchingStaticNodes( element, selector );
 				query.push.apply( query, matchingStaticNodes );
