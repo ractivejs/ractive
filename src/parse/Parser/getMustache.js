@@ -1,15 +1,13 @@
 define([
 	'config/types',
 	'utils/normaliseKeypath',
-	'parse/Parser/utils/jsonifyStubs',
-	'parse/Parser/shared/KeypathExpressionStub',
-	'parse/Parser/shared/ExpressionStub'
+	'parse/Parser/expressions/getKeypathExpression',
+	'parse/Parser/expressions/getExpression'
 ], function (
 	types,
 	normaliseKeypath,
-	jsonifyStubs,
-	KeypathExpressionStub,
-	ExpressionStub
+	getKeypathExpression,
+	getExpression
 ) {
 
 	'use strict';
@@ -41,11 +39,12 @@ define([
 			}
 
 			if ( token.keypathExpression ) {
-				stub.kx = new KeypathExpressionStub( token.keypathExpression ).toJSON();
+				stub.kx = getKeypathExpression( token.keypathExpression );
 			}
 
 			if ( token.expression ) {
-				stub.x = new ExpressionStub( token.expression ).toJSON();
+				stub.x = getExpression( token.expression );
+				//stub.x = new ExpressionStub( token.expression ).toJSON();
 			}
 
 
@@ -73,7 +72,7 @@ define([
 				}
 
 				if ( fragment.length ) {
-					stub.f = jsonifyStubs( fragment );
+					stub.f = fragment;
 				}
 			}
 

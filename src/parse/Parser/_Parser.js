@@ -2,16 +2,12 @@ define([
 	'parse/Parser/getText',
 	'parse/Parser/getComment',
 	'parse/Parser/getMustache',
-	'parse/Parser/getElement/_getElement',
-
-	'parse/Parser/utils/jsonifyStubs'
+	'parse/Parser/getElement/_getElement'
 ], function (
 	getText,
 	getComment,
 	getMustache,
-	getElement,
-
-	jsonifyStubs
+	getElement
 ) {
 
 	'use strict';
@@ -32,7 +28,7 @@ define([
 			stubs.push( stub );
 		}
 
-		this.result = jsonifyStubs( stubs, options.noStringify, true );
+		this.result = stubs;
 	};
 
 	Parser.prototype = {

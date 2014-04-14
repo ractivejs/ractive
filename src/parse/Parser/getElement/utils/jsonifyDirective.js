@@ -1,7 +1,7 @@
 define([
-	'parse/Parser/StringStub/_StringStub'
+	'parse/Parser/getStringFragment/_getStringFragment'
 ], function (
-	StringStub
+	getStringFragment
 ) {
 
 	'use strict';
@@ -16,7 +16,7 @@ define([
 
 			name = directive.name;
 		} else {
-			name = new StringStub( directive.name ).toJSON();
+			name = getStringFragment( directive.name );
 		}
 
 		result = { n: name };
@@ -27,7 +27,7 @@ define([
 		}
 
 		if ( directive.dynamicArgs ) {
-			result.d = new StringStub( directive.dynamicArgs ).toJSON();
+			result.d = getStringFragment( directive.dynamicArgs );
 		}
 
 		return result;

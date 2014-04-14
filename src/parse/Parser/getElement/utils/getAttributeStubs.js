@@ -1,7 +1,7 @@
 define([
-	'parse/Parser/StringStub/_StringStub'
+	'parse/Parser/getStringFragment/_getStringFragment'
 ], function (
-	StringStub
+	getStringFragment
 ) {
 
 	'use strict';
@@ -14,9 +14,9 @@ define([
 		attributes.forEach( function ( attribute ) {
 			var value;
 
-			// TODO deprecate StringStub, use 0 instead of null
+			// TODO use 0 instead of null
 			if ( attribute.value ) {
-				value = new StringStub( attribute.value ).toJSON();
+				value = getStringFragment( attribute.value );
 
 				if ( value.length === 1 && typeof value[0] === 'string' ) {
 					value = value[0];

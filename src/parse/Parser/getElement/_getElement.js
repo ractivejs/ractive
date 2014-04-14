@@ -1,23 +1,19 @@
 define([
 	'config/types',
 	'config/voidElementNames',
-	'parse/Parser/utils/jsonifyStubs',
 	'parse/Parser/getElement/utils/filterAttributes',
 	'parse/Parser/getElement/utils/processDirective',
 	'parse/Parser/getElement/utils/jsonifyDirective',
 	'parse/Parser/getElement/utils/getAttributeStubs',
-	'parse/Parser/getElement/utils/siblingsByTagName',
-	'parse/Parser/StringStub/_StringStub'
+	'parse/Parser/getElement/utils/siblingsByTagName'
 ], function (
 	types,
 	voidElementNames,
-	jsonifyStubs,
 	filterAttributes,
 	processDirective,
 	jsonifyDirective,
 	getAttributeStubs,
-	siblingsByTagName,
-	StringStub
+	siblingsByTagName
 ) {
 
 	'use strict';
@@ -136,7 +132,7 @@ define([
 		}
 
 		if ( fragment.length ) {
-			stub.f = jsonifyStubs( fragment );
+			stub.f = fragment;
 		}
 
 
@@ -168,13 +164,6 @@ define([
 
 		return stub;
 	};
-
-	function getFrag ( attr ) {
-		return {
-			name: attr.name,
-			value: attr.value ? new StringStub( attr.value ) : null
-		};
-	}
 
 	function sanitize ( attr ) {
 		var valid = !onPattern.test( attr.name );

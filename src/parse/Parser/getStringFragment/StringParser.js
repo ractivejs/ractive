@@ -10,12 +10,11 @@ define([
 
 	var StringParser;
 
-	StringParser = function ( tokens, options ) { // TODO what are the options?
+	StringParser = function ( tokens ) {
 		var stub;
 
-		this.tokens = tokens || [];
+		this.tokens = tokens;
 		this.pos = 0;
-		this.options = options;
 
 		this.result = [];
 
