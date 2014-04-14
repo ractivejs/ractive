@@ -27,7 +27,7 @@ var parseTests = [
 	{
 		name: "Section",
 		template: "{{#mustache}}contents{{/mustache}}",
-		parsed: [{"f":"contents",t:4,r:"mustache"}]
+		parsed: [{"f":["contents"],t:4,r:"mustache"}]
 	},
 	{
 		name: "Interpolator with preceding text",
@@ -62,7 +62,7 @@ var parseTests = [
 	{
 		name: "Element with unquoted mustache attributes",
 		template: "<div class={{myClass}}>contents</div>",
-		parsed: [{a:{"class":[{r:"myClass",t:2}]},"f":"contents",e:"div",t:7}]
+		parsed: [{a:{"class":[{r:"myClass",t:2}]},"f":["contents"],e:"div",t:7}]
 	},
 	{
 		name: "Template with blacklisted elements (sanitize)",
@@ -83,7 +83,7 @@ var parseTests = [
 	{
 		name: "Template with blacklisted elements (don't sanitize)",
 		template: "<style type='text/css'>body { font-family: 'Comic Sans MS'; }</style>",
-		parsed: [{"a":{"type":"text/css"},"e":"style","f":"body { font-family: 'Comic Sans MS'; }","t":7}],
+		parsed: [{"a":{"type":"text/css"},"e":"style","f":["body { font-family: 'Comic Sans MS'; }"],"t":7}],
 		options: {
 			sanitize: false
 		}
@@ -120,7 +120,7 @@ var parseTests = [
 	{
 		name: "SVG with non-mustache text",
 		template: "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>some text</text></svg>",
-		parsed: [{a:{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"f":"some text",e:"text",t:7}],e:"svg",t:7}]
+		parsed: [{a:{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"f":["some text"],e:"text",t:7}],e:"svg",t:7}]
 	},
 	{
 		name: "SVG with interpolator",
@@ -133,11 +133,6 @@ var parseTests = [
 		parsed: [{a:{"xmlns":"http://www.w3.org/2000/svg"},"f":[{"f":["Hello ",{r:"thing",t:2},"!"],e:"text",t:7}],e:"svg",t:7}]
 	},
 	{
-		name: "Mixture of HTML-able and non-HTML-able elements in template",
-		template: "<div><p>HTML</p><p>{{mustache}}</p></div>",
-		parsed: [{t:7,e:"div","f":[{t:7,e:"p","f":"HTML"},{t:7,e:"p","f":[{t:2,r:"mustache"}]}]}]
-	},
-	{
 		name: "Expression mustache",
 		template: "{{( i + 1 )}}",
 		parsed: [{t:2,"x":{r:["i"],"s":"${0}+1"}}]
@@ -146,11 +141,6 @@ var parseTests = [
 		name: "Expression mustache with brackets",
 		template: "{{( (i) + 1 )}}",
 		parsed: [{t:2,"x":{r:["i"],"s":"(${0})+1"}}]
-	},
-	{
-		name: "Nodes with id attributes and no mustaches don't get stringified",
-		template: "<div id=test>plain old text</div>",
-		parsed: [{t:7,e:"div",a:{"id":"test"},"f":"plain old text"}]
 	},
 	{
 		name: "Mustache references can have numeric keys",
@@ -240,7 +230,7 @@ var parseTests = [
 	{
 		name: 'Whitespace before mustache type character',
 		template: '{{ # foo }}blah{{ / foo }}',
-		parsed: [{t:4,r:'foo',f:'blah'}]
+		parsed: [{t:4,r:'foo',f:['blah']}]
 	},
 	{
 		name: 'Intro and outro with no parameters',
@@ -275,7 +265,7 @@ var parseTests = [
 	{
 		name: 'Comments are stripped by default',
 		template: '<!-- this will disappear --><p>foo <!-- so will this --></p>',
-		parsed: [{"e":"p","f":"foo","t":7}]
+		parsed: [{"e":"p","f":["foo"],"t":7}]
 	},
 	{
 		name: 'Comments are left if required',
@@ -326,7 +316,7 @@ var parseTests = [
 	{
 		name: 'Array members in section tags',
 		template: '{{#foo[0]}}bar{{/foo[0]}}',
-		parsed: [{t:4,r:'foo.0',f:'bar'}]
+		parsed: [{t:4,r:'foo.0',f:['bar']}]
 	},
 	{
 		name: 'Reference this is an invalid expression',
