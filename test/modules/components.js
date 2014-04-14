@@ -873,6 +873,24 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'Components can have names that happen to be Array.prototype or Object.prototype methods', function ( t ) {
+			var Map, ractive;
+
+			Map = Ractive.extend({
+				template: '<div class="map"></div>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<map/>',
+				components: {
+					map: Map
+				}
+			});
+
+			t.equal( fixture.innerHTML, '<div class="map"></div>' );
+		});
+
 	};
 
 });
