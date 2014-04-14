@@ -3,7 +3,6 @@ define([
 	'config/voidElementNames',
 	'parse/Parser/getElement/utils/filterAttributes',
 	'parse/Parser/getElement/utils/processDirective',
-	'parse/Parser/getElement/utils/jsonifyDirective',
 	'parse/Parser/getElement/utils/getAttributeStubs',
 	'parse/Parser/getElement/utils/siblingsByTagName'
 ], function (
@@ -11,7 +10,6 @@ define([
 	voidElementNames,
 	filterAttributes,
 	processDirective,
-	jsonifyDirective,
 	getAttributeStubs,
 	siblingsByTagName
 ) {
@@ -69,20 +67,20 @@ define([
 				stub.v = {};
 
 				proxies.map( processDirective ).forEach( function ( directive ) {
-					stub.v[ directive.directiveType ] = jsonifyDirective( directive );
+					stub.v[ directive.type ] = directive.value;
 				});
 			}
 
 			if ( filtered.intro ) {
-				stub.t1 = jsonifyDirective( processDirective( filtered.intro ) );
+				stub.t1 = processDirective( filtered.intro ).value;
 			}
 
 			if ( filtered.outro ) {
-				stub.t2 = jsonifyDirective( processDirective( filtered.outro ) );
+				stub.t2 = processDirective( filtered.outro ).value;
 			}
 
 			if ( filtered.decorator ) {
-				stub.o = jsonifyDirective( processDirective( filtered.decorator ) );
+				stub.o = processDirective( filtered.decorator ).value;
 			}
 		}
 

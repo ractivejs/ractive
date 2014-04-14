@@ -1,25 +1,24 @@
 define([
 	'config/types',
-	'utils/parseJSON'
+	'utils/parseJSON',
+	'parse/Parser/getStringFragment/_getStringFragment'
 ], function (
 	types,
-	parseJSON
+	parseJSON,
+	getStringFragment
 ) {
 
 	'use strict';
 
+	// TODO clean this up, it's shocking
 	return function ( directive ) {
-		var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed;
-
-		throwError = function () {
-			throw new Error( 'Illegal directive' );
-		};
+		var result, tokens, token, colonIndex, directiveName, directiveArgs, parsed;
 
 		if ( !directive.name || !directive.value ) {
-			throwError();
+			throw new Error( 'Illegal directive' );
 		}
 
-		processed = { directiveType: directive.name };
+		result = { type: directive.name };
 
 		tokens = directive.value;
 
@@ -66,23 +65,29 @@ define([
 		directiveArgs = directiveArgs.concat( tokens );
 
 		if ( directiveName.length === 1 && directiveName[0].type === types.TEXT ) {
-			processed.name = directiveName[0].value;
+			directiveName = directiveName[0].value;
 		} else {
-			processed.name = directiveName;
+			directiveName = getStringFragment( directiveName );
 		}
 
-		if ( directiveArgs.length ) {
+		if ( directiveArgs.length || typeof directiveName !== 'string' ) {
+			result.value = {
+				n: directiveName
+			};
+
 			if ( directiveArgs.length === 1 && directiveArgs[0].type === types.TEXT ) {
 				parsed = parseJSON( '[' + directiveArgs[0].value + ']' );
-				processed.args = parsed ? parsed.value : directiveArgs[0].value;
+				result.value.a = parsed ? parsed.value : directiveArgs[0].value;
 			}
 
 			else {
-				processed.dynamicArgs = directiveArgs;
+				result.value.d = getStringFragment( directiveArgs );
 			}
+		} else {
+			result.value = directiveName;
 		}
 
-		return processed;
+		return result;
 	};
 
 });
