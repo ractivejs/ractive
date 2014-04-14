@@ -74,6 +74,10 @@ define([
 
 				if ( fragment.length ) {
 					stub.f = jsonifyStubs( fragment );
+
+					if ( stub.f.length === 1 && typeof stub.f[0] === 'string' ) {
+						stub.f = stub.f[0];
+					}
 				}
 			}
 

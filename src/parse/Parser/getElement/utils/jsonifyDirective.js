@@ -1,4 +1,8 @@
-define([ 'parse/Parser/StringStub/_StringStub' ], function ( StringStub ) {
+define([
+	'parse/Parser/StringStub/_StringStub'
+], function (
+	StringStub
+) {
 
 	'use strict';
 

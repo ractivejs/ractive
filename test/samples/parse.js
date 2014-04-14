@@ -270,7 +270,7 @@ var parseTests = [
 	{
 		name: 'Doctype declarations are handled',
 		template: '<!doctype html><html><head></head><body></body></html>',
-		parsed: [{t:7,e:'doctype',y:1,a:{html:null}},{t:7,e:'html',f:'<head></head><body></body>'}]
+		parsed: [{t:7,e:'doctype',y:1,a:{html:null}},{t:7,e:'html',f:[{t:7,e:'head'},{t:7,e:'body'}]}]
 	},
 	{
 		name: 'Comments are stripped by default',
