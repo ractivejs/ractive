@@ -57,7 +57,7 @@ define([
 	};
 
 	function removeFromLiveQueries ( element ) {
-		var query, selector, matchingStaticNodes, i, j;
+		var query, selector, i, j;
 
 		i = element.liveQueries.length;
 		while ( i-- ) {
@@ -65,13 +65,6 @@ define([
 			selector = query.selector;
 
 			query._remove( element.node );
-
-			if ( element.matchingStaticNodes && ( matchingStaticNodes = element.matchingStaticNodes[ selector ] ) ) {
-				j = matchingStaticNodes.length;
-				while ( j-- ) {
-					query.remove( matchingStaticNodes[j] );
-				}
-			}
 		}
 	}
 

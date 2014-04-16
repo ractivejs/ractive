@@ -18,18 +18,11 @@ define([
 
 	'use strict';
 
-	var getPartialDescriptor,
-
-		registerPartial,
-		getPartialFromRegistry,
-		unpack;
-
-
-	getPartialDescriptor = function ( root, name ) {
+	return function getPartialDescriptor ( ractive, name ) {
 		var el, partial, errorMessage;
 
 		// If the partial was specified on this instance, great
-		if ( partial = getPartialFromRegistry( root, name ) ) {
+		if ( partial = getPartialFromRegistry( ractive, name ) ) {
 			return partial;
 		}
 
@@ -41,7 +34,7 @@ define([
 					throw new Error( errors.missingParser );
 				}
 
-				registerPartial( parse( deIndent( el.text ), root.parseOptions ), name, partials );
+				registerPartial( parse( deIndent( el.text ), ractive.parseOptions ), name, partials );
 			}
 		}
 
@@ -51,7 +44,7 @@ define([
 		if ( !partial ) {
 			errorMessage = 'Could not find descriptor for partial "' + name + '"';
 
-			if ( root.debug ) {
+			if ( ractive.debug ) {
 				throw new Error( errorMessage );
 			} else {
 				warn( errorMessage );
@@ -60,10 +53,10 @@ define([
 			return [];
 		}
 
-		return unpack( partial );
+		return partial;
 	};
 
-	getPartialFromRegistry = function ( ractive, name ) {
+	function getPartialFromRegistry ( ractive, name ) {
 		var partial;
 
 		if ( ractive.partials[ name ] ) {
@@ -79,11 +72,11 @@ define([
 				registerPartial( partial, name, ractive.partials );
 			}
 
-			return unpack( ractive.partials[ name ] );
+			return ractive.partials[ name ];
 		}
-	};
+	}
 
-	registerPartial = function ( partial, name, registry ) {
+	function registerPartial ( partial, name, registry ) {
 		var key;
 
 		if ( isObject( partial ) ) {
@@ -97,17 +90,6 @@ define([
 		} else {
 			registry[ name ] = partial;
 		}
-	};
-
-	unpack = function ( partial ) {
-		// Unpack string, if necessary
-		if ( partial.length === 1 && typeof partial[0] === 'string' ) {
-			return partial[0];
-		}
-
-		return partial;
-	};
-
-	return getPartialDescriptor;
+	}
 
 });

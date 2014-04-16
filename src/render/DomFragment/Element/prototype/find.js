@@ -1,4 +1,8 @@
-define([ 'utils/matches' ], function ( matches ) {
+define([
+	'utils/matches'
+], function (
+	matches
+) {
 
 	'use strict';
 
@@ -7,10 +11,6 @@ define([ 'utils/matches' ], function ( matches ) {
 
 		if ( matches( this.node, selector ) ) {
 			return this.node;
-		}
-
-		if ( this.html && ( queryResult = this.node.querySelector( selector ) ) ) {
-			return queryResult;
 		}
 
 		if ( this.fragment && this.fragment.find ) {

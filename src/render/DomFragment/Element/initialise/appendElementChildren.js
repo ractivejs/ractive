@@ -1,15 +1,13 @@
 define([
+	'circular',
 	'utils/warn',
 	'config/namespaces',
-	'render/StringFragment/_StringFragment',
-	'render/DomFragment/Element/shared/getMatchingStaticNodes',
-	'circular'
+	'render/StringFragment/_StringFragment'
 ], function (
+	circular,
 	warn,
 	namespaces,
-	StringFragment,
-	getMatchingStaticNodes,
-	circular
+	StringFragment
 ) {
 
 	'use strict';
@@ -34,7 +32,7 @@ define([
 
 		    node.appendChild( document.createTextNode(content) );
 		}
-		
+
 
 	};
 
@@ -72,52 +70,17 @@ define([
 			return;
 		}
 
-		if ( typeof descriptor.f === 'string' && ( !node || ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) ) {
-			// great! we can use innerHTML
-			element.html = descriptor.f;
+		element.fragment = new DomFragment({
+			descriptor:    descriptor.f,
+			root:          element.root,
+			pNode:         node,
+			owner:         element,
+			pElement:      element,
+		});
 
-			if ( docFrag ) {
-				node.innerHTML = element.html;
-				
-				// Update live queries, if applicable
-				element.matchingStaticNodes = {}; // so we can remove matches made with querySelectorAll at teardown time
-				updateLiveQueries( element );
-			}
-		}
-
-		else {
-			element.fragment = new DomFragment({
-				descriptor:    descriptor.f,
-				root:          element.root,
-				pNode:         node,
-				owner:         element,
-				pElement:      element,
-			});
-
-			if ( docFrag ) {
-				node.appendChild( element.fragment.docFrag );
-			}
+		if ( docFrag ) {
+			node.appendChild( element.fragment.docFrag );
 		}
 	};
-
-	function updateLiveQueries ( element ) {
-		var instance, liveQueries, node, selector, query, matchingStaticNodes, i;
-
-		node = element.node;
-		instance = element.root;
-
-		do {
-			liveQueries = instance._liveQueries;
-
-			i = liveQueries.length;
-			while ( i-- ) {
-				selector = liveQueries[i];
-				query = liveQueries[ selector ];
-
-				matchingStaticNodes = getMatchingStaticNodes( element, selector );
-				query.push.apply( query, matchingStaticNodes );
-			}
-		} while ( instance = instance._parent );
-	}
 
 });
