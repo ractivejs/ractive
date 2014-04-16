@@ -967,6 +967,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, 'bar' );
+		});
 		
 		test( 'Set operations inside an inline component\'s init() method update the DOM synchronously', function ( t ) {
 			var ListWidget, ractive, previousHeight = -1;
