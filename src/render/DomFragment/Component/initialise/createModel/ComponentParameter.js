@@ -8,7 +8,11 @@ define([
 
 	'use strict';
 
-	var ComponentParameter = function ( component, key, value ) {
+	var getValueOptions, ComponentParameter;
+
+	getValueOptions = { parse: true };
+
+	ComponentParameter = function ( component, key, value ) {
 
 		this.parentFragment = component.parentFragment;
 		this.component = component;
@@ -21,7 +25,7 @@ define([
 		});
 
 		this.selfUpdating = this.fragment.isSimple();
-		this.value = this.fragment.getValue();
+		this.value = this.fragment.getValue( getValueOptions );
 	};
 
 	ComponentParameter.prototype = {
@@ -41,7 +45,7 @@ define([
 		},
 
 		update: function () {
-			var value = this.fragment.getValue();
+			var value = this.fragment.getValue( getValueOptions );
 
 			this.component.instance.set( this.key, value );
 			this.value = value;
