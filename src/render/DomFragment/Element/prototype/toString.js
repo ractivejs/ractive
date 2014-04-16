@@ -32,9 +32,7 @@ define([
 
 		str += '>';
 
-		if ( this.html ) {
-			str += this.html;
-		} else if ( this.fragment ) {
+		if ( this.fragment ) {
 			str += this.fragment.toString();
 		}
 
@@ -50,7 +48,7 @@ define([
 
 	function optionIsSelected ( element ) {
 		var optionValue, optionValueAttribute, optionValueInterpolator,
-			selectValueAttribute, selectValueInterpolator, 
+			selectValueAttribute, selectValueInterpolator,
 			selectValue, i;
 
 		optionValueAttribute = element.attributes.value;
@@ -64,7 +62,7 @@ define([
 			}
 			optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );
 		}
-		
+
 		selectValueAttribute = element.select.attributes.value;
 		selectValueInterpolator = selectValueAttribute.interpolator;
 

@@ -2,7 +2,6 @@ define([
 	'config/types',
 	'utils/matches',
 	'render/shared/Fragment/_Fragment',
-	'render/DomFragment/shared/insertHtml',
 	'render/DomFragment/Text',
 	'render/DomFragment/Interpolator',
 	'render/DomFragment/Section/_Section',
@@ -16,7 +15,6 @@ define([
 	types,
 	matches,
 	Fragment,
-	insertHtml,
 	Text,
 	Interpolator,
 	Section,
@@ -35,19 +33,8 @@ define([
 			this.docFrag = document.createDocumentFragment();
 		}
 
-		// if we have an HTML string, our job is easy.
-		if ( typeof options.descriptor === 'string' ) {
-			this.html = options.descriptor;
-
-			if ( this.docFrag ) {
-				this.nodes = insertHtml( this.html, options.pNode.tagName, options.pNode.namespaceURI, this.docFrag );
-			}
-		}
-
-		else {
-			// otherwise we need to make a proper fragment
-			Fragment.init( this, options );
-		}
+		// otherwise we need to make a proper fragment
+		Fragment.init( this, options );
 	};
 
 	DomFragment.prototype = {
@@ -94,7 +81,7 @@ define([
 				case types.PARTIAL:      return new Partial( options, this.docFrag );
 				case types.COMMENT:      return new Comment( options, this.docFrag );
 
-				default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/RactiveJS/Ractive/issues. Thanks!' );
+				default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 			}
 		},
 
@@ -150,26 +137,11 @@ define([
 		},
 
 		toString: function () {
-			var html, i, len, item;
-
-			if ( this.html ) {
-				return this.html;
-			}
-
-			html = '';
-
 			if ( !this.items ) {
-				return html;
+				return '';
 			}
 
-			len = this.items.length;
-
-			for ( i=0; i<len; i+=1 ) {
-				item = this.items[i];
-				html += item.toString();
-			}
-
-			return html;
+			return this.items.join( '' );
 		},
 
 		find: function ( selector ) {

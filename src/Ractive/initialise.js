@@ -212,12 +212,6 @@ define([
 			parsedTemplate = parsedTemplate.main;
 		}
 
-		// If the template was an array with a single string member, that means
-		// we can use innerHTML - we just need to unpack it
-		if ( parsedTemplate && ( parsedTemplate.length === 1 ) && ( typeof parsedTemplate[0] === 'string' ) ) {
-			parsedTemplate = parsedTemplate[0];
-		}
-
 		ractive.template = parsedTemplate;
 
 		// Add partials to our registry
