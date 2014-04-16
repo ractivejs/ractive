@@ -967,7 +967,61 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, 'bar' );
-			
+		
+		test( 'Set operations inside an inline component\'s init() method update the DOM synchronously', function ( t ) {
+			var ListWidget, ractive, previousHeight = -1;
+
+			ListWidget = Ractive.extend({
+				template: '<ul>{{#visibleItems}}<li>{{this}}</li>{{/visibleItems}}</ul>',
+				init: function () {
+					var ul, lis, items, height, i;
+
+					ul = this.find( 'ul' );
+					lis = this.findAll( 'li', { live: true });
+
+					items = this.get( 'items' );
+
+					for ( i = 0; i < items.length; i += 1 ) {
+						this.set( 'visibleItems', items.slice( 0, i ) );
+
+						t.equal( lis.length, i );
+
+						height = ul.offsetHeight;
+						t.ok( height > previousHeight );
+						previousHeight = height;
+					}
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<list-widget items="{{items}}"/>',
+				data: { items: [ 'a', 'b', 'c', 'd' ]},
+				components: { 'list-widget': ListWidget }
+			});
+		});
+
+		test( 'Inline component attributes are passed through correctly', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>{{foo.bar}}</p><p>{{typeof answer}}: {{answer}}</p><p>I got {{string}} but type coercion ain\'t one</p><p>{{dynamic.yes}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{bar:10}" answer="42 " string="99 problems" dynamic="{yes:{{but}}}"/>',
+				data: { but: 'no' },
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>10</p><p>number: 42</p><p>I got 99 problems but type coercion ain\'t one</p><p>no</p>' );
+
+			console.group('set');
+			ractive.set( 'but', 'maybe' );
+			console.groupEnd();
+			t.htmlEqual( fixture.innerHTML, '<p>10</p><p>number: 42</p><p>I got 99 problems but type coercion ain\'t one</p><p>maybe</p>' );
+
 		});
 
 	};

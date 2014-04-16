@@ -20,7 +20,9 @@ define([
 
 	'use strict';
 
-	var Transition;
+	var getValueOptions, Transition;
+
+	getValueOptions = { args: true };
 
 	Transition = function ( descriptor, root, owner, isIntro ) {
 		var t = this, name, fragment, errorMessage;
@@ -73,7 +75,7 @@ define([
 				owner:        owner
 			});
 
-			this.params = fragment.toArgsList();
+			this.params = fragment.getValue( getValueOptions );
 			fragment.teardown();
 		}
 

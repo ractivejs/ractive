@@ -8,7 +8,11 @@ define([
 
 	'use strict';
 
-	var Decorator = function ( descriptor, ractive, owner ) {
+	var getValueOptions, Decorator;
+
+	getValueOptions = { args: true };
+
+	Decorator = function ( descriptor, ractive, owner ) {
 		var decorator = this, name, fragment, errorMessage;
 
 		decorator.root = ractive;
@@ -38,11 +42,11 @@ define([
 				owner:        owner
 			});
 
-			decorator.params = decorator.fragment.toArgsList();
+			decorator.params = decorator.fragment.getValue( getValueOptions );
 
 			decorator.fragment.bubble = function () {
-				this.dirty = true;
-				decorator.params = this.toArgsList();
+				this.dirtyArgs = this.dirtyValue = true;
+				decorator.params = this.getValue( getValueOptions );
 
 				if ( decorator.ready ) {
 					decorator.update();
