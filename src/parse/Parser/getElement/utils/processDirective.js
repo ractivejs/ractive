@@ -1,7 +1,7 @@
 define([
 	'config/types',
 	'utils/parseJSON',
-	'parse/Parser/getStringFragment/_getStringFragment'
+	'parse/Parser/utils/getStringFragment'
 ], function (
 	types,
 	parseJSON,

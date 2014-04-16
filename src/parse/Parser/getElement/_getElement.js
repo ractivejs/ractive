@@ -124,7 +124,7 @@ define([
 
 			}
 
-			fragment.push( this.getStub( preserveWhitespace ) );
+			fragment.push( this.getItem( preserveWhitespace ) );
 
 			nextToken = this.next();
 		}

@@ -1,9 +1,11 @@
 define([
+	'circular',
 	'parse/Parser/getText',
 	'parse/Parser/getComment',
 	'parse/Parser/getMustache',
 	'parse/Parser/getElement/_getElement'
 ], function (
+	circular,
 	getText,
 	getComment,
 	getMustache,
@@ -15,24 +17,24 @@ define([
 	var Parser;
 
 	Parser = function ( tokens, options ) {
-		var stub, stubs;
+		var item, items;
 
 		this.tokens = tokens || [];
 		this.pos = 0;
 		this.options = options;
 		this.preserveWhitespace = options.preserveWhitespace;
 
-		stubs = [];
+		items = [];
 
-		while ( stub = this.getStub() ) {
-			stubs.push( stub );
+		while ( item = this.getItem() ) {
+			items.push( item );
 		}
 
-		this.result = stubs;
+		this.result = items;
 	};
 
 	Parser.prototype = {
-		getStub: function ( preserveWhitespace ) {
+		getItem: function ( preserveWhitespace ) {
 			var token = this.next();
 
 			if ( !token ) {
@@ -40,8 +42,8 @@ define([
 			}
 
 			return this.getText( token, this.preserveWhitespace || preserveWhitespace ) ||
-			       this.getComment( token )  ||
 			       this.getMustache( token ) ||
+			       this.getComment( token )  ||
 			       this.getElement( token );
 		},
 
@@ -55,6 +57,7 @@ define([
 		}
 	};
 
+	circular.Parser = Parser;
 	return Parser;
 
 });

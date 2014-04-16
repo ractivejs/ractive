@@ -67,7 +67,7 @@ define([
 						break;
 					}
 
-					fragment.push( this.getStub() );
+					fragment.push( this.getItem() );
 					nextToken = this.next();
 				}
 
