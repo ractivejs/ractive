@@ -891,6 +891,43 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '<div class="map"></div>' );
 		});
 
+		test( 'Set operations inside an inline component\'s init() method update the DOM synchronously', function ( t ) {
+			var ListWidget, ractive, previousHeight = -1;
+
+			ListWidget = Ractive.extend({
+				template: '<ul>{{#visibleItems}}<li>{{this}}</li>{{/visibleItems}}</ul>',
+				init: function () {
+					var ul, lis, items, height, i;
+
+					console.group( 'initing' );
+
+					ul = this.find( 'ul' );
+					lis = this.findAll( 'li', { live: true });
+
+					items = this.get( 'items' );
+
+					for ( i = 0; i < items.length; i += 1 ) {
+						this.set( 'visibleItems', items.slice( 0, i ) );
+
+						t.equal( lis.length, i );
+
+						height = ul.offsetHeight;
+						t.ok( height > previousHeight );
+						previousHeight = height;
+					}
+
+					console.groupEnd();
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<list-widget items="{{items}}"/>',
+				data: { items: [ 'a', 'b', 'c', 'd' ]},
+				components: { 'list-widget': ListWidget }
+			});
+		});
+
 	};
 
 });
