@@ -42,7 +42,11 @@ define([
 
 	return function initialiseRactiveInstance ( ractive, options ) {
 
-		var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed;
+		var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed, 
+			registryValue;
+
+		//allow empty constructor options
+		options = options || {};
 
 		if ( isArray( options.adaptors ) ) {
 			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
@@ -156,10 +160,14 @@ define([
 		}
 
 		registries.forEach( function ( registry ) {
-			if ( ractive.constructor[ registry ] ) {
-				ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
-			} else if ( options[ registry ] ) {
-				ractive[ registry ] = options[ registry ];
+			if ( registryValue = ractive.constructor[ registry ] || defaults[ registry ] ) {
+				if ( typeof registryValue === 'function' ) {
+					ractive[ registry ] = registryValue ( options[ registry ], options ) || options[ registry ];
+				} else {
+					ractive[ registry ] = extend( create( registryValue ), options[ registry ] );
+				}
+			} else if ( registryValue = options[ registry ] ) {
+				ractive[ registry ] = registryValue;
 			}
 		});
 
@@ -178,10 +186,17 @@ define([
 		}
 
 
+		//resolve template 
+
+		if( typeof options.template === 'function' ) {
+			template = options.template( null, options );
+		} else if( defaults.template && typeof defaults.template === 'function' ) {
+			template = defaults.template( options.template, options ) || options.template;
+		} else {
+			template = options.template;
+		}
 
 		// Parse template, if necessary
-		template = options.template;
-
 		if ( typeof template === 'string' ) {
 			if ( !parse ) {
 				throw new Error( errors.missingParser );

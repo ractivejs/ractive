@@ -891,6 +891,85 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '<div class="map"></div>' );
 		});
 
+		test( 'Component in template has data function called on initialize', function ( t ) {
+			var Component, ractive, data = { foo: 'bar' } ;
+			
+			Component = Ractive.extend({
+				template: '{{foo}}',
+				data: function(){ return data }
+			});
+			
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: { widget: Component },
+				data: { foo: 'no' }
+			});
+
+			t.equal( fixture.innerHTML, 'bar' );
+		});
+
+		test( 'Component in template having data function with no return uses existing data instance', function ( t ) {
+			var Component, ractive, data = { foo: 'bar' } ;
+			
+			Component = Ractive.extend({
+				template: '{{foo}}{{bim}}',
+				data: function(d){ 
+					d.bim = 'bam'
+				}
+			});
+			
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: { widget: Component },
+				data: { foo: 'bar' }
+			});
+
+			t.equal( fixture.innerHTML, 'barbam' );
+		});
+
+		test( 'Component in template passed parameters with data function', function ( t ) {
+			var Component, ractive, data = { foo: 'bar' } ;
+			
+			Component = Ractive.extend({
+				template: '{{foo}}{{bim}}',
+				data: function(d){ 
+					d.bim = d.foo
+				}
+			});
+			
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{outer}}"/>',
+				components: { widget: Component },
+				data: { outer: 'bar' }
+			});
+
+			t.equal( fixture.innerHTML, 'barbar' );
+		});
+
+		test( 'Component in template with dynamic template function', function ( t ) {
+			var Component, ractive;
+
+			Component = Ractive.extend({
+				template: function(template, options){
+					return options.data.useFoo ? '{{foo}}' : '{{fizz}}'
+				}
+			});
+
+			
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{one}}" fizz="{{two}}" useFoo="true"/>',
+				components: { widget: Component },
+				data: { one: 'bar', two: 'bizz' }
+			});
+
+			t.equal( fixture.innerHTML, 'bar' );
+			
+		});
+
 	};
 
 });
