@@ -2,7 +2,8 @@ define( function () {
 
 	'use strict';
 
-	return [
+	return [,
+		'data'
 		'adaptors',
 		'components',
 		'decorators',
@@ -10,8 +11,7 @@ define( function () {
 		'events',
 		'interpolators',
 		'partials',
-		'transitions',
-		'data'
+		'transitions'
 	];
 
 });
