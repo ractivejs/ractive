@@ -141,18 +141,17 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 		test('List of inputs with keypathexpression name update correctly', function(t){
 			var ractive = new Ractive({
 					el: fixture,
-					template: "{{#options}}<input type='radio' name='{{responses[topic]}}' value='{{.}}'/>{{/}}",
+					template: "<input type='radio' name='{{responses[topic]}}'/>",
 					data: {
-				        options: ['1', '2'],
-				        topic: 'Products',
+				        topic: 'Product',
 				        responses: {}
 				    }
 				})
-			ractive.set('topic', 'Colors')
-				expect(2)
-				ractive.findAll('input').forEach(function(input){
-			    t.equal( input.name, '{{responses.Colors}}' )
-			})
+			ractive.set('topic', 'Color')	
+			var input = ractive.find('input')
+			t.ok( input )
+			t.equal( input.name, '{{responses.Colors}}' )
+			
 		});
 
 	};
