@@ -93,7 +93,7 @@ define([
 		start = tokenizer.pos;
 
 		expected = function ( str ) {
-			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ' + str + ')' );
+			throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ' + str + ') on line '+tokenizer.getLinePos() );
 		};
 
 		if ( !tokenizer.getStringMatch( '<' ) ) {
