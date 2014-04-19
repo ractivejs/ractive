@@ -226,7 +226,9 @@ define([
 		ractive.parseOptions = {
 			preserveWhitespace: options.preserveWhitespace,
 			sanitize: options.sanitize,
-			stripComments: options.stripComments
+			stripComments: options.stripComments,
+			delimiters: options.delimiters,
+			tripleDelimiters: options.tripleDelimiters
 		};
 
 		// Temporarily disable transitions, if noIntro flag is set
