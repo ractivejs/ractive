@@ -126,18 +126,18 @@ define([
 				return;
 			}
 
-			var keypath = this.getKeypath();
+			var self = this, keypath = this.getKeypath();
 
 			if( !this.currentKeypath || this.currentKeypath !== keypath ) {
 				this.currentKeypath = keypath;
 
 				if ( keypath = resolveRef( this.root, keypath, this.parentFragment ) ) {
-					this.resolvedKeypath = keypath;
+					this.keypath = keypath;
 				} else {				
 
-					new Unresolved( this.root, keypath, this.parentFragment, function ( keypath ) {
-						this.resolvedKeypath = keypath;
-						this.callback( keypath );
+					new Unresolved( this.root, this.currentKeypath, this.parentFragment, function ( keypath ) {
+						self.keypath = keypath;
+						self.callback( keypath );
 					});
 
 					return;
@@ -145,7 +145,7 @@ define([
 
 			}
 
-			this.callback( this.resolvedKeypath );
+			this.callback( this.keypath );
 		},
 
 		resolve: function ( index, value ) {
@@ -184,9 +184,9 @@ define([
 			}
 
 			//Already resolved the full keypath? Just fix it up...
-			if( this.resolvedKeypath ){
-				if ( changedKeypath = getNewKeypath( this.resolvedKeypath, oldKeypath, newKeypath ) ) {
-					this.resolvedKeypath = changedKeypath;
+			if( this.keypath ){
+				if ( changedKeypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
+					this.keypath = changedKeypath;
 					changed = true;
 				}
 			}
