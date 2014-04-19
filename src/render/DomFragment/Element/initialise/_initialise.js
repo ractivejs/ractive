@@ -70,7 +70,7 @@ define([
 
 		element.cssDetachQueue = [];
 
-		
+
 		// If this is an option element, we need to store a reference to its select
 		if ( element.lcName === 'option' ) {
 			element.select = findParentSelect( element.parent );

@@ -66,7 +66,7 @@ define([
 				childInstance.set( indexRefAlias, newIndex );
 			}
 
-			if ( query = this.root._liveComponentQueries[ this.name ] ) {
+			if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
 				query._makeDirty();
 			}
 		},
@@ -113,7 +113,7 @@ define([
 		instance = component.root;
 
 		do {
-			if ( query = instance._liveComponentQueries[ component.name ] ) {
+			if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
 				query._remove( component );
 			}
 		} while ( instance = instance._parent );

@@ -1328,6 +1328,19 @@ define([ 'ractive', 'vendor/ractive-events-tap' ], function ( Ractive ) {
 			t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
 		});
 
+		test( 'Custom delimiters apply to partials (#601)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '[[#items:i]][[>foo]][[/items]]',
+				partials: { foo: '[[a]]' },
+				data: { items: [{a:0},{a:1}] },
+				delimiters: [ '[[', ']]' ],
+				tripleDelimiters: [ '[[[', ']]]' ]
+			});
+
+			t.htmlEqual( fixture.innerHTML, '01')
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

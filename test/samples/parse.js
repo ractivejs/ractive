@@ -431,7 +431,7 @@ var parseTests = [
 		name: 'Multiline illegal closing section for {{#foo}} #2',
 		template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}\nfoo',
 		error:
-			'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 2:17:\n' +
+			'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
 			'     {{#foo}}wew{{/wee}}\n' +
 			'                ^----'
 	}

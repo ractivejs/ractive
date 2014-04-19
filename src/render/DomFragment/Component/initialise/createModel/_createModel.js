@@ -14,6 +14,8 @@ define([
 
 	'use strict';
 
+	var onlyWhitespace = /^\s*$/;
+
 	return function ( component, defaultData, attributes, toBind ) {
 		var data, key, value;
 
@@ -46,7 +48,12 @@ define([
 		// If this is a static value, great
 		if ( typeof descriptor === 'string' ) {
 			parsed = parseJSON( descriptor );
-			return parsed ? parsed.value : descriptor;
+
+			if ( !parsed || !onlyWhitespace.test( parsed.remaining ) ) {
+				return descriptor;
+			}
+
+			return parsed.value;
 		}
 
 		// If null, we treat it as a boolean attribute (i.e. true)
