@@ -1,29 +1,19 @@
 define([
 	'config/types',
-	'parse/Parser/getMustache/ExpressionStub'
+	'parse/Parser/expressions/getExpression'
 ], function (
 	types,
-	ExpressionStub
+	getExpression
 ) {
 
 	'use strict';
 
-	var KeypathExpressionStub;
-
-	KeypathExpressionStub = function ( token ) {
-		this.json = {
+	return function getKeypathExpression ( token ) {
+		return {
 			r: token.r,
 			m: token.m.map( jsonify )
 		};
 	};
-
-	KeypathExpressionStub.prototype = {
-		toJSON: function () {
-			return this.json;
-		}
-	};
-
-	return KeypathExpressionStub;
 
 	function jsonify ( member ) {
 		// Straightforward property, e.g. `foo.bar`?
@@ -42,7 +32,7 @@ define([
 		}
 
 		// If none of the above, we need to process the AST
-		return new ExpressionStub( member.x ).toJSON();
+		return getExpression( member.x );
 	}
 
 });

@@ -23,6 +23,7 @@
 // * t2 - outro Transition
 // * o - decOrator
 // * y - is doctYpe
+// * c - is Content (e.g. of a comment node)
 
 define([
 	'parse/tokenize',
