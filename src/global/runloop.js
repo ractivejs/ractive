@@ -32,7 +32,6 @@ define([
 		dirty = false,
 		flushing = false,
 		pendingCssChanges,
-		inFlight = 0,
 		toFocus = null,
 
 		liveQueries = [],
@@ -58,8 +57,6 @@ define([
 			this.addInstance( instance );
 
 			if ( !flushing ) {
-				inFlight += 1;
-
 				// create a new transition manager
 				transitionManager = makeTransitionManager( callback, transitionManager );
 			}
@@ -71,20 +68,16 @@ define([
 				return;
 			}
 
-			if ( !--inFlight ) {
-				flushing = true;
-				flushChanges();
-				flushing = false;
-
-				land();
-			}
+			flushing = true;
+			flushChanges();
+			flushing = false;
 
 			transitionManager.init();
 			transitionManager = transitionManager._previous;
 		},
 
 		trigger: function () {
-			if ( inFlight || flushing ) {
+			if ( flushing ) {
 				attemptKeypathResolution();
 				return;
 			}
@@ -92,8 +85,6 @@ define([
 			flushing = true;
 			flushChanges();
 			flushing = false;
-
-			land();
 		},
 
 		focus: function ( node ) {
@@ -136,7 +127,7 @@ define([
 
 		scheduleCssUpdate: function () {
 			// if runloop isn't currently active, we need to trigger change immediately
-			if ( !inFlight && !flushing ) {
+			if ( !flushing ) {
 				// TODO does this ever happen?
 				css.update();
 			} else {
@@ -191,9 +182,49 @@ define([
 	return runloop;
 
 
-	function land () {
-		var thing, changedKeypath, changeHash;
+	function flushChanges () {
+		var thing, upstreamChanges, i, changeHash, changedKeypath;
 
+		i = instances.length;
+		while ( i-- ) {
+			thing = instances[i];
+
+			if ( thing._changes.length ) {
+				upstreamChanges = getUpstreamChanges( thing._changes );
+				notifyDependants.multiple( thing, upstreamChanges, true );
+			}
+		}
+
+		attemptKeypathResolution();
+
+		// These changes may have knock-on effects, so we need to keep
+		// looping until the system is settled
+		while ( dirty ) {
+			dirty = false;
+
+			while ( thing = computations.pop() ) {
+				thing.update();
+			}
+
+			while ( thing = evaluators.pop() ) {
+				thing.update().deferred = false;
+			}
+
+			while ( thing = selectValues.pop() ) {
+				thing.deferredUpdate();
+			}
+
+			while ( thing = checkboxes.pop() ) {
+				set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+			}
+
+			while ( thing = radios.pop() ) {
+				thing.update();
+			}
+		}
+
+		// Now that changes have been fully propagated, we can update the DOM
+		// and complete other tasks
 		if ( toFocus ) {
 			toFocus.focus();
 			toFocus = null;
@@ -241,46 +272,6 @@ define([
 		if ( pendingCssChanges ) {
 			css.update();
 			pendingCssChanges = false;
-		}
-	}
-
-	function flushChanges () {
-		var thing, upstreamChanges, i;
-
-		i = instances.length;
-		while ( i-- ) {
-			thing = instances[i];
-
-			if ( thing._changes.length ) {
-				upstreamChanges = getUpstreamChanges( thing._changes );
-				notifyDependants.multiple( thing, upstreamChanges, true );
-			}
-		}
-
-		attemptKeypathResolution();
-
-		while ( dirty ) {
-			dirty = false;
-
-			while ( thing = computations.pop() ) {
-				thing.update();
-			}
-
-			while ( thing = evaluators.pop() ) {
-				thing.update().deferred = false;
-			}
-
-			while ( thing = selectValues.pop() ) {
-				thing.deferredUpdate();
-			}
-
-			while ( thing = checkboxes.pop() ) {
-				set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
-			}
-
-			while ( thing = radios.pop() ) {
-				thing.update();
-			}
 		}
 	}
 

@@ -29,6 +29,8 @@ define([
 		this.type = types.SECTION;
 		this.inverted = !!options.descriptor.n;
 
+		this.pElement = options.pElement;
+
 		this.fragments = [];
 		this.length = 0; // number of times this section is rendered
 

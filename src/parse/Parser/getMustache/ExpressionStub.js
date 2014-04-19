@@ -118,7 +118,7 @@ define([
 			return '${' + refs.indexOf( token.n ) + '}';
 
 			default:
-			throw new Error( 'Could not stringify expression token. This error is unexpected' );
+			throw new Error( 'Could not stringify expression token. This error is unexpected on line ' + token.getLinePos() );
 		}
 	}
 

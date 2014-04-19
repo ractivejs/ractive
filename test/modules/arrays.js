@@ -196,6 +196,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>bar0b</p><p>baz0c</p><strong>c</strong><p>bar1h</p><p>baz1i</p><strong>i</strong>');
 		});
 
+		test( 'Option lists linked to arrays are updated when the array mutates', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select>{{#options}}<option>{{this}}</option>{{/options}}</select>',
+				data: {
+					options: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.get( 'options' ).push( 'd' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option><option value="d">d</option></select>' );
+		});
+
 	};
 
 });

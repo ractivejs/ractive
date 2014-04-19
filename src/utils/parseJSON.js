@@ -130,7 +130,6 @@ define([
 
 				if ( !this.getStringMatch( ',' ) ) {
 					return null;
-					// throw new Error( 'Unexpected token "' + this.remaining().charAt( 0 ) + '" (expected ",")' );
 				}
 			}
 
@@ -149,13 +148,14 @@ define([
 			while ( valueToken = this.getToken() ) {
 				result.push( valueToken.v );
 
+				this.allowWhitespace();
+
 				if ( this.getStringMatch( ']' ) ) {
 					return { v: result };
 				}
 
 				if ( !this.getStringMatch( ',' ) ) {
 					return null;
-					// throw new Error( 'Unexpected token "' + this.remaining().charAt( 0 ) + '" (expected ",")' );
 				}
 			}
 
