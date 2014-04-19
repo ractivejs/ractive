@@ -5,7 +5,8 @@ define([
 	'shared/Unresolved',
 	'shared/registerDependant',
 	'shared/unregisterDependant',
-	'render/shared/Resolvers/ExpressionResolver'
+	'render/shared/Resolvers/ExpressionResolver',
+	'render/shared/utils/getNewKeypath'
 ], function (
 	types,
 	removeFromArray,
@@ -13,7 +14,8 @@ define([
 	Unresolved,
 	registerDependant,
 	unregisterDependant,
-	ExpressionResolver
+	ExpressionResolver,
+	getNewKeypath
 ) {
 
 	'use strict';
@@ -22,7 +24,7 @@ define([
 		var resolver = this, ractive, parentFragment, keypath, dynamic, members;
 
 		ractive = mustache.root;
-		parentFragment = mustache.parentFragment;
+		this.parentFragment = parentFragment = mustache.parentFragment;
 
 		this.ref = descriptor.r;
 		this.root = mustache.root;
@@ -124,7 +126,26 @@ define([
 				return;
 			}
 
-			this.callback( this.getKeypath() );
+			var keypath = this.getKeypath();
+
+			if( !this.currentKeypath || this.currentKeypath !== keypath ) {
+				this.currentKeypath = keypath;
+
+				if ( keypath = resolveRef( this.root, keypath, this.parentFragment ) ) {
+					this.resolvedKeypath = keypath;
+				} else {				
+
+					new Unresolved( this.root, keypath, this.parentFragment, function ( keypath ) {
+						this.resolvedKeypath = keypath;
+						this.callback( keypath );
+					});
+
+					return;
+				}
+
+			}
+
+			this.callback( this.resolvedKeypath );
 		},
 
 		resolve: function ( index, value ) {
@@ -147,8 +168,8 @@ define([
 			}
 		},
 
-		reassign: function ( indexRef, newIndex ) {
-			var changed, i, member;
+		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+			var changed, changedKeypath, i, member;
 
 			i = this.indexRefMembers.length;
 			while ( i-- ) {
@@ -156,6 +177,17 @@ define([
 				if ( member.ref === indexRef ) {
 					changed = true;
 					this.members[ member.index ] = newIndex;
+				}
+			}
+			if( changed ) {
+				this.currentKeypath = null;
+			}
+
+			//Already resolved the full keypath? Just fix it up...
+			if( this.resolvedKeypath ){
+				if ( changedKeypath = getNewKeypath( this.resolvedKeypath, oldKeypath, newKeypath ) ) {
+					this.resolvedKeypath = changedKeypath;
+					changed = true;
 				}
 			}
 
