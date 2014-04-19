@@ -114,7 +114,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		});
 
-		test('List of inputs with keypathexpression name update correctly', function(t){
+		test('List of inputs with nested keypathexpression name updates correctly', function(t){
 			var ractive = new Ractive({
 					el: fixture,
 					template: "{{#step}}{{#options}}<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>{{/}}{{/}}",
@@ -136,6 +136,23 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 				    t.equal( input.name, '{{responses.Colors}}' )
 				})
 
+		});
+
+		test('List of inputs with keypathexpression name update correctly', function(t){
+			var ractive = new Ractive({
+					el: fixture,
+					template: "{{#options}}<input type='radio' name='{{responses[topic]}}' value='{{.}}'/>{{/}}",
+					data: {
+				        options: ['1', '2'],
+				        topic: 'Products',
+				        responses: {}
+				    }
+				})
+			ractive.set('topic', 'Colors')
+				expect(2)
+				ractive.findAll('input').forEach(function(input){
+			    t.equal( input.name, '{{responses.Colors}}' )
+			})
 		});
 
 	};

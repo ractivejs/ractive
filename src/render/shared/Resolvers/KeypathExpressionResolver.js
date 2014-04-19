@@ -5,8 +5,7 @@ define([
 	'shared/Unresolved',
 	'shared/registerDependant',
 	'shared/unregisterDependant',
-	'render/shared/Resolvers/ExpressionResolver',
-	'render/shared/utils/getNewKeypath'
+	'render/shared/Resolvers/ExpressionResolver'
 ], function (
 	types,
 	removeFromArray,
@@ -14,8 +13,7 @@ define([
 	Unresolved,
 	registerDependant,
 	unregisterDependant,
-	ExpressionResolver,
-	getNewKeypath
+	ExpressionResolver
 ) {
 
 	'use strict';
@@ -24,7 +22,7 @@ define([
 		var resolver = this, ractive, parentFragment, keypath, dynamic, members;
 
 		ractive = mustache.root;
-		this.parentFragment = parentFragment = mustache.parentFragment;
+		parentFragment = mustache.parentFragment;
 
 		this.ref = descriptor.r;
 		this.root = mustache.root;
@@ -125,26 +123,7 @@ define([
 			if ( !this.ready || this.pending ) {
 				return;
 			}
-
-			var self = this, keypath = this.getKeypath();
-
-			if( !this.mustache.ref || this.mustache.ref !== keypath ) {
-				this.mustache.ref = keypath;
-
-				if ( keypath = resolveRef( this.root, keypath, this.parentFragment ) ) {
-					this.keypath = keypath;
-				} else {				
-
-					this.rootUnresolved = new Unresolved( this.root, this.mustache.ref, this.parentFragment, function ( keypath ) {
-						self.keypath = keypath;
-						self.rootUnresolved = null;
-						self.callback( keypath );
-					});
-				}
-
-			}
-
-			this.callback( this.rootUnresolved ? this.mustache.ref : this.keypath );
+			this.callback( this.getKeypath() );
 		},
 
 		resolve: function ( index, value ) {
@@ -167,8 +146,8 @@ define([
 			}
 		},
 
-		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var changed, changedKeypath, i, member;
+		reassign: function ( indexRef, newIndex ) {
+			var changed, i, member;
 
 			i = this.indexRefMembers.length;
 			while ( i-- ) {
@@ -176,17 +155,6 @@ define([
 				if ( member.ref === indexRef ) {
 					changed = true;
 					this.members[ member.index ] = newIndex;
-				}
-			}
-			if( changed ) {
-				this.mustache.ref = null;
-			}
-
-			//Already resolved the full keypath? Just fix it up...
-			if( this.keypath ){
-				if ( changedKeypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
-					this.keypath = changedKeypath;
-					changed = true;
 				}
 			}
 
