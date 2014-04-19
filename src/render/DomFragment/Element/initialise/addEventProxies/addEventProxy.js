@@ -4,6 +4,8 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 
 	var addEventProxy,
 
+		getValueOptions = { args: true },
+
 		// helpers
 		MasterEventHandler,
 		ProxyEvent,
@@ -134,7 +136,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 	};
 
 	fireEventWithDynamicArgs = function ( event ) {
-		var args = this.d.toArgsList();
+		var args = this.d.getValue( getValueOptions );
 
 		// need to strip [] from ends if a string!
 		if ( typeof args === 'string' ) {

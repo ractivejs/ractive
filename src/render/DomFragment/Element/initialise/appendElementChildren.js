@@ -36,6 +36,7 @@ define([
 		}
 		
 
+
 	};
 
 	updateScript = function () {
@@ -112,7 +113,7 @@ define([
 			i = liveQueries.length;
 			while ( i-- ) {
 				selector = liveQueries[i];
-				query = liveQueries[ selector ];
+				query = liveQueries[ '_' + selector ];
 
 				matchingStaticNodes = getMatchingStaticNodes( element, selector );
 				query.push.apply( query, matchingStaticNodes );

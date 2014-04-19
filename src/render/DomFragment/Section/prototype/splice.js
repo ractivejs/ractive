@@ -61,6 +61,7 @@ define([
 			descriptor: section.descriptor.f,
 			root:       section.root,
 			pNode:      section.parentFragment.pNode,
+			pElement:   section.pElement,
 			owner:      section,
 			indexRef:   section.descriptor.i
 		};

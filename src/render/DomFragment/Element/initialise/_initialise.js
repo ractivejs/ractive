@@ -70,6 +70,12 @@ define([
 
 		element.cssDetachQueue = [];
 
+
+		// If this is an option element, we need to store a reference to its select
+		if ( element.lcName === 'option' ) {
+			element.select = findParentSelect( element.parent );
+		}
+
 		// get namespace, if we're actually rendering (not server-side stringifying)
 		if ( pNode ) {
 			namespace = element.namespace = getElementNamespace( descriptor, pNode );
@@ -208,10 +214,6 @@ define([
 			}
 		}
 
-		// If this is an option element, we need to store a reference to its select
-		if ( element.lcName === 'option' ) {
-			element.select = findParentSelect( element.parent );
-		}
 
 		updateLiveQueries( element );
 	};

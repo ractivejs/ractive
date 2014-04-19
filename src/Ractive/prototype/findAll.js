@@ -30,7 +30,7 @@ define([
 		// if applicable
 		if ( query.live ) {
 			liveQueries.push( selector );
-			liveQueries[ selector ] = query;
+			liveQueries[ '_' + selector ] = query;
 		}
 
 		this.fragment.findAll( selector, query );
