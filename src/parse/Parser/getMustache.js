@@ -50,7 +50,7 @@ define([
 
 			if ( isSection ) {
 				if ( token.mustacheType === types.INVERTED ) {
-					stub.n = true; // TODO change this to `1` - more compact
+					stub.n = 1; // TODO change this to `1` - more compact
 				}
 
 				if ( token.indexRef ) {
@@ -75,11 +75,6 @@ define([
 					stub.f = fragment;
 				}
 			}
-
-			// TEMP
-			Object.defineProperty( stub, 'toString', {
-				value: function () { return false; }
-			});
 
 			return stub;
 		}
