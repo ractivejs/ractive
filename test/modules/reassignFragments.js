@@ -134,6 +134,27 @@ define([
 			t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
 		})
 
+		test('Section updates child keypath expression', function(t){
+			var ractive = new Ractive({
+					el: fixture,
+					template: '{{#items:i}}{{foo[bar]}},{{/}}',
+					data: {
+						bar: 'name',
+						items: [
+							{ foo: { name: 'bob' } },
+							{ foo: { name: 'bill' } },
+							{ foo: { name: 'betty' } },
+						]
+					}
+				});
+
+			t.htmlEqual( fixture.innerHTML, 'bob,bill,betty,');
+
+			var items = ractive.get('items');
+			items.splice(1,2, { foo: { name: 'jill' } } );
+			t.htmlEqual( fixture.innerHTML, 'bob,jill,');
+		})
+
 		test('Section with nested sections and inner context does splice()', function(t){
 			var template = '{{#model:i}}{{#thing}}' +
 								'{{# .inner.length > 1}}' +
