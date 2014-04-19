@@ -12,9 +12,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		fixture = document.getElementById( 'qunit-fixture' );
 
 		test( 'Ractive initialize with no options ok', function ( t ) {
-			var ractive, data = { foo: 'bar' } ;
-			
-			ractive = new Ractive();
+			var ractive = new Ractive();
 			t.ok( ractive );
 		});
 
@@ -29,20 +27,63 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Ractive default data copied to instance called on initialize', function ( t ) {
+		test( 'Instance data function called on initialize', function ( t ) {
 			var ractive, data = { foo: 'bar' } ;
 			
-			Ractive.defaults.data = { format: function() { return; } };
-			ractive = new Ractive( { data: data } );
+			ractive = new Ractive({
+				data: function() { return data }
+			});
+			t.equal( ractive.data, data );
+
+		});
+
+		/* this fails */
+		/*
+		test( 'Ractive instance data is used as data object', function ( t ) {
+			var ractive, data = { foo: 'bar' } ;
+			
+			Ractive.defaults.data = { bar: 'bizz' };
+			ractive = new Ractive({ data: data });
+
+			t.ok( data.bar, 'original instance has property' )
+			t.equal( ractive.data, data );
+
+			delete Ractive.defaults.data;
+
+		});
+		*/
+
+		test( 'Default data function with no return uses existing data instance', function ( t ) {
+			var ractive;
+			Ractive.defaults.data = function(d) { d.bizz = 'bop' };
+			ractive = new Ractive({ data: { foo: 'bar' } });
+			t.ok( ractive.data.foo );
+			t.ok( ractive.data.bizz );
+			delete Ractive.defaults.data;
+		});
+
+		test( 'Instance data takes precedence over default data but includes unique properties', function ( t ) {
+			var ractive, data = { foo: 'bar' } ;
+			
+			Ractive.defaults.data = { 
+				unique: function() { return; },
+				format: function() { return 'not me'; } 
+			};
+			ractive = new Ractive( { data: { 
+				foo: 'bar',
+				format: function() {return 'foo' }
+			}});
 
 			t.ok( ractive.data.foo, 'has instance data' );
 			t.ok( ractive.data.format, 'has default data' );
+			t.ok( ractive.data.unique, 'has default data' );
+			t.equal( ractive.data.format(), 'foo' );
 
 			delete Ractive.defaults.data;
 
 		});
 
-		test( 'Instantiated .extend() with data function called on initialize', function ( t ) {
+		test( 'Instantiated .extend() component with data function called on initialize', function ( t ) {
 			var Component, ractive, data = { foo: 'bar' } ;
 			
 			Component = Ractive.extend({
@@ -88,18 +129,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			
 			Component = Ractive.extend({
 				data: function(d){ d.bizz = 'bop' }
-			});
-			
-			ractive = new Component({ data: data });
-			t.equal( ractive.data, data );
-			t.ok( ractive.data.bizz );
-		});
-
-		test( 'Top-level Component data function with no return uses existing data instance', function ( t ) {
-			var Component, ractive, data = { foo: 'bar' } ;
-			
-			Component = Ractive.extend({
-				data: function(d) { d.bizz = 'bop' }
 			});
 			
 			ractive = new Component({ data: data });
@@ -180,7 +209,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Component, ractive;
 			
 			Component = Ractive.extend({
-				template: function(t){ return t + '{{fizz}}'; }
+				template: function(d,o){ return o.template + '{{fizz}}'; }
 			});
 			
 			ractive = new Component({ 

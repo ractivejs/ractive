@@ -39,31 +39,46 @@ define([
 	'use strict';
 
 	var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
-
+	
 	return function initialiseRactiveInstance ( ractive, options ) {
 
-		var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed, 
-			registryValue;
+		var defaults = ractive.constructor.defaults;
 
 		//allow empty constructor options
 		options = options || {};
 
-		if ( isArray( options.adaptors ) ) {
-			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
-			options.adapt = options.adaptors;
-			delete options.adaptors;
-		}
+		initialiseOptionsAndFlags( ractive, defaults, options );
 
-		// Options
-		// -------
-		defaults = ractive.constructor.defaults;
+		//sets ._initing = true
+		initialiseProperties( ractive, options ); 
+		
+		initialiseRegistries( ractive, defaults, options );
+
+		// Special case: data must be defined
+		if ( !ractive.data ) { ractive.data = {}; }
+
+		initialiseComputedProperties( ractive, defaults, options );
+		
+		initialiseTemplates( ractive, defaults, options );
+		
+		renderInstance( ractive, options );
+
+		// end init sequence
+		ractive._initing = false;
+	};
+
+	function initialiseOptionsAndFlags( ractive, defaults, options ) {
+
+		deprecate( defaults );
+		deprecate( options );
+
 		initOptions.keys.forEach( function ( key ) {
 			if ( options[ key ] === undefined ) {
 				options[ key ] = defaults[ key ];
 			}
 		});
 
-		// options
+		// flag options
 		flags.forEach( function ( flag ) {
 			ractive[ flag ] = options[ flag ];
 		});
@@ -73,13 +88,40 @@ define([
 			ractive.adapt = [ ractive.adapt ];
 		}
 
+		validate( ractive, options );
+	}
+
+	function deprecate(options){
+
+		if ( isArray( options.adaptors ) ) {
+			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
+			options.adapt = options.adaptors;
+			delete options.adaptors;
+		}
+
+		if ( options.eventDefinitions ) {
+			// TODO remove support
+			warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
+			options.events = options.eventDefinitions;
+		}
+
+	}
+
+	function validate( ractive, options ) {
+
 		if ( ractive.magic && !magicAdaptor ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 		}
 
+		if ( options.el ) {
+			ractive.el = getElement( options.el );
+			if ( !ractive.el && ractive.debug ) {
+				throw new Error( 'Could not find container element' );
+			}
+		}
+	}
 
-		// Initialisation
-		// --------------
+	function initialiseProperties( ractive, options ) {
 
 		// We use Object.defineProperties (where possible) as these should be read-only
 		defineProperties( ractive, {
@@ -145,54 +187,53 @@ define([
 			options._component.instance = ractive;
 		}
 
-		if ( options.el ) {
-			ractive.el = getElement( options.el );
-			if ( !ractive.el && ractive.debug ) {
-				throw new Error( 'Could not find container element' );
-			}
-		}
+	}
 
-		// Create local registry objects, with the global registries as prototypes
-		if ( options.eventDefinitions ) {
-			// TODO remove support
-			warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
-			options.events = options.eventDefinitions;
-		}
-
+	function initialiseRegistries( ractive, defaults, options ) {
+		var registryValue;
 		registries.forEach( function ( registry ) {
+
 			if ( registryValue = ractive.constructor[ registry ] || defaults[ registry ] ) {
+			
 				if ( typeof registryValue === 'function' ) {
+			
 					ractive[ registry ] = registryValue ( options[ registry ], options ) || options[ registry ];
+			
 				} else {
+			
 					ractive[ registry ] = extend( create( registryValue ), options[ registry ] );
+			
 				}
+			
 			} else if ( registryValue = options[ registry ] ) {
-				ractive[ registry ] = registryValue;
+
+				if ( typeof registryValue === 'function' ) {
+				
+					ractive[ registry ] = registryValue(null, options);
+				
+				} else {
+				
+					ractive[ registry ] = registryValue;
+				}
+			
 			}
 		});
 
-		// Special case
-		if ( !ractive.data ) {
-			ractive.data = {};
-		}
+	}
 
-		// Set up any computed values
-		computed = defaults.computed
-			? extend( create( defaults.computed ), options.computed )
-			: options.computed;
+	function initialiseTemplates( ractive, defaults, options ) {
+		var template, templateEl, parsedTemplate;
 
-		if ( computed ) {
-			createComputations( ractive, computed );
-		}
-
-
-		//resolve template 
-
+		//instance options is a function, execute it
 		if( typeof options.template === 'function' ) {
-			template = options.template( null, options );
-		} else if( defaults.template && typeof defaults.template === 'function' ) {
-			template = defaults.template( options.template, options ) || options.template;
-		} else {
+			template = options.template( options.data, options );
+		}
+		//if default has a function, execute it
+		else if( defaults.template && typeof defaults.template === 'function' ) {
+			template = defaults.template( options.data, options ) || options.template;
+		} 
+		//plain old template
+		else {
 			template = options.template;
 		}
 
@@ -243,6 +284,21 @@ define([
 			sanitize: options.sanitize,
 			stripComments: options.stripComments
 		};
+	}
+
+	function initialiseComputedProperties( ractive, defaults, options ) {
+		var computed;
+		computed = defaults.computed
+			? extend( create( defaults.computed ), options.computed )
+			: options.computed;
+
+		if ( computed ) {
+			createComputations( ractive, computed );
+		}
+	}
+
+	function renderInstance( ractive, options ) {
+		var promise, fulfilPromise;
 
 		// Temporarily disable transitions, if noIntro flag is set
 		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
@@ -254,11 +310,12 @@ define([
 		}
 
 		// If the target contains content, and `append` is falsy, clear it
-		if ( ractive.el && !options.append ) {
+		else if ( ractive.el && !options.append ) {
 			ractive.el.innerHTML = '';
 		}
 
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+
 		ractive.render( ractive.el, fulfilPromise );
 
 		if ( options.complete ) {
@@ -267,9 +324,8 @@ define([
 
 		// reset transitionsEnabled
 		ractive.transitionsEnabled = options.transitionsEnabled;
-
-		// end init sequence
-		ractive._initing = false;
-	};
+	}
 
 });
+
+

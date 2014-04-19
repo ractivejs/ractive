@@ -3,7 +3,7 @@ define( function () {
 	'use strict';
 
 	return [,
-		'data'
+		'data',
 		'adaptors',
 		'components',
 		'decorators',
