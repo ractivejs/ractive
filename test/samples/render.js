@@ -538,7 +538,7 @@ var renderTests = [
 		new_result: 'bizz'
 	},	
 	{
-		name: 'Nexted keypath expression with top level unresolved',
+		name: 'Nested keypath expression with top level unresolved',
 		template: '{{#item}}{{foo[bar]}}{{/}}',
 		data: { bar: 'boo' },
 		result: '',

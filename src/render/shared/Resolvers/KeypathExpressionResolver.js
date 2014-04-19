@@ -21,10 +21,10 @@ define([
 	'use strict';
 
 	var KeypathExpressionResolver = function ( mustache, descriptor, callback ) {
-		var resolver = this, ractive, parentFragment, refKeypath, keypath, dynamic, members;
+		var resolver = this, ractive, parentFragment, keypath, dynamic, members;
 
 		ractive = mustache.root;
-		parentFragment = mustache.parentFragment;
+		this.parentFragment = parentFragment = mustache.parentFragment;
 
 		this.root = mustache.root;
 		this.mustache = mustache;
@@ -38,18 +38,7 @@ define([
 		this.keypathObservers = [];
 		this.expressionResolvers = [];
 
-		refKeypath = resolveRef( ractive, descriptor.r, parentFragment );
-
-		if ( refKeypath !== undefined ) {
-			this.ref = refKeypath;
-		} else {
-			this.ref = descriptor.r;
-			new Unresolved( ractive, this.ref, parentFragment, function ( /*keypath*/ ) {
-				//console.log('unresolved!');
-				//what to do?
-			});
-			//increment pending and push to unresolved?
-		}
+		this.ref = descriptor.r;
 
 		descriptor.m.forEach( function ( member, i ) {
 			var ref, indexRefs, index, createKeypathObserver, unresolved, expressionResolver;
@@ -137,7 +126,26 @@ define([
 				return;
 			}
 
-			this.callback( this.getKeypath() );
+			var keypath = this.getKeypath();
+
+			if( !this.currentKeypath || this.currentKeypath !== keypath ) {
+				this.currentKeypath = keypath;
+
+				if ( keypath = resolveRef( this.root, keypath, this.parentFragment ) ) {
+					this.resolvedKeypath = keypath;
+				} else {				
+
+					new Unresolved( this.root, keypath, this.parentFragment, function ( keypath ) {
+						this.resolvedKeypath = keypath;
+						this.callback( keypath );
+					});
+
+					return;
+				}
+
+			}
+
+			this.callback( this.resolvedKeypath );
 		},
 
 		resolve: function ( index, value ) {
@@ -163,18 +171,23 @@ define([
 		reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 			var changed, changedKeypath, i, member;
 
-			//TODO: what if unresolved?
-			if ( changedKeypath = getNewKeypath( this.ref, oldKeypath, newKeypath ) ) {
-				this.ref = changedKeypath;
-				changed = true;
-			}
-
 			i = this.indexRefMembers.length;
 			while ( i-- ) {
 				member = this.indexRefMembers[i];
 				if ( member.ref === indexRef ) {
 					changed = true;
 					this.members[ member.index ] = newIndex;
+				}
+			}
+			if( changed ) {
+				this.currentKeypath = null;
+			}
+
+			//Already resolved the full keypath? Just fix it up...
+			if( this.resolvedKeypath ){
+				if ( changedKeypath = getNewKeypath( this.resolvedKeypath, oldKeypath, newKeypath ) ) {
+					this.resolvedKeypath = changedKeypath;
+					changed = true;
 				}
 			}
 
