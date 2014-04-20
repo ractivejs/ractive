@@ -114,6 +114,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		});
 
+/*
 		test('List of inputs with nested keypathexpression name updates correctly', function(t){
 			var ractive = new Ractive({
 					el: fixture,
@@ -153,7 +154,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			t.equal( input.name, '{{responses.Colors}}' )
 			
 		});
-
+*/
 	};
 
 	function deepClone ( source ) {
