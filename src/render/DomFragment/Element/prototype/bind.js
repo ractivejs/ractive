@@ -24,7 +24,7 @@ define( function () {
 		}
 
 		// an element can only have one two-way attribute
-		switch ( this.descriptor.e ) {
+		switch ( this.lcName ) {
 			case 'select':
 			case 'textarea':
 			if ( attributes.value ) {
