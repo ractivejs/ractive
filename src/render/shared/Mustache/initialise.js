@@ -14,7 +14,7 @@ define([
 
 	return function initMustache ( mustache, options ) {
 
-		var ref, keypath, indexRefs, index, parentFragment, descriptor, resolve;
+		var ref, indexRefs, index, parentFragment, descriptor;
 
 		parentFragment = options.parentFragment;
 		descriptor = options.descriptor;
@@ -28,9 +28,20 @@ define([
 
 		mustache.type = options.descriptor.t;
 
-		resolve = function ( keypath ) {
+		function resolve ( keypath ) {
 			mustache.resolve( keypath );
-		};
+		}
+
+		function resolveWithRef ( ref ) {
+			var keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
+
+			if ( keypath !== undefined ) {
+				resolve( keypath );
+			} else {
+				mustache.ref = ref;
+				runloop.addUnresolved( mustache );
+			}			
+		}
 
 
 		// if this is a simple mustache, with a reference, we just need to resolve
@@ -45,14 +56,7 @@ define([
 			}
 
 			else {
-				keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
-
-				if ( keypath !== undefined ) {
-					resolve( keypath );
-				} else {
-					mustache.ref = ref;
-					runloop.addUnresolved( mustache );
-				}
+				resolveWithRef( ref );
 			}
 		}
 
@@ -62,7 +66,7 @@ define([
 		}
 
 		if ( options.descriptor.kx ) {
-			mustache.resolver = new KeypathExpressionResolver( mustache, options.descriptor.kx, resolve );
+			mustache.resolver = new KeypathExpressionResolver( mustache, options.descriptor.kx, resolveWithRef );
 		}
 
 		// Special case - inverted sections

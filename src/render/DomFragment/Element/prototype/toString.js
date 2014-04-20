@@ -49,9 +49,21 @@ define([
 
 
 	function optionIsSelected ( element ) {
-		var optionValue, selectValueAttribute, selectValueInterpolator, selectValue, i;
+		var optionValue, optionValueAttribute, optionValueInterpolator,
+			selectValueAttribute, selectValueInterpolator, 
+			selectValue, i;
 
-		optionValue = element.attributes.value.value;
+		optionValueAttribute = element.attributes.value;
+
+		if(optionValueAttribute.value){
+			optionValue = optionValueAttribute.value;
+		} else {
+			optionValueInterpolator = optionValueAttribute.interpolator;
+			if( !optionValueInterpolator ) {
+				return;
+			}
+			optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );
+		}
 
 		selectValueAttribute = element.select.attributes.value;
 		selectValueInterpolator = selectValueAttribute.interpolator;
