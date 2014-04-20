@@ -20,7 +20,7 @@ define([
 	isClient,
 	errors,
 	initOptions,
-	registries,
+	registryKeys,
 	warn,
 	create,
 	extend,
@@ -47,16 +47,16 @@ define([
 		//allow empty constructor options
 		options = options || {};
 
-		initialiseOptionsAndFlags( ractive, defaults, options );
+		setOptionsAndFlags( ractive, defaults, options );
 
 		//sets ._initing = true
 		initialiseProperties( ractive, options ); 
 		
 		initialiseRegistries( ractive, defaults, options );
 
-		initialiseComputedProperties( ractive, defaults, options );
+		initialiseComputed( ractive, defaults, options );
 		
-		initialiseTemplates( ractive, defaults, options );
+		initialiseTemplate( ractive, defaults, options );
 		
 		renderInstance( ractive, options );
 
@@ -64,7 +64,7 @@ define([
 		ractive._initing = false;
 	};
 
-	function initialiseOptionsAndFlags( ractive, defaults, options ) {
+	function setOptionsAndFlags ( ractive, defaults, options ) {
 
 		deprecate( defaults );
 		deprecate( options );
@@ -88,7 +88,7 @@ define([
 		validate( ractive, options );
 	}
 
-	function deprecate(options){
+	function deprecate ( options ){
 
 		if ( isArray( options.adaptors ) ) {
 			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
@@ -104,7 +104,7 @@ define([
 
 	}
 
-	function validate( ractive, options ) {
+	function validate ( ractive, options ) {
 
 		if ( ractive.magic && !magicAdaptor ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
@@ -118,7 +118,7 @@ define([
 		}
 	}
 
-	function initialiseProperties( ractive, options ) {
+	function initialiseProperties ( ractive, options ) {
 
 		// We use Object.defineProperties (where possible) as these should be read-only
 		defineProperties( ractive, {
@@ -186,24 +186,24 @@ define([
 
 	}
 
-	function initialiseRegistries( ractive, defaults, options ) {
+	function initialiseRegistries ( ractive, defaults, options ) {
 		
 		//data goes first as it is primary argument to other function-based registry options
-		var data = initialiseRegistry('data')
+		initialiseRegistry('data');
 		if ( !ractive.data ) { ractive.data = {}; }
 		
-		registries
+		registryKeys
 			.filter( function ( registry ) { return registry!=='data'; } )
 			.forEach( initialiseRegistry );
 
-		function initialiseRegistry( registry ) {
+		function initialiseRegistry ( registry ) {
 
 			var optionsValue = options[ registry ],
 				defaultValue = ractive.constructor[ registry ] || defaults[ registry ],
 				firstArg = registry==='data' ? optionsValue : ractive.data;
 
 			if( typeof optionsValue === 'function' ) {
-				ractive[ registry ] = optionsValue( firstArg, options )
+				ractive[ registry ] = optionsValue( firstArg, options );
 			}
 			else if ( defaultValue ) {
 				ractive[ registry ] = ( typeof defaultValue === 'function' )
@@ -216,16 +216,46 @@ define([
 		}
 	}
 
-	function initialiseTemplates( ractive, defaults, options ) {
-		var template, templateEl, parsedTemplate;
+	function initialiseTemplate ( ractive, defaults, options ) {
+		var template, parsedTemplate, helper;
+
+		helper = {
+			fromId: function ( id ) {
+				var template;
+				if ( !isClient ) {
+					throw new Error('Cannot retieve template #' + id + 'as Ractive is not running in the client.');
+				}
+
+				if ( id.charAt( 0 ) === '#' ) {
+					id = id.substring( 1 );
+				}
+
+				if ( !( template = document.getElementById( id ) )) {
+					throw new Error( 'Could not find template element with id #' + id );
+				}	
+
+				return template.innerHTML;			
+
+			},
+			parse: function ( template, parseOptions ) {
+				if ( !parse ) {
+					throw new Error( errors.missingParser );
+				}
+				return parse( template, parseOptions || options );
+			},
+			isParsed: function ( template) {
+				return !( typeof template === 'string' );
+			} 
+		};
+
 
 		//instance options is a function, execute it
 		if( typeof options.template === 'function' ) {
-			template = options.template( options.data, options );
+			template = options.template( options.data, options, helper );
 		}
 		//if default has a function, execute it
 		else if( defaults.template && typeof defaults.template === 'function' ) {
-			template = defaults.template( options.data, options ) || options.template;
+			template = defaults.template( options.data, options, helper ) || options.template;
 		} 
 		//plain old template
 		else {
@@ -233,26 +263,18 @@ define([
 		}
 
 		// Parse template, if necessary
-		if ( typeof template === 'string' ) {
+		if ( !helper.isParsed( template ) ) {
 			if ( !parse ) {
 				throw new Error( errors.missingParser );
 			}
 
-			if ( template.charAt( 0 ) === '#' && isClient ) {
-				// assume this is an ID of a <script type='text/ractive'> tag
-				templateEl = document.getElementById( template.substring( 1 ) );
-				if ( templateEl ) {
-					parsedTemplate = parse( templateEl.innerHTML, options );
-				}
+			// Assume this is an ID of a <script type='text/ractive'> tag
+			if ( template.charAt( 0 ) === '#' ) {
+				template = helper.fromId( template );
+			} 
+			
+			parsedTemplate = helper.parse( template );
 
-				else {
-					throw new Error( 'Could not find template element (' + template + ')' );
-				}
-			}
-
-			else {
-				parsedTemplate = parse( template, options );
-			}
 		} else {
 			parsedTemplate = template;
 		}
@@ -281,7 +303,7 @@ define([
 		};
 	}
 
-	function initialiseComputedProperties( ractive, defaults, options ) {
+	function initialiseComputed ( ractive, defaults, options ) {
 		var computed;
 		computed = defaults.computed
 			? extend( create( defaults.computed ), options.computed )
@@ -292,7 +314,7 @@ define([
 		}
 	}
 
-	function renderInstance( ractive, options ) {
+	function renderInstance ( ractive, options ) {
 		var promise, fulfilPromise;
 
 		// Temporarily disable transitions, if noIntro flag is set

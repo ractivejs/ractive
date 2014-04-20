@@ -149,6 +149,31 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.data.bizz );
 		});
 
+		test( 'Template with hash is retrieved from element Id', function ( t ) {
+			var ractive;
+
+			fixture.innerHTML = '{{foo}}';
+
+			ractive = new Ractive({ 
+				el: fixture,
+				template: '#qunit-fixture',
+				data: { foo: 'bar' }  
+			});
+
+			t.equal( fixture.innerHTML, 'bar' );
+		});
+
+		test( 'Template with non-existant element Id throws', function ( t ) {
+			var ractive;
+
+			throws(function(){
+				new Ractive({ 
+					el: fixture,
+					template: '#nonexistant'
+				});
+			})
+		});
+
 		test( 'Ractive default template used on initialize', function ( t ) {
 			var ractive;
 			
@@ -178,6 +203,31 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, 'bar' );
+
+			delete Ractive.defaults.template;
+
+		});
+
+		test( 'Template function has helper object', function ( t ) {
+			var ractive, assert = t;
+
+			fixture.innerHTML = '{{foo}}';
+			
+			Ractive.defaults.template = function ( d, o, t ) {
+				var template = t.fromId( 'qunit-fixture' );
+				template += '{{bar}}';
+				assert.ok( !t.isParsed(template) );
+				template = t.parse( template );
+				assert.ok( t.isParsed( template ) );
+				return template;
+			}
+
+			ractive = new Ractive( { 
+				el: fixture,
+				data: { foo: 'fizz', bar: 'bizz' }
+			});
+
+			t.equal( fixture.innerHTML, 'fizzbizz' );
 
 			delete Ractive.defaults.template;
 
@@ -277,6 +327,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'bar' );
 
 		});
+
+
 
 	};
 
