@@ -11,12 +11,14 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'Input with uppercase tag name binds correctly', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '<input value="{{val}}">',
+				template: "<INPUT value='{{val}}'>{{val}}",
 				data: { val: 'foo' }
 			});
 
-			//ractive.set('val', 'bar');
+			ractive.find('input').value = 'bar';
+			ractive.updateModel()
 			t.equal( fixture.innerHTML  ,  '<input>bar');
+
 		});
 
 	};
