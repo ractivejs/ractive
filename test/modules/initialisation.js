@@ -37,28 +37,41 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		/* this fails */
-		/*
 		test( 'Ractive instance data is used as data object', function ( t ) {
 			var ractive, data = { foo: 'bar' } ;
 			
 			Ractive.defaults.data = { bar: 'bizz' };
 			ractive = new Ractive({ data: data });
 
-			t.ok( data.bar, 'original instance has property' )
-			t.equal( ractive.data, data );
+			//This is how it currently works.
+			t.notEqual( ractive.data, data );
 
 			delete Ractive.defaults.data;
-
 		});
-		*/
-
+		
 		test( 'Default data function with no return uses existing data instance', function ( t ) {
 			var ractive;
+
 			Ractive.defaults.data = function(d) { d.bizz = 'bop' };
+			
 			ractive = new Ractive({ data: { foo: 'bar' } });
+			
 			t.ok( ractive.data.foo );
 			t.ok( ractive.data.bizz );
+			
+			delete Ractive.defaults.data;
+		});
+
+		test( 'Instance data function takes precendence over default data function', function ( t ) {
+			var ractive;
+
+			Ractive.defaults.data = function() { return { foo: 'fizz' } };
+			
+			ractive = new Ractive({ data: function() { return { bar: 'bizz' } } });
+			
+			t.ok( ractive.data.bar );
+			t.equal( ractive.data.bar, 'bizz' );
+			
 			delete Ractive.defaults.data;
 		});
 

@@ -54,9 +54,6 @@ define([
 		
 		initialiseRegistries( ractive, defaults, options );
 
-		// Special case: data must be defined
-		if ( !ractive.data ) { ractive.data = {}; }
-
 		initialiseComputedProperties( ractive, defaults, options );
 		
 		initialiseTemplates( ractive, defaults, options );
@@ -190,35 +187,33 @@ define([
 	}
 
 	function initialiseRegistries( ractive, defaults, options ) {
-		var registryValue;
-		registries.forEach( function ( registry ) {
+		
+		//data goes first as it is primary argument to other function-based registry options
+		var data = initialiseRegistry('data')
+		if ( !ractive.data ) { ractive.data = {}; }
+		
+		registries
+			.filter( function ( registry ) { return registry!=='data'; } )
+			.forEach( initialiseRegistry );
 
-			if ( registryValue = ractive.constructor[ registry ] || defaults[ registry ] ) {
-			
-				if ( typeof registryValue === 'function' ) {
-			
-					ractive[ registry ] = registryValue ( options[ registry ], options ) || options[ registry ];
-			
-				} else {
-			
-					ractive[ registry ] = extend( create( registryValue ), options[ registry ] );
-			
-				}
-			
-			} else if ( registryValue = options[ registry ] ) {
+		function initialiseRegistry( registry ) {
 
-				if ( typeof registryValue === 'function' ) {
-				
-					ractive[ registry ] = registryValue(null, options);
-				
-				} else {
-				
-					ractive[ registry ] = registryValue;
-				}
-			
+			var optionsValue = options[ registry ],
+				defaultValue = ractive.constructor[ registry ] || defaults[ registry ],
+				firstArg = registry==='data' ? optionsValue : ractive.data;
+
+			if( typeof optionsValue === 'function' ) {
+				ractive[ registry ] = optionsValue( firstArg, options )
 			}
-		});
-
+			else if ( defaultValue ) {
+				ractive[ registry ] = ( typeof defaultValue === 'function' )
+					? defaultValue( firstArg, options ) || optionsValue
+					: extend( create( defaultValue ), optionsValue );
+			}
+			else if ( optionsValue ) {
+				ractive[ registry ] = optionsValue;
+			}	
+		}
 	}
 
 	function initialiseTemplates( ractive, defaults, options ) {
