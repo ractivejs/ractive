@@ -48,7 +48,7 @@ define([
 
 	function optionIsSelected ( element ) {
 		var optionValue, optionValueAttribute, optionValueInterpolator,
-			selectValueAttribute, selectValueInterpolator,
+			selectValueAttribute, selectValueInterpolator, 
 			selectValue, i;
 
 		optionValueAttribute = element.attributes.value;

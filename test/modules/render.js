@@ -102,6 +102,59 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			 	t.equal( style.textContent, 'text { font-size: 40px }' )
 		});
 
+		test('Nested keypath expression updates when array index member changes', function(t){
+			var ractive = new Ractive({
+					el: fixture,
+					template: '{{#item}}{{foo[bar]}}{{/}}',
+					data: { item: { foo: ['fizz', 'bizz'], bar: 0 } }
+				})
+			 	t.equal( fixture.innerHTML, 'fizz' )
+			 	ractive.set( 'item.bar', 1)
+			 	t.equal( fixture.innerHTML, 'bizz' )
+
+		});
+
+/*
+		test('List of inputs with nested keypathexpression name updates correctly', function(t){
+			var ractive = new Ractive({
+					el: fixture,
+					template: "{{#step}}{{#options}}<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>{{/}}{{/}}",
+					data: {
+				        step: {
+				            name: 'Products',
+				            options: ['1', '2']
+				        },
+				        responses: {}
+				    }
+				})
+				ractive.set('step', {
+				    name: 'Colors',
+				    options: ['red', 'blue', 'yellow']
+				})
+
+			 	expect(3)
+			 	ractive.findAll('input').forEach(function(input){
+				    t.equal( input.name, '{{responses.Colors}}' )
+				})
+
+		});
+
+		test('List of inputs with keypathexpression name update correctly', function(t){
+			var ractive = new Ractive({
+					el: fixture,
+					template: "<input type='radio' name='{{responses[topic]}}'/>",
+					data: {
+				        topic: 'Product',
+				        responses: {}
+				    }
+				})
+			ractive.set('topic', 'Color')	
+			var input = ractive.find('input')
+			t.ok( input )
+			t.equal( input.name, '{{responses.Colors}}' )
+			
+		});
+*/
 	};
 
 	function deepClone ( source ) {

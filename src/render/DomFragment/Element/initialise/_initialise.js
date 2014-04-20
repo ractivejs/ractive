@@ -59,7 +59,7 @@ define([
 		pNode = parentFragment.pNode;
 		descriptor = element.descriptor = options.descriptor;
 
-		element.parent = options.pElement;
+		element.parent = options.pElement || parentFragment.pElement;
 
 		element.root = root = parentFragment.root;
 		element.index = options.index;

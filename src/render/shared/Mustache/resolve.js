@@ -39,6 +39,7 @@ define([
 		registerDependant( this );
 
 		this.update();
+
 	};
 
 });
