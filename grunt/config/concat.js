@@ -27,6 +27,5 @@ module.exports = function ( grunt) {
 		        }
 			}
 		}
-	};
-	
-}
+	};	
+};
