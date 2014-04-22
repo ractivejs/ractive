@@ -1,65 +1,66 @@
 define([
-	'config/isClient',
-	'config/errors',
 	'config/initOptions',
-	'config/registries',
 	'utils/warn',
 	'utils/create',
 	'utils/extend',
-	'utils/fillGaps',
 	'utils/defineProperties',
 	'utils/getElement',
-	'utils/isObject',
 	'utils/isArray',
 	'utils/getGuid',
-	'utils/Promise',
 	'shared/get/magicAdaptor',
-	'parse/_parse',
-	'Ractive/initialise/computations/createComputations'
+	'Ractive/initialise/initialiseRegistries',
+	'Ractive/initialise/renderInstance'
+
 ], function (
-	isClient,
-	errors,
 	initOptions,
-	registries,
 	warn,
 	create,
 	extend,
-	fillGaps,
 	defineProperties,
 	getElement,
-	isObject,
 	isArray,
 	getGuid,
-	Promise,
 	magicAdaptor,
-	parse,
-	createComputations
+	initialiseRegistries,
+	renderInstance
 ) {
 
 	'use strict';
 
 	var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
-
+	
 	return function initialiseRactiveInstance ( ractive, options ) {
 
-		var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed;
+		var defaults = ractive.constructor.defaults;
 
-		if ( isArray( options.adaptors ) ) {
-			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
-			options.adapt = options.adaptors;
-			delete options.adaptors;
-		}
+		//allow empty constructor options and save for reset
+		ractive.initOptions = options = options || {};
 
-		// Options
-		// -------
-		defaults = ractive.constructor.defaults;
+		setOptionsAndFlags( ractive, defaults, options );
+
+		//sets ._initing = true
+		initialiseProperties( ractive, options ); 
+		
+		initialiseRegistries( ractive, defaults, options );
+		
+		renderInstance( ractive, options );
+
+		// end init sequence
+		ractive._initing = false;
+	};
+
+	function setOptionsAndFlags ( ractive, defaults, options ) {
+
+		deprecate( defaults );
+		deprecate( options );
+
 		initOptions.keys.forEach( function ( key ) {
 			if ( options[ key ] === undefined ) {
 				options[ key ] = defaults[ key ];
 			}
 		});
 
-		// options
+		// flag options
 		flags.forEach( function ( flag ) {
 			ractive[ flag ] = options[ flag ];
 		});
@@ -69,13 +70,40 @@ define([
 			ractive.adapt = [ ractive.adapt ];
 		}
 
+		validate( ractive, options );
+	}
+
+	function deprecate ( options ){
+
+		if ( isArray( options.adaptors ) ) {
+			warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
+			options.adapt = options.adaptors;
+			delete options.adaptors;
+		}
+
+		if ( options.eventDefinitions ) {
+			// TODO remove support
+			warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
+			options.events = options.eventDefinitions;
+		}
+
+	}
+
+	function validate ( ractive, options ) {
+
 		if ( ractive.magic && !magicAdaptor ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 		}
 
+		if ( options.el ) {
+			ractive.el = getElement( options.el );
+			if ( !ractive.el && ractive.debug ) {
+				throw new Error( 'Could not find container element' );
+			}
+		}
+	}
 
-		// Initialisation
-		// --------------
+	function initialiseProperties ( ractive, options ) {
 
 		// We use Object.defineProperties (where possible) as these should be read-only
 		defineProperties( ractive, {
@@ -130,6 +158,15 @@ define([
 			_unresolvedImplicitDependencies: { value: [] }
 		});
 
+		//Save parse specific options
+		ractive.parseOptions = {
+			preserveWhitespace: options.preserveWhitespace,
+			sanitize: options.sanitize,
+			stripComments: options.stripComments,
+			delimiters: options.delimiters,
+			tripleDelimiters: options.tripleDelimiters
+		};
+
 		// If this is a component, store a reference to the parent
 		if ( options._parent && options._component ) {
 			defineProperties( ractive, {
@@ -141,116 +178,6 @@ define([
 			options._component.instance = ractive;
 		}
 
-		if ( options.el ) {
-			ractive.el = getElement( options.el );
-			if ( !ractive.el && ractive.debug ) {
-				throw new Error( 'Could not find container element' );
-			}
-		}
-
-		// Create local registry objects, with the global registries as prototypes
-		if ( options.eventDefinitions ) {
-			// TODO remove support
-			warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
-			options.events = options.eventDefinitions;
-		}
-
-		registries.forEach( function ( registry ) {
-			if ( ractive.constructor[ registry ] ) {
-				ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
-			} else if ( options[ registry ] ) {
-				ractive[ registry ] = options[ registry ];
-			}
-		});
-
-		// Special case
-		if ( !ractive.data ) {
-			ractive.data = {};
-		}
-
-		// Set up any computed values
-		computed = defaults.computed
-			? extend( create( defaults.computed ), options.computed )
-			: options.computed;
-
-		if ( computed ) {
-			createComputations( ractive, computed );
-		}
-
-
-
-		// Parse template, if necessary
-		template = options.template;
-
-		if ( typeof template === 'string' ) {
-			if ( !parse ) {
-				throw new Error( errors.missingParser );
-			}
-
-			if ( template.charAt( 0 ) === '#' && isClient ) {
-				// assume this is an ID of a <script type='text/ractive'> tag
-				templateEl = document.getElementById( template.substring( 1 ) );
-				if ( templateEl ) {
-					parsedTemplate = parse( templateEl.innerHTML, options );
-				}
-
-				else {
-					throw new Error( 'Could not find template element (' + template + ')' );
-				}
-			}
-
-			else {
-				parsedTemplate = parse( template, options );
-			}
-		} else {
-			parsedTemplate = template;
-		}
-
-		// deal with compound template
-		if ( isObject( parsedTemplate ) ) {
-			fillGaps( ractive.partials, parsedTemplate.partials );
-			parsedTemplate = parsedTemplate.main;
-		}
-
-		ractive.template = parsedTemplate;
-
-		// Add partials to our registry
-		extend( ractive.partials, options.partials );
-
-		ractive.parseOptions = {
-			preserveWhitespace: options.preserveWhitespace,
-			sanitize: options.sanitize,
-			stripComments: options.stripComments,
-			delimiters: options.delimiters,
-			tripleDelimiters: options.tripleDelimiters
-		};
-
-		// Temporarily disable transitions, if noIntro flag is set
-		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
-
-		// If we're in a browser, and no element has been specified, create
-		// a document fragment to use instead
-		if ( isClient && !ractive.el ) {
-			ractive.el = document.createDocumentFragment();
-		}
-
-		// If the target contains content, and `append` is falsy, clear it
-		if ( ractive.el && !options.append ) {
-			ractive.el.innerHTML = '';
-		}
-
-		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-		ractive.render( ractive.el, fulfilPromise );
-
-		if ( options.complete ) {
-			promise.then( options.complete.bind( ractive ) );
-		}
-
-		// reset transitionsEnabled
-		ractive.transitionsEnabled = options.transitionsEnabled;
-
-		// end init sequence
-		ractive._initing = false;
-	};
+	}
 
 });

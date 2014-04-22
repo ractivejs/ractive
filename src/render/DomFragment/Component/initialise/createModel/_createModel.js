@@ -17,9 +17,7 @@ define([
 	var onlyWhitespace = /^\s*$/;
 
 	return function ( component, defaultData, attributes, toBind ) {
-		var data, key, value;
-
-		data = {};
+		var data = {}, key, value;
 
 		// some parameters, e.g. foo="The value is {{bar}}", are 'complex' - in
 		// other words, we need to construct a string fragment to watch
