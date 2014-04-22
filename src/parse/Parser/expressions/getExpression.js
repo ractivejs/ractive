@@ -8,35 +8,23 @@ define([
 
 	'use strict';
 
-	var ExpressionStub = function ( token ) {
-		this.refs = [];
+	return function getExpression ( token ) {
+		var refs = [];
 
-		getRefs( token, this.refs );
-		this.str = stringify( token, this.refs );
+		extractRefs( token, refs );
+
+		return {
+			r: refs,
+			s: stringify( token, refs )
+		};
 	};
-
-	ExpressionStub.prototype = {
-		toJSON: function () {
-			if ( !this.json ) {
-				this.json = {
-					r: this.refs,
-					s: this.str
-				};
-			}
-
-			return this.json;
-		}
-	};
-
-	return ExpressionStub;
-
 
 	function quoteStringLiteral ( str ) {
 		return JSON.stringify( String( str ) );
 	}
 
 	// TODO maybe refactor this?
-	function getRefs ( token, refs ) {
+	function extractRefs ( token, refs ) {
 		var i, list;
 
 		if ( token.t === types.REFERENCE ) {
@@ -48,25 +36,25 @@ define([
 		list = token.o || token.m;
 		if ( list ) {
 			if ( isObject( list ) ) {
-				getRefs( list, refs );
+				extractRefs( list, refs );
 			} else {
 				i = list.length;
 				while ( i-- ) {
-					getRefs( list[i], refs );
+					extractRefs( list[i], refs );
 				}
 			}
 		}
 
 		if ( token.x ) {
-			getRefs( token.x, refs );
+			extractRefs( token.x, refs );
 		}
 
 		if ( token.r ) {
-			getRefs( token.r, refs );
+			extractRefs( token.r, refs );
 		}
 
 		if ( token.v ) {
-			getRefs( token.v, refs );
+			extractRefs( token.v, refs );
 		}
 	}
 

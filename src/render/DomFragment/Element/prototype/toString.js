@@ -32,9 +32,7 @@ define([
 
 		str += '>';
 
-		if ( this.html ) {
-			str += this.html;
-		} else if ( this.fragment ) {
+		if ( this.fragment ) {
 			str += this.fragment.toString();
 		}
 
@@ -64,7 +62,7 @@ define([
 			}
 			optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );
 		}
-		
+
 		selectValueAttribute = element.select.attributes.value;
 		selectValueInterpolator = selectValueAttribute.interpolator;
 

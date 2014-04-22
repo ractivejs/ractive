@@ -14,8 +14,8 @@ define([
 			this.resolver.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 		}
 
-		// normal keypath mustache?
-		else if ( this.keypath ) {
+		// normal keypath mustache or keypath expression?
+		if ( this.keypath ) {
 			updated =  getNewKeypath( this.keypath, oldKeypath, newKeypath );
 
 			// was a new keypath created?

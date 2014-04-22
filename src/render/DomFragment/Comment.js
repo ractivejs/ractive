@@ -13,7 +13,7 @@ define([
 		this.descriptor = options.descriptor;
 
 		if ( docFrag ) {
-			this.node = document.createComment( options.descriptor.f );
+			this.node = document.createComment( options.descriptor.c );
 			docFrag.appendChild( this.node );
 		}
 	};
@@ -32,7 +32,7 @@ define([
 		},
 
 		toString: function () {
-			return '<!--' + this.descriptor.f + '-->';
+			return '<!--' + this.descriptor.c + '-->';
 		}
 	};
 

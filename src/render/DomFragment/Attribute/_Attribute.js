@@ -30,7 +30,7 @@ define([
 
 		// if it's an empty attribute, or just a straight key-value pair, with no
 		// mustache shenanigans, set the attribute accordingly and go home
-		if ( options.value === null || typeof options.value === 'string' ) {
+		if ( !options.value || typeof options.value === 'string' ) {
 			setStaticAttribute( this, options );
 			return;
 		}

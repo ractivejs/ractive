@@ -518,6 +518,48 @@ var renderTests = [
 		result: '<input type="radio" name="{{foo}}" value="one" checked><input type="radio" name="{{foo}}" value="two">',
 		new_data: { foo: 'two' },
 		new_result: '<input type="radio" name="{{foo}}" value="one"><input type="radio" name="{{foo}}" value="two" checked>'
+	},
+
+	//unresolved expressions
+	{
+		name: 'Keypath expression with unresolved member resolves',
+		template: '{{foo[bar]}}',
+		data: { foo: { boo: 'bizz' } },
+		result: '',
+		new_data: { bar: 'boo' },
+		new_result: 'bizz'
+	},	
+	{
+		name: 'Keypath expression with top level unresolved',
+		template: '{{foo[bar]}}',
+		data: { bar: 'boo' },
+		result: '',
+		new_data: { foo: { boo: 'bizz' } },
+		new_result: 'bizz'
+	},	
+	{
+		name: 'Nested keypath expression with top level unresolved',
+		template: '{{#item}}{{foo[bar]}}{{/}}',
+		data: { bar: 'boo' },
+		result: '',
+		new_data: { item: { foo: { boo: 'bizz' } } },
+		new_result: 'bizz'
+	},	
+	{
+		name: 'Keypath expression with array index member',
+		template: '{{foo[bar]}}',
+		data: { foo: ['fizz', 'bizz'], bar: 0 },
+		result: 'fizz',
+		new_data: { bar: 1 },
+		new_result: 'bizz'
+	},	
+	{
+		name: 'Keypath expression with unrooted references and array index member',
+		template: '{{#item}}{{foo[bar]}}{{/}}',
+		data: { item: { foo: ['fizz', 'bizz'], bar: 0 } },
+		result: 'fizz',
+		new_data: { item: { foo: ['fizz', 'bizz'], bar: 1 } },
+		new_result: 'bizz'
 	}
 ];
 

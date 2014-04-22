@@ -123,7 +123,6 @@ define([
 			if ( !this.ready || this.pending ) {
 				return;
 			}
-
 			this.callback( this.getKeypath() );
 		},
 

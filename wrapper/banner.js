@@ -1,5 +1,5 @@
 /*
-	Ractive.js v<%= pkg.version %>
+	<%= pkg.main %> v<%= pkg.version %>
 	<%= grunt.template.today( 'yyyy-mm-dd' ) %> - commit <%= commitHash.substr( 0, 8 ) %>
 
 	http://ractivejs.org
