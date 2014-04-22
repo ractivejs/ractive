@@ -137,6 +137,32 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'Inheritance hierarchy has precedence', function ( t ) {
+			var Component, ractive;
+
+			Ractive.defaults.data = function(){ return { foo: 'fizz' } };
+
+			Component = Ractive.extend({
+				data: { bar: 'bizz' }
+			});
+
+			ractive = new Component( { 
+				el: fixture,
+				template: '{{foo}}{{bar}}'
+			});
+			t.equal( fixture.innerHTML, 'bizz' )
+
+			ractive = new Component( { 
+				el: fixture,
+				template: '{{foo}}{{bar}}',
+				data: { foo: 'flip' }
+			});
+			t.equal( fixture.innerHTML, 'flipbizz' )
+
+			delete Ractive.defaults.data;
+
+		});
+
 		test( 'Instantiated .extend() with data function with no return uses existing data instance', function ( t ) {
 			var Component, ractive, data = { foo: 'bar' } ;
 			
@@ -288,7 +314,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Component, ractive;
 			
 			Component = Ractive.extend({
-				template: function(t, options){ options.template += '{{fizz}}'; }
+				template: function(d,o){ o.template += '{{fizz}}'; }
 			});
 			
 			ractive = new Component({ 

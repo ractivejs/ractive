@@ -4,6 +4,7 @@ define( function () {
 
 	return [,
 		'data',
+		'computed',
 		'adaptors',
 		'components',
 		'decorators',
