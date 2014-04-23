@@ -78,9 +78,12 @@ define([
 			            this.getTag() ||
 			            this.getText();
 
-			token.getLinePos = function () {
-				return tokenizer.getLinePos(pos);
-			};
+			if(token) {
+				token.getLinePos = function () {
+					return tokenizer.getLinePos(pos);
+				};
+			}
+
 			return token;
 		},
 		getLinePos: function (pos) {
