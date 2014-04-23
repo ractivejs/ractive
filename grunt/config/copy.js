@@ -1,11 +1,18 @@
 module.exports = function ( grunt) {
 
 	var path = require('path'),
-		testCwd = 'test/',
-		moduleCwd = testCwd + 'modules/',
-		templateCwd = testCwd + 'test-templates/',
-		moduleTemplate = grunt.file.read( templateCwd + 'module.html' ),
-		testDir = testCwd + 'tests/'
+		testDir = 'test/',
+		testsDir = testDir + 'tests/',
+		moduleDir = testDir + 'modules/',
+		templateDir = testDir + 'test-templates/',
+		runTestsjs = grunt.file.read( templateDir + 'runTests.js' ),
+		moduleTemplate = grunt.file.read( templateDir + 'module.html' )
+
+	function setLevels(filepath){
+    	var levels = path.relative( path.resolve( filepath ), path.resolve( testDir ) );
+		levels = levels.substring( 0, levels.length-2 );
+    	grunt.config( 'levels', levels );		
+	}
 
 	return {
 		release: {
@@ -23,28 +30,27 @@ module.exports = function ( grunt) {
 		testModules: {
 			files: [{
 				expand: true,
-				cwd: moduleCwd,
+				cwd: moduleDir,
 				src: [ '**/*' ],
 		        rename: function(dest, src) {
 		          return dest + src.replace(/\.js$/, '.html');
 		        },
-				dest: testDir
+				dest: testsDir
 			}],
 			options: {
 		        process: function(src, filepath) {
 		        	var module = path
-			        		.relative(moduleCwd, filepath)
+			        		.relative(moduleDir, filepath)
 							.replace(/\.js$/, ''),
-						all = grunt.config('allTestModules') || [],
-						levels = path.relative( path.resolve( filepath ), path.resolve( testCwd ) )
+						all = grunt.config('allTestModules') || [];
 
-					levels = levels.substring(0, levels.length-2)
+		        	all.push( module );
+		        	grunt.config( 'allTestModules', all );
 
-		        	all.push(module)
-		        	grunt.config('allTestModules', all)
+					setLevels( filepath ); //sets grunt.config('levels')
+		        	grunt.config( 'moduleName', module );
+					grunt.config( 'runTestsjs', runTestsjs );
 
-		        	grunt.config('levels', levels)
-		        	grunt.config('moduleName', module)
 		        	return grunt.template.process(moduleTemplate);
 		        }
 			}
@@ -52,12 +58,13 @@ module.exports = function ( grunt) {
 		testIndex: {
 			files: [{
 				expand: true,
-				cwd: templateCwd,
+				cwd: templateDir,
 				src: 'index.html',
-				dest: testDir
+				dest: testsDir
 			}],
 			options: {
 		        process: function(src, filepath) {
+					setLevels( filepath );
 		        	return grunt.template.process(src);
 		        }				
 			}
