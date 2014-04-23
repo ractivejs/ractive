@@ -400,6 +400,14 @@ var parseTests = [
 			'           ^----'
 	},
 	{
+		name: 'Unclosed mustache',
+		template: '{{foo}',
+		error:
+			'Tokenizer failed: unexpected string \"{{foo}\" (expected closing delimiter \"}}\" after reference) on line 1:1:\n' +
+			'{{foo}\n' +
+			'^----'
+	},
+	{
 		name: 'Unclosed comment',
 		template: 'ok <!--',
 		error:
