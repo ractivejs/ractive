@@ -15,32 +15,79 @@
 
 	<script>
 		_modules = [
-			'parse',
-			'render',
-			'mustache',
-			'events',
-			'misc',
-			'components',
-			'decorators',
-			'merge',
-			'observe',
-			'initialisation',
-			'find',
-			'arrays',
-			'magic',
 			'adaptors',
-			'reset',
-			'elements',
-			'css',
-			'transitions',
-			'reassignFragments',
+			'arrays',
+			'components',
 			'computations',
-			'twoway',
+			'css',
+			'decorators',
+			'elements',
+			'events',
+			'find',
+			'initialisation',
+			'magic',
+			'merge',
+			'misc',
+			'mustache',
+			'observe',
+			'parse',
 			'parseJSON',
-			'elements'
+			'reassignFragments',
+			'render',
+			'reset',
+			'transitions',
+			'twoway'
 		];
 	</script>
 
-	<script src='runTests.js'></script>
+
+	<script>
+(function () {
+
+	'use strict';
+
+	var isBuild, config, i, prefixedModules = [];
+
+	config = {
+		baseUrl: '../../src/',
+		paths: {
+			modules: '../test/modules',
+			samples: '../test/samples',
+			vendor: '../test/vendor'
+		}
+	};	
+
+	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
+		isBuild = true;
+		QUnit.config.autostart = false;
+		config.paths.ractive = '../tmp/ractive-legacy';
+	}
+
+	require.config( config );
+
+	// can't use .map() because of IE...
+	i = _modules.length;
+	while ( i-- ) {
+		prefixedModules[i] = 'modules/' + _modules[i];
+	}
+
+	require( [ 'ractive' ].concat( prefixedModules ), function ( Ractive ) {
+		window.Ractive = Ractive;
+
+		Ractive.defaults.magic = /magic=true/.test( window.location.search );
+
+		Array.prototype.slice.call( arguments, 1 ).forEach( function ( testSet ) {
+			testSet();
+		});
+
+		if ( isBuild ) {
+			QUnit.start();
+		}
+	});
+
+}());
+
+	</script>
+	
 </body>
 </html>

@@ -4,14 +4,14 @@ module.exports = function ( grunt ) {
 
 	var qunitConfig = {};
 
-	grunt.file.expand( 'test/tests/*.html' ).forEach( function ( path ) {
+	grunt.file.expand( 'test/tests/**/*.html' ).forEach( function ( path ) {
 		var testName = /test\/tests\/(.+)\.html/.exec( path )[1];
 
 		if ( testName === 'index' ) {
 			testName = 'all';
 		}
 
-		qunitConfig[ testName ] = path;
+		qunitConfig[ testName.replace(/\//g, '-') ] = path;
 	});
 
 	return qunitConfig;

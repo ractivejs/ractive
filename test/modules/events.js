@@ -377,7 +377,7 @@ define([ 'ractive', '../vendor/ractive-events-tap' ], function ( Ractive ) {
 			simulant.fire( node, 'keydown', { which: 32 });
 
 			setTimeout( function () {
-				t.ok( tapped );
+				t.ok( tapped, 'was tapped' );
 				start();
 			}, 0 );
 		});

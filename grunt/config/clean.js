@@ -1,4 +1,5 @@
 module.exports = {
 	tmp: [ 'tmp/' ],
-	build: [ 'build/**/*.js' ]
+	build: [ 'build/**/*.js' ],
+	tests: [ 'test/tests/' ]
 };
