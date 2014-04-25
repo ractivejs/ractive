@@ -58,6 +58,15 @@ $ grunt jshint
 # Run tests on the concatenated code
 $ grunt qunit
 
+# Run node non-browser tests (parse and toHTML) on the concatenated code
+$ grunt nodeunit
+
+# Rebuilds the test runners when test folders and files change (based on ./test/modules)
+$ grunt buildTests
+
+# Rebuilds the tests, runs the nodeunit tests, runs the qunit tests
+$ grunt test
+
 # Release a new version of the library to the release folder
 # (reads version number from package.json)
 $ grunt release
