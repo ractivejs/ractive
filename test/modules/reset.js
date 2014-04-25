@@ -129,6 +129,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.notEqual( ractive.find('p'), p);	
 		});	
 
+		test( 'Reset retains parent default data (#572)', function ( t ) {
+			var ractive, Widget;
+
+			Widget = Ractive.extend({
+			  data: {
+			    uppercase: function ( str ) {
+			      return str.toUpperCase();
+			    }
+			  }
+			});
+
+			ractive = new Widget({
+			  el: fixture,
+			  template: '{{ uppercase(foo) }}',
+			  data: { foo: 'bar' }
+			});
+
+			ractive.reset({ foo: 'bizz' });
+			t.htmlEqual( fixture.innerHTML, 'BIZZ' );
+
+		});
+
 	};
 
 });
