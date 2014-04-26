@@ -528,7 +528,7 @@ var renderTests = [
 		result: '',
 		new_data: { bar: 'boo' },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Keypath expression with top level unresolved',
 		template: '{{foo[bar]}}',
@@ -536,7 +536,7 @@ var renderTests = [
 		result: '',
 		new_data: { foo: { boo: 'bizz' } },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Nested keypath expression with top level unresolved',
 		template: '{{#item}}{{foo[bar]}}{{/}}',
@@ -544,7 +544,7 @@ var renderTests = [
 		result: '',
 		new_data: { item: { foo: { boo: 'bizz' } } },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Keypath expression with array index member',
 		template: '{{foo[bar]}}',
@@ -552,7 +552,7 @@ var renderTests = [
 		result: 'fizz',
 		new_data: { bar: 1 },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Keypath expression with unrooted references and array index member',
 		template: '{{#item}}{{foo[bar]}}{{/}}',
@@ -560,6 +560,12 @@ var renderTests = [
 		result: 'fizz',
 		new_data: { item: { foo: ['fizz', 'bizz'], bar: 1 } },
 		new_result: 'bizz'
+	},
+	{
+		name: 'Attribute value with characters that need to be escaped',
+		template: '<div class="{{className}}"></div>',
+		data: { className: '"find & \'replace\'"' },
+		result: '<div class="&quot;find &amp; &#39;replace&#39;&quot;"></div>'
 	}
 ];
 

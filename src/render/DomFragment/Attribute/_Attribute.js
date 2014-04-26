@@ -142,7 +142,7 @@ define([
 		},
 
 		toString: function () {
-			var str, interpolator;
+			var escaped, interpolator;
 
 			if ( this.value === null ) {
 				return this.name;
@@ -158,18 +158,22 @@ define([
 				return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 			}
 
-			// TODO don't use JSON.stringify?
-
-			if ( !this.fragment ) {
-				return this.name + '=' + JSON.stringify( this.value );
+			if ( this.fragment ) {
+				escaped = escape( this.fragment.toString() );
+			} else {
+				escaped = escape( this.value );
 			}
 
-			// TODO deal with boolean attributes correctly
-			str = this.fragment.toString();
-
-			return this.name + '=' + JSON.stringify( str );
+			return this.name + '=' + ( escaped.indexOf( ' ' ) !== -1 ? '"' + escaped + '"' : escaped );
 		}
 	};
+
+	function escape ( string ) {
+		return string
+			.replace( /&/g, '&amp;' )
+			.replace( /"/g, '&quot;' )
+			.replace( /'/g, '&#39;' );
+	}
 
 	return DomAttribute;
 
