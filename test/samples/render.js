@@ -566,6 +566,15 @@ var renderTests = [
 		template: '<div class="{{className}}"></div>',
 		data: { className: '"find & \'replace\'"' },
 		result: '<div class="&quot;find &amp; &#39;replace&#39;&quot;"></div>'
+	},
+	{
+		nodeOnly: true, // fixture.innerHTML doesn't work in our favour
+		name: 'Boolean attributes',
+		template: '<input type="checkbox" checked="{{isChecked}}">',
+		data: { isChecked: true },
+		result: '<input type=checkbox checked>',
+		new_data: { isChecked: false },
+		new_result: '<input type=checkbox>'
 	}
 ];
 

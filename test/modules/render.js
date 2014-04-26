@@ -148,11 +148,11 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 				        responses: {}
 				    }
 				})
-			ractive.set('topic', 'Color')	
+			ractive.set('topic', 'Color')
 			var input = ractive.find('input')
 			t.ok( input )
 			t.equal( input.name, '{{responses.Colors}}' )
-			
+
 		});
 */
 	};
