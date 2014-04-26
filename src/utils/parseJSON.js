@@ -102,7 +102,7 @@ define([
 			if ( stringLiteral && ( values = this.values ) ) {
 				return {
 					v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
-						return values[ $1 ] || $1;
+						return ( $1 in values ? values[ $1 ] : $1 );
 					})
 				};
 			}
