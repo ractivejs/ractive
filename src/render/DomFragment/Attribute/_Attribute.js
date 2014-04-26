@@ -22,7 +22,12 @@ define([
 
 	'use strict';
 
-	var DomAttribute = function ( options ) {
+	var DomAttribute, booleanAttributes;
+
+	// via https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
+	booleanAttributes = /allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|spellcheck|translate|trueSpeed|typeMustMatch|visible/;
+
+	DomAttribute = function ( options ) {
 
 		this.type = types.ATTRIBUTE;
 		this.element = options.element;
@@ -156,6 +161,11 @@ define([
 			// Special case - radio names
 			if ( this.name === 'name' && this.element.lcName === 'input' && ( interpolator = this.interpolator ) ) {
 				return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
+			}
+
+			// Special case - boolean attributes
+			if ( this.fragment && booleanAttributes.test( this.name ) ) {
+				return this.fragment.getValue() ? this.name : null;
 			}
 
 			if ( this.fragment ) {

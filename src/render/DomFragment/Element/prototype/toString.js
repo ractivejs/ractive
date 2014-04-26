@@ -9,16 +9,11 @@ define([
 	'use strict';
 
 	return function () {
-		var str, i, len, attrStr;
+		var str;
 
 		str = '<' + ( this.descriptor.y ? '!doctype' : this.descriptor.e );
 
-		len = this.attributes.length;
-		for ( i=0; i<len; i+=1 ) {
-			if ( attrStr = this.attributes[i].toString() ) {
-				str += ' ' + attrStr;
-			}
-		}
+		str += this.attributes.map( stringifyAttribute ).join( '' );
 
 		// Special case - selected options
 		if ( this.lcName === 'option' && optionIsSelected( this ) ) {
@@ -48,7 +43,7 @@ define([
 
 	function optionIsSelected ( element ) {
 		var optionValue, optionValueAttribute, optionValueInterpolator,
-			selectValueAttribute, selectValueInterpolator, 
+			selectValueAttribute, selectValueInterpolator,
 			selectValue, i;
 
 		optionValueAttribute = element.attributes.value;
@@ -102,6 +97,11 @@ define([
 		if ( valueAttribute.value === nameAttribute.interpolator.value ) {
 			return true;
 		}
+	}
+
+	function stringifyAttribute ( attribute ) {
+		var str = attribute.toString();
+		return str ? ' ' + str : '';
 	}
 
 });
