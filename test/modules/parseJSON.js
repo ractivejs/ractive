@@ -46,6 +46,11 @@ define([ 'utils/parseJSON' ], function ( parseJSON ) {
 			t.deepEqual( parsed.value, [1,2,3]);
 		});
 
+		test( 'Interpolated falsy values (#621)', function ( t ) {
+			var parsed = parseJSON( '"${a}"', { a: 0 });
+			t.equal( parsed.value, '0' );
+		});
+
 	};
 
 });
