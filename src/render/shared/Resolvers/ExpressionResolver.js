@@ -58,7 +58,7 @@ define([
 			}
 
 			// Couldn't resolve yet
-			args[i] = undefined;
+			args[i] = null;
 			expressionResolver.pending += 1;
 
 			unresolved = new Unresolved( ractive, reference, parentFragment, function ( keypath ) {
@@ -127,6 +127,8 @@ define([
 
 			this.args.forEach( function ( arg ) {
 				var changedKeypath;
+
+				if ( !arg ) return;
 
 				if ( arg.keypath && ( changedKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
 					arg.keypath = changedKeypath;

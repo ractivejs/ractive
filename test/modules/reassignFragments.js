@@ -30,7 +30,7 @@ define([
 						context: opt.target,
 						items: [],
 						pNode: {},
-						root: { 
+						root: {
 							'_liveQueries': [],
 							'_deps': [] ,
 							'_depsMap': [],
@@ -48,7 +48,7 @@ define([
 					}),
 					triple = new Triple({
 						parentFragment: fragment,
-						descriptor: { 
+						descriptor: {
 							t: types.TRIPLE,
 							r: '.'
 						}
@@ -237,6 +237,17 @@ define([
 			t.deepEqual(items, [1,10,4,5]);
 			t.htmlEqual( fixture.innerHTML, '0,1,2,3,');
 		})
+
+		test( 'Expressions with unresolved references can be reassigned (#630)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#list}}{{#check > length}}true{{/test}}{{/list}}',
+				data: {list:[1,2], check:3}
+			});
+
+			ractive.get('list').unshift(3);
+			t.ok(true);
+		});
 
 	};
 
