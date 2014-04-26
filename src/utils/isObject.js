@@ -5,7 +5,7 @@ define( function () {
 	var toString = Object.prototype.toString;
 
 	return function ( thing ) {
-		return ( typeof thing === 'object' && toString.call( thing ) === '[object Object]' );
+		return ( thing && toString.call( thing ) === '[object Object]' );
 	};
 
 });

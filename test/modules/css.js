@@ -4,7 +4,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture, colorTester, colors;
+		var fixture, colorTester, normaliseColor, colors;
 
 		module( 'CSS encapsulation' );
 
@@ -14,6 +14,18 @@ define([ 'ractive' ], function ( Ractive ) {
 		// normalise colours
 		colorTester = document.createElement( 'div' );
 		document.getElementsByTagName( 'body' )[0].appendChild( colorTester );
+
+		if ( typeof getComputedStyle === 'function' ) {
+			normaliseColor = function ( color ) {
+				colorTester.style.color = color;
+				return getComputedStyle( colorTester ).color;
+			};
+		} else {
+			normaliseColor = function ( color ) {
+				colorTester.style.color = color;
+				return colorTester.currentStyle.color;
+			};
+		}
 
 		colors = {};
 		[ 'red', 'green', 'blue', 'black' ].forEach( function ( color ) {
@@ -142,11 +154,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( getComputedStyle( paragraphs[3] ).color, colors.green );
 		});
 
-
-		function normaliseColor ( color ) {
-			colorTester.style.color = color;
-			return getComputedStyle( colorTester ).color;
-		}
 	};
 
 });

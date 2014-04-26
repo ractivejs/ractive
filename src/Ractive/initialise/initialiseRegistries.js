@@ -20,7 +20,7 @@ define([
 
 	'use strict';
 
-	//Template is NOT in registryKeys, it doesn't extend b/c it's a string. 
+	//Template is NOT in registryKeys, it doesn't extend b/c it's a string.
 	//We're just reusing the logic as it is mostly like a registry
 	registries = registries.concat(['template']);
 
@@ -30,7 +30,8 @@ define([
 	function getExtendOptions ( ractive, options ) {
 		var templateParser;
 		return {
-			default: {
+			// 'default' needs to be quoted as it's a keyword, and will break IE8 otherwise
+			'default': {
 				getArg: function () { return; },
 				extend: function ( defaultValue, optionsValue ) {
 					return extend( create( defaultValue ), optionsValue );
@@ -51,11 +52,11 @@ define([
 					return options[ registry ];
 				}
 			}
-		};		
+		};
 	}
 
 	function initialiseRegisties( ractive, defaults, options, initOptions ) {
-		var extendOptions = getExtendOptions( ractive, options ), 
+		var extendOptions = getExtendOptions( ractive, options ),
 			registryKeys, changes;
 
 
@@ -70,13 +71,13 @@ define([
 			registryKeys = registries;
 		}
 
-	
+
 		changes = initialise();
-		
+
 		if ( shouldUpdate('computed') ) {
 			createComputations( ractive, ractive.computed );
 		}
-		
+
 		if ( shouldUpdate('template') ) {
 			initialiseTemplate( ractive, defaults, options );
 		}
@@ -84,28 +85,28 @@ define([
 		return changes;
 
 		function shouldUpdate( registry ) {
-			return ( !initOptions.updatesOnly && ractive[ registry ] ) || 
+			return ( !initOptions.updatesOnly && ractive[ registry ] ) ||
 				( initOptions.updatesOnly && changes.indexOf(registry) > -1 );
 		}
 
 		function initialise () {
-			
+
 			//data goes first as it is primary argument to other function-based registry options
 			initialiseRegistry('data');
 			if ( !ractive.data ) { ractive.data = {}; }
-			
+
 			//return the changed registries
 			return registryKeys
 				.filter( function ( registry ) { return registry!=='data'; })
 				.filter( initialiseRegistry );
 
 		}
-		
+
 		function initialiseRegistry ( registry ) {
 			var optionsValue = initOptions.newValues[ registry ] || options[ registry ],
 				defaultValue = ractive.constructor[ registry ] || defaults[ registry ],
 				firstArg = registry==='data' ? optionsValue : ractive.data,
-				regOpt = extendOptions[ registry ] || extendOptions.default,
+				regOpt = extendOptions[ registry ] || extendOptions['default'],
 				initialValue = regOpt.initialValue( registry );
 
 			if( typeof optionsValue === 'function' ) {
@@ -141,7 +142,7 @@ define([
 		function isEmptyArray ( arr ) {
 			return isArray(arr) && !arr.length;
 		}
-		
+
 	}
 
 });
