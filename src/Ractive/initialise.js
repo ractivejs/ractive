@@ -90,6 +90,7 @@ define([
 	}
 
 	function validate ( ractive, options ) {
+		var anchor;
 
 		if ( ractive.magic && !magicAdaptor ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
@@ -99,6 +100,9 @@ define([
 			ractive.el = getElement( options.el );
 			if ( !ractive.el && ractive.debug ) {
 				throw new Error( 'Could not find container element' );
+			}
+			if ( anchor = getElement( options.el.anchor ) ) {
+				ractive.anchor = anchor;
 			}
 		}
 	}
