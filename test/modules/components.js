@@ -1052,7 +1052,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			    },
 			    complete: function(){
 					t.deepEqual( order.complete, simpsons, 'complete order' );
-					start()
+					start();
 			    }
 			});
 
