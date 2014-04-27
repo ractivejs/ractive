@@ -174,7 +174,10 @@ define([
 				escaped = escape( this.value );
 			}
 
-			return this.name + '=' + ( escaped.indexOf( ' ' ) !== -1 ? '"' + escaped + '"' : escaped );
+			//TODO: What was Rich's itent in this line? Adding in quotes to make tests pass
+			//return this.name + '=' + ( escaped.indexOf( ' ' ) !== -1 ? '"' + escaped + '"' : escaped );
+		
+			return this.name + '=' + '"' + escaped + '"';
 		}
 	};
 

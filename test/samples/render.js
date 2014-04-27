@@ -96,6 +96,11 @@ var renderTests = [
 		result: '<ul><li data-index="0">0: zero</li><li data-index="1">1: one</li><li data-index="2">2: two</li><li data-index="3">3: three</li></ul>'
 	},
 	{
+		name: "Static string attributes",
+		template: "<p class=\"myclass\">test</p>",
+		result: "<p class=\"myclass\">test</p>"
+	},
+	{
 		name: "Empty string attributes",
 		template: "<p class=\"\">test</p>",
 		result: "<p class=\"\">test</p>"
