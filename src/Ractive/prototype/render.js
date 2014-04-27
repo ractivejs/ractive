@@ -53,7 +53,7 @@ define([
 	function initChildren ( instance ) {
 		var child;
 
-		while ( child = instance._childInitQueue.pop() ) {
+		while ( child = instance._childInitQueue.shift() ) {
 			if ( child.instance.init ) {
 				child.instance.init( child.options );
 			}
