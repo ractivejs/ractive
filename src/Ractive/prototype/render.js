@@ -10,7 +10,7 @@ define([
 
 	'use strict';
 
-	return function Ractive_prototype_render ( target, callback ) {
+	return function Ractive_prototype_render ( target, anchor, callback ) {
 
 		this._rendering = true;
 		runloop.start( this, callback );
@@ -37,7 +37,11 @@ define([
 		});
 
 		if ( target ) {
-			target.appendChild( this.fragment.docFrag );
+			if ( anchor ) {
+				target.insertBefore( this.fragment.docFrag, anchor );
+			} else {
+				target.appendChild( this.fragment.docFrag );
+			}
 		}
 
 		// If this is *isn't* a child of a component that's in the process of rendering,

@@ -151,6 +151,30 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'Reset inserts { target, anchor } el option correctly', function ( t ) {
+			var ractive, 
+				target = document.createElement('div'), 
+				anchor = document.createElement('div');
+
+			anchor.innerHTML = 'bar';
+			target.id = 'target';
+			target.appendChild( anchor );
+			fixture.appendChild( target );
+
+			t.equal( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
+
+			ractive = new Ractive({
+				el: { target: target, anchor: anchor },
+				template: '<div>{{what}}</div>',
+				data: { what: 'fizz' }
+			});
+
+			t.equal( fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>' );
+			ractive.reset( { what: 'foo' } );
+			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
+
+			
+		});
 	};
 
 });

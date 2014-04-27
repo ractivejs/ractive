@@ -22,13 +22,13 @@ define([
 		}
 
 		// If the target contains content, and `append` is falsy, clear it
-		else if ( ractive.el && !options.append ) {
+		else if ( ractive.el && !options.append && !ractive.anchor ) {
 			ractive.el.innerHTML = '';
 		}
 
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
-		ractive.render( ractive.el, fulfilPromise );
+		ractive.render( ractive.el, ractive.anchor, fulfilPromise );
 
 		if ( options.complete ) {
 			promise = promise.then( options.complete.bind( ractive ) );
