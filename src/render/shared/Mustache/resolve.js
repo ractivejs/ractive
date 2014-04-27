@@ -11,7 +11,7 @@ define([
 	'use strict';
 
 	return function resolveMustache ( keypath ) {
-		var i;
+		var reassignTarget;
 
 		// In some cases, we may resolve to the same keypath (if this is
 		// an expression mustache that was reassigned due to an ancestor's
@@ -24,14 +24,20 @@ define([
 		if ( this.registered ) {
 			unregisterDependant( this );
 
-			// is this a section? if so, we may have children that need
-			// to be reassigned
-			// TODO only DOM sections?
-			if ( this.type === types.SECTION ) {
-				i = this.fragments.length;
-				while ( i-- ) {
-					this.fragments[i].reassign( null, null, this.keypath, keypath );
-				}
+			//need to reassign the element, if this belongs to one, for keypath changes
+			if( this.parentFragment &&
+				this.parentFragment.owner &&
+				this.parentFragment.owner.element ) {
+				reassignTarget = this.parentFragment.owner.element;
+			} else {
+				reassignTarget = this;
+			}
+			
+			reassignTarget.reassign( null, null, this.keypath, keypath );
+
+			//if we already updated due to reassignent, we can exit
+			if ( keypath === this.keypath ) {
+				return;
 			}
 		}
 
