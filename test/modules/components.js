@@ -1023,6 +1023,44 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+
+		asyncTest( 'Component render methods called in consistent order (gh #589)', function ( t ) {
+			var Simpson, ractive, order = { beforeInit: [], init: [], complete: [] },
+				simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
+
+			Simpson = Ractive.extend({
+			    template: "{{simpson}}",
+			    beforeInit: function(o) { 
+			    	order.beforeInit.push( o.data.simpson ); 
+			    },
+			    init: function() { 
+			    	order.init.push( this.get("simpson") ); 
+			    },
+			    complete: function() { 
+			    	order.complete.push( this.get("simpson") ); 
+			    }
+			});
+
+			ractive = new Ractive({
+			    el: fixture,
+			    template: '{{#simpsons}}<simpson simpson="{{this}}"/>{{/}}',
+			    data: {
+			        simpsons: simpsons
+			    },
+			    components: {
+			    	simpson: Simpson
+			    },
+			    complete: function(){
+					t.deepEqual( order.complete, simpsons, 'complete order' );
+					start();
+			    }
+			});
+
+			t.equal( fixture.innerHTML, simpsons.join('') );
+			t.deepEqual( order.beforeInit, simpsons, 'beforeInit order' );
+			t.deepEqual( order.init, simpsons, 'init order' );
+
+		});
 	};
 
 });
