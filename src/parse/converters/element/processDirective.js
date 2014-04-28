@@ -16,14 +16,11 @@ define([
 
 		if ( typeof tokens === 'string' ) {
 			if ( tokens.indexOf( ':' ) === -1 ) {
-				console.log( 'bugging out' );
 				return tokens;
 			}
 
 			tokens = [ tokens ];
 		}
-
-		console.group( 'processing', tokens );
 
 		result = {};
 
@@ -63,9 +60,6 @@ define([
 
 		directiveArgs = directiveArgs.concat( tokens );
 
-		console.log( 'directiveName', directiveName );
-		console.log( 'directiveArgs', directiveArgs );
-
 		if ( directiveArgs.length || typeof directiveName !== 'string' ) {
 			result = {
 				// TODO is this really necessary? just use the array
@@ -84,9 +78,6 @@ define([
 			result = directiveName;
 		}
 
-		console.log( 'result', result );
-
-		console.groupEnd();
 		return result;
 	};
 

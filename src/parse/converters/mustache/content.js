@@ -12,7 +12,7 @@ define([
 		arrayMemberPattern = /^[0-9][1-9]*$/;
 
 	return function ( parser, isTriple ) {
-		var start, mustache, type, expression, i, remaining, index, delimiter, keypathExpression;
+		var start, pos, mustache, type, expression, i, remaining, index, delimiter, keypathExpression;
 
 		start = parser.pos;
 
@@ -45,6 +45,12 @@ define([
 
 				mustache.t = type || types.INTERPOLATOR; // default
 
+				// TODO handle this more logically
+				if ( mustache.t === types.INVERTED ) {
+					mustache.t = types.SECTION;
+					mustache.n = 1;
+				}
+
 				// if it's a comment or a section closer, allow any contents except '}}'
 				if ( type === types.COMMENT || type === types.CLOSING ) {
 					remaining = parser.remaining();
@@ -75,6 +81,7 @@ define([
 			delimiter = isTriple ? parser.tripleDelimiters[1] : parser.delimiters[1];
 
 			if ( ( remaining.substr( 0, delimiter.length ) !== delimiter ) && ( remaining.charAt( 0 ) !== ':' ) ) {
+				pos = parser.pos;
 				parser.pos = start;
 
 				remaining = parser.remaining();
@@ -85,6 +92,8 @@ define([
 					parser.pos += index;
 					return mustache;
 				}
+
+				parser.pos = pos; // reset, so we get more informative error messages
 			}
 		}
 
@@ -97,14 +106,12 @@ define([
 		if ( expression.t === types.REFERENCE ) {
 			mustache.r = expression.n;
 		} else {
-			expression = parser.flattenExpression( expression );
-
 			if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
 				mustache.r = expression.v;
 			} else if ( keypathExpression = getKeypathExpression( expression ) ) {
-				mustache.keypathExpression = keypathExpression;
+				mustache.kx = keypathExpression;
 			} else {
-				mustache.x = expression;
+				mustache.x = parser.flattenExpression( expression );
 			}
 		}
 
@@ -120,7 +127,7 @@ define([
 		var members = [];
 
 		while ( expression.t === types.MEMBER && expression.r.t === types.REFINEMENT ) {
-			members.unshift( expression.r );
+			members.unshift( expression.r.x );
 			expression = expression.x;
 		}
 

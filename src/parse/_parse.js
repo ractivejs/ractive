@@ -56,7 +56,10 @@ define([
 			this.delimiters = options.delimiters || [ '{{', '}}' ];
 			this.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
-			this.interpolate = options.interpolate || {};
+			this.interpolate = {
+				script: !options.interpolate || options.interpolate.script !== false,
+				style: !options.interpolate || options.interpolate.style !== false
+			};
 
 			if ( options.sanitize === true ) {
 				options.sanitize = {

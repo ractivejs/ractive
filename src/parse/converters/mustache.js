@@ -57,8 +57,7 @@ define([
 		parser.allowWhitespace();
 
 		if ( !parser.matchString( delimiters[1] ) ) {
-			parser.pos = start;
-			parser.expected('closing delimiter "' + delimiters[1] + '" after reference');
+			parser.error( 'Expected closing delimiter \'' + delimiters[1] + '\' after reference' );
 		}
 
 		// section children

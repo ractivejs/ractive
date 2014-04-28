@@ -26,7 +26,7 @@ define([
 				};
 			}
 
-			parser.expected( 'a property name' );
+			parser.error( 'Expected a property name' );
 		}
 
 		// "[" expression "]"
@@ -35,13 +35,13 @@ define([
 
 			expr = parser.readExpression();
 			if ( !expr ) {
-				parser.expected( 'an expression' );
+				parser.error( 'an expression' );
 			}
 
 			parser.allowWhitespace();
 
 			if ( !parser.matchString( ']' ) ) {
-				parser.expected( '"]"' );
+				parser.error( 'Expected \']\'' );
 			}
 
 			return {

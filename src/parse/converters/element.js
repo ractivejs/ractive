@@ -110,9 +110,12 @@ define([
 			closingTagPattern = getClosingTagPattern( lowerCaseName );
 
 			if ( !parser.matchPattern( closingTagPattern ) ) {
+				parser.error( 'Expected closing </' + element.e + '> tag' );
 				return null;
 			}
 		}
+
+		parser.inside = null;
 
 		if ( parser.sanitizeElements && parser.sanitizeElements.indexOf( lowerCaseName ) !== -1 ) {
 			return { ignore: true };

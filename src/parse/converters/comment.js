@@ -21,7 +21,7 @@ define([
 		endIndex = remaining.indexOf( CLOSE_COMMENT );
 
 		if ( endIndex === -1 ) {
-			parser.expected( CLOSE_COMMENT );
+			parser.error( 'Illegal HTML - expected closing comment sequence (\'-->\')' );
 		}
 
 		content = remaining.substr( 0, endIndex );

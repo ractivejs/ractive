@@ -18,7 +18,14 @@ define([
 
 	'use strict';
 
-	var Parser, leadingWhitespace = /^\s+/;
+	var Parser, ParseError, leadingWhitespace = /^\s+/;
+
+	ParseError = function ( message ) {
+		this.name = 'ParseError';
+		this.message = message;
+	};
+
+	ParseError.prototype = Error.prototype;
 
 	Parser = function ( str, options ) {
 		var items, item;
@@ -79,14 +86,33 @@ define([
 
 		flattenExpression: flattenExpression,
 
-		error: function ( message ) {
-			throw new Error( message );
+		error: function ( err ) {
+			var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum, message;
+
+			lines = this.str.split( '\n' );
+
+			lineNum = -1;
+			nextLineEnd = 0;
+
+			do {
+				currentLineEnd = nextLineEnd;
+
+				currentLine = lines[ lineNum++ + 1 ];
+				nextLineEnd = currentLine.length + 1; // +1 for the newline
+			} while ( nextLineEnd < this.pos )
+
+			columnNum = this.pos - currentLineEnd;
+
+			message = err + ' at line ' + ( lineNum + 1 ) + ' character ' + ( columnNum + 1 ) + ':\n' +
+				currentLine + '\n' + new Array( columnNum + 1 ).join( ' ' ) + '^----';
+
+			throw new ParseError( message );
 		},
 
 		matchString: function ( string ) {
 			if ( this.str.substr( this.pos, string.length ) === string ) {
 				this.pos += string.length;
-				return true;
+				return string;
 			}
 		},
 

@@ -24,7 +24,7 @@ define([
 
 			expression = parser.getExpression();
 			if ( !expression ) {
-				parser.expected( 'an expression' );
+				parser.error( 'Expected a JavaScript expression' );
 			}
 
 			return {
