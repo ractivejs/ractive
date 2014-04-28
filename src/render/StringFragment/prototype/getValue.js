@@ -10,7 +10,7 @@ define([
 
 	'use strict';
 
-	var onlyWhitespace = /^\s*$/, empty = {};
+	var empty = {};
 
 	return function StringFragment$getValue ( options ) {
 		var asArgs, parse, value, values, jsonesque, parsed, cache, dirtyFlag, result;
@@ -40,7 +40,7 @@ define([
 					parsed = parseJSON( asArgs ? '[' + jsonesque + ']' : jsonesque, values );
 				}
 
-				if ( !parsed || !onlyWhitespace.test( parsed.remaining ) ) {
+				if ( !parsed ) {
 					result = asArgs ? [ this.toString() ] : this.toString();
 				} else {
 					result = parsed.value;

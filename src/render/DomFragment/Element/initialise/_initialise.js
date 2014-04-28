@@ -180,8 +180,8 @@ define([
 			}
 
 			// trigger intro transition
-			if ( descriptor.t1 ) {
-				executeTransition( descriptor.t1, root, element, true );
+			if ( descriptor.t0 || descriptor.t1 ) {
+				executeTransition( descriptor.t0 || descriptor.t1, root, element, true );
 			}
 
 			if ( element.node.tagName === 'OPTION' ) {

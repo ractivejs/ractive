@@ -99,7 +99,7 @@ define([
 
 				currentLine = lines[ lineNum++ + 1 ];
 				nextLineEnd = currentLine.length + 1; // +1 for the newline
-			} while ( nextLineEnd < this.pos )
+			} while ( nextLineEnd < this.pos );
 
 			columnNum = this.pos - currentLineEnd;
 
@@ -131,6 +131,10 @@ define([
 
 		remaining: function () {
 			return this.str.substring( this.pos );
+		},
+
+		nextChar: function () {
+			return this.str.charAt( this.pos );
 		}
 	};
 

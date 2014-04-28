@@ -19,7 +19,7 @@ define([
 	// If passed a hash of values as the second argument, ${placeholders}
 	// will be replaced with those values
 
-	var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
+	var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
 	specials = {
 		'true': true,
@@ -32,6 +32,7 @@ define([
 	numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 	placeholderPattern = /\$\{([^\}]+)\}/g;
 	placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
+	onlyWhitespace = /^\s*$/;
 
 	JsonParser = Parser.extend({
 		init: function ( str, options ) {
@@ -46,8 +47,9 @@ define([
 					return null;
 				}
 
-				if ( placeholder = parser.matchPattern( placeholderAtStartPattern ) &&
-					( parser.values.hasOwnProperty( placeholder ) ) ) {
+				placeholder = parser.matchPattern( placeholderAtStartPattern );
+
+				if ( placeholder && ( parser.values.hasOwnProperty( placeholder ) ) ) {
 					return { v: parser.values[ placeholder ] };
 				}
 			},
@@ -168,17 +170,12 @@ define([
 		return pair;
 	}
 
-	function extractValues ( item ) {
-		return item.v;
-	}
-
-
 	return function ( str, values ) {
 		var parser = new JsonParser( str, {
 			values: values
 		});
 
-		if ( parser.result.length === 1 && !parser.leftover ) {
+		if ( parser.result.length === 1 && onlyWhitespace.test( parser.leftover ) ) {
 			return {
 				value: parser.result[0].v
 			};

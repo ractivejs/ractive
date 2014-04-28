@@ -22,7 +22,7 @@ define([
 
 			parser.allowWhitespace();
 
-			expression = parser.getExpression();
+			expression = parser.readExpression();
 			if ( !expression ) {
 				parser.error( 'Expected a JavaScript expression' );
 			}

@@ -190,7 +190,7 @@ define([ 'ractive', 'vendor/ractive-events-tap' ], function ( Ractive ) {
 		test( '.unshift() works with proxy event handlers, without index references', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#items}}<button proxy-tap="bla">Level1: {{ title }}</button>{{/items}}',
+				template: '{{#items}}<button on-tap="bla">Level1: {{ title }}</button>{{/items}}',
 				data: {
 					items: [{ title: 'Title1' }]
 				}

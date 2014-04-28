@@ -28,7 +28,7 @@ define([
 
 		parser.allowWhitespace();
 
-		ifTrue = parser.getExpression();
+		ifTrue = parser.readExpression();
 		if ( !ifTrue ) {
 			parser.pos = start;
 			return expression;
@@ -43,7 +43,7 @@ define([
 
 		parser.allowWhitespace();
 
-		ifFalse = parser.getExpression();
+		ifFalse = parser.readExpression();
 		if ( !ifFalse ) {
 			parser.pos = start;
 			return expression;

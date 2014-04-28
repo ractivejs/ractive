@@ -19,6 +19,7 @@
 // * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 // * x - eXpressions
 // * s - String representation of an expression function
+// * t0 - intro/outro Transition
 // * t1 - intro Transition
 // * t2 - outro Transition
 // * o - decOrator
@@ -84,7 +85,7 @@ define([
 	});
 
 	parse = function ( template, options ) {
-		var tokens, parsed, token;
+		var parser;
 
 		options = options || {};
 
@@ -102,9 +103,13 @@ define([
 			};
 		}
 
-		parsed = new StandardParser( template, options ).result;
+		parser = new StandardParser( template, options );
 
-		return parsed;
+		if ( parser.leftover ) {
+			parser.error( 'Unexpected character' );
+		}
+
+		return parser.result;
 	};
 
 	parseCompoundTemplate = function ( template, options ) {

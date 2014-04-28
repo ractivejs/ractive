@@ -1,6 +1,6 @@
 define([
 	'parse/converters/mustache',
-	'parse/Tokenizer/utils/getLowestIndex'
+	'parse/Parser/utils/getLowestIndex'
 ], function (
 	getMustache,
 	getLowestIndex
@@ -9,8 +9,7 @@ define([
 	'use strict';
 
 	var attributeNamePattern = /^[^\s"'>\/=]+/,
-		unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/,
-		onPattern = /^on/;
+		unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
 
 	return getAttribute;
 

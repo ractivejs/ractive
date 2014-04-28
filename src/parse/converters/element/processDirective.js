@@ -1,18 +1,16 @@
 define([
 	'config/types',
-	'utils/parseJSON',
-	'parse/Parser/utils/getStringFragment'
+	'utils/parseJSON'
 ], function (
 	types,
-	parseJSON,
-	getStringFragment
+	parseJSON
 ) {
 
 	'use strict';
 
 	// TODO clean this up, it's shocking
 	return function ( tokens ) {
-		var result, tokens, token, colonIndex, directiveName, directiveArgs, parsed;
+		var result, token, colonIndex, directiveName, directiveArgs, parsed;
 
 		if ( typeof tokens === 'string' ) {
 			if ( tokens.indexOf( ':' ) === -1 ) {

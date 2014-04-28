@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'parse/Tokenizer/utils/getLowestIndex',
+	'parse/Parser/utils/getLowestIndex',
 	'parse/Parser/utils/decodeCharacterReferences'
 ], function (
 	types,

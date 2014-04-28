@@ -15,21 +15,20 @@ define([
 	'use strict';
 
 	var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
-		attributeNamePattern = /^[^\s"'>\/=]+/,
-		unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/,
+		validTagNameFollower = /^[\s\n\/>]/,
 		onPattern = /^on/,
+		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9]+)/,
 		closingTagPatterns = {},
-		directives = { intro: 't1', outro: 't2', decorator: 'o' };
+		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' };
 
 	return function getElement ( parser ) {
 		var start,
 			element,
-			attrs,
 			lowerCaseName,
 			directiveName,
+			match,
 			attribute,
 			selfClosing,
-			isVoid,
 			children,
 			child,
 			closingTagPattern;
@@ -41,6 +40,11 @@ define([
 		}
 
 		if ( !parser.matchString( '<' ) ) {
+			return null;
+		}
+
+		// if this is a closing tag, abort straight away
+		if ( parser.nextChar() === '/' ) {
 			return null;
 		}
 
@@ -58,11 +62,25 @@ define([
 			return null;
 		}
 
+		// next character must be whitespace, closing solidus or '>'
+		if ( !validTagNameFollower.test( parser.nextChar() ) ) {
+			parser.error( 'Illegal tag name' );
+		}
+
 		// directives and attributes
 		while ( attribute = getAttribute( parser ) ) {
+			// intro, outro, decorator
 			if ( directiveName = directives[ attribute.name ] ) {
 				element[ directiveName ] = processDirective( attribute.value );
-			} else {
+			}
+
+			// on-click etc
+			else if ( match = proxyEventPattern.exec( attribute.name ) ) {
+				if ( !element.v ) element.v = {};
+				element.v[ match[1] ] = processDirective( attribute.value );
+			}
+
+			else {
 				if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
 					if ( !element.a ) element.a = {};
 					element.a[ attribute.name ] = attribute.value || 0;
@@ -130,38 +148,6 @@ define([
 		}
 
 		return closingTagPatterns[ name ];
-	}
-
-	function getAttributes ( parser ) {
-		var start, attributes, hasAttributes, attribute;
-
-		start = parser.pos;
-
-		// if the next character isn't whitespace, there are no attributes...
-		if ( !parser.matchString( ' ' ) && !parser.matchString( '\n' ) ) {
-			return null;
-		}
-
-		attribute = getAttribute( parser );
-
-		if ( !attribute ) {
-			return null;
-		}
-
-		attributes = {};
-
-		do {
-			if ( parser.sanitizeEventAttributes && onPattern.test( attribute.name ) ) {
-				continue;
-			}
-
-			hasAttributes = true;
-			attributes[ attribute.name ] = attribute.value || 0;
-		} while ( attribute = getAttribute( parser ) )
-
-		if ( hasAttributes ) {
-			return attributes;
-		}
 	}
 
 
