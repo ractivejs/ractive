@@ -39,7 +39,7 @@ define([
 		this.expressionResolvers = [];
 
 		descriptor.m.forEach( function ( member, i ) {
-			var ref, indexRefs, index, createKeypathObserver, unresolved, expressionResolver;
+			var ref, indexRefs, index, keypathObserver, unresolved, expressionResolver;
 
 			if ( typeof member === 'string' ) {
 				resolver.members[i] = member;
@@ -65,14 +65,11 @@ define([
 
 				dynamic = true;
 
-				createKeypathObserver = function ( keypath ) {
-					var keypathObserver = new KeypathObserver( ractive, keypath, mustache.priority, resolver, i );
-					resolver.keypathObservers.push( keypathObserver );
-				};
-
 				// Can we resolve the reference immediately?
 				if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-					createKeypathObserver( keypath );
+					keypathObserver = new KeypathObserver( ractive, keypath, mustache.priority, resolver, i );
+					resolver.keypathObservers.push( keypathObserver );
+
 					return;
 				}
 
@@ -126,8 +123,8 @@ define([
 			this.callback( this.getKeypath() );
 		},
 
-		resolve: function ( index, value ) {
-			var keypathObserver = new KeypathObserver( this.root, value, this.mustache.priority, this, index );
+		resolve: function ( index, keypath ) {
+			var keypathObserver = new KeypathObserver( this.root, keypath, this.mustache.priority, this, index );
 			keypathObserver.update();
 
 			this.keypathObservers.push( keypathObserver );

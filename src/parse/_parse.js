@@ -19,6 +19,7 @@
 // * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 // * x - eXpressions
 // * s - String representation of an expression function
+// * t0 - intro/outro Transition
 // * t1 - intro Transition
 // * t2 - outro Transition
 // * o - decOrator
@@ -26,26 +27,78 @@
 // * c - is Content (e.g. of a comment node)
 
 define([
-	'parse/tokenize',
 	'config/types',
-	'parse/Parser/_Parser'
+	'parse/Parser/_Parser',
+	'parse/converters/mustache',
+	'parse/converters/comment',
+	'parse/converters/element',
+	'parse/converters/text',
+	'parse/utils/trimWhitespace',
+	'parse/utils/stripStandalones'
 ], function (
-	tokenize,
 	types,
-	Parser
+	Parser,
+	mustache,
+	comment,
+	element,
+	text,
+	trimWhitespace,
+	stripStandalones
 ) {
 
 	'use strict';
 
-	var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
+	var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
 
 	onlyWhitespace = /^\s*$/;
 
 	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 
+	StandardParser = Parser.extend({
+		init: function ( str, options ) {
+			// config
+			this.delimiters = options.delimiters || [ '{{', '}}' ];
+			this.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+
+			this.interpolate = {
+				script: !options.interpolate || options.interpolate.script !== false,
+				style: !options.interpolate || options.interpolate.style !== false
+			};
+
+			if ( options.sanitize === true ) {
+				options.sanitize = {
+					// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
+					elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
+					eventAttributes: true
+				};
+			}
+
+			this.sanitizeElements = options.sanitize && options.sanitize.elements;
+			this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+		},
+
+		postProcess: function ( items, options ) {
+
+			cleanup( items, options.stripComments !== false, options.preserveWhitespace );
+
+			if ( !options.preserveWhitespace ) {
+				trimWhitespace( items );
+			}
+
+			return items;
+		},
+
+		converters: [
+			mustache,
+			comment,
+			element,
+			text
+		]
+	});
+
 	parse = function ( template, options ) {
-		var tokens, json, token;
+		var parser;
 
 		options = options || {};
 
@@ -63,31 +116,13 @@ define([
 			};
 		}
 
-		tokens = tokenize( template, options );
+		parser = new StandardParser( template, options );
 
-		if ( !options.preserveWhitespace ) {
-			// remove first token if it only contains whitespace
-			token = tokens[0];
-			if ( token && ( token.type === types.TEXT ) && onlyWhitespace.test( token.value ) ) {
-				tokens.shift();
-			}
-
-			// ditto last token
-			token = tokens[ tokens.length - 1 ];
-			if ( token && ( token.type === types.TEXT ) && onlyWhitespace.test( token.value ) ) {
-				tokens.pop();
-			}
+		if ( parser.leftover ) {
+			parser.error( 'Unexpected character' );
 		}
 
-		json = new Parser( tokens, options ).result;
-
-		if ( typeof json === 'string' ) {
-			// If we return it as a string, Ractive will attempt to reparse it!
-			// Instead we wrap it in an array. Ractive knows what to do then
-			return [ json ];
-		}
-
-		return json;
+		return parser.result;
 	};
 
 	parseCompoundTemplate = function ( template, options ) {
@@ -122,5 +157,44 @@ define([
 	};
 
 	return parse;
+
+	function cleanup ( items, stripComments, preserveWhitespace ) {
+		var i, item;
+
+		// first pass - remove standalones
+		stripStandalones( items );
+
+		i = items.length;
+		while ( i-- ) {
+			item = items[i];
+			// Remove delimiter changes, unsafe elements etc
+			if ( item.exclude ) {
+				items.splice( i, 1 );
+			}
+
+			// Remove comments, unless we want to keep them
+			else if ( stripComments && item.t === types.COMMENT ) {
+				items.splice( i, 1 );
+			}
+
+			// Recurse
+			if ( item.f ) {
+				cleanup( item.f, stripComments, preserveWhitespace );
+
+				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
+					trimWhitespace( item.f );
+				}
+			}
+		}
+
+		// final pass - fuse text nodes together
+		i = items.length;
+		while ( i-- ) {
+			if ( typeof items[i] === 'string' && typeof items[i+1] === 'string' ) {
+				items[i] = items[i] + items[i+1];
+				items.splice( i + 1, 1 );
+			}
+		}
+	}
 
 });

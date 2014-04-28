@@ -1,11 +1,9 @@
 define([
-	'parse/Tokenizer/utils/getStringMatch',
-	'parse/Tokenizer/utils/allowWhitespace',
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/_getStringLiteral',
-	'parse/Tokenizer/getExpression/shared/getKey'
+	'parse/Parser/_Parser',
+	'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral',
+	'parse/Parser/expressions/shared/key'
 ], function (
-	getStringMatch,
-	allowWhitespace,
+	Parser,
 	getStringLiteral,
 	getKey
 ) {
@@ -15,13 +13,10 @@ define([
 	// simple JSON parser, without the restrictions of JSON parse
 	// (i.e. having to double-quote keys).
 	//
-	// This re-uses logic from the main template parser, albeit
-	// messily. Could probably use a cleanup at some point.
-	//
 	// If passed a hash of values as the second argument, ${placeholders}
 	// will be replaced with those values
 
-	var Tokenizer, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
+	var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
 	specials = {
 		'true': true,
@@ -34,144 +29,131 @@ define([
 	numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 	placeholderPattern = /\$\{([^\}]+)\}/g;
 	placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
+	onlyWhitespace = /^\s*$/;
 
-	Tokenizer = function ( str, values ) {
-		this.str = str;
-		this.values = values;
-
-		this.pos = 0;
-
-		this.result = this.getToken();
-	};
-
-	Tokenizer.prototype = {
-		remaining: function () {
-			return this.str.substring( this.pos );
+	JsonParser = Parser.extend({
+		init: function ( str, options ) {
+			this.values = options.values;
 		},
 
-		getStringMatch: getStringMatch,
-
-		getToken: function () {
-			this.allowWhitespace();
-
-			return this.getPlaceholder() ||
-			       this.getSpecial()     ||
-			       this.getNumber()      ||
-			       this.getString()      ||
-			       this.getObject()      ||
-			       this.getArray();
-		},
-
-		getPlaceholder: function () {
-			var match;
-
-			if ( !this.values ) {
+		postProcess: function ( result ) {
+			if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
 				return null;
 			}
 
-			if ( ( match = placeholderAtStartPattern.exec( this.remaining() ) ) &&
-				 ( this.values.hasOwnProperty( match[1] ) ) ) {
-				this.pos += match[0].length;
-				return { v: this.values[ match[1] ] };
-			}
+			return { value: result[0].v };
 		},
 
-		getSpecial: function () {
-			var match;
+		converters: [
+			function getPlaceholder ( parser ) {
+				var placeholder;
 
-			if ( match = specialsPattern.exec( this.remaining() ) ) {
-				this.pos += match[0].length;
-
-				return { v: specials[ match[0] ] };
-			}
-		},
-
-		getNumber: function () {
-			var match;
-
-			if ( match = numberPattern.exec( this.remaining() ) ) {
-				this.pos += match[0].length;
-
-				return { v: +match[0] };
-			}
-		},
-
-		getString: function () {
-			var stringLiteral = getStringLiteral( this ), values;
-
-			if ( stringLiteral && ( values = this.values ) ) {
-				return {
-					v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
-						return ( $1 in values ? values[ $1 ] : $1 );
-					})
-				};
-			}
-
-			return stringLiteral;
-		},
-
-		getObject: function () {
-			var result, pair;
-
-			if ( !this.getStringMatch( '{' ) ) {
-				return null;
-			}
-
-			result = {};
-
-			while ( pair = getKeyValuePair( this ) ) {
-				result[ pair.key ] = pair.value;
-
-				this.allowWhitespace();
-
-				if ( this.getStringMatch( '}' ) ) {
-					return { v: result };
-				}
-
-				if ( !this.getStringMatch( ',' ) ) {
+				if ( !parser.values ) {
 					return null;
 				}
-			}
 
-			return null;
-		},
+				placeholder = parser.matchPattern( placeholderAtStartPattern );
 
-		getArray: function () {
-			var result, valueToken;
+				if ( placeholder && ( parser.values.hasOwnProperty( placeholder ) ) ) {
+					return { v: parser.values[ placeholder ] };
+				}
+			},
 
-			if ( !this.getStringMatch( '[' ) ) {
-				return null;
-			}
+			function getSpecial ( parser ) {
+				var special;
 
-			result = [];
+				if ( special = parser.matchPattern( specialsPattern ) ) {
+					return { v: specials[ special ] };
+				}
+			},
 
-			while ( valueToken = this.getToken() ) {
-				result.push( valueToken.v );
+			function getNumber ( parser ) {
+				var number;
 
-				this.allowWhitespace();
+				if ( number = parser.matchPattern( numberPattern ) ) {
+					return { v: +number };
+				}
+			},
 
-				if ( this.getStringMatch( ']' ) ) {
-					return { v: result };
+			function getString ( parser ) {
+				var stringLiteral = getStringLiteral( parser ), values;
+
+				if ( stringLiteral && ( values = parser.values ) ) {
+					return {
+						v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
+							return ( $1 in values ? values[ $1 ] : $1 );
+						})
+					};
 				}
 
-				if ( !this.getStringMatch( ',' ) ) {
+				return stringLiteral;
+			},
+
+			function getObject ( parser ) {
+				var result, pair;
+
+				if ( !parser.matchString( '{' ) ) {
 					return null;
 				}
+
+				result = {};
+
+				while ( pair = getKeyValuePair( parser ) ) {
+					result[ pair.key ] = pair.value;
+
+					parser.allowWhitespace();
+
+					if ( parser.matchString( '}' ) ) {
+						return { v: result };
+					}
+
+					if ( !parser.matchString( ',' ) ) {
+						return null;
+					}
+				}
+
+				return null;
+			},
+
+			function getArray ( parser ) {
+				var result, valueToken;
+
+				if ( !parser.matchString( '[' ) ) {
+					return null;
+				}
+
+				result = [];
+
+				parser.allowWhitespace();
+
+				while ( valueToken = parser.read() ) {
+					result.push( valueToken.v );
+
+					parser.allowWhitespace();
+
+					if ( parser.matchString( ']' ) ) {
+						return { v: result };
+					}
+
+					if ( !parser.matchString( ',' ) ) {
+						return null;
+					}
+
+					parser.allowWhitespace();
+				}
+
+				return null;
 			}
-
-			return null;
-		},
-
-		allowWhitespace: allowWhitespace
-	};
+		]
+	});
 
 
-	function getKeyValuePair ( tokenizer ) {
+	function getKeyValuePair ( parser ) {
 		var key, valueToken, pair;
 
-		tokenizer.allowWhitespace();
+		parser.allowWhitespace();
 
-		key = getKey( tokenizer );
+		key = getKey( parser );
 
 		if ( !key ) {
 			return null;
@@ -179,17 +161,15 @@ define([
 
 		pair = { key: key };
 
-		tokenizer.allowWhitespace();
-		if ( !tokenizer.getStringMatch( ':' ) ) {
+		parser.allowWhitespace();
+		if ( !parser.matchString( ':' ) ) {
 			return null;
-			// throw new Error( 'Expected ":"' );
 		}
-		tokenizer.allowWhitespace();
+		parser.allowWhitespace();
 
-		valueToken = tokenizer.getToken();
+		valueToken = parser.read();
 		if ( !valueToken ) {
 			return null;
-			// throw new Error( 'something went wrong' );
 		}
 
 		pair.value = valueToken.v;
@@ -197,18 +177,12 @@ define([
 		return pair;
 	}
 
-
 	return function ( str, values ) {
-		var tokenizer = new Tokenizer( str, values );
+		var parser = new JsonParser( str, {
+			values: values
+		});
 
-		if ( tokenizer.result ) {
-			return {
-				value: tokenizer.result.v,
-				remaining: tokenizer.remaining()
-			};
-		}
-
-		return null;
+		return parser.result;
 	};
 
 });

@@ -14,8 +14,6 @@ define([
 
 	'use strict';
 
-	var onlyWhitespace = /^\s*$/;
-
 	return function ( component, defaultData, attributes, toBind ) {
 		var data = {}, key, value;
 
@@ -47,7 +45,7 @@ define([
 		if ( typeof descriptor === 'string' ) {
 			parsed = parseJSON( descriptor );
 
-			if ( !parsed || !onlyWhitespace.test( parsed.remaining ) ) {
+			if ( !parsed ) {
 				return descriptor;
 			}
 

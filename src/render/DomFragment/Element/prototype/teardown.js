@@ -46,8 +46,8 @@ define([
 		}
 
 		// Outro, if necessary
-		if ( this.descriptor.t2 ) {
-			executeTransition( this.descriptor.t2, this.root, this, false );
+		if ( this.descriptor.t0 || this.descriptor.t2 ) {
+			executeTransition( this.descriptor.t0 || this.descriptor.t2, this.root, this, false );
 		}
 
 		// Remove this node from any live queries
