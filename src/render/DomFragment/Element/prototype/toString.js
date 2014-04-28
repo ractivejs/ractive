@@ -32,7 +32,7 @@ define([
 		}
 
 		// add a closing tag if this isn't a void element
-		if ( voidElementNames.test( this.descriptor.e ) ) {
+		if ( !voidElementNames.test( this.descriptor.e ) ) {
 			str += '</' + this.descriptor.e + '>';
 		}
 

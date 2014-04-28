@@ -12,7 +12,7 @@ define({
 	MUSTACHE          : 11,
 	TAG               : 12,
 	ATTRIBUTE         : 13,
-
+	CLOSING_TAG       : 14,
 	COMPONENT         : 15,
 
 	NUMBER_LITERAL    : 20,

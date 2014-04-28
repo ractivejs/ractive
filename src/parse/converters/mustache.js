@@ -10,7 +10,8 @@ define([
 
 	'use strict';
 
-	var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true };
+	var sectionClosePatterns = {},
+		delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true };
 
 	return getMustache;
 
@@ -72,14 +73,17 @@ define([
 					break;
 				}
 
-				if ( !child.ignore ) {
-					children.push( child );
-				}
+				children.push( child );
 			}
 
 			if ( children.length ) {
 				mustache.f = children;
 			}
+
+			// there should be a section close now
+			// if ( !parser.matchString( parser.delimiters[0] ) || !parser.matchPattern( sectionClosePattern ) || !parser.matchString( parser.delimiters[1] ) ) {
+			// 	parser.error( 'Expected section closing tag' );
+			// }
 		}
 
 		return mustache;

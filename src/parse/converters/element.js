@@ -1,11 +1,19 @@
 define([
 	'config/types',
 	'config/voidElementNames',
+	'parse/converters/mustache',
+	'parse/converters/comment',
+	'parse/converters/text',
+	'parse/converters/element/closingTag',
 	'parse/converters/element/attribute',
 	'parse/converters/element/processDirective'
 ], function (
 	types,
 	voidElementNames,
+	getMustache,
+	getComment,
+	getText,
+	getClosingTag,
 	getAttribute,
 	processDirective
 ) {
@@ -16,11 +24,25 @@ define([
 		validTagNameFollower = /^[\s\n\/>]/,
 		onPattern = /^on/,
 		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9]+)/,
+		closingTagPattern = /^<\/([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*>/,
 		closingTagPatterns = {},
 		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
-		exclude = { exclude: true };
+		exclude = { exclude: true },
+		converters;
 
-	return function getElement ( parser ) {
+	converters = [
+		getMustache,
+		getComment,
+		getElement,
+		getText,
+		getClosingTag
+	];
+
+	console.log( 'converters', converters );
+
+	return getElement;
+
+	function getElement ( parser ) {
 		var start,
 			element,
 			lowerCaseName,
@@ -30,7 +52,7 @@ define([
 			selfClosing,
 			children,
 			child,
-			closingTagPattern;
+			closingTag;
 
 		start = parser.pos;
 
@@ -110,20 +132,29 @@ define([
 			}
 
 			children = [];
-			while ( child = parser.read() ) {
+			while ( child = parser.read( converters ) ) {
+				// Special case - closing section tag
+				if ( child.t === types.CLOSING ) {
+					break;
+				}
+
+				if ( child.t === types.CLOSING_TAG ) {
+					break;
+
+					// TODO verify that this tag can close this element (is either the same, or
+					// a parent that can close child elements implicitly)
+
+					//parser.error( 'Expected closing </' + element.e + '> tag' );
+				}
+
 				children.push( child );
+
 				// TODO handle sibling elements that close blocks
+
 			}
 
 			if ( children.length ) {
 				element.f = children;
-			}
-
-			closingTagPattern = getClosingTagPattern( lowerCaseName );
-
-			if ( !parser.matchPattern( closingTagPattern ) ) {
-				parser.error( 'Expected closing </' + element.e + '> tag' );
-				return null;
 			}
 		}
 
@@ -134,7 +165,7 @@ define([
 		}
 
 		return element;
-	};
+	}
 
 	function getClosingTagPattern ( name ) {
 		if ( !closingTagPatterns[ name ] ) {

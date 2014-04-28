@@ -363,7 +363,7 @@ var parseTests = [
 		name: 'Illegal closing tag 1',
 		template: '<div> </div',
 		error:
-			'Expected closing </div> tag at line 1 character 7:\n' +
+			'Illegal closing tag at line 1 character 7:\n' +
 			'<div> </div\n' +
 			'      ^----'
 	},
@@ -371,7 +371,7 @@ var parseTests = [
 		name: 'Illegal closing tag 2',
 		template: '<div> </!!div>',
 		error:
-			'Expected closing </div> tag at line 1 character 7:\n' +
+			'Illegal closing tag at line 1 character 7:\n' +
 			'<div> </!!div>\n' +
 			'      ^----'
 	},
@@ -379,7 +379,7 @@ var parseTests = [
 		name: 'Illegal closing tag 3',
 		template: '<div> </div !!>',
 		error:
-			'Expected closing </div> tag at line 1 character 7:\n' +
+			'Illegal closing tag at line 1 character 7:\n' +
 			'<div> </div !!>\n' +
 			'      ^----'
 	},

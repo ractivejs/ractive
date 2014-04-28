@@ -39,6 +39,14 @@ define([
 			this.values = options.values;
 		},
 
+		postProcess: function ( result, options ) {
+			if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
+				return null;
+			}
+
+			return { value: result[0].v };
+		},
+
 		converters: [
 			function getPlaceholder ( parser ) {
 				var placeholder;
@@ -70,6 +78,7 @@ define([
 				}
 			},
 
+			// TODO is this duplicating functionality?
 			function getString ( parser ) {
 				var stringLiteral = getStringLiteral( parser ), values;
 
@@ -119,6 +128,8 @@ define([
 
 				result = [];
 
+				parser.allowWhitespace();
+
 				while ( valueToken = parser.read() ) {
 					result.push( valueToken.v );
 
@@ -131,6 +142,8 @@ define([
 					if ( !parser.matchString( ',' ) ) {
 						return null;
 					}
+
+					parser.allowWhitespace();
 				}
 
 				return null;
@@ -175,11 +188,7 @@ define([
 			values: values
 		});
 
-		if ( parser.result.length === 1 && onlyWhitespace.test( parser.leftover ) ) {
-			return {
-				value: parser.result[0].v
-			};
-		}
+		return parser.result;
 	};
 
 });
