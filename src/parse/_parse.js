@@ -33,7 +33,7 @@ define([
 	'parse/converters/comment',
 	'parse/converters/element',
 	'parse/converters/text',
-	'parse/Parser/utils/trimWhitespace',
+	'parse/utils/trimWhitespace',
 	'parse/utils/stripStandalones'
 ], function (
 	types,

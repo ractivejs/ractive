@@ -13,9 +13,6 @@ define([
 	// simple JSON parser, without the restrictions of JSON parse
 	// (i.e. having to double-quote keys).
 	//
-	// This re-uses logic from the main template parser, albeit
-	// messily. Could probably use a cleanup at some point.
-	//
 	// If passed a hash of values as the second argument, ${placeholders}
 	// will be replaced with those values
 
@@ -78,7 +75,6 @@ define([
 				}
 			},
 
-			// TODO is this duplicating functionality?
 			function getString ( parser ) {
 				var stringLiteral = getStringLiteral( parser ), values;
 
@@ -168,14 +164,12 @@ define([
 		parser.allowWhitespace();
 		if ( !parser.matchString( ':' ) ) {
 			return null;
-			// throw new Error( 'Expected ":"' );
 		}
 		parser.allowWhitespace();
 
 		valueToken = parser.read();
 		if ( !valueToken ) {
 			return null;
-			// throw new Error( 'something went wrong' );
 		}
 
 		pair.value = valueToken.v;

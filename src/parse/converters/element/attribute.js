@@ -1,9 +1,9 @@
 define([
-	'parse/converters/mustache',
-	'parse/Parser/utils/getLowestIndex'
+	'parse/converters/utils/getLowestIndex',
+	'parse/converters/mustache'
 ], function (
-	getMustache,
-	getLowestIndex
+	getLowestIndex,
+	getMustache
 ) {
 
 	'use strict';

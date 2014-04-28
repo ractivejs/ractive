@@ -1,7 +1,7 @@
 define([
 	'config/types',
-	'parse/Parser/utils/getLowestIndex',
-	'parse/Parser/utils/decodeCharacterReferences'
+	'parse/converters/utils/getLowestIndex',
+	'parse/converters/utils/decodeCharacterReferences'
 ], function (
 	types,
 	getLowestIndex,
