@@ -7,8 +7,7 @@ define([
 	'use strict';
 
 	var OPEN_COMMENT = '<!--',
-		CLOSE_COMMENT = '-->',
-		ignore = { ignore: true };
+		CLOSE_COMMENT = '-->';
 
 	return function ( parser ) {
 		var content, remaining, endIndex;
@@ -27,7 +26,7 @@ define([
 		content = remaining.substr( 0, endIndex );
 		parser.pos += endIndex + 3;
 
-		return parser.stripComments ? ignore : {
+		return {
 			t: types.COMMENT,
 			c: content
 		};

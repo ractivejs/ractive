@@ -13,7 +13,7 @@ define([
 	var whitespace = /\s{2,}/g;
 
 	return function ( parser ) {
-		var index, remaining, barrier, text;
+		var index, remaining, barrier;
 
 		remaining = parser.remaining();
 
@@ -35,13 +35,7 @@ define([
 
 		parser.pos += index;
 
-		text = decodeCharacterReferences( remaining.substr( 0, index ) );
-
-		if ( !parser.preserveWhitespace ) {
-			text = text.replace( whitespace, ' ' );
-		}
-
-		return text;
+		return decodeCharacterReferences( remaining.substr( 0, index ) );
 	};
 
 });

@@ -4,16 +4,14 @@ define([
 	'utils/create',
 	'utils/hasOwnProperty',
 	'parse/Parser/expressions/conditional',
-	'parse/Parser/utils/flattenExpression',
-	'parse/Parser/utils/trimWhitespace'
+	'parse/Parser/utils/flattenExpression'
 ], function (
 	circular,
 	types,
 	create,
 	hasOwnProperty,
 	getConditional,
-	flattenExpression,
-	trimWhitespace
+	flattenExpression
 ) {
 
 	'use strict';
@@ -34,24 +32,17 @@ define([
 		this.options = options || {};
 		this.pos = 0;
 
-		this.init( str, options );
+		// Custom init logic
+		if ( this.init ) this.init( str, options );
 
 		items = [];
 
 		while ( ( this.pos < this.str.length ) && ( item = this.read() ) ) {
-			if ( !item.ignore ) {
-				items.push( item );
-			}
+			items.push( item );
 		}
 
 		this.leftover = this.remaining();
-
-		// tidy up
-		if ( !options.preserveWhitespace ) {
-			trimWhitespace( items );
-		}
-
-		this.result = items;
+		this.result = this.postProcess ? this.postProcess( items, options ) : items;
 	};
 
 	Parser.prototype = {

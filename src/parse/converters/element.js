@@ -2,14 +2,12 @@ define([
 	'config/types',
 	'config/voidElementNames',
 	'parse/converters/element/attribute',
-	'parse/converters/element/processDirective',
-	'parse/Parser/utils/trimWhitespace'
+	'parse/converters/element/processDirective'
 ], function (
 	types,
 	voidElementNames,
 	getAttribute,
-	processDirective,
-	trimWhitespace
+	processDirective
 ) {
 
 	'use strict';
@@ -19,7 +17,8 @@ define([
 		onPattern = /^on/,
 		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9]+)/,
 		closingTagPatterns = {},
-		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' };
+		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
+		exclude = { exclude: true };
 
 	return function getElement ( parser ) {
 		var start,
@@ -112,16 +111,11 @@ define([
 
 			children = [];
 			while ( child = parser.read() ) {
-				if ( !child.ignore ) {
-					children.push( child );
-				}
+				children.push( child );
 				// TODO handle sibling elements that close blocks
 			}
 
 			if ( children.length ) {
-				if ( !parser.preserveWhitespace ) {
-					trimWhitespace( children );
-				}
 				element.f = children;
 			}
 
@@ -136,7 +130,7 @@ define([
 		parser.inside = null;
 
 		if ( parser.sanitizeElements && parser.sanitizeElements.indexOf( lowerCaseName ) !== -1 ) {
-			return { ignore: true };
+			return exclude;
 		}
 
 		return element;

@@ -32,14 +32,18 @@ define([
 	'parse/converters/mustache',
 	'parse/converters/comment',
 	'parse/converters/element',
-	'parse/converters/text'
+	'parse/converters/text',
+	'parse/Parser/utils/trimWhitespace',
+	'parse/utils/stripStandalones'
 ], function (
 	types,
 	Parser,
 	mustache,
 	comment,
 	element,
-	text
+	text,
+	trimWhitespace,
+	stripStandalones
 ) {
 
 	'use strict';
@@ -72,8 +76,17 @@ define([
 
 			this.sanitizeElements = options.sanitize && options.sanitize.elements;
 			this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+		},
 
-			this.stripComments = ( options.stripComments !== false );
+		postProcess: function ( items, options ) {
+
+			cleanup( items, options.stripComments !== false, options.preserveWhitespace );
+
+			if ( !options.preserveWhitespace ) {
+				trimWhitespace( items );
+			}
+
+			return items;
 		},
 
 		converters: [
@@ -144,5 +157,37 @@ define([
 	};
 
 	return parse;
+
+	function cleanup ( items, stripComments, preserveWhitespace ) {
+		var i, item;
+
+		// first pass - remove standalones
+		stripStandalones( items );
+
+		i = items.length;
+		while ( i-- ) {
+			item = items[i];
+			// Remove delimiter changes, unsafe elements etc
+			if ( item.exclude ) {
+				items.splice( i, 1 );
+			}
+
+			// Remove comments, unless we want to keep them
+			else if ( stripComments && item.t === types.COMMENT ) {
+				items.splice( i, 1 );
+			}
+
+			// Recurse
+			if ( item.f ) {
+				cleanup( item.f, stripComments, preserveWhitespace );
+
+				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
+					trimWhitespace( item.f );
+				}
+			}
+		}
+
+		// TODO glom text items together, remove empties
+	}
 
 });

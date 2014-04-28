@@ -10,7 +10,7 @@ define([
 
 	'use strict';
 
-	var ignore = { ignore: true };
+	var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true };
 
 	return getMustache;
 
@@ -41,7 +41,7 @@ define([
 
 			// ...then make the switch
 			parser[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = mustache;
-			return ignore;
+			return delimiterChangeToken;
 		}
 
 		parser.allowWhitespace();
@@ -61,7 +61,7 @@ define([
 		}
 
 		if ( mustache.t === types.COMMENT ) {
-			return ignore;
+			mustache.exclude = true;
 		}
 
 		// section children
