@@ -108,7 +108,7 @@ define([
 		} else {
 			if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
 				mustache.r = expression.v;
-			} else if ( keypathExpression = getKeypathExpression( expression ) ) {
+			} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
 				mustache.kx = keypathExpression;
 			} else {
 				mustache.x = parser.flattenExpression( expression );
@@ -123,11 +123,23 @@ define([
 		return mustache;
 	};
 
-	function getKeypathExpression ( expression ) {
-		var members = [];
+	// TODO refactor this! it's bewildering
+	function getKeypathExpression ( parser, expression ) {
+		var members = [], refinement;
 
 		while ( expression.t === types.MEMBER && expression.r.t === types.REFINEMENT ) {
-			members.unshift( expression.r.x );
+			refinement = expression.r;
+
+			if ( refinement.x ) {
+				if ( refinement.x.t === types.REFERENCE ) {
+					members.unshift( refinement.x );
+				} else {
+					members.unshift( parser.flattenExpression( refinement.x ) );
+				}
+			} else {
+				members.unshift( refinement.n );
+			}
+
 			expression = expression.x;
 		}
 

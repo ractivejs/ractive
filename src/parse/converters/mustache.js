@@ -10,6 +10,8 @@ define([
 
 	'use strict';
 
+	var ignore = { ignore: true };
+
 	return getMustache;
 
 	function getMustache ( parser ) {
@@ -39,9 +41,7 @@ define([
 
 			// ...then make the switch
 			parser[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = mustache;
-			return {
-				ignore: true
-			};
+			return ignore;
 		}
 
 		parser.allowWhitespace();
@@ -58,6 +58,10 @@ define([
 
 		if ( !parser.matchString( delimiters[1] ) ) {
 			parser.error( 'Expected closing delimiter \'' + delimiters[1] + '\' after reference' );
+		}
+
+		if ( mustache.t === types.COMMENT ) {
+			return ignore;
 		}
 
 		// section children
