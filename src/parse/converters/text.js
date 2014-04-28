@@ -10,8 +10,6 @@ define([
 
 	'use strict';
 
-	var whitespace = /\s{2,}/g;
-
 	return function ( parser ) {
 		var index, remaining, barrier;
 

@@ -27,10 +27,12 @@ define( function () {
 				return null;
 			}
 
-			expressions = expressions.concat( next );
+			next.forEach( append );
 		}
 
-		console.warn( 'TODO without concat?' );
+		function append ( expression ) {
+			expressions.push( expression );
+		}
 
 		return expressions;
 	};

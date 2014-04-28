@@ -39,7 +39,7 @@ define([
 			this.values = options.values;
 		},
 
-		postProcess: function ( result, options ) {
+		postProcess: function ( result ) {
 			if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
 				return null;
 			}

@@ -24,12 +24,11 @@ define([
 		validTagNameFollower = /^[\s\n\/>]/,
 		onPattern = /^on/,
 		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9]+)/,
-		closingTagPattern = /^<\/([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*>/,
-		closingTagPatterns = {},
 		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 		exclude = { exclude: true },
 		converters;
 
+	// Different set of converters, because this time we're looking for closing tags
 	converters = [
 		getMustache,
 		getComment,
@@ -37,8 +36,6 @@ define([
 		getText,
 		getClosingTag
 	];
-
-	console.log( 'converters', converters );
 
 	return getElement;
 
@@ -51,8 +48,7 @@ define([
 			attribute,
 			selfClosing,
 			children,
-			child,
-			closingTag;
+			child;
 
 		start = parser.pos;
 
@@ -165,14 +161,6 @@ define([
 		}
 
 		return element;
-	}
-
-	function getClosingTagPattern ( name ) {
-		if ( !closingTagPatterns[ name ] ) {
-			closingTagPatterns[ name ] = new RegExp( '^<\\/' + name + '\\s*>', 'i' );
-		}
-
-		return closingTagPatterns[ name ];
 	}
 
 

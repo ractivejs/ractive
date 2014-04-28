@@ -10,8 +10,7 @@ define([
 
 	'use strict';
 
-	var sectionClosePatterns = {},
-		delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true };
+	var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true };
 
 	return getMustache;
 
