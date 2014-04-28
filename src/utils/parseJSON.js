@@ -1,11 +1,9 @@
 define([
-	'parse/Tokenizer/utils/getStringMatch',
-	'parse/Tokenizer/utils/allowWhitespace',
-	'parse/Tokenizer/getExpression/getPrimary/getLiteral/getStringLiteral/_getStringLiteral',
-	'parse/Tokenizer/getExpression/shared/getKey'
+	'parse/Parser/_Parser',
+	'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral',
+	'parse/Parser/expressions/shared/key'
 ], function (
-	getStringMatch,
-	allowWhitespace,
+	Parser,
 	getStringLiteral,
 	getKey
 ) {
@@ -21,7 +19,7 @@ define([
 	// If passed a hash of values as the second argument, ${placeholders}
 	// will be replaced with those values
 
-	var Tokenizer, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
+	var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
 
 	specials = {
 		'true': true,
@@ -35,143 +33,116 @@ define([
 	placeholderPattern = /\$\{([^\}]+)\}/g;
 	placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
 
-	Tokenizer = function ( str, values ) {
-		this.str = str;
-		this.values = values;
-
-		this.pos = 0;
-
-		this.result = this.getToken();
-	};
-
-	Tokenizer.prototype = {
-		remaining: function () {
-			return this.str.substring( this.pos );
+	JsonParser = Parser.extend({
+		init: function ( str, options ) {
+			this.values = options.values;
 		},
 
-		getStringMatch: getStringMatch,
+		converters: [
+			function getPlaceholder ( parser ) {
+				var placeholder;
 
-		getToken: function () {
-			this.allowWhitespace();
-
-			return this.getPlaceholder() ||
-			       this.getSpecial()     ||
-			       this.getNumber()      ||
-			       this.getString()      ||
-			       this.getObject()      ||
-			       this.getArray();
-		},
-
-		getPlaceholder: function () {
-			var match;
-
-			if ( !this.values ) {
-				return null;
-			}
-
-			if ( ( match = placeholderAtStartPattern.exec( this.remaining() ) ) &&
-				 ( this.values.hasOwnProperty( match[1] ) ) ) {
-				this.pos += match[0].length;
-				return { v: this.values[ match[1] ] };
-			}
-		},
-
-		getSpecial: function () {
-			var match;
-
-			if ( match = specialsPattern.exec( this.remaining() ) ) {
-				this.pos += match[0].length;
-
-				return { v: specials[ match[0] ] };
-			}
-		},
-
-		getNumber: function () {
-			var match;
-
-			if ( match = numberPattern.exec( this.remaining() ) ) {
-				this.pos += match[0].length;
-
-				return { v: +match[0] };
-			}
-		},
-
-		getString: function () {
-			var stringLiteral = getStringLiteral( this ), values;
-
-			if ( stringLiteral && ( values = this.values ) ) {
-				return {
-					v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
-						return ( $1 in values ? values[ $1 ] : $1 );
-					})
-				};
-			}
-
-			return stringLiteral;
-		},
-
-		getObject: function () {
-			var result, pair;
-
-			if ( !this.getStringMatch( '{' ) ) {
-				return null;
-			}
-
-			result = {};
-
-			while ( pair = getKeyValuePair( this ) ) {
-				result[ pair.key ] = pair.value;
-
-				this.allowWhitespace();
-
-				if ( this.getStringMatch( '}' ) ) {
-					return { v: result };
-				}
-
-				if ( !this.getStringMatch( ',' ) ) {
+				if ( !parser.values ) {
 					return null;
 				}
-			}
 
-			return null;
-		},
+				if ( placeholder = parser.matchPattern( placeholderAtStartPattern ) &&
+					( parser.values.hasOwnProperty( placeholder ) ) ) {
+					return { v: parser.values[ placeholder ] };
+				}
+			},
 
-		getArray: function () {
-			var result, valueToken;
+			function getSpecial ( parser ) {
+				var special;
 
-			if ( !this.getStringMatch( '[' ) ) {
-				return null;
-			}
+				if ( special = parser.matchPattern( specialsPattern ) ) {
+					return { v: specials[ special ] };
+				}
+			},
 
-			result = [];
+			function getNumber ( parser ) {
+				var number;
 
-			while ( valueToken = this.getToken() ) {
-				result.push( valueToken.v );
+				if ( number = parser.matchPattern( numberPattern ) ) {
+					return { v: +number };
+				}
+			},
 
-				this.allowWhitespace();
+			function getString ( parser ) {
+				var stringLiteral = getStringLiteral( parser ), values;
 
-				if ( this.getStringMatch( ']' ) ) {
-					return { v: result };
+				if ( stringLiteral && ( values = parser.values ) ) {
+					return {
+						v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
+							return ( $1 in values ? values[ $1 ] : $1 );
+						})
+					};
 				}
 
-				if ( !this.getStringMatch( ',' ) ) {
+				return stringLiteral;
+			},
+
+			function getObject ( parser ) {
+				var result, pair;
+
+				if ( !parser.matchString( '{' ) ) {
 					return null;
 				}
+
+				result = {};
+
+				while ( pair = getKeyValuePair( parser ) ) {
+					result[ pair.key ] = pair.value;
+
+					parser.allowWhitespace();
+
+					if ( parser.matchString( '}' ) ) {
+						return { v: result };
+					}
+
+					if ( !parser.matchString( ',' ) ) {
+						return null;
+					}
+				}
+
+				return null;
+			},
+
+			function getArray ( parser ) {
+				var result, valueToken;
+
+				if ( !parser.matchString( '[' ) ) {
+					return null;
+				}
+
+				result = [];
+
+				while ( valueToken = parser.read() ) {
+					result.push( valueToken.v );
+
+					parser.allowWhitespace();
+
+					if ( parser.matchString( ']' ) ) {
+						return { v: result };
+					}
+
+					if ( !parser.matchString( ',' ) ) {
+						return null;
+					}
+				}
+
+				return null;
 			}
-
-			return null;
-		},
-
-		allowWhitespace: allowWhitespace
-	};
+		]
+	});
 
 
-	function getKeyValuePair ( tokenizer ) {
+	function getKeyValuePair ( parser ) {
 		var key, valueToken, pair;
 
-		tokenizer.allowWhitespace();
+		parser.allowWhitespace();
 
-		key = getKey( tokenizer );
+		key = getKey( parser );
 
 		if ( !key ) {
 			return null;
@@ -179,14 +150,14 @@ define([
 
 		pair = { key: key };
 
-		tokenizer.allowWhitespace();
-		if ( !tokenizer.getStringMatch( ':' ) ) {
+		parser.allowWhitespace();
+		if ( !parser.matchString( ':' ) ) {
 			return null;
 			// throw new Error( 'Expected ":"' );
 		}
-		tokenizer.allowWhitespace();
+		parser.allowWhitespace();
 
-		valueToken = tokenizer.getToken();
+		valueToken = parser.read();
 		if ( !valueToken ) {
 			return null;
 			// throw new Error( 'something went wrong' );
@@ -197,18 +168,21 @@ define([
 		return pair;
 	}
 
+	function extractValues ( item ) {
+		return item.v;
+	}
+
 
 	return function ( str, values ) {
-		var tokenizer = new Tokenizer( str, values );
+		var parser = new JsonParser( str, {
+			values: values
+		});
 
-		if ( tokenizer.result ) {
+		if ( parser.result.length === 1 && !parser.leftover ) {
 			return {
-				value: tokenizer.result.v,
-				remaining: tokenizer.remaining()
+				value: parser.result[0].v
 			};
 		}
-
-		return null;
 	};
 
 });

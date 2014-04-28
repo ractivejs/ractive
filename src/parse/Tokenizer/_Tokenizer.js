@@ -1,23 +1,7 @@
 define([
-	'parse/Tokenizer/getMustache/_getMustache',
-	'parse/Tokenizer/getComment/getComment',
-	'parse/Tokenizer/getTag/_getTag',
-	'parse/Tokenizer/getText/_getText',
 
-	'parse/Tokenizer/getExpression/_getExpression',
-
-	'parse/Tokenizer/utils/allowWhitespace',
-	'parse/Tokenizer/utils/getStringMatch'
 ], function (
-	getMustache,
-	getComment,
-	getTag,
-	getText,
-
-	getExpression,
-
-	allowWhitespace,
-	getStringMatch
+	
 ) {
 
 	'use strict';

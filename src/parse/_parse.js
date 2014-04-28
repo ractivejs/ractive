@@ -26,26 +26,62 @@
 // * c - is Content (e.g. of a comment node)
 
 define([
-	'parse/tokenize',
 	'config/types',
-	'parse/Parser/_Parser'
+	'parse/Parser/_Parser',
+	'parse/converters/mustache',
+	'parse/converters/comment',
+	'parse/converters/element',
+	'parse/converters/text'
 ], function (
-	tokenize,
 	types,
-	Parser
+	Parser,
+	mustache,
+	comment,
+	element,
+	text
 ) {
 
 	'use strict';
 
-	var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
+	var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
 
 	onlyWhitespace = /^\s*$/;
 
 	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 
+	StandardParser = Parser.extend({
+		init: function ( str, options ) {
+			// config
+			this.delimiters = options.delimiters || [ '{{', '}}' ];
+			this.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+
+			this.interpolate = options.interpolate || {};
+
+			if ( options.sanitize === true ) {
+				options.sanitize = {
+					// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
+					elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
+					eventAttributes: true
+				};
+			}
+
+			this.sanitizeElements = options.sanitize && options.sanitize.elements;
+			this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+
+			this.stripComments = ( options.stripComments !== false );
+		},
+
+		converters: [
+			mustache,
+			comment,
+			element,
+			text
+		]
+	});
+
 	parse = function ( template, options ) {
-		var tokens, json, token;
+		var tokens, parsed, token;
 
 		options = options || {};
 
@@ -63,31 +99,9 @@ define([
 			};
 		}
 
-		tokens = tokenize( template, options );
+		parsed = new StandardParser( template, options ).result;
 
-		if ( !options.preserveWhitespace ) {
-			// remove first token if it only contains whitespace
-			token = tokens[0];
-			if ( token && ( token.type === types.TEXT ) && onlyWhitespace.test( token.value ) ) {
-				tokens.shift();
-			}
-
-			// ditto last token
-			token = tokens[ tokens.length - 1 ];
-			if ( token && ( token.type === types.TEXT ) && onlyWhitespace.test( token.value ) ) {
-				tokens.pop();
-			}
-		}
-
-		json = new Parser( tokens, options ).result;
-
-		if ( typeof json === 'string' ) {
-			// If we return it as a string, Ractive will attempt to reparse it!
-			// Instead we wrap it in an array. Ractive knows what to do then
-			return [ json ];
-		}
-
-		return json;
+		return parsed;
 	};
 
 	parseCompoundTemplate = function ( template, options ) {
