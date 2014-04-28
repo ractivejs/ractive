@@ -136,7 +136,7 @@ define([
 		index = getLowestIndex( remaining, [ quoteMark, parser.delimiters[0], parser.delimiters[1] ] );
 
 		if ( index === -1 ) {
-			throw new Error( 'Quoted attribute value must have a closing quote' );
+			parser.error( 'Quoted attribute value must have a closing quote' );
 		}
 
 		if ( !index ) {

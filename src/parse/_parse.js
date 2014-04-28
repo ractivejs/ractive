@@ -187,7 +187,14 @@ define([
 			}
 		}
 
-		// TODO glom text items together, remove empties
+		// final pass - fuse text nodes together
+		i = items.length;
+		while ( i-- ) {
+			if ( typeof items[i] === 'string' && typeof items[i+1] === 'string' ) {
+				items[i] = items[i] + items[i+1];
+				items.splice( i + 1, 1 );
+			}
+		}
 	}
 
 });
