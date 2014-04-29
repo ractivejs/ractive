@@ -5,14 +5,10 @@ define( function () {
 	return function getElement( input ) {
 		var output;
 
-		if ( !input ) { return; }
+		if ( !input || typeof input === 'boolean' ) { return; }
 
 		if ( typeof window === 'undefined' || !document || !input ) {
 			return null;
-		}
-
-		if( input.target ) {
-			return getElement( input.target );
 		}
 
 		// We already have a DOM node - no work to do. (Duck typing alert!)

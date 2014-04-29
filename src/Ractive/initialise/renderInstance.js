@@ -22,7 +22,7 @@ define([
 		}
 
 		// If the target contains content, and `append` is falsy, clear it
-		else if ( ractive.el && !options.append && !ractive.anchor ) {
+		else if ( ractive.el && !options.append ) {
 			ractive.el.innerHTML = '';
 		}
 
