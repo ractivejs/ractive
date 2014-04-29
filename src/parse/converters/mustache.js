@@ -24,7 +24,7 @@ define([
 	}
 
 	function getMustacheOrTriple ( parser, seekTriple ) {
-		var start, startPos, mustache, delimiters, children, child;
+		var start, startPos, mustache, delimiters, children, elseChildren, currentChildren, child;
 
 		start = parser.pos;
 		startPos = parser.getLinePos();
@@ -68,18 +68,75 @@ define([
 		}
 
 		// section children
-		if ( mustache.t === types.SECTION || mustache.t === types.INVERTED ) {
+		if ( mustache.t === types.SECTION ||
+			 mustache.t === types.SECTION_IF ||
+			 mustache.t === types.SECTION_UNLESS ||
+			 mustache.t === types.SECTION_EACH ||
+			 mustache.t === types.SECTION_WITH ||
+			 mustache.t === types.SECTION_TRY ||
+			 mustache.t === types.INVERTED ) {
+
 			children = [];
+			currentChildren = children;
+
+			var expectedClose;
+
+			if (parser.options.strict || parser.handlebars) {
+				switch ( mustache.t ) {
+					case types.SECTION_IF:
+						expectedClose = 'if';
+						break;
+					case types.SECTION_EACH:
+						expectedClose = 'each';
+						break;
+					case types.SECTION_TRY:
+						expectedClose = 'try';
+						break;
+					case types.SECTION_UNLESS:
+						expectedClose = 'unless';
+						break;
+					case types.SECTION_WITH:
+						expectedClose = 'with';
+						break;
+				}
+			}
+
+
 			while ( child = parser.read() ) {
 				if ( child.t === types.CLOSING ) {
+					if (expectedClose && child.r !== expectedClose) {
+						parser.error("Expected {{/" + expectedClose + "}}");
+					}
 					break;
 				}
 
-				children.push( child );
+				if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else') {
+					switch ( mustache.t ) {
+						case types.SECTION_IF:
+						case types.SECTION_EACH:
+						case types.SECTION_TRY:
+							currentChildren = elseChildren = [];
+							continue; // don't add this item to children
+
+						case types.SECTION_UNLESS:
+							parser.error( '{{else}} not allowed in {{#unless}}' );
+							break;
+
+						case types.SECTION_WITH:
+							parser.error( '{{else}} not allowed in {{#with}}' );
+							break;
+					}
+				}
+
+				currentChildren.push( child );
 			}
 
 			if ( children.length ) {
 				mustache.f = children;
+			}
+
+			if ( elseChildren && elseChildren.length ) {
+				mustache.l = elseChildren;
 			}
 
 			// there should be a section close now
