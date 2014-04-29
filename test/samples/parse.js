@@ -445,6 +445,188 @@ var parseTests = [
 			'{{foo[234}}\n' +
 			'         ^----'
 	},
+//	{
+//		name: 'Illegal closing section for {{#foo}}',
+//		template: '{{#foo}}wew{{/wee}}',
+//		options: { strict:true },
+//		error:
+//			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 1:12:\n' +
+//			'{{#foo}}wew{{/wee}}\n' +
+//			'           ^----'
+//	},
+//	{
+//		name: 'Multiline illegal closing section for {{#foo}}',
+//		template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}',
+//		options: { strict:true },
+//		error:
+//			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
+//			'     {{#foo}}wew{{/wee}}\n' +
+//			'                ^----'
+//	},
+//	{
+//		name: 'Multiline illegal closing section for {{#foo}} #2',
+//		template:
+//			'hi{{name}}\n' +
+//			'blah\n' +
+//			'     {{#foo}}wew{{/wee}}\n' +
+//			'foo',
+//		options: { strict:true },
+//		error:
+//			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
+//			'     {{#foo}}wew{{/wee}}\n' +
+//			'                ^----'
+//	},
+//	{
+//		name: 'Illegal closing section for {{##(foo*5)}}',
+//		template: '{{#(foo*5)}}foo{{/garbage}}',
+//		options: { strict:true },
+//		error:
+//			'Could not parse template: Illegal closing section for {{#(foo*5)}}: {{/garbage}}. Expected {{/()}} on line 1:16:\n' +
+//			'{{#(foo*5)}}foo{{/garbage}}\n' +
+//			'               ^----'
+//	},
+	{
+		name: 'If syntax',
+		template: '{{#if foo}}foo{{/if}}',
+		options: {handlebars:true},
+		parsed: [
+			{ t: 50, r: 'foo', f: ['foo'] }
+		]
+	},
+	{
+		name: 'If syntax',
+		template: '{{#if (foo*5 < 20)}}foo{{/if}}',
+		options: {handlebars:true},
+		parsed: [
+			{ t: 50,
+				x: { r: [ 'foo' ], s: '${0}*5<20' },
+				f: ['foo'] }
+		]
+	},
+	{
+		name: 'Illegal closing section for {{#if}}',
+		template: '{{#if (foo*5 < 20)}}foo{{/wrong}}',
+		options: {handlebars:true},
+		error:
+			'Expected {{/if}} at line 1 character 34:\n{{#if (foo*5 < 20)}}foo{{/wrong}}\n                                 ^----'
+	},
+	{
+		name: 'Unless syntax',
+		template: '{{#unless foo}}foo{{/unless}}',
+		options: {handlebars:true},
+		parsed: [
+			{ t: 51,
+				r: 'foo',
+				f: ['foo'] }
+		]
+	},
+	{
+		name: 'Unless syntax',
+		template: '{{#unless (foo*5 < 20)}}foo{{/unless}}',
+		options: {handlebars:true},
+		parsed: [
+			{ t: 51,
+				x: { r: [ 'foo' ], s: '${0}*5<20' },
+				f: ['foo'] }
+		]
+
+	},
+	{
+		name: 'If else syntax',
+		template: '{{#if foo}}foo{{else}}not foo{{/if}}',
+		options: {handlebars:true},
+		parsed:
+			[ { t: 50,
+			    r: 'foo',
+			    f: ['foo'],
+			    l: ['not foo'] } ]
+	},
+	{
+		name: 'Nested If else syntax',
+		template:
+			'{{#if foo}}' +
+			'	foo' +
+			'	{{#if foo2}}' +
+			'		foo2' +
+			'		{{else}}' +
+			'		not foo2' +
+			'	{{/if}}'+
+			'{{else}}' +
+			'	bar' +
+			'{{/if}}',
+		options: {handlebars:true},
+		parsed:
+			[ { t: 50,
+			    r: 'foo',
+			    f:
+			     [ ' foo ',
+			       { t: 50,
+			         r: 'foo2',
+			         f: [' foo2 '],
+			         l: [' not foo2 '] } ],
+			    l: ' bar' } ]
+	},
+	{
+		name: 'Each else syntax',
+		template: '{{#each foo:i}}foo #{{i+1}}{{else}}no foos{{/each}}',
+		options: {handlebars:true},
+		parsed:
+			[ { t: 52,
+				r: 'foo',
+				i: 'i',
+				f:
+					[ 'foo #',
+						{ t: 2,
+							x: { r: [ 'i' ], s: '${0}+1' } } ],
+				l: ['no foos'] } ]
+	},
+	{
+		name: 'Else not allowed in #unless',
+		template: '{{#unless foo}}not foo {{else}}foo?{{/unless}}',
+		options: {handlebars:true},
+		error:
+			'{{else}} not allowed in {{#unless}} at line 1 character 32:\n{{#unless foo}}not foo {{else}}foo?{{/unless}}\n                               ^----'
+	},
+	{
+		name: 'Else not allowed in #with',
+		template: '{{#with foo}}with foo {{else}}no foo?{{/with}}',
+		options: {handlebars:true},
+		error:
+			'{{else}} not allowed in {{#with}} at line 1 character 31:\n{{#with foo}}with foo {{else}}no foo?{{/with}}\n                              ^----'
+	},
+	{
+		name: 'Else is just a regular interpolator in {{#}}',
+		template: '{{#foo}}with foo {{else}}no foo?{{/foo}}',
+		parsed:
+			[ { t: 4,
+			    r: 'foo',
+			    f:
+			     [ 'with foo ',
+			       { t: 2, r: 'else' },
+			       'no foo?' ] } ]
+
+	},
+	{
+		name: 'Else is just a regular interpolator in {{^}}',
+		template: '{{^foo}}not foo {{else}}no foo?{{/foo}}',
+		parsed:
+			[ { t: 4,
+				r: 'foo',
+				n: true,
+				f:
+				 [ 'not foo ',
+				   { t: 2, r: 'else' },
+				   'no foo?' ] } ]
+	},
+	{
+		name: 'Expression close syntax',
+		template: '{{#(foo*5 < 20)}}foo{{/()}}',
+		parsed: [
+			{ t: 4,
+				x: { r: [ 'foo' ], s: '${0}*5<20' },
+				f: ['foo'] }
+		]
+	},
 	{
 		name: "SVG trace",
 		template:
@@ -532,34 +714,32 @@ var parseTests = [
 			          [ { t: 2,
 			              p: [ 1, 20 ],
 			              r: 'mustache' } ] } ] } ]
+	},
+	{
+		name: "Try block",
+		template: "{{#try}} blah {{/try}}",
+		options: {includeLinePositions:true, handlebars:true},
+		parsed:
+			[ { t: 54,
+			    p: [ 1, 1 ],
+			    f: [ ' blah '] } ]
+	},
+	{
+		name: "Bad try block",
+		template: "{{#try haha}} blah {{/try}}",
+		options: {includeLinePositions:true, handlebars:true},
+		error: "Unexpected expression in #try at line 1 character 12:\n{{#try haha}} blah {{/try}}\n           ^----"
+	},
+	{
+		name: "Try else block",
+		template: "{{#try}} blah {{else}} blah2 {{/try}}",
+		options: {includeLinePositions:true, handlebars:true},
+		parsed:
+			[ { t: 54,
+			    p: [ 1, 1 ],
+			    f: [' blah '],
+			    l: [' blah2 ' ]} ]
 	}
-
-	// Commenting out as arbitrary closing sections are supported?
-
-	// {
-	// 	name: 'Illegal closing section for {{#foo}}',
-	// 	template: '{{#foo}}wew{{/wee}}',
-	// 	error:
-	// 		'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 1:12:\n' +
-	// 		'{{#foo}}wew{{/wee}}\n' +
-	// 		'           ^----'
-	// },
-	// {
-	// 	name: 'Multiline illegal closing section for {{#foo}}',
-	// 	template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}',
-	// 	error:
-	// 		'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
-	// 		'     {{#foo}}wew{{/wee}}\n' +
-	// 		'                ^----'
-	// },
-	// {
-	// 	name: 'Multiline illegal closing section for {{#foo}} #2',
-	// 	template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}\nfoo',
-	// 	error:
-	// 		'Could not parse template: Illegal closing section {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
-	// 		'     {{#foo}}wew{{/wee}}\n' +
-	// 		'                ^----'
-	// }
 ];
 
 // this needs to work with AMD (for qunit) and node (for nodeunit)...
