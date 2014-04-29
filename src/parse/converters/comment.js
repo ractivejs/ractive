@@ -10,7 +10,9 @@ define([
 		CLOSE_COMMENT = '-->';
 
 	return function ( parser ) {
-		var content, remaining, endIndex;
+		var startPos, content, remaining, endIndex, comment;
+
+		startPos = parser.getLinePos();
 
 		if ( !parser.matchString( OPEN_COMMENT ) ) {
 			return null;
@@ -26,10 +28,16 @@ define([
 		content = remaining.substr( 0, endIndex );
 		parser.pos += endIndex + 3;
 
-		return {
+		comment = {
 			t: types.COMMENT,
 			c: content
 		};
+
+		if ( parser.includeLinePositions ) {
+			comment.p = startPos.toJSON();
+		}
+
+		return comment;
 	};
 
 });

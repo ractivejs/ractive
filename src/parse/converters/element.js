@@ -41,6 +41,7 @@ define([
 
 	function getElement ( parser ) {
 		var start,
+			startPos,
 			element,
 			lowerCaseName,
 			directiveName,
@@ -51,6 +52,7 @@ define([
 			child;
 
 		start = parser.pos;
+		startPos = parser.getLinePos();
 
 		if ( parser.inside ) {
 			return null;
@@ -68,6 +70,10 @@ define([
 		element = {
 			t: types.ELEMENT
 		};
+
+		if ( parser.includeLinePositions ) {
+			element.p = startPos.toJSON();
+		}
 
 		if ( parser.matchString( '!' ) ) {
 			element.y = 1;
