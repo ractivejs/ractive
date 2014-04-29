@@ -10,16 +10,17 @@ define([
 		var keys, key, values, toGet, newToGet, expand, concatenate;
 
 		keys = pattern.split( '.' );
-		toGet = [];
+		toGet = [ '' ];
 
 		expand = function ( keypath ) {
-			var value, key;
+			var value, key, childKeypath;
 
 			value = ( ractive._wrapped[ keypath ] ? ractive._wrapped[ keypath ].get() : ractive.get( keypath ) );
 
 			for ( key in value ) {
 				if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
-					newToGet.push( keypath + '.' + key );
+					childKeypath = keypath ? keypath + '.' + key : key;
+					newToGet.push( childKeypath );
 				}
 			}
 		};
