@@ -230,6 +230,37 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.update();
 		});
 
+		test( 'Pattern observers can start with wildcards (#629)', function ( t ) {
+			var ractive, values;
+
+			ractive = new Ractive({
+				data: {
+					foo: { number: 0 },
+					bar: { number: 1 },
+					baz: { number: 2 }
+				}
+			});
+
+			values = {};
+
+			ractive.observe( '*.number', function ( n, o, k ) {
+				values[ k ] = n;
+			});
+
+			t.deepEqual( values, {
+				'foo.number': 0,
+				'bar.number': 1,
+				'baz.number': 2
+			});
+
+			ractive.set( 'foo.number', 3 );
+			t.deepEqual( values, {
+				'foo.number': 3,
+				'bar.number': 1,
+				'baz.number': 2
+			});
+		});
+
 	};
 
 });
