@@ -1,6 +1,6 @@
 define([
 	'utils/create',
-	'utils/defineProperties',
+	'utils/defineProperty',
 	'utils/getGuid',
 	'utils/extend',
 	'extend/inheritFromParent',
@@ -12,7 +12,7 @@ define([
 	'circular'
 ], function (
 	create,
-	defineProperties,
+	defineProperty,
 	getGuid,
 	extendObject,
 	inheritFromParent,
@@ -49,12 +49,11 @@ define([
 
 		Child.prototype = create( Parent.prototype );
 		Child.prototype.constructor = Child;
+		Child.extend = extend;
 
-		defineProperties( Child, {
-			extend: { value: Parent.extend },
-
-			// each component needs a guid, for managing CSS etc
-			_guid: { value: getGuid() }
+		// each component needs a guid, for managing CSS etc
+		defineProperty( Child, '_guid', {
+			value: getGuid()
 		});
 
 		// Inherit options from parent
