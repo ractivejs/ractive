@@ -25,6 +25,7 @@
 // * o - decOrator
 // * y - is doctYpe
 // * c - is Content (e.g. of a comment node)
+// * p - line Position information - array with line number and character position of each node
 
 define([
 	'config/types',
@@ -76,6 +77,7 @@ define([
 
 			this.sanitizeElements = options.sanitize && options.sanitize.elements;
 			this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+			this.includeLinePositions = options.includeLinePositions;
 		},
 
 		postProcess: function ( items, options ) {

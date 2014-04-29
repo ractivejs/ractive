@@ -24,7 +24,10 @@ define([
 	}
 
 	function getMustacheOrTriple ( parser, seekTriple ) {
-		var start = parser.pos, mustache, delimiters, children, child;
+		var start, startPos, mustache, delimiters, children, child;
+
+		start = parser.pos;
+		startPos = parser.getLinePos();
 
 		delimiters = ( seekTriple ? parser.tripleDelimiters : parser.delimiters );
 
@@ -83,6 +86,10 @@ define([
 			// if ( !parser.matchString( parser.delimiters[0] ) || !parser.matchPattern( sectionClosePattern ) || !parser.matchString( parser.delimiters[1] ) ) {
 			// 	parser.error( 'Expected section closing tag' );
 			// }
+		}
+
+		if ( parser.includeLinePositions ) {
+			mustache.p = startPos.toJSON();
 		}
 
 		return mustache;
