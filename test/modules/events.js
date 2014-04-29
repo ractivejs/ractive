@@ -352,6 +352,7 @@ define([ 'ractive', '../vendor/ractive-events-tap' ], function ( Ractive ) {
 			t.equal( tapped, true );
 		});
 
+
 		// TODO move this into Ractive-events-tap repo
 		asyncTest( 'Pressing spacebar on a focused button results in a tap event', function ( t ) {
 			var ractive, node, tapped;
