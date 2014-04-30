@@ -215,7 +215,7 @@ define([
 			if ( item.a ) {
 				for ( key in item.a ) {
 					if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-						cleanup( item.a[ key ] );
+						cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
 					}
 				}
 			}
