@@ -112,15 +112,6 @@ define([
 			return parseCompoundTemplate( template, options );
 		}
 
-
-		if ( options.sanitize === true ) {
-			options.sanitize = {
-				// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-				elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
-				eventAttributes: true
-			};
-		}
-
 		parser = new StandardParser( template, options );
 
 		if ( parser.leftover ) {
