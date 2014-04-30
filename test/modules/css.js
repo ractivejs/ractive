@@ -159,7 +159,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Widget = Ractive.extend({
 				template: '<p>red</p>',
-				css: '@media screen { p { color: red; } }'
+				css: 'p { color: blue } @media screen and (max-width: 99999px) { p { color: red; } }'
 			});
 
 			ractive = new Ractive({

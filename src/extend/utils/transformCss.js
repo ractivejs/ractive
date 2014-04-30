@@ -51,7 +51,7 @@ define( function () {
 			var selectors, transformed;
 
 			// don't transform media queries!
-			if ( mediaQueryPattern.test( match ) ) return match;
+			if ( mediaQueryPattern.test( $1 ) ) return match;
 
 			selectors = $1.split( ',' ).map( trim );
 			transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
