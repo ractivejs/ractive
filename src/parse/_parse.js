@@ -85,7 +85,7 @@ define([
 
 		postProcess: function ( items, options ) {
 
-			cleanup( items, options.stripComments !== false, options.preserveWhitespace );
+			cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse );
 
 			if ( !options.preserveWhitespace ) {
 				trimWhitespace( items );
@@ -163,7 +163,7 @@ define([
 
 	return parse;
 
-	function cleanup ( items, stripComments, preserveWhitespace ) {
+	function cleanup ( items, stripComments, preserveWhitespace, rewriteElse ) {
 		var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
 
 		// first pass - remove standalones
@@ -186,7 +186,7 @@ define([
 			if ( item.f ) {
 				preserveWhitespaceInsideElement = ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
 
-				cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement );
+				cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement, rewriteElse );
 
 				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
 					trimWhitespace( item.f );
@@ -195,17 +195,20 @@ define([
 
 			// Split if-else blocks into two (an if, and an unless)
 			if ( item.l ) {
-				cleanup( item.l, stripComments, preserveWhitespace );
+				cleanup( item.l, stripComments, preserveWhitespace, rewriteElse );
 
-				unlessBlock = {
-					t: 4,
-					r: item.r,
-					n: 1,
-					f: item.l
-				};
+				if ( rewriteElse ) {
 
-				items.splice( i + 1, 0, unlessBlock );
-				delete item.l;
+					unlessBlock = {
+						t: 4,
+						r: item.r,
+						n: 1,
+						f: item.l
+					};
+
+					items.splice( i + 1, 0, unlessBlock );
+					delete item.l;
+				}
 			}
 
 			// Clean up element attributes
