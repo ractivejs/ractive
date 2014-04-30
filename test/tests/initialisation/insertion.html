@@ -1,20 +1,20 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>initialisation | Ractive Test Suite</title>
-	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
+	<title>initialisation/insertion | Ractive Test Suite</title>
+	<link rel='stylesheet' href='../../vendor/qunit.css' type='text/css' media='screen' />
 </head>
 <body>
 	<div id='qunit'></div>
 	<div id='qunit-fixture'></div>
 
-	<script src='../vendor/qunit.js'></script>
-	<script src='../vendor/qunit-html.js'></script>
-	<script src='../vendor/simulant.js'></script>
-	<script src='../vendor/require.js'></script>
+	<script src='../../vendor/qunit.js'></script>
+	<script src='../../vendor/qunit-html.js'></script>
+	<script src='../../vendor/simulant.js'></script>
+	<script src='../../vendor/require.js'></script>
 
 	<script>
-		_modules = [ 'initialisation' ];
+		_modules = [ 'initialisation/insertion' ];
 	</script>
 
 	<script>
@@ -25,7 +25,7 @@
 	var isBuild, config, i, prefixedModules = [];
 
 	config = {
-		baseUrl: '../../src/',
+		baseUrl: '../../../src/',
 		paths: {
 			modules: '../test/modules',
 			samples: '../test/samples',
@@ -34,11 +34,12 @@
 	};	
 
 	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
-		isBuild = true;
-		QUnit.config.autostart = false;
 		config.paths.ractive = '../tmp/ractive-legacy';
 	}
 
+	// require for asyncTest and module('',{setup}) to work
+	// see http://stackoverflow.com/questions/17065488/qunit-setup-called-for-each-test-before-teardown
+	QUnit.config.autostart = false;
 	require.config( config );
 
 	// can't use .map() because of IE...
@@ -56,9 +57,8 @@
 			testSet();
 		});
 
-		if ( isBuild ) {
-			QUnit.start();
-		}
+		QUnit.start();
+		
 	});
 
 }());

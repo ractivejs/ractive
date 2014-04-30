@@ -564,7 +564,7 @@ var parseTests = [
 			         r: 'foo2',
 			         f: [' foo2 '],
 			         l: [' not foo2 '] } ],
-			    l: ' bar' } ]
+			    l: [' bar'] } ]
 	},
 	{
 		name: 'Each else syntax',
@@ -612,7 +612,7 @@ var parseTests = [
 		parsed:
 			[ { t: 4,
 				r: 'foo',
-				n: true,
+				n: 1,
 				f:
 				 [ 'not foo ',
 				   { t: 2, r: 'else' },

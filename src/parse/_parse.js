@@ -229,7 +229,7 @@ define([
 				}
 
 				if ( !preserveWhitespace ) {
-					items[i] = items[i].replace( tabs, ' ' ).replace( contiguousWhitespace, ' ' );
+					items[i] = items[i].replace( contiguousWhitespace, ' ' );
 				}
 			}
 		}

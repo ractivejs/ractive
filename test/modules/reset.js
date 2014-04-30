@@ -164,7 +164,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
 
 			ractive = new Ractive({
-				el: { target: target, anchor: anchor },
+				el: target, 
+				append: anchor,
 				template: '<div>{{what}}</div>',
 				data: { what: 'fizz' }
 			});
