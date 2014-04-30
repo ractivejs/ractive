@@ -154,6 +154,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( getComputedStyle( paragraphs[3] ).color, colors.green );
 		});
 
+		test( 'Media queries work', function ( t ) {
+			var Widget, ractive, paragraphs;
+
+			Widget = Ractive.extend({
+				template: '<p>red</p>',
+				css: '@media screen { p { color: red; } }'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>black</p><widget/>',
+				components: {
+					widget: Widget
+				}
+			});
+
+			paragraphs = ractive.findAll( 'p' );
+
+			t.equal( getComputedStyle( paragraphs[0] ).color, colors.black );
+			t.equal( getComputedStyle( paragraphs[1] ).color, colors.red );
+		});
+
 	};
 
 });
