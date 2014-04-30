@@ -90,7 +90,7 @@ define([
 				lineNum ++;
 				currentLine = lines[ lineNum ];
 				nextLineEnd += currentLine.length + 1; // +1 for the newline
-			} while ( nextLineEnd < this.pos );
+			} while ( nextLineEnd <= this.pos );
 
 			columnNum = this.pos - currentLineEnd;
 
