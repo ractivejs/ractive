@@ -14,7 +14,324 @@
 
 	var noConflict = global.Ractive;
 
-	var legacy = undefined;
+	var legacy = function() {
+
+		var win, doc, exportedShims;
+		if ( typeof window === 'undefined' ) {
+			return;
+		}
+		win = window;
+		doc = win.document;
+		exportedShims = {};
+		if ( !doc ) {
+			return;
+		}
+		// Shims for older browsers
+		if ( !Date.now ) {
+			Date.now = function() {
+				return +new Date();
+			};
+		}
+		if ( !String.prototype.trim ) {
+			String.prototype.trim = function() {
+				return this.replace( /^\s+/, '' ).replace( /\s+$/, '' );
+			};
+		}
+		// Polyfill for Object.keys
+		// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/keys
+		if ( !Object.keys ) {
+			Object.keys = function() {
+				var hasOwnProperty = Object.prototype.hasOwnProperty,
+					hasDontEnumBug = !{
+						toString: null
+					}.propertyIsEnumerable( 'toString' ),
+					dontEnums = [
+						'toString',
+						'toLocaleString',
+						'valueOf',
+						'hasOwnProperty',
+						'isPrototypeOf',
+						'propertyIsEnumerable',
+						'constructor'
+					],
+					dontEnumsLength = dontEnums.length;
+				return function( obj ) {
+					if ( typeof obj !== 'object' && typeof obj !== 'function' || obj === null ) {
+						throw new TypeError( 'Object.keys called on non-object' );
+					}
+					var result = [];
+					for ( var prop in obj ) {
+						if ( hasOwnProperty.call( obj, prop ) ) {
+							result.push( prop );
+						}
+					}
+					if ( hasDontEnumBug ) {
+						for ( var i = 0; i < dontEnumsLength; i++ ) {
+							if ( hasOwnProperty.call( obj, dontEnums[ i ] ) ) {
+								result.push( dontEnums[ i ] );
+							}
+						}
+					}
+					return result;
+				};
+			}();
+		}
+		// Array extras
+		if ( !Array.prototype.indexOf ) {
+			Array.prototype.indexOf = function( needle, i ) {
+				var len;
+				if ( i === undefined ) {
+					i = 0;
+				}
+				if ( i < 0 ) {
+					i += this.length;
+				}
+				if ( i < 0 ) {
+					i = 0;
+				}
+				for ( len = this.length; i < len; i++ ) {
+					if ( this.hasOwnProperty( i ) && this[ i ] === needle ) {
+						return i;
+					}
+				}
+				return -1;
+			};
+		}
+		if ( !Array.prototype.forEach ) {
+			Array.prototype.forEach = function( callback, context ) {
+				var i, len;
+				for ( i = 0, len = this.length; i < len; i += 1 ) {
+					if ( this.hasOwnProperty( i ) ) {
+						callback.call( context, this[ i ], i, this );
+					}
+				}
+			};
+		}
+		if ( !Array.prototype.map ) {
+			Array.prototype.map = function( mapper, context ) {
+				var array = this,
+					i, len, mapped = [],
+					isActuallyString;
+				// incredibly, if you do something like
+				// Array.prototype.map.call( someString, iterator )
+				// then `this` will become an instance of String in IE8.
+				// And in IE8, you then can't do string[i]. Facepalm.
+				if ( array instanceof String ) {
+					array = array.toString();
+					isActuallyString = true;
+				}
+				for ( i = 0, len = array.length; i < len; i += 1 ) {
+					if ( array.hasOwnProperty( i ) || isActuallyString ) {
+						mapped[ i ] = mapper.call( context, array[ i ], i, array );
+					}
+				}
+				return mapped;
+			};
+		}
+		if ( typeof Array.prototype.reduce !== 'function' ) {
+			Array.prototype.reduce = function( callback, opt_initialValue ) {
+				var i, value, len, valueIsSet;
+				if ( 'function' !== typeof callback ) {
+					throw new TypeError( callback + ' is not a function' );
+				}
+				len = this.length;
+				valueIsSet = false;
+				if ( arguments.length > 1 ) {
+					value = opt_initialValue;
+					valueIsSet = true;
+				}
+				for ( i = 0; i < len; i += 1 ) {
+					if ( this.hasOwnProperty( i ) ) {
+						if ( valueIsSet ) {
+							value = callback( value, this[ i ], i, this );
+						}
+					} else {
+						value = this[ i ];
+						valueIsSet = true;
+					}
+				}
+				if ( !valueIsSet ) {
+					throw new TypeError( 'Reduce of empty array with no initial value' );
+				}
+				return value;
+			};
+		}
+		if ( !Array.prototype.filter ) {
+			Array.prototype.filter = function( filter, context ) {
+				var i, len, filtered = [];
+				for ( i = 0, len = this.length; i < len; i += 1 ) {
+					if ( this.hasOwnProperty( i ) && filter.call( context, this[ i ], i, this ) ) {
+						filtered[ filtered.length ] = this[ i ];
+					}
+				}
+				return filtered;
+			};
+		}
+		if ( typeof Function.prototype.bind !== 'function' ) {
+			Function.prototype.bind = function( context ) {
+				var args, fn, Empty, bound, slice = [].slice;
+				if ( typeof this !== 'function' ) {
+					throw new TypeError( 'Function.prototype.bind called on non-function' );
+				}
+				args = slice.call( arguments, 1 );
+				fn = this;
+				Empty = function() {};
+				bound = function() {
+					var ctx = this instanceof Empty && context ? this : context;
+					return fn.apply( ctx, args.concat( slice.call( arguments ) ) );
+				};
+				Empty.prototype = this.prototype;
+				bound.prototype = new Empty();
+				return bound;
+			};
+		}
+		// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
+		// addEventListener polyfill IE6+
+		if ( !win.addEventListener ) {
+			( function( win, doc ) {
+				var Event, addEventListener, removeEventListener, head, style, origCreateElement;
+				Event = function( e, element ) {
+					var property, instance = this;
+					for ( property in e ) {
+						instance[ property ] = e[ property ];
+					}
+					instance.currentTarget = element;
+					instance.target = e.srcElement || element;
+					instance.timeStamp = +new Date();
+					instance.preventDefault = function() {
+						e.returnValue = false;
+					};
+					instance.stopPropagation = function() {
+						e.cancelBubble = true;
+					};
+				};
+				addEventListener = function( type, listener ) {
+					var element = this,
+						listeners, i;
+					listeners = element.listeners || ( element.listeners = [] );
+					i = listeners.length;
+					listeners[ i ] = [
+						listener,
+						function( e ) {
+							listener.call( element, new Event( e, element ) );
+						}
+					];
+					element.attachEvent( 'on' + type, listeners[ i ][ 1 ] );
+				};
+				removeEventListener = function( type, listener ) {
+					var element = this,
+						listeners, i;
+					if ( !element.listeners ) {
+						return;
+					}
+					listeners = element.listeners;
+					i = listeners.length;
+					while ( i-- ) {
+						if ( listeners[ i ][ 0 ] === listener ) {
+							element.detachEvent( 'on' + type, listeners[ i ][ 1 ] );
+						}
+					}
+				};
+				win.addEventListener = doc.addEventListener = addEventListener;
+				win.removeEventListener = doc.removeEventListener = removeEventListener;
+				if ( 'Element' in win ) {
+					Element.prototype.addEventListener = addEventListener;
+					Element.prototype.removeEventListener = removeEventListener;
+				} else {
+					// First, intercept any calls to document.createElement - this is necessary
+					// because the CSS hack (see below) doesn't come into play until after a
+					// node is added to the DOM, which is too late for a lot of Ractive setup work
+					origCreateElement = doc.createElement;
+					doc.createElement = function( tagName ) {
+						var el = origCreateElement( tagName );
+						el.addEventListener = addEventListener;
+						el.removeEventListener = removeEventListener;
+						return el;
+					};
+					// Then, mop up any additional elements that weren't created via
+					// document.createElement (i.e. with innerHTML).
+					head = doc.getElementsByTagName( 'head' )[ 0 ];
+					style = doc.createElement( 'style' );
+					head.insertBefore( style, head.firstChild );
+				}
+			}( win, doc ) );
+		}
+		// The getComputedStyle polyfill interacts badly with jQuery, so we don't attach
+		// it to window. Instead, we export it for other modules to use as needed
+		// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
+		if ( !win.getComputedStyle ) {
+			exportedShims.getComputedStyle = function() {
+				function getPixelSize( element, style, property, fontSize ) {
+					var sizeWithSuffix = style[ property ],
+						size = parseFloat( sizeWithSuffix ),
+						suffix = sizeWithSuffix.split( /\d/ )[ 0 ],
+						rootSize;
+					fontSize = fontSize != null ? fontSize : /%|em/.test( suffix ) && element.parentElement ? getPixelSize( element.parentElement, element.parentElement.currentStyle, 'fontSize', null ) : 16;
+					rootSize = property == 'fontSize' ? fontSize : /width/i.test( property ) ? element.clientWidth : element.clientHeight;
+					return suffix == 'em' ? size * fontSize : suffix == 'in' ? size * 96 : suffix == 'pt' ? size * 96 / 72 : suffix == '%' ? size / 100 * rootSize : size;
+				}
+
+				function setShortStyleProperty( style, property ) {
+					var borderSuffix = property == 'border' ? 'Width' : '',
+						t = property + 'Top' + borderSuffix,
+						r = property + 'Right' + borderSuffix,
+						b = property + 'Bottom' + borderSuffix,
+						l = property + 'Left' + borderSuffix;
+					style[ property ] = ( style[ t ] == style[ r ] == style[ b ] == style[ l ] ? [ style[ t ] ] : style[ t ] == style[ b ] && style[ l ] == style[ r ] ? [
+						style[ t ],
+						style[ r ]
+					] : style[ l ] == style[ r ] ? [
+						style[ t ],
+						style[ r ],
+						style[ b ]
+					] : [
+						style[ t ],
+						style[ r ],
+						style[ b ],
+						style[ l ]
+					] ).join( ' ' );
+				}
+
+				function CSSStyleDeclaration( element ) {
+					var currentStyle, style, fontSize, property;
+					currentStyle = element.currentStyle;
+					style = this;
+					fontSize = getPixelSize( element, currentStyle, 'fontSize', null );
+					for ( property in currentStyle ) {
+						if ( /width|height|margin.|padding.|border.+W/.test( property ) && style[ property ] !== 'auto' ) {
+							style[ property ] = getPixelSize( element, currentStyle, property, fontSize ) + 'px';
+						} else if ( property === 'styleFloat' ) {
+							style.float = currentStyle[ property ];
+						} else {
+							style[ property ] = currentStyle[ property ];
+						}
+					}
+					setShortStyleProperty( style, 'margin' );
+					setShortStyleProperty( style, 'padding' );
+					setShortStyleProperty( style, 'border' );
+					style.fontSize = fontSize + 'px';
+					return style;
+				}
+				CSSStyleDeclaration.prototype = {
+					constructor: CSSStyleDeclaration,
+					getPropertyPriority: function() {},
+					getPropertyValue: function( prop ) {
+						return this[ prop ] || '';
+					},
+					item: function() {},
+					removeProperty: function() {},
+					setProperty: function() {},
+					getPropertyCSSValue: function() {}
+				};
+
+				function getComputedStyle( element ) {
+					return new CSSStyleDeclaration( element );
+				}
+				return getComputedStyle;
+			}();
+		}
+		return exportedShims;
+	}();
 
 	var config_initOptions = function() {
 
@@ -7576,2508 +7893,7 @@
 
 	var registries_partials = {};
 
-	var parse_utils_stripHtmlComments = function( html ) {
-		var commentStart, commentEnd, processed;
-		processed = '';
-		while ( html.length ) {
-			commentStart = html.indexOf( '<!--' );
-			commentEnd = html.indexOf( '-->' );
-			// no comments? great
-			if ( commentStart === -1 && commentEnd === -1 ) {
-				processed += html;
-				break;
-			}
-			// comment start but no comment end
-			if ( commentStart !== -1 && commentEnd === -1 ) {
-				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
-			}
-			// comment end but no comment start, or comment end before comment start
-			if ( commentEnd !== -1 && commentStart === -1 || commentEnd < commentStart ) {
-				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
-			}
-			processed += html.substr( 0, commentStart );
-			html = html.substring( commentEnd + 3 );
-		}
-		return processed;
-	};
-
-	var parse_utils_stripStandalones = function( types ) {
-
-		return function( tokens ) {
-			var i, current, backOne, backTwo, leadingLinebreak, trailingLinebreak;
-			leadingLinebreak = /^\s*\r?\n/;
-			trailingLinebreak = /\r?\n\s*$/;
-			for ( i = 2; i < tokens.length; i += 1 ) {
-				current = tokens[ i ];
-				backOne = tokens[ i - 1 ];
-				backTwo = tokens[ i - 2 ];
-				// if we're at the end of a [text][mustache][text] sequence, where [mustache] isn't a partial...
-				if ( current.type === types.TEXT && ( backOne.type === types.MUSTACHE && backOne.mustacheType !== types.PARTIAL ) && backTwo.type === types.TEXT ) {
-					// ... and the mustache is a standalone (i.e. line breaks either side)...
-					if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
-						// ... then we want to remove the whitespace after the first line break
-						// if the mustache wasn't a triple or interpolator or partial
-						if ( backOne.mustacheType !== types.INTERPOLATOR && backOne.mustacheType !== types.TRIPLE ) {
-							backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
-						}
-						// and the leading line break of the second text token
-						current.value = current.value.replace( leadingLinebreak, '' );
-						// if that means the current token is now empty, we should remove it
-						if ( current.value === '' ) {
-							tokens.splice( i--, 1 );
-						}
-					}
-				}
-			}
-			return tokens;
-		};
-	}( config_types );
-
-	var parse_utils_stripCommentTokens = function( types ) {
-
-		return function( tokens ) {
-			var i, current, previous, next;
-			for ( i = 0; i < tokens.length; i += 1 ) {
-				current = tokens[ i ];
-				previous = tokens[ i - 1 ];
-				next = tokens[ i + 1 ];
-				// if the current token is a comment or a delimiter change, remove it...
-				if ( current.mustacheType === types.COMMENT || current.mustacheType === types.DELIMCHANGE ) {
-					tokens.splice( i, 1 );
-					// remove comment token
-					// ... and see if it has text nodes either side, in which case
-					// they can be concatenated
-					if ( previous && next ) {
-						if ( previous.type === types.TEXT && next.type === types.TEXT ) {
-							previous.value += next.value;
-							tokens.splice( i, 1 );
-						}
-					}
-					i -= 1;
-				}
-			}
-			return tokens;
-		};
-	}( config_types );
-
-	var parse_Tokenizer_getMustache_getDelimiterChange = function( makeRegexMatcher ) {
-
-		var getDelimiter = makeRegexMatcher( /^[^\s=]+/ );
-		return function( tokenizer ) {
-			var start, opening, closing;
-			if ( !tokenizer.getStringMatch( '=' ) ) {
-				return null;
-			}
-			start = tokenizer.pos;
-			// allow whitespace before new opening delimiter
-			tokenizer.allowWhitespace();
-			opening = getDelimiter( tokenizer );
-			if ( !opening ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// allow whitespace (in fact, it's necessary...)
-			tokenizer.allowWhitespace();
-			closing = getDelimiter( tokenizer );
-			if ( !closing ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// allow whitespace before closing '='
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '=' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return [
-				opening,
-				closing
-			];
-		};
-	}( parse_Tokenizer_utils_makeRegexMatcher );
-
-	var parse_Tokenizer_getMustache_getMustacheType = function( types ) {
-
-		var mustacheTypes = {
-			'#': types.SECTION,
-			'^': types.INVERTED,
-			'/': types.CLOSING,
-			'>': types.PARTIAL,
-			'!': types.COMMENT,
-			'&': types.TRIPLE
-		};
-		return function( tokenizer ) {
-			var type = mustacheTypes[ tokenizer.str.charAt( tokenizer.pos ) ];
-			if ( !type ) {
-				return null;
-			}
-			tokenizer.pos += 1;
-			return type;
-		};
-	}( config_types );
-
-	var parse_Tokenizer_getMustache_getMustacheContent = function( types, makeRegexMatcher, getMustacheType ) {
-
-		var getIndexRef = makeRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ ),
-			arrayMember = /^[0-9][1-9]*$/;
-		return function( tokenizer, isTriple ) {
-			var start, mustache, type, expr, i, remaining, index, delimiter, keypathExpression;
-			start = tokenizer.pos;
-			mustache = {
-				type: isTriple ? types.TRIPLE : types.MUSTACHE
-			};
-			// Determine mustache type
-			if ( !isTriple ) {
-				// We need to test for expressions before we test for mustache type, because
-				// an expression that begins '!' looks a lot like a comment
-				if ( expr = tokenizer.getExpression() ) {
-					mustache.mustacheType = types.INTERPOLATOR;
-					// Was it actually an expression, or a comment block in disguise?
-					tokenizer.allowWhitespace();
-					if ( tokenizer.getStringMatch( tokenizer.delimiters[ 1 ] ) ) {
-						// expression
-						tokenizer.pos -= tokenizer.delimiters[ 1 ].length;
-					} else {
-						// comment block
-						tokenizer.pos = start;
-						expr = null;
-					}
-				}
-				if ( !expr ) {
-					type = getMustacheType( tokenizer );
-					// Special case - ampersand mustaches
-					if ( type === types.TRIPLE ) {
-						mustache = {
-							type: types.TRIPLE
-						};
-					} else {
-						mustache.mustacheType = type || types.INTERPOLATOR;
-					}
-					// if it's a comment or a section closer, allow any contents except '}}'
-					if ( type === types.COMMENT || type === types.CLOSING ) {
-						remaining = tokenizer.remaining();
-						index = remaining.indexOf( tokenizer.delimiters[ 1 ] );
-						if ( index !== -1 ) {
-							mustache.ref = remaining.substr( 0, index );
-							tokenizer.pos += index;
-							return mustache;
-						}
-					}
-				}
-			}
-			if ( !expr ) {
-				// allow whitespace
-				tokenizer.allowWhitespace();
-				// get expression
-				expr = tokenizer.getExpression();
-				// With certain valid references that aren't valid expressions,
-				// e.g. {{1.foo}}, we have a problem: it looks like we've got an
-				// expression, but the expression didn't consume the entire
-				// reference. So we need to check that the mustache delimiters
-				// appear next, unless there's an index reference (i.e. a colon)
-				remaining = tokenizer.remaining();
-				delimiter = isTriple ? tokenizer.tripleDelimiters[ 1 ] : tokenizer.delimiters[ 1 ];
-				if ( remaining.substr( 0, delimiter.length ) !== delimiter && remaining.charAt( 0 ) !== ':' ) {
-					tokenizer.pos = start;
-					remaining = tokenizer.remaining();
-					index = remaining.indexOf( tokenizer.delimiters[ 1 ] );
-					if ( index !== -1 ) {
-						mustache.ref = remaining.substr( 0, index ).trim();
-						tokenizer.pos += index;
-						return mustache;
-					}
-				}
-			}
-			while ( expr.t === types.BRACKETED && expr.x ) {
-				expr = expr.x;
-			}
-			// special case - integers should be treated as array members references,
-			// rather than as expressions in their own right
-			if ( expr.t === types.REFERENCE ) {
-				mustache.ref = expr.n;
-			} else if ( expr.t === types.NUMBER_LITERAL && arrayMember.test( expr.v ) ) {
-				mustache.ref = expr.v;
-			} else if ( keypathExpression = getKeypathExpression( expr ) ) {
-				mustache.keypathExpression = keypathExpression;
-			} else {
-				mustache.expression = expr;
-			}
-			// optional index reference
-			i = getIndexRef( tokenizer );
-			if ( i !== null ) {
-				mustache.indexRef = i;
-			}
-			return mustache;
-		};
-
-		function getKeypathExpression( expr ) {
-			var members = [];
-			while ( expr.t === types.MEMBER && expr.r.t === types.REFINEMENT ) {
-				members.unshift( expr.r );
-				expr = expr.x;
-			}
-			if ( expr.t !== types.REFERENCE ) {
-				return null;
-			}
-			return {
-				r: expr.n,
-				m: members
-			};
-		}
-	}( config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getMustache_getMustacheType );
-
-	var parse_Tokenizer_getMustache__getMustache = function( types, getDelimiterChange, getMustacheContent ) {
-
-		return function() {
-			// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
-			// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
-			// we will get a false positive if the mustache delimiter is a substring of the
-			// triple delimiter, as in the default case
-			var seekTripleFirst = this.tripleDelimiters[ 0 ].length > this.delimiters[ 0 ].length;
-			return getMustache( this, seekTripleFirst ) || getMustache( this, !seekTripleFirst );
-		};
-
-		function getMustache( tokenizer, seekTriple ) {
-			var start = tokenizer.pos,
-				content, delimiters;
-			delimiters = seekTriple ? tokenizer.tripleDelimiters : tokenizer.delimiters;
-			if ( !tokenizer.getStringMatch( delimiters[ 0 ] ) ) {
-				return null;
-			}
-			// delimiter change?
-			content = getDelimiterChange( tokenizer );
-			if ( content ) {
-				// find closing delimiter or abort...
-				if ( !tokenizer.getStringMatch( delimiters[ 1 ] ) ) {
-					tokenizer.pos = start;
-					return null;
-				}
-				// ...then make the switch
-				tokenizer[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = content;
-				return {
-					type: types.MUSTACHE,
-					mustacheType: types.DELIMCHANGE
-				};
-			}
-			tokenizer.allowWhitespace();
-			content = getMustacheContent( tokenizer, seekTriple );
-			if ( content === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// allow whitespace before closing delimiter
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( delimiters[ 1 ] ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return content;
-		}
-	}( config_types, parse_Tokenizer_getMustache_getDelimiterChange, parse_Tokenizer_getMustache_getMustacheContent );
-
-	var parse_Tokenizer_getComment_getComment = function( types ) {
-
-		return function() {
-			var content, remaining, endIndex;
-			if ( !this.getStringMatch( '<!--' ) ) {
-				return null;
-			}
-			remaining = this.remaining();
-			endIndex = remaining.indexOf( '-->' );
-			if ( endIndex === -1 ) {
-				throw new Error( 'Unexpected end of input (expected "-->" to close comment)' );
-			}
-			content = remaining.substr( 0, endIndex );
-			this.pos += endIndex + 3;
-			return {
-				type: types.COMMENT,
-				content: content
-			};
-		};
-	}( config_types );
-
-	var parse_Tokenizer_utils_getLowestIndex = function( haystack, needles ) {
-		var i, index, lowest;
-		i = needles.length;
-		while ( i-- ) {
-			index = haystack.indexOf( needles[ i ] );
-			// short circuit
-			if ( !index ) {
-				return 0;
-			}
-			if ( index === -1 ) {
-				continue;
-			}
-			if ( !lowest || index < lowest ) {
-				lowest = index;
-			}
-		}
-		return lowest || -1;
-	};
-
-	var parse_Tokenizer_getTag__getTag = function( types, makeRegexMatcher, getLowestIndex ) {
-
-		var getTag, getOpeningTag, getClosingTag, getTagName, getAttributes, getAttribute, getAttributeName, getAttributeValue, getUnquotedAttributeValue, getUnquotedAttributeValueToken, getUnquotedAttributeValueText, getQuotedStringToken, getQuotedAttributeValue;
-		getTag = function() {
-			return getOpeningTag( this ) || getClosingTag( this );
-		};
-		getOpeningTag = function( tokenizer ) {
-			var start, tag, attrs, lowerCaseName;
-			start = tokenizer.pos;
-			if ( tokenizer.inside ) {
-				return null;
-			}
-			if ( !tokenizer.getStringMatch( '<' ) ) {
-				return null;
-			}
-			tag = {
-				type: types.TAG
-			};
-			if ( tokenizer.getStringMatch( '!' ) ) {
-				tag.doctype = true;
-			}
-			// tag name
-			tag.name = getTagName( tokenizer );
-			if ( !tag.name ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// attributes
-			attrs = getAttributes( tokenizer );
-			if ( attrs ) {
-				tag.attrs = attrs;
-			}
-			// allow whitespace before closing solidus
-			tokenizer.allowWhitespace();
-			// self-closing solidus?
-			if ( tokenizer.getStringMatch( '/' ) ) {
-				tag.selfClosing = true;
-			}
-			// closing angle bracket
-			if ( !tokenizer.getStringMatch( '>' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// Special case - if we open a script tag, further tags should
-			// be ignored unless they're a closing script tag
-			lowerCaseName = tag.name.toLowerCase();
-			if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
-				tokenizer.inside = lowerCaseName;
-			}
-			return tag;
-		};
-		getClosingTag = function( tokenizer ) {
-			var start, tag, expected;
-			start = tokenizer.pos;
-			expected = function( str ) {
-				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ' + str + ')' );
-			};
-			if ( !tokenizer.getStringMatch( '<' ) ) {
-				return null;
-			}
-			tag = {
-				type: types.TAG,
-				closing: true
-			};
-			// closing solidus
-			if ( !tokenizer.getStringMatch( '/' ) ) {
-				expected( '"/"' );
-			}
-			// tag name
-			tag.name = getTagName( tokenizer );
-			if ( !tag.name ) {
-				expected( 'tag name' );
-			}
-			// closing angle bracket
-			if ( !tokenizer.getStringMatch( '>' ) ) {
-				expected( '">"' );
-			}
-			if ( tokenizer.inside ) {
-				if ( tag.name.toLowerCase() !== tokenizer.inside ) {
-					tokenizer.pos = start;
-					return null;
-				}
-				tokenizer.inside = null;
-			}
-			return tag;
-		};
-		getTagName = makeRegexMatcher( /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/ );
-		getAttributes = function( tokenizer ) {
-			var start, attrs, attr;
-			start = tokenizer.pos;
-			// if the next character isn't whitespace, there are no attributes...
-			if ( !tokenizer.getStringMatch( ' ' ) && !tokenizer.getStringMatch( '\n' ) ) {
-				return null;
-			}
-			// ...but allow arbitrary amounts of whitespace
-			tokenizer.allowWhitespace();
-			attr = getAttribute( tokenizer );
-			if ( !attr ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			attrs = [];
-			while ( attr !== null ) {
-				attrs.push( attr );
-				tokenizer.allowWhitespace();
-				attr = getAttribute( tokenizer );
-			}
-			return attrs;
-		};
-		getAttribute = function( tokenizer ) {
-			var attr, name, value;
-			name = getAttributeName( tokenizer );
-			if ( !name ) {
-				return null;
-			}
-			attr = {
-				name: name
-			};
-			value = getAttributeValue( tokenizer );
-			if ( value ) {
-				attr.value = value;
-			}
-			return attr;
-		};
-		getAttributeName = makeRegexMatcher( /^[^\s"'>\/=]+/ );
-		getAttributeValue = function( tokenizer ) {
-			var start, value;
-			start = tokenizer.pos;
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '=' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			tokenizer.allowWhitespace();
-			value = getQuotedAttributeValue( tokenizer, '\'' ) || getQuotedAttributeValue( tokenizer, '"' ) || getUnquotedAttributeValue( tokenizer );
-			if ( value === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return value;
-		};
-		getUnquotedAttributeValueText = makeRegexMatcher( /^[^\s"'=<>`]+/ );
-		getUnquotedAttributeValueToken = function( tokenizer ) {
-			var start, text, index;
-			start = tokenizer.pos;
-			text = getUnquotedAttributeValueText( tokenizer );
-			if ( !text ) {
-				return null;
-			}
-			if ( ( index = text.indexOf( tokenizer.delimiters[ 0 ] ) ) !== -1 ) {
-				text = text.substr( 0, index );
-				tokenizer.pos = start + text.length;
-			}
-			return {
-				type: types.TEXT,
-				value: text
-			};
-		};
-		getUnquotedAttributeValue = function( tokenizer ) {
-			var tokens, token;
-			tokens = [];
-			token = tokenizer.getMustache() || getUnquotedAttributeValueToken( tokenizer );
-			while ( token !== null ) {
-				tokens.push( token );
-				token = tokenizer.getMustache() || getUnquotedAttributeValueToken( tokenizer );
-			}
-			if ( !tokens.length ) {
-				return null;
-			}
-			return tokens;
-		};
-		getQuotedAttributeValue = function( tokenizer, quoteMark ) {
-			var start, tokens, token;
-			start = tokenizer.pos;
-			if ( !tokenizer.getStringMatch( quoteMark ) ) {
-				return null;
-			}
-			tokens = [];
-			token = tokenizer.getMustache() || getQuotedStringToken( tokenizer, quoteMark );
-			while ( token !== null ) {
-				tokens.push( token );
-				token = tokenizer.getMustache() || getQuotedStringToken( tokenizer, quoteMark );
-			}
-			if ( !tokenizer.getStringMatch( quoteMark ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return tokens;
-		};
-		getQuotedStringToken = function( tokenizer, quoteMark ) {
-			var start, index, remaining;
-			start = tokenizer.pos;
-			remaining = tokenizer.remaining();
-			index = getLowestIndex( remaining, [
-				quoteMark,
-				tokenizer.delimiters[ 0 ],
-				tokenizer.delimiters[ 1 ]
-			] );
-			if ( index === -1 ) {
-				throw new Error( 'Quoted attribute value must have a closing quote' );
-			}
-			if ( !index ) {
-				return null;
-			}
-			tokenizer.pos += index;
-			return {
-				type: types.TEXT,
-				value: remaining.substr( 0, index )
-			};
-		};
-		return getTag;
-	}( config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_utils_getLowestIndex );
-
-	var parse_Tokenizer_getText__getText = function( types, getLowestIndex ) {
-
-		return function() {
-			var index, remaining, barrier;
-			remaining = this.remaining();
-			barrier = this.inside ? '</' + this.inside : '<';
-			if ( this.inside && !this.interpolate[ this.inside ] ) {
-				index = remaining.indexOf( barrier );
-			} else {
-				index = getLowestIndex( remaining, [
-					barrier,
-					this.delimiters[ 0 ],
-					this.tripleDelimiters[ 0 ]
-				] );
-			}
-			if ( !index ) {
-				return null;
-			}
-			if ( index === -1 ) {
-				index = remaining.length;
-			}
-			this.pos += index;
-			return {
-				type: types.TEXT,
-				value: remaining.substr( 0, index )
-			};
-		};
-	}( config_types, parse_Tokenizer_utils_getLowestIndex );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getBooleanLiteral = function( types ) {
-
-		return function( tokenizer ) {
-			var remaining = tokenizer.remaining();
-			if ( remaining.substr( 0, 4 ) === 'true' ) {
-				tokenizer.pos += 4;
-				return {
-					t: types.BOOLEAN_LITERAL,
-					v: 'true'
-				};
-			}
-			if ( remaining.substr( 0, 5 ) === 'false' ) {
-				tokenizer.pos += 5;
-				return {
-					t: types.BOOLEAN_LITERAL,
-					v: 'false'
-				};
-			}
-			return null;
-		};
-	}( config_types );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePair = function( types, getKey ) {
-
-		return function( tokenizer ) {
-			var start, key, value;
-			start = tokenizer.pos;
-			// allow whitespace between '{' and key
-			tokenizer.allowWhitespace();
-			key = getKey( tokenizer );
-			if ( key === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// allow whitespace between key and ':'
-			tokenizer.allowWhitespace();
-			// next character must be ':'
-			if ( !tokenizer.getStringMatch( ':' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// allow whitespace between ':' and value
-			tokenizer.allowWhitespace();
-			// next expression must be a, well... expression
-			value = tokenizer.getExpression();
-			if ( value === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.KEY_VALUE_PAIR,
-				k: key,
-				v: value
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_shared_getKey );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePairs = function( getKeyValuePair ) {
-
-		return function getKeyValuePairs( tokenizer ) {
-			var start, pairs, pair, keyValuePairs;
-			start = tokenizer.pos;
-			pair = getKeyValuePair( tokenizer );
-			if ( pair === null ) {
-				return null;
-			}
-			pairs = [ pair ];
-			if ( tokenizer.getStringMatch( ',' ) ) {
-				keyValuePairs = getKeyValuePairs( tokenizer );
-				if ( !keyValuePairs ) {
-					tokenizer.pos = start;
-					return null;
-				}
-				return pairs.concat( keyValuePairs );
-			}
-			return pairs;
-		};
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePair );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral__getObjectLiteral = function( types, getKeyValuePairs ) {
-
-		return function( tokenizer ) {
-			var start, keyValuePairs;
-			start = tokenizer.pos;
-			// allow whitespace
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '{' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			keyValuePairs = getKeyValuePairs( tokenizer );
-			// allow whitespace between final value and '}'
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '}' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.OBJECT_LITERAL,
-				m: keyValuePairs
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePairs );
-
-	var parse_Tokenizer_getExpression_shared_getExpressionList = function getExpressionList( tokenizer ) {
-		var start, expressions, expr, next;
-		start = tokenizer.pos;
-		tokenizer.allowWhitespace();
-		expr = tokenizer.getExpression();
-		if ( expr === null ) {
-			return null;
-		}
-		expressions = [ expr ];
-		// allow whitespace between expression and ','
-		tokenizer.allowWhitespace();
-		if ( tokenizer.getStringMatch( ',' ) ) {
-			next = getExpressionList( tokenizer );
-			if ( next === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			expressions = expressions.concat( next );
-		}
-		return expressions;
-	};
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getArrayLiteral = function( types, getExpressionList ) {
-
-		return function( tokenizer ) {
-			var start, expressionList;
-			start = tokenizer.pos;
-			// allow whitespace before '['
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '[' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			expressionList = getExpressionList( tokenizer );
-			if ( !tokenizer.getStringMatch( ']' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.ARRAY_LITERAL,
-				m: expressionList
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_shared_getExpressionList );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral__getLiteral = function( getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral ) {
-
-		return function( tokenizer ) {
-			var literal = getNumberLiteral( tokenizer ) || getBooleanLiteral( tokenizer ) || getStringLiteral( tokenizer ) || getObjectLiteral( tokenizer ) || getArrayLiteral( tokenizer );
-			return literal;
-		};
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getBooleanLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral__getObjectLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getArrayLiteral );
-
-	var parse_Tokenizer_getExpression_getPrimary_getReference = function( types, makeRegexMatcher, getName ) {
-
-		var getDotRefinement, getArrayRefinement, getArrayMember, globals;
-		getDotRefinement = makeRegexMatcher( /^\.[a-zA-Z_$0-9]+/ );
-		getArrayRefinement = function( tokenizer ) {
-			var num = getArrayMember( tokenizer );
-			if ( num ) {
-				return '.' + num;
-			}
-			return null;
-		};
-		getArrayMember = makeRegexMatcher( /^\[(0|[1-9][0-9]*)\]/ );
-		// if a reference is a browser global, we don't deference it later, so it needs special treatment
-		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
-		return function( tokenizer ) {
-			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
-			startPos = tokenizer.pos;
-			// we might have ancestor refs...
-			ancestor = '';
-			while ( tokenizer.getStringMatch( '../' ) ) {
-				ancestor += '../';
-			}
-			if ( !ancestor ) {
-				// we might have an implicit iterator or a restricted reference
-				dot = tokenizer.getStringMatch( '.' ) || '';
-			}
-			name = getName( tokenizer ) || '';
-			// if this is a browser global, stop here
-			if ( !ancestor && !dot && globals.test( name ) ) {
-				return {
-					t: types.GLOBAL,
-					v: name
-				};
-			}
-			// allow the use of `this`
-			if ( name === 'this' && !ancestor && !dot ) {
-				name = '.';
-				startPos += 3;
-			}
-			combo = ( ancestor || dot ) + name;
-			if ( !combo ) {
-				return null;
-			}
-			while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
-				combo += refinement;
-			}
-			if ( tokenizer.getStringMatch( '(' ) ) {
-				// if this is a method invocation (as opposed to a function) we need
-				// to strip the method name from the reference combo, else the context
-				// will be wrong
-				lastDotIndex = combo.lastIndexOf( '.' );
-				if ( lastDotIndex !== -1 ) {
-					combo = combo.substr( 0, lastDotIndex );
-					tokenizer.pos = startPos + combo.length;
-				} else {
-					tokenizer.pos -= 1;
-				}
-			}
-			return {
-				t: types.REFERENCE,
-				n: combo
-			};
-		};
-	}( config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getExpression_shared_getName );
-
-	var parse_Tokenizer_getExpression_getPrimary_getBracketedExpression = function( types ) {
-
-		return function( tokenizer ) {
-			var start, expr;
-			start = tokenizer.pos;
-			if ( !tokenizer.getStringMatch( '(' ) ) {
-				return null;
-			}
-			tokenizer.allowWhitespace();
-			expr = tokenizer.getExpression();
-			if ( !expr ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( ')' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.BRACKETED,
-				x: expr
-			};
-		};
-	}( config_types );
-
-	var parse_Tokenizer_getExpression_getPrimary__getPrimary = function( getLiteral, getReference, getBracketedExpression ) {
-
-		return function( tokenizer ) {
-			return getLiteral( tokenizer ) || getReference( tokenizer ) || getBracketedExpression( tokenizer );
-		};
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral__getLiteral, parse_Tokenizer_getExpression_getPrimary_getReference, parse_Tokenizer_getExpression_getPrimary_getBracketedExpression );
-
-	var parse_Tokenizer_getExpression_shared_getRefinement = function( types, getName ) {
-
-		return function getRefinement( tokenizer ) {
-			var start, name, expr;
-			start = tokenizer.pos;
-			tokenizer.allowWhitespace();
-			// "." name
-			if ( tokenizer.getStringMatch( '.' ) ) {
-				tokenizer.allowWhitespace();
-				if ( name = getName( tokenizer ) ) {
-					return {
-						t: types.REFINEMENT,
-						n: name
-					};
-				}
-				tokenizer.expected( 'a property name' );
-			}
-			// "[" expression "]"
-			if ( tokenizer.getStringMatch( '[' ) ) {
-				tokenizer.allowWhitespace();
-				expr = tokenizer.getExpression();
-				if ( !expr ) {
-					tokenizer.expected( 'an expression' );
-				}
-				tokenizer.allowWhitespace();
-				if ( !tokenizer.getStringMatch( ']' ) ) {
-					tokenizer.expected( '"]"' );
-				}
-				return {
-					t: types.REFINEMENT,
-					x: expr
-				};
-			}
-			return null;
-		};
-	}( config_types, parse_Tokenizer_getExpression_shared_getName );
-
-	var parse_Tokenizer_getExpression_getMemberOrInvocation = function( types, getPrimary, getExpressionList, getRefinement ) {
-
-		return function( tokenizer ) {
-			var current, expression, refinement, expressionList;
-			expression = getPrimary( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-			while ( expression ) {
-				current = tokenizer.pos;
-				if ( refinement = getRefinement( tokenizer ) ) {
-					expression = {
-						t: types.MEMBER,
-						x: expression,
-						r: refinement
-					};
-				} else if ( tokenizer.getStringMatch( '(' ) ) {
-					tokenizer.allowWhitespace();
-					expressionList = getExpressionList( tokenizer );
-					tokenizer.allowWhitespace();
-					if ( !tokenizer.getStringMatch( ')' ) ) {
-						tokenizer.pos = current;
-						break;
-					}
-					expression = {
-						t: types.INVOCATION,
-						x: expression
-					};
-					if ( expressionList ) {
-						expression.o = expressionList;
-					}
-				} else {
-					break;
-				}
-			}
-			return expression;
-		};
-	}( config_types, parse_Tokenizer_getExpression_getPrimary__getPrimary, parse_Tokenizer_getExpression_shared_getExpressionList, parse_Tokenizer_getExpression_shared_getRefinement );
-
-	var parse_Tokenizer_getExpression_getTypeOf = function( types, getMemberOrInvocation ) {
-
-		var getTypeOf, makePrefixSequenceMatcher;
-		makePrefixSequenceMatcher = function( symbol, fallthrough ) {
-			return function( tokenizer ) {
-				var start, expression;
-				if ( !tokenizer.getStringMatch( symbol ) ) {
-					return fallthrough( tokenizer );
-				}
-				start = tokenizer.pos;
-				tokenizer.allowWhitespace();
-				expression = tokenizer.getExpression();
-				if ( !expression ) {
-					tokenizer.expected( 'an expression' );
-				}
-				return {
-					s: symbol,
-					o: expression,
-					t: types.PREFIX_OPERATOR
-				};
-			};
-		};
-		// create all prefix sequence matchers, return getTypeOf
-		( function() {
-			var i, len, matcher, prefixOperators, fallthrough;
-			prefixOperators = '! ~ + - typeof'.split( ' ' );
-			fallthrough = getMemberOrInvocation;
-			for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
-				matcher = makePrefixSequenceMatcher( prefixOperators[ i ], fallthrough );
-				fallthrough = matcher;
-			}
-			// typeof operator is higher precedence than multiplication, so provides the
-			// fallthrough for the multiplication sequence matcher we're about to create
-			// (we're skipping void and delete)
-			getTypeOf = fallthrough;
-		}() );
-		return getTypeOf;
-	}( config_types, parse_Tokenizer_getExpression_getMemberOrInvocation );
-
-	var parse_Tokenizer_getExpression_getLogicalOr = function( types, getTypeOf ) {
-
-		var getLogicalOr, makeInfixSequenceMatcher;
-		makeInfixSequenceMatcher = function( symbol, fallthrough ) {
-			return function( tokenizer ) {
-				var start, left, right;
-				left = fallthrough( tokenizer );
-				if ( !left ) {
-					return null;
-				}
-				// Loop to handle left-recursion in a case like `a * b * c` and produce
-				// left association, i.e. `(a * b) * c`.  The matcher can't call itself
-				// to parse `left` because that would be infinite regress.
-				while ( true ) {
-					start = tokenizer.pos;
-					tokenizer.allowWhitespace();
-					if ( !tokenizer.getStringMatch( symbol ) ) {
-						tokenizer.pos = start;
-						return left;
-					}
-					// special case - in operator must not be followed by [a-zA-Z_$0-9]
-					if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
-						tokenizer.pos = start;
-						return left;
-					}
-					tokenizer.allowWhitespace();
-					// right operand must also consist of only higher-precedence operators
-					right = fallthrough( tokenizer );
-					if ( !right ) {
-						tokenizer.pos = start;
-						return left;
-					}
-					left = {
-						t: types.INFIX_OPERATOR,
-						s: symbol,
-						o: [
-							left,
-							right
-						]
-					};
-				}
-			};
-		};
-		// create all infix sequence matchers, and return getLogicalOr
-		( function() {
-			var i, len, matcher, infixOperators, fallthrough;
-			// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
-			// Each sequence matcher will initially fall through to its higher precedence
-			// neighbour, and only attempt to match if one of the higher precedence operators
-			// (or, ultimately, a literal, reference, or bracketed expression) already matched
-			infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
-			// A typeof operator is higher precedence than multiplication
-			fallthrough = getTypeOf;
-			for ( i = 0, len = infixOperators.length; i < len; i += 1 ) {
-				matcher = makeInfixSequenceMatcher( infixOperators[ i ], fallthrough );
-				fallthrough = matcher;
-			}
-			// Logical OR is the fallthrough for the conditional matcher
-			getLogicalOr = fallthrough;
-		}() );
-		return getLogicalOr;
-	}( config_types, parse_Tokenizer_getExpression_getTypeOf );
-
-	var parse_Tokenizer_getExpression_getConditional = function( types, getLogicalOr ) {
-
-		// The conditional operator is the lowest precedence operator, so we start here
-		return function( tokenizer ) {
-			var start, expression, ifTrue, ifFalse;
-			expression = getLogicalOr( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-			start = tokenizer.pos;
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '?' ) ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			tokenizer.allowWhitespace();
-			ifTrue = tokenizer.getExpression();
-			if ( !ifTrue ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( ':' ) ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			tokenizer.allowWhitespace();
-			ifFalse = tokenizer.getExpression();
-			if ( !ifFalse ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			return {
-				t: types.CONDITIONAL,
-				o: [
-					expression,
-					ifTrue,
-					ifFalse
-				]
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_getLogicalOr );
-
-	var parse_Tokenizer_getExpression__getExpression = function( getConditional ) {
-
-		// The conditional operator is the lowest precedence operator (except yield,
-		// assignment operators, and commas, none of which are supported), so we
-		// start there. If it doesn't match, it 'falls through' to progressively
-		// higher precedence operators, until it eventually matches (or fails to
-		// match) a 'primary' - a literal or a reference. This way, the abstract syntax
-		// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-		return function() {
-			return getConditional( this );
-		};
-	}( parse_Tokenizer_getExpression_getConditional );
-
-	var parse_Tokenizer__Tokenizer = function( getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch ) {
-
-		var Tokenizer;
-		Tokenizer = function( str, options ) {
-			var token;
-			this.str = str;
-			this.pos = 0;
-			this.delimiters = options.delimiters;
-			this.tripleDelimiters = options.tripleDelimiters;
-			this.interpolate = options.interpolate;
-			this.tokens = [];
-			while ( this.pos < this.str.length ) {
-				token = this.getToken();
-				if ( token === null && this.remaining() ) {
-					this.fail();
-				}
-				this.tokens.push( token );
-			}
-		};
-		Tokenizer.prototype = {
-			getToken: function() {
-				var token = this.getMustache() || this.getComment() || this.getTag() || this.getText();
-				return token;
-			},
-			getMustache: getMustache,
-			getComment: getComment,
-			getTag: getTag,
-			getText: getText,
-			getExpression: getExpression,
-			// utils
-			allowWhitespace: allowWhitespace,
-			getStringMatch: getStringMatch,
-			remaining: function() {
-				return this.str.substring( this.pos );
-			},
-			fail: function() {
-				var last20, next20;
-				last20 = this.str.substr( 0, this.pos ).substr( -20 );
-				if ( last20.length === 20 ) {
-					last20 = '...' + last20;
-				}
-				next20 = this.remaining().substr( 0, 20 );
-				if ( next20.length === 20 ) {
-					next20 = next20 + '...';
-				}
-				throw new Error( 'Could not parse template: ' + ( last20 ? last20 + '<- ' : '' ) + 'failed at character ' + this.pos + ' ->' + next20 );
-			},
-			expected: function( thing ) {
-				var remaining = this.remaining().substr( 0, 40 );
-				if ( remaining.length === 40 ) {
-					remaining += '...';
-				}
-				throw new Error( 'Tokenizer failed: unexpected string "' + remaining + '" (expected ' + thing + ')' );
-			}
-		};
-		return Tokenizer;
-	}( parse_Tokenizer_getMustache__getMustache, parse_Tokenizer_getComment_getComment, parse_Tokenizer_getTag__getTag, parse_Tokenizer_getText__getText, parse_Tokenizer_getExpression__getExpression, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_utils_getStringMatch );
-
-	var parse_tokenize = function( initOptions, stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer ) {
-
-		return function( template, options ) {
-			var tokenizer, tokens;
-			options = options || {};
-			if ( options.stripComments !== false ) {
-				template = stripHtmlComments( template );
-			}
-			// TODO handle delimiters differently
-			tokenizer = new Tokenizer( template, {
-				delimiters: options.delimiters || initOptions.defaults.delimiters,
-				tripleDelimiters: options.tripleDelimiters || initOptions.defaults.tripleDelimiters,
-				interpolate: {
-					script: options.interpolateScripts !== false ? true : false,
-					style: options.interpolateStyles !== false ? true : false
-				}
-			} );
-			// TODO and this...
-			tokens = tokenizer.tokens;
-			stripStandalones( tokens );
-			stripCommentTokens( tokens );
-			return tokens;
-		};
-	}( config_initOptions, parse_utils_stripHtmlComments, parse_utils_stripStandalones, parse_utils_stripCommentTokens, parse_Tokenizer__Tokenizer );
-
-	var parse_Parser_getText_TextStub__TextStub = function( types ) {
-
-		var TextStub,
-			// helpers
-			htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
-		TextStub = function( token, preserveWhitespace ) {
-			this.text = preserveWhitespace ? token.value : token.value.replace( whitespace, ' ' );
-		};
-		TextStub.prototype = {
-			type: types.TEXT,
-			toJSON: function() {
-				// this will be used within HTML, so we need to decode things like &amp;
-				return this.decoded || ( this.decoded = decodeCharacterReferences( this.text ) );
-			},
-			toString: function() {
-				// this will be used as straight text
-				return this.text;
-			}
-		};
-		htmlEntities = {
-			quot: 34,
-			amp: 38,
-			apos: 39,
-			lt: 60,
-			gt: 62,
-			nbsp: 160,
-			iexcl: 161,
-			cent: 162,
-			pound: 163,
-			curren: 164,
-			yen: 165,
-			brvbar: 166,
-			sect: 167,
-			uml: 168,
-			copy: 169,
-			ordf: 170,
-			laquo: 171,
-			not: 172,
-			shy: 173,
-			reg: 174,
-			macr: 175,
-			deg: 176,
-			plusmn: 177,
-			sup2: 178,
-			sup3: 179,
-			acute: 180,
-			micro: 181,
-			para: 182,
-			middot: 183,
-			cedil: 184,
-			sup1: 185,
-			ordm: 186,
-			raquo: 187,
-			frac14: 188,
-			frac12: 189,
-			frac34: 190,
-			iquest: 191,
-			Agrave: 192,
-			Aacute: 193,
-			Acirc: 194,
-			Atilde: 195,
-			Auml: 196,
-			Aring: 197,
-			AElig: 198,
-			Ccedil: 199,
-			Egrave: 200,
-			Eacute: 201,
-			Ecirc: 202,
-			Euml: 203,
-			Igrave: 204,
-			Iacute: 205,
-			Icirc: 206,
-			Iuml: 207,
-			ETH: 208,
-			Ntilde: 209,
-			Ograve: 210,
-			Oacute: 211,
-			Ocirc: 212,
-			Otilde: 213,
-			Ouml: 214,
-			times: 215,
-			Oslash: 216,
-			Ugrave: 217,
-			Uacute: 218,
-			Ucirc: 219,
-			Uuml: 220,
-			Yacute: 221,
-			THORN: 222,
-			szlig: 223,
-			agrave: 224,
-			aacute: 225,
-			acirc: 226,
-			atilde: 227,
-			auml: 228,
-			aring: 229,
-			aelig: 230,
-			ccedil: 231,
-			egrave: 232,
-			eacute: 233,
-			ecirc: 234,
-			euml: 235,
-			igrave: 236,
-			iacute: 237,
-			icirc: 238,
-			iuml: 239,
-			eth: 240,
-			ntilde: 241,
-			ograve: 242,
-			oacute: 243,
-			ocirc: 244,
-			otilde: 245,
-			ouml: 246,
-			divide: 247,
-			oslash: 248,
-			ugrave: 249,
-			uacute: 250,
-			ucirc: 251,
-			uuml: 252,
-			yacute: 253,
-			thorn: 254,
-			yuml: 255,
-			OElig: 338,
-			oelig: 339,
-			Scaron: 352,
-			scaron: 353,
-			Yuml: 376,
-			fnof: 402,
-			circ: 710,
-			tilde: 732,
-			Alpha: 913,
-			Beta: 914,
-			Gamma: 915,
-			Delta: 916,
-			Epsilon: 917,
-			Zeta: 918,
-			Eta: 919,
-			Theta: 920,
-			Iota: 921,
-			Kappa: 922,
-			Lambda: 923,
-			Mu: 924,
-			Nu: 925,
-			Xi: 926,
-			Omicron: 927,
-			Pi: 928,
-			Rho: 929,
-			Sigma: 931,
-			Tau: 932,
-			Upsilon: 933,
-			Phi: 934,
-			Chi: 935,
-			Psi: 936,
-			Omega: 937,
-			alpha: 945,
-			beta: 946,
-			gamma: 947,
-			delta: 948,
-			epsilon: 949,
-			zeta: 950,
-			eta: 951,
-			theta: 952,
-			iota: 953,
-			kappa: 954,
-			lambda: 955,
-			mu: 956,
-			nu: 957,
-			xi: 958,
-			omicron: 959,
-			pi: 960,
-			rho: 961,
-			sigmaf: 962,
-			sigma: 963,
-			tau: 964,
-			upsilon: 965,
-			phi: 966,
-			chi: 967,
-			psi: 968,
-			omega: 969,
-			thetasym: 977,
-			upsih: 978,
-			piv: 982,
-			ensp: 8194,
-			emsp: 8195,
-			thinsp: 8201,
-			zwnj: 8204,
-			zwj: 8205,
-			lrm: 8206,
-			rlm: 8207,
-			ndash: 8211,
-			mdash: 8212,
-			lsquo: 8216,
-			rsquo: 8217,
-			sbquo: 8218,
-			ldquo: 8220,
-			rdquo: 8221,
-			bdquo: 8222,
-			dagger: 8224,
-			Dagger: 8225,
-			bull: 8226,
-			hellip: 8230,
-			permil: 8240,
-			prime: 8242,
-			Prime: 8243,
-			lsaquo: 8249,
-			rsaquo: 8250,
-			oline: 8254,
-			frasl: 8260,
-			euro: 8364,
-			image: 8465,
-			weierp: 8472,
-			real: 8476,
-			trade: 8482,
-			alefsym: 8501,
-			larr: 8592,
-			uarr: 8593,
-			rarr: 8594,
-			darr: 8595,
-			harr: 8596,
-			crarr: 8629,
-			lArr: 8656,
-			uArr: 8657,
-			rArr: 8658,
-			dArr: 8659,
-			hArr: 8660,
-			forall: 8704,
-			part: 8706,
-			exist: 8707,
-			empty: 8709,
-			nabla: 8711,
-			isin: 8712,
-			notin: 8713,
-			ni: 8715,
-			prod: 8719,
-			sum: 8721,
-			minus: 8722,
-			lowast: 8727,
-			radic: 8730,
-			prop: 8733,
-			infin: 8734,
-			ang: 8736,
-			and: 8743,
-			or: 8744,
-			cap: 8745,
-			cup: 8746,
-			'int': 8747,
-			there4: 8756,
-			sim: 8764,
-			cong: 8773,
-			asymp: 8776,
-			ne: 8800,
-			equiv: 8801,
-			le: 8804,
-			ge: 8805,
-			sub: 8834,
-			sup: 8835,
-			nsub: 8836,
-			sube: 8838,
-			supe: 8839,
-			oplus: 8853,
-			otimes: 8855,
-			perp: 8869,
-			sdot: 8901,
-			lceil: 8968,
-			rceil: 8969,
-			lfloor: 8970,
-			rfloor: 8971,
-			lang: 9001,
-			rang: 9002,
-			loz: 9674,
-			spades: 9824,
-			clubs: 9827,
-			hearts: 9829,
-			diams: 9830
-		};
-		controlCharacters = [
-			8364,
-			129,
-			8218,
-			402,
-			8222,
-			8230,
-			8224,
-			8225,
-			710,
-			8240,
-			352,
-			8249,
-			338,
-			141,
-			381,
-			143,
-			144,
-			8216,
-			8217,
-			8220,
-			8221,
-			8226,
-			8211,
-			8212,
-			732,
-			8482,
-			353,
-			8250,
-			339,
-			157,
-			382,
-			376
-		];
-		namedEntityPattern = new RegExp( '&(' + Object.keys( htmlEntities ).join( '|' ) + ');?', 'g' );
-		hexEntityPattern = /&#x([0-9]+);?/g;
-		decimalEntityPattern = /&#([0-9]+);?/g;
-		// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
-		// code points with alternatives in some cases - since we're bypassing that mechanism, we need
-		// to replace them ourselves
-		//
-		// Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
-		validateCode = function( code ) {
-			if ( !code ) {
-				return 65533;
-			}
-			// line feed becomes generic whitespace
-			if ( code === 10 ) {
-				return 32;
-			}
-			// ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
-			if ( code < 128 ) {
-				return code;
-			}
-			// code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
-			// to correct the mistake or we'll end up with missing € signs and so on
-			if ( code <= 159 ) {
-				return controlCharacters[ code - 128 ];
-			}
-			// basic multilingual plane
-			if ( code < 55296 ) {
-				return code;
-			}
-			// UTF-16 surrogate halves
-			if ( code <= 57343 ) {
-				return 65533;
-			}
-			// rest of the basic multilingual plane
-			if ( code <= 65535 ) {
-				return code;
-			}
-			// TODO it's... not exactly clear what should happen with code points over this value. The
-			// following seems to work. But I can't guarantee it works in China!
-			return 65533;
-		};
-		decodeCharacterReferences = function( html ) {
-			var result;
-			// named entities
-			result = html.replace( namedEntityPattern, function( match, name ) {
-				if ( htmlEntities[ name ] ) {
-					return String.fromCharCode( htmlEntities[ name ] );
-				}
-				return match;
-			} );
-			// hex references
-			result = result.replace( hexEntityPattern, function( match, hex ) {
-				return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
-			} );
-			// decimal references
-			result = result.replace( decimalEntityPattern, function( match, charCode ) {
-				return String.fromCharCode( validateCode( charCode ) );
-			} );
-			return result;
-		};
-		whitespace = /\s+/g;
-		return TextStub;
-	}( config_types );
-
-	var parse_Parser_getText__getText = function( types, TextStub ) {
-
-		return function( token, preserveWhitespace ) {
-			if ( token.type === types.TEXT ) {
-				this.pos += 1;
-				return new TextStub( token, preserveWhitespace );
-			}
-			return null;
-		};
-	}( config_types, parse_Parser_getText_TextStub__TextStub );
-
-	var parse_Parser_getComment_CommentStub__CommentStub = function( types ) {
-
-		var CommentStub;
-		CommentStub = function( token ) {
-			this.content = token.content;
-		};
-		CommentStub.prototype = {
-			toJSON: function() {
-				return {
-					t: types.COMMENT,
-					f: this.content
-				};
-			},
-			toString: function() {
-				return '<!--' + this.content + '-->';
-			}
-		};
-		return CommentStub;
-	}( config_types );
-
-	var parse_Parser_getComment__getComment = function( types, CommentStub ) {
-
-		return function( token ) {
-			if ( token.type === types.COMMENT ) {
-				this.pos += 1;
-				return new CommentStub( token, this.preserveWhitespace );
-			}
-			return null;
-		};
-	}( config_types, parse_Parser_getComment_CommentStub__CommentStub );
-
-	var parse_Parser_getMustache_ExpressionStub = function( types, isObject ) {
-
-		var ExpressionStub = function( token ) {
-			this.refs = [];
-			getRefs( token, this.refs );
-			this.str = stringify( token, this.refs );
-		};
-		ExpressionStub.prototype = {
-			toJSON: function() {
-				if ( !this.json ) {
-					this.json = {
-						r: this.refs,
-						s: this.str
-					};
-				}
-				return this.json;
-			}
-		};
-		return ExpressionStub;
-
-		function quoteStringLiteral( str ) {
-			return JSON.stringify( String( str ) );
-		}
-		// TODO maybe refactor this?
-		function getRefs( token, refs ) {
-			var i, list;
-			if ( token.t === types.REFERENCE ) {
-				if ( refs.indexOf( token.n ) === -1 ) {
-					refs.unshift( token.n );
-				}
-			}
-			list = token.o || token.m;
-			if ( list ) {
-				if ( isObject( list ) ) {
-					getRefs( list, refs );
-				} else {
-					i = list.length;
-					while ( i-- ) {
-						getRefs( list[ i ], refs );
-					}
-				}
-			}
-			if ( token.x ) {
-				getRefs( token.x, refs );
-			}
-			if ( token.r ) {
-				getRefs( token.r, refs );
-			}
-			if ( token.v ) {
-				getRefs( token.v, refs );
-			}
-		}
-
-		function stringify( token, refs ) {
-			var map = function( item ) {
-				return stringify( item, refs );
-			};
-			switch ( token.t ) {
-				case types.BOOLEAN_LITERAL:
-				case types.GLOBAL:
-				case types.NUMBER_LITERAL:
-					return token.v;
-				case types.STRING_LITERAL:
-					return quoteStringLiteral( token.v );
-				case types.ARRAY_LITERAL:
-					return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
-				case types.OBJECT_LITERAL:
-					return '{' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + '}';
-				case types.KEY_VALUE_PAIR:
-					return token.k + ':' + stringify( token.v, refs );
-				case types.PREFIX_OPERATOR:
-					return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
-				case types.INFIX_OPERATOR:
-					return stringify( token.o[ 0 ], refs ) + ( token.s.substr( 0, 2 ) === 'in' ? ' ' + token.s + ' ' : token.s ) + stringify( token.o[ 1 ], refs );
-				case types.INVOCATION:
-					return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
-				case types.BRACKETED:
-					return '(' + stringify( token.x, refs ) + ')';
-				case types.MEMBER:
-					return stringify( token.x, refs ) + stringify( token.r, refs );
-				case types.REFINEMENT:
-					return token.n ? '.' + token.n : '[' + stringify( token.x, refs ) + ']';
-				case types.CONDITIONAL:
-					return stringify( token.o[ 0 ], refs ) + '?' + stringify( token.o[ 1 ], refs ) + ':' + stringify( token.o[ 2 ], refs );
-				case types.REFERENCE:
-					return '${' + refs.indexOf( token.n ) + '}';
-				default:
-					throw new Error( 'Could not stringify expression token. This error is unexpected' );
-			}
-		}
-	}( config_types, utils_isObject );
-
-	var parse_Parser_getMustache_KeypathExpressionStub = function( types, ExpressionStub ) {
-
-		var KeypathExpressionStub;
-		KeypathExpressionStub = function( token ) {
-			this.json = {
-				r: token.r,
-				m: token.m.map( jsonify )
-			};
-		};
-		KeypathExpressionStub.prototype = {
-			toJSON: function() {
-				return this.json;
-			}
-		};
-		return KeypathExpressionStub;
-
-		function jsonify( member ) {
-			// Straightforward property, e.g. `foo.bar`?
-			if ( member.n ) {
-				return member.n;
-			}
-			// String or number literal, e.g. `foo["bar"]` or `foo[1]`?
-			if ( member.x.t === types.STRING_LITERAL || member.x.t === types.NUMBER_LITERAL ) {
-				return member.x.v;
-			}
-			// Straightforward reference, e.g. `foo[bar]`?
-			if ( member.x.t === types.REFERENCE ) {
-				return member.x;
-			}
-			// If none of the above, we need to process the AST
-			return new ExpressionStub( member.x ).toJSON();
-		}
-	}( config_types, parse_Parser_getMustache_ExpressionStub );
-
-	var parse_Parser_getMustache_MustacheStub = function( types, KeypathExpressionStub, ExpressionStub ) {
-
-		var MustacheStub = function( token, parser ) {
-			this.type = token.type === types.TRIPLE ? types.TRIPLE : token.mustacheType;
-			if ( token.ref ) {
-				this.ref = token.ref;
-			}
-			if ( token.keypathExpression ) {
-				this.keypathExpr = new KeypathExpressionStub( token.keypathExpression );
-			}
-			if ( token.expression ) {
-				this.expr = new ExpressionStub( token.expression );
-			}
-			parser.pos += 1;
-		};
-		MustacheStub.prototype = {
-			toJSON: function() {
-				var json;
-				if ( this.json ) {
-					return this.json;
-				}
-				json = {
-					t: this.type
-				};
-				if ( this.ref ) {
-					json.r = this.ref;
-				}
-				if ( this.keypathExpr ) {
-					json.kx = this.keypathExpr.toJSON();
-				}
-				if ( this.expr ) {
-					json.x = this.expr.toJSON();
-				}
-				this.json = json;
-				return json;
-			},
-			toString: function() {
-				// mustaches cannot be stringified
-				return false;
-			}
-		};
-		return MustacheStub;
-	}( config_types, parse_Parser_getMustache_KeypathExpressionStub, parse_Parser_getMustache_ExpressionStub );
-
-	var parse_Parser_utils_stringifyStubs = function( items ) {
-		var str = '',
-			itemStr, i, len;
-		if ( !items ) {
-			return '';
-		}
-		for ( i = 0, len = items.length; i < len; i += 1 ) {
-			itemStr = items[ i ].toString();
-			if ( itemStr === false ) {
-				return false;
-			}
-			str += itemStr;
-		}
-		return str;
-	};
-
-	var parse_Parser_utils_jsonifyStubs = function( stringifyStubs ) {
-
-		return function( items, noStringify, topLevel ) {
-			var str, json;
-			if ( !topLevel && !noStringify ) {
-				str = stringifyStubs( items );
-				if ( str !== false ) {
-					return str;
-				}
-			}
-			json = items.map( function( item ) {
-				return item.toJSON( noStringify );
-			} );
-			return json;
-		};
-	}( parse_Parser_utils_stringifyStubs );
-
-	var parse_Parser_getMustache_SectionStub = function( types, normaliseKeypath, jsonifyStubs, KeypathExpressionStub, ExpressionStub ) {
-
-		var SectionStub = function( firstToken, parser ) {
-			var next;
-			this.ref = firstToken.ref;
-			this.indexRef = firstToken.indexRef;
-			this.inverted = firstToken.mustacheType === types.INVERTED;
-			if ( firstToken.keypathExpression ) {
-				this.keypathExpr = new KeypathExpressionStub( firstToken.keypathExpression );
-			}
-			if ( firstToken.expression ) {
-				this.expr = new ExpressionStub( firstToken.expression );
-			}
-			parser.pos += 1;
-			this.items = [];
-			next = parser.next();
-			while ( next ) {
-				if ( next.mustacheType === types.CLOSING ) {
-					validateClosing( this, next );
-					parser.pos += 1;
-					break;
-				}
-				this.items.push( parser.getStub() );
-				next = parser.next();
-			}
-		};
-
-		function validateClosing( stub, token ) {
-			var opening = stub.ref,
-				closing = normaliseKeypath( token.ref.trim() );
-			if ( !opening || !closing ) {
-				return;
-			}
-			if ( stub.indexRef ) {
-				opening += ':' + stub.indexRef;
-			}
-			if ( opening.substr( 0, closing.length ) !== closing ) {
-				throw new Error( 'Could not parse template: Illegal closing section {{/' + closing + '}}. Expected {{/' + stub.ref + '}}.' );
-			}
-		}
-		SectionStub.prototype = {
-			toJSON: function( noStringify ) {
-				var json;
-				if ( this.json ) {
-					return this.json;
-				}
-				json = {
-					t: types.SECTION
-				};
-				if ( this.ref ) {
-					json.r = this.ref;
-				}
-				if ( this.indexRef ) {
-					json.i = this.indexRef;
-				}
-				if ( this.inverted ) {
-					json.n = true;
-				}
-				if ( this.expr ) {
-					json.x = this.expr.toJSON();
-				}
-				if ( this.keypathExpr ) {
-					json.kx = this.keypathExpr.toJSON();
-				}
-				if ( this.items.length ) {
-					json.f = jsonifyStubs( this.items, noStringify );
-				}
-				this.json = json;
-				return json;
-			},
-			toString: function() {
-				// sections cannot be stringified
-				return false;
-			}
-		};
-		return SectionStub;
-	}( config_types, utils_normaliseKeypath, parse_Parser_utils_jsonifyStubs, parse_Parser_getMustache_KeypathExpressionStub, parse_Parser_getMustache_ExpressionStub );
-
-	var parse_Parser_getMustache__getMustache = function( types, MustacheStub, SectionStub ) {
-
-		return function( token ) {
-			if ( token.type === types.MUSTACHE || token.type === types.TRIPLE ) {
-				if ( token.mustacheType === types.SECTION || token.mustacheType === types.INVERTED ) {
-					return new SectionStub( token, this );
-				}
-				return new MustacheStub( token, this );
-			}
-		};
-	}( config_types, parse_Parser_getMustache_MustacheStub, parse_Parser_getMustache_SectionStub );
-
-	var parse_Parser_getElement_ElementStub_utils_siblingsByTagName = {
-		li: [ 'li' ],
-		dt: [
-			'dt',
-			'dd'
-		],
-		dd: [
-			'dt',
-			'dd'
-		],
-		p: 'address article aside blockquote dir div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr menu nav ol p pre section table ul'.split( ' ' ),
-		rt: [
-			'rt',
-			'rp'
-		],
-		rp: [
-			'rp',
-			'rt'
-		],
-		optgroup: [ 'optgroup' ],
-		option: [
-			'option',
-			'optgroup'
-		],
-		thead: [
-			'tbody',
-			'tfoot'
-		],
-		tbody: [
-			'tbody',
-			'tfoot'
-		],
-		tr: [ 'tr' ],
-		td: [
-			'td',
-			'th'
-		],
-		th: [
-			'td',
-			'th'
-		]
-	};
-
-	var parse_Parser_getElement_ElementStub_utils_filterAttributes = function( isArray ) {
-
-		return function( items ) {
-			var attrs, proxies, filtered, i, len, item;
-			filtered = {};
-			attrs = [];
-			proxies = [];
-			len = items.length;
-			for ( i = 0; i < len; i += 1 ) {
-				item = items[ i ];
-				// Transition?
-				if ( item.name === 'intro' ) {
-					if ( filtered.intro ) {
-						throw new Error( 'An element can only have one intro transition' );
-					}
-					filtered.intro = item;
-				} else if ( item.name === 'outro' ) {
-					if ( filtered.outro ) {
-						throw new Error( 'An element can only have one outro transition' );
-					}
-					filtered.outro = item;
-				} else if ( item.name === 'intro-outro' ) {
-					if ( filtered.intro || filtered.outro ) {
-						throw new Error( 'An element can only have one intro and one outro transition' );
-					}
-					filtered.intro = item;
-					filtered.outro = deepClone( item );
-				} else if ( item.name.substr( 0, 6 ) === 'proxy-' ) {
-					item.name = item.name.substring( 6 );
-					proxies.push( item );
-				} else if ( item.name.substr( 0, 3 ) === 'on-' ) {
-					item.name = item.name.substring( 3 );
-					proxies.push( item );
-				} else if ( item.name === 'decorator' ) {
-					filtered.decorator = item;
-				} else {
-					attrs.push( item );
-				}
-			}
-			filtered.attrs = attrs;
-			filtered.proxies = proxies;
-			return filtered;
-		};
-
-		function deepClone( obj ) {
-			var result, key;
-			if ( typeof obj !== 'object' ) {
-				return obj;
-			}
-			if ( isArray( obj ) ) {
-				return obj.map( deepClone );
-			}
-			result = {};
-			for ( key in obj ) {
-				if ( obj.hasOwnProperty( key ) ) {
-					result[ key ] = deepClone( obj[ key ] );
-				}
-			}
-			return result;
-		}
-	}( utils_isArray );
-
-	var parse_Parser_getElement_ElementStub_utils_processDirective = function( types, parseJSON ) {
-
-		return function( directive ) {
-			var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed;
-			throwError = function() {
-				throw new Error( 'Illegal directive' );
-			};
-			if ( !directive.name || !directive.value ) {
-				throwError();
-			}
-			processed = {
-				directiveType: directive.name
-			};
-			tokens = directive.value;
-			directiveName = [];
-			directiveArgs = [];
-			while ( tokens.length ) {
-				token = tokens.shift();
-				if ( token.type === types.TEXT ) {
-					colonIndex = token.value.indexOf( ':' );
-					if ( colonIndex === -1 ) {
-						directiveName.push( token );
-					} else {
-						// is the colon the first character?
-						if ( colonIndex ) {
-							// no
-							directiveName.push( {
-								type: types.TEXT,
-								value: token.value.substr( 0, colonIndex )
-							} );
-						}
-						// if there is anything after the colon in this token, treat
-						// it as the first token of the directiveArgs fragment
-						if ( token.value.length > colonIndex + 1 ) {
-							directiveArgs[ 0 ] = {
-								type: types.TEXT,
-								value: token.value.substring( colonIndex + 1 )
-							};
-						}
-						break;
-					}
-				} else {
-					directiveName.push( token );
-				}
-			}
-			directiveArgs = directiveArgs.concat( tokens );
-			if ( directiveName.length === 1 && directiveName[ 0 ].type === types.TEXT ) {
-				processed.name = directiveName[ 0 ].value;
-			} else {
-				processed.name = directiveName;
-			}
-			if ( directiveArgs.length ) {
-				if ( directiveArgs.length === 1 && directiveArgs[ 0 ].type === types.TEXT ) {
-					parsed = parseJSON( '[' + directiveArgs[ 0 ].value + ']' );
-					processed.args = parsed ? parsed.value : directiveArgs[ 0 ].value;
-				} else {
-					processed.dynamicArgs = directiveArgs;
-				}
-			}
-			return processed;
-		};
-	}( config_types, utils_parseJSON );
-
-	var parse_Parser_StringStub_StringParser = function( getText, getMustache ) {
-
-		var StringParser;
-		StringParser = function( tokens, options ) {
-			// TODO what are the options?
-			var stub;
-			this.tokens = tokens || [];
-			this.pos = 0;
-			this.options = options;
-			this.result = [];
-			while ( stub = this.getStub() ) {
-				this.result.push( stub );
-			}
-		};
-		StringParser.prototype = {
-			getStub: function() {
-				var token = this.next();
-				if ( !token ) {
-					return null;
-				}
-				return this.getText( token ) || this.getMustache( token );
-			},
-			getText: getText,
-			getMustache: getMustache,
-			next: function() {
-				return this.tokens[ this.pos ];
-			}
-		};
-		return StringParser;
-	}( parse_Parser_getText__getText, parse_Parser_getMustache__getMustache );
-
-	var parse_Parser_StringStub__StringStub = function( StringParser, stringifyStubs, jsonifyStubs ) {
-
-		var StringStub;
-		StringStub = function( tokens ) {
-			var parser = new StringParser( tokens );
-			this.stubs = parser.result;
-		};
-		StringStub.prototype = {
-			toJSON: function( noStringify ) {
-				var json;
-				if ( this[ 'json_' + noStringify ] ) {
-					return this[ 'json_' + noStringify ];
-				}
-				json = this[ 'json_' + noStringify ] = jsonifyStubs( this.stubs, noStringify );
-				return json;
-			},
-			toString: function() {
-				if ( this.str !== undefined ) {
-					return this.str;
-				}
-				this.str = stringifyStubs( this.stubs );
-				return this.str;
-			}
-		};
-		return StringStub;
-	}( parse_Parser_StringStub_StringParser, parse_Parser_utils_stringifyStubs, parse_Parser_utils_jsonifyStubs );
-
-	var parse_Parser_getElement_ElementStub_utils_jsonifyDirective = function( StringStub ) {
-
-		return function( directive ) {
-			var result, name;
-			if ( typeof directive.name === 'string' ) {
-				if ( !directive.args && !directive.dynamicArgs ) {
-					return directive.name;
-				}
-				name = directive.name;
-			} else {
-				name = new StringStub( directive.name ).toJSON();
-			}
-			result = {
-				n: name
-			};
-			if ( directive.args ) {
-				result.a = directive.args;
-				return result;
-			}
-			if ( directive.dynamicArgs ) {
-				result.d = new StringStub( directive.dynamicArgs ).toJSON();
-			}
-			return result;
-		};
-	}( parse_Parser_StringStub__StringStub );
-
-	var parse_Parser_getElement_ElementStub_toJSON = function( types, jsonifyStubs, jsonifyDirective ) {
-
-		return function( noStringify ) {
-			var json, name, value, proxy, i, len, attribute;
-			if ( this[ 'json_' + noStringify ] ) {
-				return this[ 'json_' + noStringify ];
-			}
-			json = {
-				t: types.ELEMENT,
-				e: this.tag
-			};
-			if ( this.doctype ) {
-				json.y = 1;
-			}
-			if ( this.attributes && this.attributes.length ) {
-				json.a = {};
-				len = this.attributes.length;
-				for ( i = 0; i < len; i += 1 ) {
-					attribute = this.attributes[ i ];
-					name = attribute.name;
-					if ( json.a[ name ] ) {
-						throw new Error( 'You cannot have multiple attributes with the same name' );
-					}
-					// empty attributes (e.g. autoplay, checked)
-					if ( attribute.value === null ) {
-						value = null;
-					} else {
-						//value = jsonifyStubs( attribute.value, noStringify );
-						value = attribute.value.toJSON( noStringify );
-					}
-					json.a[ name ] = value;
-				}
-			}
-			if ( this.items && this.items.length ) {
-				json.f = jsonifyStubs( this.items, noStringify );
-			}
-			if ( this.proxies && this.proxies.length ) {
-				json.v = {};
-				len = this.proxies.length;
-				for ( i = 0; i < len; i += 1 ) {
-					proxy = this.proxies[ i ];
-					json.v[ proxy.directiveType ] = jsonifyDirective( proxy );
-				}
-			}
-			if ( this.intro ) {
-				json.t1 = jsonifyDirective( this.intro );
-			}
-			if ( this.outro ) {
-				json.t2 = jsonifyDirective( this.outro );
-			}
-			if ( this.decorator ) {
-				json.o = jsonifyDirective( this.decorator );
-			}
-			this[ 'json_' + noStringify ] = json;
-			return json;
-		};
-	}( config_types, parse_Parser_utils_jsonifyStubs, parse_Parser_getElement_ElementStub_utils_jsonifyDirective );
-
-	var parse_Parser_getElement_ElementStub_toString = function( stringifyStubs, voidElementNames ) {
-
-		var htmlElements;
-		htmlElements = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
-		return function() {
-			var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
-			if ( this.str !== undefined ) {
-				return this.str;
-			}
-			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
-			// element is to use with innerHTML, and SVG doesn't support that method.
-			// Note: table elements and select children are excluded from this, because IE (of course)
-			// fucks up when you use innerHTML with them
-			if ( htmlElements.indexOf( this.tag.toLowerCase() ) === -1 ) {
-				return this.str = false;
-			}
-			// do we have proxies or transitions or a decorator? if so we can't use innerHTML
-			if ( this.proxies || this.intro || this.outro || this.decorator ) {
-				return this.str = false;
-			}
-			// see if children can be stringified (i.e. don't contain mustaches)
-			fragStr = stringifyStubs( this.items );
-			if ( fragStr === false ) {
-				return this.str = false;
-			}
-			// is this a void element?
-			isVoid = voidElementNames.indexOf( this.tag.toLowerCase() ) !== -1;
-			str = '<' + this.tag;
-			if ( this.attributes ) {
-				for ( i = 0, len = this.attributes.length; i < len; i += 1 ) {
-					name = this.attributes[ i ].name;
-					// does this look like a namespaced attribute? if so we can't stringify it
-					if ( name.indexOf( ':' ) !== -1 ) {
-						return this.str = false;
-					}
-					// if this element has an id attribute, it can't be stringified (since references are stored
-					// in ractive.nodes). Similarly, intro and outro transitions
-					if ( name === 'id' || name === 'intro' || name === 'outro' ) {
-						return this.str = false;
-					}
-					attrStr = ' ' + name;
-					// empty attributes
-					if ( this.attributes[ i ].value !== null ) {
-						attrValueStr = this.attributes[ i ].value.toString();
-						if ( attrValueStr === false ) {
-							return this.str = false;
-						}
-						if ( attrValueStr !== '' ) {
-							attrStr += '=';
-							// does it need to be quoted?
-							if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
-								attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
-							} else {
-								attrStr += attrValueStr;
-							}
-						}
-					}
-					str += attrStr;
-				}
-			}
-			// if this isn't a void tag, but is self-closing, add a solidus. Aaaaand, we're done
-			if ( this.selfClosing && !isVoid ) {
-				str += '/>';
-				return this.str = str;
-			}
-			str += '>';
-			// void element? we're done
-			if ( isVoid ) {
-				return this.str = str;
-			}
-			// if this has children, add them
-			str += fragStr;
-			str += '</' + this.tag + '>';
-			return this.str = str;
-		};
-	}( parse_Parser_utils_stringifyStubs, config_voidElementNames );
-
-	var parse_Parser_getElement_ElementStub__ElementStub = function( types, voidElementNames, warn, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub ) {
-
-		var ElementStub,
-			// helpers
-			allElementNames, closedByParentClose, onPattern, sanitize, leadingWhitespace = /^\s+/,
-			trailingWhitespace = /\s+$/;
-		ElementStub = function( firstToken, parser, preserveWhitespace ) {
-			var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
-			parser.pos += 1;
-			getFrag = function( attr ) {
-				return {
-					name: attr.name,
-					value: attr.value ? new StringStub( attr.value ) : null
-				};
-			};
-			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
-			// that should be camelcased, camelcase it
-			this.tag = firstToken.name;
-			lowerCaseTag = firstToken.name.toLowerCase();
-			if ( lowerCaseTag.substr( 0, 3 ) === 'rv-' ) {
-				warn( 'The "rv-" prefix for components has been deprecated. Support will be removed in a future version' );
-				this.tag = this.tag.substring( 3 );
-			}
-			// if this is a <pre> element, preserve whitespace within
-			preserveWhitespace = preserveWhitespace || lowerCaseTag === 'pre' || lowerCaseTag === 'style' || lowerCaseTag === 'script';
-			if ( firstToken.attrs ) {
-				filtered = filterAttributes( firstToken.attrs );
-				attrs = filtered.attrs;
-				proxies = filtered.proxies;
-				// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
-				if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
-					attrs = attrs.filter( sanitize );
-				}
-				if ( attrs.length ) {
-					this.attributes = attrs.map( getFrag );
-				}
-				// Process directives (proxy events, transitions, and decorators)
-				if ( proxies.length ) {
-					this.proxies = proxies.map( processDirective );
-				}
-				if ( filtered.intro ) {
-					this.intro = processDirective( filtered.intro );
-				}
-				if ( filtered.outro ) {
-					this.outro = processDirective( filtered.outro );
-				}
-				if ( filtered.decorator ) {
-					this.decorator = processDirective( filtered.decorator );
-				}
-			}
-			if ( firstToken.doctype ) {
-				this.doctype = true;
-			}
-			if ( firstToken.selfClosing ) {
-				this.selfClosing = true;
-			}
-			if ( voidElementNames.indexOf( lowerCaseTag ) !== -1 ) {
-				this.isVoid = true;
-			}
-			// if self-closing or a void element, close
-			if ( this.selfClosing || this.isVoid ) {
-				return;
-			}
-			this.siblings = siblingsByTagName[ lowerCaseTag ];
-			this.items = [];
-			next = parser.next();
-			while ( next ) {
-				// section closing mustache should also close this element, e.g.
-				// <ul>{{#items}}<li>{{content}}{{/items}}</ul>
-				if ( next.mustacheType === types.CLOSING ) {
-					break;
-				}
-				if ( next.type === types.TAG ) {
-					// closing tag
-					if ( next.closing ) {
-						// it's a closing tag, which means this element is closed...
-						if ( next.name.toLowerCase() === lowerCaseTag ) {
-							parser.pos += 1;
-						}
-						break;
-					} else if ( this.siblings && this.siblings.indexOf( next.name.toLowerCase() ) !== -1 ) {
-						break;
-					}
-				}
-				this.items.push( parser.getStub( preserveWhitespace ) );
-				next = parser.next();
-			}
-			// if we're not preserving whitespace, we can eliminate inner leading and trailing whitespace
-			if ( !preserveWhitespace ) {
-				item = this.items[ 0 ];
-				if ( item && item.type === types.TEXT ) {
-					item.text = item.text.replace( leadingWhitespace, '' );
-					if ( !item.text ) {
-						this.items.shift();
-					}
-				}
-				item = this.items[ this.items.length - 1 ];
-				if ( item && item.type === types.TEXT ) {
-					item.text = item.text.replace( trailingWhitespace, '' );
-					if ( !item.text ) {
-						this.items.pop();
-					}
-				}
-			}
-		};
-		ElementStub.prototype = {
-			toJSON: toJSON,
-			toString: toString
-		};
-		allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
-		closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
-		onPattern = /^on[a-zA-Z]/;
-		sanitize = function( attr ) {
-			var valid = !onPattern.test( attr.name );
-			return valid;
-		};
-		return ElementStub;
-	}( config_types, config_voidElementNames, utils_warn, parse_Parser_getElement_ElementStub_utils_siblingsByTagName, parse_Parser_getElement_ElementStub_utils_filterAttributes, parse_Parser_getElement_ElementStub_utils_processDirective, parse_Parser_getElement_ElementStub_toJSON, parse_Parser_getElement_ElementStub_toString, parse_Parser_StringStub__StringStub );
-
-	var parse_Parser_getElement__getElement = function( ElementStub ) {
-
-		return function( token ) {
-			// sanitize
-			if ( this.options.sanitize && this.options.sanitize.elements ) {
-				if ( this.options.sanitize.elements.indexOf( token.name.toLowerCase() ) !== -1 ) {
-					return null;
-				}
-			}
-			return new ElementStub( token, this, this.preserveWhitespace );
-		};
-	}( parse_Parser_getElement_ElementStub__ElementStub );
-
-	var parse_Parser__Parser = function( getText, getComment, getMustache, getElement, jsonifyStubs ) {
-
-		var Parser;
-		Parser = function( tokens, options ) {
-			var stub, stubs;
-			this.tokens = tokens || [];
-			this.pos = 0;
-			this.options = options;
-			this.preserveWhitespace = options.preserveWhitespace;
-			stubs = [];
-			while ( stub = this.getStub() ) {
-				stubs.push( stub );
-			}
-			this.result = jsonifyStubs( stubs, options.noStringify, true );
-		};
-		Parser.prototype = {
-			getStub: function( preserveWhitespace ) {
-				var token = this.next();
-				if ( !token ) {
-					return null;
-				}
-				return this.getText( token, this.preserveWhitespace || preserveWhitespace ) || this.getComment( token ) || this.getMustache( token ) || this.getElement( token );
-			},
-			getText: getText,
-			getComment: getComment,
-			getMustache: getMustache,
-			getElement: getElement,
-			next: function() {
-				return this.tokens[ this.pos ];
-			}
-		};
-		return Parser;
-	}( parse_Parser_getText__getText, parse_Parser_getComment__getComment, parse_Parser_getMustache__getMustache, parse_Parser_getElement__getElement, parse_Parser_utils_jsonifyStubs );
-
-	// Ractive.parse
-	// ===============
-	//
-	// Takes in a string, and returns an object representing the parsed template.
-	// A parsed template is an array of 1 or more 'descriptors', which in some
-	// cases have children.
-	//
-	// The format is optimised for size, not readability, however for reference the
-	// keys for each descriptor are as follows:
-	//
-	// * r - Reference, e.g. 'mustache' in {{mustache}}
-	// * t - Type code (e.g. 1 is text, 2 is interpolator...)
-	// * f - Fragment. Contains a descriptor's children
-	// * e - Element name
-	// * a - map of element Attributes, or proxy event/transition Arguments
-	// * d - Dynamic proxy event/transition arguments
-	// * n - indicates an iNverted section
-	// * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
-	// * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
-	// * x - eXpressions
-	// * s - String representation of an expression function
-	// * t1 - intro Transition
-	// * t2 - outro Transition
-	// * o - decOrator
-	// * y - is doctYpe
-	var parse__parse = function( tokenize, types, Parser ) {
-
-		var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
-		onlyWhitespace = /^\s*$/;
-		inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
-		inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
-		parse = function( template, options ) {
-			var tokens, json, token;
-			options = options || {};
-			// does this template include inline partials?
-			if ( inlinePartialStart.test( template ) ) {
-				return parseCompoundTemplate( template, options );
-			}
-			if ( options.sanitize === true ) {
-				options.sanitize = {
-					// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-					elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
-					eventAttributes: true
-				};
-			}
-			tokens = tokenize( template, options );
-			if ( !options.preserveWhitespace ) {
-				// remove first token if it only contains whitespace
-				token = tokens[ 0 ];
-				if ( token && token.type === types.TEXT && onlyWhitespace.test( token.value ) ) {
-					tokens.shift();
-				}
-				// ditto last token
-				token = tokens[ tokens.length - 1 ];
-				if ( token && token.type === types.TEXT && onlyWhitespace.test( token.value ) ) {
-					tokens.pop();
-				}
-			}
-			json = new Parser( tokens, options ).result;
-			if ( typeof json === 'string' ) {
-				// If we return it as a string, Ractive will attempt to reparse it!
-				// Instead we wrap it in an array. Ractive knows what to do then
-				return [ json ];
-			}
-			return json;
-		};
-		parseCompoundTemplate = function( template, options ) {
-			var mainTemplate, remaining, partials, name, startMatch, endMatch;
-			partials = {};
-			mainTemplate = '';
-			remaining = template;
-			while ( startMatch = inlinePartialStart.exec( remaining ) ) {
-				name = startMatch[ 1 ];
-				mainTemplate += remaining.substr( 0, startMatch.index );
-				remaining = remaining.substring( startMatch.index + startMatch[ 0 ].length );
-				endMatch = inlinePartialEnd.exec( remaining );
-				if ( !endMatch || endMatch[ 1 ] !== name ) {
-					throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
-				}
-				partials[ name ] = parse( remaining.substr( 0, endMatch.index ), options );
-				remaining = remaining.substring( endMatch.index + endMatch[ 0 ].length );
-			}
-			return {
-				main: parse( mainTemplate, options ),
-				partials: partials
-			};
-		};
-		return parse;
-	}( parse_tokenize, config_types, parse_Parser__Parser );
+	var parse__parse = undefined;
 
 	var render_DomFragment_Partial_deIndent = function() {
 

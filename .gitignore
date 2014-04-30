@@ -1,11 +1,1 @@
 .DS_Store
-node_modules/
-sandbox/*
-!sandbox/_base.html
-!sandbox/_sandbox.css
-!sandbox/require.js
-!sandbox/sample/
-tmp/
-FIX.js
-build/*
-!build/README.md

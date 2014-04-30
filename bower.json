@@ -3,17 +3,7 @@
 	"version": "0.4.0",
 	"main": "ractive.js",
 	"ignore": [
-		"**/.*",
-		"node_modules",
-		"build",
-		"release",
-		"sandbox",
-		"src",
-		"test",
-		"wrapper",
-		"Gruntfile.js",
-		"component.json",
-		"scripts",
-		"grunt"
+		".*",
+		"bower.json"
 	]
 }
