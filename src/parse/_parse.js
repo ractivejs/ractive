@@ -50,14 +50,14 @@ define([
 
 	'use strict';
 
-	var StandardParser, parse, onlyWhitespace, tabs, contiguousWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
-
-	onlyWhitespace = /^\s*$/;
-	tabs = /\t+/g;
-	contiguousWhitespace = /\s{2,}/g;
-
-	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
-	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
+	var StandardParser,
+		parse,
+		tabs = /\t+/g,
+		contiguousWhitespace = /[ \t\f\r\n]+/g,
+		inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+		inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+		preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
+		parseCompoundTemplate;
 
 	StandardParser = Parser.extend({
 		init: function ( str, options ) {
@@ -165,7 +165,7 @@ define([
 	return parse;
 
 	function cleanup ( items, stripComments, preserveWhitespace ) {
-		var i, item, isPreElement, unlessBlock, key;
+		var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
 
 		// first pass - remove standalones
 		stripStandalones( items );
@@ -185,9 +185,9 @@ define([
 
 			// Recurse
 			if ( item.f ) {
-				isPreElement === ( item.t === types.ELEMENT && item.e.toLowerCase() === 'pre' );
+				preserveWhitespaceInsideElement = ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
 
-				cleanup( item.f, stripComments, preserveWhitespace || isPreElement );
+				cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement );
 
 				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
 					trimWhitespace( item.f );
