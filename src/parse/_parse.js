@@ -52,7 +52,6 @@ define([
 
 	var StandardParser,
 		parse,
-		tabs = /\t+/g,
 		contiguousWhitespace = /[ \t\f\r\n]+/g,
 		inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 		inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
