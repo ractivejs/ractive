@@ -50,9 +50,9 @@ define([
 
 	'use strict';
 
-	var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
+	var StandardParser, parse, contiguousWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
 
-	onlyWhitespace = /^\s*$/;
+	contiguousWhitespace = /[ \t\f\r\n]+/g;
 
 	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
@@ -189,14 +189,28 @@ define([
 					trimWhitespace( item.f );
 				}
 			}
+
+			if ( item.l ) {
+				cleanup( item.l, stripComments, preserveWhitespace );
+
+				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
+					trimWhitespace( item.l );
+				}
+			}
 		}
 
 		// final pass - fuse text nodes together
 		i = items.length;
 		while ( i-- ) {
-			if ( typeof items[i] === 'string' && typeof items[i+1] === 'string' ) {
-				items[i] = items[i] + items[i+1];
-				items.splice( i + 1, 1 );
+			if ( typeof items[i] === 'string' ) {
+				if ( typeof items[i+1] === 'string' ) {
+					items[i] = items[i] + items[i+1];
+					items.splice( i + 1, 1 );
+				}
+
+				if ( !preserveWhitespace ) {
+					items[i] = items[i].replace( contiguousWhitespace, ' ' );
+				}
 			}
 		}
 	}
