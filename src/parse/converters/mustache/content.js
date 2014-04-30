@@ -97,22 +97,33 @@ define([
 			}
 		}
 
-		while ( expression.t === types.BRACKETED && expression.x ) {
-			expression = expression.x;
-		}
-
-		// special case - integers should be treated as array members references,
-		// rather than as expressions in their own right
-		if ( expression.t === types.REFERENCE ) {
-			mustache.r = expression.n;
-		} else {
-			if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
-				mustache.r = expression.v;
-			} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
-				mustache.kx = keypathExpression;
-			} else {
-				mustache.x = parser.flattenExpression( expression );
+		if (expression) {
+			if (type === types.SECTION_TRY) {
+				parser.error( "Unexpected expression in #try" );
 			}
+
+			while ( expression.t === types.BRACKETED && expression.x ) {
+				expression = expression.x;
+			}
+
+			// special case - integers should be treated as array members references,
+			// rather than as expressions in their own right
+			if ( expression.t === types.REFERENCE ) {
+				mustache.r = expression.n;
+			} else {
+				if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
+					mustache.r = expression.v;
+				} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
+					mustache.kx = keypathExpression;
+				} else {
+					mustache.x = parser.flattenExpression( expression );
+				}
+			}
+		} else if (type !== types.SECTION_TRY) {
+			if (start === parser.pos) {
+				parser.error( "Invalid empty expression" );
+			}
+			parser.error( "Invalid expression" );
 		}
 
 		// optional index reference

@@ -77,8 +77,8 @@ define([
 
 		flattenExpression: flattenExpression,
 
-		error: function ( err ) {
-			var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum, message;
+		getLinePos: function () {
+			var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum;
 
 			lines = this.str.split( '\n' );
 
@@ -87,15 +87,37 @@ define([
 
 			do {
 				currentLineEnd = nextLineEnd;
-
-				currentLine = lines[ lineNum++ + 1 ];
-				nextLineEnd = currentLine.length + 1; // +1 for the newline
+				lineNum ++;
+				currentLine = lines[ lineNum ];
+				nextLineEnd += currentLine.length + 1; // +1 for the newline
 			} while ( nextLineEnd < this.pos );
 
 			columnNum = this.pos - currentLineEnd;
 
-			message = err + ' at line ' + ( lineNum + 1 ) + ' character ' + ( columnNum + 1 ) + ':\n' +
-				currentLine + '\n' + new Array( columnNum + 1 ).join( ' ' ) + '^----';
+			return {
+				line:lineNum + 1,
+				ch: columnNum + 1,
+				text: currentLine,
+				toJSON: function() {
+					return [
+						this.line,
+						this.ch
+					];
+				},
+				toString: function () {
+					return "line " + this.line + " character " + this.ch + ":\n" +
+						this.text + "\n" +
+						this.text.substr(0,this.ch-1).replace(/[\S]/g,' ') + "^----";
+				}
+			};
+		},
+
+		error: function ( err ) {
+			var pos, message;
+
+			pos = this.getLinePos();
+
+			message = err + ' at ' + pos;
 
 			throw new ParseError( message );
 		},

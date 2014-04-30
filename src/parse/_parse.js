@@ -11,6 +11,7 @@
 // * r - Reference, e.g. 'mustache' in {{mustache}}
 // * t - Type code (e.g. 1 is text, 2 is interpolator...)
 // * f - Fragment. Contains a descriptor's children
+// * l - eLse fragment. Contains a descriptor's children in the else case
 // * e - Element name
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * d - Dynamic proxy event/transition arguments
@@ -25,6 +26,7 @@
 // * o - decOrator
 // * y - is doctYpe
 // * c - is Content (e.g. of a comment node)
+// * p - line Position information - array with line number and character position of each node
 
 define([
 	'config/types',
@@ -76,6 +78,8 @@ define([
 
 			this.sanitizeElements = options.sanitize && options.sanitize.elements;
 			this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+			this.includeLinePositions = options.includeLinePositions;
+			this.handlebars = options.handlebars;
 		},
 
 		postProcess: function ( items, options ) {

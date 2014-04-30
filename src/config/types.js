@@ -33,5 +33,11 @@ define({
 	CONDITIONAL       : 35,
 	INFIX_OPERATOR    : 36,
 
-	INVOCATION        : 40
+	INVOCATION        : 40,
+
+	SECTION_IF        : 50,
+	SECTION_UNLESS    : 51,
+	SECTION_EACH      : 52,
+	SECTION_WITH      : 53,
+	SECTION_TRY       : 54
 });
