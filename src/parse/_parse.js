@@ -11,6 +11,7 @@
 // * r - Reference, e.g. 'mustache' in {{mustache}}
 // * t - Type code (e.g. 1 is text, 2 is interpolator...)
 // * f - Fragment. Contains a descriptor's children
+// * l - eLse fragment. Contains a descriptor's children in the else case
 // * e - Element name
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * d - Dynamic proxy event/transition arguments
@@ -25,6 +26,7 @@
 // * o - decOrator
 // * y - is doctYpe
 // * c - is Content (e.g. of a comment node)
+// * p - line Position information - array with line number and character position of each node
 
 define([
 	'config/types',
@@ -48,9 +50,9 @@ define([
 
 	'use strict';
 
-	var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
+	var StandardParser, parse, contiguousWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
 
-	onlyWhitespace = /^\s*$/;
+	contiguousWhitespace = /[ \t\f\r\n]+/g;
 
 	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
@@ -76,6 +78,8 @@ define([
 
 			this.sanitizeElements = options.sanitize && options.sanitize.elements;
 			this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+			this.includeLinePositions = options.includeLinePositions;
+			this.handlebars = options.handlebars;
 		},
 
 		postProcess: function ( items, options ) {
@@ -185,14 +189,28 @@ define([
 					trimWhitespace( item.f );
 				}
 			}
+
+			if ( item.l ) {
+				cleanup( item.l, stripComments, preserveWhitespace );
+
+				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
+					trimWhitespace( item.l );
+				}
+			}
 		}
 
 		// final pass - fuse text nodes together
 		i = items.length;
 		while ( i-- ) {
-			if ( typeof items[i] === 'string' && typeof items[i+1] === 'string' ) {
-				items[i] = items[i] + items[i+1];
-				items.splice( i + 1, 1 );
+			if ( typeof items[i] === 'string' ) {
+				if ( typeof items[i+1] === 'string' ) {
+					items[i] = items[i] + items[i+1];
+					items.splice( i + 1, 1 );
+				}
+
+				if ( !preserveWhitespace ) {
+					items[i] = items[i].replace( contiguousWhitespace, ' ' );
+				}
 			}
 		}
 	}
