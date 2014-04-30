@@ -50,9 +50,11 @@ define([
 
 	'use strict';
 
-	var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
+	var StandardParser, parse, onlyWhitespace, tabs, contiguousWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
 
 	onlyWhitespace = /^\s*$/;
+	tabs = /\t+/g;
+	contiguousWhitespace = /\s{2,}/g;
 
 	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
@@ -163,7 +165,7 @@ define([
 	return parse;
 
 	function cleanup ( items, stripComments, preserveWhitespace ) {
-		var i, item;
+		var i, item, isPreElement, unlessBlock, key;
 
 		// first pass - remove standalones
 		stripStandalones( items );
@@ -183,10 +185,36 @@ define([
 
 			// Recurse
 			if ( item.f ) {
-				cleanup( item.f, stripComments, preserveWhitespace );
+				isPreElement === ( item.t === types.ELEMENT && item.e.toLowerCase() === 'pre' );
+
+				cleanup( item.f, stripComments, preserveWhitespace || isPreElement );
 
 				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
 					trimWhitespace( item.f );
+				}
+			}
+
+			// Split if-else blocks into two (an if, and an unless)
+			if ( item.l ) {
+				cleanup( item.l, stripComments, preserveWhitespace );
+
+				unlessBlock = {
+					t: 4,
+					r: item.r,
+					n: 1,
+					f: item.l
+				};
+
+				items.splice( i + 1, 0, unlessBlock );
+				delete item.l;
+			}
+
+			// Clean up element attributes
+			if ( item.a ) {
+				for ( key in item.a ) {
+					if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
+						cleanup( item.a[ key ] );
+					}
 				}
 			}
 		}
@@ -194,9 +222,15 @@ define([
 		// final pass - fuse text nodes together
 		i = items.length;
 		while ( i-- ) {
-			if ( typeof items[i] === 'string' && typeof items[i+1] === 'string' ) {
-				items[i] = items[i] + items[i+1];
-				items.splice( i + 1, 1 );
+			if ( typeof items[i] === 'string' ) {
+				if ( typeof items[i+1] === 'string' ) {
+					items[i] = items[i] + items[i+1];
+					items.splice( i + 1, 1 );
+				}
+
+				if ( !preserveWhitespace ) {
+					items[i] = items[i].replace( tabs, ' ' ).replace( contiguousWhitespace, ' ' );
+				}
 			}
 		}
 	}
