@@ -27,6 +27,8 @@ You will need to clean bower's cache with `bower cache clean ractive` if you wan
 
 ### npm
 
+**Hmmm.... this doesn't appear to work. If anyone has any ideas...**
+
 To use non-stable builds with npm you need to use a git endpoint:
 
 ```
