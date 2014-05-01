@@ -101,7 +101,7 @@ define([
 			if ( !ractive.el && ractive.debug ) {
 				throw new Error( 'Could not find container element' );
 			}
-			if ( anchor = getElement( options.el.anchor ) ) {
+			if ( anchor = getElement( options.append ) ) {
 				ractive.anchor = anchor;
 			}
 		}

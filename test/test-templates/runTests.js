@@ -14,11 +14,12 @@
 	};	
 
 	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
-		isBuild = true;
-		QUnit.config.autostart = false;
 		config.paths.ractive = '../tmp/ractive-legacy';
 	}
 
+	// require for asyncTest and module('',{setup}) to work
+	// see http://stackoverflow.com/questions/17065488/qunit-setup-called-for-each-test-before-teardown
+	QUnit.config.autostart = false;
 	require.config( config );
 
 	// can't use .map() because of IE...
@@ -36,9 +37,8 @@
 			testSet();
 		});
 
-		if ( isBuild ) {
-			QUnit.start();
-		}
+		QUnit.start();
+		
 	});
 
 }());
