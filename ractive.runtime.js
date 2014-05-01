@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-04-30 - commit c2d75a95 
+	2014-05-01 - commit 56e1126d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2766,14 +2766,11 @@
 
 	var utils_getElement = function getElement( input ) {
 		var output;
-		if ( !input ) {
+		if ( !input || typeof input === 'boolean' ) {
 			return;
 		}
 		if ( typeof window === 'undefined' || !document || !input ) {
 			return null;
-		}
-		if ( input.target ) {
-			return getElement( input.target );
 		}
 		// We already have a DOM node - no work to do. (Duck typing alert!)
 		if ( input.nodeType ) {
@@ -9351,7 +9348,7 @@
 			// a document fragment to use instead
 			if ( isClient && !ractive.el ) {
 				ractive.el = document.createDocumentFragment();
-			} else if ( ractive.el && !options.append && !ractive.anchor ) {
+			} else if ( ractive.el && !options.append ) {
 				ractive.el.innerHTML = '';
 			}
 			promise = new Promise( function( fulfil ) {
@@ -10030,7 +10027,7 @@
 				if ( !ractive.el && ractive.debug ) {
 					throw new Error( 'Could not find container element' );
 				}
-				if ( anchor = getElement( options.el.anchor ) ) {
+				if ( anchor = getElement( options.append ) ) {
 					ractive.anchor = anchor;
 				}
 			}
