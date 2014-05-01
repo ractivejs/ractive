@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.4.0
-	2014-04-30 - commit c4b37497
+	ractive.js v0.4.0
+	2014-04-30 - commit c2d75a95 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -185,7 +185,9 @@
 
 	var utils_Promise = function() {
 
-		var Promise, PENDING = {}, FULFILLED = {}, REJECTED = {};
+		var Promise, PENDING = {},
+			FULFILLED = {},
+			REJECTED = {};
 		Promise = function( callback ) {
 			var fulfilledHandlers = [],
 				rejectedHandlers = [],
@@ -420,7 +422,8 @@
 	var global_css = function( circular, isClient, removeFromArray ) {
 
 		var runloop, styleElement, head, styleSheet, inDom, prefix = '/* Ractive.js component styles */\n',
-			componentsInPage = {}, styles = [];
+			componentsInPage = {},
+			styles = [];
 		if ( !isClient ) {
 			return;
 		}
@@ -573,7 +576,7 @@
 			}
 			// We need both of these - the first enables components to treat data contexts
 			// like lexical scopes in JavaScript functions...
-			if ( hasOwnProperty.call( ractive.data, ref ) ) {
+			if ( hasOwnProperty.call( ractive.data, keys[ 0 ] ) ) {
 				return ref;
 			} else if ( get( ractive, ref ) !== undefined ) {
 				return ref;
@@ -813,8 +816,7 @@
 		} );
 		var runloop, get, set, dirty = false,
 			flushing = false,
-			pendingCssChanges, inFlight = 0,
-			toFocus = null,
+			pendingCssChanges, toFocus = null,
 			liveQueries = [],
 			decorators = [],
 			transitions = [],
@@ -824,7 +826,8 @@
 			evaluators = [],
 			computations = [],
 			selectValues = [],
-			checkboxKeypaths = {}, checkboxes = [],
+			checkboxKeypaths = {},
+			checkboxes = [],
 			radios = [],
 			unresolved = [],
 			instances = [],
@@ -833,7 +836,6 @@
 			start: function( instance, callback ) {
 				this.addInstance( instance );
 				if ( !flushing ) {
-					inFlight += 1;
 					// create a new transition manager
 					transitionManager = makeTransitionManager( callback, transitionManager );
 				}
@@ -843,24 +845,20 @@
 					attemptKeypathResolution();
 					return;
 				}
-				if ( !--inFlight ) {
-					flushing = true;
-					flushChanges();
-					flushing = false;
-					land();
-				}
+				flushing = true;
+				flushChanges();
+				flushing = false;
 				transitionManager.init();
 				transitionManager = transitionManager._previous;
 			},
 			trigger: function() {
-				if ( inFlight || flushing ) {
+				if ( flushing ) {
 					attemptKeypathResolution();
 					return;
 				}
 				flushing = true;
 				flushChanges();
 				flushing = false;
-				land();
 			},
 			focus: function( node ) {
 				toFocus = node;
@@ -894,7 +892,7 @@
 			},
 			scheduleCssUpdate: function() {
 				// if runloop isn't currently active, we need to trigger change immediately
-				if ( !inFlight && !flushing ) {
+				if ( !flushing ) {
 					// TODO does this ever happen?
 					css.update();
 				} else {
@@ -939,8 +937,39 @@
 		circular.runloop = runloop;
 		return runloop;
 
-		function land() {
-			var thing, changedKeypath, changeHash;
+		function flushChanges() {
+			var thing, upstreamChanges, i, changeHash, changedKeypath;
+			i = instances.length;
+			while ( i-- ) {
+				thing = instances[ i ];
+				if ( thing._changes.length ) {
+					upstreamChanges = getUpstreamChanges( thing._changes );
+					notifyDependants.multiple( thing, upstreamChanges, true );
+				}
+			}
+			attemptKeypathResolution();
+			// These changes may have knock-on effects, so we need to keep
+			// looping until the system is settled
+			while ( dirty ) {
+				dirty = false;
+				while ( thing = computations.pop() ) {
+					thing.update();
+				}
+				while ( thing = evaluators.pop() ) {
+					thing.update().deferred = false;
+				}
+				while ( thing = selectValues.pop() ) {
+					thing.deferredUpdate();
+				}
+				while ( thing = checkboxes.pop() ) {
+					set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+				}
+				while ( thing = radios.pop() ) {
+					thing.update();
+				}
+			}
+			// Now that changes have been fully propagated, we can update the DOM
+			// and complete other tasks
 			if ( toFocus ) {
 				toFocus.focus();
 				toFocus = null;
@@ -977,37 +1006,6 @@
 			if ( pendingCssChanges ) {
 				css.update();
 				pendingCssChanges = false;
-			}
-		}
-
-		function flushChanges() {
-			var thing, upstreamChanges, i;
-			i = instances.length;
-			while ( i-- ) {
-				thing = instances[ i ];
-				if ( thing._changes.length ) {
-					upstreamChanges = getUpstreamChanges( thing._changes );
-					notifyDependants.multiple( thing, upstreamChanges, true );
-				}
-			}
-			attemptKeypathResolution();
-			while ( dirty ) {
-				dirty = false;
-				while ( thing = computations.pop() ) {
-					thing.update();
-				}
-				while ( thing = evaluators.pop() ) {
-					thing.update().deferred = false;
-				}
-				while ( thing = selectValues.pop() ) {
-					thing.deferredUpdate();
-				}
-				while ( thing = checkboxes.pop() ) {
-					set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
-				}
-				while ( thing = radios.pop() ) {
-					thing.update();
-				}
 			}
 		}
 
@@ -1176,6 +1174,7 @@
 		MUSTACHE: 11,
 		TAG: 12,
 		ATTRIBUTE: 13,
+		CLOSING_TAG: 14,
 		COMPONENT: 15,
 		NUMBER_LITERAL: 20,
 		STRING_LITERAL: 21,
@@ -1745,7 +1744,8 @@
 		};
 
 		function prefixKeypath( obj, prefix ) {
-			var prefixed = {}, key;
+			var prefixed = {},
+				key;
 			if ( !prefix ) {
 				return obj;
 			}
@@ -2067,7 +2067,7 @@
 
 		var toString = Object.prototype.toString;
 		return function( thing ) {
-			return typeof thing === 'object' && toString.call( thing ) === '[object Object]';
+			return thing && toString.call( thing ) === '[object Object]';
 		};
 	}();
 
@@ -2279,7 +2279,8 @@
 
 	var Ractive_prototype_animate__animate = function( isEqual, Promise, normaliseKeypath, animations, get, Animation ) {
 
-		var noop = function() {}, noAnimation = {
+		var noop = function() {},
+			noAnimation = {
 				stop: noop
 			};
 		return function( keypath, to, options ) {
@@ -2660,12 +2661,12 @@
 				// Either return the exact same query, or (if not live) a snapshot
 				return options && options.live ? query : query.slice();
 			}
-			query = makeQuery( this, selector, !! options.live, false );
+			query = makeQuery( this, selector, !!options.live, false );
 			// Add this to the list of live queries Ractive needs to maintain,
 			// if applicable
 			if ( query.live ) {
 				liveQueries.push( selector );
-				liveQueries[ selector ] = query;
+				liveQueries[ '_' + selector ] = query;
 			}
 			this.fragment.findAll( selector, query );
 			return query;
@@ -2684,12 +2685,12 @@
 				// Either return the exact same query, or (if not live) a snapshot
 				return options && options.live ? query : query.slice();
 			}
-			query = makeQuery( this, selector, !! options.live, true );
+			query = makeQuery( this, selector, !!options.live, true );
 			// Add this to the list of live queries Ractive needs to maintain,
 			// if applicable
 			if ( query.live ) {
 				liveQueries.push( selector );
-				liveQueries[ selector ] = query;
+				liveQueries[ '_' + selector ] = query;
 			}
 			this.fragment.findAllComponents( selector, query );
 			return query;
@@ -2763,10 +2764,16 @@
 		};
 	}( utils_normaliseKeypath, shared_get__get, shared_get_UnresolvedImplicitDependency );
 
-	var utils_getElement = function( input ) {
+	var utils_getElement = function getElement( input ) {
 		var output;
+		if ( !input ) {
+			return;
+		}
 		if ( typeof window === 'undefined' || !document || !input ) {
 			return null;
+		}
+		if ( input.target ) {
+			return getElement( input.target );
 		}
 		// We already have a DOM node - no work to do. (Duck typing alert!)
 		if ( input.nodeType ) {
@@ -3014,14 +3021,15 @@
 		return function( ractive, pattern ) {
 			var keys, key, values, toGet, newToGet, expand, concatenate;
 			keys = pattern.split( '.' );
-			toGet = [];
+			toGet = [ '' ];
 			expand = function( keypath ) {
-				var value, key;
+				var value, key, childKeypath;
 				value = ractive._wrapped[ keypath ] ? ractive._wrapped[ keypath ].get() : ractive.get( keypath );
 				for ( key in value ) {
 					if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) {
 						// for benefit of IE8
-						newToGet.push( keypath + '.' + key );
+						childKeypath = keypath ? keypath + '.' + key : key;
+						newToGet.push( childKeypath );
 					}
 				}
 			};
@@ -3400,11 +3408,6 @@
 	var render_shared_Fragment_reassign = function( assignNewKeypath ) {
 
 		return function reassignFragment( indexRef, newIndex, oldKeypath, newKeypath ) {
-			// If this fragment was rendered with innerHTML, we have nothing to do
-			// TODO a less hacky way of determining this
-			if ( this.html !== undefined ) {
-				return;
-			}
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined && this.indexRefs[ indexRef ] !== newIndex ) {
@@ -3423,65 +3426,6 @@
 			reassign: reassign
 		};
 	}( render_shared_Fragment_initialise, render_shared_Fragment_reassign );
-
-	var render_DomFragment_shared_insertHtml = function( namespaces, createElement ) {
-
-		var elementCache = {}, ieBug, ieBlacklist;
-		try {
-			createElement( 'table' ).innerHTML = 'foo';
-		} catch ( err ) {
-			ieBug = true;
-			ieBlacklist = {
-				TABLE: [
-					'<table class="x">',
-					'</table>'
-				],
-				THEAD: [
-					'<table><thead class="x">',
-					'</thead></table>'
-				],
-				TBODY: [
-					'<table><tbody class="x">',
-					'</tbody></table>'
-				],
-				TR: [
-					'<table><tr class="x">',
-					'</tr></table>'
-				],
-				SELECT: [
-					'<select class="x">',
-					'</select>'
-				]
-			};
-		}
-		return function( html, tagName, namespace, docFrag ) {
-			var container, nodes = [],
-				wrapper;
-			if ( html ) {
-				if ( ieBug && ( wrapper = ieBlacklist[ tagName ] ) ) {
-					container = element( 'DIV' );
-					container.innerHTML = wrapper[ 0 ] + html + wrapper[ 1 ];
-					container = container.querySelector( '.x' );
-				} else if ( namespace === namespaces.svg ) {
-					container = element( 'DIV' );
-					container.innerHTML = '<svg class="x">' + html + '</svg>';
-					container = container.querySelector( '.x' );
-				} else {
-					container = element( tagName );
-					container.innerHTML = html;
-				}
-				while ( container.firstChild ) {
-					nodes.push( container.firstChild );
-					docFrag.appendChild( container.firstChild );
-				}
-			}
-			return nodes;
-		};
-
-		function element( tagName ) {
-			return elementCache[ tagName ] || ( elementCache[ tagName ] = createElement( tagName ) );
-		}
-	}( config_namespaces, utils_createElement );
 
 	var render_DomFragment_shared_detach = function() {
 		var node = this.node,
@@ -3567,7 +3511,7 @@
 			this.type = types.REFERENCE;
 			this.priority = priority;
 			value = root.get( keypath );
-			if ( typeof value === 'function' ) {
+			if ( typeof value === 'function' && !value._nowrap ) {
 				value = wrapFunction( value, root, evaluator );
 			}
 			this.value = evaluator.values[ argNum ] = value;
@@ -3837,7 +3781,7 @@
 					return;
 				}
 				// Couldn't resolve yet
-				args[ i ] = undefined;
+				args[ i ] = null;
 				expressionResolver.pending += 1;
 				unresolved = new Unresolved( ractive, reference, parentFragment, function( keypath ) {
 					expressionResolver.resolve( i, keypath );
@@ -3891,6 +3835,8 @@
 				var changed;
 				this.args.forEach( function( arg ) {
 					var changedKeypath;
+					if ( !arg )
+						return;
 					if ( arg.keypath && ( changedKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
 						arg.keypath = changedKeypath;
 						changed = true;
@@ -3938,7 +3884,7 @@
 			this.keypathObservers = [];
 			this.expressionResolvers = [];
 			descriptor.m.forEach( function( member, i ) {
-				var ref, indexRefs, index, createKeypathObserver, unresolved, expressionResolver;
+				var ref, indexRefs, index, keypathObserver, unresolved, expressionResolver;
 				if ( typeof member === 'string' ) {
 					resolver.members[ i ] = member;
 					return;
@@ -3957,13 +3903,10 @@
 						return;
 					}
 					dynamic = true;
-					createKeypathObserver = function( keypath ) {
-						var keypathObserver = new KeypathObserver( ractive, keypath, mustache.priority, resolver, i );
-						resolver.keypathObservers.push( keypathObserver );
-					};
 					// Can we resolve the reference immediately?
 					if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-						createKeypathObserver( keypath );
+						keypathObserver = new KeypathObserver( ractive, keypath, mustache.priority, resolver, i );
+						resolver.keypathObservers.push( keypathObserver );
 						return;
 					}
 					// Couldn't resolve yet
@@ -4005,8 +3948,8 @@
 				}
 				this.callback( this.getKeypath() );
 			},
-			resolve: function( index, value ) {
-				var keypathObserver = new KeypathObserver( this.root, value, this.mustache.priority, this, index );
+			resolve: function( index, keypath ) {
+				var keypathObserver = new KeypathObserver( this.root, keypath, this.mustache.priority, this, index );
 				keypathObserver.update();
 				this.keypathObservers.push( keypathObserver );
 				// when all references have been resolved, we can flag the entire expression
@@ -4060,7 +4003,7 @@
 	var render_shared_Mustache_initialise = function( runloop, resolveRef, KeypathExpressionResolver, ExpressionResolver ) {
 
 		return function initMustache( mustache, options ) {
-			var ref, keypath, indexRefs, index, parentFragment, descriptor, resolve;
+			var ref, indexRefs, index, parentFragment, descriptor;
 			parentFragment = options.parentFragment;
 			descriptor = options.descriptor;
 			mustache.root = parentFragment.root;
@@ -4069,9 +4012,20 @@
 			mustache.index = options.index || 0;
 			mustache.priority = parentFragment.priority;
 			mustache.type = options.descriptor.t;
-			resolve = function( keypath ) {
+
+			function resolve( keypath ) {
 				mustache.resolve( keypath );
-			};
+			}
+
+			function resolveWithRef( ref ) {
+				var keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
+				if ( keypath !== undefined ) {
+					resolve( keypath );
+				} else {
+					mustache.ref = ref;
+					runloop.addUnresolved( mustache );
+				}
+			}
 			// if this is a simple mustache, with a reference, we just need to resolve
 			// the reference to a keypath
 			if ( ref = descriptor.r ) {
@@ -4081,13 +4035,7 @@
 					mustache.value = index;
 					mustache.render( mustache.value );
 				} else {
-					keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
-					if ( keypath !== undefined ) {
-						resolve( keypath );
-					} else {
-						mustache.ref = ref;
-						runloop.addUnresolved( mustache );
-					}
+					resolveWithRef( ref );
 				}
 			}
 			// if it's an expression, we have a bit more work to do
@@ -4095,7 +4043,7 @@
 				mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.descriptor.x, resolve );
 			}
 			if ( options.descriptor.kx ) {
-				mustache.resolver = new KeypathExpressionResolver( mustache, options.descriptor.kx, resolve );
+				mustache.resolver = new KeypathExpressionResolver( mustache, options.descriptor.kx, resolveWithRef );
 			}
 			// Special case - inverted sections
 			if ( mustache.descriptor.n && !mustache.hasOwnProperty( 'value' ) ) {
@@ -4121,7 +4069,7 @@
 	var render_shared_Mustache_resolve = function( types, registerDependant, unregisterDependant ) {
 
 		return function resolveMustache( keypath ) {
-			var i;
+			var reassignTarget;
 			// In some cases, we may resolve to the same keypath (if this is
 			// an expression mustache that was reassigned due to an ancestor's
 			// keypath) - in which case, this is a no-op
@@ -4131,14 +4079,16 @@
 			// if we resolved previously, we need to unregister
 			if ( this.registered ) {
 				unregisterDependant( this );
-				// is this a section? if so, we may have children that need
-				// to be reassigned
-				// TODO only DOM sections?
-				if ( this.type === types.SECTION ) {
-					i = this.fragments.length;
-					while ( i-- ) {
-						this.fragments[ i ].reassign( null, null, this.keypath, keypath );
-					}
+				//need to reassign the element, if this belongs to one, for keypath changes
+				if ( this.parentFragment && this.parentFragment.owner && this.parentFragment.owner.element ) {
+					reassignTarget = this.parentFragment.owner.element;
+				} else {
+					reassignTarget = this;
+				}
+				reassignTarget.reassign( null, null, this.keypath, keypath );
+				//if we already updated due to reassignent, we can exit
+				if ( keypath === this.keypath ) {
+					return;
 				}
 			}
 			this.keypath = keypath;
@@ -4154,7 +4104,9 @@
 			// expression mustache?
 			if ( this.resolver ) {
 				this.resolver.reassign( indexRef, newIndex, oldKeypath, newKeypath );
-			} else if ( this.keypath ) {
+			}
+			// normal keypath mustache or keypath expression?
+			if ( this.keypath ) {
 				updated = getNewKeypath( this.keypath, oldKeypath, newKeypath );
 				// was a new keypath created?
 				if ( updated ) {
@@ -4520,6 +4472,7 @@
 				descriptor: section.descriptor.f,
 				root: section.root,
 				pNode: section.parentFragment.pNode,
+				pElement: section.pElement,
 				owner: section,
 				indexRef: section.descriptor.i
 			};
@@ -4545,7 +4498,8 @@
 		// Section
 		DomSection = function( options, docFrag ) {
 			this.type = types.SECTION;
-			this.inverted = !! options.descriptor.n;
+			this.inverted = !!options.descriptor.n;
+			this.pElement = options.pElement;
 			this.fragments = [];
 			this.length = 0;
 			// number of times this section is rendered
@@ -4652,6 +4606,66 @@
 		};
 		return DomSection;
 	}( config_types, render_shared_Mustache__Mustache, render_DomFragment_Section_prototype_merge, render_DomFragment_Section_prototype_render, render_DomFragment_Section_prototype_splice, shared_teardown, circular );
+
+	var render_DomFragment_shared_insertHtml = function( namespaces, createElement ) {
+
+		var elementCache = {},
+			ieBug, ieBlacklist;
+		try {
+			createElement( 'table' ).innerHTML = 'foo';
+		} catch ( err ) {
+			ieBug = true;
+			ieBlacklist = {
+				TABLE: [
+					'<table class="x">',
+					'</table>'
+				],
+				THEAD: [
+					'<table><thead class="x">',
+					'</thead></table>'
+				],
+				TBODY: [
+					'<table><tbody class="x">',
+					'</tbody></table>'
+				],
+				TR: [
+					'<table><tr class="x">',
+					'</tr></table>'
+				],
+				SELECT: [
+					'<select class="x">',
+					'</select>'
+				]
+			};
+		}
+		return function( html, tagName, namespace, docFrag ) {
+			var container, nodes = [],
+				wrapper;
+			if ( html ) {
+				if ( ieBug && ( wrapper = ieBlacklist[ tagName ] ) ) {
+					container = element( 'DIV' );
+					container.innerHTML = wrapper[ 0 ] + html + wrapper[ 1 ];
+					container = container.querySelector( '.x' );
+				} else if ( namespace === namespaces.svg ) {
+					container = element( 'DIV' );
+					container.innerHTML = '<svg class="x">' + html + '</svg>';
+					container = container.querySelector( '.x' );
+				} else {
+					container = element( tagName );
+					container.innerHTML = html;
+				}
+				while ( container.firstChild ) {
+					nodes.push( container.firstChild );
+					docFrag.appendChild( container.firstChild );
+				}
+			}
+			return nodes;
+		};
+
+		function element( tagName ) {
+			return elementCache[ tagName ] || ( elementCache[ tagName ] = createElement( tagName ) );
+		}
+	}( config_namespaces, utils_createElement );
 
 	var render_DomFragment_Triple = function( types, matches, Mustache, insertHtml, teardown ) {
 
@@ -4783,7 +4797,8 @@
 		svgCamelCaseElements = 'altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern'.split( ' ' );
 		svgCamelCaseAttributes = 'attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan'.split( ' ' );
 		createMap = function( items ) {
-			var map = {}, i = items.length;
+			var map = {},
+				i = items.length;
 			while ( i-- ) {
 				map[ items[ i ].toLowerCase() ] = items[ i ];
 			}
@@ -4827,7 +4842,7 @@
 	var render_DomFragment_Attribute_helpers_setStaticAttribute = function( namespaces ) {
 
 		return function setStaticAttribute( attribute, options ) {
-			var node, value = options.value === null ? '' : options.value;
+			var node, value = options.value || '';
 			if ( node = options.pNode ) {
 				if ( attribute.namespace ) {
 					node.setAttributeNS( attribute.namespace, options.name, value );
@@ -4848,7 +4863,7 @@
 					node._ractive.value = options.value;
 				}
 			}
-			attribute.value = options.value;
+			attribute.value = options.value || null;
 		};
 	}( config_namespaces );
 
@@ -4963,6 +4978,7 @@
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
 			if ( !interpolator.keypath ) {
+				//TODO: What about kx?
 				interpolator.resolve( interpolator.descriptor.r );
 			}
 			this.keypath = interpolator.keypath;
@@ -5173,7 +5189,7 @@
 		};
 		CheckboxNameBinding.prototype = {
 			changed: function() {
-				return this.node.checked !== !! this.checked;
+				return this.node.checked !== !!this.checked;
 			},
 			update: function() {
 				this.checked = this.node.checked;
@@ -5498,59 +5514,63 @@
 		return updateAttribute;
 	}( global_runloop, config_namespaces, utils_isArray );
 
-	var parse_Tokenizer_utils_getStringMatch = function( string ) {
-		var substr;
-		substr = this.str.substr( this.pos, string.length );
-		if ( substr === string ) {
-			this.pos += string.length;
-			return string;
-		}
-		return null;
-	};
+	var parse_Parser_expressions_primary_literal_numberLiteral = function( types ) {
 
-	var parse_Tokenizer_utils_allowWhitespace = function() {
-
-		var leadingWhitespace = /^\s+/;
-		return function() {
-			var match = leadingWhitespace.exec( this.remaining() );
-			if ( !match ) {
-				return null;
+		// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
+		var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+		return function( parser ) {
+			var result;
+			if ( result = parser.matchPattern( numberPattern ) ) {
+				return {
+					t: types.NUMBER_LITERAL,
+					v: result
+				};
 			}
-			this.pos += match[ 0 ].length;
-			return match[ 0 ];
+			return null;
 		};
-	}();
+	}( config_types );
 
-	var parse_Tokenizer_utils_makeRegexMatcher = function( regex ) {
+	var parse_Parser_expressions_primary_literal_booleanLiteral = function( types ) {
+
 		return function( tokenizer ) {
-			var match = regex.exec( tokenizer.str.substring( tokenizer.pos ) );
-			if ( !match ) {
-				return null;
+			var remaining = tokenizer.remaining();
+			if ( remaining.substr( 0, 4 ) === 'true' ) {
+				tokenizer.pos += 4;
+				return {
+					t: types.BOOLEAN_LITERAL,
+					v: 'true'
+				};
 			}
-			tokenizer.pos += match[ 0 ].length;
-			return match[ 1 ] || match[ 0 ];
+			if ( remaining.substr( 0, 5 ) === 'false' ) {
+				tokenizer.pos += 5;
+				return {
+					t: types.BOOLEAN_LITERAL,
+					v: 'false'
+				};
+			}
+			return null;
 		};
-	};
+	}( config_types );
 
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher = function( makeRegexMatcher ) {
+	var parse_Parser_expressions_primary_literal_stringLiteral_makeQuotedStringMatcher = function() {
 
-		var getStringMiddle, getEscapeSequence, getLineContinuation;
+		var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
 		// Match one or more characters until: ", ', \, or EOL/EOF.
 		// EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
-		getStringMiddle = makeRegexMatcher( /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/ );
+		stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
 		// Match one escape sequence, including the backslash.
-		getEscapeSequence = makeRegexMatcher( /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/ );
+		escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
 		// Match one ES5 line continuation (backslash + line terminator).
-		getLineContinuation = makeRegexMatcher( /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/ );
+		lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
 		// Helper for defining getDoubleQuotedString and getSingleQuotedString.
 		return function( okQuote ) {
-			return function( tokenizer ) {
+			return function( parser ) {
 				var start, literal, done, next;
-				start = tokenizer.pos;
+				start = parser.pos;
 				literal = '"';
 				done = false;
 				while ( !done ) {
-					next = getStringMiddle( tokenizer ) || getEscapeSequence( tokenizer ) || tokenizer.getStringMatch( okQuote );
+					next = parser.matchPattern( stringMiddlePattern ) || parser.matchPattern( escapeSequencePattern ) || parser.matchString( okQuote );
 					if ( next ) {
 						if ( next === '"' ) {
 							literal += '\\"';
@@ -5560,7 +5580,7 @@
 							literal += next;
 						}
 					} else {
-						next = getLineContinuation( tokenizer );
+						next = parser.matchPattern( lineContinuationPattern );
 						if ( next ) {
 							// convert \(newline-like) into a \u escape, which is allowed in JSON
 							literal += '\\u' + ( '000' + next.charCodeAt( 1 ).toString( 16 ) ).slice( -4 );
@@ -5574,27 +5594,27 @@
 				return JSON.parse( literal );
 			};
 		};
-	}( parse_Tokenizer_utils_makeRegexMatcher );
+	}();
 
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getSingleQuotedString = function( makeQuotedStringMatcher ) {
+	var parse_Parser_expressions_primary_literal_stringLiteral_singleQuotedString = function( makeQuotedStringMatcher ) {
 
 		return makeQuotedStringMatcher( '"' );
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher );
+	}( parse_Parser_expressions_primary_literal_stringLiteral_makeQuotedStringMatcher );
 
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getDoubleQuotedString = function( makeQuotedStringMatcher ) {
+	var parse_Parser_expressions_primary_literal_stringLiteral_doubleQuotedString = function( makeQuotedStringMatcher ) {
 
 		return makeQuotedStringMatcher( '\'' );
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_makeQuotedStringMatcher );
+	}( parse_Parser_expressions_primary_literal_stringLiteral_makeQuotedStringMatcher );
 
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral = function( types, getSingleQuotedString, getDoubleQuotedString ) {
+	var parse_Parser_expressions_primary_literal_stringLiteral__stringLiteral = function( types, getSingleQuotedString, getDoubleQuotedString ) {
 
-		return function( tokenizer ) {
+		return function( parser ) {
 			var start, string;
-			start = tokenizer.pos;
-			if ( tokenizer.getStringMatch( '"' ) ) {
-				string = getDoubleQuotedString( tokenizer );
-				if ( !tokenizer.getStringMatch( '"' ) ) {
-					tokenizer.pos = start;
+			start = parser.pos;
+			if ( parser.matchString( '"' ) ) {
+				string = getDoubleQuotedString( parser );
+				if ( !parser.matchString( '"' ) ) {
+					parser.pos = start;
 					return null;
 				}
 				return {
@@ -5602,10 +5622,10 @@
 					v: string
 				};
 			}
-			if ( tokenizer.getStringMatch( '\'' ) ) {
-				string = getSingleQuotedString( tokenizer );
-				if ( !tokenizer.getStringMatch( '\'' ) ) {
-					tokenizer.pos = start;
+			if ( parser.matchString( '\'' ) ) {
+				string = getSingleQuotedString( parser );
+				if ( !parser.matchString( '\'' ) ) {
+					parser.pos = start;
 					return null;
 				}
 				return {
@@ -5615,59 +5635,687 @@
 			}
 			return null;
 		};
-	}( config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getSingleQuotedString, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral_getDoubleQuotedString );
+	}( config_types, parse_Parser_expressions_primary_literal_stringLiteral_singleQuotedString, parse_Parser_expressions_primary_literal_stringLiteral_doubleQuotedString );
 
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral = function( types, makeRegexMatcher ) {
+	var parse_Parser_expressions_patterns = {
+		name: /^[a-zA-Z_$][a-zA-Z_$0-9]*/
+	};
 
-		// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
-		var getNumber = makeRegexMatcher( /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/ );
-		return function( tokenizer ) {
-			var result;
-			if ( result = getNumber( tokenizer ) ) {
-				return {
-					t: types.NUMBER_LITERAL,
-					v: result
-				};
-			}
-			return null;
-		};
-	}( config_types, parse_Tokenizer_utils_makeRegexMatcher );
-
-	var parse_Tokenizer_getExpression_shared_getName = function( makeRegexMatcher ) {
-
-		return makeRegexMatcher( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
-	}( parse_Tokenizer_utils_makeRegexMatcher );
-
-	var parse_Tokenizer_getExpression_shared_getKey = function( getStringLiteral, getNumberLiteral, getName ) {
+	var parse_Parser_expressions_shared_key = function( getStringLiteral, getNumberLiteral, patterns ) {
 
 		var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 		// http://mathiasbynens.be/notes/javascript-properties
 		// can be any name, string literal, or number literal
-		return function( tokenizer ) {
+		return function( parser ) {
 			var token;
-			if ( token = getStringLiteral( tokenizer ) ) {
+			if ( token = getStringLiteral( parser ) ) {
 				return identifier.test( token.v ) ? token.v : '"' + token.v.replace( /"/g, '\\"' ) + '"';
 			}
-			if ( token = getNumberLiteral( tokenizer ) ) {
+			if ( token = getNumberLiteral( parser ) ) {
 				return token.v;
 			}
-			if ( token = getName( tokenizer ) ) {
+			if ( token = parser.matchPattern( patterns.name ) ) {
 				return token;
 			}
 		};
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_shared_getName );
+	}( parse_Parser_expressions_primary_literal_stringLiteral__stringLiteral, parse_Parser_expressions_primary_literal_numberLiteral, parse_Parser_expressions_patterns );
 
-	var utils_parseJSON = function( getStringMatch, allowWhitespace, getStringLiteral, getKey ) {
+	var parse_Parser_expressions_primary_literal_objectLiteral_keyValuePair = function( types, getKey ) {
+
+		return function( parser ) {
+			var start, key, value;
+			start = parser.pos;
+			// allow whitespace between '{' and key
+			parser.allowWhitespace();
+			key = getKey( parser );
+			if ( key === null ) {
+				parser.pos = start;
+				return null;
+			}
+			// allow whitespace between key and ':'
+			parser.allowWhitespace();
+			// next character must be ':'
+			if ( !parser.matchString( ':' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			// allow whitespace between ':' and value
+			parser.allowWhitespace();
+			// next expression must be a, well... expression
+			value = parser.readExpression();
+			if ( value === null ) {
+				parser.pos = start;
+				return null;
+			}
+			return {
+				t: types.KEY_VALUE_PAIR,
+				k: key,
+				v: value
+			};
+		};
+	}( config_types, parse_Parser_expressions_shared_key );
+
+	var parse_Parser_expressions_primary_literal_objectLiteral_keyValuePairs = function( getKeyValuePair ) {
+
+		return function getKeyValuePairs( parser ) {
+			var start, pairs, pair, keyValuePairs;
+			start = parser.pos;
+			pair = getKeyValuePair( parser );
+			if ( pair === null ) {
+				return null;
+			}
+			pairs = [ pair ];
+			if ( parser.matchString( ',' ) ) {
+				keyValuePairs = getKeyValuePairs( parser );
+				if ( !keyValuePairs ) {
+					parser.pos = start;
+					return null;
+				}
+				return pairs.concat( keyValuePairs );
+			}
+			return pairs;
+		};
+	}( parse_Parser_expressions_primary_literal_objectLiteral_keyValuePair );
+
+	var parse_Parser_expressions_primary_literal_objectLiteral__objectLiteral = function( types, getKeyValuePairs ) {
+
+		return function( parser ) {
+			var start, keyValuePairs;
+			start = parser.pos;
+			// allow whitespace
+			parser.allowWhitespace();
+			if ( !parser.matchString( '{' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			keyValuePairs = getKeyValuePairs( parser );
+			// allow whitespace between final value and '}'
+			parser.allowWhitespace();
+			if ( !parser.matchString( '}' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			return {
+				t: types.OBJECT_LITERAL,
+				m: keyValuePairs
+			};
+		};
+	}( config_types, parse_Parser_expressions_primary_literal_objectLiteral_keyValuePairs );
+
+	var parse_Parser_expressions_shared_expressionList = function getExpressionList( tokenizer ) {
+		var start, expressions, expr, next;
+		start = tokenizer.pos;
+		tokenizer.allowWhitespace();
+		expr = tokenizer.readExpression();
+		if ( expr === null ) {
+			return null;
+		}
+		expressions = [ expr ];
+		// allow whitespace between expression and ','
+		tokenizer.allowWhitespace();
+		if ( tokenizer.matchString( ',' ) ) {
+			next = getExpressionList( tokenizer );
+			if ( next === null ) {
+				tokenizer.pos = start;
+				return null;
+			}
+			next.forEach( append );
+		}
+
+		function append( expression ) {
+			expressions.push( expression );
+		}
+		return expressions;
+	};
+
+	var parse_Parser_expressions_primary_literal_arrayLiteral = function( types, getExpressionList ) {
+
+		return function( parser ) {
+			var start, expressionList;
+			start = parser.pos;
+			// allow whitespace before '['
+			parser.allowWhitespace();
+			if ( !parser.matchString( '[' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			expressionList = getExpressionList( parser );
+			if ( !parser.matchString( ']' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			return {
+				t: types.ARRAY_LITERAL,
+				m: expressionList
+			};
+		};
+	}( config_types, parse_Parser_expressions_shared_expressionList );
+
+	var parse_Parser_expressions_primary_literal__literal = function( getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral ) {
+
+		return function( tokenizer ) {
+			var literal = getNumberLiteral( tokenizer ) || getBooleanLiteral( tokenizer ) || getStringLiteral( tokenizer ) || getObjectLiteral( tokenizer ) || getArrayLiteral( tokenizer );
+			return literal;
+		};
+	}( parse_Parser_expressions_primary_literal_numberLiteral, parse_Parser_expressions_primary_literal_booleanLiteral, parse_Parser_expressions_primary_literal_stringLiteral__stringLiteral, parse_Parser_expressions_primary_literal_objectLiteral__objectLiteral, parse_Parser_expressions_primary_literal_arrayLiteral );
+
+	var parse_Parser_expressions_primary_reference = function( types, patterns ) {
+
+		var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals;
+		dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
+		getArrayRefinement = function( parser ) {
+			var num = parser.matchPattern( arrayMemberPattern );
+			if ( num ) {
+				return '.' + num;
+			}
+			return null;
+		};
+		arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
+		// if a reference is a browser global, we don't deference it later, so it needs special treatment
+		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+		return function( parser ) {
+			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
+			startPos = parser.pos;
+			// we might have ancestor refs...
+			ancestor = '';
+			while ( parser.matchString( '../' ) ) {
+				ancestor += '../';
+			}
+			if ( !ancestor ) {
+				// we might have an implicit iterator or a restricted reference
+				dot = parser.matchString( '.' ) || '';
+			}
+			name = parser.matchPattern( patterns.name ) || '';
+			// if this is a browser global, stop here
+			if ( !ancestor && !dot && globals.test( name ) ) {
+				return {
+					t: types.GLOBAL,
+					v: name
+				};
+			}
+			// allow the use of `this`
+			if ( name === 'this' && !ancestor && !dot ) {
+				name = '.';
+				startPos += 3;
+			}
+			combo = ( ancestor || dot ) + name;
+			if ( !combo ) {
+				return null;
+			}
+			while ( refinement = parser.matchPattern( dotRefinementPattern ) || getArrayRefinement( parser ) ) {
+				combo += refinement;
+			}
+			if ( parser.matchString( '(' ) ) {
+				// if this is a method invocation (as opposed to a function) we need
+				// to strip the method name from the reference combo, else the context
+				// will be wrong
+				lastDotIndex = combo.lastIndexOf( '.' );
+				if ( lastDotIndex !== -1 ) {
+					combo = combo.substr( 0, lastDotIndex );
+					parser.pos = startPos + combo.length;
+				} else {
+					parser.pos -= 1;
+				}
+			}
+			return {
+				t: types.REFERENCE,
+				n: combo
+			};
+		};
+	}( config_types, parse_Parser_expressions_patterns );
+
+	var parse_Parser_expressions_primary_bracketedExpression = function( types ) {
+
+		return function( parser ) {
+			var start, expr;
+			start = parser.pos;
+			if ( !parser.matchString( '(' ) ) {
+				return null;
+			}
+			parser.allowWhitespace();
+			expr = parser.readExpression();
+			if ( !expr ) {
+				parser.pos = start;
+				return null;
+			}
+			parser.allowWhitespace();
+			if ( !parser.matchString( ')' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			return {
+				t: types.BRACKETED,
+				x: expr
+			};
+		};
+	}( config_types );
+
+	var parse_Parser_expressions_primary__primary = function( getLiteral, getReference, getBracketedExpression ) {
+
+		return function( tokenizer ) {
+			return getLiteral( tokenizer ) || getReference( tokenizer ) || getBracketedExpression( tokenizer );
+		};
+	}( parse_Parser_expressions_primary_literal__literal, parse_Parser_expressions_primary_reference, parse_Parser_expressions_primary_bracketedExpression );
+
+	var parse_Parser_expressions_shared_refinement = function( types, patterns ) {
+
+		return function getRefinement( parser ) {
+			var start, name, expr;
+			start = parser.pos;
+			parser.allowWhitespace();
+			// "." name
+			if ( parser.matchString( '.' ) ) {
+				parser.allowWhitespace();
+				if ( name = parser.matchPattern( patterns.name ) ) {
+					return {
+						t: types.REFINEMENT,
+						n: name
+					};
+				}
+				parser.error( 'Expected a property name' );
+			}
+			// "[" expression "]"
+			if ( parser.matchString( '[' ) ) {
+				parser.allowWhitespace();
+				expr = parser.readExpression();
+				if ( !expr ) {
+					parser.error( 'an expression' );
+				}
+				parser.allowWhitespace();
+				if ( !parser.matchString( ']' ) ) {
+					parser.error( 'Expected \']\'' );
+				}
+				return {
+					t: types.REFINEMENT,
+					x: expr
+				};
+			}
+			return null;
+		};
+	}( config_types, parse_Parser_expressions_patterns );
+
+	var parse_Parser_expressions_memberOrInvocation = function( types, getPrimary, getExpressionList, getRefinement ) {
+
+		return function( parser ) {
+			var current, expression, refinement, expressionList;
+			expression = getPrimary( parser );
+			if ( !expression ) {
+				return null;
+			}
+			while ( expression ) {
+				current = parser.pos;
+				if ( refinement = getRefinement( parser ) ) {
+					expression = {
+						t: types.MEMBER,
+						x: expression,
+						r: refinement
+					};
+				} else if ( parser.matchString( '(' ) ) {
+					parser.allowWhitespace();
+					expressionList = getExpressionList( parser );
+					parser.allowWhitespace();
+					if ( !parser.matchString( ')' ) ) {
+						parser.pos = current;
+						break;
+					}
+					expression = {
+						t: types.INVOCATION,
+						x: expression
+					};
+					if ( expressionList ) {
+						expression.o = expressionList;
+					}
+				} else {
+					break;
+				}
+			}
+			return expression;
+		};
+	}( config_types, parse_Parser_expressions_primary__primary, parse_Parser_expressions_shared_expressionList, parse_Parser_expressions_shared_refinement );
+
+	var parse_Parser_expressions_typeof = function( types, getMemberOrInvocation ) {
+
+		var getTypeof, makePrefixSequenceMatcher;
+		makePrefixSequenceMatcher = function( symbol, fallthrough ) {
+			return function( parser ) {
+				var start, expression;
+				if ( !parser.matchString( symbol ) ) {
+					return fallthrough( parser );
+				}
+				start = parser.pos;
+				parser.allowWhitespace();
+				expression = parser.readExpression();
+				if ( !expression ) {
+					parser.error( 'Expected a JavaScript expression' );
+				}
+				return {
+					s: symbol,
+					o: expression,
+					t: types.PREFIX_OPERATOR
+				};
+			};
+		};
+		// create all prefix sequence matchers, return getTypeof
+		( function() {
+			var i, len, matcher, prefixOperators, fallthrough;
+			prefixOperators = '! ~ + - typeof'.split( ' ' );
+			fallthrough = getMemberOrInvocation;
+			for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
+				matcher = makePrefixSequenceMatcher( prefixOperators[ i ], fallthrough );
+				fallthrough = matcher;
+			}
+			// typeof operator is higher precedence than multiplication, so provides the
+			// fallthrough for the multiplication sequence matcher we're about to create
+			// (we're skipping void and delete)
+			getTypeof = fallthrough;
+		}() );
+		return getTypeof;
+	}( config_types, parse_Parser_expressions_memberOrInvocation );
+
+	var parse_Parser_expressions_logicalOr = function( types, getTypeof ) {
+
+		var getLogicalOr, makeInfixSequenceMatcher;
+		makeInfixSequenceMatcher = function( symbol, fallthrough ) {
+			return function( parser ) {
+				var start, left, right;
+				left = fallthrough( parser );
+				if ( !left ) {
+					return null;
+				}
+				// Loop to handle left-recursion in a case like `a * b * c` and produce
+				// left association, i.e. `(a * b) * c`.  The matcher can't call itself
+				// to parse `left` because that would be infinite regress.
+				while ( true ) {
+					start = parser.pos;
+					parser.allowWhitespace();
+					if ( !parser.matchString( symbol ) ) {
+						parser.pos = start;
+						return left;
+					}
+					// special case - in operator must not be followed by [a-zA-Z_$0-9]
+					if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( parser.remaining().charAt( 0 ) ) ) {
+						parser.pos = start;
+						return left;
+					}
+					parser.allowWhitespace();
+					// right operand must also consist of only higher-precedence operators
+					right = fallthrough( parser );
+					if ( !right ) {
+						parser.pos = start;
+						return left;
+					}
+					left = {
+						t: types.INFIX_OPERATOR,
+						s: symbol,
+						o: [
+							left,
+							right
+						]
+					};
+				}
+			};
+		};
+		// create all infix sequence matchers, and return getLogicalOr
+		( function() {
+			var i, len, matcher, infixOperators, fallthrough;
+			// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
+			// Each sequence matcher will initially fall through to its higher precedence
+			// neighbour, and only attempt to match if one of the higher precedence operators
+			// (or, ultimately, a literal, reference, or bracketed expression) already matched
+			infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
+			// A typeof operator is higher precedence than multiplication
+			fallthrough = getTypeof;
+			for ( i = 0, len = infixOperators.length; i < len; i += 1 ) {
+				matcher = makeInfixSequenceMatcher( infixOperators[ i ], fallthrough );
+				fallthrough = matcher;
+			}
+			// Logical OR is the fallthrough for the conditional matcher
+			getLogicalOr = fallthrough;
+		}() );
+		return getLogicalOr;
+	}( config_types, parse_Parser_expressions_typeof );
+
+	var parse_Parser_expressions_conditional = function( types, getLogicalOr ) {
+
+		// The conditional operator is the lowest precedence operator, so we start here
+		return function( parser ) {
+			var start, expression, ifTrue, ifFalse;
+			expression = getLogicalOr( parser );
+			if ( !expression ) {
+				return null;
+			}
+			start = parser.pos;
+			parser.allowWhitespace();
+			if ( !parser.matchString( '?' ) ) {
+				parser.pos = start;
+				return expression;
+			}
+			parser.allowWhitespace();
+			ifTrue = parser.readExpression();
+			if ( !ifTrue ) {
+				parser.pos = start;
+				return expression;
+			}
+			parser.allowWhitespace();
+			if ( !parser.matchString( ':' ) ) {
+				parser.pos = start;
+				return expression;
+			}
+			parser.allowWhitespace();
+			ifFalse = parser.readExpression();
+			if ( !ifFalse ) {
+				parser.pos = start;
+				return expression;
+			}
+			return {
+				t: types.CONDITIONAL,
+				o: [
+					expression,
+					ifTrue,
+					ifFalse
+				]
+			};
+		};
+	}( config_types, parse_Parser_expressions_logicalOr );
+
+	var parse_Parser_utils_flattenExpression = function( types, isObject ) {
+
+		return function( expression ) {
+			var refs = [],
+				flattened;
+			extractRefs( expression, refs );
+			flattened = {
+				r: refs,
+				s: stringify( this, expression, refs )
+			};
+			return flattened;
+		};
+
+		function quoteStringLiteral( str ) {
+			return JSON.stringify( String( str ) );
+		}
+		// TODO maybe refactor this?
+		function extractRefs( node, refs ) {
+			var i, list;
+			if ( node.t === types.REFERENCE ) {
+				if ( refs.indexOf( node.n ) === -1 ) {
+					refs.unshift( node.n );
+				}
+			}
+			list = node.o || node.m;
+			if ( list ) {
+				if ( isObject( list ) ) {
+					extractRefs( list, refs );
+				} else {
+					i = list.length;
+					while ( i-- ) {
+						extractRefs( list[ i ], refs );
+					}
+				}
+			}
+			if ( node.x ) {
+				extractRefs( node.x, refs );
+			}
+			if ( node.r ) {
+				extractRefs( node.r, refs );
+			}
+			if ( node.v ) {
+				extractRefs( node.v, refs );
+			}
+		}
+
+		function stringify( parser, node, refs ) {
+			var stringifyAll = function( item ) {
+				return stringify( parser, item, refs );
+			};
+			switch ( node.t ) {
+				case types.BOOLEAN_LITERAL:
+				case types.GLOBAL:
+				case types.NUMBER_LITERAL:
+					return node.v;
+				case types.STRING_LITERAL:
+					return quoteStringLiteral( node.v );
+				case types.ARRAY_LITERAL:
+					return '[' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + ']';
+				case types.OBJECT_LITERAL:
+					return '{' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + '}';
+				case types.KEY_VALUE_PAIR:
+					return node.k + ':' + stringify( parser, node.v, refs );
+				case types.PREFIX_OPERATOR:
+					return ( node.s === 'typeof' ? 'typeof ' : node.s ) + stringify( parser, node.o, refs );
+				case types.INFIX_OPERATOR:
+					return stringify( parser, node.o[ 0 ], refs ) + ( node.s.substr( 0, 2 ) === 'in' ? ' ' + node.s + ' ' : node.s ) + stringify( parser, node.o[ 1 ], refs );
+				case types.INVOCATION:
+					return stringify( parser, node.x, refs ) + '(' + ( node.o ? node.o.map( stringifyAll ).join( ',' ) : '' ) + ')';
+				case types.BRACKETED:
+					return '(' + stringify( parser, node.x, refs ) + ')';
+				case types.MEMBER:
+					return stringify( parser, node.x, refs ) + stringify( parser, node.r, refs );
+				case types.REFINEMENT:
+					return node.n ? '.' + node.n : '[' + stringify( parser, node.x, refs ) + ']';
+				case types.CONDITIONAL:
+					return stringify( parser, node.o[ 0 ], refs ) + '?' + stringify( parser, node.o[ 1 ], refs ) + ':' + stringify( parser, node.o[ 2 ], refs );
+				case types.REFERENCE:
+					return '${' + refs.indexOf( node.n ) + '}';
+				default:
+					parser.error( 'foo' );
+			}
+		}
+	}( config_types, utils_isObject );
+
+	var parse_Parser__Parser = function( circular, types, create, hasOwnProperty, getConditional, flattenExpression ) {
+
+		var Parser, ParseError, leadingWhitespace = /^\s+/;
+		ParseError = function( message ) {
+			this.name = 'ParseError';
+			this.message = message;
+		};
+		ParseError.prototype = Error.prototype;
+		Parser = function( str, options ) {
+			var items, item;
+			this.str = str;
+			this.options = options || {};
+			this.pos = 0;
+			// Custom init logic
+			if ( this.init )
+				this.init( str, options );
+			items = [];
+			while ( this.pos < this.str.length && ( item = this.read() ) ) {
+				items.push( item );
+			}
+			this.leftover = this.remaining();
+			this.result = this.postProcess ? this.postProcess( items, options ) : items;
+		};
+		Parser.prototype = {
+			read: function( converters ) {
+				var pos, i, len, item;
+				if ( !converters )
+					converters = this.converters;
+				pos = this.pos;
+				len = converters.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.pos = pos;
+					// reset for each attempt
+					if ( item = converters[ i ]( this ) ) {
+						return item;
+					}
+				}
+				return null;
+			},
+			readExpression: function() {
+				// The conditional operator is the lowest precedence operator (except yield,
+				// assignment operators, and commas, none of which are supported), so we
+				// start there. If it doesn't match, it 'falls through' to progressively
+				// higher precedence operators, until it eventually matches (or fails to
+				// match) a 'primary' - a literal or a reference. This way, the abstract syntax
+				// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
+				return getConditional( this );
+			},
+			flattenExpression: flattenExpression,
+			error: function( err ) {
+				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum, message;
+				lines = this.str.split( '\n' );
+				lineNum = -1;
+				nextLineEnd = 0;
+				do {
+					currentLineEnd = nextLineEnd;
+					currentLine = lines[ lineNum+++1 ];
+					nextLineEnd = currentLine.length + 1;
+				} while ( nextLineEnd < this.pos );
+				columnNum = this.pos - currentLineEnd;
+				message = err + ' at line ' + ( lineNum + 1 ) + ' character ' + ( columnNum + 1 ) + ':\n' + currentLine + '\n' + new Array( columnNum + 1 ).join( ' ' ) + '^----';
+				throw new ParseError( message );
+			},
+			matchString: function( string ) {
+				if ( this.str.substr( this.pos, string.length ) === string ) {
+					this.pos += string.length;
+					return string;
+				}
+			},
+			matchPattern: function( pattern ) {
+				var match;
+				if ( match = pattern.exec( this.remaining() ) ) {
+					this.pos += match[ 0 ].length;
+					return match[ 1 ] || match[ 0 ];
+				}
+			},
+			allowWhitespace: function() {
+				this.matchPattern( leadingWhitespace );
+			},
+			remaining: function() {
+				return this.str.substring( this.pos );
+			},
+			nextChar: function() {
+				return this.str.charAt( this.pos );
+			}
+		};
+		Parser.extend = function( proto ) {
+			var Parent = this,
+				Child, key;
+			Child = function( str, options ) {
+				Parser.call( this, str, options );
+			};
+			Child.prototype = create( Parent.prototype );
+			for ( key in proto ) {
+				if ( hasOwnProperty.call( proto, key ) ) {
+					Child.prototype[ key ] = proto[ key ];
+				}
+			}
+			Child.extend = Parser.extend;
+			return Child;
+		};
+		circular.Parser = Parser;
+		return Parser;
+	}( circular, config_types, utils_create, utils_hasOwnProperty, parse_Parser_expressions_conditional, parse_Parser_utils_flattenExpression );
+
+	var utils_parseJSON = function( Parser, getStringLiteral, getKey ) {
 
 		// simple JSON parser, without the restrictions of JSON parse
 		// (i.e. having to double-quote keys).
 		//
-		// This re-uses logic from the main template parser, albeit
-		// messily. Could probably use a cleanup at some point.
-		//
 		// If passed a hash of values as the second argument, ${placeholders}
 		// will be replaced with those values
-		var Tokenizer, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern;
+		var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 		specials = {
 			'true': true,
 			'false': false,
@@ -5678,121 +6326,122 @@
 		numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 		placeholderPattern = /\$\{([^\}]+)\}/g;
 		placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
-		Tokenizer = function( str, values ) {
-			this.str = str;
-			this.values = values;
-			this.pos = 0;
-			this.result = this.getToken();
-		};
-		Tokenizer.prototype = {
-			remaining: function() {
-				return this.str.substring( this.pos );
+		onlyWhitespace = /^\s*$/;
+		JsonParser = Parser.extend( {
+			init: function( str, options ) {
+				this.values = options.values;
 			},
-			getStringMatch: getStringMatch,
-			getToken: function() {
-				this.allowWhitespace();
-				return this.getPlaceholder() || this.getSpecial() || this.getNumber() || this.getString() || this.getObject() || this.getArray();
-			},
-			getPlaceholder: function() {
-				var match;
-				if ( !this.values ) {
+			postProcess: function( result ) {
+				if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
 					return null;
 				}
-				if ( ( match = placeholderAtStartPattern.exec( this.remaining() ) ) && this.values.hasOwnProperty( match[ 1 ] ) ) {
-					this.pos += match[ 0 ].length;
-					return {
-						v: this.values[ match[ 1 ] ]
-					};
-				}
+				return {
+					value: result[ 0 ].v
+				};
 			},
-			getSpecial: function() {
-				var match;
-				if ( match = specialsPattern.exec( this.remaining() ) ) {
-					this.pos += match[ 0 ].length;
-					return {
-						v: specials[ match[ 0 ] ]
-					};
-				}
-			},
-			getNumber: function() {
-				var match;
-				if ( match = numberPattern.exec( this.remaining() ) ) {
-					this.pos += match[ 0 ].length;
-					return {
-						v: +match[ 0 ]
-					};
-				}
-			},
-			getString: function() {
-				var stringLiteral = getStringLiteral( this ),
-					values;
-				if ( stringLiteral && ( values = this.values ) ) {
-					return {
-						v: stringLiteral.v.replace( placeholderPattern, function( match, $1 ) {
-							return values[ $1 ] || $1;
-						} )
-					};
-				}
-				return stringLiteral;
-			},
-			getObject: function() {
-				var result, pair;
-				if ( !this.getStringMatch( '{' ) ) {
-					return null;
-				}
-				result = {};
-				while ( pair = getKeyValuePair( this ) ) {
-					result[ pair.key ] = pair.value;
-					this.allowWhitespace();
-					if ( this.getStringMatch( '}' ) ) {
-						return {
-							v: result
-						};
-					}
-					if ( !this.getStringMatch( ',' ) ) {
-						return null;
-					}
-				}
-				return null;
-			},
-			getArray: function() {
-				var result, valueToken;
-				if ( !this.getStringMatch( '[' ) ) {
-					return null;
-				}
-				result = [];
-				while ( valueToken = this.getToken() ) {
-					result.push( valueToken.v );
-					if ( this.getStringMatch( ']' ) ) {
-						return {
-							v: result
-						};
-					}
-					if ( !this.getStringMatch( ',' ) ) {
-						return null;
-					}
-				}
-				return null;
-			},
-			allowWhitespace: allowWhitespace
-		};
+			converters: [
 
-		function getKeyValuePair( tokenizer ) {
+				function getPlaceholder( parser ) {
+					var placeholder;
+					if ( !parser.values ) {
+						return null;
+					}
+					placeholder = parser.matchPattern( placeholderAtStartPattern );
+					if ( placeholder && parser.values.hasOwnProperty( placeholder ) ) {
+						return {
+							v: parser.values[ placeholder ]
+						};
+					}
+				},
+				function getSpecial( parser ) {
+					var special;
+					if ( special = parser.matchPattern( specialsPattern ) ) {
+						return {
+							v: specials[ special ]
+						};
+					}
+				},
+				function getNumber( parser ) {
+					var number;
+					if ( number = parser.matchPattern( numberPattern ) ) {
+						return {
+							v: +number
+						};
+					}
+				},
+				function getString( parser ) {
+					var stringLiteral = getStringLiteral( parser ),
+						values;
+					if ( stringLiteral && ( values = parser.values ) ) {
+						return {
+							v: stringLiteral.v.replace( placeholderPattern, function( match, $1 ) {
+								return $1 in values ? values[ $1 ] : $1;
+							} )
+						};
+					}
+					return stringLiteral;
+				},
+				function getObject( parser ) {
+					var result, pair;
+					if ( !parser.matchString( '{' ) ) {
+						return null;
+					}
+					result = {};
+					while ( pair = getKeyValuePair( parser ) ) {
+						result[ pair.key ] = pair.value;
+						parser.allowWhitespace();
+						if ( parser.matchString( '}' ) ) {
+							return {
+								v: result
+							};
+						}
+						if ( !parser.matchString( ',' ) ) {
+							return null;
+						}
+					}
+					return null;
+				},
+				function getArray( parser ) {
+					var result, valueToken;
+					if ( !parser.matchString( '[' ) ) {
+						return null;
+					}
+					result = [];
+					parser.allowWhitespace();
+					while ( valueToken = parser.read() ) {
+						result.push( valueToken.v );
+						parser.allowWhitespace();
+						if ( parser.matchString( ']' ) ) {
+							return {
+								v: result
+							};
+						}
+						if ( !parser.matchString( ',' ) ) {
+							return null;
+						}
+						parser.allowWhitespace();
+					}
+					return null;
+				}
+			]
+		} );
+
+		function getKeyValuePair( parser ) {
 			var key, valueToken, pair;
-			tokenizer.allowWhitespace();
-			key = getKey( tokenizer );
+			parser.allowWhitespace();
+			key = getKey( parser );
 			if ( !key ) {
 				return null;
 			}
 			pair = {
 				key: key
 			};
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( ':' ) ) {
+			parser.allowWhitespace();
+			if ( !parser.matchString( ':' ) ) {
 				return null;
 			}
-			tokenizer.allowWhitespace();
-			valueToken = tokenizer.getToken();
+			parser.allowWhitespace();
+			valueToken = parser.read();
 			if ( !valueToken ) {
 				return null;
 			}
@@ -5800,16 +6449,12 @@
 			return pair;
 		}
 		return function( str, values ) {
-			var tokenizer = new Tokenizer( str, values );
-			if ( tokenizer.result ) {
-				return {
-					value: tokenizer.result.v,
-					remaining: tokenizer.remaining()
-				};
-			}
-			return null;
+			var parser = new JsonParser( str, {
+				values: values
+			} );
+			return parser.result;
 		};
-	}( parse_Tokenizer_utils_getStringMatch, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_shared_getKey );
+	}( parse_Parser__Parser, parse_Parser_expressions_primary_literal_stringLiteral__stringLiteral, parse_Parser_expressions_shared_key );
 
 	var render_StringFragment_Interpolator = function( types, teardown, Mustache ) {
 
@@ -5911,55 +6556,66 @@
 		return StringText;
 	}( config_types );
 
-	var render_StringFragment_prototype_toArgsList = function( warn, parseJSON ) {
+	var render_StringFragment_prototype_getValue = function( types, warn, parseJSON ) {
 
-		return function() {
-			var values, counter, jsonesque, guid, errorMessage, parsed, processItems;
-			if ( !this.argsList || this.dirty ) {
-				values = {};
-				counter = 0;
-				guid = this.root._guid;
-				processItems = function( items ) {
-					return items.map( function( item ) {
-						var placeholderId, wrapped, value;
-						if ( item.text ) {
-							return item.text;
-						}
-						if ( item.fragments ) {
-							return item.fragments.map( function( fragment ) {
-								return processItems( fragment.items );
-							} ).join( '' );
-						}
-						placeholderId = guid + '-' + counter++;
-						if ( wrapped = item.root._wrapped[ item.keypath ] ) {
-							value = wrapped.value;
-						} else {
-							value = item.value;
-						}
-						values[ placeholderId ] = value;
-						return '${' + placeholderId + '}';
-					} ).join( '' );
-				};
-				jsonesque = processItems( this.items );
-				parsed = parseJSON( '[' + jsonesque + ']', values );
-				if ( !parsed ) {
-					errorMessage = 'Could not parse directive arguments (' + this.toString() + '). If you think this is a bug, please file an issue at http://github.com/RactiveJS/Ractive/issues';
-					if ( this.root.debug ) {
-						throw new Error( errorMessage );
-					} else {
-						warn( errorMessage );
-						this.argsList = [ jsonesque ];
+		var empty = {};
+		return function StringFragment$getValue( options ) {
+			var asArgs, parse, value, values, jsonesque, parsed, cache, dirtyFlag, result;
+			options = options || empty;
+			asArgs = options.args;
+			parse = asArgs || options.parse;
+			cache = asArgs ? 'argsList' : 'value';
+			dirtyFlag = asArgs ? 'dirtyArgs' : 'dirtyValue';
+			if ( this[ dirtyFlag ] || !this.hasOwnProperty( cache ) ) {
+				// Fast path
+				if ( this.items.length === 1 && this.items[ 0 ].type === types.INTERPOLATOR ) {
+					value = this.items[ 0 ].value;
+					if ( value !== undefined ) {
+						result = asArgs ? [ value ] : value;
 					}
 				} else {
-					this.argsList = parsed.value;
+					if ( parse ) {
+						values = {};
+						jsonesque = processItems( this.items, values, this.root._guid );
+						parsed = parseJSON( asArgs ? '[' + jsonesque + ']' : jsonesque, values );
+					}
+					if ( !parsed ) {
+						result = asArgs ? [ this.toString() ] : this.toString();
+					} else {
+						result = parsed.value;
+					}
 				}
-				this.dirty = false;
+				this[ cache ] = result;
+				this[ dirtyFlag ] = false;
 			}
-			return this.argsList;
+			return this[ cache ];
 		};
-	}( utils_warn, utils_parseJSON );
 
-	var render_StringFragment__StringFragment = function( types, parseJSON, Fragment, Interpolator, Section, Text, toArgsList, circular ) {
+		function processItems( items, values, guid, counter ) {
+			counter = counter || 0;
+			return items.map( function( item ) {
+				var placeholderId, wrapped, value;
+				if ( item.text ) {
+					return item.text;
+				}
+				if ( item.fragments ) {
+					return item.fragments.map( function( fragment ) {
+						return processItems( fragment.items, values, guid, counter );
+					} ).join( '' );
+				}
+				placeholderId = guid + '-' + counter++;
+				if ( wrapped = item.root._wrapped[ item.keypath ] ) {
+					value = wrapped.value;
+				} else {
+					value = item.value;
+				}
+				values[ placeholderId ] = value;
+				return '${' + placeholderId + '}';
+			} ).join( '' );
+		}
+	}( config_types, utils_warn, utils_parseJSON );
+
+	var render_StringFragment__StringFragment = function( types, parseJSON, Fragment, Interpolator, Section, Text, getValue, circular ) {
 
 		var StringFragment = function( options ) {
 			Fragment.init( this, options );
@@ -5982,7 +6638,7 @@
 				}
 			},
 			bubble: function() {
-				this.dirty = true;
+				this.dirtyValue = this.dirtyArgs = true;
 				this.owner.bubble();
 			},
 			teardown: function() {
@@ -5992,17 +6648,7 @@
 					this.items[ i ].teardown();
 				}
 			},
-			getValue: function() {
-				var value;
-				// Accommodate boolean attributes
-				if ( this.items.length === 1 && this.items[ 0 ].type === types.INTERPOLATOR ) {
-					value = this.items[ 0 ].value;
-					if ( value !== undefined ) {
-						return value;
-					}
-				}
-				return this.toString();
-			},
+			getValue: getValue,
 			isSimple: function() {
 				var i, item, containsInterpolator;
 				if ( this.simple !== undefined ) {
@@ -6040,22 +6686,24 @@
 					value = parsed ? parsed.value : value;
 				}
 				return value;
-			},
-			toArgsList: toArgsList
+			}
 		};
 		circular.StringFragment = StringFragment;
 		return StringFragment;
-	}( config_types, utils_parseJSON, render_shared_Fragment__Fragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, render_StringFragment_prototype_toArgsList, circular );
+	}( config_types, utils_parseJSON, render_shared_Fragment__Fragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, render_StringFragment_prototype_getValue, circular );
 
 	var render_DomFragment_Attribute__Attribute = function( runloop, types, determineNameAndNamespace, setStaticAttribute, determinePropertyName, getInterpolator, bind, update, StringFragment ) {
 
-		var DomAttribute = function( options ) {
+		var DomAttribute, booleanAttributes;
+		// via https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
+		booleanAttributes = /allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|spellcheck|translate|trueSpeed|typeMustMatch|visible/;
+		DomAttribute = function( options ) {
 			this.type = types.ATTRIBUTE;
 			this.element = options.element;
 			determineNameAndNamespace( this, options.name );
 			// if it's an empty attribute, or just a straight key-value pair, with no
 			// mustache shenanigans, set the attribute accordingly and go home
-			if ( options.value === null || typeof options.value === 'string' ) {
+			if ( !options.value || typeof options.value === 'string' ) {
 				setStaticAttribute( this, options );
 				return;
 			}
@@ -6140,7 +6788,7 @@
 				}
 			},
 			toString: function() {
-				var str, interpolator;
+				var escaped, interpolator;
 				if ( this.value === null ) {
 					return this.name;
 				}
@@ -6152,15 +6800,22 @@
 				if ( this.name === 'name' && this.element.lcName === 'input' && ( interpolator = this.interpolator ) ) {
 					return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 				}
-				// TODO don't use JSON.stringify?
-				if ( !this.fragment ) {
-					return this.name + '=' + JSON.stringify( this.value );
+				// Special case - boolean attributes
+				if ( this.fragment && booleanAttributes.test( this.name ) ) {
+					return this.fragment.getValue() ? this.name : null;
 				}
-				// TODO deal with boolean attributes correctly
-				str = this.fragment.toString();
-				return this.name + '=' + JSON.stringify( str );
+				if ( this.fragment ) {
+					escaped = escape( this.fragment.toString() );
+				} else {
+					escaped = escape( this.value );
+				}
+				return this.name + ( escaped ? '="' + escaped + '"' : '' );
 			}
 		};
+
+		function escape( string ) {
+			return string.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
+		}
 		return DomAttribute;
 	}( global_runloop, config_types, render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_helpers_getInterpolator, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment );
 
@@ -6201,26 +6856,7 @@
 		};
 	}( render_DomFragment_Element_initialise_createElementAttribute );
 
-	var utils_toArray = function toArray( arrayLike ) {
-		var array = [],
-			i = arrayLike.length;
-		while ( i-- ) {
-			array[ i ] = arrayLike[ i ];
-		}
-		return array;
-	};
-
-	var render_DomFragment_Element_shared_getMatchingStaticNodes = function( toArray ) {
-
-		return function getMatchingStaticNodes( element, selector ) {
-			if ( !element.matchingStaticNodes[ selector ] ) {
-				element.matchingStaticNodes[ selector ] = toArray( element.node.querySelectorAll( selector ) );
-			}
-			return element.matchingStaticNodes[ selector ];
-		};
-	}( utils_toArray );
-
-	var render_DomFragment_Element_initialise_appendElementChildren = function( warn, namespaces, StringFragment, getMatchingStaticNodes, circular ) {
+	var render_DomFragment_Element_initialise_appendElementChildren = function( circular, warn, namespaces, StringFragment ) {
 
 		var DomFragment, updateCss, updateScript;
 		circular.push( function() {
@@ -6263,50 +6899,26 @@
 				}
 				return;
 			}
-			if ( typeof descriptor.f === 'string' && ( !node || ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) ) {
-				// great! we can use innerHTML
-				element.html = descriptor.f;
-				if ( docFrag ) {
-					node.innerHTML = element.html;
-					// Update live queries, if applicable
-					element.matchingStaticNodes = {};
-					// so we can remove matches made with querySelectorAll at teardown time
-					updateLiveQueries( element );
-				}
-			} else {
-				element.fragment = new DomFragment( {
-					descriptor: descriptor.f,
-					root: element.root,
-					pNode: node,
-					owner: element,
-					pElement: element
-				} );
-				if ( docFrag ) {
-					node.appendChild( element.fragment.docFrag );
-				}
+			element.fragment = new DomFragment( {
+				descriptor: descriptor.f,
+				root: element.root,
+				pNode: node,
+				owner: element,
+				pElement: element
+			} );
+			if ( docFrag ) {
+				node.appendChild( element.fragment.docFrag );
 			}
 		};
-
-		function updateLiveQueries( element ) {
-			var instance, liveQueries, node, selector, query, matchingStaticNodes, i;
-			node = element.node;
-			instance = element.root;
-			do {
-				liveQueries = instance._liveQueries;
-				i = liveQueries.length;
-				while ( i-- ) {
-					selector = liveQueries[ i ];
-					query = liveQueries[ selector ];
-					matchingStaticNodes = getMatchingStaticNodes( element, selector );
-					query.push.apply( query, matchingStaticNodes );
-				}
-			} while ( instance = instance._parent );
-		}
-	}( utils_warn, config_namespaces, render_StringFragment__StringFragment, render_DomFragment_Element_shared_getMatchingStaticNodes, circular );
+	}( circular, utils_warn, config_namespaces, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Element_initialise_decorate_Decorator = function( warn, StringFragment ) {
 
-		var Decorator = function( descriptor, ractive, owner ) {
+		var getValueOptions, Decorator;
+		getValueOptions = {
+			args: true
+		};
+		Decorator = function( descriptor, ractive, owner ) {
 			var decorator = this,
 				name, fragment, errorMessage;
 			decorator.root = ractive;
@@ -6329,10 +6941,10 @@
 					root: ractive,
 					owner: owner
 				} );
-				decorator.params = decorator.fragment.toArgsList();
+				decorator.params = decorator.fragment.getValue( getValueOptions );
 				decorator.fragment.bubble = function() {
-					this.dirty = true;
-					decorator.params = this.toArgsList();
+					this.dirtyArgs = this.dirtyValue = true;
+					decorator.params = this.getValue( getValueOptions );
 					if ( decorator.ready ) {
 						decorator.update();
 					}
@@ -6395,7 +7007,9 @@
 
 	var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function( warn, StringFragment ) {
 
-		var addEventProxy,
+		var addEventProxy, getValueOptions = {
+				args: true
+			},
 			// helpers
 			MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
 		addEventProxy = function( element, triggerEventName, proxyDescriptor, indexRefs ) {
@@ -6496,7 +7110,7 @@
 			].concat( this.a ) );
 		};
 		fireEventWithDynamicArgs = function( event ) {
-			var args = this.d.toArgsList();
+			var args = this.d.getValue( getValueOptions );
 			// need to strip [] from ends if a string!
 			if ( typeof args === 'string' ) {
 				args = args.substr( 1, args.length - 2 );
@@ -6558,7 +7172,7 @@
 			i = liveQueries.length;
 			while ( i-- ) {
 				selector = liveQueries[ i ];
-				query = liveQueries[ selector ];
+				query = liveQueries[ '_' + selector ];
 				if ( query._test( element ) ) {
 					// keep register of applicable selectors, for when we teardown
 					( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
@@ -6753,7 +7367,8 @@
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions = function( isClient, warn, createElement, camelCase, interpolate, Ticker, prefix, unprefix, hyphenate ) {
 
-		var testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {}, cannotUseCssTransitions = {};
+		var testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {},
+			cannotUseCssTransitions = {};
 		if ( !isClient ) {
 			return;
 		}
@@ -7014,7 +7629,10 @@
 
 	var render_DomFragment_Element_shared_executeTransition_Transition__Transition = function( warn, StringFragment, init, getStyle, setStyle, animateStyle, processParams, resetStyle ) {
 
-		var Transition;
+		var getValueOptions, Transition;
+		getValueOptions = {
+			args: true
+		};
 		Transition = function( descriptor, root, owner, isIntro ) {
 			var t = this,
 				name, fragment, errorMessage;
@@ -7054,7 +7672,7 @@
 					root: this.root,
 					owner: owner
 				} );
-				this.params = fragment.toArgsList();
+				this.params = fragment.getValue( getValueOptions );
 				fragment.teardown();
 			}
 			this._fn = root.transitions[ name ];
@@ -7111,13 +7729,17 @@
 			parentFragment = element.parentFragment = options.parentFragment;
 			pNode = parentFragment.pNode;
 			descriptor = element.descriptor = options.descriptor;
-			element.parent = options.pElement;
+			element.parent = options.pElement || parentFragment.pElement;
 			element.root = root = parentFragment.root;
 			element.index = options.index;
 			element.lcName = descriptor.e.toLowerCase();
 			element.eventListeners = [];
 			element.customEventListeners = [];
 			element.cssDetachQueue = [];
+			// If this is an option element, we need to store a reference to its select
+			if ( element.lcName === 'option' ) {
+				element.select = findParentSelect( element.parent );
+			}
 			// get namespace, if we're actually rendering (not server-side stringifying)
 			if ( pNode ) {
 				namespace = element.namespace = getElementNamespace( descriptor, pNode );
@@ -7201,8 +7823,8 @@
 					decorate( descriptor.o, root, element );
 				}
 				// trigger intro transition
-				if ( descriptor.t1 ) {
-					executeTransition( descriptor.t1, root, element, true );
+				if ( descriptor.t0 || descriptor.t1 ) {
+					executeTransition( descriptor.t0 || descriptor.t1, root, element, true );
 				}
 				if ( element.node.tagName === 'OPTION' ) {
 					// Special case... if this option's parent select was previously
@@ -7230,10 +7852,6 @@
 					// allow you to programmatically focus the element until it's in the DOM
 					runloop.focus( element.node );
 				}
-			}
-			// If this is an option element, we need to store a reference to its select
-			if ( element.lcName === 'option' ) {
-				element.select = findParentSelect( element.parent );
 			}
 			updateLiveQueries( element );
 		};
@@ -7279,8 +7897,8 @@
 				this.decorator.teardown();
 			}
 			// Outro, if necessary
-			if ( this.descriptor.t2 ) {
-				executeTransition( this.descriptor.t2, this.root, this, false );
+			if ( this.descriptor.t0 || this.descriptor.t2 ) {
+				executeTransition( this.descriptor.t0 || this.descriptor.t2, this.root, this, false );
 			}
 			// Remove this node from any live queries
 			if ( this.liveQueries ) {
@@ -7289,18 +7907,12 @@
 		};
 
 		function removeFromLiveQueries( element ) {
-			var query, selector, matchingStaticNodes, i, j;
+			var query, selector, i;
 			i = element.liveQueries.length;
 			while ( i-- ) {
 				query = element.liveQueries[ i ];
 				selector = query.selector;
 				query._remove( element.node );
-				if ( element.matchingStaticNodes && ( matchingStaticNodes = element.matchingStaticNodes[ selector ] ) ) {
-					j = matchingStaticNodes.length;
-					while ( j-- ) {
-						query.remove( matchingStaticNodes[ j ] );
-					}
-				}
 			}
 		}
 	}( global_runloop, render_DomFragment_Element_shared_executeTransition__executeTransition );
@@ -7360,19 +7972,14 @@
 		};
 	}( render_shared_utils_assignNewKeypath );
 
-	var config_voidElementNames = 'area base br col command doctype embed hr img input keygen link meta param source track wbr'.split( ' ' );
+	var config_voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
 
 	var render_DomFragment_Element_prototype_toString = function( voidElementNames, isArray ) {
 
 		return function() {
-			var str, i, len, attrStr;
+			var str;
 			str = '<' + ( this.descriptor.y ? '!doctype' : this.descriptor.e );
-			len = this.attributes.length;
-			for ( i = 0; i < len; i += 1 ) {
-				if ( attrStr = this.attributes[ i ].toString() ) {
-					str += ' ' + attrStr;
-				}
-			}
+			str += this.attributes.map( stringifyAttribute ).join( '' );
 			// Special case - selected options
 			if ( this.lcName === 'option' && optionIsSelected( this ) ) {
 				str += ' selected';
@@ -7382,13 +7989,11 @@
 				str += ' checked';
 			}
 			str += '>';
-			if ( this.html ) {
-				str += this.html;
-			} else if ( this.fragment ) {
+			if ( this.fragment ) {
 				str += this.fragment.toString();
 			}
 			// add a closing tag if this isn't a void element
-			if ( voidElementNames.indexOf( this.descriptor.e ) === -1 ) {
+			if ( !voidElementNames.test( this.descriptor.e ) ) {
 				str += '</' + this.descriptor.e + '>';
 			}
 			this.stringifying = false;
@@ -7396,8 +8001,17 @@
 		};
 
 		function optionIsSelected( element ) {
-			var optionValue, selectValueAttribute, selectValueInterpolator, selectValue, i;
-			optionValue = element.attributes.value.value;
+			var optionValue, optionValueAttribute, optionValueInterpolator, selectValueAttribute, selectValueInterpolator, selectValue, i;
+			optionValueAttribute = element.attributes.value;
+			if ( optionValueAttribute.value ) {
+				optionValue = optionValueAttribute.value;
+			} else {
+				optionValueInterpolator = optionValueAttribute.interpolator;
+				if ( !optionValueInterpolator ) {
+					return;
+				}
+				optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );
+			}
 			selectValueAttribute = element.select.attributes.value;
 			selectValueInterpolator = selectValueAttribute.interpolator;
 			if ( !selectValueInterpolator ) {
@@ -7430,17 +8044,18 @@
 				return true;
 			}
 		}
+
+		function stringifyAttribute( attribute ) {
+			var str = attribute.toString();
+			return str ? ' ' + str : '';
+		}
 	}( config_voidElementNames, utils_isArray );
 
 	var render_DomFragment_Element_prototype_find = function( matches ) {
 
 		return function( selector ) {
-			var queryResult;
 			if ( matches( this.node, selector ) ) {
 				return this.node;
-			}
-			if ( this.html && ( queryResult = this.node.querySelector( selector ) ) ) {
-				return queryResult;
 			}
 			if ( this.fragment && this.fragment.find ) {
 				return this.fragment.find( selector );
@@ -7448,27 +8063,16 @@
 		};
 	}( utils_matches );
 
-	var render_DomFragment_Element_prototype_findAll = function( getMatchingStaticNodes ) {
-
-		return function( selector, query ) {
-			var matchingStaticNodes, matchedSelf;
-			// Add this node to the query, if applicable, and register the
-			// query on this element
-			if ( query._test( this, true ) && query.live ) {
-				( this.liveQueries || ( this.liveQueries = [] ) ).push( query );
-			}
-			if ( this.html ) {
-				matchingStaticNodes = getMatchingStaticNodes( this, selector );
-				query.push.apply( query, matchingStaticNodes );
-				if ( query.live && !matchedSelf ) {
-					( this.liveQueries || ( this.liveQueries = [] ) ).push( query );
-				}
-			}
-			if ( this.fragment ) {
-				this.fragment.findAll( selector, query );
-			}
-		};
-	}( render_DomFragment_Element_shared_getMatchingStaticNodes );
+	var render_DomFragment_Element_prototype_findAll = function( selector, query ) {
+		// Add this node to the query, if applicable, and register the
+		// query on this element
+		if ( query._test( this, true ) && query.live ) {
+			( this.liveQueries || ( this.liveQueries = [] ) ).push( query );
+		}
+		if ( this.fragment ) {
+			this.fragment.findAll( selector, query );
+		}
+	};
 
 	var render_DomFragment_Element_prototype_findComponent = function( selector ) {
 		if ( this.fragment ) {
@@ -7499,7 +8103,7 @@
 			return;
 		}
 		// an element can only have one two-way attribute
-		switch ( this.descriptor.e ) {
+		switch ( this.lcName ) {
 			case 'select':
 			case 'textarea':
 				if ( attributes.value ) {
@@ -7576,117 +8180,36 @@
 
 	var registries_partials = {};
 
-	var parse_utils_stripHtmlComments = function( html ) {
-		var commentStart, commentEnd, processed;
-		processed = '';
-		while ( html.length ) {
-			commentStart = html.indexOf( '<!--' );
-			commentEnd = html.indexOf( '-->' );
-			// no comments? great
-			if ( commentStart === -1 && commentEnd === -1 ) {
-				processed += html;
-				break;
-			}
-			// comment start but no comment end
-			if ( commentStart !== -1 && commentEnd === -1 ) {
-				throw 'Illegal HTML - expected closing comment sequence (\'-->\')';
-			}
-			// comment end but no comment start, or comment end before comment start
-			if ( commentEnd !== -1 && commentStart === -1 || commentEnd < commentStart ) {
-				throw 'Illegal HTML - unexpected closing comment sequence (\'-->\')';
-			}
-			processed += html.substr( 0, commentStart );
-			html = html.substring( commentEnd + 3 );
-		}
-		return processed;
-	};
+	var parse_converters_mustache_delimiterChange = function() {
 
-	var parse_utils_stripStandalones = function( types ) {
-
-		return function( tokens ) {
-			var i, current, backOne, backTwo, leadingLinebreak, trailingLinebreak;
-			leadingLinebreak = /^\s*\r?\n/;
-			trailingLinebreak = /\r?\n\s*$/;
-			for ( i = 2; i < tokens.length; i += 1 ) {
-				current = tokens[ i ];
-				backOne = tokens[ i - 1 ];
-				backTwo = tokens[ i - 2 ];
-				// if we're at the end of a [text][mustache][text] sequence, where [mustache] isn't a partial...
-				if ( current.type === types.TEXT && ( backOne.type === types.MUSTACHE && backOne.mustacheType !== types.PARTIAL ) && backTwo.type === types.TEXT ) {
-					// ... and the mustache is a standalone (i.e. line breaks either side)...
-					if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
-						// ... then we want to remove the whitespace after the first line break
-						// if the mustache wasn't a triple or interpolator or partial
-						if ( backOne.mustacheType !== types.INTERPOLATOR && backOne.mustacheType !== types.TRIPLE ) {
-							backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
-						}
-						// and the leading line break of the second text token
-						current.value = current.value.replace( leadingLinebreak, '' );
-						// if that means the current token is now empty, we should remove it
-						if ( current.value === '' ) {
-							tokens.splice( i--, 1 );
-						}
-					}
-				}
-			}
-			return tokens;
-		};
-	}( config_types );
-
-	var parse_utils_stripCommentTokens = function( types ) {
-
-		return function( tokens ) {
-			var i, current, previous, next;
-			for ( i = 0; i < tokens.length; i += 1 ) {
-				current = tokens[ i ];
-				previous = tokens[ i - 1 ];
-				next = tokens[ i + 1 ];
-				// if the current token is a comment or a delimiter change, remove it...
-				if ( current.mustacheType === types.COMMENT || current.mustacheType === types.DELIMCHANGE ) {
-					tokens.splice( i, 1 );
-					// remove comment token
-					// ... and see if it has text nodes either side, in which case
-					// they can be concatenated
-					if ( previous && next ) {
-						if ( previous.type === types.TEXT && next.type === types.TEXT ) {
-							previous.value += next.value;
-							tokens.splice( i, 1 );
-						}
-					}
-					i -= 1;
-				}
-			}
-			return tokens;
-		};
-	}( config_types );
-
-	var parse_Tokenizer_getMustache_getDelimiterChange = function( makeRegexMatcher ) {
-
-		var getDelimiter = makeRegexMatcher( /^[^\s=]+/ );
-		return function( tokenizer ) {
+		var delimiterChangePattern = /^[^\s=]+/,
+			whitespacePattern = /^\s+/;
+		return function( parser ) {
 			var start, opening, closing;
-			if ( !tokenizer.getStringMatch( '=' ) ) {
+			if ( !parser.matchString( '=' ) ) {
 				return null;
 			}
-			start = tokenizer.pos;
+			start = parser.pos;
 			// allow whitespace before new opening delimiter
-			tokenizer.allowWhitespace();
-			opening = getDelimiter( tokenizer );
+			parser.allowWhitespace();
+			opening = parser.matchPattern( delimiterChangePattern );
 			if ( !opening ) {
-				tokenizer.pos = start;
+				parser.pos = start;
 				return null;
 			}
 			// allow whitespace (in fact, it's necessary...)
-			tokenizer.allowWhitespace();
-			closing = getDelimiter( tokenizer );
+			if ( !parser.matchPattern( whitespacePattern ) ) {
+				return null;
+			}
+			closing = parser.matchPattern( delimiterChangePattern );
 			if ( !closing ) {
-				tokenizer.pos = start;
+				parser.pos = start;
 				return null;
 			}
 			// allow whitespace before closing '='
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '=' ) ) {
-				tokenizer.pos = start;
+			parser.allowWhitespace();
+			if ( !parser.matchString( '=' ) ) {
+				parser.pos = start;
 				return null;
 			}
 			return [
@@ -7694,9 +8217,9 @@
 				closing
 			];
 		};
-	}( parse_Tokenizer_utils_makeRegexMatcher );
+	}();
 
-	var parse_Tokenizer_getMustache_getMustacheType = function( types ) {
+	var parse_converters_mustache_type = function( types ) {
 
 		var mustacheTypes = {
 			'#': types.SECTION,
@@ -7706,197 +8229,227 @@
 			'!': types.COMMENT,
 			'&': types.TRIPLE
 		};
-		return function( tokenizer ) {
-			var type = mustacheTypes[ tokenizer.str.charAt( tokenizer.pos ) ];
+		return function( parser ) {
+			var type = mustacheTypes[ parser.str.charAt( parser.pos ) ];
 			if ( !type ) {
 				return null;
 			}
-			tokenizer.pos += 1;
+			parser.pos += 1;
 			return type;
 		};
 	}( config_types );
 
-	var parse_Tokenizer_getMustache_getMustacheContent = function( types, makeRegexMatcher, getMustacheType ) {
+	var parse_converters_mustache_content = function( types, mustacheType ) {
 
-		var getIndexRef = makeRegexMatcher( /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/ ),
-			arrayMember = /^[0-9][1-9]*$/;
-		return function( tokenizer, isTriple ) {
-			var start, mustache, type, expr, i, remaining, index, delimiter, keypathExpression;
-			start = tokenizer.pos;
-			mustache = {
-				type: isTriple ? types.TRIPLE : types.MUSTACHE
-			};
+		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+			arrayMemberPattern = /^[0-9][1-9]*$/;
+		return function( parser, isTriple ) {
+			var start, pos, mustache, type, expression, i, remaining, index, delimiter, keypathExpression;
+			start = parser.pos;
+			mustache = {};
 			// Determine mustache type
-			if ( !isTriple ) {
+			if ( isTriple ) {
+				mustache.t = types.TRIPLE;
+			} else {
 				// We need to test for expressions before we test for mustache type, because
 				// an expression that begins '!' looks a lot like a comment
-				if ( expr = tokenizer.getExpression() ) {
-					mustache.mustacheType = types.INTERPOLATOR;
+				if ( expression = parser.readExpression() ) {
+					mustache.t = types.INTERPOLATOR;
 					// Was it actually an expression, or a comment block in disguise?
-					tokenizer.allowWhitespace();
-					if ( tokenizer.getStringMatch( tokenizer.delimiters[ 1 ] ) ) {
+					parser.allowWhitespace();
+					if ( parser.matchString( parser.delimiters[ 1 ] ) ) {
 						// expression
-						tokenizer.pos -= tokenizer.delimiters[ 1 ].length;
+						parser.pos -= parser.delimiters[ 1 ].length;
 					} else {
 						// comment block
-						tokenizer.pos = start;
-						expr = null;
+						parser.pos = start;
+						expression = null;
 					}
 				}
-				if ( !expr ) {
-					type = getMustacheType( tokenizer );
-					// Special case - ampersand mustaches
-					if ( type === types.TRIPLE ) {
-						mustache = {
-							type: types.TRIPLE
-						};
-					} else {
-						mustache.mustacheType = type || types.INTERPOLATOR;
+				if ( !expression ) {
+					type = mustacheType( parser );
+					mustache.t = type || types.INTERPOLATOR;
+					// default
+					// TODO handle this more logically
+					if ( mustache.t === types.INVERTED ) {
+						mustache.t = types.SECTION;
+						mustache.n = 1;
 					}
 					// if it's a comment or a section closer, allow any contents except '}}'
 					if ( type === types.COMMENT || type === types.CLOSING ) {
-						remaining = tokenizer.remaining();
-						index = remaining.indexOf( tokenizer.delimiters[ 1 ] );
+						remaining = parser.remaining();
+						index = remaining.indexOf( parser.delimiters[ 1 ] );
 						if ( index !== -1 ) {
-							mustache.ref = remaining.substr( 0, index );
-							tokenizer.pos += index;
+							mustache.r = remaining.substr( 0, index );
+							parser.pos += index;
 							return mustache;
 						}
 					}
 				}
 			}
-			if ( !expr ) {
+			if ( !expression ) {
 				// allow whitespace
-				tokenizer.allowWhitespace();
+				parser.allowWhitespace();
 				// get expression
-				expr = tokenizer.getExpression();
+				expression = parser.readExpression();
 				// With certain valid references that aren't valid expressions,
 				// e.g. {{1.foo}}, we have a problem: it looks like we've got an
 				// expression, but the expression didn't consume the entire
 				// reference. So we need to check that the mustache delimiters
 				// appear next, unless there's an index reference (i.e. a colon)
-				remaining = tokenizer.remaining();
-				delimiter = isTriple ? tokenizer.tripleDelimiters[ 1 ] : tokenizer.delimiters[ 1 ];
+				remaining = parser.remaining();
+				delimiter = isTriple ? parser.tripleDelimiters[ 1 ] : parser.delimiters[ 1 ];
 				if ( remaining.substr( 0, delimiter.length ) !== delimiter && remaining.charAt( 0 ) !== ':' ) {
-					tokenizer.pos = start;
-					remaining = tokenizer.remaining();
-					index = remaining.indexOf( tokenizer.delimiters[ 1 ] );
+					pos = parser.pos;
+					parser.pos = start;
+					remaining = parser.remaining();
+					index = remaining.indexOf( parser.delimiters[ 1 ] );
 					if ( index !== -1 ) {
-						mustache.ref = remaining.substr( 0, index ).trim();
-						tokenizer.pos += index;
+						mustache.r = remaining.substr( 0, index ).trim();
+						parser.pos += index;
 						return mustache;
 					}
+					parser.pos = pos;
 				}
 			}
-			while ( expr.t === types.BRACKETED && expr.x ) {
-				expr = expr.x;
+			while ( expression.t === types.BRACKETED && expression.x ) {
+				expression = expression.x;
 			}
 			// special case - integers should be treated as array members references,
 			// rather than as expressions in their own right
-			if ( expr.t === types.REFERENCE ) {
-				mustache.ref = expr.n;
-			} else if ( expr.t === types.NUMBER_LITERAL && arrayMember.test( expr.v ) ) {
-				mustache.ref = expr.v;
-			} else if ( keypathExpression = getKeypathExpression( expr ) ) {
-				mustache.keypathExpression = keypathExpression;
+			if ( expression.t === types.REFERENCE ) {
+				mustache.r = expression.n;
 			} else {
-				mustache.expression = expr;
+				if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
+					mustache.r = expression.v;
+				} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
+					mustache.kx = keypathExpression;
+				} else {
+					mustache.x = parser.flattenExpression( expression );
+				}
 			}
 			// optional index reference
-			i = getIndexRef( tokenizer );
-			if ( i !== null ) {
-				mustache.indexRef = i;
+			if ( i = parser.matchPattern( indexRefPattern ) ) {
+				mustache.i = i;
 			}
 			return mustache;
 		};
-
-		function getKeypathExpression( expr ) {
-			var members = [];
-			while ( expr.t === types.MEMBER && expr.r.t === types.REFINEMENT ) {
-				members.unshift( expr.r );
-				expr = expr.x;
+		// TODO refactor this! it's bewildering
+		function getKeypathExpression( parser, expression ) {
+			var members = [],
+				refinement;
+			while ( expression.t === types.MEMBER && expression.r.t === types.REFINEMENT ) {
+				refinement = expression.r;
+				if ( refinement.x ) {
+					if ( refinement.x.t === types.REFERENCE ) {
+						members.unshift( refinement.x );
+					} else {
+						members.unshift( parser.flattenExpression( refinement.x ) );
+					}
+				} else {
+					members.unshift( refinement.n );
+				}
+				expression = expression.x;
 			}
-			if ( expr.t !== types.REFERENCE ) {
+			if ( expression.t !== types.REFERENCE ) {
 				return null;
 			}
 			return {
-				r: expr.n,
+				r: expression.n,
 				m: members
 			};
 		}
-	}( config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getMustache_getMustacheType );
+	}( config_types, parse_converters_mustache_type );
 
-	var parse_Tokenizer_getMustache__getMustache = function( types, getDelimiterChange, getMustacheContent ) {
+	var parse_converters_mustache = function( types, delimiterChange, mustacheContent ) {
 
-		return function() {
+		var delimiterChangeToken = {
+			t: types.DELIMCHANGE,
+			exclude: true
+		};
+		return getMustache;
+
+		function getMustache( parser ) {
 			// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
 			// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
 			// we will get a false positive if the mustache delimiter is a substring of the
 			// triple delimiter, as in the default case
-			var seekTripleFirst = this.tripleDelimiters[ 0 ].length > this.delimiters[ 0 ].length;
-			return getMustache( this, seekTripleFirst ) || getMustache( this, !seekTripleFirst );
-		};
+			var seekTripleFirst = parser.tripleDelimiters[ 0 ].length > parser.delimiters[ 0 ].length;
+			return getMustacheOrTriple( parser, seekTripleFirst ) || getMustacheOrTriple( parser, !seekTripleFirst );
+		}
 
-		function getMustache( tokenizer, seekTriple ) {
-			var start = tokenizer.pos,
-				content, delimiters;
-			delimiters = seekTriple ? tokenizer.tripleDelimiters : tokenizer.delimiters;
-			if ( !tokenizer.getStringMatch( delimiters[ 0 ] ) ) {
+		function getMustacheOrTriple( parser, seekTriple ) {
+			var start = parser.pos,
+				mustache, delimiters, children, child;
+			delimiters = seekTriple ? parser.tripleDelimiters : parser.delimiters;
+			if ( !parser.matchString( delimiters[ 0 ] ) ) {
 				return null;
 			}
 			// delimiter change?
-			content = getDelimiterChange( tokenizer );
-			if ( content ) {
+			if ( mustache = delimiterChange( parser ) ) {
 				// find closing delimiter or abort...
-				if ( !tokenizer.getStringMatch( delimiters[ 1 ] ) ) {
-					tokenizer.pos = start;
+				if ( !parser.matchString( delimiters[ 1 ] ) ) {
 					return null;
 				}
 				// ...then make the switch
-				tokenizer[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = content;
-				return {
-					type: types.MUSTACHE,
-					mustacheType: types.DELIMCHANGE
-				};
+				parser[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = mustache;
+				return delimiterChangeToken;
 			}
-			tokenizer.allowWhitespace();
-			content = getMustacheContent( tokenizer, seekTriple );
-			if ( content === null ) {
-				tokenizer.pos = start;
+			parser.allowWhitespace();
+			mustache = mustacheContent( parser, seekTriple );
+			if ( mustache === null ) {
+				parser.pos = start;
 				return null;
 			}
 			// allow whitespace before closing delimiter
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( delimiters[ 1 ] ) ) {
-				tokenizer.pos = start;
-				return null;
+			parser.allowWhitespace();
+			if ( !parser.matchString( delimiters[ 1 ] ) ) {
+				parser.error( 'Expected closing delimiter \'' + delimiters[ 1 ] + '\' after reference' );
 			}
-			return content;
+			if ( mustache.t === types.COMMENT ) {
+				mustache.exclude = true;
+			}
+			// section children
+			if ( mustache.t === types.SECTION || mustache.t === types.INVERTED ) {
+				children = [];
+				while ( child = parser.read() ) {
+					if ( child.t === types.CLOSING ) {
+						break;
+					}
+					children.push( child );
+				}
+				if ( children.length ) {
+					mustache.f = children;
+				}
+			}
+			return mustache;
 		}
-	}( config_types, parse_Tokenizer_getMustache_getDelimiterChange, parse_Tokenizer_getMustache_getMustacheContent );
+	}( config_types, parse_converters_mustache_delimiterChange, parse_converters_mustache_content );
 
-	var parse_Tokenizer_getComment_getComment = function( types ) {
+	var parse_converters_comment = function( types ) {
 
-		return function() {
+		var OPEN_COMMENT = '<!--',
+			CLOSE_COMMENT = '-->';
+		return function( parser ) {
 			var content, remaining, endIndex;
-			if ( !this.getStringMatch( '<!--' ) ) {
+			if ( !parser.matchString( OPEN_COMMENT ) ) {
 				return null;
 			}
-			remaining = this.remaining();
-			endIndex = remaining.indexOf( '-->' );
+			remaining = parser.remaining();
+			endIndex = remaining.indexOf( CLOSE_COMMENT );
 			if ( endIndex === -1 ) {
-				throw new Error( 'Unexpected end of input (expected "-->" to close comment)' );
+				parser.error( 'Illegal HTML - expected closing comment sequence (\'-->\')' );
 			}
 			content = remaining.substr( 0, endIndex );
-			this.pos += endIndex + 3;
+			parser.pos += endIndex + 3;
 			return {
-				type: types.COMMENT,
-				content: content
+				t: types.COMMENT,
+				c: content
 			};
 		};
 	}( config_types );
 
-	var parse_Tokenizer_utils_getLowestIndex = function( haystack, needles ) {
+	var parse_converters_utils_getLowestIndex = function( haystack, needles ) {
 		var i, index, lowest;
 		i = needles.length;
 		while ( i-- ) {
@@ -7915,839 +8468,9 @@
 		return lowest || -1;
 	};
 
-	var parse_Tokenizer_getTag__getTag = function( types, makeRegexMatcher, getLowestIndex ) {
+	var parse_converters_utils_decodeCharacterReferences = function() {
 
-		var getTag, getOpeningTag, getClosingTag, getTagName, getAttributes, getAttribute, getAttributeName, getAttributeValue, getUnquotedAttributeValue, getUnquotedAttributeValueToken, getUnquotedAttributeValueText, getQuotedStringToken, getQuotedAttributeValue;
-		getTag = function() {
-			return getOpeningTag( this ) || getClosingTag( this );
-		};
-		getOpeningTag = function( tokenizer ) {
-			var start, tag, attrs, lowerCaseName;
-			start = tokenizer.pos;
-			if ( tokenizer.inside ) {
-				return null;
-			}
-			if ( !tokenizer.getStringMatch( '<' ) ) {
-				return null;
-			}
-			tag = {
-				type: types.TAG
-			};
-			if ( tokenizer.getStringMatch( '!' ) ) {
-				tag.doctype = true;
-			}
-			// tag name
-			tag.name = getTagName( tokenizer );
-			if ( !tag.name ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// attributes
-			attrs = getAttributes( tokenizer );
-			if ( attrs ) {
-				tag.attrs = attrs;
-			}
-			// allow whitespace before closing solidus
-			tokenizer.allowWhitespace();
-			// self-closing solidus?
-			if ( tokenizer.getStringMatch( '/' ) ) {
-				tag.selfClosing = true;
-			}
-			// closing angle bracket
-			if ( !tokenizer.getStringMatch( '>' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// Special case - if we open a script tag, further tags should
-			// be ignored unless they're a closing script tag
-			lowerCaseName = tag.name.toLowerCase();
-			if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
-				tokenizer.inside = lowerCaseName;
-			}
-			return tag;
-		};
-		getClosingTag = function( tokenizer ) {
-			var start, tag, expected;
-			start = tokenizer.pos;
-			expected = function( str ) {
-				throw new Error( 'Unexpected character ' + tokenizer.remaining().charAt( 0 ) + ' (expected ' + str + ')' );
-			};
-			if ( !tokenizer.getStringMatch( '<' ) ) {
-				return null;
-			}
-			tag = {
-				type: types.TAG,
-				closing: true
-			};
-			// closing solidus
-			if ( !tokenizer.getStringMatch( '/' ) ) {
-				expected( '"/"' );
-			}
-			// tag name
-			tag.name = getTagName( tokenizer );
-			if ( !tag.name ) {
-				expected( 'tag name' );
-			}
-			// closing angle bracket
-			if ( !tokenizer.getStringMatch( '>' ) ) {
-				expected( '">"' );
-			}
-			if ( tokenizer.inside ) {
-				if ( tag.name.toLowerCase() !== tokenizer.inside ) {
-					tokenizer.pos = start;
-					return null;
-				}
-				tokenizer.inside = null;
-			}
-			return tag;
-		};
-		getTagName = makeRegexMatcher( /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/ );
-		getAttributes = function( tokenizer ) {
-			var start, attrs, attr;
-			start = tokenizer.pos;
-			// if the next character isn't whitespace, there are no attributes...
-			if ( !tokenizer.getStringMatch( ' ' ) && !tokenizer.getStringMatch( '\n' ) ) {
-				return null;
-			}
-			// ...but allow arbitrary amounts of whitespace
-			tokenizer.allowWhitespace();
-			attr = getAttribute( tokenizer );
-			if ( !attr ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			attrs = [];
-			while ( attr !== null ) {
-				attrs.push( attr );
-				tokenizer.allowWhitespace();
-				attr = getAttribute( tokenizer );
-			}
-			return attrs;
-		};
-		getAttribute = function( tokenizer ) {
-			var attr, name, value;
-			name = getAttributeName( tokenizer );
-			if ( !name ) {
-				return null;
-			}
-			attr = {
-				name: name
-			};
-			value = getAttributeValue( tokenizer );
-			if ( value ) {
-				attr.value = value;
-			}
-			return attr;
-		};
-		getAttributeName = makeRegexMatcher( /^[^\s"'>\/=]+/ );
-		getAttributeValue = function( tokenizer ) {
-			var start, value;
-			start = tokenizer.pos;
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '=' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			tokenizer.allowWhitespace();
-			value = getQuotedAttributeValue( tokenizer, '\'' ) || getQuotedAttributeValue( tokenizer, '"' ) || getUnquotedAttributeValue( tokenizer );
-			if ( value === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return value;
-		};
-		getUnquotedAttributeValueText = makeRegexMatcher( /^[^\s"'=<>`]+/ );
-		getUnquotedAttributeValueToken = function( tokenizer ) {
-			var start, text, index;
-			start = tokenizer.pos;
-			text = getUnquotedAttributeValueText( tokenizer );
-			if ( !text ) {
-				return null;
-			}
-			if ( ( index = text.indexOf( tokenizer.delimiters[ 0 ] ) ) !== -1 ) {
-				text = text.substr( 0, index );
-				tokenizer.pos = start + text.length;
-			}
-			return {
-				type: types.TEXT,
-				value: text
-			};
-		};
-		getUnquotedAttributeValue = function( tokenizer ) {
-			var tokens, token;
-			tokens = [];
-			token = tokenizer.getMustache() || getUnquotedAttributeValueToken( tokenizer );
-			while ( token !== null ) {
-				tokens.push( token );
-				token = tokenizer.getMustache() || getUnquotedAttributeValueToken( tokenizer );
-			}
-			if ( !tokens.length ) {
-				return null;
-			}
-			return tokens;
-		};
-		getQuotedAttributeValue = function( tokenizer, quoteMark ) {
-			var start, tokens, token;
-			start = tokenizer.pos;
-			if ( !tokenizer.getStringMatch( quoteMark ) ) {
-				return null;
-			}
-			tokens = [];
-			token = tokenizer.getMustache() || getQuotedStringToken( tokenizer, quoteMark );
-			while ( token !== null ) {
-				tokens.push( token );
-				token = tokenizer.getMustache() || getQuotedStringToken( tokenizer, quoteMark );
-			}
-			if ( !tokenizer.getStringMatch( quoteMark ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return tokens;
-		};
-		getQuotedStringToken = function( tokenizer, quoteMark ) {
-			var start, index, remaining;
-			start = tokenizer.pos;
-			remaining = tokenizer.remaining();
-			index = getLowestIndex( remaining, [
-				quoteMark,
-				tokenizer.delimiters[ 0 ],
-				tokenizer.delimiters[ 1 ]
-			] );
-			if ( index === -1 ) {
-				throw new Error( 'Quoted attribute value must have a closing quote' );
-			}
-			if ( !index ) {
-				return null;
-			}
-			tokenizer.pos += index;
-			return {
-				type: types.TEXT,
-				value: remaining.substr( 0, index )
-			};
-		};
-		return getTag;
-	}( config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_utils_getLowestIndex );
-
-	var parse_Tokenizer_getText__getText = function( types, getLowestIndex ) {
-
-		return function() {
-			var index, remaining, barrier;
-			remaining = this.remaining();
-			barrier = this.inside ? '</' + this.inside : '<';
-			if ( this.inside && !this.interpolate[ this.inside ] ) {
-				index = remaining.indexOf( barrier );
-			} else {
-				index = getLowestIndex( remaining, [
-					barrier,
-					this.delimiters[ 0 ],
-					this.tripleDelimiters[ 0 ]
-				] );
-			}
-			if ( !index ) {
-				return null;
-			}
-			if ( index === -1 ) {
-				index = remaining.length;
-			}
-			this.pos += index;
-			return {
-				type: types.TEXT,
-				value: remaining.substr( 0, index )
-			};
-		};
-	}( config_types, parse_Tokenizer_utils_getLowestIndex );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getBooleanLiteral = function( types ) {
-
-		return function( tokenizer ) {
-			var remaining = tokenizer.remaining();
-			if ( remaining.substr( 0, 4 ) === 'true' ) {
-				tokenizer.pos += 4;
-				return {
-					t: types.BOOLEAN_LITERAL,
-					v: 'true'
-				};
-			}
-			if ( remaining.substr( 0, 5 ) === 'false' ) {
-				tokenizer.pos += 5;
-				return {
-					t: types.BOOLEAN_LITERAL,
-					v: 'false'
-				};
-			}
-			return null;
-		};
-	}( config_types );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePair = function( types, getKey ) {
-
-		return function( tokenizer ) {
-			var start, key, value;
-			start = tokenizer.pos;
-			// allow whitespace between '{' and key
-			tokenizer.allowWhitespace();
-			key = getKey( tokenizer );
-			if ( key === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// allow whitespace between key and ':'
-			tokenizer.allowWhitespace();
-			// next character must be ':'
-			if ( !tokenizer.getStringMatch( ':' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			// allow whitespace between ':' and value
-			tokenizer.allowWhitespace();
-			// next expression must be a, well... expression
-			value = tokenizer.getExpression();
-			if ( value === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.KEY_VALUE_PAIR,
-				k: key,
-				v: value
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_shared_getKey );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePairs = function( getKeyValuePair ) {
-
-		return function getKeyValuePairs( tokenizer ) {
-			var start, pairs, pair, keyValuePairs;
-			start = tokenizer.pos;
-			pair = getKeyValuePair( tokenizer );
-			if ( pair === null ) {
-				return null;
-			}
-			pairs = [ pair ];
-			if ( tokenizer.getStringMatch( ',' ) ) {
-				keyValuePairs = getKeyValuePairs( tokenizer );
-				if ( !keyValuePairs ) {
-					tokenizer.pos = start;
-					return null;
-				}
-				return pairs.concat( keyValuePairs );
-			}
-			return pairs;
-		};
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePair );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral__getObjectLiteral = function( types, getKeyValuePairs ) {
-
-		return function( tokenizer ) {
-			var start, keyValuePairs;
-			start = tokenizer.pos;
-			// allow whitespace
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '{' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			keyValuePairs = getKeyValuePairs( tokenizer );
-			// allow whitespace between final value and '}'
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '}' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.OBJECT_LITERAL,
-				m: keyValuePairs
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral_getKeyValuePairs );
-
-	var parse_Tokenizer_getExpression_shared_getExpressionList = function getExpressionList( tokenizer ) {
-		var start, expressions, expr, next;
-		start = tokenizer.pos;
-		tokenizer.allowWhitespace();
-		expr = tokenizer.getExpression();
-		if ( expr === null ) {
-			return null;
-		}
-		expressions = [ expr ];
-		// allow whitespace between expression and ','
-		tokenizer.allowWhitespace();
-		if ( tokenizer.getStringMatch( ',' ) ) {
-			next = getExpressionList( tokenizer );
-			if ( next === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			expressions = expressions.concat( next );
-		}
-		return expressions;
-	};
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral_getArrayLiteral = function( types, getExpressionList ) {
-
-		return function( tokenizer ) {
-			var start, expressionList;
-			start = tokenizer.pos;
-			// allow whitespace before '['
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '[' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			expressionList = getExpressionList( tokenizer );
-			if ( !tokenizer.getStringMatch( ']' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.ARRAY_LITERAL,
-				m: expressionList
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_shared_getExpressionList );
-
-	var parse_Tokenizer_getExpression_getPrimary_getLiteral__getLiteral = function( getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral ) {
-
-		return function( tokenizer ) {
-			var literal = getNumberLiteral( tokenizer ) || getBooleanLiteral( tokenizer ) || getStringLiteral( tokenizer ) || getObjectLiteral( tokenizer ) || getArrayLiteral( tokenizer );
-			return literal;
-		};
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral_getNumberLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getBooleanLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getStringLiteral__getStringLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getObjectLiteral__getObjectLiteral, parse_Tokenizer_getExpression_getPrimary_getLiteral_getArrayLiteral );
-
-	var parse_Tokenizer_getExpression_getPrimary_getReference = function( types, makeRegexMatcher, getName ) {
-
-		var getDotRefinement, getArrayRefinement, getArrayMember, globals;
-		getDotRefinement = makeRegexMatcher( /^\.[a-zA-Z_$0-9]+/ );
-		getArrayRefinement = function( tokenizer ) {
-			var num = getArrayMember( tokenizer );
-			if ( num ) {
-				return '.' + num;
-			}
-			return null;
-		};
-		getArrayMember = makeRegexMatcher( /^\[(0|[1-9][0-9]*)\]/ );
-		// if a reference is a browser global, we don't deference it later, so it needs special treatment
-		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
-		return function( tokenizer ) {
-			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
-			startPos = tokenizer.pos;
-			// we might have ancestor refs...
-			ancestor = '';
-			while ( tokenizer.getStringMatch( '../' ) ) {
-				ancestor += '../';
-			}
-			if ( !ancestor ) {
-				// we might have an implicit iterator or a restricted reference
-				dot = tokenizer.getStringMatch( '.' ) || '';
-			}
-			name = getName( tokenizer ) || '';
-			// if this is a browser global, stop here
-			if ( !ancestor && !dot && globals.test( name ) ) {
-				return {
-					t: types.GLOBAL,
-					v: name
-				};
-			}
-			// allow the use of `this`
-			if ( name === 'this' && !ancestor && !dot ) {
-				name = '.';
-				startPos += 3;
-			}
-			combo = ( ancestor || dot ) + name;
-			if ( !combo ) {
-				return null;
-			}
-			while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
-				combo += refinement;
-			}
-			if ( tokenizer.getStringMatch( '(' ) ) {
-				// if this is a method invocation (as opposed to a function) we need
-				// to strip the method name from the reference combo, else the context
-				// will be wrong
-				lastDotIndex = combo.lastIndexOf( '.' );
-				if ( lastDotIndex !== -1 ) {
-					combo = combo.substr( 0, lastDotIndex );
-					tokenizer.pos = startPos + combo.length;
-				} else {
-					tokenizer.pos -= 1;
-				}
-			}
-			return {
-				t: types.REFERENCE,
-				n: combo
-			};
-		};
-	}( config_types, parse_Tokenizer_utils_makeRegexMatcher, parse_Tokenizer_getExpression_shared_getName );
-
-	var parse_Tokenizer_getExpression_getPrimary_getBracketedExpression = function( types ) {
-
-		return function( tokenizer ) {
-			var start, expr;
-			start = tokenizer.pos;
-			if ( !tokenizer.getStringMatch( '(' ) ) {
-				return null;
-			}
-			tokenizer.allowWhitespace();
-			expr = tokenizer.getExpression();
-			if ( !expr ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( ')' ) ) {
-				tokenizer.pos = start;
-				return null;
-			}
-			return {
-				t: types.BRACKETED,
-				x: expr
-			};
-		};
-	}( config_types );
-
-	var parse_Tokenizer_getExpression_getPrimary__getPrimary = function( getLiteral, getReference, getBracketedExpression ) {
-
-		return function( tokenizer ) {
-			return getLiteral( tokenizer ) || getReference( tokenizer ) || getBracketedExpression( tokenizer );
-		};
-	}( parse_Tokenizer_getExpression_getPrimary_getLiteral__getLiteral, parse_Tokenizer_getExpression_getPrimary_getReference, parse_Tokenizer_getExpression_getPrimary_getBracketedExpression );
-
-	var parse_Tokenizer_getExpression_shared_getRefinement = function( types, getName ) {
-
-		return function getRefinement( tokenizer ) {
-			var start, name, expr;
-			start = tokenizer.pos;
-			tokenizer.allowWhitespace();
-			// "." name
-			if ( tokenizer.getStringMatch( '.' ) ) {
-				tokenizer.allowWhitespace();
-				if ( name = getName( tokenizer ) ) {
-					return {
-						t: types.REFINEMENT,
-						n: name
-					};
-				}
-				tokenizer.expected( 'a property name' );
-			}
-			// "[" expression "]"
-			if ( tokenizer.getStringMatch( '[' ) ) {
-				tokenizer.allowWhitespace();
-				expr = tokenizer.getExpression();
-				if ( !expr ) {
-					tokenizer.expected( 'an expression' );
-				}
-				tokenizer.allowWhitespace();
-				if ( !tokenizer.getStringMatch( ']' ) ) {
-					tokenizer.expected( '"]"' );
-				}
-				return {
-					t: types.REFINEMENT,
-					x: expr
-				};
-			}
-			return null;
-		};
-	}( config_types, parse_Tokenizer_getExpression_shared_getName );
-
-	var parse_Tokenizer_getExpression_getMemberOrInvocation = function( types, getPrimary, getExpressionList, getRefinement ) {
-
-		return function( tokenizer ) {
-			var current, expression, refinement, expressionList;
-			expression = getPrimary( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-			while ( expression ) {
-				current = tokenizer.pos;
-				if ( refinement = getRefinement( tokenizer ) ) {
-					expression = {
-						t: types.MEMBER,
-						x: expression,
-						r: refinement
-					};
-				} else if ( tokenizer.getStringMatch( '(' ) ) {
-					tokenizer.allowWhitespace();
-					expressionList = getExpressionList( tokenizer );
-					tokenizer.allowWhitespace();
-					if ( !tokenizer.getStringMatch( ')' ) ) {
-						tokenizer.pos = current;
-						break;
-					}
-					expression = {
-						t: types.INVOCATION,
-						x: expression
-					};
-					if ( expressionList ) {
-						expression.o = expressionList;
-					}
-				} else {
-					break;
-				}
-			}
-			return expression;
-		};
-	}( config_types, parse_Tokenizer_getExpression_getPrimary__getPrimary, parse_Tokenizer_getExpression_shared_getExpressionList, parse_Tokenizer_getExpression_shared_getRefinement );
-
-	var parse_Tokenizer_getExpression_getTypeOf = function( types, getMemberOrInvocation ) {
-
-		var getTypeOf, makePrefixSequenceMatcher;
-		makePrefixSequenceMatcher = function( symbol, fallthrough ) {
-			return function( tokenizer ) {
-				var start, expression;
-				if ( !tokenizer.getStringMatch( symbol ) ) {
-					return fallthrough( tokenizer );
-				}
-				start = tokenizer.pos;
-				tokenizer.allowWhitespace();
-				expression = tokenizer.getExpression();
-				if ( !expression ) {
-					tokenizer.expected( 'an expression' );
-				}
-				return {
-					s: symbol,
-					o: expression,
-					t: types.PREFIX_OPERATOR
-				};
-			};
-		};
-		// create all prefix sequence matchers, return getTypeOf
-		( function() {
-			var i, len, matcher, prefixOperators, fallthrough;
-			prefixOperators = '! ~ + - typeof'.split( ' ' );
-			fallthrough = getMemberOrInvocation;
-			for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
-				matcher = makePrefixSequenceMatcher( prefixOperators[ i ], fallthrough );
-				fallthrough = matcher;
-			}
-			// typeof operator is higher precedence than multiplication, so provides the
-			// fallthrough for the multiplication sequence matcher we're about to create
-			// (we're skipping void and delete)
-			getTypeOf = fallthrough;
-		}() );
-		return getTypeOf;
-	}( config_types, parse_Tokenizer_getExpression_getMemberOrInvocation );
-
-	var parse_Tokenizer_getExpression_getLogicalOr = function( types, getTypeOf ) {
-
-		var getLogicalOr, makeInfixSequenceMatcher;
-		makeInfixSequenceMatcher = function( symbol, fallthrough ) {
-			return function( tokenizer ) {
-				var start, left, right;
-				left = fallthrough( tokenizer );
-				if ( !left ) {
-					return null;
-				}
-				// Loop to handle left-recursion in a case like `a * b * c` and produce
-				// left association, i.e. `(a * b) * c`.  The matcher can't call itself
-				// to parse `left` because that would be infinite regress.
-				while ( true ) {
-					start = tokenizer.pos;
-					tokenizer.allowWhitespace();
-					if ( !tokenizer.getStringMatch( symbol ) ) {
-						tokenizer.pos = start;
-						return left;
-					}
-					// special case - in operator must not be followed by [a-zA-Z_$0-9]
-					if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
-						tokenizer.pos = start;
-						return left;
-					}
-					tokenizer.allowWhitespace();
-					// right operand must also consist of only higher-precedence operators
-					right = fallthrough( tokenizer );
-					if ( !right ) {
-						tokenizer.pos = start;
-						return left;
-					}
-					left = {
-						t: types.INFIX_OPERATOR,
-						s: symbol,
-						o: [
-							left,
-							right
-						]
-					};
-				}
-			};
-		};
-		// create all infix sequence matchers, and return getLogicalOr
-		( function() {
-			var i, len, matcher, infixOperators, fallthrough;
-			// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
-			// Each sequence matcher will initially fall through to its higher precedence
-			// neighbour, and only attempt to match if one of the higher precedence operators
-			// (or, ultimately, a literal, reference, or bracketed expression) already matched
-			infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
-			// A typeof operator is higher precedence than multiplication
-			fallthrough = getTypeOf;
-			for ( i = 0, len = infixOperators.length; i < len; i += 1 ) {
-				matcher = makeInfixSequenceMatcher( infixOperators[ i ], fallthrough );
-				fallthrough = matcher;
-			}
-			// Logical OR is the fallthrough for the conditional matcher
-			getLogicalOr = fallthrough;
-		}() );
-		return getLogicalOr;
-	}( config_types, parse_Tokenizer_getExpression_getTypeOf );
-
-	var parse_Tokenizer_getExpression_getConditional = function( types, getLogicalOr ) {
-
-		// The conditional operator is the lowest precedence operator, so we start here
-		return function( tokenizer ) {
-			var start, expression, ifTrue, ifFalse;
-			expression = getLogicalOr( tokenizer );
-			if ( !expression ) {
-				return null;
-			}
-			start = tokenizer.pos;
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( '?' ) ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			tokenizer.allowWhitespace();
-			ifTrue = tokenizer.getExpression();
-			if ( !ifTrue ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			tokenizer.allowWhitespace();
-			if ( !tokenizer.getStringMatch( ':' ) ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			tokenizer.allowWhitespace();
-			ifFalse = tokenizer.getExpression();
-			if ( !ifFalse ) {
-				tokenizer.pos = start;
-				return expression;
-			}
-			return {
-				t: types.CONDITIONAL,
-				o: [
-					expression,
-					ifTrue,
-					ifFalse
-				]
-			};
-		};
-	}( config_types, parse_Tokenizer_getExpression_getLogicalOr );
-
-	var parse_Tokenizer_getExpression__getExpression = function( getConditional ) {
-
-		// The conditional operator is the lowest precedence operator (except yield,
-		// assignment operators, and commas, none of which are supported), so we
-		// start there. If it doesn't match, it 'falls through' to progressively
-		// higher precedence operators, until it eventually matches (or fails to
-		// match) a 'primary' - a literal or a reference. This way, the abstract syntax
-		// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-		return function() {
-			return getConditional( this );
-		};
-	}( parse_Tokenizer_getExpression_getConditional );
-
-	var parse_Tokenizer__Tokenizer = function( getMustache, getComment, getTag, getText, getExpression, allowWhitespace, getStringMatch ) {
-
-		var Tokenizer;
-		Tokenizer = function( str, options ) {
-			var token;
-			this.str = str;
-			this.pos = 0;
-			this.delimiters = options.delimiters;
-			this.tripleDelimiters = options.tripleDelimiters;
-			this.interpolate = options.interpolate;
-			this.tokens = [];
-			while ( this.pos < this.str.length ) {
-				token = this.getToken();
-				if ( token === null && this.remaining() ) {
-					this.fail();
-				}
-				this.tokens.push( token );
-			}
-		};
-		Tokenizer.prototype = {
-			getToken: function() {
-				var token = this.getMustache() || this.getComment() || this.getTag() || this.getText();
-				return token;
-			},
-			getMustache: getMustache,
-			getComment: getComment,
-			getTag: getTag,
-			getText: getText,
-			getExpression: getExpression,
-			// utils
-			allowWhitespace: allowWhitespace,
-			getStringMatch: getStringMatch,
-			remaining: function() {
-				return this.str.substring( this.pos );
-			},
-			fail: function() {
-				var last20, next20;
-				last20 = this.str.substr( 0, this.pos ).substr( -20 );
-				if ( last20.length === 20 ) {
-					last20 = '...' + last20;
-				}
-				next20 = this.remaining().substr( 0, 20 );
-				if ( next20.length === 20 ) {
-					next20 = next20 + '...';
-				}
-				throw new Error( 'Could not parse template: ' + ( last20 ? last20 + '<- ' : '' ) + 'failed at character ' + this.pos + ' ->' + next20 );
-			},
-			expected: function( thing ) {
-				var remaining = this.remaining().substr( 0, 40 );
-				if ( remaining.length === 40 ) {
-					remaining += '...';
-				}
-				throw new Error( 'Tokenizer failed: unexpected string "' + remaining + '" (expected ' + thing + ')' );
-			}
-		};
-		return Tokenizer;
-	}( parse_Tokenizer_getMustache__getMustache, parse_Tokenizer_getComment_getComment, parse_Tokenizer_getTag__getTag, parse_Tokenizer_getText__getText, parse_Tokenizer_getExpression__getExpression, parse_Tokenizer_utils_allowWhitespace, parse_Tokenizer_utils_getStringMatch );
-
-	var parse_tokenize = function( initOptions, stripHtmlComments, stripStandalones, stripCommentTokens, Tokenizer ) {
-
-		return function( template, options ) {
-			var tokenizer, tokens;
-			options = options || {};
-			if ( options.stripComments !== false ) {
-				template = stripHtmlComments( template );
-			}
-			// TODO handle delimiters differently
-			tokenizer = new Tokenizer( template, {
-				delimiters: options.delimiters || initOptions.defaults.delimiters,
-				tripleDelimiters: options.tripleDelimiters || initOptions.defaults.tripleDelimiters,
-				interpolate: {
-					script: options.interpolateScripts !== false ? true : false,
-					style: options.interpolateStyles !== false ? true : false
-				}
-			} );
-			// TODO and this...
-			tokens = tokenizer.tokens;
-			stripStandalones( tokens );
-			stripCommentTokens( tokens );
-			return tokens;
-		};
-	}( config_initOptions, parse_utils_stripHtmlComments, parse_utils_stripStandalones, parse_utils_stripCommentTokens, parse_Tokenizer__Tokenizer );
-
-	var parse_Parser_getText_TextStub__TextStub = function( types ) {
-
-		var TextStub,
-			// helpers
-			htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern, validateCode, decodeCharacterReferences, whitespace;
-		TextStub = function( token, preserveWhitespace ) {
-			this.text = preserveWhitespace ? token.value : token.value.replace( whitespace, ' ' );
-		};
-		TextStub.prototype = {
-			type: types.TEXT,
-			toJSON: function() {
-				// this will be used within HTML, so we need to decode things like &amp;
-				return this.decoded || ( this.decoded = decodeCharacterReferences( this.text ) );
-			},
-			toString: function() {
-				// this will be used as straight text
-				return this.text;
-			}
-		};
+		var htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern;
 		htmlEntities = {
 			quot: 34,
 			amp: 38,
@@ -9040,12 +8763,31 @@
 		namedEntityPattern = new RegExp( '&(' + Object.keys( htmlEntities ).join( '|' ) + ');?', 'g' );
 		hexEntityPattern = /&#x([0-9]+);?/g;
 		decimalEntityPattern = /&#([0-9]+);?/g;
+		return function decodeCharacterReferences( html ) {
+			var result;
+			// named entities
+			result = html.replace( namedEntityPattern, function( match, name ) {
+				if ( htmlEntities[ name ] ) {
+					return String.fromCharCode( htmlEntities[ name ] );
+				}
+				return match;
+			} );
+			// hex references
+			result = result.replace( hexEntityPattern, function( match, hex ) {
+				return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
+			} );
+			// decimal references
+			result = result.replace( decimalEntityPattern, function( match, charCode ) {
+				return String.fromCharCode( validateCode( charCode ) );
+			} );
+			return result;
+		};
 		// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
 		// code points with alternatives in some cases - since we're bypassing that mechanism, we need
 		// to replace them ourselves
 		//
 		// Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
-		validateCode = function( code ) {
+		function validateCode( code ) {
 			if ( !code ) {
 				return 65533;
 			}
@@ -9077,508 +8819,196 @@
 			// TODO it's... not exactly clear what should happen with code points over this value. The
 			// following seems to work. But I can't guarantee it works in China!
 			return 65533;
-		};
-		decodeCharacterReferences = function( html ) {
-			var result;
-			// named entities
-			result = html.replace( namedEntityPattern, function( match, name ) {
-				if ( htmlEntities[ name ] ) {
-					return String.fromCharCode( htmlEntities[ name ] );
-				}
-				return match;
-			} );
-			// hex references
-			result = result.replace( hexEntityPattern, function( match, hex ) {
-				return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
-			} );
-			// decimal references
-			result = result.replace( decimalEntityPattern, function( match, charCode ) {
-				return String.fromCharCode( validateCode( charCode ) );
-			} );
-			return result;
-		};
-		whitespace = /\s+/g;
-		return TextStub;
-	}( config_types );
+		}
+	}();
 
-	var parse_Parser_getText__getText = function( types, TextStub ) {
+	var parse_converters_text = function( types, getLowestIndex, decodeCharacterReferences ) {
 
-		return function( token, preserveWhitespace ) {
-			if ( token.type === types.TEXT ) {
-				this.pos += 1;
-				return new TextStub( token, preserveWhitespace );
+		return function( parser ) {
+			var index, remaining, barrier;
+			remaining = parser.remaining();
+			barrier = parser.inside ? '</' + parser.inside : '<';
+			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
+				index = remaining.indexOf( barrier );
+			} else {
+				index = getLowestIndex( remaining, [
+					barrier,
+					parser.delimiters[ 0 ],
+					parser.tripleDelimiters[ 0 ]
+				] );
 			}
-			return null;
+			if ( !index ) {
+				return null;
+			}
+			if ( index === -1 ) {
+				index = remaining.length;
+			}
+			parser.pos += index;
+			return decodeCharacterReferences( remaining.substr( 0, index ) );
 		};
-	}( config_types, parse_Parser_getText_TextStub__TextStub );
+	}( config_types, parse_converters_utils_getLowestIndex, parse_converters_utils_decodeCharacterReferences );
 
-	var parse_Parser_getComment_CommentStub__CommentStub = function( types ) {
+	var parse_converters_element_closingTag = function( types ) {
 
-		var CommentStub;
-		CommentStub = function( token ) {
-			this.content = token.content;
-		};
-		CommentStub.prototype = {
-			toJSON: function() {
+		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
+		return function( parser ) {
+			var tag;
+			// are we looking at a closing tag?
+			if ( !parser.matchString( '</' ) ) {
+				return null;
+			}
+			if ( tag = parser.matchPattern( closingTagPattern ) ) {
 				return {
-					t: types.COMMENT,
-					f: this.content
+					t: types.CLOSING_TAG,
+					e: tag
 				};
-			},
-			toString: function() {
-				return '<!--' + this.content + '-->';
 			}
+			// We have an illegal closing tag, report it
+			parser.pos -= 2;
+			parser.error( 'Illegal closing tag' );
 		};
-		return CommentStub;
 	}( config_types );
 
-	var parse_Parser_getComment__getComment = function( types, CommentStub ) {
+	var parse_converters_element_attribute = function( getLowestIndex, getMustache ) {
 
-		return function( token ) {
-			if ( token.type === types.COMMENT ) {
-				this.pos += 1;
-				return new CommentStub( token, this.preserveWhitespace );
-			}
-			return null;
-		};
-	}( config_types, parse_Parser_getComment_CommentStub__CommentStub );
+		var attributeNamePattern = /^[^\s"'>\/=]+/,
+			unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
+		return getAttribute;
 
-	var parse_Parser_getMustache_ExpressionStub = function( types, isObject ) {
-
-		var ExpressionStub = function( token ) {
-			this.refs = [];
-			getRefs( token, this.refs );
-			this.str = stringify( token, this.refs );
-		};
-		ExpressionStub.prototype = {
-			toJSON: function() {
-				if ( !this.json ) {
-					this.json = {
-						r: this.refs,
-						s: this.str
-					};
-				}
-				return this.json;
+		function getAttribute( parser ) {
+			var attr, name, value;
+			parser.allowWhitespace();
+			name = parser.matchPattern( attributeNamePattern );
+			if ( !name ) {
+				return null;
 			}
-		};
-		return ExpressionStub;
-
-		function quoteStringLiteral( str ) {
-			return JSON.stringify( String( str ) );
-		}
-		// TODO maybe refactor this?
-		function getRefs( token, refs ) {
-			var i, list;
-			if ( token.t === types.REFERENCE ) {
-				if ( refs.indexOf( token.n ) === -1 ) {
-					refs.unshift( token.n );
-				}
-			}
-			list = token.o || token.m;
-			if ( list ) {
-				if ( isObject( list ) ) {
-					getRefs( list, refs );
-				} else {
-					i = list.length;
-					while ( i-- ) {
-						getRefs( list[ i ], refs );
-					}
-				}
-			}
-			if ( token.x ) {
-				getRefs( token.x, refs );
-			}
-			if ( token.r ) {
-				getRefs( token.r, refs );
-			}
-			if ( token.v ) {
-				getRefs( token.v, refs );
-			}
-		}
-
-		function stringify( token, refs ) {
-			var map = function( item ) {
-				return stringify( item, refs );
+			attr = {
+				name: name
 			};
-			switch ( token.t ) {
-				case types.BOOLEAN_LITERAL:
-				case types.GLOBAL:
-				case types.NUMBER_LITERAL:
-					return token.v;
-				case types.STRING_LITERAL:
-					return quoteStringLiteral( token.v );
-				case types.ARRAY_LITERAL:
-					return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
-				case types.OBJECT_LITERAL:
-					return '{' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + '}';
-				case types.KEY_VALUE_PAIR:
-					return token.k + ':' + stringify( token.v, refs );
-				case types.PREFIX_OPERATOR:
-					return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
-				case types.INFIX_OPERATOR:
-					return stringify( token.o[ 0 ], refs ) + ( token.s.substr( 0, 2 ) === 'in' ? ' ' + token.s + ' ' : token.s ) + stringify( token.o[ 1 ], refs );
-				case types.INVOCATION:
-					return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
-				case types.BRACKETED:
-					return '(' + stringify( token.x, refs ) + ')';
-				case types.MEMBER:
-					return stringify( token.x, refs ) + stringify( token.r, refs );
-				case types.REFINEMENT:
-					return token.n ? '.' + token.n : '[' + stringify( token.x, refs ) + ']';
-				case types.CONDITIONAL:
-					return stringify( token.o[ 0 ], refs ) + '?' + stringify( token.o[ 1 ], refs ) + ':' + stringify( token.o[ 2 ], refs );
-				case types.REFERENCE:
-					return '${' + refs.indexOf( token.n ) + '}';
-				default:
-					throw new Error( 'Could not stringify expression token. This error is unexpected' );
+			value = getAttributeValue( parser );
+			if ( value ) {
+				attr.value = value;
 			}
+			return attr;
 		}
-	}( config_types, utils_isObject );
 
-	var parse_Parser_getMustache_KeypathExpressionStub = function( types, ExpressionStub ) {
-
-		var KeypathExpressionStub;
-		KeypathExpressionStub = function( token ) {
-			this.json = {
-				r: token.r,
-				m: token.m.map( jsonify )
-			};
-		};
-		KeypathExpressionStub.prototype = {
-			toJSON: function() {
-				return this.json;
+		function getAttributeValue( parser ) {
+			var start, value;
+			start = parser.pos;
+			parser.allowWhitespace();
+			if ( !parser.matchString( '=' ) ) {
+				parser.pos = start;
+				return null;
 			}
-		};
-		return KeypathExpressionStub;
-
-		function jsonify( member ) {
-			// Straightforward property, e.g. `foo.bar`?
-			if ( member.n ) {
-				return member.n;
+			parser.allowWhitespace();
+			value = getQuotedAttributeValue( parser, '\'' ) || getQuotedAttributeValue( parser, '"' ) || getUnquotedAttributeValue( parser );
+			if ( value === null ) {
+				parser.pos = start;
+				return null;
 			}
-			// String or number literal, e.g. `foo["bar"]` or `foo[1]`?
-			if ( member.x.t === types.STRING_LITERAL || member.x.t === types.NUMBER_LITERAL ) {
-				return member.x.v;
+			if ( value.length === 1 && typeof value[ 0 ] === 'string' ) {
+				return value[ 0 ];
 			}
-			// Straightforward reference, e.g. `foo[bar]`?
-			if ( member.x.t === types.REFERENCE ) {
-				return member.x;
-			}
-			// If none of the above, we need to process the AST
-			return new ExpressionStub( member.x ).toJSON();
+			return value;
 		}
-	}( config_types, parse_Parser_getMustache_ExpressionStub );
 
-	var parse_Parser_getMustache_MustacheStub = function( types, KeypathExpressionStub, ExpressionStub ) {
-
-		var MustacheStub = function( token, parser ) {
-			this.type = token.type === types.TRIPLE ? types.TRIPLE : token.mustacheType;
-			if ( token.ref ) {
-				this.ref = token.ref;
+		function getUnquotedAttributeValueToken( parser ) {
+			var start, text, index;
+			start = parser.pos;
+			text = parser.matchPattern( unquotedAttributeValueTextPattern );
+			if ( !text ) {
+				return null;
 			}
-			if ( token.keypathExpression ) {
-				this.keypathExpr = new KeypathExpressionStub( token.keypathExpression );
+			if ( ( index = text.indexOf( parser.delimiters[ 0 ] ) ) !== -1 ) {
+				text = text.substr( 0, index );
+				parser.pos = start + text.length;
 			}
-			if ( token.expression ) {
-				this.expr = new ExpressionStub( token.expression );
-			}
-			parser.pos += 1;
-		};
-		MustacheStub.prototype = {
-			toJSON: function() {
-				var json;
-				if ( this.json ) {
-					return this.json;
-				}
-				json = {
-					t: this.type
-				};
-				if ( this.ref ) {
-					json.r = this.ref;
-				}
-				if ( this.keypathExpr ) {
-					json.kx = this.keypathExpr.toJSON();
-				}
-				if ( this.expr ) {
-					json.x = this.expr.toJSON();
-				}
-				this.json = json;
-				return json;
-			},
-			toString: function() {
-				// mustaches cannot be stringified
-				return false;
-			}
-		};
-		return MustacheStub;
-	}( config_types, parse_Parser_getMustache_KeypathExpressionStub, parse_Parser_getMustache_ExpressionStub );
-
-	var parse_Parser_utils_stringifyStubs = function( items ) {
-		var str = '',
-			itemStr, i, len;
-		if ( !items ) {
-			return '';
+			return text;
 		}
-		for ( i = 0, len = items.length; i < len; i += 1 ) {
-			itemStr = items[ i ].toString();
-			if ( itemStr === false ) {
-				return false;
+
+		function getUnquotedAttributeValue( parser ) {
+			var tokens, token;
+			tokens = [];
+			token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
+			while ( token !== null ) {
+				tokens.push( token );
+				token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
 			}
-			str += itemStr;
+			if ( !tokens.length ) {
+				return null;
+			}
+			return tokens;
 		}
-		return str;
-	};
 
-	var parse_Parser_utils_jsonifyStubs = function( stringifyStubs ) {
-
-		return function( items, noStringify, topLevel ) {
-			var str, json;
-			if ( !topLevel && !noStringify ) {
-				str = stringifyStubs( items );
-				if ( str !== false ) {
-					return str;
-				}
+		function getQuotedAttributeValue( parser, quoteMark ) {
+			var start, tokens, token;
+			start = parser.pos;
+			if ( !parser.matchString( quoteMark ) ) {
+				return null;
 			}
-			json = items.map( function( item ) {
-				return item.toJSON( noStringify );
-			} );
-			return json;
-		};
-	}( parse_Parser_utils_stringifyStubs );
-
-	var parse_Parser_getMustache_SectionStub = function( types, normaliseKeypath, jsonifyStubs, KeypathExpressionStub, ExpressionStub ) {
-
-		var SectionStub = function( firstToken, parser ) {
-			var next;
-			this.ref = firstToken.ref;
-			this.indexRef = firstToken.indexRef;
-			this.inverted = firstToken.mustacheType === types.INVERTED;
-			if ( firstToken.keypathExpression ) {
-				this.keypathExpr = new KeypathExpressionStub( firstToken.keypathExpression );
+			tokens = [];
+			token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
+			while ( token !== null ) {
+				tokens.push( token );
+				token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
 			}
-			if ( firstToken.expression ) {
-				this.expr = new ExpressionStub( firstToken.expression );
+			if ( !parser.matchString( quoteMark ) ) {
+				parser.pos = start;
+				return null;
 			}
-			parser.pos += 1;
-			this.items = [];
-			next = parser.next();
-			while ( next ) {
-				if ( next.mustacheType === types.CLOSING ) {
-					validateClosing( this, next );
-					parser.pos += 1;
-					break;
-				}
-				this.items.push( parser.getStub() );
-				next = parser.next();
-			}
-		};
-
-		function validateClosing( stub, token ) {
-			var opening = stub.ref,
-				closing = normaliseKeypath( token.ref.trim() );
-			if ( !opening || !closing ) {
-				return;
-			}
-			if ( stub.indexRef ) {
-				opening += ':' + stub.indexRef;
-			}
-			if ( opening.substr( 0, closing.length ) !== closing ) {
-				throw new Error( 'Could not parse template: Illegal closing section {{/' + closing + '}}. Expected {{/' + stub.ref + '}}.' );
-			}
+			return tokens;
 		}
-		SectionStub.prototype = {
-			toJSON: function( noStringify ) {
-				var json;
-				if ( this.json ) {
-					return this.json;
-				}
-				json = {
-					t: types.SECTION
-				};
-				if ( this.ref ) {
-					json.r = this.ref;
-				}
-				if ( this.indexRef ) {
-					json.i = this.indexRef;
-				}
-				if ( this.inverted ) {
-					json.n = true;
-				}
-				if ( this.expr ) {
-					json.x = this.expr.toJSON();
-				}
-				if ( this.keypathExpr ) {
-					json.kx = this.keypathExpr.toJSON();
-				}
-				if ( this.items.length ) {
-					json.f = jsonifyStubs( this.items, noStringify );
-				}
-				this.json = json;
-				return json;
-			},
-			toString: function() {
-				// sections cannot be stringified
-				return false;
+
+		function getQuotedStringToken( parser, quoteMark ) {
+			var start, index, remaining;
+			start = parser.pos;
+			remaining = parser.remaining();
+			index = getLowestIndex( remaining, [
+				quoteMark,
+				parser.delimiters[ 0 ],
+				parser.delimiters[ 1 ]
+			] );
+			if ( index === -1 ) {
+				parser.error( 'Quoted attribute value must have a closing quote' );
 			}
-		};
-		return SectionStub;
-	}( config_types, utils_normaliseKeypath, parse_Parser_utils_jsonifyStubs, parse_Parser_getMustache_KeypathExpressionStub, parse_Parser_getMustache_ExpressionStub );
+			if ( !index ) {
+				return null;
+			}
+			parser.pos += index;
+			return remaining.substr( 0, index );
+		}
+	}( parse_converters_utils_getLowestIndex, parse_converters_mustache );
 
-	var parse_Parser_getMustache__getMustache = function( types, MustacheStub, SectionStub ) {
+	var parse_converters_element_processDirective = function( types, parseJSON ) {
 
-		return function( token ) {
-			if ( token.type === types.MUSTACHE || token.type === types.TRIPLE ) {
-				if ( token.mustacheType === types.SECTION || token.mustacheType === types.INVERTED ) {
-					return new SectionStub( token, this );
+		// TODO clean this up, it's shocking
+		return function( tokens ) {
+			var result, token, colonIndex, directiveName, directiveArgs, parsed;
+			if ( typeof tokens === 'string' ) {
+				if ( tokens.indexOf( ':' ) === -1 ) {
+					return tokens;
 				}
-				return new MustacheStub( token, this );
-			}
-		};
-	}( config_types, parse_Parser_getMustache_MustacheStub, parse_Parser_getMustache_SectionStub );
-
-	var parse_Parser_getElement_ElementStub_utils_siblingsByTagName = {
-		li: [ 'li' ],
-		dt: [
-			'dt',
-			'dd'
-		],
-		dd: [
-			'dt',
-			'dd'
-		],
-		p: 'address article aside blockquote dir div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr menu nav ol p pre section table ul'.split( ' ' ),
-		rt: [
-			'rt',
-			'rp'
-		],
-		rp: [
-			'rp',
-			'rt'
-		],
-		optgroup: [ 'optgroup' ],
-		option: [
-			'option',
-			'optgroup'
-		],
-		thead: [
-			'tbody',
-			'tfoot'
-		],
-		tbody: [
-			'tbody',
-			'tfoot'
-		],
-		tr: [ 'tr' ],
-		td: [
-			'td',
-			'th'
-		],
-		th: [
-			'td',
-			'th'
-		]
-	};
-
-	var parse_Parser_getElement_ElementStub_utils_filterAttributes = function( isArray ) {
-
-		return function( items ) {
-			var attrs, proxies, filtered, i, len, item;
-			filtered = {};
-			attrs = [];
-			proxies = [];
-			len = items.length;
-			for ( i = 0; i < len; i += 1 ) {
-				item = items[ i ];
-				// Transition?
-				if ( item.name === 'intro' ) {
-					if ( filtered.intro ) {
-						throw new Error( 'An element can only have one intro transition' );
-					}
-					filtered.intro = item;
-				} else if ( item.name === 'outro' ) {
-					if ( filtered.outro ) {
-						throw new Error( 'An element can only have one outro transition' );
-					}
-					filtered.outro = item;
-				} else if ( item.name === 'intro-outro' ) {
-					if ( filtered.intro || filtered.outro ) {
-						throw new Error( 'An element can only have one intro and one outro transition' );
-					}
-					filtered.intro = item;
-					filtered.outro = deepClone( item );
-				} else if ( item.name.substr( 0, 6 ) === 'proxy-' ) {
-					item.name = item.name.substring( 6 );
-					proxies.push( item );
-				} else if ( item.name.substr( 0, 3 ) === 'on-' ) {
-					item.name = item.name.substring( 3 );
-					proxies.push( item );
-				} else if ( item.name === 'decorator' ) {
-					filtered.decorator = item;
-				} else {
-					attrs.push( item );
-				}
-			}
-			filtered.attrs = attrs;
-			filtered.proxies = proxies;
-			return filtered;
-		};
-
-		function deepClone( obj ) {
-			var result, key;
-			if ( typeof obj !== 'object' ) {
-				return obj;
-			}
-			if ( isArray( obj ) ) {
-				return obj.map( deepClone );
+				tokens = [ tokens ];
 			}
 			result = {};
-			for ( key in obj ) {
-				if ( obj.hasOwnProperty( key ) ) {
-					result[ key ] = deepClone( obj[ key ] );
-				}
-			}
-			return result;
-		}
-	}( utils_isArray );
-
-	var parse_Parser_getElement_ElementStub_utils_processDirective = function( types, parseJSON ) {
-
-		return function( directive ) {
-			var processed, tokens, token, colonIndex, throwError, directiveName, directiveArgs, parsed;
-			throwError = function() {
-				throw new Error( 'Illegal directive' );
-			};
-			if ( !directive.name || !directive.value ) {
-				throwError();
-			}
-			processed = {
-				directiveType: directive.name
-			};
-			tokens = directive.value;
 			directiveName = [];
 			directiveArgs = [];
 			while ( tokens.length ) {
 				token = tokens.shift();
-				if ( token.type === types.TEXT ) {
-					colonIndex = token.value.indexOf( ':' );
+				if ( typeof token === 'string' ) {
+					colonIndex = token.indexOf( ':' );
 					if ( colonIndex === -1 ) {
 						directiveName.push( token );
 					} else {
 						// is the colon the first character?
 						if ( colonIndex ) {
 							// no
-							directiveName.push( {
-								type: types.TEXT,
-								value: token.value.substr( 0, colonIndex )
-							} );
+							directiveName.push( token.substr( 0, colonIndex ) );
 						}
 						// if there is anything after the colon in this token, treat
 						// it as the first token of the directiveArgs fragment
-						if ( token.value.length > colonIndex + 1 ) {
-							directiveArgs[ 0 ] = {
-								type: types.TEXT,
-								value: token.value.substring( colonIndex + 1 )
-							};
+						if ( token.length > colonIndex + 1 ) {
+							directiveArgs[ 0 ] = token.substring( colonIndex + 1 );
 						}
 						break;
 					}
@@ -9587,407 +9017,215 @@
 				}
 			}
 			directiveArgs = directiveArgs.concat( tokens );
-			if ( directiveName.length === 1 && directiveName[ 0 ].type === types.TEXT ) {
-				processed.name = directiveName[ 0 ].value;
-			} else {
-				processed.name = directiveName;
-			}
-			if ( directiveArgs.length ) {
-				if ( directiveArgs.length === 1 && directiveArgs[ 0 ].type === types.TEXT ) {
-					parsed = parseJSON( '[' + directiveArgs[ 0 ].value + ']' );
-					processed.args = parsed ? parsed.value : directiveArgs[ 0 ].value;
+			if ( directiveArgs.length || typeof directiveName !== 'string' ) {
+				result = {
+					// TODO is this really necessary? just use the array
+					n: directiveName.length === 1 && typeof directiveName[ 0 ] === 'string' ? directiveName[ 0 ] : directiveName
+				};
+				if ( directiveArgs.length === 1 && typeof directiveArgs[ 0 ] === 'string' ) {
+					parsed = parseJSON( '[' + directiveArgs[ 0 ] + ']' );
+					result.a = parsed ? parsed.value : directiveArgs[ 0 ];
 				} else {
-					processed.dynamicArgs = directiveArgs;
+					result.d = directiveArgs;
 				}
-			}
-			return processed;
-		};
-	}( config_types, utils_parseJSON );
-
-	var parse_Parser_StringStub_StringParser = function( getText, getMustache ) {
-
-		var StringParser;
-		StringParser = function( tokens, options ) {
-			// TODO what are the options?
-			var stub;
-			this.tokens = tokens || [];
-			this.pos = 0;
-			this.options = options;
-			this.result = [];
-			while ( stub = this.getStub() ) {
-				this.result.push( stub );
-			}
-		};
-		StringParser.prototype = {
-			getStub: function() {
-				var token = this.next();
-				if ( !token ) {
-					return null;
-				}
-				return this.getText( token ) || this.getMustache( token );
-			},
-			getText: getText,
-			getMustache: getMustache,
-			next: function() {
-				return this.tokens[ this.pos ];
-			}
-		};
-		return StringParser;
-	}( parse_Parser_getText__getText, parse_Parser_getMustache__getMustache );
-
-	var parse_Parser_StringStub__StringStub = function( StringParser, stringifyStubs, jsonifyStubs ) {
-
-		var StringStub;
-		StringStub = function( tokens ) {
-			var parser = new StringParser( tokens );
-			this.stubs = parser.result;
-		};
-		StringStub.prototype = {
-			toJSON: function( noStringify ) {
-				var json;
-				if ( this[ 'json_' + noStringify ] ) {
-					return this[ 'json_' + noStringify ];
-				}
-				json = this[ 'json_' + noStringify ] = jsonifyStubs( this.stubs, noStringify );
-				return json;
-			},
-			toString: function() {
-				if ( this.str !== undefined ) {
-					return this.str;
-				}
-				this.str = stringifyStubs( this.stubs );
-				return this.str;
-			}
-		};
-		return StringStub;
-	}( parse_Parser_StringStub_StringParser, parse_Parser_utils_stringifyStubs, parse_Parser_utils_jsonifyStubs );
-
-	var parse_Parser_getElement_ElementStub_utils_jsonifyDirective = function( StringStub ) {
-
-		return function( directive ) {
-			var result, name;
-			if ( typeof directive.name === 'string' ) {
-				if ( !directive.args && !directive.dynamicArgs ) {
-					return directive.name;
-				}
-				name = directive.name;
 			} else {
-				name = new StringStub( directive.name ).toJSON();
-			}
-			result = {
-				n: name
-			};
-			if ( directive.args ) {
-				result.a = directive.args;
-				return result;
-			}
-			if ( directive.dynamicArgs ) {
-				result.d = new StringStub( directive.dynamicArgs ).toJSON();
+				result = directiveName;
 			}
 			return result;
 		};
-	}( parse_Parser_StringStub__StringStub );
+	}( config_types, utils_parseJSON );
 
-	var parse_Parser_getElement_ElementStub_toJSON = function( types, jsonifyStubs, jsonifyDirective ) {
+	var parse_converters_element = function( types, voidElementNames, getMustache, getComment, getText, getClosingTag, getAttribute, processDirective ) {
 
-		return function( noStringify ) {
-			var json, name, value, proxy, i, len, attribute;
-			if ( this[ 'json_' + noStringify ] ) {
-				return this[ 'json_' + noStringify ];
-			}
-			json = {
-				t: types.ELEMENT,
-				e: this.tag
-			};
-			if ( this.doctype ) {
-				json.y = 1;
-			}
-			if ( this.attributes && this.attributes.length ) {
-				json.a = {};
-				len = this.attributes.length;
-				for ( i = 0; i < len; i += 1 ) {
-					attribute = this.attributes[ i ];
-					name = attribute.name;
-					if ( json.a[ name ] ) {
-						throw new Error( 'You cannot have multiple attributes with the same name' );
-					}
-					// empty attributes (e.g. autoplay, checked)
-					if ( attribute.value === null ) {
-						value = null;
-					} else {
-						//value = jsonifyStubs( attribute.value, noStringify );
-						value = attribute.value.toJSON( noStringify );
-					}
-					json.a[ name ] = value;
-				}
-			}
-			if ( this.items && this.items.length ) {
-				json.f = jsonifyStubs( this.items, noStringify );
-			}
-			if ( this.proxies && this.proxies.length ) {
-				json.v = {};
-				len = this.proxies.length;
-				for ( i = 0; i < len; i += 1 ) {
-					proxy = this.proxies[ i ];
-					json.v[ proxy.directiveType ] = jsonifyDirective( proxy );
-				}
-			}
-			if ( this.intro ) {
-				json.t1 = jsonifyDirective( this.intro );
-			}
-			if ( this.outro ) {
-				json.t2 = jsonifyDirective( this.outro );
-			}
-			if ( this.decorator ) {
-				json.o = jsonifyDirective( this.decorator );
-			}
-			this[ 'json_' + noStringify ] = json;
-			return json;
-		};
-	}( config_types, parse_Parser_utils_jsonifyStubs, parse_Parser_getElement_ElementStub_utils_jsonifyDirective );
-
-	var parse_Parser_getElement_ElementStub_toString = function( stringifyStubs, voidElementNames ) {
-
-		var htmlElements;
-		htmlElements = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
-		return function() {
-			var str, i, len, attrStr, name, attrValueStr, fragStr, isVoid;
-			if ( this.str !== undefined ) {
-				return this.str;
-			}
-			// if this isn't an HTML element, it can't be stringified (since the only reason to stringify an
-			// element is to use with innerHTML, and SVG doesn't support that method.
-			// Note: table elements and select children are excluded from this, because IE (of course)
-			// fucks up when you use innerHTML with them
-			if ( htmlElements.indexOf( this.tag.toLowerCase() ) === -1 ) {
-				return this.str = false;
-			}
-			// do we have proxies or transitions or a decorator? if so we can't use innerHTML
-			if ( this.proxies || this.intro || this.outro || this.decorator ) {
-				return this.str = false;
-			}
-			// see if children can be stringified (i.e. don't contain mustaches)
-			fragStr = stringifyStubs( this.items );
-			if ( fragStr === false ) {
-				return this.str = false;
-			}
-			// is this a void element?
-			isVoid = voidElementNames.indexOf( this.tag.toLowerCase() ) !== -1;
-			str = '<' + this.tag;
-			if ( this.attributes ) {
-				for ( i = 0, len = this.attributes.length; i < len; i += 1 ) {
-					name = this.attributes[ i ].name;
-					// does this look like a namespaced attribute? if so we can't stringify it
-					if ( name.indexOf( ':' ) !== -1 ) {
-						return this.str = false;
-					}
-					// if this element has an id attribute, it can't be stringified (since references are stored
-					// in ractive.nodes). Similarly, intro and outro transitions
-					if ( name === 'id' || name === 'intro' || name === 'outro' ) {
-						return this.str = false;
-					}
-					attrStr = ' ' + name;
-					// empty attributes
-					if ( this.attributes[ i ].value !== null ) {
-						attrValueStr = this.attributes[ i ].value.toString();
-						if ( attrValueStr === false ) {
-							return this.str = false;
-						}
-						if ( attrValueStr !== '' ) {
-							attrStr += '=';
-							// does it need to be quoted?
-							if ( /[\s"'=<>`]/.test( attrValueStr ) ) {
-								attrStr += '"' + attrValueStr.replace( /"/g, '&quot;' ) + '"';
-							} else {
-								attrStr += attrValueStr;
-							}
-						}
-					}
-					str += attrStr;
-				}
-			}
-			// if this isn't a void tag, but is self-closing, add a solidus. Aaaaand, we're done
-			if ( this.selfClosing && !isVoid ) {
-				str += '/>';
-				return this.str = str;
-			}
-			str += '>';
-			// void element? we're done
-			if ( isVoid ) {
-				return this.str = str;
-			}
-			// if this has children, add them
-			str += fragStr;
-			str += '</' + this.tag + '>';
-			return this.str = str;
-		};
-	}( parse_Parser_utils_stringifyStubs, config_voidElementNames );
-
-	var parse_Parser_getElement_ElementStub__ElementStub = function( types, voidElementNames, warn, siblingsByTagName, filterAttributes, processDirective, toJSON, toString, StringStub ) {
-
-		var ElementStub,
-			// helpers
-			allElementNames, closedByParentClose, onPattern, sanitize, leadingWhitespace = /^\s+/,
-			trailingWhitespace = /\s+$/;
-		ElementStub = function( firstToken, parser, preserveWhitespace ) {
-			var next, attrs, filtered, proxies, item, getFrag, lowerCaseTag;
-			parser.pos += 1;
-			getFrag = function( attr ) {
-				return {
-					name: attr.name,
-					value: attr.value ? new StringStub( attr.value ) : null
-				};
-			};
-			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
-			// that should be camelcased, camelcase it
-			this.tag = firstToken.name;
-			lowerCaseTag = firstToken.name.toLowerCase();
-			if ( lowerCaseTag.substr( 0, 3 ) === 'rv-' ) {
-				warn( 'The "rv-" prefix for components has been deprecated. Support will be removed in a future version' );
-				this.tag = this.tag.substring( 3 );
-			}
-			// if this is a <pre> element, preserve whitespace within
-			preserveWhitespace = preserveWhitespace || lowerCaseTag === 'pre' || lowerCaseTag === 'style' || lowerCaseTag === 'script';
-			if ( firstToken.attrs ) {
-				filtered = filterAttributes( firstToken.attrs );
-				attrs = filtered.attrs;
-				proxies = filtered.proxies;
-				// remove event attributes (e.g. onclick='doSomething()') if we're sanitizing
-				if ( parser.options.sanitize && parser.options.sanitize.eventAttributes ) {
-					attrs = attrs.filter( sanitize );
-				}
-				if ( attrs.length ) {
-					this.attributes = attrs.map( getFrag );
-				}
-				// Process directives (proxy events, transitions, and decorators)
-				if ( proxies.length ) {
-					this.proxies = proxies.map( processDirective );
-				}
-				if ( filtered.intro ) {
-					this.intro = processDirective( filtered.intro );
-				}
-				if ( filtered.outro ) {
-					this.outro = processDirective( filtered.outro );
-				}
-				if ( filtered.decorator ) {
-					this.decorator = processDirective( filtered.decorator );
-				}
-			}
-			if ( firstToken.doctype ) {
-				this.doctype = true;
-			}
-			if ( firstToken.selfClosing ) {
-				this.selfClosing = true;
-			}
-			if ( voidElementNames.indexOf( lowerCaseTag ) !== -1 ) {
-				this.isVoid = true;
-			}
-			// if self-closing or a void element, close
-			if ( this.selfClosing || this.isVoid ) {
-				return;
-			}
-			this.siblings = siblingsByTagName[ lowerCaseTag ];
-			this.items = [];
-			next = parser.next();
-			while ( next ) {
-				// section closing mustache should also close this element, e.g.
-				// <ul>{{#items}}<li>{{content}}{{/items}}</ul>
-				if ( next.mustacheType === types.CLOSING ) {
-					break;
-				}
-				if ( next.type === types.TAG ) {
-					// closing tag
-					if ( next.closing ) {
-						// it's a closing tag, which means this element is closed...
-						if ( next.name.toLowerCase() === lowerCaseTag ) {
-							parser.pos += 1;
-						}
-						break;
-					} else if ( this.siblings && this.siblings.indexOf( next.name.toLowerCase() ) !== -1 ) {
-						break;
-					}
-				}
-				this.items.push( parser.getStub( preserveWhitespace ) );
-				next = parser.next();
-			}
-			// if we're not preserving whitespace, we can eliminate inner leading and trailing whitespace
-			if ( !preserveWhitespace ) {
-				item = this.items[ 0 ];
-				if ( item && item.type === types.TEXT ) {
-					item.text = item.text.replace( leadingWhitespace, '' );
-					if ( !item.text ) {
-						this.items.shift();
-					}
-				}
-				item = this.items[ this.items.length - 1 ];
-				if ( item && item.type === types.TEXT ) {
-					item.text = item.text.replace( trailingWhitespace, '' );
-					if ( !item.text ) {
-						this.items.pop();
-					}
-				}
-			}
-		};
-		ElementStub.prototype = {
-			toJSON: toJSON,
-			toString: toString
-		};
-		allElementNames = 'a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol p param pre q s samp script select small span strike strong style sub sup textarea title tt u ul var article aside audio bdi canvas command data datagrid datalist details embed eventsource figcaption figure footer header hgroup keygen mark meter nav output progress ruby rp rt section source summary time track video wbr'.split( ' ' );
-		closedByParentClose = 'li dd rt rp optgroup option tbody tfoot tr td th'.split( ' ' );
-		onPattern = /^on[a-zA-Z]/;
-		sanitize = function( attr ) {
-			var valid = !onPattern.test( attr.name );
-			return valid;
-		};
-		return ElementStub;
-	}( config_types, config_voidElementNames, utils_warn, parse_Parser_getElement_ElementStub_utils_siblingsByTagName, parse_Parser_getElement_ElementStub_utils_filterAttributes, parse_Parser_getElement_ElementStub_utils_processDirective, parse_Parser_getElement_ElementStub_toJSON, parse_Parser_getElement_ElementStub_toString, parse_Parser_StringStub__StringStub );
-
-	var parse_Parser_getElement__getElement = function( ElementStub ) {
-
-		return function( token ) {
-			// sanitize
-			if ( this.options.sanitize && this.options.sanitize.elements ) {
-				if ( this.options.sanitize.elements.indexOf( token.name.toLowerCase() ) !== -1 ) {
-					return null;
-				}
-			}
-			return new ElementStub( token, this, this.preserveWhitespace );
-		};
-	}( parse_Parser_getElement_ElementStub__ElementStub );
-
-	var parse_Parser__Parser = function( getText, getComment, getMustache, getElement, jsonifyStubs ) {
-
-		var Parser;
-		Parser = function( tokens, options ) {
-			var stub, stubs;
-			this.tokens = tokens || [];
-			this.pos = 0;
-			this.options = options;
-			this.preserveWhitespace = options.preserveWhitespace;
-			stubs = [];
-			while ( stub = this.getStub() ) {
-				stubs.push( stub );
-			}
-			this.result = jsonifyStubs( stubs, options.noStringify, true );
-		};
-		Parser.prototype = {
-			getStub: function( preserveWhitespace ) {
-				var token = this.next();
-				if ( !token ) {
-					return null;
-				}
-				return this.getText( token, this.preserveWhitespace || preserveWhitespace ) || this.getComment( token ) || this.getMustache( token ) || this.getElement( token );
+		var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
+			validTagNameFollower = /^[\s\n\/>]/,
+			onPattern = /^on/,
+			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9]+)/,
+			directives = {
+				'intro-outro': 't0',
+				intro: 't1',
+				outro: 't2',
+				decorator: 'o'
 			},
-			getText: getText,
-			getComment: getComment,
-			getMustache: getMustache,
-			getElement: getElement,
-			next: function() {
-				return this.tokens[ this.pos ];
+			exclude = {
+				exclude: true
+			},
+			converters;
+		// Different set of converters, because this time we're looking for closing tags
+		converters = [
+			getMustache,
+			getComment,
+			getElement,
+			getText,
+			getClosingTag
+		];
+		return getElement;
+
+		function getElement( parser ) {
+			var start, element, lowerCaseName, directiveName, match, attribute, selfClosing, children, child;
+			start = parser.pos;
+			if ( parser.inside ) {
+				return null;
+			}
+			if ( !parser.matchString( '<' ) ) {
+				return null;
+			}
+			// if this is a closing tag, abort straight away
+			if ( parser.nextChar() === '/' ) {
+				return null;
+			}
+			element = {
+				t: types.ELEMENT
+			};
+			if ( parser.matchString( '!' ) ) {
+				element.y = 1;
+			}
+			// element name
+			element.e = parser.matchPattern( tagNamePattern );
+			if ( !element.e ) {
+				return null;
+			}
+			// next character must be whitespace, closing solidus or '>'
+			if ( !validTagNameFollower.test( parser.nextChar() ) ) {
+				parser.error( 'Illegal tag name' );
+			}
+			// directives and attributes
+			while ( attribute = getAttribute( parser ) ) {
+				// intro, outro, decorator
+				if ( directiveName = directives[ attribute.name ] ) {
+					element[ directiveName ] = processDirective( attribute.value );
+				} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
+					if ( !element.v )
+						element.v = {};
+					element.v[ match[ 1 ] ] = processDirective( attribute.value );
+				} else {
+					if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
+						if ( !element.a )
+							element.a = {};
+						element.a[ attribute.name ] = attribute.value || 0;
+					}
+				}
+			}
+			// allow whitespace before closing solidus
+			parser.allowWhitespace();
+			// self-closing solidus?
+			if ( parser.matchString( '/' ) ) {
+				selfClosing = true;
+			}
+			// closing angle bracket
+			if ( !parser.matchString( '>' ) ) {
+				return null;
+			}
+			lowerCaseName = element.e.toLowerCase();
+			if ( !selfClosing && !voidElementNames.test( element.e ) ) {
+				// Special case - if we open a script element, further tags should
+				// be ignored unless they're a closing script element
+				if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
+					parser.inside = lowerCaseName;
+				}
+				children = [];
+				while ( child = parser.read( converters ) ) {
+					// Special case - closing section tag
+					if ( child.t === types.CLOSING ) {
+						break;
+					}
+					if ( child.t === types.CLOSING_TAG ) {
+						break;
+					}
+					children.push( child );
+				}
+				if ( children.length ) {
+					element.f = children;
+				}
+			}
+			parser.inside = null;
+			if ( parser.sanitizeElements && parser.sanitizeElements.indexOf( lowerCaseName ) !== -1 ) {
+				return exclude;
+			}
+			return element;
+		}
+	}( config_types, config_voidElementNames, parse_converters_mustache, parse_converters_comment, parse_converters_text, parse_converters_element_closingTag, parse_converters_element_attribute, parse_converters_element_processDirective );
+
+	var parse_utils_trimWhitespace = function() {
+
+		var leadingWhitespace = /^[ \n]+/,
+			trailingWhitespace = /[ \n]+$/;
+		return function( items ) {
+			var item;
+			item = items[ 0 ];
+			if ( typeof item === 'string' ) {
+				item = item.replace( leadingWhitespace, '' );
+				if ( !item ) {
+					items.shift();
+				} else {
+					items[ 0 ] = item;
+				}
+			}
+			item = items[ items.length - 1 ];
+			if ( typeof item === 'string' ) {
+				item = item.replace( trailingWhitespace, '' );
+				if ( !item ) {
+					items.pop();
+				} else {
+					items[ items.length - 1 ] = item;
+				}
 			}
 		};
-		return Parser;
-	}( parse_Parser_getText__getText, parse_Parser_getComment__getComment, parse_Parser_getMustache__getMustache, parse_Parser_getElement__getElement, parse_Parser_utils_jsonifyStubs );
+	}();
+
+	var parse_utils_stripStandalones = function( types ) {
+
+		var leadingLinebreak = /^\s*\r?\n/,
+			trailingLinebreak = /\r?\n\s*$/;
+		return function( items ) {
+			var i, current, backOne, backTwo, lastSectionItem;
+			for ( i = 1; i < items.length; i += 1 ) {
+				current = items[ i ];
+				backOne = items[ i - 1 ];
+				backTwo = items[ i - 2 ];
+				// if we're at the end of a [text][comment][text] sequence...
+				if ( isString( current ) && isComment( backOne ) && isString( backTwo ) ) {
+					// ... and the comment is a standalone (i.e. line breaks either side)...
+					if ( trailingLinebreak.test( backTwo ) && leadingLinebreak.test( current ) ) {
+						// ... then we want to remove the whitespace after the first line break
+						items[ i - 2 ] = backTwo.replace( trailingLinebreak, '\n' );
+						// and the leading line break of the second text token
+						items[ i ] = current.replace( leadingLinebreak, '' );
+					}
+				}
+				// if the current item is a section, and it is preceded by a linebreak, and
+				// its first item is a linebreak...
+				if ( isSection( current ) && isString( backOne ) ) {
+					if ( trailingLinebreak.test( backOne ) && isString( current.f[ 0 ] ) && leadingLinebreak.test( current.f[ 0 ] ) ) {
+						items[ i - 1 ] = backOne.replace( trailingLinebreak, '\n' );
+						current.f[ 0 ] = current.f[ 0 ].replace( leadingLinebreak, '' );
+					}
+				}
+				// if the last item was a section, and it is followed by a linebreak, and
+				// its last item is a linebreak...
+				if ( isString( current ) && isSection( backOne ) ) {
+					lastSectionItem = backOne.f[ backOne.f.length - 1 ];
+					if ( isString( lastSectionItem ) && trailingLinebreak.test( lastSectionItem ) && leadingLinebreak.test( current ) ) {
+						backOne.f[ backOne.f.length - 1 ] = lastSectionItem.replace( trailingLinebreak, '\n' );
+						items[ i ] = current.replace( leadingLinebreak, '' );
+					}
+				}
+			}
+			return items;
+		};
+
+		function isString( item ) {
+			return typeof item === 'string';
+		}
+
+		function isComment( item ) {
+			return item.t === types.COMMENT || item.t === types.DELIMCHANGE;
+		}
+
+		function isSection( item ) {
+			return ( item.t === types.SECTION || item.t === types.INVERTED ) && item.f;
+		}
+	}( config_types );
 
 	// Ractive.parse
 	// ===============
@@ -10010,18 +9248,59 @@
 	// * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 	// * x - eXpressions
 	// * s - String representation of an expression function
+	// * t0 - intro/outro Transition
 	// * t1 - intro Transition
 	// * t2 - outro Transition
 	// * o - decOrator
 	// * y - is doctYpe
-	var parse__parse = function( tokenize, types, Parser ) {
+	// * c - is Content (e.g. of a comment node)
+	var parse__parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones ) {
 
-		var parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
+		var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
 		onlyWhitespace = /^\s*$/;
 		inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
 		inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
+		StandardParser = Parser.extend( {
+			init: function( str, options ) {
+				// config
+				this.delimiters = options.delimiters || [
+					'{{',
+					'}}'
+				];
+				this.tripleDelimiters = options.tripleDelimiters || [
+					'{{{',
+					'}}}'
+				];
+				this.interpolate = {
+					script: !options.interpolate || options.interpolate.script !== false,
+					style: !options.interpolate || options.interpolate.style !== false
+				};
+				if ( options.sanitize === true ) {
+					options.sanitize = {
+						// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
+						elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
+						eventAttributes: true
+					};
+				}
+				this.sanitizeElements = options.sanitize && options.sanitize.elements;
+				this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+			},
+			postProcess: function( items, options ) {
+				cleanup( items, options.stripComments !== false, options.preserveWhitespace );
+				if ( !options.preserveWhitespace ) {
+					trimWhitespace( items );
+				}
+				return items;
+			},
+			converters: [
+				mustache,
+				comment,
+				element,
+				text
+			]
+		} );
 		parse = function( template, options ) {
-			var tokens, json, token;
+			var parser;
 			options = options || {};
 			// does this template include inline partials?
 			if ( inlinePartialStart.test( template ) ) {
@@ -10034,26 +9313,11 @@
 					eventAttributes: true
 				};
 			}
-			tokens = tokenize( template, options );
-			if ( !options.preserveWhitespace ) {
-				// remove first token if it only contains whitespace
-				token = tokens[ 0 ];
-				if ( token && token.type === types.TEXT && onlyWhitespace.test( token.value ) ) {
-					tokens.shift();
-				}
-				// ditto last token
-				token = tokens[ tokens.length - 1 ];
-				if ( token && token.type === types.TEXT && onlyWhitespace.test( token.value ) ) {
-					tokens.pop();
-				}
+			parser = new StandardParser( template, options );
+			if ( parser.leftover ) {
+				parser.error( 'Unexpected character' );
 			}
-			json = new Parser( tokens, options ).result;
-			if ( typeof json === 'string' ) {
-				// If we return it as a string, Ractive will attempt to reparse it!
-				// Instead we wrap it in an array. Ractive knows what to do then
-				return [ json ];
-			}
-			return json;
+			return parser.result;
 		};
 		parseCompoundTemplate = function( template, options ) {
 			var mainTemplate, remaining, partials, name, startMatch, endMatch;
@@ -10077,7 +9341,38 @@
 			};
 		};
 		return parse;
-	}( parse_tokenize, config_types, parse_Parser__Parser );
+
+		function cleanup( items, stripComments, preserveWhitespace ) {
+			var i, item;
+			// first pass - remove standalones
+			stripStandalones( items );
+			i = items.length;
+			while ( i-- ) {
+				item = items[ i ];
+				// Remove delimiter changes, unsafe elements etc
+				if ( item.exclude ) {
+					items.splice( i, 1 );
+				} else if ( stripComments && item.t === types.COMMENT ) {
+					items.splice( i, 1 );
+				}
+				// Recurse
+				if ( item.f ) {
+					cleanup( item.f, stripComments, preserveWhitespace );
+					if ( !preserveWhitespace && item.t === types.ELEMENT ) {
+						trimWhitespace( item.f );
+					}
+				}
+			}
+			// final pass - fuse text nodes together
+			i = items.length;
+			while ( i-- ) {
+				if ( typeof items[ i ] === 'string' && typeof items[ i + 1 ] === 'string' ) {
+					items[ i ] = items[ i ] + items[ i + 1 ];
+					items.splice( i + 1, 1 );
+				}
+			}
+		}
+	}( config_types, parse_Parser__Parser, parse_converters_mustache, parse_converters_comment, parse_converters_element, parse_converters_text, parse_utils_trimWhitespace, parse_utils_stripStandalones );
 
 	var render_DomFragment_Partial_deIndent = function() {
 
@@ -10115,11 +9410,10 @@
 
 	var render_DomFragment_Partial_getPartialDescriptor = function( errors, isClient, warn, isObject, partials, parse, deIndent ) {
 
-		var getPartialDescriptor, registerPartial, getPartialFromRegistry, unpack;
-		getPartialDescriptor = function( root, name ) {
+		return function getPartialDescriptor( ractive, name ) {
 			var el, partial, errorMessage;
 			// If the partial was specified on this instance, great
-			if ( partial = getPartialFromRegistry( root, name ) ) {
+			if ( partial = getPartialFromRegistry( ractive, name ) ) {
 				return partial;
 			}
 			// Does it exist on the page as a script tag?
@@ -10129,23 +9423,24 @@
 					if ( !parse ) {
 						throw new Error( errors.missingParser );
 					}
-					registerPartial( parse( deIndent( el.text ), root.parseOptions ), name, partials );
+					registerPartial( parse( deIndent( el.text ), ractive.parseOptions ), name, partials );
 				}
 			}
 			partial = partials[ name ];
 			// No match? Return an empty array
 			if ( !partial ) {
 				errorMessage = 'Could not find descriptor for partial "' + name + '"';
-				if ( root.debug ) {
+				if ( ractive.debug ) {
 					throw new Error( errorMessage );
 				} else {
 					warn( errorMessage );
 				}
 				return [];
 			}
-			return unpack( partial );
+			return partial;
 		};
-		getPartialFromRegistry = function( ractive, name ) {
+
+		function getPartialFromRegistry( ractive, name ) {
 			var partial;
 			if ( ractive.partials[ name ] ) {
 				// If this was added manually to the registry, but hasn't been parsed,
@@ -10157,10 +9452,11 @@
 					partial = parse( ractive.partials[ name ], ractive.parseOptions );
 					registerPartial( partial, name, ractive.partials );
 				}
-				return unpack( ractive.partials[ name ] );
+				return ractive.partials[ name ];
 			}
-		};
-		registerPartial = function( partial, name, registry ) {
+		}
+
+		function registerPartial( partial, name, registry ) {
 			var key;
 			if ( isObject( partial ) ) {
 				registry[ name ] = partial.main;
@@ -10172,15 +9468,7 @@
 			} else {
 				registry[ name ] = partial;
 			}
-		};
-		unpack = function( partial ) {
-			// Unpack string, if necessary
-			if ( partial.length === 1 && typeof partial[ 0 ] === 'string' ) {
-				return partial[ 0 ];
-			}
-			return partial;
-		};
-		return getPartialDescriptor;
+		}
 	}( config_errors, config_isClient, utils_warn, utils_isObject, registries_partials, parse__parse, render_DomFragment_Partial_deIndent );
 
 	var render_DomFragment_Partial_applyIndent = function( string, indent ) {
@@ -10268,7 +9556,11 @@
 
 	var render_DomFragment_Component_initialise_createModel_ComponentParameter = function( runloop, StringFragment ) {
 
-		var ComponentParameter = function( component, key, value ) {
+		var getValueOptions, ComponentParameter;
+		getValueOptions = {
+			parse: true
+		};
+		ComponentParameter = function( component, key, value ) {
 			this.parentFragment = component.parentFragment;
 			this.component = component;
 			this.key = key;
@@ -10278,7 +9570,7 @@
 				owner: this
 			} );
 			this.selfUpdating = this.fragment.isSimple();
-			this.value = this.fragment.getValue();
+			this.value = this.fragment.getValue( getValueOptions );
 		};
 		ComponentParameter.prototype = {
 			bubble: function() {
@@ -10291,7 +9583,7 @@
 				}
 			},
 			update: function() {
-				var value = this.fragment.getValue();
+				var value = this.fragment.getValue( getValueOptions );
 				this.component.instance.set( this.key, value );
 				this.value = value;
 			},
@@ -10305,8 +9597,8 @@
 	var render_DomFragment_Component_initialise_createModel__createModel = function( types, parseJSON, resolveRef, get, ComponentParameter ) {
 
 		return function( component, defaultData, attributes, toBind ) {
-			var data, key, value;
-			data = {};
+			var data = {},
+				key, value;
 			// some parameters, e.g. foo="The value is {{bar}}", are 'complex' - in
 			// other words, we need to construct a string fragment to watch
 			// when they change. We store these so they can be torn down later
@@ -10329,7 +9621,10 @@
 			// If this is a static value, great
 			if ( typeof descriptor === 'string' ) {
 				parsed = parseJSON( descriptor );
-				return parsed ? parsed.value : descriptor;
+				if ( !parsed ) {
+					return descriptor;
+				}
+				return parsed.value;
 			}
 			// If null, we treat it as a boolean attribute (i.e. true)
 			if ( descriptor === null ) {
@@ -10478,7 +9773,7 @@
 		// If there's a live query for this component type, add it
 		ancestor = component.root;
 		while ( ancestor ) {
-			if ( query = ancestor._liveComponentQueries[ component.name ] ) {
+			if ( query = ancestor._liveComponentQueries[ '_' + component.name ] ) {
 				query.push( component.instance );
 			}
 			ancestor = ancestor._parent;
@@ -10567,7 +9862,7 @@
 				if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
 					childInstance.set( indexRefAlias, newIndex );
 				}
-				if ( query = this.root._liveComponentQueries[ this.name ] ) {
+				if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
 					query._makeDirty();
 				}
 			},
@@ -10602,7 +9897,7 @@
 			var instance, query;
 			instance = component.root;
 			do {
-				if ( query = instance._liveComponentQueries[ component.name ] ) {
+				if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
 					query._remove( component );
 				}
 			} while ( instance = instance._parent );
@@ -10615,7 +9910,7 @@
 			this.type = types.COMMENT;
 			this.descriptor = options.descriptor;
 			if ( docFrag ) {
-				this.node = document.createComment( options.descriptor.f );
+				this.node = document.createComment( options.descriptor.c );
 				docFrag.appendChild( this.node );
 			}
 		};
@@ -10630,28 +9925,20 @@
 				return this.node;
 			},
 			toString: function() {
-				return '<!--' + this.descriptor.f + '-->';
+				return '<!--' + this.descriptor.c + '-->';
 			}
 		};
 		return DomComment;
 	}( config_types, render_DomFragment_shared_detach );
 
-	var render_DomFragment__DomFragment = function( types, matches, Fragment, insertHtml, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular ) {
+	var render_DomFragment__DomFragment = function( types, matches, Fragment, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, circular ) {
 
 		var DomFragment = function( options ) {
 			if ( options.pNode ) {
 				this.docFrag = document.createDocumentFragment();
 			}
-			// if we have an HTML string, our job is easy.
-			if ( typeof options.descriptor === 'string' ) {
-				this.html = options.descriptor;
-				if ( this.docFrag ) {
-					this.nodes = insertHtml( this.html, options.pNode.tagName, options.pNode.namespaceURI, this.docFrag );
-				}
-			} else {
-				// otherwise we need to make a proper fragment
-				Fragment.init( this, options );
-			}
+			// otherwise we need to make a proper fragment
+			Fragment.init( this, options );
 		};
 		DomFragment.prototype = {
 			reassign: Fragment.reassign,
@@ -10694,7 +9981,7 @@
 					case types.COMMENT:
 						return new Comment( options, this.docFrag );
 					default:
-						throw new Error( 'Something very strange happened. Please file an issue at https://github.com/RactiveJS/Ractive/issues. Thanks!' );
+						throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 				}
 			},
 			teardown: function( destroy ) {
@@ -10736,20 +10023,10 @@
 				return this.owner.findNextNode( this );
 			},
 			toString: function() {
-				var html, i, len, item;
-				if ( this.html ) {
-					return this.html;
-				}
-				html = '';
 				if ( !this.items ) {
-					return html;
+					return '';
 				}
-				len = this.items.length;
-				for ( i = 0; i < len; i += 1 ) {
-					item = this.items[ i ];
-					html += item.toString();
-				}
-				return html;
+				return this.items.join( '' );
 			},
 			find: function( selector ) {
 				var i, len, item, node, queryResult;
@@ -10841,11 +10118,11 @@
 		};
 		circular.DomFragment = DomFragment;
 		return DomFragment;
-	}( config_types, utils_matches, render_shared_Fragment__Fragment, render_DomFragment_shared_insertHtml, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular );
+	}( config_types, utils_matches, render_shared_Fragment__Fragment, render_DomFragment_Text, render_DomFragment_Interpolator, render_DomFragment_Section__Section, render_DomFragment_Triple, render_DomFragment_Element__Element, render_DomFragment_Partial__Partial, render_DomFragment_Component__Component, render_DomFragment_Comment, circular );
 
 	var Ractive_prototype_render = function( runloop, css, DomFragment ) {
 
-		return function Ractive_prototype_render( target, callback ) {
+		return function Ractive_prototype_render( target, anchor, callback ) {
 			this._rendering = true;
 			runloop.start( this, callback );
 			// This method is part of the API for one reason only - so that it can be
@@ -10868,7 +10145,11 @@
 				pNode: target
 			} );
 			if ( target ) {
-				target.appendChild( this.fragment.docFrag );
+				if ( anchor ) {
+					target.insertBefore( this.fragment.docFrag, anchor );
+				} else {
+					target.appendChild( this.fragment.docFrag );
+				}
 			}
 			// If this is *isn't* a child of a component that's in the process of rendering,
 			// it should call any `init()` methods at this point
@@ -10881,7 +10162,7 @@
 
 		function initChildren( instance ) {
 			var child;
-			while ( child = instance._childInitQueue.pop() ) {
+			while ( child = instance._childInitQueue.shift() ) {
 				if ( child.instance.init ) {
 					child.instance.init( child.options );
 				}
@@ -10900,11 +10181,396 @@
 		};
 	}( utils_warn );
 
-	var Ractive_prototype_reset = function( Promise, runloop, clearCache, notifyDependants ) {
+	var config_registries = [ ,
+		'data',
+		'computed',
+		'adaptors',
+		'components',
+		'decorators',
+		'easing',
+		'events',
+		'interpolators',
+		'partials',
+		'transitions'
+	];
 
+	var utils_extend = function( target ) {
+		var prop, source, sources = Array.prototype.slice.call( arguments, 1 );
+		while ( source = sources.shift() ) {
+			for ( prop in source ) {
+				if ( source.hasOwnProperty( prop ) ) {
+					target[ prop ] = source[ prop ];
+				}
+			}
+		}
+		return target;
+	};
+
+	var Ractive_initialise_computations_getComputationSignature = function() {
+
+		var pattern = /\$\{([^\}]+)\}/g;
+		return function( signature ) {
+			if ( typeof signature === 'function' ) {
+				return {
+					get: signature
+				};
+			}
+			if ( typeof signature === 'string' ) {
+				return {
+					get: createFunctionFromString( signature )
+				};
+			}
+			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
+				signature = {
+					get: createFunctionFromString( signature.get ),
+					set: signature.set
+				};
+			}
+			return signature;
+		};
+
+		function createFunctionFromString( signature ) {
+			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
+				return '__ractive.get("' + keypath + '")';
+			} ) + ')';
+			return new Function( functionBody );
+		}
+	}();
+
+	var Ractive_initialise_computations_Watcher = function( isEqual, registerDependant, unregisterDependant ) {
+
+		var Watcher = function( computation, keypath ) {
+			this.root = computation.ractive;
+			this.keypath = keypath;
+			this.priority = 0;
+			this.computation = computation;
+			registerDependant( this );
+		};
+		Watcher.prototype = {
+			update: function() {
+				var value;
+				value = this.root.get( this.keypath );
+				if ( !isEqual( value, this.value ) ) {
+					this.computation.bubble();
+				}
+			},
+			teardown: function() {
+				unregisterDependant( this );
+			}
+		};
+		return Watcher;
+	}( utils_isEqual, shared_registerDependant, shared_unregisterDependant );
+
+	var Ractive_initialise_computations_Computation = function( warn, runloop, set, Watcher ) {
+
+		var Computation = function( ractive, key, signature ) {
+			this.ractive = ractive;
+			this.key = key;
+			this.getter = signature.get;
+			this.setter = signature.set;
+			this.watchers = [];
+			this.update();
+		};
+		Computation.prototype = {
+			set: function( value ) {
+				if ( this.setting ) {
+					this.value = value;
+					return;
+				}
+				if ( !this.setter ) {
+					throw new Error( 'Computed properties without setters are read-only in the current version' );
+				}
+				this.setter.call( this.ractive, value );
+			},
+			update: function() {
+				var ractive, originalCaptured, result, errored;
+				ractive = this.ractive;
+				originalCaptured = ractive._captured;
+				if ( !originalCaptured ) {
+					ractive._captured = [];
+				}
+				try {
+					result = this.getter.call( ractive );
+				} catch ( err ) {
+					if ( ractive.debug ) {
+						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
+					}
+					errored = true;
+				}
+				diff( this, this.watchers, ractive._captured );
+				// reset
+				ractive._captured = originalCaptured;
+				if ( !errored ) {
+					this.setting = true;
+					this.value = result;
+					set( ractive, this.key, result );
+					this.setting = false;
+				}
+				this.deferred = false;
+			},
+			bubble: function() {
+				if ( this.watchers.length <= 1 ) {
+					this.update();
+				} else if ( !this.deferred ) {
+					runloop.addComputation( this );
+					this.deferred = true;
+				}
+			}
+		};
+
+		function diff( computation, watchers, newDependencies ) {
+			var i, watcher, keypath;
+			// remove dependencies that are no longer used
+			i = watchers.length;
+			while ( i-- ) {
+				watcher = watchers[ i ];
+				if ( !newDependencies[ watcher.keypath ] ) {
+					watchers.splice( i, 1 );
+					watchers[ watcher.keypath ] = null;
+					watcher.teardown();
+				}
+			}
+			// create references for any new dependencies
+			i = newDependencies.length;
+			while ( i-- ) {
+				keypath = newDependencies[ i ];
+				if ( !watchers[ keypath ] ) {
+					watcher = new Watcher( computation, keypath );
+					watchers.push( watchers[ keypath ] = watcher );
+				}
+			}
+		}
+		return Computation;
+	}( utils_warn, global_runloop, shared_set, Ractive_initialise_computations_Watcher );
+
+	var Ractive_initialise_computations_createComputations = function( getComputationSignature, Computation ) {
+
+		return function createComputations( ractive, computed ) {
+			var key, signature;
+			for ( key in computed ) {
+				signature = getComputationSignature( computed[ key ] );
+				ractive._computations[ key ] = new Computation( ractive, key, signature );
+			}
+		};
+	}( Ractive_initialise_computations_getComputationSignature, Ractive_initialise_computations_Computation );
+
+	var Ractive_initialise_templateParser = function( errors, isClient, parse ) {
+
+		return function( options ) {
+			return {
+				fromId: function( id ) {
+					var template;
+					if ( !isClient ) {
+						throw new Error( 'Cannot retieve template #' + id + 'as Ractive is not running in the client.' );
+					}
+					if ( id.charAt( 0 ) === '#' ) {
+						id = id.substring( 1 );
+					}
+					if ( !( template = document.getElementById( id ) ) ) {
+						throw new Error( 'Could not find template element with id #' + id );
+					}
+					return template.innerHTML;
+				},
+				parse: function( template, parseOptions ) {
+					if ( !parse ) {
+						throw new Error( errors.missingParser );
+					}
+					return parse( template, parseOptions || options );
+				},
+				isParsed: function( template ) {
+					return !( typeof template === 'string' );
+				}
+			};
+		};
+	}( config_errors, config_isClient, parse__parse );
+
+	var Ractive_initialise_initialiseTemplate = function( isClient, extend, fillGaps, isObject, TemplateParser ) {
+
+		return function( ractive, defaults, options ) {
+			var template = ractive.template,
+				templateParser, parsedTemplate;
+			templateParser = new TemplateParser( ractive.parseOptions );
+			// Parse template, if necessary
+			if ( !templateParser.isParsed( template ) ) {
+				// Assume this is an ID of a <script type='text/ractive'> tag
+				if ( template.charAt( 0 ) === '#' ) {
+					template = templateParser.fromId( template );
+				}
+				parsedTemplate = templateParser.parse( template );
+			} else {
+				parsedTemplate = template;
+			}
+			// deal with compound template
+			if ( isObject( parsedTemplate ) ) {
+				fillGaps( ractive.partials, parsedTemplate.partials );
+				parsedTemplate = parsedTemplate.main;
+			}
+			// If the template was an array with a single string member, that means
+			// we can use innerHTML - we just need to unpack it
+			if ( parsedTemplate && parsedTemplate.length === 1 && typeof parsedTemplate[ 0 ] === 'string' ) {
+				parsedTemplate = parsedTemplate[ 0 ];
+			}
+			ractive.template = parsedTemplate;
+			// Add partials to our registry
+			extend( ractive.partials, options.partials );
+		};
+	}( config_isClient, utils_extend, utils_fillGaps, utils_isObject, Ractive_initialise_templateParser );
+
+	var Ractive_initialise_initialiseRegistries = function( registries, create, extend, isArray, isObject, createComputations, initialiseTemplate, TemplateParser ) {
+
+		//Template is NOT in registryKeys, it doesn't extend b/c it's a string.
+		//We're just reusing the logic as it is mostly like a registry
+		registries = registries.concat( [ 'template' ] );
+		return initialiseRegisties;
+		//Encapsulate differences between template and other registries
+		function getExtendOptions( ractive, options ) {
+			var templateParser;
+			return {
+				// 'default' needs to be quoted as it's a keyword, and will break IE8 otherwise
+				'default': {
+					getArg: function() {
+						return;
+					},
+					extend: function( defaultValue, optionsValue ) {
+						return extend( create( defaultValue ), optionsValue );
+					},
+					initialValue: function( registry ) {
+						return ractive[ registry ];
+					}
+				},
+				template: {
+					getArg: function() {
+						if ( !templateParser ) {
+							templateParser = new TemplateParser( ractive.parseOptions );
+						}
+						return templateParser;
+					},
+					extend: function( defaultValue, optionsValue ) {
+						return optionsValue;
+					},
+					initialValue: function( registry ) {
+						return options[ registry ];
+					}
+				}
+			};
+		}
+
+		function initialiseRegisties( ractive, defaults, options, initOptions ) {
+			var extendOptions = getExtendOptions( ractive, options ),
+				registryKeys, changes;
+			initOptions = initOptions || {};
+			initOptions.newValues = initOptions.newValues || {};
+			if ( initOptions.registries ) {
+				registryKeys = initOptions.registries.filter( function( key ) {
+					return registries.indexOf( key ) > -1;
+				} );
+			} else {
+				registryKeys = registries;
+			}
+			changes = initialise();
+			if ( shouldUpdate( 'computed' ) ) {
+				createComputations( ractive, ractive.computed );
+			}
+			if ( shouldUpdate( 'template' ) ) {
+				initialiseTemplate( ractive, defaults, options );
+			}
+			return changes;
+
+			function shouldUpdate( registry ) {
+				return !initOptions.updatesOnly && ractive[ registry ] || initOptions.updatesOnly && changes.indexOf( registry ) > -1;
+			}
+
+			function initialise() {
+				//data goes first as it is primary argument to other function-based registry options
+				initialiseRegistry( 'data' );
+				if ( !ractive.data ) {
+					ractive.data = {};
+				}
+				//return the changed registries
+				return registryKeys.filter( function( registry ) {
+					return registry !== 'data';
+				} ).filter( initialiseRegistry );
+			}
+
+			function initialiseRegistry( registry ) {
+				var optionsValue = initOptions.newValues[ registry ] || options[ registry ],
+					defaultValue = ractive.constructor[ registry ] || defaults[ registry ],
+					firstArg = registry === 'data' ? optionsValue : ractive.data,
+					regOpt = extendOptions[ registry ] || extendOptions[ 'default' ],
+					initialValue = regOpt.initialValue( registry );
+				if ( typeof optionsValue === 'function' ) {
+					ractive[ registry ] = optionsValue( firstArg, options, regOpt.getArg() );
+				} else if ( defaultValue ) {
+					ractive[ registry ] = typeof defaultValue === 'function' ? defaultValue( firstArg, options, regOpt.getArg() ) || options[ registry ] : regOpt.extend( defaultValue, optionsValue );
+				} else if ( optionsValue ) {
+					ractive[ registry ] = optionsValue;
+				} else {
+					ractive[ registry ] = void 0;
+				}
+				return isChanged( ractive[ registry ], initialValue );
+			}
+
+			function isChanged( initial, current ) {
+				if ( !initial && !current ) {
+					return false;
+				}
+				if ( isEmptyObject( initial ) && isEmptyObject( current ) ) {
+					return false;
+				}
+				if ( isEmptyArray( initial ) && isEmptyArray( current ) ) {
+					return false;
+				}
+				return initial !== current;
+			}
+
+			function isEmptyObject( obj ) {
+				return isObject( obj ) && !Object.keys( obj ).length;
+			}
+
+			function isEmptyArray( arr ) {
+				return isArray( arr ) && !arr.length;
+			}
+		}
+	}( config_registries, utils_create, utils_extend, utils_isArray, utils_isObject, Ractive_initialise_computations_createComputations, Ractive_initialise_initialiseTemplate, Ractive_initialise_templateParser );
+
+	var Ractive_initialise_renderInstance = function( isClient, Promise ) {
+
+		return function renderInstance( ractive, options ) {
+			var promise, fulfilPromise;
+			// Temporarily disable transitions, if noIntro flag is set
+			ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
+			// If we're in a browser, and no element has been specified, create
+			// a document fragment to use instead
+			if ( isClient && !ractive.el ) {
+				ractive.el = document.createDocumentFragment();
+			} else if ( ractive.el && !options.append && !ractive.anchor ) {
+				ractive.el.innerHTML = '';
+			}
+			promise = new Promise( function( fulfil ) {
+				fulfilPromise = fulfil;
+			} );
+			ractive.render( ractive.el, ractive.anchor, fulfilPromise );
+			if ( options.complete ) {
+				promise = promise.then( options.complete.bind( ractive ) );
+			}
+			// reset transitionsEnabled
+			ractive.transitionsEnabled = options.transitionsEnabled;
+			return promise;
+		};
+	}( config_isClient, utils_Promise );
+
+	var Ractive_prototype_reset = function( Promise, runloop, clearCache, notifyDependants, initialiseRegistries, renderInstance ) {
+
+		var shouldRerender = [
+			'template',
+			'partials',
+			'components',
+			'decorators',
+			'events'
+		].join();
 		return function( data, callback ) {
-			var promise, fulfilPromise, wrapper;
-			if ( typeof data === 'function' ) {
+			var promise, fulfilPromise, wrapper, changes, rerender, i;
+			if ( typeof data === 'function' && !callback ) {
 				callback = data;
 				data = {};
 			} else {
@@ -10913,13 +10579,6 @@
 			if ( typeof data !== 'object' ) {
 				throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
 			}
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
-			if ( callback ) {
-				promise.then( callback );
-			}
-			runloop.start( this, fulfilPromise );
 			// If the root object is wrapped, try and use the wrapper's reset value
 			if ( ( wrapper = this._wrapped[ '' ] ) && wrapper.reset ) {
 				if ( wrapper.reset( data ) === false ) {
@@ -10929,13 +10588,75 @@
 			} else {
 				this.data = data;
 			}
-			clearCache( this, '' );
-			notifyDependants( this, '' );
-			runloop.end();
-			this.fire( 'reset', data );
+			this.initOptions.data = this.data;
+			changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, {
+				updatesOnly: true
+			} );
+			i = changes.length;
+			while ( i-- ) {
+				if ( shouldRerender.indexOf( changes[ i ] > -1 ) ) {
+					rerender = true;
+					break;
+				}
+			}
+			if ( rerender ) {
+				this.teardown();
+				this._initing = true;
+				promise = renderInstance( this, this.initOptions );
+				//same as initialise, but should this be in then()?
+				this._initing = false;
+			} else {
+				promise = new Promise( function( fulfil ) {
+					fulfilPromise = fulfil;
+				} );
+				runloop.start( this, fulfilPromise );
+				clearCache( this, '' );
+				notifyDependants( this, '' );
+				runloop.end();
+				this.fire( 'reset', data );
+			}
+			if ( callback ) {
+				promise.then( callback );
+			}
 			return promise;
 		};
-	}( utils_Promise, global_runloop, shared_clearCache, shared_notifyDependants );
+	}( utils_Promise, global_runloop, shared_clearCache, shared_notifyDependants, Ractive_initialise_initialiseRegistries, Ractive_initialise_renderInstance );
+
+	var Ractive_prototype_resetTemplate = function( Promise, initialiseRegistries, renderInstance ) {
+
+		return function( template, callback ) {
+			var promise, changes, options = {
+				updatesOnly: true,
+				registries: [
+					'template',
+					'partials'
+				]
+			};
+			if ( typeof template === 'function' && !callback ) {
+				callback = template;
+				template = void 0;
+			}
+			if ( template ) {
+				options.newValues = {
+					template: template
+				};
+			}
+			changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, options );
+			if ( changes.length ) {
+				this.teardown();
+				this._initing = true;
+				promise = renderInstance( this, this.initOptions );
+				//same as initialise, but should this be in then()?
+				this._initing = false;
+			} else {
+				promise = Promise.resolve();
+			}
+			if ( callback ) {
+				promise.then( callback );
+			}
+			return promise;
+		};
+	}( utils_Promise, Ractive_initialise_initialiseRegistries, Ractive_initialise_renderInstance );
 
 	var Ractive_prototype_set = function( runloop, isObject, normaliseKeypath, Promise, set ) {
 
@@ -11142,7 +10863,7 @@
 		}
 	}( shared_getValueFromCheckboxes, utils_arrayContentsMatch, utils_isEqual );
 
-	var Ractive_prototype__prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, renderHTML, reset, set, subtract, teardown, toHTML, toggle, update, updateModel ) {
+	var Ractive_prototype__prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, renderHTML, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, update, updateModel ) {
 
 		return {
 			add: add,
@@ -11162,6 +10883,7 @@
 			render: render,
 			renderHTML: renderHTML,
 			reset: reset,
+			resetTemplate: resetTemplate,
 			set: set,
 			subtract: subtract,
 			teardown: teardown,
@@ -11170,7 +10892,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive_prototype_add, Ractive_prototype_animate__animate, Ractive_prototype_detach, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_findAllComponents, Ractive_prototype_findComponent, Ractive_prototype_fire, Ractive_prototype_get, Ractive_prototype_insert, Ractive_prototype_merge__merge, Ractive_prototype_observe__observe, Ractive_prototype_off, Ractive_prototype_on, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_reset, Ractive_prototype_set, Ractive_prototype_subtract, Ractive_prototype_teardown, Ractive_prototype_toHTML, Ractive_prototype_toggle, Ractive_prototype_update, Ractive_prototype_updateModel );
+	}( Ractive_prototype_add, Ractive_prototype_animate__animate, Ractive_prototype_detach, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_findAllComponents, Ractive_prototype_findComponent, Ractive_prototype_fire, Ractive_prototype_get, Ractive_prototype_insert, Ractive_prototype_merge__merge, Ractive_prototype_observe__observe, Ractive_prototype_off, Ractive_prototype_on, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_reset, Ractive_prototype_resetTemplate, Ractive_prototype_set, Ractive_prototype_subtract, Ractive_prototype_teardown, Ractive_prototype_toHTML, Ractive_prototype_toggle, Ractive_prototype_update, Ractive_prototype_updateModel );
 
 	var registries_components = {};
 
@@ -11220,30 +10942,6 @@
 			return v.toString( 16 );
 		} );
 	};
-
-	var utils_extend = function( target ) {
-		var prop, source, sources = Array.prototype.slice.call( arguments, 1 );
-		while ( source = sources.shift() ) {
-			for ( prop in source ) {
-				if ( source.hasOwnProperty( prop ) ) {
-					target[ prop ] = source[ prop ];
-				}
-			}
-		}
-		return target;
-	};
-
-	var config_registries = [
-		'adaptors',
-		'components',
-		'decorators',
-		'easing',
-		'events',
-		'interpolators',
-		'partials',
-		'transitions',
-		'data'
-	];
 
 	var extend_utils_transformCss = function() {
 
@@ -11458,155 +11156,7 @@
 		};
 	}( config_errors, parse__parse );
 
-	var Ractive_initialise_computations_getComputationSignature = function() {
-
-		var pattern = /\$\{([^\}]+)\}/g;
-		return function( signature ) {
-			if ( typeof signature === 'function' ) {
-				return {
-					get: signature
-				};
-			}
-			if ( typeof signature === 'string' ) {
-				return {
-					get: createFunctionFromString( signature )
-				};
-			}
-			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
-				signature = {
-					get: createFunctionFromString( signature.get ),
-					set: signature.set
-				};
-			}
-			return signature;
-		};
-
-		function createFunctionFromString( signature ) {
-			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
-				return '__ractive.get("' + keypath + '")';
-			} ) + ')';
-			return new Function( functionBody );
-		}
-	}();
-
-	var Ractive_initialise_computations_Watcher = function( isEqual, registerDependant, unregisterDependant ) {
-
-		var Watcher = function( computation, keypath ) {
-			this.root = computation.ractive;
-			this.keypath = keypath;
-			this.priority = 0;
-			this.computation = computation;
-			registerDependant( this );
-		};
-		Watcher.prototype = {
-			update: function() {
-				var value;
-				value = this.root.get( this.keypath );
-				if ( !isEqual( value, this.value ) ) {
-					this.computation.bubble();
-				}
-			},
-			teardown: function() {
-				unregisterDependant( this );
-			}
-		};
-		return Watcher;
-	}( utils_isEqual, shared_registerDependant, shared_unregisterDependant );
-
-	var Ractive_initialise_computations_Computation = function( warn, runloop, set, Watcher ) {
-
-		var Computation = function( ractive, key, signature ) {
-			this.ractive = ractive;
-			this.key = key;
-			this.getter = signature.get;
-			this.setter = signature.set;
-			this.watchers = [];
-			this.update();
-		};
-		Computation.prototype = {
-			set: function( value ) {
-				if ( this.setting ) {
-					this.value = value;
-					return;
-				}
-				if ( !this.setter ) {
-					throw new Error( 'Computed properties without setters are read-only in the current version' );
-				}
-				this.setter.call( this.ractive, value );
-			},
-			update: function() {
-				var ractive, originalCaptured, result, errored;
-				ractive = this.ractive;
-				originalCaptured = ractive._captured;
-				if ( !originalCaptured ) {
-					ractive._captured = [];
-				}
-				try {
-					result = this.getter.call( ractive );
-				} catch ( err ) {
-					if ( ractive.debug ) {
-						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
-					}
-					errored = true;
-				}
-				diff( this, this.watchers, ractive._captured );
-				// reset
-				ractive._captured = originalCaptured;
-				if ( !errored ) {
-					this.setting = true;
-					this.value = result;
-					set( ractive, this.key, result );
-					this.setting = false;
-				}
-				this.deferred = false;
-			},
-			bubble: function() {
-				if ( this.watchers.length <= 1 ) {
-					this.update();
-				} else if ( !this.deferred ) {
-					runloop.addComputation( this );
-					this.deferred = true;
-				}
-			}
-		};
-
-		function diff( computation, watchers, newDependencies ) {
-			var i, watcher, keypath;
-			// remove dependencies that are no longer used
-			i = watchers.length;
-			while ( i-- ) {
-				watcher = watchers[ i ];
-				if ( !newDependencies[ watcher.keypath ] ) {
-					watchers.splice( i, 1 );
-					watchers[ watcher.keypath ] = null;
-					watcher.teardown();
-				}
-			}
-			// create references for any new dependencies
-			i = newDependencies.length;
-			while ( i-- ) {
-				keypath = newDependencies[ i ];
-				if ( !watchers[ keypath ] ) {
-					watcher = new Watcher( computation, keypath );
-					watchers.push( watchers[ keypath ] = watcher );
-				}
-			}
-		}
-		return Computation;
-	}( utils_warn, global_runloop, shared_set, Ractive_initialise_computations_Watcher );
-
-	var Ractive_initialise_computations_createComputations = function( getComputationSignature, Computation ) {
-
-		return function createComputations( ractive, computed ) {
-			var key, signature;
-			for ( key in computed ) {
-				signature = getComputationSignature( computed[ key ] );
-				ractive._computations[ key ] = new Computation( ractive, key, signature );
-			}
-		};
-	}( Ractive_initialise_computations_getComputationSignature, Ractive_initialise_computations_Computation );
-
-	var Ractive_initialise = function( isClient, errors, initOptions, registries, warn, create, extend, fillGaps, defineProperties, getElement, isObject, isArray, getGuid, Promise, magicAdaptor, parse, createComputations ) {
+	var Ractive_initialise = function( initOptions, warn, create, extend, defineProperties, getElement, isArray, getGuid, magicAdaptor, initialiseRegistries, renderInstance ) {
 
 		var flags = [
 			'adapt',
@@ -11618,21 +11168,27 @@
 			'isolated'
 		];
 		return function initialiseRactiveInstance( ractive, options ) {
-			var defaults, template, templateEl, parsedTemplate, promise, fulfilPromise, computed;
-			if ( isArray( options.adaptors ) ) {
-				warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
-				options.adapt = options.adaptors;
-				delete options.adaptors;
-			}
-			// Options
-			// -------
-			defaults = ractive.constructor.defaults;
+			var defaults = ractive.constructor.defaults;
+			//allow empty constructor options and save for reset
+			ractive.initOptions = options = options || {};
+			setOptionsAndFlags( ractive, defaults, options );
+			//sets ._initing = true
+			initialiseProperties( ractive, options );
+			initialiseRegistries( ractive, defaults, options );
+			renderInstance( ractive, options );
+			// end init sequence
+			ractive._initing = false;
+		};
+
+		function setOptionsAndFlags( ractive, defaults, options ) {
+			deprecate( defaults );
+			deprecate( options );
 			initOptions.keys.forEach( function( key ) {
 				if ( options[ key ] === undefined ) {
 					options[ key ] = defaults[ key ];
 				}
 			} );
-			// options
+			// flag options
 			flags.forEach( function( flag ) {
 				ractive[ flag ] = options[ flag ];
 			} );
@@ -11640,11 +11196,39 @@
 			if ( typeof ractive.adapt === 'string' ) {
 				ractive.adapt = [ ractive.adapt ];
 			}
+			validate( ractive, options );
+		}
+
+		function deprecate( options ) {
+			if ( isArray( options.adaptors ) ) {
+				warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
+				options.adapt = options.adaptors;
+				delete options.adaptors;
+			}
+			if ( options.eventDefinitions ) {
+				// TODO remove support
+				warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
+				options.events = options.eventDefinitions;
+			}
+		}
+
+		function validate( ractive, options ) {
+			var anchor;
 			if ( ractive.magic && !magicAdaptor ) {
 				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 			}
-			// Initialisation
-			// --------------
+			if ( options.el ) {
+				ractive.el = getElement( options.el );
+				if ( !ractive.el && ractive.debug ) {
+					throw new Error( 'Could not find container element' );
+				}
+				if ( anchor = getElement( options.el.anchor ) ) {
+					ractive.anchor = anchor;
+				}
+			}
+		}
+
+		function initialiseProperties( ractive, options ) {
 			// We use Object.defineProperties (where possible) as these should be read-only
 			defineProperties( ractive, {
 				_initing: {
@@ -11723,6 +11307,14 @@
 					value: []
 				}
 			} );
+			//Save parse specific options
+			ractive.parseOptions = {
+				preserveWhitespace: options.preserveWhitespace,
+				sanitize: options.sanitize,
+				stripComments: options.stripComments,
+				delimiters: options.delimiters,
+				tripleDelimiters: options.tripleDelimiters
+			};
 			// If this is a component, store a reference to the parent
 			if ( options._parent && options._component ) {
 				defineProperties( ractive, {
@@ -11736,96 +11328,8 @@
 				// And store a reference to the instance on the component
 				options._component.instance = ractive;
 			}
-			if ( options.el ) {
-				ractive.el = getElement( options.el );
-				if ( !ractive.el && ractive.debug ) {
-					throw new Error( 'Could not find container element' );
-				}
-			}
-			// Create local registry objects, with the global registries as prototypes
-			if ( options.eventDefinitions ) {
-				// TODO remove support
-				warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
-				options.events = options.eventDefinitions;
-			}
-			registries.forEach( function( registry ) {
-				if ( ractive.constructor[ registry ] ) {
-					ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
-				} else if ( options[ registry ] ) {
-					ractive[ registry ] = options[ registry ];
-				}
-			} );
-			// Special case
-			if ( !ractive.data ) {
-				ractive.data = {};
-			}
-			// Set up any computed values
-			computed = defaults.computed ? extend( create( defaults.computed ), options.computed ) : options.computed;
-			if ( computed ) {
-				createComputations( ractive, computed );
-			}
-			// Parse template, if necessary
-			template = options.template;
-			if ( typeof template === 'string' ) {
-				if ( !parse ) {
-					throw new Error( errors.missingParser );
-				}
-				if ( template.charAt( 0 ) === '#' && isClient ) {
-					// assume this is an ID of a <script type='text/ractive'> tag
-					templateEl = document.getElementById( template.substring( 1 ) );
-					if ( templateEl ) {
-						parsedTemplate = parse( templateEl.innerHTML, options );
-					} else {
-						throw new Error( 'Could not find template element (' + template + ')' );
-					}
-				} else {
-					parsedTemplate = parse( template, options );
-				}
-			} else {
-				parsedTemplate = template;
-			}
-			// deal with compound template
-			if ( isObject( parsedTemplate ) ) {
-				fillGaps( ractive.partials, parsedTemplate.partials );
-				parsedTemplate = parsedTemplate.main;
-			}
-			// If the template was an array with a single string member, that means
-			// we can use innerHTML - we just need to unpack it
-			if ( parsedTemplate && parsedTemplate.length === 1 && typeof parsedTemplate[ 0 ] === 'string' ) {
-				parsedTemplate = parsedTemplate[ 0 ];
-			}
-			ractive.template = parsedTemplate;
-			// Add partials to our registry
-			extend( ractive.partials, options.partials );
-			ractive.parseOptions = {
-				preserveWhitespace: options.preserveWhitespace,
-				sanitize: options.sanitize,
-				stripComments: options.stripComments
-			};
-			// Temporarily disable transitions, if noIntro flag is set
-			ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
-			// If we're in a browser, and no element has been specified, create
-			// a document fragment to use instead
-			if ( isClient && !ractive.el ) {
-				ractive.el = document.createDocumentFragment();
-			}
-			// If the target contains content, and `append` is falsy, clear it
-			if ( ractive.el && !options.append ) {
-				ractive.el.innerHTML = '';
-			}
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
-			ractive.render( ractive.el, fulfilPromise );
-			if ( options.complete ) {
-				promise.then( options.complete.bind( ractive ) );
-			}
-			// reset transitionsEnabled
-			ractive.transitionsEnabled = options.transitionsEnabled;
-			// end init sequence
-			ractive._initing = false;
-		};
-	}( config_isClient, config_errors, config_initOptions, config_registries, utils_warn, utils_create, utils_extend, utils_fillGaps, utils_defineProperties, utils_getElement, utils_isObject, utils_isArray, utils_getGuid, utils_Promise, shared_get_magicAdaptor, parse__parse, Ractive_initialise_computations_createComputations );
+		}
+	}( config_initOptions, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isArray, utils_getGuid, shared_get_magicAdaptor, Ractive_initialise_initialiseRegistries, Ractive_initialise_renderInstance );
 
 	var extend_initChildInstance = function( initOptions, wrapMethod, initialise ) {
 
@@ -11858,7 +11362,7 @@
 		};
 	}( config_initOptions, extend_wrapMethod, Ractive_initialise );
 
-	var extend__extend = function( create, defineProperties, getGuid, extendObject, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular ) {
+	var extend__extend = function( create, defineProperty, getGuid, extendObject, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular ) {
 
 		var Ractive;
 		circular.push( function() {
@@ -11878,14 +11382,10 @@
 			};
 			Child.prototype = create( Parent.prototype );
 			Child.prototype.constructor = Child;
-			defineProperties( Child, {
-				extend: {
-					value: Parent.extend
-				},
-				// each component needs a guid, for managing CSS etc
-				_guid: {
-					value: getGuid()
-				}
+			Child.extend = extend;
+			// each component needs a guid, for managing CSS etc
+			defineProperty( Child, '_guid', {
+				value: getGuid()
 			} );
 			// Inherit options from parent
 			inheritFromParent( Child, Parent );
@@ -11909,10 +11409,11 @@
 			}
 			return Child;
 		};
-	}( utils_create, utils_defineProperties, utils_getGuid, utils_extend, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular );
+	}( utils_create, utils_defineProperty, utils_getGuid, utils_extend, extend_inheritFromParent, extend_inheritFromChildProps, extend_extractInlinePartials, extend_conditionallyParseTemplate, extend_conditionallyParsePartials, extend_initChildInstance, circular );
 
 	var Ractive__Ractive = function( initOptions, svg, defineProperties, proto, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, initialise, circular ) {
 
+		// Main Ractive required object
 		var Ractive = function( options ) {
 			initialise( this, options );
 		};
