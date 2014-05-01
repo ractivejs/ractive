@@ -1,0 +1,35 @@
+{
+  "name": "ractive",
+  "description": "The diamond age of web development",
+  "version": "0.4.0",
+  "homepage": "http://ractivejs.org",
+  "main": "ractive.js",
+  "keywords": [
+    "template",
+    "templating",
+    "data binding",
+    "binding",
+    "declarative",
+    "view model"
+  ],
+  "author": {
+    "name": "Rich Harris"
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "categories": [
+    "DOM",
+    "Templating"
+  ],
+  "bugs": {
+    "url": "https://github.com/ractivejs/ractive/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ractivejs/ractive.git"
+  },
+  "github": "https://github.com/ractivejs/ractive"
+}
