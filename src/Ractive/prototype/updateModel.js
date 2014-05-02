@@ -27,7 +27,7 @@ define([
 			}
 		}
 
-		this.set( values );
+		return this.set( values );
 	};
 
 	function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes, cascade ) {
