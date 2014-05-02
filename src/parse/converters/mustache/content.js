@@ -9,10 +9,19 @@ define([
 	'use strict';
 
 	var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-		arrayMemberPattern = /^[0-9][1-9]*$/;
+		arrayMemberPattern = /^[0-9][1-9]*$/,
+		handlebarsTypePattern = /(if|unless|with|each|try)\b/,
+		handlebarsTypes;
+
+	handlebarsTypes = {
+		'if': types.SECTION_IF,
+		'unless': types.SECTION_UNLESS,
+		'with': types.SECTION_WITH,
+		'each': types.SECTION_EACH
+	};
 
 	return function ( parser, isTriple ) {
-		var start, pos, mustache, type, expression, i, remaining, index, delimiter, keypathExpression;
+		var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, keypathExpression;
 
 		start = parser.pos;
 
@@ -45,14 +54,21 @@ define([
 
 				mustache.t = type || types.INTERPOLATOR; // default
 
-				// TODO handle this more logically
-				if ( mustache.t === types.INVERTED ) {
+				// In Handlebars mode, see if there's a section type e.g. {{#with}}...{{/with}}
+				if ( type === types.SECTION && parser.handlebars ) {
+					handlebarsType = parser.matchPattern( handlebarsTypePattern );
+
+					if ( handlebarsType && handlebarsTypes[handlebarsType] ) {
+						mustache.n = handlebarsTypes[handlebarsType];
+						parser.allowWhitespace();
+					}
+				} else if ( type === types.INVERTED ) { // {{^foo}}...{{/foo}}
 					mustache.t = types.SECTION;
-					mustache.n = 1;
+					mustache.n = types.SECTION_UNLESS;
 				}
 
 				// if it's a comment or a section closer, allow any contents except '}}'
-				if ( type === types.COMMENT || type === types.CLOSING ) {
+				else if ( type === types.COMMENT || type === types.CLOSING ) {
 					remaining = parser.remaining();
 					index = remaining.indexOf( parser.delimiters[1] );
 
@@ -97,21 +113,23 @@ define([
 			}
 		}
 
-		while ( expression.t === types.BRACKETED && expression.x ) {
-			expression = expression.x;
-		}
+		if (expression) {
+			while ( expression.t === types.BRACKETED && expression.x ) {
+				expression = expression.x;
+			}
 
-		// special case - integers should be treated as array members references,
-		// rather than as expressions in their own right
-		if ( expression.t === types.REFERENCE ) {
-			mustache.r = expression.n;
-		} else {
-			if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
-				mustache.r = expression.v;
-			} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
-				mustache.kx = keypathExpression;
+			// special case - integers should be treated as array members references,
+			// rather than as expressions in their own right
+			if ( expression.t === types.REFERENCE ) {
+				mustache.r = expression.n;
 			} else {
-				mustache.x = parser.flattenExpression( expression );
+				if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
+					mustache.r = expression.v;
+				} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
+					mustache.kx = keypathExpression;
+				} else {
+					mustache.x = parser.flattenExpression( expression );
+				}
 			}
 		}
 

@@ -28,7 +28,7 @@ define([
 	'use strict';
 
 	var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
-	
+
 	return function initialiseRactiveInstance ( ractive, options ) {
 
 		var defaults = ractive.constructor.defaults;
@@ -39,10 +39,10 @@ define([
 		setOptionsAndFlags( ractive, defaults, options );
 
 		//sets ._initing = true
-		initialiseProperties( ractive, options ); 
-		
+		initialiseProperties( ractive, options );
+
 		initialiseRegistries( ractive, defaults, options );
-		
+
 		renderInstance( ractive, options );
 
 		// end init sequence
@@ -168,7 +168,8 @@ define([
 			sanitize: options.sanitize,
 			stripComments: options.stripComments,
 			delimiters: options.delimiters,
-			tripleDelimiters: options.tripleDelimiters
+			tripleDelimiters: options.tripleDelimiters,
+			handlebars: options.handlebars
 		};
 
 		// If this is a component, store a reference to the parent

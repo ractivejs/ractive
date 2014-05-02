@@ -11,6 +11,7 @@
 // * r - Reference, e.g. 'mustache' in {{mustache}}
 // * t - Type code (e.g. 1 is text, 2 is interpolator...)
 // * f - Fragment. Contains a descriptor's children
+// * l - eLse fragment. Contains a descriptor's children in the else case
 // * e - Element name
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * d - Dynamic proxy event/transition arguments
@@ -25,6 +26,7 @@
 // * o - decOrator
 // * y - is doctYpe
 // * c - is Content (e.g. of a comment node)
+// * p - line Position information - array with line number and character position of each node
 
 define([
 	'config/types',
@@ -48,12 +50,13 @@ define([
 
 	'use strict';
 
-	var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
-
-	onlyWhitespace = /^\s*$/;
-
-	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
-	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
+	var StandardParser,
+		parse,
+		contiguousWhitespace = /[ \t\f\r\n]+/g,
+		inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+		inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+		preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
+		parseCompoundTemplate;
 
 	StandardParser = Parser.extend({
 		init: function ( str, options ) {
@@ -76,11 +79,13 @@ define([
 
 			this.sanitizeElements = options.sanitize && options.sanitize.elements;
 			this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+			this.includeLinePositions = options.includeLinePositions;
+			this.handlebars = options.handlebars;
 		},
 
 		postProcess: function ( items, options ) {
 
-			cleanup( items, options.stripComments !== false, options.preserveWhitespace );
+			cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse !== false );
 
 			if ( !options.preserveWhitespace ) {
 				trimWhitespace( items );
@@ -105,15 +110,6 @@ define([
 		// does this template include inline partials?
 		if ( inlinePartialStart.test( template ) ) {
 			return parseCompoundTemplate( template, options );
-		}
-
-
-		if ( options.sanitize === true ) {
-			options.sanitize = {
-				// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-				elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
-				eventAttributes: true
-			};
 		}
 
 		parser = new StandardParser( template, options );
@@ -158,8 +154,8 @@ define([
 
 	return parse;
 
-	function cleanup ( items, stripComments, preserveWhitespace ) {
-		var i, item;
+	function cleanup ( items, stripComments, preserveWhitespace, rewriteElse ) {
+		var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
 
 		// first pass - remove standalones
 		stripStandalones( items );
@@ -179,10 +175,39 @@ define([
 
 			// Recurse
 			if ( item.f ) {
-				cleanup( item.f, stripComments, preserveWhitespace );
+				preserveWhitespaceInsideElement = ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
+
+				cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement, rewriteElse );
 
 				if ( !preserveWhitespace && item.t === types.ELEMENT ) {
 					trimWhitespace( item.f );
+				}
+			}
+
+			// Split if-else blocks into two (an if, and an unless)
+			if ( item.l ) {
+				cleanup( item.l, stripComments, preserveWhitespace, rewriteElse );
+
+				if ( rewriteElse ) {
+
+					unlessBlock = {
+						t: 4,
+						r: item.r,
+						n: types.SECTION_UNLESS,
+						f: item.l
+					};
+
+					items.splice( i + 1, 0, unlessBlock );
+					delete item.l;
+				}
+			}
+
+			// Clean up element attributes
+			if ( item.a ) {
+				for ( key in item.a ) {
+					if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
+						cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
+					}
 				}
 			}
 		}
@@ -190,9 +215,15 @@ define([
 		// final pass - fuse text nodes together
 		i = items.length;
 		while ( i-- ) {
-			if ( typeof items[i] === 'string' && typeof items[i+1] === 'string' ) {
-				items[i] = items[i] + items[i+1];
-				items.splice( i + 1, 1 );
+			if ( typeof items[i] === 'string' ) {
+				if ( typeof items[i+1] === 'string' ) {
+					items[i] = items[i] + items[i+1];
+					items.splice( i + 1, 1 );
+				}
+
+				if ( !preserveWhitespace ) {
+					items[i] = items[i].replace( contiguousWhitespace, ' ' );
+				}
 			}
 		}
 	}

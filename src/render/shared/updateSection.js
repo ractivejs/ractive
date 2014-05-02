@@ -1,7 +1,9 @@
 define([
+	'config/types',
 	'utils/isArray',
 	'utils/isObject'
 ], function (
+	types,
 	isArray,
 	isObject
 ) {
@@ -17,10 +19,33 @@ define([
 			owner:      section
 		};
 
-		// if section is inverted, only check for truthiness/falsiness
+		// If we already know the section type, great
+		// TODO can this be optimised? i.e. pick an updateSection function during init
+		// and avoid doing this each time?
 		if ( section.descriptor.n ) {
-			updateConditionalSection( section, value, true, fragmentOptions );
-			return;
+			switch ( section.descriptor.n ) {
+				case types.SECTION_IF:
+				updateConditionalSection( section, value, false, fragmentOptions );
+				return;
+
+				case types.SECTION_UNLESS:
+				updateConditionalSection( section, value, true, fragmentOptions );
+				return;
+
+				case types.SECTION_WITH:
+				updateContextSection( section, fragmentOptions );
+				return;
+
+				case types.SECTION_EACH:
+				if ( isArray( value ) ) {
+					updateListSection( section, value, fragmentOptions );
+				} else if ( isObject( value ) ) {
+					updateContextSection( section, fragmentOptions );
+				}
+				return;
+			}
+
+			throw new Error( 'Section type ' + section.descriptor.n + ' not supported' );
 		}
 
 		// otherwise we need to work out what sort of section we're dealing with
