@@ -85,7 +85,7 @@ define([
 
 		postProcess: function ( items, options ) {
 
-			cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse );
+			cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse !== false );
 
 			if ( !options.preserveWhitespace ) {
 				trimWhitespace( items );
@@ -193,7 +193,7 @@ define([
 					unlessBlock = {
 						t: 4,
 						r: item.r,
-						n: 1,
+						n: types.SECTION_UNLESS,
 						f: item.l
 					};
 
