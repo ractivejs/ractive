@@ -68,21 +68,14 @@ define([
 		}
 
 		// section children
-		if ( mustache.t === types.SECTION ||
-			 mustache.t === types.SECTION_IF ||
-			 mustache.t === types.SECTION_UNLESS ||
-			 mustache.t === types.SECTION_EACH ||
-			 mustache.t === types.SECTION_WITH ||
-			 mustache.t === types.SECTION_TRY ||
-			 mustache.t === types.INVERTED ) {
-
+		if ( mustache.t === types.SECTION ) {
 			children = [];
 			currentChildren = children;
 
 			var expectedClose;
 
 			if (parser.options.strict || parser.handlebars) {
-				switch ( mustache.t ) {
+				switch ( mustache.n ) {
 					case types.SECTION_IF:
 						expectedClose = 'if';
 						break;
@@ -101,7 +94,6 @@ define([
 				}
 			}
 
-
 			while ( child = parser.read() ) {
 				if ( child.t === types.CLOSING ) {
 					if (expectedClose && child.r !== expectedClose) {
@@ -111,7 +103,7 @@ define([
 				}
 
 				if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else') {
-					switch ( mustache.t ) {
+					switch ( mustache.n ) {
 						case types.SECTION_IF:
 						case types.SECTION_EACH:
 						case types.SECTION_TRY:
@@ -138,11 +130,6 @@ define([
 			if ( elseChildren && elseChildren.length ) {
 				mustache.l = elseChildren;
 			}
-
-			// there should be a section close now
-			// if ( !parser.matchString( parser.delimiters[0] ) || !parser.matchPattern( sectionClosePattern ) || !parser.matchString( parser.delimiters[1] ) ) {
-			// 	parser.error( 'Expected section closing tag' );
-			// }
 		}
 
 		if ( parser.includeLinePositions ) {
