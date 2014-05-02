@@ -378,7 +378,7 @@ var parseTests = [
 	{
 		name: 'Inverted list section closing',
 		template: '{{#steps:stepIndex}}{{^ hiddenSteps[stepIndex]}}<p>{{hiddenSteps[stepIndex]}}</p>{{/ hiddenSteps[stepIndex]}}{{/steps}}',
-		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":1,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}]
+		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":51,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}]
 	},
 	{
 		name: 'Illegal closing tag 1',
@@ -490,7 +490,7 @@ var parseTests = [
 		template: '{{#if foo}}foo{{/if}}',
 		options: {handlebars:true},
 		parsed: [
-			{ t: 50, r: 'foo', f: ['foo'] }
+			{ t: 4, n: 50, r: 'foo', f: ['foo'] }
 		]
 	},
 	{
@@ -498,7 +498,7 @@ var parseTests = [
 		template: '{{#if (foo*5 < 20)}}foo{{/if}}',
 		options: {handlebars:true},
 		parsed: [
-			{ t: 50,
+			{ t: 4, n: 50,
 				x: { r: [ 'foo' ], s: '${0}*5<20' },
 				f: ['foo'] }
 		]
@@ -515,7 +515,7 @@ var parseTests = [
 		template: '{{#unless foo}}foo{{/unless}}',
 		options: {handlebars:true},
 		parsed: [
-			{ t: 51,
+			{ t: 4, n: 51,
 				r: 'foo',
 				f: ['foo'] }
 		]
@@ -525,7 +525,7 @@ var parseTests = [
 		template: '{{#unless (foo*5 < 20)}}foo{{/unless}}',
 		options: {handlebars:true},
 		parsed: [
-			{ t: 51,
+			{ t: 4, n: 51,
 				x: { r: [ 'foo' ], s: '${0}*5<20' },
 				f: ['foo'] }
 		]
@@ -536,10 +536,13 @@ var parseTests = [
 		template: '{{#if foo}}foo{{else}}not foo{{/if}}',
 		options: {handlebars:true},
 		parsed:
-			[ { t: 50,
+			[ { t: 4, n: 50,
 			    r: 'foo',
-			    f: ['foo'],
-			    l: ['not foo'] } ]
+			    f: ['foo']
+			}, { t: 4, n: 51,
+			    r: 'foo',
+			    f: ['not foo']
+			} ]
 	},
 	{
 		name: 'Nested If else syntax',
@@ -555,30 +558,46 @@ var parseTests = [
 			'	bar' +
 			'{{/if}}',
 		options: {handlebars:true},
-		parsed:
-			[ { t: 50,
-			    r: 'foo',
-			    f:
-			     [ ' foo ',
-			       { t: 50,
-			         r: 'foo2',
-			         f: [' foo2 '],
-			         l: [' not foo2 '] } ],
-			    l: [' bar'] } ]
+		parsed: [
+			{
+				t: 4,
+				n: 50,
+				r: 'foo',
+				f: [ ' foo ',
+					{ t: 4, n: 50, r: 'foo2', f: [' foo2 '] },
+					{ t: 4, n: 51, r: 'foo2', f: [' not foo2 '] }
+				],
+			},
+			{
+				t: 4,
+				n: 51,
+				r: 'foo',
+				f: [' bar']
+			}
+		]
 	},
 	{
 		name: 'Each else syntax',
 		template: '{{#each foo:i}}foo #{{i+1}}{{else}}no foos{{/each}}',
 		options: {handlebars:true},
-		parsed:
-			[ { t: 52,
+		parsed: [
+			{
+				t: 4,
+				n: 52,
 				r: 'foo',
 				i: 'i',
-				f:
-					[ 'foo #',
-						{ t: 2,
-							x: { r: [ 'i' ], s: '${0}+1' } } ],
-				l: ['no foos'] } ]
+				f: [
+					'foo #',
+					{ t: 2, x: { r: [ 'i' ], s: '${0}+1' } }
+				]
+			},
+			{
+				t: 4,
+				n: 51,
+				r: 'foo',
+				f: ['no foos']
+			}
+		]
 	},
 	{
 		name: 'Else not allowed in #unless',
@@ -612,7 +631,7 @@ var parseTests = [
 		parsed:
 			[ { t: 4,
 				r: 'foo',
-				n: 1,
+				n: 51,
 				f:
 				 [ 'not foo ',
 				   { t: 2, r: 'else' },
