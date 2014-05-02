@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-05-02 - commit ae3c9713 
+	2014-05-02 - commit 7831d46a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9936,7 +9936,7 @@
 					values[ keypath ] = getValueFromCheckboxes( this, keypath );
 				}
 			}
-			this.set( values );
+			return this.set( values );
 		};
 
 		function consolidateChangedValues( ractive, keypath, values, deferredCheckboxes, cascade ) {
