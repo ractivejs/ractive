@@ -56,7 +56,7 @@ define([
 
 				// In Handlebars mode, see if there's a section type e.g. {{#with}}...{{/with}}
 				if ( type === types.SECTION && parser.handlebars ) {
-					var handlebarsType = parser.matchPattern( handlebarsTypePattern );
+					handlebarsType = parser.matchPattern( handlebarsTypePattern );
 
 					if ( handlebarsType && handlebarsTypes[handlebarsType] ) {
 						mustache.n = handlebarsTypes[handlebarsType];
@@ -64,7 +64,7 @@ define([
 					}
 				} else if ( type === types.INVERTED ) { // {{^foo}}...{{/foo}}
 					mustache.t = types.SECTION;
-					mustache.n = types.SECTION_UNLESS
+					mustache.n = types.SECTION_UNLESS;
 				}
 
 				// if it's a comment or a section closer, allow any contents except '}}'
