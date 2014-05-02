@@ -1,5 +1,5 @@
 define([
-	'./makeQuotedStringMatcher'
+	'parse/Parser/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher'
 ], function (
 	makeQuotedStringMatcher
 ) {

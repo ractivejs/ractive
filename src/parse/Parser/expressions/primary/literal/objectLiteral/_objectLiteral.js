@@ -1,6 +1,6 @@
 define([
 	'config/types',
-	'./keyValuePairs'
+	'parse/Parser/expressions/primary/literal/objectLiteral/keyValuePairs'
 ], function (
 	types,
 	getKeyValuePairs

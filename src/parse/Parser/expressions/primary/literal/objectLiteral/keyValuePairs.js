@@ -1,5 +1,5 @@
 define([
-	'./keyValuePair'
+	'parse/Parser/expressions/primary/literal/objectLiteral/keyValuePair'
 ], function (
 	getKeyValuePair
 ) {
