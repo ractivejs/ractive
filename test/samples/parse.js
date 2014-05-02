@@ -733,31 +733,6 @@ var parseTests = [
 			          [ { t: 2,
 			              p: [ 1, 20 ],
 			              r: 'mustache' } ] } ] } ]
-	},
-	{
-		name: "Try block",
-		template: "{{#try}} blah {{/try}}",
-		options: {includeLinePositions:true, handlebars:true},
-		parsed:
-			[ { t: 54,
-			    p: [ 1, 1 ],
-			    f: [ ' blah '] } ]
-	},
-	{
-		name: "Bad try block",
-		template: "{{#try haha}} blah {{/try}}",
-		options: {includeLinePositions:true, handlebars:true},
-		error: "Unexpected expression in #try at line 1 character 12:\n{{#try haha}} blah {{/try}}\n           ^----"
-	},
-	{
-		name: "Try else block",
-		template: "{{#try}} blah {{else}} blah2 {{/try}}",
-		options: {includeLinePositions:true, handlebars:true},
-		parsed:
-			[ { t: 54,
-			    p: [ 1, 1 ],
-			    f: [' blah '],
-			    l: [' blah2 ' ]} ]
 	}
 ];
 

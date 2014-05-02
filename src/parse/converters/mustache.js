@@ -82,9 +82,6 @@ define([
 					case types.SECTION_EACH:
 						expectedClose = 'each';
 						break;
-					case types.SECTION_TRY:
-						expectedClose = 'try';
-						break;
 					case types.SECTION_UNLESS:
 						expectedClose = 'unless';
 						break;
@@ -106,7 +103,6 @@ define([
 					switch ( mustache.n ) {
 						case types.SECTION_IF:
 						case types.SECTION_EACH:
-						case types.SECTION_TRY:
 							currentChildren = elseChildren = [];
 							continue; // don't add this item to children
 

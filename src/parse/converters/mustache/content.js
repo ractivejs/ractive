@@ -17,8 +17,7 @@ define([
 		'if': types.SECTION_IF,
 		'unless': types.SECTION_UNLESS,
 		'with': types.SECTION_WITH,
-		'each': types.SECTION_EACH,
-		'try': types.SECTION_TRY
+		'each': types.SECTION_EACH
 	};
 
 	return function ( parser, isTriple ) {
@@ -115,10 +114,6 @@ define([
 		}
 
 		if (expression) {
-			if (type === types.SECTION_TRY) {
-				parser.error( "Unexpected expression in #try" );
-			}
-
 			while ( expression.t === types.BRACKETED && expression.x ) {
 				expression = expression.x;
 			}
@@ -136,11 +131,6 @@ define([
 					mustache.x = parser.flattenExpression( expression );
 				}
 			}
-		} else if (type !== types.SECTION_TRY) {
-			if (start === parser.pos) {
-				parser.error( "Invalid empty expression" );
-			}
-			parser.error( "Invalid expression" );
 		}
 
 		// optional index reference
