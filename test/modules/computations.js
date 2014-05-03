@@ -173,7 +173,25 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set( 'foo.bar', 'works' );
 			t.htmlEqual( fixture.innerHTML, 'WORKS' );
-		})
+		});
+
+		test( 'Computations can be updated with ractive.update() (#651)', function ( t ) {
+			var ractive, bar;
+
+			ractive = new Ractive({
+				computed: {
+					foo: function () {
+						return bar;
+					}
+				}
+			});
+
+			t.equal( ractive.get( 'foo' ), undefined );
+
+			bar = 1;
+			ractive.update( 'foo' );
+			t.equal( ractive.get( 'foo' ), 1 );
+		});
 
 	};
 
