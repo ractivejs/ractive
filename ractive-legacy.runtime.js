@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-05-03 - commit b5a76726 
+	2014-05-03 - commit 959efbac 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1511,15 +1511,18 @@
 	};
 
 	var shared_clearCache = function clearCache( ractive, keypath, dontTeardownWrapper ) {
-		var cacheMap, wrappedProperty;
+		var cacheMap, wrapper, computation;
 		if ( !dontTeardownWrapper ) {
 			// Is there a wrapped property at this keypath?
-			if ( wrappedProperty = ractive._wrapped[ keypath ] ) {
+			if ( wrapper = ractive._wrapped[ keypath ] ) {
 				// Did we unwrap it?
-				if ( wrappedProperty.teardown() !== false ) {
+				if ( wrapper.teardown() !== false ) {
 					ractive._wrapped[ keypath ] = null;
 				}
 			}
+		}
+		if ( computation = ractive._computations[ keypath ] ) {
+			computation.compute();
 		}
 		ractive._cache[ keypath ] = undefined;
 		if ( cacheMap = ractive._cacheMap[ keypath ] ) {
@@ -9408,15 +9411,16 @@
 				}
 				this.setter.call( this.ractive, value );
 			},
-			update: function() {
-				var ractive, originalCaptured, result, errored;
+			// returns `false` if the computation errors
+			compute: function() {
+				var ractive, originalCaptured, errored;
 				ractive = this.ractive;
 				originalCaptured = ractive._captured;
 				if ( !originalCaptured ) {
 					ractive._captured = [];
 				}
 				try {
-					result = this.getter.call( ractive );
+					this.value = this.getter.call( ractive );
 				} catch ( err ) {
 					if ( ractive.debug ) {
 						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
@@ -9426,10 +9430,12 @@
 				diff( this, this.watchers, ractive._captured );
 				// reset
 				ractive._captured = originalCaptured;
-				if ( !errored ) {
+				return errored ? false : true;
+			},
+			update: function() {
+				if ( this.compute() ) {
 					this.setting = true;
-					this.value = result;
-					set( ractive, this.key, result );
+					set( this.ractive, this.key, this.value );
 					this.setting = false;
 				}
 				this.deferred = false;
