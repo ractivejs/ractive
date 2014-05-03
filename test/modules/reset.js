@@ -35,7 +35,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			throws(function(){
 				ractive.reset(function(){}, function(){});
 			})
-			
+
 		});
 
 		asyncTest( 'Callback and promise with reset', function ( t ) {
@@ -71,8 +71,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set('condition', false)
 			ractive.reset(ractive.data).then(start);
 			t.htmlEqual( fixture.innerHTML, 'bizz' );
-			
-		});	
+
+		});
 
 		asyncTest( 'Callback and promise with dynamic template functions are recalled on reset', function ( t ) {
 			var ractive = new Ractive({
@@ -83,9 +83,12 @@ define([ 'ractive' ], function ( Ractive ) {
 					data: { foo: 'fizz', bar: 'bizz', condition: true }
 				}),
 				callback = function(){
-					ok(true);
-					start();
-				}
+					t.ok(true);
+					if ( !--remaining ) {
+						start();
+					}
+				},
+				remaining = 2;
 
 			expect(5);
 
@@ -96,8 +99,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set('condition', true)
 			ractive.reset(ractive.data, callback);
 			t.htmlEqual( fixture.innerHTML, 'fizz' );
-			
-		});		
+
+		});
 
 		test( 'resetTemplate rerenders with new template', function ( t ) {
 			var ractive = new Ractive({
@@ -109,8 +112,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'fizz' );
 			ractive.resetTemplate('{{bar}}')
 			t.htmlEqual( fixture.innerHTML, 'bizz' );
-			
-		});	
+
+		});
 
 		test( 'resetTemplate with no template change doesnt rerender', function ( t ) {
 			var p, ractive = new Ractive({
@@ -123,11 +126,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>fizz</p>' );
 			ractive.resetTemplate('<p>{{foo}}</p>');
 			t.htmlEqual( fixture.innerHTML, '<p>fizz</p>' );
-			t.equal( ractive.find('p'), p);	
+			t.equal( ractive.find('p'), p);
 			ractive.resetTemplate('<p>bar</p>');
 			t.htmlEqual( fixture.innerHTML, '<p>bar</p>' );
-			t.notEqual( ractive.find('p'), p);	
-		});	
+			t.notEqual( ractive.find('p'), p);
+		});
 
 		test( 'Reset retains parent default data (#572)', function ( t ) {
 			var ractive, Widget;
@@ -152,8 +155,8 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		test( 'Reset inserts { target, anchor } el option correctly', function ( t ) {
-			var ractive, 
-				target = document.createElement('div'), 
+			var ractive,
+				target = document.createElement('div'),
 				anchor = document.createElement('div');
 
 			anchor.innerHTML = 'bar';
@@ -164,7 +167,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
 
 			ractive = new Ractive({
-				el: target, 
+				el: target,
 				append: anchor,
 				template: '<div>{{what}}</div>',
 				data: { what: 'fizz' }
@@ -174,7 +177,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.reset( { what: 'foo' } );
 			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
 
-			
+
 		});
 	};
 
