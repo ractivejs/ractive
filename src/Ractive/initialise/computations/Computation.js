@@ -40,7 +40,7 @@ define([
 
 		// returns `false` if the computation errors
 		compute: function () {
-			var ractive, originalCaptured, result, errored;
+			var ractive, originalCaptured, errored;
 
 			ractive = this.ractive;
 			originalCaptured = ractive._captured;
