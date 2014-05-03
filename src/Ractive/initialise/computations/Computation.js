@@ -38,7 +38,8 @@ define([
 			this.setter.call( this.ractive, value );
 		},
 
-		update: function () {
+		// returns `false` if the computation errors
+		compute: function () {
 			var ractive, originalCaptured, result, errored;
 
 			ractive = this.ractive;
@@ -49,7 +50,7 @@ define([
 			}
 
 			try {
-				result = this.getter.call( ractive );
+				this.value = this.getter.call( ractive );
 			} catch ( err ) {
 				if ( ractive.debug ) {
 					warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
@@ -63,10 +64,13 @@ define([
 			// reset
 			ractive._captured = originalCaptured;
 
-			if ( !errored ) {
+			return errored ? false : true;
+		},
+
+		update: function () {
+			if ( this.compute() ) {
 				this.setting = true;
-				this.value = result;
-				set( ractive, this.key, result );
+				set( this.ractive, this.key, this.value );
 				this.setting = false;
 			}
 
