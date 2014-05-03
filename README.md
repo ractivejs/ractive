@@ -45,5 +45,7 @@ $ npm install ractive
 Starting with 0.4.0, releases live on the [build branch](https://github.com/ractivejs/ractive/tree/build). It's therefore possible to `npm install` the most recent builds straight from GitHub:
 
 ```
-$ npm install git://github.com/ractivejs/ractive.git#edge
+$ npm install git://github.com/ractivejs/ractive.git#v0.4.1-pre
 ```
+
+(The `v0.4.1-pre` tag - which will change after each stable release - is equivalent to the `edge` tag, but npm requires valid semver tags.)
