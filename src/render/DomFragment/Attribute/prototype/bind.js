@@ -22,8 +22,8 @@ define([
 		bindAttribute,
 
 		updateModel,
+		updateModelAndView,
 		getOptions,
-		update,
 		getBinding,
 		inheritProperties,
 		MultipleSelectBinding,
@@ -97,12 +97,18 @@ define([
 		runloop.end();
 	};
 
-	getOptions = { evaluateWrapped: true };
+	// Blurring an input should update the model, but we should also update the
+	// view in case any validation rules were applied (e.g. via an observer)
+	updateModelAndView = function () {
+		var value;
 
-	update = function () {
-		var value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
+		updateModel.call( this );
+
+		value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
 		this.value = value == undefined ? '' : value;
 	};
+
+	getOptions = { evaluateWrapped: true };
 
 	getBinding = function ( attribute ) {
 		var node = attribute.pNode;
@@ -454,7 +460,7 @@ define([
 			}
 		}
 
-		this.node.addEventListener( 'blur', update, false );
+		this.node.addEventListener( 'blur', updateModelAndView, false );
 	};
 
 	GenericBinding.prototype = {
@@ -481,7 +487,7 @@ define([
 			this.node.removeEventListener( 'change', updateModel, false );
 			this.node.removeEventListener( 'input', updateModel, false );
 			this.node.removeEventListener( 'keyup', updateModel, false );
-			this.node.removeEventListener( 'blur', update, false );
+			this.node.removeEventListener( 'blur', updateModelAndView, false );
 		}
 	};
 

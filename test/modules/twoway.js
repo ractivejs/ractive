@@ -110,6 +110,36 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: e</p>' );
 		});
 
+		test( 'An input whose value is updated programmatically will update the model on blur (#644)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}">',
+				data: { foo: 'bar' }
+			});
+
+			ractive.find( 'input' ).value = 'baz';
+			simulant.fire( ractive.find( 'input' ), 'blur' );
+
+			t.equal( ractive.get( 'foo' ), 'baz' );
+		});
+
+		test( 'Model is validated on blur, and the view reflects the validate model (#644)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}">',
+				data: { foo: 'bar' }
+			});
+
+			ractive.observe( 'foo', function ( foo ) {
+				this.set( 'foo', foo.toUpperCase() );
+			});
+
+			ractive.find( 'input' ).value = 'baz';
+			simulant.fire( ractive.find( 'input' ), 'blur' );
+
+			t.equal( ractive.find( 'input' ).value, 'BAZ' );
+		});
+
 	};
 
 });
