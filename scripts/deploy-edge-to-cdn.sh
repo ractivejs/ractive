@@ -14,8 +14,6 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 		git remote rm origin
 		git remote add origin https://Rich-Harris:${GH_TOKEN}@${GH_REF}
 
-		cp ../scripts/edge-package.json package.json
-
 		echo "Adding files..."
 		git add -A
 		git commit -m "Updated edge version"
@@ -26,15 +24,11 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 		# delete existing edge tags...
 		git tag -d edge
 		git push origin :edge
-		git tag -d v0.4.1-pre # necessary for npm
-		git push origin :v0.4.1-pre
 
 		# ...and create new one
 		echo "Updating edge tag"
 		git tag -a edge -m 'edge version'
-		git tag -a v0.4.1-pre -m 'edge version'
 		git push origin edge --quiet 2> /dev/null
-		git push origin v0.4.1-pre --quiet 2> /dev/null
 	)
 
 	echo "Deploying to CDN..."
