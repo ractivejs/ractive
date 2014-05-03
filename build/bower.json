@@ -1,9 +1,0 @@
-{
-	"name": "ractive",
-	"version": "0.4.0",
-	"main": "ractive.js",
-	"ignore": [
-		".*",
-		"bower.json"
-	]
-}
