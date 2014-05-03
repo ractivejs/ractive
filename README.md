@@ -1,35 +1,48 @@
-Ractive.js builds
-=================
+Getting Ractive.js
+==================
 
-This branch contains the most recent successful builds of Ractive. It is updated automatically by [Travis-CI](https://travis-ci.org/ractivejs/ractive) every time new code is pushed to the [dev branch](https://github.com/ractivejs/ractive/tree/dev), and that code passes the test suite.
+The easiest way to download the latest released version of Ractive is to grab it from http://cdn.ractivejs.org/latest/{filename}.js, where {filename} is one of
 
-**Be aware** that these are *not* considered stable releases. For those, refer to the [releases](https://github.com/ractivejs/ractive/releases) tab.
+* [ractive.js](http://cdn.ractivejs.org/latest/ractive.js)
+* [ractive.min.js](http://cdn.ractivejs.org/latest/ractive.min.js) - minified version
+* [ractive-legacy.js](http://cdn.ractivejs.org/latest/ractive-legacy.js) - IE8 compatible
+* [ractive-legacy.min.js](http://cdn.ractivejs.org/latest/ractive-legacy.min.js)
+* [ractive.runtime.js](http://cdn.ractivejs.org/latest/ractive.runtime.js) - excludes `Ractive.parse()` - assumes templates are parsed on the server or during build
+* [ractive.runtime.min.js](http://cdn.ractivejs.org/latest/ractive.runtime.min.js)
+* [ractive-legacy.runtime.js](http://cdn.ractivejs.org/latest/ractive-legacy.runtime.js)
+* [ractive-legacy.runtime.min.js](http://cdn.ractivejs.org/latest/ractive-legacy.runtime.min.js)
+
+If you'd like to get the most recent version, substitute 'edge' for 'latest' in the URL, e.g. http://cdn.ractivejs.org/edge/ractive.js. These builds have passed the tests but may include experimental features, so should not be used in production.
+
+For specific stable releases, replace 'latest' with e.g. 'release/0.4.0'.
 
 
-Using edge builds in your projects (advanced)
----------------------------------------------
+Installing with bower
+---------------------
 
-If you want to use these builds in your project, and you understand why that's a bad idea but are prepared to accept the consequences anyway, you can do so:
+If you use [bower](bower.io) for frontend package management, you can do
 
-### downloading the file
+```
+$ bower install ractive
+```
 
-You can always get the most recent 'edge' build from http://cdn.ractivejs.org/edge/ractive.js. You can use this in a `<script>` tag, though generally it's better to use a copy that's local to your project.
-
-### bower
-
-If you use bower you can install the lastest edge version with
+To download the edge version, use the `edge` tag:
 
 ```
 $ bower install ractive#edge
 ```
 
-You will need to clean bower's cache with `bower cache clean ractive` if you want to update to a more recent build.
+(If you want to redownload it, you may need to clean bower's cache with `bower cache clean ractive`.)
 
-### npm
 
-**Hmmm.... this doesn't appear to work. If anyone has any ideas...**
+Installing with npm
+-------------------
 
-To use non-stable builds with npm you need to use a git endpoint:
+```
+$ npm install ractive
+```
+
+Starting with 0.4.0, releases live on the [build branch](https://github.com/ractivejs/ractive/tree/build). It's therefore possible to `npm install` the most recent builds straight from GitHub:
 
 ```
 $ npm install git://github.com/ractivejs/ractive.git#edge
