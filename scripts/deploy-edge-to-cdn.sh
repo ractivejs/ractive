@@ -23,14 +23,18 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 		echo "Pushing to GitHub..."
 		git push --quiet 2> /dev/null
 
-		# deleted existing edge tag...
+		# delete existing edge tags...
 		git tag -d edge
 		git push origin :edge
+		git tag -d v0.4.1-pre # necessary for npm
+		git push origin :v0.4.1-pre
 
 		# ...and create new one
 		echo "Updating edge tag"
 		git tag -a edge -m 'edge version'
+		git tag -a v0.4.1-pre -m 'edge version'
 		git push origin edge --quiet 2> /dev/null
+		git push origin v0.4.1-pre --quiet 2> /dev/null
 	)
 
 	echo "Deploying to CDN..."

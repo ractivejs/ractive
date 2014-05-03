@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "edge",
+  "version": "0.4.1-pre",
   "homepage": "http://ractivejs.org",
   "main": "ractive.js",
   "licenses": [
