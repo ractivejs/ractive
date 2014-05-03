@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-02 - commit 948a28b9 
+	2014-05-03 - commit b5a76726 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4945,7 +4945,7 @@
 
 		var singleMustacheError = 'For two-way binding to work, attribute value must be a single interpolator (e.g. value="{{foo}}")',
 			expressionError = 'You cannot set up two-way binding against an expression ',
-			bindAttribute, updateModel, getOptions, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
+			bindAttribute, updateModel, updateModelAndView, getOptions, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
 		bindAttribute = function() {
 			var node = this.pNode,
 				interpolator, binding, bindings;
@@ -4997,12 +4997,16 @@
 			this._ractive.binding.update();
 			runloop.end();
 		};
+		// Blurring an input should update the model, but we should also update the
+		// view in case any validation rules were applied (e.g. via an observer)
+		updateModelAndView = function() {
+			var value;
+			updateModel.call( this );
+			value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
+			this.value = value == undefined ? '' : value;
+		};
 		getOptions = {
 			evaluateWrapped: true
-		};
-		update = function() {
-			var value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
-			this.value = value == undefined ? '' : value;
 		};
 		getBinding = function( attribute ) {
 			var node = attribute.pNode;
@@ -5267,7 +5271,7 @@
 					node.addEventListener( 'keyup', updateModel, false );
 				}
 			}
-			this.node.addEventListener( 'blur', update, false );
+			this.node.addEventListener( 'blur', updateModelAndView, false );
 		};
 		GenericBinding.prototype = {
 			value: function() {
@@ -5289,7 +5293,7 @@
 				this.node.removeEventListener( 'change', updateModel, false );
 				this.node.removeEventListener( 'input', updateModel, false );
 				this.node.removeEventListener( 'keyup', updateModel, false );
-				this.node.removeEventListener( 'blur', update, false );
+				this.node.removeEventListener( 'blur', updateModelAndView, false );
 			}
 		};
 		inheritProperties = function( binding, attribute, node ) {
