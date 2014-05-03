@@ -14,6 +14,8 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 		git remote rm origin
 		git remote add origin https://Rich-Harris:${GH_TOKEN}@${GH_REF}
 
+		cp ../scripts/edge-package.json package.json
+
 		echo "Adding files..."
 		git add -A
 		git commit -m "Updated edge version"
