@@ -12,7 +12,7 @@ define([
 	}
 
 	// https://gist.github.com/paulirish/1579671
-	(function( vendors, lastTime, window ) {
+	(function ( vendors, lastTime, window ) {
 
 		var x, setTimeout;
 
@@ -21,25 +21,27 @@ define([
 		}
 
 		for ( x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
-			window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+			window.requestAnimationFrame = window[ vendors[x] + 'RequestAnimationFrame' ];
 		}
 
 		if ( !window.requestAnimationFrame ) {
 			setTimeout = window.setTimeout;
 
-			window.requestAnimationFrame = function(callback) {
+			window.requestAnimationFrame = function ( callback ) {
 				var currTime, timeToCall, id;
 
 				currTime = Date.now();
-				timeToCall = Math.max( 0, 16 - (currTime - lastTime ) );
-				id = setTimeout( function() { callback(currTime + timeToCall); }, timeToCall );
+				timeToCall = Math.max( 0, 16 - ( currTime - lastTime ) );
+				id = setTimeout(function () {
+					callback( currTime + timeToCall );
+				}, timeToCall );
 
 				lastTime = currTime + timeToCall;
 				return id;
 			};
 		}
 
-	}( vendors, 0, window ));
+	}( vendors, 0, window ) );
 
 	return window.requestAnimationFrame;
 

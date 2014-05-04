@@ -84,6 +84,8 @@ define([
 
 	return Ticker;
 
-	function linear ( t ) { return t; }
+	function linear ( t ) {
+		return t;
+	}
 
 });

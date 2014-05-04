@@ -28,21 +28,21 @@ define([
 	'use strict';
 
 	var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
-	
+
 	return function initialiseRactiveInstance ( ractive, options ) {
 
 		var defaults = ractive.constructor.defaults;
 
-		//allow empty constructor options and save for reset
+		// allow empty constructor options and save for reset
 		ractive.initOptions = options = options || {};
 
 		setOptionsAndFlags( ractive, defaults, options );
 
-		//sets ._initing = true
-		initialiseProperties( ractive, options ); 
-		
+		// sets ._initing = true
+		initialiseProperties( ractive, options );
+
 		initialiseRegistries( ractive, defaults, options );
-		
+
 		renderInstance( ractive, options );
 
 		// end init sequence
@@ -162,7 +162,7 @@ define([
 			_unresolvedImplicitDependencies: { value: [] }
 		});
 
-		//Save parse specific options
+		// Save parse specific options
 		ractive.parseOptions = {
 			preserveWhitespace: options.preserveWhitespace,
 			sanitize: options.sanitize,

@@ -54,14 +54,14 @@ define( function () {
 				var result = [];
 
 				for ( var prop in obj ) {
-					if ( hasOwnProperty.call( obj, prop ) ){
+					if ( hasOwnProperty.call( obj, prop ) ) {
 						result.push( prop );
 					}
 				}
 
 				if ( hasDontEnumBug ) {
 					for ( var i=0; i < dontEnumsLength; i++ ) {
-						if ( hasOwnProperty.call( obj, dontEnums[i] ) ){
+						if ( hasOwnProperty.call( obj, dontEnums[i] ) ) {
 							result.push( dontEnums[i] );
 						}
 					}
@@ -135,10 +135,10 @@ define( function () {
 	}
 
 	if ( typeof Array.prototype.reduce !== 'function' ) {
-		Array.prototype.reduce = function(callback, opt_initialValue){
+		Array.prototype.reduce = function ( callback, initialValue ) {
 			var i, value, len, valueIsSet;
 
-			if ('function' !== typeof callback) {
+			if ( typeof callback !== 'function' ) {
 				throw new TypeError(callback + ' is not a function');
 			}
 
@@ -146,7 +146,7 @@ define( function () {
 			valueIsSet = false;
 
 			if ( arguments.length > 1 ) {
-				value = opt_initialValue;
+				value = initialValue;
 				valueIsSet = true;
 			}
 
@@ -292,7 +292,7 @@ define( function () {
 
 				head.insertBefore( style, head.firstChild );
 
-				//style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
+				// style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
 			}
 		}( win, doc ));
 	}

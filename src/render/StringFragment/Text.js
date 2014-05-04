@@ -1,4 +1,8 @@
-define([ 'config/types' ], function ( types ) {
+define([
+	'config/types'
+], function (
+	types
+) {
 
 	'use strict';
 
@@ -12,7 +16,7 @@ define([ 'config/types' ], function ( types ) {
 			return this.text;
 		},
 
-		reassign: function () {}, //no-op
+		reassign: function () {}, // no-op
 
 		teardown: function () {} // no-op
 	};

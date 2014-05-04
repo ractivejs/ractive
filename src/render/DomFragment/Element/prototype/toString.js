@@ -48,11 +48,11 @@ define([
 
 		optionValueAttribute = element.attributes.value;
 
-		if(optionValueAttribute.value){
+		if (optionValueAttribute.value){
 			optionValue = optionValueAttribute.value;
 		} else {
 			optionValueInterpolator = optionValueAttribute.interpolator;
-			if( !optionValueInterpolator ) {
+			if ( !optionValueInterpolator ) {
 				return;
 			}
 			optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );

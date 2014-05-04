@@ -67,7 +67,7 @@ define([
 		// be explicit when using two-way data-binding about what keypath you're
 		// updating. Using it in lists is probably a recipe for confusion...
 		if ( !interpolator.keypath ) {
-			//TODO: What about kx?
+			// TODO: What about kx?
 			interpolator.resolve( interpolator.descriptor.r );
 		}
 		this.keypath = interpolator.keypath;

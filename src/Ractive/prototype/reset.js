@@ -19,7 +19,7 @@ define([
 	var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
 
 	return function ( data, callback ) {
-		var promise, fulfilPromise, wrapper, 
+		var promise, fulfilPromise, wrapper,
 			changes, rerender, i;
 
 		if ( typeof data === 'function' && !callback ) {
@@ -45,9 +45,9 @@ define([
 
 		this.initOptions.data = this.data;
 
-		changes = initialiseRegistries ( this, this.constructor.defaults, 
+		changes = initialiseRegistries ( this, this.constructor.defaults,
 			this.initOptions, { updatesOnly: true } );
-		
+
 		i = changes.length;
 		while(i--) {
 			if ( shouldRerender.indexOf( changes[i] > -1 ) ) {
@@ -56,22 +56,22 @@ define([
 			}
 		}
 
-		if( rerender ) {
+		if ( rerender ) {
 
 			this.teardown();
 
 			this._initing = true;
-			
+
 			promise = renderInstance ( this, this.initOptions );
-			
-			//same as initialise, but should this be in then()?
+
+			// same as initialise, but should this be in then()?
 			this._initing = false;
 
 			// should this fire and when?
 			// this.fire( 'reset', data );
 
 		} else {
-			
+
 			promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
 			runloop.start( this, fulfilPromise );
@@ -80,7 +80,7 @@ define([
 			notifyDependants( this, '' );
 
 			runloop.end();
-		
+
 			this.fire( 'reset', data );
 		}
 

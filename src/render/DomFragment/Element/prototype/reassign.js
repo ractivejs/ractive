@@ -16,7 +16,7 @@ define([
 
 		if ( storage = this.node._ractive ) {
 
-			//adjust keypath if needed
+			// adjust keypath if needed
 			assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
 
 			if ( indexRef != undefined ) {

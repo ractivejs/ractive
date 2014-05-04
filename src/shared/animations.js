@@ -10,9 +10,9 @@ define([
 
 	'use strict';
 
-	var queue = [];
+	var queue = [], animations;
 
-	var animations = {
+	animations = {
 		tick: function () {
 			var i, animation, now;
 
@@ -20,7 +20,7 @@ define([
 
 			runloop.start();
 
-			for ( i=0; i<queue.length; i+=1 ) {
+			for ( i = 0; i < queue.length; i += 1 ) {
 				animation = queue[i];
 
 				if ( !animation.tick( now ) ) {

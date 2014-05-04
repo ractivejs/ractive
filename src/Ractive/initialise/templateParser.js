@@ -11,7 +11,7 @@ define([
 	'use strict';
 
 	return function ( options ) {
-		
+
 		return {
 			fromId: function ( id ) {
 				var template;
@@ -25,9 +25,9 @@ define([
 
 				if ( !( template = document.getElementById( id ) )) {
 					throw new Error( 'Could not find template element with id #' + id );
-				}	
+				}
 
-				return template.innerHTML;			
+				return template.innerHTML;
 
 			},
 			parse: function ( template, parseOptions ) {
@@ -38,7 +38,7 @@ define([
 			},
 			isParsed: function ( template) {
 				return !( typeof template === 'string' );
-			} 
+			}
 		};
 	};
 

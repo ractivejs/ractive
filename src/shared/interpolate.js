@@ -34,7 +34,9 @@ define([
 	return interpolate;
 
 	function snap ( to ) {
-		return function () { return to; };
+		return function () {
+			return to;
+		};
 	}
 
 });

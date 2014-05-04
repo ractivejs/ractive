@@ -20,13 +20,13 @@ define([
 
 	'use strict';
 
-	//Template is NOT in registryKeys, it doesn't extend b/c it's a string.
-	//We're just reusing the logic as it is mostly like a registry
+	// Template is NOT in registryKeys, it doesn't extend b/c it's a string.
+	// We're just reusing the logic as it is mostly like a registry
 	registries = registries.concat(['template']);
 
 	return initialiseRegisties;
 
-	//Encapsulate differences between template and other registries
+	// Encapsulate differences between template and other registries
 	function getExtendOptions ( ractive, options ) {
 		var templateParser;
 		return {
@@ -91,11 +91,11 @@ define([
 
 		function initialise () {
 
-			//data goes first as it is primary argument to other function-based registry options
+			// data goes first as it is primary argument to other function-based registry options
 			initialiseRegistry('data');
-			if ( !ractive.data ) { ractive.data = {}; }
+			if ( !ractive.data ) ractive.data = {};
 
-			//return the changed registries
+			// return the changed registries
 			return registryKeys
 				.filter( function ( registry ) { return registry!=='data'; })
 				.filter( initialiseRegistry );
@@ -105,11 +105,11 @@ define([
 		function initialiseRegistry ( registry ) {
 			var optionsValue = initOptions.newValues[ registry ] || options[ registry ],
 				defaultValue = ractive.constructor[ registry ] || defaults[ registry ],
-				firstArg = registry==='data' ? optionsValue : ractive.data,
+				firstArg = registry === 'data' ? optionsValue : ractive.data,
 				regOpt = extendOptions[ registry ] || extendOptions['default'],
 				initialValue = regOpt.initialValue( registry );
 
-			if( typeof optionsValue === 'function' ) {
+			if ( typeof optionsValue === 'function' ) {
 				ractive[ registry ] = optionsValue( firstArg, options, regOpt.getArg() );
 			}
 			else if ( defaultValue ) {
@@ -128,9 +128,9 @@ define([
 		}
 
 		function isChanged ( initial, current ) {
-			if ( !initial && !current ) { return false; }
-			if ( isEmptyObject( initial ) && isEmptyObject( current ) ) { return false; }
-			if ( isEmptyArray( initial ) && isEmptyArray( current ) ) { return false; }
+			if ( !initial && !current ) return false;
+			if ( isEmptyObject( initial ) && isEmptyObject( current ) ) return false;
+			if ( isEmptyArray( initial ) && isEmptyArray( current ) ) return false;
 
 			return initial !== current;
 		}

@@ -24,18 +24,18 @@ define([
 		if ( this.registered ) {
 			unregisterDependant( this );
 
-			//need to reassign the element, if this belongs to one, for keypath changes
-			if( this.parentFragment &&
+			// need to reassign the element, if this belongs to one, for keypath changes
+			if ( this.parentFragment &&
 				this.parentFragment.owner &&
 				this.parentFragment.owner.element ) {
 				reassignTarget = this.parentFragment.owner.element;
 			} else {
 				reassignTarget = this;
 			}
-			
+
 			reassignTarget.reassign( null, null, this.keypath, keypath );
 
-			//if we already updated due to reassignent, we can exit
+			// if we already updated due to reassignent, we can exit
 			if ( keypath === this.keypath ) {
 				return;
 			}

@@ -140,7 +140,7 @@ define([
 					// TODO verify that this tag can close this element (is either the same, or
 					// a parent that can close child elements implicitly)
 
-					//parser.error( 'Expected closing </' + element.e + '> tag' );
+					// parser.error( 'Expected closing </' + element.e + '> tag' );
 				}
 
 				children.push( child );

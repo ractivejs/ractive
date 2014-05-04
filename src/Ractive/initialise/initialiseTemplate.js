@@ -4,7 +4,6 @@ define([
 	'utils/fillGaps',
 	'utils/isObject',
 	'Ractive/initialise/templateParser'
-
 ], function (
 	isClient,
 	extend,
@@ -26,8 +25,8 @@ define([
 			// Assume this is an ID of a <script type='text/ractive'> tag
 			if ( template.charAt( 0 ) === '#' ) {
 				template = templateParser.fromId( template );
-			} 
-			
+			}
+
 			parsedTemplate = templateParser.parse( template );
 
 		} else {

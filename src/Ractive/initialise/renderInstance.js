@@ -1,7 +1,6 @@
 define([
 	'config/isClient',
 	'utils/Promise'
-
 ], function (
 	isClient,
 	Promise

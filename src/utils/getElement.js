@@ -2,19 +2,15 @@ define( function () {
 
 	'use strict';
 
-	return function getElement( input ) {
+	return function getElement ( input ) {
 		var output;
 
-		if ( !input || typeof input === 'boolean' ) { return; }
+		if ( !input || typeof input === 'boolean' ) return;
 
-		if ( typeof window === 'undefined' || !document || !input ) {
-			return null;
-		}
+		if ( typeof window === 'undefined' || !document || !input ) return null;
 
 		// We already have a DOM node - no work to do. (Duck typing alert!)
-		if ( input.nodeType ) {
-			return input;
-		}
+		if ( input.nodeType ) return input;
 
 		// Get node from string
 		if ( typeof input === 'string' ) {
