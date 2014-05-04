@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-04 - commit 9371edda 
+	2014-05-04 - commit 360b7072 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9467,6 +9467,7 @@
 			validTagNameFollower = /^[\s\n\/>]/,
 			onPattern = /^on/,
 			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
+			reservedEventNames = /(?:change|reset|teardown|update)/,
 			directives = {
 				'intro-outro': 't0',
 				intro: 't1',
@@ -9520,6 +9521,11 @@
 				parser.error( 'Illegal tag name' );
 			}
 			addProxyEvent = function( name ) {
+				var directiveName = directive.n || directive;
+				if ( reservedEventNames.test( directiveName ) ) {
+					parser.pos -= directiveName.length;
+					parser.error( 'Cannot use reserved event names (change, reset, teardown, update)' );
+				}
 				element.v[ name ] = directive;
 			};
 			// directives and attributes
