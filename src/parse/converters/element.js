@@ -24,6 +24,7 @@ define([
 		validTagNameFollower = /^[\s\n\/>]/,
 		onPattern = /^on/,
 		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
+		reservedEventNames = /(?:change|reset|teardown|update)/,
 		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 		exclude = { exclude: true },
 		converters;
@@ -93,6 +94,13 @@ define([
 		}
 
 		addProxyEvent = function ( name ) {
+			var directiveName = directive.n || directive;
+
+			if ( reservedEventNames.test( directiveName ) ) {
+				parser.pos -= directiveName.length;
+				parser.error( 'Cannot use reserved event names (change, reset, teardown, update)' );
+			}
+
 			element.v[ name ] = directive;
 		};
 
