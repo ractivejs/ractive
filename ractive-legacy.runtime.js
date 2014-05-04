@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-05-03 - commit 7428b1fa 
+	2014-05-04 - commit 5f1be5ac 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1507,7 +1507,11 @@
 		BRACKETED: 34,
 		CONDITIONAL: 35,
 		INFIX_OPERATOR: 36,
-		INVOCATION: 40
+		INVOCATION: 40,
+		SECTION_IF: 50,
+		SECTION_UNLESS: 51,
+		SECTION_EACH: 52,
+		SECTION_WITH: 53
 	};
 
 	var shared_clearCache = function clearCache( ractive, keypath, dontTeardownWrapper ) {
@@ -4563,7 +4567,7 @@
 		parentFragment.pNode.insertBefore( this.docFrag, nextNode );
 	};
 
-	var render_shared_updateSection = function( isArray, isObject ) {
+	var render_shared_updateSection = function( types, isArray, isObject ) {
 
 		return function updateSection( section, value ) {
 			var fragmentOptions = {
@@ -4573,10 +4577,29 @@
 				pElement: section.parentFragment.pElement,
 				owner: section
 			};
-			// if section is inverted, only check for truthiness/falsiness
+			// If we already know the section type, great
+			// TODO can this be optimised? i.e. pick an updateSection function during init
+			// and avoid doing this each time?
 			if ( section.descriptor.n ) {
-				updateConditionalSection( section, value, true, fragmentOptions );
-				return;
+				switch ( section.descriptor.n ) {
+					case types.SECTION_IF:
+						updateConditionalSection( section, value, false, fragmentOptions );
+						return;
+					case types.SECTION_UNLESS:
+						updateConditionalSection( section, value, true, fragmentOptions );
+						return;
+					case types.SECTION_WITH:
+						updateContextSection( section, fragmentOptions );
+						return;
+					case types.SECTION_EACH:
+						if ( isArray( value ) ) {
+							updateListSection( section, value, fragmentOptions );
+						} else if ( isObject( value ) ) {
+							updateContextSection( section, fragmentOptions );
+						}
+						return;
+				}
+				throw new Error( 'Section type ' + section.descriptor.n + ' not supported' );
 			}
 			// otherwise we need to work out what sort of section we're dealing with
 			// if value is an array, or an object with an index reference, iterate through
@@ -4686,7 +4709,7 @@
 				section.length = 0;
 			}
 		}
-	}( utils_isArray, utils_isObject );
+	}( config_types, utils_isArray, utils_isObject );
 
 	var render_DomFragment_Section_prototype_render = function( isClient, updateSection ) {
 
@@ -6573,18 +6596,37 @@
 				return getConditional( this );
 			},
 			flattenExpression: flattenExpression,
-			error: function( err ) {
-				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum, message;
+			getLinePos: function() {
+				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum;
 				lines = this.str.split( '\n' );
 				lineNum = -1;
 				nextLineEnd = 0;
 				do {
 					currentLineEnd = nextLineEnd;
-					currentLine = lines[ lineNum+++1 ];
-					nextLineEnd = currentLine.length + 1;
-				} while ( nextLineEnd < this.pos );
+					lineNum++;
+					currentLine = lines[ lineNum ];
+					nextLineEnd += currentLine.length + 1;
+				} while ( nextLineEnd <= this.pos );
 				columnNum = this.pos - currentLineEnd;
-				message = err + ' at line ' + ( lineNum + 1 ) + ' character ' + ( columnNum + 1 ) + ':\n' + currentLine + '\n' + new Array( columnNum + 1 ).join( ' ' ) + '^----';
+				return {
+					line: lineNum + 1,
+					ch: columnNum + 1,
+					text: currentLine,
+					toJSON: function() {
+						return [
+							this.line,
+							this.ch
+						];
+					},
+					toString: function() {
+						return 'line ' + this.line + ' character ' + this.ch + ':\n' + this.text + '\n' + this.text.substr( 0, this.ch - 1 ).replace( /[\S]/g, ' ' ) + '^----';
+					}
+				};
+			},
+			error: function( err ) {
+				var pos, message;
+				pos = this.getLinePos();
+				message = err + ' at ' + pos;
 				throw new ParseError( message );
 			},
 			matchString: function( string ) {
@@ -10445,7 +10487,8 @@
 				sanitize: options.sanitize,
 				stripComments: options.stripComments,
 				delimiters: options.delimiters,
-				tripleDelimiters: options.tripleDelimiters
+				tripleDelimiters: options.tripleDelimiters,
+				handlebars: options.handlebars
 			};
 			// If this is a component, store a reference to the parent
 			if ( options._parent && options._component ) {

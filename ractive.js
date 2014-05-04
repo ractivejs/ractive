@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-03 - commit 7428b1fa 
+	2014-05-04 - commit 5f1be5ac 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1190,7 +1190,11 @@
 		BRACKETED: 34,
 		CONDITIONAL: 35,
 		INFIX_OPERATOR: 36,
-		INVOCATION: 40
+		INVOCATION: 40,
+		SECTION_IF: 50,
+		SECTION_UNLESS: 51,
+		SECTION_EACH: 52,
+		SECTION_WITH: 53
 	};
 
 	var shared_clearCache = function clearCache( ractive, keypath, dontTeardownWrapper ) {
@@ -4246,7 +4250,7 @@
 		parentFragment.pNode.insertBefore( this.docFrag, nextNode );
 	};
 
-	var render_shared_updateSection = function( isArray, isObject ) {
+	var render_shared_updateSection = function( types, isArray, isObject ) {
 
 		return function updateSection( section, value ) {
 			var fragmentOptions = {
@@ -4256,10 +4260,29 @@
 				pElement: section.parentFragment.pElement,
 				owner: section
 			};
-			// if section is inverted, only check for truthiness/falsiness
+			// If we already know the section type, great
+			// TODO can this be optimised? i.e. pick an updateSection function during init
+			// and avoid doing this each time?
 			if ( section.descriptor.n ) {
-				updateConditionalSection( section, value, true, fragmentOptions );
-				return;
+				switch ( section.descriptor.n ) {
+					case types.SECTION_IF:
+						updateConditionalSection( section, value, false, fragmentOptions );
+						return;
+					case types.SECTION_UNLESS:
+						updateConditionalSection( section, value, true, fragmentOptions );
+						return;
+					case types.SECTION_WITH:
+						updateContextSection( section, fragmentOptions );
+						return;
+					case types.SECTION_EACH:
+						if ( isArray( value ) ) {
+							updateListSection( section, value, fragmentOptions );
+						} else if ( isObject( value ) ) {
+							updateContextSection( section, fragmentOptions );
+						}
+						return;
+				}
+				throw new Error( 'Section type ' + section.descriptor.n + ' not supported' );
 			}
 			// otherwise we need to work out what sort of section we're dealing with
 			// if value is an array, or an object with an index reference, iterate through
@@ -4369,7 +4392,7 @@
 				section.length = 0;
 			}
 		}
-	}( utils_isArray, utils_isObject );
+	}( config_types, utils_isArray, utils_isObject );
 
 	var render_DomFragment_Section_prototype_render = function( isClient, updateSection ) {
 
@@ -6256,18 +6279,37 @@
 				return getConditional( this );
 			},
 			flattenExpression: flattenExpression,
-			error: function( err ) {
-				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum, message;
+			getLinePos: function() {
+				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum;
 				lines = this.str.split( '\n' );
 				lineNum = -1;
 				nextLineEnd = 0;
 				do {
 					currentLineEnd = nextLineEnd;
-					currentLine = lines[ lineNum+++1 ];
-					nextLineEnd = currentLine.length + 1;
-				} while ( nextLineEnd < this.pos );
+					lineNum++;
+					currentLine = lines[ lineNum ];
+					nextLineEnd += currentLine.length + 1;
+				} while ( nextLineEnd <= this.pos );
 				columnNum = this.pos - currentLineEnd;
-				message = err + ' at line ' + ( lineNum + 1 ) + ' character ' + ( columnNum + 1 ) + ':\n' + currentLine + '\n' + new Array( columnNum + 1 ).join( ' ' ) + '^----';
+				return {
+					line: lineNum + 1,
+					ch: columnNum + 1,
+					text: currentLine,
+					toJSON: function() {
+						return [
+							this.line,
+							this.ch
+						];
+					},
+					toString: function() {
+						return 'line ' + this.line + ' character ' + this.ch + ':\n' + this.text + '\n' + this.text.substr( 0, this.ch - 1 ).replace( /[\S]/g, ' ' ) + '^----';
+					}
+				};
+			},
+			error: function( err ) {
+				var pos, message;
+				pos = this.getLinePos();
+				message = err + ' at ' + pos;
 				throw new ParseError( message );
 			},
 			matchString: function( string ) {
@@ -8246,9 +8288,17 @@
 	var parse_converters_mustache_content = function( types, mustacheType ) {
 
 		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-			arrayMemberPattern = /^[0-9][1-9]*$/;
+			arrayMemberPattern = /^[0-9][1-9]*$/,
+			handlebarsTypePattern = /(if|unless|with|each|try)\b/,
+			handlebarsTypes;
+		handlebarsTypes = {
+			'if': types.SECTION_IF,
+			'unless': types.SECTION_UNLESS,
+			'with': types.SECTION_WITH,
+			'each': types.SECTION_EACH
+		};
 		return function( parser, isTriple ) {
-			var start, pos, mustache, type, expression, i, remaining, index, delimiter, keypathExpression;
+			var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, keypathExpression;
 			start = parser.pos;
 			mustache = {};
 			// Determine mustache type
@@ -8274,13 +8324,18 @@
 					type = mustacheType( parser );
 					mustache.t = type || types.INTERPOLATOR;
 					// default
-					// TODO handle this more logically
-					if ( mustache.t === types.INVERTED ) {
+					// In Handlebars mode, see if there's a section type e.g. {{#with}}...{{/with}}
+					if ( type === types.SECTION && parser.handlebars ) {
+						handlebarsType = parser.matchPattern( handlebarsTypePattern );
+						if ( handlebarsType && handlebarsTypes[ handlebarsType ] ) {
+							mustache.n = handlebarsTypes[ handlebarsType ];
+							parser.allowWhitespace();
+						}
+					} else if ( type === types.INVERTED ) {
+						// {{^foo}}...{{/foo}}
 						mustache.t = types.SECTION;
-						mustache.n = 1;
-					}
-					// if it's a comment or a section closer, allow any contents except '}}'
-					if ( type === types.COMMENT || type === types.CLOSING ) {
+						mustache.n = types.SECTION_UNLESS;
+					} else if ( type === types.COMMENT || type === types.CLOSING ) {
 						remaining = parser.remaining();
 						index = remaining.indexOf( parser.delimiters[ 1 ] );
 						if ( index !== -1 ) {
@@ -8316,20 +8371,22 @@
 					parser.pos = pos;
 				}
 			}
-			while ( expression.t === types.BRACKETED && expression.x ) {
-				expression = expression.x;
-			}
-			// special case - integers should be treated as array members references,
-			// rather than as expressions in their own right
-			if ( expression.t === types.REFERENCE ) {
-				mustache.r = expression.n;
-			} else {
-				if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
-					mustache.r = expression.v;
-				} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
-					mustache.kx = keypathExpression;
+			if ( expression ) {
+				while ( expression.t === types.BRACKETED && expression.x ) {
+					expression = expression.x;
+				}
+				// special case - integers should be treated as array members references,
+				// rather than as expressions in their own right
+				if ( expression.t === types.REFERENCE ) {
+					mustache.r = expression.n;
 				} else {
-					mustache.x = parser.flattenExpression( expression );
+					if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
+						mustache.r = expression.v;
+					} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
+						mustache.kx = keypathExpression;
+					} else {
+						mustache.x = parser.flattenExpression( expression );
+					}
 				}
 			}
 			// optional index reference
@@ -8383,8 +8440,9 @@
 		}
 
 		function getMustacheOrTriple( parser, seekTriple ) {
-			var start = parser.pos,
-				mustache, delimiters, children, child;
+			var start, startPos, mustache, delimiters, children, elseChildren, currentChildren, child;
+			start = parser.pos;
+			startPos = parser.getLinePos();
 			delimiters = seekTriple ? parser.tripleDelimiters : parser.delimiters;
 			if ( !parser.matchString( delimiters[ 0 ] ) ) {
 				return null;
@@ -8414,17 +8472,59 @@
 				mustache.exclude = true;
 			}
 			// section children
-			if ( mustache.t === types.SECTION || mustache.t === types.INVERTED ) {
+			if ( mustache.t === types.SECTION ) {
 				children = [];
+				currentChildren = children;
+				var expectedClose;
+				if ( parser.options.strict || parser.handlebars ) {
+					switch ( mustache.n ) {
+						case types.SECTION_IF:
+							expectedClose = 'if';
+							break;
+						case types.SECTION_EACH:
+							expectedClose = 'each';
+							break;
+						case types.SECTION_UNLESS:
+							expectedClose = 'unless';
+							break;
+						case types.SECTION_WITH:
+							expectedClose = 'with';
+							break;
+					}
+				}
 				while ( child = parser.read() ) {
 					if ( child.t === types.CLOSING ) {
+						if ( expectedClose && child.r !== expectedClose ) {
+							parser.error( 'Expected {{/' + expectedClose + '}}' );
+						}
 						break;
 					}
-					children.push( child );
+					if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else' ) {
+						switch ( mustache.n ) {
+							case types.SECTION_IF:
+							case types.SECTION_EACH:
+								currentChildren = elseChildren = [];
+								continue;
+								// don't add this item to children
+							case types.SECTION_UNLESS:
+								parser.error( '{{else}} not allowed in {{#unless}}' );
+								break;
+							case types.SECTION_WITH:
+								parser.error( '{{else}} not allowed in {{#with}}' );
+								break;
+						}
+					}
+					currentChildren.push( child );
 				}
 				if ( children.length ) {
 					mustache.f = children;
 				}
+				if ( elseChildren && elseChildren.length ) {
+					mustache.l = elseChildren;
+				}
+			}
+			if ( parser.includeLinePositions ) {
+				mustache.p = startPos.toJSON();
 			}
 			return mustache;
 		}
@@ -8435,7 +8535,8 @@
 		var OPEN_COMMENT = '<!--',
 			CLOSE_COMMENT = '-->';
 		return function( parser ) {
-			var content, remaining, endIndex;
+			var startPos, content, remaining, endIndex, comment;
+			startPos = parser.getLinePos();
 			if ( !parser.matchString( OPEN_COMMENT ) ) {
 				return null;
 			}
@@ -8446,10 +8547,14 @@
 			}
 			content = remaining.substr( 0, endIndex );
 			parser.pos += endIndex + 3;
-			return {
+			comment = {
 				t: types.COMMENT,
 				c: content
 			};
+			if ( parser.includeLinePositions ) {
+				comment.p = startPos.toJSON();
+			}
+			return comment;
 		};
 	}( config_types );
 
@@ -9044,7 +9149,7 @@
 		var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 			validTagNameFollower = /^[\s\n\/>]/,
 			onPattern = /^on/,
-			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9]+)/,
+			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
 			directives = {
 				'intro-outro': 't0',
 				intro: 't1',
@@ -9066,8 +9171,9 @@
 		return getElement;
 
 		function getElement( parser ) {
-			var start, element, lowerCaseName, directiveName, match, attribute, selfClosing, children, child;
+			var start, startPos, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
 			start = parser.pos;
+			startPos = parser.getLinePos();
 			if ( parser.inside ) {
 				return null;
 			}
@@ -9081,6 +9187,9 @@
 			element = {
 				t: types.ELEMENT
 			};
+			if ( parser.includeLinePositions ) {
+				element.p = startPos.toJSON();
+			}
 			if ( parser.matchString( '!' ) ) {
 				element.y = 1;
 			}
@@ -9093,6 +9202,9 @@
 			if ( !validTagNameFollower.test( parser.nextChar() ) ) {
 				parser.error( 'Illegal tag name' );
 			}
+			addProxyEvent = function( name ) {
+				element.v[ name ] = directive;
+			};
 			// directives and attributes
 			while ( attribute = getAttribute( parser ) ) {
 				// intro, outro, decorator
@@ -9101,7 +9213,8 @@
 				} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
 					if ( !element.v )
 						element.v = {};
-					element.v[ match[ 1 ] ] = processDirective( attribute.value );
+					directive = processDirective( attribute.value );
+					match[ 1 ].split( '-' ).forEach( addProxyEvent );
 				} else {
 					if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
 						if ( !element.a )
@@ -9152,8 +9265,8 @@
 
 	var parse_utils_trimWhitespace = function() {
 
-		var leadingWhitespace = /^[ \n]+/,
-			trailingWhitespace = /[ \n]+$/;
+		var leadingWhitespace = /^[ \t\f\r\n]+/,
+			trailingWhitespace = /[ \t\f\r\n]+$/;
 		return function( items ) {
 			var item;
 			item = items[ 0 ];
@@ -9244,6 +9357,7 @@
 	// * r - Reference, e.g. 'mustache' in {{mustache}}
 	// * t - Type code (e.g. 1 is text, 2 is interpolator...)
 	// * f - Fragment. Contains a descriptor's children
+	// * l - eLse fragment. Contains a descriptor's children in the else case
 	// * e - Element name
 	// * a - map of element Attributes, or proxy event/transition Arguments
 	// * d - Dynamic proxy event/transition arguments
@@ -9258,12 +9372,14 @@
 	// * o - decOrator
 	// * y - is doctYpe
 	// * c - is Content (e.g. of a comment node)
+	// * p - line Position information - array with line number and character position of each node
 	var parse__parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones ) {
 
-		var StandardParser, parse, onlyWhitespace, inlinePartialStart, inlinePartialEnd, parseCompoundTemplate;
-		onlyWhitespace = /^\s*$/;
-		inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
-		inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/;
+		var StandardParser, parse, contiguousWhitespace = /[ \t\f\r\n]+/g,
+			inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+			inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+			preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
+			parseCompoundTemplate;
 		StandardParser = Parser.extend( {
 			init: function( str, options ) {
 				// config
@@ -9288,9 +9404,11 @@
 				}
 				this.sanitizeElements = options.sanitize && options.sanitize.elements;
 				this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+				this.includeLinePositions = options.includeLinePositions;
+				this.handlebars = options.handlebars;
 			},
 			postProcess: function( items, options ) {
-				cleanup( items, options.stripComments !== false, options.preserveWhitespace );
+				cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse !== false );
 				if ( !options.preserveWhitespace ) {
 					trimWhitespace( items );
 				}
@@ -9309,13 +9427,6 @@
 			// does this template include inline partials?
 			if ( inlinePartialStart.test( template ) ) {
 				return parseCompoundTemplate( template, options );
-			}
-			if ( options.sanitize === true ) {
-				options.sanitize = {
-					// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-					elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
-					eventAttributes: true
-				};
 			}
 			parser = new StandardParser( template, options );
 			if ( parser.leftover ) {
@@ -9346,8 +9457,8 @@
 		};
 		return parse;
 
-		function cleanup( items, stripComments, preserveWhitespace ) {
-			var i, item;
+		function cleanup( items, stripComments, preserveWhitespace, rewriteElse ) {
+			var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
 			// first pass - remove standalones
 			stripStandalones( items );
 			i = items.length;
@@ -9361,18 +9472,46 @@
 				}
 				// Recurse
 				if ( item.f ) {
-					cleanup( item.f, stripComments, preserveWhitespace );
+					preserveWhitespaceInsideElement = item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e );
+					cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement, rewriteElse );
 					if ( !preserveWhitespace && item.t === types.ELEMENT ) {
 						trimWhitespace( item.f );
+					}
+				}
+				// Split if-else blocks into two (an if, and an unless)
+				if ( item.l ) {
+					cleanup( item.l, stripComments, preserveWhitespace, rewriteElse );
+					if ( rewriteElse ) {
+						unlessBlock = {
+							t: 4,
+							r: item.r,
+							n: types.SECTION_UNLESS,
+							f: item.l
+						};
+						items.splice( i + 1, 0, unlessBlock );
+						delete item.l;
+					}
+				}
+				// Clean up element attributes
+				if ( item.a ) {
+					for ( key in item.a ) {
+						if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
+							cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
+						}
 					}
 				}
 			}
 			// final pass - fuse text nodes together
 			i = items.length;
 			while ( i-- ) {
-				if ( typeof items[ i ] === 'string' && typeof items[ i + 1 ] === 'string' ) {
-					items[ i ] = items[ i ] + items[ i + 1 ];
-					items.splice( i + 1, 1 );
+				if ( typeof items[ i ] === 'string' ) {
+					if ( typeof items[ i + 1 ] === 'string' ) {
+						items[ i ] = items[ i ] + items[ i + 1 ];
+						items.splice( i + 1, 1 );
+					}
+					if ( !preserveWhitespace ) {
+						items[ i ] = items[ i ].replace( contiguousWhitespace, ' ' );
+					}
 				}
 			}
 		}
@@ -11320,7 +11459,8 @@
 				sanitize: options.sanitize,
 				stripComments: options.stripComments,
 				delimiters: options.delimiters,
-				tripleDelimiters: options.tripleDelimiters
+				tripleDelimiters: options.tripleDelimiters,
+				handlebars: options.handlebars
 			};
 			// If this is a component, store a reference to the parent
 			if ( options._parent && options._component ) {
