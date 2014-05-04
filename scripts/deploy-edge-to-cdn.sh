@@ -23,7 +23,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 
 		# delete existing edge tags...
 		git tag -d edge
-		git push origin :edge
+		git push origin :edge --quiet 2> /dev/null
 
 		# ...and create new one
 		echo "Updating edge tag"
