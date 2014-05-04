@@ -23,7 +23,7 @@ define([
 	var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 		validTagNameFollower = /^[\s\n\/>]/,
 		onPattern = /^on/,
-		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9]+)/,
+		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
 		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 		exclude = { exclude: true },
 		converters;
@@ -41,16 +41,20 @@ define([
 
 	function getElement ( parser ) {
 		var start,
+			startPos,
 			element,
 			lowerCaseName,
 			directiveName,
 			match,
+			addProxyEvent,
 			attribute,
+			directive,
 			selfClosing,
 			children,
 			child;
 
 		start = parser.pos;
+		startPos = parser.getLinePos();
 
 		if ( parser.inside ) {
 			return null;
@@ -69,6 +73,10 @@ define([
 			t: types.ELEMENT
 		};
 
+		if ( parser.includeLinePositions ) {
+			element.p = startPos.toJSON();
+		}
+
 		if ( parser.matchString( '!' ) ) {
 			element.y = 1;
 		}
@@ -84,6 +92,10 @@ define([
 			parser.error( 'Illegal tag name' );
 		}
 
+		addProxyEvent = function ( name ) {
+			element.v[ name ] = directive;
+		};
+
 		// directives and attributes
 		while ( attribute = getAttribute( parser ) ) {
 			// intro, outro, decorator
@@ -94,7 +106,8 @@ define([
 			// on-click etc
 			else if ( match = proxyEventPattern.exec( attribute.name ) ) {
 				if ( !element.v ) element.v = {};
-				element.v[ match[1] ] = processDirective( attribute.value );
+				directive = processDirective( attribute.value );
+				match[1].split( '-' ).forEach( addProxyEvent );
 			}
 
 			else {

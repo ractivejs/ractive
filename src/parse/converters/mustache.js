@@ -24,7 +24,10 @@ define([
 	}
 
 	function getMustacheOrTriple ( parser, seekTriple ) {
-		var start = parser.pos, mustache, delimiters, children, child;
+		var start, startPos, mustache, delimiters, children, elseChildren, currentChildren, child;
+
+		start = parser.pos;
+		startPos = parser.getLinePos();
 
 		delimiters = ( seekTriple ? parser.tripleDelimiters : parser.delimiters );
 
@@ -65,24 +68,68 @@ define([
 		}
 
 		// section children
-		if ( mustache.t === types.SECTION || mustache.t === types.INVERTED ) {
+		if ( mustache.t === types.SECTION ) {
 			children = [];
+			currentChildren = children;
+
+			var expectedClose;
+
+			if (parser.options.strict || parser.handlebars) {
+				switch ( mustache.n ) {
+					case types.SECTION_IF:
+						expectedClose = 'if';
+						break;
+					case types.SECTION_EACH:
+						expectedClose = 'each';
+						break;
+					case types.SECTION_UNLESS:
+						expectedClose = 'unless';
+						break;
+					case types.SECTION_WITH:
+						expectedClose = 'with';
+						break;
+				}
+			}
+
 			while ( child = parser.read() ) {
 				if ( child.t === types.CLOSING ) {
+					if (expectedClose && child.r !== expectedClose) {
+						parser.error("Expected {{/" + expectedClose + "}}");
+					}
 					break;
 				}
 
-				children.push( child );
+				if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else') {
+					switch ( mustache.n ) {
+						case types.SECTION_IF:
+						case types.SECTION_EACH:
+							currentChildren = elseChildren = [];
+							continue; // don't add this item to children
+
+						case types.SECTION_UNLESS:
+							parser.error( '{{else}} not allowed in {{#unless}}' );
+							break;
+
+						case types.SECTION_WITH:
+							parser.error( '{{else}} not allowed in {{#with}}' );
+							break;
+					}
+				}
+
+				currentChildren.push( child );
 			}
 
 			if ( children.length ) {
 				mustache.f = children;
 			}
 
-			// there should be a section close now
-			// if ( !parser.matchString( parser.delimiters[0] ) || !parser.matchPattern( sectionClosePattern ) || !parser.matchString( parser.delimiters[1] ) ) {
-			// 	parser.error( 'Expected section closing tag' );
-			// }
+			if ( elseChildren && elseChildren.length ) {
+				mustache.l = elseChildren;
+			}
+		}
+
+		if ( parser.includeLinePositions ) {
+			mustache.p = startPos.toJSON();
 		}
 
 		return mustache;

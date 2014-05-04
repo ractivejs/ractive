@@ -2,8 +2,8 @@ define( function () {
 
 	'use strict';
 
-	var leadingWhitespace = /^[ \n]+/,
-		trailingWhitespace = /[ \n]+$/;
+	var leadingWhitespace = /^[ \t\f\r\n]+/,
+		trailingWhitespace = /[ \t\f\r\n]+$/;
 
 	return function ( items ) {
 		var item;
