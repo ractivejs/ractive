@@ -14,7 +14,7 @@ define([
 
 	'use strict';
 
-	var PatternObserver, wildcard = /\*/;
+	var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
 
 	PatternObserver = function ( ractive, keypath, callback, options ) {
 		this.root = ractive;
@@ -24,7 +24,7 @@ define([
 		this.debug = options.debug;
 
 		this.keypath = keypath;
-		this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '[^\\.]+' ) + '$' );
+		this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
 		this.values = {};
 
 		if ( this.defer ) {
@@ -90,7 +90,9 @@ define([
 		},
 
 		reallyUpdate: function ( keypath ) {
-			var value = get( this.root, keypath );
+			var value, keys, args;
+
+			value = get( this.root, keypath );
 
 			// Prevent infinite loops
 			if ( this.updating ) {
@@ -101,10 +103,13 @@ define([
 			this.updating = true;
 
 			if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
+				keys = slice.call( this.regex.exec( keypath ), 1 );
+				args = [ value, this.values[ keypath ], keypath ].concat( keys );
+
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
-					this.callback.call( this.context, value, this.values[ keypath ], keypath );
+					this.callback.apply( this.context, args );
 				} catch ( err ) {
 					if ( this.debug || this.root.debug ) {
 						throw err;

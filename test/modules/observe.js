@@ -293,6 +293,43 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( observedLengthChange );
 		});
 
+		test( 'Pattern observers receive additional arguments corresponding to the wildcards', function ( t ) {
+			var ractive, lastIndex, lastA, lastB;
+
+			ractive = new Ractive({
+				data: {
+					array: [ 'a', 'b', 'c' ],
+					object: {
+						foo: {
+							one: 1,
+							two: 2
+						},
+						bar: {
+							three: 3,
+							four: 4
+						}
+					}
+				}
+			});
+
+			ractive.observe({
+				'array.*': function ( n, o, k, index ) {
+					lastIndex = index;
+				},
+				'object.*.*': function ( n, o, k, a, b ) {
+					lastA = a;
+					lastB = b;
+				}
+			}, { init: false });
+
+			ractive.get( 'array' ).push( 'd' );
+			t.equal( lastIndex, 3 );
+
+			ractive.set( 'object.foo.five', 5 );
+			t.equal( lastA, 'foo' );
+			t.equal( lastB, 'five' );
+		});
+
 	};
 
 });
