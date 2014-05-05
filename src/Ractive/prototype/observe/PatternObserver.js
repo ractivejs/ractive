@@ -1,18 +1,20 @@
 define([
 	'global/runloop',
 	'utils/isEqual',
+	'utils/isArray',
 	'shared/get/_get',
 	'Ractive/prototype/observe/getPattern'
 ], function (
 	runloop,
 	isEqual,
+	isArray,
 	get,
 	getPattern
 ) {
 
 	'use strict';
 
-	var PatternObserver, wildcard = /\*/;
+	var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
 
 	PatternObserver = function ( ractive, keypath, callback, options ) {
 		this.root = ractive;
@@ -22,7 +24,7 @@ define([
 		this.debug = options.debug;
 
 		this.keypath = keypath;
-		this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '[^\\.]+' ) + '$' );
+		this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
 		this.values = {};
 
 		if ( this.defer ) {
@@ -55,7 +57,7 @@ define([
 		},
 
 		update: function ( keypath ) {
-			var values;
+			var values, value;
 
 			if ( wildcard.test( keypath ) ) {
 				values = getPattern( this.root, keypath );
@@ -69,6 +71,16 @@ define([
 				return;
 			}
 
+			// special case - array mutation should not trigger `array.*`
+			// pattern observer with `array.length`
+			if ( keypath.substr( -7 ) === '.length' ) {
+				value = get( this.root, keypath.substr( 0, keypath.length - 7 ) );
+
+				if ( isArray( value ) && value._ractive && value._ractive.setting ) {
+					return;
+				}
+			}
+
 			if ( this.defer && this.ready ) {
 				runloop.addObserver( this.getProxy( keypath ) );
 				return;
@@ -78,7 +90,9 @@ define([
 		},
 
 		reallyUpdate: function ( keypath ) {
-			var value = get( this.root, keypath );
+			var value, keys, args;
+
+			value = get( this.root, keypath );
 
 			// Prevent infinite loops
 			if ( this.updating ) {
@@ -89,10 +103,13 @@ define([
 			this.updating = true;
 
 			if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
+				keys = slice.call( this.regex.exec( keypath ), 1 );
+				args = [ value, this.values[ keypath ], keypath ].concat( keys );
+
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
-					this.callback.call( this.context, value, this.values[ keypath ], keypath );
+					this.callback.apply( this.context, args );
 				} catch ( err ) {
 					if ( this.debug || this.root.debug ) {
 						throw err;
