@@ -580,6 +580,14 @@ var renderTests = [
 		result: '<input type=checkbox checked>',
 		new_data: { isChecked: false },
 		new_result: '<input type=checkbox>'
+	},
+	{
+		name: 'References resolve on the basis of the first key (#522)',
+		template: '{{#foo}}{{bar.baz}}{{/foo}}',
+		data: { foo: { bar: {} }, bar: { baz: 'hello' } },
+		result: '',
+		new_data: { foo: { bar: { baz: 'goodbye' } }, bar: { baz: 'hello' } },
+		new_result: 'goodbye'
 	}
 ];
 
