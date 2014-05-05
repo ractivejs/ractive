@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-04 - commit 360b7072 
+	2014-05-05 - commit ea738aef 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1138,22 +1138,38 @@
 	};
 
 	var shared_get_arrayAdaptor_summariseSpliceOperation = function( array, args ) {
-		var start, addedItems, removedItems, balance;
+		var rangeStart, rangeEnd, clearEnd, newLength, addedItems, removedItems, balance;
 		if ( !args ) {
 			return null;
 		}
 		// figure out where the changes started...
-		start = +( args[ 0 ] < 0 ? array.length + args[ 0 ] : args[ 0 ] );
+		rangeStart = +( args[ 0 ] < 0 ? array.length + args[ 0 ] : args[ 0 ] );
 		// ...and how many items were added to or removed from the array
 		addedItems = Math.max( 0, args.length - 2 );
-		removedItems = args[ 1 ] !== undefined ? args[ 1 ] : array.length - start;
+		removedItems = args[ 1 ] !== undefined ? args[ 1 ] : array.length - rangeStart;
 		// It's possible to do e.g. [ 1, 2, 3 ].splice( 2, 2 ) - i.e. the second argument
 		// means removing more items from the end of the array than there are. In these
 		// cases we need to curb JavaScript's enthusiasm or we'll get out of sync
-		removedItems = Math.min( removedItems, array.length - start );
+		removedItems = Math.min( removedItems, array.length - rangeStart );
 		balance = addedItems - removedItems;
+		newLength = array.length + balance;
+		// We need to find the end of the range affected by the splice, and the last
+		// item that could already be cached (and therefore needs clearing)
+		if ( !balance ) {
+			// nice and easy
+			rangeEnd = clearEnd = rangeStart + addedItems;
+		} else {
+			// bit more complicated. rangeEnd is the *greater* of the
+			// old length and the new length
+			rangeEnd = Math.max( array.length, newLength );
+			// clearEnd is the *lesser* of those two values (since the
+			// difference between them could not have previously been cached)
+			clearEnd = Math.max( array.length, newLength );
+		}
 		return {
-			start: start,
+			rangeStart: rangeStart,
+			rangeEnd: rangeEnd,
+			clearEnd: clearEnd,
 			balance: balance,
 			added: addedItems,
 			removed: removedItems
@@ -1289,7 +1305,7 @@
 	var shared_get_arrayAdaptor_processWrapper = function( types, clearCache, notifyDependants, set ) {
 
 		return function( wrapper, array, methodName, spliceSummary ) {
-			var root, keypath, clearEnd, updateDependant, i, changed, start, end, childKeypath, lengthUnchanged;
+			var root, keypath, updateDependant, i, childKeypath, patternObservers;
 			root = wrapper.root;
 			keypath = wrapper.keypath;
 			root._changes.push( keypath );
@@ -1306,11 +1322,23 @@
 			}
 			// ...otherwise we do a smart update whereby elements are added/removed
 			// in the right place. But we do need to clear the cache downstream
-			clearEnd = !spliceSummary.balance ? spliceSummary.added : array.length - Math.min( spliceSummary.balance, 0 );
-			for ( i = spliceSummary.start; i < clearEnd; i += 1 ) {
+			for ( i = spliceSummary.rangeStart; i < spliceSummary.clearEnd; i += 1 ) {
 				clearCache( root, keypath + '.' + i );
 			}
-			// Propagate changes
+			// Propagate changes. First, pattern observers
+			if ( root._patternObservers.length ) {
+				patternObservers = root._patternObservers.filter( function( patternObserver ) {
+					return patternObserver.regex.test( keypath + '.x' );
+				} );
+				if ( patternObservers.length ) {
+					patternObservers.forEach( function( patternObserver ) {
+						var i;
+						for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
+							patternObserver.update( keypath + '.' + i );
+						}
+					} );
+				}
+			}
 			updateDependant = function( dependant ) {
 				// is this a DOM section?
 				if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
@@ -1328,11 +1356,7 @@
 			} );
 			// if we're removing old items and adding new ones, simultaneously, we need to force an update
 			if ( spliceSummary.added && spliceSummary.removed ) {
-				changed = Math.max( spliceSummary.added, spliceSummary.removed );
-				start = spliceSummary.start;
-				end = start + changed;
-				lengthUnchanged = spliceSummary.added === spliceSummary.removed;
-				for ( i = start; i < end; i += 1 ) {
+				for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
 					childKeypath = keypath + '.' + i;
 					notifyDependants( root, childKeypath );
 				}
@@ -1342,7 +1366,7 @@
 			// adding a new item (which should deactivate the 'all complete' checkbox
 			// but doesn't) this needs to happen before other updates. But doing so causes
 			// other mental problems. not sure what's going on...
-			if ( !lengthUnchanged ) {
+			if ( spliceSummary.balance ) {
 				clearCache( root, keypath + '.length' );
 				notifyDependants( root, keypath + '.length', true );
 			}
@@ -3061,16 +3085,17 @@
 		};
 	}( utils_isArray );
 
-	var Ractive_prototype_observe_PatternObserver = function( runloop, isEqual, get, getPattern ) {
+	var Ractive_prototype_observe_PatternObserver = function( runloop, isEqual, isArray, get, getPattern ) {
 
-		var PatternObserver, wildcard = /\*/;
+		var PatternObserver, wildcard = /\*/,
+			slice = Array.prototype.slice;
 		PatternObserver = function( ractive, keypath, callback, options ) {
 			this.root = ractive;
 			this.callback = callback;
 			this.defer = options.defer;
 			this.debug = options.debug;
 			this.keypath = keypath;
-			this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '[^\\.]+' ) + '$' );
+			this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
 			this.values = {};
 			if ( this.defer ) {
 				this.proxies = [];
@@ -3096,7 +3121,7 @@
 				}
 			},
 			update: function( keypath ) {
-				var values;
+				var values, value;
 				if ( wildcard.test( keypath ) ) {
 					values = getPattern( this.root, keypath );
 					for ( keypath in values ) {
@@ -3106,6 +3131,14 @@
 					}
 					return;
 				}
+				// special case - array mutation should not trigger `array.*`
+				// pattern observer with `array.length`
+				if ( keypath.substr( -7 ) === '.length' ) {
+					value = get( this.root, keypath.substr( 0, keypath.length - 7 ) );
+					if ( isArray( value ) && value._ractive && value._ractive.setting ) {
+						return;
+					}
+				}
 				if ( this.defer && this.ready ) {
 					runloop.addObserver( this.getProxy( keypath ) );
 					return;
@@ -3113,7 +3146,8 @@
 				this.reallyUpdate( keypath );
 			},
 			reallyUpdate: function( keypath ) {
-				var value = get( this.root, keypath );
+				var value, keys, args;
+				value = get( this.root, keypath );
 				// Prevent infinite loops
 				if ( this.updating ) {
 					this.values[ keypath ] = value;
@@ -3121,10 +3155,16 @@
 				}
 				this.updating = true;
 				if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
+					keys = slice.call( this.regex.exec( keypath ), 1 );
+					args = [
+						value,
+						this.values[ keypath ],
+						keypath
+					].concat( keys );
 					// wrap the callback in a try-catch block, and only throw error in
 					// debug mode
 					try {
-						this.callback.call( this.context, value, this.values[ keypath ], keypath );
+						this.callback.apply( this.context, args );
 					} catch ( err ) {
 						if ( this.debug || this.root.debug ) {
 							throw err;
@@ -3147,7 +3187,7 @@
 			}
 		};
 		return PatternObserver;
-	}( global_runloop, utils_isEqual, shared_get__get, Ractive_prototype_observe_getPattern );
+	}( global_runloop, utils_isEqual, utils_isArray, shared_get__get, Ractive_prototype_observe_getPattern );
 
 	var Ractive_prototype_observe_getObserverFacade = function( normaliseKeypath, registerDependant, unregisterDependant, Observer, PatternObserver ) {
 
@@ -4456,7 +4496,7 @@
 				// The array length hasn't changed - we don't need to add or remove anything
 				return;
 			}
-			start = spliceSummary.start;
+			start = spliceSummary.rangeStart;
 			section.length += balance;
 			// If more items were removed from the array than added, we tear down
 			// the excess fragments and remove them...
