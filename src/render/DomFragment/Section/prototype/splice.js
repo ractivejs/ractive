@@ -16,7 +16,7 @@ define([
 			return;
 		}
 
-		start = spliceSummary.start;
+		start = spliceSummary.rangeStart;
 		section.length += balance;
 
 		// If more items were removed from the array than added, we tear down

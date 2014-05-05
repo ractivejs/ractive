@@ -13,7 +13,7 @@ define([
 	'use strict';
 
 	return function ( wrapper, array, methodName, spliceSummary ) {
-		var root, keypath, clearEnd, updateDependant, i, changed, start, end, childKeypath, lengthUnchanged;
+		var root, keypath, updateDependant, i, childKeypath, patternObservers;
 
 		root = wrapper.root;
 		keypath = wrapper.keypath;
@@ -35,12 +35,27 @@ define([
 
 		// ...otherwise we do a smart update whereby elements are added/removed
 		// in the right place. But we do need to clear the cache downstream
-		clearEnd = ( !spliceSummary.balance ? spliceSummary.added : array.length - Math.min( spliceSummary.balance, 0 ) );
-		for ( i = spliceSummary.start; i < clearEnd; i += 1 ) {
+		for ( i = spliceSummary.rangeStart; i < spliceSummary.clearEnd; i += 1 ) {
 			clearCache( root, keypath + '.' + i );
 		}
 
-		// Propagate changes
+		// Propagate changes. First, pattern observers
+		if ( root._patternObservers.length ) {
+			patternObservers = root._patternObservers.filter( function ( patternObserver ) {
+				return patternObserver.regex.test( keypath + '.x' );
+			});
+
+			if ( patternObservers.length ) {
+				patternObservers.forEach( function ( patternObserver ) {
+					var i;
+
+					for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
+						patternObserver.update( keypath + '.' + i );
+					}
+				});
+			}
+		}
+
 		updateDependant = function ( dependant ) {
 			// is this a DOM section?
 			if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
@@ -61,13 +76,7 @@ define([
 
 		// if we're removing old items and adding new ones, simultaneously, we need to force an update
 		if ( spliceSummary.added && spliceSummary.removed ) {
-			changed = Math.max( spliceSummary.added, spliceSummary.removed );
-			start = spliceSummary.start;
-			end = start + changed;
-
-			lengthUnchanged = spliceSummary.added === spliceSummary.removed;
-
-			for ( i=start; i<end; i+=1 ) {
+			for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
 				childKeypath = keypath + '.' + i;
 				notifyDependants( root, childKeypath );
 			}
@@ -78,7 +87,7 @@ define([
 		// adding a new item (which should deactivate the 'all complete' checkbox
 		// but doesn't) this needs to happen before other updates. But doing so causes
 		// other mental problems. not sure what's going on...
-		if ( !lengthUnchanged ) {
+		if ( spliceSummary.balance ) {
 			clearCache( root, keypath + '.length' );
 			notifyDependants( root, keypath + '.length', true );
 		}

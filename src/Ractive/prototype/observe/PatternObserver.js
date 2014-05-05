@@ -1,11 +1,13 @@
 define([
 	'global/runloop',
 	'utils/isEqual',
+	'utils/isArray',
 	'shared/get/_get',
 	'Ractive/prototype/observe/getPattern'
 ], function (
 	runloop,
 	isEqual,
+	isArray,
 	get,
 	getPattern
 ) {
@@ -55,7 +57,7 @@ define([
 		},
 
 		update: function ( keypath ) {
-			var values;
+			var values, value;
 
 			if ( wildcard.test( keypath ) ) {
 				values = getPattern( this.root, keypath );
@@ -67,6 +69,16 @@ define([
 				}
 
 				return;
+			}
+
+			// special case - array mutation should not trigger `array.*`
+			// pattern observer with `array.length`
+			if ( keypath.substr( -7 ) === '.length' ) {
+				value = get( this.root, keypath.substr( 0, keypath.length - 7 ) );
+
+				if ( isArray( value ) && value._ractive && value._ractive.setting ) {
+					return;
+				}
 			}
 
 			if ( this.defer && this.ready ) {

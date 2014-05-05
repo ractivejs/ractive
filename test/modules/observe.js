@@ -261,6 +261,38 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'Pattern observers on arrays fire correctly after mutations', function ( t ) {
+			var ractive, lastKeypath, lastValue, observedLengthChange;
+
+			ractive = new Ractive({
+				data: {
+					items: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.observe( 'items.*', function ( n, o, k ) {
+				lastKeypath = k;
+				lastValue = n;
+
+				if ( k === 'items.length' ) {
+					observedLengthChange = true;
+				}
+			}, { init: false });
+
+			ractive.get( 'items' ).push( 'd' );
+			t.equal( lastKeypath, 'items.3' );
+			t.equal( lastValue, 'd' );
+
+			ractive.get( 'items' ).pop();
+			t.equal( lastKeypath, 'items.3' );
+			t.equal( lastValue, undefined );
+
+			t.ok( !observedLengthChange );
+
+			ractive.set( 'items.length', 4 );
+			t.ok( observedLengthChange );
+		});
+
 	};
 
 });
