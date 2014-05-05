@@ -4,6 +4,7 @@ define([
 	'render/DomFragment/Component/initialise/createModel/_createModel',
 	'render/DomFragment/Component/initialise/createInstance',
 	'render/DomFragment/Component/initialise/createBindings',
+	'render/DomFragment/Component/initialise/createMagicModeProperties',
 	'render/DomFragment/Component/initialise/propagateEvents',
 	'render/DomFragment/Component/initialise/updateLiveQueries'
 ], function (
@@ -12,6 +13,7 @@ define([
 	createModel,
 	createInstance,
 	createBindings,
+	createMagicModeProperties,
 	propagateEvents,
 	updateLiveQueries
 ) {
@@ -54,6 +56,10 @@ define([
 		createInstance( component, Component, data, docFrag, options.descriptor.f );
 		createBindings( component, toBind );
 		propagateEvents( component, options.descriptor.v );
+
+		if ( root.magic && !Component.defaults.isolated ) {
+			createMagicModeProperties( component );
+		}
 
 		// intro, outro and decorator directives have no effect
 		if ( options.descriptor.t1 || options.descriptor.t2 || options.descriptor.o ) {
