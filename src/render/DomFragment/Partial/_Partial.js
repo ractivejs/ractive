@@ -20,6 +20,7 @@ define([
 
 	DomPartial = function ( options, docFrag ) {
 		var parentFragment = this.parentFragment = options.parentFragment, descriptor;
+		var root = parentFragment.root;
 
 		this.type = types.PARTIAL;
 		this.name = options.descriptor.r;
@@ -32,9 +33,14 @@ define([
 
 		descriptor = getPartialDescriptor( parentFragment.root, options.descriptor.r );
 
+		//we want to use the content from the parent ractive (for any further content partials)
+		if (this.name == 'content') {
+			root = parentFragment.root._parent;
+		}
+
 		this.fragment = new DomFragment({
 			descriptor:   descriptor,
-			root:         parentFragment.root,
+			root:         root,
 			pNode:        parentFragment.pNode,
 			owner:        this
 		});
