@@ -38,4 +38,4 @@ export default function ( parser ) {
     }
 
     return [ opening, closing ];
-};
+}

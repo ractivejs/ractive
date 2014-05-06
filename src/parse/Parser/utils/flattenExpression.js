@@ -12,7 +12,7 @@ export default function ( expression ) {
     };
 
     return flattened;
-};
+}
 
 function quoteStringLiteral ( str ) {
     return JSON.stringify( String( str ) );

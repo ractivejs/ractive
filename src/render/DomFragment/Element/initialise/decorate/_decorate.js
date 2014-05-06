@@ -8,4 +8,4 @@ export default function ( descriptor, root, owner ) {
         owner.decorator = decorator;
         runloop.addDecorator( owner.decorator );
     }
-};
+}

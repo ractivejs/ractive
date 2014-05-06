@@ -52,7 +52,7 @@ export default function transformCss( css, guid ) {
     });
 
     return transformed;
-};
+}
 
 function trim ( str ) {
     if ( str.trim ) {

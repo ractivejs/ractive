@@ -31,7 +31,7 @@ export default function initMustache ( mustache, options ) {
         } else {
             mustache.ref = ref;
             runloop.addUnresolved( mustache );
-        }			
+        }
     }
 
 
@@ -64,4 +64,4 @@ export default function initMustache ( mustache, options ) {
     if ( mustache.descriptor.n && !mustache.hasOwnProperty( 'value' ) ) {
         mustache.render( undefined );
     }
-};
+}

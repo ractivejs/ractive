@@ -96,4 +96,4 @@ export default function resolveRef ( ractive, ref, fragment ) {
     else if ( get( ractive, ref ) !== undefined ) {
         return ref;
     }
-};
+}

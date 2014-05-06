@@ -46,4 +46,4 @@ export default function ( array, args ) {
         added: addedItems,
         removed: removedItems
     };
-};
+}

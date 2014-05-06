@@ -25,7 +25,7 @@ export default function ( str ) {
     }
 
     return str;
-};
+}
 
 function reducer ( previous, line ) {
     var lineIndent = leadingWhitespace.exec( line )[0];

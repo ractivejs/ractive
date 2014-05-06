@@ -6,4 +6,4 @@ export default function ( tokenizer ) {
     return getLiteral( tokenizer )
         || getReference( tokenizer )
         || getBracketedExpression( tokenizer );
-};
+}

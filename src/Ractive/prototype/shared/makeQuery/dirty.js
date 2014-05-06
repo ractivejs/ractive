@@ -5,4 +5,4 @@ export default function () {
         runloop.addLiveQuery( this );
         this._dirty = true;
     }
-};
+}

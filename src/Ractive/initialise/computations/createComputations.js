@@ -8,4 +8,4 @@ export default function createComputations ( ractive, computed ) {
         signature = getComputationSignature( computed[ key ] );
         ractive._computations[ key ] = new Computation( ractive, key, signature );
     }
-};
+}

@@ -82,4 +82,4 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
         clearCache( root, keypath + '.length' );
         notifyDependants( root, keypath + '.length', true );
     }
-};
+}

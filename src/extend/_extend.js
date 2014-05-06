@@ -64,4 +64,4 @@ export default function extend ( childProps ) {
     }
 
     return Child;
-};
+}

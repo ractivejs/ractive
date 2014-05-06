@@ -31,4 +31,4 @@ export default function ( attribute, name ) {
     // SVG attribute names are case sensitive
     attribute.name = ( attribute.element.namespace !== namespaces.html ? enforceCase( name ) : name );
     attribute.lcName = attribute.name.toLowerCase();
-};
+}

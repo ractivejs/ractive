@@ -31,7 +31,7 @@ export default function () {
 
     this.stringifying = false;
     return str;
-};
+}
 
 function optionIsSelected ( element ) {
     var optionValue, optionValueAttribute, optionValueInterpolator,

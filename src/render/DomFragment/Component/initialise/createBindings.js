@@ -15,4 +15,4 @@ export default function createInitialComponentBindings ( component, toBind ) {
             set( component.root, pair.parentKeypath, childValue );
         }
     });
-};
+}

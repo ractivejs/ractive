@@ -1,4 +1,3 @@
-import types from 'config/types';
 import getLowestIndex from 'parse/converters/utils/getLowestIndex';
 import decodeCharacterReferences from 'parse/converters/utils/decodeCharacterReferences';
 
@@ -26,4 +25,4 @@ export default function ( parser ) {
     parser.pos += index;
 
     return decodeCharacterReferences( remaining.substr( 0, index ) );
-};
+}

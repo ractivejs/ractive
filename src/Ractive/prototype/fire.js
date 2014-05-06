@@ -10,4 +10,4 @@ export default function ( eventName ) {
     for ( i=0, len=subscribers.length; i<len; i+=1 ) {
         subscribers[i].apply( this, args );
     }
-};
+}

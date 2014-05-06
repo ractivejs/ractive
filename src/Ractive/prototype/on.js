@@ -33,4 +33,4 @@ export default function ( eventName, callback ) {
             self.off( eventName, callback );
         }
     };
-};
+}

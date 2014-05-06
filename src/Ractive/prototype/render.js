@@ -44,7 +44,7 @@ export default function Ractive_prototype_render ( target, anchor, callback ) {
 
     delete this._rendering;
     runloop.end();
-};
+}
 
 function initChildren ( instance ) {
     var child;

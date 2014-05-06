@@ -5,4 +5,4 @@ export default function () {
         parentNode.removeChild( node );
         return node;
     }
-};
+}

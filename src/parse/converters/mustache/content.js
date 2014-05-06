@@ -132,7 +132,7 @@ export default function ( parser, isTriple ) {
     }
 
     return mustache;
-};
+}
 
 // TODO refactor this! it's bewildering
 function getKeypathExpression ( parser, expression ) {

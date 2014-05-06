@@ -14,4 +14,4 @@ export default function ( section, start, end, by ) {
         fragment.index = i;
         fragment.reassign( indexRef, i, oldKeypath, newKeypath );
     }
-};
+}

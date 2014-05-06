@@ -30,4 +30,4 @@ export default function initChildInstance ( child, Child, options ) {
     } else if ( child.init ) {
         child.init( options );
     }
-};
+}

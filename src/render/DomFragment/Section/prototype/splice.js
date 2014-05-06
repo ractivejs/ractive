@@ -40,7 +40,7 @@ export default function ( spliceSummary ) {
 
     // Create the new ones
     renderNewFragments( section, insertStart, insertEnd );
-};
+}
 
 function teardown ( fragment ) {
     fragment.teardown( true );

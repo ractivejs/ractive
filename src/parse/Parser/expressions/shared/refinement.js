@@ -44,4 +44,4 @@ export default function getRefinement ( parser ) {
     }
 
     return null;
-};
+}

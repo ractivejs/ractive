@@ -128,7 +128,7 @@ export default function ( keypath, to, options ) {
         animation.stop();
     };
     return promise;
-};
+}
 
 function animate ( root, keypath, to, options ) {
     var easing, duration, animation, from;

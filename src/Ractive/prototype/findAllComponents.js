@@ -25,4 +25,4 @@ export default function ( selector, options ) {
 
     this.fragment.findAllComponents( selector, query );
     return query;
-};
+}

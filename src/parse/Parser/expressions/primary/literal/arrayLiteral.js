@@ -25,4 +25,4 @@ export default function ( parser ) {
         t: types.ARRAY_LITERAL,
         m: expressionList
     };
-};
+}

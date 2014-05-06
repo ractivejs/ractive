@@ -18,4 +18,4 @@ export default function getUpstreamChanges ( changes ) {
     }
 
     return upstreamChanges;
-};
+}

@@ -1,4 +1,3 @@
-import types from 'config/types';
 import parseJSON from 'utils/parseJSON';
 
 // TODO clean this up, it's shocking
@@ -70,4 +69,4 @@ export default function ( tokens ) {
     }
 
     return result;
-};
+}

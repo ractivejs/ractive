@@ -14,4 +14,4 @@ export default function ( method, superMethod ) {
     else {
         return method;
     }
-};
+}

@@ -9,4 +9,4 @@ export default function ( thing ) {
         // this was registered as a dependant
         unregisterDependant( thing );
     }
-};
+}

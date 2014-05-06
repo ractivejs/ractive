@@ -1,7 +1,6 @@
 import initOptions from 'config/initOptions';
 import warn from 'utils/warn';
 import create from 'utils/create';
-import extend from 'utils/extend';
 import defineProperties from 'utils/defineProperties';
 import getElement from 'utils/getElement';
 import isArray from 'utils/isArray';
@@ -30,7 +29,7 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 
     // end init sequence
     ractive._initing = false;
-};
+}
 
 function setOptionsAndFlags ( ractive, defaults, options ) {
 

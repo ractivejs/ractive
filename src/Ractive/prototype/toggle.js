@@ -10,4 +10,4 @@ export default function ( keypath, callback ) {
 
     value = this.get( keypath );
     return this.set( keypath, !value, callback );
-};
+}

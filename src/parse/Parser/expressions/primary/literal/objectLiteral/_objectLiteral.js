@@ -28,4 +28,4 @@ export default function ( parser ) {
         t: types.OBJECT_LITERAL,
         m: keyValuePairs
     };
-};
+}

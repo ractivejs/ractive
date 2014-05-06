@@ -8,4 +8,4 @@ export default function ( selector, query ) {
     if ( this.fragment ) {
         this.fragment.findAll( selector, query );
     }
-};
+}

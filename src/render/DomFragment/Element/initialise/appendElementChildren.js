@@ -1,6 +1,5 @@
 import circular from 'circular';
 import warn from 'utils/warn';
-import namespaces from 'config/namespaces';
 import StringFragment from 'render/StringFragment/_StringFragment';
 
 var DomFragment, updateCss, updateScript;
@@ -22,8 +21,6 @@ updateCss = function () {
 
         node.appendChild( document.createTextNode(content) );
     }
-
-
 };
 
 updateScript = function () {
@@ -70,4 +67,4 @@ export default function appendElementChildren ( element, node, descriptor, docFr
     if ( docFrag ) {
         node.appendChild( element.fragment.docFrag );
     }
-};
+}

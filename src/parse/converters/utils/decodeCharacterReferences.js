@@ -28,7 +28,7 @@ export default function decodeCharacterReferences ( html ) {
     });
 
     return result;
-};
+}
 
 // some code points are verboten. If we were inserting HTML, the browser would replace the illegal
 // code points with alternatives in some cases - since we're bypassing that mechanism, we need

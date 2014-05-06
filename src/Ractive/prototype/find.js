@@ -4,4 +4,4 @@ export default function ( selector ) {
     }
 
     return this.fragment.find( selector );
-};
+}

@@ -20,4 +20,4 @@ export default function ( parser ) {
     // We have an illegal closing tag, report it
     parser.pos -= 2;
     parser.error( 'Illegal closing tag' );
-};
+}

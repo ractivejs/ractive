@@ -6,4 +6,4 @@ export default function ( fragment ) {
     } while ( fragment = fragment.parent );
 
     return '';
-};
+}

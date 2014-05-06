@@ -90,4 +90,4 @@ export default function sectionMerge ( newIndices ) {
     // reinsert fragment
     nextNode = parentFragment.findNextNode( this );
     parentFragment.pNode.insertBefore( this.docFrag, nextNode );
-};
+}

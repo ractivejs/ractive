@@ -16,4 +16,4 @@ export default function ( style, value ) {
     }
 
     return this;
-};
+}

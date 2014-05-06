@@ -32,4 +32,4 @@ export default function ( ractive, selector, live, isComponentQuery ) {
     });
 
     return query;
-};
+}

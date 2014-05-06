@@ -12,4 +12,4 @@ export default function ( tokenizer ) {
                   getArrayLiteral( tokenizer );
 
     return literal;
-};
+}

@@ -63,4 +63,4 @@ export default function observe ( keypath, callback, options ) {
             }
         }
     };
-};
+}

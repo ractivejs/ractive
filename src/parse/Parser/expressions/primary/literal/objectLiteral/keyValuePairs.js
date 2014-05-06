@@ -24,4 +24,4 @@ export default function getKeyValuePairs ( parser ) {
     }
 
     return pairs;
-};
+}

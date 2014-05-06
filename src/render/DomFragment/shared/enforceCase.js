@@ -15,4 +15,4 @@ map = createMap( svgCamelCaseElements.concat( svgCamelCaseAttributes ) );
 export default function ( elementName ) {
     var lowerCaseElementName = elementName.toLowerCase();
     return map[ lowerCaseElementName ] || lowerCaseElementName;
-};
+}

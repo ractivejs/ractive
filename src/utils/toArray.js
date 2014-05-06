@@ -5,4 +5,4 @@ export default function toArray ( arrayLike ) {
     }
 
     return array;
-};
+}

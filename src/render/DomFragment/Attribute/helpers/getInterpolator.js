@@ -16,4 +16,4 @@ export default function getInterpolator ( attribute ) {
     }
 
     return item;
-};
+}

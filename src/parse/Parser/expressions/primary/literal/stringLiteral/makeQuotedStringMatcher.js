@@ -46,4 +46,4 @@ export default function ( okQuote ) {
         // use JSON.parse to interpret escapes
         return JSON.parse( literal );
     };
-};
+}

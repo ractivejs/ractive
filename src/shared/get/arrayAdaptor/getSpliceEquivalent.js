@@ -25,4 +25,4 @@ export default function ( array, methodName, args ) {
         case 'unshift':
             return [ 0, 0 ].concat( args );
     }
-};
+}

@@ -33,4 +33,4 @@ export default function setStaticAttribute ( attribute, options ) {
     }
 
     attribute.value = options.value || null;
-};
+}

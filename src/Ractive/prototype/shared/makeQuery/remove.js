@@ -4,4 +4,4 @@ export default function ( nodeOrComponent ) {
     if ( index !== -1 ) {
         this.splice( index, 1 );
     }
-};
+}

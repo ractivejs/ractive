@@ -8,4 +8,4 @@ export default function () {
         this.node.getAttribute( 'style' );
         this.node.removeAttribute( 'style' );
     }
-};
+}

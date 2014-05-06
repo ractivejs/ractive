@@ -14,4 +14,4 @@ export default function ( root, keypath, d ) {
     }
 
     return root.set( keypath, value + d );
-};
+}

@@ -1,4 +1,3 @@
-import types from 'config/types';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 
@@ -24,7 +23,7 @@ export default function resolveMustache ( keypath ) {
         } else {
             reassignTarget = this;
         }
-        
+
         reassignTarget.reassign( null, null, this.keypath, keypath );
 
         //if we already updated due to reassignent, we can exit
@@ -38,4 +37,4 @@ export default function resolveMustache ( keypath ) {
 
     this.update();
 
-};
+}

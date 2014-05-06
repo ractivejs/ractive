@@ -28,4 +28,4 @@ export default function ( keypath, callback ) {
     }
 
     return promise;
-};
+}

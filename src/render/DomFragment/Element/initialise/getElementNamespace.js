@@ -8,4 +8,4 @@ export default function ( descriptor, parentNode ) {
 
     // otherwise, use the svg namespace if this is an svg element, or inherit namespace from parent
     return ( descriptor.e === 'svg' ? namespaces.svg : parentNode.namespaceURI || namespaces.html );
-};
+}

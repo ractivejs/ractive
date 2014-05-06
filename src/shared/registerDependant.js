@@ -16,7 +16,7 @@ export default function registerDependant ( dependant ) {
     }
 
     updateDependantsMap( ractive, keypath );
-};
+}
 
 function updateDependantsMap ( ractive, keypath ) {
     var keys, parentKeypath, map;

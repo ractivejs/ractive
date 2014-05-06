@@ -77,7 +77,7 @@ export default function merge ( keypath, array, options ) {
     }
 
     return promise;
-};
+}
 
 function stringify ( item ) {
     return JSON.stringify( item );

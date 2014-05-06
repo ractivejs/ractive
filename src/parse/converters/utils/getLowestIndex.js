@@ -20,4 +20,4 @@ export default function ( haystack, needles ) {
     }
 
     return lowest || -1;
-};
+}

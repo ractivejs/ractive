@@ -21,4 +21,4 @@ export default function ( Child ) {
             Child.defaults.template = parse( Child.defaults.template, Child.defaults ); // all the relevant options are on Child.defaults
         }
     }
-};
+}

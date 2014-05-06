@@ -20,4 +20,4 @@ export default function ( tokenizer ) {
     }
 
     return null;
-};
+}

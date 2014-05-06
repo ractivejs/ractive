@@ -46,4 +46,4 @@ export default function DomSection_prototype_render ( value ) {
             this.parentFragment.pNode.appendChild( this.docFrag );
         }
     }
-};
+}

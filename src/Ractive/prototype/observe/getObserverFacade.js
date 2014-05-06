@@ -42,4 +42,4 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
             unregisterDependant( observer );
         }
     };
-};
+}

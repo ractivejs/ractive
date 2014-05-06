@@ -34,4 +34,4 @@ export default function getElement( input ) {
     }
 
     return null;
-};
+}

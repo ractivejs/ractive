@@ -46,4 +46,4 @@ export default function ( parser ) {
         t: types.CONDITIONAL,
         o: [ expression, ifTrue, ifFalse ]
     };
-};
+}

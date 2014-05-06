@@ -41,7 +41,7 @@ export default function getFromParent ( child, keypath ) {
         createLateComponentBinding( parent, child, keypath, keypath, value );
         return value;
     }
-};
+}
 
 function createLateComponentBinding ( parent, child, parentKeypath, childKeypath, value ) {
     set( child, childKeypath, value, true );

@@ -1,5 +1,4 @@
 import circular from 'circular';
-import types from 'config/types';
 import create from 'utils/create';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import getConditional from 'parse/Parser/expressions/conditional';

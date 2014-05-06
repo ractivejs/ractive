@@ -1,4 +1,3 @@
-import isClient from 'config/isClient';
 import extend from 'utils/extend';
 import fillGaps from 'utils/fillGaps';
 import isObject from 'utils/isObject';
@@ -15,8 +14,8 @@ export default function ( ractive, defaults, options ) {
         // Assume this is an ID of a <script type='text/ractive'> tag
         if ( template.charAt( 0 ) === '#' ) {
             template = templateParser.fromId( template );
-        } 
-        
+        }
+
         parsedTemplate = templateParser.parse( template );
 
     } else {
@@ -41,4 +40,4 @@ export default function ( ractive, defaults, options ) {
     extend( ractive.partials, options.partials );
 
 
-};
+}

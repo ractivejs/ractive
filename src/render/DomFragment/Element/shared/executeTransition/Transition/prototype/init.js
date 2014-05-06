@@ -5,4 +5,4 @@ export default function () {
 
     this._inited = true;
     this._fn.apply( this.root, [ this ].concat( this.params ) );
-};
+}

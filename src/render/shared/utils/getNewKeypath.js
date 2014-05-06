@@ -11,4 +11,4 @@ export default function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
     if ( startsWithKeypath(targetKeypath, oldKeypath) ){
         return targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
     }
-};
+}

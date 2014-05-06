@@ -45,7 +45,7 @@ export default function ( html, tagName, namespace, docFrag ) {
     }
 
     return nodes;
-};
+}
 
 function element ( tagName ) {
     return elementCache[ tagName ] || ( elementCache[ tagName ] = createElement( tagName ) );

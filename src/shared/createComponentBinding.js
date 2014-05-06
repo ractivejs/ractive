@@ -99,4 +99,4 @@ export default function createComponentBinding ( component, parentInstance, pare
         parentToChildBinding.counterpart = childToParentBinding;
         childToParentBinding.counterpart = parentToChildBinding;
     }
-};
+}

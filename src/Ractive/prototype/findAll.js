@@ -29,4 +29,4 @@ export default function ( selector, options ) {
 
     this.fragment.findAll( selector, query );
     return query;
-};
+}

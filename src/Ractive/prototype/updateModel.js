@@ -20,7 +20,7 @@ export default function Ractive_prototype_updateModel ( keypath, cascade ) {
     }
 
     return this.set( values );
-};
+}
 
 function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes, cascade ) {
     var bindings, childDeps, i, binding, oldValue, newValue;

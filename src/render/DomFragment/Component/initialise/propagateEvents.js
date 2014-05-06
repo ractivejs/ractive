@@ -15,7 +15,7 @@ export default function ( component, eventsDescriptor ) {
             propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
         }
     }
-};
+}
 
 function propagateEvent ( childInstance, parentInstance, eventName, proxyEventName ) {
     if ( typeof proxyEventName !== 'string' ) {

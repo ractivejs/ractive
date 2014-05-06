@@ -47,7 +47,7 @@ export default function adaptIfNecessary ( ractive, keypath, value, isExpression
     }
 
     return value;
-};
+}
 
 function prefixKeypath ( obj, prefix ) {
     var prefixed = {}, key;

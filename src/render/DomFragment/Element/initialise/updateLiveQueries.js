@@ -18,4 +18,4 @@ export default function ( element ) {
             }
         }
     } while ( instance = instance._parent );
-};
+}

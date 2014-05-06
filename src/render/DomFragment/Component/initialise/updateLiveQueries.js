@@ -10,4 +10,4 @@ export default function ( component ) {
 
         ancestor = ancestor._parent;
     }
-};
+}

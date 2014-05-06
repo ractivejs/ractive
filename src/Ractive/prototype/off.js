@@ -25,4 +25,4 @@ export default function ( eventName, callback ) {
             subscribers.splice( index, 1 );
         }
     }
-};
+}

@@ -23,7 +23,7 @@ export default function ( component, defaultData, attributes, toBind ) {
     }
 
     return data;
-};
+}
 
 function getValue ( component, key, descriptor, toBind ) {
     var parameter, parsed, parentInstance, parentFragment, keypath, indexRef;

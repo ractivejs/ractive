@@ -39,4 +39,4 @@ export default function ( parser ) {
         k: key,
         v: value
     };
-};
+}

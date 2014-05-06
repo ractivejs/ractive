@@ -37,4 +37,4 @@ export default function ( oldArray, newArray ) {
 
     newIndices.unchanged = !changed;
     return newIndices;
-};
+}

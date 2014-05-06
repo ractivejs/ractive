@@ -14,4 +14,4 @@ export default function reassignFragment ( indexRef, newIndex, oldKeypath, newKe
     this.items.forEach(function(item){
         item.reassign( indexRef, newIndex, oldKeypath, newKeypath );
     });
-};
+}

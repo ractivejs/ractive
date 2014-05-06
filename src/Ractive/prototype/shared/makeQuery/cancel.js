@@ -10,4 +10,4 @@ export default function () {
         liveQueries.splice( index, 1 );
         liveQueries[ selector ] = null;
     }
-};
+}

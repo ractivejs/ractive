@@ -36,7 +36,7 @@ export default function ( component, Component, data, docFrag, contentDescriptor
     }
 
     return instance;
-};
+}
 
 function combineAdaptors ( root, defaultAdapt ) {
     var adapt, len, i;

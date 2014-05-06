@@ -28,4 +28,4 @@ export default function ( parser ) {
         t: types.BRACKETED,
         x: expr
     };
-};
+}

@@ -18,10 +18,10 @@ export default function ( template, callback ) {
             template: template
         };
     }
-    
-    changes = initialiseRegistries ( this, 
-        this.constructor.defaults, 
-        this.initOptions, 
+
+    changes = initialiseRegistries ( this,
+        this.constructor.defaults,
+        this.initOptions,
         options);
 
     if ( changes.length ) {
@@ -29,9 +29,9 @@ export default function ( template, callback ) {
         this.teardown();
 
         this._initing = true;
-        
+
         promise = renderInstance ( this, this.initOptions );
-        
+
         //same as initialise, but should this be in then()?
         this._initing = false;
 
@@ -44,4 +44,4 @@ export default function ( template, callback ) {
     }
 
     return promise;
-};
+}

@@ -18,4 +18,4 @@ export default function ( parser ) {
 
     parser.pos += 1;
     return type;
-};
+}

@@ -64,4 +64,4 @@ export default function ( Child, childProps ) {
                 : transformCss( childProps.css, Child._guid )
         });
     }
-};
+}

@@ -62,7 +62,7 @@ export default function updateSection ( section, value ) {
     else {
         updateConditionalSection( section, value, false, fragmentOptions );
     }
-};
+}
 
 function updateListSection ( section, value, fragmentOptions ) {
     var i, length, fragmentsToRemove;

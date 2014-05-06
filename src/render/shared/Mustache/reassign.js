@@ -35,4 +35,4 @@ export default function reassignMustache ( indexRef, newIndex, oldKeypath, newKe
             this.fragments[i].reassign( indexRef, newIndex, oldKeypath, newKeypath );
         }
     }
-};
+}

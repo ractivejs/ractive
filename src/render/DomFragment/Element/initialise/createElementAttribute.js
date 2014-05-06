@@ -20,4 +20,4 @@ export default function createElementAttribute ( element, name, fragment ) {
     if ( name !== 'name' ) {
         attr.update();
     }
-};
+}

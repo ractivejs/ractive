@@ -46,7 +46,7 @@ export default function ( a, b ) {
     }
 
     throw new Error( 'An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!' );
-};
+}
 
 function getParent ( item ) {
     var parentFragment;

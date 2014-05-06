@@ -18,4 +18,4 @@ export default function ( params, defaults ) {
     }
 
     return fillGaps( params, defaults );
-};
+}

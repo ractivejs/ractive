@@ -79,4 +79,4 @@ export default function ( parser ) {
         t: types.REFERENCE,
         n: combo
     };
-};
+}

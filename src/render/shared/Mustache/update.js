@@ -10,4 +10,4 @@ export default function updateMustache () {
         this.render( value );
         this.value = value;
     }
-};
+}

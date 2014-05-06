@@ -194,7 +194,7 @@ export default function initialiseElement ( element, options, docFrag ) {
 
 
     updateLiveQueries( element );
-};
+}
 
 function findParentSelect ( element ) {
     do {

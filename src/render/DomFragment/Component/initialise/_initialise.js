@@ -49,4 +49,4 @@ export default function initialiseComponent ( component, options, docFrag ) {
     }
 
     updateLiveQueries( component );
-};
+}

@@ -25,4 +25,4 @@ export default function ( items ) {
             items[ items.length - 1 ] = item;
         }
     }
-};
+}

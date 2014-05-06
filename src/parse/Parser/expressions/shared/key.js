@@ -20,4 +20,4 @@ export default function ( parser ) {
     if ( token = parser.matchPattern( patterns.name ) ) {
         return token;
     }
-};
+}

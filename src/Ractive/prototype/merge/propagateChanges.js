@@ -39,4 +39,4 @@ export default function ( ractive, keypath, newIndices, lengthUnchanged ) {
     if ( !lengthUnchanged ) {
         notifyDependants( ractive, keypath + '.length', true );
     }
-};
+}

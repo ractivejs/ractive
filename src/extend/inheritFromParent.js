@@ -25,4 +25,4 @@ export default function ( Child, Parent ) {
                 : transformCss( Parent.css, Child._guid )
         });
     }
-};
+}

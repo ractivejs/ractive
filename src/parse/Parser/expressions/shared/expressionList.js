@@ -31,4 +31,4 @@ export default function getExpressionList ( tokenizer ) {
     }
 
     return expressions;
-};
+}

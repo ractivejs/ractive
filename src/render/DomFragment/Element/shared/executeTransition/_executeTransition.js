@@ -24,4 +24,4 @@ export default function ( descriptor, ractive, owner, isIntro ) {
         node._ractive.transition = transition;
         runloop.addTransition( transition );
     }
-};
+}

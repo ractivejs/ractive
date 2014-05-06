@@ -7,7 +7,7 @@ if ( typeof window === 'undefined' ) {
     requestAnimationFrame = null;
 } else {
     // https://gist.github.com/paulirish/1579671
-    ((function(vendors, lastTime, window) {
+    (function(vendors, lastTime, window) {
 
         var x, setTimeout;
 
@@ -34,7 +34,7 @@ if ( typeof window === 'undefined' ) {
             };
         }
 
-    })( vendors, 0, window ));
+    }( vendors, 0, window ));
 
     requestAnimationFrame = window.requestAnimationFrame;
 }

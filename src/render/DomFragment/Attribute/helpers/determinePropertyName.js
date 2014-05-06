@@ -40,4 +40,4 @@ export default function ( attribute, options ) {
             attribute.useProperty = true;
         }
     }
-};
+}

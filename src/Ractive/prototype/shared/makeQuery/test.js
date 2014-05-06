@@ -12,4 +12,4 @@ export default function ( item, noDirty ) {
 
         return true;
     }
-};
+}

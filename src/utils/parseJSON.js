@@ -174,4 +174,4 @@ export default function ( str, values ) {
     });
 
     return parser.result;
-};
+}

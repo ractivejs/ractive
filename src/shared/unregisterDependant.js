@@ -20,7 +20,7 @@ export default function unregisterDependant ( dependant ) {
     }
 
     updateDependantsMap( ractive, keypath );
-};
+}
 
 function updateDependantsMap ( ractive, keypath ) {
     var keys, parentKeypath, map;

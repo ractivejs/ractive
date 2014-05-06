@@ -19,4 +19,4 @@ export default function ( Child, childProps ) {
         // move template to where it belongs
         Child.defaults.template = Child.defaults.template.main;
     }
-};
+}

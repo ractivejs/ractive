@@ -22,4 +22,4 @@ export default function clearCache ( ractive, keypath, dontTeardownWrapper ) {
             clearCache( ractive, cacheMap.pop() );
         }
     }
-};
+}

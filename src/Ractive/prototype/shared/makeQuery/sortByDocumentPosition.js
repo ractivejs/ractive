@@ -11,4 +11,4 @@ export default function ( node, otherNode ) {
     // In old IE, we can piggy back on the mechanism for
     // comparing component positions
     return sortByItemPosition( node, otherNode );
-};
+}

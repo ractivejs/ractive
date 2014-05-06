@@ -12,4 +12,4 @@ export default function ( element, attributes ) {
     }
 
     return element.attributes;
-};
+}

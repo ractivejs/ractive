@@ -65,4 +65,4 @@ export default function reassignElement ( indexRef, newIndex, oldKeypath, newKey
             liveQueries[i]._makeDirty();
         }
     }
-};
+}

@@ -40,4 +40,4 @@ export default function Ractive_prototype_set ( keypath, value, callback ) {
     }
 
     return promise;
-};
+}

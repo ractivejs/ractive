@@ -10,4 +10,4 @@ export default function ( target, anchor ) {
 
     target.insertBefore( this.detach(), anchor );
     this.fragment.pNode = this.el = target;
-};
+}

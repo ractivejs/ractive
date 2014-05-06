@@ -10,4 +10,4 @@ export default function ( string, indent ) {
     }).join( '\n' );
 
     return indented;
-};
+}

@@ -47,7 +47,7 @@ export default function Element_prototype_teardown ( destroy ) {
     if ( this.liveQueries ) {
         removeFromLiveQueries( this );
     }
-};
+}
 
 function removeFromLiveQueries ( element ) {
     var query, selector, i;

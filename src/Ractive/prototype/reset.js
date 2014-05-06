@@ -8,7 +8,7 @@ import renderInstance from 'Ractive/initialise/renderInstance';
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
 
 export default function ( data, callback ) {
-    var promise, fulfilPromise, wrapper, 
+    var promise, fulfilPromise, wrapper,
         changes, rerender, i;
 
     if ( typeof data === 'function' && !callback ) {
@@ -34,9 +34,9 @@ export default function ( data, callback ) {
 
     this.initOptions.data = this.data;
 
-    changes = initialiseRegistries ( this, this.constructor.defaults, 
+    changes = initialiseRegistries ( this, this.constructor.defaults,
         this.initOptions, { updatesOnly: true } );
-    
+
     i = changes.length;
     while(i--) {
         if ( shouldRerender.indexOf( changes[i] > -1 ) ) {
@@ -50,9 +50,9 @@ export default function ( data, callback ) {
         this.teardown();
 
         this._initing = true;
-        
+
         promise = renderInstance ( this, this.initOptions );
-        
+
         //same as initialise, but should this be in then()?
         this._initing = false;
 
@@ -60,7 +60,7 @@ export default function ( data, callback ) {
         // this.fire( 'reset', data );
 
     } else {
-        
+
         promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
         runloop.start( this, fulfilPromise );
@@ -69,7 +69,7 @@ export default function ( data, callback ) {
         notifyDependants( this, '' );
 
         runloop.end();
-    
+
         this.fire( 'reset', data );
     }
 
@@ -78,4 +78,4 @@ export default function ( data, callback ) {
     }
 
     return promise;
-};
+}

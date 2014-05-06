@@ -19,7 +19,7 @@ export default function ( signature ) {
     }
 
     return signature;
-};
+}
 
 function createFunctionFromString ( signature ) {
     var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function ( match, keypath ) {

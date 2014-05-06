@@ -42,7 +42,7 @@ export default function getPartialDescriptor ( ractive, name ) {
     }
 
     return partial;
-};
+}
 
 function getPartialFromRegistry ( ractive, name ) {
     var partial;

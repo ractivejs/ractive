@@ -25,4 +25,4 @@ export default function Ractive_prototype_get ( keypath ) {
     }
 
     return value;
-};
+}

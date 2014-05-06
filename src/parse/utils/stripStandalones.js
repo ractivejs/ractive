@@ -47,7 +47,7 @@ export default function ( items ) {
     }
 
     return items;
-};
+}
 
 function isString ( item ) {
     return typeof item === 'string';

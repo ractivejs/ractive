@@ -8,4 +8,4 @@ export default function ( selector ) {
     if ( this.fragment && this.fragment.find ) {
         return this.fragment.find( selector );
     }
-};
+}

@@ -1,5 +1,4 @@
 import types from 'config/types';
-import warn from 'utils/warn';
 import parseJSON from 'utils/parseJSON';
 
 var empty = {};
@@ -44,7 +43,7 @@ export default function StringFragment$getValue ( options ) {
     }
 
     return this[ cache ];
-};
+}
 
 function processItems ( items, values, guid, counter ) {
     counter = counter || 0;

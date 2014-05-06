@@ -3,7 +3,7 @@ import isClient from 'config/isClient';
 import parse from 'parse/_parse';
 
 export default function ( options ) {
-    
+
     return {
         fromId: function ( id ) {
             var template;
@@ -17,9 +17,9 @@ export default function ( options ) {
 
             if ( !( template = document.getElementById( id ) )) {
                 throw new Error( 'Could not find template element with id #' + id );
-            }	
+            }
 
-            return template.innerHTML;			
+            return template.innerHTML;
 
         },
         parse: function ( template, parseOptions ) {
@@ -30,6 +30,6 @@ export default function ( options ) {
         },
         isParsed: function ( template) {
             return !( typeof template === 'string' );
-        } 
+        }
     };
-};
+}

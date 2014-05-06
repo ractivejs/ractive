@@ -30,4 +30,4 @@ export default function renderInstance ( ractive, options ) {
     ractive.transitionsEnabled = options.transitionsEnabled;
 
     return promise;
-};
+}
