@@ -739,6 +739,11 @@ var parseTests = [
 		template: '<div on-foo="change"></div>',
 		error: 'Cannot use reserved event names (change, reset, teardown, update) at line 1 character 15:\n' +
 			'<div on-foo=\"change\"></div>\n              ^----'
+	},
+	{
+		name: 'Reserved event names can be part of proxy event names',
+		template: '<div on-foo="thiswillchange"></div>',
+		parsed: [{t:7,e:'div',v:{foo:'thiswillchange'}}]
 	}
 ];
 

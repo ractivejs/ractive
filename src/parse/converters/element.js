@@ -24,7 +24,7 @@ define([
 		validTagNameFollower = /^[\s\n\/>]/,
 		onPattern = /^on/,
 		proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
-		reservedEventNames = /(?:change|reset|teardown|update)/,
+		reservedEventNames = /^(?:change|reset|teardown|update)$/,
 		directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 		exclude = { exclude: true },
 		converters;
