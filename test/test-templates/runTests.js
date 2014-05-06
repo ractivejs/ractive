@@ -5,13 +5,13 @@
 	var isBuild, config, i, prefixedModules = [];
 
 	config = {
-		baseUrl: '../<%= levels %>src/',
+		baseUrl: '../<%= levels %>.amd/',
 		paths: {
 			modules: '../test/modules',
 			samples: '../test/samples',
 			vendor: '../test/vendor'
 		}
-	};	
+	};
 
 	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
 		config.paths.ractive = '../tmp/ractive-legacy';
@@ -38,7 +38,7 @@
 		});
 
 		QUnit.start();
-		
+
 	});
 
 }());
