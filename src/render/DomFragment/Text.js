@@ -1,48 +1,38 @@
-define([
-	'config/types',
-	'render/DomFragment/shared/detach'
-], function (
-	types,
-	detach
-) {
+import types from 'config/types';
+import detach from 'render/DomFragment/shared/detach';
 
-	'use strict';
+var DomText, lessThan, greaterThan;
+lessThan = /</g;
+greaterThan = />/g;
 
-	var DomText, lessThan, greaterThan;
+DomText = function ( options, docFrag ) {
+    this.type = types.TEXT;
+    this.descriptor = options.descriptor;
 
-	lessThan = /</g;
-	greaterThan = />/g;
+    if ( docFrag ) {
+        this.node = document.createTextNode( options.descriptor );
+        docFrag.appendChild( this.node );
+    }
+};
 
-	DomText = function ( options, docFrag ) {
-		this.type = types.TEXT;
-		this.descriptor = options.descriptor;
+DomText.prototype = {
+    detach: detach,
 
-		if ( docFrag ) {
-			this.node = document.createTextNode( options.descriptor );
-			docFrag.appendChild( this.node );
-		}
-	};
+    reassign: function () {}, //no-op
 
-	DomText.prototype = {
-		detach: detach,
+    teardown: function ( destroy ) {
+        if ( destroy ) {
+            this.detach();
+        }
+    },
 
-		reassign: function () {}, //no-op
+    firstNode: function () {
+        return this.node;
+    },
 
-		teardown: function ( destroy ) {
-			if ( destroy ) {
-				this.detach();
-			}
-		},
+    toString: function () {
+        return ( '' + this.descriptor ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
+    }
+};
 
-		firstNode: function () {
-			return this.node;
-		},
-
-		toString: function () {
-			return ( '' + this.descriptor ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
-		}
-	};
-
-	return DomText;
-
-});
+export default DomText;

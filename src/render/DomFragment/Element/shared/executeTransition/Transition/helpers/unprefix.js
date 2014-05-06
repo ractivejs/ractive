@@ -1,15 +1,7 @@
-define([
-	'config/vendors'
-], function (
-	vendors
-) {
+import vendors from 'config/vendors';
 
-	'use strict';
+var unprefixPattern = new RegExp( '^-(?:' + vendors.join( '|' ) + ')-' );
 
-	var unprefixPattern = new RegExp( '^-(?:' + vendors.join( '|' ) + ')-' );
-
-	return function ( prop ) {
-		return prop.replace( unprefixPattern, '' );
-	};
-
-});
+export default function ( prop ) {
+    return prop.replace( unprefixPattern, '' );
+};

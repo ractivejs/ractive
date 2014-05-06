@@ -1,7 +1,1 @@
-define( function () {
-
-	'use strict';
-
-	return [ 'o', 'ms', 'moz', 'webkit' ];
-
-});
+export default [ 'o', 'ms', 'moz', 'webkit' ];

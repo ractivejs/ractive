@@ -1,22 +1,18 @@
-define([ 'config/types' ], function ( types ) {
+import types from 'config/types';
 
-	'use strict';
+var StringText = function ( text ) {
+    this.type = types.TEXT;
+    this.text = text;
+};
 
-	var StringText = function ( text ) {
-		this.type = types.TEXT;
-		this.text = text;
-	};
+StringText.prototype = {
+    toString: function () {
+        return this.text;
+    },
 
-	StringText.prototype = {
-		toString: function () {
-			return this.text;
-		},
+    reassign: function () {}, //no-op
 
-		reassign: function () {}, //no-op
+    teardown: function () {} // no-op
+};
 
-		teardown: function () {} // no-op
-	};
-
-	return StringText;
-
-});
+export default StringText;

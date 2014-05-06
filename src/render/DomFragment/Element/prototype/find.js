@@ -1,19 +1,11 @@
-define([
-	'utils/matches'
-], function (
-	matches
-) {
+import matches from 'utils/matches';
 
-	'use strict';
+export default function ( selector ) {
+    if ( matches( this.node, selector ) ) {
+        return this.node;
+    }
 
-	return function ( selector ) {
-		if ( matches( this.node, selector ) ) {
-			return this.node;
-		}
-
-		if ( this.fragment && this.fragment.find ) {
-			return this.fragment.find( selector );
-		}
-	};
-
-});
+    if ( this.fragment && this.fragment.find ) {
+        return this.fragment.find( selector );
+    }
+};

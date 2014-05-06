@@ -1,28 +1,18 @@
-define([
-	'shared/createComponentBinding',
-	'shared/get/_get',
-	'shared/set'
-], function (
-	createComponentBinding,
-	get,
-	set
-) {
+import createComponentBinding from 'shared/createComponentBinding';
+import get from 'shared/get/_get';
+import set from 'shared/set';
 
-	'use strict';
+export default function createInitialComponentBindings ( component, toBind ) {
+    toBind.forEach( function createInitialComponentBinding ( pair ) {
+        var childValue, parentValue;
 
-	return function createInitialComponentBindings ( component, toBind ) {
-		toBind.forEach( function createInitialComponentBinding ( pair ) {
-			var childValue, parentValue;
+        createComponentBinding( component, component.root, pair.parentKeypath, pair.childKeypath );
 
-			createComponentBinding( component, component.root, pair.parentKeypath, pair.childKeypath );
+        childValue = get( component.instance, pair.childKeypath );
+        parentValue = get( component.root, pair.parentKeypath );
 
-			childValue = get( component.instance, pair.childKeypath );
-			parentValue = get( component.root, pair.parentKeypath );
-
-			if ( childValue !== undefined && parentValue === undefined ) {
-				set( component.root, pair.parentKeypath, childValue );
-			}
-		});
-	};
-
-});
+        if ( childValue !== undefined && parentValue === undefined ) {
+            set( component.root, pair.parentKeypath, childValue );
+        }
+    });
+};

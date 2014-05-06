@@ -1,18 +1,12 @@
-define( function () {
-
-	'use strict';
-
-	return [,
-		'data',
-		'computed',
-		'adaptors',
-		'components',
-		'decorators',
-		'easing',
-		'events',
-		'interpolators',
-		'partials',
-		'transitions'
-	];
-
-});
+export default [,
+    'data',
+    'computed',
+    'adaptors',
+    'components',
+    'decorators',
+    'easing',
+    'events',
+    'interpolators',
+    'partials',
+    'transitions'
+];

@@ -1,51 +1,40 @@
-define([
-	'shared/get/magicAdaptor',
-	'shared/get/arrayAdaptor/_arrayAdaptor'
-], function (
-	magicAdaptor,
-	arrayAdaptor
-) {
+import magicAdaptor from 'shared/get/magicAdaptor';
+import arrayAdaptor from 'shared/get/arrayAdaptor/_arrayAdaptor';
 
-	'use strict';
+var magicArrayAdaptor, MagicArrayWrapper;
 
-	if ( !magicAdaptor ) {
-		return false;
-	}
+if ( magicAdaptor ) {
+    magicArrayAdaptor = {
+        filter: function ( object, keypath, ractive ) {
+            return magicAdaptor.filter( object, keypath, ractive ) && arrayAdaptor.filter( object );
+        },
 
-	var magicArrayAdaptor, MagicArrayWrapper;
+        wrap: function ( ractive, array, keypath ) {
+            return new MagicArrayWrapper( ractive, array, keypath );
+        }
+    };
 
-	magicArrayAdaptor = {
-		filter: function ( object, keypath, ractive ) {
-			return magicAdaptor.filter( object, keypath, ractive ) && arrayAdaptor.filter( object );
-		},
+    MagicArrayWrapper = function ( ractive, array, keypath ) {
+        this.value = array;
 
-		wrap: function ( ractive, array, keypath ) {
-			return new MagicArrayWrapper( ractive, array, keypath );
-		}
-	};
+        this.magic = true;
 
-	MagicArrayWrapper = function ( ractive, array, keypath ) {
-		this.value = array;
+        this.magicWrapper = magicAdaptor.wrap( ractive, array, keypath );
+        this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
+    };
 
-		this.magic = true;
+    MagicArrayWrapper.prototype = {
+        get: function () {
+            return this.value;
+        },
+        teardown: function () {
+            this.arrayWrapper.teardown();
+            this.magicWrapper.teardown();
+        },
+        reset: function ( value ) {
+            return this.magicWrapper.reset( value );
+        }
+    };
+}
 
-		this.magicWrapper = magicAdaptor.wrap( ractive, array, keypath );
-		this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
-	};
-
-	MagicArrayWrapper.prototype = {
-		get: function () {
-			return this.value;
-		},
-		teardown: function () {
-			this.arrayWrapper.teardown();
-			this.magicWrapper.teardown();
-		},
-		reset: function ( value ) {
-			return this.magicWrapper.reset( value );
-		}
-	};
-
-	return magicArrayAdaptor;
-
-});
+export default magicArrayAdaptor;

@@ -1,112 +1,102 @@
-define([
-	'utils/warn',
-	'render/StringFragment/_StringFragment'
-], function (
-	warn,
-	StringFragment
-) {
+import warn from 'utils/warn';
+import StringFragment from 'render/StringFragment/_StringFragment';
 
-	'use strict';
+var getValueOptions, Decorator;
+getValueOptions = { args: true };
 
-	var getValueOptions, Decorator;
+Decorator = function ( descriptor, ractive, owner ) {
+    var decorator = this, name, fragment, errorMessage;
 
-	getValueOptions = { args: true };
+    decorator.root = ractive;
+    decorator.node = owner.node;
 
-	Decorator = function ( descriptor, ractive, owner ) {
-		var decorator = this, name, fragment, errorMessage;
+    name = descriptor.n || descriptor;
 
-		decorator.root = ractive;
-		decorator.node = owner.node;
+    if ( typeof name !== 'string' ) {
+        fragment = new StringFragment({
+            descriptor:   name,
+            root:         ractive,
+            owner:        owner
+        });
 
-		name = descriptor.n || descriptor;
+        name = fragment.toString();
+        fragment.teardown();
+    }
 
-		if ( typeof name !== 'string' ) {
-			fragment = new StringFragment({
-				descriptor:   name,
-				root:         ractive,
-				owner:        owner
-			});
+    if ( descriptor.a ) {
+        decorator.params = descriptor.a;
+    }
 
-			name = fragment.toString();
-			fragment.teardown();
-		}
+    else if ( descriptor.d ) {
+        decorator.fragment = new StringFragment({
+            descriptor:   descriptor.d,
+            root:         ractive,
+            owner:        owner
+        });
 
-		if ( descriptor.a ) {
-			decorator.params = descriptor.a;
-		}
+        decorator.params = decorator.fragment.getValue( getValueOptions );
 
-		else if ( descriptor.d ) {
-			decorator.fragment = new StringFragment({
-				descriptor:   descriptor.d,
-				root:         ractive,
-				owner:        owner
-			});
+        decorator.fragment.bubble = function () {
+            this.dirtyArgs = this.dirtyValue = true;
+            decorator.params = this.getValue( getValueOptions );
 
-			decorator.params = decorator.fragment.getValue( getValueOptions );
+            if ( decorator.ready ) {
+                decorator.update();
+            }
+        };
+    }
 
-			decorator.fragment.bubble = function () {
-				this.dirtyArgs = this.dirtyValue = true;
-				decorator.params = this.getValue( getValueOptions );
+    decorator.fn = ractive.decorators[ name ];
 
-				if ( decorator.ready ) {
-					decorator.update();
-				}
-			};
-		}
+    if ( !decorator.fn ) {
+        errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
 
-		decorator.fn = ractive.decorators[ name ];
+        if ( ractive.debug ) {
+            throw new Error( errorMessage );
+        } else {
+            warn( errorMessage );
+        }
+    }
+};
 
-		if ( !decorator.fn ) {
-			errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
+Decorator.prototype = {
+    init: function () {
+        var result, args;
 
-			if ( ractive.debug ) {
-				throw new Error( errorMessage );
-			} else {
-				warn( errorMessage );
-			}
-		}
-	};
+        if ( this.params ) {
+            args = [ this.node ].concat( this.params );
+            result = this.fn.apply( this.root, args );
+        } else {
+            result = this.fn.call( this.root, this.node );
+        }
 
-	Decorator.prototype = {
-		init: function () {
-			var result, args;
+        if ( !result || !result.teardown ) {
+            throw new Error( 'Decorator definition must return an object with a teardown method' );
+        }
 
-			if ( this.params ) {
-				args = [ this.node ].concat( this.params );
-				result = this.fn.apply( this.root, args );
-			} else {
-				result = this.fn.call( this.root, this.node );
-			}
+        // TODO does this make sense?
+        this.actual = result;
+        this.ready = true;
+    },
 
-			if ( !result || !result.teardown ) {
-				throw new Error( 'Decorator definition must return an object with a teardown method' );
-			}
+    update: function () {
+        if ( this.actual.update ) {
+            this.actual.update.apply( this.root, this.params );
+        }
 
-			// TODO does this make sense?
-			this.actual = result;
-			this.ready = true;
-		},
+        else {
+            this.actual.teardown( true );
+            this.init();
+        }
+    },
 
-		update: function () {
-			if ( this.actual.update ) {
-				this.actual.update.apply( this.root, this.params );
-			}
+    teardown: function ( updating ) {
+        this.actual.teardown();
 
-			else {
-				this.actual.teardown( true );
-				this.init();
-			}
-		},
+        if ( !updating && this.fragment ) {
+            this.fragment.teardown();
+        }
+    }
+};
 
-		teardown: function ( updating ) {
-			this.actual.teardown();
-
-			if ( !updating && this.fragment ) {
-				this.fragment.teardown();
-			}
-		}
-	};
-
-	return Decorator;
-
-});
+export default Decorator;

@@ -1,4 +1,4 @@
-define({
+export default {
 	TEXT              : 1,
 	INTERPOLATOR      : 2,
 	TRIPLE            : 3,
@@ -39,4 +39,4 @@ define({
 	SECTION_UNLESS    : 51,
 	SECTION_EACH      : 52,
 	SECTION_WITH      : 53
-});
+};

@@ -1,41 +1,32 @@
-define([
-	'config/types',
-	'render/DomFragment/shared/detach'
-], function (
-	types,
-	detach
-) {
+import types from 'config/types';
+import detach from 'render/DomFragment/shared/detach';
 
-	'use strict';
+var DomComment = function ( options, docFrag ) {
+    this.type = types.COMMENT;
+    this.descriptor = options.descriptor;
 
-	var DomComment = function ( options, docFrag ) {
-		this.type = types.COMMENT;
-		this.descriptor = options.descriptor;
+    if ( docFrag ) {
+        this.node = document.createComment( options.descriptor.c );
+        docFrag.appendChild( this.node );
+    }
+};
 
-		if ( docFrag ) {
-			this.node = document.createComment( options.descriptor.c );
-			docFrag.appendChild( this.node );
-		}
-	};
+DomComment.prototype = {
+    detach: detach,
 
-	DomComment.prototype = {
-		detach: detach,
+    teardown: function ( destroy ) {
+        if ( destroy ) {
+            this.detach();
+        }
+    },
 
-		teardown: function ( destroy ) {
-			if ( destroy ) {
-				this.detach();
-			}
-		},
+    firstNode: function () {
+        return this.node;
+    },
 
-		firstNode: function () {
-			return this.node;
-		},
+    toString: function () {
+        return '<!--' + this.descriptor.c + '-->';
+    }
+};
 
-		toString: function () {
-			return '<!--' + this.descriptor.c + '-->';
-		}
-	};
-
-	return DomComment;
-
-});
+export default DomComment;

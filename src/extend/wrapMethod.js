@@ -1,23 +1,17 @@
-define( function () {
+export default function ( method, superMethod ) {
+    if ( /_super/.test( method ) ) {
+        return function () {
+            var _super = this._super, result;
+            this._super = superMethod;
 
-	'use strict';
+            result = method.apply( this, arguments );
 
-	return function ( method, superMethod ) {
-		if ( /_super/.test( method ) ) {
-			return function () {
-				var _super = this._super, result;
-				this._super = superMethod;
+            this._super = _super;
+            return result;
+        };
+    }
 
-				result = method.apply( this, arguments );
-
-				this._super = _super;
-				return result;
-			};
-		}
-
-		else {
-			return method;
-		}
-	};
-
-});
+    else {
+        return method;
+    }
+};

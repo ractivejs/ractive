@@ -1,64 +1,53 @@
-define([
-	'config/types',
-	'parse/Parser/expressions/primary/_primary',
-	'parse/Parser/expressions/shared/expressionList',
-	'parse/Parser/expressions/shared/refinement'
-], function (
-	types,
-	getPrimary,
-	getExpressionList,
-	getRefinement
-) {
+import types from 'config/types';
+import getPrimary from 'parse/Parser/expressions/primary/_primary';
+import getExpressionList from 'parse/Parser/expressions/shared/expressionList';
+import getRefinement from 'parse/Parser/expressions/shared/refinement';
 
-	'use strict';
+export default function ( parser ) {
+    var current, expression, refinement, expressionList;
 
-	return function ( parser ) {
-		var current, expression, refinement, expressionList;
+    expression = getPrimary( parser );
 
-		expression = getPrimary( parser );
+    if ( !expression ) {
+        return null;
+    }
 
-		if ( !expression ) {
-			return null;
-		}
+    while ( expression ) {
+        current = parser.pos;
 
-		while ( expression ) {
-			current = parser.pos;
+        if ( refinement = getRefinement( parser ) ) {
+            expression = {
+                t: types.MEMBER,
+                x: expression,
+                r: refinement
+            };
+        }
 
-			if ( refinement = getRefinement( parser ) ) {
-				expression = {
-					t: types.MEMBER,
-					x: expression,
-					r: refinement
-				};
-			}
+        else if ( parser.matchString( '(' ) ) {
+            parser.allowWhitespace();
+            expressionList = getExpressionList( parser );
 
-			else if ( parser.matchString( '(' ) ) {
-				parser.allowWhitespace();
-				expressionList = getExpressionList( parser );
+            parser.allowWhitespace();
 
-				parser.allowWhitespace();
+            if ( !parser.matchString( ')' ) ) {
+                parser.pos = current;
+                break;
+            }
 
-				if ( !parser.matchString( ')' ) ) {
-					parser.pos = current;
-					break;
-				}
+            expression = {
+                t: types.INVOCATION,
+                x: expression
+            };
 
-				expression = {
-					t: types.INVOCATION,
-					x: expression
-				};
+            if ( expressionList ) {
+                expression.o = expressionList;
+            }
+        }
 
-				if ( expressionList ) {
-					expression.o = expressionList;
-				}
-			}
+        else {
+            break;
+        }
+    }
 
-			else {
-				break;
-			}
-		}
-
-		return expression;
-	};
-
-});
+    return expression;
+};

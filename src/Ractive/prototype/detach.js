@@ -1,9 +1,3 @@
-define( function () {
-
-	'use strict';
-
-	return function () {
-		return this.fragment.detach();
-	};
-
-});
+export default function () {
+    return this.fragment.detach();
+};

@@ -1,51 +1,41 @@
-define([
-	'config/types',
-	'shared/teardown',
-	'render/shared/Mustache/_Mustache',
-], function (
-	types,
-	teardown,
-	Mustache
-) {
+import types from 'config/types';
+import teardown from 'shared/teardown';
+import Mustache from 'render/shared/Mustache/_Mustache';
 
-	'use strict';
+var StringInterpolator = function ( options ) {
+    this.type = types.INTERPOLATOR;
+    Mustache.init( this, options );
+};
 
-	var StringInterpolator = function ( options ) {
-		this.type = types.INTERPOLATOR;
-		Mustache.init( this, options );
-	};
+StringInterpolator.prototype = {
+    update: Mustache.update,
+    resolve: Mustache.resolve,
+    reassign: Mustache.reassign,
 
-	StringInterpolator.prototype = {
-		update: Mustache.update,
-		resolve: Mustache.resolve,
-		reassign: Mustache.reassign,
+    render: function ( value ) {
+        this.value = value;
+        this.parentFragment.bubble();
+    },
 
-		render: function ( value ) {
-			this.value = value;
-			this.parentFragment.bubble();
-		},
+    teardown: function () {
+        teardown( this );
+    },
 
-		teardown: function () {
-			teardown( this );
-		},
+    toString: function () {
+        if ( this.value == undefined ) {
+            return '';
+        }
 
-		toString: function () {
-			if ( this.value == undefined ) {
-				return '';
-			}
+        return stringify( this.value );
+    }
+};
 
-			return stringify( this.value );
-		}
-	};
+export default StringInterpolator;
 
-	return StringInterpolator;
+function stringify ( value ) {
+    if ( typeof value === 'string' ) {
+        return value;
+    }
 
-	function stringify ( value ) {
-		if ( typeof value === 'string' ) {
-			return value;
-		}
-
-		return JSON.stringify( value );
-	}
-
-});
+    return JSON.stringify( value );
+}

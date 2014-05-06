@@ -1,53 +1,47 @@
-define( function () {
+export default function unregisterDependant ( dependant ) {
+    var deps, index, ractive, keypath, priority;
 
-	'use strict';
+    ractive = dependant.root;
+    keypath = dependant.keypath;
+    priority = dependant.priority;
 
-	return function unregisterDependant ( dependant ) {
-		var deps, index, ractive, keypath, priority;
+    deps = ractive._deps[ priority ][ keypath ];
+    index = deps.indexOf( dependant );
 
-		ractive = dependant.root;
-		keypath = dependant.keypath;
-		priority = dependant.priority;
+    if ( index === -1 || !dependant.registered ) {
+        throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
+    }
 
-		deps = ractive._deps[ priority ][ keypath ];
-		index = deps.indexOf( dependant );
+    deps.splice( index, 1 );
+    dependant.registered = false;
 
-		if ( index === -1 || !dependant.registered ) {
-			throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
-		}
+    if ( !keypath ) {
+        return;
+    }
 
-		deps.splice( index, 1 );
-		dependant.registered = false;
+    updateDependantsMap( ractive, keypath );
+};
 
-		if ( !keypath ) {
-			return;
-		}
+function updateDependantsMap ( ractive, keypath ) {
+    var keys, parentKeypath, map;
 
-		updateDependantsMap( ractive, keypath );
-	};
+    // update dependants map
+    keys = keypath.split( '.' );
 
-	function updateDependantsMap ( ractive, keypath ) {
-		var keys, parentKeypath, map;
+    while ( keys.length ) {
+        keys.pop();
+        parentKeypath = keys.join( '.' );
 
-		// update dependants map
-		keys = keypath.split( '.' );
+        map = ractive._depsMap[ parentKeypath ];
 
-		while ( keys.length ) {
-			keys.pop();
-			parentKeypath = keys.join( '.' );
+        map[ keypath ] -= 1;
 
-			map = ractive._depsMap[ parentKeypath ];
+        if ( !map[ keypath ] ) {
+            // remove from parent deps map
+            map.splice( map.indexOf( keypath ), 1 );
+            map[ keypath ] = undefined;
+        }
 
-			map[ keypath ] -= 1;
-
-			if ( !map[ keypath ] ) {
-				// remove from parent deps map
-				map.splice( map.indexOf( keypath ), 1 );
-				map[ keypath ] = undefined;
-			}
-
-			keypath = parentKeypath;
-		}
-	}
-
-});
+        keypath = parentKeypath;
+    }
+}

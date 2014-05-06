@@ -1,55 +1,46 @@
-define([
-	'legacy',
-	'config/isClient',
-	'utils/isArray',
-	'render/DomFragment/Element/shared/executeTransition/Transition/helpers/prefix',
-], function (
-	legacy,
-	isClient,
-	isArray,
-	prefix
-) {
+import legacy from 'legacy';
+import isClient from 'config/isClient';
+import isArray from 'utils/isArray';
+import prefix from 'render/DomFragment/Element/shared/executeTransition/Transition/helpers/prefix';
 
-	'use strict';
+var getStyle, getComputedStyle;
 
-	var getComputedStyle;
+if ( !isClient ) {
+    getStyle = null;
+} else {
+    getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
-	if ( !isClient ) {
-		return;
-	}
+    getStyle = function ( props ) {
+        var computedStyle, styles, i, prop, value;
 
-	getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+        computedStyle = window.getComputedStyle( this.node );
 
-	return function ( props ) {
-		var computedStyle, styles, i, prop, value;
+        if ( typeof props === 'string' ) {
+            value = computedStyle[ prefix( props ) ];
+            if ( value === '0px' ) {
+                value = 0;
+            }
+            return value;
+        }
 
-		computedStyle = window.getComputedStyle( this.node );
+        if ( !isArray( props ) ) {
+            throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
+        }
 
-		if ( typeof props === 'string' ) {
-			value = computedStyle[ prefix( props ) ];
-			if ( value === '0px' ) {
-				value = 0;
-			}
-			return value;
-		}
+        styles = {};
 
-		if ( !isArray( props ) ) {
-			throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
-		}
+        i = props.length;
+        while ( i-- ) {
+            prop = props[i];
+            value = computedStyle[ prefix( prop ) ];
+            if ( value === '0px' ) {
+                value = 0;
+            }
+            styles[ prop ] = value;
+        }
 
-		styles = {};
+        return styles;
+    };
+}
 
-		i = props.length;
-		while ( i-- ) {
-			prop = props[i];
-			value = computedStyle[ prefix( prop ) ];
-			if ( value === '0px' ) {
-				value = 0;
-			}
-			styles[ prop ] = value;
-		}
-
-		return styles;
-	};
-
-});
+export default getStyle;

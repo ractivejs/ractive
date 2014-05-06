@@ -1,19 +1,13 @@
-define( function () {
+export default function ( eventName ) {
+    var args, i, len, subscribers = this._subs[ eventName ];
 
-	'use strict';
+    if ( !subscribers ) {
+        return;
+    }
 
-	return function ( eventName ) {
-		var args, i, len, subscribers = this._subs[ eventName ];
+    args = Array.prototype.slice.call( arguments, 1 );
 
-		if ( !subscribers ) {
-			return;
-		}
-
-		args = Array.prototype.slice.call( arguments, 1 );
-
-		for ( i=0, len=subscribers.length; i<len; i+=1 ) {
-			subscribers[i].apply( this, args );
-		}
-	};
-
-});
+    for ( i=0, len=subscribers.length; i<len; i+=1 ) {
+        subscribers[i].apply( this, args );
+    }
+};

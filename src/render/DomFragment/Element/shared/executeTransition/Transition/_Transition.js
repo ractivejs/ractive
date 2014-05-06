@@ -1,107 +1,91 @@
-define([
-	'utils/warn',
-	'render/StringFragment/_StringFragment',
-	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/init',
-	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/getStyle',
-	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/setStyle',
-	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/animateStyle/_animateStyle',
-	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/processParams',
-	'render/DomFragment/Element/shared/executeTransition/Transition/prototype/resetStyle'
-], function (
-	warn,
-	StringFragment,
-	init,
-	getStyle,
-	setStyle,
-	animateStyle,
-	processParams,
-	resetStyle
-) {
+import warn from 'utils/warn';
+import StringFragment from 'render/StringFragment/_StringFragment';
+import init from 'render/DomFragment/Element/shared/executeTransition/Transition/prototype/init';
+import getStyle from 'render/DomFragment/Element/shared/executeTransition/Transition/prototype/getStyle';
+import setStyle from 'render/DomFragment/Element/shared/executeTransition/Transition/prototype/setStyle';
+import animateStyle from 'render/DomFragment/Element/shared/executeTransition/Transition/prototype/animateStyle/_animateStyle';
+import processParams from 'render/DomFragment/Element/shared/executeTransition/Transition/prototype/processParams';
+import resetStyle from 'render/DomFragment/Element/shared/executeTransition/Transition/prototype/resetStyle';
 
-	'use strict';
+var getValueOptions, Transition;
+getValueOptions = { args: true };
 
-	var getValueOptions, Transition;
+Transition = function ( descriptor, root, owner, isIntro ) {
+    var t = this, name, fragment, errorMessage;
 
-	getValueOptions = { args: true };
+    this.root = root;
+    this.node = owner.node;
+    this.isIntro = isIntro;
 
-	Transition = function ( descriptor, root, owner, isIntro ) {
-		var t = this, name, fragment, errorMessage;
+    // store original style attribute
+    this.originalStyle = this.node.getAttribute( 'style' );
 
-		this.root = root;
-		this.node = owner.node;
-		this.isIntro = isIntro;
+    // create t.complete() - we don't want this on the prototype,
+    // because we don't want `this` silliness when passing it as
+    // an argument
+    t.complete = function ( noReset ) {
+        if ( !noReset && t.isIntro ) {
+            t.resetStyle();
+        }
 
-		// store original style attribute
-		this.originalStyle = this.node.getAttribute( 'style' );
-
-		// create t.complete() - we don't want this on the prototype,
-		// because we don't want `this` silliness when passing it as
-		// an argument
-		t.complete = function ( noReset ) {
-			if ( !noReset && t.isIntro ) {
-				t.resetStyle();
-			}
-
-			t.node._ractive.transition = null;
-			t._manager.remove( t );
-		};
+        t.node._ractive.transition = null;
+        t._manager.remove( t );
+    };
 
 
-		name = descriptor.n || descriptor;
+    name = descriptor.n || descriptor;
 
-		if ( typeof name !== 'string' ) {
-			fragment = new StringFragment({
-				descriptor:   name,
-				root:         this.root,
-				owner:        owner
-			});
+    if ( typeof name !== 'string' ) {
+        fragment = new StringFragment({
+            descriptor:   name,
+            root:         this.root,
+            owner:        owner
+        });
 
-			name = fragment.toString();
-			fragment.teardown();
-		}
+        name = fragment.toString();
+        fragment.teardown();
+    }
 
-		this.name = name;
+    this.name = name;
 
-		if ( descriptor.a ) {
-			this.params = descriptor.a;
-		}
+    if ( descriptor.a ) {
+        this.params = descriptor.a;
+    }
 
-		else if ( descriptor.d ) {
-			// TODO is there a way to interpret dynamic arguments without all the
-			// 'dependency thrashing'?
-			fragment = new StringFragment({
-				descriptor:   descriptor.d,
-				root:         this.root,
-				owner:        owner
-			});
+    else if ( descriptor.d ) {
+        // TODO is there a way to interpret dynamic arguments without all the
+        // 'dependency thrashing'?
+        fragment = new StringFragment({
+            descriptor:   descriptor.d,
+            root:         this.root,
+            owner:        owner
+        });
 
-			this.params = fragment.getValue( getValueOptions );
-			fragment.teardown();
-		}
+        this.params = fragment.getValue( getValueOptions );
+        fragment.teardown();
+    }
 
-		this._fn = root.transitions[ name ];
-		if ( !this._fn ) {
-			errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
+    this._fn = root.transitions[ name ];
+    if ( !this._fn ) {
+        errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
 
-			if ( root.debug ) {
-				throw new Error( errorMessage );
-			} else {
-				warn( errorMessage );
-			}
+        if ( root.debug ) {
+            throw new Error( errorMessage );
+        } else {
+            warn( errorMessage );
+        }
 
-			return;
-		}
-	};
+        return;
+    }
+};
 
-	Transition.prototype = {
-		init: init,
-		getStyle: getStyle,
-		setStyle: setStyle,
-		animateStyle: animateStyle,
-		processParams: processParams,
-		resetStyle: resetStyle
-	};
+Transition.prototype = {
+    init: init,
+    getStyle: getStyle,
+    setStyle: setStyle,
+    animateStyle: animateStyle,
+    processParams: processParams,
+    resetStyle: resetStyle
+};
 
-	return Transition;
-
-});
+export default Transition;

@@ -1,1 +1,1 @@
-define({});
+export default {};

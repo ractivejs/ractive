@@ -1,99 +1,93 @@
-define([], function () {
+export default function sectionMerge ( newIndices ) {
+    var section = this,
+        parentFragment,
+        firstChange,
+        i,
+        newLength,
+        reassignedFragments,
+        fragmentOptions,
+        fragment,
+        nextNode;
 
-	'use strict';
+    parentFragment = this.parentFragment;
 
-	return function sectionMerge ( newIndices ) {
-		var section = this,
-			parentFragment,
-			firstChange,
-			i,
-			newLength,
-			reassignedFragments,
-			fragmentOptions,
-			fragment,
-			nextNode;
+    reassignedFragments = [];
 
-		parentFragment = this.parentFragment;
+    // first, reassign existing fragments
+    newIndices.forEach( function reassignIfNecessary ( newIndex, oldIndex ) {
+        var fragment, by, oldKeypath, newKeypath;
 
-		reassignedFragments = [];
+        if ( newIndex === oldIndex ) {
+            reassignedFragments[ newIndex ] = section.fragments[ oldIndex ];
+            return;
+        }
 
-		// first, reassign existing fragments
-		newIndices.forEach( function reassignIfNecessary ( newIndex, oldIndex ) {
-			var fragment, by, oldKeypath, newKeypath;
+        if ( firstChange === undefined ) {
+            firstChange = oldIndex;
+        }
 
-			if ( newIndex === oldIndex ) {
-				reassignedFragments[ newIndex ] = section.fragments[ oldIndex ];
-				return;
-			}
+        // does this fragment need to be torn down?
+        if ( newIndex === -1 ) {
+            section.fragments[ oldIndex ].teardown( true );
+            return;
+        }
 
-			if ( firstChange === undefined ) {
-				firstChange = oldIndex;
-			}
+        // Otherwise, it needs to be reassigned to a new index
+        fragment = section.fragments[ oldIndex ];
 
-			// does this fragment need to be torn down?
-			if ( newIndex === -1 ) {
-				section.fragments[ oldIndex ].teardown( true );
-				return;
-			}
+        by = newIndex - oldIndex;
+        oldKeypath = section.keypath + '.' + oldIndex;
+        newKeypath = section.keypath + '.' + newIndex;
 
-			// Otherwise, it needs to be reassigned to a new index
-			fragment = section.fragments[ oldIndex ];
+        fragment.reassign( section.descriptor.i, newIndex, oldKeypath, newKeypath );
+        reassignedFragments[ newIndex ] = fragment;
+    });
 
-			by = newIndex - oldIndex;
-			oldKeypath = section.keypath + '.' + oldIndex;
-			newKeypath = section.keypath + '.' + newIndex;
+    // If nothing changed with the existing fragments, then we start adding
+    // new fragments at the end...
+    if ( firstChange === undefined ) {
+        firstChange = this.length;
+    }
 
-			fragment.reassign( section.descriptor.i, newIndex, oldKeypath, newKeypath );
-			reassignedFragments[ newIndex ] = fragment;
-		});
+    this.length = newLength = this.root.get( this.keypath ).length;
 
-		// If nothing changed with the existing fragments, then we start adding
-		// new fragments at the end...
-		if ( firstChange === undefined ) {
-			firstChange = this.length;
-		}
+    if ( newLength === firstChange ) {
+        // ...unless there are no new fragments to add
+        return;
+    }
 
-		this.length = newLength = this.root.get( this.keypath ).length;
+    // Prepare new fragment options
+    fragmentOptions = {
+        descriptor: this.descriptor.f,
+        root:       this.root,
+        pNode:      parentFragment.pNode,
+        owner:      this
+    };
 
-		if ( newLength === firstChange ) {
-			// ...unless there are no new fragments to add
-			return;
-		}
+    if ( this.descriptor.i ) {
+        fragmentOptions.indexRef = this.descriptor.i;
+    }
 
-		// Prepare new fragment options
-		fragmentOptions = {
-			descriptor: this.descriptor.f,
-			root:       this.root,
-			pNode:      parentFragment.pNode,
-			owner:      this
-		};
+    // Add as many new fragments as we need to, or add back existing
+    // (detached) fragments
+    for ( i = firstChange; i < newLength; i += 1 ) {
 
-		if ( this.descriptor.i ) {
-			fragmentOptions.indexRef = this.descriptor.i;
-		}
+        // is this an existing fragment?
+        if ( fragment = reassignedFragments[i] ) {
+            this.docFrag.appendChild( fragment.detach( false ) );
+        }
 
-		// Add as many new fragments as we need to, or add back existing
-		// (detached) fragments
-		for ( i = firstChange; i < newLength; i += 1 ) {
+        else {
+            fragmentOptions.context = this.keypath + '.' + i;
+            fragmentOptions.index = i;
 
-			// is this an existing fragment?
-			if ( fragment = reassignedFragments[i] ) {
-				this.docFrag.appendChild( fragment.detach( false ) );
-			}
+            fragment = this.createFragment( fragmentOptions );
+        }
 
-			else {
-				fragmentOptions.context = this.keypath + '.' + i;
-				fragmentOptions.index = i;
+        this.fragments[i] = fragment;
+    }
 
-				fragment = this.createFragment( fragmentOptions );
-			}
-
-			this.fragments[i] = fragment;
-		}
-
-		// reinsert fragment
-		nextNode = parentFragment.findNextNode( this );
-		parentFragment.pNode.insertBefore( this.docFrag, nextNode );
-	};
-
-});
+    // reinsert fragment
+    nextNode = parentFragment.findNextNode( this );
+    parentFragment.pNode.insertBefore( this.docFrag, nextNode );
+};

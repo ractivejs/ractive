@@ -1,44 +1,38 @@
-define( function () {
+var empty = /^\s*$/, leadingWhitespace = /^\s*/;
 
-	'use strict';
+export default function ( str ) {
+    var lines, firstLine, lastLine, minIndent;
 
-	var empty = /^\s*$/, leadingWhitespace = /^\s*/;
+    lines = str.split( '\n' );
 
-	return function ( str ) {
-		var lines, firstLine, lastLine, minIndent;
+    // remove first and last line, if they only contain whitespace
+    firstLine = lines[0];
+    if ( firstLine !== undefined && empty.test( firstLine ) ) {
+        lines.shift();
+    }
 
-		lines = str.split( '\n' );
+    lastLine = lines[ lines.length - 1 ];
+    if ( lastLine !== undefined && empty.test( lastLine ) ) {
+        lines.pop();
+    }
 
-		// remove first and last line, if they only contain whitespace
-		firstLine = lines[0];
-		if ( firstLine !== undefined && empty.test( firstLine ) ) {
-			lines.shift();
-		}
+    minIndent = lines.reduce( reducer, null );
 
-		lastLine = lines[ lines.length - 1 ];
-		if ( lastLine !== undefined && empty.test( lastLine ) ) {
-			lines.pop();
-		}
+    if ( minIndent ) {
+        str = lines.map( function ( line ) {
+            return line.replace( minIndent, '' );
+        }).join( '\n' );
+    }
 
-		minIndent = lines.reduce( reducer, null );
+    return str;
+};
 
-		if ( minIndent ) {
-			str = lines.map( function ( line ) {
-				return line.replace( minIndent, '' );
-			}).join( '\n' );
-		}
+function reducer ( previous, line ) {
+    var lineIndent = leadingWhitespace.exec( line )[0];
 
-		return str;
-	};
+    if ( previous === null || ( lineIndent.length < previous.length ) ) {
+        return lineIndent;
+    }
 
-	function reducer ( previous, line ) {
-		var lineIndent = leadingWhitespace.exec( line )[0];
-
-		if ( previous === null || ( lineIndent.length < previous.length ) ) {
-			return lineIndent;
-		}
-
-		return previous;
-	}
-
-});
+    return previous;
+}

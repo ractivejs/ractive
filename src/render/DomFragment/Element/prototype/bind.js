@@ -1,54 +1,48 @@
-define( function () {
+export default function () {
 
-	'use strict';
+    var attributes = this.attributes;
 
-	return function () {
+    if ( !this.node ) {
+        // we're not in a browser!
+        return;
+    }
 
-		var attributes = this.attributes;
+    // if this is a late binding, and there's already one, it
+    // needs to be torn down
+    if ( this.binding ) {
+        this.binding.teardown();
+        this.binding = null;
+    }
 
-		if ( !this.node ) {
-			// we're not in a browser!
-			return;
-		}
+    // contenteditable
+    if ( this.node.getAttribute( 'contenteditable' ) && attributes.value && attributes.value.bind() ) {
+        return;
+    }
 
-		// if this is a late binding, and there's already one, it
-		// needs to be torn down
-		if ( this.binding ) {
-			this.binding.teardown();
-			this.binding = null;
-		}
+    // an element can only have one two-way attribute
+    switch ( this.lcName ) {
+        case 'select':
+        case 'textarea':
+        if ( attributes.value ) {
+            attributes.value.bind();
+        }
+        return;
 
-		// contenteditable
-		if ( this.node.getAttribute( 'contenteditable' ) && attributes.value && attributes.value.bind() ) {
-			return;
-		}
+        case 'input':
 
-		// an element can only have one two-way attribute
-		switch ( this.lcName ) {
-			case 'select':
-			case 'textarea':
-			if ( attributes.value ) {
-				attributes.value.bind();
-			}
-			return;
+        if ( this.node.type === 'radio' || this.node.type === 'checkbox' ) {
+            // we can either bind the name attribute, or the checked attribute - not both
+            if ( attributes.name && attributes.name.bind() ) {
+                return;
+            }
 
-			case 'input':
+            if ( attributes.checked && attributes.checked.bind() ) {
+                return;
+            }
+        }
 
-			if ( this.node.type === 'radio' || this.node.type === 'checkbox' ) {
-				// we can either bind the name attribute, or the checked attribute - not both
-				if ( attributes.name && attributes.name.bind() ) {
-					return;
-				}
-
-				if ( attributes.checked && attributes.checked.bind() ) {
-					return;
-				}
-			}
-
-			if ( attributes.value && attributes.value.bind() ) {
-				return;
-			}
-		}
-	};
-
-});
+        if ( attributes.value && attributes.value.bind() ) {
+            return;
+        }
+    }
+};

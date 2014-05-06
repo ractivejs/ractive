@@ -1,40 +1,34 @@
-define( function () {
+export default function getExpressionList ( tokenizer ) {
+    var start, expressions, expr, next;
 
-	'use strict';
+    start = tokenizer.pos;
 
-	return function getExpressionList ( tokenizer ) {
-		var start, expressions, expr, next;
+    tokenizer.allowWhitespace();
 
-		start = tokenizer.pos;
+    expr = tokenizer.readExpression();
 
-		tokenizer.allowWhitespace();
+    if ( expr === null ) {
+        return null;
+    }
 
-		expr = tokenizer.readExpression();
+    expressions = [ expr ];
 
-		if ( expr === null ) {
-			return null;
-		}
+    // allow whitespace between expression and ','
+    tokenizer.allowWhitespace();
 
-		expressions = [ expr ];
+    if ( tokenizer.matchString( ',' ) ) {
+        next = getExpressionList( tokenizer );
+        if ( next === null ) {
+            tokenizer.pos = start;
+            return null;
+        }
 
-		// allow whitespace between expression and ','
-		tokenizer.allowWhitespace();
+        next.forEach( append );
+    }
 
-		if ( tokenizer.matchString( ',' ) ) {
-			next = getExpressionList( tokenizer );
-			if ( next === null ) {
-				tokenizer.pos = start;
-				return null;
-			}
+    function append ( expression ) {
+        expressions.push( expression );
+    }
 
-			next.forEach( append );
-		}
-
-		function append ( expression ) {
-			expressions.push( expression );
-		}
-
-		return expressions;
-	};
-
-});
+    return expressions;
+};

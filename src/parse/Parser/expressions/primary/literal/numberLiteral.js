@@ -1,25 +1,17 @@
-define([
-	'config/types'
-], function (
-	types
-) {
+import types from 'config/types';
 
-	'use strict';
+// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
+var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 
-	// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
-	var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+export default function ( parser ) {
+    var result;
 
-	return function ( parser ) {
-		var result;
+    if ( result = parser.matchPattern( numberPattern ) ) {
+        return {
+            t: types.NUMBER_LITERAL,
+            v: result
+        };
+    }
 
-		if ( result = parser.matchPattern( numberPattern ) ) {
-			return {
-				t: types.NUMBER_LITERAL,
-				v: result
-			};
-		}
-
-		return null;
-	};
-
-});
+    return null;
+};

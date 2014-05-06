@@ -1,48 +1,40 @@
-define([
-	'config/isClient',
-	'config/vendors',
-	'utils/createElement'
-], function (
-	isClient,
-	vendors,
-	createElement
-) {
+import isClient from 'config/isClient';
+import vendors from 'config/vendors';
+import createElement from 'utils/createElement';
 
-	'use strict';
+var prefix, prefixCache, testStyle;
 
-	var prefixCache, testStyle;
+if ( !isClient ) {
+    prefix = null;
+} else {
+    prefixCache = {};
+    testStyle = createElement( 'div' ).style;
 
-	if ( !isClient ) {
-		return;
-	}
+    prefix = function ( prop ) {
+        var i, vendor, capped;
 
-	prefixCache = {};
-	testStyle = createElement( 'div' ).style;
+        if ( !prefixCache[ prop ] ) {
+            if ( testStyle[ prop ] !== undefined ) {
+                prefixCache[ prop ] = prop;
+            }
 
-	return function ( prop ) {
-		var i, vendor, capped;
+            else {
+                // test vendors...
+                capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
 
-		if ( !prefixCache[ prop ] ) {
-			if ( testStyle[ prop ] !== undefined ) {
-				prefixCache[ prop ] = prop;
-			}
+                i = vendors.length;
+                while ( i-- ) {
+                    vendor = vendors[i];
+                    if ( testStyle[ vendor + capped ] !== undefined ) {
+                        prefixCache[ prop ] = vendor + capped;
+                        break;
+                    }
+                }
+            }
+        }
 
-			else {
-				// test vendors...
-				capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
+        return prefixCache[ prop ];
+    };
+}
 
-				i = vendors.length;
-				while ( i-- ) {
-					vendor = vendors[i];
-					if ( testStyle[ vendor + capped ] !== undefined ) {
-						prefixCache[ prop ] = vendor + capped;
-						break;
-					}
-				}
-			}
-		}
-
-		return prefixCache[ prop ];
-	};
-
-});
+export default prefix;

@@ -1,28 +1,19 @@
-define([
-	'config/errors',
-	'parse/_parse'
-], function (
-	errors,
-	parse
-) {
+import errors from 'config/errors';
+import parse from 'parse/_parse';
 
-	'use strict';
+export default function ( Child ) {
+    var key;
 
-	return function ( Child ) {
-		var key;
+    // Parse partials, if necessary
+    if ( Child.partials ) {
+        for ( key in Child.partials ) {
+            if ( Child.partials.hasOwnProperty( key ) && typeof Child.partials[ key ] === 'string' ) {
+                if ( !parse ) {
+                    throw new Error( errors.missingParser );
+                }
 
-		// Parse partials, if necessary
-		if ( Child.partials ) {
-			for ( key in Child.partials ) {
-				if ( Child.partials.hasOwnProperty( key ) && typeof Child.partials[ key ] === 'string' ) {
-					if ( !parse ) {
-						throw new Error( errors.missingParser );
-					}
-
-					Child.partials[ key ] = parse( Child.partials[ key ], Child );
-				}
-			}
-		}
-	};
-
-});
+                Child.partials[ key ] = parse( Child.partials[ key ], Child );
+            }
+        }
+    }
+};

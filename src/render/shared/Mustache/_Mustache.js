@@ -1,22 +1,11 @@
-define([
-	'render/shared/Mustache/initialise',
-	'render/shared/Mustache/update',
-	'render/shared/Mustache/resolve',
-	'render/shared/Mustache/reassign'
-], function (
-	init,
-	update,
-	resolve,
-	reassign
-) {
+import init from 'render/shared/Mustache/initialise';
+import update from 'render/shared/Mustache/update';
+import resolve from 'render/shared/Mustache/resolve';
+import reassign from 'render/shared/Mustache/reassign';
 
-	'use strict';
-
-	return {
-		init: init,
-		update: update,
-		resolve: resolve,
-		reassign: reassign
-	};
-
-});
+export default {
+    init: init,
+    update: update,
+    resolve: resolve,
+    reassign: reassign
+};

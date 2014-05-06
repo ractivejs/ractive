@@ -1,73 +1,67 @@
-define( function () {
+var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
+    commentsPattern = /\/\*.*?\*\//g,
+    selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g;
 
-	'use strict';
+export default function transformCss( css, guid ) {
+    var transformed, addGuid;
 
-	var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
-		commentsPattern = /\/\*.*?\*\//g,
-		selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g;
+    addGuid = function ( selector ) {
+        var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
 
-	return function transformCss( css, guid ) {
-		var transformed, addGuid;
+        selectorUnits = [];
 
-		addGuid = function ( selector ) {
-			var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
+        while ( match = selectorUnitPattern.exec( selector ) ) {
+            selectorUnits.push({
+                str: match[0],
+                base: match[1],
+                modifiers: match[2]
+            });
+        }
 
-			selectorUnits = [];
+        // For each simple selector within the selector, we need to create a version
+        // that a) combines with the guid, and b) is inside the guid
+        dataAttr = '[data-rvcguid="' + guid + '"]';
+        base = selectorUnits.map( extractString );
 
-			while ( match = selectorUnitPattern.exec( selector ) ) {
-				selectorUnits.push({
-					str: match[0],
-					base: match[1],
-					modifiers: match[2]
-				});
-			}
+        i = selectorUnits.length;
+        while ( i-- ) {
+            appended = base.slice();
 
-			// For each simple selector within the selector, we need to create a version
-			// that a) combines with the guid, and b) is inside the guid
-			dataAttr = '[data-rvcguid="' + guid + '"]';
-			base = selectorUnits.map( extractString );
+            // Pseudo-selectors should go after the attribute selector
+            unit = selectorUnits[i];
+            appended[i] = unit.base + dataAttr + unit.modifiers || '';
 
-			i = selectorUnits.length;
-			while ( i-- ) {
-				appended = base.slice();
+            prepended = base.slice();
+            prepended[i] = dataAttr + ' ' + prepended[i];
 
-				// Pseudo-selectors should go after the attribute selector
-				unit = selectorUnits[i];
-				appended[i] = unit.base + dataAttr + unit.modifiers || '';
+            transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );
+        }
 
-				prepended = base.slice();
-				prepended[i] = dataAttr + ' ' + prepended[i];
+        return transformed.join( ', ' );
+    };
 
-				transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );
-			}
+    transformed = css
+    .replace( commentsPattern, '' )
+    .replace( selectorsPattern, function ( match, $1 ) {
+        var selectors, transformed;
 
-			return transformed.join( ', ' );
-		};
+        selectors = $1.split( ',' ).map( trim );
+        transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
 
-		transformed = css
-		.replace( commentsPattern, '' )
-		.replace( selectorsPattern, function ( match, $1 ) {
-			var selectors, transformed;
+        return match.replace( $1, transformed );
+    });
 
-			selectors = $1.split( ',' ).map( trim );
-			transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
+    return transformed;
+};
 
-			return match.replace( $1, transformed );
-		});
+function trim ( str ) {
+    if ( str.trim ) {
+        return str.trim();
+    }
 
-		return transformed;
-	};
+    return str.replace( /^\s+/, '' ).replace( /\s+$/, '' );
+}
 
-	function trim ( str ) {
-		if ( str.trim ) {
-			return str.trim();
-		}
-
-		return str.replace( /^\s+/, '' ).replace( /\s+$/, '' );
-	}
-
-	function extractString ( unit ) {
-		return unit.str;
-	}
-
-});
+function extractString ( unit ) {
+    return unit.str;
+}

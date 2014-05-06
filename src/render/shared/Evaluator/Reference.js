@@ -1,132 +1,118 @@
-define([
-	'config/types',
-	'utils/isEqual',
-	'utils/defineProperty',
-	'shared/registerDependant',
-	'shared/unregisterDependant'
-], function (
-	types,
-	isEqual,
-	defineProperty,
-	registerDependant,
-	unregisterDependant
-) {
+import types from 'config/types';
+import isEqual from 'utils/isEqual';
+import defineProperty from 'utils/defineProperty';
+import registerDependant from 'shared/registerDependant';
+import unregisterDependant from 'shared/unregisterDependant';
 
-	'use strict';
+var Reference, thisPattern;
+thisPattern = /this/;
 
-	var Reference, thisPattern;
+Reference = function ( root, keypath, evaluator, argNum, priority ) {
+    var value;
 
-	thisPattern = /this/;
+    this.evaluator = evaluator;
+    this.keypath = keypath;
+    this.root = root;
+    this.argNum = argNum;
+    this.type = types.REFERENCE;
+    this.priority = priority;
 
-	Reference = function ( root, keypath, evaluator, argNum, priority ) {
-		var value;
+    value = root.get( keypath );
 
-		this.evaluator = evaluator;
-		this.keypath = keypath;
-		this.root = root;
-		this.argNum = argNum;
-		this.type = types.REFERENCE;
-		this.priority = priority;
+    if ( typeof value === 'function' && !value._nowrap ) {
+        value = wrapFunction( value, root, evaluator );
+    }
 
-		value = root.get( keypath );
+    this.value = evaluator.values[ argNum ] = value;
 
-		if ( typeof value === 'function' && !value._nowrap ) {
-			value = wrapFunction( value, root, evaluator );
-		}
+    registerDependant( this );
+};
 
-		this.value = evaluator.values[ argNum ] = value;
+Reference.prototype = {
+    update: function () {
+        var value = this.root.get( this.keypath );
 
-		registerDependant( this );
-	};
+        if ( typeof value === 'function' && !value._nowrap ) {
+            value = wrapFunction( value, this.root, this.evaluator );
+        }
 
-	Reference.prototype = {
-		update: function () {
-			var value = this.root.get( this.keypath );
+        if ( !isEqual( value, this.value ) ) {
+            this.evaluator.values[ this.argNum ] = value;
+            this.evaluator.bubble();
 
-			if ( typeof value === 'function' && !value._nowrap ) {
-				value = wrapFunction( value, this.root, this.evaluator );
-			}
+            this.value = value;
+        }
+    },
 
-			if ( !isEqual( value, this.value ) ) {
-				this.evaluator.values[ this.argNum ] = value;
-				this.evaluator.bubble();
+    teardown: function () {
+        unregisterDependant( this );
+    }
+};
 
-				this.value = value;
-			}
-		},
+export default Reference;
 
-		teardown: function () {
-			unregisterDependant( this );
-		}
-	};
+function wrapFunction ( fn, ractive, evaluator ) {
+    var prop, evaluators, index;
 
-	return Reference;
+    // If the function doesn't refer to `this`, we don't need
+    // to set the context, because we're not doing `this.get()`
+    // (which is how dependencies are tracked)
+    if ( !thisPattern.test( fn.toString() ) ) {
+        defineProperty( fn, '_nowrap', { // no point doing this every time
+            value: true
+        });
+        return fn;
+    }
 
+    // If this function is being wrapped for the first time...
+    if ( !fn[ '_' + ractive._guid ] ) {
+        // ...we need to do some work
+        defineProperty( fn, '_' + ractive._guid, {
+            value: function () {
+                var originalCaptured, result, i, evaluator;
 
-	function wrapFunction ( fn, ractive, evaluator ) {
-		var prop, evaluators, index;
+                originalCaptured = ractive._captured;
 
-		// If the function doesn't refer to `this`, we don't need
-		// to set the context, because we're not doing `this.get()`
-		// (which is how dependencies are tracked)
-		if ( !thisPattern.test( fn.toString() ) ) {
-			defineProperty( fn, '_nowrap', { // no point doing this every time
-				value: true
-			});
-			return fn;
-		}
+                if ( !originalCaptured ) {
+                    ractive._captured = [];
+                }
 
-		// If this function is being wrapped for the first time...
-		if ( !fn[ '_' + ractive._guid ] ) {
-			// ...we need to do some work
-			defineProperty( fn, '_' + ractive._guid, {
-				value: function () {
-					var originalCaptured, result, i, evaluator;
+                result = fn.apply( ractive, arguments );
 
-					originalCaptured = ractive._captured;
+                if ( ractive._captured.length ) {
+                    i = evaluators.length;
+                    while ( i-- ) {
+                        evaluator = evaluators[i];
+                        evaluator.updateSoftDependencies( ractive._captured );
+                    }
+                }
 
-					if ( !originalCaptured ) {
-						ractive._captured = [];
-					}
+                // reset
+                ractive._captured = originalCaptured;
 
-					result = fn.apply( ractive, arguments );
+                return result;
+            },
+            writable: true
+        });
 
-					if ( ractive._captured.length ) {
-						i = evaluators.length;
-						while ( i-- ) {
-							evaluator = evaluators[i];
-							evaluator.updateSoftDependencies( ractive._captured );
-						}
-					}
+        for ( prop in fn ) {
+            if ( fn.hasOwnProperty( prop ) ) {
+                fn[ '_' + ractive._guid ][ prop ] = fn[ prop ];
+            }
+        }
 
-					// reset
-					ractive._captured = originalCaptured;
+        fn[ '_' + ractive._guid + '_evaluators' ] = [];
+    }
 
-					return result;
-				},
-				writable: true
-			});
+    // We need to make a note of which evaluators are using this function,
+    // so that they can all be notified of changes
+    evaluators = fn[ '_' + ractive._guid + '_evaluators' ];
 
-			for ( prop in fn ) {
-				if ( fn.hasOwnProperty( prop ) ) {
-					fn[ '_' + ractive._guid ][ prop ] = fn[ prop ];
-				}
-			}
+    index = evaluators.indexOf( evaluator );
+    if ( index === -1 ) {
+        evaluators.push( evaluator );
+    }
 
-			fn[ '_' + ractive._guid + '_evaluators' ] = [];
-		}
-
-		// We need to make a note of which evaluators are using this function,
-		// so that they can all be notified of changes
-		evaluators = fn[ '_' + ractive._guid + '_evaluators' ];
-
-		index = evaluators.indexOf( evaluator );
-		if ( index === -1 ) {
-			evaluators.push( evaluator );
-		}
-
-		// Return the wrapped function
-		return fn[ '_' + ractive._guid ];
-	}
-
-});
+    // Return the wrapped function
+    return fn[ '_' + ractive._guid ];
+}

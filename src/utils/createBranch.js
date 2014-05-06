@@ -1,11 +1,5 @@
-define( function () {
+var numeric = /^\s*[0-9]+\s*$/;
 
-	'use strict';
-
-	var numeric = /^\s*[0-9]+\s*$/;
-
-	return function ( key ) {
-		return numeric.test( key ) ? [] : {};
-	};
-
-});
+export default function ( key ) {
+    return numeric.test( key ) ? [] : {};
+};

@@ -1,19 +1,9 @@
-define([
-	'parse/Parser/expressions/primary/literal/_literal',
-	'parse/Parser/expressions/primary/reference',
-	'parse/Parser/expressions/primary/bracketedExpression'
-], function (
-	getLiteral,
-	getReference,
-	getBracketedExpression
-) {
+import getLiteral from 'parse/Parser/expressions/primary/literal/_literal';
+import getReference from 'parse/Parser/expressions/primary/reference';
+import getBracketedExpression from 'parse/Parser/expressions/primary/bracketedExpression';
 
-	'use strict';
-
-	return function ( tokenizer ) {
-		return getLiteral( tokenizer )
-		    || getReference( tokenizer )
-		    || getBracketedExpression( tokenizer );
-	};
-
-});
+export default function ( tokenizer ) {
+    return getLiteral( tokenizer )
+        || getReference( tokenizer )
+        || getBracketedExpression( tokenizer );
+};

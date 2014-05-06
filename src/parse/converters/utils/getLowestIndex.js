@@ -1,29 +1,23 @@
-define( function () {
+export default function ( haystack, needles ) {
+    var i, index, lowest;
 
-	'use strict';
+    i = needles.length;
+    while ( i-- ) {
+        index = haystack.indexOf( needles[i] );
 
-	return function ( haystack, needles ) {
-		var i, index, lowest;
+        // short circuit
+        if ( !index ) {
+            return 0;
+        }
 
-		i = needles.length;
-		while ( i-- ) {
-			index = haystack.indexOf( needles[i] );
+        if ( index === -1 ) {
+            continue;
+        }
 
-			// short circuit
-			if ( !index ) {
-				return 0;
-			}
+        if ( !lowest || ( index < lowest ) ) {
+            lowest = index;
+        }
+    }
 
-			if ( index === -1 ) {
-				continue;
-			}
-
-			if ( !lowest || ( index < lowest ) ) {
-				lowest = index;
-			}
-		}
-
-		return lowest || -1;
-	};
-
-});
+    return lowest || -1;
+};

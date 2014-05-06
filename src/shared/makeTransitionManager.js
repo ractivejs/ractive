@@ -1,64 +1,56 @@
-define([
-	'utils/removeFromArray'
-], function (
-	removeFromArray
-) {
+import removeFromArray from 'utils/removeFromArray';
 
-	'use strict';
+var makeTransitionManager,
+    checkComplete,
+    remove,
+    init;
 
-	var makeTransitionManager,
-		checkComplete,
-		remove,
-		init;
+makeTransitionManager = function ( callback, previous ) {
+    var transitionManager = [];
 
-	makeTransitionManager = function ( callback, previous ) {
-		var transitionManager = [];
+    transitionManager.detachQueue = [];
 
-		transitionManager.detachQueue = [];
+    transitionManager.remove = remove;
+    transitionManager.init = init;
 
-		transitionManager.remove = remove;
-		transitionManager.init = init;
+    transitionManager._check = checkComplete;
 
-		transitionManager._check = checkComplete;
+    transitionManager._callback = callback;
+    transitionManager._previous = previous;
 
-		transitionManager._callback = callback;
-		transitionManager._previous = previous;
+    if ( previous ) {
+        previous.push( transitionManager );
+    }
 
-		if ( previous ) {
-			previous.push( transitionManager );
-		}
+    return transitionManager;
+};
 
-		return transitionManager;
-	};
+checkComplete = function () {
+    var element;
 
-	checkComplete = function () {
-		var element;
+    if ( this._ready && !this.length ) {
+        while ( element = this.detachQueue.pop() ) {
+            element.detach();
+        }
 
-		if ( this._ready && !this.length ) {
-			while ( element = this.detachQueue.pop() ) {
-				element.detach();
-			}
+        if ( typeof this._callback === 'function' ) {
+            this._callback();
+        }
 
-			if ( typeof this._callback === 'function' ) {
-				this._callback();
-			}
+        if ( this._previous ) {
+            this._previous.remove( this );
+        }
+    }
+};
 
-			if ( this._previous ) {
-				this._previous.remove( this );
-			}
-		}
-	};
+remove = function ( transition ) {
+    removeFromArray( this, transition );
+    this._check();
+};
 
-	remove = function ( transition ) {
-		removeFromArray( this, transition );
-		this._check();
-	};
+init = function () {
+    this._ready = true;
+    this._check();
+};
 
-	init = function () {
-		this._ready = true;
-		this._check();
-	};
-
-	return makeTransitionManager;
-
-});
+export default makeTransitionManager;

@@ -1,157 +1,145 @@
-define([
-	'config/types',
-	'utils/matches',
-	'render/shared/Mustache/_Mustache',
-	'render/DomFragment/shared/insertHtml',
-	'shared/teardown'
-], function (
-	types,
-	matches,
-	Mustache,
-	insertHtml,
-	teardown
-) {
+import types from 'config/types';
+import matches from 'utils/matches';
+import Mustache from 'render/shared/Mustache/_Mustache';
+import insertHtml from 'render/DomFragment/shared/insertHtml';
+import teardown from 'shared/teardown';
 
-	'use strict';
+var DomTriple = function ( options, docFrag ) {
+    this.type = types.TRIPLE;
 
-	var DomTriple = function ( options, docFrag ) {
-		this.type = types.TRIPLE;
+    if ( docFrag ) {
+        this.nodes = [];
+        this.docFrag = document.createDocumentFragment();
+    }
 
-		if ( docFrag ) {
-			this.nodes = [];
-			this.docFrag = document.createDocumentFragment();
-		}
+    this.initialising = true;
+    Mustache.init( this, options );
+    if ( docFrag ) {
+        docFrag.appendChild( this.docFrag );
+    }
+    this.initialising = false;
+};
 
-		this.initialising = true;
-		Mustache.init( this, options );
-		if ( docFrag ) {
-			docFrag.appendChild( this.docFrag );
-		}
-		this.initialising = false;
-	};
+DomTriple.prototype = {
+    update: Mustache.update,
+    resolve: Mustache.resolve,
+    reassign: Mustache.reassign,
 
-	DomTriple.prototype = {
-		update: Mustache.update,
-		resolve: Mustache.resolve,
-		reassign: Mustache.reassign,
+    detach: function () {
+        var len, i;
 
-		detach: function () {
-			var len, i;
+        if ( this.docFrag ) {
+            len = this.nodes.length;
+            for ( i = 0; i < len; i += 1 ) {
+                this.docFrag.appendChild( this.nodes[i] );
+            }
 
-			if ( this.docFrag ) {
-				len = this.nodes.length;
-				for ( i = 0; i < len; i += 1 ) {
-					this.docFrag.appendChild( this.nodes[i] );
-				}
+            return this.docFrag;
+        }
+    },
 
-				return this.docFrag;
-			}
-		},
+    teardown: function ( destroy ) {
+        if ( destroy ) {
+            this.detach();
+            this.docFrag = this.nodes = null;
+        }
 
-		teardown: function ( destroy ) {
-			if ( destroy ) {
-				this.detach();
-				this.docFrag = this.nodes = null;
-			}
+        teardown( this );
+    },
 
-			teardown( this );
-		},
+    firstNode: function () {
+        if ( this.nodes[0] ) {
+            return this.nodes[0];
+        }
 
-		firstNode: function () {
-			if ( this.nodes[0] ) {
-				return this.nodes[0];
-			}
+        return this.parentFragment.findNextNode( this );
+    },
 
-			return this.parentFragment.findNextNode( this );
-		},
+    render: function ( html ) {
+        var node, pNode;
 
-		render: function ( html ) {
-			var node, pNode;
+        if ( !this.nodes ) {
+            // looks like we're in a server environment...
+            // nothing to see here, move along
+            return;
+        }
 
-			if ( !this.nodes ) {
-				// looks like we're in a server environment...
-				// nothing to see here, move along
-				return;
-			}
+        // remove existing nodes
+        while ( this.nodes.length ) {
+            node = this.nodes.pop();
+            node.parentNode.removeChild( node );
+        }
 
-			// remove existing nodes
-			while ( this.nodes.length ) {
-				node = this.nodes.pop();
-				node.parentNode.removeChild( node );
-			}
+        if ( !html ) {
+            this.nodes = [];
+            return;
+        }
 
-			if ( !html ) {
-				this.nodes = [];
-				return;
-			}
+        // get new nodes
+        pNode = this.parentFragment.pNode;
 
-			// get new nodes
-			pNode = this.parentFragment.pNode;
+        this.nodes = insertHtml( html, pNode.tagName, pNode.namespaceURI, this.docFrag );
 
-			this.nodes = insertHtml( html, pNode.tagName, pNode.namespaceURI, this.docFrag );
+        if ( !this.initialising ) {
+            pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
+        }
 
-			if ( !this.initialising ) {
-				pNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
-			}
+        // Special case - we're inserting the contents of a <select>
+        if ( pNode.tagName === 'SELECT' && pNode._ractive && pNode._ractive.binding ) {
+            pNode._ractive.binding.update();
+        }
+    },
 
-			// Special case - we're inserting the contents of a <select>
-			if ( pNode.tagName === 'SELECT' && pNode._ractive && pNode._ractive.binding ) {
-				pNode._ractive.binding.update();
-			}
-		},
+    toString: function () {
+        return ( this.value != undefined ? this.value : '' );
+    },
 
-		toString: function () {
-			return ( this.value != undefined ? this.value : '' );
-		},
+    find: function ( selector ) {
+        var i, len, node, queryResult;
 
-		find: function ( selector ) {
-			var i, len, node, queryResult;
+        len = this.nodes.length;
+        for ( i = 0; i < len; i += 1 ) {
+            node = this.nodes[i];
 
-			len = this.nodes.length;
-			for ( i = 0; i < len; i += 1 ) {
-				node = this.nodes[i];
+            if ( node.nodeType !== 1 ) {
+                continue;
+            }
 
-				if ( node.nodeType !== 1 ) {
-					continue;
-				}
+            if ( matches( node, selector ) ) {
+                return node;
+            }
 
-				if ( matches( node, selector ) ) {
-					return node;
-				}
+            if ( queryResult = node.querySelector( selector ) ) {
+                return queryResult;
+            }
+        }
 
-				if ( queryResult = node.querySelector( selector ) ) {
-					return queryResult;
-				}
-			}
+        return null;
+    },
 
-			return null;
-		},
+    findAll: function ( selector, queryResult ) {
+        var i, len, node, queryAllResult, numNodes, j;
 
-		findAll: function ( selector, queryResult ) {
-			var i, len, node, queryAllResult, numNodes, j;
+        len = this.nodes.length;
+        for ( i = 0; i < len; i += 1 ) {
+            node = this.nodes[i];
 
-			len = this.nodes.length;
-			for ( i = 0; i < len; i += 1 ) {
-				node = this.nodes[i];
+            if ( node.nodeType !== 1 ) {
+                continue;
+            }
 
-				if ( node.nodeType !== 1 ) {
-					continue;
-				}
+            if ( matches( node, selector ) ) {
+                queryResult.push( node );
+            }
 
-				if ( matches( node, selector ) ) {
-					queryResult.push( node );
-				}
+            if ( queryAllResult = node.querySelectorAll( selector ) ) {
+                numNodes = queryAllResult.length;
+                for ( j = 0; j < numNodes; j += 1 ) {
+                    queryResult.push( queryAllResult[j] );
+                }
+            }
+        }
+    }
+};
 
-				if ( queryAllResult = node.querySelectorAll( selector ) ) {
-					numNodes = queryAllResult.length;
-					for ( j = 0; j < numNodes; j += 1 ) {
-						queryResult.push( queryAllResult[j] );
-					}
-				}
-			}
-		}
-	};
-
-	return DomTriple;
-
-});
+export default DomTriple;

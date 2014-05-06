@@ -1,63 +1,58 @@
-define([
-	'config/isClient',
-	'config/vendors',
-	'utils/createElement'
-], function (
-	isClient,
-	vendors,
-	createElement
-) {
+import isClient from 'config/isClient';
+import vendors from 'config/vendors';
+import createElement from 'utils/createElement';
 
-	'use strict';
+var matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
-	var div, methodNames, unprefixed, prefixed, i, j, makeFunction;
+if ( !isClient ) {
+    matches = null;
+} else {
+    div = createElement( 'div' );
+    methodNames = [ 'matches', 'matchesSelector' ];
 
-	if ( !isClient ) {
-		return;
-	}
+    makeFunction = function ( methodName ) {
+        return function ( node, selector ) {
+            return node[ methodName ]( selector );
+        };
+    };
 
-	div = createElement( 'div' );
+    i = methodNames.length;
 
-	methodNames = [ 'matches', 'matchesSelector' ];
+    while ( i-- && !matches ) {
+        unprefixed = methodNames[i];
 
-	makeFunction = function ( methodName ) {
-		return function ( node, selector ) {
-			return node[ methodName ]( selector );
-		};
-	};
+        if ( div[ unprefixed ] ) {
+            matches = makeFunction( unprefixed );
+        } else {
+            j = vendors.length;
+            while ( j-- ) {
+                prefixed = vendors[i] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
 
-	i = methodNames.length;
-	while ( i-- ) {
-		unprefixed = methodNames[i];
+                if ( div[ prefixed ] ) {
+                    matches = makeFunction( prefixed );
+                    break;
+                }
+            }
+        }
+    }
 
-		if ( div[ unprefixed ] ) {
-			return makeFunction( unprefixed );
-		}
+    // IE8...
+    if ( !matches ) {
+        matches = function ( node, selector ) {
+            var nodes, i;
 
-		j = vendors.length;
-		while ( j-- ) {
-			prefixed = vendors[i] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
+            nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
 
-			if ( div[ prefixed ] ) {
-				return makeFunction( prefixed );
-			}
-		}
-	}
+            i = nodes.length;
+            while ( i-- ) {
+                if ( nodes[i] === node ) {
+                    return true;
+                }
+            }
 
-	// IE8...
-	return function ( node, selector ) {
-		var nodes, i;
+            return false;
+        };
+    }
+}
 
-		nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
-
-		i = nodes.length;
-		while ( i-- ) {
-			if ( nodes[i] === node ) {
-				return true;
-			}
-		}
-
-		return false;
-	};
-
-});
+export default matches;

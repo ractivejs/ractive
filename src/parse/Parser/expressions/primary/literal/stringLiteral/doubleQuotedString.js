@@ -1,11 +1,3 @@
-define([
-	'parse/Parser/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher'
-], function (
-	makeQuotedStringMatcher
-) {
+import makeQuotedStringMatcher from 'parse/Parser/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher';
 
-	'use strict';
-
-	return makeQuotedStringMatcher( "'" );
-
-});
+export default makeQuotedStringMatcher( "'" );

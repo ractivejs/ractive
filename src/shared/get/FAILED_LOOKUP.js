@@ -1,1 +1,1 @@
-define({ FAILED_LOOKUP: true });
+export default { FAILED_LOOKUP: true };

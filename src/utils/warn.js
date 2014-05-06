@@ -1,14 +1,12 @@
 /* global console */
-define( function () {
+var warn;
 
-	'use strict';
+if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
+    warn = function () {
+        console.warn.apply( console, arguments );
+    };
+} else {
+    warn = function () {};
+}
 
-	if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
-		return function () {
-			console.warn.apply( console, arguments );
-		};
-	}
-
-	return function () {};
-
-});
+export default warn;

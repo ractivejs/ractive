@@ -1,19 +1,13 @@
-define( function () {
+export default function () {
+    var liveQueries, selector, index;
 
-	'use strict';
+    liveQueries = this._root[ this._isComponentQuery ? 'liveComponentQueries' : 'liveQueries' ];
+    selector = this.selector;
 
-	return function () {
-		var liveQueries, selector, index;
+    index = liveQueries.indexOf( selector );
 
-		liveQueries = this._root[ this._isComponentQuery ? 'liveComponentQueries' : 'liveQueries' ];
-		selector = this.selector;
-
-		index = liveQueries.indexOf( selector );
-
-		if ( index !== -1 ) {
-			liveQueries.splice( index, 1 );
-			liveQueries[ selector ] = null;
-		}
-	};
-
-});
+    if ( index !== -1 ) {
+        liveQueries.splice( index, 1 );
+        liveQueries[ selector ] = null;
+    }
+};

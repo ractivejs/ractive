@@ -1,29 +1,21 @@
-define([
-	'utils/fillGaps'
-], function (
-	fillGaps
-) {
+import fillGaps from 'utils/fillGaps';
 
-	'use strict';
+export default function ( params, defaults ) {
+    if ( typeof params === 'number' ) {
+        params = { duration: params };
+    }
 
-	return function ( params, defaults ) {
-		if ( typeof params === 'number' ) {
-			params = { duration: params };
-		}
+    else if ( typeof params === 'string' ) {
+        if ( params === 'slow' ) {
+            params = { duration: 600 };
+        } else if ( params === 'fast' ) {
+            params = { duration: 200 };
+        } else {
+            params = { duration: 400 };
+        }
+    } else if ( !params ) {
+        params = {};
+    }
 
-		else if ( typeof params === 'string' ) {
-			if ( params === 'slow' ) {
-				params = { duration: 600 };
-			} else if ( params === 'fast' ) {
-				params = { duration: 200 };
-			} else {
-				params = { duration: 400 };
-			}
-		} else if ( !params ) {
-			params = {};
-		}
-
-		return fillGaps( params, defaults );
-	};
-
-});
+    return fillGaps( params, defaults );
+};

@@ -1,21 +1,15 @@
-define([
-	'render/DomFragment/Element/initialise/createElementAttribute'
-], function ( createElementAttribute ) {
+import createElementAttribute from 'render/DomFragment/Element/initialise/createElementAttribute';
 
-	'use strict';
+export default function ( element, attributes ) {
+    var attrName;
 
-	return function ( element, attributes ) {
-		var attrName;
+    element.attributes = [];
 
-		element.attributes = [];
+    for ( attrName in attributes ) {
+        if ( attributes.hasOwnProperty( attrName ) ) {
+            createElementAttribute( element, attrName, attributes[ attrName ] );
+        }
+    }
 
-		for ( attrName in attributes ) {
-			if ( attributes.hasOwnProperty( attrName ) ) {
-				createElementAttribute( element, attrName, attributes[ attrName ] );
-			}
-		}
-
-		return element.attributes;
-	};
-
-});
+    return element.attributes;
+};

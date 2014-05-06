@@ -1,83 +1,76 @@
-define( function () {
+export default function ( a, b ) {
+    var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
 
-	'use strict';
+    ancestryA = getAncestry( a.component || a._ractive.proxy );
+    ancestryB = getAncestry( b.component || b._ractive.proxy );
 
-	return function ( a, b ) {
-		var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
+    oldestA = ancestryA[ ancestryA.length - 1 ];
+    oldestB = ancestryB[ ancestryB.length - 1 ];
 
-		ancestryA = getAncestry( a.component || a._ractive.proxy );
-		ancestryB = getAncestry( b.component || b._ractive.proxy );
+    // remove items from the end of both ancestries as long as they are identical
+    // - the final one removed is the closest mutual ancestor
+    while ( oldestA && ( oldestA === oldestB ) ) {
+        ancestryA.pop();
+        ancestryB.pop();
 
-		oldestA = ancestryA[ ancestryA.length - 1 ];
-		oldestB = ancestryB[ ancestryB.length - 1 ];
+        mutualAncestor = oldestA;
 
-		// remove items from the end of both ancestries as long as they are identical
-		// - the final one removed is the closest mutual ancestor
-		while ( oldestA && ( oldestA === oldestB ) ) {
-			ancestryA.pop();
-			ancestryB.pop();
+        oldestA = ancestryA[ ancestryA.length - 1 ];
+        oldestB = ancestryB[ ancestryB.length - 1 ];
+    }
 
-			mutualAncestor = oldestA;
+    // now that we have the mutual ancestor, we can find which is earliest
+    oldestA = oldestA.component || oldestA;
+    oldestB = oldestB.component || oldestB;
 
-			oldestA = ancestryA[ ancestryA.length - 1 ];
-			oldestB = ancestryB[ ancestryB.length - 1 ];
-		}
+    fragmentA = oldestA.parentFragment;
+    fragmentB = oldestB.parentFragment;
 
-		// now that we have the mutual ancestor, we can find which is earliest
-		oldestA = oldestA.component || oldestA;
-		oldestB = oldestB.component || oldestB;
+    // if both items share a parent fragment, our job is easy
+    if ( fragmentA === fragmentB ) {
+        indexA = fragmentA.items.indexOf( oldestA );
+        indexB = fragmentB.items.indexOf( oldestB );
 
-		fragmentA = oldestA.parentFragment;
-		fragmentB = oldestB.parentFragment;
+        // if it's the same index, it means one contains the other,
+        // so we see which has the longest ancestry
+        return ( indexA - indexB ) || ancestryA.length - ancestryB.length;
+    }
 
-		// if both items share a parent fragment, our job is easy
-		if ( fragmentA === fragmentB ) {
-			indexA = fragmentA.items.indexOf( oldestA );
-			indexB = fragmentB.items.indexOf( oldestB );
+    // if mutual ancestor is a section, we first test to see which section
+    // fragment comes first
+    if ( fragments = mutualAncestor.fragments ) {
+        indexA = fragments.indexOf( fragmentA );
+        indexB = fragments.indexOf( fragmentB );
 
-			// if it's the same index, it means one contains the other,
-			// so we see which has the longest ancestry
-			return ( indexA - indexB ) || ancestryA.length - ancestryB.length;
-		}
+        return ( indexA - indexB ) || ancestryA.length - ancestryB.length;
+    }
 
-		// if mutual ancestor is a section, we first test to see which section
-		// fragment comes first
-		if ( fragments = mutualAncestor.fragments ) {
-			indexA = fragments.indexOf( fragmentA );
-			indexB = fragments.indexOf( fragmentB );
+    throw new Error( 'An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!' );
+};
 
-			return ( indexA - indexB ) || ancestryA.length - ancestryB.length;
-		}
+function getParent ( item ) {
+    var parentFragment;
 
-		throw new Error( 'An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!' );
-	};
+    if ( parentFragment = item.parentFragment ) {
+        return parentFragment.owner;
+    }
 
+    if ( item.component && ( parentFragment = item.component.parentFragment ) ) {
+        return parentFragment.owner;
+    }
+}
 
-	function getParent ( item ) {
-		var parentFragment;
+function getAncestry ( item ) {
+    var ancestry, ancestor;
 
-		if ( parentFragment = item.parentFragment ) {
-			return parentFragment.owner;
-		}
+    ancestry = [ item ];
 
-		if ( item.component && ( parentFragment = item.component.parentFragment ) ) {
-			return parentFragment.owner;
-		}
-	}
+    ancestor = getParent( item );
 
-	function getAncestry ( item ) {
-		var ancestry, ancestor;
+    while ( ancestor ) {
+        ancestry.push( ancestor );
+        ancestor = getParent( ancestor );
+    }
 
-		ancestry = [ item ];
-
-		ancestor = getParent( item );
-
-		while ( ancestor ) {
-			ancestry.push( ancestor );
-			ancestor = getParent( ancestor );
-		}
-
-		return ancestry;
-	}
-
-});
+    return ancestry;
+}

@@ -1,48 +1,42 @@
-define( function () {
+export default function registerDependant ( dependant ) {
+    var depsByKeypath, deps, ractive, keypath, priority;
 
-	'use strict';
+    ractive = dependant.root;
+    keypath = dependant.keypath;
+    priority = dependant.priority;
 
-	return function registerDependant ( dependant ) {
-		var depsByKeypath, deps, ractive, keypath, priority;
+    depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
+    deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
-		ractive = dependant.root;
-		keypath = dependant.keypath;
-		priority = dependant.priority;
+    deps.push( dependant );
+    dependant.registered = true;
 
-		depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
-		deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
+    if ( !keypath ) {
+        return;
+    }
 
-		deps.push( dependant );
-		dependant.registered = true;
+    updateDependantsMap( ractive, keypath );
+};
 
-		if ( !keypath ) {
-			return;
-		}
+function updateDependantsMap ( ractive, keypath ) {
+    var keys, parentKeypath, map;
 
-		updateDependantsMap( ractive, keypath );
-	};
+    // update dependants map
+    keys = keypath.split( '.' );
 
-	function updateDependantsMap ( ractive, keypath ) {
-		var keys, parentKeypath, map;
+    while ( keys.length ) {
+        keys.pop();
+        parentKeypath = keys.join( '.' );
 
-		// update dependants map
-		keys = keypath.split( '.' );
+        map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
 
-		while ( keys.length ) {
-			keys.pop();
-			parentKeypath = keys.join( '.' );
+        if ( map[ keypath ] === undefined ) {
+            map[ keypath ] = 0;
+            map[ map.length ] = keypath;
+        }
 
-			map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
+        map[ keypath ] += 1;
 
-			if ( map[ keypath ] === undefined ) {
-				map[ keypath ] = 0;
-				map[ map.length ] = keypath;
-			}
-
-			map[ keypath ] += 1;
-
-			keypath = parentKeypath;
-		}
-	}
-
-});
+        keypath = parentKeypath;
+    }
+}

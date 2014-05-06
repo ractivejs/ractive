@@ -1,15 +1,13 @@
-define( function () {
+var getTime;
 
-	'use strict';
+if ( typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function' ) {
+    getTime = function () {
+        return window.performance.now();
+    };
+} else {
+    getTime = function () {
+        return Date.now();
+    };
+}
 
-	if ( typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function' ) {
-		return function () {
-			return window.performance.now();
-		};
-	} else {
-		return function () {
-			return Date.now();
-		};
-	}
-
-});
+export default getTime;

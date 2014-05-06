@@ -1,83 +1,65 @@
-define([
-	'global/runloop',
-	'global/css',
-	'render/DomFragment/Element/initialise/_initialise',
-	'render/DomFragment/Element/prototype/teardown',
-	'render/DomFragment/Element/prototype/reassign',
-	'render/DomFragment/Element/prototype/toString',
-	'render/DomFragment/Element/prototype/find',
-	'render/DomFragment/Element/prototype/findAll',
-	'render/DomFragment/Element/prototype/findComponent',
-	'render/DomFragment/Element/prototype/findAllComponents',
-	'render/DomFragment/Element/prototype/bind'
-], function (
-	runloop,
-	css,
-	initialise,
-	teardown,
-	reassign,
-	toString,
-	find,
-	findAll,
-	findComponent,
-	findAllComponents,
-	bind
-) {
+import runloop from 'global/runloop';
+import css from 'global/css';
+import initialise from 'render/DomFragment/Element/initialise/_initialise';
+import teardown from 'render/DomFragment/Element/prototype/teardown';
+import reassign from 'render/DomFragment/Element/prototype/reassign';
+import toString from 'render/DomFragment/Element/prototype/toString';
+import find from 'render/DomFragment/Element/prototype/find';
+import findAll from 'render/DomFragment/Element/prototype/findAll';
+import findComponent from 'render/DomFragment/Element/prototype/findComponent';
+import findAllComponents from 'render/DomFragment/Element/prototype/findAllComponents';
+import bind from 'render/DomFragment/Element/prototype/bind';
 
-	'use strict';
+var DomElement = function ( options, docFrag ) {
+    initialise( this, options, docFrag );
+};
 
-	var DomElement = function ( options, docFrag ) {
-		initialise( this, options, docFrag );
-	};
+DomElement.prototype = {
+    detach: function () {
+        var Component;
 
-	DomElement.prototype = {
-		detach: function () {
-			var Component;
+        if ( this.node ) {
+            // need to check for parent node - DOM may have been altered
+            // by something other than Ractive! e.g. jQuery UI...
+            if ( this.node.parentNode ) {
+                this.node.parentNode.removeChild( this.node );
+            }
+            return this.node;
+        }
 
-			if ( this.node ) {
-				// need to check for parent node - DOM may have been altered
-				// by something other than Ractive! e.g. jQuery UI...
-				if ( this.node.parentNode ) {
-					this.node.parentNode.removeChild( this.node );
-				}
-				return this.node;
-			}
+        // If this element has child components with their own CSS, that CSS needs to
+        // be removed now
+        // TODO optimise this
+        if ( this.cssDetachQueue.length ) {
+            runloop.start();
+            while ( Component === this.cssDetachQueue.pop() ) {
+                css.remove( Component );
+            }
+            runloop.end();
+        }
+    },
 
-			// If this element has child components with their own CSS, that CSS needs to
-			// be removed now
-			// TODO optimise this
-			if ( this.cssDetachQueue.length ) {
-				runloop.start();
-				while ( Component === this.cssDetachQueue.pop() ) {
-					css.remove( Component );
-				}
-				runloop.end();
-			}
-		},
+    teardown: teardown,
 
-		teardown: teardown,
+    reassign: reassign,
 
-		reassign: reassign,
+    firstNode: function () {
+        return this.node;
+    },
 
-		firstNode: function () {
-			return this.node;
-		},
+    findNextNode: function () {
+        return null;
+    },
 
-		findNextNode: function () {
-			return null;
-		},
+    // TODO can we get rid of this?
+    bubble: function () {}, // just so event proxy and transition fragments have something to call!
 
-		// TODO can we get rid of this?
-		bubble: function () {}, // just so event proxy and transition fragments have something to call!
+    toString: toString,
+    find: find,
+    findAll: findAll,
+    findComponent: findComponent,
+    findAllComponents: findAllComponents,
+    bind: bind
+};
 
-		toString: toString,
-		find: find,
-		findAll: findAll,
-		findComponent: findComponent,
-		findAllComponents: findAllComponents,
-		bind: bind
-	};
-
-	return DomElement;
-
-});
+export default DomElement;

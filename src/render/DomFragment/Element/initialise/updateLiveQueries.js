@@ -1,27 +1,21 @@
-define( function () {
+export default function ( element ) {
+    var instance, liveQueries, i, selector, query;
 
-	'use strict';
+    // Does this need to be added to any live queries?
+    instance = element.root;
 
-	return function ( element ) {
-		var instance, liveQueries, i, selector, query;
+    do {
+        liveQueries = instance._liveQueries;
 
-		// Does this need to be added to any live queries?
-		instance = element.root;
+        i = liveQueries.length;
+        while ( i-- ) {
+            selector = liveQueries[i];
+            query = liveQueries[ '_' + selector ];
 
-		do {
-			liveQueries = instance._liveQueries;
-
-			i = liveQueries.length;
-			while ( i-- ) {
-				selector = liveQueries[i];
-				query = liveQueries[ '_' + selector ];
-
-				if ( query._test( element ) ) {
-					// keep register of applicable selectors, for when we teardown
-					( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
-				}
-			}
-		} while ( instance = instance._parent );
-	};
-
-});
+            if ( query._test( element ) ) {
+                // keep register of applicable selectors, for when we teardown
+                ( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
+            }
+        }
+    } while ( instance = instance._parent );
+};

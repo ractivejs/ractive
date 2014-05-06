@@ -1,13 +1,5 @@
-define([
-	'render/shared/utils/startsWithKeypath'
-], function (
-	startsWithKeypath
-) {
+import startsWithKeypath from 'render/shared/utils/startsWithKeypath';
 
-	'use strict';
-
-	return function startsWith( target, keypath) {
-		return target === keypath || startsWithKeypath(target, keypath);
-	};
-
-});
+export default function startsWith( target, keypath) {
+    return target === keypath || startsWithKeypath(target, keypath);
+};

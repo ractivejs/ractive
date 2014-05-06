@@ -1,24 +1,17 @@
-define([], function () {
+export default function ( section, start, end, by ) {
 
-	'use strict';
+    var i, fragment, indexRef, oldKeypath, newKeypath;
 
-	return function ( section, start, end, by ) {
+    indexRef = section.descriptor.i;
 
-		var i, fragment, indexRef, oldKeypath, newKeypath;
+    for ( i=start; i<end; i+=1 ) {
+        fragment = section.fragments[i];
 
-		indexRef = section.descriptor.i;
+        oldKeypath = section.keypath + '.' + ( i - by );
+        newKeypath = section.keypath + '.' + i;
 
-		for ( i=start; i<end; i+=1 ) {
-			fragment = section.fragments[i];
-
-			oldKeypath = section.keypath + '.' + ( i - by );
-			newKeypath = section.keypath + '.' + i;
-
-			// change the fragment index
-			fragment.index = i;
-			fragment.reassign( indexRef, i, oldKeypath, newKeypath );
-		}
-	};
-
-
-});
+        // change the fragment index
+        fragment.index = i;
+        fragment.reassign( indexRef, i, oldKeypath, newKeypath );
+    }
+};

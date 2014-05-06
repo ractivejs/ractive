@@ -1,211 +1,205 @@
-define( function () {
+var Promise,
+    PENDING = {},
+    FULFILLED = {},
+    REJECTED = {};
 
-	'use strict';
+Promise = function ( callback ) {
+    var fulfilledHandlers = [],
+        rejectedHandlers = [],
+        state = PENDING,
 
-	var Promise,
-		PENDING = {},
-		FULFILLED = {},
-		REJECTED = {};
+        result,
+        dispatchHandlers,
+        makeResolver,
+        fulfil,
+        reject,
 
-	Promise = function ( callback ) {
-		var fulfilledHandlers = [],
-			rejectedHandlers = [],
-			state = PENDING,
+        promise;
 
-			result,
-			dispatchHandlers,
-			makeResolver,
-			fulfil,
-			reject,
+    makeResolver = function ( newState ) {
+        return function ( value ) {
+            if ( state !== PENDING ) {
+                return;
+            }
 
-			promise;
+            result = value;
+            state = newState;
 
-		makeResolver = function ( newState ) {
-			return function ( value ) {
-				if ( state !== PENDING ) {
-					return;
-				}
+            dispatchHandlers = makeDispatcher( ( state === FULFILLED ? fulfilledHandlers : rejectedHandlers ), result );
 
-				result = value;
-				state = newState;
+            // dispatch onFulfilled and onRejected handlers asynchronously
+            wait( dispatchHandlers );
+        };
+    };
 
-				dispatchHandlers = makeDispatcher( ( state === FULFILLED ? fulfilledHandlers : rejectedHandlers ), result );
+    fulfil = makeResolver( FULFILLED );
+    reject = makeResolver( REJECTED );
 
-				// dispatch onFulfilled and onRejected handlers asynchronously
-				wait( dispatchHandlers );
-			};
-		};
+    callback( fulfil, reject );
 
-		fulfil = makeResolver( FULFILLED );
-		reject = makeResolver( REJECTED );
+    promise = {
+        // `then()` returns a Promise - 2.2.7
+        then: function ( onFulfilled, onRejected ) {
+            var promise2 = new Promise( function ( fulfil, reject ) {
 
-		callback( fulfil, reject );
+                var processResolutionHandler = function ( handler, handlers, forward ) {
 
-		promise = {
-			// `then()` returns a Promise - 2.2.7
-			then: function ( onFulfilled, onRejected ) {
-				var promise2 = new Promise( function ( fulfil, reject ) {
+                    // 2.2.1.1
+                    if ( typeof handler === 'function' ) {
+                        handlers.push( function ( p1result ) {
+                            var x;
 
-					var processResolutionHandler = function ( handler, handlers, forward ) {
+                            try {
+                                x = handler( p1result );
+                                resolve( promise2, x, fulfil, reject );
+                            } catch ( err ) {
+                                reject( err );
+                            }
+                        });
+                    } else {
+                        // Forward the result of promise1 to promise2, if resolution handlers
+                        // are not given
+                        handlers.push( forward );
+                    }
+                };
 
-						// 2.2.1.1
-						if ( typeof handler === 'function' ) {
-							handlers.push( function ( p1result ) {
-								var x;
+                // 2.2
+                processResolutionHandler( onFulfilled, fulfilledHandlers, fulfil );
+                processResolutionHandler( onRejected, rejectedHandlers, reject );
 
-								try {
-									x = handler( p1result );
-									resolve( promise2, x, fulfil, reject );
-								} catch ( err ) {
-									reject( err );
-								}
-							});
-						} else {
-							// Forward the result of promise1 to promise2, if resolution handlers
-							// are not given
-							handlers.push( forward );
-						}
-					};
+                if ( state !== PENDING ) {
+                    // If the promise has resolved already, dispatch the appropriate handlers asynchronously
+                    wait( dispatchHandlers );
+                }
 
-					// 2.2
-					processResolutionHandler( onFulfilled, fulfilledHandlers, fulfil );
-					processResolutionHandler( onRejected, rejectedHandlers, reject );
+            });
 
-					if ( state !== PENDING ) {
-						// If the promise has resolved already, dispatch the appropriate handlers asynchronously
-						wait( dispatchHandlers );
-					}
+            return promise2;
+        }
+    };
 
-				});
+    promise[ 'catch' ] = function ( onRejected ) {
+        return this.then( null, onRejected );
+    };
 
-				return promise2;
-			}
-		};
+    return promise;
+};
 
-		promise[ 'catch' ] = function ( onRejected ) {
-			return this.then( null, onRejected );
-		};
+Promise.all = function ( promises ) {
+    return new Promise( function ( fulfil, reject ) {
+        var result = [], pending, i, processPromise;
 
-		return promise;
-	};
+        if ( !promises.length ) {
+            fulfil( result );
+            return;
+        }
 
-	Promise.all = function ( promises ) {
-		return new Promise( function ( fulfil, reject ) {
-			var result = [], pending, i, processPromise;
+        processPromise = function ( i ) {
+            promises[i].then( function ( value ) {
+                result[i] = value;
 
-			if ( !promises.length ) {
-				fulfil( result );
-				return;
-			}
+                if ( !--pending ) {
+                    fulfil( result );
+                }
+            }, reject );
+        };
 
-			processPromise = function ( i ) {
-				promises[i].then( function ( value ) {
-					result[i] = value;
+        pending = i = promises.length;
+        while ( i-- ) {
+            processPromise( i );
+        }
+    });
+};
 
-					if ( !--pending ) {
-						fulfil( result );
-					}
-				}, reject );
-			};
+Promise.resolve = function ( value ) {
+    return new Promise( function ( fulfil ) {
+        fulfil( value );
+    });
+};
 
-			pending = i = promises.length;
-			while ( i-- ) {
-				processPromise( i );
-			}
-		});
-	};
+Promise.reject = function ( reason ) {
+    return new Promise( function ( fulfil, reject ) {
+        reject( reason );
+    });
+};
 
-	Promise.resolve = function ( value ) {
-		return new Promise( function ( fulfil ) {
-			fulfil( value );
-		});
-	};
+export default Promise;
 
-	Promise.reject = function ( reason ) {
-		return new Promise( function ( fulfil, reject ) {
-			reject( reason );
-		});
-	};
+// TODO use MutationObservers or something to simulate setImmediate
+function wait ( callback ) {
+    setTimeout( callback, 0 );
+}
 
-	return Promise;
+function makeDispatcher ( handlers, result ) {
+    return function () {
+        var handler;
 
-	// TODO use MutationObservers or something to simulate setImmediate
-	function wait ( callback ) {
-		setTimeout( callback, 0 );
-	}
+        while ( handler = handlers.shift() ) {
+            handler( result );
+        }
+    };
+}
 
-	function makeDispatcher ( handlers, result ) {
-		return function () {
-			var handler;
+function resolve ( promise, x, fulfil, reject ) {
+    // Promise Resolution Procedure
+    var then;
 
-			while ( handler = handlers.shift() ) {
-				handler( result );
-			}
-		};
-	}
+    // 2.3.1
+    if ( x === promise ) {
+        throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
+    }
 
-	function resolve ( promise, x, fulfil, reject ) {
-		// Promise Resolution Procedure
-		var then;
+    // 2.3.2
+    if ( x instanceof Promise ) {
+        x.then( fulfil, reject );
+    }
 
-		// 2.3.1
-		if ( x === promise ) {
-			throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
-		}
+    // 2.3.3
+    else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
+        try {
+            then = x.then; // 2.3.3.1
+        } catch ( e ) {
+            reject( e ); // 2.3.3.2
+            return;
+        }
 
-		// 2.3.2
-		if ( x instanceof Promise ) {
-			x.then( fulfil, reject );
-		}
+        // 2.3.3.3
+        if ( typeof then === 'function' ) {
+            var called, resolvePromise, rejectPromise;
 
-		// 2.3.3
-		else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
-			try {
-				then = x.then; // 2.3.3.1
-			} catch ( e ) {
-				reject( e ); // 2.3.3.2
-				return;
-			}
+            resolvePromise = function ( y ) {
+                if ( called ) {
+                    return;
+                }
+                called = true;
+                resolve( promise, y, fulfil, reject );
+            };
 
-			// 2.3.3.3
-			if ( typeof then === 'function' ) {
-				var called, resolvePromise, rejectPromise;
+            rejectPromise = function ( r ) {
+                if ( called ) {
+                    return;
+                }
+                called = true;
+                reject( r );
+            };
 
-				resolvePromise = function ( y ) {
-					if ( called ) {
-						return;
-					}
-					called = true;
-					resolve( promise, y, fulfil, reject );
-				};
+            try {
+                then.call( x, resolvePromise, rejectPromise );
+            } catch ( e ) {
+                if ( !called ) { // 2.3.3.3.4.1
+                    reject( e ); // 2.3.3.3.4.2
+                    called = true;
+                    return;
+                }
+            }
+        }
 
-				rejectPromise = function ( r ) {
-					if ( called ) {
-						return;
-					}
-					called = true;
-					reject( r );
-				};
+        else {
+            fulfil( x );
+        }
+    }
 
-				try {
-					then.call( x, resolvePromise, rejectPromise );
-				} catch ( e ) {
-					if ( !called ) { // 2.3.3.3.4.1
-						reject( e ); // 2.3.3.3.4.2
-						called = true;
-						return;
-					}
-				}
-			}
-
-			else {
-				fulfil( x );
-			}
-		}
-
-		else {
-			fulfil( x );
-		}
-	}
-
-});
+    else {
+        fulfil( x );
+    }
+}

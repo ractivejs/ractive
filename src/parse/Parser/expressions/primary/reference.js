@@ -1,95 +1,82 @@
-define([
-	'config/types',
-	'parse/Parser/expressions/patterns'
-], function (
-	types,
-	patterns
-) {
+import types from 'config/types';
+import patterns from 'parse/Parser/expressions/patterns';
 
-	'use strict';
+var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals;
+dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
 
-	var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals;
+getArrayRefinement = function ( parser ) {
+    var num = parser.matchPattern( arrayMemberPattern );
 
-	dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
+    if ( num ) {
+        return '.' + num;
+    }
 
-	getArrayRefinement = function ( parser ) {
-		var num = parser.matchPattern( arrayMemberPattern );
+    return null;
+};
 
-		if ( num ) {
-			return '.' + num;
-		}
+arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
 
-		return null;
-	};
+// if a reference is a browser global, we don't deference it later, so it needs special treatment
+globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
 
-	arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
+export default function ( parser ) {
+    var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
 
-	// if a reference is a browser global, we don't deference it later, so it needs special treatment
-	globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+    startPos = parser.pos;
 
+    // we might have ancestor refs...
+    ancestor = '';
+    while ( parser.matchString( '../' ) ) {
+        ancestor += '../';
+    }
 
-	return function ( parser ) {
-		var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
+    if ( !ancestor ) {
+        // we might have an implicit iterator or a restricted reference
+        dot = parser.matchString( '.' ) || '';
+    }
 
-		startPos = parser.pos;
+    name = parser.matchPattern( patterns.name ) || '';
 
-		// we might have ancestor refs...
-		ancestor = '';
-		while ( parser.matchString( '../' ) ) {
-			ancestor += '../';
-		}
+    // if this is a browser global, stop here
+    if ( !ancestor && !dot && globals.test( name ) ) {
+        return {
+            t: types.GLOBAL,
+            v: name
+        };
+    }
 
-		if ( !ancestor ) {
-			// we might have an implicit iterator or a restricted reference
-			dot = parser.matchString( '.' ) || '';
-		}
+    // allow the use of `this`
+    if ( name === 'this' && !ancestor && !dot ) {
+        name = '.';
+        startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
+    }
 
-		name = parser.matchPattern( patterns.name ) || '';
+    combo = ( ancestor || dot ) + name;
 
-		// if this is a browser global, stop here
-		if ( !ancestor && !dot && globals.test( name ) ) {
-			return {
-				t: types.GLOBAL,
-				v: name
-			};
-		}
+    if ( !combo ) {
+        return null;
+    }
 
-		// allow the use of `this`
-		if ( name === 'this' && !ancestor && !dot ) {
-			name = '.';
-			startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
-		}
+    while ( refinement = parser.matchPattern( dotRefinementPattern ) || getArrayRefinement( parser ) ) {
+        combo += refinement;
+    }
 
-		combo = ( ancestor || dot ) + name;
+    if ( parser.matchString( '(' ) ) {
 
-		if ( !combo ) {
-			return null;
-		}
+        // if this is a method invocation (as opposed to a function) we need
+        // to strip the method name from the reference combo, else the context
+        // will be wrong
+        lastDotIndex = combo.lastIndexOf( '.' );
+        if ( lastDotIndex !== -1 ) {
+            combo = combo.substr( 0, lastDotIndex );
+            parser.pos = startPos + combo.length;
+        } else {
+            parser.pos -= 1;
+        }
+    }
 
-		while ( refinement = parser.matchPattern( dotRefinementPattern ) || getArrayRefinement( parser ) ) {
-			combo += refinement;
-		}
-
-		if ( parser.matchString( '(' ) ) {
-
-			// if this is a method invocation (as opposed to a function) we need
-			// to strip the method name from the reference combo, else the context
-			// will be wrong
-			lastDotIndex = combo.lastIndexOf( '.' );
-			if ( lastDotIndex !== -1 ) {
-				combo = combo.substr( 0, lastDotIndex );
-				parser.pos = startPos + combo.length;
-			} else {
-				parser.pos -= 1;
-			}
-		}
-
-		return {
-			t: types.REFERENCE,
-			n: combo
-		};
-	};
-
-
-
-});
+    return {
+        t: types.REFERENCE,
+        n: combo
+    };
+};

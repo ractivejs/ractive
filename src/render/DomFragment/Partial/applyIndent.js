@@ -1,19 +1,13 @@
-define( function () {
+export default function ( string, indent ) {
+    var indented;
 
-	'use strict';
+    if ( !indent ) {
+        return string;
+    }
 
-	return function ( string, indent ) {
-		var indented;
+    indented = string.split( '\n' ).map( function ( line, notFirstLine ) {
+        return notFirstLine ? indent + line : line;
+    }).join( '\n' );
 
-		if ( !indent ) {
-			return string;
-		}
-
-		indented = string.split( '\n' ).map( function ( line, notFirstLine ) {
-			return notFirstLine ? indent + line : line;
-		}).join( '\n' );
-
-		return indented;
-	};
-
-});
+    return indented;
+};

@@ -1,36 +1,30 @@
-define( function () {
+var pattern = /\$\{([^\}]+)\}/g;
 
-	'use strict';
+export default function ( signature ) {
+    if ( typeof signature === 'function' ) {
+        return { get: signature };
+    }
 
-	var pattern = /\$\{([^\}]+)\}/g;
+    if ( typeof signature === 'string' ) {
+        return {
+            get: createFunctionFromString( signature )
+        };
+    }
 
-	return function ( signature ) {
-		if ( typeof signature === 'function' ) {
-			return { get: signature };
-		}
+    if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
+        signature = {
+            get: createFunctionFromString( signature.get ),
+            set: signature.set
+        };
+    }
 
-		if ( typeof signature === 'string' ) {
-			return {
-				get: createFunctionFromString( signature )
-			};
-		}
+    return signature;
+};
 
-		if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
-			signature = {
-				get: createFunctionFromString( signature.get ),
-				set: signature.set
-			};
-		}
+function createFunctionFromString ( signature ) {
+    var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function ( match, keypath ) {
+        return '__ractive.get("' + keypath + '")';
+    }) + ')';
 
-		return signature;
-	};
-
-	function createFunctionFromString ( signature ) {
-		var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function ( match, keypath ) {
-			return '__ractive.get("' + keypath + '")';
-		}) + ')';
-
-		return new Function ( functionBody );
-	}
-
-});
+    return new Function ( functionBody );
+}

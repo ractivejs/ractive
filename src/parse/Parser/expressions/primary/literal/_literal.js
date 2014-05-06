@@ -1,27 +1,15 @@
-define([
-	'parse/Parser/expressions/primary/literal/numberLiteral',
-	'parse/Parser/expressions/primary/literal/booleanLiteral',
-	'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral',
-	'parse/Parser/expressions/primary/literal/objectLiteral/_objectLiteral',
-	'parse/Parser/expressions/primary/literal/arrayLiteral'
-], function (
-	getNumberLiteral,
-	getBooleanLiteral,
-	getStringLiteral,
-	getObjectLiteral,
-	getArrayLiteral
-) {
+import getNumberLiteral from 'parse/Parser/expressions/primary/literal/numberLiteral';
+import getBooleanLiteral from 'parse/Parser/expressions/primary/literal/booleanLiteral';
+import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral';
+import getObjectLiteral from 'parse/Parser/expressions/primary/literal/objectLiteral/_objectLiteral';
+import getArrayLiteral from 'parse/Parser/expressions/primary/literal/arrayLiteral';
 
-	'use strict';
+export default function ( tokenizer ) {
+    var literal = getNumberLiteral( tokenizer )   ||
+                  getBooleanLiteral( tokenizer )  ||
+                  getStringLiteral( tokenizer )   ||
+                  getObjectLiteral( tokenizer )   ||
+                  getArrayLiteral( tokenizer );
 
-	return function ( tokenizer ) {
-		var literal = getNumberLiteral( tokenizer )   ||
-		              getBooleanLiteral( tokenizer )  ||
-		              getStringLiteral( tokenizer )   ||
-		              getObjectLiteral( tokenizer )   ||
-		              getArrayLiteral( tokenizer );
-
-		return literal;
-	};
-
-});
+    return literal;
+};

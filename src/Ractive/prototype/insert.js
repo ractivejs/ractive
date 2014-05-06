@@ -1,17 +1,13 @@
-define([ 'utils/getElement' ], function ( getElement ) {
+import getElement from 'utils/getElement';
 
-	'use strict';
+export default function ( target, anchor ) {
+    target = getElement( target );
+    anchor = getElement( anchor ) || null;
 
-	return function ( target, anchor ) {
-		target = getElement( target );
-		anchor = getElement( anchor ) || null;
+    if ( !target ) {
+        throw new Error( 'You must specify a valid target to insert into' );
+    }
 
-		if ( !target ) {
-			throw new Error( 'You must specify a valid target to insert into' );
-		}
-
-		target.insertBefore( this.detach(), anchor );
-		this.fragment.pNode = this.el = target;
-	};
-
-});
+    target.insertBefore( this.detach(), anchor );
+    this.fragment.pNode = this.el = target;
+};

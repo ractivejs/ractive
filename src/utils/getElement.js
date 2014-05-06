@@ -1,43 +1,37 @@
-define( function () {
+export default function getElement( input ) {
+    var output;
 
-	'use strict';
+    if ( !input || typeof input === 'boolean' ) { return; }
 
-	return function getElement( input ) {
-		var output;
+    if ( typeof window === 'undefined' || !document || !input ) {
+        return null;
+    }
 
-		if ( !input || typeof input === 'boolean' ) { return; }
+    // We already have a DOM node - no work to do. (Duck typing alert!)
+    if ( input.nodeType ) {
+        return input;
+    }
 
-		if ( typeof window === 'undefined' || !document || !input ) {
-			return null;
-		}
+    // Get node from string
+    if ( typeof input === 'string' ) {
+        // try ID first
+        output = document.getElementById( input );
 
-		// We already have a DOM node - no work to do. (Duck typing alert!)
-		if ( input.nodeType ) {
-			return input;
-		}
+        // then as selector, if possible
+        if ( !output && document.querySelector ) {
+            output = document.querySelector( input );
+        }
 
-		// Get node from string
-		if ( typeof input === 'string' ) {
-			// try ID first
-			output = document.getElementById( input );
+        // did it work?
+        if ( output && output.nodeType ) {
+            return output;
+        }
+    }
 
-			// then as selector, if possible
-			if ( !output && document.querySelector ) {
-				output = document.querySelector( input );
-			}
+    // If we've been given a collection (jQuery, Zepto etc), extract the first item
+    if ( input[0] && input[0].nodeType ) {
+        return input[0];
+    }
 
-			// did it work?
-			if ( output && output.nodeType ) {
-				return output;
-			}
-		}
-
-		// If we've been given a collection (jQuery, Zepto etc), extract the first item
-		if ( input[0] && input[0].nodeType ) {
-			return input[0];
-		}
-
-		return null;
-	};
-
-});
+    return null;
+};

@@ -1,20 +1,16 @@
-define([ 'render/DomFragment/Element/initialise/addEventProxies/addEventProxy' ], function ( addEventProxy ) {
+import addEventProxy from 'render/DomFragment/Element/initialise/addEventProxies/addEventProxy';
 
-	'use strict';
+export default function ( element, proxies ) {
+    var i, eventName, eventNames;
 
-	return function ( element, proxies ) {
-		var i, eventName, eventNames;
+    for ( eventName in proxies ) {
+        if ( proxies.hasOwnProperty( eventName ) ) {
+            eventNames = eventName.split( '-' );
+            i = eventNames.length;
 
-		for ( eventName in proxies ) {
-			if ( proxies.hasOwnProperty( eventName ) ) {
-				eventNames = eventName.split( '-' );
-				i = eventNames.length;
-
-				while ( i-- ) {
-					addEventProxy( element, eventNames[i], proxies[ eventName ] );
-				}
-			}
-		}
-	};
-
-});
+            while ( i-- ) {
+                addEventProxy( element, eventNames[i], proxies[ eventName ] );
+            }
+        }
+    }
+};

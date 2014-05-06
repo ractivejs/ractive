@@ -1,20 +1,11 @@
-define([
-	'Ractive/initialise/computations/getComputationSignature',
-	'Ractive/initialise/computations/Computation'
-], function (
-	getComputationSignature,
-	Computation
-) {
+import getComputationSignature from 'Ractive/initialise/computations/getComputationSignature';
+import Computation from 'Ractive/initialise/computations/Computation';
 
-	'use strict';
+export default function createComputations ( ractive, computed ) {
+    var key, signature;
 
-	return function createComputations ( ractive, computed ) {
-		var key, signature;
-
-		for ( key in computed ) {
-			signature = getComputationSignature( computed[ key ] );
-			ractive._computations[ key ] = new Computation( ractive, key, signature );
-		}
-	};
-
-});
+    for ( key in computed ) {
+        signature = getComputationSignature( computed[ key ] );
+        ractive._computations[ key ] = new Computation( ractive, key, signature );
+    }
+};

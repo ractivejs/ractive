@@ -1,81 +1,60 @@
-define([
-	'config/initOptions',
-	'config/svg',
-	'utils/defineProperties',
-	'Ractive/prototype/_prototype',
-	'registries/partials',
-	'registries/adaptors',
-	'registries/components',
-	'registries/easing',
-	'registries/interpolators',
-	'utils/Promise',
-	'extend/_extend',
-	'parse/_parse',
-	'Ractive/initialise',
-	'circular'
-], function (
-	initOptions,
-	svg,
-	defineProperties,
-	proto,
-	partialRegistry,
-	adaptorRegistry,
-	componentsRegistry,
-	easingRegistry,
-	interpolatorsRegistry,
-	Promise,
-	extend,
-	parse,
-	initialise,
-	circular
-) {
+import initOptions from 'config/initOptions';
+import svg from 'config/svg';
+import defineProperties from 'utils/defineProperties';
+import proto from 'Ractive/prototype/_prototype';
+import partialRegistry from 'registries/partials';
+import adaptorRegistry from 'registries/adaptors';
+import componentsRegistry from 'registries/components';
+import easingRegistry from 'registries/easing';
+import interpolatorsRegistry from 'registries/interpolators';
+import Promise from 'utils/Promise';
+import extend from 'extend/_extend';
+import parse from 'parse/_parse';
+import initialise from 'Ractive/initialise';
+import circular from 'circular';
 
-	'use strict';
+// Main Ractive required object
+var Ractive = function ( options ) {
+    initialise( this, options );
+};
 
-	// Main Ractive required object
-	var Ractive = function ( options ) {
-		initialise( this, options );
-	};
+Ractive.prototype = proto;
 
-	Ractive.prototype = proto;
+// Read-only properties
+defineProperties( Ractive, {
 
-	// Read-only properties
-	defineProperties( Ractive, {
+    // Shared properties
+    partials: { value: partialRegistry },
 
-		// Shared properties
-		partials: { value: partialRegistry },
+    // Plugins
+    adaptors:      { value: adaptorRegistry },
+    easing:        { value: easingRegistry },
+    transitions:   { value: {} },
+    events:        { value: {} },
+    components:    { value: componentsRegistry },
+    decorators:    { value: {} },
+    interpolators: { value: interpolatorsRegistry },
 
-		// Plugins
-		adaptors:      { value: adaptorRegistry },
-		easing:        { value: easingRegistry },
-		transitions:   { value: {} },
-		events:        { value: {} },
-		components:    { value: componentsRegistry },
-		decorators:    { value: {} },
-		interpolators: { value: interpolatorsRegistry },
+    // Default options
+    defaults:    { value: initOptions.defaults },
 
-		// Default options
-		defaults:    { value: initOptions.defaults },
+    // Support
+    svg: { value: svg },
 
-		// Support
-		svg: { value: svg },
-
-		VERSION:     { value: '<%= pkg.version %>' }
-	});
-
-	// TODO deprecated
-	Ractive.eventDefinitions = Ractive.events;
-
-	Ractive.prototype.constructor = Ractive;
-
-	// Namespaced constructors
-	Ractive.Promise = Promise;
-
-	// Static methods
-	Ractive.extend = extend;
-	Ractive.parse = parse;
-
-	circular.Ractive = Ractive;
-	return Ractive;
-
+    VERSION:     { value: '<%= pkg.version %>' }
 });
+
+// TODO deprecated
+Ractive.eventDefinitions = Ractive.events;
+
+Ractive.prototype.constructor = Ractive;
+
+// Namespaced constructors
+Ractive.Promise = Promise;
+
+// Static methods
+Ractive.extend = extend;
+
+Ractive.parse = parse;
+circular.Ractive = Ractive;
+export default Ractive;

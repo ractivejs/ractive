@@ -1,11 +1,5 @@
-define( function () {
+var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
-	'use strict';
-
-	var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-
-	return function normaliseKeypath ( keypath ) {
-		return ( keypath || '' ).replace( regex, '.$1' );
-	};
-
-});
+export default function normaliseKeypath ( keypath ) {
+    return ( keypath || '' ).replace( regex, '.$1' );
+};

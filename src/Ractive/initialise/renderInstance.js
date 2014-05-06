@@ -1,43 +1,33 @@
-define([
-	'config/isClient',
-	'utils/Promise'
+import isClient from 'config/isClient';
+import Promise from 'utils/Promise';
 
-], function (
-	isClient,
-	Promise
-) {
+export default function renderInstance ( ractive, options ) {
+    var promise, fulfilPromise;
 
-	'use strict';
+    // Temporarily disable transitions, if noIntro flag is set
+    ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 
-	return function renderInstance ( ractive, options ) {
-		var promise, fulfilPromise;
+    // If we're in a browser, and no element has been specified, create
+    // a document fragment to use instead
+    if ( isClient && !ractive.el ) {
+        ractive.el = document.createDocumentFragment();
+    }
 
-		// Temporarily disable transitions, if noIntro flag is set
-		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
+    // If the target contains content, and `append` is falsy, clear it
+    else if ( ractive.el && !options.append ) {
+        ractive.el.innerHTML = '';
+    }
 
-		// If we're in a browser, and no element has been specified, create
-		// a document fragment to use instead
-		if ( isClient && !ractive.el ) {
-			ractive.el = document.createDocumentFragment();
-		}
+    promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
-		// If the target contains content, and `append` is falsy, clear it
-		else if ( ractive.el && !options.append ) {
-			ractive.el.innerHTML = '';
-		}
+    ractive.render( ractive.el, ractive.anchor, fulfilPromise );
 
-		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+    if ( options.complete ) {
+        promise = promise.then( options.complete.bind( ractive ) );
+    }
 
-		ractive.render( ractive.el, ractive.anchor, fulfilPromise );
+    // reset transitionsEnabled
+    ractive.transitionsEnabled = options.transitionsEnabled;
 
-		if ( options.complete ) {
-			promise = promise.then( options.complete.bind( ractive ) );
-		}
-
-		// reset transitionsEnabled
-		ractive.transitionsEnabled = options.transitionsEnabled;
-
-		return promise;
-	};
-
-});
+    return promise;
+};

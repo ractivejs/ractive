@@ -1,37 +1,31 @@
-define( function () {
+var create;
 
-	'use strict';
+try {
+    Object.create( null );
 
-	var create;
+    create = Object.create;
+} catch ( err ) {
+    // sigh
+    create = (function () {
+        var F = function () {};
 
-	try {
-		Object.create( null );
+        return function ( proto, props ) {
+            var obj;
 
-		create = Object.create;
-	} catch ( err ) {
-		// sigh
-		create = (function () {
-			var F = function () {};
+            if ( proto === null ) {
+                return {};
+            }
 
-			return function ( proto, props ) {
-				var obj;
+            F.prototype = proto;
+            obj = new F();
 
-				if ( proto === null ) {
-					return {};
-				}
+            if ( props ) {
+                Object.defineProperties( obj, props );
+            }
 
-				F.prototype = proto;
-				obj = new F();
+            return obj;
+        };
+    }());
+}
 
-				if ( props ) {
-					Object.defineProperties( obj, props );
-				}
-
-				return obj;
-			};
-		}());
-	}
-
-	return create;
-
-});
+export default create;

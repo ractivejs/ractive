@@ -1,42 +1,36 @@
-define( function () {
+export default function ( eventName, callback ) {
+    var self = this, listeners, n;
 
-	'use strict';
+    // allow mutliple listeners to be bound in one go
+    if ( typeof eventName === 'object' ) {
+        listeners = [];
 
-	return function ( eventName, callback ) {
-		var self = this, listeners, n;
+        for ( n in eventName ) {
+            if ( eventName.hasOwnProperty( n ) ) {
+                listeners.push( this.on( n, eventName[ n ] ) );
+            }
+        }
 
-		// allow mutliple listeners to be bound in one go
-		if ( typeof eventName === 'object' ) {
-			listeners = [];
+        return {
+            cancel: function () {
+                var listener;
 
-			for ( n in eventName ) {
-				if ( eventName.hasOwnProperty( n ) ) {
-					listeners.push( this.on( n, eventName[ n ] ) );
-				}
-			}
+                while ( listener = listeners.pop() ) {
+                    listener.cancel();
+                }
+            }
+        };
+    }
 
-			return {
-				cancel: function () {
-					var listener;
+    if ( !this._subs[ eventName ] ) {
+        this._subs[ eventName ] = [ callback ];
+    } else {
+        this._subs[ eventName ].push( callback );
+    }
 
-					while ( listener = listeners.pop() ) {
-						listener.cancel();
-					}
-				}
-			};
-		}
-
-		if ( !this._subs[ eventName ] ) {
-			this._subs[ eventName ] = [ callback ];
-		} else {
-			this._subs[ eventName ].push( callback );
-		}
-
-		return {
-			cancel: function () {
-				self.off( eventName, callback );
-			}
-		};
-	};
-
-});
+    return {
+        cancel: function () {
+            self.off( eventName, callback );
+        }
+    };
+};

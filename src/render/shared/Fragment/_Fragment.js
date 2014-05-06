@@ -1,16 +1,7 @@
-define([
-	'render/shared/Fragment/initialise',
-	'render/shared/Fragment/reassign'
-], function (
-	init,
-	reassign
-) {
+import init from 'render/shared/Fragment/initialise';
+import reassign from 'render/shared/Fragment/reassign';
 
-	'use strict';
-
-	return {
-		init: init,
-		reassign: reassign
-	};
-
-});
+export default {
+    init: init,
+    reassign: reassign
+};

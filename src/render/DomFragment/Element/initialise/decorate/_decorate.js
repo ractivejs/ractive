@@ -1,20 +1,11 @@
-define([
-	'global/runloop',
-	'render/DomFragment/Element/initialise/decorate/Decorator'
-], function (
-	runloop,
-	Decorator
-) {
+import runloop from 'global/runloop';
+import Decorator from 'render/DomFragment/Element/initialise/decorate/Decorator';
 
-	'use strict';
+export default function ( descriptor, root, owner ) {
+    var decorator = new Decorator( descriptor, root, owner );
 
-	return function ( descriptor, root, owner ) {
-		var decorator = new Decorator( descriptor, root, owner );
-
-		if ( decorator.fn ) {
-			owner.decorator = decorator;
-			runloop.addDecorator( owner.decorator );
-		}
-	};
-
-});
+    if ( decorator.fn ) {
+        owner.decorator = decorator;
+        runloop.addDecorator( owner.decorator );
+    }
+};

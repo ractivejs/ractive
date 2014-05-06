@@ -1,64 +1,52 @@
-define([
-	'config/types',
-	'shared/teardown',
-	'render/shared/Mustache/_Mustache',
-	'render/DomFragment/shared/detach'
-], function (
-	types,
-	teardown,
-	Mustache,
-	detach
-) {
+import types from 'config/types';
+import teardown from 'shared/teardown';
+import Mustache from 'render/shared/Mustache/_Mustache';
+import detach from 'render/DomFragment/shared/detach';
 
-	'use strict';
+var DomInterpolator, lessThan, greaterThan;
+lessThan = /</g;
+greaterThan = />/g;
 
-	var DomInterpolator, lessThan, greaterThan;
+DomInterpolator = function ( options, docFrag ) {
+    this.type = types.INTERPOLATOR;
 
-	lessThan = /</g;
-	greaterThan = />/g;
+    if ( docFrag ) {
+        this.node = document.createTextNode( '' );
+        docFrag.appendChild( this.node );
+    }
 
-	DomInterpolator = function ( options, docFrag ) {
-		this.type = types.INTERPOLATOR;
+    // extend Mustache
+    Mustache.init( this, options );
+};
 
-		if ( docFrag ) {
-			this.node = document.createTextNode( '' );
-			docFrag.appendChild( this.node );
-		}
+DomInterpolator.prototype = {
+    update: Mustache.update,
+    resolve: Mustache.resolve,
+    reassign: Mustache.reassign,
+    detach: detach,
 
-		// extend Mustache
-		Mustache.init( this, options );
-	};
+    teardown: function ( destroy ) {
+        if ( destroy ) {
+            this.detach();
+        }
 
-	DomInterpolator.prototype = {
-		update: Mustache.update,
-		resolve: Mustache.resolve,
-		reassign: Mustache.reassign,
-		detach: detach,
+        teardown( this );
+    },
+    
+    render: function ( value ) {
+        if ( this.node ) {
+            this.node.data = ( value == undefined ? '' : value );
+        }
+    },
 
-		teardown: function ( destroy ) {
-			if ( destroy ) {
-				this.detach();
-			}
+    firstNode: function () {
+        return this.node;
+    },
 
-			teardown( this );
-		},
-		
-		render: function ( value ) {
-			if ( this.node ) {
-				this.node.data = ( value == undefined ? '' : value );
-			}
-		},
+    toString: function () {
+        var value = ( this.value != undefined ? '' + this.value : '' );
+        return value.replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
+    }
+};
 
-		firstNode: function () {
-			return this.node;
-		},
-
-		toString: function () {
-			var value = ( this.value != undefined ? '' + this.value : '' );
-			return value.replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
-		}
-	};
-
-	return DomInterpolator;
-
-});
+export default DomInterpolator;

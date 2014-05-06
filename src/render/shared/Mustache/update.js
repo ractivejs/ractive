@@ -1,22 +1,13 @@
-define([
-	'utils/isEqual',
-	'shared/get/_get'
-], function (
-	isEqual,
-	get
-) {
+import isEqual from 'utils/isEqual';
+import get from 'shared/get/_get';
 
-	'use strict';
+var options = { evaluateWrapped: true };
 
-	var options = { evaluateWrapped: true };
+export default function updateMustache () {
+    var value = get( this.root, this.keypath, options );
 
-	return function updateMustache () {
-		var value = get( this.root, this.keypath, options );
-
-		if ( !isEqual( value, this.value ) ) {
-			this.render( value );
-			this.value = value;
-		}
-	};
-
-});
+    if ( !isEqual( value, this.value ) ) {
+        this.render( value );
+        this.value = value;
+    }
+};
