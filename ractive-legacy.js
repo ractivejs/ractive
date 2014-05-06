@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-05 - commit 1e8a5ff4 
+	2014-05-06 - commit 001b57b2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9506,7 +9506,7 @@
 			validTagNameFollower = /^[\s\n\/>]/,
 			onPattern = /^on/,
 			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
-			reservedEventNames = /(?:change|reset|teardown|update)/,
+			reservedEventNames = /^(?:change|reset|teardown|update)$/,
 			directives = {
 				'intro-outro': 't0',
 				intro: 't1',
