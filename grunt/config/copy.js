@@ -11,7 +11,7 @@ module.exports = function ( grunt) {
 	function setLevels(filepath){
     	var levels = path.relative( path.resolve( filepath ), path.resolve( testDir ) );
 		levels = levels.substring( 0, levels.length-2 );
-    	grunt.config( 'levels', levels );		
+    	grunt.config( 'levels', levels );
 	}
 
 	return {
@@ -26,6 +26,49 @@ module.exports = function ( grunt) {
 		link: {
 			src: 'build/ractive.js',
 			dest: 'ractive.js'
+		},
+		transpiled: {
+			files: [{
+				expand: true,
+				cwd: '.transpiled/',
+				src: [ '**/*' ],
+				dest: '.amd'
+			}],
+			options: {
+				process: function ( src ) {
+					var dependencies = {};
+
+					src = src
+
+						// anonymise the module
+						.replace( /^define\(".+?",\s+/, 'define(' )
+
+						// remove "exports" from dependency list
+						.replace( /,?"exports"/, '' )
+
+						// remove empty dependency lists
+						.replace( /^define\(\[\],\s+/, 'define(' )
+
+						// gather dependency names
+						.replace( /\svar (.+?) = __dependency(\d+)__\["default"\];\n/g, function ( match, name, num ) {
+							dependencies[ num ] = name;
+							return '';
+						})
+
+						// replace dependency names
+						.replace( /__dependency(\d+)__,/g, function ( match, num ) {
+							return ( dependencies[ num ] ? dependencies[ num ] + ',' : '' );
+						})
+
+						// remove __exports__
+						.replace( /,?\s*__exports__/, '' )
+
+						// `return` instead of `__exports__['default'] =`
+						.replace( /__exports__\["default"\] =/, 'return' );
+
+					return src;
+				}
+			}
 		},
 		testModules: {
 			files: [{
@@ -66,7 +109,7 @@ module.exports = function ( grunt) {
 		        process: function(src, filepath) {
 					setLevels( filepath );
 		        	return grunt.template.process(src);
-		        }				
+		        }
 			}
 		}
 	};

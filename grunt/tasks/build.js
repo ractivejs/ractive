@@ -5,6 +5,8 @@ module.exports = function ( grunt ) {
 	grunt.registerTask( 'build', [
 		'jshint',
 		'clean:tmp',
+		'transpile',
+		'copy:transpiled',
 		'requirejs',
 		'concat:closure',
 		'revision',

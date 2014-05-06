@@ -9,3 +9,5 @@ tmp/
 FIX.js
 build/*
 !build/README.md
+.amd/
+.transpiled/
