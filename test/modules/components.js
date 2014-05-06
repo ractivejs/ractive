@@ -1023,6 +1023,84 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'nested components render nested content partials', function ( t ) {
+			var Level1, Level2, ractive;
+
+			Level2 = Ractive.extend({
+				template: '<i>{{>content}}</i>'
+			});
+
+			Level1 = Ractive.extend({
+				template: '<level2><b>{{>content}}</b></level2>',
+				components: { level2: Level2 }
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span>roman:</span><level1>bolditalic</level1>',
+				components: { level1: Level1 }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<span>roman:</span><i><b>bolditalic</b></i>' );
+
+		});
+
+		test( 'nested components content partials are executed in their parent scope', function ( t ) {
+			var Level1, ractive;
+
+			Level1 = Ractive.extend({
+				template: '<b>{{>content}}{{foo}}</b>',
+				isolated: true
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<level1>{{foo}}</level1>',
+				components: { level1: Level1 },
+				data: {
+					foo: "bold"
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<b>bold</b>' );
+
+		});
+
+		test( 'events on nodes inside content partials trigger on their parent node', function ( t ) {
+			var Level1, ractive, wascalled;
+
+			Level1 = Ractive.extend({
+				template: '<p>{{>content}}</p>',
+				isolated: true,
+				init: function() {
+					//if we are in here, then it didn't work, the button should fire in the template that declared it
+					this.on("test", function() {
+						t.fail(true);
+					});
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<level1><button id="clickme" on-click="test">ClickMe</button></level1>',
+				components: { level1: Level1 }
+			});
+
+			wascalled = false;
+
+			ractive.on( 'test', function ( event ) {
+				wascalled = true;
+				t.equal( event.original.type, 'click' );
+			});
+
+			simulant.fire( ractive.nodes.clickme, 'click' );
+
+			t.ok(wascalled);
+
+			t.htmlEqual( fixture.innerHTML, '<p><button id="clickme">ClickMe</button></p>' );
+
+		});
+
 
 		asyncTest( 'Component render methods called in consistent order (gh #589)', function ( t ) {
 			var Simpson, ractive, order = { beforeInit: [], init: [], complete: [] },
