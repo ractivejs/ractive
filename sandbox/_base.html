@@ -39,8 +39,8 @@
 
 		fixture = document.querySelector( 'main' ); // so we can copy and paste into test suite more easily
 
-		// Configure RequireJS to load Ractive from the src/ folder
-		require.config({ baseUrl: '../../src/' });
+		// Configure RequireJS to load Ractive from the .amd/ folder
+		require.config({ baseUrl: '../../.amd/' });
 
 		require([ 'ractive' ], function ( Ractive ) {
 			window.Ractive = Ractive;
