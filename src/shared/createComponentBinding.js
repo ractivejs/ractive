@@ -30,7 +30,7 @@ Binding.prototype = {
         var value;
 
         // Only *you* can prevent infinite loops
-        if ( this.updating || this.counterpart && this.counterpart.updating ) {
+			if ( this.updating ) {
             return;
         }
 
@@ -47,8 +47,13 @@ Binding.prototype = {
 
             // TODO maybe the case that `value === this.value` - should that result
             // in an update rather than a set?
-            runloop.addInstance( this.otherInstance );
-            set( this.otherInstance, this.otherKeypath, value );
+
+				//we have already done this, stop infinite loop
+				if (!(this.counterpart && this.counterpart.updating)) {
+					runloop.addInstance(this.otherInstance);
+					set(this.otherInstance, this.otherKeypath, value);
+				}
+				//this should be set for the binding even if the counterpart wasnt set. so that it lines up.
             this.value = value;
 
             // TODO will the counterpart update after this line, during
