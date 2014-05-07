@@ -19,6 +19,7 @@ renderTests.forEach( function ( theTest ) {
 				template: theTest.template,
 				data: data,
 				partials: theTest.partials,
+				handlebars: theTest.handlebars, // TODO remove this if handlebars becomes default
 				magic: magic
 			});
 

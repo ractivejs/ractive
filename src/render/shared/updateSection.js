@@ -32,7 +32,7 @@ export default function updateSection ( section, value ) {
             if ( isArray( value ) ) {
                 updateListSection( section, value, fragmentOptions );
             } else if ( isObject( value ) ) {
-                updateContextSection( section, fragmentOptions );
+                updateListObjectSection( section, value, fragmentOptions );
             }
             return;
         }

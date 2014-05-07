@@ -64,6 +64,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 						data: data,
 						template: theTest.template,
 						partials: theTest.partials,
+						handlebars: theTest.handlebars, // TODO remove this if handlebars mode becomes default
 						debug: true,
 						magic: magic
 					});
@@ -125,7 +126,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 					bar: 'fop',
 				}
 			});
-			
+
 			t.equal( fixture.innerHTML, '' );
 			ractive.set( 'bar', 'bizz' );
 			t.equal( fixture.innerHTML, 'buzz' );
@@ -146,7 +147,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			ractive.find( 'input' ).value = 'buzz';
 			ractive.updateModel();
 			t.equal( ractive.data.foo.bizz, 'buzz' );
-				
+
 		});
 
 		test('List of inputs with keypathExpression name update correctly', function(t){
