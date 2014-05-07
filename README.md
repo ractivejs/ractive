@@ -47,15 +47,20 @@ Other grunt commands available:
 # Watch all source files, and rebuild when they change. This will
 # only concatenate the files (it won't lint/test/minify) to the
 # tmp folder
-$ grunt watch
+$ grunt watch:build
 
-# Concatenate the files to the tmp folder
-$ grunt concat
+# Watch all source files, and transpile them to AMD when they
+# change. This is useful if you want to do in-browser testing, or
+# use the sandbox folder, without rebuilding each time
+$ grunt watch:transpile
 
-# Lint the concatenated code
+# Lint the source code
 $ grunt jshint
 
-# Run tests on the concatenated code
+# Build the code (will run jshint first)
+$ grunt build
+
+# Run tests on the build
 $ grunt qunit
 
 # Run node non-browser tests (parse and toHTML) on the concatenated code

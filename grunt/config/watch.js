@@ -1,9 +1,9 @@
 module.exports = {
 	transpile: {
-		files: [ 'es6/**/*.js' ],
-		tasks: 'transpile'
+		files: [ 'src/**/*.js' ],
+		tasks: [ 'transpile', 'copy:transpiled' ]
 	},
-	js: {
+	build: {
 		files: [ 'src/**/*.js', 'wrapper/**/*.js' ],
 		tasks: [ 'clean:tmp', 'requirejs' ],
 		options: {
