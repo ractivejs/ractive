@@ -11,10 +11,10 @@ import getKey from 'parse/Parser/expressions/shared/key';
 var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
 specials = {
-    'true': true,
-    'false': false,
-    'undefined': undefined,
-    'null': null
+	'true': true,
+	'false': false,
+	'undefined': undefined,
+	'null': null
 };
 
 specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
@@ -24,154 +24,154 @@ placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
 onlyWhitespace = /^\s*$/;
 
 JsonParser = Parser.extend({
-    init: function ( str, options ) {
-        this.values = options.values;
-    },
+	init: function ( str, options ) {
+		this.values = options.values;
+	},
 
-    postProcess: function ( result ) {
-        if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
-            return null;
-        }
+	postProcess: function ( result ) {
+		if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
+			return null;
+		}
 
-        return { value: result[0].v };
-    },
+		return { value: result[0].v };
+	},
 
-    converters: [
-        function getPlaceholder ( parser ) {
-            var placeholder;
+	converters: [
+		function getPlaceholder ( parser ) {
+			var placeholder;
 
-            if ( !parser.values ) {
-                return null;
-            }
+			if ( !parser.values ) {
+				return null;
+			}
 
-            placeholder = parser.matchPattern( placeholderAtStartPattern );
+			placeholder = parser.matchPattern( placeholderAtStartPattern );
 
-            if ( placeholder && ( parser.values.hasOwnProperty( placeholder ) ) ) {
-                return { v: parser.values[ placeholder ] };
-            }
-        },
+			if ( placeholder && ( parser.values.hasOwnProperty( placeholder ) ) ) {
+				return { v: parser.values[ placeholder ] };
+			}
+		},
 
-        function getSpecial ( parser ) {
-            var special;
+		function getSpecial ( parser ) {
+			var special;
 
-            if ( special = parser.matchPattern( specialsPattern ) ) {
-                return { v: specials[ special ] };
-            }
-        },
+			if ( special = parser.matchPattern( specialsPattern ) ) {
+				return { v: specials[ special ] };
+			}
+		},
 
-        function getNumber ( parser ) {
-            var number;
+		function getNumber ( parser ) {
+			var number;
 
-            if ( number = parser.matchPattern( numberPattern ) ) {
-                return { v: +number };
-            }
-        },
+			if ( number = parser.matchPattern( numberPattern ) ) {
+				return { v: +number };
+			}
+		},
 
-        function getString ( parser ) {
-            var stringLiteral = getStringLiteral( parser ), values;
+		function getString ( parser ) {
+			var stringLiteral = getStringLiteral( parser ), values;
 
-            if ( stringLiteral && ( values = parser.values ) ) {
-                return {
-                    v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
-                        return ( $1 in values ? values[ $1 ] : $1 );
-                    })
-                };
-            }
+			if ( stringLiteral && ( values = parser.values ) ) {
+				return {
+					v: stringLiteral.v.replace( placeholderPattern, function ( match, $1 ) {
+						return ( $1 in values ? values[ $1 ] : $1 );
+					})
+				};
+			}
 
-            return stringLiteral;
-        },
+			return stringLiteral;
+		},
 
-        function getObject ( parser ) {
-            var result, pair;
+		function getObject ( parser ) {
+			var result, pair;
 
-            if ( !parser.matchString( '{' ) ) {
-                return null;
-            }
+			if ( !parser.matchString( '{' ) ) {
+				return null;
+			}
 
-            result = {};
+			result = {};
 
-            while ( pair = getKeyValuePair( parser ) ) {
-                result[ pair.key ] = pair.value;
+			while ( pair = getKeyValuePair( parser ) ) {
+				result[ pair.key ] = pair.value;
 
-                parser.allowWhitespace();
+				parser.allowWhitespace();
 
-                if ( parser.matchString( '}' ) ) {
-                    return { v: result };
-                }
+				if ( parser.matchString( '}' ) ) {
+					return { v: result };
+				}
 
-                if ( !parser.matchString( ',' ) ) {
-                    return null;
-                }
-            }
+				if ( !parser.matchString( ',' ) ) {
+					return null;
+				}
+			}
 
-            return null;
-        },
+			return null;
+		},
 
-        function getArray ( parser ) {
-            var result, valueToken;
+		function getArray ( parser ) {
+			var result, valueToken;
 
-            if ( !parser.matchString( '[' ) ) {
-                return null;
-            }
+			if ( !parser.matchString( '[' ) ) {
+				return null;
+			}
 
-            result = [];
+			result = [];
 
-            parser.allowWhitespace();
+			parser.allowWhitespace();
 
-            while ( valueToken = parser.read() ) {
-                result.push( valueToken.v );
+			while ( valueToken = parser.read() ) {
+				result.push( valueToken.v );
 
-                parser.allowWhitespace();
+				parser.allowWhitespace();
 
-                if ( parser.matchString( ']' ) ) {
-                    return { v: result };
-                }
+				if ( parser.matchString( ']' ) ) {
+					return { v: result };
+				}
 
-                if ( !parser.matchString( ',' ) ) {
-                    return null;
-                }
+				if ( !parser.matchString( ',' ) ) {
+					return null;
+				}
 
-                parser.allowWhitespace();
-            }
+				parser.allowWhitespace();
+			}
 
-            return null;
-        }
-    ]
+			return null;
+		}
+	]
 });
 
 function getKeyValuePair ( parser ) {
-    var key, valueToken, pair;
+	var key, valueToken, pair;
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    key = getKey( parser );
+	key = getKey( parser );
 
-    if ( !key ) {
-        return null;
-    }
+	if ( !key ) {
+		return null;
+	}
 
-    pair = { key: key };
+	pair = { key: key };
 
-    parser.allowWhitespace();
-    if ( !parser.matchString( ':' ) ) {
-        return null;
-    }
-    parser.allowWhitespace();
+	parser.allowWhitespace();
+	if ( !parser.matchString( ':' ) ) {
+		return null;
+	}
+	parser.allowWhitespace();
 
-    valueToken = parser.read();
-    if ( !valueToken ) {
-        return null;
-    }
+	valueToken = parser.read();
+	if ( !valueToken ) {
+		return null;
+	}
 
-    pair.value = valueToken.v;
+	pair.value = valueToken.v;
 
-    return pair;
+	return pair;
 }
 
 export default function ( str, values ) {
-    var parser = new JsonParser( str, {
-        values: values
-    });
+	var parser = new JsonParser( str, {
+		values: values
+	});
 
-    return parser.result;
+	return parser.result;
 }

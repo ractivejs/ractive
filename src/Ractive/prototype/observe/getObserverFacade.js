@@ -7,39 +7,39 @@ import PatternObserver from 'Ractive/prototype/observe/PatternObserver';
 var wildcard = /\*/, emptyObject = {};
 
 export default function getObserverFacade ( ractive, keypath, callback, options ) {
-    var observer, isPatternObserver;
+	var observer, isPatternObserver;
 
-    keypath = normaliseKeypath( keypath );
-    options = options || emptyObject;
+	keypath = normaliseKeypath( keypath );
+	options = options || emptyObject;
 
-    // pattern observers are treated differently
-    if ( wildcard.test( keypath ) ) {
-        observer = new PatternObserver( ractive, keypath, callback, options );
-        ractive._patternObservers.push( observer );
-        isPatternObserver = true;
-    } else {
-        observer = new Observer( ractive, keypath, callback, options );
-    }
+	// pattern observers are treated differently
+	if ( wildcard.test( keypath ) ) {
+		observer = new PatternObserver( ractive, keypath, callback, options );
+		ractive._patternObservers.push( observer );
+		isPatternObserver = true;
+	} else {
+		observer = new Observer( ractive, keypath, callback, options );
+	}
 
-    registerDependant( observer );
-    observer.init( options.init );
+	registerDependant( observer );
+	observer.init( options.init );
 
-    // This flag allows observers to initialise even with undefined values
-    observer.ready = true;
+	// This flag allows observers to initialise even with undefined values
+	observer.ready = true;
 
-    return {
-        cancel: function () {
-            var index;
+	return {
+		cancel: function () {
+			var index;
 
-            if ( isPatternObserver ) {
-                index = ractive._patternObservers.indexOf( observer );
+			if ( isPatternObserver ) {
+				index = ractive._patternObservers.indexOf( observer );
 
-                if ( index !== -1 ) {
-                    ractive._patternObservers.splice( index, 1 );
-                }
-            }
+				if ( index !== -1 ) {
+					ractive._patternObservers.splice( index, 1 );
+				}
+			}
 
-            unregisterDependant( observer );
-        }
-    };
+			unregisterDependant( observer );
+		}
+	};
 }

@@ -7,70 +7,70 @@ import notifyDependants from 'shared/notifyDependants';
 var get;
 
 circular.push( function () {
-    get = circular.get;
+	get = circular.get;
 });
 
 function set ( ractive, keypath, value, silent ) {
-    var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
+	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
-    if ( isEqual( ractive._cache[ keypath ], value ) ) {
-        return;
-    }
+	if ( isEqual( ractive._cache[ keypath ], value ) ) {
+		return;
+	}
 
-    computation = ractive._computations[ keypath ];
-    wrapper = ractive._wrapped[ keypath ];
-    evaluator = ractive._evaluators[ keypath ];
+	computation = ractive._computations[ keypath ];
+	wrapper = ractive._wrapped[ keypath ];
+	evaluator = ractive._evaluators[ keypath ];
 
-    if ( computation && !computation.setting ) {
-        computation.set( value );
-    }
+	if ( computation && !computation.setting ) {
+		computation.set( value );
+	}
 
-    // If we have a wrapper with a `reset()` method, we try and use it. If the
-    // `reset()` method returns false, the wrapper should be torn down, and
-    // (most likely) a new one should be created later
-    if ( wrapper && wrapper.reset ) {
-        dontTeardownWrapper = ( wrapper.reset( value ) !== false );
+	// If we have a wrapper with a `reset()` method, we try and use it. If the
+	// `reset()` method returns false, the wrapper should be torn down, and
+	// (most likely) a new one should be created later
+	if ( wrapper && wrapper.reset ) {
+		dontTeardownWrapper = ( wrapper.reset( value ) !== false );
 
-        if ( dontTeardownWrapper ) {
-            value = wrapper.get();
-        }
-    }
+		if ( dontTeardownWrapper ) {
+			value = wrapper.get();
+		}
+	}
 
-    // Update evaluator value. This may be from the evaluator itself, or
-    // it may be from the wrapper that wraps an evaluator's result - it
-    // doesn't matter
-    if ( evaluator ) {
-        evaluator.value = value;
-    }
+	// Update evaluator value. This may be from the evaluator itself, or
+	// it may be from the wrapper that wraps an evaluator's result - it
+	// doesn't matter
+	if ( evaluator ) {
+		evaluator.value = value;
+	}
 
-    if ( !computation && !evaluator && !dontTeardownWrapper ) {
-        keys = keypath.split( '.' );
-        lastKey = keys.pop();
+	if ( !computation && !evaluator && !dontTeardownWrapper ) {
+		keys = keypath.split( '.' );
+		lastKey = keys.pop();
 
-        parentKeypath = keys.join( '.' );
+		parentKeypath = keys.join( '.' );
 
-        wrapper = ractive._wrapped[ parentKeypath ];
+		wrapper = ractive._wrapped[ parentKeypath ];
 
-        if ( wrapper && wrapper.set ) {
-            wrapper.set( lastKey, value );
-        } else {
-            parentValue = wrapper ? wrapper.get() : get( ractive, parentKeypath );
+		if ( wrapper && wrapper.set ) {
+			wrapper.set( lastKey, value );
+		} else {
+			parentValue = wrapper ? wrapper.get() : get( ractive, parentKeypath );
 
-            if ( !parentValue ) {
-                parentValue = createBranch( lastKey );
-                set( ractive, parentKeypath, parentValue, true );
-            }
+			if ( !parentValue ) {
+				parentValue = createBranch( lastKey );
+				set( ractive, parentKeypath, parentValue, true );
+			}
 
-            parentValue[ lastKey ] = value;
-        }
-    }
+			parentValue[ lastKey ] = value;
+		}
+	}
 
-    clearCache( ractive, keypath, dontTeardownWrapper );
+	clearCache( ractive, keypath, dontTeardownWrapper );
 
-    if ( !silent ) {
-        ractive._changes.push( keypath );
-        notifyDependants( ractive, keypath );
-    }
+	if ( !silent ) {
+		ractive._changes.push( keypath );
+		notifyDependants( ractive, keypath );
+	}
 }
 
 circular.set = set;

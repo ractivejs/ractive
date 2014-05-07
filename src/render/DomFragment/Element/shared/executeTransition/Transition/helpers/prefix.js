@@ -5,36 +5,36 @@ import createElement from 'utils/createElement';
 var prefix, prefixCache, testStyle;
 
 if ( !isClient ) {
-    prefix = null;
+	prefix = null;
 } else {
-    prefixCache = {};
-    testStyle = createElement( 'div' ).style;
+	prefixCache = {};
+	testStyle = createElement( 'div' ).style;
 
-    prefix = function ( prop ) {
-        var i, vendor, capped;
+	prefix = function ( prop ) {
+		var i, vendor, capped;
 
-        if ( !prefixCache[ prop ] ) {
-            if ( testStyle[ prop ] !== undefined ) {
-                prefixCache[ prop ] = prop;
-            }
+		if ( !prefixCache[ prop ] ) {
+			if ( testStyle[ prop ] !== undefined ) {
+				prefixCache[ prop ] = prop;
+			}
 
-            else {
-                // test vendors...
-                capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
+			else {
+				// test vendors...
+				capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
 
-                i = vendors.length;
-                while ( i-- ) {
-                    vendor = vendors[i];
-                    if ( testStyle[ vendor + capped ] !== undefined ) {
-                        prefixCache[ prop ] = vendor + capped;
-                        break;
-                    }
-                }
-            }
-        }
+				i = vendors.length;
+				while ( i-- ) {
+					vendor = vendors[i];
+					if ( testStyle[ vendor + capped ] !== undefined ) {
+						prefixCache[ prop ] = vendor + capped;
+						break;
+					}
+				}
+			}
+		}
 
-        return prefixCache[ prop ];
-    };
+		return prefixCache[ prop ];
+	};
 }
 
 export default prefix;

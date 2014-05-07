@@ -8,29 +8,29 @@ import warn from 'utils/warn';
 var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
 
 export default function ( component, eventsDescriptor ) {
-    var eventName;
+	var eventName;
 
-    for ( eventName in eventsDescriptor ) {
-        if ( eventsDescriptor.hasOwnProperty( eventName ) ) {
-            propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
-        }
-    }
+	for ( eventName in eventsDescriptor ) {
+		if ( eventsDescriptor.hasOwnProperty( eventName ) ) {
+			propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
+		}
+	}
 }
 
 function propagateEvent ( childInstance, parentInstance, eventName, proxyEventName ) {
-    if ( typeof proxyEventName !== 'string' ) {
-        if ( parentInstance.debug ) {
-            throw new Error( errorMessage );
-        } else {
-            warn( errorMessage );
-            return;
-        }
-    }
+	if ( typeof proxyEventName !== 'string' ) {
+		if ( parentInstance.debug ) {
+			throw new Error( errorMessage );
+		} else {
+			warn( errorMessage );
+			return;
+		}
+	}
 
-    childInstance.on( eventName, function () {
-        var args = Array.prototype.slice.call( arguments );
-        args.unshift( proxyEventName );
+	childInstance.on( eventName, function () {
+		var args = Array.prototype.slice.call( arguments );
+		args.unshift( proxyEventName );
 
-        parentInstance.fire.apply( parentInstance, args );
-    });
+		parentInstance.fire.apply( parentInstance, args );
+	});
 }

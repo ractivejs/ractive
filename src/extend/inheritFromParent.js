@@ -7,22 +7,22 @@ import transformCss from 'extend/utils/transformCss';
 // or `append` or `twoway`, and registries such as `partials`
 
 export default function ( Child, Parent ) {
-    registries.forEach( function ( property ) {
-        if ( Parent[ property ] ) {
-            Child[ property ] = create( Parent[ property ] );
-        }
-    });
+	registries.forEach( function ( property ) {
+		if ( Parent[ property ] ) {
+			Child[ property ] = create( Parent[ property ] );
+		}
+	});
 
-    defineProperty( Child, 'defaults', {
-        value: create( Parent.defaults )
-    });
+	defineProperty( Child, 'defaults', {
+		value: create( Parent.defaults )
+	});
 
-    // Special case - CSS
-    if ( Parent.css ) {
-        defineProperty( Child, 'css', {
-            value: Parent.defaults.noCssTransform
-                ? Parent.css
-                : transformCss( Parent.css, Child._guid )
-        });
-    }
+	// Special case - CSS
+	if ( Parent.css ) {
+		defineProperty( Child, 'css', {
+			value: Parent.defaults.noCssTransform
+				? Parent.css
+				: transformCss( Parent.css, Child._guid )
+		});
+	}
 }

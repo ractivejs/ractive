@@ -1,31 +1,31 @@
 import types from 'config/types';
 
 export default function ( parser ) {
-    var start, expr;
+	var start, expr;
 
-    start = parser.pos;
+	start = parser.pos;
 
-    if ( !parser.matchString( '(' ) ) {
-        return null;
-    }
+	if ( !parser.matchString( '(' ) ) {
+		return null;
+	}
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    expr = parser.readExpression();
-    if ( !expr ) {
-        parser.pos = start;
-        return null;
-    }
+	expr = parser.readExpression();
+	if ( !expr ) {
+		parser.pos = start;
+		return null;
+	}
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    if ( !parser.matchString( ')' ) ) {
-        parser.pos = start;
-        return null;
-    }
+	if ( !parser.matchString( ')' ) ) {
+		parser.pos = start;
+		return null;
+	}
 
-    return {
-        t: types.BRACKETED,
-        x: expr
-    };
+	return {
+		t: types.BRACKETED,
+		x: expr
+	};
 }

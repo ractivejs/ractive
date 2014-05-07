@@ -2,111 +2,111 @@ import initialise from 'render/DomFragment/Component/initialise/_initialise';
 import getNewKeypath from 'render/shared/utils/getNewKeypath';
 
 var DomComponent = function ( options, docFrag ) {
-    initialise( this, options, docFrag );
+	initialise( this, options, docFrag );
 };
 
 DomComponent.prototype = {
-    firstNode: function () {
-        return this.instance.fragment.firstNode();
-    },
+	firstNode: function () {
+		return this.instance.fragment.firstNode();
+	},
 
-    findNextNode: function () {
-        return this.parentFragment.findNextNode( this );
-    },
+	findNextNode: function () {
+		return this.parentFragment.findNextNode( this );
+	},
 
-    detach: function () {
-        return this.instance.fragment.detach();
-    },
+	detach: function () {
+		return this.instance.fragment.detach();
+	},
 
-    teardown: function ( destroy ) {
-        while ( this.complexParameters.length ) {
-            this.complexParameters.pop().teardown();
-        }
+	teardown: function ( destroy ) {
+		while ( this.complexParameters.length ) {
+			this.complexParameters.pop().teardown();
+		}
 
-        while ( this.bindings.length ) {
-            this.bindings.pop().teardown();
-        }
+		while ( this.bindings.length ) {
+			this.bindings.pop().teardown();
+		}
 
-        removeFromLiveComponentQueries( this );
+		removeFromLiveComponentQueries( this );
 
-        // Add this flag so that we don't unnecessarily destroy the component's nodes
-        this.shouldDestroy = destroy;
-        this.instance.teardown();
-    },
+		// Add this flag so that we don't unnecessarily destroy the component's nodes
+		this.shouldDestroy = destroy;
+		this.instance.teardown();
+	},
 
-    reassign: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-        var childInstance = this.instance,
-            parentInstance = childInstance._parent,
-            indexRefAlias, query;
+	reassign: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+		var childInstance = this.instance,
+			parentInstance = childInstance._parent,
+			indexRefAlias, query;
 
-        this.bindings.forEach( function ( binding ) {
-            var updated;
+		this.bindings.forEach( function ( binding ) {
+			var updated;
 
-            if ( binding.root !== parentInstance ) {
-                return; // we only want parent -> child bindings for this
-            }
+			if ( binding.root !== parentInstance ) {
+				return; // we only want parent -> child bindings for this
+			}
 
-            if ( binding.keypath === indexRef ) {
-                childInstance.set( binding.otherKeypath, newIndex );
-            }
+			if ( binding.keypath === indexRef ) {
+				childInstance.set( binding.otherKeypath, newIndex );
+			}
 
-            if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
-                binding.reassign( updated );
-            }
-        });
+			if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
+				binding.reassign( updated );
+			}
+		});
 
-        if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
-            childInstance.set( indexRefAlias, newIndex );
-        }
+		if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
+			childInstance.set( indexRefAlias, newIndex );
+		}
 
-        if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
-            query._makeDirty();
-        }
-    },
+		if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
+			query._makeDirty();
+		}
+	},
 
-    toString: function () {
-        return this.instance.fragment.toString();
-    },
+	toString: function () {
+		return this.instance.fragment.toString();
+	},
 
-    find: function ( selector ) {
-        return this.instance.fragment.find( selector );
-    },
+	find: function ( selector ) {
+		return this.instance.fragment.find( selector );
+	},
 
-    findAll: function ( selector, query ) {
-        return this.instance.fragment.findAll( selector, query );
-    },
+	findAll: function ( selector, query ) {
+		return this.instance.fragment.findAll( selector, query );
+	},
 
-    findComponent: function ( selector ) {
-        if ( !selector || ( selector === this.name ) ) {
-            return this.instance;
-        }
+	findComponent: function ( selector ) {
+		if ( !selector || ( selector === this.name ) ) {
+			return this.instance;
+		}
 
-        if ( this.instance.fragment ) {
-            return this.instance.fragment.findComponent( selector );
-        }
+		if ( this.instance.fragment ) {
+			return this.instance.fragment.findComponent( selector );
+		}
 
-        return null;
-    },
+		return null;
+	},
 
-    findAllComponents: function ( selector, query ) {
-        query._test( this, true );
+	findAllComponents: function ( selector, query ) {
+		query._test( this, true );
 
-        if ( this.instance.fragment ) {
-            this.instance.fragment.findAllComponents( selector, query );
-        }
-    }
+		if ( this.instance.fragment ) {
+			this.instance.fragment.findAllComponents( selector, query );
+		}
+	}
 };
 
 export default DomComponent;
 
 function removeFromLiveComponentQueries ( component ) {
-    var instance, query;
+	var instance, query;
 
-    instance = component.root;
+	instance = component.root;
 
-    do {
-        if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
-            query._remove( component );
-        }
-    } while ( instance = instance._parent );
+	do {
+		if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
+			query._remove( component );
+		}
+	} while ( instance = instance._parent );
 }

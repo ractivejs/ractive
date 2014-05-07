@@ -12,233 +12,233 @@ import Comment from 'render/DomFragment/Comment';
 import circular from 'circular';
 
 var DomFragment = function ( options ) {
-    if ( options.pNode ) {
-        this.docFrag = document.createDocumentFragment();
-    }
+	if ( options.pNode ) {
+		this.docFrag = document.createDocumentFragment();
+	}
 
-    // otherwise we need to make a proper fragment
-    Fragment.init( this, options );
+	// otherwise we need to make a proper fragment
+	Fragment.init( this, options );
 };
 
 DomFragment.prototype = {
-    reassign: Fragment.reassign,
+	reassign: Fragment.reassign,
 
-    detach: function () {
-        var len, i;
+	detach: function () {
+		var len, i;
 
-        if ( this.docFrag ) {
-            // if this was built from HTML, we just need to remove the nodes
-            if ( this.nodes ) {
-                len = this.nodes.length;
-                for ( i = 0; i < len; i += 1 ) {
-                    this.docFrag.appendChild( this.nodes[i] );
-                }
-            }
+		if ( this.docFrag ) {
+			// if this was built from HTML, we just need to remove the nodes
+			if ( this.nodes ) {
+				len = this.nodes.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.docFrag.appendChild( this.nodes[i] );
+				}
+			}
 
-            // otherwise we need to detach each item
-            else if ( this.items ) {
-                len = this.items.length;
-                for ( i = 0; i < len; i += 1 ) {
-                    this.docFrag.appendChild( this.items[i].detach() );
-                }
-            }
+			// otherwise we need to detach each item
+			else if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.docFrag.appendChild( this.items[i].detach() );
+				}
+			}
 
-            return this.docFrag;
-        }
-    },
+			return this.docFrag;
+		}
+	},
 
-    createItem: function ( options ) {
-        if ( typeof options.descriptor === 'string' ) {
-            return new Text( options, this.docFrag );
-        }
+	createItem: function ( options ) {
+		if ( typeof options.descriptor === 'string' ) {
+			return new Text( options, this.docFrag );
+		}
 
-        switch ( options.descriptor.t ) {
-            case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
-            case types.SECTION:      return new Section( options, this.docFrag );
-            case types.TRIPLE:       return new Triple( options, this.docFrag );
-            case types.ELEMENT:
-                if ( this.root.components[ options.descriptor.e ] ) {
-                    return new Component( options, this.docFrag );
-                }
-                return new Element( options, this.docFrag );
-            case types.PARTIAL:      return new Partial( options, this.docFrag );
-            case types.COMMENT:      return new Comment( options, this.docFrag );
+		switch ( options.descriptor.t ) {
+			case types.INTERPOLATOR: return new Interpolator( options, this.docFrag );
+			case types.SECTION:      return new Section( options, this.docFrag );
+			case types.TRIPLE:       return new Triple( options, this.docFrag );
+			case types.ELEMENT:
+				if ( this.root.components[ options.descriptor.e ] ) {
+					return new Component( options, this.docFrag );
+				}
+				return new Element( options, this.docFrag );
+			case types.PARTIAL:      return new Partial( options, this.docFrag );
+			case types.COMMENT:      return new Comment( options, this.docFrag );
 
-            default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
-        }
-    },
+			default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
+		}
+	},
 
-    teardown: function ( destroy ) {
-        var node;
+	teardown: function ( destroy ) {
+		var node;
 
-        // if this was built from HTML, we just need to remove the nodes
-        if ( this.nodes && destroy ) {
-            while ( node = this.nodes.pop() ) {
-                node.parentNode.removeChild( node );
-            }
-        }
+		// if this was built from HTML, we just need to remove the nodes
+		if ( this.nodes && destroy ) {
+			while ( node = this.nodes.pop() ) {
+				node.parentNode.removeChild( node );
+			}
+		}
 
-        // otherwise we need to detach each item
-        else if ( this.items ) {
-            while ( this.items.length ) {
-                this.items.pop().teardown( destroy );
-            }
-        }
+		// otherwise we need to detach each item
+		else if ( this.items ) {
+			while ( this.items.length ) {
+				this.items.pop().teardown( destroy );
+			}
+		}
 
-        this.nodes = this.items = this.docFrag = null;
-    },
+		this.nodes = this.items = this.docFrag = null;
+	},
 
-    firstNode: function () {
-        if ( this.items && this.items[0] ) {
-            return this.items[0].firstNode();
-        } else if ( this.nodes ) {
-            return this.nodes[0] || null;
-        }
+	firstNode: function () {
+		if ( this.items && this.items[0] ) {
+			return this.items[0].firstNode();
+		} else if ( this.nodes ) {
+			return this.nodes[0] || null;
+		}
 
-        return null;
-    },
+		return null;
+	},
 
-    findNextNode: function ( item ) {
-        var index = item.index;
+	findNextNode: function ( item ) {
+		var index = item.index;
 
-        if ( this.items[ index + 1 ] ) {
-            return this.items[ index + 1 ].firstNode();
-        }
+		if ( this.items[ index + 1 ] ) {
+			return this.items[ index + 1 ].firstNode();
+		}
 
-        // if this is the root fragment, and there are no more items,
-        // it means we're at the end...
-        if ( this.owner === this.root ) {
-            if ( !this.owner.component ) {
-                return null;
-            }
+		// if this is the root fragment, and there are no more items,
+		// it means we're at the end...
+		if ( this.owner === this.root ) {
+			if ( !this.owner.component ) {
+				return null;
+			}
 
-            // ...unless this is a component
-            return this.owner.component.findNextNode();
-        }
+			// ...unless this is a component
+			return this.owner.component.findNextNode();
+		}
 
-        return this.owner.findNextNode( this );
-    },
+		return this.owner.findNextNode( this );
+	},
 
-    toString: function () {
-        if ( !this.items ) {
-            return '';
-        }
+	toString: function () {
+		if ( !this.items ) {
+			return '';
+		}
 
-        return this.items.join( '' );
-    },
+		return this.items.join( '' );
+	},
 
-    find: function ( selector ) {
-        var i, len, item, node, queryResult;
+	find: function ( selector ) {
+		var i, len, item, node, queryResult;
 
-        if ( this.nodes ) {
-            len = this.nodes.length;
-            for ( i = 0; i < len; i += 1 ) {
-                node = this.nodes[i];
+		if ( this.nodes ) {
+			len = this.nodes.length;
+			for ( i = 0; i < len; i += 1 ) {
+				node = this.nodes[i];
 
-                // we only care about elements
-                if ( node.nodeType !== 1 ) {
-                    continue;
-                }
+				// we only care about elements
+				if ( node.nodeType !== 1 ) {
+					continue;
+				}
 
-                if ( matches( node, selector ) ) {
-                    return node;
-                }
+				if ( matches( node, selector ) ) {
+					return node;
+				}
 
-                if ( queryResult = node.querySelector( selector ) ) {
-                    return queryResult;
-                }
-            }
+				if ( queryResult = node.querySelector( selector ) ) {
+					return queryResult;
+				}
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-        if ( this.items ) {
-            len = this.items.length;
-            for ( i = 0; i < len; i += 1 ) {
-                item = this.items[i];
+		if ( this.items ) {
+			len = this.items.length;
+			for ( i = 0; i < len; i += 1 ) {
+				item = this.items[i];
 
-                if ( item.find && ( queryResult = item.find( selector ) ) ) {
-                    return queryResult;
-                }
-            }
+				if ( item.find && ( queryResult = item.find( selector ) ) ) {
+					return queryResult;
+				}
+			}
 
-            return null;
-        }
-    },
+			return null;
+		}
+	},
 
-    findAll: function ( selector, query ) {
-        var i, len, item, node, queryAllResult, numNodes, j;
+	findAll: function ( selector, query ) {
+		var i, len, item, node, queryAllResult, numNodes, j;
 
-        if ( this.nodes ) {
-            len = this.nodes.length;
-            for ( i = 0; i < len; i += 1 ) {
-                node = this.nodes[i];
+		if ( this.nodes ) {
+			len = this.nodes.length;
+			for ( i = 0; i < len; i += 1 ) {
+				node = this.nodes[i];
 
-                // we only care about elements
-                if ( node.nodeType !== 1 ) {
-                    continue;
-                }
+				// we only care about elements
+				if ( node.nodeType !== 1 ) {
+					continue;
+				}
 
-                if ( matches( node, selector ) ) {
-                    query.push( node );
-                }
+				if ( matches( node, selector ) ) {
+					query.push( node );
+				}
 
-                if ( queryAllResult = node.querySelectorAll( selector ) ) {
-                    numNodes = queryAllResult.length;
-                    for ( j = 0; j < numNodes; j += 1 ) {
-                        query.push( queryAllResult[j] );
-                    }
-                }
-            }
-        }
+				if ( queryAllResult = node.querySelectorAll( selector ) ) {
+					numNodes = queryAllResult.length;
+					for ( j = 0; j < numNodes; j += 1 ) {
+						query.push( queryAllResult[j] );
+					}
+				}
+			}
+		}
 
-        else if ( this.items ) {
-            len = this.items.length;
-            for ( i = 0; i < len; i += 1 ) {
-                item = this.items[i];
+		else if ( this.items ) {
+			len = this.items.length;
+			for ( i = 0; i < len; i += 1 ) {
+				item = this.items[i];
 
-                if ( item.findAll ) {
-                    item.findAll( selector, query );
-                }
-            }
-        }
+				if ( item.findAll ) {
+					item.findAll( selector, query );
+				}
+			}
+		}
 
-        return query;
-    },
+		return query;
+	},
 
-    findComponent: function ( selector ) {
-        var len, i, item, queryResult;
+	findComponent: function ( selector ) {
+		var len, i, item, queryResult;
 
-        if ( this.items ) {
-            len = this.items.length;
-            for ( i = 0; i < len; i += 1 ) {
-                item = this.items[i];
+		if ( this.items ) {
+			len = this.items.length;
+			for ( i = 0; i < len; i += 1 ) {
+				item = this.items[i];
 
-                if ( item.findComponent && ( queryResult = item.findComponent( selector ) ) ) {
-                    return queryResult;
-                }
-            }
+				if ( item.findComponent && ( queryResult = item.findComponent( selector ) ) ) {
+					return queryResult;
+				}
+			}
 
-            return null;
-        }
-    },
+			return null;
+		}
+	},
 
-    findAllComponents: function ( selector, query ) {
-        var i, len, item;
+	findAllComponents: function ( selector, query ) {
+		var i, len, item;
 
-        if ( this.items ) {
-            len = this.items.length;
-            for ( i = 0; i < len; i += 1 ) {
-                item = this.items[i];
+		if ( this.items ) {
+			len = this.items.length;
+			for ( i = 0; i < len; i += 1 ) {
+				item = this.items[i];
 
-                if ( item.findAllComponents ) {
-                    item.findAllComponents( selector, query );
-                }
-            }
-        }
+				if ( item.findAllComponents ) {
+					item.findAllComponents( selector, query );
+				}
+			}
+		}
 
-        return query;
-    }
+		return query;
+	}
 };
 
 circular.DomFragment = DomFragment;

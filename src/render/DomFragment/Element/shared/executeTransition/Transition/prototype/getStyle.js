@@ -6,41 +6,41 @@ import prefix from 'render/DomFragment/Element/shared/executeTransition/Transiti
 var getStyle, getComputedStyle;
 
 if ( !isClient ) {
-    getStyle = null;
+	getStyle = null;
 } else {
-    getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+	getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
-    getStyle = function ( props ) {
-        var computedStyle, styles, i, prop, value;
+	getStyle = function ( props ) {
+		var computedStyle, styles, i, prop, value;
 
-        computedStyle = window.getComputedStyle( this.node );
+		computedStyle = window.getComputedStyle( this.node );
 
-        if ( typeof props === 'string' ) {
-            value = computedStyle[ prefix( props ) ];
-            if ( value === '0px' ) {
-                value = 0;
-            }
-            return value;
-        }
+		if ( typeof props === 'string' ) {
+			value = computedStyle[ prefix( props ) ];
+			if ( value === '0px' ) {
+				value = 0;
+			}
+			return value;
+		}
 
-        if ( !isArray( props ) ) {
-            throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
-        }
+		if ( !isArray( props ) ) {
+			throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
+		}
 
-        styles = {};
+		styles = {};
 
-        i = props.length;
-        while ( i-- ) {
-            prop = props[i];
-            value = computedStyle[ prefix( prop ) ];
-            if ( value === '0px' ) {
-                value = 0;
-            }
-            styles[ prop ] = value;
-        }
+		i = props.length;
+		while ( i-- ) {
+			prop = props[i];
+			value = computedStyle[ prefix( prop ) ];
+			if ( value === '0px' ) {
+				value = 0;
+			}
+			styles[ prop ] = value;
+		}
 
-        return styles;
-    };
+		return styles;
+	};
 }
 
 export default getStyle;

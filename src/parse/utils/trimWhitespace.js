@@ -1,28 +1,28 @@
 var leadingWhitespace = /^[ \t\f\r\n]+/,
-    trailingWhitespace = /[ \t\f\r\n]+$/;
+	trailingWhitespace = /[ \t\f\r\n]+$/;
 
 export default function ( items ) {
-    var item;
+	var item;
 
-    item = items[0];
-    if ( typeof item === 'string' ) {
-        item = item.replace( leadingWhitespace, '' );
+	item = items[0];
+	if ( typeof item === 'string' ) {
+		item = item.replace( leadingWhitespace, '' );
 
-        if ( !item ) {
-            items.shift();
-        } else {
-            items[0] = item;
-        }
-    }
+		if ( !item ) {
+			items.shift();
+		} else {
+			items[0] = item;
+		}
+	}
 
-    item = items[ items.length - 1 ];
-    if ( typeof item === 'string' ) {
-        item = item.replace( trailingWhitespace, '' );
+	item = items[ items.length - 1 ];
+	if ( typeof item === 'string' ) {
+		item = item.replace( trailingWhitespace, '' );
 
-        if ( !item ) {
-            items.pop();
-        } else {
-            items[ items.length - 1 ] = item;
-        }
-    }
+		if ( !item ) {
+			items.pop();
+		} else {
+			items[ items.length - 1 ] = item;
+		}
+	}
 }

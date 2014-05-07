@@ -1,17 +1,17 @@
 import isNumeric from 'utils/isNumeric';
 
 export default function ( root, keypath, d ) {
-    var value;
+	var value;
 
-    if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
-        throw new Error( 'Bad arguments' );
-    }
+	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
+		throw new Error( 'Bad arguments' );
+	}
 
-    value = +root.get( keypath ) || 0;
+	value = +root.get( keypath ) || 0;
 
-    if ( !isNumeric( value ) ) {
-        throw new Error( 'Cannot add to a non-numeric value' );
-    }
+	if ( !isNumeric( value ) ) {
+		throw new Error( 'Cannot add to a non-numeric value' );
+	}
 
-    return root.set( keypath, value + d );
+	return root.set( keypath, value + d );
 }

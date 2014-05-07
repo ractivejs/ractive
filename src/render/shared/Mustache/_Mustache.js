@@ -4,8 +4,8 @@ import resolve from 'render/shared/Mustache/resolve';
 import reassign from 'render/shared/Mustache/reassign';
 
 export default {
-    init: init,
-    update: update,
-    resolve: resolve,
-    reassign: reassign
+	init: init,
+	update: update,
+	resolve: resolve,
+	reassign: reassign
 };

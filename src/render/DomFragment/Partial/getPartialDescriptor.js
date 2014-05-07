@@ -7,75 +7,75 @@ import parse from 'parse/_parse';
 import deIndent from 'render/DomFragment/Partial/deIndent';
 
 export default function getPartialDescriptor ( ractive, name ) {
-    var el, partial, errorMessage;
+	var el, partial, errorMessage;
 
-    // If the partial was specified on this instance, great
-    if ( partial = getPartialFromRegistry( ractive, name ) ) {
-        return partial;
-    }
+	// If the partial was specified on this instance, great
+	if ( partial = getPartialFromRegistry( ractive, name ) ) {
+		return partial;
+	}
 
-    // Does it exist on the page as a script tag?
-    if ( isClient ) {
-        el = document.getElementById( name );
-        if ( el && el.tagName === 'SCRIPT' ) {
-            if ( !parse ) {
-                throw new Error( errors.missingParser );
-            }
+	// Does it exist on the page as a script tag?
+	if ( isClient ) {
+		el = document.getElementById( name );
+		if ( el && el.tagName === 'SCRIPT' ) {
+			if ( !parse ) {
+				throw new Error( errors.missingParser );
+			}
 
-            registerPartial( parse( deIndent( el.text ), ractive.parseOptions ), name, partials );
-        }
-    }
+			registerPartial( parse( deIndent( el.text ), ractive.parseOptions ), name, partials );
+		}
+	}
 
-    partial = partials[ name ];
+	partial = partials[ name ];
 
-    // No match? Return an empty array
-    if ( !partial ) {
-        errorMessage = 'Could not find descriptor for partial "' + name + '"';
+	// No match? Return an empty array
+	if ( !partial ) {
+		errorMessage = 'Could not find descriptor for partial "' + name + '"';
 
-        if ( ractive.debug ) {
-            throw new Error( errorMessage );
-        } else {
-            warn( errorMessage );
-        }
+		if ( ractive.debug ) {
+			throw new Error( errorMessage );
+		} else {
+			warn( errorMessage );
+		}
 
-        return [];
-    }
+		return [];
+	}
 
-    return partial;
+	return partial;
 }
 
 function getPartialFromRegistry ( ractive, name ) {
-    var partial;
+	var partial;
 
-    if ( ractive.partials[ name ] ) {
+	if ( ractive.partials[ name ] ) {
 
-        // If this was added manually to the registry, but hasn't been parsed,
-        // parse it now
-        if ( typeof ractive.partials[ name ] === 'string' ) {
-            if ( !parse ) {
-                throw new Error( errors.missingParser );
-            }
+		// If this was added manually to the registry, but hasn't been parsed,
+		// parse it now
+		if ( typeof ractive.partials[ name ] === 'string' ) {
+			if ( !parse ) {
+				throw new Error( errors.missingParser );
+			}
 
-            partial = parse( ractive.partials[ name ], ractive.parseOptions );
-            registerPartial( partial, name, ractive.partials );
-        }
+			partial = parse( ractive.partials[ name ], ractive.parseOptions );
+			registerPartial( partial, name, ractive.partials );
+		}
 
-        return ractive.partials[ name ];
-    }
+		return ractive.partials[ name ];
+	}
 }
 
 function registerPartial ( partial, name, registry ) {
-    var key;
+	var key;
 
-    if ( isObject( partial ) ) {
-        registry[ name ] = partial.main;
+	if ( isObject( partial ) ) {
+		registry[ name ] = partial.main;
 
-        for ( key in partial.partials ) {
-            if ( partial.partials.hasOwnProperty( key ) ) {
-                registry[ key ] = partial.partials[ key ];
-            }
-        }
-    } else {
-        registry[ name ] = partial;
-    }
+		for ( key in partial.partials ) {
+			if ( partial.partials.hasOwnProperty( key ) ) {
+				registry[ key ] = partial.partials[ key ];
+			}
+		}
+	} else {
+		registry[ name ] = partial;
+	}
 }

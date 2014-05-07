@@ -1,23 +1,23 @@
 export default function ( haystack, needles ) {
-    var i, index, lowest;
+	var i, index, lowest;
 
-    i = needles.length;
-    while ( i-- ) {
-        index = haystack.indexOf( needles[i] );
+	i = needles.length;
+	while ( i-- ) {
+		index = haystack.indexOf( needles[i] );
 
-        // short circuit
-        if ( !index ) {
-            return 0;
-        }
+		// short circuit
+		if ( !index ) {
+			return 0;
+		}
 
-        if ( index === -1 ) {
-            continue;
-        }
+		if ( index === -1 ) {
+			continue;
+		}
 
-        if ( !lowest || ( index < lowest ) ) {
-            lowest = index;
-        }
-    }
+		if ( !lowest || ( index < lowest ) ) {
+			lowest = index;
+		}
+	}
 
-    return lowest || -1;
+	return lowest || -1;
 }

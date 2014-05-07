@@ -3,29 +3,29 @@ import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 
 var Watcher = function ( computation, keypath ) {
-    this.root = computation.ractive;
-    this.keypath = keypath;
-    this.priority = 0;
+	this.root = computation.ractive;
+	this.keypath = keypath;
+	this.priority = 0;
 
-    this.computation = computation;
+	this.computation = computation;
 
-    registerDependant( this );
+	registerDependant( this );
 };
 
 Watcher.prototype = {
-    update: function () {
-        var value;
+	update: function () {
+		var value;
 
-        value = this.root.get( this.keypath );
+		value = this.root.get( this.keypath );
 
-        if ( !isEqual( value, this.value ) ) {
-            this.computation.bubble();
-        }
-    },
+		if ( !isEqual( value, this.value ) ) {
+			this.computation.bubble();
+		}
+	},
 
-    teardown: function () {
-        unregisterDependant( this );
-    }
+	teardown: function () {
+		unregisterDependant( this );
+	}
 };
 
 export default Watcher;

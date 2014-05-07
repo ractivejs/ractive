@@ -3,47 +3,47 @@ import getLogicalOr from 'parse/Parser/expressions/logicalOr';
 
 // The conditional operator is the lowest precedence operator, so we start here
 export default function ( parser ) {
-    var start, expression, ifTrue, ifFalse;
+	var start, expression, ifTrue, ifFalse;
 
-    expression = getLogicalOr( parser );
-    if ( !expression ) {
-        return null;
-    }
+	expression = getLogicalOr( parser );
+	if ( !expression ) {
+		return null;
+	}
 
-    start = parser.pos;
+	start = parser.pos;
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    if ( !parser.matchString( '?' ) ) {
-        parser.pos = start;
-        return expression;
-    }
+	if ( !parser.matchString( '?' ) ) {
+		parser.pos = start;
+		return expression;
+	}
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    ifTrue = parser.readExpression();
-    if ( !ifTrue ) {
-        parser.pos = start;
-        return expression;
-    }
+	ifTrue = parser.readExpression();
+	if ( !ifTrue ) {
+		parser.pos = start;
+		return expression;
+	}
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    if ( !parser.matchString( ':' ) ) {
-        parser.pos = start;
-        return expression;
-    }
+	if ( !parser.matchString( ':' ) ) {
+		parser.pos = start;
+		return expression;
+	}
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    ifFalse = parser.readExpression();
-    if ( !ifFalse ) {
-        parser.pos = start;
-        return expression;
-    }
+	ifFalse = parser.readExpression();
+	if ( !ifFalse ) {
+		parser.pos = start;
+		return expression;
+	}
 
-    return {
-        t: types.CONDITIONAL,
-        o: [ expression, ifTrue, ifFalse ]
-    };
+	return {
+		t: types.CONDITIONAL,
+		o: [ expression, ifTrue, ifFalse ]
+	};
 }

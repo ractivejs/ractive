@@ -1,3 +1,3 @@
 export default function () {
-    return this.fragment.detach();
+	return this.fragment.detach();
 }

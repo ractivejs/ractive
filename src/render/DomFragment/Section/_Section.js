@@ -9,153 +9,153 @@ import circular from 'circular';
 var DomSection, DomFragment;
 
 circular.push( function () {
-    DomFragment = circular.DomFragment;
+	DomFragment = circular.DomFragment;
 });
 
 // Section
 DomSection = function ( options, docFrag ) {
-    this.type = types.SECTION;
-    this.inverted = !!options.descriptor.n;
+	this.type = types.SECTION;
+	this.inverted = !!options.descriptor.n;
 
-    this.pElement = options.pElement;
+	this.pElement = options.pElement;
 
-    this.fragments = [];
-    this.length = 0; // number of times this section is rendered
+	this.fragments = [];
+	this.length = 0; // number of times this section is rendered
 
-    if ( docFrag ) {
-        this.docFrag = document.createDocumentFragment();
-    }
+	if ( docFrag ) {
+		this.docFrag = document.createDocumentFragment();
+	}
 
-    this.initialising = true;
-    Mustache.init( this, options );
+	this.initialising = true;
+	Mustache.init( this, options );
 
-    if ( docFrag ) {
-        docFrag.appendChild( this.docFrag );
-    }
+	if ( docFrag ) {
+		docFrag.appendChild( this.docFrag );
+	}
 
-    this.initialising = false;
+	this.initialising = false;
 };
 
 DomSection.prototype = {
-    update: Mustache.update,
-    resolve: Mustache.resolve,
-    reassign: Mustache.reassign,
-    splice: splice,
-    merge: merge,
+	update: Mustache.update,
+	resolve: Mustache.resolve,
+	reassign: Mustache.reassign,
+	splice: splice,
+	merge: merge,
 
-    detach: function () {
-        var i, len;
+	detach: function () {
+		var i, len;
 
-        if ( this.docFrag ) {
-            len = this.fragments.length;
-            for ( i = 0; i < len; i += 1 ) {
-                this.docFrag.appendChild( this.fragments[i].detach() );
-            }
+		if ( this.docFrag ) {
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.docFrag.appendChild( this.fragments[i].detach() );
+			}
 
-            return this.docFrag;
-        }
-    },
+			return this.docFrag;
+		}
+	},
 
-    teardown: function ( destroy ) {
-        this.teardownFragments( destroy );
+	teardown: function ( destroy ) {
+		this.teardownFragments( destroy );
 
-        teardown( this );
-    },
+		teardown( this );
+	},
 
-    firstNode: function () {
-        if ( this.fragments[0] ) {
-            return this.fragments[0].firstNode();
-        }
+	firstNode: function () {
+		if ( this.fragments[0] ) {
+			return this.fragments[0].firstNode();
+		}
 
-        return this.parentFragment.findNextNode( this );
-    },
+		return this.parentFragment.findNextNode( this );
+	},
 
-    findNextNode: function ( fragment ) {
-        if ( this.fragments[ fragment.index + 1 ] ) {
-            return this.fragments[ fragment.index + 1 ].firstNode();
-        }
+	findNextNode: function ( fragment ) {
+		if ( this.fragments[ fragment.index + 1 ] ) {
+			return this.fragments[ fragment.index + 1 ].firstNode();
+		}
 
-        return this.parentFragment.findNextNode( this );
-    },
+		return this.parentFragment.findNextNode( this );
+	},
 
-    teardownFragments: function ( destroy ) {
-        var fragment;
+	teardownFragments: function ( destroy ) {
+		var fragment;
 
-        while ( fragment = this.fragments.shift() ) {
-            fragment.teardown( destroy );
-        }
-    },
+		while ( fragment = this.fragments.shift() ) {
+			fragment.teardown( destroy );
+		}
+	},
 
-    render: render,
+	render: render,
 
-    createFragment: function ( options ) {
-        var fragment = new DomFragment( options );
+	createFragment: function ( options ) {
+		var fragment = new DomFragment( options );
 
-        if ( this.docFrag ) {
-            this.docFrag.appendChild( fragment.docFrag );
-        }
+		if ( this.docFrag ) {
+			this.docFrag.appendChild( fragment.docFrag );
+		}
 
-        return fragment;
-    },
+		return fragment;
+	},
 
-    toString: function () {
-        var str, i, len;
+	toString: function () {
+		var str, i, len;
 
-        str = '';
+		str = '';
 
-        i = 0;
-        len = this.length;
+		i = 0;
+		len = this.length;
 
-        for ( i=0; i<len; i+=1 ) {
-            str += this.fragments[i].toString();
-        }
+		for ( i=0; i<len; i+=1 ) {
+			str += this.fragments[i].toString();
+		}
 
-        return str;
-    },
+		return str;
+	},
 
-    find: function ( selector ) {
-        var i, len, queryResult;
+	find: function ( selector ) {
+		var i, len, queryResult;
 
-        len = this.fragments.length;
-        for ( i = 0; i < len; i += 1 ) {
-            if ( queryResult = this.fragments[i].find( selector ) ) {
-                return queryResult;
-            }
-        }
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			if ( queryResult = this.fragments[i].find( selector ) ) {
+				return queryResult;
+			}
+		}
 
-        return null;
-    },
+		return null;
+	},
 
-    findAll: function ( selector, query ) {
-        var i, len;
+	findAll: function ( selector, query ) {
+		var i, len;
 
-        len = this.fragments.length;
-        for ( i = 0; i < len; i += 1 ) {
-            this.fragments[i].findAll( selector, query );
-        }
-    },
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			this.fragments[i].findAll( selector, query );
+		}
+	},
 
-    findComponent: function ( selector ) {
-        var i, len, queryResult;
+	findComponent: function ( selector ) {
+		var i, len, queryResult;
 
-        len = this.fragments.length;
-        for ( i = 0; i < len; i += 1 ) {
-            if ( queryResult = this.fragments[i].findComponent( selector ) ) {
-                return queryResult;
-            }
-        }
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			if ( queryResult = this.fragments[i].findComponent( selector ) ) {
+				return queryResult;
+			}
+		}
 
-        return null;
-    },
+		return null;
+	},
 
-    findAllComponents: function ( selector, query ) {
-        var i, len;
+	findAllComponents: function ( selector, query ) {
+		var i, len;
 
-        len = this.fragments.length;
-        for ( i = 0; i < len; i += 1 ) {
-            this.fragments[i].findAllComponents( selector, query );
-        }
-    }
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			this.fragments[i].findAllComponents( selector, query );
+		}
+	}
 };
 
 export default DomSection;
