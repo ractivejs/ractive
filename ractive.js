@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-07 - commit d761a6cb 
+	2014-05-07 - commit f13fffc8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4345,14 +4345,10 @@
 						updateContextSection( section, fragmentOptions );
 						return;
 					case types.SECTION_EACH:
-						if ( isArray( value ) ) {
-							updateListSection( section, value, fragmentOptions );
-						} else if ( isObject( value ) ) {
+						if ( isObject( value ) ) {
 							updateListObjectSection( section, value, fragmentOptions );
 						}
-						return;
 				}
-				throw new Error( 'Section type ' + section.descriptor.n + ' not supported' );
 			}
 			// otherwise we need to work out what sort of section we're dealing with
 			// if value is an array, or an object with an index reference, iterate through
