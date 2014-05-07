@@ -7,5 +7,8 @@
   "dependencies": {},
   "development": {},
   "license": "MIT",
+  "scripts": [
+    "ractive.js"
+  ],
   "main": "ractive.js"
 }
