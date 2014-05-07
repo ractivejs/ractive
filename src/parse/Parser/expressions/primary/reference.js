@@ -35,7 +35,7 @@ export default function ( parser ) {
         dot = parser.matchString( '.' ) || '';
     }
 
-    name = parser.matchPattern( patterns.name ) || '';
+    name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 
     // if this is a browser global, stop here
     if ( !ancestor && !dot && globals.test( name ) ) {
