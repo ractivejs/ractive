@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-07 - commit 1c890b21 
+	2014-05-07 - commit d761a6cb 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
