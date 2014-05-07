@@ -588,6 +588,43 @@ var renderTests = [
 		result: '',
 		new_data: { foo: { bar: { baz: 'goodbye' } }, bar: { baz: 'hello' } },
 		new_result: 'goodbye'
+	},
+	{
+		name: '{{#each object}}...{{/each}} works',
+		handlebars: true,
+		template: '{{#each object}}<p>{{this}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>1</p><p>2</p><p>3</p>',
+		new_data: { object: { bar: 2, baz: 4, qux: 5 } },
+		new_result: '<p>2</p><p>4</p><p>5</p>'
+	},
+	{
+		name: '@index can be used as an index reference',
+		handlebars: true,
+		template: '{{#each items}}<p>{{@index}}: {{this}}</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>0: a</p><p>1: b</p><p>2: c</p>'
+	},
+	{
+		name: '@key can be used as an key reference',
+		handlebars: true,
+		template: '{{#each object}}<p>{{@key}}: {{this}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>foo: 1</p><p>bar: 2</p><p>baz: 3</p>'
+	},
+	{
+		name: '@index can be used in an expression',
+		handlebars: true,
+		template: '{{#each items}}<p>{{@index + 1}}: {{this}}</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>1: a</p><p>2: b</p><p>3: c</p>'
+	},
+	{
+		name: '@index can be used in a reference expression',
+		handlebars: true,
+		template: '{{#each items}}<p>{{items[@index]}} - {{items[@index+1]}}</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>a - b</p><p>b - c</p><p>c - </p>'
 	}
 ];
 
