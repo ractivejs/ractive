@@ -29,15 +29,11 @@ export default function updateSection ( section, value ) {
 			return;
 
 			case types.SECTION_EACH:
-			if ( isArray( value ) ) {
-				updateListSection( section, value, fragmentOptions );
-			} else if ( isObject( value ) ) {
+			if ( isObject( value ) ) {
 				updateListObjectSection( section, value, fragmentOptions );
 			}
-			return;
+			// don't return - if it's a conditional or an array we need to continue
 		}
-
-		throw new Error( 'Section type ' + section.descriptor.n + ' not supported' );
 	}
 
 	// otherwise we need to work out what sort of section we're dealing with
