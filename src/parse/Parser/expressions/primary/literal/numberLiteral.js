@@ -4,14 +4,14 @@ import types from 'config/types';
 var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 
 export default function ( parser ) {
-    var result;
+	var result;
 
-    if ( result = parser.matchPattern( numberPattern ) ) {
-        return {
-            t: types.NUMBER_LITERAL,
-            v: result
-        };
-    }
+	if ( result = parser.matchPattern( numberPattern ) ) {
+		return {
+			t: types.NUMBER_LITERAL,
+			v: result
+		};
+	}
 
-    return null;
+	return null;
 }

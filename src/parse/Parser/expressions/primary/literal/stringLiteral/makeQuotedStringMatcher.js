@@ -12,38 +12,38 @@ lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
 
 // Helper for defining getDoubleQuotedString and getSingleQuotedString.
 export default function ( okQuote ) {
-    return function ( parser ) {
-        var start, literal, done, next;
+	return function ( parser ) {
+		var start, literal, done, next;
 
-        start = parser.pos;
-        literal = '"';
-        done = false;
+		start = parser.pos;
+		literal = '"';
+		done = false;
 
-        while ( !done ) {
-            next = ( parser.matchPattern( stringMiddlePattern ) || parser.matchPattern( escapeSequencePattern ) ||
-                parser.matchString( okQuote ) );
-            if ( next ) {
-                if ( next === '"' ) {
-                    literal += '\\"';
-                } else if ( next === "\\'" ) {
-                    literal += "'";
-                } else {
-                    literal += next;
-                }
-            } else {
-                next = parser.matchPattern( lineContinuationPattern );
-                if ( next ) {
-                    // convert \(newline-like) into a \u escape, which is allowed in JSON
-                    literal += '\\u' + ( '000' + next.charCodeAt(1).toString(16) ).slice( -4 );
-                } else {
-                    done = true;
-                }
-            }
-        }
+		while ( !done ) {
+			next = ( parser.matchPattern( stringMiddlePattern ) || parser.matchPattern( escapeSequencePattern ) ||
+				parser.matchString( okQuote ) );
+			if ( next ) {
+				if ( next === '"' ) {
+					literal += '\\"';
+				} else if ( next === "\\'" ) {
+					literal += "'";
+				} else {
+					literal += next;
+				}
+			} else {
+				next = parser.matchPattern( lineContinuationPattern );
+				if ( next ) {
+					// convert \(newline-like) into a \u escape, which is allowed in JSON
+					literal += '\\u' + ( '000' + next.charCodeAt(1).toString(16) ).slice( -4 );
+				} else {
+					done = true;
+				}
+			}
+		}
 
-        literal += '"';
+		literal += '"';
 
-        // use JSON.parse to interpret escapes
-        return JSON.parse( literal );
-    };
+		// use JSON.parse to interpret escapes
+		return JSON.parse( literal );
+	};
 }

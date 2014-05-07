@@ -39,179 +39,179 @@ import stripStandalones from 'parse/utils/stripStandalones';
 
 
 var StandardParser,
-    parse,
-    contiguousWhitespace = /[ \t\f\r\n]+/g,
-    inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
-    inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
-    preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
-    parseCompoundTemplate;
+	parse,
+	contiguousWhitespace = /[ \t\f\r\n]+/g,
+	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
+	parseCompoundTemplate;
 
 StandardParser = Parser.extend({
-    init: function ( str, options ) {
-        // config
-        this.delimiters = options.delimiters || [ '{{', '}}' ];
-        this.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
+	init: function ( str, options ) {
+		// config
+		this.delimiters = options.delimiters || [ '{{', '}}' ];
+		this.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
-        this.interpolate = {
-            script: !options.interpolate || options.interpolate.script !== false,
-            style: !options.interpolate || options.interpolate.style !== false
-        };
+		this.interpolate = {
+			script: !options.interpolate || options.interpolate.script !== false,
+			style: !options.interpolate || options.interpolate.style !== false
+		};
 
-        if ( options.sanitize === true ) {
-            options.sanitize = {
-                // blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-                elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
-                eventAttributes: true
-            };
-        }
+		if ( options.sanitize === true ) {
+			options.sanitize = {
+				// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
+				elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
+				eventAttributes: true
+			};
+		}
 
-        this.sanitizeElements = options.sanitize && options.sanitize.elements;
-        this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
-        this.includeLinePositions = options.includeLinePositions;
-        this.handlebars = options.handlebars;
-    },
+		this.sanitizeElements = options.sanitize && options.sanitize.elements;
+		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+		this.includeLinePositions = options.includeLinePositions;
+		this.handlebars = options.handlebars;
+	},
 
-    postProcess: function ( items, options ) {
+	postProcess: function ( items, options ) {
 
-        cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse !== false );
+		cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse !== false );
 
-        if ( !options.preserveWhitespace ) {
-            trimWhitespace( items );
-        }
+		if ( !options.preserveWhitespace ) {
+			trimWhitespace( items );
+		}
 
-        return items;
-    },
+		return items;
+	},
 
-    converters: [
-        mustache,
-        comment,
-        element,
-        text
-    ]
+	converters: [
+		mustache,
+		comment,
+		element,
+		text
+	]
 });
 
 parse = function ( template, options ) {
-    var parser;
+	var parser;
 
-    options = options || {};
+	options = options || {};
 
-    // does this template include inline partials?
-    if ( inlinePartialStart.test( template ) ) {
-        return parseCompoundTemplate( template, options );
-    }
+	// does this template include inline partials?
+	if ( inlinePartialStart.test( template ) ) {
+		return parseCompoundTemplate( template, options );
+	}
 
-    parser = new StandardParser( template, options );
+	parser = new StandardParser( template, options );
 
-    if ( parser.leftover ) {
-        parser.error( 'Unexpected character' );
-    }
+	if ( parser.leftover ) {
+		parser.error( 'Unexpected character' );
+	}
 
-    return parser.result;
+	return parser.result;
 };
 
 parseCompoundTemplate = function ( template, options ) {
-    var mainTemplate, remaining, partials, name, startMatch, endMatch;
+	var mainTemplate, remaining, partials, name, startMatch, endMatch;
 
-    partials = {};
+	partials = {};
 
-    mainTemplate = '';
-    remaining = template;
+	mainTemplate = '';
+	remaining = template;
 
-    while ( startMatch = inlinePartialStart.exec( remaining ) ) {
-        name = startMatch[1];
+	while ( startMatch = inlinePartialStart.exec( remaining ) ) {
+		name = startMatch[1];
 
-        mainTemplate += remaining.substr( 0, startMatch.index );
-        remaining = remaining.substring( startMatch.index + startMatch[0].length );
+		mainTemplate += remaining.substr( 0, startMatch.index );
+		remaining = remaining.substring( startMatch.index + startMatch[0].length );
 
-        endMatch = inlinePartialEnd.exec( remaining );
+		endMatch = inlinePartialEnd.exec( remaining );
 
-        if ( !endMatch || endMatch[1] !== name ) {
-            throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
-        }
+		if ( !endMatch || endMatch[1] !== name ) {
+			throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
+		}
 
-        partials[ name ] = parse( remaining.substr( 0, endMatch.index ), options );
+		partials[ name ] = parse( remaining.substr( 0, endMatch.index ), options );
 
-        remaining = remaining.substring( endMatch.index + endMatch[0].length );
-    }
+		remaining = remaining.substring( endMatch.index + endMatch[0].length );
+	}
 
-    return {
-        main: parse( mainTemplate, options ),
-        partials: partials
-    };
+	return {
+		main: parse( mainTemplate, options ),
+		partials: partials
+	};
 };
 
 export default parse;
 
 function cleanup ( items, stripComments, preserveWhitespace, rewriteElse ) {
-    var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
+	var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
 
-    // first pass - remove standalones
-    stripStandalones( items );
+	// first pass - remove standalones
+	stripStandalones( items );
 
-    i = items.length;
-    while ( i-- ) {
-        item = items[i];
-        // Remove delimiter changes, unsafe elements etc
-        if ( item.exclude ) {
-            items.splice( i, 1 );
-        }
+	i = items.length;
+	while ( i-- ) {
+		item = items[i];
+		// Remove delimiter changes, unsafe elements etc
+		if ( item.exclude ) {
+			items.splice( i, 1 );
+		}
 
-        // Remove comments, unless we want to keep them
-        else if ( stripComments && item.t === types.COMMENT ) {
-            items.splice( i, 1 );
-        }
+		// Remove comments, unless we want to keep them
+		else if ( stripComments && item.t === types.COMMENT ) {
+			items.splice( i, 1 );
+		}
 
-        // Recurse
-        if ( item.f ) {
-            preserveWhitespaceInsideElement = ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
+		// Recurse
+		if ( item.f ) {
+			preserveWhitespaceInsideElement = ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
 
-            cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement, rewriteElse );
+			cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement, rewriteElse );
 
-            if ( !preserveWhitespace && item.t === types.ELEMENT ) {
-                trimWhitespace( item.f );
-            }
-        }
+			if ( !preserveWhitespace && item.t === types.ELEMENT ) {
+				trimWhitespace( item.f );
+			}
+		}
 
-        // Split if-else blocks into two (an if, and an unless)
-        if ( item.l ) {
-            cleanup( item.l, stripComments, preserveWhitespace, rewriteElse );
+		// Split if-else blocks into two (an if, and an unless)
+		if ( item.l ) {
+			cleanup( item.l, stripComments, preserveWhitespace, rewriteElse );
 
-            if ( rewriteElse ) {
+			if ( rewriteElse ) {
 
-                unlessBlock = {
-                    t: 4,
-                    r: item.r,
-                    n: types.SECTION_UNLESS,
-                    f: item.l
-                };
+				unlessBlock = {
+					t: 4,
+					r: item.r,
+					n: types.SECTION_UNLESS,
+					f: item.l
+				};
 
-                items.splice( i + 1, 0, unlessBlock );
-                delete item.l;
-            }
-        }
+				items.splice( i + 1, 0, unlessBlock );
+				delete item.l;
+			}
+		}
 
-        // Clean up element attributes
-        if ( item.a ) {
-            for ( key in item.a ) {
-                if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-                    cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
-                }
-            }
-        }
-    }
+		// Clean up element attributes
+		if ( item.a ) {
+			for ( key in item.a ) {
+				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
+					cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
+				}
+			}
+		}
+	}
 
-    // final pass - fuse text nodes together
-    i = items.length;
-    while ( i-- ) {
-        if ( typeof items[i] === 'string' ) {
-            if ( typeof items[i+1] === 'string' ) {
-                items[i] = items[i] + items[i+1];
-                items.splice( i + 1, 1 );
-            }
+	// final pass - fuse text nodes together
+	i = items.length;
+	while ( i-- ) {
+		if ( typeof items[i] === 'string' ) {
+			if ( typeof items[i+1] === 'string' ) {
+				items[i] = items[i] + items[i+1];
+				items.splice( i + 1, 1 );
+			}
 
-            if ( !preserveWhitespace ) {
-                items[i] = items[i].replace( contiguousWhitespace, ' ' );
-            }
-        }
-    }
+			if ( !preserveWhitespace ) {
+				items[i] = items[i].replace( contiguousWhitespace, ' ' );
+			}
+		}
+	}
 }

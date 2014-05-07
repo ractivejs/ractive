@@ -5,11 +5,11 @@ import getObjectLiteral from 'parse/Parser/expressions/primary/literal/objectLit
 import getArrayLiteral from 'parse/Parser/expressions/primary/literal/arrayLiteral';
 
 export default function ( tokenizer ) {
-    var literal = getNumberLiteral( tokenizer )   ||
-                  getBooleanLiteral( tokenizer )  ||
-                  getStringLiteral( tokenizer )   ||
-                  getObjectLiteral( tokenizer )   ||
-                  getArrayLiteral( tokenizer );
+	var literal = getNumberLiteral( tokenizer )   ||
+				  getBooleanLiteral( tokenizer )  ||
+				  getStringLiteral( tokenizer )   ||
+				  getObjectLiteral( tokenizer )   ||
+				  getArrayLiteral( tokenizer );
 
-    return literal;
+	return literal;
 }

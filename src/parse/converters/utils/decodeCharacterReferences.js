@@ -6,28 +6,28 @@ hexEntityPattern     = /&#x([0-9]+);?/g;
 decimalEntityPattern = /&#([0-9]+);?/g;
 
 export default function decodeCharacterReferences ( html ) {
-    var result;
+	var result;
 
-    // named entities
-    result = html.replace( namedEntityPattern, function ( match, name ) {
-        if ( htmlEntities[ name ] ) {
-            return String.fromCharCode( htmlEntities[ name ] );
-        }
+	// named entities
+	result = html.replace( namedEntityPattern, function ( match, name ) {
+		if ( htmlEntities[ name ] ) {
+			return String.fromCharCode( htmlEntities[ name ] );
+		}
 
-        return match;
-    });
+		return match;
+	});
 
-    // hex references
-    result = result.replace( hexEntityPattern, function ( match, hex ) {
-        return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
-    });
+	// hex references
+	result = result.replace( hexEntityPattern, function ( match, hex ) {
+		return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
+	});
 
-    // decimal references
-    result = result.replace( decimalEntityPattern, function ( match, charCode ) {
-        return String.fromCharCode( validateCode( charCode ) );
-    });
+	// decimal references
+	result = result.replace( decimalEntityPattern, function ( match, charCode ) {
+		return String.fromCharCode( validateCode( charCode ) );
+	});
 
-    return result;
+	return result;
 }
 
 // some code points are verboten. If we were inserting HTML, the browser would replace the illegal
@@ -36,42 +36,42 @@ export default function decodeCharacterReferences ( html ) {
 //
 // Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
 function validateCode ( code ) {
-    if ( !code ) {
-        return 65533;
-    }
+	if ( !code ) {
+		return 65533;
+	}
 
-    // line feed becomes generic whitespace
-    if ( code === 10 ) {
-        return 32;
-    }
+	// line feed becomes generic whitespace
+	if ( code === 10 ) {
+		return 32;
+	}
 
-    // ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
-    if ( code < 128 ) {
-        return code;
-    }
+	// ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
+	if ( code < 128 ) {
+		return code;
+	}
 
-    // code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
-    // to correct the mistake or we'll end up with missing € signs and so on
-    if ( code <= 159 ) {
-        return controlCharacters[ code - 128 ];
-    }
+	// code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
+	// to correct the mistake or we'll end up with missing € signs and so on
+	if ( code <= 159 ) {
+		return controlCharacters[ code - 128 ];
+	}
 
-    // basic multilingual plane
-    if ( code < 55296 ) {
-        return code;
-    }
+	// basic multilingual plane
+	if ( code < 55296 ) {
+		return code;
+	}
 
-    // UTF-16 surrogate halves
-    if ( code <= 57343 ) {
-        return 65533;
-    }
+	// UTF-16 surrogate halves
+	if ( code <= 57343 ) {
+		return 65533;
+	}
 
-    // rest of the basic multilingual plane
-    if ( code <= 65535 ) {
-        return code;
-    }
+	// rest of the basic multilingual plane
+	if ( code <= 65535 ) {
+		return code;
+	}
 
-    // TODO it's... not exactly clear what should happen with code points over this value. The
-    // following seems to work. But I can't guarantee it works in China!
-    return 65533;
+	// TODO it's... not exactly clear what should happen with code points over this value. The
+	// following seems to work. But I can't guarantee it works in China!
+	return 65533;
 }

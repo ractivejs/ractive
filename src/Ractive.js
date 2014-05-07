@@ -10,7 +10,7 @@ var FUNCTION = 'function';
 // this, we need to wait until all modules have loaded before those
 // circular dependencies can be required.
 while ( circular.length ) {
-    circular.pop()();
+	circular.pop()();
 }
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
@@ -18,16 +18,16 @@ while ( circular.length ) {
 // pre-flight check to make sure that either a) we're not in a shit browser,
 // or b) we're using a Ractive-legacy.js build
 if (
-    typeof Date.now !== FUNCTION                 ||
-    typeof String.prototype.trim !== FUNCTION    ||
-    typeof Object.keys !== FUNCTION              ||
-    typeof Array.prototype.indexOf !== FUNCTION  ||
-    typeof Array.prototype.forEach !== FUNCTION  ||
-    typeof Array.prototype.map !== FUNCTION      ||
-    typeof Array.prototype.filter !== FUNCTION   ||
-    ( typeof window !== 'undefined' && typeof window.addEventListener !== FUNCTION )
+	typeof Date.now !== FUNCTION                 ||
+	typeof String.prototype.trim !== FUNCTION    ||
+	typeof Object.keys !== FUNCTION              ||
+	typeof Array.prototype.indexOf !== FUNCTION  ||
+	typeof Array.prototype.forEach !== FUNCTION  ||
+	typeof Array.prototype.map !== FUNCTION      ||
+	typeof Array.prototype.filter !== FUNCTION   ||
+	( typeof window !== 'undefined' && typeof window.addEventListener !== FUNCTION )
 ) {
-    throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
+	throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
 }
 
 // Internet Explorer derp. Methods that should be attached to Node.prototype
@@ -36,7 +36,7 @@ if (
 //
 // This is here, rather than in legacy.js, because it affects IE9.
 if ( typeof window !== 'undefined' && window.Node && !window.Node.prototype.contains && window.HTMLElement && window.HTMLElement.prototype.contains ) {
-    window.Node.prototype.contains = window.HTMLElement.prototype.contains;
+	window.Node.prototype.contains = window.HTMLElement.prototype.contains;
 }
 
 export default Ractive;

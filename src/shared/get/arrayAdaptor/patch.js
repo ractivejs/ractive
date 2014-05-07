@@ -5,45 +5,45 @@ import summariseSpliceOperation from 'shared/get/arrayAdaptor/summariseSpliceOpe
 import processWrapper from 'shared/get/arrayAdaptor/processWrapper';
 
 var patchedArrayProto = [],
-    mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ],
-    testObj,
-    patchArrayMethods,
-    unpatchArrayMethods;
+	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ],
+	testObj,
+	patchArrayMethods,
+	unpatchArrayMethods;
 
 mutatorMethods.forEach( function ( methodName ) {
-    var method = function () {
-        var spliceEquivalent,
-            spliceSummary,
-            result,
-            wrapper,
-            i;
+	var method = function () {
+		var spliceEquivalent,
+			spliceSummary,
+			result,
+			wrapper,
+			i;
 
-        // push, pop, shift and unshift can all be represented as a splice operation.
-        // this makes life easier later
-        spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
-        spliceSummary = summariseSpliceOperation( this, spliceEquivalent );
+		// push, pop, shift and unshift can all be represented as a splice operation.
+		// this makes life easier later
+		spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
+		spliceSummary = summariseSpliceOperation( this, spliceEquivalent );
 
-        // apply the underlying method
-        result = Array.prototype[ methodName ].apply( this, arguments );
+		// apply the underlying method
+		result = Array.prototype[ methodName ].apply( this, arguments );
 
-        // trigger changes
-        this._ractive.setting = true;
-        i = this._ractive.wrappers.length;
-        while ( i-- ) {
-            wrapper = this._ractive.wrappers[i];
+		// trigger changes
+		this._ractive.setting = true;
+		i = this._ractive.wrappers.length;
+		while ( i-- ) {
+			wrapper = this._ractive.wrappers[i];
 
-            runloop.start( wrapper.root );
-            processWrapper( wrapper, this, methodName, spliceSummary );
-            runloop.end();
-        }
+			runloop.start( wrapper.root );
+			processWrapper( wrapper, this, methodName, spliceSummary );
+			runloop.end();
+		}
 
-        this._ractive.setting = false;
-        return result;
-    };
+		this._ractive.setting = false;
+		return result;
+	};
 
-    defineProperty( patchedArrayProto, methodName, {
-        value: method
-    });
+	defineProperty( patchedArrayProto, methodName, {
+		value: method
+	});
 });
 
 // can we use prototype chain injection?
@@ -51,39 +51,39 @@ mutatorMethods.forEach( function ( methodName ) {
 testObj = {};
 
 if ( testObj.__proto__ ) {
-    // yes, we can
-    patchArrayMethods = function ( array ) {
-        array.__proto__ = patchedArrayProto;
-    };
+	// yes, we can
+	patchArrayMethods = function ( array ) {
+		array.__proto__ = patchedArrayProto;
+	};
 
-    unpatchArrayMethods = function ( array ) {
-        array.__proto__ = Array.prototype;
-    };
+	unpatchArrayMethods = function ( array ) {
+		array.__proto__ = Array.prototype;
+	};
 }
 
 else {
-    // no, we can't
-    patchArrayMethods = function ( array ) {
-        var i, methodName;
+	// no, we can't
+	patchArrayMethods = function ( array ) {
+		var i, methodName;
 
-        i = mutatorMethods.length;
-        while ( i-- ) {
-            methodName = mutatorMethods[i];
-            defineProperty( array, methodName, {
-                value: patchedArrayProto[ methodName ],
-                configurable: true
-            });
-        }
-    };
+		i = mutatorMethods.length;
+		while ( i-- ) {
+			methodName = mutatorMethods[i];
+			defineProperty( array, methodName, {
+				value: patchedArrayProto[ methodName ],
+				configurable: true
+			});
+		}
+	};
 
-    unpatchArrayMethods = function ( array ) {
-        var i;
+	unpatchArrayMethods = function ( array ) {
+		var i;
 
-        i = mutatorMethods.length;
-        while ( i-- ) {
-            delete array[ mutatorMethods[i] ];
-        }
-    };
+		i = mutatorMethods.length;
+		while ( i-- ) {
+			delete array[ mutatorMethods[i] ];
+		}
+	};
 }
 
 patchArrayMethods.unpatch = unpatchArrayMethods;

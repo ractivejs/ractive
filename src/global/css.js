@@ -3,88 +3,88 @@ import isClient from 'config/isClient';
 import removeFromArray from 'utils/removeFromArray';
 
 var css,
-    runloop,
-    styleElement,
-    head,
-    styleSheet,
-    inDom,
-    prefix = '/* Ractive.js component styles */\n',
-    componentsInPage = {},
-    styles = [];
+	runloop,
+	styleElement,
+	head,
+	styleSheet,
+	inDom,
+	prefix = '/* Ractive.js component styles */\n',
+	componentsInPage = {},
+	styles = [];
 
 if ( !isClient ) {
-    css = null;
+	css = null;
 } else {
-    circular.push( function () {
-        runloop = circular.runloop;
-    });
+	circular.push( function () {
+		runloop = circular.runloop;
+	});
 
-    styleElement = document.createElement( 'style' );
-    styleElement.type = 'text/css';
+	styleElement = document.createElement( 'style' );
+	styleElement.type = 'text/css';
 
-    head = document.getElementsByTagName( 'head' )[0];
+	head = document.getElementsByTagName( 'head' )[0];
 
-    inDom = false;
+	inDom = false;
 
-    // Internet Exploder won't let you use styleSheet.innerHTML - we have to
-    // use styleSheet.cssText instead
-    styleSheet = styleElement.styleSheet;
+	// Internet Exploder won't let you use styleSheet.innerHTML - we have to
+	// use styleSheet.cssText instead
+	styleSheet = styleElement.styleSheet;
 
-    css = {
-        add: function ( Component ) {
-            if ( !Component.css ) {
-                return;
-            }
+	css = {
+		add: function ( Component ) {
+			if ( !Component.css ) {
+				return;
+			}
 
-            if ( !componentsInPage[ Component._guid ] ) {
-                // we create this counter so that we can in/decrement it as
-                // instances are added and removed. When all components are
-                // removed, the style is too
-                componentsInPage[ Component._guid ] = 0;
-                styles.push( Component.css );
+			if ( !componentsInPage[ Component._guid ] ) {
+				// we create this counter so that we can in/decrement it as
+				// instances are added and removed. When all components are
+				// removed, the style is too
+				componentsInPage[ Component._guid ] = 0;
+				styles.push( Component.css );
 
-                runloop.scheduleCssUpdate();
-            }
+				runloop.scheduleCssUpdate();
+			}
 
-            componentsInPage[ Component._guid ] += 1;
-        },
+			componentsInPage[ Component._guid ] += 1;
+		},
 
-        remove: function ( Component ) {
-            if ( !Component.css ) {
-                return;
-            }
+		remove: function ( Component ) {
+			if ( !Component.css ) {
+				return;
+			}
 
-            componentsInPage[ Component._guid ] -= 1;
+			componentsInPage[ Component._guid ] -= 1;
 
-            if ( !componentsInPage[ Component._guid ] ) {
-                removeFromArray( styles, Component.css );
+			if ( !componentsInPage[ Component._guid ] ) {
+				removeFromArray( styles, Component.css );
 
-                runloop.scheduleCssUpdate();
-            }
-        },
+				runloop.scheduleCssUpdate();
+			}
+		},
 
-        update: function () {
-            var css;
+		update: function () {
+			var css;
 
-            if ( styles.length ) {
-                css = prefix + styles.join( ' ' );
+			if ( styles.length ) {
+				css = prefix + styles.join( ' ' );
 
-                if ( styleSheet ) {
-                    styleSheet.cssText = css;
-                } else {
-                    styleElement.innerHTML = css;
-                }
+				if ( styleSheet ) {
+					styleSheet.cssText = css;
+				} else {
+					styleElement.innerHTML = css;
+				}
 
-                if ( !inDom ) {
-                    head.appendChild( styleElement );
-                }
-            }
+				if ( !inDom ) {
+					head.appendChild( styleElement );
+				}
+			}
 
-            else if ( inDom ) {
-                head.removeChild( styleElement );
-            }
-        }
-    };
+			else if ( inDom ) {
+				head.removeChild( styleElement );
+			}
+		}
+	};
 }
 
 export default css;

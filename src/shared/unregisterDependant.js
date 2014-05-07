@@ -1,47 +1,47 @@
 export default function unregisterDependant ( dependant ) {
-    var deps, index, ractive, keypath, priority;
+	var deps, index, ractive, keypath, priority;
 
-    ractive = dependant.root;
-    keypath = dependant.keypath;
-    priority = dependant.priority;
+	ractive = dependant.root;
+	keypath = dependant.keypath;
+	priority = dependant.priority;
 
-    deps = ractive._deps[ priority ][ keypath ];
-    index = deps.indexOf( dependant );
+	deps = ractive._deps[ priority ][ keypath ];
+	index = deps.indexOf( dependant );
 
-    if ( index === -1 || !dependant.registered ) {
-        throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
-    }
+	if ( index === -1 || !dependant.registered ) {
+		throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
+	}
 
-    deps.splice( index, 1 );
-    dependant.registered = false;
+	deps.splice( index, 1 );
+	dependant.registered = false;
 
-    if ( !keypath ) {
-        return;
-    }
+	if ( !keypath ) {
+		return;
+	}
 
-    updateDependantsMap( ractive, keypath );
+	updateDependantsMap( ractive, keypath );
 }
 
 function updateDependantsMap ( ractive, keypath ) {
-    var keys, parentKeypath, map;
+	var keys, parentKeypath, map;
 
-    // update dependants map
-    keys = keypath.split( '.' );
+	// update dependants map
+	keys = keypath.split( '.' );
 
-    while ( keys.length ) {
-        keys.pop();
-        parentKeypath = keys.join( '.' );
+	while ( keys.length ) {
+		keys.pop();
+		parentKeypath = keys.join( '.' );
 
-        map = ractive._depsMap[ parentKeypath ];
+		map = ractive._depsMap[ parentKeypath ];
 
-        map[ keypath ] -= 1;
+		map[ keypath ] -= 1;
 
-        if ( !map[ keypath ] ) {
-            // remove from parent deps map
-            map.splice( map.indexOf( keypath ), 1 );
-            map[ keypath ] = undefined;
-        }
+		if ( !map[ keypath ] ) {
+			// remove from parent deps map
+			map.splice( map.indexOf( keypath ), 1 );
+			map[ keypath ] = undefined;
+		}
 
-        keypath = parentKeypath;
-    }
+		keypath = parentKeypath;
+	}
 }

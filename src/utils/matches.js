@@ -5,54 +5,54 @@ import createElement from 'utils/createElement';
 var matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
 if ( !isClient ) {
-    matches = null;
+	matches = null;
 } else {
-    div = createElement( 'div' );
-    methodNames = [ 'matches', 'matchesSelector' ];
+	div = createElement( 'div' );
+	methodNames = [ 'matches', 'matchesSelector' ];
 
-    makeFunction = function ( methodName ) {
-        return function ( node, selector ) {
-            return node[ methodName ]( selector );
-        };
-    };
+	makeFunction = function ( methodName ) {
+		return function ( node, selector ) {
+			return node[ methodName ]( selector );
+		};
+	};
 
-    i = methodNames.length;
+	i = methodNames.length;
 
-    while ( i-- && !matches ) {
-        unprefixed = methodNames[i];
+	while ( i-- && !matches ) {
+		unprefixed = methodNames[i];
 
-        if ( div[ unprefixed ] ) {
-            matches = makeFunction( unprefixed );
-        } else {
-            j = vendors.length;
-            while ( j-- ) {
-                prefixed = vendors[i] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
+		if ( div[ unprefixed ] ) {
+			matches = makeFunction( unprefixed );
+		} else {
+			j = vendors.length;
+			while ( j-- ) {
+				prefixed = vendors[i] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
 
-                if ( div[ prefixed ] ) {
-                    matches = makeFunction( prefixed );
-                    break;
-                }
-            }
-        }
-    }
+				if ( div[ prefixed ] ) {
+					matches = makeFunction( prefixed );
+					break;
+				}
+			}
+		}
+	}
 
-    // IE8...
-    if ( !matches ) {
-        matches = function ( node, selector ) {
-            var nodes, i;
+	// IE8...
+	if ( !matches ) {
+		matches = function ( node, selector ) {
+			var nodes, i;
 
-            nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
+			nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
 
-            i = nodes.length;
-            while ( i-- ) {
-                if ( nodes[i] === node ) {
-                    return true;
-                }
-            }
+			i = nodes.length;
+			while ( i-- ) {
+				if ( nodes[i] === node ) {
+					return true;
+				}
+			}
 
-            return false;
-        };
-    }
+			return false;
+		};
+	}
 }
 
 export default matches;

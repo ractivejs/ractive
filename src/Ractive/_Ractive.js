@@ -15,7 +15,7 @@ import circular from 'circular';
 
 // Main Ractive required object
 var Ractive = function ( options ) {
-    initialise( this, options );
+	initialise( this, options );
 };
 
 Ractive.prototype = proto;
@@ -23,25 +23,25 @@ Ractive.prototype = proto;
 // Read-only properties
 defineProperties( Ractive, {
 
-    // Shared properties
-    partials: { value: partialRegistry },
+	// Shared properties
+	partials: { value: partialRegistry },
 
-    // Plugins
-    adaptors:      { value: adaptorRegistry },
-    easing:        { value: easingRegistry },
-    transitions:   { value: {} },
-    events:        { value: {} },
-    components:    { value: componentsRegistry },
-    decorators:    { value: {} },
-    interpolators: { value: interpolatorsRegistry },
+	// Plugins
+	adaptors:      { value: adaptorRegistry },
+	easing:        { value: easingRegistry },
+	transitions:   { value: {} },
+	events:        { value: {} },
+	components:    { value: componentsRegistry },
+	decorators:    { value: {} },
+	interpolators: { value: interpolatorsRegistry },
 
-    // Default options
-    defaults:    { value: initOptions.defaults },
+	// Default options
+	defaults:    { value: initOptions.defaults },
 
-    // Support
-    svg: { value: svg },
+	// Support
+	svg: { value: svg },
 
-    VERSION:     { value: '<%= pkg.version %>' }
+	VERSION:     { value: '<%= pkg.version %>' }
 });
 
 // TODO deprecated

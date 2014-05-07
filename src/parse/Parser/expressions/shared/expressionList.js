@@ -1,34 +1,34 @@
 export default function getExpressionList ( tokenizer ) {
-    var start, expressions, expr, next;
+	var start, expressions, expr, next;
 
-    start = tokenizer.pos;
+	start = tokenizer.pos;
 
-    tokenizer.allowWhitespace();
+	tokenizer.allowWhitespace();
 
-    expr = tokenizer.readExpression();
+	expr = tokenizer.readExpression();
 
-    if ( expr === null ) {
-        return null;
-    }
+	if ( expr === null ) {
+		return null;
+	}
 
-    expressions = [ expr ];
+	expressions = [ expr ];
 
-    // allow whitespace between expression and ','
-    tokenizer.allowWhitespace();
+	// allow whitespace between expression and ','
+	tokenizer.allowWhitespace();
 
-    if ( tokenizer.matchString( ',' ) ) {
-        next = getExpressionList( tokenizer );
-        if ( next === null ) {
-            tokenizer.pos = start;
-            return null;
-        }
+	if ( tokenizer.matchString( ',' ) ) {
+		next = getExpressionList( tokenizer );
+		if ( next === null ) {
+			tokenizer.pos = start;
+			return null;
+		}
 
-        next.forEach( append );
-    }
+		next.forEach( append );
+	}
 
-    function append ( expression ) {
-        expressions.push( expression );
-    }
+	function append ( expression ) {
+		expressions.push( expression );
+	}
 
-    return expressions;
+	return expressions;
 }

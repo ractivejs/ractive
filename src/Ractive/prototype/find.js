@@ -1,7 +1,7 @@
 export default function ( selector ) {
-    if ( !this.el ) {
-        return null;
-    }
+	if ( !this.el ) {
+		return null;
+	}
 
-    return this.fragment.find( selector );
+	return this.fragment.find( selector );
 }

@@ -1,42 +1,42 @@
 export default function registerDependant ( dependant ) {
-    var depsByKeypath, deps, ractive, keypath, priority;
+	var depsByKeypath, deps, ractive, keypath, priority;
 
-    ractive = dependant.root;
-    keypath = dependant.keypath;
-    priority = dependant.priority;
+	ractive = dependant.root;
+	keypath = dependant.keypath;
+	priority = dependant.priority;
 
-    depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
-    deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
+	depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
+	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
-    deps.push( dependant );
-    dependant.registered = true;
+	deps.push( dependant );
+	dependant.registered = true;
 
-    if ( !keypath ) {
-        return;
-    }
+	if ( !keypath ) {
+		return;
+	}
 
-    updateDependantsMap( ractive, keypath );
+	updateDependantsMap( ractive, keypath );
 }
 
 function updateDependantsMap ( ractive, keypath ) {
-    var keys, parentKeypath, map;
+	var keys, parentKeypath, map;
 
-    // update dependants map
-    keys = keypath.split( '.' );
+	// update dependants map
+	keys = keypath.split( '.' );
 
-    while ( keys.length ) {
-        keys.pop();
-        parentKeypath = keys.join( '.' );
+	while ( keys.length ) {
+		keys.pop();
+		parentKeypath = keys.join( '.' );
 
-        map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
+		map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
 
-        if ( map[ keypath ] === undefined ) {
-            map[ keypath ] = 0;
-            map[ map.length ] = keypath;
-        }
+		if ( map[ keypath ] === undefined ) {
+			map[ keypath ] = 0;
+			map[ map.length ] = keypath;
+		}
 
-        map[ keypath ] += 1;
+		map[ keypath ] += 1;
 
-        keypath = parentKeypath;
-    }
+		keypath = parentKeypath;
+	}
 }

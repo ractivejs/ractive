@@ -2,6 +2,6 @@ import sortByDocumentPosition from 'Ractive/prototype/shared/makeQuery/sortByDoc
 import sortByItemPosition from 'Ractive/prototype/shared/makeQuery/sortByItemPosition';
 
 export default function () {
-    this.sort( this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition );
-    this._dirty = false;
+	this.sort( this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition );
+	this._dirty = false;
 }

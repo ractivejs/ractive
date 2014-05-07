@@ -1,19 +1,19 @@
 import prefix from 'render/DomFragment/Element/shared/executeTransition/Transition/helpers/prefix';
 
 export default function ( style, value ) {
-    var prop;
+	var prop;
 
-    if ( typeof style === 'string' ) {
-        this.node.style[ prefix( style ) ] = value;
-    }
+	if ( typeof style === 'string' ) {
+		this.node.style[ prefix( style ) ] = value;
+	}
 
-    else {
-        for ( prop in style ) {
-            if ( style.hasOwnProperty( prop ) ) {
-                this.node.style[ prefix( prop ) ] = style[ prop ];
-            }
-        }
-    }
+	else {
+		for ( prop in style ) {
+			if ( style.hasOwnProperty( prop ) ) {
+				this.node.style[ prefix( prop ) ] = style[ prop ];
+			}
+		}
+	}
 
-    return this;
+	return this;
 }

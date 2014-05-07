@@ -1,13 +1,13 @@
 export default function ( string, indent ) {
-    var indented;
+	var indented;
 
-    if ( !indent ) {
-        return string;
-    }
+	if ( !indent ) {
+		return string;
+	}
 
-    indented = string.split( '\n' ).map( function ( line, notFirstLine ) {
-        return notFirstLine ? indent + line : line;
-    }).join( '\n' );
+	indented = string.split( '\n' ).map( function ( line, notFirstLine ) {
+		return notFirstLine ? indent + line : line;
+	}).join( '\n' );
 
-    return indented;
+	return indented;
 }

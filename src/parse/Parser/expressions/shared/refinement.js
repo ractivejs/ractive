@@ -2,46 +2,46 @@ import types from 'config/types';
 import patterns from 'parse/Parser/expressions/patterns';
 
 export default function getRefinement ( parser ) {
-    var start, name, expr;
+	var start, name, expr;
 
-    start = parser.pos;
+	start = parser.pos;
 
-    parser.allowWhitespace();
+	parser.allowWhitespace();
 
-    // "." name
-    if ( parser.matchString( '.' ) ) {
-        parser.allowWhitespace();
+	// "." name
+	if ( parser.matchString( '.' ) ) {
+		parser.allowWhitespace();
 
-        if ( name = parser.matchPattern( patterns.name ) ) {
-            return {
-                t: types.REFINEMENT,
-                n: name
-            };
-        }
+		if ( name = parser.matchPattern( patterns.name ) ) {
+			return {
+				t: types.REFINEMENT,
+				n: name
+			};
+		}
 
-        parser.error( 'Expected a property name' );
-    }
+		parser.error( 'Expected a property name' );
+	}
 
-    // "[" expression "]"
-    if ( parser.matchString( '[' ) ) {
-        parser.allowWhitespace();
+	// "[" expression "]"
+	if ( parser.matchString( '[' ) ) {
+		parser.allowWhitespace();
 
-        expr = parser.readExpression();
-        if ( !expr ) {
-            parser.error( 'an expression' );
-        }
+		expr = parser.readExpression();
+		if ( !expr ) {
+			parser.error( 'an expression' );
+		}
 
-        parser.allowWhitespace();
+		parser.allowWhitespace();
 
-        if ( !parser.matchString( ']' ) ) {
-            parser.error( 'Expected \']\'' );
-        }
+		if ( !parser.matchString( ']' ) ) {
+			parser.error( 'Expected \']\'' );
+		}
 
-        return {
-            t: types.REFINEMENT,
-            x: expr
-        };
-    }
+		return {
+			t: types.REFINEMENT,
+			x: expr
+		};
+	}
 
-    return null;
+	return null;
 }

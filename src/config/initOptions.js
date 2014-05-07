@@ -3,31 +3,31 @@ import 'legacy';
 var defaults, initOptions;
 
 defaults = {
-    el:                 null,
-    template:           '',
-    complete:           null,
-    preserveWhitespace: false,
-    append:             false,
-    twoway:             true,
-    modifyArrays:       true,
-    lazy:               false,
-    debug:              false,
-    noIntro:            false,
-    transitionsEnabled: true,
-    magic:              false,
-    noCssTransform:     false,
-    adapt:              [],
-    sanitize:           false,
-    stripComments:      true,
-    isolated:           false,
-    delimiters:         [ '{{', '}}' ],
-    tripleDelimiters:   [ '{{{', '}}}' ],
-    computed:           null
+	el:                 null,
+	template:           '',
+	complete:           null,
+	preserveWhitespace: false,
+	append:             false,
+	twoway:             true,
+	modifyArrays:       true,
+	lazy:               false,
+	debug:              false,
+	noIntro:            false,
+	transitionsEnabled: true,
+	magic:              false,
+	noCssTransform:     false,
+	adapt:              [],
+	sanitize:           false,
+	stripComments:      true,
+	isolated:           false,
+	delimiters:         [ '{{', '}}' ],
+	tripleDelimiters:   [ '{{{', '}}}' ],
+	computed:           null
 };
 
 initOptions = {
-    keys: Object.keys( defaults ),
-    defaults: defaults
+	keys: Object.keys( defaults ),
+	defaults: defaults
 };
 
 export default initOptions;
