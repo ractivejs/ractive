@@ -3,97 +3,93 @@ import normaliseKeypath from 'utils/normaliseKeypath';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import getInnerContext from 'shared/getInnerContext';
 
-var get, ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+var get, ancestorErrorMessage, getOptions;
 
 circular.push( function () {
-    get = circular.get;
+	get = circular.get;
 });
 
+ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
+
+getOptions = { evaluateWrapped: true };
+
 export default function resolveRef ( ractive, ref, fragment ) {
-    var context, contextKeys, keys, lastKey, postfix, parentKeypath, parentValue, wrapped, hasContextChain;
+	var context, key, parentValue, hasContextChain;
 
-    ref = normaliseKeypath( ref );
+	ref = normaliseKeypath( ref );
 
-    // Implicit iterators - i.e. {{.}} - are a special case
-    if ( ref === '.' ) {
-        return getInnerContext( fragment );
-    }
+	// If a reference begins with '.', it's either a restricted reference or
+	// an ancestor reference...
+	if ( ref.charAt( 0 ) === '.' ) {
+		return resolveAncestorReference( getInnerContext( fragment ), ref );
+	}
 
-    // If a reference begins with '.', it's either a restricted reference or
-    // an ancestor reference...
-    if ( ref.charAt( 0 ) === '.' ) {
+	// ...otherwise we need to find the keypath
+	key = ref.split( '.' )[0];
 
-        // ...either way we need to get the innermost context
-        context = getInnerContext( fragment );
-        contextKeys = context ? context.split( '.' ) : [];
+	do {
+		context = fragment.context;
 
-        // ancestor references (starting "../") go up the tree
-        if ( ref.substr( 0, 3 ) === '../' ) {
-            while ( ref.substr( 0, 3 ) === '../' ) {
-                if ( !contextKeys.length ) {
-                    throw new Error( ancestorErrorMessage );
-                }
+		if ( !context ) {
+			continue;
+		}
 
-                contextKeys.pop();
-                ref = ref.substring( 3 );
-            }
+		hasContextChain = true;
+		parentValue = get( ractive, context, getOptions );
 
-            contextKeys.push( ref );
-            return contextKeys.join( '.' );
-        }
-
-        // not an ancestor reference - must be a restricted reference (prepended with ".")
-        if ( !context ) {
-            return ref.substring( 1 );
-        }
-
-        return context + ref;
-    }
-
-    // Now we need to try and resolve the reference against any
-    // contexts set by parent list/object sections
-    keys = ref.split( '.' );
-    lastKey = keys.pop();
-    postfix = keys.length ? '.' + keys.join( '.' ) : '';
-
-    do {
-        context = fragment.context;
-
-        if ( !context ) {
-            continue;
-        }
-
-        hasContextChain = true;
-
-        parentKeypath = context + postfix;
-        parentValue = get( ractive, parentKeypath );
-
-        if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
-            parentValue = wrapped.get();
-        }
-
-        if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && lastKey in parentValue ) {
-            return context + '.' + ref;
-        }
-    } while ( fragment = fragment.parent );
+		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
+			return context + '.' + ref;
+		}
+	} while ( fragment = fragment.parent );
 
 
-    // Still no keypath?
+	// Still no keypath?
 
-    // If there's no context chain, and the instance is either a) isolated or
-    // b) an orphan, then we know that the keypath is identical to the reference
-    if ( !hasContextChain && ( !ractive._parent || ractive.isolated ) ) {
-        return ref;
-    }
+	// If there's no context chain, and the instance is either a) isolated or
+	// b) an orphan, then we know that the keypath is identical to the reference
+	if ( !hasContextChain && ( !ractive._parent || ractive.isolated ) ) {
+		return ref;
+	}
 
-    // We need both of these - the first enables components to treat data contexts
-    // like lexical scopes in JavaScript functions...
-    if ( hasOwnProperty.call( ractive.data, keys[0] ) ) {
-        return ref;
-    }
+	// We need both of these - the first enables components to treat data contexts
+	// like lexical scopes in JavaScript functions...
+	if ( hasOwnProperty.call( ractive.data, key ) ) {
+		return ref;
+	}
 
-    // while the second deals with references like `foo.bar`
-    else if ( get( ractive, ref ) !== undefined ) {
-        return ref;
-    }
+	// while the second deals with references like `foo.bar`
+	else if ( get( ractive, ref ) !== undefined ) {
+		return ref;
+	}
+}
+
+function resolveAncestorReference ( baseContext, ref ) {
+	var contextKeys;
+
+	// {{.}} means 'current context'
+	if ( ref === '.' ) return baseContext;
+
+	contextKeys = baseContext ? baseContext.split( '.' ) : [];
+
+	// ancestor references (starting "../") go up the tree
+	if ( ref.substr( 0, 3 ) === '../' ) {
+		while ( ref.substr( 0, 3 ) === '../' ) {
+			if ( !contextKeys.length ) {
+				throw new Error( ancestorErrorMessage );
+			}
+
+			contextKeys.pop();
+			ref = ref.substring( 3 );
+		}
+
+		contextKeys.push( ref );
+		return contextKeys.join( '.' );
+	}
+
+	// not an ancestor reference - must be a restricted reference (prepended with ".")
+	if ( !baseContext ) {
+		return ref.substring( 1 );
+	}
+
+	return baseContext + ref;
 }
