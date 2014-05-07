@@ -4,7 +4,7 @@ import normaliseKeypath from 'utils/normaliseKeypath';
 import Promise from 'utils/Promise';
 import set from 'shared/set';
 
-export default function Ractive_prototype_set ( keypath, value, callback ) {
+export default function Ractive$set ( keypath, value, callback ) {
 	var map,
 		promise,
 		fulfilPromise;

@@ -1,0 +1,68 @@
+import runloop from 'global/runloop';
+import resolveRef from 'shared/resolveRef';
+import KeypathExpressionResolver from 'parallel-dom/shared/Resolvers/KeypathExpressionResolver';
+import ExpressionResolver from 'parallel-dom/shared/Resolvers/ExpressionResolver';
+
+export default function initMustache ( mustache, options ) {
+
+	var ref, indexRefs, index, parentFragment, template;
+
+	parentFragment = options.parentFragment;
+	template = options.template;
+
+	mustache.root           = parentFragment.root;
+	mustache.parentFragment = parentFragment;
+	mustache.pElement       = parentFragment.pElement;
+
+	mustache.template     = options.template;
+	mustache.index          = options.index || 0;
+	mustache.priority       = parentFragment.priority;
+
+	mustache.type = options.template.t;
+
+	function resolve ( keypath ) {
+		mustache.resolve( keypath );
+	}
+
+	function resolveWithRef ( ref ) {
+		var keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
+
+		if ( keypath !== undefined ) {
+			resolve( keypath );
+		} else {
+			mustache.ref = ref;
+			runloop.addUnresolved( mustache );
+		}
+	}
+
+
+	// if this is a simple mustache, with a reference, we just need to resolve
+	// the reference to a keypath
+	if ( ref = template.r ) {
+		indexRefs = parentFragment.indexRefs;
+
+		if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
+			mustache.indexRef = ref;
+			mustache.value = index;
+			mustache.setValue( mustache.value );
+		}
+
+		else {
+			resolveWithRef( ref );
+		}
+	}
+
+	// if it's an expression, we have a bit more work to do
+	if ( options.template.x ) {
+		mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.template.x, resolve );
+	}
+
+	if ( options.template.kx ) {
+		mustache.resolver = new KeypathExpressionResolver( mustache, options.template.kx, resolveWithRef );
+	}
+
+	// Special case - inverted sections
+	if ( mustache.template.n && !mustache.hasOwnProperty( 'value' ) ) {
+		mustache.setValue( undefined );
+	}
+}

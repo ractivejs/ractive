@@ -47,7 +47,7 @@ function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
 	}
 
 	// update dependants of this keypath
-	updateAll( depsByKeypath[ keypath ] );
+	updateAll( depsByKeypath[ keypath ], ractive.get( keypath ) );
 
 	// If we're only notifying direct dependants, not dependants
 	// of downstream keypaths, then YOU SHALL NOT PASS
@@ -59,13 +59,13 @@ function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
 	cascade( ractive._depsMap[ keypath ], ractive, priority );
 }
 
-function updateAll ( deps ) {
+function updateAll ( deps, value ) {
 	var i, len;
 
 	if ( deps ) {
 		len = deps.length;
 		for ( i = 0; i < len; i += 1 ) {
-			deps[i].update();
+			deps[i].update( value );
 		}
 	}
 }

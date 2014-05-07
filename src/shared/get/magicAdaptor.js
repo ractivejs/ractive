@@ -43,7 +43,7 @@ try {
 	};
 
 	MagicWrapper = function ( ractive, value, keypath ) {
-		var keys, objKeypath, descriptor, siblings;
+		var keys, objKeypath, template, siblings;
 
 		this.magic = true;
 
@@ -58,10 +58,10 @@ try {
 		objKeypath = keys.join( '.' );
 		this.obj = objKeypath ? ractive.get( objKeypath ) : ractive.data;
 
-		descriptor = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+		template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
 
 		// Has this property already been wrapped?
-		if ( descriptor && descriptor.set && ( siblings = descriptor.set._ractiveWrappers ) ) {
+		if ( template && template.set && ( siblings = template.set._ractiveWrappers ) ) {
 
 			// Yes. Register this wrapper to this property, if it hasn't been already
 			if ( siblings.indexOf( this ) === -1 ) {
@@ -72,7 +72,7 @@ try {
 		}
 
 		// No, it hasn't been wrapped
-		createAccessors( this, value, descriptor );
+		createAccessors( this, value, template );
 	};
 
 	MagicWrapper.prototype = {
@@ -103,7 +103,7 @@ try {
 			this.obj[ this.prop ][ key ] = value;
 		},
 		teardown: function () {
-			var descriptor, set, value, wrappers, index;
+			var template, set, value, wrappers, index;
 
 			// If this method was called because the cache was being cleared as a
 			// result of a set()/update() call made by this wrapper, we return false
@@ -112,8 +112,8 @@ try {
 				return false;
 			}
 
-			descriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
-			set = descriptor && descriptor.set;
+			template = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+			set = template && template.set;
 
 			if ( !set ) {
 				// most likely, this was an array member that was spliced out
@@ -147,15 +147,15 @@ try {
 
 export default magicAdaptor;
 
-function createAccessors ( originalWrapper, value, descriptor ) {
+function createAccessors ( originalWrapper, value, template ) {
 
 	var object, property, oldGet, oldSet, get, set;
 
 	object = originalWrapper.obj;
 	property = originalWrapper.prop;
 
-	// Is this descriptor configurable?
-	if ( descriptor && !descriptor.configurable ) {
+	// Is this template configurable?
+	if ( template && !template.configurable ) {
 		// Special case - array length
 		if ( property === 'length' ) {
 			return;
@@ -166,9 +166,9 @@ function createAccessors ( originalWrapper, value, descriptor ) {
 
 
 	// Time to wrap this property
-	if ( descriptor ) {
-		oldGet = descriptor.get;
-		oldSet = descriptor.set;
+	if ( template ) {
+		oldGet = template.get;
+		oldSet = template.set;
 	}
 
 	get = oldGet || function () {

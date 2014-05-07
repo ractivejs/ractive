@@ -4,7 +4,7 @@ import UnresolvedImplicitDependency from 'shared/get/UnresolvedImplicitDependenc
 
 var options = { isTopLevel: true };
 
-export default function Ractive_prototype_get ( keypath ) {
+export default function Ractive$get ( keypath ) {
 	var value;
 
 	keypath = normaliseKeypath( keypath );

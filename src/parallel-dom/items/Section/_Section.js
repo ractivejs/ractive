@@ -1,0 +1,150 @@
+import types from 'config/types';
+import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
+import merge from 'parallel-dom/items/Section/prototype/merge';
+import setValue from 'parallel-dom/items/Section/prototype/setValue';
+import render from 'parallel-dom/items/Section/prototype/render';
+import splice from 'parallel-dom/items/Section/prototype/splice';
+import teardown from 'shared/teardown';
+import circular from 'circular';
+
+var Section, Fragment;
+
+circular.push( function () {
+	Fragment = circular.Fragment;
+});
+
+// Section
+Section = function ( options, docFrag ) {
+	this.type = types.SECTION;
+	this.inverted = !!options.template.n;
+
+	this.pElement = options.pElement;
+
+	this.fragments = [];
+	this.length = 0; // number of times this section is rendered
+
+	this.initialising = true;
+	Mustache.init( this, options );
+	this.initialising = false;
+};
+
+Section.prototype = {
+	update: Mustache.update,
+	resolve: Mustache.resolve,
+	reassign: Mustache.reassign,
+	splice: splice,
+	merge: merge,
+
+	detach: function () {
+		var i, len;
+
+		if ( this.docFrag ) {
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.docFrag.appendChild( this.fragments[i].detach() );
+			}
+
+			return this.docFrag;
+		}
+	},
+
+	teardown: function ( destroy ) {
+		this.teardownFragments( destroy );
+
+		teardown( this );
+	},
+
+	firstNode: function () {
+		if ( this.fragments[0] ) {
+			return this.fragments[0].firstNode();
+		}
+
+		return this.parentFragment.findNextNode( this );
+	},
+
+	findNextNode: function ( fragment ) {
+		if ( this.fragments[ fragment.index + 1 ] ) {
+			return this.fragments[ fragment.index + 1 ].firstNode();
+		}
+
+		return this.parentFragment.findNextNode( this );
+	},
+
+	teardownFragments: function ( destroy ) {
+		var fragment;
+
+		while ( fragment = this.fragments.shift() ) {
+			fragment.teardown( destroy );
+		}
+	},
+
+	render: render,
+
+	setValue: setValue,
+
+	createFragment: function ( options ) {
+		var fragment = new Fragment( options );
+		return fragment;
+	},
+
+	toString: function () {
+		var str, i, len;
+
+		str = '';
+
+		i = 0;
+		len = this.length;
+
+		for ( i=0; i<len; i+=1 ) {
+			str += this.fragments[i].toString();
+		}
+
+		return str;
+	},
+
+	find: function ( selector ) {
+		var i, len, queryResult;
+
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			if ( queryResult = this.fragments[i].find( selector ) ) {
+				return queryResult;
+			}
+		}
+
+		return null;
+	},
+
+	findAll: function ( selector, query ) {
+		var i, len;
+
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			this.fragments[i].findAll( selector, query );
+		}
+	},
+
+	findComponent: function ( selector ) {
+		var i, len, queryResult;
+
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			if ( queryResult = this.fragments[i].findComponent( selector ) ) {
+				return queryResult;
+			}
+		}
+
+		return null;
+	},
+
+	findAllComponents: function ( selector, query ) {
+		var i, len;
+
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			this.fragments[i].findAllComponents( selector, query );
+		}
+	}
+};
+
+export default Section;

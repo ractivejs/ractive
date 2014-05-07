@@ -2,7 +2,7 @@ import getValueFromCheckboxes from 'shared/getValueFromCheckboxes';
 import arrayContentsMatch from 'utils/arrayContentsMatch';
 import isEqual from 'utils/isEqual';
 
-export default function Ractive_prototype_updateModel ( keypath, cascade ) {
+export default function Ractive$updateModel ( keypath, cascade ) {
 	var values, deferredCheckboxes, i;
 
 	if ( typeof keypath !== 'string' ) {

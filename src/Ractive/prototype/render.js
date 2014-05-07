@@ -1,8 +1,8 @@
 import runloop from 'global/runloop';
 import css from 'global/css';
-import DomFragment from 'render/DomFragment/_DomFragment';
+import Fragment from 'parallel-dom/Fragment/_Fragment';
 
-export default function Ractive_prototype_render ( target, anchor, callback ) {
+export default function Ractive$render ( target, anchor, callback ) {
 
 	this._rendering = true;
 	runloop.start( this, callback );
@@ -21,8 +21,8 @@ export default function Ractive_prototype_render ( target, anchor, callback ) {
 	}
 
 	// Render our *root fragment*
-	this.fragment = new DomFragment({
-		descriptor: this.template,
+	this.fragment = new Fragment({
+		template: this.template,
 		root: this,
 		owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
 		pNode: target
@@ -30,9 +30,9 @@ export default function Ractive_prototype_render ( target, anchor, callback ) {
 
 	if ( target ) {
 		if ( anchor ) {
-			target.insertBefore( this.fragment.docFrag, anchor );
+			target.insertBefore( this.fragment.render(), anchor );
 		} else {
-			target.appendChild( this.fragment.docFrag );
+			target.appendChild( this.fragment.render() );
 		}
 	}
 
