@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-07 - commit 562dec53 
+	2014-05-07 - commit 8b4665b4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4348,7 +4348,7 @@
 						if ( isArray( value ) ) {
 							updateListSection( section, value, fragmentOptions );
 						} else if ( isObject( value ) ) {
-							updateContextSection( section, fragmentOptions );
+							updateListObjectSection( section, value, fragmentOptions );
 						}
 						return;
 				}
@@ -5922,7 +5922,7 @@
 				// we might have an implicit iterator or a restricted reference
 				dot = parser.matchString( '.' ) || '';
 			}
-			name = parser.matchPattern( patterns.name ) || '';
+			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 			// if this is a browser global, stop here
 			if ( !ancestor && !dot && globals.test( name ) ) {
 				return {

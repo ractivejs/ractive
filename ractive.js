@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-07 - commit 562dec53 
+	2014-05-07 - commit 8b4665b4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4348,7 +4348,7 @@
 						if ( isArray( value ) ) {
 							updateListSection( section, value, fragmentOptions );
 						} else if ( isObject( value ) ) {
-							updateContextSection( section, fragmentOptions );
+							updateListObjectSection( section, value, fragmentOptions );
 						}
 						return;
 				}
@@ -5922,7 +5922,7 @@
 				// we might have an implicit iterator or a restricted reference
 				dot = parser.matchString( '.' ) || '';
 			}
-			name = parser.matchPattern( patterns.name ) || '';
+			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 			// if this is a browser global, stop here
 			if ( !ancestor && !dot && globals.test( name ) ) {
 				return {
@@ -8507,9 +8507,10 @@
 	var parse_converters_mustache = function( types, delimiterChange, mustacheContent ) {
 
 		var delimiterChangeToken = {
-			t: types.DELIMCHANGE,
-			exclude: true
-		};
+				t: types.DELIMCHANGE,
+				exclude: true
+			},
+			handlebarsIndexRefPattern = /^@(?:index|key)$/;
 		return getMustache;
 
 		function getMustache( parser ) {
@@ -8522,7 +8523,7 @@
 		}
 
 		function getMustacheOrTriple( parser, seekTriple ) {
-			var start, startPos, mustache, delimiters, children, elseChildren, currentChildren, child;
+			var start, startPos, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
 			start = parser.pos;
 			startPos = parser.getLinePos();
 			delimiters = seekTriple ? parser.tripleDelimiters : parser.delimiters;
@@ -8557,7 +8558,6 @@
 			if ( mustache.t === types.SECTION ) {
 				children = [];
 				currentChildren = children;
-				var expectedClose;
 				if ( parser.options.strict || parser.handlebars ) {
 					switch ( mustache.n ) {
 						case types.SECTION_IF:
@@ -8600,6 +8600,11 @@
 				}
 				if ( children.length ) {
 					mustache.f = children;
+					// If this is an 'each' section, and it contains an {{@index}} or {{@key}},
+					// we need to set the index reference accordingly
+					if ( !mustache.i && mustache.n === types.SECTION_EACH && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
+						mustache.i = indexRef;
+					}
 				}
 				if ( elseChildren && elseChildren.length ) {
 					mustache.l = elseChildren;
@@ -8609,6 +8614,57 @@
 				mustache.p = startPos.toJSON();
 			}
 			return mustache;
+		}
+
+		function handlebarsIndexRef( fragment ) {
+			var i, child, indexRef;
+			i = fragment.length;
+			while ( i-- ) {
+				child = fragment[ i ];
+				// Recurse into elements (but not sections)
+				if ( child.t === types.ELEMENT && child.f && ( indexRef = handlebarsIndexRef( child.f ) ) ) {
+					return indexRef;
+				}
+				// Mustache?
+				if ( child.t === types.INTERPOLATOR || child.t === types.TRIPLE || child.t === types.SECTION ) {
+					// Normal reference?
+					if ( child.r && handlebarsIndexRefPattern.test( child.r ) ) {
+						return child.r;
+					}
+					// Expression?
+					if ( child.x && ( indexRef = indexRefContainedInExpression( child.x ) ) ) {
+						return indexRef;
+					}
+					// Reference expression?
+					if ( child.kx && ( indexRef = indexRefContainedInReferenceExpression( child.kx ) ) ) {
+						return indexRef;
+					}
+				}
+			}
+		}
+
+		function indexRefContainedInExpression( expression ) {
+			var i;
+			i = expression.r.length;
+			while ( i-- ) {
+				if ( handlebarsIndexRefPattern.test( expression.r[ i ] ) ) {
+					return expression.r[ i ];
+				}
+			}
+		}
+
+		function indexRefContainedInReferenceExpression( referenceExpression ) {
+			var i, indexRef, member;
+			i = referenceExpression.m.length;
+			while ( i-- ) {
+				member = referenceExpression.m[ i ];
+				if ( member.r && ( indexRef = indexRefContainedInExpression( member ) ) ) {
+					return indexRef;
+				}
+				if ( member.t === types.REFERENCE && handlebarsIndexRefPattern.test( member.n ) ) {
+					return member.n;
+				}
+			}
 		}
 	}( config_types, parse_converters_mustache_delimiterChange, parse_converters_mustache_content );
 
