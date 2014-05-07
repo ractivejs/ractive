@@ -625,6 +625,15 @@ var renderTests = [
 		template: '{{#each items}}<p>{{items[@index]}} - {{items[@index+1]}}</p>{{/each}}',
 		data: { items: [ 'a', 'b', 'c' ] },
 		result: '<p>a - b</p><p>b - c</p><p>c - </p>'
+	},
+	{
+		name: '{{#each items}}...{{else}}...{{/each}}',
+		handlebars: true,
+		template: '{{#each items}}<p>{{this}}</p>{{else}}<p>no items!</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>a</p><p>b</p><p>c</p>',
+		new_data: { items: null },
+		new_result: '<p>no items!</p>'
 	}
 ];
 
