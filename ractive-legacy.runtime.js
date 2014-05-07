@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-05-06 - commit 001b57b2 
+	2014-05-07 - commit 562dec53 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -18,13 +18,13 @@
 
 		var win, doc, exportedShims;
 		if ( typeof window === 'undefined' ) {
-			return;
+			exportedShims = null;
 		}
 		win = window;
 		doc = win.document;
 		exportedShims = {};
 		if ( !doc ) {
-			return;
+			exportedShims = null;
 		}
 		// Shims for older browsers
 		if ( !Date.now ) {
@@ -373,10 +373,13 @@
 
 	var config_svg = function() {
 
+		var svg;
 		if ( typeof document === 'undefined' ) {
-			return;
+			svg = false;
+		} else {
+			svg = document && document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
 		}
-		return document && document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
+		return svg;
 	}();
 
 	var config_namespaces = {
@@ -390,28 +393,35 @@
 
 	var utils_createElement = function( svg, namespaces ) {
 
+		var createElement;
 		// Test for SVG support
 		if ( !svg ) {
-			return function( type, ns ) {
+			createElement = function( type, ns ) {
 				if ( ns && ns !== namespaces.html ) {
 					throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
 				}
 				return document.createElement( type );
 			};
 		} else {
-			return function( type, ns ) {
+			createElement = function( type, ns ) {
 				if ( !ns || ns === namespaces.html ) {
 					return document.createElement( type );
 				}
 				return document.createElementNS( ns, type );
 			};
 		}
+		return createElement;
 	}( config_svg, config_namespaces );
 
-	var config_isClient = typeof document === 'object';
+	var config_isClient = function() {
+
+		var isClient = typeof document === 'object';
+		return isClient;
+	}();
 
 	var utils_defineProperty = function( isClient ) {
 
+		var defineProperty;
 		try {
 			Object.defineProperty( {}, 'test', {
 				value: 0
@@ -421,18 +431,20 @@
 					value: 0
 				} );
 			}
-			return Object.defineProperty;
+			defineProperty = Object.defineProperty;
 		} catch ( err ) {
 			// Object.defineProperty doesn't exist, or we're in IE8 where you can
 			// only use it with DOM objects (what the fuck were you smoking, MSFT?)
-			return function( obj, prop, desc ) {
+			defineProperty = function( obj, prop, desc ) {
 				obj[ prop ] = desc.value;
 			};
 		}
+		return defineProperty;
 	}( config_isClient );
 
 	var utils_defineProperties = function( createElement, defineProperty, isClient ) {
 
+		var defineProperties;
 		try {
 			try {
 				Object.defineProperties( {}, {
@@ -451,9 +463,9 @@
 					}
 				} );
 			}
-			return Object.defineProperties;
+			defineProperties = Object.defineProperties;
 		} catch ( err ) {
-			return function( obj, props ) {
+			defineProperties = function( obj, props ) {
 				var prop;
 				for ( prop in props ) {
 					if ( props.hasOwnProperty( prop ) ) {
@@ -462,6 +474,7 @@
 				}
 			};
 		}
+		return defineProperties;
 	}( utils_createElement, utils_defineProperty, config_isClient );
 
 	var utils_isNumeric = function( thing ) {
@@ -502,100 +515,105 @@
 
 	var utils_Promise = function() {
 
-		var Promise, PENDING = {},
+		var _Promise, PENDING = {},
 			FULFILLED = {},
 			REJECTED = {};
-		Promise = function( callback ) {
-			var fulfilledHandlers = [],
-				rejectedHandlers = [],
-				state = PENDING,
-				result, dispatchHandlers, makeResolver, fulfil, reject, promise;
-			makeResolver = function( newState ) {
-				return function( value ) {
-					if ( state !== PENDING ) {
+		if ( typeof Promise === 'function' ) {
+			// use native Promise
+			_Promise = Promise;
+		} else {
+			_Promise = function( callback ) {
+				var fulfilledHandlers = [],
+					rejectedHandlers = [],
+					state = PENDING,
+					result, dispatchHandlers, makeResolver, fulfil, reject, promise;
+				makeResolver = function( newState ) {
+					return function( value ) {
+						if ( state !== PENDING ) {
+							return;
+						}
+						result = value;
+						state = newState;
+						dispatchHandlers = makeDispatcher( state === FULFILLED ? fulfilledHandlers : rejectedHandlers, result );
+						// dispatch onFulfilled and onRejected handlers asynchronously
+						wait( dispatchHandlers );
+					};
+				};
+				fulfil = makeResolver( FULFILLED );
+				reject = makeResolver( REJECTED );
+				callback( fulfil, reject );
+				promise = {
+					// `then()` returns a Promise - 2.2.7
+					then: function( onFulfilled, onRejected ) {
+						var promise2 = new _Promise( function( fulfil, reject ) {
+							var processResolutionHandler = function( handler, handlers, forward ) {
+								// 2.2.1.1
+								if ( typeof handler === 'function' ) {
+									handlers.push( function( p1result ) {
+										var x;
+										try {
+											x = handler( p1result );
+											resolve( promise2, x, fulfil, reject );
+										} catch ( err ) {
+											reject( err );
+										}
+									} );
+								} else {
+									// Forward the result of promise1 to promise2, if resolution handlers
+									// are not given
+									handlers.push( forward );
+								}
+							};
+							// 2.2
+							processResolutionHandler( onFulfilled, fulfilledHandlers, fulfil );
+							processResolutionHandler( onRejected, rejectedHandlers, reject );
+							if ( state !== PENDING ) {
+								// If the promise has resolved already, dispatch the appropriate handlers asynchronously
+								wait( dispatchHandlers );
+							}
+						} );
+						return promise2;
+					}
+				};
+				promise[ 'catch' ] = function( onRejected ) {
+					return this.then( null, onRejected );
+				};
+				return promise;
+			};
+			_Promise.all = function( promises ) {
+				return new _Promise( function( fulfil, reject ) {
+					var result = [],
+						pending, i, processPromise;
+					if ( !promises.length ) {
+						fulfil( result );
 						return;
 					}
-					result = value;
-					state = newState;
-					dispatchHandlers = makeDispatcher( state === FULFILLED ? fulfilledHandlers : rejectedHandlers, result );
-					// dispatch onFulfilled and onRejected handlers asynchronously
-					wait( dispatchHandlers );
-				};
-			};
-			fulfil = makeResolver( FULFILLED );
-			reject = makeResolver( REJECTED );
-			callback( fulfil, reject );
-			promise = {
-				// `then()` returns a Promise - 2.2.7
-				then: function( onFulfilled, onRejected ) {
-					var promise2 = new Promise( function( fulfil, reject ) {
-						var processResolutionHandler = function( handler, handlers, forward ) {
-							// 2.2.1.1
-							if ( typeof handler === 'function' ) {
-								handlers.push( function( p1result ) {
-									var x;
-									try {
-										x = handler( p1result );
-										resolve( promise2, x, fulfil, reject );
-									} catch ( err ) {
-										reject( err );
-									}
-								} );
-							} else {
-								// Forward the result of promise1 to promise2, if resolution handlers
-								// are not given
-								handlers.push( forward );
+					processPromise = function( i ) {
+						promises[ i ].then( function( value ) {
+							result[ i ] = value;
+							if ( !--pending ) {
+								fulfil( result );
 							}
-						};
-						// 2.2
-						processResolutionHandler( onFulfilled, fulfilledHandlers, fulfil );
-						processResolutionHandler( onRejected, rejectedHandlers, reject );
-						if ( state !== PENDING ) {
-							// If the promise has resolved already, dispatch the appropriate handlers asynchronously
-							wait( dispatchHandlers );
-						}
-					} );
-					return promise2;
-				}
+						}, reject );
+					};
+					pending = i = promises.length;
+					while ( i-- ) {
+						processPromise( i );
+					}
+				} );
 			};
-			promise[ 'catch' ] = function( onRejected ) {
-				return this.then( null, onRejected );
+			_Promise.resolve = function( value ) {
+				return new _Promise( function( fulfil ) {
+					fulfil( value );
+				} );
 			};
-			return promise;
-		};
-		Promise.all = function( promises ) {
-			return new Promise( function( fulfil, reject ) {
-				var result = [],
-					pending, i, processPromise;
-				if ( !promises.length ) {
-					fulfil( result );
-					return;
-				}
-				processPromise = function( i ) {
-					promises[ i ].then( function( value ) {
-						result[ i ] = value;
-						if ( !--pending ) {
-							fulfil( result );
-						}
-					}, reject );
-				};
-				pending = i = promises.length;
-				while ( i-- ) {
-					processPromise( i );
-				}
-			} );
-		};
-		Promise.resolve = function( value ) {
-			return new Promise( function( fulfil ) {
-				fulfil( value );
-			} );
-		};
-		Promise.reject = function( reason ) {
-			return new Promise( function( fulfil, reject ) {
-				reject( reason );
-			} );
-		};
-		return Promise;
+			_Promise.reject = function( reason ) {
+				return new _Promise( function( fulfil, reject ) {
+					reject( reason );
+				} );
+			};
+		}
+		return _Promise;
 		// TODO use MutationObservers or something to simulate setImmediate
 		function wait( callback ) {
 			setTimeout( callback, 0 );
@@ -618,7 +636,7 @@
 				throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
 			}
 			// 2.3.2
-			if ( x instanceof Promise ) {
+			if ( x instanceof _Promise ) {
 				x.then( fulfil, reject );
 			} else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
 				try {
@@ -682,51 +700,54 @@
 
 	var utils_requestAnimationFrame = function( vendors ) {
 
+		var requestAnimationFrame;
 		// If window doesn't exist, we don't need requestAnimationFrame
 		if ( typeof window === 'undefined' ) {
-			return;
+			requestAnimationFrame = null;
+		} else {
+			// https://gist.github.com/paulirish/1579671
+			( function( vendors, lastTime, window ) {
+				var x, setTimeout;
+				if ( window.requestAnimationFrame ) {
+					return;
+				}
+				for ( x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
+					window.requestAnimationFrame = window[ vendors[ x ] + 'RequestAnimationFrame' ];
+				}
+				if ( !window.requestAnimationFrame ) {
+					setTimeout = window.setTimeout;
+					window.requestAnimationFrame = function( callback ) {
+						var currTime, timeToCall, id;
+						currTime = Date.now();
+						timeToCall = Math.max( 0, 16 - ( currTime - lastTime ) );
+						id = setTimeout( function() {
+							callback( currTime + timeToCall );
+						}, timeToCall );
+						lastTime = currTime + timeToCall;
+						return id;
+					};
+				}
+			}( vendors, 0, window ) );
+			requestAnimationFrame = window.requestAnimationFrame;
 		}
-		// https://gist.github.com/paulirish/1579671
-		( function( vendors, lastTime, window ) {
-			var x, setTimeout;
-			if ( window.requestAnimationFrame ) {
-				return;
-			}
-			for ( x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
-				window.requestAnimationFrame = window[ vendors[ x ] + 'RequestAnimationFrame' ];
-			}
-			if ( !window.requestAnimationFrame ) {
-				setTimeout = window.setTimeout;
-				window.requestAnimationFrame = function( callback ) {
-					var currTime, timeToCall, id;
-					currTime = Date.now();
-					timeToCall = Math.max( 0, 16 - ( currTime - lastTime ) );
-					id = setTimeout( function() {
-						callback( currTime + timeToCall );
-					}, timeToCall );
-					lastTime = currTime + timeToCall;
-					return id;
-				};
-			}
-		}( vendors, 0, window ) );
-		return window.requestAnimationFrame;
+		return requestAnimationFrame;
 	}( config_vendors );
 
 	var utils_getTime = function() {
 
+		var getTime;
 		if ( typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function' ) {
-			return function() {
+			getTime = function() {
 				return window.performance.now();
 			};
 		} else {
-			return function() {
+			getTime = function() {
 				return Date.now();
 			};
 		}
+		return getTime;
 	}();
 
-	// This module provides a place to store a) circular dependencies and
-	// b) the callback functions that require those circular dependencies
 	var circular = [];
 
 	var utils_removeFromArray = function( array, member ) {
@@ -738,64 +759,66 @@
 
 	var global_css = function( circular, isClient, removeFromArray ) {
 
-		var runloop, styleElement, head, styleSheet, inDom, prefix = '/* Ractive.js component styles */\n',
+		var css, runloop, styleElement, head, styleSheet, inDom, prefix = '/* Ractive.js component styles */\n',
 			componentsInPage = {},
 			styles = [];
 		if ( !isClient ) {
-			return;
+			css = null;
+		} else {
+			circular.push( function() {
+				runloop = circular.runloop;
+			} );
+			styleElement = document.createElement( 'style' );
+			styleElement.type = 'text/css';
+			head = document.getElementsByTagName( 'head' )[ 0 ];
+			inDom = false;
+			// Internet Exploder won't let you use styleSheet.innerHTML - we have to
+			// use styleSheet.cssText instead
+			styleSheet = styleElement.styleSheet;
+			css = {
+				add: function( Component ) {
+					if ( !Component.css ) {
+						return;
+					}
+					if ( !componentsInPage[ Component._guid ] ) {
+						// we create this counter so that we can in/decrement it as
+						// instances are added and removed. When all components are
+						// removed, the style is too
+						componentsInPage[ Component._guid ] = 0;
+						styles.push( Component.css );
+						runloop.scheduleCssUpdate();
+					}
+					componentsInPage[ Component._guid ] += 1;
+				},
+				remove: function( Component ) {
+					if ( !Component.css ) {
+						return;
+					}
+					componentsInPage[ Component._guid ] -= 1;
+					if ( !componentsInPage[ Component._guid ] ) {
+						removeFromArray( styles, Component.css );
+						runloop.scheduleCssUpdate();
+					}
+				},
+				update: function() {
+					var css;
+					if ( styles.length ) {
+						css = prefix + styles.join( ' ' );
+						if ( styleSheet ) {
+							styleSheet.cssText = css;
+						} else {
+							styleElement.innerHTML = css;
+						}
+						if ( !inDom ) {
+							head.appendChild( styleElement );
+						}
+					} else if ( inDom ) {
+						head.removeChild( styleElement );
+					}
+				}
+			};
 		}
-		circular.push( function() {
-			runloop = circular.runloop;
-		} );
-		styleElement = document.createElement( 'style' );
-		styleElement.type = 'text/css';
-		head = document.getElementsByTagName( 'head' )[ 0 ];
-		inDom = false;
-		// Internet Exploder won't let you use styleSheet.innerHTML - we have to
-		// use styleSheet.cssText instead
-		styleSheet = styleElement.styleSheet;
-		return {
-			add: function( Component ) {
-				if ( !Component.css ) {
-					return;
-				}
-				if ( !componentsInPage[ Component._guid ] ) {
-					// we create this counter so that we can in/decrement it as
-					// instances are added and removed. When all components are
-					// removed, the style is too
-					componentsInPage[ Component._guid ] = 0;
-					styles.push( Component.css );
-					runloop.scheduleCssUpdate();
-				}
-				componentsInPage[ Component._guid ] += 1;
-			},
-			remove: function( Component ) {
-				if ( !Component.css ) {
-					return;
-				}
-				componentsInPage[ Component._guid ] -= 1;
-				if ( !componentsInPage[ Component._guid ] ) {
-					removeFromArray( styles, Component.css );
-					runloop.scheduleCssUpdate();
-				}
-			},
-			update: function() {
-				var css;
-				if ( styles.length ) {
-					css = prefix + styles.join( ' ' );
-					if ( styleSheet ) {
-						styleSheet.cssText = css;
-					} else {
-						styleElement.innerHTML = css;
-					}
-					if ( !inDom ) {
-						head.appendChild( styleElement );
-					}
-				} else if ( inDom ) {
-					head.removeChild( styleElement );
-				}
-			}
-		};
+		return css;
 	}( circular, config_isClient, utils_removeFromArray );
 
 	var shared_getValueFromCheckboxes = function( ractive, keypath ) {
@@ -1853,113 +1876,114 @@
 			Object.defineProperty( {}, 'test', {
 				value: 0
 			} );
-		} catch ( err ) {
-			return false;
-		}
-		magicAdaptor = {
-			filter: function( object, keypath, ractive ) {
-				var keys, key, parentKeypath, parentWrapper, parentValue;
-				if ( !keypath ) {
-					return false;
+			magicAdaptor = {
+				filter: function( object, keypath, ractive ) {
+					var keys, key, parentKeypath, parentWrapper, parentValue;
+					if ( !keypath ) {
+						return false;
+					}
+					keys = keypath.split( '.' );
+					key = keys.pop();
+					parentKeypath = keys.join( '.' );
+					// If the parent value is a wrapper, other than a magic wrapper,
+					// we shouldn't wrap this property
+					if ( ( parentWrapper = ractive._wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
+						return false;
+					}
+					parentValue = ractive.get( parentKeypath );
+					// if parentValue is an array that doesn't include this member,
+					// we should return false otherwise lengths will get messed up
+					if ( isArray( parentValue ) && /^[0-9]+$/.test( key ) ) {
+						return false;
+					}
+					return parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' );
+				},
+				wrap: function( ractive, property, keypath ) {
+					return new MagicWrapper( ractive, property, keypath );
 				}
+			};
+			MagicWrapper = function( ractive, value, keypath ) {
+				var keys, objKeypath, descriptor, siblings;
+				this.magic = true;
+				this.ractive = ractive;
+				this.keypath = keypath;
+				this.value = value;
 				keys = keypath.split( '.' );
-				key = keys.pop();
-				parentKeypath = keys.join( '.' );
-				// If the parent value is a wrapper, other than a magic wrapper,
-				// we shouldn't wrap this property
-				if ( ( parentWrapper = ractive._wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
-					return false;
-				}
-				parentValue = ractive.get( parentKeypath );
-				// if parentValue is an array that doesn't include this member,
-				// we should return false otherwise lengths will get messed up
-				if ( isArray( parentValue ) && /^[0-9]+$/.test( key ) ) {
-					return false;
-				}
-				return parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' );
-			},
-			wrap: function( ractive, property, keypath ) {
-				return new MagicWrapper( ractive, property, keypath );
-			}
-		};
-		MagicWrapper = function( ractive, value, keypath ) {
-			var keys, objKeypath, descriptor, siblings;
-			this.magic = true;
-			this.ractive = ractive;
-			this.keypath = keypath;
-			this.value = value;
-			keys = keypath.split( '.' );
-			this.prop = keys.pop();
-			objKeypath = keys.join( '.' );
-			this.obj = objKeypath ? ractive.get( objKeypath ) : ractive.data;
-			descriptor = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
-			// Has this property already been wrapped?
-			if ( descriptor && descriptor.set && ( siblings = descriptor.set._ractiveWrappers ) ) {
-				// Yes. Register this wrapper to this property, if it hasn't been already
-				if ( siblings.indexOf( this ) === -1 ) {
-					siblings.push( this );
-				}
-				return;
-			}
-			// No, it hasn't been wrapped
-			createAccessors( this, value, descriptor );
-		};
-		MagicWrapper.prototype = {
-			get: function() {
-				return this.value;
-			},
-			reset: function( value ) {
-				if ( this.updating ) {
+				this.prop = keys.pop();
+				objKeypath = keys.join( '.' );
+				this.obj = objKeypath ? ractive.get( objKeypath ) : ractive.data;
+				descriptor = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+				// Has this property already been wrapped?
+				if ( descriptor && descriptor.set && ( siblings = descriptor.set._ractiveWrappers ) ) {
+					// Yes. Register this wrapper to this property, if it hasn't been already
+					if ( siblings.indexOf( this ) === -1 ) {
+						siblings.push( this );
+					}
 					return;
 				}
-				this.updating = true;
-				this.obj[ this.prop ] = value;
-				// trigger set() accessor
-				clearCache( this.ractive, this.keypath );
-				this.updating = false;
-			},
-			set: function( key, value ) {
-				if ( this.updating ) {
-					return;
-				}
-				if ( !this.obj[ this.prop ] ) {
+				// No, it hasn't been wrapped
+				createAccessors( this, value, descriptor );
+			};
+			MagicWrapper.prototype = {
+				get: function() {
+					return this.value;
+				},
+				reset: function( value ) {
+					if ( this.updating ) {
+						return;
+					}
 					this.updating = true;
-					this.obj[ this.prop ] = createBranch( key );
-					this.updating = false;
-				}
-				this.obj[ this.prop ][ key ] = value;
-			},
-			teardown: function() {
-				var descriptor, set, value, wrappers, index;
-				// If this method was called because the cache was being cleared as a
-				// result of a set()/update() call made by this wrapper, we return false
-				// so that it doesn't get torn down
-				if ( this.updating ) {
-					return false;
-				}
-				descriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
-				set = descriptor && descriptor.set;
-				if ( !set ) {
-					// most likely, this was an array member that was spliced out
-					return;
-				}
-				wrappers = set._ractiveWrappers;
-				index = wrappers.indexOf( this );
-				if ( index !== -1 ) {
-					wrappers.splice( index, 1 );
-				}
-				// Last one out, turn off the lights
-				if ( !wrappers.length ) {
-					value = this.obj[ this.prop ];
-					Object.defineProperty( this.obj, this.prop, this.originalDescriptor || {
-						writable: true,
-						enumerable: true,
-						configurable: true
-					} );
 					this.obj[ this.prop ] = value;
+					// trigger set() accessor
+					clearCache( this.ractive, this.keypath );
+					this.updating = false;
+				},
+				set: function( key, value ) {
+					if ( this.updating ) {
+						return;
+					}
+					if ( !this.obj[ this.prop ] ) {
+						this.updating = true;
+						this.obj[ this.prop ] = createBranch( key );
+						this.updating = false;
+					}
+					this.obj[ this.prop ][ key ] = value;
+				},
+				teardown: function() {
+					var descriptor, set, value, wrappers, index;
+					// If this method was called because the cache was being cleared as a
+					// result of a set()/update() call made by this wrapper, we return false
+					// so that it doesn't get torn down
+					if ( this.updating ) {
+						return false;
+					}
+					descriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+					set = descriptor && descriptor.set;
+					if ( !set ) {
+						// most likely, this was an array member that was spliced out
+						return;
+					}
+					wrappers = set._ractiveWrappers;
+					index = wrappers.indexOf( this );
+					if ( index !== -1 ) {
+						wrappers.splice( index, 1 );
+					}
+					// Last one out, turn off the lights
+					if ( !wrappers.length ) {
+						value = this.obj[ this.prop ];
+						Object.defineProperty( this.obj, this.prop, this.originalDescriptor || {
+							writable: true,
+							enumerable: true,
+							configurable: true
+						} );
+						this.obj[ this.prop ] = value;
+					}
 				}
-			}
-		};
+			};
+		} catch ( err ) {
+			magicAdaptor = false;
+		}
+		return magicAdaptor;
 
 		function createAccessors( originalWrapper, value, descriptor ) {
 			var object, property, oldGet, oldSet, get, set;
@@ -2015,41 +2039,39 @@
 				configurable: true
 			} );
 		}
-		return magicAdaptor;
 	}( global_runloop, utils_createBranch, utils_isArray, shared_clearCache, shared_notifyDependants );
 
 	var shared_get_magicArrayAdaptor = function( magicAdaptor, arrayAdaptor ) {
 
-		if ( !magicAdaptor ) {
-			return false;
-		}
 		var magicArrayAdaptor, MagicArrayWrapper;
-		magicArrayAdaptor = {
-			filter: function( object, keypath, ractive ) {
-				return magicAdaptor.filter( object, keypath, ractive ) && arrayAdaptor.filter( object );
-			},
-			wrap: function( ractive, array, keypath ) {
-				return new MagicArrayWrapper( ractive, array, keypath );
-			}
-		};
-		MagicArrayWrapper = function( ractive, array, keypath ) {
-			this.value = array;
-			this.magic = true;
-			this.magicWrapper = magicAdaptor.wrap( ractive, array, keypath );
-			this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
-		};
-		MagicArrayWrapper.prototype = {
-			get: function() {
-				return this.value;
-			},
-			teardown: function() {
-				this.arrayWrapper.teardown();
-				this.magicWrapper.teardown();
-			},
-			reset: function( value ) {
-				return this.magicWrapper.reset( value );
-			}
-		};
+		if ( magicAdaptor ) {
+			magicArrayAdaptor = {
+				filter: function( object, keypath, ractive ) {
+					return magicAdaptor.filter( object, keypath, ractive ) && arrayAdaptor.filter( object );
+				},
+				wrap: function( ractive, array, keypath ) {
+					return new MagicArrayWrapper( ractive, array, keypath );
+				}
+			};
+			MagicArrayWrapper = function( ractive, array, keypath ) {
+				this.value = array;
+				this.magic = true;
+				this.magicWrapper = magicAdaptor.wrap( ractive, array, keypath );
+				this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
+			};
+			MagicArrayWrapper.prototype = {
+				get: function() {
+					return this.value;
+				},
+				teardown: function() {
+					this.arrayWrapper.teardown();
+					this.magicWrapper.teardown();
+				},
+				reset: function( value ) {
+					return this.magicWrapper.reset( value );
+				}
+			};
+		}
 		return magicArrayAdaptor;
 	}( shared_get_magicAdaptor, shared_get_arrayAdaptor__arrayAdaptor );
 
@@ -2399,15 +2421,18 @@
 		}
 	}( circular, utils_hasOwnProperty, utils_clone, shared_adaptIfNecessary, shared_get_getFromParent, shared_get_FAILED_LOOKUP );
 
-	/* global console */
 	var utils_warn = function() {
 
+		/* global console */
+		var warn;
 		if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
-			return function() {
+			warn = function() {
 				console.warn.apply( console, arguments );
 			};
+		} else {
+			warn = function() {};
 		}
-		return function() {};
+		return warn;
 	}();
 
 	var utils_isObject = function() {
@@ -2779,46 +2804,52 @@
 
 	var utils_matches = function( isClient, vendors, createElement ) {
 
-		var div, methodNames, unprefixed, prefixed, i, j, makeFunction;
+		var matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 		if ( !isClient ) {
-			return;
-		}
-		div = createElement( 'div' );
-		methodNames = [
-			'matches',
-			'matchesSelector'
-		];
-		makeFunction = function( methodName ) {
-			return function( node, selector ) {
-				return node[ methodName ]( selector );
+			matches = null;
+		} else {
+			div = createElement( 'div' );
+			methodNames = [
+				'matches',
+				'matchesSelector'
+			];
+			makeFunction = function( methodName ) {
+				return function( node, selector ) {
+					return node[ methodName ]( selector );
+				};
 			};
-		};
-		i = methodNames.length;
-		while ( i-- ) {
-			unprefixed = methodNames[ i ];
-			if ( div[ unprefixed ] ) {
-				return makeFunction( unprefixed );
-			}
-			j = vendors.length;
-			while ( j-- ) {
-				prefixed = vendors[ i ] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
-				if ( div[ prefixed ] ) {
-					return makeFunction( prefixed );
+			i = methodNames.length;
+			while ( i-- && !matches ) {
+				unprefixed = methodNames[ i ];
+				if ( div[ unprefixed ] ) {
+					matches = makeFunction( unprefixed );
+				} else {
+					j = vendors.length;
+					while ( j-- ) {
+						prefixed = vendors[ i ] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
+						if ( div[ prefixed ] ) {
+							matches = makeFunction( prefixed );
+							break;
+						}
+					}
 				}
+			}
+			// IE8...
+			if ( !matches ) {
+				matches = function( node, selector ) {
+					var nodes, i;
+					nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
+					i = nodes.length;
+					while ( i-- ) {
+						if ( nodes[ i ] === node ) {
+							return true;
+						}
+					}
+					return false;
+				};
 			}
 		}
-		// IE8...
-		return function( node, selector ) {
-			var nodes, i;
-			nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
-			i = nodes.length;
-			while ( i-- ) {
-				if ( nodes[ i ] === node ) {
-					return true;
-				}
-			}
-			return false;
-		};
+		return matches;
 	}( config_isClient, config_vendors, utils_createElement );
 
 	var Ractive_prototype_shared_makeQuery_test = function( matches ) {
@@ -4426,7 +4457,7 @@
 		};
 	}( utils_isEqual, shared_get__get );
 
-	var render_shared_Mustache_resolve = function( types, registerDependant, unregisterDependant ) {
+	var render_shared_Mustache_resolve = function( registerDependant, unregisterDependant ) {
 
 		return function resolveMustache( keypath ) {
 			var reassignTarget;
@@ -4455,7 +4486,7 @@
 			registerDependant( this );
 			this.update();
 		};
-	}( config_types, shared_registerDependant, shared_unregisterDependant );
+	}( shared_registerDependant, shared_unregisterDependant );
 
 	var render_shared_Mustache_reassign = function( getNewKeypath ) {
 
@@ -6586,7 +6617,7 @@
 		}
 	}( config_types, utils_isObject );
 
-	var parse_Parser__Parser = function( circular, types, create, hasOwnProperty, getConditional, flattenExpression ) {
+	var parse_Parser__Parser = function( circular, create, hasOwnProperty, getConditional, flattenExpression ) {
 
 		var Parser, ParseError, leadingWhitespace = /^\s+/;
 		ParseError = function( message ) {
@@ -6708,7 +6739,7 @@
 		};
 		circular.Parser = Parser;
 		return Parser;
-	}( circular, config_types, utils_create, utils_hasOwnProperty, parse_Parser_expressions_conditional, parse_Parser_utils_flattenExpression );
+	}( circular, utils_create, utils_hasOwnProperty, parse_Parser_expressions_conditional, parse_Parser_utils_flattenExpression );
 
 	var utils_parseJSON = function( Parser, getStringLiteral, getKey ) {
 
@@ -6958,7 +6989,7 @@
 		return StringText;
 	}( config_types );
 
-	var render_StringFragment_prototype_getValue = function( types, warn, parseJSON ) {
+	var render_StringFragment_prototype_getValue = function( types, parseJSON ) {
 
 		var empty = {};
 		return function StringFragment$getValue( options ) {
@@ -7015,7 +7046,7 @@
 				return '${' + placeholderId + '}';
 			} ).join( '' );
 		}
-	}( config_types, utils_warn, utils_parseJSON );
+	}( config_types, utils_parseJSON );
 
 	var render_StringFragment__StringFragment = function( types, parseJSON, Fragment, Interpolator, Section, Text, getValue, circular ) {
 
@@ -7258,7 +7289,7 @@
 		};
 	}( render_DomFragment_Element_initialise_createElementAttribute );
 
-	var render_DomFragment_Element_initialise_appendElementChildren = function( circular, warn, namespaces, StringFragment ) {
+	var render_DomFragment_Element_initialise_appendElementChildren = function( circular, warn, StringFragment ) {
 
 		var DomFragment, updateCss, updateScript;
 		circular.push( function() {
@@ -7312,7 +7343,7 @@
 				node.appendChild( element.fragment.docFrag );
 			}
 		};
-	}( circular, utils_warn, config_namespaces, render_StringFragment__StringFragment );
+	}( circular, utils_warn, render_StringFragment__StringFragment );
 
 	var render_DomFragment_Element_initialise_decorate_Decorator = function( warn, StringFragment ) {
 
@@ -7593,66 +7624,70 @@
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix = function( isClient, vendors, createElement ) {
 
-		var prefixCache, testStyle;
+		var prefix, prefixCache, testStyle;
 		if ( !isClient ) {
-			return;
-		}
-		prefixCache = {};
-		testStyle = createElement( 'div' ).style;
-		return function( prop ) {
-			var i, vendor, capped;
-			if ( !prefixCache[ prop ] ) {
-				if ( testStyle[ prop ] !== undefined ) {
-					prefixCache[ prop ] = prop;
-				} else {
-					// test vendors...
-					capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
-					i = vendors.length;
-					while ( i-- ) {
-						vendor = vendors[ i ];
-						if ( testStyle[ vendor + capped ] !== undefined ) {
-							prefixCache[ prop ] = vendor + capped;
-							break;
+			prefix = null;
+		} else {
+			prefixCache = {};
+			testStyle = createElement( 'div' ).style;
+			prefix = function( prop ) {
+				var i, vendor, capped;
+				if ( !prefixCache[ prop ] ) {
+					if ( testStyle[ prop ] !== undefined ) {
+						prefixCache[ prop ] = prop;
+					} else {
+						// test vendors...
+						capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
+						i = vendors.length;
+						while ( i-- ) {
+							vendor = vendors[ i ];
+							if ( testStyle[ vendor + capped ] !== undefined ) {
+								prefixCache[ prop ] = vendor + capped;
+								break;
+							}
 						}
 					}
 				}
-			}
-			return prefixCache[ prop ];
-		};
+				return prefixCache[ prop ];
+			};
+		}
+		return prefix;
 	}( config_isClient, config_vendors, utils_createElement );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_getStyle = function( legacy, isClient, isArray, prefix ) {
 
-		var getComputedStyle;
+		var getStyle, getComputedStyle;
 		if ( !isClient ) {
-			return;
+			getStyle = null;
+		} else {
+			getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+			getStyle = function( props ) {
+				var computedStyle, styles, i, prop, value;
+				computedStyle = window.getComputedStyle( this.node );
+				if ( typeof props === 'string' ) {
+					value = computedStyle[ prefix( props ) ];
+					if ( value === '0px' ) {
+						value = 0;
+					}
+					return value;
+				}
+				if ( !isArray( props ) ) {
+					throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
+				}
+				styles = {};
+				i = props.length;
+				while ( i-- ) {
+					prop = props[ i ];
+					value = computedStyle[ prefix( prop ) ];
+					if ( value === '0px' ) {
+						value = 0;
+					}
+					styles[ prop ] = value;
+				}
+				return styles;
+			};
 		}
-		getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
-		return function( props ) {
-			var computedStyle, styles, i, prop, value;
-			computedStyle = window.getComputedStyle( this.node );
-			if ( typeof props === 'string' ) {
-				value = computedStyle[ prefix( props ) ];
-				if ( value === '0px' ) {
-					value = 0;
-				}
-				return value;
-			}
-			if ( !isArray( props ) ) {
-				throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
-			}
-			styles = {};
-			i = props.length;
-			while ( i-- ) {
-				prop = props[ i ];
-				value = computedStyle[ prefix( prop ) ];
-				if ( value === '0px' ) {
-					value = 0;
-				}
-				styles[ prop ] = value;
-			}
-			return styles;
-		};
+		return getStyle;
 	}( legacy, config_isClient, utils_isArray, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_setStyle = function( prefix ) {
@@ -7769,215 +7804,219 @@
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions = function( isClient, warn, createElement, camelCase, interpolate, Ticker, prefix, unprefix, hyphenate ) {
 
-		var testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {},
+		var createTransitions, testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {},
 			cannotUseCssTransitions = {};
 		if ( !isClient ) {
-			return;
-		}
-		testStyle = createElement( 'div' ).style;
-		// determine some facts about our environment
-		( function() {
-			if ( testStyle.transition !== undefined ) {
-				TRANSITION = 'transition';
-				TRANSITIONEND = 'transitionend';
-				CSS_TRANSITIONS_ENABLED = true;
-			} else if ( testStyle.webkitTransition !== undefined ) {
-				TRANSITION = 'webkitTransition';
-				TRANSITIONEND = 'webkitTransitionEnd';
-				CSS_TRANSITIONS_ENABLED = true;
-			} else {
-				CSS_TRANSITIONS_ENABLED = false;
+			createTransitions = null;
+		} else {
+			testStyle = createElement( 'div' ).style;
+			// determine some facts about our environment
+			( function() {
+				if ( testStyle.transition !== undefined ) {
+					TRANSITION = 'transition';
+					TRANSITIONEND = 'transitionend';
+					CSS_TRANSITIONS_ENABLED = true;
+				} else if ( testStyle.webkitTransition !== undefined ) {
+					TRANSITION = 'webkitTransition';
+					TRANSITIONEND = 'webkitTransitionEnd';
+					CSS_TRANSITIONS_ENABLED = true;
+				} else {
+					CSS_TRANSITIONS_ENABLED = false;
+				}
+			}() );
+			if ( TRANSITION ) {
+				TRANSITION_DURATION = TRANSITION + 'Duration';
+				TRANSITION_PROPERTY = TRANSITION + 'Property';
+				TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
 			}
-		}() );
-		if ( TRANSITION ) {
-			TRANSITION_DURATION = TRANSITION + 'Duration';
-			TRANSITION_PROPERTY = TRANSITION + 'Property';
-			TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
-		}
-		return function( t, to, options, changedProperties, transitionEndHandler, resolve ) {
-			// Wait a beat (otherwise the target styles will be applied immediately)
-			// TODO use a fastdom-style mechanism?
-			setTimeout( function() {
-				var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete;
-				checkComplete = function() {
-					if ( jsTransitionsComplete && cssTransitionsComplete ) {
-						resolve();
-					}
-				};
-				// this is used to keep track of which elements can use CSS to animate
-				// which properties
-				hashPrefix = t.node.namespaceURI + t.node.tagName;
-				t.node.style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
-				t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
-				t.node.style[ TRANSITION_DURATION ] = options.duration / 1000 + 's';
-				transitionEndHandler = function( event ) {
-					var index;
-					index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
-					if ( index !== -1 ) {
-						changedProperties.splice( index, 1 );
-					}
-					if ( changedProperties.length ) {
-						// still transitioning...
-						return;
-					}
-					t.root.fire( t.name + ':end' );
-					t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
-					cssTransitionsComplete = true;
-					checkComplete();
-				};
-				t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
+			createTransitions = function( t, to, options, changedProperties, transitionEndHandler, resolve ) {
+				// Wait a beat (otherwise the target styles will be applied immediately)
+				// TODO use a fastdom-style mechanism?
 				setTimeout( function() {
-					var i = changedProperties.length,
-						hash, originalValue, index, propertiesToTransitionInJs = [],
-						prop;
-					while ( i-- ) {
-						prop = changedProperties[ i ];
-						hash = hashPrefix + prop;
-						if ( canUseCssTransitions[ hash ] ) {
-							// We can definitely use CSS transitions, because
-							// we've already tried it and it worked
-							t.node.style[ prefix( prop ) ] = to[ prop ];
-						} else {
-							// one way or another, we'll need this
-							originalValue = t.getStyle( prop );
+					var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete;
+					checkComplete = function() {
+						if ( jsTransitionsComplete && cssTransitionsComplete ) {
+							resolve();
 						}
-						if ( canUseCssTransitions[ hash ] === undefined ) {
-							// We're not yet sure if we can use CSS transitions -
-							// let's find out
-							t.node.style[ prefix( prop ) ] = to[ prop ];
-							// if this property is transitionable in this browser,
-							// the current style will be different from the target style
-							canUseCssTransitions[ hash ] = t.getStyle( prop ) != to[ prop ];
-							cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
+					};
+					// this is used to keep track of which elements can use CSS to animate
+					// which properties
+					hashPrefix = t.node.namespaceURI + t.node.tagName;
+					t.node.style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
+					t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
+					t.node.style[ TRANSITION_DURATION ] = options.duration / 1000 + 's';
+					transitionEndHandler = function( event ) {
+						var index;
+						index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
+						if ( index !== -1 ) {
+							changedProperties.splice( index, 1 );
 						}
-						if ( cannotUseCssTransitions[ hash ] ) {
-							// we need to fall back to timer-based stuff
-							// need to remove this from changedProperties, otherwise transitionEndHandler
-							// will get confused
-							index = changedProperties.indexOf( prop );
-							if ( index === -1 ) {
-								warn( 'Something very strange happened with transitions. If you see this message, please let @RactiveJS know. Thanks!' );
-							} else {
-								changedProperties.splice( index, 1 );
-							}
-							// TODO Determine whether this property is animatable at all
-							// for now assume it is. First, we need to set the value to what it was...
-							t.node.style[ prefix( prop ) ] = originalValue;
-							// ...then kick off a timer-based transition
-							propertiesToTransitionInJs.push( {
-								name: prefix( prop ),
-								interpolator: interpolate( originalValue, to[ prop ] )
-							} );
+						if ( changedProperties.length ) {
+							// still transitioning...
+							return;
 						}
-					}
-					// javascript transitions
-					if ( propertiesToTransitionInJs.length ) {
-						new Ticker( {
-							root: t.root,
-							duration: options.duration,
-							easing: camelCase( options.easing ),
-							step: function( pos ) {
-								var prop, i;
-								i = propertiesToTransitionInJs.length;
-								while ( i-- ) {
-									prop = propertiesToTransitionInJs[ i ];
-									t.node.style[ prop.name ] = prop.interpolator( pos );
-								}
-							},
-							complete: function() {
-								jsTransitionsComplete = true;
-								checkComplete();
-							}
-						} );
-					} else {
-						jsTransitionsComplete = true;
-					}
-					if ( !changedProperties.length ) {
-						// We need to cancel the transitionEndHandler, and deal with
-						// the fact that it will never fire
+						t.root.fire( t.name + ':end' );
 						t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 						cssTransitionsComplete = true;
 						checkComplete();
-					}
-				}, 0 );
-			}, options.delay || 0 );
-		};
+					};
+					t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
+					setTimeout( function() {
+						var i = changedProperties.length,
+							hash, originalValue, index, propertiesToTransitionInJs = [],
+							prop;
+						while ( i-- ) {
+							prop = changedProperties[ i ];
+							hash = hashPrefix + prop;
+							if ( canUseCssTransitions[ hash ] ) {
+								// We can definitely use CSS transitions, because
+								// we've already tried it and it worked
+								t.node.style[ prefix( prop ) ] = to[ prop ];
+							} else {
+								// one way or another, we'll need this
+								originalValue = t.getStyle( prop );
+							}
+							if ( canUseCssTransitions[ hash ] === undefined ) {
+								// We're not yet sure if we can use CSS transitions -
+								// let's find out
+								t.node.style[ prefix( prop ) ] = to[ prop ];
+								// if this property is transitionable in this browser,
+								// the current style will be different from the target style
+								canUseCssTransitions[ hash ] = t.getStyle( prop ) != to[ prop ];
+								cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
+							}
+							if ( cannotUseCssTransitions[ hash ] ) {
+								// we need to fall back to timer-based stuff
+								// need to remove this from changedProperties, otherwise transitionEndHandler
+								// will get confused
+								index = changedProperties.indexOf( prop );
+								if ( index === -1 ) {
+									warn( 'Something very strange happened with transitions. If you see this message, please let @RactiveJS know. Thanks!' );
+								} else {
+									changedProperties.splice( index, 1 );
+								}
+								// TODO Determine whether this property is animatable at all
+								// for now assume it is. First, we need to set the value to what it was...
+								t.node.style[ prefix( prop ) ] = originalValue;
+								// ...then kick off a timer-based transition
+								propertiesToTransitionInJs.push( {
+									name: prefix( prop ),
+									interpolator: interpolate( originalValue, to[ prop ] )
+								} );
+							}
+						}
+						// javascript transitions
+						if ( propertiesToTransitionInJs.length ) {
+							new Ticker( {
+								root: t.root,
+								duration: options.duration,
+								easing: camelCase( options.easing ),
+								step: function( pos ) {
+									var prop, i;
+									i = propertiesToTransitionInJs.length;
+									while ( i-- ) {
+										prop = propertiesToTransitionInJs[ i ];
+										t.node.style[ prop.name ] = prop.interpolator( pos );
+									}
+								},
+								complete: function() {
+									jsTransitionsComplete = true;
+									checkComplete();
+								}
+							} );
+						} else {
+							jsTransitionsComplete = true;
+						}
+						if ( !changedProperties.length ) {
+							// We need to cancel the transitionEndHandler, and deal with
+							// the fact that it will never fire
+							t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
+							cssTransitionsComplete = true;
+							checkComplete();
+						}
+					}, 0 );
+				}, options.delay || 0 );
+			};
+		}
+		return createTransitions;
 	}( config_isClient, utils_warn, utils_createElement, utils_camelCase, shared_interpolate, shared_Ticker, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_unprefix, render_DomFragment_Element_shared_executeTransition_Transition_helpers_hyphenate );
 
 	var render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle__animateStyle = function( legacy, isClient, warn, Promise, prefix, createTransitions ) {
 
-		var getComputedStyle;
+		var animateStyle, getComputedStyle;
 		if ( !isClient ) {
-			return;
+			animateStyle = null;
+		} else {
+			getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+			animateStyle = function( style, value, options, complete ) {
+				var t = this,
+					to;
+				if ( typeof style === 'string' ) {
+					to = {};
+					to[ style ] = value;
+				} else {
+					to = style;
+					// shuffle arguments
+					complete = options;
+					options = value;
+				}
+				// As of 0.3.9, transition authors should supply an `option` object with
+				// `duration` and `easing` properties (and optional `delay`), plus a
+				// callback function that gets called after the animation completes
+				// TODO remove this check in a future version
+				if ( !options ) {
+					warn( 'The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
+					options = t;
+					complete = t.complete;
+				}
+				var promise = new Promise( function( resolve ) {
+					var propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+					// Edge case - if duration is zero, set style synchronously and complete
+					if ( !options.duration ) {
+						t.setStyle( to );
+						resolve();
+						return;
+					}
+					// Get a list of the properties we're animating
+					propertyNames = Object.keys( to );
+					changedProperties = [];
+					// Store the current styles
+					computedStyle = window.getComputedStyle( t.node );
+					from = {};
+					i = propertyNames.length;
+					while ( i-- ) {
+						prop = propertyNames[ i ];
+						current = computedStyle[ prefix( prop ) ];
+						if ( current === '0px' ) {
+							current = 0;
+						}
+						// we need to know if we're actually changing anything
+						if ( current != to[ prop ] ) {
+							// use != instead of !==, so we can compare strings with numbers
+							changedProperties.push( prop );
+							// make the computed style explicit, so we can animate where
+							// e.g. height='auto'
+							t.node.style[ prefix( prop ) ] = current;
+						}
+					}
+					// If we're not actually changing anything, the transitionend event
+					// will never fire! So we complete early
+					if ( !changedProperties.length ) {
+						resolve();
+						return;
+					}
+					createTransitions( t, to, options, changedProperties, transitionEndHandler, resolve );
+				} );
+				// If a callback was supplied, do the honours
+				// TODO remove this check in future
+				if ( complete ) {
+					warn( 't.animateStyle returns a Promise as of 0.4.0. Transition authors should do t.animateStyle(...).then(callback)' );
+					promise.then( complete );
+				}
+				return promise;
+			};
 		}
-		getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
-		return function( style, value, options, complete ) {
-			var t = this,
-				to;
-			if ( typeof style === 'string' ) {
-				to = {};
-				to[ style ] = value;
-			} else {
-				to = style;
-				// shuffle arguments
-				complete = options;
-				options = value;
-			}
-			// As of 0.3.9, transition authors should supply an `option` object with
-			// `duration` and `easing` properties (and optional `delay`), plus a
-			// callback function that gets called after the animation completes
-			// TODO remove this check in a future version
-			if ( !options ) {
-				warn( 'The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
-				options = t;
-				complete = t.complete;
-			}
-			var promise = new Promise( function( resolve ) {
-				var propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
-				// Edge case - if duration is zero, set style synchronously and complete
-				if ( !options.duration ) {
-					t.setStyle( to );
-					resolve();
-					return;
-				}
-				// Get a list of the properties we're animating
-				propertyNames = Object.keys( to );
-				changedProperties = [];
-				// Store the current styles
-				computedStyle = window.getComputedStyle( t.node );
-				from = {};
-				i = propertyNames.length;
-				while ( i-- ) {
-					prop = propertyNames[ i ];
-					current = computedStyle[ prefix( prop ) ];
-					if ( current === '0px' ) {
-						current = 0;
-					}
-					// we need to know if we're actually changing anything
-					if ( current != to[ prop ] ) {
-						// use != instead of !==, so we can compare strings with numbers
-						changedProperties.push( prop );
-						// make the computed style explicit, so we can animate where
-						// e.g. height='auto'
-						t.node.style[ prefix( prop ) ] = current;
-					}
-				}
-				// If we're not actually changing anything, the transitionend event
-				// will never fire! So we complete early
-				if ( !changedProperties.length ) {
-					resolve();
-					return;
-				}
-				createTransitions( t, to, options, changedProperties, transitionEndHandler, resolve );
-			} );
-			// If a callback was supplied, do the honours
-			// TODO remove this check in future
-			if ( complete ) {
-				warn( 't.animateStyle returns a Promise as of 0.4.0. Transition authors should do t.animateStyle(...).then(callback)' );
-				promise.then( complete );
-			}
-			return promise;
-		};
+		return animateStyle;
 	}( legacy, config_isClient, utils_warn, utils_Promise, render_DomFragment_Element_shared_executeTransition_Transition_helpers_prefix, render_DomFragment_Element_shared_executeTransition_Transition_prototype_animateStyle_createTransitions );
 
 	var utils_fillGaps = function( target, source ) {
@@ -8374,7 +8413,11 @@
 		};
 	}( render_shared_utils_assignNewKeypath );
 
-	var config_voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
+	var config_voidElementNames = function() {
+
+		var voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
+		return voidElementNames;
+	}();
 
 	var render_DomFragment_Element_prototype_toString = function( voidElementNames, isArray ) {
 
@@ -8582,7 +8625,7 @@
 
 	var registries_partials = {};
 
-	var parse__parse = undefined;
+	var parse__parse = null;
 
 	var render_DomFragment_Partial_deIndent = function() {
 
@@ -9597,7 +9640,7 @@
 		};
 	}( config_errors, config_isClient, parse__parse );
 
-	var Ractive_initialise_initialiseTemplate = function( isClient, extend, fillGaps, isObject, TemplateParser ) {
+	var Ractive_initialise_initialiseTemplate = function( extend, fillGaps, isObject, TemplateParser ) {
 
 		return function( ractive, defaults, options ) {
 			var template = ractive.template,
@@ -9627,7 +9670,7 @@
 			// Add partials to our registry
 			extend( ractive.partials, options.partials );
 		};
-	}( config_isClient, utils_extend, utils_fillGaps, utils_isObject, Ractive_initialise_templateParser );
+	}( utils_extend, utils_fillGaps, utils_isObject, Ractive_initialise_templateParser );
 
 	var Ractive_initialise_initialiseRegistries = function( registries, create, extend, isArray, isObject, createComputations, initialiseTemplate, TemplateParser ) {
 
@@ -9909,10 +9952,10 @@
 		};
 	}( Ractive_prototype_shared_add );
 
-	// Teardown. This goes through the root fragment and all its children, removing observers
-	// and generally cleaning up after itself
 	var Ractive_prototype_teardown = function( types, css, runloop, Promise, clearCache ) {
 
+		// Teardown. This goes through the root fragment and all its children, removing observers
+		// and generally cleaning up after itself
 		return function( callback ) {
 			var keypath, promise, fulfilPromise, shouldDestroy, originalCallback, fragment, nearestDetachingElement, unresolvedImplicitDependency;
 			this.fire( 'teardown' );
@@ -10109,26 +10152,6 @@
 
 	var registries_components = {};
 
-	// These are a subset of the easing equations found at
-	// https://raw.github.com/danro/easing-js - license info
-	// follows:
-	// --------------------------------------------------
-	// easing.js v0.5.4
-	// Generic set of easing functions with AMD support
-	// https://github.com/danro/easing-js
-	// This code may be freely distributed under the MIT license
-	// http://danro.mit-license.org/
-	// --------------------------------------------------
-	// All functions adapted from Thomas Fuchs & Jeremy Kahn
-	// Easing Equations (c) 2003 Robert Penner, BSD license
-	// https://raw.github.com/danro/easing-js/master/LICENSE
-	// --------------------------------------------------
-	// In that library, the functions named easeIn, easeOut, and
-	// easeInOut below are named easeInCubic, easeOutCubic, and
-	// (you guessed it) easeInOutCubic.
-	//
-	// You can add additional easing functions to this list, and they
-	// will be globally available.
 	var registries_easing = {
 		linear: function( pos ) {
 			return pos;
@@ -10369,7 +10392,7 @@
 		};
 	}( config_errors, parse__parse );
 
-	var Ractive_initialise = function( initOptions, warn, create, extend, defineProperties, getElement, isArray, getGuid, magicAdaptor, initialiseRegistries, renderInstance ) {
+	var Ractive_initialise = function( initOptions, warn, create, defineProperties, getElement, isArray, getGuid, magicAdaptor, initialiseRegistries, renderInstance ) {
 
 		var flags = [
 			'adapt',
@@ -10543,7 +10566,7 @@
 				options._component.instance = ractive;
 			}
 		}
-	}( config_initOptions, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isArray, utils_getGuid, shared_get_magicAdaptor, Ractive_initialise_initialiseRegistries, Ractive_initialise_renderInstance );
+	}( config_initOptions, utils_warn, utils_create, utils_defineProperties, utils_getElement, utils_isArray, utils_getGuid, shared_get_magicAdaptor, Ractive_initialise_initialiseRegistries, Ractive_initialise_renderInstance );
 
 	var extend_initChildInstance = function( initOptions, wrapMethod, initialise ) {
 
