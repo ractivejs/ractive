@@ -133,7 +133,7 @@ function getMustacheOrTriple ( parser, seekTriple ) {
 }
 
 function handlebarsIndexRef ( fragment ) {
-    var i, j, child, indexRef, member;
+    var i, child, indexRef;
 
     i = fragment.length;
     while ( i-- ) {
@@ -165,7 +165,7 @@ function handlebarsIndexRef ( fragment ) {
 }
 
 function indexRefContainedInExpression ( expression ) {
-    var i, indexRef;
+    var i;
 
     i = expression.r.length;
     while ( i-- ) {
