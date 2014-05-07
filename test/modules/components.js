@@ -1023,6 +1023,30 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'Inline component attributes update the value of bindings pointing to them even if they are old values gh-#681', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{childdata}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{parentdata}} - <widget childdata="{{parentdata}}" />',
+				data: { parentdata: 'old' },
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'old - old' );
+			var widget = ractive.findComponent("widget");
+			widget.set("childdata","new");
+			t.htmlEqual( fixture.innerHTML, 'new - new' );
+
+			ractive.set( 'parentdata', 'old' );
+			t.htmlEqual( fixture.innerHTML, 'old - old' );
+		});
+
+
 
 		asyncTest( 'Component render methods called in consistent order (gh #589)', function ( t ) {
 			var Simpson, ractive, order = { beforeInit: [], init: [], complete: [] },
