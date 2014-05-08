@@ -10,5 +10,6 @@
   "main": "ractive.js",
   "scripts": [
     "ractive.js"
-  ]
+  ],
+  "main": "ractive.js"
 }
