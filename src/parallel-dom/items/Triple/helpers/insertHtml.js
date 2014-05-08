@@ -17,24 +17,24 @@ try {
 	};
 }
 
-export default function ( html, tagName, namespace, docFrag ) {
+export default function ( html, node, docFrag ) {
 	var container, nodes = [], wrapper;
 
 	if ( html ) {
-		if ( ieBug && ( wrapper = ieBlacklist[ tagName ] ) ) {
+		if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
 			container = element( 'DIV' );
 			container.innerHTML = wrapper[0] + html + wrapper[1];
 			container = container.querySelector( '.x' );
 		}
 
-		else if ( namespace === namespaces.svg ) {
+		else if ( node.namespaceURI === namespaces.svg ) {
 			container = element( 'DIV' );
 			container.innerHTML = '<svg class="x">' + html + '</svg>';
 			container = container.querySelector( '.x' );
 		}
 
 		else {
-			container = element( tagName );
+			container = element( node.tagName );
 			container.innerHTML = html;
 		}
 

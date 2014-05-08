@@ -1,112 +1,33 @@
-import initialise from 'parallel-dom/items/Component/initialise/_initialise';
-import getNewKeypath from 'parallel-dom/shared/utils/getNewKeypath';
+import detach from 'parallel-dom/items/Component/prototype/detach';
+import find from 'parallel-dom/items/Component/prototype/find';
+import findAll from 'parallel-dom/items/Component/prototype/findAll';
+import findAllComponents from 'parallel-dom/items/Component/prototype/findAllComponents';
+import findComponent from 'parallel-dom/items/Component/prototype/findComponent';
+import findNextNode from 'parallel-dom/items/Component/prototype/findNextNode';
+import firstNode from 'parallel-dom/items/Component/prototype/firstNode';
+import init from 'parallel-dom/items/Component/prototype/init';
+import reassign from 'parallel-dom/items/Component/prototype/reassign';
+import render from 'parallel-dom/items/Component/prototype/render';
+import teardown from 'parallel-dom/items/Component/prototype/teardown';
+import toString from 'parallel-dom/items/Component/prototype/toString';
 
-var DomComponent = function ( options, docFrag ) {
-	initialise( this, options, docFrag );
+var Component = function ( options ) {
+	this.init( options );
 };
 
-DomComponent.prototype = {
-	firstNode: function () {
-		return this.instance.fragment.firstNode();
-	},
-
-	findNextNode: function () {
-		return this.parentFragment.findNextNode( this );
-	},
-
-	detach: function () {
-		return this.instance.fragment.detach();
-	},
-
-	teardown: function ( destroy ) {
-		while ( this.complexParameters.length ) {
-			this.complexParameters.pop().teardown();
-		}
-
-		while ( this.bindings.length ) {
-			this.bindings.pop().teardown();
-		}
-
-		removeFromLiveComponentQueries( this );
-
-		// Add this flag so that we don't unnecessarily destroy the component's nodes
-		this.shouldDestroy = destroy;
-		this.instance.teardown();
-	},
-
-	reassign: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-		var childInstance = this.instance,
-			parentInstance = childInstance._parent,
-			indexRefAlias, query;
-
-		this.bindings.forEach( function ( binding ) {
-			var updated;
-
-			if ( binding.root !== parentInstance ) {
-				return; // we only want parent -> child bindings for this
-			}
-
-			if ( binding.keypath === indexRef ) {
-				childInstance.set( binding.otherKeypath, newIndex );
-			}
-
-			if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
-				binding.reassign( updated );
-			}
-		});
-
-		if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
-			childInstance.set( indexRefAlias, newIndex );
-		}
-
-		if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
-			query._makeDirty();
-		}
-	},
-
-	toString: function () {
-		return this.instance.fragment.toString();
-	},
-
-	find: function ( selector ) {
-		return this.instance.fragment.find( selector );
-	},
-
-	findAll: function ( selector, query ) {
-		return this.instance.fragment.findAll( selector, query );
-	},
-
-	findComponent: function ( selector ) {
-		if ( !selector || ( selector === this.name ) ) {
-			return this.instance;
-		}
-
-		if ( this.instance.fragment ) {
-			return this.instance.fragment.findComponent( selector );
-		}
-
-		return null;
-	},
-
-	findAllComponents: function ( selector, query ) {
-		query._test( this, true );
-
-		if ( this.instance.fragment ) {
-			this.instance.fragment.findAllComponents( selector, query );
-		}
-	}
+Component.prototype = {
+	detach: detach,
+	find: find,
+	findAll: findAll,
+	findAllComponents: findAllComponents,
+	findComponent: findComponent,
+	findNextNode: findNextNode,
+	firstNode: firstNode,
+	init: init,
+	reassign: reassign,
+	render: render,
+	teardown: teardown,
+	toString: toString
 };
 
-export default DomComponent;
-
-function removeFromLiveComponentQueries ( component ) {
-	var instance, query;
-
-	instance = component.root;
-
-	do {
-		if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
-			query._remove( component );
-		}
-	} while ( instance = instance._parent );
-}
+export default Component;

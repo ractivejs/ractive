@@ -9,6 +9,7 @@ import findAllComponents from 'parallel-dom/Fragment/prototype/findAllComponents
 import findComponent from 'parallel-dom/Fragment/prototype/findComponent';
 import findNextNode from 'parallel-dom/Fragment/prototype/findNextNode';
 import firstNode from 'parallel-dom/Fragment/prototype/firstNode';
+import getNode from 'parallel-dom/Fragment/prototype/getNode';
 import getValue from 'parallel-dom/Fragment/prototype/getValue';
 import init from 'parallel-dom/Fragment/prototype/init';
 import isSimple from 'parallel-dom/Fragment/prototype/isSimple';
@@ -33,6 +34,7 @@ Fragment.prototype = {
 	findComponent: findComponent,
 	findNextNode: findNextNode,
 	firstNode: firstNode,
+	getNode: getNode,
 	getValue: getValue,
 	init: init,
 	isSimple: isSimple,

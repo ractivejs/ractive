@@ -1,4 +1,4 @@
-export default function sectionMerge ( newIndices ) {
+export default function Section$merge ( newIndices ) {
 	var section = this,
 		parentFragment,
 		firstChange,
@@ -89,5 +89,5 @@ export default function sectionMerge ( newIndices ) {
 
 	// reinsert fragment
 	nextNode = parentFragment.findNextNode( this );
-	parentFragment.pNode.insertBefore( this.docFrag, nextNode );
+	this.parentFragment.getNode().insertBefore( this.docFrag, nextNode );
 }

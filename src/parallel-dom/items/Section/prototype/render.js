@@ -7,5 +7,6 @@ export default function Section$render () {
 		docFrag.appendChild( fragment.render() );
 	});
 
+	this.rendered = true;
 	return docFrag;
 }

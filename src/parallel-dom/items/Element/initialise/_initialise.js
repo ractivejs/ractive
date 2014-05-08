@@ -1,4 +1,4 @@
-import runloop from 'global/runloop';
+/*import runloop from 'global/runloop';
 import types from 'config/types';
 import namespaces from 'config/namespaces';
 import create from 'utils/create';
@@ -176,3 +176,4 @@ function findParentSelect ( element ) {
 		}
 	} while ( element = element.parent );
 }
+*/

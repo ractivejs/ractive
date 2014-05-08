@@ -43,9 +43,9 @@ Transition = function ( template, root, owner, isIntro ) {
 
 	if ( typeof name !== 'string' ) {
 		fragment = new Fragment({
-			template:   name,
-			root:         this.root,
-			owner:        owner
+			template: name,
+			root:     this.root,
+			owner:    owner
 		});
 
 		name = fragment.toString();

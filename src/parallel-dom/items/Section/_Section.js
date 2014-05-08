@@ -1,20 +1,23 @@
 import types from 'config/types';
 import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
+
+import createFragment from 'parallel-dom/items/Section/prototype/createFragment';
+import detach from 'parallel-dom/items/Section/prototype/detach';
+import find from 'parallel-dom/items/Section/prototype/find';
+import findAll from 'parallel-dom/items/Section/prototype/findAll';
+import findAllComponents from 'parallel-dom/items/Section/prototype/findAllComponents';
+import findComponent from 'parallel-dom/items/Section/prototype/findComponent';
+import findNextNode from 'parallel-dom/items/Section/prototype/findNextNode';
+import firstNode from 'parallel-dom/items/Section/prototype/firstNode';
 import merge from 'parallel-dom/items/Section/prototype/merge';
-import setValue from 'parallel-dom/items/Section/prototype/setValue';
 import render from 'parallel-dom/items/Section/prototype/render';
+import setValue from 'parallel-dom/items/Section/prototype/setValue';
 import splice from 'parallel-dom/items/Section/prototype/splice';
-import teardown from 'shared/teardown';
-import circular from 'circular';
+import teardown from 'parallel-dom/items/Section/prototype/teardown';
+import teardownFragments from 'parallel-dom/items/Section/prototype/teardownFragments';
+import toString from 'parallel-dom/items/Section/prototype/toString';
 
-var Section, Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-// Section
-Section = function ( options, docFrag ) {
+var Section = function ( options, docFrag ) {
 	this.type = types.SECTION;
 	this.inverted = !!options.template.n;
 
@@ -29,122 +32,24 @@ Section = function ( options, docFrag ) {
 };
 
 Section.prototype = {
-	update: Mustache.update,
-	resolve: Mustache.resolve,
-	reassign: Mustache.reassign,
-	splice: splice,
+	createFragment: createFragment,
+	detach: detach,
+	find: find,
+	findAll: findAll,
+	findAllComponents: findAllComponents,
+	findComponent: findComponent,
+	findNextNode: findNextNode,
+	firstNode: firstNode,
 	merge: merge,
-
-	detach: function () {
-		var i, len;
-
-		if ( this.docFrag ) {
-			len = this.fragments.length;
-			for ( i = 0; i < len; i += 1 ) {
-				this.docFrag.appendChild( this.fragments[i].detach() );
-			}
-
-			return this.docFrag;
-		}
-	},
-
-	teardown: function ( destroy ) {
-		this.teardownFragments( destroy );
-
-		teardown( this );
-	},
-
-	firstNode: function () {
-		if ( this.fragments[0] ) {
-			return this.fragments[0].firstNode();
-		}
-
-		return this.parentFragment.findNextNode( this );
-	},
-
-	findNextNode: function ( fragment ) {
-		if ( this.fragments[ fragment.index + 1 ] ) {
-			return this.fragments[ fragment.index + 1 ].firstNode();
-		}
-
-		return this.parentFragment.findNextNode( this );
-	},
-
-	teardownFragments: function ( destroy ) {
-		var fragment;
-
-		while ( fragment = this.fragments.shift() ) {
-			fragment.teardown( destroy );
-		}
-	},
-
+	reassign: Mustache.reassign,
 	render: render,
-
+	resolve: Mustache.resolve,
 	setValue: setValue,
-
-	createFragment: function ( options ) {
-		var fragment = new Fragment( options );
-		return fragment;
-	},
-
-	toString: function () {
-		var str, i, len;
-
-		str = '';
-
-		i = 0;
-		len = this.length;
-
-		for ( i=0; i<len; i+=1 ) {
-			str += this.fragments[i].toString();
-		}
-
-		return str;
-	},
-
-	find: function ( selector ) {
-		var i, len, queryResult;
-
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			if ( queryResult = this.fragments[i].find( selector ) ) {
-				return queryResult;
-			}
-		}
-
-		return null;
-	},
-
-	findAll: function ( selector, query ) {
-		var i, len;
-
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			this.fragments[i].findAll( selector, query );
-		}
-	},
-
-	findComponent: function ( selector ) {
-		var i, len, queryResult;
-
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			if ( queryResult = this.fragments[i].findComponent( selector ) ) {
-				return queryResult;
-			}
-		}
-
-		return null;
-	},
-
-	findAllComponents: function ( selector, query ) {
-		var i, len;
-
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			this.fragments[i].findAllComponents( selector, query );
-		}
-	}
+	splice: splice,
+	teardown: teardown,
+	teardownFragments: teardownFragments,
+	toString: toString,
+	update: Mustache.update
 };
 
 export default Section;

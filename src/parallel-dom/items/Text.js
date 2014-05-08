@@ -8,6 +8,7 @@ greaterThan = />/g;
 DomText = function ( options, docFrag ) {
 	this.type = types.TEXT;
 	this.text = options.template;
+	this.escaped = ( '' + this.text ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 };
 
 DomText.prototype = {
@@ -38,7 +39,7 @@ DomText.prototype = {
 	},
 
 	toString: function () {
-		return ( '' + this.text ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
+		return this.escaped;
 	}
 };
 

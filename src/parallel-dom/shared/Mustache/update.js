@@ -10,7 +10,7 @@ export default function updateMustache () {
 		this.setValue( value );
 		this.value = value;
 
-		// TODO can this check be eliminated?
+		// TODO can/should this check be eliminated?
 		if ( this.parentFragment.bubble ) {
 			this.parentFragment.bubble();
 		}

@@ -64,4 +64,5 @@ export default function Fragment$init ( options ) {
 		});
 	});
 
+	this.inited = true;
 }

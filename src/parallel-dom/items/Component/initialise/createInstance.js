@@ -1,4 +1,4 @@
-export default function ( component, Component, data, docFrag, contentDescriptor ) {
+export default function ( component, Component, data, contentDescriptor ) {
 	var instance, parentFragment, partials, root, adapt;
 
 	parentFragment = component.parentFragment;
@@ -22,7 +22,7 @@ export default function ( component, Component, data, docFrag, contentDescriptor
 		adapt: adapt
 	});
 
-	if ( docFrag ) {
+	/*if ( docFrag ) {
 		// The component may be in the wrong place! This is because we
 		// are still populating the document fragment that will be appended
 		// to its parent node. So even though the component is *already*
@@ -33,7 +33,7 @@ export default function ( component, Component, data, docFrag, contentDescriptor
 
 		// (After inserting, we need to reset the node reference)
 		instance.fragment.pNode = instance.el = parentFragment.pNode;
-	}
+	}*/
 
 	return instance;
 }

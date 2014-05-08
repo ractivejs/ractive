@@ -71,7 +71,7 @@ function renderNewFragments ( section, start, end ) {
 	insertionPoint = ( section.fragments[ end ] ? section.fragments[ end ].firstNode() : section.parentFragment.findNextNode( section ) );
 
 	// Append docfrag in front of insertion point
-	section.parentFragment.pNode.insertBefore( section.docFrag, insertionPoint );
+	this.parentFragment.getNode().insertBefore( section.docFrag, insertionPoint );
 
 	section.rendering = false;
 }

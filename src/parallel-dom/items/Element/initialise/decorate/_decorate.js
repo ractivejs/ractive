@@ -1,4 +1,4 @@
-import runloop from 'global/runloop';
+/*import runloop from 'global/runloop';
 import Decorator from 'parallel-dom/items/Element/initialise/decorate/Decorator';
 
 export default function ( template, root, owner ) {
@@ -9,3 +9,4 @@ export default function ( template, root, owner ) {
 		runloop.addDecorator( owner.decorator );
 	}
 }
+*/

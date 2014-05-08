@@ -1,4 +1,4 @@
-import addEventProxy from 'parallel-dom/items/Element/initialise/addEventProxies/addEventProxy';
+import addEventProxy from 'parallel-dom/items/Element/prototype/init/addEventProxy';
 
 export default function ( element, proxies ) {
 	var i, eventName, eventNames;
