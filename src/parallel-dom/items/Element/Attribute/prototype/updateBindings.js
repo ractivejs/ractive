@@ -7,6 +7,6 @@ export default function Attribute$updateBindings () {
 	// if we encounter the special case described above, update the name attribute
 	if ( this.propertyName === 'name' ) {
 		// replace actual name attribute
-		this.pNode.name = '{{' + this.keypath + '}}';
+		this.node.name = '{{' + this.keypath + '}}';
 	}
 }

@@ -26,15 +26,13 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 };
 
 Binding.prototype = {
-	update: function () {
+	setValue: function ( value ) {
 		var value;
 
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			return;
 		}
-
-		value = get( this.root, this.keypath );
 
 		// Is this a smart array update? If so, it'll update on its
 		// own, we shouldn't do anything

@@ -7,28 +7,39 @@ import isArray from 'utils/isArray';
 import getGuid from 'utils/getGuid';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
-import renderInstance from 'Ractive/initialise/renderInstance';
 
 var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
 
 export default function initialiseRactiveInstance ( ractive, options ) {
 
-	var defaults = ractive.constructor.defaults;
+	var defaults = ractive.constructor.defaults, target;
 
-	//allow empty constructor options and save for reset
+	// Allow empty constructor options and save for reset
 	ractive.initOptions = options = options || {};
 
 	setOptionsAndFlags( ractive, defaults, options );
-
-	//sets ._initing = true
 	initialiseProperties( ractive, options );
-
 	initialiseRegistries( ractive, defaults, options );
 
-	renderInstance( ractive, options );
+	// If `el` is specified, render automatically
+	if ( ractive.el ) {
+		// Temporarily disable transitions, if `noIntro` flag is set
+		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 
-	// end init sequence
-	ractive._initing = false;
+		// If the target contains content, and `append` is falsy, clear it
+		if ( ractive.el && !options.append ) {
+			ractive.el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+		}
+
+		ractive.render( ractive.el, ractive.anchor ).then( function () {
+			if ( options.complete ) {
+				options.complete.call( ractive );
+			}
+		});
+
+		// reset transitionsEnabled
+		ractive.transitionsEnabled = options.transitionsEnabled;
+	}
 }
 
 function setOptionsAndFlags ( ractive, defaults, options ) {
@@ -93,8 +104,6 @@ function initialiseProperties ( ractive, options ) {
 
 	// We use Object.defineProperties (where possible) as these should be read-only
 	defineProperties( ractive, {
-		_initing: { value: true, writable: true },
-
 		// Generate a unique identifier, for places where you'd use a weak map if it
 		// existed
 		_guid: { value: getGuid() },

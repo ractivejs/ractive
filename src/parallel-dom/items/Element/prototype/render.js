@@ -2,8 +2,9 @@ import create from 'utils/create';
 import createElement from 'utils/createElement';
 import defineProperty from 'utils/defineProperty';
 import noop from 'utils/noop';
+import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
-import updateLiveQueries from 'parallel-dom/items/Element/initialise/updateLiveQueries';
+import Attribute from 'parallel-dom/items/Element/Attribute/_Attribute';
 
 var updateCss, updateScript;
 
@@ -34,13 +35,13 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, node;
+	var root = this.root, node, selectBinding;
 
 	node = this.node = createElement( this.name, this.namespace );
 
 	// Is this a top-level node of a component? If so, we may need to add
 	// a data-rvcguid attribute, for CSS encapsulation
-	if ( root.css && pNode === root.el ) {
+	if ( root.css && node === root.el ) {
 		this.node.setAttribute( 'data-rvcguid', root.constructor._guid || root._guid );
 	}
 
@@ -81,7 +82,12 @@ export default function Element$render () {
 	}
 
 	// Add proxy event handlers
-	// TODO
+	if ( this.eventHandlers ) {
+		this.eventHandlers.forEach( function ( handler ) {
+			handler.render();
+		});
+	}
+
 
 	// deal with two-way bindings
 	if ( root.twoway ) {
@@ -126,26 +132,34 @@ export default function Element$render () {
 	if ( this.intro ) {
 		// TODO
 		//executeTransition( template.t0 || template.t1, root, this, true );
+		runloop.addIntro( this.intro );
 	}
 
 	if ( this.node.tagName === 'OPTION' ) {
 		// Special case... if this option's parent select was previously
 		// empty, it's possible that it should initialise to the value of
 		// this option.
-		if ( pNode.tagName === 'SELECT' && ( selectBinding = pNode._ractive.binding ) ) { // it should be!
+		if ( this.parent.name === 'select' && ( selectBinding = this.parent.binding ) ) { // it should be!
 			selectBinding.deferUpdate();
 		}
 
 		// If a value attribute was not given, we need to create one based on
 		// the content of the node, so that `<option>foo</option>` behaves the
 		// same as `<option value='foo'>foo</option>` with two-way binding
-		if ( !attributes.value ) {
-			createElementAttribute( this, 'value', template.f );
+		if ( !this.attributes.value ) {
+			this.attributes.value = new Attribute({
+				element: this,
+				name:    'value',
+				value:   this.template.f,
+				root:    this.root
+			});
+
+			this.attributes.push( this.attributes.value );
 		}
 
 		// Special case... a select may have had its value set before a matching
 		// option was rendered. This might be that option element
-		if ( this.node._ractive.value == pNode._ractive.value ) {
+		if ( this.node._ractive.value == ( this.parent.attributes.value && this.parent.attributes.value.value ) ) {
 			this.node.selected = true;
 		}
 	}
@@ -160,4 +174,27 @@ export default function Element$render () {
 	updateLiveQueries( this );
 
 	return this.node;
+}
+
+
+function updateLiveQueries ( element ) {
+	var instance, liveQueries, i, selector, query;
+
+	// Does this need to be added to any live queries?
+	instance = element.root;
+
+	do {
+		liveQueries = instance._liveQueries;
+
+		i = liveQueries.length;
+		while ( i-- ) {
+			selector = liveQueries[i];
+			query = liveQueries[ '_' + selector ];
+
+			if ( query._test( element ) ) {
+				// keep register of applicable selectors, for when we teardown
+				( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
+			}
+		}
+	} while ( instance = instance._parent );
 }

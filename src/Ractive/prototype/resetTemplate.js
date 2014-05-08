@@ -28,12 +28,7 @@ export default function ( template, callback ) {
 
 		this.teardown();
 
-		this._initing = true;
-
 		promise = renderInstance ( this, this.initOptions );
-
-		//same as initialise, but should this be in then()?
-		this._initing = false;
 
 	} else {
 		promise = Promise.resolve();

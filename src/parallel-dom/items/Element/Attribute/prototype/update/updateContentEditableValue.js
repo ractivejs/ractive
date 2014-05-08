@@ -2,19 +2,13 @@ export default function Attribute$updateContentEditableValue () {
 	var node, value;
 
 	node = this.node;
-	value = this.fragment.getValue();
+	value = this.value;
 
 	if ( value === undefined ) {
 		value = '';
 	}
 
-	if ( value !== this.value ) {
-		if ( !this.active ) {
-			node.innerHTML = value;
-		}
-
-		this.value = value;
+	if ( !this.active ) {
+		node.innerHTML = value;
 	}
-
-	return this;
 }

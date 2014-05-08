@@ -1,37 +1,8 @@
-import insertHtml from 'parallel-dom/items/Triple/helpers/insertHtml';
+import runloop from 'global/runloop';
 
-export default function Triple$setValue ( html ) {
-	var node, parentElement, parentNode;
-
-	if ( !this.nodes ) {
-		// looks like we're in a server environment...
-		// nothing to see here, move along
-		return;
-	}
-
-	// remove existing nodes
-	while ( this.nodes.length ) {
-		node = this.nodes.pop();
-		node.parentNode.removeChild( node );
-	}
-
-	if ( !html ) {
-		this.nodes = [];
-		return;
-	}
-
-	// get new nodes
-	parentElement = this.pElement;
-
-	this.nodes = insertHtml( html, this.parentFragment.getNode(), this.docFrag );
-
-	if ( !this.initialising ) {
-		parentNode = this.pElement.node;
-		parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
-
-		// Special case - we're inserting the contents of a <select>
-		if ( parentNode.tagName === 'SELECT' && parentNode._ractive && parentNode._ractive.binding ) {
-			parentNode._ractive.binding.update();
-		}
+export default function Triple$setValue ( value ) {
+	if ( value !== this.value ) {
+		this.value = value;
+		runloop.addUpdate( this );
 	}
 }

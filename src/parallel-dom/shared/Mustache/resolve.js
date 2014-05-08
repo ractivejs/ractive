@@ -1,3 +1,4 @@
+import get from 'shared/get/_get';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 
@@ -35,6 +36,5 @@ export default function resolveMustache ( keypath ) {
 	this.keypath = keypath;
 	registerDependant( this );
 
-	this.update();
-
+	this.setValue( get( this.root, keypath ) );
 }

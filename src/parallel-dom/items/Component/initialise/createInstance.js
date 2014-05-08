@@ -11,7 +11,6 @@ export default function ( component, Component, data, contentDescriptor ) {
 	adapt = combineAdaptors( root, Component.defaults.adapt, Component.adaptors );
 
 	instance = new Component({
-		el: parentFragment.pNode,
 		append: true,
 		data: data,
 		partials: partials,

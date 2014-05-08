@@ -49,12 +49,7 @@ export default function ( data, callback ) {
 
 		this.teardown();
 
-		this._initing = true;
-
 		promise = renderInstance ( this, this.initOptions );
-
-		//same as initialise, but should this be in then()?
-		this._initing = false;
 
 		// should this fire and when?
 		// this.fire( 'reset', data );

@@ -16,6 +16,7 @@ import splice from 'parallel-dom/items/Section/prototype/splice';
 import teardown from 'parallel-dom/items/Section/prototype/teardown';
 import teardownFragments from 'parallel-dom/items/Section/prototype/teardownFragments';
 import toString from 'parallel-dom/items/Section/prototype/toString';
+import update from 'parallel-dom/items/Section/prototype/update';
 
 var Section = function ( options, docFrag ) {
 	this.type = types.SECTION;
@@ -24,11 +25,11 @@ var Section = function ( options, docFrag ) {
 	this.pElement = options.pElement;
 
 	this.fragments = [];
+	this.unrenderedFragments = [];
+
 	this.length = 0; // number of times this section is rendered
 
-	this.initialising = true;
 	Mustache.init( this, options );
-	this.initialising = false;
 };
 
 Section.prototype = {
@@ -49,7 +50,7 @@ Section.prototype = {
 	teardown: teardown,
 	teardownFragments: teardownFragments,
 	toString: toString,
-	update: Mustache.update
+	update: update
 };
 
 export default Section;

@@ -14,6 +14,8 @@ circular.push( function () {
 export default function Attribute$init ( options ) {
 	this.type = types.ATTRIBUTE;
 	this.element = options.element;
+	this.root = options.root;
+
 	determineNameAndNamespace( this, options.name );
 
 	// if it's an empty attribute, or just a straight key-value pair, with no
@@ -24,7 +26,6 @@ export default function Attribute$init ( options ) {
 	}
 
 	// otherwise we need to do some work
-	this.root = options.root;
 
 	// share parentFragment with parent element
 	this.parentFragment = this.element.parentFragment;
@@ -34,6 +35,8 @@ export default function Attribute$init ( options ) {
 		root:     this.root,
 		owner:    this
 	});
+
+	this.value = this.fragment.getValue();
 
 
 	// Store a reference to this attribute's interpolator, if its fragment

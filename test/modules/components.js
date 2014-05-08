@@ -658,6 +658,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive = new Ractive({
+				el: fixture,
 				template: '<wrapper><component/></wrapper>',
 				components: {
 					wrapper: Wrapper,
@@ -893,12 +894,12 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		test( 'Component in template has data function called on initialize', function ( t ) {
 			var Component, ractive, data = { foo: 'bar' } ;
-			
+
 			Component = Ractive.extend({
 				template: '{{foo}}',
 				data: function(){ return data }
 			});
-			
+
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget/>',
@@ -911,14 +912,14 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		test( 'Component in template having data function with no return uses existing data instance', function ( t ) {
 			var Component, ractive, data = { foo: 'bar' } ;
-			
+
 			Component = Ractive.extend({
 				template: '{{foo}}{{bim}}',
-				data: function(d){ 
+				data: function(d){
 					d.bim = 'bam'
 				}
 			});
-			
+
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget/>',
@@ -931,14 +932,14 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		test( 'Component in template passed parameters with data function', function ( t ) {
 			var Component, ractive, data = { foo: 'bar' } ;
-			
+
 			Component = Ractive.extend({
 				template: '{{foo}}{{bim}}',
-				data: function(d){ 
+				data: function(d){
 					d.bim = d.foo
 				}
 			});
-			
+
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget foo="{{outer}}"/>',
@@ -958,7 +959,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			
+
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget foo="{{one}}" fizz="{{two}}" useFoo="true"/>',
@@ -968,7 +969,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( fixture.innerHTML, 'bar' );
 		});
-		
+
 		test( 'Set operations inside an inline component\'s init() method update the DOM synchronously', function ( t ) {
 			var ListWidget, ractive, previousHeight = -1;
 
@@ -1030,14 +1031,14 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Simpson = Ractive.extend({
 			    template: "{{simpson}}",
-			    beforeInit: function(o) { 
-			    	order.beforeInit.push( o.data.simpson ); 
+			    beforeInit: function(o) {
+			    	order.beforeInit.push( o.data.simpson );
 			    },
-			    init: function() { 
-			    	order.init.push( this.get("simpson") ); 
+			    init: function() {
+			    	order.init.push( this.get("simpson") );
 			    },
-			    complete: function() { 
-			    	order.complete.push( this.get("simpson") ); 
+			    complete: function() {
+			    	order.complete.push( this.get("simpson") );
 			    }
 			});
 

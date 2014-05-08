@@ -65,7 +65,10 @@ function updateAll ( deps, value ) {
 	if ( deps ) {
 		len = deps.length;
 		for ( i = 0; i < len; i += 1 ) {
-			deps[i].update( value );
+			if ( !deps[i].setValue ) {
+				console.log( deps[i] );
+			}
+			deps[i].setValue( value );
 		}
 	}
 }

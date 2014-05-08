@@ -1,5 +1,15 @@
-import isClient from 'config/isClient';
-import updateSection from 'parallel-dom/shared/updateSection';
+import types from 'config/types';
+import isArray from 'utils/isArray';
+import isObject from 'utils/isObject';
+import runloop from 'global/runloop';
+
+import circular from 'circular';
+
+var Fragment;
+
+circular.push( function () {
+	Fragment = circular.Fragment;
+});
 
 export default function Section$setValue ( value ) {
 	var nextNode, parentNode, wrapped;
@@ -9,39 +19,220 @@ export default function Section$setValue ( value ) {
 		value = wrapped.get();
 	}
 
-	// prevent sections from rendering multiple times (happens if
+	// prevent sections from updating multiple times (happens if
 	// evaluators evaluate while update is happening)
-	if ( this.rendering ) {
+	if ( this.updating ) {
+		throw new Error( 'TODO does this ever happen?' );
 		return;
 	}
 
-	this.rendering = true;
-	updateSection( this, value );
-	this.rendering = false;
+	this.updating = true;
+	if ( reevaluateSection( this, value ) ) {
+		runloop.addUpdate( this );
+	}
+	this.updating = false;
+}
 
-	if ( this.rendered ) {
-		// if we have no new nodes to insert (i.e. the section length stayed the
-		// same, or shrank), we don't need to go any further
-		if ( !this.docFrag.childNodes.length ) {
-			return;
-		}
 
-		// Normally this is just a case of finding the next node, and inserting
-		// items before it...
-		nextNode = this.parentFragment.findNextNode( this );
-		parentNode = this.parentFragment.getNode();
+function reevaluateSection ( section, value ) {
+	var fragmentOptions = {
+		template: section.template.f,
+		root:       section.root,
+		pNode:      section.parentFragment.pNode,
+		pElement:   section.parentFragment.pElement,
+		owner:      section
+	};
 
-		if ( nextNode && ( nextNode.parentNode === parentNode ) ) {
-			parentNode.insertBefore( this.docFrag, nextNode );
-		}
+	// If we already know the section type, great
+	// TODO can this be optimised? i.e. pick an reevaluateSection function during init
+	// and avoid doing this each time?
+	if ( section.template.n ) {
+		switch ( section.template.n ) {
+			case types.SECTION_IF:
+			return reevaluateConditionalSection( section, value, false, fragmentOptions );
 
-		// ...but in some edge cases the next node will not have been attached to
-		// the DOM yet, in which case we append to the end of the parent node
-		else {
-			// TODO could there be a situation in which later nodes could have
-			// been attached to the parent node, i.e. we need to find a sibling
-			// to insert before?
-			parentNode.appendChild( this.docFrag );
+			case types.SECTION_UNLESS:
+			return reevaluateConditionalSection( section, value, true, fragmentOptions );
+
+			case types.SECTION_WITH:
+			return reevaluateContextSection( section, fragmentOptions );
+
+			case types.SECTION_EACH:
+			if ( isObject( value ) ) {
+				return reevaluateListObjectSection( section, value, fragmentOptions );
+			}
+
+			// Fallthrough - if it's a conditional or an array we need to continue
 		}
 	}
+
+	// otherwise we need to work out what sort of section we're dealing with
+
+	// if value is an array, or an object with an index reference, iterate through
+	if ( isArray( value ) ) {
+		return reevaluateListSection( section, value, fragmentOptions );
+	}
+
+
+	// if value is a hash...
+	if ( isObject( value ) || typeof value === 'function' ) {
+		if ( section.template.i ) {
+			return reevaluateListObjectSection( section, value, fragmentOptions );
+		}
+
+		return reevaluateContextSection( section, fragmentOptions );
+	}
+
+
+	// otherwise render if value is truthy, unrender if falsy
+	return reevaluateConditionalSection( section, value, false, fragmentOptions );
+}
+
+function reevaluateListSection ( section, value, fragmentOptions ) {
+	var i, length, fragment, fragmentsToRemove;
+
+	length = value.length;
+
+	if ( length === section.length ) {
+		// Nothing to do
+		return false;
+	}
+
+	// if the array is shorter than it was previously, remove items
+	if ( length < section.length ) {
+		fragmentsToRemove = section.fragments.splice( length, section.length - length );
+
+		while ( fragmentsToRemove.length ) {
+			fragmentsToRemove.pop().teardown( true );
+		}
+	}
+
+	// otherwise...
+	else {
+
+		if ( length > section.length ) {
+			// add any new ones
+			for ( i=section.length; i<length; i+=1 ) {
+				// append list item to context stack
+				fragmentOptions.context = section.keypath + '.' + i;
+				fragmentOptions.index = i;
+
+				if ( section.template.i ) {
+					fragmentOptions.indexRef = section.template.i;
+				}
+
+				fragment = new Fragment( fragmentOptions );
+				section.unrenderedFragments.push( section.fragments[i] = fragment );
+			}
+		}
+	}
+
+	section.length = length;
+	return true;
+}
+
+function reevaluateListObjectSection ( section, value, fragmentOptions ) {
+	var id, i, hasKey, fragment, changed;
+
+	hasKey = section.hasKey || ( section.hasKey = {} );
+
+	// remove any fragments that should no longer exist
+	i = section.fragments.length;
+	while ( i-- ) {
+		fragment = section.fragments[i];
+
+		if ( !( fragment.index in value ) ) {
+			changed = true;
+
+			section.fragments[i].teardown( true );
+			section.fragments.splice( i, 1 );
+
+			hasKey[ fragment.index ] = false;
+		}
+	}
+
+	// add any that haven't been created yet
+	for ( id in value ) {
+		if ( !hasKey[ id ] ) {
+			changed = true;
+
+			fragmentOptions.context = section.keypath + '.' + id;
+			fragmentOptions.index = id;
+
+			if ( section.template.i ) {
+				fragmentOptions.indexRef = section.template.i;
+			}
+
+			fragment = new Fragment( fragmentOptions );
+
+			section.unrenderedFragments.push( fragment );
+			section.fragments.push( fragment );
+			hasKey[ id ] = true;
+		}
+	}
+
+	section.length = section.fragments.length;
+	return changed;
+}
+
+function reevaluateContextSection ( section, fragmentOptions ) {
+	var fragment;
+
+	// ...then if it isn't rendered, render it, adding section.keypath to the context stack
+	// (if it is already rendered, then any children dependent on the context stack
+	// will update themselves without any prompting)
+	if ( !section.length ) {
+		// append this section to the context stack
+		fragmentOptions.context = section.keypath;
+		fragmentOptions.index = 0;
+
+		fragment = new Fragment( fragmentOptions );
+
+		section.unrenderedFragments.push( section.fragments[0] = fragment );
+		section.length = 1;
+
+		return true;
+	}
+}
+
+function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
+	var doRender, emptyArray, fragmentsToRemove, fragment;
+
+	emptyArray = ( isArray( value ) && value.length === 0 );
+
+	if ( inverted ) {
+		doRender = emptyArray || !value;
+	} else {
+		doRender = value && !emptyArray;
+	}
+
+	if ( doRender ) {
+		if ( !section.length ) {
+			// no change to context stack
+			fragmentOptions.index = 0;
+
+			fragment = new Fragment( fragmentOptions );
+			section.unrenderedFragments.push( section.fragments[0] = fragment );
+			section.length = 1;
+
+			return true;
+		}
+
+		if ( section.length > 1 ) {
+			section.fragments.splice( 1 ).forEach( teardownFragment );
+
+			return true;
+		}
+	}
+
+	else if ( section.length ) {
+		section.teardownFragments( true );
+		section.length = 0;
+
+		return true;
+	}
+}
+
+function teardownFragment ( fragment ) {
+	fragment.teardown();
 }

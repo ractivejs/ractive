@@ -1,15 +1,14 @@
 export default function Attribute$updateIdAttribute () {
-	var node, value, binding;
+	var node, value;
 
 	node = this.node;
-	value = this.fragment.getValue();
+	value = this.value;
 
-	if ( this.value !== undefined ) {
-		this.root.nodes[ this.value ] = undefined;
+	if ( value !== undefined ) {
+		this.root.nodes[ value ] = undefined;
 	}
 
 	this.root.nodes[ value ] = node;
 
-	node.setAttribute( this.name, value );
-	this.value = value;
+	node.setAttribute( 'id', value ); // TODO node.id = value? does that work for SVG?
 }

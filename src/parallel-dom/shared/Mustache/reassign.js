@@ -21,8 +21,7 @@ export default function reassignMustache ( indexRef, newIndex, oldKeypath, newKe
 
 	// index ref mustache?
 	else if ( indexRef !== undefined && this.indexRef === indexRef ) {
-		this.value = newIndex;
-		this.render( newIndex );
+		this.setValue( newIndex );
 	}
 
 	// otherwise, it's an unresolved reference. the context stack has been updated

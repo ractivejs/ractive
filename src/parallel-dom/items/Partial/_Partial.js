@@ -3,13 +3,13 @@ import getPartialDescriptor from 'parallel-dom/items/Partial/getPartialDescripto
 import applyIndent from 'parallel-dom/items/Partial/applyIndent';
 import circular from 'circular';
 
-var DomPartial, Fragment;
+var Partial, Fragment;
 
 circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-DomPartial = function ( options, docFrag ) {
+Partial = function ( options, docFrag ) {
 	var parentFragment = this.parentFragment = options.parentFragment, template;
 
 	this.type = types.PARTIAL;
@@ -31,7 +31,7 @@ DomPartial = function ( options, docFrag ) {
 	});
 };
 
-DomPartial.prototype = {
+Partial.prototype = {
 	firstNode: function () {
 		return this.fragment.firstNode();
 	},
@@ -93,4 +93,4 @@ DomPartial.prototype = {
 	}
 };
 
-export default DomPartial;
+export default Partial;

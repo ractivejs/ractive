@@ -1,13 +1,13 @@
 define([
 	'ractive',
-	'render/shared/Fragment/_Fragment',
-	'render/DomFragment/Element/_Element',
-	'render/DomFragment/Triple',
+	'parallel-dom/Fragment/_Fragment',
+	'parallel-dom/items/Element/_Element',
+	'parallel-dom/items/Triple/_Triple',
 	'config/types'
 ], function (
 	Ractive,
 	Fragment,
-	DomElement,
+	Element,
 	Triple,
 	types
 ) {
@@ -42,7 +42,7 @@ define([
 						},
 						indexRefs: { i: opt.oldKeypath.replace('items.','')}
 					},
-					el = new DomElement({
+					el = new Element({
 						parentFragment: fragment,
 						descriptor: { e: 'div' }
 					}),

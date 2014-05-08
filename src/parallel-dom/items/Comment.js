@@ -1,12 +1,12 @@
 import types from 'config/types';
 import detach from 'parallel-dom/items/shared/detach';
 
-var DomComment = function ( options, docFrag ) {
+var Comment = function ( options, docFrag ) {
 	this.type = types.COMMENT;
 	this.value = options.template.c;
 };
 
-DomComment.prototype = {
+Comment.prototype = {
 	detach: detach,
 
 	teardown: function ( destroy ) {
@@ -32,4 +32,4 @@ DomComment.prototype = {
 	}
 };
 
-export default DomComment;
+export default Comment;

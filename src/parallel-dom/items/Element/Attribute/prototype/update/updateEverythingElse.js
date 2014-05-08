@@ -2,7 +2,7 @@ export default function Attribute$updateEverythingElse () {
 	var node, value, binding;
 
 	node = this.node;
-	value = this.fragment.getValue();
+	value = this.value;
 
 	// store actual value, so it doesn't get coerced to a string
 	if ( this.isValueAttribute ) {
@@ -13,44 +13,26 @@ export default function Attribute$updateEverythingElse () {
 		value = '';
 	}
 
-	if ( value !== this.value ) {
-		if ( this.useProperty ) {
+	if ( this.useProperty ) {
 
-			// with two-way binding, only update if the change wasn't initiated by the user
-			// otherwise the cursor will often be sent to the wrong place
-			if ( !this.active ) {
-				node[ this.propertyName ] = value;
-			}
-
-			// special case - a selected option whose select element has two-way binding
-			if ( node.tagName === 'OPTION' && node.selected && ( binding = this.element.select.binding ) ) {
-				binding.update();
-			}
-
-			this.value = value;
-
-			return this;
+		// with two-way binding, only update if the change wasn't initiated by the user
+		// otherwise the cursor will often be sent to the wrong place
+		if ( !this.active ) {
+			node[ this.propertyName ] = value;
 		}
 
-		if ( this.namespace ) {
-			node.setAttributeNS( this.namespace, this.name, value );
-			this.value = value;
-
-			return this;
+		// special case - a selected option whose select element has two-way binding
+		if ( node.tagName === 'OPTION' && node.selected && ( binding = this.element.select.binding ) ) {
+			binding.update();
 		}
-
-		if ( this.lcName === 'id' ) {
-			if ( this.value !== undefined ) {
-				this.root.nodes[ this.value ] = undefined;
-			}
-
-			this.root.nodes[ value ] = node;
-		}
-
-		node.setAttribute( this.name, value );
-
-		this.value = value;
 	}
 
-	return this;
+	else if ( this.namespace ) {
+		node.setAttributeNS( this.namespace, this.name, value );
+	}
+
+	else {
+		node.setAttribute( this.name, value );
+	}
+
 }

@@ -3,9 +3,7 @@ export default function Section$render () {
 
 	docFrag = this.docFrag = document.createDocumentFragment();
 
-	this.fragments.forEach( function ( fragment ) {
-		docFrag.appendChild( fragment.render() );
-	});
+	this.update();
 
 	this.rendered = true;
 	return docFrag;

@@ -1,20 +1,18 @@
 import types from 'config/types';
 import detach from 'parallel-dom/items/shared/detach';
 
-var DomText, lessThan, greaterThan;
+var Text, lessThan, greaterThan;
 lessThan = /</g;
 greaterThan = />/g;
 
-DomText = function ( options, docFrag ) {
+Text = function ( options, docFrag ) {
 	this.type = types.TEXT;
 	this.text = options.template;
 	this.escaped = ( '' + this.text ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 };
 
-DomText.prototype = {
+Text.prototype = {
 	detach: detach,
-
-	reassign: function () {}, //no-op
 
 	render: function () {
 		return this.node = document.createTextNode( this.text );
@@ -43,4 +41,4 @@ DomText.prototype = {
 	}
 };
 
-export default DomText;
+export default Text;

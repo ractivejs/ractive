@@ -2,11 +2,6 @@ export default function () {
 
 	var attributes = this.attributes;
 
-	if ( !this.node ) {
-		// we're not in a browser!
-		return;
-	}
-
 	// if this is a late binding, and there's already one, it
 	// needs to be torn down
 	if ( this.binding ) {
@@ -20,7 +15,7 @@ export default function () {
 	}
 
 	// an element can only have one two-way attribute
-	switch ( this.lcName ) {
+	switch ( this.name ) {
 		case 'select':
 		case 'textarea':
 		if ( attributes.value ) {

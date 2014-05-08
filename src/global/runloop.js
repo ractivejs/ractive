@@ -23,9 +23,10 @@ var runloop,
 
 	liveQueries = [],
 	decorators = [],
-	transitions = [],
+	intros = [],
+	outros = [],
 	observers = [],
-	attributes = [],
+	updateQueue = [],
 	activeBindings = [],
 
 	evaluators = [],
@@ -93,18 +94,24 @@ runloop = {
 		decorators.push( decorator );
 	},
 
-	addTransition: function ( transition ) {
-		transition._manager = transitionManager;
-		transitionManager.push( transition );
-		transitions.push( transition );
+	addIntro: function ( intro ) {
+		intro._manager = transitionManager;
+		transitionManager.push( intro );
+		intros.push( intro );
+	},
+
+	addOutro: function ( outro ) {
+		outro._manager = transitionManager;
+		transitionManager.push( outro );
+		outros.push( outro );
 	},
 
 	addObserver: function ( observer ) {
 		observers.push( observer );
 	},
 
-	addAttribute: function ( attribute ) {
-		attributes.push( attribute );
+	addUpdate: function ( thing ) {
+		updateQueue.push( thing );
 	},
 
 	addBinding: function ( binding ) {
@@ -216,8 +223,8 @@ function flushChanges () {
 		toFocus = null;
 	}
 
-	while ( thing = attributes.pop() ) {
-		thing.update().deferred = false;
+	while ( thing = updateQueue.pop() ) {
+		thing.update();
 	}
 
 	while ( thing = liveQueries.pop() ) {
@@ -228,8 +235,12 @@ function flushChanges () {
 		thing.init();
 	}
 
-	while ( thing = transitions.pop() ) {
-		thing.init();
+	while ( thing = intros.pop() ) {
+		thing.start( true );
+	}
+
+	while ( thing = outros.pop() ) {
+		thing.start( false );
 	}
 
 	while ( thing = observers.pop() ) {

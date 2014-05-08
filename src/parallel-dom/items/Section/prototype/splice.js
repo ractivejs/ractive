@@ -1,4 +1,12 @@
+import runloop from 'global/runloop';
 import reassignFragments from 'parallel-dom/items/Section/reassignFragments';
+import circular from 'circular';
+
+var Fragment;
+
+circular.push( function () {
+	Fragment = circular.Fragment;
+});
 
 export default function ( spliceSummary ) {
 	var section = this, balance, start, insertStart, insertEnd, spliceArgs;
@@ -47,9 +55,7 @@ function teardown ( fragment ) {
 }
 
 function renderNewFragments ( section, start, end ) {
-	var fragmentOptions, i, insertionPoint;
-
-	section.rendering = true;
+	var fragmentOptions, fragment, i, insertionPoint;
 
 	fragmentOptions = {
 		template: section.template.f,
@@ -64,14 +70,13 @@ function renderNewFragments ( section, start, end ) {
 		fragmentOptions.context = section.keypath + '.' + i;
 		fragmentOptions.index = i;
 
-		section.fragments[i] = section.createFragment( fragmentOptions );
+		fragment = new Fragment( fragmentOptions );
+		section.unrenderedFragments.push( section.fragments[i] = fragment );
 	}
 
 	// Figure out where these new nodes need to be inserted
-	insertionPoint = ( section.fragments[ end ] ? section.fragments[ end ].firstNode() : section.parentFragment.findNextNode( section ) );
+	// TODO something feels off about this?
+	section.insertionPoint = ( section.fragments[ end ] ? section.fragments[ end ].firstNode() : section.parentFragment.findNextNode( section ) );
 
-	// Append docfrag in front of insertion point
-	this.parentFragment.getNode().insertBefore( section.docFrag, insertionPoint );
-
-	section.rendering = false;
+	runloop.addUpdate( section );
 }

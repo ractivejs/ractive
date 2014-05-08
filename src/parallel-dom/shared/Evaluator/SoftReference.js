@@ -13,9 +13,7 @@ var SoftReference = function ( root, keypath, evaluator ) {
 };
 
 SoftReference.prototype = {
-	update: function () {
-		var value = this.root.get( this.keypath );
-
+	setValue: function ( value ) {
 		if ( !isEqual( value, this.value ) ) {
 			this.evaluator.bubble();
 			this.value = value;

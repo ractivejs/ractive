@@ -1,19 +1,23 @@
 import runloop from 'global/runloop';
 import css from 'global/css';
+import Promise from 'utils/Promise';
 import Fragment from 'parallel-dom/Fragment/_Fragment';
 
-export default function Ractive$render ( target, anchor, callback ) {
+export default function Ractive$render ( target, anchor ) {
+
+	var promise, fulfilPromise;
 
 	this._rendering = true;
-	runloop.start( this, callback );
 
-	// This method is part of the API for one reason only - so that it can be
-	// overwritten by components that don't want to use the templating system
-	// (e.g. canvas-based components). It shouldn't be called outside of the
-	// initialisation sequence!
-	if ( !this._initing ) {
-		throw new Error( 'You cannot call ractive.render() directly!' );
+	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+	runloop.start( this, fulfilPromise );
+
+	if ( this.rendered ) {
+		throw new Error( 'You cannot call ractive.render() more than once!' );
 	}
+
+	this.el = target;
+	this.anchor = anchor;
 
 	// Add CSS, if applicable
 	if ( this.constructor.css ) {
@@ -44,6 +48,10 @@ export default function Ractive$render ( target, anchor, callback ) {
 
 	delete this._rendering;
 	runloop.end();
+
+	this.rendered = true;
+
+	return promise;
 }
 
 function initChildren ( instance ) {

@@ -4,14 +4,11 @@ export default function Attribute$updateCheckboxName () {
 	var node, value;
 
 	node = this.node;
-	value = this.fragment.getValue();
+	value = this.value;
 
 	if ( !isArray( value ) ) {
 		node.checked = ( value == node._ractive.value );
-		return this;
+	} else {
+		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
 	}
-
-	node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
-
-	return this;
 }

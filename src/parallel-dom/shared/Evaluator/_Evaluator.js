@@ -1,6 +1,7 @@
 import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
+import get from 'shared/get/_get';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import adaptIfNecessary from 'shared/adaptIfNecessary';
@@ -108,7 +109,7 @@ Evaluator.prototype = {
 
 		var i = this.refs.length;
 		while ( i-- ) {
-			this.refs[i].update();
+			this.refs[i].setValue( get( this.root, this.refs[i].keypath ) );
 		}
 
 		if ( this.deferred ) {

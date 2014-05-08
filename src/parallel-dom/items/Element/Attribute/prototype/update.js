@@ -11,23 +11,28 @@ import updateIEStyleAttribute from 'parallel-dom/items/Element/Attribute/prototy
 import updateContentEditableValue from 'parallel-dom/items/Element/Attribute/prototype/update/updateContentEditableValue';
 import updateEverythingElse from 'parallel-dom/items/Element/Attribute/prototype/update/updateEverythingElse';
 
-var updateAttribute,
+var deferSelect, initSelect;
 
-	updateFileInputValue,
-	deferSelect,
-	initSelect,
-	updateEverythingElse;
+initSelect = function () {
+	// we're now in a position to decide whether this is a select-one or select-multiple
+	this.deferredUpdate = ( this.node.multiple ? updateMultipleSelect : updateSelect );
+	this.deferredUpdate();
+};
+
+deferSelect = function () {
+	// because select values depend partly on the values of their children, and their
+	// children may be entering and leaving the DOM, we wait until updates are
+	// complete before updating
+	runloop.addSelectValue( this );
+	return this;
+};
 
 // There are a few special cases when it comes to updating attributes. For this reason,
 // the prototype .update() method points to updateAttribute, which waits until the
 // attribute has finished initialising, then replaces the prototype method with a more
 // suitable one. That way, we save ourselves doing a bunch of tests on each call
-updateAttribute = function () {
+export default function Attribute$update () {
 	var node;
-
-	if ( !this.ready || !this.node ) {
-		return this; // avoid items bubbling to the surface when we're still initialising
-	}
 
 	node = this.node;
 
@@ -84,24 +89,4 @@ updateAttribute = function () {
 
 	this.update = updateEverythingElse;
 	return this.update();
-};
-
-initSelect = function () {
-	// we're now in a position to decide whether this is a select-one or select-multiple
-	this.deferredUpdate = ( this.node.multiple ? updateMultipleSelect : updateSelect );
-	this.deferredUpdate();
-};
-
-deferSelect = function () {
-	// because select values depend partly on the values of their children, and their
-	// children may be entering and leaving the DOM, we wait until updates are
-	// complete before updating
-	runloop.addSelectValue( this );
-	return this;
-};
-
-updateEverythingElse = function () {
-
-};
-
-export default updateAttribute;
+}

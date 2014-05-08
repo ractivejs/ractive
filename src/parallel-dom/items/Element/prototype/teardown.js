@@ -39,8 +39,8 @@ export default function Element$teardown ( destroy ) {
 	}
 
 	// Outro, if necessary
-	if ( this.template.t0 || this.template.t2 ) {
-		executeTransition( this.template.t0 || this.template.t2, this.root, this, false );
+	if ( this.outro ) {
+		runloop.addOutro( this.outro );
 	}
 
 	// Remove this node from any live queries

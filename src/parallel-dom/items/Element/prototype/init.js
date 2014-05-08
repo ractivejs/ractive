@@ -4,8 +4,17 @@ import enforceCase from 'parallel-dom/items/Element/shared/enforceCase';
 import getElementNamespace from 'parallel-dom/items/Element/prototype/init/getElementNamespace';
 import createAttributes from 'parallel-dom/items/Element/prototype/init/createAttributes';
 import createChildren from 'parallel-dom/items/Element/prototype/init/createChildren';
-import createEventProxies from 'parallel-dom/items/Element/prototype/init/createEventProxies';
-import Decorator from 'parallel-dom/items/Element/initialise/decorate/Decorator';
+import createEventHandlers from 'parallel-dom/items/Element/prototype/init/createEventHandlers';
+import Decorator from 'parallel-dom/items/Element/Decorator/_Decorator';
+import Transition from 'parallel-dom/items/Element/Transition/_Transition';
+
+import circular from 'circular';
+
+var Fragment;
+
+circular.push( function () {
+	Fragment = circular.Fragment;
+});
 
 export default function Element$init ( options ) {
 	var parentFragment,
@@ -17,7 +26,7 @@ export default function Element$init ( options ) {
 		width,
 		height,
 		loadHandler,
-		root,
+		ractive,
 		selectBinding,
 		errorMessage;
 
@@ -29,7 +38,7 @@ export default function Element$init ( options ) {
 
 	this.parent = options.pElement || parentFragment.pElement;
 
-	this.root = root = parentFragment.root;
+	this.root = ractive = parentFragment.root;
 	this.index = options.index;
 	this.lcName = template.e.toLowerCase();
 
@@ -68,31 +77,36 @@ export default function Element$init ( options ) {
 			}
 		}*/
 
-		createChildren( this, template );
+		this.fragment = new Fragment({
+			template: template.f,
+			root:     ractive,
+			owner:    this,
+			pElement: this,
+		});
 	}
 
 
 	// create event proxies
 	if ( template.v ) {
-		createEventProxies( this, template.v );
+		this.eventHandlers = createEventHandlers( this, template.v );
 	}
 
 	// create decorator
 	if ( template.o ) {
-		this.decorator = new Decorator( template.o, root, this );
+		this.decorator = new Decorator( this, template.o );
 	}
 
 	// create transitions
 	if ( template.t0 ) {
-		this.intro = this.outro = new Transition();
+		this.intro = this.outro = new Transition( this, template.t0 );
 	}
 
 	if ( template.t1 ) {
-		this.intro = new Transition ();
+		this.intro = new Transition ( this, template.t1 );
 	}
 
 	if ( template.t2 ) {
-		this.outro = new Transition ();
+		this.outro = new Transition ( this, template.t2 );
 	}
 
 	// if we're actually rendering (i.e. not server-side stringifying), proceed
@@ -174,4 +188,13 @@ export default function Element$init ( options ) {
 
 		updateLiveQueries( this );
 	}*/
+}
+
+
+function findParentSelect ( element ) {
+	do {
+		if ( element.name === 'select' ) {
+			return element;
+		}
+	} while ( element = element.parent );
 }

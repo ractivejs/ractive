@@ -9,19 +9,19 @@ circular.push( function () {
 
 getValueOptions = { args: true };
 
-Decorator = function ( template, ractive, owner ) {
-	var decorator = this, name, fragment, errorMessage;
+Decorator = function ( element, template ) {
+	var decorator = this, ractive, name, fragment, errorMessage;
 
-	decorator.root = ractive;
-	decorator.node = owner.node;
+	decorator.element = element;
+	decorator.root = ractive = element.root;
 
 	name = template.n || template;
 
 	if ( typeof name !== 'string' ) {
 		fragment = new Fragment({
-			template:   name,
-			root:         ractive,
-			owner:        owner
+			template: name,
+			root:     ractive,
+			owner:    owner
 		});
 
 		name = fragment.toString();
@@ -34,9 +34,9 @@ Decorator = function ( template, ractive, owner ) {
 
 	else if ( template.d ) {
 		decorator.fragment = new Fragment({
-			template:   template.d,
-			root:         ractive,
-			owner:        owner
+			template: template.d,
+			root:     ractive,
+			owner:    element
 		});
 
 		decorator.params = decorator.fragment.getValue( getValueOptions );
@@ -66,13 +66,15 @@ Decorator = function ( template, ractive, owner ) {
 
 Decorator.prototype = {
 	init: function () {
-		var result, args;
+		var decorator = this, node, result, args;
 
-		if ( this.params ) {
-			args = [ this.node ].concat( this.params );
-			result = this.fn.apply( this.root, args );
+		node = decorator.element.node;
+
+		if ( decorator.params ) {
+			args = [ node ].concat( decorator.params );
+			result = decorator.fn.apply( decorator.root, args );
 		} else {
-			result = this.fn.call( this.root, this.node );
+			result = decorator.fn.call( decorator.root, node );
 		}
 
 		if ( !result || !result.teardown ) {
@@ -80,8 +82,8 @@ Decorator.prototype = {
 		}
 
 		// TODO does this make sense?
-		this.actual = result;
-		this.ready = true;
+		decorator.actual = result;
+		decorator.ready = true;
 	},
 
 	update: function () {

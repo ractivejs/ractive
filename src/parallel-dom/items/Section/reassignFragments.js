@@ -4,7 +4,7 @@ export default function ( section, start, end, by ) {
 
 	indexRef = section.template.i;
 
-	for ( i=start; i<end; i+=1 ) {
+	for ( i = start; i < end; i += 1 ) {
 		fragment = section.fragments[i];
 
 		oldKeypath = section.keypath + '.' + ( i - by );

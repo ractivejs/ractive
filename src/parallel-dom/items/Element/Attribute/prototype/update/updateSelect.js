@@ -1,7 +1,7 @@
 export default function Attribute$updateSelect () {
-	var value = this.fragment.getValue(), options, option, optionValue, i;
+	var value = this.value, options, option, optionValue, i;
 
-	this.value = this.node._ractive.value = value;
+	this.node._ractive.value = value;
 
 	options = this.node.options;
 	i = options.length;
@@ -18,6 +18,4 @@ export default function Attribute$updateSelect () {
 
 	// if we're still here, it means the new value didn't match any of the options...
 	// TODO figure out what to do in this situation
-
-	return this;
 }

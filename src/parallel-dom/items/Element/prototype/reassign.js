@@ -8,6 +8,12 @@ export default function reassignElement ( indexRef, newIndex, oldKeypath, newKey
 		this.attributes[i].reassign( indexRef, newIndex, oldKeypath, newKeypath );
 	}
 
+	if ( this.eventHandlers ) {
+		this.eventHandlers.forEach( function ( handler ) {
+			handler.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+		});
+	}
+
 	if ( storage = this.node._ractive ) {
 
 		//adjust keypath if needed

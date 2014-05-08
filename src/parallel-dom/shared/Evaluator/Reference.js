@@ -29,9 +29,7 @@ Reference = function ( root, keypath, evaluator, argNum, priority ) {
 };
 
 Reference.prototype = {
-	update: function () {
-		var value = this.root.get( this.keypath );
-
+	setValue: function ( value ) {
 		if ( typeof value === 'function' && !value._nowrap ) {
 			value = wrapFunction( value, this.root, this.evaluator );
 		}

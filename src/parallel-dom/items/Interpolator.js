@@ -1,13 +1,14 @@
 import types from 'config/types';
+import runloop from 'global/runloop';
 import teardown from 'shared/teardown';
 import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
 import detach from 'parallel-dom/items/shared/detach';
 
-var DomInterpolator, lessThan, greaterThan;
+var Interpolator, lessThan, greaterThan;
 lessThan = /</g;
 greaterThan = />/g;
 
-DomInterpolator = function ( options, docFrag ) {
+Interpolator = function ( options, docFrag ) {
 	this.type = types.INTERPOLATOR;
 
 	if ( docFrag ) {
@@ -19,8 +20,10 @@ DomInterpolator = function ( options, docFrag ) {
 	Mustache.init( this, options );
 };
 
-DomInterpolator.prototype = {
-	update: Mustache.update,
+Interpolator.prototype = {
+	update: function () {
+		this.node.data = ( this.value == undefined ? '' : this.value );
+	},
 	resolve: Mustache.resolve,
 	reassign: Mustache.reassign,
 	detach: detach,
@@ -34,7 +37,10 @@ DomInterpolator.prototype = {
 	},
 
 	render: function () {
-		return this.node = document.createTextNode( this.value != undefined ? this.value : '' );
+		this.node = document.createTextNode( this.value != undefined ? this.value : '' );
+		this.rendered = true;
+
+		return this.node;
 	},
 
 	unrender: function () {
@@ -43,8 +49,13 @@ DomInterpolator.prototype = {
 
 	// TEMP
 	setValue: function ( value ) {
-		if ( this.node ) {
-			this.node.data = ( value == undefined ? '' : value );
+		if ( value !== this.value ) {
+			this.value = value;
+			this.parentFragment.bubble();
+
+			if ( this.rendered ) {
+				runloop.addUpdate( this );
+			}
 		}
 	},
 
@@ -58,4 +69,4 @@ DomInterpolator.prototype = {
 	}
 };
 
-export default DomInterpolator;
+export default Interpolator;
