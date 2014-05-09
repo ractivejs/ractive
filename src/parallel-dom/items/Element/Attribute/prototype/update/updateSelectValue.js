@@ -12,7 +12,7 @@ export default function Attribute$updateSelect () {
 
 		if ( optionValue == value ) { // double equals as we may be comparing numbers with strings
 			option.selected = true;
-			return this;
+			break;
 		}
 	}
 

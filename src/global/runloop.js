@@ -27,11 +27,11 @@ var runloop,
 	outros = [],
 	observers = [],
 	updateQueue = [],
-	activeBindings = [],
+	lockedAttributes = [],
 
 	evaluators = [],
 	computations = [],
-	selectValues = [],
+	selectBindings = [],
 	checkboxKeypaths = {},
 	checkboxes = [],
 	radios = [],
@@ -114,9 +114,9 @@ runloop = {
 		updateQueue.push( thing );
 	},
 
-	addBinding: function ( binding ) {
-		binding.active = true;
-		activeBindings.push( binding );
+	lockAttribute: function ( attribute ) {
+		attribute.locked = true;
+		lockedAttributes.push( attribute );
 	},
 
 	scheduleCssUpdate: function () {
@@ -140,9 +140,9 @@ runloop = {
 		computations.push( thing );
 	},
 
-	addSelectValue: function ( selectValue ) {
+	addSelectBinding: function ( selectBinding ) {
 		dirty = true;
-		selectValues.push( selectValue );
+		selectBindings.push( selectBinding );
 	},
 
 	addCheckbox: function ( checkbox ) {
@@ -203,8 +203,8 @@ function flushChanges () {
 			thing.update().deferred = false;
 		}
 
-		while ( thing = selectValues.pop() ) {
-			thing.deferredUpdate();
+		while ( thing = selectBindings.pop() ) {
+			thing.updateModel();
 		}
 
 		while ( thing = checkboxes.pop() ) {
@@ -247,8 +247,9 @@ function flushChanges () {
 		thing.update();
 	}
 
-	while ( thing = activeBindings.pop() ) {
-		thing.active = false;
+	// Unlock attributes (twoway binding)
+	while ( thing = lockedAttributes.pop() ) {
+		thing.locked = false;
 	}
 
 	// Change events are fired last

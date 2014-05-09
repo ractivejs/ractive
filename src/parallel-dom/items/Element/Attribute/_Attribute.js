@@ -1,4 +1,3 @@
-import bind from 'parallel-dom/items/Element/Attribute/prototype/bind';
 import bubble from 'parallel-dom/items/Element/Attribute/prototype/bubble';
 import init from 'parallel-dom/items/Element/Attribute/prototype/init';
 import reassign from 'parallel-dom/items/Element/Attribute/prototype/reassign';
@@ -13,7 +12,6 @@ var Attribute = function ( options ) {
 };
 
 Attribute.prototype = {
-	bind: bind,
 	bubble: bubble,
 	init: init,
 	reassign: reassign,

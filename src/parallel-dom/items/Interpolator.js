@@ -5,15 +5,8 @@ import teardown from 'shared/teardown';
 import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
 import detach from 'parallel-dom/items/shared/detach';
 
-var Interpolator = function ( options, docFrag ) {
+var Interpolator = function ( options ) {
 	this.type = types.INTERPOLATOR;
-
-	if ( docFrag ) {
-		this.node = document.createTextNode( '' );
-		docFrag.appendChild( this.node );
-	}
-
-	// extend Mustache
 	Mustache.init( this, options );
 };
 

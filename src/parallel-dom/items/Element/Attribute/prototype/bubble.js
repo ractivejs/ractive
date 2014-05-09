@@ -5,6 +5,9 @@ export default function Attribute$bubble () {
 
 	if ( value !== this.value ) {
 		this.value = value;
-		runloop.addUpdate( this );
+
+		if ( this.rendered ) {
+			runloop.addUpdate( this );
+		}
 	}
 }

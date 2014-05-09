@@ -21,7 +21,7 @@ var singleMustacheError = 'For two-way binding to work, attribute value must be 
 	updateModelAndView,
 	getOptions,
 	getBinding,
-	inheritProperties;
+	initBinding;
 
 bindAttribute = function () {
 	var node = this.node, interpolator, binding, bindings;

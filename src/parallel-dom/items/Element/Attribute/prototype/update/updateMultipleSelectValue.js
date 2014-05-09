@@ -1,3 +1,5 @@
+import isArray from 'utils/isArray';
+
 export default function Attribute$updateMultipleSelect () {
 	var value = this.value, options, i, option, optionValue;
 

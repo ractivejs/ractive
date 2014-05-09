@@ -43,18 +43,7 @@ export default function Attribute$init ( options ) {
 	// takes the form `{{foo}}`. This is necessary for two-way binding and
 	// for correctly rendering HTML later
 	this.interpolator = getInterpolator( this );
-
-	// special cases
-	if ( this.name === 'value' ) {
-		this.isValueAttribute = true;
-
-		// TODO need to wait until afterwards to determine type, in case we
-		// haven't initialised that attribute yet
-		// <input type='file' value='{{value}}'>
-		/*if ( this.element.name === 'input' && this.element.attributes.type && this.element.attributes.type.value === 'file' ) {
-			this.isFileInputValue = true;
-		}*/
-	}
+	this.isBindable = !!this.interpolator;
 
 	// can we establish this attribute's property name equivalent?
 	determinePropertyName( this, options );

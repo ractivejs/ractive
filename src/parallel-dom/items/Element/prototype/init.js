@@ -3,7 +3,7 @@ import namespaces from 'config/namespaces';
 import enforceCase from 'parallel-dom/items/Element/shared/enforceCase';
 import getElementNamespace from 'parallel-dom/items/Element/prototype/init/getElementNamespace';
 import createAttributes from 'parallel-dom/items/Element/prototype/init/createAttributes';
-import createChildren from 'parallel-dom/items/Element/prototype/init/createChildren';
+import createTwowayBinding from 'parallel-dom/items/Element/prototype/init/createTwowayBinding';
 import createEventHandlers from 'parallel-dom/items/Element/prototype/init/createEventHandlers';
 import Decorator from 'parallel-dom/items/Element/Decorator/_Decorator';
 import Transition from 'parallel-dom/items/Element/Transition/_Transition';
@@ -27,6 +27,8 @@ export default function Element$init ( options ) {
 		height,
 		loadHandler,
 		ractive,
+		binding,
+		bindings,
 		selectBinding,
 		errorMessage;
 
@@ -59,16 +61,39 @@ export default function Element$init ( options ) {
 		if ( !template.a ) {
 			template.a = {};
 		}
-		template.a.value = template.f;
+
+		if ( !template.a.value ) {
+			template.a.value = template.f;
+		}
+
+		// If there is a `selected` attribute, but the <select>,
+		// already has a value, delete it
+		if ( 'selected' in template.a && this.select.getAttribute( 'value' ) !== undefined ) {
+			delete template.a.selected;
+		}
 	}
 
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
 
+	// create twoway binding
+	if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
+		this.binding = binding;
+
+		// register this with the root, so that we can do ractive.updateModel()
+		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
+		bindings.push( binding );
+	}
+
+
 	// Special case - <option> elements
 	if ( this.name === 'option' ) {
-		if ( this.select.initialValue === undefined || ( this.getAttribute( 'selected' ) ) ) {
-			this.select.initialValue = this.getAttribute( 'value' );
+		if ( this.select.binding ) {
+			this.select.binding.dirty();
+
+			if ( this.select.binding.initialValue === undefined || ( this.getAttribute( 'selected' ) ) ) {
+				this.select.binding.initialValue = this.getAttribute( 'value' );
+			}
 		}
 	}
 
@@ -95,12 +120,6 @@ export default function Element$init ( options ) {
 			owner:    this,
 			pElement: this,
 		});
-
-		// Special case - <select>
-		if ( this.name === 'select' ) {
-			console.warn( 'TODO - set two-way bound select value based on options' );
-			console.log( this.initialValue );
-		}
 	}
 
 
@@ -126,6 +145,7 @@ export default function Element$init ( options ) {
 	if ( template.t2 ) {
 		this.outro = new Transition ( this, template.t2 );
 	}
+
 
 	// if we're actually rendering (i.e. not server-side stringifying), proceed
 	/*if ( docFrag ) {

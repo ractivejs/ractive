@@ -39,7 +39,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( ractive.get( 'color' ), 'green' );
-			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green" selected>green</option></select> <p>selected green</p>' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select> <p>selected green</p>' );
 		});
 
 		test( 'If a select value with two-way binding has no selected option at render time, the model defaults to the top value', function ( t ) {

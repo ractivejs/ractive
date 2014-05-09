@@ -44,5 +44,6 @@ export default function Attribute$render ( node ) {
 		}
 	}
 
+	this.rendered = true;
 	this.update();
 }

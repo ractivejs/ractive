@@ -1,4 +1,3 @@
-import bind from 'parallel-dom/items/Element/prototype/bind';
 import bubble from 'parallel-dom/items/Element/prototype/bubble';
 import bubble from 'parallel-dom/items/Element/prototype/bubble';
 import detach from 'parallel-dom/items/Element/prototype/detach';
@@ -20,7 +19,6 @@ var Element = function ( options ) {
 };
 
 Element.prototype = {
-	bind: bind,
 	bubble: bubble,
 	detach: detach,
 	find: find,

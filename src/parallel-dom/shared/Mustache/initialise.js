@@ -1,3 +1,4 @@
+import types from 'config/types';
 import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
 import ReferenceExpressionResolver from 'parallel-dom/shared/Resolvers/ReferenceExpressionResolver';
@@ -61,7 +62,7 @@ export default function initMustache ( mustache, options ) {
 	}
 
 	// Special case - inverted sections
-	if ( mustache.template.n && !mustache.hasOwnProperty( 'value' ) ) {
+	if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
 	}
 }

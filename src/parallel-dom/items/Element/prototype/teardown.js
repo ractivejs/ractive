@@ -28,7 +28,7 @@ export default function Element$teardown ( destroy ) {
 		if ( binding = this.node._ractive.binding ) {
 			binding.teardown();
 
-			bindings = this.root._twowayBindings[ binding.attr.keypath ];
+			bindings = this.root._twowayBindings[ binding.keypath ];
 			bindings.splice( bindings.indexOf( binding ), 1 );
 		}
 	}

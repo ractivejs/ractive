@@ -90,8 +90,9 @@ export default function Element$render () {
 
 
 	// deal with two-way bindings
-	if ( root.twoway ) {
-		this.bind();
+	if ( this.binding ) {
+		this.binding.render();
+		this.node._ractive.binding = this.binding;
 
 		// Special case - contenteditable
 		if ( this.node.getAttribute( 'contenteditable' ) && this.node._ractive.binding ) {
@@ -135,26 +136,18 @@ export default function Element$render () {
 		runloop.addIntro( this.intro );
 	}
 
-	if ( this.node.tagName === 'OPTION' ) {
-		// Special case... if this option's parent select was previously
+	if ( this.name === 'option' ) {
+		/*// Special case... if this option's parent select was previously
 		// empty, it's possible that it should initialise to the value of
 		// this option.
 		if ( this.parent.name === 'select' && ( selectBinding = this.parent.binding ) ) { // it should be!
-			selectBinding.deferUpdate();
-		}
+			console.log( selectBinding );
+			console.error( 'TODO!' );
+			//selectBinding.deferUpdate();
+		}*/
 
-		// If a value attribute was not given, we need to create one based on
-		// the content of the node, so that `<option>foo</option>` behaves the
-		// same as `<option value='foo'>foo</option>` with two-way binding
-		if ( !this.attributes.value ) {
-			this.attributes.value = new Attribute({
-				element: this,
-				name:    'value',
-				value:   this.template.f,
-				root:    this.root
-			});
-
-			this.attributes.push( this.attributes.value );
+		if ( this.getAttribute( 'value' ) == this.select.getAttribute( 'value' ) ) {
+			this.node.selected = true;
 		}
 
 		// Special case... a select may have had its value set before a matching

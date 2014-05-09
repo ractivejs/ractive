@@ -8,7 +8,7 @@ export default function Attribute$updateContentEditableValue () {
 		value = '';
 	}
 
-	if ( !this.active ) {
+	if ( !this.locked ) {
 		node.innerHTML = value;
 	}
 }
