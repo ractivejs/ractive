@@ -25,13 +25,13 @@ CheckedBinding.prototype = {
 		node.removeEventListener( 'click', handleChange, false );
 	},
 
-	value: function () {
-		return this.node.checked;
+	getValue: function () {
+		return this.element.node.checked;
 	},
 
-	update: function () {
+	handleChange: function () {
 		runloop.lockAttribute( this );
-		set( this.root, this.keypath, this.value() );
+		set( this.root, this.keypath, this.getValue() );
 		runloop.trigger();
 	}
 };

@@ -19,17 +19,17 @@ export default function Element$teardown ( destroy ) {
 		this.attributes.pop().teardown();
 	}
 
+	if ( binding = this.binding ) {
+		this.binding.unrender();
+
+		this.node._ractive.binding = null;
+		bindings = this.root._twowayBindings[ binding.keypath ];
+		bindings.splice( bindings.indexOf( binding ), 1 );
+	}
+
 	if ( this.node ) {
 		for ( eventName in this.node._ractive.events ) {
 			this.node._ractive.events[ eventName ].teardown();
-		}
-
-		// tear down two-way binding, if such there be
-		if ( binding = this.node._ractive.binding ) {
-			binding.teardown();
-
-			bindings = this.root._twowayBindings[ binding.keypath ];
-			bindings.splice( bindings.indexOf( binding ), 1 );
 		}
 	}
 

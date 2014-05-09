@@ -91,10 +91,25 @@ export default function Element$init ( options ) {
 		if ( this.select.binding ) {
 			this.select.binding.dirty();
 
-			if ( this.select.binding.initialValue === undefined || ( this.getAttribute( 'selected' ) ) ) {
+			if ( this.select.getAttribute( 'multiple' ) ) {
+				if ( this.getAttribute( 'selected' ) ) {
+					if ( !this.select.binding.initialValue ) {
+						this.select.binding.initialValue = [];
+					}
+
+					this.select.binding.initialValue.push( this.getAttribute( 'value' ) );
+				}
+			}
+
+			else if ( this.getAttribute( 'selected' ) || this.select.binding.initialValue === undefined ) {
 				this.select.binding.initialValue = this.getAttribute( 'value' );
 			}
 		}
+	}
+
+	// Special case - <select multiple> elements
+	if ( this.name === 'select' && this.getAttribute( 'multiple' ) && this.binding ) {
+		this.binding.initialValue = [];
 	}
 
 

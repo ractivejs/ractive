@@ -21,7 +21,7 @@ FileListBinding.prototype = {
 		return this.element.node.files;
 	},
 
-	update: function () {
+	handleChange: function () {
 		runloop.lockAttribute( this.attribute );
 		set( this.root, this.keypath, this.getValue() );
 		runloop.trigger();

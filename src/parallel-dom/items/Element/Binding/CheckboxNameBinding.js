@@ -11,7 +11,7 @@ var CheckboxNameBinding = function ( element ) {
 
 CheckboxNameBinding.prototype = {
 	render: function () {
-		var node = this.element.node;
+		var node = this.element.node, valueFromModel;
 
 		this.element.node.name = '{{' + this.keypath + '}}';
 
@@ -21,6 +21,8 @@ CheckboxNameBinding.prototype = {
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', handleChange, false );
 		}
+
+		valueFromModel = get( this.root, this.keypath );
 
 		// if the model already specifies this value, check/uncheck accordingly
 		if ( valueFromModel !== undefined ) {
@@ -40,11 +42,11 @@ CheckboxNameBinding.prototype = {
 	},
 
 	changed: function () {
-		return this.node.checked !== !!this.checked;
+		return this.element.node.checked !== !!this.checked;
 	},
 
 	handleChange: function () {
-		this.checked = this.node.checked;
+		this.checked = this.element.node.checked;
 
 		runloop.lockAttribute( this.attr );
 		set( this.root, this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );

@@ -1,6 +1,6 @@
 import assignNewKeypath from 'parallel-dom/shared/utils/assignNewKeypath';
 
-export default function reassignElement ( indexRef, newIndex, oldKeypath, newKeypath ) {
+export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var i, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
 
 	i = this.attributes.length;
@@ -41,6 +41,8 @@ export default function reassignElement ( indexRef, newIndex, oldKeypath, newKey
 		}
 
 		if ( binding = storage.binding ) {
+			console.log( 'binding', binding );
+
 			if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
 				bindings = storage.root._twowayBindings[ binding.keypath ];
 

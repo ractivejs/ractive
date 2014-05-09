@@ -1,3 +1,4 @@
+import isArray from 'utils/isArray';
 import create from 'utils/create';
 import createElement from 'utils/createElement';
 import defineProperty from 'utils/defineProperty';
@@ -137,24 +138,7 @@ export default function Element$render () {
 	}
 
 	if ( this.name === 'option' ) {
-		/*// Special case... if this option's parent select was previously
-		// empty, it's possible that it should initialise to the value of
-		// this option.
-		if ( this.parent.name === 'select' && ( selectBinding = this.parent.binding ) ) { // it should be!
-			console.log( selectBinding );
-			console.error( 'TODO!' );
-			//selectBinding.deferUpdate();
-		}*/
-
-		if ( this.getAttribute( 'value' ) == this.select.getAttribute( 'value' ) ) {
-			this.node.selected = true;
-		}
-
-		// Special case... a select may have had its value set before a matching
-		// option was rendered. This might be that option element
-		if ( this.node._ractive.value == ( this.parent.attributes.value && this.parent.attributes.value.value ) ) {
-			this.node.selected = true;
-		}
+		processOption( this );
 	}
 
 	if ( this.node.autofocus ) {
@@ -169,6 +153,24 @@ export default function Element$render () {
 	return this.node;
 }
 
+function processOption ( option ) {
+	var optionValue, selectValue, i;
+
+	optionValue = option.getAttribute( 'value' );
+	selectValue = option.select.getAttribute( 'value' );
+
+	if ( option.select.node.multiple && isArray( selectValue ) ) {
+		i = selectValue.length;
+		while ( i-- ) {
+			if ( optionValue == selectValue[i] ) {
+				option.node.selected = true;
+				break;
+			}
+		}
+	} else {
+		option.node.selected = ( optionValue == selectValue );
+	}
+}
 
 function updateLiveQueries ( element ) {
 	var instance, liveQueries, i, selector, query;

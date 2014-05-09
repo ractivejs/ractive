@@ -7,8 +7,12 @@ import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
 
 export default function ( data, callback ) {
-	var promise, fulfilPromise, wrapper,
-		changes, rerender, i;
+	var promise,
+		fulfilPromise,
+		wrapper,
+		changes,
+		rerender,
+		i;
 
 	if ( typeof data === 'function' && !callback ) {
 		callback = data;
@@ -33,29 +37,27 @@ export default function ( data, callback ) {
 
 	this.initOptions.data = this.data;
 
-	changes = initialiseRegistries ( this, this.constructor.defaults,
-		this.initOptions, { updatesOnly: true } );
+	changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, { updatesOnly: true } );
 
 	i = changes.length;
-	while(i--) {
+	while ( i-- ) {
 		if ( shouldRerender.indexOf( changes[i] > -1 ) ) {
 			rerender = true;
 			break;
 		}
 	}
 
-	if( rerender ) {
+	if ( rerender ) {
+		promise = this.unrender().then( function () {
+			return self.render();
+		});
 
-		this.teardown();
-
-		throw new Error( 'TODO' );
-		promise = renderInstance ( this, this.initOptions );
+		// throw new Error( 'TODO' );
+		// promise = renderInstance ( this, this.initOptions );
 
 		// should this fire and when?
 		// this.fire( 'reset', data );
-
 	} else {
-
 		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
 		runloop.start( this, fulfilPromise );

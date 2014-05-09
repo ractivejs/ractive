@@ -5,8 +5,6 @@ import isEqual from 'utils/isEqual';
 export default function Ractive$updateModel ( keypath, cascade ) {
 	var values, deferredCheckboxes, i;
 
-	console.group( 'updateModel' );
-
 	if ( typeof keypath !== 'string' ) {
 		keypath = '';
 		cascade = true;
@@ -20,8 +18,6 @@ export default function Ractive$updateModel ( keypath, cascade ) {
 			values[ keypath ] = getValueFromCheckboxes( this, keypath );
 		}
 	}
-
-	console.groupEnd();
 
 	return this.set( values );
 }

@@ -71,18 +71,9 @@ MultipleSelectBinding.prototype = {
 	},
 
 	updateModel: function () {
-		console.warn( 'TODO', this );
-	},
-
-	deferUpdate: function () {
-		if ( this.deferred === true ) {
-			return;
+		if ( this.attribute.value === undefined || !this.attribute.value.length ) {
+			set( this.root, this.keypath, this.initialValue );
 		}
-
-		// TODO we're hijacking an existing bit of functionality here...
-		// the whole deferred updates thing could use a spring clean
-		runloop.addAttribute( this );
-		this.deferred = true;
 	},
 
 	dirty: function () {

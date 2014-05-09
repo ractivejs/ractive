@@ -18,7 +18,7 @@ export default function createTwowayBinding ( element, attributes ) {
 	}
 
 	// contenteditable
-	if ( element.getAttribute( 'contenteditable' ) && attributes.value.isBindable ) {
+	if ( element.getAttribute( 'contenteditable' ) && isBindable( attributes.value ) ) {
 		Binding = ContentEditableBinding;
 	}
 
@@ -28,11 +28,11 @@ export default function createTwowayBinding ( element, attributes ) {
 
 		if ( type === 'radio' || type === 'checkbox' ) {
 			// we can either bind the name attribute, or the checked attribute - not both
-			if ( attributes.name.isBindable ) {
+			if ( isBindable( attributes.name ) ) {
 				Binding = ( type === 'radio' ? RadioNameBinding : CheckboxNameBinding );
 			}
 
-			if ( attributes.checked.isBindable ) {
+			if ( isBindable( attributes.checked ) ) {
 				Binding = CheckedBinding;
 			}
 		}
@@ -41,22 +41,26 @@ export default function createTwowayBinding ( element, attributes ) {
 			Binding = FileListBinding;
 		}
 
-		else if ( attributes.value.isBindable ) {
+		else if ( isBindable( attributes.value ) ) {
 			Binding = GenericBinding;
 		}
 	}
 
 	// <select>
-	else if ( element.name === 'select' && attributes.value.isBindable ) {
+	else if ( element.name === 'select' && isBindable( attributes.value ) ) {
 		Binding = ( element.getAttribute( 'multiple' ) ? MultipleSelectBinding : SelectBinding );
 	}
 
 	// <textarea>
-	else if ( element.name === 'textarea' && attributes.value.isBindable ) {
+	else if ( element.name === 'textarea' && isBindable( attributes.value ) ) {
 		Binding = GenericBinding;
 	}
 
 	if ( Binding ) {
 		return new Binding( element );
 	}
+}
+
+function isBindable ( attribute ) {
+	return attribute && attribute.isBindable;
 }
