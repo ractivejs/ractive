@@ -43,7 +43,7 @@ export default function Attribute$update () {
 	}
 
 	// special case - selects
-	if ( node.tagName === 'SELECT' && this.lcName === 'value' ) {
+	if ( node.tagName === 'SELECT' && this.name === 'value' ) {
 		this.update = deferSelect;
 		this.deferredUpdate = initSelect; // we don't know yet if it's a select-one or select-multiple
 
@@ -57,7 +57,7 @@ export default function Attribute$update () {
 	}
 
 	// special case - <input type='radio' name='{{twoway}}' value='foo'>
-	if ( this.twoway && this.lcName === 'name' ) {
+	if ( this.twoway && this.name === 'name' ) {
 		if ( node.type === 'radio' ) {
 			this.update = updateRadioName;
 			return this.update();
@@ -70,19 +70,19 @@ export default function Attribute$update () {
 	}
 
 	// special case - style attributes in Internet Exploder
-	if ( this.lcName === 'style' && node.style.setAttribute ) {
+	if ( this.name === 'style' && node.style.setAttribute ) {
 		this.update = updateIEStyleAttribute;
 		return this.update();
 	}
 
 	// special case - class names. IE fucks things up, again
-	if ( this.lcName === 'class' && ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) {
+	if ( this.name === 'class' && ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) {
 		this.update = updateClassName;
 		return this.update();
 	}
 
 	// special case - contenteditable
-	if ( node.getAttribute( 'contenteditable' ) && this.lcName === 'value' ) {
+	if ( node.getAttribute( 'contenteditable' ) && this.name === 'value' ) {
 		this.update = updateContentEditableValue;
 		return this.update();
 	}

@@ -123,25 +123,19 @@ define([ 'ractive' ], function ( Ractive ) {
 				{ name: 'charles' }
 			];
 
-			console.group( 'initial' );
 			ractive = new Ractive({
 				el: fixture,
 				template: '{{#people}}<widget person="{{this}}"/>{{/people}}',
 				data: { people: people },
 				components: { widget: Widget }
 			});
-			console.groupEnd();
 
 			t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p>');
 
-			console.group( 'splice1' );
 			people.splice( 0, 0, { name: 'daisy' });
-			console.groupEnd();
 			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>bob</p><p>charles</p>');
 
-			console.group( 'splice2' );
 			people.splice( 2, 1, { name: 'erica' }, { name: 'fenton' });
-			console.groupEnd();
 			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
 		});
 

@@ -1,3 +1,5 @@
+import warn from 'utils/warn';
+
 export default function Transition$init ( element, template ) {
 	var t = this, ractive, name, fragment, errorMessage;
 

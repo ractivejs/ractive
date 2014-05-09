@@ -40,7 +40,6 @@ export default function Element$init ( options ) {
 
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
-	this.lcName = template.e.toLowerCase();
 
 	this.eventListeners = [];
 	this.customEventListeners = [];
@@ -48,14 +47,20 @@ export default function Element$init ( options ) {
 	this.cssDetachQueue = [];
 
 
-	// If this is an option element, we need to store a reference to its select
-	if ( this.lcName === 'option' ) {
-		this.select = findParentSelect( this.parent );
-	}
-
 	this.namespace = getElementNamespace( template, this.parent );
 	this.name = ( namespace !== namespaces.html ? enforceCase( template.e ) : template.e );
 
+
+	// Special case - <option> elements
+	if ( this.name === 'option' ) {
+		this.select = findParentSelect( this.parent );
+
+		// If the value attribute is missing, use the element's content
+		if ( !template.a ) {
+			template.a = {};
+		}
+		template.a.value = template.f;
+	}
 
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
@@ -83,6 +88,11 @@ export default function Element$init ( options ) {
 			owner:    this,
 			pElement: this,
 		});
+
+		// Special case - <select>
+		if ( this.name === 'select' ) {
+			console.warn( 'TODO - set two-way bound select value based on options' );
+		}
 	}
 
 
@@ -163,13 +173,6 @@ export default function Element$init ( options ) {
 			// this option.
 			if ( pNode.tagName === 'SELECT' && ( selectBinding = pNode._ractive.binding ) ) { // it should be!
 				selectBinding.deferUpdate();
-			}
-
-			// If a value attribute was not given, we need to create one based on
-			// the content of the node, so that `<option>foo</option>` behaves the
-			// same as `<option value='foo'>foo</option>` with two-way binding
-			if ( !attributes.value ) {
-				createElementAttribute( this, 'value', template.f );
 			}
 
 			// Special case... a select may have had its value set before a matching

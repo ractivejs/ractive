@@ -2,26 +2,27 @@ import voidElementNames from 'config/voidElementNames';
 import isArray from 'utils/isArray';
 
 export default function () {
-	var str;
+	var str, escape;
 
 	str = '<' + ( this.template.y ? '!doctype' : this.template.e );
 
 	str += this.attributes.map( stringifyAttribute ).join( '' );
 
 	// Special case - selected options
-	if ( this.lcName === 'option' && optionIsSelected( this ) ) {
+	if ( this.name === 'option' && optionIsSelected( this ) ) {
 		str += ' selected';
 	}
 
 	// Special case - two-way radio name bindings
-	if ( this.lcName === 'input' && inputIsCheckedRadio( this ) ) {
+	if ( this.name === 'input' && inputIsCheckedRadio( this ) ) {
 		str += ' checked';
 	}
 
 	str += '>';
 
 	if ( this.fragment ) {
-		str += this.fragment.toString();
+		escape = ( this.name !== 'script' && this.name !== 'style' );
+		str += this.fragment.toString( escape );
 	}
 
 	// add a closing tag if this isn't a void element
@@ -29,7 +30,6 @@ export default function () {
 		str += '</' + this.template.e + '>';
 	}
 
-	this.stringifying = false;
 	return str;
 }
 

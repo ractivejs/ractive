@@ -1,4 +1,4 @@
-import prefix from 'parallel-dom/items/Element/shared/executeTransition/Transition/helpers/prefix';
+import prefix from 'parallel-dom/items/Element/Transition/helpers/prefix';
 
 export default function ( style, value ) {
 	var prop;

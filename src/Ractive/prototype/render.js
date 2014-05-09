@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import css from 'global/css';
 import Promise from 'utils/Promise';
-import Fragment from 'parallel-dom/Fragment/_Fragment';
 
 export default function Ractive$render ( target, anchor ) {
 
@@ -24,14 +23,6 @@ export default function Ractive$render ( target, anchor ) {
 		css.add( this.constructor );
 	}
 
-	// Render our *root fragment*
-	this.fragment = new Fragment({
-		template: this.template,
-		root: this,
-		owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
-		pNode: target
-	});
-
 	if ( target ) {
 		if ( anchor ) {
 			target.insertBefore( this.fragment.render(), anchor );
@@ -44,6 +35,8 @@ export default function Ractive$render ( target, anchor ) {
 	// it should call any `init()` methods at this point
 	if ( !this._parent || !this._parent._rendering ) {
 		initChildren( this );
+	} else {
+		this._parent._childInitQueue.push( this );
 	}
 
 	delete this._rendering;
@@ -58,11 +51,11 @@ function initChildren ( instance ) {
 	var child;
 
 	while ( child = instance._childInitQueue.shift() ) {
-		if ( child.instance.init ) {
-			child.instance.init( child.options );
+		if ( child.init ) {
+			child.init( child.initOptions );
 		}
 
 		// now do the same for grandchildren, etc
-		initChildren( child.instance );
+		initChildren( child );
 	}
 }

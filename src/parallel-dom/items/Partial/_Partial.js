@@ -56,10 +56,10 @@ Partial.prototype = {
 		this.fragment.teardown( destroy );
 	},
 
-	toString: function () {
+	toString: function ( toString ) {
 		var string, previousItem, lastLine, match;
 
-		string = this.fragment.toString();
+		string = this.fragment.toString( toString );
 
 		previousItem = this.parentFragment.items[ this.index - 1 ];
 

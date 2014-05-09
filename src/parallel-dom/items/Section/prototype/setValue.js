@@ -27,10 +27,12 @@ export default function Section$setValue ( value ) {
 	}
 
 	this.updating = true;
-	if ( reevaluateSection( this, value ) ) {
+	if ( reevaluateSection( this, value ) && this.rendered ) {
 		runloop.addUpdate( this );
 	}
 	this.updating = false;
+
+	this.value = value;
 }
 
 

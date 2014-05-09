@@ -1,7 +1,7 @@
 import legacy from 'legacy';
 import isClient from 'config/isClient';
 import isArray from 'utils/isArray';
-import prefix from 'parallel-dom/items/Element/shared/executeTransition/Transition/helpers/prefix';
+import prefix from 'parallel-dom/items/Element/Transition/helpers/prefix';
 
 var getStyle, getComputedStyle;
 

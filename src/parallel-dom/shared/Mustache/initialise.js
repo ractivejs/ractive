@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
-import KeypathExpressionResolver from 'parallel-dom/shared/Resolvers/KeypathExpressionResolver';
+import ReferenceExpressionResolver from 'parallel-dom/shared/Resolvers/ReferenceExpressionResolver';
 import ExpressionResolver from 'parallel-dom/shared/Resolvers/ExpressionResolver';
 
 export default function initMustache ( mustache, options ) {
@@ -43,8 +43,7 @@ export default function initMustache ( mustache, options ) {
 
 		if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
 			mustache.indexRef = ref;
-			mustache.value = index;
-			mustache.setValue( mustache.value );
+			mustache.setValue( index );
 		}
 
 		else {
@@ -57,8 +56,8 @@ export default function initMustache ( mustache, options ) {
 		mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.template.x, resolve );
 	}
 
-	if ( options.template.kx ) {
-		mustache.resolver = new KeypathExpressionResolver( mustache, options.template.kx, resolveWithRef );
+	if ( options.template.rx ) {
+		mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolveWithRef );
 	}
 
 	// Special case - inverted sections

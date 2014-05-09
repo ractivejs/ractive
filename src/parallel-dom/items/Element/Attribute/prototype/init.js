@@ -51,7 +51,7 @@ export default function Attribute$init ( options ) {
 		// TODO need to wait until afterwards to determine type, in case we
 		// haven't initialised that attribute yet
 		// <input type='file' value='{{value}}'>
-		/*if ( this.element.lcName === 'input' && this.element.attributes.type && this.element.attributes.type.value === 'file' ) {
+		/*if ( this.element.name === 'input' && this.element.attributes.type && this.element.attributes.type.value === 'file' ) {
 			this.isFileInputValue = true;
 		}*/
 	}

@@ -9,12 +9,12 @@ export default function Attribute$toString () {
 	}
 
 	// Special case - select values (should not be stringified)
-	if ( this.name === 'value' && this.element.lcName === 'select' ) {
+	if ( this.name === 'value' && this.element.name === 'select' ) {
 		return;
 	}
 
 	// Special case - radio names
-	if ( this.name === 'name' && this.element.lcName === 'input' && ( interpolator = this.interpolator ) ) {
+	if ( this.name === 'name' && this.element.name === 'input' && ( interpolator = this.interpolator ) ) {
 		return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 	}
 

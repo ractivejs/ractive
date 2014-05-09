@@ -3,7 +3,6 @@ import runloop from 'global/runloop';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
-import renderInstance from 'Ractive/initialise/renderInstance';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
 
@@ -49,6 +48,7 @@ export default function ( data, callback ) {
 
 		this.teardown();
 
+		throw new Error( 'TODO' );
 		promise = renderInstance ( this, this.initOptions );
 
 		// should this fire and when?

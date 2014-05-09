@@ -7,5 +7,6 @@ export default function Component$render () {
 		}
 	});
 
+	this.rendered = true;
 	return instance.detach();
 }

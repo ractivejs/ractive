@@ -1,3 +1,6 @@
+import runloop from 'global/runloop';
+import get from 'shared/get/_get';
+import set from 'shared/set';
 import inheritProperties from 'parallel-dom/items/Element/Attribute/prototype/bind/helpers/inheritProperties';
 import updateModel from 'parallel-dom/items/Element/Attribute/prototype/bind/helpers/updateModel';
 import updateModelAndView from 'parallel-dom/items/Element/Attribute/prototype/bind/helpers/updateModelAndView';
@@ -51,7 +54,7 @@ SelectBinding.prototype = {
 
 		// TODO we're hijacking an existing bit of functionality here...
 		// the whole deferred updates thing could use a spring clean
-		runloop.addAttribute( this );
+		runloop.addUpdate( this );
 		this.deferred = true;
 	},
 

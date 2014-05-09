@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import executeTransition from 'parallel-dom/items/Element/shared/executeTransition/_executeTransition';
 
 export default function Element$teardown ( destroy ) {
 	var eventName, binding, bindings;

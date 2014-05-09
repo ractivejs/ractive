@@ -1,18 +1,20 @@
 import insertHtml from 'parallel-dom/items/Triple/helpers/insertHtml';
 
 export default function Triple$update () {
+	var node, parentNode;
+
+	if ( !this.rendered ) return;
+
 	// remove existing nodes
-	while ( this.nodes.length ) {
+	while ( this.nodes && this.nodes.length ) {
 		node = this.nodes.pop();
 		node.parentNode.removeChild( node );
 	}
 
 	// get new nodes
-	parentElement = this.pElement;
-
 	this.nodes = insertHtml( this.value, this.parentFragment.getNode(), this.docFrag );
 
-	parentNode = this.pElement.node;
+	parentNode = this.parentFragment.getNode();
 	parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 
 	// Special case - we're inserting the contents of a <select>

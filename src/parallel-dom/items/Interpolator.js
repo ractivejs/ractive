@@ -1,14 +1,11 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
+import escapeHtml from 'utils/escapeHtml';
 import teardown from 'shared/teardown';
 import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
 import detach from 'parallel-dom/items/shared/detach';
 
-var Interpolator, lessThan, greaterThan;
-lessThan = /</g;
-greaterThan = />/g;
-
-Interpolator = function ( options, docFrag ) {
+var Interpolator = function ( options, docFrag ) {
 	this.type = types.INTERPOLATOR;
 
 	if ( docFrag ) {
@@ -63,9 +60,9 @@ Interpolator.prototype = {
 		return this.node;
 	},
 
-	toString: function () {
-		var value = ( this.value != undefined ? '' + this.value : '' );
-		return value.replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
+	toString: function ( escape ) {
+		var string = ( this.value != undefined ? '' + this.value : '' );
+		return escape ? escapeHtml( string ) : string;
 	}
 };
 

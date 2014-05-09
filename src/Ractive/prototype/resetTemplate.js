@@ -1,11 +1,10 @@
 import Promise from 'utils/Promise';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
-import renderInstance from 'Ractive/initialise/renderInstance';
 
 export default function ( template, callback ) {
 	var promise, changes, options = {
 		updatesOnly: true,
-		registries: ['template', 'partials']
+		registries: [ 'template', 'partials' ]
 	};
 
 	if ( typeof template === 'function' && !callback ) {
@@ -13,23 +12,19 @@ export default function ( template, callback ) {
 		template = void 0;
 	}
 
-	if(template){
+	if ( template ) {
 		options.newValues = {
 			template: template
 		};
 	}
 
-	changes = initialiseRegistries ( this,
-		this.constructor.defaults,
-		this.initOptions,
-		options);
+	changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, options );
 
 	if ( changes.length ) {
-
 		this.teardown();
 
+		throw new Error( 'TODO' );
 		promise = renderInstance ( this, this.initOptions );
-
 	} else {
 		promise = Promise.resolve();
 	}

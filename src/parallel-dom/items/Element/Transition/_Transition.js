@@ -5,7 +5,6 @@ import getStyle from 'parallel-dom/items/Element/Transition/prototype/getStyle';
 import setStyle from 'parallel-dom/items/Element/Transition/prototype/setStyle';
 import animateStyle from 'parallel-dom/items/Element/Transition/prototype/animateStyle/_animateStyle';
 import processParams from 'parallel-dom/items/Element/Transition/prototype/processParams';
-import resetStyle from 'parallel-dom/items/Element/Transition/prototype/resetStyle';
 import start from 'parallel-dom/items/Element/Transition/prototype/start';
 
 import circular from 'circular';
@@ -28,8 +27,7 @@ Transition.prototype = {
 	getStyle: getStyle,
 	setStyle: setStyle,
 	animateStyle: animateStyle,
-	processParams: processParams,
-	resetStyle: resetStyle
+	processParams: processParams
 };
 
 export default Transition;

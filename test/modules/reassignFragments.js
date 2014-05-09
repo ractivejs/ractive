@@ -29,7 +29,6 @@ define([
 					fragment = {
 						context: opt.target,
 						items: [],
-						pNode: {},
 						root: {
 							'_liveQueries': [],
 							'_deps': [] ,
@@ -44,11 +43,11 @@ define([
 					},
 					el = new Element({
 						parentFragment: fragment,
-						descriptor: { e: 'div' }
+						template: { e: 'div' }
 					}),
 					triple = new Triple({
 						parentFragment: fragment,
-						descriptor: {
+						template: {
 							t: types.TRIPLE,
 							r: '.'
 						}
@@ -60,7 +59,12 @@ define([
 
 				fragment.items.push(el, triple);
 
-				fragment.reassign = Fragment.reassign;
+				fragment.render = Fragment.prototype.render;
+				fragment.reassign = Fragment.prototype.reassign;
+				fragment.getNode = function () { return fixture; };
+				fragment.findNextNode = function () { return null; };
+
+				fragment.render();
 				fragment.reassign( 'i', opt.newKeypath.replace('items.',''), opt.oldKeypath, opt.newKeypath);
 
 				t.equal( fragment.context, opt.expected );

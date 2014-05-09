@@ -7,6 +7,7 @@ import isArray from 'utils/isArray';
 import getGuid from 'utils/getGuid';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
+import Fragment from 'parallel-dom/Fragment/_Fragment';
 
 var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
 
@@ -20,6 +21,13 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 	setOptionsAndFlags( ractive, defaults, options );
 	initialiseProperties( ractive, options );
 	initialiseRegistries( ractive, defaults, options );
+
+	// Render our *root fragment*
+	ractive.fragment = new Fragment({
+		template: ractive.template,
+		root: ractive,
+		owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+	});
 
 	// If `el` is specified, render automatically
 	if ( ractive.el ) {

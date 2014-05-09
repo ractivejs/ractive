@@ -4,9 +4,9 @@ import createElement from 'utils/createElement';
 import camelCase from 'utils/camelCase';
 import interpolate from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
-import prefix from 'parallel-dom/items/Element/shared/executeTransition/Transition/helpers/prefix';
-import unprefix from 'parallel-dom/items/Element/shared/executeTransition/Transition/helpers/unprefix';
-import hyphenate from 'parallel-dom/items/Element/shared/executeTransition/Transition/helpers/hyphenate';
+import prefix from 'parallel-dom/items/Element/Transition/helpers/prefix';
+import unprefix from 'parallel-dom/items/Element/Transition/helpers/unprefix';
+import hyphenate from 'parallel-dom/items/Element/Transition/helpers/hyphenate';
 
 var createTransitions,
 	testStyle,

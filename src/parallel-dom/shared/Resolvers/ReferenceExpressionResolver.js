@@ -1,12 +1,13 @@
 import types from 'config/types';
 import removeFromArray from 'utils/removeFromArray';
+import get from 'shared/get/_get';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 import ExpressionResolver from 'parallel-dom/shared/Resolvers/ExpressionResolver';
 
-var KeypathExpressionResolver = function ( mustache, template, callback ) {
+var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	var resolver = this, ractive, parentFragment, keypath, dynamic, members;
 
 	ractive = mustache.root;
@@ -99,7 +100,7 @@ var KeypathExpressionResolver = function ( mustache, template, callback ) {
 	this.bubble(); // trigger initial resolution if possible
 };
 
-KeypathExpressionResolver.prototype = {
+ReferenceExpressionResolver.prototype = {
 	getKeypath: function () {
 		return this.ref + '.' + this.members.join( '.' );
 	},
@@ -113,7 +114,6 @@ KeypathExpressionResolver.prototype = {
 
 	resolve: function ( index, keypath ) {
 		var keypathObserver = new KeypathObserver( this.root, keypath, this.mustache.priority, this, index );
-		keypathObserver.update();
 
 		this.keypathObservers.push( keypathObserver );
 
@@ -159,14 +159,14 @@ var KeypathObserver = function ( ractive, keypath, priority, resolver, index ) {
 
 	registerDependant( this );
 
-	this.update();
+	this.setValue( get( ractive, keypath ) );
 };
 
 KeypathObserver.prototype = {
-	update: function () {
+	setValue: function ( value ) {
 		var resolver = this.resolver;
 
-		resolver.members[ this.index ] = this.root.get( this.keypath );
+		resolver.members[ this.index ] = value;
 		resolver.bubble();
 	},
 
@@ -175,4 +175,4 @@ KeypathObserver.prototype = {
 	}
 };
 
-export default KeypathExpressionResolver;
+export default ReferenceExpressionResolver;

@@ -55,7 +55,7 @@ bindAttribute = function () {
 	// be explicit when using two-way data-binding about what keypath you're
 	// updating. Using it in lists is probably a recipe for confusion...
 	if ( !interpolator.keypath ) {
-		//TODO: What about kx?
+		//TODO: What about rx?
 		interpolator.resolve( interpolator.template.r );
 	}
 	this.keypath = interpolator.keypath;
@@ -101,7 +101,7 @@ getBinding = function ( attribute ) {
 		return null;
 	}
 
-	if ( attribute.lcName !== 'value' ) {
+	if ( attribute.name !== 'value' ) {
 		throw new Error( 'Attempted to set up an illegal two-way binding. This error is unexpected - if you can, please file an issue at https://github.com/RactiveJS/Ractive, or contact @RactiveJS on Twitter. Thanks!' );
 	}
 

@@ -1,14 +1,10 @@
 import types from 'config/types';
+import escapeHtml from 'utils/escapeHtml';
 import detach from 'parallel-dom/items/shared/detach';
 
-var Text, lessThan, greaterThan;
-lessThan = /</g;
-greaterThan = />/g;
-
-Text = function ( options, docFrag ) {
+var Text = function ( options, docFrag ) {
 	this.type = types.TEXT;
 	this.text = options.template;
-	this.escaped = ( '' + this.text ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 };
 
 Text.prototype = {
@@ -36,8 +32,8 @@ Text.prototype = {
 		return this.node;
 	},
 
-	toString: function () {
-		return this.escaped;
+	toString: function ( escape ) {
+		return escape ? escapeHtml( this.text ) : this.text;
 	}
 };
 

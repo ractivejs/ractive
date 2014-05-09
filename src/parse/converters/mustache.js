@@ -157,7 +157,7 @@ function handlebarsIndexRef ( fragment ) {
 			}
 
 			// Reference expression?
-			if ( child.kx && ( indexRef = indexRefContainedInReferenceExpression( child.kx ) ) ) {
+			if ( child.rx && ( indexRef = indexRefContainedInReferenceExpression( child.rx ) ) ) {
 				return indexRef;
 			}
 		}

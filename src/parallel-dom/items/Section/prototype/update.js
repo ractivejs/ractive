@@ -12,9 +12,11 @@ export default function Section$update () {
 		this.docFrag.appendChild( fragment.render() );
 	}
 
-	anchor = this.insertionPoint || this.parentFragment.findNextNode( this );
-	target = this.parentFragment.getNode();
+	if ( this.rendered ) {
+		anchor = this.insertionPoint || this.parentFragment.findNextNode( this );
+		target = this.parentFragment.getNode();
 
-	target.insertBefore( this.docFrag, anchor );
-	this.insertionPoint = null;
+		target.insertBefore( this.docFrag, anchor );
+		this.insertionPoint = null;
+	}
 }

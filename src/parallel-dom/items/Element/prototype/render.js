@@ -9,7 +9,7 @@ import Attribute from 'parallel-dom/items/Element/Attribute/_Attribute';
 var updateCss, updateScript;
 
 updateCss = function () {
-	var node = this.node, content = this.fragment.toString( true );
+	var node = this.node, content = this.fragment.toString( false );
 
 	if ( node.styleSheet ) {
 		node.styleSheet.cssText = content;
@@ -31,7 +31,7 @@ updateScript = function () {
 		// But this would be a terrible idea with unpredictable results, so let's not.
 	}
 
-	this.node.text = this.fragment.toString( true );
+	this.node.text = this.fragment.toString( false );
 };
 
 export default function Element$render () {
@@ -41,7 +41,7 @@ export default function Element$render () {
 
 	// Is this a top-level node of a component? If so, we may need to add
 	// a data-rvcguid attribute, for CSS encapsulation
-	if ( root.css && node === root.el ) {
+	if ( root.css && this.parentFragment.getNode() === root.el ) {
 		this.node.setAttribute( 'data-rvcguid', root.constructor._guid || root._guid );
 	}
 
@@ -64,14 +64,14 @@ export default function Element$render () {
 
 	// Render children
 	if ( this.fragment ) {
-		// Special case - script tag
-		if ( this.lcName === 'script' ) {
+		// Special case - <script> element
+		if ( this.name === 'script' ) {
 			this.bubble = updateScript;
-			this.node.text = this.fragment.toString( true ); // bypass warning initially
+			this.node.text = this.fragment.toString( false ); // bypass warning initially
 		}
 
-		else if ( this.lcName === 'style' ) {
-			console.log( 'rendering style' );
+		// Special case - <style> element
+		else if ( this.name === 'style' ) {
 			this.bubble = updateCss;
 			this.bubble();
 		}

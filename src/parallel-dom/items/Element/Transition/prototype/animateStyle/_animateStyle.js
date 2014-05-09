@@ -2,8 +2,8 @@ import legacy from 'legacy';
 import isClient from 'config/isClient';
 import warn from 'utils/warn';
 import Promise from 'utils/Promise';
-import prefix from 'parallel-dom/items/Element/shared/executeTransition/Transition/helpers/prefix';
-import createTransitions from 'parallel-dom/items/Element/shared/executeTransition/Transition/prototype/animateStyle/createTransitions';
+import prefix from 'parallel-dom/items/Element/Transition/helpers/prefix';
+import createTransitions from 'parallel-dom/items/Element/Transition/prototype/animateStyle/createTransitions';
 
 var animateStyle, getComputedStyle;
 

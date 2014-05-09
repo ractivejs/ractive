@@ -5,5 +5,7 @@ export default function Fragment$toString ( escape ) {
 		return '';
 	}
 
-	return this.items.join( '' );
+	return this.items.map( function ( item ) {
+		return item.toString( escape );
+	}).join( '' );
 }

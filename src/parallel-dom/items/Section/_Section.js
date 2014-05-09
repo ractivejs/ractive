@@ -1,7 +1,7 @@
 import types from 'config/types';
 import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
 
-import createFragment from 'parallel-dom/items/Section/prototype/createFragment';
+import bubble from 'parallel-dom/items/Section/prototype/bubble';
 import detach from 'parallel-dom/items/Section/prototype/detach';
 import find from 'parallel-dom/items/Section/prototype/find';
 import findAll from 'parallel-dom/items/Section/prototype/findAll';
@@ -33,7 +33,7 @@ var Section = function ( options, docFrag ) {
 };
 
 Section.prototype = {
-	createFragment: createFragment,
+	bubble: bubble,
 	detach: detach,
 	find: find,
 	findAll: findAll,

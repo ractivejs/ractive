@@ -1,3 +1,6 @@
+import get from 'shared/get/_get';
+import updateModel from 'parallel-dom/items/Element/Attribute/prototype/bind/helpers/updateModel';
+
 // Blurring an input should update the model, but we should also update the
 // view in case any validation rules were applied (e.g. via an observer)
 var getOptions = { evaluateWrapped: true };

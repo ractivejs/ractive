@@ -1,5 +1,3 @@
-import Event from 'parallel-dom/items/Element/EventHandler/Event';
-
 var alreadyWarned = {}, customHandlers = {};
 
 export default function EventHandler$render () {

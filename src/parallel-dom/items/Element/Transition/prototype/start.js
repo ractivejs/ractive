@@ -1,15 +1,17 @@
 export default function Transition$start ( isIntro ) {
-	var t = this, node = t.element.node;
+	var t = this, node, originalStyle;
 
-	// store original style attribute
-	t.originalStyle = node.getAttribute( 'style' );
+	node = t.element.node;
+	originalStyle = node.getAttribute( 'style' );
+
+	t.isIntro = !!isIntro;
 
 	// create t.complete() - we don't want this on the prototype,
 	// because we don't want `this` silliness when passing it as
 	// an argument
 	t.complete = function ( noReset ) {
 		if ( !noReset && t.isIntro ) {
-			t.resetStyle();
+			resetStyle( node, originalStyle);
 		}
 
 		node._ractive.transition = null;
@@ -17,4 +19,16 @@ export default function Transition$start ( isIntro ) {
 	};
 
 	t._fn.apply( t.root, [ t ].concat( t.params ) );
+}
+
+function resetStyle ( node, style ) {
+	if ( style ) {
+		node.setAttribute( 'style', style );
+	} else {
+
+		// Next line is necessary, to remove empty style attribute!
+		// See http://stackoverflow.com/a/7167553
+		node.getAttribute( 'style' );
+		node.removeAttribute( 'style' );
+	}
 }

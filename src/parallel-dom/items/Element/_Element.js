@@ -1,6 +1,3 @@
-import runloop from 'global/runloop';
-import css from 'global/css';
-
 import bind from 'parallel-dom/items/Element/prototype/bind';
 import bubble from 'parallel-dom/items/Element/prototype/bubble';
 import bubble from 'parallel-dom/items/Element/prototype/bubble';

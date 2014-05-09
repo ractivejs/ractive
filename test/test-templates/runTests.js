@@ -20,6 +20,7 @@
 	// require for asyncTest and module('',{setup}) to work
 	// see http://stackoverflow.com/questions/17065488/qunit-setup-called-for-each-test-before-teardown
 	QUnit.config.autostart = false;
+	QUnit.config.reorder = false;
 	require.config( config );
 
 	// can't use .map() because of IE...

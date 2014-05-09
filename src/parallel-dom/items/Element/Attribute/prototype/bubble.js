@@ -7,9 +7,4 @@ export default function Attribute$bubble () {
 		this.value = value;
 		runloop.addUpdate( this );
 	}
-
-	// TODO does this ever happen
-	else {
-		throw new Error( 'attribute set to same value?' );
-	}
 }

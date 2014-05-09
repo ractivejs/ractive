@@ -1,4 +1,4 @@
-export default function Section$toString () {
+export default function Section$toString ( escape ) {
 	var str, i, len;
 
 	str = '';
@@ -7,7 +7,7 @@ export default function Section$toString () {
 	len = this.length;
 
 	for ( i=0; i<len; i+=1 ) {
-		str += this.fragments[i].toString();
+		str += this.fragments[i].toString( escape );
 	}
 
 	return str;

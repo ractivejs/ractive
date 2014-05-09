@@ -1,3 +1,11 @@
+import circular from 'circular';
+
+var Fragment;
+
+circular.push( function () {
+	Fragment = circular.Fragment;
+});
+
 export default function Section$merge ( newIndices ) {
 	var section = this,
 		parentFragment,
@@ -81,7 +89,8 @@ export default function Section$merge ( newIndices ) {
 			fragmentOptions.context = this.keypath + '.' + i;
 			fragmentOptions.index = i;
 
-			fragment = this.createFragment( fragmentOptions );
+			fragment = new Fragment( fragmentOptions );
+			this.docFrag.appendChild( fragment.render() );
 		}
 
 		this.fragments[i] = fragment;
