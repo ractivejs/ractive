@@ -6,7 +6,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		var fixture;
 
-		module( '<select> elements' );
+		module( '&lt;select&gt; elements' );
 
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
