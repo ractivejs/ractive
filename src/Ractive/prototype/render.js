@@ -34,7 +34,7 @@ export default function Ractive$render ( target, anchor ) {
 	// If this is *isn't* a child of a component that's in the process of rendering,
 	// it should call any `init()` methods at this point
 	if ( !this._parent || !this._parent._rendering ) {
-		initChildren( this );
+		init( this );
 	} else {
 		this._parent._childInitQueue.push( this );
 	}
@@ -47,15 +47,10 @@ export default function Ractive$render ( target, anchor ) {
 	return promise;
 }
 
-function initChildren ( instance ) {
-	var child;
-
-	while ( child = instance._childInitQueue.shift() ) {
-		if ( child.init ) {
-			child.init( child.initOptions );
-		}
-
-		// now do the same for grandchildren, etc
-		initChildren( child );
+function init ( instance ) {
+	if ( instance.init ) {
+		instance.init( instance.initOptions );
 	}
+
+	instance._childInitQueue.splice( 0 ).forEach( init );
 }

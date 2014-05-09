@@ -357,7 +357,7 @@ var parseTests = [
 	{
 		name: 'Keypath expression section',
 		template: '{{#foo[bar]}}{{.}}{{/}}',
-		parsed: [{"t":4,"kx":{"r":"foo","m":[{"t":30,"n":"bar"}]},"f":[{"t":2,"r":"."}]}]
+		parsed: [{"t":4,"rx":{"r":"foo","m":[{"t":30,"n":"bar"}]},"f":[{"t":2,"r":"."}]}]
 	},
 	{
 		name: 'List section with index ref and full closing',
@@ -378,7 +378,7 @@ var parseTests = [
 	{
 		name: 'Inverted list section closing',
 		template: '{{#steps:stepIndex}}{{^ hiddenSteps[stepIndex]}}<p>{{hiddenSteps[stepIndex]}}</p>{{/ hiddenSteps[stepIndex]}}{{/steps}}',
-		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":51,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"kx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}]
+		parsed: [{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":51,"rx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"rx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}]
 	},
 	{
 		name: 'Illegal closing tag 1',

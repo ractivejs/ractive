@@ -8,6 +8,7 @@ import findAllComponents from 'parallel-dom/items/Element/prototype/findAllCompo
 import findComponent from 'parallel-dom/items/Element/prototype/findComponent';
 import findNextNode from 'parallel-dom/items/Element/prototype/findNextNode';
 import firstNode from 'parallel-dom/items/Element/prototype/firstNode';
+import getAttribute from 'parallel-dom/items/Element/prototype/getAttribute';
 import init from 'parallel-dom/items/Element/prototype/init';
 import reassign from 'parallel-dom/items/Element/prototype/reassign';
 import render from 'parallel-dom/items/Element/prototype/render';
@@ -28,6 +29,7 @@ Element.prototype = {
 	findComponent: findComponent,
 	findNextNode: findNextNode,
 	firstNode: firstNode,
+	getAttribute: getAttribute,
 	init: init,
 	reassign: reassign,
 	render: render,

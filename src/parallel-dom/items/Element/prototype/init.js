@@ -65,6 +65,13 @@ export default function Element$init ( options ) {
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
 
+	// Special case - <option> elements
+	if ( this.name === 'option' ) {
+		if ( this.select.initialValue === undefined || ( this.getAttribute( 'selected' ) ) ) {
+			this.select.initialValue = this.getAttribute( 'value' );
+		}
+	}
+
 
 	// append children, if there are any
 	if ( template.f ) {
@@ -92,6 +99,7 @@ export default function Element$init ( options ) {
 		// Special case - <select>
 		if ( this.name === 'select' ) {
 			console.warn( 'TODO - set two-way bound select value based on options' );
+			console.log( this.initialValue );
 		}
 	}
 
