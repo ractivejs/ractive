@@ -9,7 +9,7 @@ circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-Partial = function ( options, docFrag ) {
+Partial = function ( options ) {
 	var parentFragment = this.parentFragment = options.parentFragment, template;
 
 	this.type = types.PARTIAL;
@@ -24,10 +24,9 @@ Partial = function ( options, docFrag ) {
 	template = getPartialDescriptor( parentFragment.root, options.template.r );
 
 	this.fragment = new Fragment({
-		template:   template,
-		root:         parentFragment.root,
-		pNode:        parentFragment.pNode,
-		owner:        this
+		template: template,
+		root:     parentFragment.root,
+		owner:    this
 	});
 };
 
@@ -48,12 +47,16 @@ Partial.prototype = {
 		return this.fragment.render();
 	},
 
+	unrender: function ( shouldDestroy ) {
+		this.fragment.unrender( shouldDestroy );
+	},
+
 	reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		return this.fragment.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
-	teardown: function ( destroy ) {
-		this.fragment.teardown( destroy );
+	teardown: function () {
+		this.fragment.teardown();
 	},
 
 	toString: function ( toString ) {

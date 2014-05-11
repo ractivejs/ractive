@@ -1,24 +1,17 @@
-import runloop from 'global/runloop';
-import get from 'shared/get/_get';
-import set from 'shared/set';
-import initBinding from 'parallel-dom/items/Element/Binding/shared/initBinding';
-import handleChange from 'parallel-dom/items/Element/Binding/shared/handleChange';
+import Binding from 'parallel-dom/items/Element/Binding/Binding';
+import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 
-var ContentEditableBinding = function ( element ) {
-	initBinding( this, element );
-};
-
-ContentEditableBinding.prototype = {
+var ContentEditableBinding = Binding.extend({
 	render: function () {
 		var node = this.element.node;
 
-		node.addEventListener( 'change', handleChange, false );
+		node.addEventListener( 'change', handleDomEvent, false );
 
 		if ( !this.root.lazy ) {
-			node.addEventListener( 'input', handleChange, false );
+			node.addEventListener( 'input', handleDomEvent, false );
 
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', handleChange, false );
+				node.addEventListener( 'keyup', handleDomEvent, false );
 			}
 		}
 	},
@@ -26,16 +19,10 @@ ContentEditableBinding.prototype = {
 	unrender: function () {
 		var node = this.element.node;
 
-		node.removeEventListener( 'change', handleChange, false );
-		node.removeEventListener( 'input', handleChange, false );
-		node.removeEventListener( 'keyup', handleChange, false );
-	},
-
-	handleChange: function () {
-		runloop.lockAttribute( this.attr );
-		set( this.root, this.keypath, this.node.innerHTML );
-		runloop.trigger();
+		node.removeEventListener( 'change', handleDomEvent, false );
+		node.removeEventListener( 'input', handleDomEvent, false );
+		node.removeEventListener( 'keyup', handleDomEvent, false );
 	}
-};
+});
 
 export default ContentEditableBinding;

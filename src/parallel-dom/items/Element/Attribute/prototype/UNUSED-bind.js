@@ -1,9 +1,4 @@
-import runloop from 'global/runloop';
 import warn from 'utils/warn';
-import arrayContentsMatch from 'utils/arrayContentsMatch';
-import getValueFromCheckboxes from 'shared/getValueFromCheckboxes';
-import get from 'shared/get/_get';
-import set from 'shared/set';
 
 import MultipleSelectBinding from 'parallel-dom/items/Element/Attribute/prototype/bind/MultipleSelectBinding';
 import SelectBinding from 'parallel-dom/items/Element/Attribute/prototype/bind/SelectBinding';
@@ -16,12 +11,7 @@ import GenericBinding from 'parallel-dom/items/Element/Attribute/prototype/bind/
 
 var singleMustacheError = 'For two-way binding to work, attribute value must be a single interpolator (e.g. value="{{foo}}")',
 	expressionError = 'You cannot set up two-way binding against an expression',
-	bindAttribute,
-	updateModel,
-	updateModelAndView,
-	getOptions,
-	getBinding,
-	initBinding;
+	bindAttribute;
 
 bindAttribute = function () {
 	var node = this.node, interpolator, binding, bindings;
@@ -76,7 +66,9 @@ bindAttribute = function () {
 	return true;
 };
 
-getBinding = function ( attribute ) {
+export default bindAttribute;
+
+function getBinding ( attribute ) {
 	var node = attribute.node;
 
 	if ( node.tagName === 'SELECT' ) {
@@ -114,6 +106,4 @@ getBinding = function ( attribute ) {
 	}
 
 	return new GenericBinding( attribute, node );
-};
-
-export default bindAttribute;
+}

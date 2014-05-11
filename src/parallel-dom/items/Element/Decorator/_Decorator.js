@@ -21,7 +21,7 @@ Decorator = function ( element, template ) {
 		fragment = new Fragment({
 			template: name,
 			root:     ractive,
-			owner:    owner
+			owner:    element
 		});
 
 		name = fragment.toString();

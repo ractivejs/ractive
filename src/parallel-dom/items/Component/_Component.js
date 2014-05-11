@@ -10,6 +10,7 @@ import reassign from 'parallel-dom/items/Component/prototype/reassign';
 import render from 'parallel-dom/items/Component/prototype/render';
 import teardown from 'parallel-dom/items/Component/prototype/teardown';
 import toString from 'parallel-dom/items/Component/prototype/toString';
+import unrender from 'parallel-dom/items/Component/prototype/unrender';
 
 var Component = function ( options ) {
 	this.init( options );
@@ -27,7 +28,8 @@ Component.prototype = {
 	reassign: reassign,
 	render: render,
 	teardown: teardown,
-	toString: toString
+	toString: toString,
+	unrender: unrender
 };
 
 export default Component;

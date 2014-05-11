@@ -21,6 +21,7 @@ import subtract from 'Ractive/prototype/subtract';
 import teardown from 'Ractive/prototype/teardown';
 import toHTML from 'Ractive/prototype/toHTML';
 import toggle from 'Ractive/prototype/toggle';
+import unrender from 'Ractive/prototype/unrender';
 import update from 'Ractive/prototype/update';
 import updateModel from 'Ractive/prototype/updateModel';
 
@@ -48,6 +49,7 @@ export default {
 	teardown: teardown,
 	toHTML: toHTML,
 	toggle: toggle,
+	unrender: unrender,
 	update: update,
 	updateModel: updateModel
 };

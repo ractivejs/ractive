@@ -16,9 +16,5 @@ export default function Fragment$findNextNode ( item ) {
 		return this.owner.component.findNextNode();
 	}
 
-	if ( !this.owner.findNextNode ) {
-		console.trace( this );
-	}
-
 	return this.owner.findNextNode( this );
 }

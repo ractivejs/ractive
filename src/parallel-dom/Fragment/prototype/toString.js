@@ -1,5 +1,3 @@
-var lessThan = /</g, greaterThan = />/g;
-
 export default function Fragment$toString ( escape ) {
 	if ( !this.items ) {
 		return '';

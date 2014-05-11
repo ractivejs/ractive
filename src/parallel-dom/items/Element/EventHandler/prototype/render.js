@@ -1,3 +1,5 @@
+import warn from 'utils/warn';
+
 var alreadyWarned = {}, customHandlers = {};
 
 export default function EventHandler$render () {

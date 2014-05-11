@@ -12,17 +12,17 @@ circular.push( function () {
 });
 
 export default function Section$setValue ( value ) {
-	var nextNode, parentNode, wrapped;
+	var wrapper;
 
 	// with sections, we need to get the fake value if we have a wrapped object
-	if ( wrapped = this.root._wrapped[ this.keypath ] ) {
-		value = wrapped.get();
+	if ( wrapper = this.root._wrapped[ this.keypath ] ) {
+		value = wrapper.get();
 	}
 
 	// prevent sections from updating multiple times (happens if
 	// evaluators evaluate while update is happening)
 	if ( this.updating ) {
-		throw new Error( 'TODO does this ever happen?' );
+		console.error( 'TODO does this ever happen?' );
 		return;
 	}
 
@@ -40,7 +40,6 @@ function reevaluateSection ( section, value ) {
 	var fragmentOptions = {
 		template: section.template.f,
 		root:       section.root,
-		pNode:      section.parentFragment.pNode,
 		pElement:   section.parentFragment.pElement,
 		owner:      section
 	};
@@ -103,10 +102,7 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 	// if the array is shorter than it was previously, remove items
 	if ( length < section.length ) {
 		fragmentsToRemove = section.fragments.splice( length, section.length - length );
-
-		while ( fragmentsToRemove.length ) {
-			fragmentsToRemove.pop().teardown( true );
-		}
+		fragmentsToRemove.forEach( unrenderAndTeardown );
 	}
 
 	// otherwise...
@@ -146,7 +142,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 		if ( !( fragment.index in value ) ) {
 			changed = true;
 
-			section.fragments[i].teardown( true );
+			unrenderAndTeardown( section.fragments[i] );
 			section.fragments.splice( i, 1 );
 
 			hasKey[ fragment.index ] = false;
@@ -198,7 +194,7 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 }
 
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
-	var doRender, emptyArray, fragmentsToRemove, fragment;
+	var doRender, emptyArray, fragment;
 
 	emptyArray = ( isArray( value ) && value.length === 0 );
 
@@ -221,20 +217,21 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 		}
 
 		if ( section.length > 1 ) {
-			section.fragments.splice( 1 ).forEach( teardownFragment );
+			section.fragments.splice( 1 ).forEach( unrenderAndTeardown );
 
 			return true;
 		}
 	}
 
 	else if ( section.length ) {
-		section.teardownFragments( true );
+		section.fragments.splice( 0 ).forEach( unrenderAndTeardown );
 		section.length = 0;
 
 		return true;
 	}
 }
 
-function teardownFragment ( fragment ) {
+function unrenderAndTeardown ( fragment ) {
+	fragment.unrender( true );
 	fragment.teardown();
 }

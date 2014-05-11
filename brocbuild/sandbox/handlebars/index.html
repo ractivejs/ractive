@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang='en-GB'>
+<head>
+	<meta charset='utf-8'>
+
+	<title>handlebars | Ractive.js sandbox</title>
+
+	<!-- CSS -->
+	<link rel='stylesheet' href='../_sandbox.css'>
+
+	<!--[if lte IE 8]>
+		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+</head>
+
+<body>
+	<header>
+		<a href='../'>&laquo;</a> <h1>handlebars</h1>
+	</header>
+
+	<main>
+		<p class='loading'>loading individual Ractive.js source files... please wait</p>
+	</main>
+
+	<footer>
+		<a href='http://ractivejs.org'>Ractive.js</a>
+		<a href='http://docs.ractivejs.org'>Docs</a>
+		<a href='http://twitter.com/RactiveJS'>Get help on Twitter @RactiveJS</a>
+	</footer>
+
+	<script id='template' type='text/ractive'>
+		<!-- template goes here -->
+	</script>
+
+	<!-- JS -->
+	<script src='../require.js'></script>
+	<script>
+		var ractive, fixture;
+
+		fixture = document.querySelector( 'main' ); // so we can copy and paste into test suite more easily
+
+		// Configure RequireJS to load Ractive from the .amd/ folder
+		require.config({ baseUrl: '../../.amd/' });
+
+		require([ 'ractive' ], function ( Ractive ) {
+			window.Ractive = Ractive;
+
+			// YOUR CODE GOES HERE
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#if foo}}yes{{else}}no{{/if}}',
+				data: {
+					foo: true
+				},
+				handlebars: true
+			});
+		});
+	</script>
+</body>
+</html>

@@ -1,11 +1,10 @@
 import isArray from 'utils/isArray';
+import warn from 'utils/warn';
 import create from 'utils/create';
 import createElement from 'utils/createElement';
 import defineProperty from 'utils/defineProperty';
-import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
-import Attribute from 'parallel-dom/items/Element/Attribute/_Attribute';
 
 var updateCss, updateScript;
 
@@ -36,7 +35,7 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, node, selectBinding;
+	var root = this.root, node;
 
 	node = this.node = createElement( this.name, this.namespace );
 
@@ -156,8 +155,12 @@ export default function Element$render () {
 function processOption ( option ) {
 	var optionValue, selectValue, i;
 
-	optionValue = option.getAttribute( 'value' );
 	selectValue = option.select.getAttribute( 'value' );
+	if ( selectValue === undefined ) {
+		return;
+	}
+
+	optionValue = option.getAttribute( 'value' );
 
 	if ( option.select.node.multiple && isArray( selectValue ) ) {
 		i = selectValue.length;

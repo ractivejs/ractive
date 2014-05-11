@@ -5,7 +5,7 @@ export default function Attribute$teardown () {
 		i = this.boundEvents.length;
 
 		while ( i-- ) {
-			this.pNode.removeEventListener( this.boundEvents[i], this.updateModel, false );
+			this.node.removeEventListener( this.boundEvents[i], this.updateModel, false );
 		}
 	}
 

@@ -1,25 +1,25 @@
 import runloop from 'global/runloop';
 import get from 'shared/get/_get';
-import set from 'shared/set';
-import initBinding from 'parallel-dom/items/Element/Binding/shared/initBinding';
-import handleChange from 'parallel-dom/items/Element/Binding/shared/handleChange';
+import Binding from 'parallel-dom/items/Element/Binding/Binding';
+import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 
-var CheckboxNameBinding = function ( element ) {
-	initBinding( this, element, 'name' );
-	this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
-};
+var CheckboxNameBinding = Binding.extend({
+	name: 'name',
 
-CheckboxNameBinding.prototype = {
+	init: function () {
+		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
+	},
+
 	render: function () {
-		var node = this.element.node, valueFromModel;
+		var node = this.element.node, valueFromModel, checked;
 
 		this.element.node.name = '{{' + this.keypath + '}}';
 
-		node.addEventListener( 'change', handleChange, false );
+		node.addEventListener( 'change', handleDomEvent, false );
 
 		// in case of IE emergency, bind to click event as well
 		if ( node.attachEvent ) {
-			node.addEventListener( 'click', handleChange, false );
+			node.addEventListener( 'click', handleDomEvent, false );
 		}
 
 		valueFromModel = get( this.root, this.keypath );
@@ -37,8 +37,8 @@ CheckboxNameBinding.prototype = {
 	},
 
 	unrender: function () {
-		this.node.removeEventListener( 'change', handleChange, false );
-		this.node.removeEventListener( 'click', handleChange, false );
+		this.node.removeEventListener( 'change', handleDomEvent, false );
+		this.node.removeEventListener( 'click', handleDomEvent, false );
 	},
 
 	changed: function () {
@@ -47,11 +47,8 @@ CheckboxNameBinding.prototype = {
 
 	handleChange: function () {
 		this.checked = this.element.node.checked;
-
-		runloop.lockAttribute( this.attr );
-		set( this.root, this.keypath, getValueFromCheckboxes( this.root, this.keypath ) );
-		runloop.trigger();
+		Binding.prototype.handleChange.call( this );
 	}
-};
+});
 
 export default CheckboxNameBinding;

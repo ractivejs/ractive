@@ -1,20 +1,15 @@
 import runloop from 'global/runloop';
-import get from 'shared/get/_get';
 import set from 'shared/set';
-import initBinding from 'parallel-dom/items/Element/Binding/shared/initBinding';
-import handleChange from 'parallel-dom/items/Element/Binding/shared/handleChange';
+import Binding from 'parallel-dom/items/Element/Binding/Binding';
+import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 
-var SelectBinding = function ( element ) {
-	initBinding( this, element );
-};
-
-SelectBinding.prototype = {
+var SelectBinding = Binding.extend({
 	render: function () {
-		this.element.node.addEventListener( 'change', handleChange, false );
+		this.element.node.addEventListener( 'change', handleDomEvent, false );
 	},
 
-	teardown: function () {
-		this.element.node.removeEventListener( 'change', handleChange, false );
+	unrender: function () {
+		this.element.node.removeEventListener( 'change', handleDomEvent, false );
 	},
 
 	setValue: function ( value ) {
@@ -27,7 +22,7 @@ SelectBinding.prototype = {
 		options = this.element.node.options;
 		len = options.length;
 
-		for ( i=0; i<len; i+=1 ) {
+		for ( i = 0; i < len; i += 1 ) {
 			option = options[i];
 
 			if ( options[i].selected ) {
@@ -35,12 +30,6 @@ SelectBinding.prototype = {
 				return optionValue;
 			}
 		}
-	},
-
-	handleChange: function () {
-		runloop.lockAttribute( this.attribute );
-		set( this.root, this.keypath, this.getValue() );
-		runloop.trigger();
 	},
 
 	updateModel: function () {
@@ -55,6 +44,6 @@ SelectBinding.prototype = {
 			this._dirty = true;
 		}
 	}
-};
+});
 
 export default SelectBinding;

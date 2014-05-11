@@ -1,10 +1,18 @@
 import warn from 'utils/warn';
 
+import circular from 'circular';
+
+var Fragment, getValueOptions = {}; // TODO what are the options?
+
+circular.push( function () {
+	Fragment = circular.Fragment;
+});
+
 export default function Transition$init ( element, template ) {
 	var t = this, ractive, name, fragment, errorMessage;
 
-	this.element = element;
-	this.root = ractive = element.root;
+	t.element = element;
+	t.root = ractive = element.root;
 
 	name = template.n || template;
 
@@ -12,17 +20,17 @@ export default function Transition$init ( element, template ) {
 		fragment = new Fragment({
 			template: name,
 			root:     ractive,
-			owner:    owner
+			owner:    element
 		});
 
 		name = fragment.toString();
 		fragment.teardown();
 	}
 
-	this.name = name;
+	t.name = name;
 
 	if ( template.a ) {
-		this.params = template.a;
+		t.params = template.a;
 	}
 
 	else if ( template.d ) {
@@ -31,15 +39,15 @@ export default function Transition$init ( element, template ) {
 		fragment = new Fragment({
 			template: template.d,
 			root:     ractive,
-			owner:    owner
+			owner:    element
 		});
 
-		this.params = fragment.getValue( getValueOptions );
+		t.params = fragment.getValue( getValueOptions );
 		fragment.teardown();
 	}
 
-	this._fn = ractive.transitions[ name ];
-	if ( !this._fn ) {
+	t._fn = ractive.transitions[ name ];
+	if ( !t._fn ) {
 		errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
 
 		if ( ractive.debug ) {

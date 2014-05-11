@@ -1,8 +1,9 @@
 import types from 'config/types';
 import escapeHtml from 'utils/escapeHtml';
+import noop from 'utils/noop';
 import detach from 'parallel-dom/items/shared/detach';
 
-var Text = function ( options, docFrag ) {
+var Text = function ( options ) {
 	this.type = types.TEXT;
 	this.text = options.template;
 };
@@ -11,26 +12,24 @@ Text.prototype = {
 	detach: detach,
 
 	render: function () {
-		return this.node = document.createTextNode( this.text );
-	},
-
-	unrender: function () {
 		if ( !this.node ) {
-			throw new Error( 'Attempted to unrender an item that had not been rendered' );
+			this.node = document.createTextNode( this.text );
 		}
 
-		this.node.parentNode.removeChild( this.node );
+		return this.node;
 	},
 
-	teardown: function ( destroy ) {
-		if ( destroy ) {
-			this.detach();
+	unrender: function ( shouldDestroy ) {
+		if ( shouldDestroy ) {
+			return this.detach();
 		}
 	},
 
 	firstNode: function () {
 		return this.node;
 	},
+
+	teardown: noop,
 
 	toString: function ( escape ) {
 		return escape ? escapeHtml( this.text ) : this.text;

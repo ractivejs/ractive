@@ -60,9 +60,6 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 		if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
 			dependant.splice( spliceSummary );
 		} else {
-			if ( !dependant.setValue ) {
-				console.log( dependant );
-			}
 			dependant.setValue( get( dependant.root, dependant.keypath ) );
 		}
 	};

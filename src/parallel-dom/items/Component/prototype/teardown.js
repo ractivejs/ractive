@@ -1,4 +1,4 @@
-export default function Component$teardown ( destroy ) {
+export default function Component$teardown () {
 	while ( this.complexParameters.length ) {
 		this.complexParameters.pop().teardown();
 	}
@@ -10,8 +10,9 @@ export default function Component$teardown ( destroy ) {
 	removeFromLiveComponentQueries( this );
 
 	// Add this flag so that we don't unnecessarily destroy the component's nodes
-	this.shouldDestroy = destroy;
-	this.instance.teardown();
+	// TODO rethink the semantics of init/teardown/render/unrender?
+	this.shouldDestroy = false;
+	this.instance.fragment.teardown();
 }
 
 function removeFromLiveComponentQueries ( component ) {

@@ -168,7 +168,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p><p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
 		});
 
-		test( 'Keypath expression resolvers survive a splice operation', function ( t ) {
+		test( 'Reference expression resolvers survive a splice operation', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#rows:r}}{{#columns:c}}<p>{{columns[c]}}{{r}}{{rows[r][this]}}</p>{{/columns}}<strong>{{rows[r][selectedColumn]}}</strong>{{/rows}}',

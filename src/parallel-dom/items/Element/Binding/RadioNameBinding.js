@@ -1,22 +1,24 @@
 import runloop from 'global/runloop';
 import get from 'shared/get/_get';
-import set from 'shared/set';
-import initBinding from 'parallel-dom/items/Element/Binding/shared/initBinding';
-import handleChange from 'parallel-dom/items/Element/Binding/shared/handleChange';
+import Binding from 'parallel-dom/items/Element/Binding/Binding';
+import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 
-var RadioNameBinding = function ( element ) {
-	this.radioName = true; // so that ractive.updateModel() knows what to do with this
-	initBinding( this, element, 'value' );
-};
+var RadioNameBinding = Binding.extend({
+	name: 'name',
 
-RadioNameBinding.prototype = {
+	init: function () {
+		this.radioName = true; // so that ractive.updateModel() knows what to do with this
+	},
+
 	render: function () {
-		node.name = '{{' + attribute.keypath + '}}';
+		var node = this.element.node, valueFromModel;
 
-		node.addEventListener( 'change', handleChange, false );
+		node.name = '{{' + this.keypath + '}}';
+
+		node.addEventListener( 'change', handleDomEvent, false );
 
 		if ( node.attachEvent ) {
-			node.addEventListener( 'click', handleChange, false );
+			node.addEventListener( 'click', handleDomEvent, false );
 		}
 
 		valueFromModel = get( this.root, this.keypath );
@@ -30,24 +32,29 @@ RadioNameBinding.prototype = {
 	unrender: function () {
 		var node = this.element.node;
 
-		node.removeEventListener( 'change', handleChange, false );
-		node.removeEventListener( 'click', handleChange, false );
+		node.removeEventListener( 'change', handleDomEvent, false );
+		node.removeEventListener( 'click', handleDomEvent, false );
 	},
 
-	value: function () {
-		return this.node._ractive ? this.node._ractive.value : this.node.value;
+	getValue: function () {
+		var node = this.element.node;
+		return node._ractive ? node._ractive.value : node.value;
 	},
 
 	handleChange: function () {
-		var node = this.node;
+		var node = this.element.node;
 
+		// If this <input> is the one that's checked, then the value of its
+		// `name` keypath gets set to its value
 		if ( node.checked ) {
-			runloop.lockAttribute( this.attr );
-			set( this.root, this.keypath, this.value() );
-			runloop.trigger();
-
+			Binding.prototype.handleChange.call( this );
 		}
+	},
+
+	reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		Binding.prototype.reassign.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+		this.element.node.name = '{{' + this.keypath + '}}';
 	}
-};
+});
 
 export default RadioNameBinding;

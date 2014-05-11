@@ -64,17 +64,6 @@ runloop = {
 		transitionManager = transitionManager._previous;
 	},
 
-	trigger: function () {
-		if ( flushing ) {
-			attemptKeypathResolution();
-			return;
-		}
-
-		flushing = true;
-		flushChanges();
-		flushing = false;
-	},
-
 	focus: function ( node ) {
 		toFocus = node;
 	},
@@ -212,7 +201,7 @@ function flushChanges () {
 		}
 
 		while ( thing = radios.pop() ) {
-			thing.update();
+			thing.handleChange();
 		}
 	}
 

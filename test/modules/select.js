@@ -251,6 +251,46 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
 		});
 
+		test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{foo}}</option>', function ( t ) {
+			var ractive, options;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{test1}}"><option>a</option><option>b</option><option>c</option></select><select value="{{test2}}">{{#options}}<option>{{.}}</option>{{/options}}</select>',
+				data: { options: [ 'a', 'b', 'c' ]}
+			});
+
+			t.equal( ractive.get( 'test1' ), 'a' );
+			t.equal( ractive.get( 'test2' ), 'a' );
+
+			options = ractive.findAll( 'option' );
+
+			options[1].selected = true;
+			options[5].selected = true;
+
+			ractive.updateModel();
+
+			t.equal( ractive.get( 'test1' ), 'b' );
+			t.equal( ractive.get( 'test2' ), 'c' );
+		});
+
+		test( 'A select whose options are re-rendered will update its binding', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{selected}}">{{#options}}<option>{{.}}</option>{{/options}}</select><p>selected: {{selected}}</p>',
+				data: {
+					options: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option></select><p>selected: a</p>' );
+
+			ractive.set( 'selected', 'b' );
+			ractive.set( 'options', [ 'd', 'e', 'f' ] );
+			t.equal( ractive.get( 'selected' ), 'd' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: e</p>' );
+		});
+
 	};
 
 });

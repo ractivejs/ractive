@@ -1,8 +1,5 @@
-export default function () {
-	var node = this.node, parentNode;
+import detachNode from 'utils/detachNode';
 
-	if ( node && ( parentNode = node.parentNode ) ) {
-		parentNode.removeChild( node );
-		return node;
-	}
+export default function () {
+	return detachNode( this.node );
 }

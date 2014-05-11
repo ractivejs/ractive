@@ -1,28 +1,22 @@
-import runloop from 'global/runloop';
 import get from 'shared/get/_get';
-import set from 'shared/set';
-import initBinding from 'parallel-dom/items/Element/Binding/shared/initBinding';
-import handleChange from 'parallel-dom/items/Element/Binding/shared/handleChange';
+import Binding from 'parallel-dom/items/Element/Binding/Binding';
+import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 
 var GenericBinding, getOptions;
 
 getOptions = { evaluateWrapped: true };
 
-GenericBinding = function ( element ) {
-	initBinding( this, element, 'value' );
-};
-
-GenericBinding.prototype = {
+GenericBinding = Binding.extend({
 	render: function () {
 		var node = this.element.node;
 
-		node.addEventListener( 'change', handleChange, false );
+		node.addEventListener( 'change', handleDomEvent, false );
 
 		if ( !this.root.lazy ) {
-			node.addEventListener( 'input', handleChange, false );
+			node.addEventListener( 'input', handleDomEvent, false );
 
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', handleChange, false );
+				node.addEventListener( 'keyup', handleDomEvent, false );
 			}
 		}
 
@@ -40,21 +34,15 @@ GenericBinding.prototype = {
 		return value;
 	},
 
-	handleChange: function () {
-		runloop.lockAttribute( this.attribute );
-		set( this.root, this.keypath, this.getValue() );
-		runloop.trigger();
-	},
-
 	unrender: function () {
 		var node = this.element.node;
 
-		node.removeEventListener( 'change', handleChange, false );
-		node.removeEventListener( 'input', handleChange, false );
-		node.removeEventListener( 'keyup', handleChange, false );
+		node.removeEventListener( 'change', handleDomEvent, false );
+		node.removeEventListener( 'input', handleDomEvent, false );
+		node.removeEventListener( 'keyup', handleDomEvent, false );
 		node.removeEventListener( 'blur', handleBlur, false );
 	}
-};
+});
 
 export default GenericBinding;
 
@@ -62,7 +50,7 @@ export default GenericBinding;
 function handleBlur () {
 	var value;
 
-	handleChange.call( this );
+	handleDomEvent.call( this );
 
 	value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
 	this.value = value == undefined ? '' : value;

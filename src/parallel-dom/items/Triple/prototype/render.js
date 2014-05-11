@@ -1,9 +1,12 @@
-import insertHtml from 'parallel-dom/items/Triple/helpers/insertHtml';
-
 export default function Triple$render () {
+	if ( this.rendered ) {
+		throw new Error( 'Attempted to render an item that was already rendered' );
+	}
+
 	this.docFrag = document.createDocumentFragment();
-	this.rendered = true;
 
 	this.update();
+	this.rendered = true;
+
 	return this.docFrag;
 }

@@ -150,7 +150,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		});
 
-		test('List of inputs with keypathExpression name update correctly', function(t){
+		test('List of inputs with referenceExpression name update correctly', function(t){
 			var ractive = new Ractive({
 				el: fixture,
 				template: "<input type='radio' name='{{responses[topic]}}'/>",
@@ -167,7 +167,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		});
 
-		test('List of inputs with nested keypathexpression name updates correctly', function(t){
+		test('List of inputs with nested referenceExpression name updates correctly', function(t){
 			var ractive = new Ractive({
 				el: fixture,
 				template: "{{#step}}{{#options}}<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>{{/}}{{/}}",

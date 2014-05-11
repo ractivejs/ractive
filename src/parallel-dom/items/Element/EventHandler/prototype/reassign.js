@@ -6,4 +6,4 @@ export default function EventHandler$reassign ( indexRef, newIndex, oldKeypath, 
 	if ( this.dynamicParams ) {
 		this.dynamicParams.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 	}
-};
+}

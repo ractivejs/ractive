@@ -1,5 +1,3 @@
-import matches from 'utils/matches';
-
 import bubble from 'parallel-dom/Fragment/prototype/bubble';
 import createItem from 'parallel-dom/Fragment/prototype/createItem';
 import detach from 'parallel-dom/Fragment/prototype/detach';
@@ -17,6 +15,7 @@ import reassign from 'parallel-dom/Fragment/prototype/reassign';
 import render from 'parallel-dom/Fragment/prototype/render';
 import teardown from 'parallel-dom/Fragment/prototype/teardown';
 import toString from 'parallel-dom/Fragment/prototype/toString';
+import unrender from 'parallel-dom/Fragment/prototype/unrender';
 
 import circular from 'circular';
 
@@ -42,6 +41,7 @@ Fragment.prototype = {
 	render: render,
 	teardown: teardown,
 	toString: toString,
+	unrender: unrender
 };
 
 circular.Fragment = Fragment;

@@ -1,4 +1,4 @@
-var lessThan = /\</g, greaterThan = /\>/g;
+var lessThan = /</g, greaterThan = />/g;
 
 export default function escapeHtml ( str ) {
 	return str

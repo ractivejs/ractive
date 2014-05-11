@@ -30,19 +30,20 @@ export default function Section$merge ( newIndices ) {
 			return;
 		}
 
+		fragment = section.fragments[ oldIndex ];
+
 		if ( firstChange === undefined ) {
 			firstChange = oldIndex;
 		}
 
 		// does this fragment need to be torn down?
 		if ( newIndex === -1 ) {
-			section.fragments[ oldIndex ].teardown( true );
+			fragment.unrender( true );
+			fragment.teardown();
 			return;
 		}
 
 		// Otherwise, it needs to be reassigned to a new index
-		fragment = section.fragments[ oldIndex ];
-
 		by = newIndex - oldIndex;
 		oldKeypath = section.keypath + '.' + oldIndex;
 		newKeypath = section.keypath + '.' + newIndex;
@@ -68,7 +69,6 @@ export default function Section$merge ( newIndices ) {
 	fragmentOptions = {
 		template: this.template.f,
 		root:       this.root,
-		pNode:      parentFragment.pNode,
 		owner:      this
 	};
 

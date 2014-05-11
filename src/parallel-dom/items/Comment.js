@@ -1,7 +1,8 @@
 import types from 'config/types';
+import noop from 'utils/noop';
 import detach from 'parallel-dom/items/shared/detach';
 
-var Comment = function ( options, docFrag ) {
+var Comment = function ( options ) {
 	this.type = types.COMMENT;
 	this.value = options.template.c;
 };
@@ -9,18 +10,20 @@ var Comment = function ( options, docFrag ) {
 Comment.prototype = {
 	detach: detach,
 
-	teardown: function ( destroy ) {
-		if ( destroy ) {
-			this.detach();
-		}
-	},
+	teardown: noop,
 
 	render: function () {
-		return this.node = document.createComment( this.value );
+		if ( !this.node ) {
+			this.node = document.createComment( this.value );
+		}
+
+		return this.node;
 	},
 
-	unrender: function () {
-		throw new Error( 'TODO not implemented' );
+	unrender: function ( shouldDestroy ) {
+		if ( shouldDestroy ) {
+			this.node.parentNode.removeChild( this.node );
+		}
 	},
 
 	firstNode: function () {
@@ -28,7 +31,7 @@ Comment.prototype = {
 	},
 
 	toString: function () {
-		return '<!--' + this.template.c + '-->';
+		return '<!--' + this.value + '-->';
 	}
 };
 

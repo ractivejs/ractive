@@ -1,5 +1,3 @@
-import warn from 'utils/warn';
-
 import init from 'parallel-dom/items/Element/Transition/prototype/init';
 import getStyle from 'parallel-dom/items/Element/Transition/prototype/getStyle';
 import setStyle from 'parallel-dom/items/Element/Transition/prototype/setStyle';

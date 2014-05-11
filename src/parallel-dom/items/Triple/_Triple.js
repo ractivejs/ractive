@@ -9,9 +9,10 @@ import render from 'parallel-dom/items/Triple/prototype/render';
 import setValue from 'parallel-dom/items/Triple/prototype/setValue';
 import teardown from 'parallel-dom/items/Triple/prototype/teardown';
 import toString from 'parallel-dom/items/Triple/prototype/toString';
+import unrender from 'parallel-dom/items/Triple/prototype/unrender';
 import update from 'parallel-dom/items/Triple/prototype/update';
 
-var Triple = function ( options, docFrag ) {
+var Triple = function ( options ) {
 	this.type = types.TRIPLE;
 	Mustache.init( this, options );
 };
@@ -27,6 +28,7 @@ Triple.prototype = {
 	setValue: setValue,
 	teardown: teardown,
 	toString: toString,
+	unrender: unrender,
 	update: update
 };
 

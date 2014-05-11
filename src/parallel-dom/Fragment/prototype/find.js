@@ -1,3 +1,5 @@
+import matches from 'utils/matches';
+
 export default function Fragment$find ( selector ) {
 	var i, len, item, node, queryResult;
 

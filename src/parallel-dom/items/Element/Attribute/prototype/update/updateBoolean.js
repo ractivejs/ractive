@@ -1,5 +1,5 @@
 export default function Attribute$updateBooleanAttribute () {
-	var node, value, binding;
+	var binding;
 
 	// with two-way binding, only update if the change wasn't initiated by the user
 	// otherwise the cursor will often be sent to the wrong place

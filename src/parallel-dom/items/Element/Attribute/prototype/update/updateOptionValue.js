@@ -1,5 +1,5 @@
 export default function Attribute$updateOptionValue () {
-	var node, value, binding;
+	var node, value;
 
 	node = this.node;
 	value = this.value;

@@ -33,7 +33,7 @@ function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes
 			binding = bindings[i];
 
 			// special case - radio name bindings
-			if ( binding.radioName && !binding.node.checked ) {
+			if ( binding.radioName && !binding.element.node.checked ) {
 				continue;
 			}
 

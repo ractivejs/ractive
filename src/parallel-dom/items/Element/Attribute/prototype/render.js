@@ -25,7 +25,7 @@ var propertyNames = {
 };
 
 export default function Attribute$render ( node ) {
-	var name, propertyName;
+	var propertyName;
 
 	this.node = node;
 

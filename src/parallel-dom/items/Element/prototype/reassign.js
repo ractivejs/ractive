@@ -1,17 +1,18 @@
 import assignNewKeypath from 'parallel-dom/shared/utils/assignNewKeypath';
 
 export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKeypath ) {
-	var i, storage, masterEventName, proxies, proxy, binding, bindings, liveQueries, ractive;
+	var i, storage, binding, bindings, liveQueries, ractive;
 
-	i = this.attributes.length;
-	while ( i-- ) {
-		this.attributes[i].reassign( indexRef, newIndex, oldKeypath, newKeypath );
+	if ( this.attributes ) {
+		this.attributes.forEach( reassign );
 	}
 
 	if ( this.eventHandlers ) {
-		this.eventHandlers.forEach( function ( handler ) {
-			handler.reassign( indexRef, newIndex, oldKeypath, newKeypath );
-		});
+		this.eventHandlers.forEach( reassign );
+	}
+
+	if ( this.binding ) {
+		reassign( this.binding );
 	}
 
 	if ( storage = this.node._ractive ) {
@@ -23,26 +24,7 @@ export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKe
 			storage.index[ indexRef ] = newIndex;
 		}
 
-		for ( masterEventName in storage.events ) {
-			proxies = storage.events[ masterEventName ].proxies;
-			i = proxies.length;
-
-			while ( i-- ) {
-				proxy = proxies[i];
-
-				if ( typeof proxy.n === 'object' ) {
-					proxy.a.reassign( indexRef, newIndex, oldKeypath, newKeypath );
-				}
-
-				if ( proxy.d ) {
-					proxy.d.reassign( indexRef, newIndex, oldKeypath, newKeypath );
-				}
-			}
-		}
-
 		if ( binding = storage.binding ) {
-			console.log( 'binding', binding );
-
 			if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
 				bindings = storage.root._twowayBindings[ binding.keypath ];
 
@@ -61,7 +43,7 @@ export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKe
 
 	// reassign children
 	if ( this.fragment ) {
-		this.fragment.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+		reassign( this.fragment );
 	}
 
 	// Update live queries, if necessary
@@ -72,5 +54,9 @@ export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKe
 		while ( i-- ) {
 			liveQueries[i]._makeDirty();
 		}
+	}
+
+	function reassign ( thing ) {
+		thing.reassign( indexRef, newIndex, oldKeypath, newKeypath );
 	}
 }

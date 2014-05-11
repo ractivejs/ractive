@@ -27,8 +27,6 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 
 Binding.prototype = {
 	setValue: function ( value ) {
-		var value;
-
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			return;

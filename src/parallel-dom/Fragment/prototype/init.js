@@ -3,7 +3,7 @@ import create from 'utils/create';
 
 export default function Fragment$init ( options ) {
 
-	var self = this, numItems, i, parentFragment, parentRefs, ref;
+	var self = this, parentFragment, parentRefs, ref;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
 	this.owner = options.owner;
@@ -11,7 +11,6 @@ export default function Fragment$init ( options ) {
 
 	// inherited properties
 	this.root = options.root;
-	this.pNode = options.pNode;
 	this.pElement = options.pElement;
 	this.context = options.context;
 

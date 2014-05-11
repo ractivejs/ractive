@@ -1,5 +1,5 @@
 export default function Attribute$updateEverythingElse () {
-	var node, value, binding;
+	var node, value;
 
 	node = this.node;
 	value = this.value;

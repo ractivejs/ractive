@@ -7,7 +7,7 @@ import MultipleSelectBinding from 'parallel-dom/items/Element/Binding/MultipleSe
 import FileListBinding from 'parallel-dom/items/Element/Binding/FileListBinding';
 import GenericBinding from 'parallel-dom/items/Element/Binding/GenericBinding';
 
-export default function createTwowayBinding ( element, attributes ) {
+export default function createTwowayBinding ( element ) {
 	var attributes = element.attributes, type, Binding;
 
 	// if this is a late binding, and there's already one, it

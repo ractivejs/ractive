@@ -14,11 +14,11 @@ import render from 'parallel-dom/items/Section/prototype/render';
 import setValue from 'parallel-dom/items/Section/prototype/setValue';
 import splice from 'parallel-dom/items/Section/prototype/splice';
 import teardown from 'parallel-dom/items/Section/prototype/teardown';
-import teardownFragments from 'parallel-dom/items/Section/prototype/teardownFragments';
 import toString from 'parallel-dom/items/Section/prototype/toString';
+import unrender from 'parallel-dom/items/Section/prototype/unrender';
 import update from 'parallel-dom/items/Section/prototype/update';
 
-var Section = function ( options, docFrag ) {
+var Section = function ( options ) {
 	this.type = types.SECTION;
 	this.inverted = !!options.template.n;
 
@@ -48,8 +48,8 @@ Section.prototype = {
 	setValue: setValue,
 	splice: splice,
 	teardown: teardown,
-	teardownFragments: teardownFragments,
 	toString: toString,
+	unrender: unrender,
 	update: update
 };
 

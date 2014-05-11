@@ -11,7 +11,7 @@ import TemplateParser from 'Ractive/initialise/templateParser';
 //We're just reusing the logic as it is mostly like a registry
 registries = registries.concat(['template']);
 
-export default initialiseRegisties;
+export default initialiseRegistries;
 
 //Encapsulate differences between template and other registries
 function getExtendOptions ( ractive, options ) {
@@ -42,7 +42,7 @@ function getExtendOptions ( ractive, options ) {
 	};
 }
 
-function initialiseRegisties( ractive, defaults, options, initOptions ) {
+function initialiseRegistries( ractive, defaults, options, initOptions ) {
 	var extendOptions = getExtendOptions( ractive, options ),
 		registryKeys, changes;
 

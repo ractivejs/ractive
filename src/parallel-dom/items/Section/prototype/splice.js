@@ -24,7 +24,7 @@ export default function ( spliceSummary ) {
 	// If more items were removed from the array than added, we tear down
 	// the excess fragments and remove them...
 	if ( balance < 0 ) {
-		section.fragments.splice( start, -balance ).forEach( teardown );
+		section.fragments.splice( start, -balance ).forEach( unrenderAndTeardown );
 
 		// Reassign fragments after the ones we've just removed
 		reassignFragments( section, start, section.length, balance );
@@ -50,17 +50,17 @@ export default function ( spliceSummary ) {
 	renderNewFragments( section, insertStart, insertEnd );
 }
 
-function teardown ( fragment ) {
-	fragment.teardown( true );
+function unrenderAndTeardown ( fragment ) {
+	fragment.unrender( true );
+	fragment.teardown();
 }
 
 function renderNewFragments ( section, start, end ) {
-	var fragmentOptions, fragment, i, insertionPoint;
+	var fragmentOptions, fragment, i;
 
 	fragmentOptions = {
 		template: section.template.f,
 		root:       section.root,
-		pNode:      section.parentFragment.pNode,
 		pElement:   section.pElement,
 		owner:      section,
 		indexRef:   section.template.i

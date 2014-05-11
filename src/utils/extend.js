@@ -1,5 +1,5 @@
-export default function ( target ) {
-	var prop, source, sources = Array.prototype.slice.call( arguments, 1 );
+export default function ( target, ...sources ) {
+	var prop, source;
 
 	while ( source = sources.shift() ) {
 		for ( prop in source ) {

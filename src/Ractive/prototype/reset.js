@@ -2,12 +2,14 @@ import Promise from 'utils/Promise';
 import runloop from 'global/runloop';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
+import Fragment from 'parallel-dom/Fragment/_Fragment';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
 
 export default function ( data, callback ) {
-	var promise,
+	var self = this,
+		promise,
 		fulfilPromise,
 		wrapper,
 		changes,
@@ -47,28 +49,56 @@ export default function ( data, callback ) {
 		}
 	}
 
+	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+
 	if ( rerender ) {
-		promise = this.unrender().then( function () {
-			return self.render();
-		});
+		clearCache( self, '' );
+		notifyDependants( self, '' );
 
-		// throw new Error( 'TODO' );
-		// promise = renderInstance ( this, this.initOptions );
+		/*this.unrender().then( function () {
+			console.log( 'unrendered' );
 
-		// should this fire and when?
-		// this.fire( 'reset', data );
+			// If the template changed, we need to destroy the parallel DOM
+			// TODO if we're here, presumably it did?
+			if ( self.fragment.template !== self.template ) {
+				console.log( 'tearing down fragment' );
+				self.fragment.teardown();
+				self.fragment = null;
+
+				self.fragment = new Fragment({
+					template: self.template,
+					root: self,
+					owner: self
+				});
+			}
+
+			self.render( self.el, self.anchor ).then( fulfilPromise );
+		});*/
+
+		this.unrender();
+
+		// If the template changed, we need to destroy the parallel DOM
+		// TODO if we're here, presumably it did?
+		if ( this.fragment.template !== this.template ) {
+			this.fragment.teardown();
+			this.fragment = null;
+
+			this.fragment = new Fragment({
+				template: this.template,
+				root: this,
+				owner: this
+			});
+		}
+
+		this.render( this.el, this.anchor ).then( fulfilPromise );
 	} else {
-		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-
 		runloop.start( this, fulfilPromise );
-
 		clearCache( this, '' );
 		notifyDependants( this, '' );
-
 		runloop.end();
-
-		this.fire( 'reset', data );
 	}
+
+	this.fire( 'reset', data );
 
 	if ( callback ) {
 		promise.then( callback );

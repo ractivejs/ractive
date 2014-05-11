@@ -1,39 +1,29 @@
-import runloop from 'global/runloop';
-import set from 'shared/set';
-import initBinding from 'parallel-dom/items/Element/Binding/shared/initBinding';
-import handleChange from 'parallel-dom/items/Element/Binding/shared/handleChange';
+import Binding from 'parallel-dom/items/Element/Binding/Binding';
+import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 
-var CheckedBinding = function ( element ) {
-	initBinding( this, element, 'checked' );
-};
+var CheckedBinding = Binding.extend({
+	name: 'checked',
 
-CheckedBinding.prototype = {
 	render: function () {
 		var node = this.element.node;
 
-		node.addEventListener( 'change', handleChange, false );
+		node.addEventListener( 'change', handleDomEvent, false );
 
 		if ( node.attachEvent ) {
-			node.addEventListener( 'click', handleChange, false );
+			node.addEventListener( 'click', handleDomEvent, false );
 		}
 	},
 
 	unrender: function () {
 		var node = this.element.node;
 
-		node.removeEventListener( 'change', handleChange, false );
-		node.removeEventListener( 'click', handleChange, false );
+		node.removeEventListener( 'change', handleDomEvent, false );
+		node.removeEventListener( 'click', handleDomEvent, false );
 	},
 
 	getValue: function () {
 		return this.element.node.checked;
-	},
-
-	handleChange: function () {
-		runloop.lockAttribute( this );
-		set( this.root, this.keypath, this.getValue() );
-		runloop.trigger();
 	}
-};
+});
 
 export default CheckedBinding;

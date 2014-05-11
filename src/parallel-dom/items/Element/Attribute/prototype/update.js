@@ -1,5 +1,5 @@
-import runloop from 'global/runloop';
 import namespaces from 'config/namespaces';
+import noop from 'utils/noop';
 
 import updateSelectValue from 'parallel-dom/items/Element/Attribute/prototype/update/updateSelectValue';
 import updateMultipleSelectValue from 'parallel-dom/items/Element/Attribute/prototype/update/updateMultipleSelectValue';

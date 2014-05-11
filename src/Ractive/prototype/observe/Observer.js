@@ -3,8 +3,6 @@ import isEqual from 'utils/isEqual';
 import get from 'shared/get/_get';
 
 var Observer = function ( ractive, keypath, callback, options ) {
-	var self = this;
-
 	this.root = ractive;
 	this.keypath = keypath;
 	this.callback = callback;

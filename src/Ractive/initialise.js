@@ -13,7 +13,7 @@ var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isol
 
 export default function initialiseRactiveInstance ( ractive, options ) {
 
-	var defaults = ractive.constructor.defaults, target;
+	var defaults = ractive.constructor.defaults;
 
 	// Allow empty constructor options and save for reset
 	ractive.initOptions = options = options || {};

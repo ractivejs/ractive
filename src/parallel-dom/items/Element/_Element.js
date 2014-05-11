@@ -1,5 +1,4 @@
 import bubble from 'parallel-dom/items/Element/prototype/bubble';
-import bubble from 'parallel-dom/items/Element/prototype/bubble';
 import detach from 'parallel-dom/items/Element/prototype/detach';
 import find from 'parallel-dom/items/Element/prototype/find';
 import findAll from 'parallel-dom/items/Element/prototype/findAll';
@@ -13,6 +12,7 @@ import reassign from 'parallel-dom/items/Element/prototype/reassign';
 import render from 'parallel-dom/items/Element/prototype/render';
 import teardown from 'parallel-dom/items/Element/prototype/teardown';
 import toString from 'parallel-dom/items/Element/prototype/toString';
+import unrender from 'parallel-dom/items/Element/prototype/unrender';
 
 var Element = function ( options ) {
 	this.init( options );
@@ -32,7 +32,8 @@ Element.prototype = {
 	reassign: reassign,
 	render: render,
 	teardown: teardown,
-	toString: toString
+	toString: toString,
+	unrender: unrender
 };
 
 export default Element;

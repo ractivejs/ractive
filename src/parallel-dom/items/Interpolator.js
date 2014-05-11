@@ -1,11 +1,15 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
 import escapeHtml from 'utils/escapeHtml';
+import detachNode from 'utils/detachNode';
+import get from 'shared/get/_get';
 import teardown from 'shared/teardown';
 import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
 import detach from 'parallel-dom/items/shared/detach';
 
-var Interpolator = function ( options ) {
+var Interpolator, unwrap = { evaluateWrapped: true };
+
+Interpolator = function ( options ) {
 	this.type = types.INTERPOLATOR;
 	Mustache.init( this, options );
 };
@@ -18,32 +22,38 @@ Interpolator.prototype = {
 	reassign: Mustache.reassign,
 	detach: detach,
 
-	teardown: function ( destroy ) {
-		if ( destroy ) {
-			this.detach();
-		}
-
+	teardown: function () {
 		teardown( this );
 	},
 
 	render: function () {
-		this.node = document.createTextNode( this.value != undefined ? this.value : '' );
-		this.rendered = true;
+		if ( !this.node ) {
+			this.node = document.createTextNode( this.value != undefined ? this.value : '' );
+		}
 
 		return this.node;
 	},
 
-	unrender: function () {
-		throw new Error( 'TODO not implemented' );
+	unrender: function ( shouldDestroy ) {
+		if ( shouldDestroy ) {
+			detachNode( this.node );
+		}
 	},
 
 	// TEMP
 	setValue: function ( value ) {
+		var wrapper;
+
+		// TODO is there a better way to approach this?
+		if ( wrapper = this.root._wrapped[ this.keypath ] ) {
+			value = wrapper.get();
+		}
+
 		if ( value !== this.value ) {
 			this.value = value;
 			this.parentFragment.bubble();
 
-			if ( this.rendered ) {
+			if ( this.node ) {
 				runloop.addUpdate( this );
 			}
 		}

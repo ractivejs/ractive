@@ -1,19 +1,14 @@
-import runloop from 'global/runloop';
 import get from 'shared/get/_get';
 import set from 'shared/set';
 import arrayContentsMatch from 'utils/arrayContentsMatch';
-import initBinding from 'parallel-dom/items/Element/Binding/shared/initBinding';
-import handleChange from 'parallel-dom/items/Element/Binding/shared/handleChange';
+import SelectBinding from 'parallel-dom/items/Element/Binding/SelectBinding';
+import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 
-var MultipleSelectBinding = function ( element ) {
-	initBinding( this, element );
-};
-
-MultipleSelectBinding.prototype = {
+var MultipleSelectBinding = SelectBinding.extend({
 	render: function () {
 		var valueFromModel;
 
-		this.element.node.addEventListener( 'change', handleChange, false );
+		this.element.node.addEventListener( 'change', handleDomEvent, false );
 
 		valueFromModel = get( this.root, this.keypath );
 
@@ -21,10 +16,6 @@ MultipleSelectBinding.prototype = {
 			// get value from DOM, if possible
 			this.handleChange();
 		}
-	},
-
-	unrender: function () {
-		this.element.node.removeEventListener( 'change', handleChange, false );
 	},
 
 	setValue: function () {
@@ -59,12 +50,7 @@ MultipleSelectBinding.prototype = {
 		value = this.getValue();
 
 		if ( previousValue === undefined || !arrayContentsMatch( value, previousValue ) ) {
-			// either length or contents have changed, so we update the model
-			runloop.lockAttribute( attribute );
-			attribute.value = value;
-			set( this.root, this.keypath, value );
-			runloop.trigger();
-
+			SelectBinding.prototype.handleChange.call( this );
 		}
 
 		return this;
@@ -74,14 +60,7 @@ MultipleSelectBinding.prototype = {
 		if ( this.attribute.value === undefined || !this.attribute.value.length ) {
 			set( this.root, this.keypath, this.initialValue );
 		}
-	},
-
-	dirty: function () {
-		if ( !this._dirty ) {
-			runloop.addSelectBinding( this );
-			this._dirty = true;
-		}
 	}
-};
+});
 
 export default MultipleSelectBinding;

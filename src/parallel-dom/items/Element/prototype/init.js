@@ -18,19 +18,14 @@ circular.push( function () {
 
 export default function Element$init ( options ) {
 	var parentFragment,
-		pNode,
 		template,
 		namespace,
-		name,
-		attributes,
-		width,
-		height,
-		loadHandler,
+		// width,
+		// height,
+		// loadHandler,
 		ractive,
 		binding,
-		bindings,
-		selectBinding,
-		errorMessage;
+		bindings;
 
 	this.type = types.ELEMENT;
 
@@ -42,9 +37,6 @@ export default function Element$init ( options ) {
 
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
-
-	this.eventListeners = [];
-	this.customEventListeners = [];
 
 	this.cssDetachQueue = [];
 
