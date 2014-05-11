@@ -19,18 +19,9 @@ export default function Section$setValue ( value ) {
 		value = wrapper.get();
 	}
 
-	// prevent sections from updating multiple times (happens if
-	// evaluators evaluate while update is happening)
-	if ( this.updating ) {
-		console.error( 'TODO does this ever happen?' );
-		return;
-	}
-
-	this.updating = true;
 	if ( reevaluateSection( this, value ) && this.rendered ) {
 		runloop.addUpdate( this );
 	}
-	this.updating = false;
 
 	this.value = value;
 }

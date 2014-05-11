@@ -84,7 +84,8 @@
     "broccoli-es6-module-transpiler": "~0.1.0",
     "broccoli-filter": "~0.1.6",
     "broccoli-cli": "0.0.1",
-    "broccoli-es6-transpiler": "~0.1.0"
+    "broccoli-es6-transpiler": "~0.1.0",
+    "grunt-broccoli": "~0.2.2"
   },
   "testling": {
     "html": "test/testling.html",

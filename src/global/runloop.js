@@ -112,7 +112,6 @@ runloop = {
 	scheduleCssUpdate: function () {
 		// if runloop isn't currently active, we need to trigger change immediately
 		if ( !flushing ) {
-			// TODO does this ever happen?
 			css.update();
 		} else {
 			pendingCssChanges = true;
@@ -142,7 +141,6 @@ runloop = {
 
 	addCheckboxBinding: function ( checkboxBinding ) {
 		if ( !checkboxKeypaths[ checkboxBinding.keypath ] ) {
-			console.log( 'adding checkbox', checkboxBinding );
 			dirty = true;
 			checkboxBindings.push( checkboxBinding );
 			checkboxKeypaths[ checkboxBinding.keypath ] = true;
@@ -210,7 +208,6 @@ function flushChanges () {
 		}
 
 		while ( thing = checkboxBindings.pop() ) {
-			console.log( 'flushing checkbox bindings' );
 			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			checkboxKeypaths[ thing.keypath ] = false;
 		}
@@ -288,7 +285,7 @@ function attemptKeypathResolution () {
 	array = unresolved.splice( 0, unresolved.length );
 	while ( thing = array.pop() ) {
 		if ( thing.keypath ) {
-			continue; // it did resolve after all. TODO does this ever happen?
+			continue; // it did resolve after all
 		}
 
 		keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );

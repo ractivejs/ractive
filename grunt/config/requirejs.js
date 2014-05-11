@@ -30,7 +30,7 @@ module.exports = {
 		}
 	},
 	options: {
-		baseUrl: '.amd/',
+		baseUrl: 'tmp/amd/',
 		name: 'Ractive',
 		optimize: 'none',
 		logLevel: 2,

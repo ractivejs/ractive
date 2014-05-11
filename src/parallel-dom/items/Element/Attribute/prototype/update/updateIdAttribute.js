@@ -9,6 +9,5 @@ export default function Attribute$updateIdAttribute () {
 	}
 
 	this.root.nodes[ value ] = node;
-
-	node.setAttribute( 'id', value ); // TODO node.id = value? does that work for SVG?
+	node.id = value;
 }

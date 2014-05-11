@@ -1,3 +1,4 @@
+import Promise from 'utils/Promise';
 import clearCache from 'shared/clearCache';
 
 // Teardown. This goes through the root fragment and all its children, removing observers
@@ -19,7 +20,7 @@ export default function ( callback ) {
 		unresolvedImplicitDependency.teardown();
 	}
 
-	promise = this.unrender();
+	promise = ( this.rendered ? this.unrender() : Promise.resolve() );
 
 	if ( callback ) {
 		// TODO deprecate this?

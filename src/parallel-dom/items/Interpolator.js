@@ -2,14 +2,11 @@ import types from 'config/types';
 import runloop from 'global/runloop';
 import escapeHtml from 'utils/escapeHtml';
 import detachNode from 'utils/detachNode';
-import get from 'shared/get/_get';
 import teardown from 'shared/teardown';
 import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
 import detach from 'parallel-dom/items/shared/detach';
 
-var Interpolator, unwrap = { evaluateWrapped: true };
-
-Interpolator = function ( options ) {
+var Interpolator = function ( options ) {
 	this.type = types.INTERPOLATOR;
 	Mustache.init( this, options );
 };

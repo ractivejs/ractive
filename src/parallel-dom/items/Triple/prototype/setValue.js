@@ -1,7 +1,5 @@
 import runloop from 'global/runloop';
 
-var unwrap = { evaluateWrapped: true };
-
 export default function Triple$setValue ( value ) {
 	var wrapper;
 

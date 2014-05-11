@@ -24,23 +24,32 @@
 
 	var isBuild, config, i, prefixedModules = [];
 
-	config = {
-		baseUrl: '../../../.amd/',
-		paths: {
-			modules: '../test/modules',
-			samples: '../test/samples',
-			vendor: '../test/vendor'
-		}
-	};
-
 	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
-		config.paths.ractive = '../tmp/ractive-legacy';
+		config = {
+			baseUrl: '../../../tmp/amd/',
+			paths: {
+				modules: '../../test/modules',
+				samples: '../../test/samples',
+				vendor: '../../test/vendor',
+				ractive: '../ractive-legacy'
+			}
+		};
+	} else {
+		config = {
+			baseUrl: '../../../.amd/',
+			paths: {
+				modules: '../test/modules',
+				samples: '../test/samples',
+				vendor: '../test/vendor'
+			}
+		};
 	}
 
 	// require for asyncTest and module('',{setup}) to work
 	// see http://stackoverflow.com/questions/17065488/qunit-setup-called-for-each-test-before-teardown
 	QUnit.config.autostart = false;
 	QUnit.config.reorder = false;
+	QUnit.config.testTimeout = 2000;
 	require.config( config );
 
 	// can't use .map() because of IE...

@@ -79,11 +79,6 @@ export default function Element$init ( options ) {
 		// register this with the root, so that we can do ractive.updateModel()
 		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
 		bindings.push( binding );
-
-		// Special case - checkbox name bindings
-		if ( binding.checkboxName ) {
-			console.warn( 'TODO' );
-		}
 	}
 
 
@@ -254,6 +249,11 @@ function syncSelect ( selectElement ) {
 	var selectNode, selectValue, isMultiple, options, value, i, optionWasSelected;
 
 	selectNode = selectElement.node;
+
+	if ( !selectNode ) {
+		return;
+	}
+
 	options = toArray( selectNode.options );
 
 	selectValue = selectElement.getAttribute( 'value' );

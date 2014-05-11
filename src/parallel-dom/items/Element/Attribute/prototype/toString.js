@@ -19,8 +19,12 @@ export default function Attribute$toString () {
 	}
 
 	// Special case - boolean attributes
-	if ( this.fragment && booleanAttributes.test( this.name ) ) {
-		return this.fragment.getValue() ? this.name : null;
+	if ( booleanAttributes.test( this.name ) ) {
+		if ( this.fragment ) {
+			return this.fragment.getValue() ? this.name : null;
+		} else {
+			return this.value ? this.name : null;
+		}
 	}
 
 	if ( this.fragment ) {
