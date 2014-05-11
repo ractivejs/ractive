@@ -141,7 +141,7 @@ export default function Element$render () {
 		// Special case. Some browsers (*cough* Firefix *cough*) have a problem
 		// with dynamically-generated elements having autofocus, and they won't
 		// allow you to programmatically focus the element until it's in the DOM
-		runloop.focus( this.node );
+		runloop.afterViewUpdate( () => this.node.focus() );
 	}
 
 	updateLiveQueries( this );

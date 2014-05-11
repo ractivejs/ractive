@@ -48,9 +48,6 @@ export default function Attribute$init ( options ) {
 	// can we establish this attribute's property name equivalent?
 	determinePropertyName( this, options );
 
-	// determine whether this attribute can be marked as self-updating
-	this.selfUpdating = this.fragment.isSimple();
-
 	// mark as ready
 	this.ready = true;
 }

@@ -31,11 +31,10 @@ Observer.prototype = {
 			this.value = value;
 
 			if ( this.defer && this.ready ) {
-				runloop.addObserver( this );
-				return;
+				runloop.afterViewUpdate( () => this.update() );
+			} else {
+				runloop.afterModelUpdate( () => this.update() );
 			}
-
-			this.update();
 		}
 	},
 

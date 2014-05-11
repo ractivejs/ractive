@@ -19,9 +19,7 @@ var runloop,
 	dirty = false,
 	flushing = false,
 	pendingCssChanges,
-	toFocus = null,
 
-	observers = [],
 	lockedAttributes = [],
 
 	checkboxKeypaths = {},
@@ -60,10 +58,6 @@ runloop = {
 		transitionManager = transitionManager._previous;
 	},
 
-	focus: function ( node ) {
-		toFocus = node;
-	},
-
 	addInstance: function ( instance ) {
 		if ( instance && !instances[ instance._guid ] ) {
 			instances.push( instance );
@@ -74,10 +68,6 @@ runloop = {
 	registerTransition: function ( transition ) {
 		transition._manager = transitionManager;
 		transitionManager.push( transition );
-	},
-
-	addObserver: function ( observer ) {
-		observers.push( observer );
 	},
 
 	viewUpdate: function ( thing ) {
@@ -177,21 +167,12 @@ function flushChanges () {
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	if ( toFocus ) {
-		toFocus.focus();
-		toFocus = null;
-	}
-
 	while ( thing = viewUpdates.pop() ) {
 		thing.update();
 	}
 
 	while ( thing = postViewUpdateTasks.pop() ) {
 		thing();
-	}
-
-	while ( thing = observers.pop() ) {
-		thing.update();
 	}
 
 	// Unlock attributes (twoway binding)
