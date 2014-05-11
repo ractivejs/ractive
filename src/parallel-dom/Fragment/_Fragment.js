@@ -1,5 +1,4 @@
 import bubble from 'parallel-dom/Fragment/prototype/bubble';
-import createItem from 'parallel-dom/Fragment/prototype/createItem';
 import detach from 'parallel-dom/Fragment/prototype/detach';
 import find from 'parallel-dom/Fragment/prototype/find';
 import findAll from 'parallel-dom/Fragment/prototype/findAll';
@@ -25,7 +24,6 @@ var Fragment = function ( options ) {
 
 Fragment.prototype = {
 	bubble: bubble,
-	createItem: createItem,
 	detach: detach,
 	find: find,
 	findAll: findAll,

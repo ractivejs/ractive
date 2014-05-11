@@ -25,7 +25,7 @@ var RadioNameBinding = Binding.extend({
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel == node._ractive.value );
 		} else {
-			runloop.addRadio( this );
+			runloop.afterModelUpdate( () => this.handleChange() );
 		}
 	},
 

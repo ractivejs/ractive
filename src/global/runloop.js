@@ -21,22 +21,17 @@ var runloop,
 	pendingCssChanges,
 	toFocus = null,
 
-	liveQueries = [],
-	decorators = [],
-	intros = [],
-	outros = [],
 	observers = [],
-	updateQueue = [],
 	lockedAttributes = [],
 
-	evaluators = [],
-	computations = [],
-	dirtySelects = [],
-	selectBindings = [],
 	checkboxKeypaths = {},
 	checkboxBindings = [],
-	radios = [],
 	unresolved = [],
+
+	modelUpdates = [],
+	viewUpdates = [],
+	postViewUpdateTasks = [],
+	postModelUpdateTasks = [],
 
 	instances = [],
 	transitionManager;
@@ -76,32 +71,17 @@ runloop = {
 		}
 	},
 
-	addLiveQuery: function ( query ) {
-		liveQueries.push( query );
-	},
-
-	addDecorator: function ( decorator ) {
-		decorators.push( decorator );
-	},
-
-	addIntro: function ( intro ) {
-		intro._manager = transitionManager;
-		transitionManager.push( intro );
-		intros.push( intro );
-	},
-
-	addOutro: function ( outro ) {
-		outro._manager = transitionManager;
-		transitionManager.push( outro );
-		outros.push( outro );
+	registerTransition: function ( transition ) {
+		transition._manager = transitionManager;
+		transitionManager.push( transition );
 	},
 
 	addObserver: function ( observer ) {
 		observers.push( observer );
 	},
 
-	addUpdate: function ( thing ) {
-		updateQueue.push( thing );
+	viewUpdate: function ( thing ) {
+		viewUpdates.push( thing );
 	},
 
 	lockAttribute: function ( attribute ) {
@@ -119,37 +99,18 @@ runloop = {
 	},
 
 	// changes that may cause additional changes...
-	addEvaluator: function ( evaluator ) {
+	modelUpdate: function ( thing ) {
 		dirty = true;
-		evaluators.push( evaluator );
+		modelUpdates.push( thing );
 	},
 
-	addComputation: function ( thing ) {
-		dirty = true;
-		computations.push( thing );
-	},
-
-	addDirtySelect: function ( select ) {
-		dirty = true;
-		dirtySelects.push( select );
-	},
-
-	addSelectBinding: function ( selectBinding ) {
-		dirty = true;
-		selectBindings.push( selectBinding );
-	},
-
+	// TODO this is wrong - inputs should be grouped by instance
 	addCheckboxBinding: function ( checkboxBinding ) {
 		if ( !checkboxKeypaths[ checkboxBinding.keypath ] ) {
 			dirty = true;
 			checkboxBindings.push( checkboxBinding );
 			checkboxKeypaths[ checkboxBinding.keypath ] = true;
 		}
-	},
-
-	addRadio: function ( radio ) {
-		dirty = true;
-		radios.push( radio );
 	},
 
 	addUnresolved: function ( thing ) {
@@ -164,6 +125,15 @@ runloop = {
 	// synchronise node detachments with transition ends
 	detachWhenReady: function ( thing ) {
 		transitionManager.detachQueue.push( thing );
+	},
+
+	afterModelUpdate: function ( task ) {
+		dirty = true;
+		postModelUpdateTasks.push( task );
+	},
+
+	afterViewUpdate: function ( task ) {
+		postViewUpdateTasks.push( task );
 	}
 };
 
@@ -190,30 +160,18 @@ function flushChanges () {
 	while ( dirty ) {
 		dirty = false;
 
-		while ( thing = computations.pop() ) {
+		while ( thing = modelUpdates.pop() ) {
 			thing.update();
-		}
-
-		while ( thing = evaluators.pop() ) {
-			thing.update().deferred = false;
-		}
-
-		while ( thing = dirtySelects.pop() ) {
-			thing.sync();
 			thing.dirty = false;
 		}
 
-		while ( thing = selectBindings.pop() ) {
-			thing.updateModel();
+		while ( thing = postModelUpdateTasks.pop() ) {
+			thing();
 		}
 
 		while ( thing = checkboxBindings.pop() ) {
 			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			checkboxKeypaths[ thing.keypath ] = false;
-		}
-
-		while ( thing = radios.pop() ) {
-			thing.handleChange();
 		}
 	}
 
@@ -224,24 +182,12 @@ function flushChanges () {
 		toFocus = null;
 	}
 
-	while ( thing = updateQueue.pop() ) {
+	while ( thing = viewUpdates.pop() ) {
 		thing.update();
 	}
 
-	while ( thing = liveQueries.pop() ) {
-		thing._sort();
-	}
-
-	while ( thing = decorators.pop() ) {
-		thing.init();
-	}
-
-	while ( thing = intros.pop() ) {
-		thing.start( true );
-	}
-
-	while ( thing = outros.pop() ) {
-		thing.start( false );
+	while ( thing = postViewUpdateTasks.pop() ) {
+		thing();
 	}
 
 	while ( thing = observers.pop() ) {

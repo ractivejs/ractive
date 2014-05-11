@@ -51,7 +51,7 @@ Interpolator.prototype = {
 			this.parentFragment.bubble();
 
 			if ( this.node ) {
-				runloop.addUpdate( this );
+				runloop.viewUpdate( this );
 			}
 		}
 	},

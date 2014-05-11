@@ -50,9 +50,9 @@ Evaluator.prototype = {
 		// ...otherwise we want to register it as a deferred item, to be
 		// updated once all the information is in, to prevent unnecessary
 		// cascading. Only if we're already resolved, obviously
-		else if ( !this.deferred ) {
-			runloop.addEvaluator( this );
-			this.deferred = true;
+		else if ( !this.dirty ) {
+			runloop.modelUpdate( this );
+			this.dirty = true;
 		}
 	},
 
@@ -104,7 +104,7 @@ Evaluator.prototype = {
 	// in the case of a smart update
 	refresh: function () {
 		if ( !this.selfUpdating ) {
-			this.deferred = true;
+			this.dirty = true;
 		}
 
 		var i = this.refs.length;
@@ -112,9 +112,9 @@ Evaluator.prototype = {
 			this.refs[i].setValue( get( this.root, this.refs[i].keypath ) );
 		}
 
-		if ( this.deferred ) {
+		if ( this.dirty ) {
 			this.update();
-			this.deferred = false;
+			this.dirty = false;
 		}
 	},
 
@@ -146,8 +146,6 @@ Evaluator.prototype = {
 				this.softRefs[ keypath ] = true;
 			}
 		}
-
-		this.selfUpdating = ( this.refs.length + this.softRefs.length <= 1 );
 	}
 };
 

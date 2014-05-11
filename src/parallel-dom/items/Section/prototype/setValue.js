@@ -20,7 +20,7 @@ export default function Section$setValue ( value ) {
 	}
 
 	if ( reevaluateSection( this, value ) && this.rendered ) {
-		runloop.addUpdate( this );
+		runloop.viewUpdate( this );
 	}
 
 	this.value = value;

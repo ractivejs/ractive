@@ -13,7 +13,7 @@ export default function Attribute$bubble () {
 		}
 
 		if ( this.rendered ) {
-			runloop.addUpdate( this );
+			runloop.viewUpdate( this );
 		}
 	}
 }

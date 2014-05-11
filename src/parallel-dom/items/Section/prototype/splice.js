@@ -78,5 +78,5 @@ function renderNewFragments ( section, start, end ) {
 	// TODO something feels off about this?
 	section.insertionPoint = ( section.fragments[ end ] ? section.fragments[ end ].firstNode() : section.parentFragment.findNextNode( section ) );
 
-	runloop.addUpdate( section );
+	runloop.viewUpdate( section );
 }

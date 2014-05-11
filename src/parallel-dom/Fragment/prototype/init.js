@@ -1,9 +1,10 @@
 import types from 'config/types';
 import create from 'utils/create';
+import createItem from 'parallel-dom/Fragment/prototype/init/createItem';
 
 export default function Fragment$init ( options ) {
 
-	var self = this, parentFragment, parentRefs, ref;
+	var parentFragment, parentRefs, ref;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
 	this.owner = options.owner;
@@ -54,14 +55,12 @@ export default function Fragment$init ( options ) {
 		options.template = [];
 	}
 
-	this.items = options.template.map( function ( template, i ) {
-		return self.createItem({
-			parentFragment: self,
-			pElement: options.pElement,
-			template: template,
-			index: i
-		});
-	});
+	this.items = options.template.map( ( template, i ) => createItem({
+		parentFragment: this,
+		pElement: options.pElement,
+		template: template,
+		index: i
+	}) );
 
 	this.inited = true;
 }

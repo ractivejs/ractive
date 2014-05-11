@@ -35,7 +35,7 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, node;
+	var root = this.root, node, intro;
 
 	node = this.node = createElement( this.name, this.namespace );
 
@@ -122,14 +122,15 @@ export default function Element$render () {
 
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
-		runloop.addDecorator( this.decorator );
+		runloop.afterViewUpdate( () => {
+			this.decorator.init();
+		});
 	}
 
 	// trigger intro transition
-	if ( this.intro ) {
-		// TODO
-		//executeTransition( template.t0 || template.t1, root, this, true );
-		runloop.addIntro( this.intro );
+	if ( intro = this.intro ) {
+		runloop.registerTransition( intro );
+		runloop.afterViewUpdate( () => intro.start( true ) )
 	}
 
 	if ( this.name === 'option' ) {

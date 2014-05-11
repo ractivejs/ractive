@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
 
 export default function Element$unrender ( shouldDestroy ) {
-	var binding, bindings;
+	var binding, bindings, outro;
 
 	// Detach as soon as we can
 	if ( shouldDestroy ) {
@@ -33,8 +33,9 @@ export default function Element$unrender ( shouldDestroy ) {
 	}
 
 	// Outro, if necessary
-	if ( this.outro ) {
-		runloop.addOutro( this.outro );
+	if ( outro = this.outro ) {
+		runloop.registerTransition( outro );
+		runloop.afterViewUpdate( () => outro.start( false ) );
 	}
 
 	// Remove this node from any live queries

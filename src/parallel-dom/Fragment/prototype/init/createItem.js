@@ -8,7 +8,7 @@ import Partial from 'parallel-dom/items/Partial/_Partial';
 import Component from 'parallel-dom/items/Component/_Component';
 import Comment from 'parallel-dom/items/Comment';
 
-export default function Fragment$createItem ( options ) {
+export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {
 		return new Text( options );
 	}
@@ -18,7 +18,7 @@ export default function Fragment$createItem ( options ) {
 		case types.SECTION:      return new Section( options );
 		case types.TRIPLE:       return new Triple( options );
 		case types.ELEMENT:
-			if ( this.root.components[ options.template.e ] ) {
+			if ( options.parentFragment.root.components[ options.template.e ] ) {
 				return new Component( options );
 			}
 			return new Element( options );

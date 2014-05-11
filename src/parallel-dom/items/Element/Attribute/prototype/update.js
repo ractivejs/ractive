@@ -9,7 +9,6 @@ import updateClassName from 'parallel-dom/items/Element/Attribute/prototype/upda
 import updateIdAttribute from 'parallel-dom/items/Element/Attribute/prototype/update/updateIdAttribute';
 import updateIEStyleAttribute from 'parallel-dom/items/Element/Attribute/prototype/update/updateIEStyleAttribute';
 import updateContentEditableValue from 'parallel-dom/items/Element/Attribute/prototype/update/updateContentEditableValue';
-import updateOptionValue from 'parallel-dom/items/Element/Attribute/prototype/update/updateOptionValue';
 import updateValue from 'parallel-dom/items/Element/Attribute/prototype/update/updateValue';
 import updateBoolean from 'parallel-dom/items/Element/Attribute/prototype/update/updateBoolean';
 import updateEverythingElse from 'parallel-dom/items/Element/Attribute/prototype/update/updateEverythingElse';
@@ -66,11 +65,7 @@ export default function Attribute$update () {
 	}
 
 	else if ( name === 'value' ) {
-		if ( element.name === 'option' && element.select.binding ) {
-			this.update = updateOptionValue;
-		} else {
-			this.update = updateValue;
-		}
+		this.update = updateValue;
 	}
 
 	else if ( this.useProperty ) {

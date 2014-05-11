@@ -115,11 +115,11 @@ export default function Element$init ( options ) {
 		this.bubble = function () {
 			if ( !this.dirty ) {
 				this.dirty = true;
-				runloop.addDirtySelect( this );
+				runloop.modelUpdate( this );
 			}
 		};
 
-		this.sync = function () {
+		this.update = function () {
 			syncSelect( this );
 		};
 	}

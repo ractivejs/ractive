@@ -40,8 +40,9 @@ var SelectBinding = Binding.extend({
 
 	dirty: function () {
 		if ( !this._dirty ) {
-			runloop.addSelectBinding( this );
 			this._dirty = true;
+			runloop.afterModelUpdate( () => this.updateModel() );
+
 		}
 	}
 });
