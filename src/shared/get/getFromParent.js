@@ -17,7 +17,7 @@ export default function getFromParent ( child, keypath ) {
 
 	// Special case - index refs
 	if ( fragment.indexRefs && ( index = fragment.indexRefs[ keypath ] ) !== undefined ) {
-		// create an index ref binding, so that it can be reassigned letter if necessary
+		// create an index ref binding, so that it can be rebound letter if necessary
 		child.component.indexRefBindings[ keypath ] = keypath;
 		return index;
 	}

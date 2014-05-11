@@ -1,8 +1,8 @@
 import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
-import Evaluator from 'parallel-dom/shared/Evaluator/_Evaluator';
-import getNewKeypath from 'parallel-dom/shared/utils/getNewKeypath';
+import Evaluator from 'parallel-dom/items/shared/Evaluator/_Evaluator';
+import getNewKeypath from 'parallel-dom/items/shared/utils/getNewKeypath';
 
 var ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 
@@ -107,12 +107,12 @@ ExpressionResolver.prototype = {
 		else {
 			// we need to trigger a refresh of the evaluator, since it
 			// will have become de-synced from the model if we're in a
-			// reassignment cycle
+			// rebinding cycle
 			this.root._evaluators[ this.keypath ].refresh();
 		}
 	},
 
-	reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		var changed;
 
 		this.args.forEach( function ( arg ) {

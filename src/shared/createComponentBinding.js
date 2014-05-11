@@ -53,7 +53,7 @@ Binding.prototype = {
 		}
 	},
 
-	reassign: function ( newKeypath ) {
+	rebind: function ( newKeypath ) {
 		unregisterDependant( this );
 		unregisterDependant( this.counterpart );
 

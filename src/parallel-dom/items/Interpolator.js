@@ -3,7 +3,7 @@ import runloop from 'global/runloop';
 import escapeHtml from 'utils/escapeHtml';
 import detachNode from 'utils/detachNode';
 import teardown from 'shared/teardown';
-import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
+import Mustache from 'parallel-dom/items/shared/Mustache/_Mustache';
 import detach from 'parallel-dom/items/shared/detach';
 
 var Interpolator = function ( options ) {
@@ -16,7 +16,7 @@ Interpolator.prototype = {
 		this.node.data = ( this.value == undefined ? '' : this.value );
 	},
 	resolve: Mustache.resolve,
-	reassign: Mustache.reassign,
+	rebind: Mustache.rebind,
 	detach: detach,
 
 	teardown: function () {

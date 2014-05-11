@@ -5,7 +5,7 @@ import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
-import ExpressionResolver from 'parallel-dom/shared/Resolvers/ExpressionResolver';
+import ExpressionResolver from 'parallel-dom/items/shared/Resolvers/ExpressionResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	var resolver = this, ractive, parentFragment, keypath, dynamic, members;
@@ -43,7 +43,7 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 			if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
 				members[i] = index;
 
-				// make a note of it, in case of reassignments
+				// make a note of it, in case of rebindings
 				resolver.indexRefMembers.push({
 					ref: ref,
 					index: i
@@ -131,7 +131,7 @@ ReferenceExpressionResolver.prototype = {
 		}
 	},
 
-	reassign: function ( indexRef, newIndex ) {
+	rebind: function ( indexRef, newIndex ) {
 		var changed, i, member;
 
 		i = this.indexRefMembers.length;

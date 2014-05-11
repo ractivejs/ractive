@@ -12,21 +12,21 @@ export default function Section$merge ( newIndices ) {
 		firstChange,
 		i,
 		newLength,
-		reassignedFragments,
+		reboundFragments,
 		fragmentOptions,
 		fragment,
 		nextNode;
 
 	parentFragment = this.parentFragment;
 
-	reassignedFragments = [];
+	reboundFragments = [];
 
-	// first, reassign existing fragments
-	newIndices.forEach( function reassignIfNecessary ( newIndex, oldIndex ) {
+	// first, rebind existing fragments
+	newIndices.forEach( function rebindIfNecessary ( newIndex, oldIndex ) {
 		var fragment, by, oldKeypath, newKeypath;
 
 		if ( newIndex === oldIndex ) {
-			reassignedFragments[ newIndex ] = section.fragments[ oldIndex ];
+			reboundFragments[ newIndex ] = section.fragments[ oldIndex ];
 			return;
 		}
 
@@ -43,13 +43,13 @@ export default function Section$merge ( newIndices ) {
 			return;
 		}
 
-		// Otherwise, it needs to be reassigned to a new index
+		// Otherwise, it needs to be rebound to a new index
 		by = newIndex - oldIndex;
 		oldKeypath = section.keypath + '.' + oldIndex;
 		newKeypath = section.keypath + '.' + newIndex;
 
-		fragment.reassign( section.template.i, newIndex, oldKeypath, newKeypath );
-		reassignedFragments[ newIndex ] = fragment;
+		fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
+		reboundFragments[ newIndex ] = fragment;
 	});
 
 	// If nothing changed with the existing fragments, then we start adding
@@ -81,7 +81,7 @@ export default function Section$merge ( newIndices ) {
 	for ( i = firstChange; i < newLength; i += 1 ) {
 
 		// is this an existing fragment?
-		if ( fragment = reassignedFragments[i] ) {
+		if ( fragment = reboundFragments[i] ) {
 			this.docFrag.appendChild( fragment.detach( false ) );
 		}
 

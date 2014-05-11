@@ -1,10 +1,10 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
-import ReferenceExpressionResolver from 'parallel-dom/shared/Resolvers/ReferenceExpressionResolver';
-import ExpressionResolver from 'parallel-dom/shared/Resolvers/ExpressionResolver';
+import ReferenceExpressionResolver from 'parallel-dom/items/shared/Resolvers/ReferenceExpressionResolver';
+import ExpressionResolver from 'parallel-dom/items/shared/Resolvers/ExpressionResolver';
 
-export default function initMustache ( mustache, options ) {
+export default function Mustache$init ( mustache, options ) {
 
 	var ref, indexRefs, index, parentFragment, template;
 

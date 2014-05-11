@@ -1,4 +1,4 @@
-import startsWithKeypath from 'parallel-dom/shared/utils/startsWithKeypath';
+import startsWithKeypath from 'parallel-dom/items/shared/utils/startsWithKeypath';
 
 export default function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
 

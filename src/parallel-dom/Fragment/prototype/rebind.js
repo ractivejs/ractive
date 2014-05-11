@@ -1,6 +1,6 @@
-import assignNewKeypath from 'parallel-dom/shared/utils/assignNewKeypath';
+import assignNewKeypath from 'parallel-dom/items/shared/utils/assignNewKeypath';
 
-export default function Fragment$reassign ( indexRef, newIndex, oldKeypath, newKeypath ) {
+export default function Fragment$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	// assign new context keypath if needed
 	assignNewKeypath(this, 'context', oldKeypath, newKeypath);
 
@@ -11,8 +11,8 @@ export default function Fragment$reassign ( indexRef, newIndex, oldKeypath, newK
 	}
 
 	this.items.forEach( function ( item ) {
-		if ( item.reassign ) {
-			item.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+		if ( item.rebind ) {
+			item.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 		}
 	});
 }

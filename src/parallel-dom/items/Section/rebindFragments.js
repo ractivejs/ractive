@@ -12,6 +12,6 @@ export default function ( section, start, end, by ) {
 
 		// change the fragment index
 		fragment.index = i;
-		fragment.reassign( indexRef, i, oldKeypath, newKeypath );
+		fragment.rebind( indexRef, i, oldKeypath, newKeypath );
 	}
 }

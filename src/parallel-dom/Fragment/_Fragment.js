@@ -9,7 +9,7 @@ import firstNode from 'parallel-dom/Fragment/prototype/firstNode';
 import getNode from 'parallel-dom/Fragment/prototype/getNode';
 import getValue from 'parallel-dom/Fragment/prototype/getValue';
 import init from 'parallel-dom/Fragment/prototype/init';
-import reassign from 'parallel-dom/Fragment/prototype/reassign';
+import rebind from 'parallel-dom/Fragment/prototype/rebind';
 import render from 'parallel-dom/Fragment/prototype/render';
 import teardown from 'parallel-dom/Fragment/prototype/teardown';
 import toString from 'parallel-dom/Fragment/prototype/toString';
@@ -33,7 +33,7 @@ Fragment.prototype = {
 	getNode: getNode,
 	getValue: getValue,
 	init: init,
-	reassign: reassign,
+	rebind: rebind,
 	render: render,
 	teardown: teardown,
 	toString: toString,

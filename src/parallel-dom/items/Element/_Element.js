@@ -8,7 +8,7 @@ import findNextNode from 'parallel-dom/items/Element/prototype/findNextNode';
 import firstNode from 'parallel-dom/items/Element/prototype/firstNode';
 import getAttribute from 'parallel-dom/items/Element/prototype/getAttribute';
 import init from 'parallel-dom/items/Element/prototype/init';
-import reassign from 'parallel-dom/items/Element/prototype/reassign';
+import rebind from 'parallel-dom/items/Element/prototype/rebind';
 import render from 'parallel-dom/items/Element/prototype/render';
 import teardown from 'parallel-dom/items/Element/prototype/teardown';
 import toString from 'parallel-dom/items/Element/prototype/toString';
@@ -29,7 +29,7 @@ Element.prototype = {
 	firstNode: firstNode,
 	getAttribute: getAttribute,
 	init: init,
-	reassign: reassign,
+	rebind: rebind,
 	render: render,
 	teardown: teardown,
 	toString: toString,

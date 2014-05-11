@@ -5,8 +5,8 @@ import get from 'shared/get/_get';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import adaptIfNecessary from 'shared/adaptIfNecessary';
-import Reference from 'parallel-dom/shared/Evaluator/Reference';
-import SoftReference from 'parallel-dom/shared/Evaluator/SoftReference';
+import Reference from 'parallel-dom/items/shared/Evaluator/Reference';
+import SoftReference from 'parallel-dom/items/shared/Evaluator/SoftReference';
 
 var Evaluator, cache = {};
 

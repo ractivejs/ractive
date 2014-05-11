@@ -1,6 +1,6 @@
-import getNewKeypath from 'parallel-dom/shared/utils/getNewKeypath';
+import getNewKeypath from 'parallel-dom/items/shared/utils/getNewKeypath';
 
-export default function Component$reassign ( indexRef, newIndex, oldKeypath, newKeypath ) {
+export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var childInstance = this.instance,
 		parentInstance = childInstance._parent,
 		indexRefAlias, query;
@@ -17,7 +17,7 @@ export default function Component$reassign ( indexRef, newIndex, oldKeypath, new
 		}
 
 		if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
-			binding.reassign( updated );
+			binding.rebind( updated );
 		}
 	});
 

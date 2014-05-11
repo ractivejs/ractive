@@ -18,7 +18,7 @@ define([
 
 		var fixture;
 
-		module( 'ReassignFragments' );
+		module( 'rebind' );
 
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
@@ -60,13 +60,13 @@ define([
 				fragment.items.push(el, triple);
 
 				fragment.render = Fragment.prototype.render;
-				fragment.reassign = Fragment.prototype.reassign;
+				fragment.rebind = Fragment.prototype.rebind;
 				fragment.bubble = Fragment.prototype.bubble;
 				fragment.getNode = function () { return fixture; };
 				fragment.findNextNode = function () { return null; };
 
 				fragment.render();
-				fragment.reassign( 'i', opt.newKeypath.replace('items.',''), opt.oldKeypath, opt.newKeypath);
+				fragment.rebind( 'i', opt.newKeypath.replace('items.',''), opt.oldKeypath, opt.newKeypath);
 
 				t.equal( fragment.context, opt.expected );
 				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );
@@ -185,7 +185,7 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<p>1,2</p><p>3,4</p>');
 		})
 
-		test( 'Components in a list can be reassigned', function ( t ) {
+		test( 'Components in a list can be rebound', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#items}}<widget letter="{{.}}"/>{{/items}}',
@@ -207,7 +207,7 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<p>d</p><p>e</p>' );
 		});
 
-		test( 'Index references can be used as key attributes on components, and reassignment works', function ( t ) {
+		test( 'Index references can be used as key attributes on components, and rebinding works', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#items:i}}<widget index="{{i}}" letter="{{.}}"/>{{/items}}',
@@ -243,7 +243,7 @@ define([
 			t.htmlEqual( fixture.innerHTML, '0,1,2,3,');
 		})
 
-		test( 'Expressions with unresolved references can be reassigned (#630)', function ( t ) {
+		test( 'Expressions with unresolved references can be rebound (#630)', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#list}}{{#check > length}}true{{/test}}{{/list}}',

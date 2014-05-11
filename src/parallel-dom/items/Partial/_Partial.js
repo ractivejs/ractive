@@ -51,8 +51,8 @@ Partial.prototype = {
 		this.fragment.unrender( shouldDestroy );
 	},
 
-	reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		return this.fragment.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		return this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
 	teardown: function () {

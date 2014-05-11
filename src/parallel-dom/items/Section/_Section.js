@@ -1,5 +1,5 @@
 import types from 'config/types';
-import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
+import Mustache from 'parallel-dom/items/shared/Mustache/_Mustache';
 
 import bubble from 'parallel-dom/items/Section/prototype/bubble';
 import detach from 'parallel-dom/items/Section/prototype/detach';
@@ -42,7 +42,7 @@ Section.prototype = {
 	findNextNode: findNextNode,
 	firstNode: firstNode,
 	merge: merge,
-	reassign: Mustache.reassign,
+	rebind: Mustache.rebind,
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,

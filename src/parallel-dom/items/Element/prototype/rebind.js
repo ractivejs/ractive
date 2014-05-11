@@ -1,18 +1,18 @@
-import assignNewKeypath from 'parallel-dom/shared/utils/assignNewKeypath';
+import assignNewKeypath from 'parallel-dom/items/shared/utils/assignNewKeypath';
 
-export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKeypath ) {
+export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var i, storage, binding, bindings, liveQueries, ractive;
 
 	if ( this.attributes ) {
-		this.attributes.forEach( reassign );
+		this.attributes.forEach( rebind );
 	}
 
 	if ( this.eventHandlers ) {
-		this.eventHandlers.forEach( reassign );
+		this.eventHandlers.forEach( rebind );
 	}
 
 	if ( this.binding ) {
-		reassign( this.binding );
+		rebind( this.binding );
 	}
 
 	if ( storage = this.node._ractive ) {
@@ -41,9 +41,9 @@ export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKe
 		}
 	}
 
-	// reassign children
+	// rebind children
 	if ( this.fragment ) {
-		reassign( this.fragment );
+		rebind( this.fragment );
 	}
 
 	// Update live queries, if necessary
@@ -56,7 +56,7 @@ export default function Element$reassign ( indexRef, newIndex, oldKeypath, newKe
 		}
 	}
 
-	function reassign ( thing ) {
-		thing.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+	function rebind ( thing ) {
+		thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	}
 }

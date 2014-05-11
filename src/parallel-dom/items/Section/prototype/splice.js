@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import reassignFragments from 'parallel-dom/items/Section/reassignFragments';
+import rebindFragments from 'parallel-dom/items/Section/rebindFragments';
 import circular from 'circular';
 
 var Fragment;
@@ -27,7 +27,7 @@ export default function ( spliceSummary ) {
 		section.fragments.splice( start, -balance ).forEach( unrenderAndTeardown );
 
 		// Reassign fragments after the ones we've just removed
-		reassignFragments( section, start, section.length, balance );
+		rebindFragments( section, start, section.length, balance );
 
 		// Nothing more to do
 		return;
@@ -44,7 +44,7 @@ export default function ( spliceSummary ) {
 	section.fragments.splice.apply( section.fragments, spliceArgs );
 
 	// Reassign existing fragments at the end of the array
-	reassignFragments( section, insertEnd, section.length, balance );
+	rebindFragments( section, insertEnd, section.length, balance );
 
 	// Create the new ones
 	renderNewFragments( section, insertStart, insertEnd );

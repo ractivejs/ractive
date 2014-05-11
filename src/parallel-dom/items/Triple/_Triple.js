@@ -1,5 +1,5 @@
 import types from 'config/types';
-import Mustache from 'parallel-dom/shared/Mustache/_Mustache';
+import Mustache from 'parallel-dom/items/shared/Mustache/_Mustache';
 
 import detach from 'parallel-dom/items/Triple/prototype/detach';
 import find from 'parallel-dom/items/Triple/prototype/find';
@@ -22,7 +22,7 @@ Triple.prototype = {
 	find: find,
 	findAll: findAll,
 	firstNode: firstNode,
-	reassign: Mustache.reassign,
+	rebind: Mustache.rebind,
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,

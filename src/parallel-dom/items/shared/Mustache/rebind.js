@@ -1,11 +1,11 @@
-import getNewKeypath from 'parallel-dom/shared/utils/getNewKeypath';
+import getNewKeypath from 'parallel-dom/items/shared/utils/getNewKeypath';
 
-export default function reassignMustache ( indexRef, newIndex, oldKeypath, newKeypath ) {
+export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var updated, i;
 
 	// expression mustache?
 	if ( this.resolver ) {
-		this.resolver.reassign( indexRef, newIndex, oldKeypath, newKeypath );
+		this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	}
 
 	// normal keypath mustache or keypath expression?
@@ -31,7 +31,7 @@ export default function reassignMustache ( indexRef, newIndex, oldKeypath, newKe
 	if ( this.fragments ) {
 		i = this.fragments.length;
 		while ( i-- ) {
-			this.fragments[i].reassign( indexRef, newIndex, oldKeypath, newKeypath );
+			this.fragments[i].rebind( indexRef, newIndex, oldKeypath, newKeypath );
 		}
 	}
 }

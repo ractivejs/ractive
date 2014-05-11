@@ -48,7 +48,7 @@ Binding.prototype = {
 		runloop.end();
 	},
 
-	reassign: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		var bindings;
 
 		if ( this.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {

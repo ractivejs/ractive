@@ -1,5 +1,5 @@
 export default function Attribute$updateBindings () {
-	// if the fragment this attribute belongs to gets reassigned (as a result of
+	// if the fragment this attribute belongs to gets rebound (as a result of
 	// as section being updated via an array shift, unshift or splice), this
 	// attribute needs to recognise that its keypath has changed
 	this.keypath = this.interpolator.keypath || this.interpolator.ref;
