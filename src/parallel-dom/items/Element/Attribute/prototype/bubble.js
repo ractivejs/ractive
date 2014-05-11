@@ -6,6 +6,12 @@ export default function Attribute$bubble () {
 	if ( value !== this.value ) {
 		this.value = value;
 
+		if ( this.name === 'value' && this.node ) {
+			// We need to store the value on the DOM like this so we
+			// can retrieve it later without it being coerced to a string
+			this.node._ractive.value = value;
+		}
+
 		if ( this.rendered ) {
 			runloop.addUpdate( this );
 		}

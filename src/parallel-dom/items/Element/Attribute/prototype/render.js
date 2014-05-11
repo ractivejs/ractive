@@ -42,6 +42,11 @@ export default function Attribute$render ( node ) {
 		if ( typeof node[ propertyName ] === 'boolean' || propertyName === 'value' ) {
 			this.useProperty = true;
 		}
+
+		if ( propertyName === 'value' ) {
+			this.useProperty = true;
+			node._ractive.value = this.value;
+		}
 	}
 
 	this.rendered = true;

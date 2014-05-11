@@ -58,9 +58,7 @@ export default function Element$render () {
 	});
 
 	// Render attributes
-	this.attributes.forEach( function ( attribute ) {
-		attribute.render( node );
-	});
+	this.attributes.forEach( a => a.render( node ) );
 
 	// Render children
 	if ( this.fragment ) {
@@ -83,9 +81,7 @@ export default function Element$render () {
 
 	// Add proxy event handlers
 	if ( this.eventHandlers ) {
-		this.eventHandlers.forEach( function ( handler ) {
-			handler.render();
-		});
+		this.eventHandlers.forEach( h => h.render() );
 	}
 
 

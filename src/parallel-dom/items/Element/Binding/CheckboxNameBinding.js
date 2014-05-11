@@ -1,4 +1,6 @@
 import runloop from 'global/runloop';
+import removeFromArray from 'utils/removeFromArray';
+import set from 'shared/set';
 import get from 'shared/get/_get';
 import Binding from 'parallel-dom/items/Element/Binding/Binding';
 import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
@@ -8,6 +10,14 @@ var CheckboxNameBinding = Binding.extend({
 
 	init: function () {
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
+		this.isChecked = this.element.getAttribute( 'checked' );
+
+		this.siblings = this.root._checkboxNameBindings[ this.keypath ] || ( this.root._checkboxNameBindings[ this.keypath ] = [] );
+		this.siblings.push( this );
+	},
+
+	teardown: function () {
+		removeFromArray( this.siblings, this );
 	},
 
 	render: function () {
@@ -32,7 +42,7 @@ var CheckboxNameBinding = Binding.extend({
 
 		// otherwise make a note that we will need to update the model later
 		else {
-			runloop.addCheckbox( this );
+			runloop.addCheckboxBinding( this );
 		}
 	},
 
@@ -46,8 +56,23 @@ var CheckboxNameBinding = Binding.extend({
 	},
 
 	handleChange: function () {
-		this.checked = this.element.node.checked;
-		Binding.prototype.handleChange.call( this );
+		var value = [];
+
+		this.isChecked = this.element.node.checked;
+
+		this.siblings.forEach( s => {
+			if ( s.isChecked ) {
+				value.push( s.element.getAttribute( 'value' ) );
+			}
+		});
+
+		runloop.start( this.root );
+		set( this.root, this.keypath, value );
+		runloop.end();
+	},
+
+	getValue: function () {
+		throw new Error( 'This code should not execute!' );
 	}
 });
 

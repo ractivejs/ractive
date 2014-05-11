@@ -288,7 +288,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'selected', 'b' );
 			ractive.set( 'options', [ 'd', 'e', 'f' ] );
 			t.equal( ractive.get( 'selected' ), 'd' );
-			t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: e</p>' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: d</p>' );
 		});
 
 	};

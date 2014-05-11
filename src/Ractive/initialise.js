@@ -5,6 +5,8 @@ import defineProperties from 'utils/defineProperties';
 import getElement from 'utils/getElement';
 import isArray from 'utils/isArray';
 import getGuid from 'utils/getGuid';
+import get from 'shared/get/_get';
+import set from 'shared/set';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 import Fragment from 'parallel-dom/Fragment/_Fragment';
@@ -13,7 +15,7 @@ var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isol
 
 export default function initialiseRactiveInstance ( ractive, options ) {
 
-	var defaults = ractive.constructor.defaults;
+	var defaults = ractive.constructor.defaults, keypath;
 
 	// Allow empty constructor options and save for reset
 	ractive.initOptions = options = options || {};
@@ -28,6 +30,18 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 		root: ractive,
 		owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
 	});
+
+	// Special case - checkbox name bindings
+	for ( keypath in ractive._checkboxNameBindings ) {
+		if ( get( ractive, keypath ) === undefined ) {
+			set( ractive, keypath, ractive._checkboxNameBindings[ keypath ].reduce( ( array, b ) => {
+				if ( b.isChecked ) {
+					array.push( b.element.getAttribute( 'value' ) );
+				}
+				return array;
+			}, [] ));
+		}
+	}
 
 	// If `el` is specified, render automatically
 	if ( ractive.el ) {
@@ -136,7 +150,8 @@ function initialiseProperties ( ractive, options ) {
 		_computations: { value: create( null ) },
 
 		// two-way bindings
-		_twowayBindings: { value: {} },
+		_twowayBindings: { value: create( null ) },
+		_checkboxNameBindings: { value: create( null ) },
 
 		// animations (so we can stop any in progress at teardown)
 		_animations: { value: [] },

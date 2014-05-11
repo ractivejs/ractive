@@ -31,9 +31,10 @@ var runloop,
 
 	evaluators = [],
 	computations = [],
+	dirtySelects = [],
 	selectBindings = [],
 	checkboxKeypaths = {},
-	checkboxes = [],
+	checkboxBindings = [],
 	radios = [],
 	unresolved = [],
 
@@ -129,15 +130,22 @@ runloop = {
 		computations.push( thing );
 	},
 
+	addDirtySelect: function ( select ) {
+		dirty = true;
+		dirtySelects.push( select );
+	},
+
 	addSelectBinding: function ( selectBinding ) {
 		dirty = true;
 		selectBindings.push( selectBinding );
 	},
 
-	addCheckbox: function ( checkbox ) {
-		if ( !checkboxKeypaths[ checkbox.keypath ] ) {
+	addCheckboxBinding: function ( checkboxBinding ) {
+		if ( !checkboxKeypaths[ checkboxBinding.keypath ] ) {
+			console.log( 'adding checkbox', checkboxBinding );
 			dirty = true;
-			checkboxes.push( checkbox );
+			checkboxBindings.push( checkboxBinding );
+			checkboxKeypaths[ checkboxBinding.keypath ] = true;
 		}
 	},
 
@@ -192,12 +200,19 @@ function flushChanges () {
 			thing.update().deferred = false;
 		}
 
+		while ( thing = dirtySelects.pop() ) {
+			thing.sync();
+			thing.dirty = false;
+		}
+
 		while ( thing = selectBindings.pop() ) {
 			thing.updateModel();
 		}
 
-		while ( thing = checkboxes.pop() ) {
+		while ( thing = checkboxBindings.pop() ) {
+			console.log( 'flushing checkbox bindings' );
 			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+			checkboxKeypaths[ thing.keypath ] = false;
 		}
 
 		while ( thing = radios.pop() ) {

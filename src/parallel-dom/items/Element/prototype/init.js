@@ -1,5 +1,8 @@
 import types from 'config/types';
 import namespaces from 'config/namespaces';
+import runloop from 'global/runloop';
+import toArray from 'utils/toArray';
+import set from 'shared/set';
 import enforceCase from 'parallel-dom/items/Element/shared/enforceCase';
 import getElementNamespace from 'parallel-dom/items/Element/prototype/init/getElementNamespace';
 import createAttributes from 'parallel-dom/items/Element/prototype/init/createAttributes';
@@ -48,6 +51,7 @@ export default function Element$init ( options ) {
 	// Special case - <option> elements
 	if ( this.name === 'option' ) {
 		this.select = findParentSelect( this.parent );
+		this.select.options.push( this );
 
 		// If the value attribute is missing, use the element's content
 		if ( !template.a ) {
@@ -58,7 +62,7 @@ export default function Element$init ( options ) {
 			template.a.value = template.f;
 		}
 
-		// If there is a `selected` attribute, but the <select>,
+		// If there is a `selected` attribute, but the <select>
 		// already has a value, delete it
 		if ( 'selected' in template.a && this.select.getAttribute( 'value' ) !== undefined ) {
 			delete template.a.selected;
@@ -75,6 +79,11 @@ export default function Element$init ( options ) {
 		// register this with the root, so that we can do ractive.updateModel()
 		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
 		bindings.push( binding );
+
+		// Special case - checkbox name bindings
+		if ( binding.checkboxName ) {
+			console.warn( 'TODO' );
+		}
 	}
 
 
@@ -99,9 +108,25 @@ export default function Element$init ( options ) {
 		}
 	}
 
-	// Special case - <select multiple> elements
-	if ( this.name === 'select' && this.getAttribute( 'multiple' ) && this.binding ) {
-		this.binding.initialValue = [];
+	// Special case - <select> elements
+	if ( this.name === 'select' ) {
+		this.options = [];
+
+		if ( this.getAttribute( 'multiple' ) && this.binding ) {
+			// As <option> elements are created, they will populate this array
+			this.binding.initialValue = [];
+		}
+
+		this.bubble = function () {
+			if ( !this.dirty ) {
+				this.dirty = true;
+				runloop.addDirtySelect( this );
+			}
+		};
+
+		this.sync = function () {
+			syncSelect( this );
+		};
 	}
 
 
@@ -190,18 +215,6 @@ export default function Element$init ( options ) {
 			}, false );
 		}
 
-		docFrag.appendChild( this.node );
-
-		// apply decorator(s)
-		if ( template.o ) {
-			decorate( template.o, root, this );
-		}
-
-		// trigger intro transition
-		if ( template.t0 || template.t1 ) {
-			executeTransition( template.t0 || template.t1, root, this, true );
-		}
-
 		if ( this.node.tagName === 'OPTION' ) {
 			// Special case... if this option's parent select was previously
 			// empty, it's possible that it should initialise to the value of
@@ -235,4 +248,76 @@ function findParentSelect ( element ) {
 			return element;
 		}
 	} while ( element = element.parent );
+}
+
+function syncSelect ( selectElement ) {
+	var selectNode, selectValue, isMultiple, options, value, i, optionWasSelected;
+
+	selectNode = selectElement.node;
+	options = toArray( selectNode.options );
+
+	selectValue = selectElement.getAttribute( 'value' );
+	isMultiple = selectElement.getAttribute( 'multiple' );
+
+	// If the <select> has a specified value, that should override
+	// these options
+	if ( selectValue !== undefined ) {
+		options.forEach( o => {
+			var optionValue, shouldSelect;
+
+			optionValue = o._ractive ? o._ractive.value : o.value;
+			shouldSelect = isMultiple ? valueContains( selectValue, optionValue ) : selectValue == optionValue;
+
+			if ( shouldSelect ) {
+				optionWasSelected = true;
+			}
+
+			o.selected = shouldSelect;
+		});
+
+		if ( !optionWasSelected ) {
+			if ( options[0] ) {
+				options[0].selected = true;
+			}
+
+			if ( selectElement.binding ) {
+				selectValue = isMultiple ? [] : ( options[0] ? ( options[0]._ractive ? options[0]._ractive.value : options[0].value ) : undefined );
+				set( selectElement.root, selectElement.binding.keypath, selectValue );
+			}
+		}
+	}
+
+	// Otherwise the value should be initialised according to which
+	// <option> element is selected, if twoway binding is in effect
+	else if ( selectElement.binding ) {
+		if ( isMultiple ) {
+			value = options.reduce( ( array, o ) => {
+				if ( o.selected ) {
+					array.push( o.value );
+				}
+
+				return array;
+			}, [] );
+		} else {
+			i = options.length;
+			while ( i-- ) {
+				if ( options[i].selected ) {
+					value = options[i].value;
+					break;
+				}
+			}
+		}
+
+		runloop.lockAttribute( selectElement.attributes.value );
+		set( selectElement.root, selectElement.binding.keypath );
+	}
+}
+
+function valueContains ( selectValue, optionValue ) {
+	var i = selectValue.length;
+	while ( i-- ) {
+		if ( selectValue[i] == optionValue ) {
+			return true;
+		}
+	}
 }

@@ -14,6 +14,8 @@ export default function Triple$update () {
 
 	parentNode = this.parentFragment.getNode();
 
+	// If we're updating a previously-rendered triple, the nodes won't be
+	// inserted automatically - we need to do it here
 	if ( this.rendered ) {
 		parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 	}
@@ -23,6 +25,8 @@ export default function Triple$update () {
 	if ( parentElement && parentElement.name === 'select' && parentElement.binding ) {
 		processSelectContents( parentElement );
 	}
+
+	this.parentFragment.bubble();
 }
 
 function processSelectContents ( parentElement ) {
@@ -31,11 +35,7 @@ function processSelectContents ( parentElement ) {
 	// If one of them had a `selected` attribute, we need to sync
 	// the model to the view
 	if ( option = parentElement.find( 'option[selected]' ) ) {
+		// TODO is there a better way than this? method not used anywhere else?
 		parentElement.binding.setValue( option.value );
-	}
-
-	// Otherwise, we may need to sync the view to the model
-	else {
-		parentElement.attributes.value.update();
 	}
 }

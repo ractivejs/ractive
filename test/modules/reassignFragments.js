@@ -61,6 +61,7 @@ define([
 
 				fragment.render = Fragment.prototype.render;
 				fragment.reassign = Fragment.prototype.reassign;
+				fragment.bubble = Fragment.prototype.bubble;
 				fragment.getNode = function () { return fixture; };
 				fragment.findNextNode = function () { return null; };
 
