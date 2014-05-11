@@ -1,11 +1,13 @@
 export default function Fragment$render () {
 	var docFrag;
 
-	docFrag = this.docFrag = document.createDocumentFragment();
+	if ( this.items.length === 1 ) {
+		return this.items[0].render();
+	}
 
-	// TODO if there's only one item, don't bother with the docFrag
+	docFrag = document.createDocumentFragment();
 
-	this.items.forEach( function ( item ) {
+	this.items.forEach( item => {
 		docFrag.appendChild( item.render() );
 	});
 

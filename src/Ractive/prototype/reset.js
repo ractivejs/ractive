@@ -55,33 +55,12 @@ export default function ( data, callback ) {
 		clearCache( self, '' );
 		notifyDependants( self, '' );
 
-		/*this.unrender().then( function () {
-			console.log( 'unrendered' );
-
-			// If the template changed, we need to destroy the parallel DOM
-			// TODO if we're here, presumably it did?
-			if ( self.fragment.template !== self.template ) {
-				console.log( 'tearing down fragment' );
-				self.fragment.teardown();
-				self.fragment = null;
-
-				self.fragment = new Fragment({
-					template: self.template,
-					root: self,
-					owner: self
-				});
-			}
-
-			self.render( self.el, self.anchor ).then( fulfilPromise );
-		});*/
-
 		this.unrender();
 
 		// If the template changed, we need to destroy the parallel DOM
 		// TODO if we're here, presumably it did?
 		if ( this.fragment.template !== this.template ) {
 			this.fragment.teardown();
-			this.fragment = null;
 
 			this.fragment = new Fragment({
 				template: this.template,

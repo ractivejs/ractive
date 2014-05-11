@@ -1,23 +1,15 @@
 export default function Fragment$detach () {
-	var len, i;
+	var docFrag;
 
-	if ( this.docFrag ) {
-		// if this was built from HTML, we just need to remove the nodes
-		if ( this.nodes ) {
-			len = this.nodes.length;
-			for ( i = 0; i < len; i += 1 ) {
-				this.docFrag.appendChild( this.nodes[i] );
-			}
-		}
-
-		// otherwise we need to detach each item
-		else if ( this.items ) {
-			len = this.items.length;
-			for ( i = 0; i < len; i += 1 ) {
-				this.docFrag.appendChild( this.items[i].detach() );
-			}
-		}
-
-		return this.docFrag;
+	if ( this.items.length === 1 ) {
+		return this.items[0].detach();
 	}
+
+	docFrag = document.createDocumentFragment();
+
+	this.items.forEach( item => {
+		docFrag.appendChild( item.detach() );
+	});
+
+	return docFrag;
 }

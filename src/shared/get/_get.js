@@ -102,6 +102,7 @@ function retrieve ( ractive, keypath ) {
 	// instance's `data`, and not as an own property, we need to
 	// clone it. Otherwise the instance could end up manipulating
 	// data that doesn't belong to it
+	// TODO shouldn't we be using prototypal inheritance instead?
 	shouldClone = !hasOwnProperty.call( parentValue, key );
 	value = shouldClone ? clone( parentValue[ key ] ) : parentValue[ key ];
 

@@ -1,12 +1,15 @@
 export default function Section$detach () {
-	var i, len;
+	var docFrag;
 
-	if ( this.docFrag ) {
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			this.docFrag.appendChild( this.fragments[i].detach() );
-		}
-
-		return this.docFrag;
+	if ( this.fragments.length === 1 ) {
+		return this.fragments[0].detach();
 	}
+
+	docFrag = document.createDocumentFragment();
+
+	this.fragments.forEach( item => {
+		docFrag.appendChild( item.detach() );
+	});
+
+	return docFrag;
 }
