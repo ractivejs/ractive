@@ -2,7 +2,7 @@ import Promise from 'utils/Promise';
 import runloop from 'global/runloop';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
-import Fragment from 'parallel-dom/Fragment/_Fragment';
+import Fragment from 'virtualdom/Fragment';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();

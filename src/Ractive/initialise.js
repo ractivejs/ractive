@@ -9,7 +9,7 @@ import get from 'shared/get';
 import set from 'shared/set';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
-import Fragment from 'parallel-dom/Fragment/_Fragment';
+import Fragment from 'virtualdom/Fragment';
 
 var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
 

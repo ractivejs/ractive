@@ -36,16 +36,13 @@ defineProperties( Ractive, {
 	interpolators: { value: interpolatorsRegistry },
 
 	// Default options
-	defaults:    { value: initOptions.defaults },
+	defaults:      { value: initOptions.defaults },
 
 	// Support
-	svg: { value: svg },
+	svg:           { value: svg },
 
-	VERSION:     { value: '<%= pkg.version %>' }
+	VERSION:       { value: '<%= pkg.version %>' }
 });
-
-// TODO deprecated
-Ractive.eventDefinitions = Ractive.events;
 
 Ractive.prototype.constructor = Ractive;
 
