@@ -4,12 +4,14 @@ module.exports = {
 			out: 'tmp/ractive.js',
 			paths: {
 				'legacy': 'empty/legacy'
-			}
+			},
+			onBuildWrite: getOnBuildWrite()
 		}
 	},
 	legacy: {
 		options: {
-			out: 'tmp/ractive-legacy.js'
+			out: 'tmp/ractive-legacy.js',
+			onBuildWrite: getOnBuildWrite()
 		}
 	},
 	runtime: {
@@ -18,7 +20,8 @@ module.exports = {
 			paths: {
 				'parse/_parse': 'empty/parse',
 				'legacy': 'empty/legacy'
-			}
+			},
+			onBuildWrite: getOnBuildWrite()
 		}
 	},
 	runtime_legacy: {
@@ -26,20 +29,86 @@ module.exports = {
 			out: 'tmp/ractive-legacy.runtime.js',
 			paths: {
 				'parse/_parse': 'empty/parse'
-			}
+			},
+			onBuildWrite: getOnBuildWrite()
 		}
 	},
 	options: {
-		baseUrl: '.amd/',
+		baseUrl: 'tmp/amd/',
 		name: 'Ractive',
 		optimize: 'none',
-		logLevel: 2,
-		onBuildWrite: function( name, path, contents ) {
-			var moduleNames = {};
-
-			return require( 'amdclean' ).clean({
-				code: contents
-			}) + '\n';
-		}
+		logLevel: 2
 	}
+};
+
+function getOnBuildWrite () {
+	var prefixes, used, banned;
+
+	prefixes = {
+		'extend__extend': 'Ractive_extend',
+		'typeof': '_typeof'
+	}; // this is why we need a closure for each build target
+	used = {};
+
+	return function ( name, path, contents ) {
+		var relativePath, prefix, moduleNames = {};
+
+		relativePath = path.substring( path.indexOf( 'tmp/amd/' ) + 8 );
+
+		prefix = '/* ' + relativePath + ' */\n';
+
+		return prefix + require( 'amdclean' ).clean({
+			prefixTransform: function ( prefix ) {
+				var match, result, lastPart;
+
+				// special case
+				if ( prefix === 'utils_hasOwnProperty' ) {
+					return 'hasOwn';
+				}
+
+				if ( prefixes[ prefix ] ) {
+					return prefixes[ prefix ];
+				}
+
+				prefix = prefix.replace( /(\w+)__(\w+)/, function ( match, $1, $2 ) {
+					if ( $1 === $2 ) {
+						return $1;
+					}
+
+					return match;
+				});
+
+				if ( match = /(\w+)_prototype_(\w+)$/.exec( prefix ) ) {
+					result = match[1] + '$' + match[2];
+				} else {
+					if ( prefixes[ prefix ] ) {
+						result = prefixes[ prefix ];
+					}
+
+					else {
+						lastPart = prefix.substring( prefix.lastIndexOf( '_' ) + 1 );
+
+						if ( prefixes[ lastPart ] ) {
+							result = prefixes[ lastPart ];
+						}
+
+						else if ( !used[ lastPart ] ) {
+							process.stdout.write('-');
+							result = lastPart;
+							prefixes[ prefix ] = lastPart;
+							used[ lastPart ] = true;
+						}
+
+						else {
+							console.error( 'Existing prefix', prefix );
+							result = prefix;
+						}
+					}
+				}
+
+				return result;
+			},
+			code: contents
+		}) + '\n';
+	};
 };

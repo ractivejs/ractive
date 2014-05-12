@@ -65,7 +65,7 @@ Computation.prototype = {
 			this.setting = false;
 		}
 
-		this.deferred = false;
+		this.dirty = false;
 	},
 
 	bubble: function () {
@@ -73,9 +73,9 @@ Computation.prototype = {
 			this.update();
 		}
 
-		else if ( !this.deferred ) {
-			runloop.addComputation( this );
-			this.deferred = true;
+		else if ( !this.dirty ) {
+			runloop.modelUpdate( this );
+			this.dirty = true;
 		}
 	}
 };

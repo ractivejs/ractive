@@ -69,9 +69,10 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, 'fizz' );
 			ractive.set('condition', false)
-			ractive.reset(ractive.data).then(start);
-			t.htmlEqual( fixture.innerHTML, 'bizz' );
-
+			ractive.reset(ractive.data).then( function () {
+				t.htmlEqual( fixture.innerHTML, 'bizz' );
+				start();
+			});
 		});
 
 		asyncTest( 'Callback and promise with dynamic template functions are recalled on reset', function ( t ) {

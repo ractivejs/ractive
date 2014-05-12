@@ -1,47 +1,43 @@
-import Promise from 'utils/Promise';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
-import renderInstance from 'Ractive/initialise/renderInstance';
+import Fragment from 'virtualdom/Fragment';
 
-export default function ( template, callback ) {
-	var promise, changes, options = {
-		updatesOnly: true,
-		registries: ['template', 'partials']
-	};
+// TODO should resetTemplate be asynchronous? i.e. should it be a case
+// of outro, update template, intro? I reckon probably not, since that
+// could be achieved with unrender-resetTemplate-render. Also, it should
+// conceptually be similar to resetPartial, which couldn't be async
 
-	if ( typeof template === 'function' && !callback ) {
-		callback = template;
-		template = void 0;
-	}
+export default function ( template ) {
+	var transitionsEnabled,
+		changes,
+		options = {
+			updatesOnly: true,
+			registries: [ 'template', 'partials' ]
+		};
 
-	if(template){
+	if ( template ) {
 		options.newValues = {
 			template: template
 		};
 	}
 
-	changes = initialiseRegistries ( this,
-		this.constructor.defaults,
-		this.initOptions,
-		options);
+	changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, options );
 
 	if ( changes.length ) {
+		transitionsEnabled = this.transitionsEnabled;
+		this.transitionsEnabled = false;
 
-		this.teardown();
+		this.unrender();
 
-		this._initing = true;
+		// remove existing fragment and create new one
+		this.fragment.teardown();
+		this.fragment = new Fragment({
+			template: this.template,
+			root: this,
+			owner: this
+		});
 
-		promise = renderInstance ( this, this.initOptions );
+		this.render( this.el, this.anchor );
 
-		//same as initialise, but should this be in then()?
-		this._initing = false;
-
-	} else {
-		promise = Promise.resolve();
+		this.transitionsEnabled = transitionsEnabled;
 	}
-
-	if ( callback ) {
-		promise.then( callback );
-	}
-
-	return promise;
 }

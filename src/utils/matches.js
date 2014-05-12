@@ -39,9 +39,21 @@ if ( !isClient ) {
 	// IE8...
 	if ( !matches ) {
 		matches = function ( node, selector ) {
-			var nodes, i;
+			var nodes, parentNode, i;
 
-			nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
+			parentNode = node.parentNode;
+
+			if ( !parentNode ) {
+				// empty dummy <div>
+				div.innerHTML = '';
+
+				parentNode = div;
+				node = node.cloneNode();
+
+				div.appendChild( node );
+			}
+
+			nodes = parentNode.querySelectorAll( selector );
 
 			i = nodes.length;
 			while ( i-- ) {

@@ -14,7 +14,7 @@ handlebarsTypes = {
 };
 
 export default function ( parser, isTriple ) {
-	var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, keypathExpression;
+	var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, referenceExpression;
 
 	start = parser.pos;
 
@@ -118,8 +118,8 @@ export default function ( parser, isTriple ) {
 		} else {
 			if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
 				mustache.r = expression.v;
-			} else if ( keypathExpression = getKeypathExpression( parser, expression ) ) {
-				mustache.kx = keypathExpression;
+			} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
+				mustache.rx = referenceExpression;
 			} else {
 				mustache.x = parser.flattenExpression( expression );
 			}
@@ -135,7 +135,7 @@ export default function ( parser, isTriple ) {
 }
 
 // TODO refactor this! it's bewildering
-function getKeypathExpression ( parser, expression ) {
+function getReferenceExpression ( parser, expression ) {
 	var members = [], refinement;
 
 	while ( expression.t === types.MEMBER && expression.r.t === types.REFINEMENT ) {

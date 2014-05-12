@@ -1,5 +1,13 @@
-var lastKey, starMaps = {};
-lastKey = /[^\.]+$/;
+import circular from 'circular';
+
+var get,
+	lastKey = /[^\.]+$/,
+	starMaps = {},
+	unwrap = { evaluateWrapped: true };
+
+circular.push( function () {
+	get = circular.get;
+});
 
 function notifyDependants ( ractive, keypath, onlyDirect ) {
 	var i;
@@ -40,14 +48,17 @@ notifyDependants.multiple = function notifyMultipleDependants ( ractive, keypath
 export default notifyDependants;
 
 function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
-	var depsByKeypath = ractive._deps[ priority ];
+	var depsByKeypath = ractive._deps[ priority ], value, unwrapped;
 
 	if ( !depsByKeypath ) {
 		return;
 	}
 
 	// update dependants of this keypath
-	updateAll( depsByKeypath[ keypath ] );
+	value = get( ractive, keypath );
+	unwrapped = get( ractive, keypath, unwrap );
+
+	updateAll( depsByKeypath[ keypath ], value, unwrapped );
 
 	// If we're only notifying direct dependants, not dependants
 	// of downstream keypaths, then YOU SHALL NOT PASS
@@ -59,14 +70,9 @@ function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
 	cascade( ractive._depsMap[ keypath ], ractive, priority );
 }
 
-function updateAll ( deps ) {
-	var i, len;
-
-	if ( deps ) {
-		len = deps.length;
-		for ( i = 0; i < len; i += 1 ) {
-			deps[i].update();
-		}
+function updateAll ( dependants, value, unwrapped ) {
+	if ( dependants ) {
+		dependants.forEach( d => d.setValue( value, unwrapped ) );
 	}
 }
 

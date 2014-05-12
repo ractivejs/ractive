@@ -101,6 +101,6 @@ function stringify ( parser, node, refs ) {
 		return '${' + refs.indexOf( node.n ) + '}';
 
 		default:
-		parser.error( 'foo' );
+		parser.error( 'Expected legal JavaScript' );
 	}
 }

@@ -11,16 +11,16 @@ import stripStandalones from 'parse/utils/stripStandalones';
 // ===============
 //
 // Takes in a string, and returns an object representing the parsed template.
-// A parsed template is an array of 1 or more 'descriptors', which in some
+// A parsed template is an array of 1 or more 'templates', which in some
 // cases have children.
 //
 // The format is optimised for size, not readability, however for reference the
-// keys for each descriptor are as follows:
+// keys for each template are as follows:
 //
 // * r - Reference, e.g. 'mustache' in {{mustache}}
 // * t - Type code (e.g. 1 is text, 2 is interpolator...)
-// * f - Fragment. Contains a descriptor's children
-// * l - eLse fragment. Contains a descriptor's children in the else case
+// * f - Fragment. Contains a template's children
+// * l - eLse fragment. Contains a template's children in the else case
 // * e - Element name
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * d - Dynamic proxy event/transition arguments

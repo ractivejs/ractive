@@ -2,7 +2,7 @@ import getValueFromCheckboxes from 'shared/getValueFromCheckboxes';
 import arrayContentsMatch from 'utils/arrayContentsMatch';
 import isEqual from 'utils/isEqual';
 
-export default function Ractive_prototype_updateModel ( keypath, cascade ) {
+export default function Ractive$updateModel ( keypath, cascade ) {
 	var values, deferredCheckboxes, i;
 
 	if ( typeof keypath !== 'string' ) {
@@ -33,7 +33,7 @@ function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes
 			binding = bindings[i];
 
 			// special case - radio name bindings
-			if ( binding.radioName && !binding.node.checked ) {
+			if ( binding.radioName && !binding.element.node.checked ) {
 				continue;
 			}
 
@@ -49,8 +49,8 @@ function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes
 				continue;
 			}
 
-			oldValue = binding.attr.value;
-			newValue = binding.value();
+			oldValue = binding.attribute.value;
+			newValue = binding.getValue();
 
 			if ( arrayContentsMatch( oldValue, newValue ) ) {
 				continue;

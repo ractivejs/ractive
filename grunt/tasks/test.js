@@ -6,7 +6,7 @@ module.exports = function ( grunt ) {
 		'clean:tests',
 		'copy:testModules',
 		'copy:testIndex'
-	]);	
+	]);
 
 	grunt.registerTask( 'test', [
 		'buildTests',

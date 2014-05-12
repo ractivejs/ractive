@@ -1,5 +1,5 @@
 import magicAdaptor from 'shared/get/magicAdaptor';
-import arrayAdaptor from 'shared/get/arrayAdaptor/_arrayAdaptor';
+import arrayAdaptor from 'shared/get/arrayAdaptor';
 
 var magicArrayAdaptor, MagicArrayWrapper;
 

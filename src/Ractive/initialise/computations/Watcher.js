@@ -13,12 +13,9 @@ var Watcher = function ( computation, keypath ) {
 };
 
 Watcher.prototype = {
-	update: function () {
-		var value;
-
-		value = this.root.get( this.keypath );
-
+	setValue: function ( value ) {
 		if ( !isEqual( value, this.value ) ) {
+			this.value = value;
 			this.computation.bubble();
 		}
 	},

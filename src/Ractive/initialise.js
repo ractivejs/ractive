@@ -5,30 +5,63 @@ import defineProperties from 'utils/defineProperties';
 import getElement from 'utils/getElement';
 import isArray from 'utils/isArray';
 import getGuid from 'utils/getGuid';
+import get from 'shared/get';
+import set from 'shared/set';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
-import renderInstance from 'Ractive/initialise/renderInstance';
+import Fragment from 'virtualdom/Fragment';
 
 var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
 
 export default function initialiseRactiveInstance ( ractive, options ) {
 
-	var defaults = ractive.constructor.defaults;
+	var defaults = ractive.constructor.defaults, keypath;
 
-	//allow empty constructor options and save for reset
+	// Allow empty constructor options and save for reset
 	ractive.initOptions = options = options || {};
 
 	setOptionsAndFlags( ractive, defaults, options );
-
-	//sets ._initing = true
 	initialiseProperties( ractive, options );
-
 	initialiseRegistries( ractive, defaults, options );
 
-	renderInstance( ractive, options );
+	// Render our *root fragment*
+	ractive.fragment = new Fragment({
+		template: ractive.template,
+		root: ractive,
+		owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+	});
 
-	// end init sequence
-	ractive._initing = false;
+	// Special case - checkbox name bindings
+	for ( keypath in ractive._checkboxNameBindings ) {
+		if ( get( ractive, keypath ) === undefined ) {
+			set( ractive, keypath, ractive._checkboxNameBindings[ keypath ].reduce( ( array, b ) => {
+				if ( b.isChecked ) {
+					array.push( b.element.getAttribute( 'value' ) );
+				}
+				return array;
+			}, [] ));
+		}
+	}
+
+	// If `el` is specified, render automatically
+	if ( ractive.el ) {
+		// Temporarily disable transitions, if `noIntro` flag is set
+		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
+
+		// If the target contains content, and `append` is falsy, clear it
+		if ( ractive.el && !options.append ) {
+			ractive.el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+		}
+
+		ractive.render( ractive.el, ractive.anchor ).then( function () {
+			if ( options.complete ) {
+				options.complete.call( ractive );
+			}
+		});
+
+		// reset transitionsEnabled
+		ractive.transitionsEnabled = options.transitionsEnabled;
+	}
 }
 
 function setOptionsAndFlags ( ractive, defaults, options ) {
@@ -58,7 +91,7 @@ function setOptionsAndFlags ( ractive, defaults, options ) {
 function deprecate ( options ){
 
 	if ( isArray( options.adaptors ) ) {
-		warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
+		warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`.' );
 		options.adapt = options.adaptors;
 		delete options.adaptors;
 	}
@@ -93,8 +126,6 @@ function initialiseProperties ( ractive, options ) {
 
 	// We use Object.defineProperties (where possible) as these should be read-only
 	defineProperties( ractive, {
-		_initing: { value: true, writable: true },
-
 		// Generate a unique identifier, for places where you'd use a weak map if it
 		// existed
 		_guid: { value: getGuid() },
@@ -119,7 +150,8 @@ function initialiseProperties ( ractive, options ) {
 		_computations: { value: create( null ) },
 
 		// two-way bindings
-		_twowayBindings: { value: {} },
+		_twowayBindings: { value: create( null ) },
+		_checkboxNameBindings: { value: create( null ) },
 
 		// animations (so we can stop any in progress at teardown)
 		_animations: { value: [] },

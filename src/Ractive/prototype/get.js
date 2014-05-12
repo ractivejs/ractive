@@ -1,10 +1,10 @@
 import normaliseKeypath from 'utils/normaliseKeypath';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import UnresolvedImplicitDependency from 'shared/get/UnresolvedImplicitDependency';
 
 var options = { isTopLevel: true };
 
-export default function Ractive_prototype_get ( keypath ) {
+export default function Ractive$get ( keypath ) {
 	var value;
 
 	keypath = normaliseKeypath( keypath );

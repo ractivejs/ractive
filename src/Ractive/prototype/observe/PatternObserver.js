@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
 import isArray from 'utils/isArray';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import getPattern from 'Ractive/prototype/observe/getPattern';
 
 var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;

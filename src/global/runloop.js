@@ -19,22 +19,17 @@ var runloop,
 	dirty = false,
 	flushing = false,
 	pendingCssChanges,
-	toFocus = null,
 
-	liveQueries = [],
-	decorators = [],
-	transitions = [],
-	observers = [],
-	attributes = [],
-	activeBindings = [],
+	lockedAttributes = [],
 
-	evaluators = [],
-	computations = [],
-	selectValues = [],
 	checkboxKeypaths = {},
-	checkboxes = [],
-	radios = [],
+	checkboxBindings = [],
 	unresolved = [],
+
+	modelUpdates = [],
+	viewUpdates = [],
+	postViewUpdateTasks = [],
+	postModelUpdateTasks = [],
 
 	instances = [],
 	transitionManager;
@@ -63,21 +58,6 @@ runloop = {
 		transitionManager = transitionManager._previous;
 	},
 
-	trigger: function () {
-		if ( flushing ) {
-			attemptKeypathResolution();
-			return;
-		}
-
-		flushing = true;
-		flushChanges();
-		flushing = false;
-	},
-
-	focus: function ( node ) {
-		toFocus = node;
-	},
-
 	addInstance: function ( instance ) {
 		if ( instance && !instances[ instance._guid ] ) {
 			instances.push( instance );
@@ -85,37 +65,23 @@ runloop = {
 		}
 	},
 
-	addLiveQuery: function ( query ) {
-		liveQueries.push( query );
-	},
-
-	addDecorator: function ( decorator ) {
-		decorators.push( decorator );
-	},
-
-	addTransition: function ( transition ) {
+	registerTransition: function ( transition ) {
 		transition._manager = transitionManager;
 		transitionManager.push( transition );
-		transitions.push( transition );
 	},
 
-	addObserver: function ( observer ) {
-		observers.push( observer );
+	viewUpdate: function ( thing ) {
+		viewUpdates.push( thing );
 	},
 
-	addAttribute: function ( attribute ) {
-		attributes.push( attribute );
-	},
-
-	addBinding: function ( binding ) {
-		binding.active = true;
-		activeBindings.push( binding );
+	lockAttribute: function ( attribute ) {
+		attribute.locked = true;
+		lockedAttributes.push( attribute );
 	},
 
 	scheduleCssUpdate: function () {
 		// if runloop isn't currently active, we need to trigger change immediately
 		if ( !flushing ) {
-			// TODO does this ever happen?
 			css.update();
 		} else {
 			pendingCssChanges = true;
@@ -123,31 +89,18 @@ runloop = {
 	},
 
 	// changes that may cause additional changes...
-	addEvaluator: function ( evaluator ) {
+	modelUpdate: function ( thing ) {
 		dirty = true;
-		evaluators.push( evaluator );
+		modelUpdates.push( thing );
 	},
 
-	addComputation: function ( thing ) {
-		dirty = true;
-		computations.push( thing );
-	},
-
-	addSelectValue: function ( selectValue ) {
-		dirty = true;
-		selectValues.push( selectValue );
-	},
-
-	addCheckbox: function ( checkbox ) {
-		if ( !checkboxKeypaths[ checkbox.keypath ] ) {
+	// TODO this is wrong - inputs should be grouped by instance
+	addCheckboxBinding: function ( checkboxBinding ) {
+		if ( !checkboxKeypaths[ checkboxBinding.keypath ] ) {
 			dirty = true;
-			checkboxes.push( checkbox );
+			checkboxBindings.push( checkboxBinding );
+			checkboxKeypaths[ checkboxBinding.keypath ] = true;
 		}
-	},
-
-	addRadio: function ( radio ) {
-		dirty = true;
-		radios.push( radio );
 	},
 
 	addUnresolved: function ( thing ) {
@@ -162,6 +115,15 @@ runloop = {
 	// synchronise node detachments with transition ends
 	detachWhenReady: function ( thing ) {
 		transitionManager.detachQueue.push( thing );
+	},
+
+	afterModelUpdate: function ( task ) {
+		dirty = true;
+		postModelUpdateTasks.push( task );
+	},
+
+	afterViewUpdate: function ( task ) {
+		postViewUpdateTasks.push( task );
 	}
 };
 
@@ -188,56 +150,34 @@ function flushChanges () {
 	while ( dirty ) {
 		dirty = false;
 
-		while ( thing = computations.pop() ) {
+		while ( thing = modelUpdates.pop() ) {
 			thing.update();
+			thing.dirty = false;
 		}
 
-		while ( thing = evaluators.pop() ) {
-			thing.update().deferred = false;
+		while ( thing = postModelUpdateTasks.pop() ) {
+			thing();
 		}
 
-		while ( thing = selectValues.pop() ) {
-			thing.deferredUpdate();
-		}
-
-		while ( thing = checkboxes.pop() ) {
+		while ( thing = checkboxBindings.pop() ) {
 			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
-		}
-
-		while ( thing = radios.pop() ) {
-			thing.update();
+			checkboxKeypaths[ thing.keypath ] = false;
 		}
 	}
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	if ( toFocus ) {
-		toFocus.focus();
-		toFocus = null;
-	}
-
-	while ( thing = attributes.pop() ) {
-		thing.update().deferred = false;
-	}
-
-	while ( thing = liveQueries.pop() ) {
-		thing._sort();
-	}
-
-	while ( thing = decorators.pop() ) {
-		thing.init();
-	}
-
-	while ( thing = transitions.pop() ) {
-		thing.init();
-	}
-
-	while ( thing = observers.pop() ) {
+	while ( thing = viewUpdates.pop() ) {
 		thing.update();
 	}
 
-	while ( thing = activeBindings.pop() ) {
-		thing.active = false;
+	while ( thing = postViewUpdateTasks.pop() ) {
+		thing();
+	}
+
+	// Unlock attributes (twoway binding)
+	while ( thing = lockedAttributes.pop() ) {
+		thing.locked = false;
 	}
 
 	// Change events are fired last
@@ -272,7 +212,7 @@ function attemptKeypathResolution () {
 	array = unresolved.splice( 0, unresolved.length );
 	while ( thing = array.pop() ) {
 		if ( thing.keypath ) {
-			continue; // it did resolve after all. TODO does this ever happen?
+			continue; // it did resolve after all
 		}
 
 		keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );

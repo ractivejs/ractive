@@ -3,6 +3,14 @@ import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import set from 'shared/set';
 
+import circular from 'circular';
+
+var get;
+
+circular.push( function () {
+	get = circular.get;
+});
+
 export default function ( wrapper, array, methodName, spliceSummary ) {
 	var root, keypath, updateDependant, i, childKeypath, patternObservers;
 
@@ -52,7 +60,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 		if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
 			dependant.splice( spliceSummary );
 		} else {
-			dependant.update();
+			dependant.setValue( get( dependant.root, dependant.keypath ) );
 		}
 	};
 
