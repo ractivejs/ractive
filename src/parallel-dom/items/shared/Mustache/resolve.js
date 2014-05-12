@@ -1,4 +1,4 @@
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 

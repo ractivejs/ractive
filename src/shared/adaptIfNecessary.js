@@ -1,5 +1,5 @@
 import adaptorRegistry from 'registries/adaptors';
-import arrayAdaptor from 'shared/get/arrayAdaptor/_arrayAdaptor';
+import arrayAdaptor from 'shared/get/arrayAdaptor';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import magicArrayAdaptor from 'shared/get/magicArrayAdaptor';
 

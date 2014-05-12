@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import rebindFragments from 'parallel-dom/items/Section/rebindFragments';
 import circular from 'circular';
 
 var Fragment;
@@ -80,3 +79,22 @@ function renderNewFragments ( section, start, end ) {
 
 	runloop.viewUpdate( section );
 }
+
+function rebindFragments ( section, start, end, by ) {
+
+	var i, fragment, indexRef, oldKeypath, newKeypath;
+
+	indexRef = section.template.i;
+
+	for ( i = start; i < end; i += 1 ) {
+		fragment = section.fragments[i];
+
+		oldKeypath = section.keypath + '.' + ( i - by );
+		newKeypath = section.keypath + '.' + i;
+
+		// change the fragment index
+		fragment.index = i;
+		fragment.rebind( indexRef, i, oldKeypath, newKeypath );
+	}
+}
+

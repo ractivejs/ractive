@@ -1,6 +1,6 @@
 import types from 'config/types';
 import removeFromArray from 'utils/removeFromArray';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
 import registerDependant from 'shared/registerDependant';

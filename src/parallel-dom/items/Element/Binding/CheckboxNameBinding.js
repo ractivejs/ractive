@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
 import removeFromArray from 'utils/removeFromArray';
 import set from 'shared/set';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import Binding from 'parallel-dom/items/Element/Binding/Binding';
 import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 

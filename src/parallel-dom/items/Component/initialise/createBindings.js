@@ -1,5 +1,5 @@
 import createComponentBinding from 'shared/createComponentBinding';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import set from 'shared/set';
 
 export default function createInitialComponentBindings ( component, toBind ) {

@@ -1,7 +1,7 @@
 import types from 'config/types';
 import parseJSON from 'utils/parseJSON';
 import resolveRef from 'shared/resolveRef';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import ComponentParameter from 'parallel-dom/items/Component/initialise/createModel/ComponentParameter';
 
 export default function ( component, defaultData, attributes, toBind ) {

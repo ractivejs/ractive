@@ -2,7 +2,7 @@ import isEqual from 'utils/isEqual';
 import Promise from 'utils/Promise';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import animations from 'shared/animations';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import Animation from 'Ractive/prototype/animate/Animation';
 
 var noop = function () {}, noAnimation = {

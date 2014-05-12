@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import Binding from 'parallel-dom/items/Element/Binding/Binding';
 import handleDomEvent from 'parallel-dom/items/Element/Binding/shared/handleDomEvent';
 

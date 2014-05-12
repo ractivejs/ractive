@@ -5,7 +5,7 @@ import defineProperties from 'utils/defineProperties';
 import getElement from 'utils/getElement';
 import isArray from 'utils/isArray';
 import getGuid from 'utils/getGuid';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import set from 'shared/set';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';

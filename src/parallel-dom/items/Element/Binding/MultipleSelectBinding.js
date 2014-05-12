@@ -1,4 +1,4 @@
-import get from 'shared/get/_get';
+import get from 'shared/get';
 import set from 'shared/set';
 import arrayContentsMatch from 'utils/arrayContentsMatch';
 import SelectBinding from 'parallel-dom/items/Element/Binding/SelectBinding';

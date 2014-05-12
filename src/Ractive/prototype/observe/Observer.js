@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
-import get from 'shared/get/_get';
+import get from 'shared/get';
 
 var Observer = function ( ractive, keypath, callback, options ) {
 	this.root = ractive;
