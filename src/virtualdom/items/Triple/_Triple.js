@@ -7,10 +7,11 @@ import findAll from 'virtualdom/items/Triple/prototype/findAll';
 import firstNode from 'virtualdom/items/Triple/prototype/firstNode';
 import render from 'virtualdom/items/Triple/prototype/render';
 import setValue from 'virtualdom/items/Triple/prototype/setValue';
-import teardown from 'virtualdom/items/Triple/prototype/teardown';
 import toString from 'virtualdom/items/Triple/prototype/toString';
 import unrender from 'virtualdom/items/Triple/prototype/unrender';
 import update from 'virtualdom/items/Triple/prototype/update';
+
+import teardown from 'virtualdom/items/shared/teardown';
 
 var Triple = function ( options ) {
 	this.type = types.TRIPLE;

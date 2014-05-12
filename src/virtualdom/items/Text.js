@@ -11,6 +11,10 @@ var Text = function ( options ) {
 Text.prototype = {
 	detach: detach,
 
+	firstNode: function () {
+		return this.node;
+	},
+
 	render: function () {
 		if ( !this.node ) {
 			this.node = document.createTextNode( this.text );
@@ -19,20 +23,16 @@ Text.prototype = {
 		return this.node;
 	},
 
-	unrender: function ( shouldDestroy ) {
-		if ( shouldDestroy ) {
-			return this.detach();
-		}
-	},
-
-	firstNode: function () {
-		return this.node;
-	},
-
 	teardown: noop,
 
 	toString: function ( escape ) {
 		return escape ? escapeHtml( this.text ) : this.text;
+	},
+
+	unrender: function ( shouldDestroy ) {
+		if ( shouldDestroy ) {
+			return this.detach();
+		}
 	}
 };
 

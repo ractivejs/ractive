@@ -2,7 +2,7 @@ import types from 'config/types';
 import runloop from 'global/runloop';
 import escapeHtml from 'utils/escapeHtml';
 import detachNode from 'utils/detachNode';
-import teardown from 'shared/teardown';
+import teardown from 'virtualdom/items/shared/teardown';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 import detach from 'virtualdom/items/shared/detach';
 
@@ -19,9 +19,7 @@ Interpolator.prototype = {
 	rebind: Mustache.rebind,
 	detach: detach,
 
-	teardown: function () {
-		teardown( this );
-	},
+	teardown: teardown,
 
 	render: function () {
 		if ( !this.node ) {

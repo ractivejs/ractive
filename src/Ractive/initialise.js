@@ -91,7 +91,7 @@ function setOptionsAndFlags ( ractive, defaults, options ) {
 function deprecate ( options ){
 
 	if ( isArray( options.adaptors ) ) {
-		warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`. See [TODO] for more information' );
+		warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`.' );
 		options.adapt = options.adaptors;
 		delete options.adaptors;
 	}

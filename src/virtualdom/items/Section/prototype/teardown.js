@@ -1,6 +1,6 @@
-import teardown from 'shared/teardown';
+import teardown from 'virtualdom/items/shared/teardown';
 
 export default function Section$teardown () {
 	this.fragments.splice( 0 ).forEach( f => f.teardown() );
-	teardown( this );
+	teardown.call( this );
 }

@@ -1,8 +1,8 @@
 define([
 	'ractive',
-	'parallel-dom/Fragment/_Fragment',
-	'parallel-dom/items/Element/_Element',
-	'parallel-dom/items/Triple/_Triple',
+	'virtualdom/Fragment',
+	'virtualdom/items/Element/_Element',
+	'virtualdom/items/Triple/_Triple',
 	'config/types'
 ], function (
 	Ractive,

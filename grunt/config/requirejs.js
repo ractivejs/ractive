@@ -44,12 +44,11 @@ module.exports = {
 function getOnBuildWrite () {
 	var prefixes, used, banned;
 
-	console.log( 'creating closure' );
 	prefixes = {
+		'extend__extend': 'Ractive_extend',
 		'typeof': '_typeof'
 	}; // this is why we need a closure for each build target
 	used = {};
-	banned = /^(typeof)$/; // some module names cannot be function names
 
 	return function ( name, path, contents ) {
 		var relativePath, prefix, moduleNames = {};
@@ -65,6 +64,10 @@ function getOnBuildWrite () {
 				// special case
 				if ( prefix === 'utils_hasOwnProperty' ) {
 					return 'hasOwn';
+				}
+
+				if ( prefixes[ prefix ] ) {
+					return prefixes[ prefix ];
 				}
 
 				prefix = prefix.replace( /(\w+)__(\w+)/, function ( match, $1, $2 ) {
@@ -85,11 +88,11 @@ function getOnBuildWrite () {
 					else {
 						lastPart = prefix.substring( prefix.lastIndexOf( '_' ) + 1 );
 
-						if ( banned.test( lastPart ) ) {
-							lastPart += '_';
+						if ( prefixes[ lastPart ] ) {
+							result = prefixes[ lastPart ];
 						}
 
-						if ( !used[ lastPart ] ) {
+						else if ( !used[ lastPart ] ) {
 							process.stdout.write('-');
 							result = lastPart;
 							prefixes[ prefix ] = lastPart;

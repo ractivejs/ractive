@@ -71,7 +71,5 @@ function validateCode ( code ) {
 		return code;
 	}
 
-	// TODO it's... not exactly clear what should happen with code points over this value. The
-	// following seems to work. But I can't guarantee it works in China!
 	return 65533;
 }

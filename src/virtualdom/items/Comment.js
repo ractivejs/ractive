@@ -10,7 +10,9 @@ var Comment = function ( options ) {
 Comment.prototype = {
 	detach: detach,
 
-	teardown: noop,
+	firstNode: function () {
+		return this.node;
+	},
 
 	render: function () {
 		if ( !this.node ) {
@@ -20,18 +22,16 @@ Comment.prototype = {
 		return this.node;
 	},
 
+	teardown: noop,
+
+	toString: function () {
+		return '<!--' + this.value + '-->';
+	},
+
 	unrender: function ( shouldDestroy ) {
 		if ( shouldDestroy ) {
 			this.node.parentNode.removeChild( this.node );
 		}
-	},
-
-	firstNode: function () {
-		return this.node;
-	},
-
-	toString: function () {
-		return '<!--' + this.value + '-->';
 	}
 };
 
