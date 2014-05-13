@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-12 - commit 52850f2d 
+	2014-05-13 - commit 05931f2b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5484,7 +5484,7 @@
 					if ( arg.keypath && ( changedKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
 						arg.keypath = changedKeypath;
 						changed = true;
-					} else if ( arg.indexRef === indexRef ) {
+					} else if ( arg.indexRef && arg.indexRef === indexRef ) {
 						arg.value = newIndex;
 						changed = true;
 					}
@@ -5718,7 +5718,7 @@
 					rebindTarget = this;
 				}
 				rebindTarget.rebind( null, null, this.keypath, keypath );
-				//if we already updated due to rebindent, we can exit
+				// if we already updated due to rebinding, we can exit
 				if ( keypath === this.keypath ) {
 					return;
 				}
@@ -5733,12 +5733,18 @@
 	var rebind = function( getNewKeypath ) {
 
 		return function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var updated, i;
-			// expression mustache?
+			var updated;
+			// Children first
+			if ( this.fragments ) {
+				this.fragments.forEach( function( f ) {
+					return f.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+				} );
+			}
+			// Expression mustache?
 			if ( this.resolver ) {
 				this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			}
-			// normal keypath mustache or keypath expression?
+			// Normal keypath mustache or reference expression?
 			if ( this.keypath ) {
 				updated = getNewKeypath( this.keypath, oldKeypath, newKeypath );
 				// was a new keypath created?
@@ -5748,15 +5754,6 @@
 				}
 			} else if ( indexRef !== undefined && this.indexRef === indexRef ) {
 				this.setValue( newIndex );
-			}
-			// otherwise, it's an unresolved reference. the context stack has been updated
-			// so it will take care of itself
-			// if it's a section mustache, we need to go through any children
-			if ( this.fragments ) {
-				i = this.fragments.length;
-				while ( i-- ) {
-					this.fragments[ i ].rebind( indexRef, newIndex, oldKeypath, newKeypath );
-				}
 			}
 		};
 	}( getNewKeypath );
@@ -8692,7 +8689,7 @@
 	var virtualdom_items_Element$rebind = function( assignNewKeypath ) {
 
 		return function Element$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var i, storage, binding, bindings, liveQueries, ractive;
+			var i, storage, liveQueries, ractive;
 			if ( this.attributes ) {
 				this.attributes.forEach( rebind );
 			}
@@ -8701,25 +8698,6 @@
 			}
 			if ( this.binding ) {
 				rebind( this.binding );
-			}
-			if ( storage = this.node._ractive ) {
-				//adjust keypath if needed
-				assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
-				if ( indexRef != undefined ) {
-					storage.index[ indexRef ] = newIndex;
-				}
-				if ( binding = storage.binding ) {
-					if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-						bindings = storage.root._twowayBindings[ binding.keypath ];
-						// remove binding reference for old keypath
-						bindings.splice( bindings.indexOf( binding ), 1 );
-						// update keypath
-						binding.keypath = binding.keypath.replace( oldKeypath, newKeypath );
-						// add binding reference for new keypath
-						bindings = storage.root._twowayBindings[ binding.keypath ] || ( storage.root._twowayBindings[ binding.keypath ] = [] );
-						bindings.push( binding );
-					}
-				}
 			}
 			// rebind children
 			if ( this.fragment ) {
@@ -8731,6 +8709,13 @@
 				i = liveQueries.length;
 				while ( i-- ) {
 					liveQueries[ i ]._makeDirty();
+				}
+			}
+			if ( storage = this.node._ractive ) {
+				//adjust keypath if needed
+				assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
+				if ( indexRef != undefined ) {
+					storage.index[ indexRef ] = newIndex;
 				}
 			}
 
