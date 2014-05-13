@@ -1,7 +1,7 @@
 import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
 
 export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
-	var i, storage, binding, bindings, liveQueries, ractive;
+	var i, storage, liveQueries, ractive;
 
 	if ( this.attributes ) {
 		this.attributes.forEach( rebind );
@@ -13,32 +13,6 @@ export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeyp
 
 	if ( this.binding ) {
 		rebind( this.binding );
-	}
-
-	if ( storage = this.node._ractive ) {
-
-		//adjust keypath if needed
-		assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
-
-		if ( indexRef != undefined ) {
-			storage.index[ indexRef ] = newIndex;
-		}
-
-		if ( binding = storage.binding ) {
-			if ( binding.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-				bindings = storage.root._twowayBindings[ binding.keypath ];
-
-				// remove binding reference for old keypath
-				bindings.splice( bindings.indexOf( binding ), 1 );
-
-				// update keypath
-				binding.keypath = binding.keypath.replace( oldKeypath, newKeypath );
-
-				// add binding reference for new keypath
-				bindings = storage.root._twowayBindings[ binding.keypath ] || ( storage.root._twowayBindings[ binding.keypath ] = [] );
-				bindings.push( binding );
-			}
-		}
 	}
 
 	// rebind children
@@ -53,6 +27,16 @@ export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeyp
 		i = liveQueries.length;
 		while ( i-- ) {
 			liveQueries[i]._makeDirty();
+		}
+	}
+
+	if ( storage = this.node._ractive ) {
+
+		//adjust keypath if needed
+		assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
+
+		if ( indexRef != undefined ) {
+			storage.index[ indexRef ] = newIndex;
 		}
 	}
 

@@ -254,6 +254,26 @@ define([
 			t.ok(true);
 		});
 
+		test( 'Regression test for #697', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#model}}{{#thing}}{{# foo && bar }}<p>works</p>{{/inner}}{{/thing}}{{/model}}',
+				data: {
+					model: [{
+						thing: { bar: true },
+						foo: true
+					}]
+				}
+			});
+
+			ractive.get('model').unshift({
+				thing: { bar: true },
+				foo: false
+			});
+
+			t.ok( true );
+		});
+
 	};
 
 });

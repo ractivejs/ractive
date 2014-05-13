@@ -1,16 +1,21 @@
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
 export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
-	var updated, i;
+	var updated;
 
-	// expression mustache?
+	// Children first
+	if ( this.fragments ) {
+		this.fragments.forEach( f => f.rebind( indexRef, newIndex, oldKeypath, newKeypath ) );
+	}
+
+	// Expression mustache?
 	if ( this.resolver ) {
 		this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	}
 
-	// normal keypath mustache or keypath expression?
+	// Normal keypath mustache or reference expression?
 	if ( this.keypath ) {
-		updated =  getNewKeypath( this.keypath, oldKeypath, newKeypath );
+		updated = getNewKeypath( this.keypath, oldKeypath, newKeypath );
 
 		// was a new keypath created?
 		if ( updated ) {
@@ -22,16 +27,5 @@ export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKey
 	// index ref mustache?
 	else if ( indexRef !== undefined && this.indexRef === indexRef ) {
 		this.setValue( newIndex );
-	}
-
-	// otherwise, it's an unresolved reference. the context stack has been updated
-	// so it will take care of itself
-
-	// if it's a section mustache, we need to go through any children
-	if ( this.fragments ) {
-		i = this.fragments.length;
-		while ( i-- ) {
-			this.fragments[i].rebind( indexRef, newIndex, oldKeypath, newKeypath );
-		}
 	}
 }
