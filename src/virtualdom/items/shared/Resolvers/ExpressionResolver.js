@@ -125,7 +125,7 @@ ExpressionResolver.prototype = {
 				changed = true;
 			}
 
-			else if ( arg.indexRef === indexRef ) {
+			else if ( arg.indexRef && ( arg.indexRef === indexRef ) ) {
 				arg.value = newIndex;
 				changed = true;
 			}

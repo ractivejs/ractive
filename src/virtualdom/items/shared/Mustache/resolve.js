@@ -27,7 +27,7 @@ export default function Mustache$resolve ( keypath ) {
 
 		rebindTarget.rebind( null, null, this.keypath, keypath );
 
-		//if we already updated due to rebindent, we can exit
+		// if we already updated due to rebinding, we can exit
 		if ( keypath === this.keypath ) {
 			return;
 		}

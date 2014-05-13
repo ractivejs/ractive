@@ -10,7 +10,7 @@ export default function Fragment$rebind ( indexRef, newIndex, oldKeypath, newKey
 		this.indexRefs[ indexRef ] = newIndex;
 	}
 
-	this.items.forEach( function ( item ) {
+	this.items.forEach( item => {
 		if ( item.rebind ) {
 			item.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 		}
