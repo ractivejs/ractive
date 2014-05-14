@@ -744,6 +744,11 @@ var parseTests = [
 		name: 'Reserved event names can be part of proxy event names',
 		template: '<div on-foo="thiswillchange"></div>',
 		parsed: [{t:7,e:'div',v:{foo:'thiswillchange'}}]
+	},
+	{
+		name: 'Multiple proxy event names joined by "-"',
+		template: '<div on-foo-bar="baz"></div>',
+		parsed: [{t:7,e:'div',v:{'foo-bar':'baz'}}]
 	}
 ];
 

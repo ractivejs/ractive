@@ -10,7 +10,7 @@ import processDirective from 'parse/converters/element/processDirective';
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,
 	onPattern = /^on/,
-	proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
+	proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)$/,
 	reservedEventNames = /^(?:change|reset|teardown|update)$/,
 	directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 	exclude = { exclude: true },
@@ -80,7 +80,7 @@ function getElement ( parser ) {
 		parser.error( 'Illegal tag name' );
 	}
 
-	addProxyEvent = function ( name ) {
+	addProxyEvent = function ( name, directive ) {
 		var directiveName = directive.n || directive;
 
 		if ( reservedEventNames.test( directiveName ) ) {
@@ -102,7 +102,7 @@ function getElement ( parser ) {
 		else if ( match = proxyEventPattern.exec( attribute.name ) ) {
 			if ( !element.v ) element.v = {};
 			directive = processDirective( attribute.value );
-			match[1].split( '-' ).forEach( addProxyEvent );
+			addProxyEvent( match[1], directive );
 		}
 
 		else {

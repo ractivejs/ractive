@@ -392,6 +392,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( ractive.find( '.result' ).innerHTML, '0' );
 		});
 
+		test( 'Multiple events can share the same directive', function ( t ) {
+			var ractive, count = 0;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div on-click-mouseover="foo"></div>'
+			});
+
+			ractive.on( 'foo', function () {
+				count += 1;
+			});
+
+			simulant.fire( ractive.find( 'div' ), 'click' );
+			t.equal( count, 1 );
+
+			simulant.fire( ractive.find( 'div' ), 'mouseover' );
+			t.equal( count, 2 );
+		});
+
 	};
 
 });
