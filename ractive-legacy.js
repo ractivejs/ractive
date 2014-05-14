@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-13 - commit 05931f2b 
+	2014-05-14 - commit 2425f5de 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10061,7 +10061,7 @@
 		var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 			validTagNameFollower = /^[\s\n\/>]/,
 			onPattern = /^on/,
-			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)/,
+			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)$/,
 			reservedEventNames = /^(?:change|reset|teardown|update)$/,
 			directives = {
 				'intro-outro': 't0',
@@ -10115,7 +10115,7 @@
 			if ( !validTagNameFollower.test( parser.nextChar() ) ) {
 				parser.error( 'Illegal tag name' );
 			}
-			addProxyEvent = function( name ) {
+			addProxyEvent = function( name, directive ) {
 				var directiveName = directive.n || directive;
 				if ( reservedEventNames.test( directiveName ) ) {
 					parser.pos -= directiveName.length;
@@ -10132,7 +10132,7 @@
 					if ( !element.v )
 						element.v = {};
 					directive = processDirective( attribute.value );
-					match[ 1 ].split( '-' ).forEach( addProxyEvent );
+					addProxyEvent( match[ 1 ], directive );
 				} else {
 					if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
 						if ( !element.a )
