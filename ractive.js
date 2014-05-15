@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-15 - commit e43e468c 
+	2014-05-15 - commit 564edf12 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6370,13 +6370,17 @@
 	/* virtualdom/items/Element/prototype/init/getElementNamespace.js */
 	var virtualdom_items_Element$init_getElementNamespace = function( namespaces ) {
 
+		var defaultNamespaces = {
+			svg: namespaces.svg,
+			foreignObject: namespaces.html
+		};
 		return function( template, parent ) {
 			// if the element has an xmlns attribute, use that
 			if ( template.a && template.a.xmlns ) {
 				return template.a.xmlns;
 			}
-			// otherwise, use the svg namespace if this is an svg element, or inherit namespace from parent
-			return template.e === 'svg' ? namespaces.svg : parent && parent.namespace || namespaces.html;
+			// otherwise, guess namespace for svg/foreignObject elements, or inherit namespace from parent
+			return defaultNamespaces[ template.e ] || parent && parent.namespace || namespaces.html;
 		};
 	}( namespaces );
 
