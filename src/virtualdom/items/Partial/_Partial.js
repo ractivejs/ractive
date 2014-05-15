@@ -26,7 +26,8 @@ Partial = function ( options ) {
 	this.fragment = new Fragment({
 		template: template,
 		root:     parentFragment.root,
-		owner:    this
+		owner:    this,
+		pElement: parentFragment.pElement
 	});
 };
 
