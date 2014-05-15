@@ -1,5 +1,6 @@
 import types from 'config/types';
 import getLogicalOr from 'parse/Parser/expressions/logicalOr';
+import errors from 'parse/Parser/expressions/shared/errors';
 
 // The conditional operator is the lowest precedence operator, so we start here
 export default function ( parser ) {
@@ -23,23 +24,20 @@ export default function ( parser ) {
 
 	ifTrue = parser.readExpression();
 	if ( !ifTrue ) {
-		parser.pos = start;
-		return expression;
+		parser.error( errors.expectedExpression );
 	}
 
 	parser.allowWhitespace();
 
 	if ( !parser.matchString( ':' ) ) {
-		parser.pos = start;
-		return expression;
+		parser.error( 'Expected ":"' );
 	}
 
 	parser.allowWhitespace();
 
 	ifFalse = parser.readExpression();
 	if ( !ifFalse ) {
-		parser.pos = start;
-		return expression;
+		parser.error( errors.expectedExpression );
 	}
 
 	return {

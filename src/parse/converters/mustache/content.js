@@ -4,7 +4,8 @@ import mustacheType from 'parse/converters/mustache/type';
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	arrayMemberPattern = /^[0-9][1-9]*$/,
 	handlebarsTypePattern = /(if|unless|with|each|try)\b/,
-	handlebarsTypes;
+	handlebarsTypes,
+	legalReference;
 
 handlebarsTypes = {
 	'if': types.SECTION_IF,
@@ -12,6 +13,8 @@ handlebarsTypes = {
 	'with': types.SECTION_WITH,
 	'each': types.SECTION_EACH
 };
+
+legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
 
 export default function ( parser, isTriple ) {
 	var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, referenceExpression;
@@ -98,6 +101,12 @@ export default function ( parser, isTriple ) {
 
 			if ( index !== -1 ) {
 				mustache.r = remaining.substr( 0, index ).trim();
+
+				// Check it's a legal reference
+				if ( !legalReference.test( mustache.r ) ) {
+					parser.error( 'Expected a legal Mustache reference' );
+				}
+
 				parser.pos += index;
 				return mustache;
 			}
@@ -106,7 +115,7 @@ export default function ( parser, isTriple ) {
 		}
 	}
 
-	if (expression) {
+	if ( expression ) {
 		while ( expression.t === types.BRACKETED && expression.x ) {
 			expression = expression.x;
 		}

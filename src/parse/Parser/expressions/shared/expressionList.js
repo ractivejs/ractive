@@ -1,11 +1,13 @@
-export default function getExpressionList ( tokenizer ) {
+import errors from 'parse/Parser/expressions/shared/errors';
+
+export default function getExpressionList ( parser ) {
 	var start, expressions, expr, next;
 
-	start = tokenizer.pos;
+	start = parser.pos;
 
-	tokenizer.allowWhitespace();
+	parser.allowWhitespace();
 
-	expr = tokenizer.readExpression();
+	expr = parser.readExpression();
 
 	if ( expr === null ) {
 		return null;
@@ -14,13 +16,12 @@ export default function getExpressionList ( tokenizer ) {
 	expressions = [ expr ];
 
 	// allow whitespace between expression and ','
-	tokenizer.allowWhitespace();
+	parser.allowWhitespace();
 
-	if ( tokenizer.matchString( ',' ) ) {
-		next = getExpressionList( tokenizer );
+	if ( parser.matchString( ',' ) ) {
+		next = getExpressionList( parser );
 		if ( next === null ) {
-			tokenizer.pos = start;
-			return null;
+			parser.error( errors.expectedExpression )
 		}
 
 		next.forEach( append );

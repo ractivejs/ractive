@@ -15,10 +15,10 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 		// Loop to handle left-recursion in a case like `a * b * c` and produce
 		// left association, i.e. `(a * b) * c`.  The matcher can't call itself
 		// to parse `left` because that would be infinite regress.
-		while (true) {
+		while ( true ) {
 			start = parser.pos;
 
-		   parser.allowWhitespace();
+			parser.allowWhitespace();
 
 			if ( !parser.matchString( symbol ) ) {
 				parser.pos = start;

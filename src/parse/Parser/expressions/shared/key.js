@@ -1,6 +1,6 @@
 import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral';
 import getNumberLiteral from 'parse/Parser/expressions/primary/literal/numberLiteral';
-import patterns from 'parse/Parser/expressions/patterns';
+import patterns from 'parse/Parser/expressions/shared/patterns';
 
 var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
