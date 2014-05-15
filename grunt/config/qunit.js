@@ -2,10 +2,10 @@ module.exports = function ( grunt ) {
 
     'use strict';
 
-    var qunitConfig = {},
-        tests = grunt.template.process( 'test/modules/**/*.js' );
+    var qunitConfig = {};
 
-    grunt.file.expand( tests ).forEach( function ( path ) {
+    grunt.file.expand( 'test/modules/**/*.js' ).forEach( function ( path ) {
+
         var testName = /test\/modules\/(.+)\.js/.exec( path )[1];
 
         if ( testName === 'index' ) {
