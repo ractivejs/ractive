@@ -1,20 +1,22 @@
 module.exports = function ( grunt ) {
 
-	'use strict';
+    'use strict';
 
-	var qunitConfig = {},
-		tests = grunt.template.process( '<%= tmpDir %>/test/tests/**/*.html' );
+    var qunitConfig = {},
+        tests = grunt.template.process( 'test/modules/**/*.js' );
 
-	grunt.file.expand( tests ).forEach( function ( path ) {
-		var testName = /test\/tests\/(.+)\.html/.exec( path )[1];
+    grunt.file.expand( tests ).forEach( function ( path ) {
+        var testName = /test\/modules\/(.+)\.js/.exec( path )[1];
 
-		if ( testName === 'index' ) {
-			testName = 'all';
-		}
+        if ( testName === 'index' ) {
+            testName = 'all';
+        }
 
-		qunitConfig[ testName.replace(/\//g, '-') ] = path;
-	});
+        qunitConfig[ testName.replace(/\//g, '-') ] = '<%= tmpDir %>/' + path.replace( '/modules/', '/tests/' ).replace( '.js', '.html' );
+    });
 
-	return qunitConfig;
+    qunitConfig.all = '<%= tmpDir %>/test/tests/index.html';
+
+    return qunitConfig;
 
 };
