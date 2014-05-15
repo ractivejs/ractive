@@ -2,30 +2,21 @@
 
 	'use strict';
 
-	var isBuild, config, i, prefixedModules = [];
-
-	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
+	var i, prefixedModules = [],
 		config = {
-			baseUrl: '../<%= levels %>tmp/amd/',
-			paths: {
-				modules: '../../test/modules',
-				samples: '../../test/samples',
-				vendor: '../../test/vendor',
-				ractive: '../ractive-legacy'
-			}
-		};
-	} else {
-		config = {
-			baseUrl: '../<%= levels %>.amd/',
+			baseUrl: '../<%= levels %><%= tmpSrcDir %>',
 			paths: {
 				modules: '../test/modules',
 				samples: '../test/samples',
 				vendor: '../test/vendor'
 			}
 		};
+
+	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
+		config.paths.ractive = '../ractive-legacy';
 	}
 
-	// require for asyncTest and module('',{setup}) to work
+	// required for asyncTest and module('',{setup}) to work
 	// see http://stackoverflow.com/questions/17065488/qunit-setup-called-for-each-test-before-teardown
 	QUnit.config.autostart = false;
 	QUnit.config.reorder = false;
