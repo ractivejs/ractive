@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-15 - commit 2a32027d 
+	2014-05-15 - commit e43e468c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2491,9 +2491,13 @@
 	}( isEqual, Promise, normaliseKeypath, animations, get, Ractive$animate_Animation );
 
 	/* Ractive/prototype/detach.js */
-	var Ractive$detach = function() {
-		return this.fragment.detach();
-	};
+	var Ractive$detach = function( removeFromArray ) {
+
+		return function() {
+			removeFromArray( this.el.__ractive_instances__, this );
+			return this.fragment.detach();
+		};
+	}( removeFromArray );
 
 	/* Ractive/prototype/find.js */
 	var Ractive$find = function( selector ) {
@@ -2915,6 +2919,7 @@
 			}
 			target.insertBefore( this.detach(), anchor );
 			this.el = target;
+			( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( this );
 		};
 	}( getElement );
 
@@ -3424,14 +3429,14 @@
 	var Ractive$render = function( runloop, css, Promise ) {
 
 		return function Ractive$render( target, anchor ) {
-			var promise, fulfilPromise;
+			var promise, fulfilPromise, instances;
 			this._rendering = true;
 			promise = new Promise( function( fulfil ) {
 				fulfilPromise = fulfil;
 			} );
 			runloop.start( this, fulfilPromise );
 			if ( this.rendered ) {
-				throw new Error( 'You cannot call ractive.render() more than once!' );
+				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 			}
 			this.el = target;
 			this.anchor = anchor;
@@ -3440,6 +3445,11 @@
 				css.add( this.constructor );
 			}
 			if ( target ) {
+				if ( !( instances = target.__ractive_instances__ ) ) {
+					target.__ractive_instances__ = [ this ];
+				} else {
+					instances.push( this );
+				}
 				if ( anchor ) {
 					target.insertBefore( this.fragment.render(), anchor );
 				} else {
@@ -5621,7 +5631,7 @@
 			if ( firstChange === undefined ) {
 				firstChange = this.length;
 			}
-			this.length = newLength = this.root.get( this.keypath ).length;
+			this.length = this.fragments.length = newLength = this.root.get( this.keypath ).length;
 			if ( newLength === firstChange ) {
 				// ...unless there are no new fragments to add
 				return;
@@ -7067,8 +7077,9 @@
 				}
 			},
 			unrender: function() {
-				this.node.removeEventListener( 'change', handleDomEvent, false );
-				this.node.removeEventListener( 'click', handleDomEvent, false );
+				var node = this.element.node;
+				node.removeEventListener( 'change', handleDomEvent, false );
+				node.removeEventListener( 'click', handleDomEvent, false );
 			},
 			changed: function() {
 				return this.element.node.checked !== !!this.checked;
@@ -11470,7 +11481,7 @@
 	};
 
 	/* Ractive/prototype/unrender.js */
-	var Ractive$unrender = function( types, Promise, runloop, css ) {
+	var Ractive$unrender = function( types, Promise, removeFromArray, runloop, css ) {
 
 		return function Ractive$unrender() {
 			var this$0 = this;
@@ -11514,10 +11525,11 @@
 			}
 			this.fragment.unrender( shouldDestroy );
 			this.rendered = false;
+			removeFromArray( this.el.__ractive_instances__, this );
 			runloop.end();
 			return promise;
 		};
-	}( types, Promise, runloop, css );
+	}( types, Promise, removeFromArray, runloop, css );
 
 	/* Ractive/prototype/update.js */
 	var Ractive$update = function( runloop, Promise, clearCache, notifyDependants ) {
@@ -11939,6 +11951,12 @@
 				ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
 				// If the target contains content, and `append` is falsy, clear it
 				if ( ractive.el && !options.append ) {
+					// Tear down any existing instances on this element
+					if ( ractive.el.__ractive_instances__ ) {
+						ractive.el.__ractive_instances__.splice( 0 ).forEach( function( r ) {
+							return r.teardown();
+						} );
+					}
 					ractive.el.innerHTML = '';
 				}
 				ractive.render( ractive.el, ractive.anchor ).then( function() {
