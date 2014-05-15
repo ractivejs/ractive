@@ -749,6 +749,63 @@ var parseTests = [
 		name: 'Multiple proxy event names joined by "-"',
 		template: '<div on-foo-bar="baz"></div>',
 		parsed: [{t:7,e:'div',v:{'foo-bar':'baz'}}]
+	},
+
+	// Illegal expressions
+	{
+		name: 'Illegal ternary expression',
+		template: '{{a?}}',
+		error: 'Expected a JavaScript expression at line 1 character 5:\n{{a?}}\n    ^----'
+	},
+	{
+		name: 'Illegal ternary expression',
+		template: '{{a?b}}',
+		error: 'Expected \":\" at line 1 character 6:\n{{a?b}}\n     ^----'
+	},
+	{
+		name: 'Illegal ternary expression',
+		template: '{{a?b:}}',
+		error: 'Expected a JavaScript expression at line 1 character 7:\n{{a?b:}}\n      ^----'
+	},
+	{
+		name: 'Illegal postfix operator',
+		template: '{{typeof}}',
+		error: 'Expected a JavaScript expression at line 1 character 9:\n{{typeof}}\n        ^----'
+	},
+	{
+		name: 'Illegal infix sequence',
+		template: '{{a+}}',
+		error: 'Expected a legal Mustache reference at line 1 character 3:\n{{a+}}\n  ^----'
+	},
+	{
+		name: 'Illegal invocation',
+		template: '{{foo(}}',
+		error: 'Expected closing paren at line 1 character 7:\n{{foo(}}\n      ^----'
+	},
+	{
+		name: 'Illegal expression list',
+		template: '{{foo(a,)}}',
+		error: 'Expected a JavaScript expression at line 1 character 9:\n{{foo(a,)}}\n        ^----'
+	},
+	{
+		name: 'Illegal refinement',
+		template: '{{foo[]}}',
+		error: 'Expected a JavaScript expression at line 1 character 7:\n{{foo[]}}\n      ^----'
+	},
+	{
+		name: 'Illegal refinement',
+		template: '{{foo.-}}',
+		error: 'Expected a property name at line 1 character 7:\n{{foo.-}}\n      ^----'
+	},
+	{
+		name: 'Illegal bracketed expression',
+		template: '{{()}}',
+		error: 'Expected a JavaScript expression at line 1 character 4:\n{{()}}\n   ^----'
+	},
+	{
+		name: 'Illegal bracketed expression (missing closing paren)',
+		template: '{{(foo}}',
+		error: 'Expected closing paren at line 1 character 7:\n{{(foo}}\n      ^----'
 	}
 ];
 
