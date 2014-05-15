@@ -1,4 +1,5 @@
 import types from 'config/types';
+import errors from 'parse/Parser/expressions/shared/errors';
 
 export default function ( parser ) {
 	var start, expr;
@@ -13,15 +14,13 @@ export default function ( parser ) {
 
 	expr = parser.readExpression();
 	if ( !expr ) {
-		parser.pos = start;
-		return null;
+		parser.error( errors.expectedExpression )
 	}
 
 	parser.allowWhitespace();
 
 	if ( !parser.matchString( ')' ) ) {
-		parser.pos = start;
-		return null;
+		parser.error( errors.expectedParen );
 	}
 
 	return {

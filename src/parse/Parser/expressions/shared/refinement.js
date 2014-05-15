@@ -1,5 +1,6 @@
 import types from 'config/types';
-import patterns from 'parse/Parser/expressions/patterns';
+import errors from 'parse/Parser/expressions/shared/errors';
+import patterns from 'parse/Parser/expressions/shared/patterns';
 
 export default function getRefinement ( parser ) {
 	var start, name, expr;
@@ -28,7 +29,7 @@ export default function getRefinement ( parser ) {
 
 		expr = parser.readExpression();
 		if ( !expr ) {
-			parser.error( 'an expression' );
+			parser.error( errors.expectedExpression );
 		}
 
 		parser.allowWhitespace();
