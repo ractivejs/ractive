@@ -13,8 +13,8 @@ module.exports = function ( grunt ) {
         qunitConfig[ testName.replace(/\//g, '-') ] = '<%= tmpDir %>/' + path.replace( '/modules/', '/tests/' ).replace( '.js', '.html' );
     });
 
-    qunitConfig.all = '<%= tmpDir %>/test/tests/index.html';
+	qunitConfig.all = '<%= tmpDir %>/test/tests/index.html';
 
-    return qunitConfig;
+	return qunitConfig;
 
 };
