@@ -50,6 +50,11 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 
 		// If the target contains content, and `append` is falsy, clear it
 		if ( ractive.el && !options.append ) {
+			// Tear down any existing instances on this element
+			if ( ractive.el.__ractive_instances__ ) {
+				ractive.el.__ractive_instances__.splice( 0 ).forEach( r => r.teardown() );
+			}
+
 			ractive.el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 		}
 

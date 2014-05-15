@@ -1102,6 +1102,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '01')
 		});
 
+		test( 'Rendering to an element, if `append` is false, causes any existing instances to be torn down', function ( t ) {
+			var ractive1, ractive2;
+
+			expect( 2 );
+
+			ractive1 = new Ractive({
+				el: fixture,
+				template: 'foo'
+			});
+
+			ractive1.on( 'teardown', function () {
+				t.ok( true );
+			});
+
+			ractive2 = new Ractive({
+				el: fixture,
+				template: 'bar'
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

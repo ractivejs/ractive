@@ -58,7 +58,7 @@ export default function Section$merge ( newIndices ) {
 		firstChange = this.length;
 	}
 
-	this.length = newLength = this.root.get( this.keypath ).length;
+	this.length = this.fragments.length = newLength = this.root.get( this.keypath ).length;
 
 	if ( newLength === firstChange ) {
 		// ...unless there are no new fragments to add
