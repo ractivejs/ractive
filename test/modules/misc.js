@@ -1124,6 +1124,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'bar' );
 		});
 
+		test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
+			});
+
+			t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+			t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
