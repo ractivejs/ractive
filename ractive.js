@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-14 - commit 2425f5de 
+	2014-05-15 - commit 119f5cd7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3666,6 +3666,12 @@
 		return create;
 	}();
 
+	/* parse/Parser/expressions/shared/errors.js */
+	var errors = {
+		expectedExpression: 'Expected a JavaScript expression',
+		expectedParen: 'Expected closing paren'
+	};
+
 	/* parse/Parser/expressions/primary/literal/numberLiteral.js */
 	var numberLiteral = function( types ) {
 
@@ -3686,17 +3692,17 @@
 	/* parse/Parser/expressions/primary/literal/booleanLiteral.js */
 	var booleanLiteral = function( types ) {
 
-		return function( tokenizer ) {
-			var remaining = tokenizer.remaining();
+		return function( parser ) {
+			var remaining = parser.remaining();
 			if ( remaining.substr( 0, 4 ) === 'true' ) {
-				tokenizer.pos += 4;
+				parser.pos += 4;
 				return {
 					t: types.BOOLEAN_LITERAL,
 					v: 'true'
 				};
 			}
 			if ( remaining.substr( 0, 5 ) === 'false' ) {
-				tokenizer.pos += 5;
+				parser.pos += 5;
 				return {
 					t: types.BOOLEAN_LITERAL,
 					v: 'false'
@@ -3795,7 +3801,7 @@
 		};
 	}( types, singleQuotedString, doubleQuotedString );
 
-	/* parse/Parser/expressions/patterns.js */
+	/* parse/Parser/expressions/shared/patterns.js */
 	var patterns = {
 		name: /^[a-zA-Z_$][a-zA-Z_$0-9]*/
 	};
@@ -3906,31 +3912,33 @@
 	}( types, keyValuePairs );
 
 	/* parse/Parser/expressions/shared/expressionList.js */
-	var expressionList = function getExpressionList( tokenizer ) {
-		var start, expressions, expr, next;
-		start = tokenizer.pos;
-		tokenizer.allowWhitespace();
-		expr = tokenizer.readExpression();
-		if ( expr === null ) {
-			return null;
-		}
-		expressions = [ expr ];
-		// allow whitespace between expression and ','
-		tokenizer.allowWhitespace();
-		if ( tokenizer.matchString( ',' ) ) {
-			next = getExpressionList( tokenizer );
-			if ( next === null ) {
-				tokenizer.pos = start;
+	var expressionList = function( errors ) {
+
+		return function getExpressionList( parser ) {
+			var start, expressions, expr, next;
+			start = parser.pos;
+			parser.allowWhitespace();
+			expr = parser.readExpression();
+			if ( expr === null ) {
 				return null;
 			}
-			next.forEach( append );
-		}
+			expressions = [ expr ];
+			// allow whitespace between expression and ','
+			parser.allowWhitespace();
+			if ( parser.matchString( ',' ) ) {
+				next = getExpressionList( parser );
+				if ( next === null ) {
+					parser.error( errors.expectedExpression );
+				}
+				next.forEach( append );
+			}
 
-		function append( expression ) {
-			expressions.push( expression );
-		}
-		return expressions;
-	};
+			function append( expression ) {
+				expressions.push( expression );
+			}
+			return expressions;
+		};
+	}( errors );
 
 	/* parse/Parser/expressions/primary/literal/arrayLiteral.js */
 	var arrayLiteral = function( types, getExpressionList ) {
@@ -3959,8 +3967,8 @@
 	/* parse/Parser/expressions/primary/literal/_literal.js */
 	var literal = function( getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral ) {
 
-		return function( tokenizer ) {
-			var literal = getNumberLiteral( tokenizer ) || getBooleanLiteral( tokenizer ) || getStringLiteral( tokenizer ) || getObjectLiteral( tokenizer ) || getArrayLiteral( tokenizer );
+		return function( parser ) {
+			var literal = getNumberLiteral( parser ) || getBooleanLiteral( parser ) || getStringLiteral( parser ) || getObjectLiteral( parser ) || getArrayLiteral( parser );
 			return literal;
 		};
 	}( numberLiteral, booleanLiteral, stringLiteral, objectLiteral, arrayLiteral );
@@ -4032,7 +4040,7 @@
 	}( types, patterns );
 
 	/* parse/Parser/expressions/primary/bracketedExpression.js */
-	var bracketedExpression = function( types ) {
+	var bracketedExpression = function( types, errors ) {
 
 		return function( parser ) {
 			var start, expr;
@@ -4043,31 +4051,29 @@
 			parser.allowWhitespace();
 			expr = parser.readExpression();
 			if ( !expr ) {
-				parser.pos = start;
-				return null;
+				parser.error( errors.expectedExpression );
 			}
 			parser.allowWhitespace();
 			if ( !parser.matchString( ')' ) ) {
-				parser.pos = start;
-				return null;
+				parser.error( errors.expectedParen );
 			}
 			return {
 				t: types.BRACKETED,
 				x: expr
 			};
 		};
-	}( types );
+	}( types, errors );
 
 	/* parse/Parser/expressions/primary/_primary.js */
 	var primary = function( getLiteral, getReference, getBracketedExpression ) {
 
-		return function( tokenizer ) {
-			return getLiteral( tokenizer ) || getReference( tokenizer ) || getBracketedExpression( tokenizer );
+		return function( parser ) {
+			return getLiteral( parser ) || getReference( parser ) || getBracketedExpression( parser );
 		};
 	}( literal, reference, bracketedExpression );
 
 	/* parse/Parser/expressions/shared/refinement.js */
-	var refinement = function( types, patterns ) {
+	var refinement = function( types, errors, patterns ) {
 
 		return function getRefinement( parser ) {
 			var start, name, expr;
@@ -4089,7 +4095,7 @@
 				parser.allowWhitespace();
 				expr = parser.readExpression();
 				if ( !expr ) {
-					parser.error( 'an expression' );
+					parser.error( errors.expectedExpression );
 				}
 				parser.allowWhitespace();
 				if ( !parser.matchString( ']' ) ) {
@@ -4102,10 +4108,10 @@
 			}
 			return null;
 		};
-	}( types, patterns );
+	}( types, errors, patterns );
 
 	/* parse/Parser/expressions/memberOrInvocation.js */
-	var memberOrInvocation = function( types, getPrimary, getExpressionList, getRefinement ) {
+	var memberOrInvocation = function( types, getPrimary, getExpressionList, getRefinement, errors ) {
 
 		return function( parser ) {
 			var current, expression, refinement, expressionList;
@@ -4126,8 +4132,7 @@
 					expressionList = getExpressionList( parser );
 					parser.allowWhitespace();
 					if ( !parser.matchString( ')' ) ) {
-						parser.pos = current;
-						break;
+						parser.error( errors.expectedParen );
 					}
 					expression = {
 						t: types.INVOCATION,
@@ -4142,23 +4147,22 @@
 			}
 			return expression;
 		};
-	}( types, primary, expressionList, refinement );
+	}( types, primary, expressionList, refinement, errors );
 
 	/* parse/Parser/expressions/typeof.js */
-	var _typeof = function( types, getMemberOrInvocation ) {
+	var _typeof = function( types, errors, getMemberOrInvocation ) {
 
 		var getTypeof, makePrefixSequenceMatcher;
 		makePrefixSequenceMatcher = function( symbol, fallthrough ) {
 			return function( parser ) {
-				var start, expression;
+				var expression;
 				if ( !parser.matchString( symbol ) ) {
 					return fallthrough( parser );
 				}
-				start = parser.pos;
 				parser.allowWhitespace();
 				expression = parser.readExpression();
 				if ( !expression ) {
-					parser.error( 'Expected a JavaScript expression' );
+					parser.error( errors.expectedExpression );
 				}
 				return {
 					s: symbol,
@@ -4182,7 +4186,7 @@
 			getTypeof = fallthrough;
 		}() );
 		return getTypeof;
-	}( types, memberOrInvocation );
+	}( types, errors, memberOrInvocation );
 
 	/* parse/Parser/expressions/logicalOr.js */
 	var logicalOr = function( types, getTypeof ) {
@@ -4249,7 +4253,7 @@
 	}( types, _typeof );
 
 	/* parse/Parser/expressions/conditional.js */
-	var conditional = function( types, getLogicalOr ) {
+	var conditional = function( types, getLogicalOr, errors ) {
 
 		// The conditional operator is the lowest precedence operator, so we start here
 		return function( parser ) {
@@ -4267,19 +4271,16 @@
 			parser.allowWhitespace();
 			ifTrue = parser.readExpression();
 			if ( !ifTrue ) {
-				parser.pos = start;
-				return expression;
+				parser.error( errors.expectedExpression );
 			}
 			parser.allowWhitespace();
 			if ( !parser.matchString( ':' ) ) {
-				parser.pos = start;
-				return expression;
+				parser.error( 'Expected ":"' );
 			}
 			parser.allowWhitespace();
 			ifFalse = parser.readExpression();
 			if ( !ifFalse ) {
-				parser.pos = start;
-				return expression;
+				parser.error( errors.expectedExpression );
 			}
 			return {
 				t: types.CONDITIONAL,
@@ -4290,7 +4291,7 @@
 				]
 			};
 		};
-	}( types, logicalOr );
+	}( types, logicalOr, errors );
 
 	/* parse/Parser/utils/flattenExpression.js */
 	var flattenExpression = function( types, isObject ) {
@@ -8748,7 +8749,7 @@
 	}( virtualdom_items_Element$bubble, virtualdom_items_Element$detach, virtualdom_items_Element$find, virtualdom_items_Element$findAll, virtualdom_items_Element$findAllComponents, virtualdom_items_Element$findComponent, virtualdom_items_Element$findNextNode, virtualdom_items_Element$firstNode, virtualdom_items_Element$getAttribute, virtualdom_items_Element$init, virtualdom_items_Element$rebind, virtualdom_items_Element$render, virtualdom_items_Element$teardown, virtualdom_items_Element$toString, virtualdom_items_Element$unrender );
 
 	/* config/errors.js */
-	var errors = {
+	var config_errors = {
 		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser'
 	};
 
@@ -8822,13 +8823,14 @@
 		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 			arrayMemberPattern = /^[0-9][1-9]*$/,
 			handlebarsTypePattern = /(if|unless|with|each|try)\b/,
-			handlebarsTypes;
+			handlebarsTypes, legalReference;
 		handlebarsTypes = {
 			'if': types.SECTION_IF,
 			'unless': types.SECTION_UNLESS,
 			'with': types.SECTION_WITH,
 			'each': types.SECTION_EACH
 		};
+		legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
 		return function( parser, isTriple ) {
 			var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, referenceExpression;
 			start = parser.pos;
@@ -8897,6 +8899,10 @@
 					index = remaining.indexOf( parser.delimiters[ 1 ] );
 					if ( index !== -1 ) {
 						mustache.r = remaining.substr( 0, index ).trim();
+						// Check it's a legal reference
+						if ( !legalReference.test( mustache.r ) ) {
+							parser.error( 'Expected a legal Mustache reference' );
+						}
 						parser.pos += index;
 						return mustache;
 					}
@@ -10218,7 +10224,7 @@
 				registry[ name ] = partial;
 			}
 		}
-	}( errors, isClient, warn, isObject, partials, parse, deIndent );
+	}( config_errors, isClient, warn, isObject, partials, parse, deIndent );
 
 	/* virtualdom/items/Partial/applyIndent.js */
 	var applyIndent = function( string, indent ) {
@@ -11113,7 +11119,7 @@
 				}
 			};
 		};
-	}( errors, isClient, parse );
+	}( config_errors, isClient, parse );
 
 	/* Ractive/initialise/initialiseTemplate.js */
 	var initialiseTemplate = function( extend, fillGaps, isObject, TemplateParser ) {
@@ -11868,7 +11874,7 @@
 				}
 			}
 		};
-	}( errors, isClient, parse );
+	}( config_errors, isClient, parse );
 
 	/* extend/conditionallyParsePartials.js */
 	var conditionallyParsePartials = function( errors, parse ) {
@@ -11887,7 +11893,7 @@
 				}
 			}
 		};
-	}( errors, parse );
+	}( config_errors, parse );
 
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( initOptions, warn, create, defineProperties, getElement, isArray, getGuid, get, set, magicAdaptor, initialiseRegistries, Fragment ) {
