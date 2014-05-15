@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-15 - commit 34131f79 
+	2014-05-15 - commit 2a32027d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8891,7 +8891,8 @@
 			this.fragment = new Fragment( {
 				template: template,
 				root: parentFragment.root,
-				owner: this
+				owner: this,
+				pElement: parentFragment.pElement
 			} );
 		};
 		Partial.prototype = {
