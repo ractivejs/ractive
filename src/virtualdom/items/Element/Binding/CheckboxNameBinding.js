@@ -47,8 +47,10 @@ var CheckboxNameBinding = Binding.extend({
 	},
 
 	unrender: function () {
-		this.node.removeEventListener( 'change', handleDomEvent, false );
-		this.node.removeEventListener( 'click', handleDomEvent, false );
+		var node = this.element.node;
+
+		node.removeEventListener( 'change', handleDomEvent, false );
+		node.removeEventListener( 'click', handleDomEvent, false );
 	},
 
 	changed: function () {
