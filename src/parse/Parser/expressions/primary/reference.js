@@ -1,5 +1,5 @@
 import types from 'config/types';
-import patterns from 'parse/Parser/expressions/patterns';
+import patterns from 'parse/Parser/expressions/shared/patterns';
 
 var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals;
 dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;

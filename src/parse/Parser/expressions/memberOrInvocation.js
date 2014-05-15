@@ -2,6 +2,7 @@ import types from 'config/types';
 import getPrimary from 'parse/Parser/expressions/primary/_primary';
 import getExpressionList from 'parse/Parser/expressions/shared/expressionList';
 import getRefinement from 'parse/Parser/expressions/shared/refinement';
+import errors from 'parse/Parser/expressions/shared/errors';
 
 export default function ( parser ) {
 	var current, expression, refinement, expressionList;
@@ -30,8 +31,7 @@ export default function ( parser ) {
 			parser.allowWhitespace();
 
 			if ( !parser.matchString( ')' ) ) {
-				parser.pos = current;
-				break;
+				parser.error( errors.expectedParen );
 			}
 
 			expression = {

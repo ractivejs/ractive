@@ -1,23 +1,22 @@
 import types from 'config/types';
+import errors from 'parse/Parser/expressions/shared/errors';
 import getMemberOrInvocation from 'parse/Parser/expressions/memberOrInvocation';
 
 var getTypeof, makePrefixSequenceMatcher;
 
 makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
-		var start, expression;
+		var expression;
 
 		if ( !parser.matchString( symbol ) ) {
 			return fallthrough( parser );
 		}
 
-		start = parser.pos;
-
 		parser.allowWhitespace();
 
 		expression = parser.readExpression();
 		if ( !expression ) {
-			parser.error( 'Expected a JavaScript expression' );
+			parser.error( errors.expectedExpression );
 		}
 
 		return {

@@ -4,12 +4,12 @@ import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLit
 import getObjectLiteral from 'parse/Parser/expressions/primary/literal/objectLiteral/_objectLiteral';
 import getArrayLiteral from 'parse/Parser/expressions/primary/literal/arrayLiteral';
 
-export default function ( tokenizer ) {
-	var literal = getNumberLiteral( tokenizer )   ||
-				  getBooleanLiteral( tokenizer )  ||
-				  getStringLiteral( tokenizer )   ||
-				  getObjectLiteral( tokenizer )   ||
-				  getArrayLiteral( tokenizer );
+export default function ( parser ) {
+	var literal = getNumberLiteral( parser )   ||
+				  getBooleanLiteral( parser )  ||
+				  getStringLiteral( parser )   ||
+				  getObjectLiteral( parser )   ||
+				  getArrayLiteral( parser );
 
 	return literal;
 }
