@@ -6,6 +6,7 @@ sandbox/*
 !sandbox/require.js
 !sandbox/sample/
 tmp/
+tmp-build/
 FIX.js
 build/*
 !build/README.md

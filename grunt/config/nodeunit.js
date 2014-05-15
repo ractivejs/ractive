@@ -1,3 +1,3 @@
 module.exports = {
-	all: 'test/node/*.js'
+	all: '<%= tmpDir %>/test/node/*.js'
 }

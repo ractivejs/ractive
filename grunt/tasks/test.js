@@ -9,7 +9,11 @@ module.exports = function ( grunt ) {
 	]);
 
 	grunt.registerTask( 'test', [
-		'buildTests',
+		'build',
+		'runTests'
+	]);
+
+	grunt.registerTask( 'runTests', [
 		'nodeunit',
 		'qunit:all'
 	]);

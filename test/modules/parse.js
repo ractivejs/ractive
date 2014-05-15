@@ -9,7 +9,7 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 
 		module( 'Parse' );
 
-		runTest = function ( theTest ) {
+		var runTest = function ( theTest ) {
 			test( theTest.name, function ( t ) {
 				if (theTest.error) {
 					var error = "No error thrown";
@@ -28,7 +28,7 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 			});
 		};
 
-		for ( i=0; i<tests.length; i+=1 ) {
+		for ( var i=0; i<tests.length; i+=1 ) {
 			runTest( tests[i] );
 		}
 

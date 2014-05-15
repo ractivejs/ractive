@@ -1,6 +1,6 @@
 var Ractive, parseTests;
 
-Ractive = require( '../../tmp/ractive' );
+Ractive = require( '../../ractive' );
 parseTests = require( '../samples/parse' );
 
 parseTests.forEach( function ( theTest ) {
