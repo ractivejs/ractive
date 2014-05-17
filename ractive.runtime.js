@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-17 - commit 1c800961 
+	2014-05-17 - commit 0e93697f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4931,7 +4931,7 @@
 	}( isEqual, registerDependant, unregisterDependant );
 
 	/* virtualdom/items/shared/Evaluator/_Evaluator.js */
-	var Evaluator = function( runloop, warn, isEqual, get, clearCache, notifyDependants, adaptIfNecessary, Reference, SoftReference ) {
+	var Evaluator = function( runloop, warn, isEqual, clearCache, notifyDependants, adaptIfNecessary, Reference, SoftReference ) {
 
 		var Evaluator, cache = {};
 		Evaluator = function( root, keypath, uniqueString, functionStr, args, priority ) {
@@ -5000,18 +5000,6 @@
 				clearCache( this.root, this.keypath );
 				this.value = this.getValue();
 			},
-			// This method forces the evaluator to sync with the current model
-			// in the case of a smart update
-			refresh: function() {
-				var i = this.refs.length;
-				while ( i-- ) {
-					this.refs[ i ].setValue( get( this.root, this.refs[ i ].keypath ) );
-				}
-				if ( this.dirty ) {
-					this.update();
-					this.dirty = false;
-				}
-			},
 			updateSoftDependencies: function( softDeps ) {
 				var i, keypath, ref;
 				if ( !this.softRefs ) {
@@ -5055,7 +5043,7 @@
 			cache[ str ] = fn;
 			return fn;
 		}
-	}( runloop, warn, isEqual, get, clearCache, notifyDependants, adaptIfNecessary, Reference, SoftReference );
+	}( runloop, warn, isEqual, clearCache, notifyDependants, adaptIfNecessary, Reference, SoftReference );
 
 	/* virtualdom/items/shared/utils/startsWithKeypath.js */
 	var startsWithKeypath = function startsWithKeypath( target, keypath ) {
@@ -8114,7 +8102,7 @@
 		return function Transition$start( isIntro ) {
 			var t = this,
 				node, originalStyle;
-			node = t.element.node;
+			node = t.node = t.element.node;
 			originalStyle = node.getAttribute( 'style' );
 			t.isIntro = !!isIntro;
 			// create t.complete() - we don't want this on the prototype,
