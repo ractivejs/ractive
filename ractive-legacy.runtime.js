@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-05-17 - commit 0e93697f 
+	2014-05-17 - commit cb06cf76 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1212,7 +1212,9 @@
 					return;
 				}
 				flushing = true;
-				flushChanges();
+				do {
+					flushChanges();
+				} while ( dirty );
 				flushing = false;
 				transitionManager.init();
 				transitionManager = transitionManager._previous;
@@ -1228,6 +1230,7 @@
 				transitionManager.push( transition );
 			},
 			viewUpdate: function( thing ) {
+				dirty = true;
 				viewUpdates.push( thing );
 			},
 			lockAttribute: function( attribute ) {
@@ -1271,6 +1274,7 @@
 				postModelUpdateTasks.push( task );
 			},
 			afterViewUpdate: function( task ) {
+				dirty = true;
 				postViewUpdateTasks.push( task );
 			}
 		};
@@ -5987,8 +5991,11 @@
 			if ( wrapper = this.root._wrapped[ this.keypath ] ) {
 				value = wrapper.get();
 			}
-			if ( reevaluateSection( this, value ) && this.rendered ) {
-				runloop.viewUpdate( this );
+			if ( reevaluateSection( this, value ) ) {
+				this.bubble();
+				if ( this.rendered ) {
+					runloop.viewUpdate( this );
+				}
 			}
 			this.value = value;
 		};
@@ -6634,16 +6641,6 @@
 			return;
 		}
 		return this.attributes[ name ].value;
-	};
-
-	/* utils/toArray.js */
-	var toArray = function toArray( arrayLike ) {
-		var array = [],
-			i = arrayLike.length;
-		while ( i-- ) {
-			array[ i ] = arrayLike[ i ];
-		}
-		return array;
 	};
 
 	/* virtualdom/items/Element/shared/enforceCase.js */
@@ -8471,8 +8468,108 @@
 		return Transition;
 	}( virtualdom_items_Element_Transition$init, virtualdom_items_Element_Transition$getStyle, virtualdom_items_Element_Transition$setStyle, virtualdom_items_Element_Transition$animateStyle__animateStyle, virtualdom_items_Element_Transition$processParams, virtualdom_items_Element_Transition$start, circular );
 
+	/* utils/toArray.js */
+	var toArray = function toArray( arrayLike ) {
+		var array = [],
+			i = arrayLike.length;
+		while ( i-- ) {
+			array[ i ] = arrayLike[ i ];
+		}
+		return array;
+	};
+
+	/* virtualdom/items/Element/special/select/sync.js */
+	var sync = function( toArray, runloop, set ) {
+
+		return function syncSelect( selectElement ) {
+			var selectNode, selectValue, isMultiple, options, value, i, optionWasSelected;
+			selectNode = selectElement.node;
+			if ( !selectNode ) {
+				return;
+			}
+			options = toArray( selectNode.options );
+			selectValue = selectElement.getAttribute( 'value' );
+			isMultiple = selectElement.getAttribute( 'multiple' );
+			// If the <select> has a specified value, that should override
+			// these options
+			if ( selectValue !== undefined ) {
+				options.forEach( function( o ) {
+					var optionValue, shouldSelect;
+					optionValue = o._ractive ? o._ractive.value : o.value;
+					shouldSelect = isMultiple ? valueContains( selectValue, optionValue ) : selectValue == optionValue;
+					if ( shouldSelect ) {
+						optionWasSelected = true;
+					}
+					o.selected = shouldSelect;
+				} );
+				if ( !optionWasSelected ) {
+					if ( options[ 0 ] ) {
+						options[ 0 ].selected = true;
+					}
+					if ( selectElement.binding ) {
+						selectValue = isMultiple ? [] : options[ 0 ] ? options[ 0 ]._ractive ? options[ 0 ]._ractive.value : options[ 0 ].value : undefined;
+						set( selectElement.root, selectElement.binding.keypath, selectValue );
+					}
+				}
+			} else if ( selectElement.binding ) {
+				if ( isMultiple ) {
+					value = options.reduce( function( array, o ) {
+						if ( o.selected ) {
+							array.push( o.value );
+						}
+						return array;
+					}, [] );
+				} else {
+					i = options.length;
+					while ( i-- ) {
+						if ( options[ i ].selected ) {
+							value = options[ i ].value;
+							break;
+						}
+					}
+				}
+				runloop.lockAttribute( selectElement.attributes.value );
+				set( selectElement.root, selectElement.binding.keypath );
+			}
+		};
+
+		function valueContains( selectValue, optionValue ) {
+			var i = selectValue.length;
+			while ( i-- ) {
+				if ( selectValue[ i ] == optionValue ) {
+					return true;
+				}
+			}
+		}
+	}( toArray, runloop, set );
+
+	/* virtualdom/items/Element/special/select/bubble.js */
+	var bubble = function( runloop, syncSelect ) {
+
+		return function bubbleSelect() {
+			var this$0 = this;
+			if ( !this.dirty ) {
+				this.dirty = true;
+				runloop.afterViewUpdate( function() {
+					this$0.dirty = false;
+					syncSelect( this$0 );
+				} );
+			}
+			this.parentFragment.bubble();
+		};
+	}( runloop, sync );
+
+	/* virtualdom/items/Element/special/option/findParentSelect.js */
+	var findParentSelect = function findParentSelect( element ) {
+		do {
+			if ( element.name === 'select' ) {
+				return element;
+			}
+		} while ( element = element.parent );
+	};
+
 	/* virtualdom/items/Element/prototype/init.js */
-	var virtualdom_items_Element$init = function( types, namespaces, runloop, toArray, set, enforceCase, getElementNamespace, createAttributes, createTwowayBinding, createEventHandlers, Decorator, Transition, circular ) {
+	var virtualdom_items_Element$init = function( types, namespaces, enforceCase, getElementNamespace, createAttributes, createTwowayBinding, createEventHandlers, Decorator, Transition, bubbleSelect, findParentSelect, circular ) {
 
 		var Fragment;
 		circular.push( function() {
@@ -8543,15 +8640,7 @@
 					// As <option> elements are created, they will populate this array
 					this.binding.initialValue = [];
 				}
-				this.bubble = function() {
-					if ( !this.dirty ) {
-						this.dirty = true;
-						runloop.modelUpdate( this );
-					}
-				};
-				this.update = function() {
-					syncSelect( this );
-				};
+				this.bubble = bubbleSelect;
 			}
 			// append children, if there are any
 			if ( template.f ) {
@@ -8594,76 +8683,7 @@
 				this.outro = new Transition( this, template.t2 );
 			}
 		};
-
-		function findParentSelect( element ) {
-			do {
-				if ( element.name === 'select' ) {
-					return element;
-				}
-			} while ( element = element.parent );
-		}
-
-		function syncSelect( selectElement ) {
-			var selectNode, selectValue, isMultiple, options, value, i, optionWasSelected;
-			selectNode = selectElement.node;
-			if ( !selectNode ) {
-				return;
-			}
-			options = toArray( selectNode.options );
-			selectValue = selectElement.getAttribute( 'value' );
-			isMultiple = selectElement.getAttribute( 'multiple' );
-			// If the <select> has a specified value, that should override
-			// these options
-			if ( selectValue !== undefined ) {
-				options.forEach( function( o ) {
-					var optionValue, shouldSelect;
-					optionValue = o._ractive ? o._ractive.value : o.value;
-					shouldSelect = isMultiple ? valueContains( selectValue, optionValue ) : selectValue == optionValue;
-					if ( shouldSelect ) {
-						optionWasSelected = true;
-					}
-					o.selected = shouldSelect;
-				} );
-				if ( !optionWasSelected ) {
-					if ( options[ 0 ] ) {
-						options[ 0 ].selected = true;
-					}
-					if ( selectElement.binding ) {
-						selectValue = isMultiple ? [] : options[ 0 ] ? options[ 0 ]._ractive ? options[ 0 ]._ractive.value : options[ 0 ].value : undefined;
-						set( selectElement.root, selectElement.binding.keypath, selectValue );
-					}
-				}
-			} else if ( selectElement.binding ) {
-				if ( isMultiple ) {
-					value = options.reduce( function( array, o ) {
-						if ( o.selected ) {
-							array.push( o.value );
-						}
-						return array;
-					}, [] );
-				} else {
-					i = options.length;
-					while ( i-- ) {
-						if ( options[ i ].selected ) {
-							value = options[ i ].value;
-							break;
-						}
-					}
-				}
-				runloop.lockAttribute( selectElement.attributes.value );
-				set( selectElement.root, selectElement.binding.keypath );
-			}
-		}
-
-		function valueContains( selectValue, optionValue ) {
-			var i = selectValue.length;
-			while ( i-- ) {
-				if ( selectValue[ i ] == optionValue ) {
-					return true;
-				}
-			}
-		}
-	}( types, namespaces, runloop, toArray, set, enforceCase, virtualdom_items_Element$init_getElementNamespace, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, Transition, circular );
+	}( types, namespaces, enforceCase, virtualdom_items_Element$init_getElementNamespace, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, Transition, bubble, findParentSelect, circular );
 
 	/* virtualdom/items/shared/utils/startsWith.js */
 	var startsWith = function( startsWithKeypath ) {
