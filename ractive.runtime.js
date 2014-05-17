@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-17 - commit 96b35c60 
+	2014-05-17 - commit 24a90b2c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -986,6 +986,7 @@
 					set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 					checkboxKeypaths[ thing.keypath ] = false;
 				}
+				attemptKeypathResolution();
 			}
 			// Now that changes have been fully propagated, we can update the DOM
 			// and complete other tasks
@@ -4811,7 +4812,7 @@
 	}( runloop );
 
 	/* virtualdom/items/shared/Evaluator/Reference.js */
-	var Reference = function( types, isEqual, defineProperty, registerDependant, unregisterDependant ) {
+	var Reference = function( types, isEqual, defineProperty, get, registerDependant, unregisterDependant ) {
 
 		var Reference, thisPattern;
 		thisPattern = /this/;
@@ -4840,6 +4841,9 @@
 					this.evaluator.bubble();
 					this.value = value;
 				}
+			},
+			invalidate: function() {
+				this.setValue( get( this.root, this.keypath ) );
 			},
 			teardown: function() {
 				unregisterDependant( this );
@@ -4900,7 +4904,7 @@
 			// Return the wrapped function
 			return fn[ '_' + ractive._guid ];
 		}
-	}( types, isEqual, defineProperty, registerDependant, unregisterDependant );
+	}( types, isEqual, defineProperty, get, registerDependant, unregisterDependant );
 
 	/* virtualdom/items/shared/Evaluator/SoftReference.js */
 	var SoftReference = function( isEqual, registerDependant, unregisterDependant ) {
@@ -4950,25 +4954,17 @@
 					evaluator.refs.push( new Reference( root, arg.keypath, evaluator, i, priority ) );
 				}
 			} );
-			evaluator.selfUpdating = evaluator.refs.length <= 1;
 		};
 		Evaluator.prototype = {
 			bubble: function() {
-				// If we only have one reference, we can update immediately...
-				if ( this.selfUpdating ) {
-					this.update();
-				} else if ( !this.dirty ) {
-					runloop.modelUpdate( this );
+				if ( !this.dirty ) {
+					// Re-evaluate once all changes have propagated
 					this.dirty = true;
+					runloop.modelUpdate( this );
 				}
 			},
-			update: function() {
+			getValue: function() {
 				var value;
-				// prevent infinite loops
-				if ( this.evaluating ) {
-					return this;
-				}
-				this.evaluating = true;
 				try {
 					value = this.fn.apply( null, this.values );
 				} catch ( err ) {
@@ -4977,13 +4973,16 @@
 					}
 					value = undefined;
 				}
+				return value;
+			},
+			update: function() {
+				var value = this.getValue();
 				if ( !isEqual( value, this.value ) ) {
 					this.value = value;
 					clearCache( this.root, this.keypath );
 					adaptIfNecessary( this.root, this.keypath, value, true );
 					notifyDependants( this.root, this.keypath );
 				}
-				this.evaluating = false;
 				return this;
 			},
 			// TODO should evaluators ever get torn down? At present, they don't...
@@ -4994,12 +4993,14 @@
 				clearCache( this.root, this.keypath );
 				this.root._evaluators[ this.keypath ] = null;
 			},
+			invalidate: function() {
+				this.refs.forEach( function( ref ) {
+					return ref.invalidate();
+				} );
+			},
 			// This method forces the evaluator to sync with the current model
 			// in the case of a smart update
 			refresh: function() {
-				if ( !this.selfUpdating ) {
-					this.dirty = true;
-				}
 				var i = this.refs.length;
 				while ( i-- ) {
 					this.refs[ i ].setValue( get( this.root, this.refs[ i ].keypath ) );
@@ -5151,17 +5152,14 @@
 				this.resolved = !--this.pending;
 			},
 			createEvaluator: function() {
-				var evaluator;
+				var evaluator = this.root._evaluators[ this.keypath ];
 				// only if it doesn't exist yet!
-				if ( !this.root._evaluators[ this.keypath ] ) {
+				if ( !evaluator ) {
 					evaluator = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.owner.priority );
 					this.root._evaluators[ this.keypath ] = evaluator;
 					evaluator.update();
 				} else {
-					// we need to trigger a refresh of the evaluator, since it
-					// will have become de-synced from the model if we're in a
-					// rebinding cycle
-					this.root._evaluators[ this.keypath ].refresh();
+					evaluator.invalidate();
 				}
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
