@@ -292,6 +292,37 @@ define([
 			t.ok( true );
 		});
 
+		test( 'Items are not unrendered and rerendered unnecessarily in cases like #715', function ( t ) {
+			var ractive, renderCount = 0, unrenderCount = 0;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{#test}}{{# .entries > 1 }}<p intro="rendered" outro="unrendered">foo</p>{{/ .entries }}{{/test}}{{/items}}',
+				data: {
+					items: [
+						{test: [{"entries": 2}]},
+						{test: [{}]}
+					],
+					foo: 'bar'
+				},
+				transitions: {
+					rendered: function () {
+						renderCount += 1;
+					},
+					unrendered: function () {
+						unrenderCount += 1;
+					}
+				}
+			});
+
+			t.equal( renderCount, 1 );
+			t.equal( unrenderCount, 0 );
+
+			ractive.get( 'items' ).unshift({});
+			t.equal( renderCount, 1 );
+			t.equal( unrenderCount, 0 );
+		});
+
 	};
 
 });

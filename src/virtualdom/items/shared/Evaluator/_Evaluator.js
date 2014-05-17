@@ -90,6 +90,9 @@ Evaluator.prototype = {
 
 	invalidate: function () {
 		this.refs.forEach( ref => ref.invalidate() );
+
+		clearCache( this.root, this.keypath );
+		this.value = this.getValue();
 	},
 
 	// This method forces the evaluator to sync with the current model
