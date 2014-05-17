@@ -634,6 +634,14 @@ var renderTests = [
 		result: '<p>a</p><p>b</p><p>c</p>',
 		new_data: { items: null },
 		new_result: '<p>no items!</p>'
+	},
+	{
+		name: 'Restricting references with `this`',
+		template: '{{#foo}}{{this.bar}}{{/foo}}',
+		data: { foo: {}, bar: 'fail' },
+		result: '',
+		new_data: { foo: { bar: 'success' }, bar: 'fail' },
+		new_result: 'success'
 	}
 ];
 

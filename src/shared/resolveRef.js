@@ -86,10 +86,10 @@ function resolveAncestorReference ( baseContext, ref ) {
 		return contextKeys.join( '.' );
 	}
 
-	// not an ancestor reference - must be a restricted reference (prepended with ".")
+	// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
 	if ( !baseContext ) {
-		return ref.substring( 1 );
+		return ref.replace( /^\.\/?/, '' );
 	}
 
-	return baseContext + ref;
+	return baseContext + ref.replace( /^\.\//, '.' );
 }

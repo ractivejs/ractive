@@ -806,6 +806,18 @@ var parseTests = [
 		name: 'Illegal bracketed expression (missing closing paren)',
 		template: '{{(foo}}',
 		error: 'Expected closing paren at line 1 character 7:\n{{(foo}}\n      ^----'
+	},
+
+	// `this`
+	{
+		name: '`this` becomes `.`',
+		template: '{{this}}',
+		parsed: [{t:2,r:'.'}]
+	},
+	{
+		name: '`this.foo` becomes `./foo`',
+		template: '{{this.foo}}',
+		parsed: [{t:2,r:'./foo'}]
 	}
 ];
 
