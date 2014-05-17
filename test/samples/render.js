@@ -642,6 +642,14 @@ var renderTests = [
 		result: '',
 		new_data: { foo: { bar: 'success' }, bar: 'fail' },
 		new_result: 'success'
+	},
+	{
+		name: 'Section in attribute',
+		template: '<div style="{{#red}}color: red;{{/}}">{{#red}}is red{{/red}}</div>',
+		data: { red: true },
+		result: '<div style="color: red;">is red</div>',
+		new_data: { red: false },
+		new_result: '<div style=""></div>'
 	}
 ];
 

@@ -19,8 +19,12 @@ export default function Section$setValue ( value ) {
 		value = wrapper.get();
 	}
 
-	if ( reevaluateSection( this, value ) && this.rendered ) {
-		runloop.viewUpdate( this );
+	if ( reevaluateSection( this, value ) ) {
+		this.bubble();
+
+		if ( this.rendered ) {
+			runloop.viewUpdate( this );
+		}
 	}
 
 	this.value = value;
