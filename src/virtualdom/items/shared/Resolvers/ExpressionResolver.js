@@ -94,10 +94,10 @@ ExpressionResolver.prototype = {
 	},
 
 	createEvaluator: function () {
-		var evaluator;
+		var evaluator = this.root._evaluators[ this.keypath ];
 
 		// only if it doesn't exist yet!
-		if ( !this.root._evaluators[ this.keypath ] ) {
+		if ( !evaluator ) {
 			evaluator = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.owner.priority );
 
 			this.root._evaluators[ this.keypath ] = evaluator;
@@ -105,10 +105,7 @@ ExpressionResolver.prototype = {
 		}
 
 		else {
-			// we need to trigger a refresh of the evaluator, since it
-			// will have become de-synced from the model if we're in a
-			// rebinding cycle
-			this.root._evaluators[ this.keypath ].refresh();
+			evaluator.invalidate();
 		}
 	},
 

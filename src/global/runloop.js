@@ -163,6 +163,8 @@ function flushChanges () {
 			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			checkboxKeypaths[ thing.keypath ] = false;
 		}
+
+		attemptKeypathResolution();
 	}
 
 	// Now that changes have been fully propagated, we can update the DOM
