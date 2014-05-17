@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
-import get from 'shared/get';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import adaptIfNecessary from 'shared/adaptIfNecessary';
@@ -93,20 +92,6 @@ Evaluator.prototype = {
 
 		clearCache( this.root, this.keypath );
 		this.value = this.getValue();
-	},
-
-	// This method forces the evaluator to sync with the current model
-	// in the case of a smart update
-	refresh: function () {
-		var i = this.refs.length;
-		while ( i-- ) {
-			this.refs[i].setValue( get( this.root, this.refs[i].keypath ) );
-		}
-
-		if ( this.dirty ) {
-			this.update();
-			this.dirty = false;
-		}
 	},
 
 	updateSoftDependencies: function ( softDeps ) {
