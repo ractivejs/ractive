@@ -51,7 +51,9 @@ runloop = {
 		}
 
 		flushing = true;
-		flushChanges();
+		do {
+			flushChanges();
+		} while ( dirty );
 		flushing = false;
 
 		transitionManager.init();
@@ -71,6 +73,7 @@ runloop = {
 	},
 
 	viewUpdate: function ( thing ) {
+		dirty = true;
 		viewUpdates.push( thing );
 	},
 
@@ -123,6 +126,7 @@ runloop = {
 	},
 
 	afterViewUpdate: function ( task ) {
+		dirty = true;
 		postViewUpdateTasks.push( task );
 	}
 };
