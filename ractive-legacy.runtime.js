@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-05-15 - commit 564edf12 
+	2014-05-17 - commit 96b35c60 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -939,11 +939,11 @@
 				contextKeys.push( ref );
 				return contextKeys.join( '.' );
 			}
-			// not an ancestor reference - must be a restricted reference (prepended with ".")
+			// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
 			if ( !baseContext ) {
-				return ref.substring( 1 );
+				return ref.replace( /^\.\/?/, '' );
 			}
-			return baseContext + ref;
+			return baseContext + ref.replace( /^\.\//, '.' );
 		}
 	}( circular, normaliseKeypath, hasOwn, getInnerContext );
 
@@ -4335,11 +4335,6 @@
 					v: name
 				};
 			}
-			// allow the use of `this`
-			if ( name === 'this' && !ancestor && !dot ) {
-				name = '.';
-				startPos += 3;
-			}
 			combo = ( ancestor || dot ) + name;
 			if ( !combo ) {
 				return null;
@@ -4361,7 +4356,7 @@
 			}
 			return {
 				t: types.REFERENCE,
-				n: combo
+				n: combo.replace( /^this\./, './' ).replace( /^this$/, '.' )
 			};
 		};
 	}( types, patterns );
