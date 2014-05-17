@@ -45,12 +45,6 @@ export default function ( parser ) {
 		};
 	}
 
-	// allow the use of `this`
-	if ( name === 'this' && !ancestor && !dot ) {
-		name = '.';
-		startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
-	}
-
 	combo = ( ancestor || dot ) + name;
 
 	if ( !combo ) {
@@ -77,6 +71,6 @@ export default function ( parser ) {
 
 	return {
 		t: types.REFERENCE,
-		n: combo
+		n: combo.replace( /^this\./, './' ).replace( /^this$/, '.' )
 	};
 }
