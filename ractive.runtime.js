@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-17 - commit 24a90b2c 
+	2014-05-17 - commit 1c800961 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4997,6 +4997,8 @@
 				this.refs.forEach( function( ref ) {
 					return ref.invalidate();
 				} );
+				clearCache( this.root, this.keypath );
+				this.value = this.getValue();
 			},
 			// This method forces the evaluator to sync with the current model
 			// in the case of a smart update
