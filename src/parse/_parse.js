@@ -44,6 +44,8 @@ var StandardParser,
 	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
+	leadingWhitespace = /^\s+/,
+	trailingWhitespace = /\s+$/,
 	parseCompoundTemplate;
 
 StandardParser = Parser.extend({
@@ -72,13 +74,7 @@ StandardParser = Parser.extend({
 	},
 
 	postProcess: function ( items, options ) {
-
-		cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse !== false );
-
-		if ( !options.preserveWhitespace ) {
-			trimWhitespace( items );
-		}
-
+		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
 		return items;
 	},
 
@@ -142,15 +138,24 @@ parseCompoundTemplate = function ( template, options ) {
 
 export default parse;
 
-function cleanup ( items, stripComments, preserveWhitespace, rewriteElse ) {
-	var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
+function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
+	var i,
+		item,
+		previousItem,
+		nextItem,
+		preserveWhitespaceInsideFragment,
+		removeLeadingWhitespaceInsideFragment,
+		removeTrailingWhitespaceInsideFragment,
+		unlessBlock,
+		key;
 
-	// first pass - remove standalones
+	// First pass - remove standalones and comments etc
 	stripStandalones( items );
 
 	i = items.length;
 	while ( i-- ) {
 		item = items[i];
+
 		// Remove delimiter changes, unsafe elements etc
 		if ( item.exclude ) {
 			items.splice( i, 1 );
@@ -160,33 +165,52 @@ function cleanup ( items, stripComments, preserveWhitespace, rewriteElse ) {
 		else if ( stripComments && item.t === types.COMMENT ) {
 			items.splice( i, 1 );
 		}
+	}
+
+	// If necessary, remove leading and trailing whitespace
+	trimWhitespace( items, removeLeadingWhitespace, removeTrailingWhitespace );
+
+	i = items.length;
+	while ( i-- ) {
+		item = items[i];
 
 		// Recurse
 		if ( item.f ) {
-			preserveWhitespaceInsideElement = ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
+			preserveWhitespaceInsideFragment = preserveWhitespace || ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
 
-			cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement, rewriteElse );
+			if ( !preserveWhitespaceInsideFragment ) {
+				previousItem = items[ i - 1 ];
+				nextItem = items[ i + 1 ];
 
-			if ( !preserveWhitespace && item.t === types.ELEMENT ) {
-				trimWhitespace( item.f );
+				// if the previous item was a text item with trailing whitespace,
+				// remove leading whitespace inside the fragment
+				if ( !previousItem || ( typeof previousItem === 'string' && trailingWhitespace.test( previousItem ) ) ) {
+					removeLeadingWhitespaceInsideFragment = true;
+				}
+
+				// and vice versa
+				if ( !nextItem || ( typeof nextItem === 'string' && leadingWhitespace.test( nextItem ) ) ) {
+					removeTrailingWhitespaceInsideFragment = true;
+				}
 			}
-		}
 
-		// Split if-else blocks into two (an if, and an unless)
-		if ( item.l ) {
-			cleanup( item.l, stripComments, preserveWhitespace, rewriteElse );
+			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
 
-			if ( rewriteElse ) {
+			// Split if-else blocks into two (an if, and an unless)
+			if ( item.l ) {
+				cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
 
-				unlessBlock = {
-					t: 4,
-					r: item.r,
-					n: types.SECTION_UNLESS,
-					f: item.l
-				};
+				if ( rewriteElse ) {
+					unlessBlock = {
+						t: 4,
+						r: item.r,
+						n: types.SECTION_UNLESS,
+						f: item.l
+					};
 
-				items.splice( i + 1, 0, unlessBlock );
-				delete item.l;
+					items.splice( i + 1, 0, unlessBlock );
+					delete item.l;
+				}
 			}
 		}
 
@@ -211,6 +235,10 @@ function cleanup ( items, stripComments, preserveWhitespace, rewriteElse ) {
 
 			if ( !preserveWhitespace ) {
 				items[i] = items[i].replace( contiguousWhitespace, ' ' );
+			}
+
+			if ( items[i] === '' ) {
+				items.splice( i, 1 );
 			}
 		}
 	}
