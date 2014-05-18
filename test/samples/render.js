@@ -650,6 +650,14 @@ var renderTests = [
 		result: '<div style="color: red;">is red</div>',
 		new_data: { red: false },
 		new_result: '<div style=""></div>'
+	},
+	{
+		name: 'Triple inside an unrendering section (#726)',
+		template: '{{#condition}}{{{getTriple(condition)}}}{{/condition}}',
+		data: { condition: true, getTriple: ( condition ) => condition ? 'yes' : 'no' },
+		result: 'yes',
+		new_data: { condition: false },
+		new_result: ''
 	}
 ];
 
