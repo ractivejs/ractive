@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-18 - commit c0dcf46e 
+	2014-05-18 - commit f2eb39ff 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6079,51 +6079,6 @@
 		return this.parentFragment.findNextNode( this );
 	};
 
-	/* virtualdom/items/Triple/prototype/render.js */
-	var virtualdom_items_Triple$render = function Triple$render() {
-		if ( this.rendered ) {
-			throw new Error( 'Attempted to render an item that was already rendered' );
-		}
-		this.docFrag = document.createDocumentFragment();
-		this.update();
-		this.rendered = true;
-		return this.docFrag;
-	};
-
-	/* virtualdom/items/Triple/prototype/setValue.js */
-	var virtualdom_items_Triple$setValue = function( runloop ) {
-
-		return function Triple$setValue( value ) {
-			var wrapper;
-			// TODO is there a better way to approach this?
-			if ( wrapper = this.root._wrapped[ this.keypath ] ) {
-				value = wrapper.get();
-			}
-			if ( value !== this.value ) {
-				this.value = value;
-				this.parentFragment.bubble();
-				if ( this.rendered ) {
-					runloop.viewUpdate( this );
-				}
-			}
-		};
-	}( runloop );
-
-	/* virtualdom/items/Triple/prototype/toString.js */
-	var virtualdom_items_Triple$toString = function Triple$toString() {
-		return this.value != undefined ? this.value : '';
-	};
-
-	/* virtualdom/items/Triple/prototype/unrender.js */
-	var virtualdom_items_Triple$unrender = function( detachNode ) {
-
-		return function Triple$unrender( shouldDestroy ) {
-			if ( shouldDestroy ) {
-				this.nodes.forEach( detachNode );
-			}
-		};
-	}( detachNode );
-
 	/* virtualdom/items/Triple/helpers/insertHtml.js */
 	var insertHtml = function( namespaces, createElement ) {
 
@@ -6185,42 +6140,104 @@
 		}
 	}( namespaces, createElement );
 
+	/* virtualdom/items/Triple/helpers/updateSelect.js */
+	var updateSelect = function() {
+
+		var selector = 'option[selected]';
+		return function updateSelect( parentElement ) {
+			var options, option, value;
+			if ( !parentElement || parentElement.name !== 'select' || !parentElement.binding ) {
+				return;
+			}
+			// If one of them had a `selected` attribute, we need to sync
+			// the model to the view
+			if ( parentElement.getAttribute( 'multiple' ) ) {
+				options = parentElement.findAll( selector );
+				value = options.map( function( o ) {
+					return o.value;
+				} );
+			} else if ( option = parentElement.find( selector ) ) {
+				value = option.value;
+			}
+			if ( value !== undefined ) {
+				parentElement.binding.setValue( value );
+			}
+			parentElement.bubble();
+		};
+	}();
+
+	/* virtualdom/items/Triple/prototype/render.js */
+	var virtualdom_items_Triple$render = function( insertHtml, updateSelect ) {
+
+		return function Triple$render() {
+			if ( this.rendered ) {
+				throw new Error( 'Attempted to render an item that was already rendered' );
+			}
+			this.docFrag = document.createDocumentFragment();
+			this.nodes = insertHtml( this.value, this.parentFragment.getNode(), this.docFrag );
+			// Special case - we're inserting the contents of a <select>
+			updateSelect( this.pElement );
+			this.rendered = true;
+			return this.docFrag;
+		};
+	}( insertHtml, updateSelect );
+
+	/* virtualdom/items/Triple/prototype/setValue.js */
+	var virtualdom_items_Triple$setValue = function( runloop ) {
+
+		return function Triple$setValue( value ) {
+			var wrapper;
+			// TODO is there a better way to approach this?
+			if ( wrapper = this.root._wrapped[ this.keypath ] ) {
+				value = wrapper.get();
+			}
+			if ( value !== this.value ) {
+				this.value = value;
+				this.parentFragment.bubble();
+				if ( this.rendered ) {
+					runloop.viewUpdate( this );
+				}
+			}
+		};
+	}( runloop );
+
+	/* virtualdom/items/Triple/prototype/toString.js */
+	var virtualdom_items_Triple$toString = function Triple$toString() {
+		return this.value != undefined ? this.value : '';
+	};
+
+	/* virtualdom/items/Triple/prototype/unrender.js */
+	var virtualdom_items_Triple$unrender = function( detachNode ) {
+
+		return function Triple$unrender( shouldDestroy ) {
+			if ( this.rendered && shouldDestroy ) {
+				this.nodes.forEach( detachNode );
+				this.rendered = false;
+			}
+		};
+	}( detachNode );
+
 	/* virtualdom/items/Triple/prototype/update.js */
-	var virtualdom_items_Triple$update = function( insertHtml ) {
+	var virtualdom_items_Triple$update = function( insertHtml, updateSelect ) {
 
 		return function Triple$update() {
-			var node, parentElement, parentNode;
-			// remove existing nodes
+			var node, parentNode;
+			if ( !this.rendered ) {
+				return;
+			}
+			// Remove existing nodes
 			while ( this.nodes && this.nodes.length ) {
 				node = this.nodes.pop();
 				node.parentNode.removeChild( node );
 			}
-			// get new nodes
-			this.nodes = insertHtml( this.value, this.parentFragment.getNode(), this.docFrag );
+			// Insert new nodes
 			parentNode = this.parentFragment.getNode();
-			// If we're updating a previously-rendered triple, the nodes won't be
-			// inserted automatically - we need to do it here
-			if ( this.rendered ) {
-				parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
-			}
+			this.nodes = insertHtml( this.value, parentNode, this.docFrag );
+			parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			// Special case - we're inserting the contents of a <select>
-			parentElement = this.pElement;
-			if ( parentElement && parentElement.name === 'select' && parentElement.binding ) {
-				processSelectContents( parentElement );
-			}
-			this.parentFragment.bubble();
+			updateSelect( this.pElement );
 		};
-
-		function processSelectContents( parentElement ) {
-			var option;
-			// If one of them had a `selected` attribute, we need to sync
-			// the model to the view
-			if ( option = parentElement.find( 'option[selected]' ) ) {
-				// TODO is there a better way than this? method not used anywhere else?
-				parentElement.binding.setValue( option.value );
-			}
-		}
-	}( insertHtml );
+	}( insertHtml, updateSelect );
 
 	/* virtualdom/items/Triple/_Triple.js */
 	var Triple = function( types, Mustache, detach, find, findAll, firstNode, render, setValue, toString, unrender, update, teardown ) {
