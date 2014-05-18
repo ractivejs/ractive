@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-17 - commit cb06cf76 
+	2014-05-18 - commit b0c422b6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2499,7 +2499,9 @@
 	var Ractive$detach = function( removeFromArray ) {
 
 		return function() {
-			removeFromArray( this.el.__ractive_instances__, this );
+			if ( this.el ) {
+				removeFromArray( this.el.__ractive_instances__, this );
+			}
 			return this.fragment.detach();
 		};
 	}( removeFromArray );
@@ -2917,6 +2919,10 @@
 	var Ractive$insert = function( getElement ) {
 
 		return function( target, anchor ) {
+			if ( !this.rendered ) {
+				// TODO create, and link to, documentation explaining this
+				throw new Error( 'The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.' );
+			}
 			target = getElement( target );
 			anchor = getElement( anchor ) || null;
 			if ( !target ) {
@@ -3431,7 +3437,7 @@
 	};
 
 	/* Ractive/prototype/render.js */
-	var Ractive$render = function( runloop, css, Promise ) {
+	var Ractive$render = function( runloop, css, Promise, getElement ) {
 
 		return function Ractive$render( target, anchor ) {
 			var promise, fulfilPromise, instances;
@@ -3443,6 +3449,8 @@
 			if ( this.rendered ) {
 				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 			}
+			target = getElement( target ) || this.el;
+			anchor = getElement( anchor ) || this.anchor;
 			this.el = target;
 			this.anchor = anchor;
 			// Add CSS, if applicable
@@ -3480,7 +3488,7 @@
 			}
 			instance._childInitQueue.splice( 0 ).forEach( init );
 		}
-	}( runloop, css, Promise );
+	}( runloop, css, Promise, getElement );
 
 	/* Ractive/prototype/renderHTML.js */
 	var Ractive$renderHTML = function( warn ) {
@@ -10561,7 +10569,7 @@
 		];
 		return function initialiseRactiveInstance( ractive, options ) {
 			var defaults = ractive.constructor.defaults,
-				keypath;
+				keypath, el;
 			// Allow empty constructor options and save for reset
 			ractive.initOptions = options = options || {};
 			setOptionsAndFlags( ractive, defaults, options );
@@ -10585,20 +10593,20 @@
 				}
 			}
 			// If `el` is specified, render automatically
-			if ( ractive.el ) {
+			if ( el = getElement( options.el ) ) {
 				// Temporarily disable transitions, if `noIntro` flag is set
 				ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
 				// If the target contains content, and `append` is falsy, clear it
-				if ( ractive.el && !options.append ) {
+				if ( el && !options.append ) {
 					// Tear down any existing instances on this element
-					if ( ractive.el.__ractive_instances__ ) {
-						ractive.el.__ractive_instances__.splice( 0 ).forEach( function( r ) {
+					if ( el.__ractive_instances__ ) {
+						el.__ractive_instances__.splice( 0 ).forEach( function( r ) {
 							return r.teardown();
 						} );
 					}
-					ractive.el.innerHTML = '';
+					el.innerHTML = '';
 				}
-				ractive.render( ractive.el, ractive.anchor ).then( function() {
+				ractive.render( el, options.append ).then( function() {
 					if ( options.complete ) {
 						options.complete.call( ractive );
 					}
@@ -10640,19 +10648,9 @@
 			}
 		}
 
-		function validate( ractive, options ) {
-			var anchor;
+		function validate( ractive ) {
 			if ( ractive.magic && !magicAdaptor ) {
 				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-			}
-			if ( options.el ) {
-				ractive.el = getElement( options.el );
-				if ( !ractive.el && ractive.debug ) {
-					throw new Error( 'Could not find container element' );
-				}
-				if ( anchor = getElement( options.append ) ) {
-					ractive.anchor = anchor;
-				}
 			}
 		}
 
