@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-18 - commit b0c422b6 
+	2014-05-18 - commit c0dcf46e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10218,24 +10218,28 @@
 
 		var leadingWhitespace = /^[ \t\f\r\n]+/,
 			trailingWhitespace = /[ \t\f\r\n]+$/;
-		return function( items ) {
+		return function( items, leading, trailing ) {
 			var item;
-			item = items[ 0 ];
-			if ( typeof item === 'string' ) {
-				item = item.replace( leadingWhitespace, '' );
-				if ( !item ) {
-					items.shift();
-				} else {
-					items[ 0 ] = item;
+			if ( leading ) {
+				item = items[ 0 ];
+				if ( typeof item === 'string' ) {
+					item = item.replace( leadingWhitespace, '' );
+					if ( !item ) {
+						items.shift();
+					} else {
+						items[ 0 ] = item;
+					}
 				}
 			}
-			item = items[ items.length - 1 ];
-			if ( typeof item === 'string' ) {
-				item = item.replace( trailingWhitespace, '' );
-				if ( !item ) {
-					items.pop();
-				} else {
-					items[ items.length - 1 ] = item;
+			if ( trailing ) {
+				item = items[ items.length - 1 ];
+				if ( typeof item === 'string' ) {
+					item = item.replace( trailingWhitespace, '' );
+					if ( !item ) {
+						items.pop();
+					} else {
+						items[ items.length - 1 ] = item;
+					}
 				}
 			}
 		};
@@ -10332,6 +10336,8 @@
 			inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 			inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 			preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
+			leadingWhitespace = /^\s+/,
+			trailingWhitespace = /\s+$/,
 			parseCompoundTemplate;
 		StandardParser = Parser.extend( {
 			init: function( str, options ) {
@@ -10361,10 +10367,7 @@
 				this.handlebars = options.handlebars;
 			},
 			postProcess: function( items, options ) {
-				cleanup( items, options.stripComments !== false, options.preserveWhitespace, options.rewriteElse !== false );
-				if ( !options.preserveWhitespace ) {
-					trimWhitespace( items );
-				}
+				cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
 				return items;
 			},
 			converters: [
@@ -10410,9 +10413,9 @@
 		};
 		return parse;
 
-		function cleanup( items, stripComments, preserveWhitespace, rewriteElse ) {
-			var i, item, preserveWhitespaceInsideElement, unlessBlock, key;
-			// first pass - remove standalones
+		function cleanup( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
+			var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, unlessBlock, key;
+			// First pass - remove standalones and comments etc
 			stripStandalones( items );
 			i = items.length;
 			while ( i-- ) {
@@ -10423,26 +10426,42 @@
 				} else if ( stripComments && item.t === types.COMMENT ) {
 					items.splice( i, 1 );
 				}
+			}
+			// If necessary, remove leading and trailing whitespace
+			trimWhitespace( items, removeLeadingWhitespace, removeTrailingWhitespace );
+			i = items.length;
+			while ( i-- ) {
+				item = items[ i ];
 				// Recurse
 				if ( item.f ) {
-					preserveWhitespaceInsideElement = item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e );
-					cleanup( item.f, stripComments, preserveWhitespace || preserveWhitespaceInsideElement, rewriteElse );
-					if ( !preserveWhitespace && item.t === types.ELEMENT ) {
-						trimWhitespace( item.f );
+					preserveWhitespaceInsideFragment = preserveWhitespace || item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e );
+					if ( !preserveWhitespaceInsideFragment ) {
+						previousItem = items[ i - 1 ];
+						nextItem = items[ i + 1 ];
+						// if the previous item was a text item with trailing whitespace,
+						// remove leading whitespace inside the fragment
+						if ( !previousItem || typeof previousItem === 'string' && trailingWhitespace.test( previousItem ) ) {
+							removeLeadingWhitespaceInsideFragment = true;
+						}
+						// and vice versa
+						if ( !nextItem || typeof nextItem === 'string' && leadingWhitespace.test( nextItem ) ) {
+							removeTrailingWhitespaceInsideFragment = true;
+						}
 					}
-				}
-				// Split if-else blocks into two (an if, and an unless)
-				if ( item.l ) {
-					cleanup( item.l, stripComments, preserveWhitespace, rewriteElse );
-					if ( rewriteElse ) {
-						unlessBlock = {
-							t: 4,
-							r: item.r,
-							n: types.SECTION_UNLESS,
-							f: item.l
-						};
-						items.splice( i + 1, 0, unlessBlock );
-						delete item.l;
+					cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					// Split if-else blocks into two (an if, and an unless)
+					if ( item.l ) {
+						cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+						if ( rewriteElse ) {
+							unlessBlock = {
+								t: 4,
+								r: item.r,
+								n: types.SECTION_UNLESS,
+								f: item.l
+							};
+							items.splice( i + 1, 0, unlessBlock );
+							delete item.l;
+						}
 					}
 				}
 				// Clean up element attributes
@@ -10464,6 +10483,9 @@
 					}
 					if ( !preserveWhitespace ) {
 						items[ i ] = items[ i ].replace( contiguousWhitespace, ' ' );
+					}
+					if ( items[ i ] === '' ) {
+						items.splice( i, 1 );
 					}
 				}
 			}
