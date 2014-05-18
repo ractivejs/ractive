@@ -1,6 +1,11 @@
 import getElement from 'utils/getElement';
 
 export default function ( target, anchor ) {
+	if ( !this.rendered ) {
+		// TODO create, and link to, documentation explaining this
+		throw new Error( 'The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.' );
+	}
+
 	target = getElement( target );
 	anchor = getElement( anchor ) || null;
 

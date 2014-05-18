@@ -614,6 +614,37 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
 		});
 
+		test( 'ractive.insert() throws an error if instance is not rendered (#712)', function ( t ) {
+			var ractive, p, one, two, three;
+
+			one = document.createElement( 'div' );
+			two = document.createElement( 'div' );
+
+			three = document.createElement( 'div' );
+			three.innerHTML = '<p>before</p><p class="after">after</p>';
+
+			ractive = new Ractive({
+				template: '<p>{{foo}}</p>',
+				data: { foo: 'whee!' }
+			});
+
+			try {
+				ractive.insert( one );
+				t.ok( false );
+			} catch ( err ) {
+				t.ok( true );
+			}
+
+			ractive.render( two );
+			p = ractive.find( 'p' );
+			t.ok( !one.contains( p ) );
+			t.ok( two.contains( p ) );
+
+			ractive.insert( three, three.querySelector( '.after' ) );
+			t.ok( three.contains( p ) );
+			t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
+		});
+
 		test( 'Regression test for #271', function ( t ) {
 			var ractive, items;
 

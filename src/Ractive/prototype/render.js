@@ -1,6 +1,7 @@
 import runloop from 'global/runloop';
 import css from 'global/css';
 import Promise from 'utils/Promise';
+import getElement from 'utils/getElement';
 
 export default function Ractive$render ( target, anchor ) {
 
@@ -14,6 +15,9 @@ export default function Ractive$render ( target, anchor ) {
 	if ( this.rendered ) {
 		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 	}
+
+	target = getElement( target ) || this.el;
+	anchor = getElement( anchor ) || this.anchor;
 
 	this.el = target;
 	this.anchor = anchor;
