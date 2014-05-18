@@ -1,5 +1,5 @@
 export default function registerDependant ( dependant ) {
-	var depsByKeypath, deps, ractive, keypath, priority;
+	var depsByKeypath, deps, ractive, keypath, priority, evaluator;
 
 	ractive = dependant.root;
 	keypath = dependant.keypath;
@@ -13,6 +13,14 @@ export default function registerDependant ( dependant ) {
 
 	if ( !keypath ) {
 		return;
+	}
+
+	if ( evaluator = ractive._evaluators[ keypath ] ) {
+		if ( !evaluator.dependants ) {
+			evaluator.wake();
+		}
+
+		evaluator.dependants += 1;
 	}
 
 	updateDependantsMap( ractive, keypath );
