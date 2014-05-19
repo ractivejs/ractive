@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-18 - commit f2eb39ff 
+	2014-05-19 - commit 16a293c8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2359,7 +2359,7 @@
 
 		function get( ractive, keypath, options ) {
 			var cache = ractive._cache,
-				value, computation, wrapped, evaluator;
+				value, firstKey, firstKeyDoesNotExist, computation, wrapped, evaluator;
 			if ( cache[ keypath ] === undefined ) {
 				// Is this a computed property?
 				if ( computation = ractive._computations[ keypath ] ) {
@@ -2382,7 +2382,13 @@
 			// can try going up a scope. This will create bindings
 			// between parent and child if possible
 			if ( value === FAILED_LOOKUP ) {
-				if ( ractive._parent && !ractive.isolated ) {
+				// Only do this if the first key of the keypath doesn't
+				// exist on the child model. Otherwise missing properties
+				// of objects that are NOT missing could be optimistically
+				// bound to the wrong thing
+				firstKey = keypath.split( '.' )[ 0 ];
+				firstKeyDoesNotExist = firstKey === keypath || get( ractive, firstKey ) === undefined;
+				if ( ractive._parent && !ractive.isolated && firstKeyDoesNotExist ) {
 					value = getFromParent( ractive, keypath, options );
 				} else {
 					value = undefined;
