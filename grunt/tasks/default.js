@@ -4,8 +4,8 @@ module.exports = function ( grunt ) {
 
 	grunt.registerTask( 'default', [
 		'build',
-		'runTests',
-		'uglify',
+		'concurrent:test',
+		'concurrent:uglify',
 		'concat:banner'
 	]);
 
