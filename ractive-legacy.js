@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-24 - commit 0ae26b9e 
+	2014-05-24 - commit 4315ee36 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7766,7 +7766,7 @@
 				this.custom = definition( this.node, getCustomHandler( name ) );
 			} else {
 				// Looks like we're dealing with a standard DOM event... but let's check
-				if ( !( 'on' + name in this.node ) ) {
+				if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
 					if ( !alreadyWarned[ name ] ) {
 						warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
 						alreadyWarned[ name ] = true;
