@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-19 - commit 16a293c8 
+	2014-05-24 - commit b541624d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7681,7 +7681,7 @@
 
 	/* virtualdom/items/Element/EventHandler/prototype/fire.js */
 	var virtualdom_items_Element_EventHandler$fire = function EventHandler$fire( event ) {
-		this.root.fire( this.action.toString(), event );
+		this.root.fire( this.action.toString().trim(), event );
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
@@ -7725,7 +7725,7 @@
 
 		function fireEventWithParams( event ) {
 			this.root.fire.apply( this.root, [
-				this.action.toString(),
+				this.action.toString().trim(),
 				event
 			].concat( this.params ) );
 		}
@@ -7737,7 +7737,7 @@
 				args = args.substr( 1, args.length - 2 );
 			}
 			this.root.fire.apply( this.root, [
-				this.action.toString(),
+				this.action.toString().trim(),
 				event
 			].concat( args ) );
 		}
@@ -10061,7 +10061,7 @@
 			var result, token, colonIndex, directiveName, directiveArgs, parsed;
 			if ( typeof tokens === 'string' ) {
 				if ( tokens.indexOf( ':' ) === -1 ) {
-					return tokens;
+					return tokens.trim();
 				}
 				tokens = [ tokens ];
 			}
