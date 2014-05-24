@@ -36,7 +36,7 @@ define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( war
 			this.custom = definition( this.node, getCustomHandler( eventName ) );
 		} else {
 			// Looks like we're dealing with a standard DOM event... but let's check
-			if ( !( 'on' + eventName in this.node ) ) {
+			if ( !( 'on' + eventName in this.node ) && !( window && 'on' + eventName in window ) ) {
 				warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
 			}
 
