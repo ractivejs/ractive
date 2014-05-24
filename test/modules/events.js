@@ -411,6 +411,34 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( count, 2 );
 		});
 
+		test( 'Superfluous whitespace is ignored', function ( t ) {
+			var ractive, fooCount = 0, barCount = 0;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div class="one" on-click=" foo "></div><div class="two" on-click="{{#bar}} bar {{/}}"></div>'
+			});
+
+			ractive.on({
+				foo: function () {
+					fooCount += 1;
+				},
+				bar: function () {
+					barCount += 1;
+				}
+			});
+
+			simulant.fire( ractive.find( '.one' ), 'click' );
+			t.equal( fooCount, 1 );
+
+			simulant.fire( ractive.find( '.two' ), 'click' );
+			t.equal( barCount, 0 );
+
+			ractive.set( 'bar', true );
+			simulant.fire( ractive.find( '.two' ), 'click' );
+			t.equal( barCount, 1 );
+		});
+
 	};
 
 });
