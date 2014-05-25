@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-24 - commit 4315ee36 
+	2014-05-25 - commit a3fc05aa 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6079,7 +6079,7 @@
 
 	/* virtualdom/items/Triple/prototype/firstNode.js */
 	var virtualdom_items_Triple$firstNode = function Triple$firstNode() {
-		if ( this.nodes[ 0 ] ) {
+		if ( this.rendered && this.nodes[ 0 ] ) {
 			return this.nodes[ 0 ];
 		}
 		return this.parentFragment.findNextNode( this );
@@ -8444,8 +8444,8 @@
 					liveQueries[ i ]._makeDirty();
 				}
 			}
-			if ( storage = this.node._ractive ) {
-				//adjust keypath if needed
+			if ( this.node && ( storage = this.node._ractive ) ) {
+				// adjust keypath if needed
 				assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
 				if ( indexRef != undefined ) {
 					storage.index[ indexRef ] = newIndex;
