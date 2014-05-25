@@ -323,6 +323,23 @@ define([
 			t.equal( unrenderCount, 0 );
 		});
 
+		test( 'Regression test for #729 (part one) - rebinding silently-created elements', function ( t ) {
+			var items, ractive;
+
+			items = [{test: { bool: false }}];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{#test}}{{#bool}}<p>true</p>{{/bool}}{{^bool}}<p>false</p>{{/bool}}{{/test}}{{/items}}',
+				data: { items: items }
+			});
+
+			items[0].test = { bool: true };
+			items.unshift({});
+
+			t.ok( true );
+		})
+
 	};
 
 });

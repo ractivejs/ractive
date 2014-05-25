@@ -30,10 +30,10 @@ export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeyp
 		}
 	}
 
-	if ( storage = this.node._ractive ) {
+	if ( this.node && ( storage = this.node._ractive ) ) {
 
-		//adjust keypath if needed
-		assignNewKeypath(storage, 'keypath', oldKeypath, newKeypath);
+		// adjust keypath if needed
+		assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
 
 		if ( indexRef != undefined ) {
 			storage.index[ indexRef ] = newIndex;
