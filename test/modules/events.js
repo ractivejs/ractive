@@ -439,6 +439,34 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( barCount, 1 );
 		});
 
+		test( 'Multiple space-separated events can be handled with a single callback (#731)', function ( t ) {
+			var ractive, count = 0;
+
+			ractive = new Ractive({});
+
+			ractive.on( ' foo bar  baz', () => count += 1 );
+
+			ractive.fire( 'foo' );
+			t.equal( count, 1 );
+
+			ractive.fire( 'bar' );
+			t.equal( count, 2 );
+
+			ractive.fire( 'baz' );
+			t.equal( count, 3 );
+
+			ractive.off( ' bar  foo ' );
+
+			ractive.fire( 'foo' );
+			t.equal( count, 3 );
+
+			ractive.fire( 'bar' );
+			t.equal( count, 3 );
+
+			ractive.fire( 'baz' );
+			t.equal( count, 4 );
+		});
+
 	};
 
 });
