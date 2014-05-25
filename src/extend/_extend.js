@@ -1,6 +1,7 @@
 import create from 'utils/create';
 import defineProperty from 'utils/defineProperty';
 import getGuid from 'utils/getGuid';
+import config from 'config/configuration';
 import extendObject from 'utils/extend';
 import inheritFromParent from 'extend/inheritFromParent';
 import inheritFromChildProps from 'extend/inheritFromChildProps';
@@ -39,6 +40,9 @@ export default function extend ( childProps ) {
 	defineProperty( Child, '_guid', {
 		value: getGuid()
 	});
+
+	// extend configuration
+	config.extend( Parent, Child, childProps );
 
 	// Inherit options from parent
 	inheritFromParent( Child, Parent );

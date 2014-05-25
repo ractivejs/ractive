@@ -1,4 +1,4 @@
-import adaptorRegistry from 'registries/adaptors';
+import config from 'config/configuration';
 import arrayAdaptor from 'shared/get/arrayAdaptor';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import magicArrayAdaptor from 'shared/get/magicArrayAdaptor';
@@ -16,10 +16,13 @@ export default function adaptIfNecessary ( ractive, keypath, value, isExpression
 		// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
 		// we need to get the actual adaptor if that's the case
 		if ( typeof adaptor === 'string' ) {
-			if ( !adaptorRegistry[ adaptor ] ) {
+			let found = config.find( ractive, 'adaptors', adaptor );
+
+			if ( !found ) {
 				throw new Error( 'Missing adaptor "' + adaptor + '"' );
 			}
-			adaptor = ractive.adapt[i] = adaptorRegistry[ adaptor ];
+
+			adaptor = ractive.adapt[i] = found;
 		}
 
 		if ( adaptor.filter( value, keypath, ractive ) ) {

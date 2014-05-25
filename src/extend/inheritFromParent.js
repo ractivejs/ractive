@@ -1,4 +1,5 @@
 import registries from 'config/registries';
+import newreg from 'config/registries/registries';
 import create from 'utils/create';
 import defineProperty from 'utils/defineProperty';
 import transformCss from 'extend/utils/transformCss';
@@ -7,14 +8,15 @@ import transformCss from 'extend/utils/transformCss';
 // or `append` or `twoway`, and registries such as `partials`
 
 export default function ( Child, Parent ) {
-	registries.forEach( function ( property ) {
+
+	registries.filter( property => {
+		return newreg.keys.indexOf( property ) === -1
+	}).forEach( property => {
+
 		if ( Parent[ property ] ) {
 			Child[ property ] = create( Parent[ property ] );
 		}
-	});
 
-	defineProperty( Child, 'defaults', {
-		value: create( Parent.defaults )
 	});
 
 	// Special case - CSS

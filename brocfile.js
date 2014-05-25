@@ -48,7 +48,10 @@ var src = pick('src', {
 	});
 src = fullTranspile( src )
 
-globals = globals.concat( [ 'QUnit', '_modules', 'test', 'ok', 'equal', 'expect', 'start', 'asyncTest', 'throws' ] );
+globals = globals.concat( [
+	'QUnit', '_modules', 'test', 'start', 'asyncTest',
+	'ok', 'equal', 'notEqual',  'deepEqual', 'expect', 'throws' ] );
+
 globals = globals.concat( [ 'simulant', 'HTMLDocument', 'jQuery', 'MouseEvent' ] );
 
 var test = transpile( copy( 'test' ) );

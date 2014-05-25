@@ -1,5 +1,6 @@
 import initOptions from 'config/initOptions';
 import registries from 'config/registries';
+import newreg from 'config/registries/registries';
 import defineProperty from 'utils/defineProperty';
 import wrapMethod from 'extend/wrapMethod';
 import augment from 'extend/utils/augment';
@@ -17,7 +18,9 @@ registries.concat( initOptions.keys ).forEach( function ( property ) {
 export default function ( Child, childProps ) {
 	var key, member;
 
-	registries.forEach( function ( property ) {
+	registries.filter( property => {
+		return newreg.keys.indexOf( property ) === -1
+	}).forEach( function ( property ) {
 		var value = childProps[ property ];
 
 		if ( value ) {

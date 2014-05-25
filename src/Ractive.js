@@ -1,16 +1,17 @@
-import initOptions from 'config/initOptions';
+//import initOptions from 'config/initOptions';
 import svg from 'config/svg';
 import defineProperties from 'utils/defineProperties';
 import proto from 'Ractive/prototype';
 import partialRegistry from 'registries/partials';
-import adaptorRegistry from 'registries/adaptors';
-import componentsRegistry from 'registries/components';
-import easingRegistry from 'registries/easing';
-import interpolatorsRegistry from 'registries/interpolators';
+// import adaptorRegistry from 'registries/adaptors';
+// import componentsRegistry from 'registries/components';
+// import easingRegistry from 'registries/easing';
+// import interpolatorsRegistry from 'registries/interpolators';
 import Promise from 'utils/Promise';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
 import initialise from 'Ractive/initialise';
+import config from 'config/configuration';
 import circular from 'circular';
 
 // Main Ractive required object
@@ -20,6 +21,8 @@ var Ractive = function ( options ) {
 
 Ractive.prototype = proto;
 
+config.create( Ractive );
+
 // Read-only properties
 defineProperties( Ractive, {
 
@@ -27,16 +30,13 @@ defineProperties( Ractive, {
 	partials: { value: partialRegistry },
 
 	// Plugins
-	adaptors:      { value: adaptorRegistry },
-	easing:        { value: easingRegistry },
-	transitions:   { value: {} },
-	events:        { value: {} },
-	components:    { value: componentsRegistry },
-	decorators:    { value: {} },
-	interpolators: { value: interpolatorsRegistry },
-
-	// Default options
-	defaults:      { value: initOptions.defaults },
+	// adaptors:      { value: adaptorRegistry },
+	// easing:        { value: easingRegistry },
+	// transitions:   { value: {} },
+	// events:        { value: {} },
+	// components:    { value: componentsRegistry },
+	// decorators:    { value: {} },
+	// interpolators: { value: interpolatorsRegistry },
 
 	// Support
 	svg:           { value: svg },
@@ -53,7 +53,6 @@ Ractive.Promise = Promise;
 Ractive.extend = extend;
 
 Ractive.parse = parse;
-circular.Ractive = Ractive;
 
 // Certain modules have circular dependencies. If we were bundling a
 // module loader, e.g. almond.js, this wouldn't be a problem, but we're

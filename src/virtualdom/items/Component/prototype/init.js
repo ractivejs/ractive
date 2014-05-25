@@ -5,6 +5,7 @@ import createInstance from 'virtualdom/items/Component/initialise/createInstance
 import createBindings from 'virtualdom/items/Component/initialise/createBindings';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
+import config from 'config/configuration';
 
 export default function Component$init ( options ) {
 	var parentFragment,
@@ -24,7 +25,7 @@ export default function Component$init ( options ) {
 	this.bindings = [];
 
 	// get the component constructor
-	Component = root.components[ options.template.e ];
+	Component = config.find( root, 'components', options.template.e );
 
 	if ( !Component ) {
 		throw new Error( 'Component "' + options.template.e + '" not found' );

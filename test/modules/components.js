@@ -407,7 +407,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set('world', 'venus');
 			t.htmlEqual( fixture.innerHTML, 'hello venus' );
 
-			/* This works, but is it risky to polute global for other tests? */
 			delete Ractive.components.widget
 			delete Ractive.components.grandwidget
 		});
@@ -954,8 +953,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Component, ractive;
 
 			Component = Ractive.extend({
-				template: function(template, options){
-					return options.data.useFoo ? '{{foo}}' : '{{fizz}}'
+				template: function( data, parser ){
+					return data.useFoo ? '{{foo}}' : '{{fizz}}'
 				}
 			});
 

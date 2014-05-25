@@ -1,6 +1,6 @@
 import 'legacy';
 
-var defaults, initOptions;
+var defaults, initOptions, flags;
 
 defaults = {
 	el:                 null,
@@ -25,9 +25,12 @@ defaults = {
 	computed:           null
 };
 
+flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
+
 initOptions = {
 	keys: Object.keys( defaults ),
-	defaults: defaults
+	defaults: defaults,
+	flags: flags
 };
 
 export default initOptions;

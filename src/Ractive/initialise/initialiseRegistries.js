@@ -1,4 +1,5 @@
 import registries from 'config/registries';
+import newreg from 'config/registries/registries';
 import create from 'utils/create';
 import extend from 'utils/extend';
 import isArray from 'utils/isArray';
@@ -61,9 +62,7 @@ function initialiseRegistries( ractive, defaults, options, initOptions ) {
 
 	changes = initialise();
 
-	if ( shouldUpdate('computed') ) {
-		createComputations( ractive, ractive.computed );
-	}
+
 
 	if ( shouldUpdate('template') ) {
 		initialiseTemplate( ractive, defaults, options );
@@ -83,13 +82,20 @@ function initialiseRegistries( ractive, defaults, options, initOptions ) {
 		if ( !ractive.data ) { ractive.data = {}; }
 
 		//return the changed registries
-		return registryKeys
-			.filter( function ( registry ) { return registry!=='data'; })
-			.filter( initialiseRegistry );
+		return registryKeys.filter( registry => {
+				return registry!=='data';
+			}).filter( registry => {
+				return newreg.keys.indexOf( registry ) === -1
+			}).filter( initialiseRegistry );
 
 	}
 
 	function initialiseRegistry ( registry ) {
+
+		if( registry === 'adaptors' ) {
+			return;
+		}
+
 		var optionsValue = initOptions.newValues[ registry ] || options[ registry ],
 			defaultValue = ractive.constructor[ registry ] || defaults[ registry ],
 			firstArg = registry==='data' ? optionsValue : ractive.data,

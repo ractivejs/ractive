@@ -1,6 +1,8 @@
+import config from 'config/configuration';
 import initOptions from 'config/initOptions';
 import warn from 'utils/warn';
 import create from 'utils/create';
+import defineProperty from 'utils/defineProperty';
 import defineProperties from 'utils/defineProperties';
 import getElement from 'utils/getElement';
 import isArray from 'utils/isArray';
@@ -11,8 +13,6 @@ import magicAdaptor from 'shared/get/magicAdaptor';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 import Fragment from 'virtualdom/Fragment';
 
-var flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
-
 export default function initialiseRactiveInstance ( ractive, options ) {
 
 	var defaults = ractive.constructor.defaults, keypath;
@@ -20,9 +20,15 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 	// Allow empty constructor options and save for reset
 	ractive.initOptions = options = options || {};
 
+	// defineProperty( ractive, '_configuration', {
+	// 	value: ractive.constructor._configuration.initialise( ractive, options )
+	// });
+
 	setOptionsAndFlags( ractive, defaults, options );
 	initialiseProperties( ractive, options );
 	initialiseRegistries( ractive, defaults, options );
+
+	config.init( ractive.constructor, ractive, options, ractive.data );
 
 	// Render our *root fragment*
 	ractive.fragment = new Fragment({
@@ -76,7 +82,7 @@ function setOptionsAndFlags ( ractive, defaults, options ) {
 	});
 
 	// flag options
-	flags.forEach( function ( flag ) {
+	initOptions.flags.forEach( function ( flag ) {
 		ractive[ flag ] = options[ flag ];
 	});
 

@@ -3,6 +3,7 @@ import runloop from 'global/runloop';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import Fragment from 'virtualdom/Fragment';
+import config from 'config/configuration';
 import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
@@ -39,7 +40,9 @@ export default function ( data, callback ) {
 
 	this.initOptions.data = this.data;
 
-	changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, { updatesOnly: true } );
+	changes = config.reset( this );
+
+	/*changes =*/ initialiseRegistries( this, this.constructor.defaults, this.initOptions, { updatesOnly: true } );
 
 	i = changes.length;
 	while ( i-- ) {
