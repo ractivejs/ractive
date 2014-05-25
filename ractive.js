@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-25 - commit a3fc05aa 
+	2014-05-25 - commit b4e52b0a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -929,9 +929,13 @@
 				}
 			},
 			// changes that may cause additional changes...
-			modelUpdate: function( thing ) {
-				dirty = true;
-				modelUpdates.push( thing );
+			modelUpdate: function( thing, remove ) {
+				if ( remove ) {
+					removeFromArray( modelUpdates, thing );
+				} else {
+					dirty = true;
+					modelUpdates.push( thing );
+				}
 			},
 			// TODO this is wrong - inputs should be grouped by instance
 			addCheckboxBinding: function( checkboxBinding ) {
@@ -1845,7 +1849,7 @@
 	var registerDependant = function() {
 
 		return function registerDependant( dependant ) {
-			var depsByKeypath, deps, ractive, keypath, priority;
+			var depsByKeypath, deps, ractive, keypath, priority, evaluator;
 			ractive = dependant.root;
 			keypath = dependant.keypath;
 			priority = dependant.priority;
@@ -1855,6 +1859,12 @@
 			dependant.registered = true;
 			if ( !keypath ) {
 				return;
+			}
+			if ( evaluator = ractive._evaluators[ keypath ] ) {
+				if ( !evaluator.dependants ) {
+					evaluator.wake();
+				}
+				evaluator.dependants += 1;
 			}
 			updateDependantsMap( ractive, keypath );
 		};
@@ -1881,7 +1891,7 @@
 	var unregisterDependant = function() {
 
 		return function unregisterDependant( dependant ) {
-			var deps, index, ractive, keypath, priority;
+			var deps, index, ractive, keypath, priority, evaluator;
 			ractive = dependant.root;
 			keypath = dependant.keypath;
 			priority = dependant.priority;
@@ -1894,6 +1904,12 @@
 			dependant.registered = false;
 			if ( !keypath ) {
 				return;
+			}
+			if ( evaluator = ractive._evaluators[ keypath ] ) {
+				evaluator.dependants -= 1;
+				if ( !evaluator.dependants ) {
+					evaluator.sleep();
+				}
 			}
 			updateDependantsMap( ractive, keypath );
 		};
@@ -4961,6 +4977,7 @@
 			evaluator.fn = getFunctionFromString( functionStr, args.length );
 			evaluator.values = [];
 			evaluator.refs = [];
+			evaluator.dependants = 0;
 			args.forEach( function( arg, i ) {
 				if ( !arg ) {
 					return;
@@ -4974,8 +4991,15 @@
 			} );
 		};
 		Evaluator.prototype = {
+			wake: function() {
+				this.awake = true;
+			},
+			sleep: function() {
+				this.awake = false;
+				runloop.modelUpdate( this, true );
+			},
 			bubble: function() {
-				if ( !this.dirty ) {
+				if ( !this.dirty && this.awake ) {
 					// Re-evaluate once all changes have propagated
 					this.dirty = true;
 					runloop.modelUpdate( this );
