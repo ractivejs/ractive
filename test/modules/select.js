@@ -291,6 +291,17 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: d</p>' );
 		});
 
+		test( 'Options can be inside a partial (#707)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select>{{#options}}{{>option}}{{/options}}</select>',
+				data: { options: [ 'a', 'b' ] },
+				partials: { option: '<option>{{this}}</option>' }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option></select>' );
+		});
+
 	};
 
 });

@@ -1064,6 +1064,37 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( order.init, simpsons, 'init order' );
 
 		});
+
+		test( 'Insane variable shadowing bug doesn\'t appear (#710)', function ( t ) {
+			var List, ractive;
+
+			List = Ractive.extend({
+				template: '{{#items:i}}<p>{{i}}:{{ foo.bar.length }}</p>{{/items}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<list items="{{sorted_items}}"/>',
+				components: {
+					list: List
+				},
+				computed: {
+					sorted_items: function () {
+						return this.get( 'items' ).slice().sort( function ( a, b ) {
+							return ( a.rank - b.rank );
+						});
+					}
+				}
+			});
+
+			ractive.set( 'items', [
+				{ rank: 2, "foo": {"bar": []} },
+				{ rank: 1, "foo": {} },
+				{ rank: 3, "foo": {"bar": []} }
+			]);
+
+			t.htmlEqual( fixture.innerHTML, '<p>0:</p><p>1:0</p><p>2:0</p>' );
+		});
 	};
 
 });

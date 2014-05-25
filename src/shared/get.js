@@ -8,6 +8,8 @@ import FAILED_LOOKUP from 'shared/get/FAILED_LOOKUP';
 function get ( ractive, keypath, options ) {
 	var cache = ractive._cache,
 		value,
+		firstKey,
+		firstKeyDoesNotExist,
 		computation,
 		wrapped,
 		evaluator;
@@ -49,7 +51,14 @@ function get ( ractive, keypath, options ) {
 	// can try going up a scope. This will create bindings
 	// between parent and child if possible
 	if ( value === FAILED_LOOKUP ) {
-		if ( ractive._parent && !ractive.isolated ) {
+		// Only do this if the first key of the keypath doesn't
+		// exist on the child model. Otherwise missing properties
+		// of objects that are NOT missing could be optimistically
+		// bound to the wrong thing
+		firstKey = keypath.split( '.' )[0];
+		firstKeyDoesNotExist = ( firstKey === keypath ) || get( ractive, firstKey ) === undefined;
+
+		if ( ractive._parent && !ractive.isolated && firstKeyDoesNotExist ) {
 			value = getFromParent( ractive, keypath, options );
 		} else {
 			value = undefined;

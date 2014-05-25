@@ -51,7 +51,9 @@ runloop = {
 		}
 
 		flushing = true;
-		flushChanges();
+		do {
+			flushChanges();
+		} while ( dirty );
 		flushing = false;
 
 		transitionManager.init();
@@ -71,6 +73,7 @@ runloop = {
 	},
 
 	viewUpdate: function ( thing ) {
+		dirty = true;
 		viewUpdates.push( thing );
 	},
 
@@ -89,9 +92,13 @@ runloop = {
 	},
 
 	// changes that may cause additional changes...
-	modelUpdate: function ( thing ) {
-		dirty = true;
-		modelUpdates.push( thing );
+	modelUpdate: function ( thing, remove ) {
+		if ( remove ) {
+			removeFromArray( modelUpdates, thing );
+		} else {
+			dirty = true;
+			modelUpdates.push( thing );
+		}
 	},
 
 	// TODO this is wrong - inputs should be grouped by instance
@@ -123,6 +130,7 @@ runloop = {
 	},
 
 	afterViewUpdate: function ( task ) {
+		dirty = true;
 		postViewUpdateTasks.push( task );
 	}
 };
@@ -163,6 +171,8 @@ function flushChanges () {
 			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			checkboxKeypaths[ thing.keypath ] = false;
 		}
+
+		attemptKeypathResolution();
 	}
 
 	// Now that changes have been fully propagated, we can update the DOM

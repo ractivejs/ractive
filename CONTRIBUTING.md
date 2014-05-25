@@ -23,7 +23,7 @@ Before submitting an issue, please make sure you're using the latest released ve
 
 If the bug persists, it may have been fixed in the latest development version. You can always get the most recent successful build from http://cdn.ractivejs.org/edge/Ractive.js.
 
-The best issues contain a reproducible demonstration of the bug in the form of a JSFiddle or similar. [This JSFiddle](http://jsfiddle.net/rich_harris/va6jU/) has a basic setup to get started with.
+The best issues contain a reproducible demonstration of the bug in the form of a JSFiddle or similar. [This JSFiddle](http://jsfiddle.net/rich_harris/va6jU/) has a basic setup to get started with - even better, you could create a failing test using [this fiddle](http://jsfiddle.net/rich_harris/UG7Eq/) as a base.
 
 
 Pull requests

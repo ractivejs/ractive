@@ -4,6 +4,7 @@ sandbox/*
 !sandbox/_base.html
 !sandbox/_sandbox.css
 !sandbox/require.js
+!sandbox/debugRequire.js
 !sandbox/sample/
 tmp/
 tmp-build/

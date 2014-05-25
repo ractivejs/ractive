@@ -1,5 +1,6 @@
 import types from 'config/types';
 import Promise from 'utils/Promise';
+import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
 import css from 'global/css';
 
@@ -50,6 +51,8 @@ export default function Ractive$unrender () {
 
 	this.fragment.unrender( shouldDestroy );
 	this.rendered = false;
+
+	removeFromArray( this.el.__ractive_instances__, this );
 
 	runloop.end();
 	return promise;

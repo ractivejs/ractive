@@ -6,7 +6,7 @@ export default function ( tokens ) {
 
 	if ( typeof tokens === 'string' ) {
 		if ( tokens.indexOf( ':' ) === -1 ) {
-			return tokens;
+			return tokens.trim();
 		}
 
 		tokens = [ tokens ];

@@ -614,6 +614,37 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
 		});
 
+		test( 'ractive.insert() throws an error if instance is not rendered (#712)', function ( t ) {
+			var ractive, p, one, two, three;
+
+			one = document.createElement( 'div' );
+			two = document.createElement( 'div' );
+
+			three = document.createElement( 'div' );
+			three.innerHTML = '<p>before</p><p class="after">after</p>';
+
+			ractive = new Ractive({
+				template: '<p>{{foo}}</p>',
+				data: { foo: 'whee!' }
+			});
+
+			try {
+				ractive.insert( one );
+				t.ok( false );
+			} catch ( err ) {
+				t.ok( true );
+			}
+
+			ractive.render( two );
+			p = ractive.find( 'p' );
+			t.ok( !one.contains( p ) );
+			t.ok( two.contains( p ) );
+
+			ractive.insert( three, three.querySelector( '.after' ) );
+			t.ok( three.contains( p ) );
+			t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
+		});
+
 		test( 'Regression test for #271', function ( t ) {
 			var ractive, items;
 
@@ -1100,6 +1131,76 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.htmlEqual( fixture.innerHTML, '01')
+		});
+
+		test( 'Rendering to an element, if `append` is false, causes any existing instances to be torn down', function ( t ) {
+			var ractive1, ractive2;
+
+			expect( 2 );
+
+			ractive1 = new Ractive({
+				el: fixture,
+				template: 'foo'
+			});
+
+			ractive1.on( 'teardown', function () {
+				t.ok( true );
+			});
+
+			ractive2 = new Ractive({
+				el: fixture,
+				template: 'bar'
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+		});
+
+		test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
+			});
+
+			t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+			t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+		});
+
+		test( 'Evaluators are not called if their expressions no longer exist (#716)', function ( t ) {
+			var ractive, doubled = 0, tripled = 0;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{double(foo)}}</p>{{#bar}}<p>{{triple(foo)}}</p>{{/bar}}',
+				data: {
+					foo: 3,
+					double: function ( foo ) {
+						doubled += 1;
+						return foo * 2;
+					},
+					triple: function ( foo ) {
+						tripled += 1;
+						return foo * 3;
+					}
+				}
+			});
+
+			t.equal( doubled, 1 );
+			t.equal( tripled, 0 );
+
+			ractive.set({
+				foo: 4,
+				bar: true
+			});
+
+			t.equal( doubled, 2 );
+			t.equal( tripled, 1 );
+
+			ractive.set({
+				foo: 5,
+				bar: false
+			});
+			t.equal( doubled, 3 );
+			t.equal( tripled, 1 );
 		});
 
 

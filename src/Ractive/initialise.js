@@ -15,7 +15,7 @@ import Fragment from 'virtualdom/Fragment';
 
 export default function initialiseRactiveInstance ( ractive, options ) {
 
-	var defaults = ractive.constructor.defaults, keypath;
+	var defaults = ractive.constructor.defaults, keypath, el;
 
 	// Allow empty constructor options and save for reset
 	ractive.initOptions = options = options || {};
@@ -50,16 +50,21 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 	}
 
 	// If `el` is specified, render automatically
-	if ( ractive.el ) {
+	if ( el = getElement( options.el ) ) {
 		// Temporarily disable transitions, if `noIntro` flag is set
 		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 
 		// If the target contains content, and `append` is falsy, clear it
-		if ( ractive.el && !options.append ) {
-			ractive.el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+		if ( el && !options.append ) {
+			// Tear down any existing instances on this element
+			if ( el.__ractive_instances__ ) {
+				el.__ractive_instances__.splice( 0 ).forEach( r => r.teardown() );
+			}
+
+			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 		}
 
-		ractive.render( ractive.el, ractive.anchor ).then( function () {
+		ractive.render( el, options.append ).then( function () {
 			if ( options.complete ) {
 				options.complete.call( ractive );
 			}
@@ -110,21 +115,9 @@ function deprecate ( options ){
 
 }
 
-function validate ( ractive, options ) {
-	var anchor;
-
+function validate ( ractive ) {
 	if ( ractive.magic && !magicAdaptor ) {
 		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-	}
-
-	if ( options.el ) {
-		ractive.el = getElement( options.el );
-		if ( !ractive.el && ractive.debug ) {
-			throw new Error( 'Could not find container element' );
-		}
-		if ( anchor = getElement( options.append ) ) {
-			ractive.anchor = anchor;
-		}
 	}
 }
 

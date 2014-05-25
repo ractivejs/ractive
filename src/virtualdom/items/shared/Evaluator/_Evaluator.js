@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
-import get from 'shared/get';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import adaptIfNecessary from 'shared/adaptIfNecessary';
@@ -22,6 +21,8 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 	evaluator.values = [];
 	evaluator.refs = [];
 
+	evaluator.dependants = 0;
+
 	args.forEach( function ( arg, i ) {
 		if ( !arg ) {
 			return;
@@ -36,35 +37,28 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 			evaluator.refs.push( new Reference( root, arg.keypath, evaluator, i, priority ) );
 		}
 	});
-
-	evaluator.selfUpdating = ( evaluator.refs.length <= 1 );
 };
 
 Evaluator.prototype = {
-	bubble: function () {
-		// If we only have one reference, we can update immediately...
-		if ( this.selfUpdating ) {
-			this.update();
-		}
+	wake: function () {
+		this.awake = true;
+	},
 
-		// ...otherwise we want to register it as a deferred item, to be
-		// updated once all the information is in, to prevent unnecessary
-		// cascading. Only if we're already resolved, obviously
-		else if ( !this.dirty ) {
-			runloop.modelUpdate( this );
+	sleep: function () {
+		this.awake = false;
+		runloop.modelUpdate( this, true ); // cancel pending update, if there is one
+	},
+
+	bubble: function () {
+		if ( !this.dirty && this.awake ) {
+			// Re-evaluate once all changes have propagated
 			this.dirty = true;
+			runloop.modelUpdate( this );
 		}
 	},
 
-	update: function () {
+	getValue: function () {
 		var value;
-
-		// prevent infinite loops
-		if ( this.evaluating ) {
-			return this;
-		}
-
-		this.evaluating = true;
 
 		try {
 			value = this.fn.apply( null, this.values );
@@ -76,6 +70,12 @@ Evaluator.prototype = {
 			value = undefined;
 		}
 
+		return value;
+	},
+
+	update: function () {
+		var value = this.getValue();
+
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
@@ -84,8 +84,6 @@ Evaluator.prototype = {
 			adaptIfNecessary( this.root, this.keypath, value, true );
 			notifyDependants( this.root, this.keypath );
 		}
-
-		this.evaluating = false;
 
 		return this;
 	},
@@ -100,22 +98,11 @@ Evaluator.prototype = {
 		this.root._evaluators[ this.keypath ] = null;
 	},
 
-	// This method forces the evaluator to sync with the current model
-	// in the case of a smart update
-	refresh: function () {
-		if ( !this.selfUpdating ) {
-			this.dirty = true;
-		}
+	invalidate: function () {
+		this.refs.forEach( ref => ref.invalidate() );
 
-		var i = this.refs.length;
-		while ( i-- ) {
-			this.refs[i].setValue( get( this.root, this.refs[i].keypath ) );
-		}
-
-		if ( this.dirty ) {
-			this.update();
-			this.dirty = false;
-		}
+		clearCache( this.root, this.keypath );
+		this.value = this.getValue();
 	},
 
 	updateSoftDependencies: function ( softDeps ) {

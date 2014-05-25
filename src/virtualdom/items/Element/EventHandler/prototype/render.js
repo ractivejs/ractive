@@ -11,7 +11,7 @@ export default function EventHandler$render () {
 		this.custom = definition( this.node, getCustomHandler( name ) );
 	} else {
 		// Looks like we're dealing with a standard DOM event... but let's check
-		if ( !( 'on' + name in this.node ) ) {
+		if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
 			if ( !alreadyWarned[ name ] ) {
 				warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
 				alreadyWarned[ name ] = true;

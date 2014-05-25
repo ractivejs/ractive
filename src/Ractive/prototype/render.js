@@ -1,10 +1,11 @@
 import runloop from 'global/runloop';
 import css from 'global/css';
 import Promise from 'utils/Promise';
+import getElement from 'utils/getElement';
 
 export default function Ractive$render ( target, anchor ) {
 
-	var promise, fulfilPromise;
+	var promise, fulfilPromise, instances;
 
 	this._rendering = true;
 
@@ -12,8 +13,11 @@ export default function Ractive$render ( target, anchor ) {
 	runloop.start( this, fulfilPromise );
 
 	if ( this.rendered ) {
-		throw new Error( 'You cannot call ractive.render() more than once!' );
+		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 	}
+
+	target = getElement( target ) || this.el;
+	anchor = getElement( anchor ) || this.anchor;
 
 	this.el = target;
 	this.anchor = anchor;
@@ -24,6 +28,12 @@ export default function Ractive$render ( target, anchor ) {
 	}
 
 	if ( target ) {
+		if ( !( instances = target.__ractive_instances__ ) ) {
+			target.__ractive_instances__ = [ this ];
+		} else {
+			instances.push( this );
+		}
+
 		if ( anchor ) {
 			target.insertBefore( this.fragment.render(), anchor );
 		} else {

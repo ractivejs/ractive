@@ -1,6 +1,7 @@
 import types from 'config/types';
 import isEqual from 'utils/isEqual';
 import defineProperty from 'utils/defineProperty';
+import get from 'shared/get';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 
@@ -40,6 +41,10 @@ Reference.prototype = {
 
 			this.value = value;
 		}
+	},
+
+	invalidate: function () {
+		this.setValue( get( this.root, this.keypath ) );
 	},
 
 	teardown: function () {

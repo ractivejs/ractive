@@ -563,16 +563,16 @@ var parseTests = [
 				t: 4,
 				n: 50,
 				r: 'foo',
-				f: [ ' foo ',
-					{ t: 4, n: 50, r: 'foo2', f: [' foo2 '] },
-					{ t: 4, n: 51, r: 'foo2', f: [' not foo2 '] }
+				f: [ 'foo ',
+					{ t: 4, n: 50, r: 'foo2', f: ['foo2'] },
+					{ t: 4, n: 51, r: 'foo2', f: ['not foo2'] }
 				],
 			},
 			{
 				t: 4,
 				n: 51,
 				r: 'foo',
-				f: [' bar']
+				f: ['bar']
 			}
 		]
 	},
@@ -710,8 +710,8 @@ var parseTests = [
 							 { t: 2,
 							   p: [ 4, 13 ],
 							   r: 'grand' },
-							 '?' ] },
-						' ' ] } ] } ]
+							 '?' ] }
+						] } ] } ]
 	},
 	{
 		name: "Mixture of HTML-able and non-HTML-able elements in template with Traces",
@@ -806,6 +806,18 @@ var parseTests = [
 		name: 'Illegal bracketed expression (missing closing paren)',
 		template: '{{(foo}}',
 		error: 'Expected closing paren at line 1 character 7:\n{{(foo}}\n      ^----'
+	},
+
+	// `this`
+	{
+		name: '`this` becomes `.`',
+		template: '{{this}}',
+		parsed: [{t:2,r:'.'}]
+	},
+	{
+		name: '`this.foo` becomes `./foo`',
+		template: '{{this.foo}}',
+		parsed: [{t:2,r:'./foo'}]
 	}
 ];
 
