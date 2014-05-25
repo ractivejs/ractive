@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-25 - commit f08f0693 
+	2014-05-25 - commit accdaa56 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3343,8 +3343,8 @@
 		};
 	}( normaliseKeypath, registerDependant, unregisterDependant, Ractive$observe_Observer, Ractive$observe_PatternObserver );
 
-	/* Ractive/prototype/observe/_observe.js */
-	var Ractive$observe__observe = function( isObject, getObserverFacade ) {
+	/* Ractive/prototype/observe.js */
+	var Ractive$observe = function( isObject, getObserverFacade ) {
 
 		return function observe( keypath, callback, options ) {
 			var observers, map, keypaths, i;
@@ -3398,12 +3398,23 @@
 		};
 	}( isObject, Ractive$observe_getObserverFacade );
 
+	/* Ractive/prototype/shared/trim.js */
+	var Ractive$shared_trim = function( str ) {
+		return str.trim();
+	};
+
+	/* Ractive/prototype/shared/notEmptyString.js */
+	var Ractive$shared_notEmptyString = function( str ) {
+		return str !== '';
+	};
+
 	/* Ractive/prototype/off.js */
-	var Ractive$off = function( eventName, callback ) {
-		var subscribers, index;
-		// if no callback specified, remove all callbacks
-		if ( !callback ) {
-			// if no event name specified, remove all callbacks for all events
+	var Ractive$off = function( trim, notEmptyString ) {
+
+		return function( eventName, callback ) {
+			var this$0 = this;
+			var eventNames;
+			// if no arguments specified, remove all callbacks
 			if ( !eventName ) {
 				// TODO use this code instead, once the following issue has been resolved
 				// in PhantomJS (tests are unpassable otherwise!)
@@ -3412,51 +3423,64 @@
 				for ( eventName in this._subs ) {
 					delete this._subs[ eventName ];
 				}
-			} else {
-				this._subs[ eventName ] = [];
+				return;
 			}
-		}
-		subscribers = this._subs[ eventName ];
-		if ( subscribers ) {
-			index = subscribers.indexOf( callback );
-			if ( index !== -1 ) {
-				subscribers.splice( index, 1 );
-			}
-		}
-	};
-
-	/* Ractive/prototype/on.js */
-	var Ractive$on = function( eventName, callback ) {
-		var self = this,
-			listeners, n;
-		// allow mutliple listeners to be bound in one go
-		if ( typeof eventName === 'object' ) {
-			listeners = [];
-			for ( n in eventName ) {
-				if ( eventName.hasOwnProperty( n ) ) {
-					listeners.push( this.on( n, eventName[ n ] ) );
-				}
-			}
-			return {
-				cancel: function() {
-					var listener;
-					while ( listener = listeners.pop() ) {
-						listener.cancel();
+			// Handle multiple space-separated event names
+			eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
+			eventNames.forEach( function( eventName ) {
+				var subscribers, index;
+				// If we have subscribers for this event...
+				if ( subscribers = this$0._subs[ eventName ] ) {
+					// ...if a callback was specified, only remove that
+					if ( callback ) {
+						index = subscribers.indexOf( callback );
+						if ( index !== -1 ) {
+							subscribers.splice( index, 1 );
+						}
+					} else {
+						this$0._subs[ eventName ] = [];
 					}
 				}
-			};
-		}
-		if ( !this._subs[ eventName ] ) {
-			this._subs[ eventName ] = [ callback ];
-		} else {
-			this._subs[ eventName ].push( callback );
-		}
-		return {
-			cancel: function() {
-				self.off( eventName, callback );
-			}
+			} );
 		};
-	};
+	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
+
+	/* Ractive/prototype/on.js */
+	var Ractive$on = function( trim, notEmptyString ) {
+
+		return function( eventName, callback ) {
+			var this$0 = this;
+			var self = this,
+				listeners, n, eventNames;
+			// allow mutliple listeners to be bound in one go
+			if ( typeof eventName === 'object' ) {
+				listeners = [];
+				for ( n in eventName ) {
+					if ( eventName.hasOwnProperty( n ) ) {
+						listeners.push( this.on( n, eventName[ n ] ) );
+					}
+				}
+				return {
+					cancel: function() {
+						var listener;
+						while ( listener = listeners.pop() ) {
+							listener.cancel();
+						}
+					}
+				};
+			}
+			// Handle multiple space-separated event names
+			eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
+			eventNames.forEach( function( eventName ) {
+				( this$0._subs[ eventName ] || ( this$0._subs[ eventName ] = [] ) ).push( callback );
+			} );
+			return {
+				cancel: function() {
+					self.off( eventName, callback );
+				}
+			};
+		};
+	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
 
 	/* Ractive/prototype/render.js */
 	var Ractive$render = function( runloop, css, Promise, getElement ) {
@@ -10347,7 +10371,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate__animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge__merge, Ractive$observe__observe, Ractive$off, Ractive$on, Ractive$render, Ractive$renderHTML, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate__animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge__merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$renderHTML, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
 
 	/* registries/components.js */
 	var components = {};
