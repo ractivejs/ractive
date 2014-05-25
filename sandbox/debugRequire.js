@@ -24,7 +24,7 @@
 		return function () {
 			var self = this, args = arguments;
 
-			setTimeout( function () {
+			setTimeout( function start () {
 				fn.apply( self, args );
 			}, 0 );
 		};

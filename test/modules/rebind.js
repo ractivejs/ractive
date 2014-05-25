@@ -338,7 +338,25 @@ define([
 			items.unshift({});
 
 			t.ok( true );
-		})
+		});
+
+		test( 'Regression test for #729 (part two) - inserting before silently-created elements', function ( t ) {
+			var items, ractive;
+
+			items = [];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{#bool}}{{{foo}}}{{/bool}}{{/items}}',
+				data: { items: items }
+			});
+
+			ractive.set('items.0', {bool: false});
+			items[0].bool = true;
+			items.unshift({});
+
+			t.ok( true );
+		});
 
 	};
 
