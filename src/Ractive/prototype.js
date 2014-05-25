@@ -9,7 +9,7 @@ import fire from 'Ractive/prototype/fire';
 import get from 'Ractive/prototype/get';
 import insert from 'Ractive/prototype/insert';
 import merge from 'Ractive/prototype/merge/_merge';
-import observe from 'Ractive/prototype/observe/_observe';
+import observe from 'Ractive/prototype/observe';
 import off from 'Ractive/prototype/off';
 import on from 'Ractive/prototype/on';
 import render from 'Ractive/prototype/render';
