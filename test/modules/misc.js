@@ -1165,6 +1165,44 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
 		});
 
+		test( 'Evaluators are not called if their expressions no longer exist (#716)', function ( t ) {
+			var ractive, doubled = 0, tripled = 0;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{double(foo)}}</p>{{#bar}}<p>{{triple(foo)}}</p>{{/bar}}',
+				data: {
+					foo: 3,
+					double: function ( foo ) {
+						doubled += 1;
+						return foo * 2;
+					},
+					triple: function ( foo ) {
+						tripled += 1;
+						return foo * 3;
+					}
+				}
+			});
+
+			t.equal( doubled, 1 );
+			t.equal( tripled, 0 );
+
+			ractive.set({
+				foo: 4,
+				bar: true
+			});
+
+			t.equal( doubled, 2 );
+			t.equal( tripled, 1 );
+
+			ractive.set({
+				foo: 5,
+				bar: false
+			});
+			t.equal( doubled, 3 );
+			t.equal( tripled, 1 );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

@@ -21,6 +21,8 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 	evaluator.values = [];
 	evaluator.refs = [];
 
+	evaluator.dependants = 0;
+
 	args.forEach( function ( arg, i ) {
 		if ( !arg ) {
 			return;
@@ -38,8 +40,17 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 };
 
 Evaluator.prototype = {
+	wake: function () {
+		this.awake = true;
+	},
+
+	sleep: function () {
+		this.awake = false;
+		runloop.modelUpdate( this, true ); // cancel pending update, if there is one
+	},
+
 	bubble: function () {
-		if ( !this.dirty ) {
+		if ( !this.dirty && this.awake ) {
 			// Re-evaluate once all changes have propagated
 			this.dirty = true;
 			runloop.modelUpdate( this );
