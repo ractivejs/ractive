@@ -92,9 +92,13 @@ runloop = {
 	},
 
 	// changes that may cause additional changes...
-	modelUpdate: function ( thing ) {
-		dirty = true;
-		modelUpdates.push( thing );
+	modelUpdate: function ( thing, remove ) {
+		if ( remove ) {
+			removeFromArray( modelUpdates, thing );
+		} else {
+			dirty = true;
+			modelUpdates.push( thing );
+		}
 	},
 
 	// TODO this is wrong - inputs should be grouped by instance
