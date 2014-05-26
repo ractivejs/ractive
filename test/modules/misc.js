@@ -1203,6 +1203,32 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( tripled, 1 );
 		});
 
+		test( 'Regression test for #695 (unrendering non-rendered items)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{# { items: nested.items } }}{{#insert}}{{#items}}<div decorator="foo"></div>{{/items}}{{/insert}}{{/}}',
+				decorators: {
+					foo: function () { return { teardown: function () {} }; }
+				}
+			});
+
+			ractive.set({
+				nested: {
+					items: [0,1,2]
+				},
+				insert: false
+			});
+
+			ractive.set({
+				nested: {
+					items: [0,1]
+				},
+				insert: true
+			});
+
+			t.ok( true );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
