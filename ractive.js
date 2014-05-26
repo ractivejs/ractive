@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-25 - commit accdaa56 
+	2014-05-26 - commit 5296eb4a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5893,7 +5893,12 @@
 		}
 
 		function unrenderAndTeardown( fragment ) {
-			fragment.unrender( true );
+			// TODO in future, we shouldn't need to do this check as
+			// changes will fully propagate before the virtual DOM
+			// is updated
+			if ( fragment.rendered ) {
+				fragment.unrender( true );
+			}
 			fragment.teardown();
 		}
 	}( types, isArray, isObject, runloop, circular );
@@ -8507,7 +8512,7 @@
 	}( assignNewKeypath );
 
 	/* virtualdom/items/Element/prototype/render.js */
-	var virtualdom_items_Element$render = function( isArray, warn, create, createElement, defineProperty, runloop, getInnerContext ) {
+	var virtualdom_items_Element$render = function( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext ) {
 
 		var updateCss, updateScript;
 		updateCss = function() {
@@ -8559,9 +8564,12 @@
 				if ( this.name === 'script' ) {
 					this.bubble = updateScript;
 					this.node.text = this.fragment.toString( false );
+					// bypass warning initially
+					this.fragment.unrender = noop;
 				} else if ( this.name === 'style' ) {
 					this.bubble = updateCss;
 					this.bubble();
+					this.fragment.unrender = noop;
 				} else {
 					this.node.appendChild( this.fragment.render() );
 				}
@@ -8668,7 +8676,7 @@
 				}
 			} while ( instance = instance._parent );
 		}
-	}( isArray, warn, create, createElement, defineProperty, runloop, getInnerContext );
+	}( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext );
 
 	/* virtualdom/items/Element/prototype/teardown.js */
 	var virtualdom_items_Element$teardown = function Element$teardown() {
@@ -10979,15 +10987,17 @@
 
 	/* virtualdom/Fragment/prototype/render.js */
 	var virtualdom_Fragment$render = function Fragment$render() {
-		var docFrag;
+		var result;
 		if ( this.items.length === 1 ) {
-			return this.items[ 0 ].render();
+			result = this.items[ 0 ].render();
+		} else {
+			result = document.createDocumentFragment();
+			this.items.forEach( function( item ) {
+				result.appendChild( item.render() );
+			} );
 		}
-		docFrag = document.createDocumentFragment();
-		this.items.forEach( function( item ) {
-			docFrag.appendChild( item.render() );
-		} );
-		return docFrag;
+		this.rendered = true;
+		return result;
 	};
 
 	/* virtualdom/Fragment/prototype/teardown.js */
@@ -11009,6 +11019,9 @@
 
 	/* virtualdom/Fragment/prototype/unrender.js */
 	var virtualdom_Fragment$unrender = function Fragment$unrender( shouldDestroy ) {
+		if ( !this.rendered ) {
+			throw new Error( 'Attempted to unrender a fragment that was not rendered' );
+		}
 		this.items.forEach( function( i ) {
 			return i.unrender( shouldDestroy );
 		} );
