@@ -227,6 +227,12 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 }
 
 function unrenderAndTeardown ( fragment ) {
-	fragment.unrender( true );
+	// TODO in future, we shouldn't need to do this check as
+	// changes will fully propagate before the virtual DOM
+	// is updated
+	if ( fragment.rendered ) {
+		fragment.unrender( true );
+	}
+
 	fragment.teardown();
 }
