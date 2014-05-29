@@ -16,6 +16,7 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	this.ref = template.r;
 	this.root = mustache.root;
 	this.mustache = mustache;
+	this.priority = mustache.priority;
 
 	this.callback = callback;
 

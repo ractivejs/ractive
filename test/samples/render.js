@@ -658,6 +658,14 @@ var renderTests = [
 		result: 'yes',
 		new_data: { condition: false },
 		new_result: ''
+	},
+	{
+		name: 'Reference expression with sub-expression',
+		template: '{{ foo[ "ba" + letter ].prop}}',
+		data: { foo: { bar: { prop: 'one' }, baz: { prop: 'two' } }, letter: 'r' },
+		result: 'one',
+		new_data: { foo: { bar: { prop: 'one' }, baz: { prop: 'two' } }, letter: 'z' },
+		new_result: 'two'
 	}
 ];
 
