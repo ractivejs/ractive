@@ -3,6 +3,7 @@ import warn from 'utils/warn';
 import create from 'utils/create';
 import createElement from 'utils/createElement';
 import defineProperty from 'utils/defineProperty';
+import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
 
@@ -66,12 +67,14 @@ export default function Element$render () {
 		if ( this.name === 'script' ) {
 			this.bubble = updateScript;
 			this.node.text = this.fragment.toString( false ); // bypass warning initially
+			this.fragment.unrender = noop;
 		}
 
 		// Special case - <style> element
 		else if ( this.name === 'style' ) {
 			this.bubble = updateCss;
 			this.bubble();
+			this.fragment.unrender = noop;
 		}
 
 		else {

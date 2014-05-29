@@ -1,15 +1,16 @@
 export default function Fragment$render () {
-	var docFrag;
+	var result;
 
 	if ( this.items.length === 1 ) {
-		return this.items[0].render();
+		result = this.items[0].render();
+	} else {
+		result = document.createDocumentFragment();
+
+		this.items.forEach( item => {
+			result.appendChild( item.render() );
+		});
 	}
 
-	docFrag = document.createDocumentFragment();
-
-	this.items.forEach( item => {
-		docFrag.appendChild( item.render() );
-	});
-
-	return docFrag;
+	this.rendered = true;
+	return result;
 }
