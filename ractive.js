@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-26 - commit 5296eb4a 
+	2014-05-29 - commit 9cdbf30f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5264,6 +5264,7 @@
 			this.ref = template.r;
 			this.root = mustache.root;
 			this.mustache = mustache;
+			this.priority = mustache.priority;
 			this.callback = callback;
 			this.pending = 0;
 			this.unresolved = [];
