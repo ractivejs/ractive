@@ -4,7 +4,6 @@ import create from 'utils/create';
 import extend from 'utils/extend';
 import isArray from 'utils/isArray';
 import isObject from 'utils/isObject';
-import createComputations from 'Ractive/initialise/computations/createComputations';
 import initialiseTemplate from 'Ractive/initialise/initialiseTemplate';
 import TemplateParser from 'Ractive/initialise/templateParser';
 

@@ -1,4 +1,3 @@
-import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 import config from 'config/configuration';
 import Fragment from 'virtualdom/Fragment';
 

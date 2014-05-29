@@ -4,9 +4,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture, Foo;
-
-		module( 'Miscellaneous' );
+		var fixture, Foo, fooAdaptor;
 
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
@@ -15,7 +13,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			this.content = content;
 		};
 
-		Ractive.adaptors.foo = {
+		fooAdaptor = {
 			filter: function ( object ) {
 				return object instanceof Foo;
 			},
@@ -30,6 +28,15 @@ define([ 'ractive' ], function ( Ractive ) {
 				};
 			}
 		};
+
+		module( 'Miscellaneous', {
+			setup: function(){
+				Ractive.adaptors.foo = fooAdaptor;
+			},
+			teardown: function(){
+				delete Ractive.adaptors.foo;
+			}
+		} );
 
 		test( 'Subclass instance data extends prototype data', function ( t ) {
 			var Subclass, instance;

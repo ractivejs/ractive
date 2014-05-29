@@ -1,51 +1,21 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>Ractive Test Suite</title>
-	<link rel='stylesheet' href='../vendor/qunit.css' type='text/css' media='screen' />
+	<title>config/registries/registry | Ractive Test Suite</title>
+	<link rel='stylesheet' href='../../../vendor/qunit.css' type='text/css' media='screen' />
 </head>
 <body>
 	<div id='qunit'></div>
 	<div id='qunit-fixture'></div>
 
-	<script src='../vendor/qunit.js'></script>
-	<script src='../vendor/qunit-html.js'></script>
-	<script src='../vendor/simulant.js'></script>
-	<script src='../vendor/require.js'></script>
+	<script src='../../../vendor/qunit.js'></script>
+	<script src='../../../vendor/qunit-html.js'></script>
+	<script src='../../../vendor/simulant.js'></script>
+	<script src='../../../vendor/require.js'></script>
 
 	<script>
-		_modules = [
-			'adaptors',
-			'arrays',
-			'components',
-			'computations',
-			'config/configuration',
-			'config/registries/registry',
-			'config/template',
-			'css',
-			'decorators',
-			'elements',
-			'events',
-			'find',
-			'initialisation/initialisation',
-			'initialisation/insertion',
-			'magic',
-			'merge',
-			'misc',
-			'mustache',
-			'observe',
-			'parse',
-			'parseJSON',
-			'rebind',
-			'render',
-			'reset',
-			'select',
-			'transitions',
-			'twoway',
-			'utils/hashmapContentsMatch'
-		];
+		_modules = [ 'config/registries/registry' ];
 	</script>
-
 
 	<script>
 (function () {
@@ -54,7 +24,7 @@
 
 	var i, prefixedModules = [],
 		config = {
-			baseUrl: '../../src',
+			baseUrl: '../../../../src',
 			paths: {
 				modules: '../test/modules',
 				samples: '../test/samples',
@@ -95,6 +65,5 @@
 }());
 
 	</script>
-	
 </body>
 </html>

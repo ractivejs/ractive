@@ -2,7 +2,6 @@ import config from 'config/configuration';
 import initOptions from 'config/initOptions';
 import warn from 'utils/warn';
 import create from 'utils/create';
-import defineProperty from 'utils/defineProperty';
 import defineProperties from 'utils/defineProperties';
 import getElement from 'utils/getElement';
 import isArray from 'utils/isArray';

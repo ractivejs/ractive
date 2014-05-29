@@ -1,17 +1,13 @@
-//import initOptions from 'config/initOptions';
+import initOptions from 'config/initOptions';
 import svg from 'config/svg';
 import defineProperties from 'utils/defineProperties';
 import proto from 'Ractive/prototype';
-import partialRegistry from 'registries/partials';
-// import adaptorRegistry from 'registries/adaptors';
-// import componentsRegistry from 'registries/components';
-// import easingRegistry from 'registries/easing';
-// import interpolatorsRegistry from 'registries/interpolators';
+import easingRegistry from 'registries/easing';
+import interpolatorsRegistry from 'registries/interpolators';
 import Promise from 'utils/Promise';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
 import initialise from 'Ractive/initialise';
-import config from 'config/configuration';
 import circular from 'circular';
 
 // Main Ractive required object
@@ -21,22 +17,26 @@ var Ractive = function ( options ) {
 
 Ractive.prototype = proto;
 
-config.create( Ractive );
-
 // Read-only properties
 defineProperties( Ractive, {
 
 	// Shared properties
-	partials: { value: partialRegistry },
+
+	// Default options
+	defaults:      { value: initOptions.defaults },
 
 	// Plugins
-	// adaptors:      { value: adaptorRegistry },
-	// easing:        { value: easingRegistry },
-	// transitions:   { value: {} },
-	// events:        { value: {} },
-	// components:    { value: componentsRegistry },
-	// decorators:    { value: {} },
-	// interpolators: { value: interpolatorsRegistry },
+	// Because these can be assigned functions to resolve at
+	// instantiation time, they are writable
+	adaptors:      { writable: true, value: {} },
+	components:    { writable: true, value: {} },
+	computed:      { writable: true, value: {} },
+	decorators:    { writable: true, value: {} },
+	easing:        { writable: true, value: easingRegistry },
+	events:        { writable: true, value: {} },
+	interpolators: { writable: true, value: interpolatorsRegistry },
+	partials:      { writable: true, value: {} },
+	transitions:   { writable: true, value: {} },
 
 	// Support
 	svg:           { value: svg },
