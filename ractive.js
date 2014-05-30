@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-30 - commit 39302be9 
+	2014-05-30 - commit 8b0acc70 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2149,10 +2149,16 @@
 	var warn = function() {
 
 		/* global console */
-		var warn;
+		var warn, warned = {};
 		if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
-			warn = function() {
-				console.warn.apply( console, arguments );
+			warn = function( message, allowDuplicates ) {
+				if ( !allowDuplicates ) {
+					if ( warned[ message ] ) {
+						return;
+					}
+					warned[ message ] = true;
+				}
+				console.warn( message );
 			};
 		} else {
 			warn = function() {};
@@ -8192,6 +8198,11 @@
 				node._ractive.transition = null;
 				t._manager.remove( t );
 			};
+			// If the transition function doesn't exist, abort
+			if ( !t._fn ) {
+				t.complete();
+				return;
+			}
 			t._fn.apply( t.root, [ t ].concat( t.params ) );
 		};
 
