@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-30 - commit df3d33ac 
+	2014-05-30 - commit 606c3702 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -554,7 +554,11 @@
 				};
 				fulfil = makeResolver( FULFILLED );
 				reject = makeResolver( REJECTED );
-				callback( fulfil, reject );
+				try {
+					callback( fulfil, reject );
+				} catch ( err ) {
+					reject( err );
+				}
 				promise = {
 					// `then()` returns a Promise - 2.2.7
 					then: function( onFulfilled, onRejected ) {
