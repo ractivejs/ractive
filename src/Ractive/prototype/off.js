@@ -1,7 +1,7 @@
 import trim from 'Ractive/prototype/shared/trim';
 import notEmptyString from 'Ractive/prototype/shared/notEmptyString';
 
-export default function ( eventName, callback ) {
+export default function Ractive$off ( eventName, callback ) {
 	var eventNames;
 
 	// if no arguments specified, remove all callbacks

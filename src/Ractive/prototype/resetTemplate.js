@@ -6,7 +6,7 @@ import Fragment from 'virtualdom/Fragment';
 // could be achieved with unrender-resetTemplate-render. Also, it should
 // conceptually be similar to resetPartial, which couldn't be async
 
-export default function ( template ) {
+export default function Ractive$resetTemplate ( template ) {
 	var transitionsEnabled,
 		changes,
 		options = {

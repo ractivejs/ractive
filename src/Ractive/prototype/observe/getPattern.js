@@ -1,6 +1,6 @@
 import isArray from 'utils/isArray';
 
-export default function ( ractive, pattern ) {
+export default function getPattern ( ractive, pattern ) {
 	var keys, key, values, matchingKeypaths;
 
 	keys = pattern.split( '.' );

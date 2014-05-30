@@ -1,6 +1,6 @@
 import isNumeric from 'utils/isNumeric';
 
-export default function ( root, keypath, d ) {
+export default function add ( root, keypath, d ) {
 	var value;
 
 	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {

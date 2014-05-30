@@ -1,4 +1,4 @@
-export default function ( eventName ) {
+export default function Ractive$fire ( eventName ) {
 	var args, i, len, subscribers = this._subs[ eventName ];
 
 	if ( !subscribers ) {
