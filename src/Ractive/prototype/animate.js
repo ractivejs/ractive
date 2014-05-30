@@ -9,7 +9,7 @@ var noop = function () {}, noAnimation = {
 	stop: noop
 };
 
-export default function ( keypath, to, options ) {
+export default function Ractive$animate ( keypath, to, options ) {
 
 	var promise,
 		fulfilPromise,

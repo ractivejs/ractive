@@ -1,6 +1,6 @@
 import makeQuery from 'Ractive/prototype/shared/makeQuery/_makeQuery';
 
-export default function ( selector, options ) {
+export default function Ractive$findAll ( selector, options ) {
 	var liveQueries, query;
 
 	if ( !this.el ) {

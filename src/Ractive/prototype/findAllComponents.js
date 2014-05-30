@@ -1,6 +1,6 @@
 import makeQuery from 'Ractive/prototype/shared/makeQuery/_makeQuery';
 
-export default function ( selector, options ) {
+export default function Ractive$findAllComponents ( selector, options ) {
 	var liveQueries, query;
 
 	options = options || {};

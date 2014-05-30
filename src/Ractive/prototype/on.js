@@ -1,7 +1,7 @@
 import trim from 'Ractive/prototype/shared/trim';
 import notEmptyString from 'Ractive/prototype/shared/notEmptyString';
 
-export default function ( eventName, callback ) {
+export default function Ractive$on ( eventName, callback ) {
 	var self = this, listeners, n, eventNames;
 
 	// allow mutliple listeners to be bound in one go
