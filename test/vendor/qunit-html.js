@@ -61,7 +61,7 @@
 			i = node.attributes.length;
 			while ( i-- ) {
 				attr = node.attributes[i];
-				stub.attributes[ attr.name ] = attr.value || true;
+				stub.attributes[ attr.name ] = attr.value;
 			}
 
 			return stub;
