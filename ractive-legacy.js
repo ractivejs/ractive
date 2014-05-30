@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-30 - commit 8b0acc70 
+	2014-05-30 - commit 053f13ea 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -236,8 +236,8 @@
 				win.addEventListener = doc.addEventListener = addEventListener;
 				win.removeEventListener = doc.removeEventListener = removeEventListener;
 				if ( 'Element' in win ) {
-					Element.prototype.addEventListener = addEventListener;
-					Element.prototype.removeEventListener = removeEventListener;
+					win.Element.prototype.addEventListener = addEventListener;
+					win.Element.prototype.removeEventListener = removeEventListener;
 				} else {
 					// First, intercept any calls to document.createElement - this is necessary
 					// because the CSS hack (see below) doesn't come into play until after a
