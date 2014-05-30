@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-05-30 - commit 1ac86f31 
+	2014-05-30 - commit df3d33ac 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5432,11 +5432,11 @@
 	var getNewKeypath = function( startsWithKeypath ) {
 
 		return function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
-			//exact match
+			// exact match
 			if ( targetKeypath === oldKeypath ) {
 				return newKeypath;
 			}
-			//partial match based on leading keypath segments
+			// partial match based on leading keypath segments
 			if ( startsWithKeypath( targetKeypath, oldKeypath ) ) {
 				return targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
 			}
@@ -8777,10 +8777,11 @@
 	var assignNewKeypath = function( startsWith, getNewKeypath ) {
 
 		return function assignNewKeypath( target, property, oldKeypath, newKeypath ) {
-			if ( !target[ property ] || startsWith( target[ property ], newKeypath ) ) {
+			var existingKeypath = target[ property ];
+			if ( !existingKeypath || startsWith( existingKeypath, newKeypath ) || !startsWith( existingKeypath, oldKeypath ) ) {
 				return;
 			}
-			target[ property ] = getNewKeypath( target[ property ], oldKeypath, newKeypath );
+			target[ property ] = getNewKeypath( existingKeypath, oldKeypath, newKeypath );
 		};
 	}( startsWith, getNewKeypath );
 
