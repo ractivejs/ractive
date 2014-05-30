@@ -37,7 +37,7 @@ export default function createTwowayBinding ( element ) {
 			}
 		}
 
-		else if ( type === 'file' ) {
+		else if ( type === 'file' && isBindable( attributes.value ) ) {
 			Binding = FileListBinding;
 		}
 

@@ -108,6 +108,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		});
 
+		test( 'Two-way data binding is not attempted on elements with no mustache binding', function ( t ) {
+			expect(0);
+
+			// This will throw an error if the binding is attempted (Issue #750)
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input type="radio"><input type="checkbox"><input type="file"><select></select><textarea></textarea><div contenteditable="true"></div>'
+			});
+		});
+
 	};
 
 });
