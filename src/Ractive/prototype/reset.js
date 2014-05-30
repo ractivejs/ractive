@@ -8,7 +8,7 @@ import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
 
-export default function ( data, callback ) {
+export default function Ractive$reset ( data, callback ) {
 	var self = this,
 		promise,
 		fulfilPromise,

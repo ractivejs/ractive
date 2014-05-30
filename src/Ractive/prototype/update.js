@@ -3,7 +3,7 @@ import Promise from 'utils/Promise';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 
-export default function ( keypath, callback ) {
+export default function Ractive$update ( keypath, callback ) {
 	var promise, fulfilPromise;
 
 	if ( typeof keypath === 'function' ) {

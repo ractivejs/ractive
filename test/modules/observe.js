@@ -330,6 +330,12 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( lastB, 'five' );
 		});
 
+		test( 'Pattern observers work with an empty array (#760)', function ( t ) {
+			var ractive = new Ractive({});
+			ractive.observe( 'foo.*.bar', function ( n, o, k ) {});
+			t.ok( true );
+		});
+
 	};
 
 });

@@ -8,7 +8,7 @@ import propagateChanges from 'Ractive/prototype/merge/propagateChanges';
 
 var comparators = {};
 
-export default function merge ( keypath, array, options ) {
+export default function Ractive$merge ( keypath, array, options ) {
 
 	var currentArray,
 		oldArray,

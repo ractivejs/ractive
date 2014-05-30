@@ -5,7 +5,7 @@ import sort from 'Ractive/prototype/shared/makeQuery/sort';
 import dirty from 'Ractive/prototype/shared/makeQuery/dirty';
 import remove from 'Ractive/prototype/shared/makeQuery/remove';
 
-export default function ( ractive, selector, live, isComponentQuery ) {
+export default function makeQuery ( ractive, selector, live, isComponentQuery ) {
 	var query = [];
 
 	defineProperties( query, {

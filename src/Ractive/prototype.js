@@ -1,5 +1,5 @@
 import add from 'Ractive/prototype/add';
-import animate from 'Ractive/prototype/animate/_animate';
+import animate from 'Ractive/prototype/animate';
 import detach from 'Ractive/prototype/detach';
 import find from 'Ractive/prototype/find';
 import findAll from 'Ractive/prototype/findAll';
@@ -8,12 +8,11 @@ import findComponent from 'Ractive/prototype/findComponent';
 import fire from 'Ractive/prototype/fire';
 import get from 'Ractive/prototype/get';
 import insert from 'Ractive/prototype/insert';
-import merge from 'Ractive/prototype/merge/_merge';
+import merge from 'Ractive/prototype/merge';
 import observe from 'Ractive/prototype/observe';
 import off from 'Ractive/prototype/off';
 import on from 'Ractive/prototype/on';
 import render from 'Ractive/prototype/render';
-import renderHTML from 'Ractive/prototype/renderHTML';
 import reset from 'Ractive/prototype/reset';
 import resetTemplate from 'Ractive/prototype/resetTemplate';
 import set from 'Ractive/prototype/set';
@@ -41,7 +40,6 @@ export default {
 	off: off,
 	on: on,
 	render: render,
-	renderHTML: renderHTML,
 	reset: reset,
 	resetTemplate: resetTemplate,
 	set: set,

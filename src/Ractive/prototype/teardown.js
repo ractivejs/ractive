@@ -4,7 +4,7 @@ import clearCache from 'shared/clearCache';
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
 
-export default function ( callback ) {
+export default function Ractive$teardown ( callback ) {
 	var keypath, promise, unresolvedImplicitDependency;
 
 	this.fire( 'teardown' );

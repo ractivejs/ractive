@@ -18,6 +18,12 @@ export default function Transition$start ( isIntro ) {
 		t._manager.remove( t );
 	};
 
+	// If the transition function doesn't exist, abort
+	if ( !t._fn ) {
+		t.complete();
+		return;
+	}
+
 	t._fn.apply( t.root, [ t ].concat( t.params ) );
 }
 

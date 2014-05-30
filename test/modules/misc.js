@@ -1236,6 +1236,17 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+		asyncTest( 'A Promise will be rejected if its callback throws (#759)', function ( t ) {
+			var p = new Ractive.Promise( function () {
+				throw 'ruh-roh';
+			});
+
+			p.then( null, function ( err ) {
+				t.equal( err, 'ruh-roh' );
+				QUnit.start();
+			});
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

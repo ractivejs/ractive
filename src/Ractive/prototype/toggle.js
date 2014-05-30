@@ -1,4 +1,4 @@
-export default function ( keypath, callback ) {
+export default function Ractive$toggle ( keypath, callback ) {
 	var value;
 
 	if ( typeof keypath !== 'string' ) {

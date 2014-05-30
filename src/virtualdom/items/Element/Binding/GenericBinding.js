@@ -25,12 +25,6 @@ GenericBinding = Binding.extend({
 
 	getValue: function () {
 		var value = this.element.node.value;
-
-		// if the value is numeric, treat it as a number. otherwise don't
-		if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {
-			value = +value;
-		}
-
 		return value;
 	},
 

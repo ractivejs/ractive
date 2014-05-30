@@ -1,12 +1,35 @@
 import isArray from 'utils/isArray';
 
-export default function ( ractive, pattern ) {
-	var keys, key, values, toGet, newToGet, expand, concatenate;
+export default function getPattern ( ractive, pattern ) {
+	var keys, key, values, matchingKeypaths;
 
 	keys = pattern.split( '.' );
-	toGet = [ '' ];
+	matchingKeypaths = [ '' ];
 
-	expand = function ( keypath ) {
+	while ( key = keys.shift() ) {
+		if ( key === '*' ) {
+			// expand to find all valid child keypaths
+			matchingKeypaths = matchingKeypaths.reduce( expand, [] );
+		}
+
+		else {
+			if ( matchingKeypaths[0] === '' ) { // first key
+				matchingKeypaths[0] = key;
+			} else {
+				matchingKeypaths = matchingKeypaths.map( concatenate( key ) );
+			}
+		}
+	}
+
+	values = {};
+
+	matchingKeypaths.forEach( keypath => {
+		values[ keypath ] = ractive.get( keypath );
+	});
+
+	return values;
+
+	function expand ( matchingKeypaths, keypath ) {
 		var value, key, childKeypath;
 
 		value = ( ractive._wrapped[ keypath ] ? ractive._wrapped[ keypath ].get() : ractive.get( keypath ) );
@@ -14,37 +37,16 @@ export default function ( ractive, pattern ) {
 		for ( key in value ) {
 			if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
 				childKeypath = keypath ? keypath + '.' + key : key;
-				newToGet.push( childKeypath );
+				matchingKeypaths.push( childKeypath );
 			}
 		}
-	};
 
-	concatenate = function ( keypath ) {
-		return keypath + '.' + key;
-	};
-
-	while ( key = keys.shift() ) {
-		if ( key === '*' ) {
-			newToGet = [];
-
-			toGet.forEach( expand );
-			toGet = newToGet;
-		}
-
-		else {
-			if ( !toGet[0] ) {
-				toGet[0] = key;
-			} else {
-				toGet = toGet.map( concatenate );
-			}
-		}
+		return matchingKeypaths;
 	}
 
-	values = {};
-
-	toGet.forEach( function ( keypath ) {
-		values[ keypath ] = ractive.get( keypath );
-	});
-
-	return values;
+	function concatenate ( key ) {
+		return function ( keypath ) {
+			return keypath ? keypath + '.' + key : key;
+		}
+	}
 }
