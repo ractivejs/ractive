@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-05-30 - commit 32cb7cf8 
+	2014-05-30 - commit 1ac86f31 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -176,7 +176,7 @@
 	/* Ractive/prototype/shared/add.js */
 	var Ractive$shared_add = function( isNumeric ) {
 
-		return function( root, keypath, d ) {
+		return function add( root, keypath, d ) {
 			var value;
 			if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
 				throw new Error( 'Bad arguments' );
@@ -192,7 +192,7 @@
 	/* Ractive/prototype/add.js */
 	var Ractive$add = function( add ) {
 
-		return function( keypath, d ) {
+		return function Ractive$add( keypath, d ) {
 			return add( this, keypath, d === undefined ? 1 : +d );
 		};
 	}( Ractive$shared_add );
@@ -2374,14 +2374,14 @@
 		return Animation;
 	}( warn, runloop, interpolate, set );
 
-	/* Ractive/prototype/animate/_animate.js */
-	var Ractive$animate__animate = function( isEqual, Promise, normaliseKeypath, animations, get, Animation ) {
+	/* Ractive/prototype/animate.js */
+	var Ractive$animate = function( isEqual, Promise, normaliseKeypath, animations, get, Animation ) {
 
 		var noop = function() {},
 			noAnimation = {
 				stop: noop
 			};
-		return function( keypath, to, options ) {
+		return function Ractive$animate( keypath, to, options ) {
 			var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
 			promise = new Promise( function( fulfil ) {
 				fulfilPromise = fulfil;
@@ -2520,7 +2520,7 @@
 	/* Ractive/prototype/detach.js */
 	var Ractive$detach = function( removeFromArray ) {
 
-		return function() {
+		return function Ractive$detach() {
 			if ( this.el ) {
 				removeFromArray( this.el.__ractive_instances__, this );
 			}
@@ -2529,7 +2529,7 @@
 	}( removeFromArray );
 
 	/* Ractive/prototype/find.js */
-	var Ractive$find = function( selector ) {
+	var Ractive$find = function Ractive$find( selector ) {
 		if ( !this.el ) {
 			return null;
 		}
@@ -2736,7 +2736,7 @@
 	/* Ractive/prototype/shared/makeQuery/_makeQuery.js */
 	var Ractive$shared_makeQuery__makeQuery = function( defineProperties, test, cancel, sort, dirty, remove ) {
 
-		return function( ractive, selector, live, isComponentQuery ) {
+		return function makeQuery( ractive, selector, live, isComponentQuery ) {
 			var query = [];
 			defineProperties( query, {
 				selector: {
@@ -2783,7 +2783,7 @@
 	/* Ractive/prototype/findAll.js */
 	var Ractive$findAll = function( makeQuery ) {
 
-		return function( selector, options ) {
+		return function Ractive$findAll( selector, options ) {
 			var liveQueries, query;
 			if ( !this.el ) {
 				return [];
@@ -2811,7 +2811,7 @@
 	/* Ractive/prototype/findAllComponents.js */
 	var Ractive$findAllComponents = function( makeQuery ) {
 
-		return function( selector, options ) {
+		return function Ractive$findAllComponents( selector, options ) {
 			var liveQueries, query;
 			options = options || {};
 			liveQueries = this._liveComponentQueries;
@@ -2834,12 +2834,12 @@
 	}( Ractive$shared_makeQuery__makeQuery );
 
 	/* Ractive/prototype/findComponent.js */
-	var Ractive$findComponent = function( selector ) {
+	var Ractive$findComponent = function Ractive$findComponent( selector ) {
 		return this.fragment.findComponent( selector );
 	};
 
 	/* Ractive/prototype/fire.js */
-	var Ractive$fire = function( eventName ) {
+	var Ractive$fire = function Ractive$fire( eventName ) {
 		var args, i, len, subscribers = this._subs[ eventName ];
 		if ( !subscribers ) {
 			return;
@@ -2940,7 +2940,7 @@
 	/* Ractive/prototype/insert.js */
 	var Ractive$insert = function( getElement ) {
 
-		return function( target, anchor ) {
+		return function Ractive$insert( target, anchor ) {
 			if ( !this.rendered ) {
 				// TODO create, and link to, documentation explaining this
 				throw new Error( 'The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.' );
@@ -3022,11 +3022,11 @@
 		};
 	}( types, notifyDependants );
 
-	/* Ractive/prototype/merge/_merge.js */
-	var Ractive$merge__merge = function( runloop, warn, isArray, Promise, set, mapOldToNewIndex, propagateChanges ) {
+	/* Ractive/prototype/merge.js */
+	var Ractive$merge = function( runloop, warn, isArray, Promise, set, mapOldToNewIndex, propagateChanges ) {
 
 		var comparators = {};
-		return function merge( keypath, array, options ) {
+		return function Ractive$merge( keypath, array, options ) {
 			var currentArray, oldArray, newArray, comparator, lengthUnchanged, newIndices, promise, fulfilPromise;
 			currentArray = this.get( keypath );
 			// If either the existing value or the new value isn't an
@@ -3163,7 +3163,7 @@
 	/* Ractive/prototype/observe/getPattern.js */
 	var Ractive$observe_getPattern = function( isArray ) {
 
-		return function( ractive, pattern ) {
+		return function getPattern( ractive, pattern ) {
 			var keys, key, values, matchingKeypaths;
 			keys = pattern.split( '.' );
 			matchingKeypaths = [ '' ];
@@ -3351,7 +3351,7 @@
 	/* Ractive/prototype/observe.js */
 	var Ractive$observe = function( isObject, getObserverFacade ) {
 
-		return function observe( keypath, callback, options ) {
+		return function Ractive$observe( keypath, callback, options ) {
 			var observers, map, keypaths, i;
 			// Allow a map of keypaths to handlers
 			if ( isObject( keypath ) ) {
@@ -3416,7 +3416,7 @@
 	/* Ractive/prototype/off.js */
 	var Ractive$off = function( trim, notEmptyString ) {
 
-		return function( eventName, callback ) {
+		return function Ractive$off( eventName, callback ) {
 			var this$0 = this;
 			var eventNames;
 			// if no arguments specified, remove all callbacks
@@ -3453,7 +3453,7 @@
 	/* Ractive/prototype/on.js */
 	var Ractive$on = function( trim, notEmptyString ) {
 
-		return function( eventName, callback ) {
+		return function Ractive$on( eventName, callback ) {
 			var this$0 = this;
 			var self = this,
 				listeners, n, eventNames;
@@ -3540,16 +3540,6 @@
 			instance._childInitQueue.splice( 0 ).forEach( init );
 		}
 	}( runloop, css, Promise, getElement );
-
-	/* Ractive/prototype/renderHTML.js */
-	var Ractive$renderHTML = function( warn ) {
-
-		return function() {
-			// TODO remove this method in a future version!
-			warn( 'renderHTML() has been deprecated and will be removed in a future version. Please use toHTML() instead' );
-			return this.toHTML();
-		};
-	}( warn );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
@@ -10031,7 +10021,7 @@
 			'decorators',
 			'events'
 		].join();
-		return function( data, callback ) {
+		return function Ractive$reset( data, callback ) {
 			var self = this,
 				promise, fulfilPromise, wrapper, changes, rerender, i;
 			if ( typeof data === 'function' && !callback ) {
@@ -10102,7 +10092,7 @@
 		// of outro, update template, intro? I reckon probably not, since that
 		// could be achieved with unrender-resetTemplate-render. Also, it should
 		// conceptually be similar to resetPartial, which couldn't be async
-		return function( template ) {
+		return function Ractive$resetTemplate( template ) {
 			var transitionsEnabled, changes, options = {
 				updatesOnly: true,
 				registries: [
@@ -10168,7 +10158,7 @@
 	/* Ractive/prototype/subtract.js */
 	var Ractive$subtract = function( add ) {
 
-		return function( keypath, d ) {
+		return function Ractive$subtract( keypath, d ) {
 			return add( this, keypath, d === undefined ? -1 : -d );
 		};
 	}( Ractive$shared_add );
@@ -10178,7 +10168,7 @@
 
 		// Teardown. This goes through the root fragment and all its children, removing observers
 		// and generally cleaning up after itself
-		return function( callback ) {
+		return function Ractive$teardown( callback ) {
 			var keypath, promise, unresolvedImplicitDependency;
 			this.fire( 'teardown' );
 			this.fragment.teardown();
@@ -10200,12 +10190,12 @@
 	}( Promise, clearCache );
 
 	/* Ractive/prototype/toHTML.js */
-	var Ractive$toHTML = function() {
+	var Ractive$toHTML = function Ractive$toHTML() {
 		return this.fragment.toString( true );
 	};
 
 	/* Ractive/prototype/toggle.js */
-	var Ractive$toggle = function( keypath, callback ) {
+	var Ractive$toggle = function Ractive$toggle( keypath, callback ) {
 		var value;
 		if ( typeof keypath !== 'string' ) {
 			if ( this.debug ) {
@@ -10271,7 +10261,7 @@
 	/* Ractive/prototype/update.js */
 	var Ractive$update = function( runloop, Promise, clearCache, notifyDependants ) {
 
-		return function( keypath, callback ) {
+		return function Ractive$update( keypath, callback ) {
 			var promise, fulfilPromise;
 			if ( typeof keypath === 'function' ) {
 				callback = keypath;
@@ -10360,7 +10350,7 @@
 	}( getValueFromCheckboxes, arrayContentsMatch, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, renderHTML, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
 
 		return {
 			add: add,
@@ -10378,7 +10368,6 @@
 			off: off,
 			on: on,
 			render: render,
-			renderHTML: renderHTML,
 			reset: reset,
 			resetTemplate: resetTemplate,
 			set: set,
@@ -10390,7 +10379,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate__animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge__merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$renderHTML, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
 
 	/* registries/components.js */
 	var components = {};
