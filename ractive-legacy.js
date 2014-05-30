@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-30 - commit 023639d0 
+	2014-05-30 - commit 32cb7cf8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7718,7 +7718,7 @@
 					if ( isBindable( attributes.checked ) ) {
 						Binding = CheckedBinding;
 					}
-				} else if ( type === 'file' ) {
+				} else if ( type === 'file' && isBindable( attributes.value ) ) {
 					Binding = FileListBinding;
 				} else if ( isBindable( attributes.value ) ) {
 					Binding = GenericBinding;
