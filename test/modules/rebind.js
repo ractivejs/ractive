@@ -358,6 +358,31 @@ define([
 			t.ok( true );
 		});
 
+		test( 'Regression test for #756 - fragment contexts are not rebound to undefined', function ( t ) {
+			var ractive, new_items;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#items}}
+						<div class="{{foo?'foo':''}}">
+							{{#test}}{{# .list.length === 1 }}[ {{list.0.thing}} ]{{/ .list.length }}{{/test}}
+						</div>
+					{{/items}}`,
+				data: { items:[{},{}] }
+			});
+
+			new_items = [{"test":{"list":[{"thing":"Z"},{"thing":"Z"}]},"foo":false},
+			             {"test":{"list":[{"thing":"Z"},{"thing":"Z"}]},"foo":false}]
+
+			ractive.set('items', new_items)
+
+			new_items[1].test = {"list":[{"thing":"Z"}]}
+			ractive.update();
+
+			t.htmlEqual( fixture.innerHTML, '<div class></div><div class>[ Z ]</div>' );
+		});
+
 	};
 
 });
