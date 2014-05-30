@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-05-30 - commit 606c3702 
+	2014-05-30 - commit 39302be9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7346,10 +7346,6 @@
 			},
 			getValue: function() {
 				var value = this.element.node.value;
-				// if the value is numeric, treat it as a number. otherwise don't
-				if ( +value + '' === value && value.indexOf( 'e' ) === -1 ) {
-					value = +value;
-				}
 				return value;
 			},
 			unrender: function() {
