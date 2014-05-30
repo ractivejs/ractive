@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-29 - commit 9cdbf30f 
+	2014-05-30 - commit 023639d0 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3481,41 +3481,46 @@
 	var Ractive$observe_getPattern = function( isArray ) {
 
 		return function( ractive, pattern ) {
-			var keys, key, values, toGet, newToGet, expand, concatenate;
+			var keys, key, values, matchingKeypaths;
 			keys = pattern.split( '.' );
-			toGet = [ '' ];
-			expand = function( keypath ) {
+			matchingKeypaths = [ '' ];
+			while ( key = keys.shift() ) {
+				if ( key === '*' ) {
+					// expand to find all valid child keypaths
+					matchingKeypaths = matchingKeypaths.reduce( expand, [] );
+				} else {
+					if ( matchingKeypaths[ 0 ] === '' ) {
+						// first key
+						matchingKeypaths[ 0 ] = key;
+					} else {
+						matchingKeypaths = matchingKeypaths.map( concatenate( key ) );
+					}
+				}
+			}
+			values = {};
+			matchingKeypaths.forEach( function( keypath ) {
+				values[ keypath ] = ractive.get( keypath );
+			} );
+			return values;
+
+			function expand( matchingKeypaths, keypath ) {
 				var value, key, childKeypath;
 				value = ractive._wrapped[ keypath ] ? ractive._wrapped[ keypath ].get() : ractive.get( keypath );
 				for ( key in value ) {
 					if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) {
 						// for benefit of IE8
 						childKeypath = keypath ? keypath + '.' + key : key;
-						newToGet.push( childKeypath );
+						matchingKeypaths.push( childKeypath );
 					}
 				}
-			};
-			concatenate = function( keypath ) {
-				return keypath + '.' + key;
-			};
-			while ( key = keys.shift() ) {
-				if ( key === '*' ) {
-					newToGet = [];
-					toGet.forEach( expand );
-					toGet = newToGet;
-				} else {
-					if ( !toGet[ 0 ] ) {
-						toGet[ 0 ] = key;
-					} else {
-						toGet = toGet.map( concatenate );
-					}
-				}
+				return matchingKeypaths;
 			}
-			values = {};
-			toGet.forEach( function( keypath ) {
-				values[ keypath ] = ractive.get( keypath );
-			} );
-			return values;
+
+			function concatenate( key ) {
+				return function( keypath ) {
+					return keypath ? keypath + '.' + key : key;
+				};
+			}
 		};
 	}( isArray );
 
