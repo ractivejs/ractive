@@ -54,6 +54,35 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'Observers fire on init when no matching data', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{foo}}',
+				data: {}
+			});
+
+			expect( 2 );
+
+			ractive.observe( 'foo', function ( foo, old, keypath ) {
+				t.ok( !foo );
+				t.equal( keypath, 'foo' );
+			});
+		});
+
+		test( 'Pattern observers do NOT fire on init when no matching data', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{foo}}',
+				data: {}
+			});
+
+			expect( 0 );
+
+			ractive.observe( '*', function () {
+				t.ok( true );
+			});
+		});
+
 		test( 'Uninitialised observers do not fire if their keypath is set to the same value', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
@@ -331,10 +360,27 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		test( 'Pattern observers work with an empty array (#760)', function ( t ) {
-			var ractive = new Ractive({});
-			ractive.observe( 'foo.*.bar', function ( n, o, k ) {});
-			t.ok( true );
+ 			var ractive = new Ractive({});
+ 			ractive.observe( 'foo.*.bar', function ( n, o, k ) {});
+ 			t.ok( true );
+ 		});
+
+		test( 'Pattern observers work with an property of array (#760) varient', function ( t ) {
+
+			var ractive = new Ractive({ data: { foo: [] } } ),
+				bar = { bar: 1 };
+
+			expect(2);
+
+			ractive.observe('foo.*.bar', function( n, o, k ) {
+			    t.equal( n, bar );
+			    t.equal( k, 'foo.0' );
+			});
+
+			ractive.get( 'foo' ).push( bar );
 		});
+
+
 
 	};
 
