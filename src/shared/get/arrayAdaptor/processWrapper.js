@@ -13,7 +13,7 @@ circular.push( function () {
 });
 
 export default function ( wrapper, array, methodName, spliceSummary ) {
-	var root, keypath, keypathLength, updateDependant, i, childKeypath, patternObservers;
+	var root, keypath, updateDependant, i, childKeypath;
 
 	root = wrapper.root;
 	keypath = wrapper.keypath;
