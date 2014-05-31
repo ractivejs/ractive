@@ -373,8 +373,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			expect(2);
 
 			ractive.observe('foo.*.bar', function( n, o, k ) {
-			    t.equal( n, bar );
-			    t.equal( k, 'foo.0' );
+			    t.equal( n, 1 );
+			    t.equal( k, 'foo.0.bar' );
 			});
 
 			ractive.get( 'foo' ).push( bar );
