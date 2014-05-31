@@ -1,6 +1,7 @@
 import types from 'config/types';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
+import notifyPatternObservers from 'shared/notifyPatternObservers';
 import set from 'shared/set';
 
 import circular from 'circular';
@@ -12,7 +13,7 @@ circular.push( function () {
 });
 
 export default function ( wrapper, array, methodName, spliceSummary ) {
-	var root, keypath, updateDependant, i, childKeypath, patternObservers;
+	var root, keypath, updateDependant, i, childKeypath;
 
 	root = wrapper.root;
 	keypath = wrapper.keypath;
@@ -40,18 +41,8 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 
 	// Propagate changes. First, pattern observers
 	if ( root._patternObservers.length ) {
-		patternObservers = root._patternObservers.filter( function ( patternObserver ) {
-			return patternObserver.regex.test( keypath + '.x' );
-		});
-
-		if ( patternObservers.length ) {
-			patternObservers.forEach( function ( patternObserver ) {
-				var i;
-
-				for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
-					patternObserver.update( keypath + '.' + i );
-				}
-			});
+		for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
+			notifyPatternObservers( root, keypath + '.' + i, keypath + '.' + i, false, true );
 		}
 	}
 
