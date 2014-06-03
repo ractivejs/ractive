@@ -19,10 +19,6 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 	// Allow empty constructor options and save for reset
 	ractive.initOptions = options = options || {};
 
-	// defineProperty( ractive, '_configuration', {
-	// 	value: ractive.constructor._configuration.initialise( ractive, options )
-	// });
-
 	setOptionsAndFlags( ractive, defaults, options );
 	initialiseProperties( ractive, options );
 	initialiseRegistries( ractive, defaults, options );
@@ -134,6 +130,10 @@ function initialiseProperties ( ractive, options ) {
 		// cache
 		_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null
 		_cacheMap: { value: create( null ) },
+
+		// storage for item configuration from instantiation to reset,
+		// like dynamic functions or original values
+		'_config': { value: {} },
 
 		// dependency graph
 		_deps: { value: [] },

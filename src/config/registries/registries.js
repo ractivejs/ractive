@@ -1,9 +1,9 @@
 import registry from 'config/registries/registry';
 import defineProperty from 'utils/defineProperty';
-import template from 'config/template/template';
-import computed from 'config/registries/computed';
-import easing from 'config/registries/easing';
-import interpolators from 'config/registries/interpolators';
+import template from 'config/templating/template';
+import adaptors from 'config/registries/adaptors';
+import computed from 'config/computed/computed';
+import partials from 'config/registries/partials';
 
 var keys = [
 		'computed',
@@ -14,14 +14,14 @@ var keys = [
 		'events',
 		'interpolators',
 		'template',
-		//'partials',
+		'partials',
 		'transitions'
 	],
 	custom = {
-		template: 		template,
-		computed: 		computed,
-		easing:			easing,
-		interpolators:	interpolators
+		adaptors:  adaptors,
+		template:  template,
+		computed:  computed,
+		partials:  partials
 	},
 	registries = keys.map( key => {
 		return custom[ key ] || registry( { name: key } );

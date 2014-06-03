@@ -1,16 +1,22 @@
 var noop = () => {};
 
 export default function ( method, superMethod ) {
-	if ( /_super/.test( method ) ) {
+
+
+	if ( superMethod && typeof superMethod === 'function' && /_super/.test( method ) ) {
+
 		return function () {
 
-			var _super = this._super, result;
-			this._super = superMethod || noop;
+			var hasSuper = ( '_super' in this ), _super = this._super, result;
+
+			this._super = superMethod;
 
 			result = method.apply( this, arguments );
 
-			//TODO: test if _super existed so we don't spam the this with property
-			this._super = _super;
+			if ( hasSuper ) {
+				this._super = _super;
+			}
+
 			return result;
 		};
 	}

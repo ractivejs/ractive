@@ -1,15 +1,15 @@
 import 'legacy';
 
-var defaults, initOptions, flags;
+var defaults, isFunction, properties, initOptions, flags, keys, wrapKeys, config;
 
 defaults = {
 
-	// placement:
+	// render placement:
 	el:                 null,
 	append:				false,
 
 	// template:
-	template:           [],
+	template:           [], //custom
 
 	// parse:
 	preserveWhitespace: false,
@@ -20,14 +20,14 @@ defaults = {
 	handlebars:			false,
 
 	// data & binding:
+	//data:               null, //custom
+	computed:           {},  //custom
 	magic:              false,
 	modifyArrays:       true,
 	adapt:              [],
 	isolated:           false,
 	twoway:             true,
 	lazy:               false,
-	// move out of here?
-	computed:           null,
 
 	// transitions:
 	noIntro:            false,
@@ -38,16 +38,24 @@ defaults = {
 	noCssTransform:     false,
 
 	// debug:
-	debug:              false
+	debug:              false //flag
 };
 
-// flags are place as properties on the ractive instance
+// default is a function and should be wrapped:
+isFunction = {
+	complete: true
+}
+
+// flags are placed as properties on the ractive instance
 // other options are 'consumed' and don't need to exist on instance
-flags = [ 'adapt', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
+flags = [ 'adapt', 'complete', 'modifyArrays', 'magic', 'twoway', 'lazy', 'debug', 'isolated' ];
+
+keys = Object.keys( defaults );
 
 initOptions = {
-	keys: Object.keys( defaults ),
+	keys: keys,
 	defaults: defaults,
+	isFunction: isFunction,
 	flags: flags
 };
 

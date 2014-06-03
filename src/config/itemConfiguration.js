@@ -1,16 +1,19 @@
+import defineProperty from 'utils/defineProperty';
+import initOptions from 'config/initOptions';
 
 function ItemConfiguration ( config ) {
 	this.config = config;
 	this.name = config.name;
+	config.useDefaults = initOptions.defaults.hasOwnProperty( config.name );
 }
 
 ItemConfiguration.prototype = {
 
 	extend: function ( Parent, Child, options ) {
 		options = options || {};
-		configure( this.config, Child,
+		extend( this.config, Child,
 			getParentValue( Parent, this.config ),
-			getChildValue( this.config.name, options )
+			getChildValue( this.name, options )
 		);
 	},
 
@@ -18,17 +21,13 @@ ItemConfiguration.prototype = {
 		options = options || {};
 		init ( this.config, ractive,
 			getParentValue( Parent, this.config ),
-			getChildValue( this.config.name, options) );
+			getChildValue( this.name, options) );
 	},
 
 	reset: function ( ractive ) {
 		return reset( this.config, ractive );
 	}
 };
-
-export default function configure ( config ) {
-	return new ItemConfiguration( config );
-}
 
 function getChildValue ( name, options ) {
 	if ( options ) { return options[ name ]; }
@@ -42,7 +41,7 @@ function getParentValue ( Parent, config ) {
 	}
 }
 
-function configure ( config, Target, parentValue, value ) {
+function extend ( config, Target, parentValue, value ) {
 
 	var result = config.extend( Target, parentValue, value );
 
@@ -54,9 +53,8 @@ function configure ( config, Target, parentValue, value ) {
 		Target = Target.defaults;
 	}
 
-	Target[ config.name ] = result;
+	assign( config, Target, result );
 }
-
 
 function init ( config, ractive, parentValue, value ) {
 
@@ -66,7 +64,7 @@ function init ( config, ractive, parentValue, value ) {
 		result = config.postInit( ractive, result ) || result;
 	}
 
-	ractive[ config.name ] = result;
+	assign ( config, ractive, result );
 }
 
 function reset ( config, ractive ) {
@@ -84,5 +82,25 @@ function reset ( config, ractive ) {
 		ractive[ config.name ] = result;
 		return true;
 	}
+}
+
+function assign ( config, target, value ) {
+
+	if ( empty( config, value ) ) { return; }
+
+	target[ config.name ] = value;
+}
+
+function empty ( config, value ) {
+
+	// allow '', 0, false, etc:
+	return typeof value === 'undefined' || value === null;
+
+}
+
+
+
+export default function extend ( config ) {
+	return new ItemConfiguration( config );
 }
 

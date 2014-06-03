@@ -1,5 +1,5 @@
 import itemConfig from 'config/itemConfiguration';
-import createParser from 'config/template/parser';
+import createParser from 'config/templating/parser';
 import isObject from 'utils/isObject';
 
 var templateConfig, parseOptionKeys;
@@ -10,7 +10,7 @@ templateConfig = itemConfig({
 	defaultValue: '',
 	extend: extend,
 	postExtend: parseTemplate,
-	init: initialise,
+	init: init,
 	postInit: parseTemplate,
 	reset: reset
 });
@@ -25,7 +25,7 @@ function extend ( target, parentValue, value ) {
 	return value;
 }
 
-function initialise ( ractive, parentValue, value ) {
+function init ( ractive, parentValue, value ) {
 
 	var result = extend( ractive, parentValue, value );
 
@@ -66,6 +66,15 @@ function reset ( ractive ) {
 		initial.result = result;
 		return result;
 	}
+}
+
+function postExtend ( target, template ) {
+	parseTemplate ( target, template );
+}
+
+
+function postInit ( target, template ) {
+	parseTemplate ( target, template );
 }
 
 function getParseOptions ( target ) {
