@@ -171,18 +171,21 @@ function initialiseProperties ( ractive, options ) {
 		_changes: { value: [] },
 
 		// failed lookups, when we try to access data from ancestor scopes
-		_unresolvedImplicitDependencies: { value: [] }
+		_unresolvedImplicitDependencies: { value: [] },
+
+		// instance parseOptions are stored here
+		parseOptions: { value: {} }
 	});
 
 	//Save parse specific options
-	ractive.parseOptions = {
-		preserveWhitespace: options.preserveWhitespace,
-		sanitize: options.sanitize,
-		stripComments: options.stripComments,
-		delimiters: options.delimiters,
-		tripleDelimiters: options.tripleDelimiters,
-		handlebars: options.handlebars
-	};
+	// ractive.parseOptions = {
+	// 	preserveWhitespace: options.preserveWhitespace,
+	// 	sanitize: options.sanitize,
+	// 	stripComments: options.stripComments,
+	// 	delimiters: options.delimiters,
+	// 	tripleDelimiters: options.tripleDelimiters,
+	// 	handlebars: options.handlebars
+	// };
 
 	// If this is a component, store a reference to the parent
 	if ( options._parent && options._component ) {

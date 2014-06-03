@@ -1,6 +1,7 @@
 import initOptions from 'config/initOptions';
 import basicConfig from 'config/basicConfig';
 import fnConfig from 'config/functionConfig';
+import parseConfig from 'config/parseConfig';
 import registryConfig from 'config/registries/registry';
 import defineProperty from 'utils/defineProperty';
 import templateConfig from 'config/templating/template';
@@ -9,7 +10,7 @@ import adaptors from 'config/registries/adaptors';
 import computed from 'config/computed/computed';
 import partials from 'config/registries/partials';
 
-var custom, options, keys, registries, config, exclude;
+var custom, options, keys, registries, config, exclude, parseKeys, parseOptions;
 
 keys = [
 	'computed',
@@ -41,17 +42,37 @@ custom = {
 	css: cssConfig
 };
 
+parseKeys = [
+ 	'preserveWhitespace',
+	'sanitize',
+	'stripComments',
+	'delimiters',
+	'tripleDelimiters',
+	'handlebars'
+];
 
-// basicConfig for all options except registries and custom configuration
+parseOptions = parseKeys.map( key => {
+	return parseConfig( key );
+});
+
+parseKeys.forEach( key => {
+	parseOptions[ key ] = true;
+});
+
+
+// basicConfig for all options except registries, parse, and custom configuration
 options = initOptions.keys
 	.filter( key => {
-		return !registries[ key ] && !custom[ key ];
+		return !registries[ key ]
+			&& !custom[ key ]
+			&& !parseOptions[ key ];
 	})
 	.map( basicConfig );
 
 
 config = [ /*dataConfig*/ ]
 	.concat( options )
+	.concat( parseOptions )
 	.concat( custom.complete )
 	.concat( registries )
 	.concat( custom.template, custom.css );

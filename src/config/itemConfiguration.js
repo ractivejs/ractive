@@ -46,7 +46,7 @@ function extend ( config, Target, parentValue, value ) {
 	var result = config.extend( Target, parentValue, value );
 
 	if ( config.postExtend ) {
-		result = config.postExtend( Target, result ) || result;
+		result = config.postExtend( Target, result );
 	}
 
 	if ( config.useDefaults ) {

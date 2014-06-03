@@ -68,7 +68,7 @@ define([
 		module( 'Configure Instance', {
 			setup: function () {
 				configureRactive();
-				ractive = {};
+				ractive = { parseOptions: {} };
 				config.init( Ractive, ractive, {} );
 			}
 		} );
@@ -87,7 +87,9 @@ define([
 
 		test( 'find configuration', t => {
 
-			var parent = {}, ractive = {}, adaptor1 = {}, adaptor2 = {};
+			var parent = { parseOptions: {} },
+				ractive = { parseOptions: {} },
+				adaptor1 = {}, adaptor2 = {};
 
 			config.init( Ractive, parent, { adaptors: { foo: adaptor1 } } );
 			config.init( Ractive, ractive, { adaptors: { bar: adaptor2 } } );

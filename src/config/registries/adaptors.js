@@ -7,22 +7,23 @@ var adaptorsConfig = createRegistry( {
 });
 
 function extend ( Child, adaptors ) {
-	convert( Child.defaults, adaptors );
+	return convert( Child.defaults, adaptors );
 }
 
 function init ( ractive, adaptors ) {
-	convert( ractive, adaptors );
+	return convert( ractive, adaptors );
 }
 
 function convert ( target, adaptors ) {
 
 	var i, adapt = target.adapt;
 
-	if ( !adapt ) { return; }
-
 	if ( typeof adapt === 'string' ) {
 		adapt = [ adapt ];
 	}
+
+	if ( !adapt || !adapt.length ) { return adaptors; }
+
 
 	if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
 		while ( i-- ) {
@@ -35,6 +36,8 @@ function convert ( target, adaptors ) {
 	}
 
 	target.adapt = adapt;
+
+	return adaptors;
 
 }
 

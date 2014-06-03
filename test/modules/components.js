@@ -308,6 +308,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
+		// TODO: Is thie correct? Or should ractive.complete call this._super?
+		// Which is current requirement within the .extend chain
 		asyncTest( 'Component complete() methods are called', function ( t ) {
 			var ractive, Widget, counter, done;
 
@@ -327,7 +329,6 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture,
 				template: '<widget/>',
 				complete: function () {
-					this._super();
 					t.ok( true );
 					done();
 				},
