@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-05-31 - commit 0100326d 
+	2014-06-03 - commit 376beff4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12136,7 +12136,8 @@
 
 		var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 			commentsPattern = /\/\*.*?\*\//g,
-			selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g;
+			selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
+			mediaQueryPattern = /^@media/;
 		return function transformCss( css, guid ) {
 			var transformed, addGuid;
 			addGuid = function( selector ) {
@@ -12167,6 +12168,9 @@
 			};
 			transformed = css.replace( commentsPattern, '' ).replace( selectorsPattern, function( match, $1 ) {
 				var selectors, transformed;
+				// don't transform media queries!
+				if ( mediaQueryPattern.test( $1 ) )
+					return match;
 				selectors = $1.split( ',' ).map( trim );
 				transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
 				return match.replace( $1, transformed );
