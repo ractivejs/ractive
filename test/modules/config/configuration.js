@@ -27,11 +27,10 @@ define([
 
 				var name = itemConfig.name,
 					useDefaults = itemConfig.config.useDefaults,
-					skipIfEmpty = itemConfig.config.skipIfEmpty,
 					actual = useDefaults && !noTargetDefaults ? target.defaults : target,
 					expected = useDefaults && compare ? compare.defaults : compare;
 
-				if ( skipIfEmpty && !expected[name] ) {
+				if ( !expected[name] ) {
 					ok ( !actual[ name ], 'empty, no name' );
 				} else {
 					ok( actual.hasOwnProperty( name ), 'has ' + name);
@@ -62,7 +61,6 @@ define([
 
 		test( 'extended', t => {
 
-			t.deepEqual( Child.defaults, Ractive.defaults, 'defaults' );
 			testConfiguration( Child, Ractive );
 
 		});

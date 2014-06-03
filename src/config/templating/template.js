@@ -93,6 +93,8 @@ function getParseOptions ( target ) {
 
 function parseTemplate ( target, template ) {
 
+	if ( !template ) { return template; }
+
 	var parser = createParser( getParseOptions( target ) );
 
 	if ( !parser.isParsed( template ) ) {

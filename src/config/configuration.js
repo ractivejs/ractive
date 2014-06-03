@@ -1,6 +1,7 @@
 import initOptions from 'config/initOptions';
 import defineProperty from 'utils/defineProperty';
 import defineProperties from 'utils/defineProperties';
+import config from 'config/config';
 import registries from 'config/registries/registries';
 import wrapMethod from 'extend/wrapMethod';
 import augment from 'extend/utils/augment';
@@ -19,33 +20,13 @@ var configuration = {
 
 	extend: function ( Parent, Child, options ) {
 
-		var defaults = initOptions.keys.reduce( (val, key) => {
-
-			var value = options[ key ], parentValue = Parent.defaults[ key ];
-
-			if( initOptions.isFunction[ key ] &&  typeof parentValue === 'function' ){
-				val[ key ] = wrapMethod( value, parentValue ) || null;
-			}
-			else {
-				val[ key ] = options[ key ] || Parent.defaults[ key ];
-			}
-
-			return val;
-
-		}, {});
-
-		defineProperties( Child, {
-			defaults: 		{ value: defaults }
-		});
+		defineProperty( Child, 'defaults', { value: {} } );
 
 		todo_data( Parent, Child, options.data );
 
-
-		registries.forEach( registry => {
-			registry.extend( Parent, Child, options );
-		} );
-
-		cssConfig.extend( Parent, Child, options );
+		config.forEach( each => {
+			each.extend( Parent, Child, options ) }
+		);
 
 		for ( let key in options ) {
 
@@ -67,11 +48,15 @@ var configuration = {
 	init: function ( Parent, ractive, options ) {
 
 
-		//flags
+		config.forEach( each => {
+			// if( each.name === 'template' || config.registries.indexOf(each.name) !== -1) {
+				each.init( Parent, ractive, options ) }
+			// }
+		);
 
-		registries.forEach( registry => {
-			registry.init( Parent, ractive, options );
-		});
+		// registries.forEach( registry => {
+		// 	registry.init( Parent, ractive, options );
+		// });
 
 		for ( let key in options ) {
 			if ( !blacklisted[ key ] && options.hasOwnProperty( key ) ) {

@@ -2,14 +2,29 @@ import createRegistry from 'config/registries/registry';
 
 var adaptorsConfig = createRegistry( {
 	name: 'adaptors',
-	postExtend: convert
+	postExtend: extend,
+	postInit: init
 });
+
+function extend ( Child, adaptors ) {
+	convert( Child.defaults, adaptors );
+}
+
+function init ( ractive, adaptors ) {
+	convert( ractive, adaptors );
+}
 
 function convert ( target, adaptors ) {
 
-	var i, adapt = target.defaults.adapt;
+	var i, adapt = target.adapt;
 
-	if ( adaptors && ( i = adapt.length ) ) {
+	if ( !adapt ) { return; }
+
+	if ( typeof adapt === 'string' ) {
+		adapt = [ adapt ];
+	}
+
+	if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
 		while ( i-- ) {
 			let adaptor = adapt[i];
 
@@ -19,7 +34,7 @@ function convert ( target, adaptors ) {
 		}
 	}
 
-	return adaptors;
+	target.adapt = adapt;
 
 }
 

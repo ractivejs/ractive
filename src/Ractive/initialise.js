@@ -75,21 +75,21 @@ function setOptionsAndFlags ( ractive, defaults, options ) {
 	deprecate( defaults );
 	deprecate( options );
 
-	initOptions.keys.forEach( function ( key ) {
-		if ( options[ key ] === undefined ) {
-			options[ key ] = defaults[ key ];
-		}
-	});
+	// initOptions.keys.forEach( function ( key ) {
+	// 	if ( options[ key ] === undefined ) {
+	// 		options[ key ] = defaults[ key ];
+	// 	}
+	// });
 
-	// flag options
-	initOptions.flags.forEach( function ( flag ) {
-		ractive[ flag ] = options[ flag ];
-	});
+	// // flag options
+	// initOptions.flags.forEach( function ( flag ) {
+	// 	ractive[ flag ] = options[ flag ];
+	// });
 
 	// special cases
-	if ( typeof ractive.adapt === 'string' ) {
-		ractive.adapt = [ ractive.adapt ];
-	}
+	// if ( typeof ractive.adapt === 'string' ) {
+	// 	ractive.adapt = [ ractive.adapt ];
+	// }
 
 	validate( ractive, options );
 }

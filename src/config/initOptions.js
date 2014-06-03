@@ -9,7 +9,7 @@ defaults = {
 	append:				false,
 
 	// template:
-	template:           [], //custom
+	template:           void 0, //custom
 
 	// parse:
 	preserveWhitespace: false,

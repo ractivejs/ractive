@@ -2,7 +2,9 @@ import transformCss from 'config/css/transform';
 import defineProperty from 'utils/defineProperty';
 
 var cssConfig = {
-	extend: extend
+	name: 'css',
+	extend: extend,
+	init: () => {}
 };
 
 function extend ( Parent, Child, options ) {

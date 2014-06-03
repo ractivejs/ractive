@@ -327,6 +327,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture,
 				template: '<widget/>',
 				complete: function () {
+					this._super();
 					t.ok( true );
 					done();
 				},
