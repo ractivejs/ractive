@@ -1,7 +1,7 @@
-import itemConfig from 'config/itemConfiguration';
+import baseConfig from 'config/baseConfig';
 import wrapMethod from 'extend/wrapMethod';
 
-function extend ( target, parentValue, value ) {
+function wrapIfNecessary ( target, parentValue, value ) {
 
 	if ( typeof value !== 'undefined' && value !== null ) {
 
@@ -24,9 +24,9 @@ export default function functionConfig ( name ) {
 
 	var config = {
 		name: name,
-		extend: extend,
-		init: extend
+		extendValue: wrapIfNecessary,
+		initValue: wrapIfNecessary
 	}
 
-	return itemConfig( config );
+	return baseConfig( config );
 };

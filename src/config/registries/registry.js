@@ -1,15 +1,15 @@
-import itemConfig from 'config/itemConfiguration';
+import baseConfig from 'config/baseConfig';
 import match from 'utils/hashmapContentsMatch';
 import wrap from 'extend/wrapMethod';
 
 export default function registryConfig ( config ) {
 
-	config.extend = extend;
-	config.init = init;
-	config.reset = reset;
+	config.extendValue = extend;
+	config.initValue = init;
+	config.resetValue = reset;
 	config.defaultValue = config.defaultValue || {};
 
-	return itemConfig( config );
+	return baseConfig( config );
 }
 
 

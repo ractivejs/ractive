@@ -1,4 +1,4 @@
-import itemConfig from 'config/itemConfiguration';
+import baseConfig from 'config/baseConfig';
 
 
 function extend ( target, parentValue, value ) {
@@ -12,9 +12,9 @@ export default function basicConfig ( name ) {
 
 	var config = {
 		name: name,
-		extend: extend,
-		init: extend
+		extendValue: extend,
+		initValue: extend
 	}
 
-	return itemConfig( config );
+	return baseConfig( config );
 };

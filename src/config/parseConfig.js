@@ -5,7 +5,7 @@ export default function parseConfig ( name ) {
 
 	var config = basicConfig( name );
 
-	config.config.postInit = ( target, result ) => {
+	config.postInit = ( target, result ) => {
 		target.parseOptions[ name ] = result;
 	};
 

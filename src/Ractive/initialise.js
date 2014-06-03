@@ -17,6 +17,7 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 	var defaults = ractive.constructor.defaults, keypath, el;
 
 	// Allow empty constructor options and save for reset
+
 	ractive.initOptions = options = options || {};
 
 	setOptionsAndFlags( ractive, defaults, options );
@@ -176,16 +177,6 @@ function initialiseProperties ( ractive, options ) {
 		// instance parseOptions are stored here
 		parseOptions: { value: {} }
 	});
-
-	//Save parse specific options
-	// ractive.parseOptions = {
-	// 	preserveWhitespace: options.preserveWhitespace,
-	// 	sanitize: options.sanitize,
-	// 	stripComments: options.stripComments,
-	// 	delimiters: options.delimiters,
-	// 	tripleDelimiters: options.tripleDelimiters,
-	// 	handlebars: options.handlebars
-	// };
 
 	// If this is a component, store a reference to the parent
 	if ( options._parent && options._component ) {

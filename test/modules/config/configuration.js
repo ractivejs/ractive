@@ -26,7 +26,7 @@ define([
 			registries.forEach( itemConfig => {
 
 				var name = itemConfig.name,
-					useDefaults = itemConfig.config.useDefaults,
+					useDefaults = itemConfig.useDefaults,
 					actual = useDefaults && !noTargetDefaults ? target.defaults : target,
 					expected = useDefaults && compare ? compare.defaults : compare;
 

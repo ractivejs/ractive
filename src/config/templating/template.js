@@ -1,18 +1,18 @@
-import itemConfig from 'config/itemConfiguration';
+import baseConfig from 'config/baseConfig';
 import createParser from 'config/templating/parser';
 import isObject from 'utils/isObject';
 
 var templateConfig, parseOptionKeys;
 
-templateConfig = itemConfig({
+templateConfig = baseConfig({
 	name: 'template',
 	useDefaults: true,
 	defaultValue: '',
-	extend: extend,
+	extendValue: extend,
 	postExtend: parseTemplate,
-	init: init,
+	initValue: init,
 	postInit: parseTemplate,
-	reset: reset
+	resetValue: reset
 });
 
 parseOptionKeys = [ 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters' ];
