@@ -118,6 +118,15 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'Uninitialised values should be initialised with whatever the \'empty\' value is (#775)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}">'
+			});
+
+			t.equal( ractive.get( 'foo' ), '' );
+		});
+
 	};
 
 });
