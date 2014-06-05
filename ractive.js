@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-05 - commit a76faf09 
+	2014-06-05 - commit 59a80a0c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6976,7 +6976,7 @@
 	};
 
 	/* virtualdom/items/Element/Binding/Binding.js */
-	var Binding = function( runloop, warn, create, extend, set ) {
+	var Binding = function( runloop, warn, create, extend, get, set ) {
 
 		var Binding = function( element ) {
 			var interpolator;
@@ -7007,6 +7007,12 @@
 				interpolator.resolve( interpolator.ref );
 			}
 			this.keypath = this.attribute.interpolator.keypath;
+			// initialise value, if it's undefined
+			// TODO could we use a similar mechanism instead of the convoluted
+			// select/checkbox init logic?
+			if ( get( this.root, this.keypath ) === undefined && this.getInitialValue ) {
+				set( this.root, this.keypath, this.getInitialValue() );
+			}
 		};
 		Binding.prototype = {
 			handleChange: function() {
@@ -7044,7 +7050,7 @@
 			return SpecialisedBinding;
 		};
 		return Binding;
-	}( runloop, warn, create, extend, set );
+	}( runloop, warn, create, extend, get, set );
 
 	/* virtualdom/items/Element/Binding/shared/handleDomEvent.js */
 	var handleDomEvent = function handleChange() {
@@ -7055,6 +7061,9 @@
 	var ContentEditableBinding = function( Binding, handleDomEvent ) {
 
 		var ContentEditableBinding = Binding.extend( {
+			getInitialValue: function() {
+				return this.element.fragment ? this.element.fragment.toString() : '';
+			},
 			render: function() {
 				var node = this.element.node;
 				node.addEventListener( 'change', handleDomEvent, false );
@@ -7070,6 +7079,9 @@
 				node.removeEventListener( 'change', handleDomEvent, false );
 				node.removeEventListener( 'input', handleDomEvent, false );
 				node.removeEventListener( 'keyup', handleDomEvent, false );
+			},
+			getValue: function() {
+				return this.element.node.innerHTML;
 			}
 		} );
 		return ContentEditableBinding;
@@ -7214,6 +7226,22 @@
 	var SelectBinding = function( runloop, set, Binding, handleDomEvent ) {
 
 		var SelectBinding = Binding.extend( {
+			getInitialValue: function() {
+				var options = this.element.options,
+					i;
+				i = options.length;
+				if ( !i ) {
+					return;
+				}
+				// take the final selected option...
+				while ( i-- ) {
+					if ( options[ i ].getAttribute( 'selected' ) ) {
+						return options[ i ].getAttribute( 'value' );
+					}
+				}
+				// or the first option, if none are selected
+				return options[ 0 ].getAttribute( 'value' );
+			},
 			render: function() {
 				this.element.node.addEventListener( 'change', handleDomEvent, false );
 			},
@@ -7235,18 +7263,17 @@
 					}
 				}
 			},
-			updateModel: function() {
-				if ( this.attribute.value === undefined ) {
-					set( this.root, this.keypath, this.initialValue );
-				}
-			},
 			dirty: function() {
 				var this$0 = this;
 				if ( !this._dirty ) {
 					this._dirty = true;
-					runloop.afterModelUpdate( function() {
-						return this$0.updateModel();
-					} );
+					// If there was no initially selected value, we may be
+					// able to set one now
+					if ( this.attribute.value === undefined ) {
+						runloop.afterModelUpdate( function() {
+							set( this$0.root, this$0.keypath, this$0.getInitialValue() );
+						} );
+					}
 				}
 			}
 		} );
@@ -7278,6 +7305,13 @@
 	var MultipleSelectBinding = function( get, set, arrayContentsMatch, SelectBinding, handleDomEvent ) {
 
 		var MultipleSelectBinding = SelectBinding.extend( {
+			getInitialValue: function() {
+				return this.element.options.filter( function( option ) {
+					return option.getAttribute( 'selected' );
+				} ).map( function( option ) {
+					return option.getAttribute( 'value' );
+				} );
+			},
 			render: function() {
 				var valueFromModel;
 				this.element.node.addEventListener( 'change', handleDomEvent, false );
@@ -7348,6 +7382,9 @@
 			evaluateWrapped: true
 		};
 		GenericBinding = Binding.extend( {
+			getInitialValue: function() {
+				return '';
+			},
 			render: function() {
 				var node = this.element.node;
 				node.addEventListener( 'change', handleDomEvent, false );
@@ -8351,19 +8388,42 @@
 		} while ( element = element.parent );
 	};
 
+	/* virtualdom/items/Element/special/option/init.js */
+	var init = function( findParentSelect ) {
+
+		return function initOption( option, template ) {
+			option.select = findParentSelect( option.parent );
+			option.select.options.push( option );
+			// If the <select> was previously rendered, we may still
+			// need to initialise it
+			if ( option.select.binding ) {
+				option.select.binding.dirty();
+			}
+			// If the value attribute is missing, use the element's content
+			if ( !template.a ) {
+				template.a = {};
+			}
+			// ...as long as it isn't disabled
+			if ( !template.a.value && !template.a.hasOwnProperty( 'disabled' ) ) {
+				template.a.value = template.f;
+			}
+			// If there is a `selected` attribute, but the <select>
+			// already has a value, delete it
+			if ( 'selected' in template.a && option.select.getAttribute( 'value' ) !== undefined ) {
+				delete template.a.selected;
+			}
+		};
+	}( findParentSelect );
+
 	/* virtualdom/items/Element/prototype/init.js */
-	var virtualdom_items_Element$init = function( types, namespaces, enforceCase, getElementNamespace, createAttributes, createTwowayBinding, createEventHandlers, Decorator, Transition, bubbleSelect, findParentSelect, circular ) {
+	var virtualdom_items_Element$init = function( types, namespaces, enforceCase, getElementNamespace, createAttributes, createTwowayBinding, createEventHandlers, Decorator, Transition, bubbleSelect, initOption, circular ) {
 
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
 		return function Element$init( options ) {
-			var parentFragment, template, namespace,
-				// width,
-				// height,
-				// loadHandler,
-				ractive, binding, bindings;
+			var parentFragment, template, namespace, ractive, binding, bindings;
 			this.type = types.ELEMENT;
 			// stuff we'll need later
 			parentFragment = this.parentFragment = options.parentFragment;
@@ -8376,76 +8436,30 @@
 			this.name = namespace !== namespaces.html ? enforceCase( template.e ) : template.e;
 			// Special case - <option> elements
 			if ( this.name === 'option' ) {
-				this.select = findParentSelect( this.parent );
-				this.select.options.push( this );
-				// If the value attribute is missing, use the element's content
-				if ( !template.a ) {
-					template.a = {};
-				}
-				if ( !template.a.value ) {
-					template.a.value = template.f;
-				}
-				// If there is a `selected` attribute, but the <select>
-				// already has a value, delete it
-				if ( 'selected' in template.a && this.select.getAttribute( 'value' ) !== undefined ) {
-					delete template.a.selected;
-				}
-			}
-			// create attributes
-			this.attributes = createAttributes( this, template.a );
-			// create twoway binding
-			if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
-				this.binding = binding;
-				// register this with the root, so that we can do ractive.updateModel()
-				bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
-				bindings.push( binding );
-			}
-			// Special case - <option> elements
-			if ( this.name === 'option' ) {
-				if ( this.select.binding ) {
-					this.select.binding.dirty();
-					if ( this.select.getAttribute( 'multiple' ) ) {
-						if ( this.getAttribute( 'selected' ) ) {
-							if ( !this.select.binding.initialValue ) {
-								this.select.binding.initialValue = [];
-							}
-							this.select.binding.initialValue.push( this.getAttribute( 'value' ) );
-						}
-					} else if ( this.getAttribute( 'selected' ) || this.select.binding.initialValue === undefined ) {
-						this.select.binding.initialValue = this.getAttribute( 'value' );
-					}
-				}
+				initOption( this, template );
 			}
 			// Special case - <select> elements
 			if ( this.name === 'select' ) {
 				this.options = [];
-				if ( this.getAttribute( 'multiple' ) && this.binding ) {
-					// As <option> elements are created, they will populate this array
-					this.binding.initialValue = [];
-				}
 				this.bubble = bubbleSelect;
 			}
+			// create attributes
+			this.attributes = createAttributes( this, template.a );
 			// append children, if there are any
 			if ( template.f ) {
-				// Special case - contenteditable
-				/*if ( this.node && this.node.getAttribute( 'contenteditable' ) ) {
-                	if ( this.node.innerHTML ) {
-                		// This is illegal. You can't have content inside a contenteditable
-                		// element that's already populated
-                		errorMessage = 'A pre-populated contenteditable element should not have children';
-                		if ( root.debug ) {
-                			throw new Error( errorMessage );
-                		} else {
-                			warn( errorMessage );
-                		}
-                	}
-                }*/
 				this.fragment = new Fragment( {
 					template: template.f,
 					root: ractive,
 					owner: this,
 					pElement: this
 				} );
+			}
+			// create twoway binding
+			if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
+				this.binding = binding;
+				// register this with the root, so that we can do ractive.updateModel()
+				bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
+				bindings.push( binding );
 			}
 			// create event proxies
 			if ( template.v ) {
@@ -8466,7 +8480,7 @@
 				this.outro = new Transition( this, template.t2 );
 			}
 		};
-	}( types, namespaces, enforceCase, virtualdom_items_Element$init_getElementNamespace, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, Transition, bubble, findParentSelect, circular );
+	}( types, namespaces, enforceCase, virtualdom_items_Element$init_getElementNamespace, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, Transition, bubble, init, circular );
 
 	/* virtualdom/items/shared/utils/startsWith.js */
 	var startsWith = function( startsWithKeypath ) {
@@ -8528,8 +8542,26 @@
 		};
 	}( assignNewKeypath );
 
+	/* virtualdom/items/Element/special/img/render.js */
+	var render = function renderImage( img ) {
+		var width, height, loadHandler;
+		// if this is an <img>, and we're in a crap browser, we may need to prevent it
+		// from overriding width and height when it loads the src
+		if ( ( width = img.getAttribute( 'width' ) ) || ( height = img.getAttribute( 'height' ) ) ) {
+			img.node.addEventListener( 'load', loadHandler = function() {
+				if ( width ) {
+					img.node.width = width.value;
+				}
+				if ( height ) {
+					img.node.height = height.value;
+				}
+				img.node.removeEventListener( 'load', loadHandler, false );
+			}, false );
+		}
+	};
+
 	/* virtualdom/items/Element/prototype/render.js */
-	var virtualdom_items_Element$render = function( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext ) {
+	var virtualdom_items_Element$render = function( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage ) {
 
 		var updateCss, updateScript;
 		updateCss = function() {
@@ -8587,6 +8619,8 @@
 					this.bubble = updateCss;
 					this.bubble();
 					this.fragment.unrender = noop;
+				} else if ( this.binding && this.getAttribute( 'contenteditable' ) ) {
+					this.fragment.unrender = noop;
 				} else {
 					this.node.appendChild( this.fragment.render() );
 				}
@@ -8601,33 +8635,12 @@
 			if ( this.binding ) {
 				this.binding.render();
 				this.node._ractive.binding = this.binding;
-				// Special case - contenteditable
-				if ( this.node.getAttribute( 'contenteditable' ) && this.node._ractive.binding ) {
-					// We need to update the model
-					this.node._ractive.binding.update();
-				}
 			}
-			// name attributes are deferred, because they're a special case - if two-way
-			// binding is involved they need to update later. But if it turns out they're
-			// not two-way we can update them now
-			/*if ( attributes.name && !attributes.name.twoway ) {
-            		attributes.name.update();
-            	}*/
-			// if this is an <img>, and we're in a crap browser, we may need to prevent it
-			// from overriding width and height when it loads the src
-			/*if ( this.node.tagName === 'IMG' && ( ( width = this.attributes.width ) || ( height = this.attributes.height ) ) ) {
-                		this.node.addEventListener( 'load', loadHandler = function () {
-                			if ( width ) {
-                				this.node.width = width.value;
-                			}
-            
-                			if ( height ) {
-                				this.node.height = height.value;
-                			}
-            
-                			this.node.removeEventListener( 'load', loadHandler, false );
-                		}, false );
-                	}*/
+			// Special case: if this is an <img>, and we're in a crap browser, we may
+			// need to prevent it from overriding width and height when it loads the src
+			if ( this.name === 'img' ) {
+				renderImage( this );
+			}
 			// apply decorator(s)
 			if ( this.decorator && this.decorator.fn ) {
 				runloop.afterViewUpdate( function() {
@@ -8693,7 +8706,7 @@
 				}
 			} while ( instance = instance._parent );
 		}
-	}( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext );
+	}( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render );
 
 	/* virtualdom/items/Element/prototype/teardown.js */
 	var virtualdom_items_Element$teardown = function Element$teardown() {
@@ -8740,23 +8753,12 @@
 		};
 
 		function optionIsSelected( element ) {
-			var optionValue, optionValueAttribute, optionValueInterpolator, selectValueAttribute, selectValueInterpolator, selectValue, i;
-			optionValueAttribute = element.attributes.value;
-			if ( optionValueAttribute.value ) {
-				optionValue = optionValueAttribute.value;
-			} else {
-				optionValueInterpolator = optionValueAttribute.interpolator;
-				if ( !optionValueInterpolator ) {
-					return;
-				}
-				optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );
+			var optionValue, selectValue, i;
+			optionValue = element.getAttribute( 'value' );
+			if ( optionValue === undefined ) {
+				return false;
 			}
-			selectValueAttribute = element.select.attributes.value;
-			selectValueInterpolator = selectValueAttribute.interpolator;
-			if ( !selectValueInterpolator ) {
-				return;
-			}
-			selectValue = element.root.get( selectValueInterpolator.keypath || selectValueInterpolator.ref );
+			selectValue = element.select.getAttribute( 'value' );
 			if ( selectValue == optionValue ) {
 				return true;
 			}
