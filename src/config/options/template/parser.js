@@ -1,22 +1,30 @@
 import errors from 'config/errors';
 import isClient from 'config/isClient';
 import parse from 'parse/_parse';
+import create from 'utils/create';
 
-function TemplateParser( options ) {
-	this.options = options;
-}
-
-TemplateParser.prototype = {
-	parse: function ( template, parseOptions ) {
-		if ( !parse ) {
-			throw new Error( errors.missingParser );
-		}
-
-		return parse( template, parseOptions || this.options );
-	},
+var parser = {
+	parse: doParse,
 	fromId: fromId,
 	isHashedId: isHashedId,
-	isParsed: isParsed
+	isParsed: isParsed,
+	createHelper: createHelper
+}
+
+function createHelper ( parseOptions ) {
+	var helper = create( parser );
+	helper.parse = function( template, options ){
+		return doParse( template, options || parseOptions );
+	}
+	return helper;
+}
+
+function doParse ( template, parseOptions ) {
+	if ( !parse ) {
+		throw new Error( errors.missingParser );
+	}
+
+	return parse( template, parseOptions || this.options );
 }
 
 function fromId ( id, options ) {
@@ -56,9 +64,7 @@ function isParsed ( template) {
 	return !( typeof template === 'string' );
 }
 
-export default function parser ( options ) {
-	return new TemplateParser( options );
-}
+export default parser;
 
 
 

@@ -1,5 +1,5 @@
 import baseConfig from 'config/options/baseConfiguration';
-import createParser from 'config/options/template/parser';
+import parser from 'config/options/template/parser';
 import isObject from 'utils/isObject';
 import parseOptions from 'config/options/groups/parseOptions';
 
@@ -43,8 +43,8 @@ function init ( ractive, parentValue, value ) {
 }
 
 function getDynamicTemplate ( ractive, fn ) {
-	var parser = createParser( getParseOptions( ractive ) )
-	return fn.call( ractive, ractive.data, parser );
+	var helper = parser.createHelper( getParseOptions( ractive ) );
+	return fn.call( ractive, ractive.data, helper );
 }
 
 function reset ( ractive ) {
@@ -83,8 +83,6 @@ function parseTemplate ( target, template ) {
 
 	if ( !template ) { return template; }
 
-	var parser = createParser( getParseOptions( target ) );
-
 	if ( !parser.isParsed( template ) ) {
 
 		// Assume this is an ID of a <script type='text/ractive'> tag
@@ -92,7 +90,7 @@ function parseTemplate ( target, template ) {
 			template = parser.fromId( template );
 		}
 
-		template = parser.parse( template );
+		template = parser.parse( template, getParseOptions( target ) );
 	}
 
 	template = processCompound( target, template );

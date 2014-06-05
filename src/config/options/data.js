@@ -1,6 +1,6 @@
 import baseConfig from 'config/options/baseConfiguration';
 import create from 'utils/create';
-import wrap from 'extend/wrapMethod';
+import wrap from 'utils/wrapMethod';
 
 var dataConfig = baseConfig( {
 	name: 'data',

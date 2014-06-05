@@ -1,11 +1,12 @@
 import warn from 'utils/warn';
 import isArray from 'utils/isArray';
+import defaults from 'config/defaults/options';
 
 var config = {
 	name: 'adapt',
 	extend: extend,
 	init: init,
-	useDefaults: true
+	useDefaults: defaults.hasOwnProperty('adapt')
 };
 
 function extend ( Parent, Child, options ) {

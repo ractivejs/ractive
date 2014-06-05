@@ -5,13 +5,15 @@ import config from 'config/config';
 import extendObject from 'utils/extend';
 import initChildInstance from 'extend/initChildInstance';
 import circular from 'circular';
-import wrapMethod from 'extend/wrapMethod';
+import wrapMethod from 'utils/wrapMethod';
 
 var Ractive, blacklisted;
 
 // would be nice to not have these here,
 // they get added during initialise, so for now we have
-// to not try and extend them.
+// to make sure not to try and extend them.
+// Possibly, we could re-order and not add till later
+// in process.
 blacklisted = {
 	'_parent' : true,
 	'_component' : true
@@ -53,28 +55,27 @@ export default function extend ( childProps ) {
 	config.extend( Parent, Child, childProps );
 
 	// and any other options...
-	extendOtherOptions( Child, childProps );
-
-	function extendOtherOptions ( Child, options ) {
-
-		for ( let key in options ) {
-
-			if ( !config.keys[ key ] && !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
-
-				let member = options[ key ]
-
-				// if this is a method that overwrites a method, wrap it:
-				if ( typeof member === 'function' ) {
-					member = wrapMethod( member, Child.prototype[ key ] );
-				}
-
-				Child.prototype[ key ] = member;
-
-			}
-		}
-	}
+	extendNonOptions( Child, childProps );
 
 	return Child;
 }
 
+function extendNonOptions ( Child, options ) {
+
+	for ( let key in options ) {
+
+		if ( !config.keys[ key ] && !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
+
+			let member = options[ key ]
+
+			// if this is a method that overwrites a method, wrap it:
+			if ( typeof member === 'function' ) {
+				member = wrapMethod( member, Child.prototype[ key ] );
+			}
+
+			Child.prototype[ key ] = member;
+
+		}
+	}
+}
 

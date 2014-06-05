@@ -12,7 +12,6 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 	// Allow empty constructor
 	options = options || {};
 
-	//setOptionsAndFlags( ractive, defaults, options );
 	initialiseProperties( ractive, options );
 
 	// init config from Parent and options

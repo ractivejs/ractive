@@ -1,27 +1,25 @@
 import warn from 'utils/warn';
 import config from 'config/config';
-import createParser from 'config/options/template/parser';
+import parser from 'config/options/template/parser';
 import deIndent from 'virtualdom/items/Partial/deIndent';
 
 export default function getPartialDescriptor ( ractive, name ) {
-	var partial, parser, template, errorMessage;
+	var partial, errorMessage;
 
 	// If the partial was specified on this instance, great
 	if ( partial = getPartialFromRegistry( ractive, name ) ) {
 		return partial;
 	}
 
-	parser = createParser( ractive.parseOptions );
-
 	// Does it exist on the page as a script tag?
-	template = parser.fromId( name, { noThrow: true } );
+	partial = parser.fromId( name, { noThrow: true } );
 
-	if ( template ) {
+	if ( partial ) {
 		// is this necessary?
-		template = deIndent( template );
+		partial = deIndent( partial );
 
 		// parse and register to this ractive instance
-		let parsed = parser.parse( template );
+		let parsed = parser.parse( partial, ractive.parseOptions );
 
 		// register (and return main partial if there are others in the template)
 		return ractive.partials[ name ] = config.template.processCompound( ractive, parsed );
@@ -48,8 +46,7 @@ function getPartialFromRegistry ( ractive, name ) {
 
 	if ( instance ) {
 
-		let partial = instance.partials[ name ],
-			parser = createParser( instance.parseOptions );
+		let partial = instance.partials[ name ];
 
 		// If this was added manually to the registry,
 		// but hasn't been parsed, parse it now
@@ -57,7 +54,7 @@ function getPartialFromRegistry ( ractive, name ) {
 
 			// use the parseOptions of the ractive instance
 			// on which it was found
-			partial = parser.parse( partial );
+			partial = parser.parse( partial, instance.parseOptions );
 
 			// may be a template with partials, which need to
 			// be registered and main template extracted

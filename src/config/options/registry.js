@@ -1,6 +1,6 @@
 import baseConfig from 'config/options/baseConfiguration';
 import match from 'utils/hashmapContentsMatch';
-import wrap from 'extend/wrapMethod';
+import wrap from 'utils/wrapMethod';
 import extendObject from 'utils/extend';
 import 'legacy';
 
@@ -60,6 +60,7 @@ function init ( ractive, parentValue, value ) {
 	var result = extend( ractive, parentValue, value );
 
 	if ( typeof result === 'function' ) {
+
 		// store for reset
 		ractive._config[ this.name ] = result;
 

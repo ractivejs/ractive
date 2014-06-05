@@ -5,11 +5,9 @@ import optionConfig from 'config/options/option';
 var config, noMagic;
 
 try {
-
 	Object.defineProperty({}, 'test', { value: 0 });
 }
 catch ( err ) {
-
 	noMagic = true; // no magic in this environment :(
 }
 

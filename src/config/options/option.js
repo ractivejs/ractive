@@ -7,7 +7,7 @@ function extend ( target, parentValue, value ) {
 	return value;
 }
 
-export default function basicConfig ( name ) {
+export default function optionConfig ( name ) {
 
 	return baseConfig({
 		name: name,

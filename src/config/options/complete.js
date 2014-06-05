@@ -1,5 +1,5 @@
 import baseConfig from 'config/options/baseConfiguration';
-import wrapMethod from 'extend/wrapMethod';
+import wrapMethod from 'utils/wrapMethod';
 
 var config = baseConfig({
 	name: 'complete',
