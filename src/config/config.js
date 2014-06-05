@@ -5,7 +5,7 @@ import data from 'config/options/data';
 import defaults from 'config/options/defaults';
 import complete from 'config/options/complete';
 import magic from 'config/options/magic';
-import parseOptions from 'config/options/groups/parse';
+import parseOptions from 'config/options/groups/parseOptions';
 import registries from 'config/options/groups/registries';
 import template from 'config/options/template/template';
 

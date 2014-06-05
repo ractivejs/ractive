@@ -1,6 +1,7 @@
 import baseConfig from 'config/options/baseConfiguration';
 import match from 'utils/hashmapContentsMatch';
 import wrap from 'extend/wrapMethod';
+import 'legacy';
 
 export default function registryConfig ( config ) {
 
