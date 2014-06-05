@@ -1,5 +1,5 @@
-import baseConfig from 'config/baseConfig';
-import createParser from 'config/templating/parser';
+import baseConfig from 'config/options/baseConfiguration';
+import createParser from 'config/options/template/parser';
 import isObject from 'utils/isObject';
 
 var templateConfig, parseOptionKeys;
@@ -59,22 +59,12 @@ function reset ( ractive ) {
 
 	result = getDynamicTemplate ( ractive, initial.fn )
 
-	// compare results of fn return, whihc is likely
-	// be string comparison ( not yet parses ) and
-	// more likely to tell if changed
+	// compare results of fn return, which is likely
+	// be string comparison ( not yet parsed )
 	if ( result !== initial.result ) {
 		initial.result = result;
 		return result;
 	}
-}
-
-function postExtend ( target, template ) {
-	parseTemplate ( target, template );
-}
-
-
-function postInit ( target, template ) {
-	parseTemplate ( target, template );
 }
 
 function getParseOptions ( target ) {

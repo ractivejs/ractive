@@ -59,7 +59,10 @@ export default function Ractive$render ( target, anchor ) {
 
 function init ( instance ) {
 	if ( instance.init ) {
-		instance.init( instance.initOptions );
+		// options all get copied to instance
+		// which is same as this, but less breaking
+		// to continue to include...
+		instance.init( instance );
 	}
 
 	instance._childInitQueue.splice( 0 ).forEach( init );

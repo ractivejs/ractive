@@ -1,5 +1,11 @@
-import baseConfig from 'config/baseConfig';
+import baseConfig from 'config/options/baseConfiguration';
 import wrapMethod from 'extend/wrapMethod';
+
+var config = baseConfig({
+	name: 'complete',
+	extendValue: wrapIfNecessary,
+	initValue: wrapIfNecessary
+});
 
 function wrapIfNecessary ( target, parentValue, value ) {
 
@@ -20,13 +26,6 @@ function wrapIfNecessary ( target, parentValue, value ) {
 
 }
 
-export default function functionConfig ( name ) {
 
-	var config = {
-		name: name,
-		extendValue: wrapIfNecessary,
-		initValue: wrapIfNecessary
-	}
 
-	return baseConfig( config );
-};
+export default config;

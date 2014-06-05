@@ -1,4 +1,4 @@
-import transformCss from 'config/css/transform';
+import transformCss from 'config/options/css/transform';
 import defineProperty from 'utils/defineProperty';
 
 var cssConfig = {

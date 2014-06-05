@@ -37,17 +37,20 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		/* Not currently true. There are number of issues that need to resolved
+		   before we could make this happen */
+		/*
 		test( 'Ractive instance data is used as data object', function ( t ) {
 			var ractive, data = { foo: 'bar' } ;
 
 			Ractive.defaults.data = { bar: 'bizz' };
 			ractive = new Ractive({ data: data });
 
-			//This is how it currently works.
-			t.notEqual( ractive.data, data );
+			t.equal( ractive.data, data );
 
 			delete Ractive.defaults.data;
 		});
+		*/
 
 		test( 'Default data function with no return uses existing data instance', function ( t ) {
 			var ractive;
@@ -107,7 +110,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.data, data );
 		});
 
-		test( 'Extend data option replace Ractive defaults.data', function ( t ) {
+		test( 'Extend data option includes Ractive defaults.data', function ( t ) {
 			var Component, ractive;
 
 			Ractive.defaults.data = {
@@ -130,40 +133,60 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.ok( ractive.data.foo, 'has instance data' );
 			t.ok( ractive.data.componentOnly, 'has Component data' );
-			t.ok( !ractive.data.defaultOnly, 'does not have .default data' );
+			t.ok( ractive.data.defaultOnly, 'has Ractive.default data' );
 			t.equal( fixture.innerHTML, 'component' )
 
 			delete Ractive.defaults.data;
 
 		});
 
-		test( 'Inheritance hierarchy has precedence', function ( t ) {
+		test( 'Return from data function replaces data instance', function ( t ) {
+
 			var Component, ractive;
 
-			Ractive.defaults.data = function(){ return { foo: 'fizz' } };
+			function Model ( data ) {
+				if ( !( this instanceof Model ) ) { return new Model( data ) }
+				this.foo = ( data ? data.foo : 'bar' ) || 'bar';
+			};
 
+			// This would be an odd thing to do, unless you
+			// were returning a model instance...
 			Component = Ractive.extend({
-				data: { bar: 'bizz' }
+				data: Model
 			});
 
 			ractive = new Component( {
 				el: fixture,
-				template: '{{foo}}{{bar}}'
+				template: '{{foo}}'
 			});
-			t.equal( fixture.innerHTML, 'bizz' )
+
+			t.ok( ractive.data instanceof Model );
+			t.equal( fixture.innerHTML, 'bar' )
+
+			ractive = new Component( {
+				el: fixture,
+				template: '{{foo}}',
+				data: { foo: 'fizz' }
+			});
+
+			t.ok( ractive.data instanceof Model );
+			t.equal( fixture.innerHTML, 'fizz' );
 
 			ractive = new Component( {
 				el: fixture,
 				template: '{{foo}}{{bar}}',
-				data: { foo: 'flip' }
+				data: function( data ) {
+					data = this._super( data );
+					data.bar = 'bizz'
+					return data;
+				}
 			});
-			t.equal( fixture.innerHTML, 'flipbizz' )
 
-			delete Ractive.defaults.data;
-
+			t.ok( ractive.data instanceof Model );
+			t.equal( fixture.innerHTML, 'barbizz' );
 		});
 
-		test( 'Instantiated .extend() with data function with no return uses existing data instance', function ( t ) {
+		test( 'Instantiated .extend() with data uses existing data instance', function ( t ) {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({

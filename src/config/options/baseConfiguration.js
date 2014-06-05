@@ -1,21 +1,26 @@
-import defineProperty from 'utils/defineProperty';
-import initOptions from 'config/initOptions';
+import defaults from 'config/options/defaults';
 import extendObject from 'utils/extend';
 
 function BaseConfiguration ( config ) {
 	extendObject( this, config );
-	this.useDefaults = initOptions.defaults.hasOwnProperty( config.name );
+	this.useDefaults = defaults.hasOwnProperty( config.name );
 }
 
 BaseConfiguration.prototype = {
 
 	extend: function ( Parent, Child, options ) {
+		var parentValue, optionValue, result;
+
 		options = options || {};
 
-		var parentValue = this.getParentValue( Parent ),
-			optionValue = this.getOptionValue( options );
+		if( this.preExtend ) {
+			this.preExtend( Child, options );
+		}
 
-		var result = this.extendValue( Child, parentValue, optionValue );
+		parentValue = this.getParentValue( Parent );
+		optionValue = this.getOptionValue( options );
+
+		result = this.extendValue( Child, parentValue, optionValue );
 
 		if ( this.postExtend ) {
 			result = this.postExtend( Child, result );
@@ -29,16 +34,21 @@ BaseConfiguration.prototype = {
 	},
 
 	init: function ( Parent, ractive, options ) {
+		var parentValue, optionValue, result;
 
 		options = options || {};
 
-		var parentValue = this.getParentValue( Parent ),
-			optionValue = this.getOptionValue( options );
+		if( this.preInit ) {
+			this.preInit( ractive, options );
+		}
 
-		var result = this.initValue( ractive, parentValue, optionValue );
+		parentValue = this.getParentValue( Parent );
+		optionValue = this.getOptionValue( options );
+
+		result = this.initValue( ractive, parentValue, optionValue );
 
 		if( this.postInit ) {
-			result = this.postInit( ractive, result ) || result;
+			result = this.postInit( ractive, result );
 		}
 
 		this.assign ( ractive, result );
@@ -53,7 +63,7 @@ BaseConfiguration.prototype = {
 		if ( result ) {
 
 			if( this.postInit ) {
-				result = this.postInit( ractive, result ) || result;
+				result = this.postInit( ractive, result );
 			}
 
 			ractive[ this.name ] = result;
@@ -61,7 +71,7 @@ BaseConfiguration.prototype = {
 		}
 	},
 
-	assign: function( target, value ) {
+	assign: function ( target, value ) {
 
 		if ( empty( value ) ) { return; }
 

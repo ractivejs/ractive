@@ -1,5 +1,3 @@
-var noop = () => {};
-
 export default function ( method, superMethod ) {
 
 

@@ -7,7 +7,7 @@ import Element from 'virtualdom/items/Element/_Element';
 import Partial from 'virtualdom/items/Partial/_Partial';
 import Component from 'virtualdom/items/Component/_Component';
 import Comment from 'virtualdom/items/Comment';
-import config from 'config/configuration';
+import config from 'config/config';
 
 export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {

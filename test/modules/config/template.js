@@ -1,5 +1,5 @@
 define([
-	'config/templating/template',
+	'config/options/template/template',
 	'utils/isArray'
 ],
 function (

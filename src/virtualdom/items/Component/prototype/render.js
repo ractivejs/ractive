@@ -6,7 +6,7 @@ export default function Component$render () {
 
 		var complete;
 
-		if ( complete = instance.constructor.defaults.complete ) {
+		if ( complete = instance.complete ) {
 			complete.call( instance );
 		}
 

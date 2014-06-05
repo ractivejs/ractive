@@ -1,9 +1,9 @@
-import initOptions from 'config/initOptions';
+import defaults from 'config/options/defaults';
+import easingRegistry from 'registries/easing';
+import interpolatorsRegistry from 'registries/interpolators';
 import svg from 'config/svg';
 import defineProperties from 'utils/defineProperties';
 import proto from 'Ractive/prototype';
-import easingRegistry from 'registries/easing';
-import interpolatorsRegistry from 'registries/interpolators';
 import Promise from 'utils/Promise';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
@@ -23,7 +23,7 @@ defineProperties( Ractive, {
 	// Shared properties
 
 	// Default options
-	defaults:      { value: initOptions.defaults },
+	defaults:      { value: defaults },
 
 	// Plugins
 	// Because these can be assigned functions to resolve at

@@ -320,6 +320,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Widget = Ractive.extend({
 				complete: function () {
+					//in component
 					t.ok( true );
 					done();
 				}
@@ -329,6 +330,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture,
 				template: '<widget/>',
 				complete: function () {
+					//in options
 					t.ok( true );
 					done();
 				},

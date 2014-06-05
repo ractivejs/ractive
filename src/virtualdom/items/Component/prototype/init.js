@@ -5,7 +5,7 @@ import createInstance from 'virtualdom/items/Component/initialise/createInstance
 import createBindings from 'virtualdom/items/Component/initialise/createBindings';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
-import config from 'config/configuration';
+import config from 'config/config';
 
 export default function Component$init ( options ) {
 	var parentFragment,
@@ -38,7 +38,7 @@ export default function Component$init ( options ) {
 	// This may involve setting up some bindings, but we can't do it
 	// yet so we take some notes instead
 	toBind = [];
-	data = createModel( this, Component.data || {}, options.template.a, toBind );
+	data = createModel( this, Component.defaults.data || {}, options.template.a, toBind );
 
 	createInstance( this, Component, data, options.template.f );
 	createBindings( this, toBind );

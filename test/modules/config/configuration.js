@@ -1,13 +1,11 @@
 define([
 	'ractive',
-	'config/configuration',
-	'config/initOptions',
-	'config/registries/registries'
+	'config/options/defaults',
+	'config/config'
 ], function (
 	Ractive,
-	config,
-	initOptions,
-	registries
+	defaults,
+	config
 ) {
 
 	'use strict';
@@ -23,15 +21,19 @@ define([
 
 		function testConfiguration ( target, compare, noTargetDefaults ) {
 
-			registries.forEach( itemConfig => {
+			config.forEach( itemConfig => {
 
 				var name = itemConfig.name,
 					useDefaults = itemConfig.useDefaults,
 					actual = useDefaults && !noTargetDefaults ? target.defaults : target,
 					expected = useDefaults && compare ? compare.defaults : compare;
 
+				if ( noTargetDefaults && config.parseOptions[ name ] ) {
+					actual = actual.parseOptions;
+				}
+
 				if ( !expected[name] ) {
-					ok ( !actual[ name ], 'empty, no name' );
+					ok ( !actual[ name ], 'empty ' + name );
 				} else {
 					ok( actual.hasOwnProperty( name ), 'has ' + name);
 				}
@@ -47,7 +49,7 @@ define([
 
 		test( 'base Ractive', t => {
 
-			t.deepEqual( Ractive.defaults, initOptions.defaults, 'has defaults' );
+			t.deepEqual( Ractive.defaults, defaults, 'has defaults' );
 
 		});
 
@@ -55,6 +57,7 @@ define([
 			setup: function () {
 				configureRactive();
 				Child = () => {};
+				Child.defaults = {};
 				config.extend( Ractive, Child, {} );
 			}
 		} );
@@ -76,10 +79,6 @@ define([
 		test( 'ractive instance', t => {
 
 			testConfiguration( ractive, Ractive, true );
-
-			// initOptions.flags.forEach( flag => {
-			// 	t.equal( Ractive.defaults[ flag ], ractive[ flag ], flag );
-			// });
 
 		});
 

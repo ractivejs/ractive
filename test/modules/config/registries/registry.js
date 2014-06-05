@@ -1,5 +1,5 @@
 define([
-	'config/registries/registry'
+	'config/options/registry'
 ], function (
 	registryConfig
 ) {

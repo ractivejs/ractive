@@ -1,4 +1,4 @@
-import config from 'config/configuration';
+import config from 'config/config';
 import arrayAdaptor from 'shared/get/arrayAdaptor';
 import magicAdaptor from 'shared/get/magicAdaptor';
 import magicArrayAdaptor from 'shared/get/magicArrayAdaptor';

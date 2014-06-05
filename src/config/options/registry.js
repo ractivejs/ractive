@@ -1,4 +1,4 @@
-import baseConfig from 'config/baseConfig';
+import baseConfig from 'config/options/baseConfiguration';
 import match from 'utils/hashmapContentsMatch';
 import wrap from 'extend/wrapMethod';
 
@@ -7,9 +7,15 @@ export default function registryConfig ( config ) {
 	config.extendValue = extend;
 	config.initValue = init;
 	config.resetValue = reset;
-	config.defaultValue = config.defaultValue || {};
 
-	return baseConfig( config );
+	var base = baseConfig( config ),
+		assign = base.assign.bind( base );
+
+	base.assign = function ( target, value ) {
+		assign( target, value || {} );
+	}
+
+	return base;
 }
 
 
@@ -151,8 +157,8 @@ function extendFn ( childFn, parent ) {
 		parentFn = function(  registry ) {
 			// give parent function it's own this context
 			// otherwise this._super is from child and
-			// causes infinate loop
-			parent = wrap( parent, function(){}, true );
+			// causes infinite loop
+			parent = wrap( parent, () => {}, true );
 
 			var result =  parent.apply( this, arguments );
 

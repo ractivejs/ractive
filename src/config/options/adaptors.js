@@ -1,6 +1,6 @@
-import createRegistry from 'config/registries/registry';
+import registry from 'config/options/registry';
 
-var adaptorsConfig = createRegistry( {
+var adaptorsConfig = registry( {
 	name: 'adaptors',
 	postExtend: extend,
 	postInit: init
@@ -17,10 +17,6 @@ function init ( ractive, adaptors ) {
 function convert ( target, adaptors ) {
 
 	var i, adapt = target.adapt;
-
-	if ( typeof adapt === 'string' ) {
-		adapt = [ adapt ];
-	}
 
 	if ( !adapt || !adapt.length ) { return adaptors; }
 
