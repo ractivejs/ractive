@@ -43,8 +43,8 @@ var Binding = function ( element ) {
 	// initialise value, if it's undefined
 	// TODO could we use a similar mechanism instead of the convoluted
 	// select/checkbox init logic?
-	if ( get( this.root, this.keypath ) === undefined && ( 'initialValue' in this ) ) {
-		set( this.root, this.keypath, this.initialValue );
+	if ( get( this.root, this.keypath ) === undefined && this.getInitialValue ) {
+		set( this.root, this.keypath, this.getInitialValue() );
 	}
 };
 

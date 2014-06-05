@@ -4,6 +4,26 @@ import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
 var SelectBinding = Binding.extend({
+	getInitialValue: function () {
+		var options = this.element.options, len, i, value;
+
+		i = options.length;
+
+		if ( !i ) {
+			return;
+		}
+
+		// take the final selected option...
+		while ( i-- ) {
+			if ( options[i].getAttribute( 'selected' ) ) {
+				return options[i].getAttribute( 'value' );
+			}
+		}
+
+		// or the first option, if none are selected
+		return options[0].getAttribute( 'value' );
+	},
+
 	render: function () {
 		this.element.node.addEventListener( 'change', handleDomEvent, false );
 	},
@@ -32,17 +52,17 @@ var SelectBinding = Binding.extend({
 		}
 	},
 
-	updateModel: function () {
-		if ( this.attribute.value === undefined ) {
-			set( this.root, this.keypath, this.initialValue );
-		}
-	},
-
 	dirty: function () {
 		if ( !this._dirty ) {
 			this._dirty = true;
-			runloop.afterModelUpdate( () => this.updateModel() );
 
+			// If there was no initially selected value, we may be
+			// able to set one now
+			if ( this.attribute.value === undefined ) {
+				runloop.afterModelUpdate( () => {
+					set( this.root, this.keypath, this.getInitialValue() );
+				});
+			}
 		}
 	}
 });

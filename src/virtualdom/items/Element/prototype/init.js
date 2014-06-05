@@ -52,12 +52,19 @@ export default function Element$init ( options ) {
 		this.select = findParentSelect( this.parent );
 		this.select.options.push( this );
 
+		// If the <select> was previously rendered, we may still
+		// need to initialise it
+		if ( this.select.binding ) {
+			this.select.binding.dirty();
+		}
+
 		// If the value attribute is missing, use the element's content
 		if ( !template.a ) {
 			template.a = {};
 		}
 
-		if ( !template.a.value ) {
+		// ...as long as it isn't disabled
+		if ( !template.a.value && !template.a.hasOwnProperty( 'disabled' ) ) {
 			template.a.value = template.f;
 		}
 
@@ -71,47 +78,11 @@ export default function Element$init ( options ) {
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
 
-	// create twoway binding
-	if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
-		this.binding = binding;
-
-		// register this with the root, so that we can do ractive.updateModel()
-		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
-		bindings.push( binding );
-	}
-
-
-	// Special case - <option> elements
-	if ( this.name === 'option' ) {
-		if ( this.select.binding ) {
-			this.select.binding.dirty();
-
-			if ( this.select.getAttribute( 'multiple' ) ) {
-				if ( this.getAttribute( 'selected' ) ) {
-					if ( !this.select.binding.initialValue ) {
-						this.select.binding.initialValue = [];
-					}
-
-					this.select.binding.initialValue.push( this.getAttribute( 'value' ) );
-				}
-			}
-
-			else if ( this.getAttribute( 'selected' ) || this.select.binding.initialValue === undefined ) {
-				this.select.binding.initialValue = this.getAttribute( 'value' );
-			}
-		}
-	}
 
 	// Special case - <select> elements
 	if ( this.name === 'select' ) {
 		this.options = [];
-
-		if ( this.getAttribute( 'multiple' ) && this.binding ) {
-			// As <option> elements are created, they will populate this array
-			this.binding.initialValue = [];
-		}
-
-		this.bubble = bubbleSelect;
+		this.bubble = bubbleSelect; // TODO this is a kludge
 	}
 
 
@@ -137,6 +108,16 @@ export default function Element$init ( options ) {
 			owner:    this,
 			pElement: this,
 		});
+	}
+
+
+	// create twoway binding
+	if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
+		this.binding = binding;
+
+		// register this with the root, so that we can do ractive.updateModel()
+		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
+		bindings.push( binding );
 	}
 
 

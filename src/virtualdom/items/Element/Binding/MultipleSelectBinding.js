@@ -5,6 +5,12 @@ import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
 var MultipleSelectBinding = SelectBinding.extend({
+	getInitialValue: function () {
+		return this.element.options
+			.filter( option => option.getAttribute( 'selected' ) )
+			.map( option => option.getAttribute( 'value' ) );
+	},
+
 	render: function () {
 		var valueFromModel;
 
