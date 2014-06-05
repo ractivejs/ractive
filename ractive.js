@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-05 - commit d0531947 
+	2014-06-05 - commit 5a6f69bf 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14,31 +14,23 @@
 
 	var noConflict = global.Ractive;
 
-	/* empty/legacy.js */
-	var legacy = null;
+	/* config/defaults/options.js */
+	var options = function() {
 
-	/* config/initOptions.js */
-	var initOptions = function() {
-
-		var defaults, initOptions;
-		defaults = {
-			el: null,
-			template: '',
-			complete: null,
-			preserveWhitespace: false,
+		// These are both the values for Ractive.defaults
+		// as well as the determination for whether an option
+		// value will be placed on Component.defaults
+		// (versus directly on Component) during an extend operation
+		var defaultOptions = {
+			// render placement:
+			el: void 0,
 			append: false,
-			twoway: true,
-			modifyArrays: true,
-			lazy: false,
-			debug: false,
-			noIntro: false,
-			transitionsEnabled: true,
-			magic: false,
-			noCssTransform: false,
-			adapt: [],
+			// template:
+			template: void 0,
+			// parse:
+			preserveWhitespace: false,
 			sanitize: false,
 			stripComments: true,
-			isolated: false,
 			delimiters: [
 				'{{',
 				'}}'
@@ -47,14 +39,191 @@
 				'{{{',
 				'}}}'
 			],
-			computed: null
+			handlebars: false,
+			// data & binding:
+			data: {},
+			computed: {},
+			magic: false,
+			modifyArrays: true,
+			adapt: [],
+			isolated: false,
+			twoway: true,
+			lazy: false,
+			// transitions:
+			noIntro: false,
+			transitionsEnabled: true,
+			complete: void 0,
+			// css:
+			noCssTransform: false,
+			// debug:
+			debug: false
 		};
-		initOptions = {
-			keys: Object.keys( defaults ),
-			defaults: defaults
+		return defaultOptions;
+	}();
+
+	/* config/defaults/easing.js */
+	var easing = {
+		linear: function( pos ) {
+			return pos;
+		},
+		easeIn: function( pos ) {
+			return Math.pow( pos, 3 );
+		},
+		easeOut: function( pos ) {
+			return Math.pow( pos - 1, 3 ) + 1;
+		},
+		easeInOut: function( pos ) {
+			if ( ( pos /= 0.5 ) < 1 ) {
+				return 0.5 * Math.pow( pos, 3 );
+			}
+			return 0.5 * ( Math.pow( pos - 2, 3 ) + 2 );
+		}
+	};
+
+	/* circular.js */
+	var circular = [];
+
+	/* utils/hasOwnProperty.js */
+	var hasOwn = Object.prototype.hasOwnProperty;
+
+	/* utils/isArray.js */
+	var isArray = function() {
+
+		var toString = Object.prototype.toString;
+		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+		return function( thing ) {
+			return toString.call( thing ) === '[object Array]';
 		};
-		return initOptions;
-	}( legacy );
+	}();
+
+	/* utils/isObject.js */
+	var isObject = function() {
+
+		var toString = Object.prototype.toString;
+		return function( thing ) {
+			return thing && toString.call( thing ) === '[object Object]';
+		};
+	}();
+
+	/* utils/isNumeric.js */
+	var isNumeric = function( thing ) {
+		return !isNaN( parseFloat( thing ) ) && isFinite( thing );
+	};
+
+	/* config/defaults/interpolators.js */
+	var interpolators = function( circular, hasOwnProperty, isArray, isObject, isNumeric ) {
+
+		var interpolators, interpolate, cssLengthPattern;
+		circular.push( function() {
+			interpolate = circular.interpolate;
+		} );
+		cssLengthPattern = /^([+-]?[0-9]+\.?(?:[0-9]+)?)(px|em|ex|%|in|cm|mm|pt|pc)$/;
+		interpolators = {
+			number: function( from, to ) {
+				var delta;
+				if ( !isNumeric( from ) || !isNumeric( to ) ) {
+					return null;
+				}
+				from = +from;
+				to = +to;
+				delta = to - from;
+				if ( !delta ) {
+					return function() {
+						return from;
+					};
+				}
+				return function( t ) {
+					return from + t * delta;
+				};
+			},
+			array: function( from, to ) {
+				var intermediate, interpolators, len, i;
+				if ( !isArray( from ) || !isArray( to ) ) {
+					return null;
+				}
+				intermediate = [];
+				interpolators = [];
+				i = len = Math.min( from.length, to.length );
+				while ( i-- ) {
+					interpolators[ i ] = interpolate( from[ i ], to[ i ] );
+				}
+				// surplus values - don't interpolate, but don't exclude them either
+				for ( i = len; i < from.length; i += 1 ) {
+					intermediate[ i ] = from[ i ];
+				}
+				for ( i = len; i < to.length; i += 1 ) {
+					intermediate[ i ] = to[ i ];
+				}
+				return function( t ) {
+					var i = len;
+					while ( i-- ) {
+						intermediate[ i ] = interpolators[ i ]( t );
+					}
+					return intermediate;
+				};
+			},
+			object: function( from, to ) {
+				var properties, len, interpolators, intermediate, prop;
+				if ( !isObject( from ) || !isObject( to ) ) {
+					return null;
+				}
+				properties = [];
+				intermediate = {};
+				interpolators = {};
+				for ( prop in from ) {
+					if ( hasOwnProperty.call( from, prop ) ) {
+						if ( hasOwnProperty.call( to, prop ) ) {
+							properties.push( prop );
+							interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] );
+						} else {
+							intermediate[ prop ] = from[ prop ];
+						}
+					}
+				}
+				for ( prop in to ) {
+					if ( hasOwnProperty.call( to, prop ) && !hasOwnProperty.call( from, prop ) ) {
+						intermediate[ prop ] = to[ prop ];
+					}
+				}
+				len = properties.length;
+				return function( t ) {
+					var i = len,
+						prop;
+					while ( i-- ) {
+						prop = properties[ i ];
+						intermediate[ prop ] = interpolators[ prop ]( t );
+					}
+					return intermediate;
+				};
+			},
+			cssLength: function( from, to ) {
+				var fromMatch, toMatch, fromUnit, toUnit, fromValue, toValue, unit, delta;
+				if ( from !== 0 && typeof from !== 'string' || to !== 0 && typeof to !== 'string' ) {
+					return null;
+				}
+				fromMatch = cssLengthPattern.exec( from );
+				toMatch = cssLengthPattern.exec( to );
+				fromUnit = fromMatch ? fromMatch[ 2 ] : '';
+				toUnit = toMatch ? toMatch[ 2 ] : '';
+				if ( fromUnit && toUnit && fromUnit !== toUnit ) {
+					return null;
+				}
+				unit = fromUnit || toUnit;
+				fromValue = fromMatch ? +fromMatch[ 1 ] : 0;
+				toValue = toMatch ? +toMatch[ 1 ] : 0;
+				delta = toValue - fromValue;
+				if ( !delta ) {
+					return function() {
+						return fromValue + unit;
+					};
+				}
+				return function( t ) {
+					return fromValue + t * delta + unit;
+				};
+			}
+		};
+		return interpolators;
+	}( circular, hasOwn, isArray, isObject, isNumeric );
 
 	/* config/svg.js */
 	var svg = function() {
@@ -167,11 +336,6 @@
 		}
 		return defineProperties;
 	}( createElement, defineProperty, isClient );
-
-	/* utils/isNumeric.js */
-	var isNumeric = function( thing ) {
-		return !isNaN( parseFloat( thing ) ) && isFinite( thing );
-	};
 
 	/* Ractive/prototype/shared/add.js */
 	var Ractive$shared_add = function( isNumeric ) {
@@ -452,9 +616,6 @@
 		return getTime;
 	}();
 
-	/* circular.js */
-	var circular = [];
-
 	/* utils/removeFromArray.js */
 	var removeFromArray = function( array, member ) {
 		var index = array.indexOf( member );
@@ -547,9 +708,6 @@
 		}
 		return value;
 	};
-
-	/* utils/hasOwnProperty.js */
-	var hasOwn = Object.prototype.hasOwnProperty;
 
 	/* shared/getInnerContext.js */
 	var getInnerContext = function( fragment ) {
@@ -1104,16 +1262,6 @@
 		return animations;
 	}( requestAnimationFrame, getTime, runloop );
 
-	/* utils/isArray.js */
-	var isArray = function() {
-
-		var toString = Object.prototype.toString;
-		// thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-		return function( thing ) {
-			return toString.call( thing ) === '[object Array]';
-		};
-	}();
-
 	/* utils/clone.js */
 	var clone = function( isArray ) {
 
@@ -1135,8 +1283,3809 @@
 		};
 	}( isArray );
 
-	/* registries/adaptors.js */
-	var adaptors = {};
+	/* utils/warn.js */
+	var warn = function() {
+
+		/* global console */
+		var warn, warned = {};
+		if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
+			warn = function( message, allowDuplicates ) {
+				if ( !allowDuplicates ) {
+					if ( warned[ message ] ) {
+						return;
+					}
+					warned[ message ] = true;
+				}
+				console.warn( message );
+			};
+		} else {
+			warn = function() {};
+		}
+		return warn;
+	}();
+
+	/* config/options/adapt.js */
+	var adapt = function( warn, isArray, defaults ) {
+
+		var config = {
+			name: 'adapt',
+			extend: extend,
+			init: init,
+			useDefaults: defaults.hasOwnProperty( 'adapt' )
+		};
+
+		function extend( Parent, Child, options ) {
+			var result;
+			depricate( options );
+			result = combine( Parent.defaults.adapt, options.adapt );
+			Child.defaults.adapt = result || [];
+		}
+
+		function init( Parent, ractive, options ) {
+			depricate( options );
+			ractive.adapt = combine( Parent.defaults.adapt, options.adapt ) || [];
+		}
+
+		function combine( parent, option ) {
+			// normalize 'Foo' to [ 'Foo' ]
+			parent = arrayIfString( parent );
+			option = arrayIfString( option );
+			// no parent? return option
+			if ( !parent || !parent.length ) {
+				return option;
+			}
+			// no option? return 'copy' of parent
+			if ( !option || !option.length ) {
+				return parent.slice();
+			}
+			// add parent adaptors to options
+			parent.forEach( function( a ) {
+				// don't put in duplicates
+				if ( option.indexOf( a ) === -1 ) {
+					option.push( a );
+				}
+			} );
+			return option;
+		}
+
+		function depricate( options ) {
+			var adaptors = options.adaptors;
+			// Using extend with Component instead of options,
+			// like Human.extend( Spider ) means adaptors as a registry
+			// gets copied to options. So we have to check if actually an array
+			if ( adaptors && isArray( adaptors ) ) {
+				warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`.' );
+				options.adapt = combine( options.adapt, adaptors );
+				delete options.adaptors;
+			}
+		}
+
+		function arrayIfString( adapt ) {
+			if ( typeof adapt === 'string' ) {
+				adapt = [ adapt ];
+			}
+			return adapt;
+		}
+		return config;
+	}( warn, isArray, options );
+
+	/* utils/extend.js */
+	var extend = function( target ) {
+		var SLICE$0 = Array.prototype.slice;
+		var sources = SLICE$0.call( arguments, 1 );
+		var prop, source;
+		while ( source = sources.shift() ) {
+			for ( prop in source ) {
+				if ( source.hasOwnProperty( prop ) ) {
+					target[ prop ] = source[ prop ];
+				}
+			}
+		}
+		return target;
+	};
+
+	/* config/options/baseConfiguration.js */
+	var baseConfiguration = function( defaults, extendObject ) {
+
+		function BaseConfiguration( config ) {
+			extendObject( this, config );
+			this.useDefaults = defaults.hasOwnProperty( config.name );
+		}
+		BaseConfiguration.prototype = {
+			extend: function( Parent, Child, options ) {
+				var parentValue, optionValue, result;
+				options = options || {};
+				if ( this.preExtend ) {
+					this.preExtend( Child, options );
+				}
+				parentValue = this.getParentValue( Parent );
+				optionValue = this.getOptionValue( options );
+				result = this.extendValue( Child, parentValue, optionValue );
+				if ( this.postExtend ) {
+					result = this.postExtend( Child, result );
+				}
+				if ( this.useDefaults ) {
+					Child = Child.defaults;
+				}
+				this.assign( Child, result );
+			},
+			init: function( Parent, ractive, options ) {
+				var parentValue, optionValue, result;
+				options = options || {};
+				if ( this.preInit ) {
+					this.preInit( ractive, options );
+				}
+				parentValue = this.getParentValue( Parent );
+				optionValue = this.getOptionValue( options );
+				result = this.initValue( ractive, parentValue, optionValue );
+				if ( this.postInit ) {
+					result = this.postInit( ractive, result );
+				}
+				this.assign( ractive, result );
+			},
+			reset: function( ractive ) {
+				if ( !this.resetValue ) {
+					return;
+				}
+				var result = this.resetValue( ractive );
+				if ( result ) {
+					if ( this.postInit ) {
+						result = this.postInit( ractive, result );
+					}
+					ractive[ this.name ] = result;
+					return true;
+				}
+			},
+			assign: function( target, value ) {
+				if ( empty( value ) ) {
+					return;
+				}
+				target[ this.name ] = value;
+			},
+			getParentValue: function( parent ) {
+				if ( parent ) {
+					if ( this.useDefaults ) {
+						parent = parent.defaults;
+					}
+					return parent[ this.name ];
+				}
+			},
+			getOptionValue: function( options ) {
+				if ( options ) {
+					return options[ this.name ];
+				}
+			}
+		};
+
+		function empty( value ) {
+			// allow '', 0, false, etc:
+			return typeof value === 'undefined' || value === null;
+		}
+		return function baseConfig( config ) {
+			return new BaseConfiguration( config );
+		};
+	}( options, extend );
+
+	/* config/options/option.js */
+	var option = function( baseConfig ) {
+
+		function extend( target, parentValue, value ) {
+			if ( typeof value === 'undefined' ) {
+				value = parentValue;
+			}
+			return value;
+		}
+		return function optionConfig( name ) {
+			return baseConfig( {
+				name: name,
+				extendValue: extend,
+				initValue: extend
+			} );
+		};
+	}( baseConfiguration );
+
+	/* config/options/css/transform.js */
+	var transform = function() {
+
+		var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
+			commentsPattern = /\/\*.*?\*\//g,
+			selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
+			mediaQueryPattern = /^@media/;
+		return function transformCss( css, guid ) {
+			var transformed, addGuid;
+			addGuid = function( selector ) {
+				var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
+				selectorUnits = [];
+				while ( match = selectorUnitPattern.exec( selector ) ) {
+					selectorUnits.push( {
+						str: match[ 0 ],
+						base: match[ 1 ],
+						modifiers: match[ 2 ]
+					} );
+				}
+				// For each simple selector within the selector, we need to create a version
+				// that a) combines with the guid, and b) is inside the guid
+				dataAttr = '[data-rvcguid="' + guid + '"]';
+				base = selectorUnits.map( extractString );
+				i = selectorUnits.length;
+				while ( i-- ) {
+					appended = base.slice();
+					// Pseudo-selectors should go after the attribute selector
+					unit = selectorUnits[ i ];
+					appended[ i ] = unit.base + dataAttr + unit.modifiers || '';
+					prepended = base.slice();
+					prepended[ i ] = dataAttr + ' ' + prepended[ i ];
+					transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );
+				}
+				return transformed.join( ', ' );
+			};
+			transformed = css.replace( commentsPattern, '' ).replace( selectorsPattern, function( match, $1 ) {
+				var selectors, transformed;
+				// don't transform media queries!
+				if ( mediaQueryPattern.test( $1 ) )
+					return match;
+				selectors = $1.split( ',' ).map( trim );
+				transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
+				return match.replace( $1, transformed );
+			} );
+			return transformed;
+		};
+
+		function trim( str ) {
+			if ( str.trim ) {
+				return str.trim();
+			}
+			return str.replace( /^\s+/, '' ).replace( /\s+$/, '' );
+		}
+
+		function extractString( unit ) {
+			return unit.str;
+		}
+	}();
+
+	/* config/options/css/css.js */
+	var config_options_css_css = function( transformCss, defineProperty, defaults ) {
+
+		var cssConfig = {
+			name: 'css',
+			extend: extend,
+			init: function() {},
+			useDefaults: defaults.hasOwnProperty( 'css' )
+		};
+
+		function extend( Parent, Child, options ) {
+			var css;
+			if ( css = getCss( options.css, Child ) || getCss( Parent.css, Parent ) ) {
+				defineProperty( Child, 'css', {
+					value: css
+				} );
+			}
+		}
+
+		function getCss( css, target ) {
+			if ( !css ) {
+				return;
+			}
+			return target.defaults.noCssTransform ? css : transformCss( css, target._guid );
+		}
+		return cssConfig;
+	}( transform, defineProperty, options );
+
+	/* utils/create.js */
+	var create = function() {
+
+		var create;
+		try {
+			Object.create( null );
+			create = Object.create;
+		} catch ( err ) {
+			// sigh
+			create = function() {
+				var F = function() {};
+				return function( proto, props ) {
+					var obj;
+					if ( proto === null ) {
+						return {};
+					}
+					F.prototype = proto;
+					obj = new F();
+					if ( props ) {
+						Object.defineProperties( obj, props );
+					}
+					return obj;
+				};
+			}();
+		}
+		return create;
+	}();
+
+	/* utils/wrapMethod.js */
+	var wrapMethod = function( method, superMethod ) {
+		if ( superMethod && typeof superMethod === 'function' && /_super/.test( method ) ) {
+			return function() {
+				var hasSuper = '_super' in this,
+					_super = this._super,
+					result;
+				this._super = superMethod;
+				result = method.apply( this, arguments );
+				if ( hasSuper ) {
+					this._super = _super;
+				}
+				return result;
+			};
+		} else {
+			return method;
+		}
+	};
+
+	/* config/options/data.js */
+	var data = function( baseConfig, create, wrap ) {
+
+		var dataConfig = baseConfig( {
+			name: 'data',
+			extendValue: extend,
+			initValue: init,
+			resetValue: reset
+		} );
+		return dataConfig;
+
+		function extend( target, parentValue, value ) {
+			parentValue = getAddedKeys( parentValue );
+			return dispatch( parentValue, value );
+		}
+
+		function init( ractive, parentValue, value ) {
+			var result = this.extendValue( ractive, parentValue, value );
+			if ( typeof result === 'function' ) {
+				result = result.call( ractive, value ) || value;
+			}
+			return result || {};
+		}
+
+		function reset( ractive ) {
+			return this.initValue( ractive, ractive.constructor.defaults.data, ractive.data );
+		}
+
+		function getAddedKeys( parent ) {
+			// only for functions that had keys added
+			if ( typeof parent !== 'function' || !Object.keys( parent ).length ) {
+				return parent;
+			}
+			// copy the added keys to temp 'object', otherwise
+			// parent would be interpreted as 'function' by dispatch
+			var temp = {};
+			copy( parent, temp );
+			// roll in added keys
+			return dispatch( parent, temp );
+		}
+
+		function dispatch( parent, child ) {
+			if ( typeof child === 'function' ) {
+				return extendFn( child, parent );
+			} else if ( typeof parent === 'function' ) {
+				return fromFn( child, parent );
+			} else {
+				return fromProperties( child, parent );
+			}
+		}
+
+		function copy( from, to, fillOnly ) {
+			for ( var key in from ) {
+				if ( fillOnly && key in to ) {
+					continue;
+				}
+				to[ key ] = from[ key ];
+			}
+		}
+
+		function fromProperties( child, parent ) {
+			child = child || {};
+			if ( parent && Object.keys( parent ).length ) {
+				// this is same as current ractive behavior
+				// would like to revisit...
+				parent = create( parent );
+				copy( child, parent );
+				child = parent;
+			}
+			return child;
+		}
+
+		function fromFn( child, parentFn ) {
+			return function( data ) {
+				var keys;
+				if ( child ) {
+					// Track the keys that our on the child,
+					// but not on the data. We'll need to apply these
+					// after the parent function returns
+					keys = Object.keys( child );
+					if ( data ) {
+						keys = keys.filter( function( key ) {
+							return !( key in data );
+						} );
+					}
+				}
+				// call the parent fn, use data if no return value
+				data = parentFn.call( this, data ) || data;
+				// copy child keys back onto data
+				if ( keys && keys.length ) {
+					data = data || {};
+					keys.forEach( function( key ) {
+						data[ key ] = child[ key ];
+					} );
+				}
+				return data;
+			};
+		}
+
+		function extendFn( childFn, parent ) {
+			var parentFn;
+			if ( typeof parent !== 'function' ) {
+				// copy props to data
+				parentFn = function( data ) {
+					fromProperties( data, parent );
+				};
+			} else {
+				parentFn = function( data ) {
+					// give parent function it's own this._super context,
+					// otherwise this._super is from child and
+					// causes infinite loop
+					parent = wrap( parent, function() {}, true );
+					return parent.call( this, data ) || data;
+				};
+			}
+			return wrap( childFn, parentFn );
+		}
+	}( baseConfiguration, create, wrapMethod );
+
+	/* config/options/complete.js */
+	var complete = function( baseConfig, wrapMethod ) {
+
+		var config = baseConfig( {
+			name: 'complete',
+			extendValue: wrapIfNecessary,
+			initValue: wrapIfNecessary
+		} );
+
+		function wrapIfNecessary( target, parentValue, value ) {
+			if ( typeof value !== 'undefined' && value !== null ) {
+				if ( typeof parentValue === 'function' ) {
+					return wrapMethod( value, parentValue );
+				} else {
+					// Don't allow non-function values, but don't
+					// return parent value either
+					return typeof value === 'function' ? value : void 0;
+				}
+			}
+			return parentValue;
+		}
+		return config;
+	}( baseConfiguration, wrapMethod );
+
+	/* config/options/magic.js */
+	var magic = function( optionConfig ) {
+
+		// TODO: fix our ES6 modules so we can have multiple exports
+		// then this magic check can be reused by magicAdaptor
+		var config, noMagic;
+		try {
+			Object.defineProperty( {}, 'test', {
+				value: 0
+			} );
+		} catch ( err ) {
+			noMagic = true;
+		}
+		config = optionConfig( 'magic' );
+		config.preExtend = config.preInit = validate;
+
+		function validate( target, options ) {
+			if ( options.magic && noMagic ) {
+				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+			}
+		}
+		return config;
+	}( option );
+
+	/* utils/hashmapContentsMatch.js */
+	var hashmapContentsMatch = function( isObject ) {
+
+		return function hashmapContentsMatch( a, b ) {
+			var aKeys, bKeys;
+			if ( !isObject( a ) || !isObject( b ) ) {
+				return false;
+			}
+			if ( a === b ) {
+				return true;
+			}
+			aKeys = Object.keys( a );
+			bKeys = Object.keys( b );
+			if ( aKeys.length !== bKeys.length ) {
+				return false;
+			}
+			return aKeys.every( function( key ) {
+				return a[ key ] === b[ key ];
+			} );
+		};
+	}( isObject );
+
+	/* empty/legacy.js */
+	var legacy = null;
+
+	/* config/options/registry.js */
+	var registry = function( baseConfig, match, wrap, extendObject ) {
+
+		return function registryConfig( config ) {
+			config = extendObject( config, {
+				extendValue: extend,
+				initValue: init,
+				resetValue: reset,
+				find: find,
+				findInstance: findInstance
+			} );
+			var base = baseConfig( config ),
+				assign = base.assign.bind( base );
+			base.assign = function( target, value ) {
+				assign( target, value || {} );
+			};
+			return base;
+		};
+
+		function find( ractive, key ) {
+			var this$0 = this;
+			return recurseFind( ractive, function( r ) {
+				return r[ this$0.name ][ key ];
+			} );
+		}
+
+		function findInstance( ractive, key ) {
+			var this$0 = this;
+			return recurseFind( ractive, function( r ) {
+				return r[ this$0.name ][ key ] ? r : void 0;
+			} );
+		}
+
+		function recurseFind( ractive, fn ) {
+			var find, parent;
+			if ( find = fn( ractive ) ) {
+				return find;
+			}
+			if ( !ractive.isolated && ( parent = ractive._parent ) ) {
+				return recurseFind( parent, fn );
+			}
+		}
+
+		function extend( target, parentValue, value ) {
+			parentValue = getAddedKeys( parentValue );
+			return dispatch( parentValue, value );
+		}
+
+		function init( ractive, parentValue, value ) {
+			var result = extend( ractive, parentValue, value );
+			if ( typeof result === 'function' ) {
+				// store for reset
+				ractive._config[ this.name ] = result;
+				result = getDynamicValue( ractive, result );
+			}
+			return result;
+		}
+
+		function reset( ractive ) {
+			var initial, result, fn = ractive._config[ this.name ];
+			if ( !fn ) {
+				return;
+			}
+			initial = ractive[ this.name ];
+			result = getDynamicValue( ractive, fn );
+			if ( !match( initial, result ) ) {
+				return result;
+			}
+		}
+
+		function getDynamicValue( ractive, fn ) {
+			var temp = {},
+				result = fn.call( ractive, temp, ractive.data );
+			//normalize: returned result, keys added, or both
+			copy( result, temp );
+			return temp;
+		}
+
+		function getAddedKeys( parent ) {
+			// only for functions that had keys added
+			if ( typeof parent !== 'function' || !Object.keys( parent ).length ) {
+				return parent;
+			}
+			// copy the added keys to temp 'object', otherwise
+			// parent would be interpreted as 'function' by dispatch
+			var temp = {};
+			copy( parent, temp );
+			// roll in added keys
+			return dispatch( parent, temp );
+		}
+
+		function dispatch( parent, child ) {
+			if ( typeof child === 'function' ) {
+				return extendFn( child, parent );
+			} else if ( typeof parent === 'function' ) {
+				return fromFn( child, parent );
+			} else {
+				return fromProperties( child, parent );
+			}
+		}
+
+		function copy( from, to, fillOnly ) {
+			for ( var key in from ) {
+				if ( fillOnly && key in to ) {
+					continue;
+				}
+				to[ key ] = from[ key ];
+			}
+		}
+
+		function fill( from, to ) {
+			return copy( from, to, true );
+		}
+
+		function fromProperties( child, parent ) {
+			var result = {};
+			if ( child ) {
+				copy( child, result );
+			}
+			if ( parent ) {
+				fill( parent, result );
+			}
+			return result;
+		}
+
+		function fromFn( child, parentFn ) {
+			return function( registry ) {
+				// call the parent fn, use registry if no return value
+				var result = parentFn.apply( this, arguments ) || registry;
+				// extend with child
+				if ( child ) {
+					result = fromProperties( child, result );
+				}
+				return result;
+			};
+		}
+
+		function extendFn( childFn, parent ) {
+			var parentFn;
+			if ( typeof parent !== 'function' ) {
+				// don't bother with missing or {}
+				if ( parent && Object.keys( parent ).length ) {
+					// copy props to registry
+					parentFn = function( registry ) {
+						copy( parent, registry );
+					};
+				} else {
+					// no-op if childFn needs it
+					parentFn = function() {};
+				}
+			} else {
+				parentFn = function( registry ) {
+					// give parent function it's own this context
+					// otherwise this._super is from child and
+					// causes infinite loop
+					parent = wrap( parent, function() {}, true );
+					var result = parent.apply( this, arguments );
+					// if result returned, copy to registry
+					if ( result ) {
+						copy( result, registry );
+					}
+				};
+			}
+			return wrap( childFn, parentFn );
+		}
+	}( baseConfiguration, hashmapContentsMatch, wrapMethod, extend, legacy );
+
+	/* Ractive/computations/getComputationSignature.js */
+	var getComputationSignature = function() {
+
+		var pattern = /\$\{([^\}]+)\}/g;
+		return function( signature ) {
+			if ( typeof signature === 'function' ) {
+				return {
+					get: signature
+				};
+			}
+			if ( typeof signature === 'string' ) {
+				return {
+					get: createFunctionFromString( signature )
+				};
+			}
+			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
+				signature = {
+					get: createFunctionFromString( signature.get ),
+					set: signature.set
+				};
+			}
+			return signature;
+		};
+
+		function createFunctionFromString( signature ) {
+			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
+				return '__ractive.get("' + keypath + '")';
+			} ) + ')';
+			return new Function( functionBody );
+		}
+	}();
+
+	/* utils/createBranch.js */
+	var createBranch = function() {
+
+		var numeric = /^\s*[0-9]+\s*$/;
+		return function( key ) {
+			return numeric.test( key ) ? [] : {};
+		};
+	}();
+
+	/* shared/clearCache.js */
+	var clearCache = function clearCache( ractive, keypath, dontTeardownWrapper ) {
+		var cacheMap, wrapper, computation;
+		if ( !dontTeardownWrapper ) {
+			// Is there a wrapped property at this keypath?
+			if ( wrapper = ractive._wrapped[ keypath ] ) {
+				// Did we unwrap it?
+				if ( wrapper.teardown() !== false ) {
+					ractive._wrapped[ keypath ] = null;
+				}
+			}
+		}
+		if ( computation = ractive._computations[ keypath ] ) {
+			computation.compute();
+		}
+		ractive._cache[ keypath ] = undefined;
+		if ( cacheMap = ractive._cacheMap[ keypath ] ) {
+			while ( cacheMap.length ) {
+				clearCache( ractive, cacheMap.pop() );
+			}
+		}
+	};
+
+	/* shared/set.js */
+	var set = function( circular, isEqual, createBranch, clearCache, notifyDependants ) {
+
+		var get;
+		circular.push( function() {
+			get = circular.get;
+		} );
+
+		function set( ractive, keypath, value, silent ) {
+			var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
+			if ( isEqual( ractive._cache[ keypath ], value ) ) {
+				return;
+			}
+			computation = ractive._computations[ keypath ];
+			wrapper = ractive._wrapped[ keypath ];
+			evaluator = ractive._evaluators[ keypath ];
+			if ( computation && !computation.setting ) {
+				computation.set( value );
+			}
+			// If we have a wrapper with a `reset()` method, we try and use it. If the
+			// `reset()` method returns false, the wrapper should be torn down, and
+			// (most likely) a new one should be created later
+			if ( wrapper && wrapper.reset ) {
+				dontTeardownWrapper = wrapper.reset( value ) !== false;
+				if ( dontTeardownWrapper ) {
+					value = wrapper.get();
+				}
+			}
+			// Update evaluator value. This may be from the evaluator itself, or
+			// it may be from the wrapper that wraps an evaluator's result - it
+			// doesn't matter
+			if ( evaluator ) {
+				evaluator.value = value;
+			}
+			if ( !computation && !evaluator && !dontTeardownWrapper ) {
+				keys = keypath.split( '.' );
+				lastKey = keys.pop();
+				parentKeypath = keys.join( '.' );
+				wrapper = ractive._wrapped[ parentKeypath ];
+				if ( wrapper && wrapper.set ) {
+					wrapper.set( lastKey, value );
+				} else {
+					parentValue = wrapper ? wrapper.get() : get( ractive, parentKeypath );
+					if ( !parentValue ) {
+						parentValue = createBranch( lastKey );
+						set( ractive, parentKeypath, parentValue, true );
+					}
+					parentValue[ lastKey ] = value;
+				}
+			}
+			clearCache( ractive, keypath, dontTeardownWrapper );
+			if ( !silent ) {
+				ractive._changes.push( keypath );
+				notifyDependants( ractive, keypath );
+			}
+		}
+		circular.set = set;
+		return set;
+	}( circular, isEqual, createBranch, clearCache, notifyDependants );
+
+	/* shared/registerDependant.js */
+	var registerDependant = function() {
+
+		return function registerDependant( dependant ) {
+			var depsByKeypath, deps, ractive, keypath, priority, evaluator;
+			ractive = dependant.root;
+			keypath = dependant.keypath;
+			priority = dependant.priority;
+			depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
+			deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
+			deps.push( dependant );
+			dependant.registered = true;
+			if ( !keypath ) {
+				return;
+			}
+			if ( evaluator = ractive._evaluators[ keypath ] ) {
+				if ( !evaluator.dependants ) {
+					evaluator.wake();
+				}
+				evaluator.dependants += 1;
+			}
+			updateDependantsMap( ractive, keypath );
+		};
+
+		function updateDependantsMap( ractive, keypath ) {
+			var keys, parentKeypath, map;
+			// update dependants map
+			keys = keypath.split( '.' );
+			while ( keys.length ) {
+				keys.pop();
+				parentKeypath = keys.join( '.' );
+				map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
+				if ( map[ keypath ] === undefined ) {
+					map[ keypath ] = 0;
+					map[ map.length ] = keypath;
+				}
+				map[ keypath ] += 1;
+				keypath = parentKeypath;
+			}
+		}
+	}();
+
+	/* shared/unregisterDependant.js */
+	var unregisterDependant = function() {
+
+		return function unregisterDependant( dependant ) {
+			var deps, index, ractive, keypath, priority, evaluator;
+			ractive = dependant.root;
+			keypath = dependant.keypath;
+			priority = dependant.priority;
+			deps = ractive._deps[ priority ][ keypath ];
+			index = deps.indexOf( dependant );
+			if ( index === -1 || !dependant.registered ) {
+				throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
+			}
+			deps.splice( index, 1 );
+			dependant.registered = false;
+			if ( !keypath ) {
+				return;
+			}
+			if ( evaluator = ractive._evaluators[ keypath ] ) {
+				evaluator.dependants -= 1;
+				if ( !evaluator.dependants ) {
+					evaluator.sleep();
+				}
+			}
+			updateDependantsMap( ractive, keypath );
+		};
+
+		function updateDependantsMap( ractive, keypath ) {
+			var keys, parentKeypath, map;
+			// update dependants map
+			keys = keypath.split( '.' );
+			while ( keys.length ) {
+				keys.pop();
+				parentKeypath = keys.join( '.' );
+				map = ractive._depsMap[ parentKeypath ];
+				map[ keypath ] -= 1;
+				if ( !map[ keypath ] ) {
+					// remove from parent deps map
+					map.splice( map.indexOf( keypath ), 1 );
+					map[ keypath ] = undefined;
+				}
+				keypath = parentKeypath;
+			}
+		}
+	}();
+
+	/* Ractive/computations/Watcher.js */
+	var Watcher = function( isEqual, registerDependant, unregisterDependant ) {
+
+		var Watcher = function( computation, keypath ) {
+			this.root = computation.ractive;
+			this.keypath = keypath;
+			this.priority = 0;
+			this.computation = computation;
+			registerDependant( this );
+		};
+		Watcher.prototype = {
+			setValue: function( value ) {
+				if ( !isEqual( value, this.value ) ) {
+					this.value = value;
+					this.computation.bubble();
+				}
+			},
+			teardown: function() {
+				unregisterDependant( this );
+			}
+		};
+		return Watcher;
+	}( isEqual, registerDependant, unregisterDependant );
+
+	/* Ractive/computations/Computation.js */
+	var Computation = function( warn, runloop, set, Watcher ) {
+
+		var Computation = function( ractive, key, signature ) {
+			this.ractive = ractive;
+			this.key = key;
+			this.getter = signature.get;
+			this.setter = signature.set;
+			this.watchers = [];
+			this.update();
+		};
+		Computation.prototype = {
+			set: function( value ) {
+				if ( this.setting ) {
+					this.value = value;
+					return;
+				}
+				if ( !this.setter ) {
+					throw new Error( 'Computed properties without setters are read-only in the current version' );
+				}
+				this.setter.call( this.ractive, value );
+			},
+			// returns `false` if the computation errors
+			compute: function() {
+				var ractive, originalCaptured, errored;
+				ractive = this.ractive;
+				originalCaptured = ractive._captured;
+				if ( !originalCaptured ) {
+					ractive._captured = [];
+				}
+				try {
+					this.value = this.getter.call( ractive );
+				} catch ( err ) {
+					if ( ractive.debug ) {
+						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
+					}
+					errored = true;
+				}
+				diff( this, this.watchers, ractive._captured );
+				// reset
+				ractive._captured = originalCaptured;
+				return errored ? false : true;
+			},
+			update: function() {
+				if ( this.compute() ) {
+					this.setting = true;
+					set( this.ractive, this.key, this.value );
+					this.setting = false;
+				}
+				this.dirty = false;
+			},
+			bubble: function() {
+				if ( this.watchers.length <= 1 ) {
+					this.update();
+				} else if ( !this.dirty ) {
+					runloop.modelUpdate( this );
+					this.dirty = true;
+				}
+			}
+		};
+
+		function diff( computation, watchers, newDependencies ) {
+			var i, watcher, keypath;
+			// remove dependencies that are no longer used
+			i = watchers.length;
+			while ( i-- ) {
+				watcher = watchers[ i ];
+				if ( !newDependencies[ watcher.keypath ] ) {
+					watchers.splice( i, 1 );
+					watchers[ watcher.keypath ] = null;
+					watcher.teardown();
+				}
+			}
+			// create references for any new dependencies
+			i = newDependencies.length;
+			while ( i-- ) {
+				keypath = newDependencies[ i ];
+				if ( !watchers[ keypath ] ) {
+					watcher = new Watcher( computation, keypath );
+					watchers.push( watchers[ keypath ] = watcher );
+				}
+			}
+		}
+		return Computation;
+	}( warn, runloop, set, Watcher );
+
+	/* Ractive/computations/createComputations.js */
+	var createComputations = function( getComputationSignature, Computation ) {
+
+		return function createComputations( ractive, computed ) {
+			var key, signature;
+			for ( key in computed ) {
+				signature = getComputationSignature( computed[ key ] );
+				ractive._computations[ key ] = new Computation( ractive, key, signature );
+			}
+		};
+	}( getComputationSignature, Computation );
+
+	/* config/options/computed.js */
+	var computed = function( registry, createComputations ) {
+
+		var computed = registry( {
+			name: 'computed',
+			postInit: createComputations
+		} );
+		return computed;
+	}( registry, createComputations );
+
+	/* config/errors.js */
+	var errors = {
+		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser'
+	};
+
+	/* config/types.js */
+	var types = {
+		TEXT: 1,
+		INTERPOLATOR: 2,
+		TRIPLE: 3,
+		SECTION: 4,
+		INVERTED: 5,
+		CLOSING: 6,
+		ELEMENT: 7,
+		PARTIAL: 8,
+		COMMENT: 9,
+		DELIMCHANGE: 10,
+		MUSTACHE: 11,
+		TAG: 12,
+		ATTRIBUTE: 13,
+		CLOSING_TAG: 14,
+		COMPONENT: 15,
+		NUMBER_LITERAL: 20,
+		STRING_LITERAL: 21,
+		ARRAY_LITERAL: 22,
+		OBJECT_LITERAL: 23,
+		BOOLEAN_LITERAL: 24,
+		GLOBAL: 26,
+		KEY_VALUE_PAIR: 27,
+		REFERENCE: 30,
+		REFINEMENT: 31,
+		MEMBER: 32,
+		PREFIX_OPERATOR: 33,
+		BRACKETED: 34,
+		CONDITIONAL: 35,
+		INFIX_OPERATOR: 36,
+		INVOCATION: 40,
+		SECTION_IF: 50,
+		SECTION_UNLESS: 51,
+		SECTION_EACH: 52,
+		SECTION_WITH: 53
+	};
+
+	/* parse/Parser/expressions/shared/errors.js */
+	var parse_Parser_expressions_shared_errors = {
+		expectedExpression: 'Expected a JavaScript expression',
+		expectedParen: 'Expected closing paren'
+	};
+
+	/* parse/Parser/expressions/primary/literal/numberLiteral.js */
+	var numberLiteral = function( types ) {
+
+		// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
+		var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+		return function( parser ) {
+			var result;
+			if ( result = parser.matchPattern( numberPattern ) ) {
+				return {
+					t: types.NUMBER_LITERAL,
+					v: result
+				};
+			}
+			return null;
+		};
+	}( types );
+
+	/* parse/Parser/expressions/primary/literal/booleanLiteral.js */
+	var booleanLiteral = function( types ) {
+
+		return function( parser ) {
+			var remaining = parser.remaining();
+			if ( remaining.substr( 0, 4 ) === 'true' ) {
+				parser.pos += 4;
+				return {
+					t: types.BOOLEAN_LITERAL,
+					v: 'true'
+				};
+			}
+			if ( remaining.substr( 0, 5 ) === 'false' ) {
+				parser.pos += 5;
+				return {
+					t: types.BOOLEAN_LITERAL,
+					v: 'false'
+				};
+			}
+			return null;
+		};
+	}( types );
+
+	/* parse/Parser/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher.js */
+	var makeQuotedStringMatcher = function() {
+
+		var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
+		// Match one or more characters until: ", ', \, or EOL/EOF.
+		// EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
+		stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
+		// Match one escape sequence, including the backslash.
+		escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
+		// Match one ES5 line continuation (backslash + line terminator).
+		lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
+		// Helper for defining getDoubleQuotedString and getSingleQuotedString.
+		return function( okQuote ) {
+			return function( parser ) {
+				var start, literal, done, next;
+				start = parser.pos;
+				literal = '"';
+				done = false;
+				while ( !done ) {
+					next = parser.matchPattern( stringMiddlePattern ) || parser.matchPattern( escapeSequencePattern ) || parser.matchString( okQuote );
+					if ( next ) {
+						if ( next === '"' ) {
+							literal += '\\"';
+						} else if ( next === '\\\'' ) {
+							literal += '\'';
+						} else {
+							literal += next;
+						}
+					} else {
+						next = parser.matchPattern( lineContinuationPattern );
+						if ( next ) {
+							// convert \(newline-like) into a \u escape, which is allowed in JSON
+							literal += '\\u' + ( '000' + next.charCodeAt( 1 ).toString( 16 ) ).slice( -4 );
+						} else {
+							done = true;
+						}
+					}
+				}
+				literal += '"';
+				// use JSON.parse to interpret escapes
+				return JSON.parse( literal );
+			};
+		};
+	}();
+
+	/* parse/Parser/expressions/primary/literal/stringLiteral/singleQuotedString.js */
+	var singleQuotedString = function( makeQuotedStringMatcher ) {
+
+		return makeQuotedStringMatcher( '"' );
+	}( makeQuotedStringMatcher );
+
+	/* parse/Parser/expressions/primary/literal/stringLiteral/doubleQuotedString.js */
+	var doubleQuotedString = function( makeQuotedStringMatcher ) {
+
+		return makeQuotedStringMatcher( '\'' );
+	}( makeQuotedStringMatcher );
+
+	/* parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral.js */
+	var stringLiteral = function( types, getSingleQuotedString, getDoubleQuotedString ) {
+
+		return function( parser ) {
+			var start, string;
+			start = parser.pos;
+			if ( parser.matchString( '"' ) ) {
+				string = getDoubleQuotedString( parser );
+				if ( !parser.matchString( '"' ) ) {
+					parser.pos = start;
+					return null;
+				}
+				return {
+					t: types.STRING_LITERAL,
+					v: string
+				};
+			}
+			if ( parser.matchString( '\'' ) ) {
+				string = getSingleQuotedString( parser );
+				if ( !parser.matchString( '\'' ) ) {
+					parser.pos = start;
+					return null;
+				}
+				return {
+					t: types.STRING_LITERAL,
+					v: string
+				};
+			}
+			return null;
+		};
+	}( types, singleQuotedString, doubleQuotedString );
+
+	/* parse/Parser/expressions/shared/patterns.js */
+	var patterns = {
+		name: /^[a-zA-Z_$][a-zA-Z_$0-9]*/
+	};
+
+	/* parse/Parser/expressions/shared/key.js */
+	var key = function( getStringLiteral, getNumberLiteral, patterns ) {
+
+		var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+		// http://mathiasbynens.be/notes/javascript-properties
+		// can be any name, string literal, or number literal
+		return function( parser ) {
+			var token;
+			if ( token = getStringLiteral( parser ) ) {
+				return identifier.test( token.v ) ? token.v : '"' + token.v.replace( /"/g, '\\"' ) + '"';
+			}
+			if ( token = getNumberLiteral( parser ) ) {
+				return token.v;
+			}
+			if ( token = parser.matchPattern( patterns.name ) ) {
+				return token;
+			}
+		};
+	}( stringLiteral, numberLiteral, patterns );
+
+	/* parse/Parser/expressions/primary/literal/objectLiteral/keyValuePair.js */
+	var keyValuePair = function( types, getKey ) {
+
+		return function( parser ) {
+			var start, key, value;
+			start = parser.pos;
+			// allow whitespace between '{' and key
+			parser.allowWhitespace();
+			key = getKey( parser );
+			if ( key === null ) {
+				parser.pos = start;
+				return null;
+			}
+			// allow whitespace between key and ':'
+			parser.allowWhitespace();
+			// next character must be ':'
+			if ( !parser.matchString( ':' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			// allow whitespace between ':' and value
+			parser.allowWhitespace();
+			// next expression must be a, well... expression
+			value = parser.readExpression();
+			if ( value === null ) {
+				parser.pos = start;
+				return null;
+			}
+			return {
+				t: types.KEY_VALUE_PAIR,
+				k: key,
+				v: value
+			};
+		};
+	}( types, key );
+
+	/* parse/Parser/expressions/primary/literal/objectLiteral/keyValuePairs.js */
+	var keyValuePairs = function( getKeyValuePair ) {
+
+		return function getKeyValuePairs( parser ) {
+			var start, pairs, pair, keyValuePairs;
+			start = parser.pos;
+			pair = getKeyValuePair( parser );
+			if ( pair === null ) {
+				return null;
+			}
+			pairs = [ pair ];
+			if ( parser.matchString( ',' ) ) {
+				keyValuePairs = getKeyValuePairs( parser );
+				if ( !keyValuePairs ) {
+					parser.pos = start;
+					return null;
+				}
+				return pairs.concat( keyValuePairs );
+			}
+			return pairs;
+		};
+	}( keyValuePair );
+
+	/* parse/Parser/expressions/primary/literal/objectLiteral/_objectLiteral.js */
+	var objectLiteral = function( types, getKeyValuePairs ) {
+
+		return function( parser ) {
+			var start, keyValuePairs;
+			start = parser.pos;
+			// allow whitespace
+			parser.allowWhitespace();
+			if ( !parser.matchString( '{' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			keyValuePairs = getKeyValuePairs( parser );
+			// allow whitespace between final value and '}'
+			parser.allowWhitespace();
+			if ( !parser.matchString( '}' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			return {
+				t: types.OBJECT_LITERAL,
+				m: keyValuePairs
+			};
+		};
+	}( types, keyValuePairs );
+
+	/* parse/Parser/expressions/shared/expressionList.js */
+	var expressionList = function( errors ) {
+
+		return function getExpressionList( parser ) {
+			var start, expressions, expr, next;
+			start = parser.pos;
+			parser.allowWhitespace();
+			expr = parser.readExpression();
+			if ( expr === null ) {
+				return null;
+			}
+			expressions = [ expr ];
+			// allow whitespace between expression and ','
+			parser.allowWhitespace();
+			if ( parser.matchString( ',' ) ) {
+				next = getExpressionList( parser );
+				if ( next === null ) {
+					parser.error( errors.expectedExpression );
+				}
+				next.forEach( append );
+			}
+
+			function append( expression ) {
+				expressions.push( expression );
+			}
+			return expressions;
+		};
+	}( parse_Parser_expressions_shared_errors );
+
+	/* parse/Parser/expressions/primary/literal/arrayLiteral.js */
+	var arrayLiteral = function( types, getExpressionList ) {
+
+		return function( parser ) {
+			var start, expressionList;
+			start = parser.pos;
+			// allow whitespace before '['
+			parser.allowWhitespace();
+			if ( !parser.matchString( '[' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			expressionList = getExpressionList( parser );
+			if ( !parser.matchString( ']' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			return {
+				t: types.ARRAY_LITERAL,
+				m: expressionList
+			};
+		};
+	}( types, expressionList );
+
+	/* parse/Parser/expressions/primary/literal/_literal.js */
+	var literal = function( getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral ) {
+
+		return function( parser ) {
+			var literal = getNumberLiteral( parser ) || getBooleanLiteral( parser ) || getStringLiteral( parser ) || getObjectLiteral( parser ) || getArrayLiteral( parser );
+			return literal;
+		};
+	}( numberLiteral, booleanLiteral, stringLiteral, objectLiteral, arrayLiteral );
+
+	/* parse/Parser/expressions/primary/reference.js */
+	var reference = function( types, patterns ) {
+
+		var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals;
+		dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
+		getArrayRefinement = function( parser ) {
+			var num = parser.matchPattern( arrayMemberPattern );
+			if ( num ) {
+				return '.' + num;
+			}
+			return null;
+		};
+		arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
+		// if a reference is a browser global, we don't deference it later, so it needs special treatment
+		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+		return function( parser ) {
+			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
+			startPos = parser.pos;
+			// we might have ancestor refs...
+			ancestor = '';
+			while ( parser.matchString( '../' ) ) {
+				ancestor += '../';
+			}
+			if ( !ancestor ) {
+				// we might have an implicit iterator or a restricted reference
+				dot = parser.matchString( '.' ) || '';
+			}
+			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+			// if this is a browser global, stop here
+			if ( !ancestor && !dot && globals.test( name ) ) {
+				return {
+					t: types.GLOBAL,
+					v: name
+				};
+			}
+			combo = ( ancestor || dot ) + name;
+			if ( !combo ) {
+				return null;
+			}
+			while ( refinement = parser.matchPattern( dotRefinementPattern ) || getArrayRefinement( parser ) ) {
+				combo += refinement;
+			}
+			if ( parser.matchString( '(' ) ) {
+				// if this is a method invocation (as opposed to a function) we need
+				// to strip the method name from the reference combo, else the context
+				// will be wrong
+				lastDotIndex = combo.lastIndexOf( '.' );
+				if ( lastDotIndex !== -1 ) {
+					combo = combo.substr( 0, lastDotIndex );
+					parser.pos = startPos + combo.length;
+				} else {
+					parser.pos -= 1;
+				}
+			}
+			return {
+				t: types.REFERENCE,
+				n: combo.replace( /^this\./, './' ).replace( /^this$/, '.' )
+			};
+		};
+	}( types, patterns );
+
+	/* parse/Parser/expressions/primary/bracketedExpression.js */
+	var bracketedExpression = function( types, errors ) {
+
+		return function( parser ) {
+			var start, expr;
+			start = parser.pos;
+			if ( !parser.matchString( '(' ) ) {
+				return null;
+			}
+			parser.allowWhitespace();
+			expr = parser.readExpression();
+			if ( !expr ) {
+				parser.error( errors.expectedExpression );
+			}
+			parser.allowWhitespace();
+			if ( !parser.matchString( ')' ) ) {
+				parser.error( errors.expectedParen );
+			}
+			return {
+				t: types.BRACKETED,
+				x: expr
+			};
+		};
+	}( types, parse_Parser_expressions_shared_errors );
+
+	/* parse/Parser/expressions/primary/_primary.js */
+	var primary = function( getLiteral, getReference, getBracketedExpression ) {
+
+		return function( parser ) {
+			return getLiteral( parser ) || getReference( parser ) || getBracketedExpression( parser );
+		};
+	}( literal, reference, bracketedExpression );
+
+	/* parse/Parser/expressions/shared/refinement.js */
+	var refinement = function( types, errors, patterns ) {
+
+		return function getRefinement( parser ) {
+			var start, name, expr;
+			start = parser.pos;
+			parser.allowWhitespace();
+			// "." name
+			if ( parser.matchString( '.' ) ) {
+				parser.allowWhitespace();
+				if ( name = parser.matchPattern( patterns.name ) ) {
+					return {
+						t: types.REFINEMENT,
+						n: name
+					};
+				}
+				parser.error( 'Expected a property name' );
+			}
+			// "[" expression "]"
+			if ( parser.matchString( '[' ) ) {
+				parser.allowWhitespace();
+				expr = parser.readExpression();
+				if ( !expr ) {
+					parser.error( errors.expectedExpression );
+				}
+				parser.allowWhitespace();
+				if ( !parser.matchString( ']' ) ) {
+					parser.error( 'Expected \']\'' );
+				}
+				return {
+					t: types.REFINEMENT,
+					x: expr
+				};
+			}
+			return null;
+		};
+	}( types, parse_Parser_expressions_shared_errors, patterns );
+
+	/* parse/Parser/expressions/memberOrInvocation.js */
+	var memberOrInvocation = function( types, getPrimary, getExpressionList, getRefinement, errors ) {
+
+		return function( parser ) {
+			var current, expression, refinement, expressionList;
+			expression = getPrimary( parser );
+			if ( !expression ) {
+				return null;
+			}
+			while ( expression ) {
+				current = parser.pos;
+				if ( refinement = getRefinement( parser ) ) {
+					expression = {
+						t: types.MEMBER,
+						x: expression,
+						r: refinement
+					};
+				} else if ( parser.matchString( '(' ) ) {
+					parser.allowWhitespace();
+					expressionList = getExpressionList( parser );
+					parser.allowWhitespace();
+					if ( !parser.matchString( ')' ) ) {
+						parser.error( errors.expectedParen );
+					}
+					expression = {
+						t: types.INVOCATION,
+						x: expression
+					};
+					if ( expressionList ) {
+						expression.o = expressionList;
+					}
+				} else {
+					break;
+				}
+			}
+			return expression;
+		};
+	}( types, primary, expressionList, refinement, parse_Parser_expressions_shared_errors );
+
+	/* parse/Parser/expressions/typeof.js */
+	var _typeof = function( types, errors, getMemberOrInvocation ) {
+
+		var getTypeof, makePrefixSequenceMatcher;
+		makePrefixSequenceMatcher = function( symbol, fallthrough ) {
+			return function( parser ) {
+				var expression;
+				if ( !parser.matchString( symbol ) ) {
+					return fallthrough( parser );
+				}
+				parser.allowWhitespace();
+				expression = parser.readExpression();
+				if ( !expression ) {
+					parser.error( errors.expectedExpression );
+				}
+				return {
+					s: symbol,
+					o: expression,
+					t: types.PREFIX_OPERATOR
+				};
+			};
+		};
+		// create all prefix sequence matchers, return getTypeof
+		( function() {
+			var i, len, matcher, prefixOperators, fallthrough;
+			prefixOperators = '! ~ + - typeof'.split( ' ' );
+			fallthrough = getMemberOrInvocation;
+			for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
+				matcher = makePrefixSequenceMatcher( prefixOperators[ i ], fallthrough );
+				fallthrough = matcher;
+			}
+			// typeof operator is higher precedence than multiplication, so provides the
+			// fallthrough for the multiplication sequence matcher we're about to create
+			// (we're skipping void and delete)
+			getTypeof = fallthrough;
+		}() );
+		return getTypeof;
+	}( types, parse_Parser_expressions_shared_errors, memberOrInvocation );
+
+	/* parse/Parser/expressions/logicalOr.js */
+	var logicalOr = function( types, getTypeof ) {
+
+		var getLogicalOr, makeInfixSequenceMatcher;
+		makeInfixSequenceMatcher = function( symbol, fallthrough ) {
+			return function( parser ) {
+				var start, left, right;
+				left = fallthrough( parser );
+				if ( !left ) {
+					return null;
+				}
+				// Loop to handle left-recursion in a case like `a * b * c` and produce
+				// left association, i.e. `(a * b) * c`.  The matcher can't call itself
+				// to parse `left` because that would be infinite regress.
+				while ( true ) {
+					start = parser.pos;
+					parser.allowWhitespace();
+					if ( !parser.matchString( symbol ) ) {
+						parser.pos = start;
+						return left;
+					}
+					// special case - in operator must not be followed by [a-zA-Z_$0-9]
+					if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( parser.remaining().charAt( 0 ) ) ) {
+						parser.pos = start;
+						return left;
+					}
+					parser.allowWhitespace();
+					// right operand must also consist of only higher-precedence operators
+					right = fallthrough( parser );
+					if ( !right ) {
+						parser.pos = start;
+						return left;
+					}
+					left = {
+						t: types.INFIX_OPERATOR,
+						s: symbol,
+						o: [
+							left,
+							right
+						]
+					};
+				}
+			};
+		};
+		// create all infix sequence matchers, and return getLogicalOr
+		( function() {
+			var i, len, matcher, infixOperators, fallthrough;
+			// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
+			// Each sequence matcher will initially fall through to its higher precedence
+			// neighbour, and only attempt to match if one of the higher precedence operators
+			// (or, ultimately, a literal, reference, or bracketed expression) already matched
+			infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
+			// A typeof operator is higher precedence than multiplication
+			fallthrough = getTypeof;
+			for ( i = 0, len = infixOperators.length; i < len; i += 1 ) {
+				matcher = makeInfixSequenceMatcher( infixOperators[ i ], fallthrough );
+				fallthrough = matcher;
+			}
+			// Logical OR is the fallthrough for the conditional matcher
+			getLogicalOr = fallthrough;
+		}() );
+		return getLogicalOr;
+	}( types, _typeof );
+
+	/* parse/Parser/expressions/conditional.js */
+	var conditional = function( types, getLogicalOr, errors ) {
+
+		// The conditional operator is the lowest precedence operator, so we start here
+		return function( parser ) {
+			var start, expression, ifTrue, ifFalse;
+			expression = getLogicalOr( parser );
+			if ( !expression ) {
+				return null;
+			}
+			start = parser.pos;
+			parser.allowWhitespace();
+			if ( !parser.matchString( '?' ) ) {
+				parser.pos = start;
+				return expression;
+			}
+			parser.allowWhitespace();
+			ifTrue = parser.readExpression();
+			if ( !ifTrue ) {
+				parser.error( errors.expectedExpression );
+			}
+			parser.allowWhitespace();
+			if ( !parser.matchString( ':' ) ) {
+				parser.error( 'Expected ":"' );
+			}
+			parser.allowWhitespace();
+			ifFalse = parser.readExpression();
+			if ( !ifFalse ) {
+				parser.error( errors.expectedExpression );
+			}
+			return {
+				t: types.CONDITIONAL,
+				o: [
+					expression,
+					ifTrue,
+					ifFalse
+				]
+			};
+		};
+	}( types, logicalOr, parse_Parser_expressions_shared_errors );
+
+	/* parse/Parser/utils/flattenExpression.js */
+	var flattenExpression = function( types, isObject ) {
+
+		return function( expression ) {
+			var refs = [],
+				flattened;
+			extractRefs( expression, refs );
+			flattened = {
+				r: refs,
+				s: stringify( this, expression, refs )
+			};
+			return flattened;
+		};
+
+		function quoteStringLiteral( str ) {
+			return JSON.stringify( String( str ) );
+		}
+		// TODO maybe refactor this?
+		function extractRefs( node, refs ) {
+			var i, list;
+			if ( node.t === types.REFERENCE ) {
+				if ( refs.indexOf( node.n ) === -1 ) {
+					refs.unshift( node.n );
+				}
+			}
+			list = node.o || node.m;
+			if ( list ) {
+				if ( isObject( list ) ) {
+					extractRefs( list, refs );
+				} else {
+					i = list.length;
+					while ( i-- ) {
+						extractRefs( list[ i ], refs );
+					}
+				}
+			}
+			if ( node.x ) {
+				extractRefs( node.x, refs );
+			}
+			if ( node.r ) {
+				extractRefs( node.r, refs );
+			}
+			if ( node.v ) {
+				extractRefs( node.v, refs );
+			}
+		}
+
+		function stringify( parser, node, refs ) {
+			var stringifyAll = function( item ) {
+				return stringify( parser, item, refs );
+			};
+			switch ( node.t ) {
+				case types.BOOLEAN_LITERAL:
+				case types.GLOBAL:
+				case types.NUMBER_LITERAL:
+					return node.v;
+				case types.STRING_LITERAL:
+					return quoteStringLiteral( node.v );
+				case types.ARRAY_LITERAL:
+					return '[' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + ']';
+				case types.OBJECT_LITERAL:
+					return '{' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + '}';
+				case types.KEY_VALUE_PAIR:
+					return node.k + ':' + stringify( parser, node.v, refs );
+				case types.PREFIX_OPERATOR:
+					return ( node.s === 'typeof' ? 'typeof ' : node.s ) + stringify( parser, node.o, refs );
+				case types.INFIX_OPERATOR:
+					return stringify( parser, node.o[ 0 ], refs ) + ( node.s.substr( 0, 2 ) === 'in' ? ' ' + node.s + ' ' : node.s ) + stringify( parser, node.o[ 1 ], refs );
+				case types.INVOCATION:
+					return stringify( parser, node.x, refs ) + '(' + ( node.o ? node.o.map( stringifyAll ).join( ',' ) : '' ) + ')';
+				case types.BRACKETED:
+					return '(' + stringify( parser, node.x, refs ) + ')';
+				case types.MEMBER:
+					return stringify( parser, node.x, refs ) + stringify( parser, node.r, refs );
+				case types.REFINEMENT:
+					return node.n ? '.' + node.n : '[' + stringify( parser, node.x, refs ) + ']';
+				case types.CONDITIONAL:
+					return stringify( parser, node.o[ 0 ], refs ) + '?' + stringify( parser, node.o[ 1 ], refs ) + ':' + stringify( parser, node.o[ 2 ], refs );
+				case types.REFERENCE:
+					return '${' + refs.indexOf( node.n ) + '}';
+				default:
+					parser.error( 'Expected legal JavaScript' );
+			}
+		}
+	}( types, isObject );
+
+	/* parse/Parser/_Parser.js */
+	var Parser = function( circular, create, hasOwnProperty, getConditional, flattenExpression ) {
+
+		var Parser, ParseError, leadingWhitespace = /^\s+/;
+		ParseError = function( message ) {
+			this.name = 'ParseError';
+			this.message = message;
+		};
+		ParseError.prototype = Error.prototype;
+		Parser = function( str, options ) {
+			var items, item;
+			this.str = str;
+			this.options = options || {};
+			this.pos = 0;
+			// Custom init logic
+			if ( this.init )
+				this.init( str, options );
+			items = [];
+			while ( this.pos < this.str.length && ( item = this.read() ) ) {
+				items.push( item );
+			}
+			this.leftover = this.remaining();
+			this.result = this.postProcess ? this.postProcess( items, options ) : items;
+		};
+		Parser.prototype = {
+			read: function( converters ) {
+				var pos, i, len, item;
+				if ( !converters )
+					converters = this.converters;
+				pos = this.pos;
+				len = converters.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.pos = pos;
+					// reset for each attempt
+					if ( item = converters[ i ]( this ) ) {
+						return item;
+					}
+				}
+				return null;
+			},
+			readExpression: function() {
+				// The conditional operator is the lowest precedence operator (except yield,
+				// assignment operators, and commas, none of which are supported), so we
+				// start there. If it doesn't match, it 'falls through' to progressively
+				// higher precedence operators, until it eventually matches (or fails to
+				// match) a 'primary' - a literal or a reference. This way, the abstract syntax
+				// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
+				return getConditional( this );
+			},
+			flattenExpression: flattenExpression,
+			getLinePos: function() {
+				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum;
+				lines = this.str.split( '\n' );
+				lineNum = -1;
+				nextLineEnd = 0;
+				do {
+					currentLineEnd = nextLineEnd;
+					lineNum++;
+					currentLine = lines[ lineNum ];
+					nextLineEnd += currentLine.length + 1;
+				} while ( nextLineEnd <= this.pos );
+				columnNum = this.pos - currentLineEnd;
+				return {
+					line: lineNum + 1,
+					ch: columnNum + 1,
+					text: currentLine,
+					toJSON: function() {
+						return [
+							this.line,
+							this.ch
+						];
+					},
+					toString: function() {
+						return 'line ' + this.line + ' character ' + this.ch + ':\n' + this.text + '\n' + this.text.substr( 0, this.ch - 1 ).replace( /[\S]/g, ' ' ) + '^----';
+					}
+				};
+			},
+			error: function( err ) {
+				var pos, message;
+				pos = this.getLinePos();
+				message = err + ' at ' + pos;
+				throw new ParseError( message );
+			},
+			matchString: function( string ) {
+				if ( this.str.substr( this.pos, string.length ) === string ) {
+					this.pos += string.length;
+					return string;
+				}
+			},
+			matchPattern: function( pattern ) {
+				var match;
+				if ( match = pattern.exec( this.remaining() ) ) {
+					this.pos += match[ 0 ].length;
+					return match[ 1 ] || match[ 0 ];
+				}
+			},
+			allowWhitespace: function() {
+				this.matchPattern( leadingWhitespace );
+			},
+			remaining: function() {
+				return this.str.substring( this.pos );
+			},
+			nextChar: function() {
+				return this.str.charAt( this.pos );
+			}
+		};
+		Parser.extend = function( proto ) {
+			var Parent = this,
+				Child, key;
+			Child = function( str, options ) {
+				Parser.call( this, str, options );
+			};
+			Child.prototype = create( Parent.prototype );
+			for ( key in proto ) {
+				if ( hasOwnProperty.call( proto, key ) ) {
+					Child.prototype[ key ] = proto[ key ];
+				}
+			}
+			Child.extend = Parser.extend;
+			return Child;
+		};
+		circular.Parser = Parser;
+		return Parser;
+	}( circular, create, hasOwn, conditional, flattenExpression );
+
+	/* parse/converters/mustache/delimiterChange.js */
+	var delimiterChange = function() {
+
+		var delimiterChangePattern = /^[^\s=]+/,
+			whitespacePattern = /^\s+/;
+		return function( parser ) {
+			var start, opening, closing;
+			if ( !parser.matchString( '=' ) ) {
+				return null;
+			}
+			start = parser.pos;
+			// allow whitespace before new opening delimiter
+			parser.allowWhitespace();
+			opening = parser.matchPattern( delimiterChangePattern );
+			if ( !opening ) {
+				parser.pos = start;
+				return null;
+			}
+			// allow whitespace (in fact, it's necessary...)
+			if ( !parser.matchPattern( whitespacePattern ) ) {
+				return null;
+			}
+			closing = parser.matchPattern( delimiterChangePattern );
+			if ( !closing ) {
+				parser.pos = start;
+				return null;
+			}
+			// allow whitespace before closing '='
+			parser.allowWhitespace();
+			if ( !parser.matchString( '=' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			return [
+				opening,
+				closing
+			];
+		};
+	}();
+
+	/* parse/converters/mustache/type.js */
+	var type = function( types ) {
+
+		var mustacheTypes = {
+			'#': types.SECTION,
+			'^': types.INVERTED,
+			'/': types.CLOSING,
+			'>': types.PARTIAL,
+			'!': types.COMMENT,
+			'&': types.TRIPLE
+		};
+		return function( parser ) {
+			var type = mustacheTypes[ parser.str.charAt( parser.pos ) ];
+			if ( !type ) {
+				return null;
+			}
+			parser.pos += 1;
+			return type;
+		};
+	}( types );
+
+	/* parse/converters/mustache/content.js */
+	var content = function( types, mustacheType ) {
+
+		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+			arrayMemberPattern = /^[0-9][1-9]*$/,
+			handlebarsTypePattern = /(if|unless|with|each|try)\b/,
+			handlebarsTypes, legalReference;
+		handlebarsTypes = {
+			'if': types.SECTION_IF,
+			'unless': types.SECTION_UNLESS,
+			'with': types.SECTION_WITH,
+			'each': types.SECTION_EACH
+		};
+		legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
+		return function( parser, isTriple ) {
+			var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, referenceExpression;
+			start = parser.pos;
+			mustache = {};
+			// Determine mustache type
+			if ( isTriple ) {
+				mustache.t = types.TRIPLE;
+			} else {
+				// We need to test for expressions before we test for mustache type, because
+				// an expression that begins '!' looks a lot like a comment
+				if ( expression = parser.readExpression() ) {
+					mustache.t = types.INTERPOLATOR;
+					// Was it actually an expression, or a comment block in disguise?
+					parser.allowWhitespace();
+					if ( parser.matchString( parser.delimiters[ 1 ] ) ) {
+						// expression
+						parser.pos -= parser.delimiters[ 1 ].length;
+					} else {
+						// comment block
+						parser.pos = start;
+						expression = null;
+					}
+				}
+				if ( !expression ) {
+					type = mustacheType( parser );
+					mustache.t = type || types.INTERPOLATOR;
+					// default
+					// In Handlebars mode, see if there's a section type e.g. {{#with}}...{{/with}}
+					if ( type === types.SECTION && parser.handlebars ) {
+						handlebarsType = parser.matchPattern( handlebarsTypePattern );
+						if ( handlebarsType && handlebarsTypes[ handlebarsType ] ) {
+							mustache.n = handlebarsTypes[ handlebarsType ];
+							parser.allowWhitespace();
+						}
+					} else if ( type === types.INVERTED ) {
+						// {{^foo}}...{{/foo}}
+						mustache.t = types.SECTION;
+						mustache.n = types.SECTION_UNLESS;
+					} else if ( type === types.COMMENT || type === types.CLOSING ) {
+						remaining = parser.remaining();
+						index = remaining.indexOf( parser.delimiters[ 1 ] );
+						if ( index !== -1 ) {
+							mustache.r = remaining.substr( 0, index );
+							parser.pos += index;
+							return mustache;
+						}
+					}
+				}
+			}
+			if ( !expression ) {
+				// allow whitespace
+				parser.allowWhitespace();
+				// get expression
+				expression = parser.readExpression();
+				// With certain valid references that aren't valid expressions,
+				// e.g. {{1.foo}}, we have a problem: it looks like we've got an
+				// expression, but the expression didn't consume the entire
+				// reference. So we need to check that the mustache delimiters
+				// appear next, unless there's an index reference (i.e. a colon)
+				remaining = parser.remaining();
+				delimiter = isTriple ? parser.tripleDelimiters[ 1 ] : parser.delimiters[ 1 ];
+				if ( remaining.substr( 0, delimiter.length ) !== delimiter && remaining.charAt( 0 ) !== ':' ) {
+					pos = parser.pos;
+					parser.pos = start;
+					remaining = parser.remaining();
+					index = remaining.indexOf( parser.delimiters[ 1 ] );
+					if ( index !== -1 ) {
+						mustache.r = remaining.substr( 0, index ).trim();
+						// Check it's a legal reference
+						if ( !legalReference.test( mustache.r ) ) {
+							parser.error( 'Expected a legal Mustache reference' );
+						}
+						parser.pos += index;
+						return mustache;
+					}
+					parser.pos = pos;
+				}
+			}
+			if ( expression ) {
+				while ( expression.t === types.BRACKETED && expression.x ) {
+					expression = expression.x;
+				}
+				// special case - integers should be treated as array members references,
+				// rather than as expressions in their own right
+				if ( expression.t === types.REFERENCE ) {
+					mustache.r = expression.n;
+				} else {
+					if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
+						mustache.r = expression.v;
+					} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
+						mustache.rx = referenceExpression;
+					} else {
+						mustache.x = parser.flattenExpression( expression );
+					}
+				}
+			}
+			// optional index reference
+			if ( i = parser.matchPattern( indexRefPattern ) ) {
+				mustache.i = i;
+			}
+			return mustache;
+		};
+		// TODO refactor this! it's bewildering
+		function getReferenceExpression( parser, expression ) {
+			var members = [],
+				refinement;
+			while ( expression.t === types.MEMBER && expression.r.t === types.REFINEMENT ) {
+				refinement = expression.r;
+				if ( refinement.x ) {
+					if ( refinement.x.t === types.REFERENCE ) {
+						members.unshift( refinement.x );
+					} else {
+						members.unshift( parser.flattenExpression( refinement.x ) );
+					}
+				} else {
+					members.unshift( refinement.n );
+				}
+				expression = expression.x;
+			}
+			if ( expression.t !== types.REFERENCE ) {
+				return null;
+			}
+			return {
+				r: expression.n,
+				m: members
+			};
+		}
+	}( types, type );
+
+	/* parse/converters/mustache.js */
+	var mustache = function( types, delimiterChange, mustacheContent ) {
+
+		var delimiterChangeToken = {
+				t: types.DELIMCHANGE,
+				exclude: true
+			},
+			handlebarsIndexRefPattern = /^@(?:index|key)$/;
+		return getMustache;
+
+		function getMustache( parser ) {
+			// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
+			// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
+			// we will get a false positive if the mustache delimiter is a substring of the
+			// triple delimiter, as in the default case
+			var seekTripleFirst = parser.tripleDelimiters[ 0 ].length > parser.delimiters[ 0 ].length;
+			return getMustacheOrTriple( parser, seekTripleFirst ) || getMustacheOrTriple( parser, !seekTripleFirst );
+		}
+
+		function getMustacheOrTriple( parser, seekTriple ) {
+			var start, startPos, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
+			start = parser.pos;
+			startPos = parser.getLinePos();
+			delimiters = seekTriple ? parser.tripleDelimiters : parser.delimiters;
+			if ( !parser.matchString( delimiters[ 0 ] ) ) {
+				return null;
+			}
+			// delimiter change?
+			if ( mustache = delimiterChange( parser ) ) {
+				// find closing delimiter or abort...
+				if ( !parser.matchString( delimiters[ 1 ] ) ) {
+					return null;
+				}
+				// ...then make the switch
+				parser[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = mustache;
+				return delimiterChangeToken;
+			}
+			parser.allowWhitespace();
+			mustache = mustacheContent( parser, seekTriple );
+			if ( mustache === null ) {
+				parser.pos = start;
+				return null;
+			}
+			// allow whitespace before closing delimiter
+			parser.allowWhitespace();
+			if ( !parser.matchString( delimiters[ 1 ] ) ) {
+				parser.error( 'Expected closing delimiter \'' + delimiters[ 1 ] + '\' after reference' );
+			}
+			if ( mustache.t === types.COMMENT ) {
+				mustache.exclude = true;
+			}
+			// section children
+			if ( mustache.t === types.SECTION ) {
+				children = [];
+				currentChildren = children;
+				if ( parser.options.strict || parser.handlebars ) {
+					switch ( mustache.n ) {
+						case types.SECTION_IF:
+							expectedClose = 'if';
+							break;
+						case types.SECTION_EACH:
+							expectedClose = 'each';
+							break;
+						case types.SECTION_UNLESS:
+							expectedClose = 'unless';
+							break;
+						case types.SECTION_WITH:
+							expectedClose = 'with';
+							break;
+					}
+				}
+				while ( child = parser.read() ) {
+					if ( child.t === types.CLOSING ) {
+						if ( expectedClose && child.r !== expectedClose ) {
+							parser.error( 'Expected {{/' + expectedClose + '}}' );
+						}
+						break;
+					}
+					if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else' ) {
+						switch ( mustache.n ) {
+							case types.SECTION_IF:
+							case types.SECTION_EACH:
+								currentChildren = elseChildren = [];
+								continue;
+								// don't add this item to children
+							case types.SECTION_UNLESS:
+								parser.error( '{{else}} not allowed in {{#unless}}' );
+								break;
+							case types.SECTION_WITH:
+								parser.error( '{{else}} not allowed in {{#with}}' );
+								break;
+						}
+					}
+					currentChildren.push( child );
+				}
+				if ( children.length ) {
+					mustache.f = children;
+					// If this is an 'each' section, and it contains an {{@index}} or {{@key}},
+					// we need to set the index reference accordingly
+					if ( !mustache.i && mustache.n === types.SECTION_EACH && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
+						mustache.i = indexRef;
+					}
+				}
+				if ( elseChildren && elseChildren.length ) {
+					mustache.l = elseChildren;
+				}
+			}
+			if ( parser.includeLinePositions ) {
+				mustache.p = startPos.toJSON();
+			}
+			return mustache;
+		}
+
+		function handlebarsIndexRef( fragment ) {
+			var i, child, indexRef;
+			i = fragment.length;
+			while ( i-- ) {
+				child = fragment[ i ];
+				// Recurse into elements (but not sections)
+				if ( child.t === types.ELEMENT && child.f && ( indexRef = handlebarsIndexRef( child.f ) ) ) {
+					return indexRef;
+				}
+				// Mustache?
+				if ( child.t === types.INTERPOLATOR || child.t === types.TRIPLE || child.t === types.SECTION ) {
+					// Normal reference?
+					if ( child.r && handlebarsIndexRefPattern.test( child.r ) ) {
+						return child.r;
+					}
+					// Expression?
+					if ( child.x && ( indexRef = indexRefContainedInExpression( child.x ) ) ) {
+						return indexRef;
+					}
+					// Reference expression?
+					if ( child.rx && ( indexRef = indexRefContainedInReferenceExpression( child.rx ) ) ) {
+						return indexRef;
+					}
+				}
+			}
+		}
+
+		function indexRefContainedInExpression( expression ) {
+			var i;
+			i = expression.r.length;
+			while ( i-- ) {
+				if ( handlebarsIndexRefPattern.test( expression.r[ i ] ) ) {
+					return expression.r[ i ];
+				}
+			}
+		}
+
+		function indexRefContainedInReferenceExpression( referenceExpression ) {
+			var i, indexRef, member;
+			i = referenceExpression.m.length;
+			while ( i-- ) {
+				member = referenceExpression.m[ i ];
+				if ( member.r && ( indexRef = indexRefContainedInExpression( member ) ) ) {
+					return indexRef;
+				}
+				if ( member.t === types.REFERENCE && handlebarsIndexRefPattern.test( member.n ) ) {
+					return member.n;
+				}
+			}
+		}
+	}( types, delimiterChange, content );
+
+	/* parse/converters/comment.js */
+	var comment = function( types ) {
+
+		var OPEN_COMMENT = '<!--',
+			CLOSE_COMMENT = '-->';
+		return function( parser ) {
+			var startPos, content, remaining, endIndex, comment;
+			startPos = parser.getLinePos();
+			if ( !parser.matchString( OPEN_COMMENT ) ) {
+				return null;
+			}
+			remaining = parser.remaining();
+			endIndex = remaining.indexOf( CLOSE_COMMENT );
+			if ( endIndex === -1 ) {
+				parser.error( 'Illegal HTML - expected closing comment sequence (\'-->\')' );
+			}
+			content = remaining.substr( 0, endIndex );
+			parser.pos += endIndex + 3;
+			comment = {
+				t: types.COMMENT,
+				c: content
+			};
+			if ( parser.includeLinePositions ) {
+				comment.p = startPos.toJSON();
+			}
+			return comment;
+		};
+	}( types );
+
+	/* config/voidElementNames.js */
+	var voidElementNames = function() {
+
+		var voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
+		return voidElementNames;
+	}();
+
+	/* parse/converters/utils/getLowestIndex.js */
+	var getLowestIndex = function( haystack, needles ) {
+		var i, index, lowest;
+		i = needles.length;
+		while ( i-- ) {
+			index = haystack.indexOf( needles[ i ] );
+			// short circuit
+			if ( !index ) {
+				return 0;
+			}
+			if ( index === -1 ) {
+				continue;
+			}
+			if ( !lowest || index < lowest ) {
+				lowest = index;
+			}
+		}
+		return lowest || -1;
+	};
+
+	/* parse/converters/utils/decodeCharacterReferences.js */
+	var decodeCharacterReferences = function() {
+
+		var htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern;
+		htmlEntities = {
+			quot: 34,
+			amp: 38,
+			apos: 39,
+			lt: 60,
+			gt: 62,
+			nbsp: 160,
+			iexcl: 161,
+			cent: 162,
+			pound: 163,
+			curren: 164,
+			yen: 165,
+			brvbar: 166,
+			sect: 167,
+			uml: 168,
+			copy: 169,
+			ordf: 170,
+			laquo: 171,
+			not: 172,
+			shy: 173,
+			reg: 174,
+			macr: 175,
+			deg: 176,
+			plusmn: 177,
+			sup2: 178,
+			sup3: 179,
+			acute: 180,
+			micro: 181,
+			para: 182,
+			middot: 183,
+			cedil: 184,
+			sup1: 185,
+			ordm: 186,
+			raquo: 187,
+			frac14: 188,
+			frac12: 189,
+			frac34: 190,
+			iquest: 191,
+			Agrave: 192,
+			Aacute: 193,
+			Acirc: 194,
+			Atilde: 195,
+			Auml: 196,
+			Aring: 197,
+			AElig: 198,
+			Ccedil: 199,
+			Egrave: 200,
+			Eacute: 201,
+			Ecirc: 202,
+			Euml: 203,
+			Igrave: 204,
+			Iacute: 205,
+			Icirc: 206,
+			Iuml: 207,
+			ETH: 208,
+			Ntilde: 209,
+			Ograve: 210,
+			Oacute: 211,
+			Ocirc: 212,
+			Otilde: 213,
+			Ouml: 214,
+			times: 215,
+			Oslash: 216,
+			Ugrave: 217,
+			Uacute: 218,
+			Ucirc: 219,
+			Uuml: 220,
+			Yacute: 221,
+			THORN: 222,
+			szlig: 223,
+			agrave: 224,
+			aacute: 225,
+			acirc: 226,
+			atilde: 227,
+			auml: 228,
+			aring: 229,
+			aelig: 230,
+			ccedil: 231,
+			egrave: 232,
+			eacute: 233,
+			ecirc: 234,
+			euml: 235,
+			igrave: 236,
+			iacute: 237,
+			icirc: 238,
+			iuml: 239,
+			eth: 240,
+			ntilde: 241,
+			ograve: 242,
+			oacute: 243,
+			ocirc: 244,
+			otilde: 245,
+			ouml: 246,
+			divide: 247,
+			oslash: 248,
+			ugrave: 249,
+			uacute: 250,
+			ucirc: 251,
+			uuml: 252,
+			yacute: 253,
+			thorn: 254,
+			yuml: 255,
+			OElig: 338,
+			oelig: 339,
+			Scaron: 352,
+			scaron: 353,
+			Yuml: 376,
+			fnof: 402,
+			circ: 710,
+			tilde: 732,
+			Alpha: 913,
+			Beta: 914,
+			Gamma: 915,
+			Delta: 916,
+			Epsilon: 917,
+			Zeta: 918,
+			Eta: 919,
+			Theta: 920,
+			Iota: 921,
+			Kappa: 922,
+			Lambda: 923,
+			Mu: 924,
+			Nu: 925,
+			Xi: 926,
+			Omicron: 927,
+			Pi: 928,
+			Rho: 929,
+			Sigma: 931,
+			Tau: 932,
+			Upsilon: 933,
+			Phi: 934,
+			Chi: 935,
+			Psi: 936,
+			Omega: 937,
+			alpha: 945,
+			beta: 946,
+			gamma: 947,
+			delta: 948,
+			epsilon: 949,
+			zeta: 950,
+			eta: 951,
+			theta: 952,
+			iota: 953,
+			kappa: 954,
+			lambda: 955,
+			mu: 956,
+			nu: 957,
+			xi: 958,
+			omicron: 959,
+			pi: 960,
+			rho: 961,
+			sigmaf: 962,
+			sigma: 963,
+			tau: 964,
+			upsilon: 965,
+			phi: 966,
+			chi: 967,
+			psi: 968,
+			omega: 969,
+			thetasym: 977,
+			upsih: 978,
+			piv: 982,
+			ensp: 8194,
+			emsp: 8195,
+			thinsp: 8201,
+			zwnj: 8204,
+			zwj: 8205,
+			lrm: 8206,
+			rlm: 8207,
+			ndash: 8211,
+			mdash: 8212,
+			lsquo: 8216,
+			rsquo: 8217,
+			sbquo: 8218,
+			ldquo: 8220,
+			rdquo: 8221,
+			bdquo: 8222,
+			dagger: 8224,
+			Dagger: 8225,
+			bull: 8226,
+			hellip: 8230,
+			permil: 8240,
+			prime: 8242,
+			Prime: 8243,
+			lsaquo: 8249,
+			rsaquo: 8250,
+			oline: 8254,
+			frasl: 8260,
+			euro: 8364,
+			image: 8465,
+			weierp: 8472,
+			real: 8476,
+			trade: 8482,
+			alefsym: 8501,
+			larr: 8592,
+			uarr: 8593,
+			rarr: 8594,
+			darr: 8595,
+			harr: 8596,
+			crarr: 8629,
+			lArr: 8656,
+			uArr: 8657,
+			rArr: 8658,
+			dArr: 8659,
+			hArr: 8660,
+			forall: 8704,
+			part: 8706,
+			exist: 8707,
+			empty: 8709,
+			nabla: 8711,
+			isin: 8712,
+			notin: 8713,
+			ni: 8715,
+			prod: 8719,
+			sum: 8721,
+			minus: 8722,
+			lowast: 8727,
+			radic: 8730,
+			prop: 8733,
+			infin: 8734,
+			ang: 8736,
+			and: 8743,
+			or: 8744,
+			cap: 8745,
+			cup: 8746,
+			'int': 8747,
+			there4: 8756,
+			sim: 8764,
+			cong: 8773,
+			asymp: 8776,
+			ne: 8800,
+			equiv: 8801,
+			le: 8804,
+			ge: 8805,
+			sub: 8834,
+			sup: 8835,
+			nsub: 8836,
+			sube: 8838,
+			supe: 8839,
+			oplus: 8853,
+			otimes: 8855,
+			perp: 8869,
+			sdot: 8901,
+			lceil: 8968,
+			rceil: 8969,
+			lfloor: 8970,
+			rfloor: 8971,
+			lang: 9001,
+			rang: 9002,
+			loz: 9674,
+			spades: 9824,
+			clubs: 9827,
+			hearts: 9829,
+			diams: 9830
+		};
+		controlCharacters = [
+			8364,
+			129,
+			8218,
+			402,
+			8222,
+			8230,
+			8224,
+			8225,
+			710,
+			8240,
+			352,
+			8249,
+			338,
+			141,
+			381,
+			143,
+			144,
+			8216,
+			8217,
+			8220,
+			8221,
+			8226,
+			8211,
+			8212,
+			732,
+			8482,
+			353,
+			8250,
+			339,
+			157,
+			382,
+			376
+		];
+		namedEntityPattern = new RegExp( '&(' + Object.keys( htmlEntities ).join( '|' ) + ');?', 'g' );
+		hexEntityPattern = /&#x([0-9]+);?/g;
+		decimalEntityPattern = /&#([0-9]+);?/g;
+		return function decodeCharacterReferences( html ) {
+			var result;
+			// named entities
+			result = html.replace( namedEntityPattern, function( match, name ) {
+				if ( htmlEntities[ name ] ) {
+					return String.fromCharCode( htmlEntities[ name ] );
+				}
+				return match;
+			} );
+			// hex references
+			result = result.replace( hexEntityPattern, function( match, hex ) {
+				return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
+			} );
+			// decimal references
+			result = result.replace( decimalEntityPattern, function( match, charCode ) {
+				return String.fromCharCode( validateCode( charCode ) );
+			} );
+			return result;
+		};
+		// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
+		// code points with alternatives in some cases - since we're bypassing that mechanism, we need
+		// to replace them ourselves
+		//
+		// Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
+		function validateCode( code ) {
+			if ( !code ) {
+				return 65533;
+			}
+			// line feed becomes generic whitespace
+			if ( code === 10 ) {
+				return 32;
+			}
+			// ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
+			if ( code < 128 ) {
+				return code;
+			}
+			// code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
+			// to correct the mistake or we'll end up with missing € signs and so on
+			if ( code <= 159 ) {
+				return controlCharacters[ code - 128 ];
+			}
+			// basic multilingual plane
+			if ( code < 55296 ) {
+				return code;
+			}
+			// UTF-16 surrogate halves
+			if ( code <= 57343 ) {
+				return 65533;
+			}
+			// rest of the basic multilingual plane
+			if ( code <= 65535 ) {
+				return code;
+			}
+			return 65533;
+		}
+	}();
+
+	/* parse/converters/text.js */
+	var text = function( getLowestIndex, decodeCharacterReferences ) {
+
+		return function( parser ) {
+			var index, remaining, barrier;
+			remaining = parser.remaining();
+			barrier = parser.inside ? '</' + parser.inside : '<';
+			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
+				index = remaining.indexOf( barrier );
+			} else {
+				index = getLowestIndex( remaining, [
+					barrier,
+					parser.delimiters[ 0 ],
+					parser.tripleDelimiters[ 0 ]
+				] );
+			}
+			if ( !index ) {
+				return null;
+			}
+			if ( index === -1 ) {
+				index = remaining.length;
+			}
+			parser.pos += index;
+			return decodeCharacterReferences( remaining.substr( 0, index ) );
+		};
+	}( getLowestIndex, decodeCharacterReferences );
+
+	/* parse/converters/element/closingTag.js */
+	var closingTag = function( types ) {
+
+		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
+		return function( parser ) {
+			var tag;
+			// are we looking at a closing tag?
+			if ( !parser.matchString( '</' ) ) {
+				return null;
+			}
+			if ( tag = parser.matchPattern( closingTagPattern ) ) {
+				return {
+					t: types.CLOSING_TAG,
+					e: tag
+				};
+			}
+			// We have an illegal closing tag, report it
+			parser.pos -= 2;
+			parser.error( 'Illegal closing tag' );
+		};
+	}( types );
+
+	/* parse/converters/element/attribute.js */
+	var attribute = function( getLowestIndex, getMustache ) {
+
+		var attributeNamePattern = /^[^\s"'>\/=]+/,
+			unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
+		return getAttribute;
+
+		function getAttribute( parser ) {
+			var attr, name, value;
+			parser.allowWhitespace();
+			name = parser.matchPattern( attributeNamePattern );
+			if ( !name ) {
+				return null;
+			}
+			attr = {
+				name: name
+			};
+			value = getAttributeValue( parser );
+			if ( value ) {
+				attr.value = value;
+			}
+			return attr;
+		}
+
+		function getAttributeValue( parser ) {
+			var start, value;
+			start = parser.pos;
+			parser.allowWhitespace();
+			if ( !parser.matchString( '=' ) ) {
+				parser.pos = start;
+				return null;
+			}
+			parser.allowWhitespace();
+			value = getQuotedAttributeValue( parser, '\'' ) || getQuotedAttributeValue( parser, '"' ) || getUnquotedAttributeValue( parser );
+			if ( value === null ) {
+				parser.pos = start;
+				return null;
+			}
+			if ( value.length === 1 && typeof value[ 0 ] === 'string' ) {
+				return value[ 0 ];
+			}
+			return value;
+		}
+
+		function getUnquotedAttributeValueToken( parser ) {
+			var start, text, index;
+			start = parser.pos;
+			text = parser.matchPattern( unquotedAttributeValueTextPattern );
+			if ( !text ) {
+				return null;
+			}
+			if ( ( index = text.indexOf( parser.delimiters[ 0 ] ) ) !== -1 ) {
+				text = text.substr( 0, index );
+				parser.pos = start + text.length;
+			}
+			return text;
+		}
+
+		function getUnquotedAttributeValue( parser ) {
+			var tokens, token;
+			tokens = [];
+			token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
+			while ( token !== null ) {
+				tokens.push( token );
+				token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
+			}
+			if ( !tokens.length ) {
+				return null;
+			}
+			return tokens;
+		}
+
+		function getQuotedAttributeValue( parser, quoteMark ) {
+			var start, tokens, token;
+			start = parser.pos;
+			if ( !parser.matchString( quoteMark ) ) {
+				return null;
+			}
+			tokens = [];
+			token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
+			while ( token !== null ) {
+				tokens.push( token );
+				token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
+			}
+			if ( !parser.matchString( quoteMark ) ) {
+				parser.pos = start;
+				return null;
+			}
+			return tokens;
+		}
+
+		function getQuotedStringToken( parser, quoteMark ) {
+			var start, index, remaining;
+			start = parser.pos;
+			remaining = parser.remaining();
+			index = getLowestIndex( remaining, [
+				quoteMark,
+				parser.delimiters[ 0 ],
+				parser.delimiters[ 1 ]
+			] );
+			if ( index === -1 ) {
+				parser.error( 'Quoted attribute value must have a closing quote' );
+			}
+			if ( !index ) {
+				return null;
+			}
+			parser.pos += index;
+			return remaining.substr( 0, index );
+		}
+	}( getLowestIndex, mustache );
+
+	/* utils/parseJSON.js */
+	var parseJSON = function( Parser, getStringLiteral, getKey ) {
+
+		// simple JSON parser, without the restrictions of JSON parse
+		// (i.e. having to double-quote keys).
+		//
+		// If passed a hash of values as the second argument, ${placeholders}
+		// will be replaced with those values
+		var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
+		specials = {
+			'true': true,
+			'false': false,
+			'undefined': undefined,
+			'null': null
+		};
+		specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
+		numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+		placeholderPattern = /\$\{([^\}]+)\}/g;
+		placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
+		onlyWhitespace = /^\s*$/;
+		JsonParser = Parser.extend( {
+			init: function( str, options ) {
+				this.values = options.values;
+			},
+			postProcess: function( result ) {
+				if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
+					return null;
+				}
+				return {
+					value: result[ 0 ].v
+				};
+			},
+			converters: [
+
+				function getPlaceholder( parser ) {
+					var placeholder;
+					if ( !parser.values ) {
+						return null;
+					}
+					placeholder = parser.matchPattern( placeholderAtStartPattern );
+					if ( placeholder && parser.values.hasOwnProperty( placeholder ) ) {
+						return {
+							v: parser.values[ placeholder ]
+						};
+					}
+				},
+				function getSpecial( parser ) {
+					var special;
+					if ( special = parser.matchPattern( specialsPattern ) ) {
+						return {
+							v: specials[ special ]
+						};
+					}
+				},
+				function getNumber( parser ) {
+					var number;
+					if ( number = parser.matchPattern( numberPattern ) ) {
+						return {
+							v: +number
+						};
+					}
+				},
+				function getString( parser ) {
+					var stringLiteral = getStringLiteral( parser ),
+						values;
+					if ( stringLiteral && ( values = parser.values ) ) {
+						return {
+							v: stringLiteral.v.replace( placeholderPattern, function( match, $1 ) {
+								return $1 in values ? values[ $1 ] : $1;
+							} )
+						};
+					}
+					return stringLiteral;
+				},
+				function getObject( parser ) {
+					var result, pair;
+					if ( !parser.matchString( '{' ) ) {
+						return null;
+					}
+					result = {};
+					while ( pair = getKeyValuePair( parser ) ) {
+						result[ pair.key ] = pair.value;
+						parser.allowWhitespace();
+						if ( parser.matchString( '}' ) ) {
+							return {
+								v: result
+							};
+						}
+						if ( !parser.matchString( ',' ) ) {
+							return null;
+						}
+					}
+					return null;
+				},
+				function getArray( parser ) {
+					var result, valueToken;
+					if ( !parser.matchString( '[' ) ) {
+						return null;
+					}
+					result = [];
+					parser.allowWhitespace();
+					while ( valueToken = parser.read() ) {
+						result.push( valueToken.v );
+						parser.allowWhitespace();
+						if ( parser.matchString( ']' ) ) {
+							return {
+								v: result
+							};
+						}
+						if ( !parser.matchString( ',' ) ) {
+							return null;
+						}
+						parser.allowWhitespace();
+					}
+					return null;
+				}
+			]
+		} );
+
+		function getKeyValuePair( parser ) {
+			var key, valueToken, pair;
+			parser.allowWhitespace();
+			key = getKey( parser );
+			if ( !key ) {
+				return null;
+			}
+			pair = {
+				key: key
+			};
+			parser.allowWhitespace();
+			if ( !parser.matchString( ':' ) ) {
+				return null;
+			}
+			parser.allowWhitespace();
+			valueToken = parser.read();
+			if ( !valueToken ) {
+				return null;
+			}
+			pair.value = valueToken.v;
+			return pair;
+		}
+		return function( str, values ) {
+			var parser = new JsonParser( str, {
+				values: values
+			} );
+			return parser.result;
+		};
+	}( Parser, stringLiteral, key );
+
+	/* parse/converters/element/processDirective.js */
+	var processDirective = function( parseJSON ) {
+
+		// TODO clean this up, it's shocking
+		return function( tokens ) {
+			var result, token, colonIndex, directiveName, directiveArgs, parsed;
+			if ( typeof tokens === 'string' ) {
+				if ( tokens.indexOf( ':' ) === -1 ) {
+					return tokens.trim();
+				}
+				tokens = [ tokens ];
+			}
+			result = {};
+			directiveName = [];
+			directiveArgs = [];
+			while ( tokens.length ) {
+				token = tokens.shift();
+				if ( typeof token === 'string' ) {
+					colonIndex = token.indexOf( ':' );
+					if ( colonIndex === -1 ) {
+						directiveName.push( token );
+					} else {
+						// is the colon the first character?
+						if ( colonIndex ) {
+							// no
+							directiveName.push( token.substr( 0, colonIndex ) );
+						}
+						// if there is anything after the colon in this token, treat
+						// it as the first token of the directiveArgs fragment
+						if ( token.length > colonIndex + 1 ) {
+							directiveArgs[ 0 ] = token.substring( colonIndex + 1 );
+						}
+						break;
+					}
+				} else {
+					directiveName.push( token );
+				}
+			}
+			directiveArgs = directiveArgs.concat( tokens );
+			if ( directiveArgs.length || typeof directiveName !== 'string' ) {
+				result = {
+					// TODO is this really necessary? just use the array
+					n: directiveName.length === 1 && typeof directiveName[ 0 ] === 'string' ? directiveName[ 0 ] : directiveName
+				};
+				if ( directiveArgs.length === 1 && typeof directiveArgs[ 0 ] === 'string' ) {
+					parsed = parseJSON( '[' + directiveArgs[ 0 ] + ']' );
+					result.a = parsed ? parsed.value : directiveArgs[ 0 ];
+				} else {
+					result.d = directiveArgs;
+				}
+			} else {
+				result = directiveName;
+			}
+			return result;
+		};
+	}( parseJSON );
+
+	/* parse/converters/element.js */
+	var element = function( types, voidElementNames, getMustache, getComment, getText, getClosingTag, getAttribute, processDirective ) {
+
+		var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
+			validTagNameFollower = /^[\s\n\/>]/,
+			onPattern = /^on/,
+			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)$/,
+			reservedEventNames = /^(?:change|reset|teardown|update)$/,
+			directives = {
+				'intro-outro': 't0',
+				intro: 't1',
+				outro: 't2',
+				decorator: 'o'
+			},
+			exclude = {
+				exclude: true
+			},
+			converters;
+		// Different set of converters, because this time we're looking for closing tags
+		converters = [
+			getMustache,
+			getComment,
+			getElement,
+			getText,
+			getClosingTag
+		];
+		return getElement;
+
+		function getElement( parser ) {
+			var start, startPos, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
+			start = parser.pos;
+			startPos = parser.getLinePos();
+			if ( parser.inside ) {
+				return null;
+			}
+			if ( !parser.matchString( '<' ) ) {
+				return null;
+			}
+			// if this is a closing tag, abort straight away
+			if ( parser.nextChar() === '/' ) {
+				return null;
+			}
+			element = {
+				t: types.ELEMENT
+			};
+			if ( parser.includeLinePositions ) {
+				element.p = startPos.toJSON();
+			}
+			if ( parser.matchString( '!' ) ) {
+				element.y = 1;
+			}
+			// element name
+			element.e = parser.matchPattern( tagNamePattern );
+			if ( !element.e ) {
+				return null;
+			}
+			// next character must be whitespace, closing solidus or '>'
+			if ( !validTagNameFollower.test( parser.nextChar() ) ) {
+				parser.error( 'Illegal tag name' );
+			}
+			addProxyEvent = function( name, directive ) {
+				var directiveName = directive.n || directive;
+				if ( reservedEventNames.test( directiveName ) ) {
+					parser.pos -= directiveName.length;
+					parser.error( 'Cannot use reserved event names (change, reset, teardown, update)' );
+				}
+				element.v[ name ] = directive;
+			};
+			// directives and attributes
+			while ( attribute = getAttribute( parser ) ) {
+				// intro, outro, decorator
+				if ( directiveName = directives[ attribute.name ] ) {
+					element[ directiveName ] = processDirective( attribute.value );
+				} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
+					if ( !element.v )
+						element.v = {};
+					directive = processDirective( attribute.value );
+					addProxyEvent( match[ 1 ], directive );
+				} else {
+					if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
+						if ( !element.a )
+							element.a = {};
+						element.a[ attribute.name ] = attribute.value || 0;
+					}
+				}
+			}
+			// allow whitespace before closing solidus
+			parser.allowWhitespace();
+			// self-closing solidus?
+			if ( parser.matchString( '/' ) ) {
+				selfClosing = true;
+			}
+			// closing angle bracket
+			if ( !parser.matchString( '>' ) ) {
+				return null;
+			}
+			lowerCaseName = element.e.toLowerCase();
+			if ( !selfClosing && !voidElementNames.test( element.e ) ) {
+				// Special case - if we open a script element, further tags should
+				// be ignored unless they're a closing script element
+				if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
+					parser.inside = lowerCaseName;
+				}
+				children = [];
+				while ( child = parser.read( converters ) ) {
+					// Special case - closing section tag
+					if ( child.t === types.CLOSING ) {
+						break;
+					}
+					if ( child.t === types.CLOSING_TAG ) {
+						break;
+					}
+					children.push( child );
+				}
+				if ( children.length ) {
+					element.f = children;
+				}
+			}
+			parser.inside = null;
+			if ( parser.sanitizeElements && parser.sanitizeElements.indexOf( lowerCaseName ) !== -1 ) {
+				return exclude;
+			}
+			return element;
+		}
+	}( types, voidElementNames, mustache, comment, text, closingTag, attribute, processDirective );
+
+	/* parse/utils/trimWhitespace.js */
+	var trimWhitespace = function() {
+
+		var leadingWhitespace = /^[ \t\f\r\n]+/,
+			trailingWhitespace = /[ \t\f\r\n]+$/;
+		return function( items, leading, trailing ) {
+			var item;
+			if ( leading ) {
+				item = items[ 0 ];
+				if ( typeof item === 'string' ) {
+					item = item.replace( leadingWhitespace, '' );
+					if ( !item ) {
+						items.shift();
+					} else {
+						items[ 0 ] = item;
+					}
+				}
+			}
+			if ( trailing ) {
+				item = items[ items.length - 1 ];
+				if ( typeof item === 'string' ) {
+					item = item.replace( trailingWhitespace, '' );
+					if ( !item ) {
+						items.pop();
+					} else {
+						items[ items.length - 1 ] = item;
+					}
+				}
+			}
+		};
+	}();
+
+	/* parse/utils/stripStandalones.js */
+	var stripStandalones = function( types ) {
+
+		var leadingLinebreak = /^\s*\r?\n/,
+			trailingLinebreak = /\r?\n\s*$/;
+		return function( items ) {
+			var i, current, backOne, backTwo, lastSectionItem;
+			for ( i = 1; i < items.length; i += 1 ) {
+				current = items[ i ];
+				backOne = items[ i - 1 ];
+				backTwo = items[ i - 2 ];
+				// if we're at the end of a [text][comment][text] sequence...
+				if ( isString( current ) && isComment( backOne ) && isString( backTwo ) ) {
+					// ... and the comment is a standalone (i.e. line breaks either side)...
+					if ( trailingLinebreak.test( backTwo ) && leadingLinebreak.test( current ) ) {
+						// ... then we want to remove the whitespace after the first line break
+						items[ i - 2 ] = backTwo.replace( trailingLinebreak, '\n' );
+						// and the leading line break of the second text token
+						items[ i ] = current.replace( leadingLinebreak, '' );
+					}
+				}
+				// if the current item is a section, and it is preceded by a linebreak, and
+				// its first item is a linebreak...
+				if ( isSection( current ) && isString( backOne ) ) {
+					if ( trailingLinebreak.test( backOne ) && isString( current.f[ 0 ] ) && leadingLinebreak.test( current.f[ 0 ] ) ) {
+						items[ i - 1 ] = backOne.replace( trailingLinebreak, '\n' );
+						current.f[ 0 ] = current.f[ 0 ].replace( leadingLinebreak, '' );
+					}
+				}
+				// if the last item was a section, and it is followed by a linebreak, and
+				// its last item is a linebreak...
+				if ( isString( current ) && isSection( backOne ) ) {
+					lastSectionItem = backOne.f[ backOne.f.length - 1 ];
+					if ( isString( lastSectionItem ) && trailingLinebreak.test( lastSectionItem ) && leadingLinebreak.test( current ) ) {
+						backOne.f[ backOne.f.length - 1 ] = lastSectionItem.replace( trailingLinebreak, '\n' );
+						items[ i ] = current.replace( leadingLinebreak, '' );
+					}
+				}
+			}
+			return items;
+		};
+
+		function isString( item ) {
+			return typeof item === 'string';
+		}
+
+		function isComment( item ) {
+			return item.t === types.COMMENT || item.t === types.DELIMCHANGE;
+		}
+
+		function isSection( item ) {
+			return ( item.t === types.SECTION || item.t === types.INVERTED ) && item.f;
+		}
+	}( types );
+
+	/* parse/_parse.js */
+	var parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones ) {
+
+		// Ractive.parse
+		// ===============
+		//
+		// Takes in a string, and returns an object representing the parsed template.
+		// A parsed template is an array of 1 or more 'templates', which in some
+		// cases have children.
+		//
+		// The format is optimised for size, not readability, however for reference the
+		// keys for each template are as follows:
+		//
+		// * r - Reference, e.g. 'mustache' in {{mustache}}
+		// * t - Type code (e.g. 1 is text, 2 is interpolator...)
+		// * f - Fragment. Contains a template's children
+		// * l - eLse fragment. Contains a template's children in the else case
+		// * e - Element name
+		// * a - map of element Attributes, or proxy event/transition Arguments
+		// * d - Dynamic proxy event/transition arguments
+		// * n - indicates an iNverted section
+		// * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
+		// * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
+		// * x - eXpressions
+		// * s - String representation of an expression function
+		// * t0 - intro/outro Transition
+		// * t1 - intro Transition
+		// * t2 - outro Transition
+		// * o - decOrator
+		// * y - is doctYpe
+		// * c - is Content (e.g. of a comment node)
+		// * p - line Position information - array with line number and character position of each node
+		var StandardParser, parse, contiguousWhitespace = /[ \t\f\r\n]+/g,
+			inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+			inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
+			preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
+			leadingWhitespace = /^\s+/,
+			trailingWhitespace = /\s+$/,
+			parseCompoundTemplate;
+		StandardParser = Parser.extend( {
+			init: function( str, options ) {
+				// config
+				this.delimiters = options.delimiters || [
+					'{{',
+					'}}'
+				];
+				this.tripleDelimiters = options.tripleDelimiters || [
+					'{{{',
+					'}}}'
+				];
+				this.interpolate = {
+					script: !options.interpolate || options.interpolate.script !== false,
+					style: !options.interpolate || options.interpolate.style !== false
+				};
+				if ( options.sanitize === true ) {
+					options.sanitize = {
+						// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
+						elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
+						eventAttributes: true
+					};
+				}
+				this.sanitizeElements = options.sanitize && options.sanitize.elements;
+				this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
+				this.includeLinePositions = options.includeLinePositions;
+				this.handlebars = options.handlebars;
+			},
+			postProcess: function( items, options ) {
+				cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
+				return items;
+			},
+			converters: [
+				mustache,
+				comment,
+				element,
+				text
+			]
+		} );
+		parse = function( template, options ) {
+			var parser;
+			options = options || {};
+			// does this template include inline partials?
+			if ( inlinePartialStart.test( template ) ) {
+				return parseCompoundTemplate( template, options );
+			}
+			parser = new StandardParser( template, options );
+			if ( parser.leftover ) {
+				parser.error( 'Unexpected character' );
+			}
+			return parser.result;
+		};
+		parseCompoundTemplate = function( template, options ) {
+			var mainTemplate, remaining, partials, name, startMatch, endMatch;
+			partials = {};
+			mainTemplate = '';
+			remaining = template;
+			while ( startMatch = inlinePartialStart.exec( remaining ) ) {
+				name = startMatch[ 1 ];
+				mainTemplate += remaining.substr( 0, startMatch.index );
+				remaining = remaining.substring( startMatch.index + startMatch[ 0 ].length );
+				endMatch = inlinePartialEnd.exec( remaining );
+				if ( !endMatch || endMatch[ 1 ] !== name ) {
+					throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
+				}
+				partials[ name ] = parse( remaining.substr( 0, endMatch.index ), options );
+				remaining = remaining.substring( endMatch.index + endMatch[ 0 ].length );
+			}
+			return {
+				main: parse( mainTemplate, options ),
+				partials: partials
+			};
+		};
+		return parse;
+
+		function cleanup( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
+			var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, unlessBlock, key;
+			// First pass - remove standalones and comments etc
+			stripStandalones( items );
+			i = items.length;
+			while ( i-- ) {
+				item = items[ i ];
+				// Remove delimiter changes, unsafe elements etc
+				if ( item.exclude ) {
+					items.splice( i, 1 );
+				} else if ( stripComments && item.t === types.COMMENT ) {
+					items.splice( i, 1 );
+				}
+			}
+			// If necessary, remove leading and trailing whitespace
+			trimWhitespace( items, removeLeadingWhitespace, removeTrailingWhitespace );
+			i = items.length;
+			while ( i-- ) {
+				item = items[ i ];
+				// Recurse
+				if ( item.f ) {
+					preserveWhitespaceInsideFragment = preserveWhitespace || item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e );
+					if ( !preserveWhitespaceInsideFragment ) {
+						previousItem = items[ i - 1 ];
+						nextItem = items[ i + 1 ];
+						// if the previous item was a text item with trailing whitespace,
+						// remove leading whitespace inside the fragment
+						if ( !previousItem || typeof previousItem === 'string' && trailingWhitespace.test( previousItem ) ) {
+							removeLeadingWhitespaceInsideFragment = true;
+						}
+						// and vice versa
+						if ( !nextItem || typeof nextItem === 'string' && leadingWhitespace.test( nextItem ) ) {
+							removeTrailingWhitespaceInsideFragment = true;
+						}
+					}
+					cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					// Split if-else blocks into two (an if, and an unless)
+					if ( item.l ) {
+						cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+						if ( rewriteElse ) {
+							unlessBlock = {
+								t: 4,
+								r: item.r,
+								n: types.SECTION_UNLESS,
+								f: item.l
+							};
+							items.splice( i + 1, 0, unlessBlock );
+							delete item.l;
+						}
+					}
+				}
+				// Clean up element attributes
+				if ( item.a ) {
+					for ( key in item.a ) {
+						if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
+							cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
+						}
+					}
+				}
+			}
+			// final pass - fuse text nodes together
+			i = items.length;
+			while ( i-- ) {
+				if ( typeof items[ i ] === 'string' ) {
+					if ( typeof items[ i + 1 ] === 'string' ) {
+						items[ i ] = items[ i ] + items[ i + 1 ];
+						items.splice( i + 1, 1 );
+					}
+					if ( !preserveWhitespace ) {
+						items[ i ] = items[ i ].replace( contiguousWhitespace, ' ' );
+					}
+					if ( items[ i ] === '' ) {
+						items.splice( i, 1 );
+					}
+				}
+			}
+		}
+	}( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones );
+
+	/* config/options/template/parser.js */
+	var parser = function( errors, isClient, parse, create ) {
+
+		var parser = {
+			parse: doParse,
+			fromId: fromId,
+			isHashedId: isHashedId,
+			isParsed: isParsed,
+			createHelper: createHelper
+		};
+
+		function createHelper( parseOptions ) {
+			var helper = create( parser );
+			helper.parse = function( template, options ) {
+				return doParse( template, options || parseOptions );
+			};
+			return helper;
+		}
+
+		function doParse( template, parseOptions ) {
+			if ( !parse ) {
+				throw new Error( errors.missingParser );
+			}
+			return parse( template, parseOptions || this.options );
+		}
+
+		function fromId( id, options ) {
+			var template;
+			if ( !isClient ) {
+				if ( options && options.noThrow ) {
+					return;
+				}
+				throw new Error( 'Cannot retieve template #' + id + 'as Ractive is not running in the client.' );
+			}
+			if ( isHashedId( id ) ) {
+				id = id.substring( 1 );
+			}
+			if ( !( template = document.getElementById( id ) ) ) {
+				if ( options && options.noThrow ) {
+					return;
+				}
+				throw new Error( 'Could not find template element with id #' + id );
+			}
+			// Do we want to turn this on?
+			/*
+            	if ( template.tagName.toUpperCase() !== 'SCRIPT' )) {
+            		if ( options && options.noThrow ) { return; }
+            		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
+            	}
+            	*/
+			return template.innerHTML;
+		}
+
+		function isHashedId( id ) {
+			return id.charAt( 0 ) === '#';
+		}
+
+		function isParsed( template ) {
+			return !( typeof template === 'string' );
+		}
+		return parser;
+	}( errors, isClient, parse, create );
+
+	/* config/options/groups/optionGroup.js */
+	var optionGroup = function createOptionGroup( keys, config ) {
+		var group = keys.map( config );
+		keys.forEach( function( key, i ) {
+			group[ key ] = group[ i ];
+		} );
+		return group;
+	};
+
+	/* config/options/parseOption.js */
+	var parseOption = function( optionConfig ) {
+
+		return function parseConfig( name ) {
+			var config = optionConfig( name );
+			config.postInit = function( target, result ) {
+				target.parseOptions[ name ] = result;
+			};
+			return config;
+		};
+	}( option );
+
+	/* config/options/groups/parseOptions.js */
+	var parseOptions = function( optionGroup, parseOption ) {
+
+		var keys, parseOptions;
+		keys = [
+			'preserveWhitespace',
+			'sanitize',
+			'stripComments',
+			'delimiters',
+			'tripleDelimiters',
+			'handlebars'
+		];
+		parseOptions = optionGroup( keys, function( key ) {
+			return parseOption( key );
+		} );
+		return parseOptions;
+	}( optionGroup, parseOption );
+
+	/* config/options/template/template.js */
+	var template = function( baseConfig, parser, isObject, parseOptions ) {
+
+		var templateConfig = baseConfig( {
+			name: 'template',
+			useDefaults: true,
+			defaultValue: '',
+			extendValue: extend,
+			postExtend: parseTemplate,
+			initValue: init,
+			postInit: parseTemplate,
+			resetValue: reset,
+			processCompound: processCompound
+		} );
+
+		function extend( target, parentValue, value ) {
+			if ( typeof value === 'undefined' ) {
+				value = parentValue;
+			}
+			return value;
+		}
+
+		function init( ractive, parentValue, value ) {
+			var result = extend( ractive, parentValue, value );
+			if ( typeof result === 'function' ) {
+				var fn = result;
+				result = getDynamicTemplate( ractive, fn );
+				// store fn and fn result for reset
+				ractive._config[ this.name ] = {
+					fn: fn,
+					result: result
+				};
+			}
+			return result;
+		}
+
+		function getDynamicTemplate( ractive, fn ) {
+			var helper = parser.createHelper( getParseOptions( ractive ) );
+			return fn.call( ractive, ractive.data, helper );
+		}
+
+		function reset( ractive ) {
+			var initial = ractive._config.template,
+				result;
+			// is this dynamic template?
+			if ( !initial || !initial.fn ) {
+				return;
+			}
+			result = getDynamicTemplate( ractive, initial.fn );
+			// compare results of fn return, which is likely
+			// be string comparison ( not yet parsed )
+			if ( result !== initial.result ) {
+				initial.result = result;
+				return result;
+			}
+		}
+
+		function getParseOptions( target ) {
+			if ( target.parseOptions ) {
+				return target.parseOptions;
+			}
+			var options = target.defaults;
+			if ( !options ) {
+				return;
+			}
+			return parseOptions.reduce( function( val, option ) {
+				val[ option.name ] = options[ option.name ];
+				return val;
+			}, {} );
+		}
+
+		function parseTemplate( target, template ) {
+			if ( !template ) {
+				return template;
+			}
+			if ( !parser.isParsed( template ) ) {
+				// Assume this is an ID of a <script type='text/ractive'> tag
+				if ( parser.isHashedId( template ) ) {
+					template = parser.fromId( template );
+				}
+				template = parser.parse( template, getParseOptions( target ) );
+			}
+			template = processCompound( target, template );
+			// If the template was an array with a single string member, that means
+			// we can use innerHTML - we just need to unpack it
+			if ( template && template.length === 1 && typeof template[ 0 ] === 'string' ) {
+				template = template[ 0 ];
+			}
+			return template;
+		}
+
+		function processCompound( target, template ) {
+			if ( !isObject( template ) ) {
+				return template;
+			}
+			target.partials = target.partials || {};
+			for ( var key in template.partials ) {
+				target.partials[ key ] = template.partials[ key ];
+			}
+			return template.main;
+		}
+		return templateConfig;
+	}( baseConfiguration, parser, isObject, parseOptions );
+
+	/* config/options/adaptors.js */
+	var adaptors = function( registry ) {
+
+		var adaptorsConfig = registry( {
+			name: 'adaptors',
+			postExtend: extend,
+			postInit: init
+		} );
+
+		function extend( Child, adaptors ) {
+			return convert( Child.defaults, adaptors );
+		}
+
+		function init( ractive, adaptors ) {
+			return convert( ractive, adaptors );
+		}
+
+		function convert( target, adaptors ) {
+			var i, adapt = target.adapt;
+			if ( !adapt || !adapt.length ) {
+				return adaptors;
+			}
+			if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
+				while ( i-- ) {
+					var adaptor = adapt[ i ];
+					if ( typeof adaptor === 'string' ) {
+						adapt[ i ] = adaptors[ adaptor ] || adaptor;
+					}
+				}
+			}
+			target.adapt = adapt;
+			return adaptors;
+		}
+		return adaptorsConfig;
+	}( registry );
+
+	/* config/options/events.js */
+	var events = function( registry, warn ) {
+
+		var config = registry( {
+			name: 'events',
+			preInit: deprecate,
+			postInit: deprecate
+		} );
+		var message = 'ractive.eventDefinitions has been deprecated in favour of ractive.events. ';
+
+		function deprecate( target, options ) {
+			// TODO remove support
+			if ( options.eventDefinitions ) {
+				if ( !options.events ) {
+					warn( message + ' Support will be removed in future versions.' );
+					options.events = options.eventDefinitions;
+				} else {
+					throw new Error( message + ' You cannot specify both options, please use ractive.events.' );
+				}
+			}
+		}
+		return config;
+	}( registry, warn );
+
+	/* config/options/groups/registries.js */
+	var registries = function( optionGroup, registry, adaptors, events ) {
+
+		var keys, custom, registries;
+		keys = [
+			'adaptors',
+			'components',
+			'decorators',
+			'easing',
+			'events',
+			'interpolators',
+			'partials',
+			'transitions'
+		];
+		custom = {
+			adaptors: adaptors,
+			events: events
+		};
+		registries = optionGroup( keys, function( key ) {
+			return custom[ key ] || registry( {
+				name: key
+			} );
+		} );
+		return registries;
+	}( optionGroup, registry, adaptors, events );
+
+	/* config/config.js */
+	var config = function( adapt, basicConfig, css, data, defaults, complete, magic, computed, template, parseOptions, registries ) {
+
+		var custom, options, config;
+		custom = {
+			data: data,
+			complete: complete,
+			computed: computed,
+			adapt: adapt,
+			magic: magic,
+			template: template,
+			css: css
+		};
+		// fill in basicConfig for all default options not covered by
+		// registries, parse options, and any custom configuration
+		options = Object.keys( defaults ).filter( function( key ) {
+			return !registries[ key ] && !custom[ key ] && !parseOptions[ key ];
+		} ).map( basicConfig );
+		// this defines the order:
+		config = [].concat( custom.data, parseOptions, options, custom.adapt, custom.magic, custom.complete, custom.computed, registries, custom.template, custom.css );
+		// for iteration
+		config.keys = config.map( function( config ) {
+			return config.name;
+		} );
+		// for lookup and blacklist test
+		config.keys.forEach( function( key, i ) {
+			config[ key ] = config[ i ];
+			config.keys[ key ] = true;
+		} );
+		config.parseOptions = parseOptions;
+		config.registries = registries;
+		config.extend = function( Parent, Child, options ) {
+			config.forEach( function( c ) {
+				c.extend( Parent, Child, options );
+			} );
+		};
+		config.init = function( Parent, ractive, options ) {
+			config.forEach( function( c ) {
+				c.init( Parent, ractive, options );
+			} );
+		};
+		config.reset = function( ractive ) {
+			return config.filter( function( c ) {
+				return c.reset && c.reset( ractive );
+			} );
+		};
+		return config;
+	}( adapt, option, config_options_css_css, data, options, complete, magic, computed, template, parseOptions, registries );
 
 	/* shared/get/arrayAdaptor/getSpliceEquivalent.js */
 	var getSpliceEquivalent = function( array, methodName, args ) {
@@ -1208,136 +5157,6 @@
 			removed: removedItems
 		};
 	};
-
-	/* config/types.js */
-	var types = {
-		TEXT: 1,
-		INTERPOLATOR: 2,
-		TRIPLE: 3,
-		SECTION: 4,
-		INVERTED: 5,
-		CLOSING: 6,
-		ELEMENT: 7,
-		PARTIAL: 8,
-		COMMENT: 9,
-		DELIMCHANGE: 10,
-		MUSTACHE: 11,
-		TAG: 12,
-		ATTRIBUTE: 13,
-		CLOSING_TAG: 14,
-		COMPONENT: 15,
-		NUMBER_LITERAL: 20,
-		STRING_LITERAL: 21,
-		ARRAY_LITERAL: 22,
-		OBJECT_LITERAL: 23,
-		BOOLEAN_LITERAL: 24,
-		GLOBAL: 26,
-		KEY_VALUE_PAIR: 27,
-		REFERENCE: 30,
-		REFINEMENT: 31,
-		MEMBER: 32,
-		PREFIX_OPERATOR: 33,
-		BRACKETED: 34,
-		CONDITIONAL: 35,
-		INFIX_OPERATOR: 36,
-		INVOCATION: 40,
-		SECTION_IF: 50,
-		SECTION_UNLESS: 51,
-		SECTION_EACH: 52,
-		SECTION_WITH: 53
-	};
-
-	/* shared/clearCache.js */
-	var clearCache = function clearCache( ractive, keypath, dontTeardownWrapper ) {
-		var cacheMap, wrapper, computation;
-		if ( !dontTeardownWrapper ) {
-			// Is there a wrapped property at this keypath?
-			if ( wrapper = ractive._wrapped[ keypath ] ) {
-				// Did we unwrap it?
-				if ( wrapper.teardown() !== false ) {
-					ractive._wrapped[ keypath ] = null;
-				}
-			}
-		}
-		if ( computation = ractive._computations[ keypath ] ) {
-			computation.compute();
-		}
-		ractive._cache[ keypath ] = undefined;
-		if ( cacheMap = ractive._cacheMap[ keypath ] ) {
-			while ( cacheMap.length ) {
-				clearCache( ractive, cacheMap.pop() );
-			}
-		}
-	};
-
-	/* utils/createBranch.js */
-	var createBranch = function() {
-
-		var numeric = /^\s*[0-9]+\s*$/;
-		return function( key ) {
-			return numeric.test( key ) ? [] : {};
-		};
-	}();
-
-	/* shared/set.js */
-	var set = function( circular, isEqual, createBranch, clearCache, notifyDependants ) {
-
-		var get;
-		circular.push( function() {
-			get = circular.get;
-		} );
-
-		function set( ractive, keypath, value, silent ) {
-			var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
-			if ( isEqual( ractive._cache[ keypath ], value ) ) {
-				return;
-			}
-			computation = ractive._computations[ keypath ];
-			wrapper = ractive._wrapped[ keypath ];
-			evaluator = ractive._evaluators[ keypath ];
-			if ( computation && !computation.setting ) {
-				computation.set( value );
-			}
-			// If we have a wrapper with a `reset()` method, we try and use it. If the
-			// `reset()` method returns false, the wrapper should be torn down, and
-			// (most likely) a new one should be created later
-			if ( wrapper && wrapper.reset ) {
-				dontTeardownWrapper = wrapper.reset( value ) !== false;
-				if ( dontTeardownWrapper ) {
-					value = wrapper.get();
-				}
-			}
-			// Update evaluator value. This may be from the evaluator itself, or
-			// it may be from the wrapper that wraps an evaluator's result - it
-			// doesn't matter
-			if ( evaluator ) {
-				evaluator.value = value;
-			}
-			if ( !computation && !evaluator && !dontTeardownWrapper ) {
-				keys = keypath.split( '.' );
-				lastKey = keys.pop();
-				parentKeypath = keys.join( '.' );
-				wrapper = ractive._wrapped[ parentKeypath ];
-				if ( wrapper && wrapper.set ) {
-					wrapper.set( lastKey, value );
-				} else {
-					parentValue = wrapper ? wrapper.get() : get( ractive, parentKeypath );
-					if ( !parentValue ) {
-						parentValue = createBranch( lastKey );
-						set( ractive, parentKeypath, parentValue, true );
-					}
-					parentValue[ lastKey ] = value;
-				}
-			}
-			clearCache( ractive, keypath, dontTeardownWrapper );
-			if ( !silent ) {
-				ractive._changes.push( keypath );
-				notifyDependants( ractive, keypath );
-			}
-		}
-		circular.set = set;
-		return set;
-	}( circular, isEqual, createBranch, clearCache, notifyDependants );
 
 	/* shared/get/arrayAdaptor/processWrapper.js */
 	var processWrapper = function( types, clearCache, notifyDependants, notifyPatternObservers, set, circular ) {
@@ -1775,7 +5594,7 @@
 	}( magicAdaptor, arrayAdaptor );
 
 	/* shared/adaptIfNecessary.js */
-	var adaptIfNecessary = function( adaptorRegistry, arrayAdaptor, magicAdaptor, magicArrayAdaptor ) {
+	var adaptIfNecessary = function( config, arrayAdaptor, magicAdaptor, magicArrayAdaptor ) {
 
 		var prefixers = {};
 		return function adaptIfNecessary( ractive, keypath, value, isExpressionResult ) {
@@ -1787,10 +5606,11 @@
 				// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
 				// we need to get the actual adaptor if that's the case
 				if ( typeof adaptor === 'string' ) {
-					if ( !adaptorRegistry[ adaptor ] ) {
+					var found = config.registries.adaptors.find( ractive, adaptor );
+					if ( !found ) {
 						throw new Error( 'Missing adaptor "' + adaptor + '"' );
 					}
-					adaptor = ractive.adapt[ i ] = adaptorRegistry[ adaptor ];
+					adaptor = ractive.adapt[ i ] = found;
 				}
 				if ( adaptor.filter( value, keypath, ractive ) ) {
 					wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
@@ -1846,95 +5666,7 @@
 			}
 			return prefixers[ rootKeypath ];
 		}
-	}( adaptors, arrayAdaptor, magicAdaptor, magicArrayAdaptor );
-
-	/* shared/registerDependant.js */
-	var registerDependant = function() {
-
-		return function registerDependant( dependant ) {
-			var depsByKeypath, deps, ractive, keypath, priority, evaluator;
-			ractive = dependant.root;
-			keypath = dependant.keypath;
-			priority = dependant.priority;
-			depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
-			deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
-			deps.push( dependant );
-			dependant.registered = true;
-			if ( !keypath ) {
-				return;
-			}
-			if ( evaluator = ractive._evaluators[ keypath ] ) {
-				if ( !evaluator.dependants ) {
-					evaluator.wake();
-				}
-				evaluator.dependants += 1;
-			}
-			updateDependantsMap( ractive, keypath );
-		};
-
-		function updateDependantsMap( ractive, keypath ) {
-			var keys, parentKeypath, map;
-			// update dependants map
-			keys = keypath.split( '.' );
-			while ( keys.length ) {
-				keys.pop();
-				parentKeypath = keys.join( '.' );
-				map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
-				if ( map[ keypath ] === undefined ) {
-					map[ keypath ] = 0;
-					map[ map.length ] = keypath;
-				}
-				map[ keypath ] += 1;
-				keypath = parentKeypath;
-			}
-		}
-	}();
-
-	/* shared/unregisterDependant.js */
-	var unregisterDependant = function() {
-
-		return function unregisterDependant( dependant ) {
-			var deps, index, ractive, keypath, priority, evaluator;
-			ractive = dependant.root;
-			keypath = dependant.keypath;
-			priority = dependant.priority;
-			deps = ractive._deps[ priority ][ keypath ];
-			index = deps.indexOf( dependant );
-			if ( index === -1 || !dependant.registered ) {
-				throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
-			}
-			deps.splice( index, 1 );
-			dependant.registered = false;
-			if ( !keypath ) {
-				return;
-			}
-			if ( evaluator = ractive._evaluators[ keypath ] ) {
-				evaluator.dependants -= 1;
-				if ( !evaluator.dependants ) {
-					evaluator.sleep();
-				}
-			}
-			updateDependantsMap( ractive, keypath );
-		};
-
-		function updateDependantsMap( ractive, keypath ) {
-			var keys, parentKeypath, map;
-			// update dependants map
-			keys = keypath.split( '.' );
-			while ( keys.length ) {
-				keys.pop();
-				parentKeypath = keys.join( '.' );
-				map = ractive._depsMap[ parentKeypath ];
-				map[ keypath ] -= 1;
-				if ( !map[ keypath ] ) {
-					// remove from parent deps map
-					map.splice( map.indexOf( keypath ), 1 );
-					map[ keypath ] = undefined;
-				}
-				keypath = parentKeypath;
-			}
-		}
-	}();
+	}( config, arrayAdaptor, magicAdaptor, magicArrayAdaptor );
 
 	/* shared/createComponentBinding.js */
 	var createComponentBinding = function( circular, runloop, isArray, isEqual, registerDependant, unregisterDependant ) {
@@ -2144,161 +5876,17 @@
 		}
 	}( circular, hasOwn, clone, adaptIfNecessary, getFromParent, LOOKUP );
 
-	/* utils/warn.js */
-	var warn = function() {
-
-		/* global console */
-		var warn, warned = {};
-		if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
-			warn = function( message, allowDuplicates ) {
-				if ( !allowDuplicates ) {
-					if ( warned[ message ] ) {
-						return;
-					}
-					warned[ message ] = true;
-				}
-				console.warn( message );
-			};
-		} else {
-			warn = function() {};
-		}
-		return warn;
-	}();
-
-	/* utils/isObject.js */
-	var isObject = function() {
-
-		var toString = Object.prototype.toString;
-		return function( thing ) {
-			return thing && toString.call( thing ) === '[object Object]';
-		};
-	}();
-
-	/* registries/interpolators.js */
-	var interpolators = function( circular, hasOwnProperty, isArray, isObject, isNumeric ) {
-
-		var interpolators, interpolate, cssLengthPattern;
-		circular.push( function() {
-			interpolate = circular.interpolate;
-		} );
-		cssLengthPattern = /^([+-]?[0-9]+\.?(?:[0-9]+)?)(px|em|ex|%|in|cm|mm|pt|pc)$/;
-		interpolators = {
-			number: function( from, to ) {
-				var delta;
-				if ( !isNumeric( from ) || !isNumeric( to ) ) {
-					return null;
-				}
-				from = +from;
-				to = +to;
-				delta = to - from;
-				if ( !delta ) {
-					return function() {
-						return from;
-					};
-				}
-				return function( t ) {
-					return from + t * delta;
-				};
-			},
-			array: function( from, to ) {
-				var intermediate, interpolators, len, i;
-				if ( !isArray( from ) || !isArray( to ) ) {
-					return null;
-				}
-				intermediate = [];
-				interpolators = [];
-				i = len = Math.min( from.length, to.length );
-				while ( i-- ) {
-					interpolators[ i ] = interpolate( from[ i ], to[ i ] );
-				}
-				// surplus values - don't interpolate, but don't exclude them either
-				for ( i = len; i < from.length; i += 1 ) {
-					intermediate[ i ] = from[ i ];
-				}
-				for ( i = len; i < to.length; i += 1 ) {
-					intermediate[ i ] = to[ i ];
-				}
-				return function( t ) {
-					var i = len;
-					while ( i-- ) {
-						intermediate[ i ] = interpolators[ i ]( t );
-					}
-					return intermediate;
-				};
-			},
-			object: function( from, to ) {
-				var properties, len, interpolators, intermediate, prop;
-				if ( !isObject( from ) || !isObject( to ) ) {
-					return null;
-				}
-				properties = [];
-				intermediate = {};
-				interpolators = {};
-				for ( prop in from ) {
-					if ( hasOwnProperty.call( from, prop ) ) {
-						if ( hasOwnProperty.call( to, prop ) ) {
-							properties.push( prop );
-							interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] );
-						} else {
-							intermediate[ prop ] = from[ prop ];
-						}
-					}
-				}
-				for ( prop in to ) {
-					if ( hasOwnProperty.call( to, prop ) && !hasOwnProperty.call( from, prop ) ) {
-						intermediate[ prop ] = to[ prop ];
-					}
-				}
-				len = properties.length;
-				return function( t ) {
-					var i = len,
-						prop;
-					while ( i-- ) {
-						prop = properties[ i ];
-						intermediate[ prop ] = interpolators[ prop ]( t );
-					}
-					return intermediate;
-				};
-			},
-			cssLength: function( from, to ) {
-				var fromMatch, toMatch, fromUnit, toUnit, fromValue, toValue, unit, delta;
-				if ( from !== 0 && typeof from !== 'string' || to !== 0 && typeof to !== 'string' ) {
-					return null;
-				}
-				fromMatch = cssLengthPattern.exec( from );
-				toMatch = cssLengthPattern.exec( to );
-				fromUnit = fromMatch ? fromMatch[ 2 ] : '';
-				toUnit = toMatch ? toMatch[ 2 ] : '';
-				if ( fromUnit && toUnit && fromUnit !== toUnit ) {
-					return null;
-				}
-				unit = fromUnit || toUnit;
-				fromValue = fromMatch ? +fromMatch[ 1 ] : 0;
-				toValue = toMatch ? +toMatch[ 1 ] : 0;
-				delta = toValue - fromValue;
-				if ( !delta ) {
-					return function() {
-						return fromValue + unit;
-					};
-				}
-				return function( t ) {
-					return fromValue + t * delta + unit;
-				};
-			}
-		};
-		return interpolators;
-	}( circular, hasOwn, isArray, isObject, isNumeric );
-
 	/* shared/interpolate.js */
-	var interpolate = function( circular, warn, interpolators ) {
+	var interpolate = function( circular, warn, interpolators, config ) {
 
 		var interpolate = function( from, to, ractive, type ) {
 			if ( from === to ) {
 				return snap( to );
 			}
 			if ( type ) {
-				if ( ractive.interpolators[ type ] ) {
-					return ractive.interpolators[ type ]( from, to ) || snap( to );
+				var interpol = config.registries.interpolators.find( ractive, type );
+				if ( interpol ) {
+					return interpol( from, to ) || snap( to );
 				}
 				warn( 'Missing "' + type + '" interpolator. You may need to download a plugin from [TODO]' );
 			}
@@ -2312,7 +5900,7 @@
 				return to;
 			};
 		}
-	}( circular, warn, interpolators );
+	}( circular, warn, interpolators, config );
 
 	/* Ractive/prototype/animate/Animation.js */
 	var Ractive$animate_Animation = function( warn, runloop, interpolate, set ) {
@@ -3554,7 +7142,10 @@
 
 		function init( instance ) {
 			if ( instance.init ) {
-				instance.init( instance.initOptions );
+				// options all get copied to instance
+				// which is same as this, but less breaking
+				// to continue to include...
+				instance.init( instance );
 			}
 			instance._childInitQueue.splice( 0 ).forEach( init );
 		}
@@ -3720,1016 +7311,6 @@
 		} while ( fragment = fragment.parent );
 		return this.root.el;
 	};
-
-	/* utils/create.js */
-	var create = function() {
-
-		var create;
-		try {
-			Object.create( null );
-			create = Object.create;
-		} catch ( err ) {
-			// sigh
-			create = function() {
-				var F = function() {};
-				return function( proto, props ) {
-					var obj;
-					if ( proto === null ) {
-						return {};
-					}
-					F.prototype = proto;
-					obj = new F();
-					if ( props ) {
-						Object.defineProperties( obj, props );
-					}
-					return obj;
-				};
-			}();
-		}
-		return create;
-	}();
-
-	/* parse/Parser/expressions/shared/errors.js */
-	var errors = {
-		expectedExpression: 'Expected a JavaScript expression',
-		expectedParen: 'Expected closing paren'
-	};
-
-	/* parse/Parser/expressions/primary/literal/numberLiteral.js */
-	var numberLiteral = function( types ) {
-
-		// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
-		var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-		return function( parser ) {
-			var result;
-			if ( result = parser.matchPattern( numberPattern ) ) {
-				return {
-					t: types.NUMBER_LITERAL,
-					v: result
-				};
-			}
-			return null;
-		};
-	}( types );
-
-	/* parse/Parser/expressions/primary/literal/booleanLiteral.js */
-	var booleanLiteral = function( types ) {
-
-		return function( parser ) {
-			var remaining = parser.remaining();
-			if ( remaining.substr( 0, 4 ) === 'true' ) {
-				parser.pos += 4;
-				return {
-					t: types.BOOLEAN_LITERAL,
-					v: 'true'
-				};
-			}
-			if ( remaining.substr( 0, 5 ) === 'false' ) {
-				parser.pos += 5;
-				return {
-					t: types.BOOLEAN_LITERAL,
-					v: 'false'
-				};
-			}
-			return null;
-		};
-	}( types );
-
-	/* parse/Parser/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher.js */
-	var makeQuotedStringMatcher = function() {
-
-		var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
-		// Match one or more characters until: ", ', \, or EOL/EOF.
-		// EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
-		stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
-		// Match one escape sequence, including the backslash.
-		escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
-		// Match one ES5 line continuation (backslash + line terminator).
-		lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
-		// Helper for defining getDoubleQuotedString and getSingleQuotedString.
-		return function( okQuote ) {
-			return function( parser ) {
-				var start, literal, done, next;
-				start = parser.pos;
-				literal = '"';
-				done = false;
-				while ( !done ) {
-					next = parser.matchPattern( stringMiddlePattern ) || parser.matchPattern( escapeSequencePattern ) || parser.matchString( okQuote );
-					if ( next ) {
-						if ( next === '"' ) {
-							literal += '\\"';
-						} else if ( next === '\\\'' ) {
-							literal += '\'';
-						} else {
-							literal += next;
-						}
-					} else {
-						next = parser.matchPattern( lineContinuationPattern );
-						if ( next ) {
-							// convert \(newline-like) into a \u escape, which is allowed in JSON
-							literal += '\\u' + ( '000' + next.charCodeAt( 1 ).toString( 16 ) ).slice( -4 );
-						} else {
-							done = true;
-						}
-					}
-				}
-				literal += '"';
-				// use JSON.parse to interpret escapes
-				return JSON.parse( literal );
-			};
-		};
-	}();
-
-	/* parse/Parser/expressions/primary/literal/stringLiteral/singleQuotedString.js */
-	var singleQuotedString = function( makeQuotedStringMatcher ) {
-
-		return makeQuotedStringMatcher( '"' );
-	}( makeQuotedStringMatcher );
-
-	/* parse/Parser/expressions/primary/literal/stringLiteral/doubleQuotedString.js */
-	var doubleQuotedString = function( makeQuotedStringMatcher ) {
-
-		return makeQuotedStringMatcher( '\'' );
-	}( makeQuotedStringMatcher );
-
-	/* parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral.js */
-	var stringLiteral = function( types, getSingleQuotedString, getDoubleQuotedString ) {
-
-		return function( parser ) {
-			var start, string;
-			start = parser.pos;
-			if ( parser.matchString( '"' ) ) {
-				string = getDoubleQuotedString( parser );
-				if ( !parser.matchString( '"' ) ) {
-					parser.pos = start;
-					return null;
-				}
-				return {
-					t: types.STRING_LITERAL,
-					v: string
-				};
-			}
-			if ( parser.matchString( '\'' ) ) {
-				string = getSingleQuotedString( parser );
-				if ( !parser.matchString( '\'' ) ) {
-					parser.pos = start;
-					return null;
-				}
-				return {
-					t: types.STRING_LITERAL,
-					v: string
-				};
-			}
-			return null;
-		};
-	}( types, singleQuotedString, doubleQuotedString );
-
-	/* parse/Parser/expressions/shared/patterns.js */
-	var patterns = {
-		name: /^[a-zA-Z_$][a-zA-Z_$0-9]*/
-	};
-
-	/* parse/Parser/expressions/shared/key.js */
-	var key = function( getStringLiteral, getNumberLiteral, patterns ) {
-
-		var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
-		// http://mathiasbynens.be/notes/javascript-properties
-		// can be any name, string literal, or number literal
-		return function( parser ) {
-			var token;
-			if ( token = getStringLiteral( parser ) ) {
-				return identifier.test( token.v ) ? token.v : '"' + token.v.replace( /"/g, '\\"' ) + '"';
-			}
-			if ( token = getNumberLiteral( parser ) ) {
-				return token.v;
-			}
-			if ( token = parser.matchPattern( patterns.name ) ) {
-				return token;
-			}
-		};
-	}( stringLiteral, numberLiteral, patterns );
-
-	/* parse/Parser/expressions/primary/literal/objectLiteral/keyValuePair.js */
-	var keyValuePair = function( types, getKey ) {
-
-		return function( parser ) {
-			var start, key, value;
-			start = parser.pos;
-			// allow whitespace between '{' and key
-			parser.allowWhitespace();
-			key = getKey( parser );
-			if ( key === null ) {
-				parser.pos = start;
-				return null;
-			}
-			// allow whitespace between key and ':'
-			parser.allowWhitespace();
-			// next character must be ':'
-			if ( !parser.matchString( ':' ) ) {
-				parser.pos = start;
-				return null;
-			}
-			// allow whitespace between ':' and value
-			parser.allowWhitespace();
-			// next expression must be a, well... expression
-			value = parser.readExpression();
-			if ( value === null ) {
-				parser.pos = start;
-				return null;
-			}
-			return {
-				t: types.KEY_VALUE_PAIR,
-				k: key,
-				v: value
-			};
-		};
-	}( types, key );
-
-	/* parse/Parser/expressions/primary/literal/objectLiteral/keyValuePairs.js */
-	var keyValuePairs = function( getKeyValuePair ) {
-
-		return function getKeyValuePairs( parser ) {
-			var start, pairs, pair, keyValuePairs;
-			start = parser.pos;
-			pair = getKeyValuePair( parser );
-			if ( pair === null ) {
-				return null;
-			}
-			pairs = [ pair ];
-			if ( parser.matchString( ',' ) ) {
-				keyValuePairs = getKeyValuePairs( parser );
-				if ( !keyValuePairs ) {
-					parser.pos = start;
-					return null;
-				}
-				return pairs.concat( keyValuePairs );
-			}
-			return pairs;
-		};
-	}( keyValuePair );
-
-	/* parse/Parser/expressions/primary/literal/objectLiteral/_objectLiteral.js */
-	var objectLiteral = function( types, getKeyValuePairs ) {
-
-		return function( parser ) {
-			var start, keyValuePairs;
-			start = parser.pos;
-			// allow whitespace
-			parser.allowWhitespace();
-			if ( !parser.matchString( '{' ) ) {
-				parser.pos = start;
-				return null;
-			}
-			keyValuePairs = getKeyValuePairs( parser );
-			// allow whitespace between final value and '}'
-			parser.allowWhitespace();
-			if ( !parser.matchString( '}' ) ) {
-				parser.pos = start;
-				return null;
-			}
-			return {
-				t: types.OBJECT_LITERAL,
-				m: keyValuePairs
-			};
-		};
-	}( types, keyValuePairs );
-
-	/* parse/Parser/expressions/shared/expressionList.js */
-	var expressionList = function( errors ) {
-
-		return function getExpressionList( parser ) {
-			var start, expressions, expr, next;
-			start = parser.pos;
-			parser.allowWhitespace();
-			expr = parser.readExpression();
-			if ( expr === null ) {
-				return null;
-			}
-			expressions = [ expr ];
-			// allow whitespace between expression and ','
-			parser.allowWhitespace();
-			if ( parser.matchString( ',' ) ) {
-				next = getExpressionList( parser );
-				if ( next === null ) {
-					parser.error( errors.expectedExpression );
-				}
-				next.forEach( append );
-			}
-
-			function append( expression ) {
-				expressions.push( expression );
-			}
-			return expressions;
-		};
-	}( errors );
-
-	/* parse/Parser/expressions/primary/literal/arrayLiteral.js */
-	var arrayLiteral = function( types, getExpressionList ) {
-
-		return function( parser ) {
-			var start, expressionList;
-			start = parser.pos;
-			// allow whitespace before '['
-			parser.allowWhitespace();
-			if ( !parser.matchString( '[' ) ) {
-				parser.pos = start;
-				return null;
-			}
-			expressionList = getExpressionList( parser );
-			if ( !parser.matchString( ']' ) ) {
-				parser.pos = start;
-				return null;
-			}
-			return {
-				t: types.ARRAY_LITERAL,
-				m: expressionList
-			};
-		};
-	}( types, expressionList );
-
-	/* parse/Parser/expressions/primary/literal/_literal.js */
-	var literal = function( getNumberLiteral, getBooleanLiteral, getStringLiteral, getObjectLiteral, getArrayLiteral ) {
-
-		return function( parser ) {
-			var literal = getNumberLiteral( parser ) || getBooleanLiteral( parser ) || getStringLiteral( parser ) || getObjectLiteral( parser ) || getArrayLiteral( parser );
-			return literal;
-		};
-	}( numberLiteral, booleanLiteral, stringLiteral, objectLiteral, arrayLiteral );
-
-	/* parse/Parser/expressions/primary/reference.js */
-	var reference = function( types, patterns ) {
-
-		var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals;
-		dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
-		getArrayRefinement = function( parser ) {
-			var num = parser.matchPattern( arrayMemberPattern );
-			if ( num ) {
-				return '.' + num;
-			}
-			return null;
-		};
-		arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
-		// if a reference is a browser global, we don't deference it later, so it needs special treatment
-		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
-		return function( parser ) {
-			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
-			startPos = parser.pos;
-			// we might have ancestor refs...
-			ancestor = '';
-			while ( parser.matchString( '../' ) ) {
-				ancestor += '../';
-			}
-			if ( !ancestor ) {
-				// we might have an implicit iterator or a restricted reference
-				dot = parser.matchString( '.' ) || '';
-			}
-			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
-			// if this is a browser global, stop here
-			if ( !ancestor && !dot && globals.test( name ) ) {
-				return {
-					t: types.GLOBAL,
-					v: name
-				};
-			}
-			combo = ( ancestor || dot ) + name;
-			if ( !combo ) {
-				return null;
-			}
-			while ( refinement = parser.matchPattern( dotRefinementPattern ) || getArrayRefinement( parser ) ) {
-				combo += refinement;
-			}
-			if ( parser.matchString( '(' ) ) {
-				// if this is a method invocation (as opposed to a function) we need
-				// to strip the method name from the reference combo, else the context
-				// will be wrong
-				lastDotIndex = combo.lastIndexOf( '.' );
-				if ( lastDotIndex !== -1 ) {
-					combo = combo.substr( 0, lastDotIndex );
-					parser.pos = startPos + combo.length;
-				} else {
-					parser.pos -= 1;
-				}
-			}
-			return {
-				t: types.REFERENCE,
-				n: combo.replace( /^this\./, './' ).replace( /^this$/, '.' )
-			};
-		};
-	}( types, patterns );
-
-	/* parse/Parser/expressions/primary/bracketedExpression.js */
-	var bracketedExpression = function( types, errors ) {
-
-		return function( parser ) {
-			var start, expr;
-			start = parser.pos;
-			if ( !parser.matchString( '(' ) ) {
-				return null;
-			}
-			parser.allowWhitespace();
-			expr = parser.readExpression();
-			if ( !expr ) {
-				parser.error( errors.expectedExpression );
-			}
-			parser.allowWhitespace();
-			if ( !parser.matchString( ')' ) ) {
-				parser.error( errors.expectedParen );
-			}
-			return {
-				t: types.BRACKETED,
-				x: expr
-			};
-		};
-	}( types, errors );
-
-	/* parse/Parser/expressions/primary/_primary.js */
-	var primary = function( getLiteral, getReference, getBracketedExpression ) {
-
-		return function( parser ) {
-			return getLiteral( parser ) || getReference( parser ) || getBracketedExpression( parser );
-		};
-	}( literal, reference, bracketedExpression );
-
-	/* parse/Parser/expressions/shared/refinement.js */
-	var refinement = function( types, errors, patterns ) {
-
-		return function getRefinement( parser ) {
-			var start, name, expr;
-			start = parser.pos;
-			parser.allowWhitespace();
-			// "." name
-			if ( parser.matchString( '.' ) ) {
-				parser.allowWhitespace();
-				if ( name = parser.matchPattern( patterns.name ) ) {
-					return {
-						t: types.REFINEMENT,
-						n: name
-					};
-				}
-				parser.error( 'Expected a property name' );
-			}
-			// "[" expression "]"
-			if ( parser.matchString( '[' ) ) {
-				parser.allowWhitespace();
-				expr = parser.readExpression();
-				if ( !expr ) {
-					parser.error( errors.expectedExpression );
-				}
-				parser.allowWhitespace();
-				if ( !parser.matchString( ']' ) ) {
-					parser.error( 'Expected \']\'' );
-				}
-				return {
-					t: types.REFINEMENT,
-					x: expr
-				};
-			}
-			return null;
-		};
-	}( types, errors, patterns );
-
-	/* parse/Parser/expressions/memberOrInvocation.js */
-	var memberOrInvocation = function( types, getPrimary, getExpressionList, getRefinement, errors ) {
-
-		return function( parser ) {
-			var current, expression, refinement, expressionList;
-			expression = getPrimary( parser );
-			if ( !expression ) {
-				return null;
-			}
-			while ( expression ) {
-				current = parser.pos;
-				if ( refinement = getRefinement( parser ) ) {
-					expression = {
-						t: types.MEMBER,
-						x: expression,
-						r: refinement
-					};
-				} else if ( parser.matchString( '(' ) ) {
-					parser.allowWhitespace();
-					expressionList = getExpressionList( parser );
-					parser.allowWhitespace();
-					if ( !parser.matchString( ')' ) ) {
-						parser.error( errors.expectedParen );
-					}
-					expression = {
-						t: types.INVOCATION,
-						x: expression
-					};
-					if ( expressionList ) {
-						expression.o = expressionList;
-					}
-				} else {
-					break;
-				}
-			}
-			return expression;
-		};
-	}( types, primary, expressionList, refinement, errors );
-
-	/* parse/Parser/expressions/typeof.js */
-	var _typeof = function( types, errors, getMemberOrInvocation ) {
-
-		var getTypeof, makePrefixSequenceMatcher;
-		makePrefixSequenceMatcher = function( symbol, fallthrough ) {
-			return function( parser ) {
-				var expression;
-				if ( !parser.matchString( symbol ) ) {
-					return fallthrough( parser );
-				}
-				parser.allowWhitespace();
-				expression = parser.readExpression();
-				if ( !expression ) {
-					parser.error( errors.expectedExpression );
-				}
-				return {
-					s: symbol,
-					o: expression,
-					t: types.PREFIX_OPERATOR
-				};
-			};
-		};
-		// create all prefix sequence matchers, return getTypeof
-		( function() {
-			var i, len, matcher, prefixOperators, fallthrough;
-			prefixOperators = '! ~ + - typeof'.split( ' ' );
-			fallthrough = getMemberOrInvocation;
-			for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
-				matcher = makePrefixSequenceMatcher( prefixOperators[ i ], fallthrough );
-				fallthrough = matcher;
-			}
-			// typeof operator is higher precedence than multiplication, so provides the
-			// fallthrough for the multiplication sequence matcher we're about to create
-			// (we're skipping void and delete)
-			getTypeof = fallthrough;
-		}() );
-		return getTypeof;
-	}( types, errors, memberOrInvocation );
-
-	/* parse/Parser/expressions/logicalOr.js */
-	var logicalOr = function( types, getTypeof ) {
-
-		var getLogicalOr, makeInfixSequenceMatcher;
-		makeInfixSequenceMatcher = function( symbol, fallthrough ) {
-			return function( parser ) {
-				var start, left, right;
-				left = fallthrough( parser );
-				if ( !left ) {
-					return null;
-				}
-				// Loop to handle left-recursion in a case like `a * b * c` and produce
-				// left association, i.e. `(a * b) * c`.  The matcher can't call itself
-				// to parse `left` because that would be infinite regress.
-				while ( true ) {
-					start = parser.pos;
-					parser.allowWhitespace();
-					if ( !parser.matchString( symbol ) ) {
-						parser.pos = start;
-						return left;
-					}
-					// special case - in operator must not be followed by [a-zA-Z_$0-9]
-					if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( parser.remaining().charAt( 0 ) ) ) {
-						parser.pos = start;
-						return left;
-					}
-					parser.allowWhitespace();
-					// right operand must also consist of only higher-precedence operators
-					right = fallthrough( parser );
-					if ( !right ) {
-						parser.pos = start;
-						return left;
-					}
-					left = {
-						t: types.INFIX_OPERATOR,
-						s: symbol,
-						o: [
-							left,
-							right
-						]
-					};
-				}
-			};
-		};
-		// create all infix sequence matchers, and return getLogicalOr
-		( function() {
-			var i, len, matcher, infixOperators, fallthrough;
-			// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
-			// Each sequence matcher will initially fall through to its higher precedence
-			// neighbour, and only attempt to match if one of the higher precedence operators
-			// (or, ultimately, a literal, reference, or bracketed expression) already matched
-			infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
-			// A typeof operator is higher precedence than multiplication
-			fallthrough = getTypeof;
-			for ( i = 0, len = infixOperators.length; i < len; i += 1 ) {
-				matcher = makeInfixSequenceMatcher( infixOperators[ i ], fallthrough );
-				fallthrough = matcher;
-			}
-			// Logical OR is the fallthrough for the conditional matcher
-			getLogicalOr = fallthrough;
-		}() );
-		return getLogicalOr;
-	}( types, _typeof );
-
-	/* parse/Parser/expressions/conditional.js */
-	var conditional = function( types, getLogicalOr, errors ) {
-
-		// The conditional operator is the lowest precedence operator, so we start here
-		return function( parser ) {
-			var start, expression, ifTrue, ifFalse;
-			expression = getLogicalOr( parser );
-			if ( !expression ) {
-				return null;
-			}
-			start = parser.pos;
-			parser.allowWhitespace();
-			if ( !parser.matchString( '?' ) ) {
-				parser.pos = start;
-				return expression;
-			}
-			parser.allowWhitespace();
-			ifTrue = parser.readExpression();
-			if ( !ifTrue ) {
-				parser.error( errors.expectedExpression );
-			}
-			parser.allowWhitespace();
-			if ( !parser.matchString( ':' ) ) {
-				parser.error( 'Expected ":"' );
-			}
-			parser.allowWhitespace();
-			ifFalse = parser.readExpression();
-			if ( !ifFalse ) {
-				parser.error( errors.expectedExpression );
-			}
-			return {
-				t: types.CONDITIONAL,
-				o: [
-					expression,
-					ifTrue,
-					ifFalse
-				]
-			};
-		};
-	}( types, logicalOr, errors );
-
-	/* parse/Parser/utils/flattenExpression.js */
-	var flattenExpression = function( types, isObject ) {
-
-		return function( expression ) {
-			var refs = [],
-				flattened;
-			extractRefs( expression, refs );
-			flattened = {
-				r: refs,
-				s: stringify( this, expression, refs )
-			};
-			return flattened;
-		};
-
-		function quoteStringLiteral( str ) {
-			return JSON.stringify( String( str ) );
-		}
-		// TODO maybe refactor this?
-		function extractRefs( node, refs ) {
-			var i, list;
-			if ( node.t === types.REFERENCE ) {
-				if ( refs.indexOf( node.n ) === -1 ) {
-					refs.unshift( node.n );
-				}
-			}
-			list = node.o || node.m;
-			if ( list ) {
-				if ( isObject( list ) ) {
-					extractRefs( list, refs );
-				} else {
-					i = list.length;
-					while ( i-- ) {
-						extractRefs( list[ i ], refs );
-					}
-				}
-			}
-			if ( node.x ) {
-				extractRefs( node.x, refs );
-			}
-			if ( node.r ) {
-				extractRefs( node.r, refs );
-			}
-			if ( node.v ) {
-				extractRefs( node.v, refs );
-			}
-		}
-
-		function stringify( parser, node, refs ) {
-			var stringifyAll = function( item ) {
-				return stringify( parser, item, refs );
-			};
-			switch ( node.t ) {
-				case types.BOOLEAN_LITERAL:
-				case types.GLOBAL:
-				case types.NUMBER_LITERAL:
-					return node.v;
-				case types.STRING_LITERAL:
-					return quoteStringLiteral( node.v );
-				case types.ARRAY_LITERAL:
-					return '[' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + ']';
-				case types.OBJECT_LITERAL:
-					return '{' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + '}';
-				case types.KEY_VALUE_PAIR:
-					return node.k + ':' + stringify( parser, node.v, refs );
-				case types.PREFIX_OPERATOR:
-					return ( node.s === 'typeof' ? 'typeof ' : node.s ) + stringify( parser, node.o, refs );
-				case types.INFIX_OPERATOR:
-					return stringify( parser, node.o[ 0 ], refs ) + ( node.s.substr( 0, 2 ) === 'in' ? ' ' + node.s + ' ' : node.s ) + stringify( parser, node.o[ 1 ], refs );
-				case types.INVOCATION:
-					return stringify( parser, node.x, refs ) + '(' + ( node.o ? node.o.map( stringifyAll ).join( ',' ) : '' ) + ')';
-				case types.BRACKETED:
-					return '(' + stringify( parser, node.x, refs ) + ')';
-				case types.MEMBER:
-					return stringify( parser, node.x, refs ) + stringify( parser, node.r, refs );
-				case types.REFINEMENT:
-					return node.n ? '.' + node.n : '[' + stringify( parser, node.x, refs ) + ']';
-				case types.CONDITIONAL:
-					return stringify( parser, node.o[ 0 ], refs ) + '?' + stringify( parser, node.o[ 1 ], refs ) + ':' + stringify( parser, node.o[ 2 ], refs );
-				case types.REFERENCE:
-					return '${' + refs.indexOf( node.n ) + '}';
-				default:
-					parser.error( 'Expected legal JavaScript' );
-			}
-		}
-	}( types, isObject );
-
-	/* parse/Parser/_Parser.js */
-	var Parser = function( circular, create, hasOwnProperty, getConditional, flattenExpression ) {
-
-		var Parser, ParseError, leadingWhitespace = /^\s+/;
-		ParseError = function( message ) {
-			this.name = 'ParseError';
-			this.message = message;
-		};
-		ParseError.prototype = Error.prototype;
-		Parser = function( str, options ) {
-			var items, item;
-			this.str = str;
-			this.options = options || {};
-			this.pos = 0;
-			// Custom init logic
-			if ( this.init )
-				this.init( str, options );
-			items = [];
-			while ( this.pos < this.str.length && ( item = this.read() ) ) {
-				items.push( item );
-			}
-			this.leftover = this.remaining();
-			this.result = this.postProcess ? this.postProcess( items, options ) : items;
-		};
-		Parser.prototype = {
-			read: function( converters ) {
-				var pos, i, len, item;
-				if ( !converters )
-					converters = this.converters;
-				pos = this.pos;
-				len = converters.length;
-				for ( i = 0; i < len; i += 1 ) {
-					this.pos = pos;
-					// reset for each attempt
-					if ( item = converters[ i ]( this ) ) {
-						return item;
-					}
-				}
-				return null;
-			},
-			readExpression: function() {
-				// The conditional operator is the lowest precedence operator (except yield,
-				// assignment operators, and commas, none of which are supported), so we
-				// start there. If it doesn't match, it 'falls through' to progressively
-				// higher precedence operators, until it eventually matches (or fails to
-				// match) a 'primary' - a literal or a reference. This way, the abstract syntax
-				// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-				return getConditional( this );
-			},
-			flattenExpression: flattenExpression,
-			getLinePos: function() {
-				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum;
-				lines = this.str.split( '\n' );
-				lineNum = -1;
-				nextLineEnd = 0;
-				do {
-					currentLineEnd = nextLineEnd;
-					lineNum++;
-					currentLine = lines[ lineNum ];
-					nextLineEnd += currentLine.length + 1;
-				} while ( nextLineEnd <= this.pos );
-				columnNum = this.pos - currentLineEnd;
-				return {
-					line: lineNum + 1,
-					ch: columnNum + 1,
-					text: currentLine,
-					toJSON: function() {
-						return [
-							this.line,
-							this.ch
-						];
-					},
-					toString: function() {
-						return 'line ' + this.line + ' character ' + this.ch + ':\n' + this.text + '\n' + this.text.substr( 0, this.ch - 1 ).replace( /[\S]/g, ' ' ) + '^----';
-					}
-				};
-			},
-			error: function( err ) {
-				var pos, message;
-				pos = this.getLinePos();
-				message = err + ' at ' + pos;
-				throw new ParseError( message );
-			},
-			matchString: function( string ) {
-				if ( this.str.substr( this.pos, string.length ) === string ) {
-					this.pos += string.length;
-					return string;
-				}
-			},
-			matchPattern: function( pattern ) {
-				var match;
-				if ( match = pattern.exec( this.remaining() ) ) {
-					this.pos += match[ 0 ].length;
-					return match[ 1 ] || match[ 0 ];
-				}
-			},
-			allowWhitespace: function() {
-				this.matchPattern( leadingWhitespace );
-			},
-			remaining: function() {
-				return this.str.substring( this.pos );
-			},
-			nextChar: function() {
-				return this.str.charAt( this.pos );
-			}
-		};
-		Parser.extend = function( proto ) {
-			var Parent = this,
-				Child, key;
-			Child = function( str, options ) {
-				Parser.call( this, str, options );
-			};
-			Child.prototype = create( Parent.prototype );
-			for ( key in proto ) {
-				if ( hasOwnProperty.call( proto, key ) ) {
-					Child.prototype[ key ] = proto[ key ];
-				}
-			}
-			Child.extend = Parser.extend;
-			return Child;
-		};
-		circular.Parser = Parser;
-		return Parser;
-	}( circular, create, hasOwn, conditional, flattenExpression );
-
-	/* utils/parseJSON.js */
-	var parseJSON = function( Parser, getStringLiteral, getKey ) {
-
-		// simple JSON parser, without the restrictions of JSON parse
-		// (i.e. having to double-quote keys).
-		//
-		// If passed a hash of values as the second argument, ${placeholders}
-		// will be replaced with those values
-		var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
-		specials = {
-			'true': true,
-			'false': false,
-			'undefined': undefined,
-			'null': null
-		};
-		specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
-		numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-		placeholderPattern = /\$\{([^\}]+)\}/g;
-		placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
-		onlyWhitespace = /^\s*$/;
-		JsonParser = Parser.extend( {
-			init: function( str, options ) {
-				this.values = options.values;
-			},
-			postProcess: function( result ) {
-				if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
-					return null;
-				}
-				return {
-					value: result[ 0 ].v
-				};
-			},
-			converters: [
-
-				function getPlaceholder( parser ) {
-					var placeholder;
-					if ( !parser.values ) {
-						return null;
-					}
-					placeholder = parser.matchPattern( placeholderAtStartPattern );
-					if ( placeholder && parser.values.hasOwnProperty( placeholder ) ) {
-						return {
-							v: parser.values[ placeholder ]
-						};
-					}
-				},
-				function getSpecial( parser ) {
-					var special;
-					if ( special = parser.matchPattern( specialsPattern ) ) {
-						return {
-							v: specials[ special ]
-						};
-					}
-				},
-				function getNumber( parser ) {
-					var number;
-					if ( number = parser.matchPattern( numberPattern ) ) {
-						return {
-							v: +number
-						};
-					}
-				},
-				function getString( parser ) {
-					var stringLiteral = getStringLiteral( parser ),
-						values;
-					if ( stringLiteral && ( values = parser.values ) ) {
-						return {
-							v: stringLiteral.v.replace( placeholderPattern, function( match, $1 ) {
-								return $1 in values ? values[ $1 ] : $1;
-							} )
-						};
-					}
-					return stringLiteral;
-				},
-				function getObject( parser ) {
-					var result, pair;
-					if ( !parser.matchString( '{' ) ) {
-						return null;
-					}
-					result = {};
-					while ( pair = getKeyValuePair( parser ) ) {
-						result[ pair.key ] = pair.value;
-						parser.allowWhitespace();
-						if ( parser.matchString( '}' ) ) {
-							return {
-								v: result
-							};
-						}
-						if ( !parser.matchString( ',' ) ) {
-							return null;
-						}
-					}
-					return null;
-				},
-				function getArray( parser ) {
-					var result, valueToken;
-					if ( !parser.matchString( '[' ) ) {
-						return null;
-					}
-					result = [];
-					parser.allowWhitespace();
-					while ( valueToken = parser.read() ) {
-						result.push( valueToken.v );
-						parser.allowWhitespace();
-						if ( parser.matchString( ']' ) ) {
-							return {
-								v: result
-							};
-						}
-						if ( !parser.matchString( ',' ) ) {
-							return null;
-						}
-						parser.allowWhitespace();
-					}
-					return null;
-				}
-			]
-		} );
-
-		function getKeyValuePair( parser ) {
-			var key, valueToken, pair;
-			parser.allowWhitespace();
-			key = getKey( parser );
-			if ( !key ) {
-				return null;
-			}
-			pair = {
-				key: key
-			};
-			parser.allowWhitespace();
-			if ( !parser.matchString( ':' ) ) {
-				return null;
-			}
-			parser.allowWhitespace();
-			valueToken = parser.read();
-			if ( !valueToken ) {
-				return null;
-			}
-			pair.value = valueToken.v;
-			return pair;
-		}
-		return function( str, values ) {
-			var parser = new JsonParser( str, {
-				values: values
-			} );
-			return parser.result;
-		};
-	}( Parser, stringLiteral, key );
 
 	/* virtualdom/Fragment/prototype/getValue.js */
 	var virtualdom_Fragment$getValue = function( types, parseJSON ) {
@@ -6960,21 +9541,6 @@
 		};
 	}( Attribute );
 
-	/* utils/extend.js */
-	var extend = function( target ) {
-		var SLICE$0 = Array.prototype.slice;
-		var sources = SLICE$0.call( arguments, 1 );
-		var prop, source;
-		while ( source = sources.shift() ) {
-			for ( prop in source ) {
-				if ( source.hasOwnProperty( prop ) ) {
-					target[ prop ] = source[ prop ];
-				}
-			}
-		}
-		return target;
-	};
-
 	/* virtualdom/items/Element/Binding/Binding.js */
 	var Binding = function( runloop, warn, create, extend, get, set ) {
 
@@ -7646,7 +10212,7 @@
 	}( EventHandler );
 
 	/* virtualdom/items/Element/Decorator/_Decorator.js */
-	var Decorator = function( warn, circular ) {
+	var Decorator = function( warn, circular, config ) {
 
 		var Fragment, getValueOptions, Decorator;
 		circular.push( function() {
@@ -7687,7 +10253,7 @@
 					}
 				};
 			}
-			decorator.fn = ractive.decorators[ name ];
+			decorator.fn = config.registries.decorators.find( ractive, name );
 			if ( !decorator.fn ) {
 				errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
 				if ( ractive.debug ) {
@@ -7731,10 +10297,10 @@
 			}
 		};
 		return Decorator;
-	}( warn, circular );
+	}( warn, circular, config );
 
 	/* virtualdom/items/Element/Transition/prototype/init.js */
-	var virtualdom_items_Element_Transition$init = function( warn, circular ) {
+	var virtualdom_items_Element_Transition$init = function( warn, config, circular ) {
 
 		var Fragment, getValueOptions = {};
 		// TODO what are the options?
@@ -7770,7 +10336,7 @@
 				t.params = fragment.getValue( getValueOptions );
 				fragment.teardown();
 			}
-			t._fn = ractive.transitions[ name ];
+			t._fn = config.registries.transitions.find( ractive, name );
 			if ( !t._fn ) {
 				errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
 				if ( ractive.debug ) {
@@ -7781,7 +10347,7 @@
 				return;
 			}
 		};
-	}( warn, circular );
+	}( warn, config, circular );
 
 	/* virtualdom/items/Element/Transition/helpers/prefix.js */
 	var prefix = function( isClient, vendors, createElement ) {
@@ -8593,8 +11159,11 @@
 			node = this.node = createElement( this.name, this.namespace );
 			// Is this a top-level node of a component? If so, we may need to add
 			// a data-rvcguid attribute, for CSS encapsulation
-			if ( root.css && this.parentFragment.getNode() === root.el ) {
-				this.node.setAttribute( 'data-rvcguid', root.constructor._guid || root._guid );
+			// NOTE: css no longer copied to instance, so we check constructor.css -
+			// we can enhance to handle instance, but this is more "correct" with current
+			// functionality
+			if ( root.constructor.css && this.parentFragment.getNode() === root.el ) {
+				this.node.setAttribute( 'data-rvcguid', root.constructor._guid );
 			}
 			// Add _ractive property to the node - we use this object to store stuff
 			// related to proxy events, two-way bindings etc
@@ -8721,13 +11290,6 @@
 			this.attributes.pop().teardown();
 		}
 	};
-
-	/* config/voidElementNames.js */
-	var voidElementNames = function() {
-
-		var voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
-		return voidElementNames;
-	}();
 
 	/* virtualdom/items/Element/prototype/toString.js */
 	var virtualdom_items_Element$toString = function( voidElementNames, isArray ) {
@@ -8876,1407 +11438,6 @@
 		return Element;
 	}( virtualdom_items_Element$bubble, virtualdom_items_Element$detach, virtualdom_items_Element$find, virtualdom_items_Element$findAll, virtualdom_items_Element$findAllComponents, virtualdom_items_Element$findComponent, virtualdom_items_Element$findNextNode, virtualdom_items_Element$firstNode, virtualdom_items_Element$getAttribute, virtualdom_items_Element$init, virtualdom_items_Element$rebind, virtualdom_items_Element$render, virtualdom_items_Element$teardown, virtualdom_items_Element$toString, virtualdom_items_Element$unrender );
 
-	/* config/errors.js */
-	var config_errors = {
-		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser'
-	};
-
-	/* registries/partials.js */
-	var partials = {};
-
-	/* parse/converters/mustache/delimiterChange.js */
-	var delimiterChange = function() {
-
-		var delimiterChangePattern = /^[^\s=]+/,
-			whitespacePattern = /^\s+/;
-		return function( parser ) {
-			var start, opening, closing;
-			if ( !parser.matchString( '=' ) ) {
-				return null;
-			}
-			start = parser.pos;
-			// allow whitespace before new opening delimiter
-			parser.allowWhitespace();
-			opening = parser.matchPattern( delimiterChangePattern );
-			if ( !opening ) {
-				parser.pos = start;
-				return null;
-			}
-			// allow whitespace (in fact, it's necessary...)
-			if ( !parser.matchPattern( whitespacePattern ) ) {
-				return null;
-			}
-			closing = parser.matchPattern( delimiterChangePattern );
-			if ( !closing ) {
-				parser.pos = start;
-				return null;
-			}
-			// allow whitespace before closing '='
-			parser.allowWhitespace();
-			if ( !parser.matchString( '=' ) ) {
-				parser.pos = start;
-				return null;
-			}
-			return [
-				opening,
-				closing
-			];
-		};
-	}();
-
-	/* parse/converters/mustache/type.js */
-	var type = function( types ) {
-
-		var mustacheTypes = {
-			'#': types.SECTION,
-			'^': types.INVERTED,
-			'/': types.CLOSING,
-			'>': types.PARTIAL,
-			'!': types.COMMENT,
-			'&': types.TRIPLE
-		};
-		return function( parser ) {
-			var type = mustacheTypes[ parser.str.charAt( parser.pos ) ];
-			if ( !type ) {
-				return null;
-			}
-			parser.pos += 1;
-			return type;
-		};
-	}( types );
-
-	/* parse/converters/mustache/content.js */
-	var content = function( types, mustacheType ) {
-
-		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-			arrayMemberPattern = /^[0-9][1-9]*$/,
-			handlebarsTypePattern = /(if|unless|with|each|try)\b/,
-			handlebarsTypes, legalReference;
-		handlebarsTypes = {
-			'if': types.SECTION_IF,
-			'unless': types.SECTION_UNLESS,
-			'with': types.SECTION_WITH,
-			'each': types.SECTION_EACH
-		};
-		legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
-		return function( parser, isTriple ) {
-			var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, referenceExpression;
-			start = parser.pos;
-			mustache = {};
-			// Determine mustache type
-			if ( isTriple ) {
-				mustache.t = types.TRIPLE;
-			} else {
-				// We need to test for expressions before we test for mustache type, because
-				// an expression that begins '!' looks a lot like a comment
-				if ( expression = parser.readExpression() ) {
-					mustache.t = types.INTERPOLATOR;
-					// Was it actually an expression, or a comment block in disguise?
-					parser.allowWhitespace();
-					if ( parser.matchString( parser.delimiters[ 1 ] ) ) {
-						// expression
-						parser.pos -= parser.delimiters[ 1 ].length;
-					} else {
-						// comment block
-						parser.pos = start;
-						expression = null;
-					}
-				}
-				if ( !expression ) {
-					type = mustacheType( parser );
-					mustache.t = type || types.INTERPOLATOR;
-					// default
-					// In Handlebars mode, see if there's a section type e.g. {{#with}}...{{/with}}
-					if ( type === types.SECTION && parser.handlebars ) {
-						handlebarsType = parser.matchPattern( handlebarsTypePattern );
-						if ( handlebarsType && handlebarsTypes[ handlebarsType ] ) {
-							mustache.n = handlebarsTypes[ handlebarsType ];
-							parser.allowWhitespace();
-						}
-					} else if ( type === types.INVERTED ) {
-						// {{^foo}}...{{/foo}}
-						mustache.t = types.SECTION;
-						mustache.n = types.SECTION_UNLESS;
-					} else if ( type === types.COMMENT || type === types.CLOSING ) {
-						remaining = parser.remaining();
-						index = remaining.indexOf( parser.delimiters[ 1 ] );
-						if ( index !== -1 ) {
-							mustache.r = remaining.substr( 0, index );
-							parser.pos += index;
-							return mustache;
-						}
-					}
-				}
-			}
-			if ( !expression ) {
-				// allow whitespace
-				parser.allowWhitespace();
-				// get expression
-				expression = parser.readExpression();
-				// With certain valid references that aren't valid expressions,
-				// e.g. {{1.foo}}, we have a problem: it looks like we've got an
-				// expression, but the expression didn't consume the entire
-				// reference. So we need to check that the mustache delimiters
-				// appear next, unless there's an index reference (i.e. a colon)
-				remaining = parser.remaining();
-				delimiter = isTriple ? parser.tripleDelimiters[ 1 ] : parser.delimiters[ 1 ];
-				if ( remaining.substr( 0, delimiter.length ) !== delimiter && remaining.charAt( 0 ) !== ':' ) {
-					pos = parser.pos;
-					parser.pos = start;
-					remaining = parser.remaining();
-					index = remaining.indexOf( parser.delimiters[ 1 ] );
-					if ( index !== -1 ) {
-						mustache.r = remaining.substr( 0, index ).trim();
-						// Check it's a legal reference
-						if ( !legalReference.test( mustache.r ) ) {
-							parser.error( 'Expected a legal Mustache reference' );
-						}
-						parser.pos += index;
-						return mustache;
-					}
-					parser.pos = pos;
-				}
-			}
-			if ( expression ) {
-				while ( expression.t === types.BRACKETED && expression.x ) {
-					expression = expression.x;
-				}
-				// special case - integers should be treated as array members references,
-				// rather than as expressions in their own right
-				if ( expression.t === types.REFERENCE ) {
-					mustache.r = expression.n;
-				} else {
-					if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
-						mustache.r = expression.v;
-					} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
-						mustache.rx = referenceExpression;
-					} else {
-						mustache.x = parser.flattenExpression( expression );
-					}
-				}
-			}
-			// optional index reference
-			if ( i = parser.matchPattern( indexRefPattern ) ) {
-				mustache.i = i;
-			}
-			return mustache;
-		};
-		// TODO refactor this! it's bewildering
-		function getReferenceExpression( parser, expression ) {
-			var members = [],
-				refinement;
-			while ( expression.t === types.MEMBER && expression.r.t === types.REFINEMENT ) {
-				refinement = expression.r;
-				if ( refinement.x ) {
-					if ( refinement.x.t === types.REFERENCE ) {
-						members.unshift( refinement.x );
-					} else {
-						members.unshift( parser.flattenExpression( refinement.x ) );
-					}
-				} else {
-					members.unshift( refinement.n );
-				}
-				expression = expression.x;
-			}
-			if ( expression.t !== types.REFERENCE ) {
-				return null;
-			}
-			return {
-				r: expression.n,
-				m: members
-			};
-		}
-	}( types, type );
-
-	/* parse/converters/mustache.js */
-	var mustache = function( types, delimiterChange, mustacheContent ) {
-
-		var delimiterChangeToken = {
-				t: types.DELIMCHANGE,
-				exclude: true
-			},
-			handlebarsIndexRefPattern = /^@(?:index|key)$/;
-		return getMustache;
-
-		function getMustache( parser ) {
-			// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
-			// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
-			// we will get a false positive if the mustache delimiter is a substring of the
-			// triple delimiter, as in the default case
-			var seekTripleFirst = parser.tripleDelimiters[ 0 ].length > parser.delimiters[ 0 ].length;
-			return getMustacheOrTriple( parser, seekTripleFirst ) || getMustacheOrTriple( parser, !seekTripleFirst );
-		}
-
-		function getMustacheOrTriple( parser, seekTriple ) {
-			var start, startPos, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
-			start = parser.pos;
-			startPos = parser.getLinePos();
-			delimiters = seekTriple ? parser.tripleDelimiters : parser.delimiters;
-			if ( !parser.matchString( delimiters[ 0 ] ) ) {
-				return null;
-			}
-			// delimiter change?
-			if ( mustache = delimiterChange( parser ) ) {
-				// find closing delimiter or abort...
-				if ( !parser.matchString( delimiters[ 1 ] ) ) {
-					return null;
-				}
-				// ...then make the switch
-				parser[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = mustache;
-				return delimiterChangeToken;
-			}
-			parser.allowWhitespace();
-			mustache = mustacheContent( parser, seekTriple );
-			if ( mustache === null ) {
-				parser.pos = start;
-				return null;
-			}
-			// allow whitespace before closing delimiter
-			parser.allowWhitespace();
-			if ( !parser.matchString( delimiters[ 1 ] ) ) {
-				parser.error( 'Expected closing delimiter \'' + delimiters[ 1 ] + '\' after reference' );
-			}
-			if ( mustache.t === types.COMMENT ) {
-				mustache.exclude = true;
-			}
-			// section children
-			if ( mustache.t === types.SECTION ) {
-				children = [];
-				currentChildren = children;
-				if ( parser.options.strict || parser.handlebars ) {
-					switch ( mustache.n ) {
-						case types.SECTION_IF:
-							expectedClose = 'if';
-							break;
-						case types.SECTION_EACH:
-							expectedClose = 'each';
-							break;
-						case types.SECTION_UNLESS:
-							expectedClose = 'unless';
-							break;
-						case types.SECTION_WITH:
-							expectedClose = 'with';
-							break;
-					}
-				}
-				while ( child = parser.read() ) {
-					if ( child.t === types.CLOSING ) {
-						if ( expectedClose && child.r !== expectedClose ) {
-							parser.error( 'Expected {{/' + expectedClose + '}}' );
-						}
-						break;
-					}
-					if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else' ) {
-						switch ( mustache.n ) {
-							case types.SECTION_IF:
-							case types.SECTION_EACH:
-								currentChildren = elseChildren = [];
-								continue;
-								// don't add this item to children
-							case types.SECTION_UNLESS:
-								parser.error( '{{else}} not allowed in {{#unless}}' );
-								break;
-							case types.SECTION_WITH:
-								parser.error( '{{else}} not allowed in {{#with}}' );
-								break;
-						}
-					}
-					currentChildren.push( child );
-				}
-				if ( children.length ) {
-					mustache.f = children;
-					// If this is an 'each' section, and it contains an {{@index}} or {{@key}},
-					// we need to set the index reference accordingly
-					if ( !mustache.i && mustache.n === types.SECTION_EACH && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
-						mustache.i = indexRef;
-					}
-				}
-				if ( elseChildren && elseChildren.length ) {
-					mustache.l = elseChildren;
-				}
-			}
-			if ( parser.includeLinePositions ) {
-				mustache.p = startPos.toJSON();
-			}
-			return mustache;
-		}
-
-		function handlebarsIndexRef( fragment ) {
-			var i, child, indexRef;
-			i = fragment.length;
-			while ( i-- ) {
-				child = fragment[ i ];
-				// Recurse into elements (but not sections)
-				if ( child.t === types.ELEMENT && child.f && ( indexRef = handlebarsIndexRef( child.f ) ) ) {
-					return indexRef;
-				}
-				// Mustache?
-				if ( child.t === types.INTERPOLATOR || child.t === types.TRIPLE || child.t === types.SECTION ) {
-					// Normal reference?
-					if ( child.r && handlebarsIndexRefPattern.test( child.r ) ) {
-						return child.r;
-					}
-					// Expression?
-					if ( child.x && ( indexRef = indexRefContainedInExpression( child.x ) ) ) {
-						return indexRef;
-					}
-					// Reference expression?
-					if ( child.rx && ( indexRef = indexRefContainedInReferenceExpression( child.rx ) ) ) {
-						return indexRef;
-					}
-				}
-			}
-		}
-
-		function indexRefContainedInExpression( expression ) {
-			var i;
-			i = expression.r.length;
-			while ( i-- ) {
-				if ( handlebarsIndexRefPattern.test( expression.r[ i ] ) ) {
-					return expression.r[ i ];
-				}
-			}
-		}
-
-		function indexRefContainedInReferenceExpression( referenceExpression ) {
-			var i, indexRef, member;
-			i = referenceExpression.m.length;
-			while ( i-- ) {
-				member = referenceExpression.m[ i ];
-				if ( member.r && ( indexRef = indexRefContainedInExpression( member ) ) ) {
-					return indexRef;
-				}
-				if ( member.t === types.REFERENCE && handlebarsIndexRefPattern.test( member.n ) ) {
-					return member.n;
-				}
-			}
-		}
-	}( types, delimiterChange, content );
-
-	/* parse/converters/comment.js */
-	var comment = function( types ) {
-
-		var OPEN_COMMENT = '<!--',
-			CLOSE_COMMENT = '-->';
-		return function( parser ) {
-			var startPos, content, remaining, endIndex, comment;
-			startPos = parser.getLinePos();
-			if ( !parser.matchString( OPEN_COMMENT ) ) {
-				return null;
-			}
-			remaining = parser.remaining();
-			endIndex = remaining.indexOf( CLOSE_COMMENT );
-			if ( endIndex === -1 ) {
-				parser.error( 'Illegal HTML - expected closing comment sequence (\'-->\')' );
-			}
-			content = remaining.substr( 0, endIndex );
-			parser.pos += endIndex + 3;
-			comment = {
-				t: types.COMMENT,
-				c: content
-			};
-			if ( parser.includeLinePositions ) {
-				comment.p = startPos.toJSON();
-			}
-			return comment;
-		};
-	}( types );
-
-	/* parse/converters/utils/getLowestIndex.js */
-	var getLowestIndex = function( haystack, needles ) {
-		var i, index, lowest;
-		i = needles.length;
-		while ( i-- ) {
-			index = haystack.indexOf( needles[ i ] );
-			// short circuit
-			if ( !index ) {
-				return 0;
-			}
-			if ( index === -1 ) {
-				continue;
-			}
-			if ( !lowest || index < lowest ) {
-				lowest = index;
-			}
-		}
-		return lowest || -1;
-	};
-
-	/* parse/converters/utils/decodeCharacterReferences.js */
-	var decodeCharacterReferences = function() {
-
-		var htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern;
-		htmlEntities = {
-			quot: 34,
-			amp: 38,
-			apos: 39,
-			lt: 60,
-			gt: 62,
-			nbsp: 160,
-			iexcl: 161,
-			cent: 162,
-			pound: 163,
-			curren: 164,
-			yen: 165,
-			brvbar: 166,
-			sect: 167,
-			uml: 168,
-			copy: 169,
-			ordf: 170,
-			laquo: 171,
-			not: 172,
-			shy: 173,
-			reg: 174,
-			macr: 175,
-			deg: 176,
-			plusmn: 177,
-			sup2: 178,
-			sup3: 179,
-			acute: 180,
-			micro: 181,
-			para: 182,
-			middot: 183,
-			cedil: 184,
-			sup1: 185,
-			ordm: 186,
-			raquo: 187,
-			frac14: 188,
-			frac12: 189,
-			frac34: 190,
-			iquest: 191,
-			Agrave: 192,
-			Aacute: 193,
-			Acirc: 194,
-			Atilde: 195,
-			Auml: 196,
-			Aring: 197,
-			AElig: 198,
-			Ccedil: 199,
-			Egrave: 200,
-			Eacute: 201,
-			Ecirc: 202,
-			Euml: 203,
-			Igrave: 204,
-			Iacute: 205,
-			Icirc: 206,
-			Iuml: 207,
-			ETH: 208,
-			Ntilde: 209,
-			Ograve: 210,
-			Oacute: 211,
-			Ocirc: 212,
-			Otilde: 213,
-			Ouml: 214,
-			times: 215,
-			Oslash: 216,
-			Ugrave: 217,
-			Uacute: 218,
-			Ucirc: 219,
-			Uuml: 220,
-			Yacute: 221,
-			THORN: 222,
-			szlig: 223,
-			agrave: 224,
-			aacute: 225,
-			acirc: 226,
-			atilde: 227,
-			auml: 228,
-			aring: 229,
-			aelig: 230,
-			ccedil: 231,
-			egrave: 232,
-			eacute: 233,
-			ecirc: 234,
-			euml: 235,
-			igrave: 236,
-			iacute: 237,
-			icirc: 238,
-			iuml: 239,
-			eth: 240,
-			ntilde: 241,
-			ograve: 242,
-			oacute: 243,
-			ocirc: 244,
-			otilde: 245,
-			ouml: 246,
-			divide: 247,
-			oslash: 248,
-			ugrave: 249,
-			uacute: 250,
-			ucirc: 251,
-			uuml: 252,
-			yacute: 253,
-			thorn: 254,
-			yuml: 255,
-			OElig: 338,
-			oelig: 339,
-			Scaron: 352,
-			scaron: 353,
-			Yuml: 376,
-			fnof: 402,
-			circ: 710,
-			tilde: 732,
-			Alpha: 913,
-			Beta: 914,
-			Gamma: 915,
-			Delta: 916,
-			Epsilon: 917,
-			Zeta: 918,
-			Eta: 919,
-			Theta: 920,
-			Iota: 921,
-			Kappa: 922,
-			Lambda: 923,
-			Mu: 924,
-			Nu: 925,
-			Xi: 926,
-			Omicron: 927,
-			Pi: 928,
-			Rho: 929,
-			Sigma: 931,
-			Tau: 932,
-			Upsilon: 933,
-			Phi: 934,
-			Chi: 935,
-			Psi: 936,
-			Omega: 937,
-			alpha: 945,
-			beta: 946,
-			gamma: 947,
-			delta: 948,
-			epsilon: 949,
-			zeta: 950,
-			eta: 951,
-			theta: 952,
-			iota: 953,
-			kappa: 954,
-			lambda: 955,
-			mu: 956,
-			nu: 957,
-			xi: 958,
-			omicron: 959,
-			pi: 960,
-			rho: 961,
-			sigmaf: 962,
-			sigma: 963,
-			tau: 964,
-			upsilon: 965,
-			phi: 966,
-			chi: 967,
-			psi: 968,
-			omega: 969,
-			thetasym: 977,
-			upsih: 978,
-			piv: 982,
-			ensp: 8194,
-			emsp: 8195,
-			thinsp: 8201,
-			zwnj: 8204,
-			zwj: 8205,
-			lrm: 8206,
-			rlm: 8207,
-			ndash: 8211,
-			mdash: 8212,
-			lsquo: 8216,
-			rsquo: 8217,
-			sbquo: 8218,
-			ldquo: 8220,
-			rdquo: 8221,
-			bdquo: 8222,
-			dagger: 8224,
-			Dagger: 8225,
-			bull: 8226,
-			hellip: 8230,
-			permil: 8240,
-			prime: 8242,
-			Prime: 8243,
-			lsaquo: 8249,
-			rsaquo: 8250,
-			oline: 8254,
-			frasl: 8260,
-			euro: 8364,
-			image: 8465,
-			weierp: 8472,
-			real: 8476,
-			trade: 8482,
-			alefsym: 8501,
-			larr: 8592,
-			uarr: 8593,
-			rarr: 8594,
-			darr: 8595,
-			harr: 8596,
-			crarr: 8629,
-			lArr: 8656,
-			uArr: 8657,
-			rArr: 8658,
-			dArr: 8659,
-			hArr: 8660,
-			forall: 8704,
-			part: 8706,
-			exist: 8707,
-			empty: 8709,
-			nabla: 8711,
-			isin: 8712,
-			notin: 8713,
-			ni: 8715,
-			prod: 8719,
-			sum: 8721,
-			minus: 8722,
-			lowast: 8727,
-			radic: 8730,
-			prop: 8733,
-			infin: 8734,
-			ang: 8736,
-			and: 8743,
-			or: 8744,
-			cap: 8745,
-			cup: 8746,
-			'int': 8747,
-			there4: 8756,
-			sim: 8764,
-			cong: 8773,
-			asymp: 8776,
-			ne: 8800,
-			equiv: 8801,
-			le: 8804,
-			ge: 8805,
-			sub: 8834,
-			sup: 8835,
-			nsub: 8836,
-			sube: 8838,
-			supe: 8839,
-			oplus: 8853,
-			otimes: 8855,
-			perp: 8869,
-			sdot: 8901,
-			lceil: 8968,
-			rceil: 8969,
-			lfloor: 8970,
-			rfloor: 8971,
-			lang: 9001,
-			rang: 9002,
-			loz: 9674,
-			spades: 9824,
-			clubs: 9827,
-			hearts: 9829,
-			diams: 9830
-		};
-		controlCharacters = [
-			8364,
-			129,
-			8218,
-			402,
-			8222,
-			8230,
-			8224,
-			8225,
-			710,
-			8240,
-			352,
-			8249,
-			338,
-			141,
-			381,
-			143,
-			144,
-			8216,
-			8217,
-			8220,
-			8221,
-			8226,
-			8211,
-			8212,
-			732,
-			8482,
-			353,
-			8250,
-			339,
-			157,
-			382,
-			376
-		];
-		namedEntityPattern = new RegExp( '&(' + Object.keys( htmlEntities ).join( '|' ) + ');?', 'g' );
-		hexEntityPattern = /&#x([0-9]+);?/g;
-		decimalEntityPattern = /&#([0-9]+);?/g;
-		return function decodeCharacterReferences( html ) {
-			var result;
-			// named entities
-			result = html.replace( namedEntityPattern, function( match, name ) {
-				if ( htmlEntities[ name ] ) {
-					return String.fromCharCode( htmlEntities[ name ] );
-				}
-				return match;
-			} );
-			// hex references
-			result = result.replace( hexEntityPattern, function( match, hex ) {
-				return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
-			} );
-			// decimal references
-			result = result.replace( decimalEntityPattern, function( match, charCode ) {
-				return String.fromCharCode( validateCode( charCode ) );
-			} );
-			return result;
-		};
-		// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
-		// code points with alternatives in some cases - since we're bypassing that mechanism, we need
-		// to replace them ourselves
-		//
-		// Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
-		function validateCode( code ) {
-			if ( !code ) {
-				return 65533;
-			}
-			// line feed becomes generic whitespace
-			if ( code === 10 ) {
-				return 32;
-			}
-			// ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
-			if ( code < 128 ) {
-				return code;
-			}
-			// code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
-			// to correct the mistake or we'll end up with missing € signs and so on
-			if ( code <= 159 ) {
-				return controlCharacters[ code - 128 ];
-			}
-			// basic multilingual plane
-			if ( code < 55296 ) {
-				return code;
-			}
-			// UTF-16 surrogate halves
-			if ( code <= 57343 ) {
-				return 65533;
-			}
-			// rest of the basic multilingual plane
-			if ( code <= 65535 ) {
-				return code;
-			}
-			return 65533;
-		}
-	}();
-
-	/* parse/converters/text.js */
-	var text = function( getLowestIndex, decodeCharacterReferences ) {
-
-		return function( parser ) {
-			var index, remaining, barrier;
-			remaining = parser.remaining();
-			barrier = parser.inside ? '</' + parser.inside : '<';
-			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
-				index = remaining.indexOf( barrier );
-			} else {
-				index = getLowestIndex( remaining, [
-					barrier,
-					parser.delimiters[ 0 ],
-					parser.tripleDelimiters[ 0 ]
-				] );
-			}
-			if ( !index ) {
-				return null;
-			}
-			if ( index === -1 ) {
-				index = remaining.length;
-			}
-			parser.pos += index;
-			return decodeCharacterReferences( remaining.substr( 0, index ) );
-		};
-	}( getLowestIndex, decodeCharacterReferences );
-
-	/* parse/converters/element/closingTag.js */
-	var closingTag = function( types ) {
-
-		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
-		return function( parser ) {
-			var tag;
-			// are we looking at a closing tag?
-			if ( !parser.matchString( '</' ) ) {
-				return null;
-			}
-			if ( tag = parser.matchPattern( closingTagPattern ) ) {
-				return {
-					t: types.CLOSING_TAG,
-					e: tag
-				};
-			}
-			// We have an illegal closing tag, report it
-			parser.pos -= 2;
-			parser.error( 'Illegal closing tag' );
-		};
-	}( types );
-
-	/* parse/converters/element/attribute.js */
-	var attribute = function( getLowestIndex, getMustache ) {
-
-		var attributeNamePattern = /^[^\s"'>\/=]+/,
-			unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
-		return getAttribute;
-
-		function getAttribute( parser ) {
-			var attr, name, value;
-			parser.allowWhitespace();
-			name = parser.matchPattern( attributeNamePattern );
-			if ( !name ) {
-				return null;
-			}
-			attr = {
-				name: name
-			};
-			value = getAttributeValue( parser );
-			if ( value ) {
-				attr.value = value;
-			}
-			return attr;
-		}
-
-		function getAttributeValue( parser ) {
-			var start, value;
-			start = parser.pos;
-			parser.allowWhitespace();
-			if ( !parser.matchString( '=' ) ) {
-				parser.pos = start;
-				return null;
-			}
-			parser.allowWhitespace();
-			value = getQuotedAttributeValue( parser, '\'' ) || getQuotedAttributeValue( parser, '"' ) || getUnquotedAttributeValue( parser );
-			if ( value === null ) {
-				parser.pos = start;
-				return null;
-			}
-			if ( value.length === 1 && typeof value[ 0 ] === 'string' ) {
-				return value[ 0 ];
-			}
-			return value;
-		}
-
-		function getUnquotedAttributeValueToken( parser ) {
-			var start, text, index;
-			start = parser.pos;
-			text = parser.matchPattern( unquotedAttributeValueTextPattern );
-			if ( !text ) {
-				return null;
-			}
-			if ( ( index = text.indexOf( parser.delimiters[ 0 ] ) ) !== -1 ) {
-				text = text.substr( 0, index );
-				parser.pos = start + text.length;
-			}
-			return text;
-		}
-
-		function getUnquotedAttributeValue( parser ) {
-			var tokens, token;
-			tokens = [];
-			token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
-			while ( token !== null ) {
-				tokens.push( token );
-				token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
-			}
-			if ( !tokens.length ) {
-				return null;
-			}
-			return tokens;
-		}
-
-		function getQuotedAttributeValue( parser, quoteMark ) {
-			var start, tokens, token;
-			start = parser.pos;
-			if ( !parser.matchString( quoteMark ) ) {
-				return null;
-			}
-			tokens = [];
-			token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
-			while ( token !== null ) {
-				tokens.push( token );
-				token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
-			}
-			if ( !parser.matchString( quoteMark ) ) {
-				parser.pos = start;
-				return null;
-			}
-			return tokens;
-		}
-
-		function getQuotedStringToken( parser, quoteMark ) {
-			var start, index, remaining;
-			start = parser.pos;
-			remaining = parser.remaining();
-			index = getLowestIndex( remaining, [
-				quoteMark,
-				parser.delimiters[ 0 ],
-				parser.delimiters[ 1 ]
-			] );
-			if ( index === -1 ) {
-				parser.error( 'Quoted attribute value must have a closing quote' );
-			}
-			if ( !index ) {
-				return null;
-			}
-			parser.pos += index;
-			return remaining.substr( 0, index );
-		}
-	}( getLowestIndex, mustache );
-
-	/* parse/converters/element/processDirective.js */
-	var processDirective = function( parseJSON ) {
-
-		// TODO clean this up, it's shocking
-		return function( tokens ) {
-			var result, token, colonIndex, directiveName, directiveArgs, parsed;
-			if ( typeof tokens === 'string' ) {
-				if ( tokens.indexOf( ':' ) === -1 ) {
-					return tokens.trim();
-				}
-				tokens = [ tokens ];
-			}
-			result = {};
-			directiveName = [];
-			directiveArgs = [];
-			while ( tokens.length ) {
-				token = tokens.shift();
-				if ( typeof token === 'string' ) {
-					colonIndex = token.indexOf( ':' );
-					if ( colonIndex === -1 ) {
-						directiveName.push( token );
-					} else {
-						// is the colon the first character?
-						if ( colonIndex ) {
-							// no
-							directiveName.push( token.substr( 0, colonIndex ) );
-						}
-						// if there is anything after the colon in this token, treat
-						// it as the first token of the directiveArgs fragment
-						if ( token.length > colonIndex + 1 ) {
-							directiveArgs[ 0 ] = token.substring( colonIndex + 1 );
-						}
-						break;
-					}
-				} else {
-					directiveName.push( token );
-				}
-			}
-			directiveArgs = directiveArgs.concat( tokens );
-			if ( directiveArgs.length || typeof directiveName !== 'string' ) {
-				result = {
-					// TODO is this really necessary? just use the array
-					n: directiveName.length === 1 && typeof directiveName[ 0 ] === 'string' ? directiveName[ 0 ] : directiveName
-				};
-				if ( directiveArgs.length === 1 && typeof directiveArgs[ 0 ] === 'string' ) {
-					parsed = parseJSON( '[' + directiveArgs[ 0 ] + ']' );
-					result.a = parsed ? parsed.value : directiveArgs[ 0 ];
-				} else {
-					result.d = directiveArgs;
-				}
-			} else {
-				result = directiveName;
-			}
-			return result;
-		};
-	}( parseJSON );
-
-	/* parse/converters/element.js */
-	var element = function( types, voidElementNames, getMustache, getComment, getText, getClosingTag, getAttribute, processDirective ) {
-
-		var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
-			validTagNameFollower = /^[\s\n\/>]/,
-			onPattern = /^on/,
-			proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)$/,
-			reservedEventNames = /^(?:change|reset|teardown|update)$/,
-			directives = {
-				'intro-outro': 't0',
-				intro: 't1',
-				outro: 't2',
-				decorator: 'o'
-			},
-			exclude = {
-				exclude: true
-			},
-			converters;
-		// Different set of converters, because this time we're looking for closing tags
-		converters = [
-			getMustache,
-			getComment,
-			getElement,
-			getText,
-			getClosingTag
-		];
-		return getElement;
-
-		function getElement( parser ) {
-			var start, startPos, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
-			start = parser.pos;
-			startPos = parser.getLinePos();
-			if ( parser.inside ) {
-				return null;
-			}
-			if ( !parser.matchString( '<' ) ) {
-				return null;
-			}
-			// if this is a closing tag, abort straight away
-			if ( parser.nextChar() === '/' ) {
-				return null;
-			}
-			element = {
-				t: types.ELEMENT
-			};
-			if ( parser.includeLinePositions ) {
-				element.p = startPos.toJSON();
-			}
-			if ( parser.matchString( '!' ) ) {
-				element.y = 1;
-			}
-			// element name
-			element.e = parser.matchPattern( tagNamePattern );
-			if ( !element.e ) {
-				return null;
-			}
-			// next character must be whitespace, closing solidus or '>'
-			if ( !validTagNameFollower.test( parser.nextChar() ) ) {
-				parser.error( 'Illegal tag name' );
-			}
-			addProxyEvent = function( name, directive ) {
-				var directiveName = directive.n || directive;
-				if ( reservedEventNames.test( directiveName ) ) {
-					parser.pos -= directiveName.length;
-					parser.error( 'Cannot use reserved event names (change, reset, teardown, update)' );
-				}
-				element.v[ name ] = directive;
-			};
-			// directives and attributes
-			while ( attribute = getAttribute( parser ) ) {
-				// intro, outro, decorator
-				if ( directiveName = directives[ attribute.name ] ) {
-					element[ directiveName ] = processDirective( attribute.value );
-				} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
-					if ( !element.v )
-						element.v = {};
-					directive = processDirective( attribute.value );
-					addProxyEvent( match[ 1 ], directive );
-				} else {
-					if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
-						if ( !element.a )
-							element.a = {};
-						element.a[ attribute.name ] = attribute.value || 0;
-					}
-				}
-			}
-			// allow whitespace before closing solidus
-			parser.allowWhitespace();
-			// self-closing solidus?
-			if ( parser.matchString( '/' ) ) {
-				selfClosing = true;
-			}
-			// closing angle bracket
-			if ( !parser.matchString( '>' ) ) {
-				return null;
-			}
-			lowerCaseName = element.e.toLowerCase();
-			if ( !selfClosing && !voidElementNames.test( element.e ) ) {
-				// Special case - if we open a script element, further tags should
-				// be ignored unless they're a closing script element
-				if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
-					parser.inside = lowerCaseName;
-				}
-				children = [];
-				while ( child = parser.read( converters ) ) {
-					// Special case - closing section tag
-					if ( child.t === types.CLOSING ) {
-						break;
-					}
-					if ( child.t === types.CLOSING_TAG ) {
-						break;
-					}
-					children.push( child );
-				}
-				if ( children.length ) {
-					element.f = children;
-				}
-			}
-			parser.inside = null;
-			if ( parser.sanitizeElements && parser.sanitizeElements.indexOf( lowerCaseName ) !== -1 ) {
-				return exclude;
-			}
-			return element;
-		}
-	}( types, voidElementNames, mustache, comment, text, closingTag, attribute, processDirective );
-
-	/* parse/utils/trimWhitespace.js */
-	var trimWhitespace = function() {
-
-		var leadingWhitespace = /^[ \t\f\r\n]+/,
-			trailingWhitespace = /[ \t\f\r\n]+$/;
-		return function( items, leading, trailing ) {
-			var item;
-			if ( leading ) {
-				item = items[ 0 ];
-				if ( typeof item === 'string' ) {
-					item = item.replace( leadingWhitespace, '' );
-					if ( !item ) {
-						items.shift();
-					} else {
-						items[ 0 ] = item;
-					}
-				}
-			}
-			if ( trailing ) {
-				item = items[ items.length - 1 ];
-				if ( typeof item === 'string' ) {
-					item = item.replace( trailingWhitespace, '' );
-					if ( !item ) {
-						items.pop();
-					} else {
-						items[ items.length - 1 ] = item;
-					}
-				}
-			}
-		};
-	}();
-
-	/* parse/utils/stripStandalones.js */
-	var stripStandalones = function( types ) {
-
-		var leadingLinebreak = /^\s*\r?\n/,
-			trailingLinebreak = /\r?\n\s*$/;
-		return function( items ) {
-			var i, current, backOne, backTwo, lastSectionItem;
-			for ( i = 1; i < items.length; i += 1 ) {
-				current = items[ i ];
-				backOne = items[ i - 1 ];
-				backTwo = items[ i - 2 ];
-				// if we're at the end of a [text][comment][text] sequence...
-				if ( isString( current ) && isComment( backOne ) && isString( backTwo ) ) {
-					// ... and the comment is a standalone (i.e. line breaks either side)...
-					if ( trailingLinebreak.test( backTwo ) && leadingLinebreak.test( current ) ) {
-						// ... then we want to remove the whitespace after the first line break
-						items[ i - 2 ] = backTwo.replace( trailingLinebreak, '\n' );
-						// and the leading line break of the second text token
-						items[ i ] = current.replace( leadingLinebreak, '' );
-					}
-				}
-				// if the current item is a section, and it is preceded by a linebreak, and
-				// its first item is a linebreak...
-				if ( isSection( current ) && isString( backOne ) ) {
-					if ( trailingLinebreak.test( backOne ) && isString( current.f[ 0 ] ) && leadingLinebreak.test( current.f[ 0 ] ) ) {
-						items[ i - 1 ] = backOne.replace( trailingLinebreak, '\n' );
-						current.f[ 0 ] = current.f[ 0 ].replace( leadingLinebreak, '' );
-					}
-				}
-				// if the last item was a section, and it is followed by a linebreak, and
-				// its last item is a linebreak...
-				if ( isString( current ) && isSection( backOne ) ) {
-					lastSectionItem = backOne.f[ backOne.f.length - 1 ];
-					if ( isString( lastSectionItem ) && trailingLinebreak.test( lastSectionItem ) && leadingLinebreak.test( current ) ) {
-						backOne.f[ backOne.f.length - 1 ] = lastSectionItem.replace( trailingLinebreak, '\n' );
-						items[ i ] = current.replace( leadingLinebreak, '' );
-					}
-				}
-			}
-			return items;
-		};
-
-		function isString( item ) {
-			return typeof item === 'string';
-		}
-
-		function isComment( item ) {
-			return item.t === types.COMMENT || item.t === types.DELIMCHANGE;
-		}
-
-		function isSection( item ) {
-			return ( item.t === types.SECTION || item.t === types.INVERTED ) && item.f;
-		}
-	}( types );
-
-	/* parse/_parse.js */
-	var parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones ) {
-
-		// Ractive.parse
-		// ===============
-		//
-		// Takes in a string, and returns an object representing the parsed template.
-		// A parsed template is an array of 1 or more 'templates', which in some
-		// cases have children.
-		//
-		// The format is optimised for size, not readability, however for reference the
-		// keys for each template are as follows:
-		//
-		// * r - Reference, e.g. 'mustache' in {{mustache}}
-		// * t - Type code (e.g. 1 is text, 2 is interpolator...)
-		// * f - Fragment. Contains a template's children
-		// * l - eLse fragment. Contains a template's children in the else case
-		// * e - Element name
-		// * a - map of element Attributes, or proxy event/transition Arguments
-		// * d - Dynamic proxy event/transition arguments
-		// * n - indicates an iNverted section
-		// * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
-		// * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
-		// * x - eXpressions
-		// * s - String representation of an expression function
-		// * t0 - intro/outro Transition
-		// * t1 - intro Transition
-		// * t2 - outro Transition
-		// * o - decOrator
-		// * y - is doctYpe
-		// * c - is Content (e.g. of a comment node)
-		// * p - line Position information - array with line number and character position of each node
-		var StandardParser, parse, contiguousWhitespace = /[ \t\f\r\n]+/g,
-			inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
-			inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
-			preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
-			leadingWhitespace = /^\s+/,
-			trailingWhitespace = /\s+$/,
-			parseCompoundTemplate;
-		StandardParser = Parser.extend( {
-			init: function( str, options ) {
-				// config
-				this.delimiters = options.delimiters || [
-					'{{',
-					'}}'
-				];
-				this.tripleDelimiters = options.tripleDelimiters || [
-					'{{{',
-					'}}}'
-				];
-				this.interpolate = {
-					script: !options.interpolate || options.interpolate.script !== false,
-					style: !options.interpolate || options.interpolate.style !== false
-				};
-				if ( options.sanitize === true ) {
-					options.sanitize = {
-						// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-						elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split( ' ' ),
-						eventAttributes: true
-					};
-				}
-				this.sanitizeElements = options.sanitize && options.sanitize.elements;
-				this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
-				this.includeLinePositions = options.includeLinePositions;
-				this.handlebars = options.handlebars;
-			},
-			postProcess: function( items, options ) {
-				cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
-				return items;
-			},
-			converters: [
-				mustache,
-				comment,
-				element,
-				text
-			]
-		} );
-		parse = function( template, options ) {
-			var parser;
-			options = options || {};
-			// does this template include inline partials?
-			if ( inlinePartialStart.test( template ) ) {
-				return parseCompoundTemplate( template, options );
-			}
-			parser = new StandardParser( template, options );
-			if ( parser.leftover ) {
-				parser.error( 'Unexpected character' );
-			}
-			return parser.result;
-		};
-		parseCompoundTemplate = function( template, options ) {
-			var mainTemplate, remaining, partials, name, startMatch, endMatch;
-			partials = {};
-			mainTemplate = '';
-			remaining = template;
-			while ( startMatch = inlinePartialStart.exec( remaining ) ) {
-				name = startMatch[ 1 ];
-				mainTemplate += remaining.substr( 0, startMatch.index );
-				remaining = remaining.substring( startMatch.index + startMatch[ 0 ].length );
-				endMatch = inlinePartialEnd.exec( remaining );
-				if ( !endMatch || endMatch[ 1 ] !== name ) {
-					throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
-				}
-				partials[ name ] = parse( remaining.substr( 0, endMatch.index ), options );
-				remaining = remaining.substring( endMatch.index + endMatch[ 0 ].length );
-			}
-			return {
-				main: parse( mainTemplate, options ),
-				partials: partials
-			};
-		};
-		return parse;
-
-		function cleanup( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
-			var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, unlessBlock, key;
-			// First pass - remove standalones and comments etc
-			stripStandalones( items );
-			i = items.length;
-			while ( i-- ) {
-				item = items[ i ];
-				// Remove delimiter changes, unsafe elements etc
-				if ( item.exclude ) {
-					items.splice( i, 1 );
-				} else if ( stripComments && item.t === types.COMMENT ) {
-					items.splice( i, 1 );
-				}
-			}
-			// If necessary, remove leading and trailing whitespace
-			trimWhitespace( items, removeLeadingWhitespace, removeTrailingWhitespace );
-			i = items.length;
-			while ( i-- ) {
-				item = items[ i ];
-				// Recurse
-				if ( item.f ) {
-					preserveWhitespaceInsideFragment = preserveWhitespace || item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e );
-					if ( !preserveWhitespaceInsideFragment ) {
-						previousItem = items[ i - 1 ];
-						nextItem = items[ i + 1 ];
-						// if the previous item was a text item with trailing whitespace,
-						// remove leading whitespace inside the fragment
-						if ( !previousItem || typeof previousItem === 'string' && trailingWhitespace.test( previousItem ) ) {
-							removeLeadingWhitespaceInsideFragment = true;
-						}
-						// and vice versa
-						if ( !nextItem || typeof nextItem === 'string' && leadingWhitespace.test( nextItem ) ) {
-							removeTrailingWhitespaceInsideFragment = true;
-						}
-					}
-					cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
-					// Split if-else blocks into two (an if, and an unless)
-					if ( item.l ) {
-						cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
-						if ( rewriteElse ) {
-							unlessBlock = {
-								t: 4,
-								r: item.r,
-								n: types.SECTION_UNLESS,
-								f: item.l
-							};
-							items.splice( i + 1, 0, unlessBlock );
-							delete item.l;
-						}
-					}
-				}
-				// Clean up element attributes
-				if ( item.a ) {
-					for ( key in item.a ) {
-						if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-							cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
-						}
-					}
-				}
-			}
-			// final pass - fuse text nodes together
-			i = items.length;
-			while ( i-- ) {
-				if ( typeof items[ i ] === 'string' ) {
-					if ( typeof items[ i + 1 ] === 'string' ) {
-						items[ i ] = items[ i ] + items[ i + 1 ];
-						items.splice( i + 1, 1 );
-					}
-					if ( !preserveWhitespace ) {
-						items[ i ] = items[ i ].replace( contiguousWhitespace, ' ' );
-					}
-					if ( items[ i ] === '' ) {
-						items.splice( i, 1 );
-					}
-				}
-			}
-		}
-	}( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones );
-
 	/* virtualdom/items/Partial/deIndent.js */
 	var deIndent = function() {
 
@@ -10313,68 +11474,55 @@
 	}();
 
 	/* virtualdom/items/Partial/getPartialDescriptor.js */
-	var getPartialDescriptor = function( errors, isClient, warn, isObject, partials, parse, deIndent ) {
+	var getPartialDescriptor = function( warn, config, parser, deIndent ) {
 
 		return function getPartialDescriptor( ractive, name ) {
-			var el, partial, errorMessage;
+			var partial, errorMessage;
 			// If the partial was specified on this instance, great
 			if ( partial = getPartialFromRegistry( ractive, name ) ) {
 				return partial;
 			}
 			// Does it exist on the page as a script tag?
-			if ( isClient ) {
-				el = document.getElementById( name );
-				if ( el && el.tagName === 'SCRIPT' ) {
-					if ( !parse ) {
-						throw new Error( errors.missingParser );
-					}
-					registerPartial( parse( deIndent( el.text ), ractive.parseOptions ), name, partials );
-				}
+			partial = parser.fromId( name, {
+				noThrow: true
+			} );
+			if ( partial ) {
+				// is this necessary?
+				partial = deIndent( partial );
+				// parse and register to this ractive instance
+				var parsed = parser.parse( partial, ractive.parseOptions );
+				// register (and return main partial if there are others in the template)
+				return ractive.partials[ name ] = config.template.processCompound( ractive, parsed );
 			}
-			partial = partials[ name ];
 			// No match? Return an empty array
-			if ( !partial ) {
-				errorMessage = 'Could not find template for partial "' + name + '"';
-				if ( ractive.debug ) {
-					throw new Error( errorMessage );
-				} else {
-					warn( errorMessage );
-				}
-				return [];
+			errorMessage = 'Could not find template for partial "' + name + '"';
+			if ( ractive.debug ) {
+				throw new Error( errorMessage );
+			} else {
+				warn( errorMessage );
 			}
-			return partial;
+			return [];
 		};
 
 		function getPartialFromRegistry( ractive, name ) {
-			var partial;
-			if ( ractive.partials[ name ] ) {
-				// If this was added manually to the registry, but hasn't been parsed,
-				// parse it now
-				if ( typeof ractive.partials[ name ] === 'string' ) {
-					if ( !parse ) {
-						throw new Error( errors.missingParser );
-					}
-					partial = parse( ractive.partials[ name ], ractive.parseOptions );
-					registerPartial( partial, name, ractive.partials );
+			// get the ractive instance on which the partial is found
+			var instance = config.registries.partials.findInstance( ractive, name );
+			if ( instance ) {
+				var partial = instance.partials[ name ];
+				// If this was added manually to the registry,
+				// but hasn't been parsed, parse it now
+				if ( !parser.isParsed( partial ) ) {
+					// use the parseOptions of the ractive instance
+					// on which it was found
+					partial = parser.parse( partial, instance.parseOptions );
+					// may be a template with partials, which need to
+					// be registered and main template extracted
+					instance.partials[ name ] = partial = config.template.processCompound( instance, partial );
 				}
-				return ractive.partials[ name ];
+				return partial;
 			}
 		}
-
-		function registerPartial( partial, name, registry ) {
-			var key;
-			if ( isObject( partial ) ) {
-				registry[ name ] = partial.main;
-				for ( key in partial.partials ) {
-					if ( partial.partials.hasOwnProperty( key ) ) {
-						registry[ key ] = partial.partials[ key ];
-					}
-				}
-			} else {
-				registry[ name ] = partial;
-			}
-		}
-	}( config_errors, isClient, warn, isObject, partials, parse, deIndent );
+	}( warn, config, parser, deIndent );
 
 	/* virtualdom/items/Partial/applyIndent.js */
 	var applyIndent = function( string, indent ) {
@@ -10619,56 +11767,27 @@
 	}( types, parseJSON, resolveRef, get, ComponentParameter );
 
 	/* virtualdom/items/Component/initialise/createInstance.js */
-	var createInstance = function() {
-
-		return function( component, Component, data, contentDescriptor ) {
-			var instance, parentFragment, partials, root, adapt;
-			parentFragment = component.parentFragment;
-			root = component.root;
-			// Make contents available as a {{>content}} partial
-			partials = {
-				content: contentDescriptor || []
-			};
-			// Use component default adaptors AND inherit parent adaptors.
-			adapt = combineAdaptors( root, Component.defaults.adapt, Component.adaptors );
-			instance = new Component( {
-				append: true,
-				data: data,
-				partials: partials,
-				magic: root.magic || Component.defaults.magic,
-				modifyArrays: root.modifyArrays,
-				_parent: root,
-				_component: component,
-				adapt: adapt
-			} );
-			return instance;
+	var createInstance = function( component, Component, data, contentDescriptor ) {
+		var instance, parentFragment, partials, root;
+		parentFragment = component.parentFragment;
+		root = component.root;
+		// Make contents available as a {{>content}} partial
+		partials = {
+			content: contentDescriptor || []
 		};
-
-		function combineAdaptors( root, defaultAdapt ) {
-			var adapt, len, i;
-			// Parent adaptors should take precedence, so they go first
-			if ( root.adapt.length ) {
-				adapt = root.adapt.map( function( stringOrObject ) {
-					if ( typeof stringOrObject === 'object' ) {
-						return stringOrObject;
-					}
-					return root.adaptors[ stringOrObject ] || stringOrObject;
-				} );
-			} else {
-				adapt = [];
-			}
-			// If the component has any adaptors that aren't already included,
-			// include them now
-			if ( len = defaultAdapt.length ) {
-				for ( i = 0; i < len; i += 1 ) {
-					if ( adapt.indexOf( defaultAdapt[ i ] ) === -1 ) {
-						adapt.push( defaultAdapt[ i ] );
-					}
-				}
-			}
-			return adapt;
-		}
-	}();
+		instance = new Component( {
+			append: true,
+			data: data,
+			partials: partials,
+			magic: root.magic || Component.defaults.magic,
+			modifyArrays: root.modifyArrays,
+			_parent: root,
+			_component: component,
+			// need to inherit runtime parent adaptors
+			adapt: root.adapt
+		} );
+		return instance;
+	};
 
 	/* virtualdom/items/Component/initialise/createBindings.js */
 	var createBindings = function( createComponentBinding, get, set ) {
@@ -10735,7 +11854,7 @@
 	};
 
 	/* virtualdom/items/Component/prototype/init.js */
-	var virtualdom_items_Component$init = function( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries ) {
+	var virtualdom_items_Component$init = function( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries, config ) {
 
 		return function Component$init( options ) {
 			var parentFragment, root, Component, data, toBind;
@@ -10748,9 +11867,9 @@
 			this.indexRefBindings = {};
 			this.bindings = [];
 			// get the component constructor
-			Component = root.components[ options.template.e ];
+			Component = config.registries.components.find( root, this.name );
 			if ( !Component ) {
-				throw new Error( 'Component "' + options.template.e + '" not found' );
+				throw new Error( 'Component "' + this.name + '" not found' );
 			}
 			// First, we need to create a model for the component - e.g. if we
 			// encounter <widget foo='bar'/> then we need to create a widget
@@ -10759,7 +11878,7 @@
 			// This may involve setting up some bindings, but we can't do it
 			// yet so we take some notes instead
 			toBind = [];
-			data = createModel( this, Component.data || {}, options.template.a, toBind );
+			data = createModel( this, Component.defaults.data || {}, options.template.a, toBind );
 			createInstance( this, Component, data, options.template.f );
 			createBindings( this, toBind );
 			propagateEvents( this, options.template.v );
@@ -10769,7 +11888,7 @@
 			}
 			updateLiveQueries( this );
 		};
-	}( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries );
+	}( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries, config );
 
 	/* virtualdom/items/Component/prototype/rebind.js */
 	var virtualdom_items_Component$rebind = function( getNewKeypath ) {
@@ -10803,8 +11922,9 @@
 	var virtualdom_items_Component$render = function Component$render() {
 		var instance = this.instance;
 		instance.render( this.parentFragment.getNode() ).then( function() {
-			if ( instance.initOptions.complete ) {
-				instance.initOptions.complete.call( instance );
+			var complete;
+			if ( complete = instance.complete ) {
+				complete.call( instance );
 			}
 		} );
 		this.rendered = true;
@@ -10906,7 +12026,7 @@
 	}( types, noop, detach );
 
 	/* virtualdom/Fragment/prototype/init/createItem.js */
-	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment ) {
+	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, config ) {
 
 		return function createItem( options ) {
 			if ( typeof options.template === 'string' ) {
@@ -10920,7 +12040,7 @@
 				case types.TRIPLE:
 					return new Triple( options );
 				case types.ELEMENT:
-					if ( options.parentFragment.root.components[ options.template.e ] ) {
+					if ( config.registries.components.find( options.parentFragment.root, options.template.e ) ) {
 						return new Component( options );
 					}
 					return new Element( options );
@@ -10932,7 +12052,7 @@
 					throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 			}
 		};
-	}( types, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment );
+	}( types, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, config );
 
 	/* virtualdom/Fragment/prototype/init.js */
 	var virtualdom_Fragment$init = function( types, create, createItem ) {
@@ -11078,358 +12198,8 @@
 		return Fragment;
 	}( virtualdom_Fragment$bubble, virtualdom_Fragment$detach, virtualdom_Fragment$find, virtualdom_Fragment$findAll, virtualdom_Fragment$findAllComponents, virtualdom_Fragment$findComponent, virtualdom_Fragment$findNextNode, virtualdom_Fragment$firstNode, virtualdom_Fragment$getNode, virtualdom_Fragment$getValue, virtualdom_Fragment$init, virtualdom_Fragment$rebind, virtualdom_Fragment$render, virtualdom_Fragment$teardown, virtualdom_Fragment$toString, virtualdom_Fragment$unrender, circular );
 
-	/* config/registries.js */
-	var registries = [
-		'data',
-		'computed',
-		'adaptors',
-		'components',
-		'decorators',
-		'easing',
-		'events',
-		'interpolators',
-		'partials',
-		'transitions'
-	];
-
-	/* Ractive/initialise/computations/getComputationSignature.js */
-	var getComputationSignature = function() {
-
-		var pattern = /\$\{([^\}]+)\}/g;
-		return function( signature ) {
-			if ( typeof signature === 'function' ) {
-				return {
-					get: signature
-				};
-			}
-			if ( typeof signature === 'string' ) {
-				return {
-					get: createFunctionFromString( signature )
-				};
-			}
-			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
-				signature = {
-					get: createFunctionFromString( signature.get ),
-					set: signature.set
-				};
-			}
-			return signature;
-		};
-
-		function createFunctionFromString( signature ) {
-			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
-				return '__ractive.get("' + keypath + '")';
-			} ) + ')';
-			return new Function( functionBody );
-		}
-	}();
-
-	/* Ractive/initialise/computations/Watcher.js */
-	var Watcher = function( isEqual, registerDependant, unregisterDependant ) {
-
-		var Watcher = function( computation, keypath ) {
-			this.root = computation.ractive;
-			this.keypath = keypath;
-			this.priority = 0;
-			this.computation = computation;
-			registerDependant( this );
-		};
-		Watcher.prototype = {
-			setValue: function( value ) {
-				if ( !isEqual( value, this.value ) ) {
-					this.value = value;
-					this.computation.bubble();
-				}
-			},
-			teardown: function() {
-				unregisterDependant( this );
-			}
-		};
-		return Watcher;
-	}( isEqual, registerDependant, unregisterDependant );
-
-	/* Ractive/initialise/computations/Computation.js */
-	var Computation = function( warn, runloop, set, Watcher ) {
-
-		var Computation = function( ractive, key, signature ) {
-			this.ractive = ractive;
-			this.key = key;
-			this.getter = signature.get;
-			this.setter = signature.set;
-			this.watchers = [];
-			this.update();
-		};
-		Computation.prototype = {
-			set: function( value ) {
-				if ( this.setting ) {
-					this.value = value;
-					return;
-				}
-				if ( !this.setter ) {
-					throw new Error( 'Computed properties without setters are read-only in the current version' );
-				}
-				this.setter.call( this.ractive, value );
-			},
-			// returns `false` if the computation errors
-			compute: function() {
-				var ractive, originalCaptured, errored;
-				ractive = this.ractive;
-				originalCaptured = ractive._captured;
-				if ( !originalCaptured ) {
-					ractive._captured = [];
-				}
-				try {
-					this.value = this.getter.call( ractive );
-				} catch ( err ) {
-					if ( ractive.debug ) {
-						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
-					}
-					errored = true;
-				}
-				diff( this, this.watchers, ractive._captured );
-				// reset
-				ractive._captured = originalCaptured;
-				return errored ? false : true;
-			},
-			update: function() {
-				if ( this.compute() ) {
-					this.setting = true;
-					set( this.ractive, this.key, this.value );
-					this.setting = false;
-				}
-				this.dirty = false;
-			},
-			bubble: function() {
-				if ( this.watchers.length <= 1 ) {
-					this.update();
-				} else if ( !this.dirty ) {
-					runloop.modelUpdate( this );
-					this.dirty = true;
-				}
-			}
-		};
-
-		function diff( computation, watchers, newDependencies ) {
-			var i, watcher, keypath;
-			// remove dependencies that are no longer used
-			i = watchers.length;
-			while ( i-- ) {
-				watcher = watchers[ i ];
-				if ( !newDependencies[ watcher.keypath ] ) {
-					watchers.splice( i, 1 );
-					watchers[ watcher.keypath ] = null;
-					watcher.teardown();
-				}
-			}
-			// create references for any new dependencies
-			i = newDependencies.length;
-			while ( i-- ) {
-				keypath = newDependencies[ i ];
-				if ( !watchers[ keypath ] ) {
-					watcher = new Watcher( computation, keypath );
-					watchers.push( watchers[ keypath ] = watcher );
-				}
-			}
-		}
-		return Computation;
-	}( warn, runloop, set, Watcher );
-
-	/* Ractive/initialise/computations/createComputations.js */
-	var createComputations = function( getComputationSignature, Computation ) {
-
-		return function createComputations( ractive, computed ) {
-			var key, signature;
-			for ( key in computed ) {
-				signature = getComputationSignature( computed[ key ] );
-				ractive._computations[ key ] = new Computation( ractive, key, signature );
-			}
-		};
-	}( getComputationSignature, Computation );
-
-	/* Ractive/initialise/templateParser.js */
-	var templateParser = function( errors, isClient, parse ) {
-
-		return function( options ) {
-			return {
-				fromId: function( id ) {
-					var template;
-					if ( !isClient ) {
-						throw new Error( 'Cannot retieve template #' + id + 'as Ractive is not running in the client.' );
-					}
-					if ( id.charAt( 0 ) === '#' ) {
-						id = id.substring( 1 );
-					}
-					if ( !( template = document.getElementById( id ) ) ) {
-						throw new Error( 'Could not find template element with id #' + id );
-					}
-					return template.innerHTML;
-				},
-				parse: function( template, parseOptions ) {
-					if ( !parse ) {
-						throw new Error( errors.missingParser );
-					}
-					return parse( template, parseOptions || options );
-				},
-				isParsed: function( template ) {
-					return !( typeof template === 'string' );
-				}
-			};
-		};
-	}( config_errors, isClient, parse );
-
-	/* Ractive/initialise/initialiseTemplate.js */
-	var initialiseTemplate = function( extend, fillGaps, isObject, TemplateParser ) {
-
-		return function( ractive, defaults, options ) {
-			var template = ractive.template,
-				templateParser, parsedTemplate;
-			templateParser = new TemplateParser( ractive.parseOptions );
-			// Parse template, if necessary
-			if ( !templateParser.isParsed( template ) ) {
-				// Assume this is an ID of a <script type='text/ractive'> tag
-				if ( template.charAt( 0 ) === '#' ) {
-					template = templateParser.fromId( template );
-				}
-				parsedTemplate = templateParser.parse( template );
-			} else {
-				parsedTemplate = template;
-			}
-			// deal with compound template
-			if ( isObject( parsedTemplate ) ) {
-				fillGaps( ractive.partials, parsedTemplate.partials );
-				parsedTemplate = parsedTemplate.main;
-			}
-			// If the template was an array with a single string member, that means
-			// we can use innerHTML - we just need to unpack it
-			if ( parsedTemplate && parsedTemplate.length === 1 && typeof parsedTemplate[ 0 ] === 'string' ) {
-				parsedTemplate = parsedTemplate[ 0 ];
-			}
-			ractive.template = parsedTemplate;
-			// Add partials to our registry
-			extend( ractive.partials, options.partials );
-		};
-	}( extend, fillGaps, isObject, templateParser );
-
-	/* Ractive/initialise/initialiseRegistries.js */
-	var initialiseRegistries = function( registries, create, extend, isArray, isObject, createComputations, initialiseTemplate, TemplateParser ) {
-
-		//Template is NOT in registryKeys, it doesn't extend b/c it's a string.
-		//We're just reusing the logic as it is mostly like a registry
-		registries = registries.concat( [ 'template' ] );
-		return initialiseRegistries;
-		//Encapsulate differences between template and other registries
-		function getExtendOptions( ractive, options ) {
-			var templateParser;
-			return {
-				// 'default' needs to be quoted as it's a keyword, and will break IE8 otherwise
-				'default': {
-					getArg: function() {
-						return;
-					},
-					extend: function( defaultValue, optionsValue ) {
-						return extend( create( defaultValue ), optionsValue );
-					},
-					initialValue: function( registry ) {
-						return ractive[ registry ];
-					}
-				},
-				template: {
-					getArg: function() {
-						if ( !templateParser ) {
-							templateParser = new TemplateParser( ractive.parseOptions );
-						}
-						return templateParser;
-					},
-					extend: function( defaultValue, optionsValue ) {
-						return optionsValue;
-					},
-					initialValue: function( registry ) {
-						return options[ registry ];
-					}
-				}
-			};
-		}
-
-		function initialiseRegistries( ractive, defaults, options, initOptions ) {
-			var extendOptions = getExtendOptions( ractive, options ),
-				registryKeys, changes;
-			initOptions = initOptions || {};
-			initOptions.newValues = initOptions.newValues || {};
-			if ( initOptions.registries ) {
-				registryKeys = initOptions.registries.filter( function( key ) {
-					return registries.indexOf( key ) > -1;
-				} );
-			} else {
-				registryKeys = registries;
-			}
-			changes = initialise();
-			if ( shouldUpdate( 'computed' ) ) {
-				createComputations( ractive, ractive.computed );
-			}
-			if ( shouldUpdate( 'template' ) ) {
-				initialiseTemplate( ractive, defaults, options );
-			}
-			return changes;
-
-			function shouldUpdate( registry ) {
-				return !initOptions.updatesOnly && ractive[ registry ] || initOptions.updatesOnly && changes.indexOf( registry ) > -1;
-			}
-
-			function initialise() {
-				//data goes first as it is primary argument to other function-based registry options
-				initialiseRegistry( 'data' );
-				if ( !ractive.data ) {
-					ractive.data = {};
-				}
-				//return the changed registries
-				return registryKeys.filter( function( registry ) {
-					return registry !== 'data';
-				} ).filter( initialiseRegistry );
-			}
-
-			function initialiseRegistry( registry ) {
-				var optionsValue = initOptions.newValues[ registry ] || options[ registry ],
-					defaultValue = ractive.constructor[ registry ] || defaults[ registry ],
-					firstArg = registry === 'data' ? optionsValue : ractive.data,
-					regOpt = extendOptions[ registry ] || extendOptions[ 'default' ],
-					initialValue = regOpt.initialValue( registry );
-				if ( typeof optionsValue === 'function' ) {
-					ractive[ registry ] = optionsValue( firstArg, options, regOpt.getArg() );
-				} else if ( defaultValue ) {
-					ractive[ registry ] = typeof defaultValue === 'function' ? defaultValue( firstArg, options, regOpt.getArg() ) || options[ registry ] : regOpt.extend( defaultValue, optionsValue );
-				} else if ( optionsValue ) {
-					ractive[ registry ] = optionsValue;
-				} else {
-					ractive[ registry ] = void 0;
-				}
-				return isChanged( ractive[ registry ], initialValue );
-			}
-
-			function isChanged( initial, current ) {
-				if ( !initial && !current ) {
-					return false;
-				}
-				if ( isEmptyObject( initial ) && isEmptyObject( current ) ) {
-					return false;
-				}
-				if ( isEmptyArray( initial ) && isEmptyArray( current ) ) {
-					return false;
-				}
-				return initial !== current;
-			}
-
-			function isEmptyObject( obj ) {
-				return isObject( obj ) && !Object.keys( obj ).length;
-			}
-
-			function isEmptyArray( arr ) {
-				return isArray( arr ) && !arr.length;
-			}
-		}
-	}( registries, create, extend, isArray, isObject, createComputations, initialiseTemplate, templateParser );
-
 	/* Ractive/prototype/reset.js */
-	var Ractive$reset = function( Promise, runloop, clearCache, notifyDependants, Fragment, initialiseRegistries ) {
+	var Ractive$reset = function( Promise, runloop, clearCache, notifyDependants, Fragment, config ) {
 
 		var shouldRerender = [
 			'template',
@@ -11437,10 +12207,9 @@
 			'components',
 			'decorators',
 			'events'
-		].join();
+		];
 		return function Ractive$reset( data, callback ) {
-			var self = this,
-				promise, fulfilPromise, wrapper, changes, rerender, i;
+			var promise, fulfilPromise, wrapper, changes, i, rerender;
 			if ( typeof data === 'function' && !callback ) {
 				callback = data;
 				data = {};
@@ -11459,10 +12228,8 @@
 			} else {
 				this.data = data;
 			}
-			this.initOptions.data = this.data;
-			changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, {
-				updatesOnly: true
-			} );
+			// reset config items and track if need to rerender
+			changes = config.reset( this );
 			i = changes.length;
 			while ( i-- ) {
 				if ( shouldRerender.indexOf( changes[ i ] > -1 ) ) {
@@ -11474,8 +12241,8 @@
 				fulfilPromise = fulfil;
 			} );
 			if ( rerender ) {
-				clearCache( self, '' );
-				notifyDependants( self, '' );
+				clearCache( this, '' );
+				notifyDependants( this, '' );
 				this.unrender();
 				// If the template changed, we need to destroy the parallel DOM
 				// TODO if we're here, presumably it did?
@@ -11500,45 +12267,34 @@
 			}
 			return promise;
 		};
-	}( Promise, runloop, clearCache, notifyDependants, Fragment, initialiseRegistries );
+	}( Promise, runloop, clearCache, notifyDependants, Fragment, config );
 
 	/* Ractive/prototype/resetTemplate.js */
-	var Ractive$resetTemplate = function( initialiseRegistries, Fragment ) {
+	var Ractive$resetTemplate = function( config, Fragment ) {
 
 		// TODO should resetTemplate be asynchronous? i.e. should it be a case
 		// of outro, update template, intro? I reckon probably not, since that
 		// could be achieved with unrender-resetTemplate-render. Also, it should
 		// conceptually be similar to resetPartial, which couldn't be async
 		return function Ractive$resetTemplate( template ) {
-			var transitionsEnabled, changes, options = {
-				updatesOnly: true,
-				registries: [
-					'template',
-					'partials'
-				]
-			};
-			if ( template ) {
-				options.newValues = {
-					template: template
-				};
-			}
-			changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, options );
-			if ( changes.length ) {
-				transitionsEnabled = this.transitionsEnabled;
-				this.transitionsEnabled = false;
-				this.unrender();
-				// remove existing fragment and create new one
-				this.fragment.teardown();
-				this.fragment = new Fragment( {
-					template: this.template,
-					root: this,
-					owner: this
-				} );
-				this.render( this.el, this.anchor );
-				this.transitionsEnabled = transitionsEnabled;
-			}
+			var transitionsEnabled;
+			config.template.init( null, this, {
+				template: template
+			} );
+			transitionsEnabled = this.transitionsEnabled;
+			this.transitionsEnabled = false;
+			this.unrender();
+			// remove existing fragment and create new one
+			this.fragment.teardown();
+			this.fragment = new Fragment( {
+				template: this.template,
+				root: this,
+				owner: this
+			} );
+			this.render( this.el, this.anchor );
+			this.transitionsEnabled = transitionsEnabled;
 		};
-	}( initialiseRegistries, Fragment );
+	}( config, Fragment );
 
 	/* Ractive/prototype/set.js */
 	var Ractive$set = function( runloop, isObject, normaliseKeypath, Promise, set, getMatchingKeypaths ) {
@@ -11806,28 +12562,6 @@
 		};
 	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
 
-	/* registries/components.js */
-	var components = {};
-
-	/* registries/easing.js */
-	var easing = {
-		linear: function( pos ) {
-			return pos;
-		},
-		easeIn: function( pos ) {
-			return Math.pow( pos, 3 );
-		},
-		easeOut: function( pos ) {
-			return Math.pow( pos - 1, 3 ) + 1;
-		},
-		easeInOut: function( pos ) {
-			if ( ( pos /= 0.5 ) < 1 ) {
-				return 0.5 * Math.pow( pos, 3 );
-			}
-			return 0.5 * ( Math.pow( pos - 2, 3 ) + 2 );
-		}
-	};
-
 	/* utils/getGuid.js */
 	var getGuid = function() {
 		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g, function( c ) {
@@ -11838,251 +12572,15 @@
 		} );
 	};
 
-	/* extend/utils/transformCss.js */
-	var transformCss = function() {
-
-		var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
-			commentsPattern = /\/\*.*?\*\//g,
-			selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
-			mediaQueryPattern = /^@media/;
-		return function transformCss( css, guid ) {
-			var transformed, addGuid;
-			addGuid = function( selector ) {
-				var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
-				selectorUnits = [];
-				while ( match = selectorUnitPattern.exec( selector ) ) {
-					selectorUnits.push( {
-						str: match[ 0 ],
-						base: match[ 1 ],
-						modifiers: match[ 2 ]
-					} );
-				}
-				// For each simple selector within the selector, we need to create a version
-				// that a) combines with the guid, and b) is inside the guid
-				dataAttr = '[data-rvcguid="' + guid + '"]';
-				base = selectorUnits.map( extractString );
-				i = selectorUnits.length;
-				while ( i-- ) {
-					appended = base.slice();
-					// Pseudo-selectors should go after the attribute selector
-					unit = selectorUnits[ i ];
-					appended[ i ] = unit.base + dataAttr + unit.modifiers || '';
-					prepended = base.slice();
-					prepended[ i ] = dataAttr + ' ' + prepended[ i ];
-					transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );
-				}
-				return transformed.join( ', ' );
-			};
-			transformed = css.replace( commentsPattern, '' ).replace( selectorsPattern, function( match, $1 ) {
-				var selectors, transformed;
-				// don't transform media queries!
-				if ( mediaQueryPattern.test( $1 ) )
-					return match;
-				selectors = $1.split( ',' ).map( trim );
-				transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
-				return match.replace( $1, transformed );
-			} );
-			return transformed;
-		};
-
-		function trim( str ) {
-			if ( str.trim ) {
-				return str.trim();
-			}
-			return str.replace( /^\s+/, '' ).replace( /\s+$/, '' );
-		}
-
-		function extractString( unit ) {
-			return unit.str;
-		}
-	}();
-
-	/* extend/inheritFromParent.js */
-	var inheritFromParent = function( registries, create, defineProperty, transformCss ) {
-
-		// This is where we inherit class-level options, such as `modifyArrays`
-		// or `append` or `twoway`, and registries such as `partials`
-		return function( Child, Parent ) {
-			registries.forEach( function( property ) {
-				if ( Parent[ property ] ) {
-					Child[ property ] = create( Parent[ property ] );
-				}
-			} );
-			defineProperty( Child, 'defaults', {
-				value: create( Parent.defaults )
-			} );
-			// Special case - CSS
-			if ( Parent.css ) {
-				defineProperty( Child, 'css', {
-					value: Parent.defaults.noCssTransform ? Parent.css : transformCss( Parent.css, Child._guid )
-				} );
-			}
-		};
-	}( registries, create, defineProperty, transformCss );
-
-	/* extend/wrapMethod.js */
-	var wrapMethod = function( method, superMethod ) {
-		if ( /_super/.test( method ) ) {
-			return function() {
-				var _super = this._super,
-					result;
-				this._super = superMethod;
-				result = method.apply( this, arguments );
-				this._super = _super;
-				return result;
-			};
-		} else {
-			return method;
-		}
-	};
-
-	/* extend/utils/augment.js */
-	var augment = function( target, source ) {
-		var key;
-		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
-				target[ key ] = source[ key ];
-			}
-		}
-		return target;
-	};
-
-	/* extend/inheritFromChildProps.js */
-	var inheritFromChildProps = function( initOptions, registries, defineProperty, wrapMethod, augment, transformCss ) {
-
-		var blacklisted = {};
-		registries.concat( initOptions.keys ).forEach( function( property ) {
-			blacklisted[ property ] = true;
-		} );
-		// This is where we augment the class-level options (inherited from
-		// Parent) with the values passed to Parent.extend()
-		return function( Child, childProps ) {
-			var key, member;
-			registries.forEach( function( property ) {
-				var value = childProps[ property ];
-				if ( value ) {
-					if ( Child[ property ] ) {
-						augment( Child[ property ], value );
-					} else {
-						Child[ property ] = value;
-					}
-				}
-			} );
-			initOptions.keys.forEach( function( key ) {
-				var value = childProps[ key ];
-				if ( value !== undefined ) {
-					// we may need to wrap a function (e.g. the `complete` option)
-					if ( typeof value === 'function' && typeof Child[ key ] === 'function' ) {
-						Child.defaults[ key ] = wrapMethod( value, Child[ key ] );
-					} else {
-						Child.defaults[ key ] = childProps[ key ];
-					}
-				}
-			} );
-			for ( key in childProps ) {
-				if ( !blacklisted[ key ] && childProps.hasOwnProperty( key ) ) {
-					member = childProps[ key ];
-					// if this is a method that overwrites a prototype method, we may need
-					// to wrap it
-					if ( typeof member === 'function' && typeof Child.prototype[ key ] === 'function' ) {
-						Child.prototype[ key ] = wrapMethod( member, Child.prototype[ key ] );
-					} else {
-						Child.prototype[ key ] = member;
-					}
-				}
-			}
-			// Special case - CSS
-			if ( childProps.css ) {
-				defineProperty( Child, 'css', {
-					value: Child.defaults.noCssTransform ? childProps.css : transformCss( childProps.css, Child._guid )
-				} );
-			}
-		};
-	}( initOptions, registries, defineProperty, wrapMethod, augment, transformCss );
-
-	/* extend/extractInlinePartials.js */
-	var extractInlinePartials = function( isObject, augment ) {
-
-		return function( Child, childProps ) {
-			// does our template contain inline partials?
-			if ( isObject( Child.defaults.template ) ) {
-				if ( !Child.partials ) {
-					Child.partials = {};
-				}
-				// get those inline partials
-				augment( Child.partials, Child.defaults.template.partials );
-				// but we also need to ensure that any explicit partials override inline ones
-				if ( childProps.partials ) {
-					augment( Child.partials, childProps.partials );
-				}
-				// move template to where it belongs
-				Child.defaults.template = Child.defaults.template.main;
-			}
-		};
-	}( isObject, augment );
-
-	/* extend/conditionallyParseTemplate.js */
-	var conditionallyParseTemplate = function( errors, isClient, parse ) {
-
-		return function( Child ) {
-			var templateEl;
-			if ( typeof Child.defaults.template === 'string' ) {
-				if ( !parse ) {
-					throw new Error( errors.missingParser );
-				}
-				if ( Child.defaults.template.charAt( 0 ) === '#' && isClient ) {
-					templateEl = document.getElementById( Child.defaults.template.substring( 1 ) );
-					if ( templateEl && templateEl.tagName === 'SCRIPT' ) {
-						Child.defaults.template = parse( templateEl.innerHTML, Child );
-					} else {
-						throw new Error( 'Could not find template element (' + Child.defaults.template + ')' );
-					}
-				} else {
-					Child.defaults.template = parse( Child.defaults.template, Child.defaults );
-				}
-			}
-		};
-	}( config_errors, isClient, parse );
-
-	/* extend/conditionallyParsePartials.js */
-	var conditionallyParsePartials = function( errors, parse ) {
-
-		return function( Child ) {
-			var key;
-			// Parse partials, if necessary
-			if ( Child.partials ) {
-				for ( key in Child.partials ) {
-					if ( Child.partials.hasOwnProperty( key ) && typeof Child.partials[ key ] === 'string' ) {
-						if ( !parse ) {
-							throw new Error( errors.missingParser );
-						}
-						Child.partials[ key ] = parse( Child.partials[ key ], Child );
-					}
-				}
-			}
-		};
-	}( config_errors, parse );
-
 	/* Ractive/initialise.js */
-	var Ractive_initialise = function( initOptions, warn, create, defineProperties, getElement, isArray, getGuid, get, set, magicAdaptor, initialiseRegistries, Fragment ) {
+	var Ractive_initialise = function( config, create, defineProperties, getElement, getGuid, Fragment, get, set ) {
 
-		var flags = [
-			'adapt',
-			'modifyArrays',
-			'magic',
-			'twoway',
-			'lazy',
-			'debug',
-			'isolated'
-		];
 		return function initialiseRactiveInstance( ractive, options ) {
-			var defaults = ractive.constructor.defaults,
-				keypath, el;
-			// Allow empty constructor options and save for reset
-			ractive.initOptions = options = options || {};
-			setOptionsAndFlags( ractive, defaults, options );
+			// Allow empty constructor
+			options = options || {};
 			initialiseProperties( ractive, options );
-			initialiseRegistries( ractive, defaults, options );
+			// init config from Parent and options
+			config.init( ractive.constructor, ractive, options );
 			// Render our *root fragment*
 			ractive.fragment = new Fragment( {
 				template: ractive.template,
@@ -12090,22 +12588,21 @@
 				owner: ractive
 			} );
 			// Special case - checkbox name bindings
-			for ( keypath in ractive._checkboxNameBindings ) {
-				if ( get( ractive, keypath ) === undefined ) {
-					set( ractive, keypath, ractive._checkboxNameBindings[ keypath ].reduce( function( array, b ) {
-						if ( b.isChecked ) {
-							array.push( b.element.getAttribute( 'value' ) );
-						}
-						return array;
-					}, [] ) );
-				}
-			}
-			// If `el` is specified, render automatically
-			if ( el = getElement( options.el ) ) {
+			setCheckboxBindings( ractive );
+			// render automatically ( if `el` is specified )
+			tryRender( ractive );
+		};
+
+		function tryRender( ractive ) {
+			var el;
+			if ( el = getElement( ractive.el ) ) {
+				var wasEnabled = ractive.transitionsEnabled;
 				// Temporarily disable transitions, if `noIntro` flag is set
-				ractive.transitionsEnabled = options.noIntro ? false : options.transitionsEnabled;
+				if ( ractive.noIntro ) {
+					ractive.transitionsEnabled = false;
+				}
 				// If the target contains content, and `append` is falsy, clear it
-				if ( el && !options.append ) {
+				if ( el && !ractive.append ) {
 					// Tear down any existing instances on this element
 					if ( el.__ractive_instances__ ) {
 						el.__ractive_instances__.splice( 0 ).forEach( function( r ) {
@@ -12114,51 +12611,13 @@
 					}
 					el.innerHTML = '';
 				}
-				ractive.render( el, options.append ).then( function() {
-					if ( options.complete ) {
-						options.complete.call( ractive );
+				ractive.render( el, ractive.append ).then( function() {
+					if ( ractive.complete ) {
+						ractive.complete.call( ractive );
 					}
 				} );
 				// reset transitionsEnabled
-				ractive.transitionsEnabled = options.transitionsEnabled;
-			}
-		};
-
-		function setOptionsAndFlags( ractive, defaults, options ) {
-			deprecate( defaults );
-			deprecate( options );
-			initOptions.keys.forEach( function( key ) {
-				if ( options[ key ] === undefined ) {
-					options[ key ] = defaults[ key ];
-				}
-			} );
-			// flag options
-			flags.forEach( function( flag ) {
-				ractive[ flag ] = options[ flag ];
-			} );
-			// special cases
-			if ( typeof ractive.adapt === 'string' ) {
-				ractive.adapt = [ ractive.adapt ];
-			}
-			validate( ractive, options );
-		}
-
-		function deprecate( options ) {
-			if ( isArray( options.adaptors ) ) {
-				warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`.' );
-				options.adapt = options.adaptors;
-				delete options.adaptors;
-			}
-			if ( options.eventDefinitions ) {
-				// TODO remove support
-				warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
-				options.events = options.eventDefinitions;
-			}
-		}
-
-		function validate( ractive ) {
-			if ( ractive.magic && !magicAdaptor ) {
-				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+				ractive.transitionsEnabled = wasEnabled;
 			}
 		}
 
@@ -12182,6 +12641,11 @@
 				// we need to be able to use hasOwnProperty, so can't inherit from null
 				_cacheMap: {
 					value: create( null )
+				},
+				// storage for item configuration from instantiation to reset,
+				// like dynamic functions or original values
+				'_config': {
+					value: {}
 				},
 				// dependency graph
 				_deps: {
@@ -12238,17 +12702,12 @@
 				// failed lookups, when we try to access data from ancestor scopes
 				_unresolvedImplicitDependencies: {
 					value: []
+				},
+				// instance parseOptions are stored here
+				parseOptions: {
+					value: {}
 				}
 			} );
-			//Save parse specific options
-			ractive.parseOptions = {
-				preserveWhitespace: options.preserveWhitespace,
-				sanitize: options.sanitize,
-				stripComments: options.stripComments,
-				delimiters: options.delimiters,
-				tripleDelimiters: options.tripleDelimiters,
-				handlebars: options.handlebars
-			};
 			// If this is a component, store a reference to the parent
 			if ( options._parent && options._component ) {
 				defineProperties( ractive, {
@@ -12263,37 +12722,52 @@
 				options._component.instance = ractive;
 			}
 		}
-	}( initOptions, warn, create, defineProperties, getElement, isArray, getGuid, get, set, magicAdaptor, initialiseRegistries, Fragment );
+
+		function setCheckboxBindings( ractive ) {
+			for ( var keypath in ractive._checkboxNameBindings ) {
+				if ( get( ractive, keypath ) === undefined ) {
+					set( ractive, keypath, ractive._checkboxNameBindings[ keypath ].reduce( function( array, b ) {
+						if ( b.isChecked ) {
+							array.push( b.element.getAttribute( 'value' ) );
+						}
+						return array;
+					}, [] ) );
+				}
+			}
+		}
+	}( config, create, defineProperties, getElement, getGuid, Fragment, get, set );
 
 	/* extend/initChildInstance.js */
-	var initChildInstance = function( initOptions, wrapMethod, initialise ) {
+	var initChildInstance = function( initialise ) {
 
 		// The Child constructor contains the default init options for this class
 		return function initChildInstance( child, Child, options ) {
-			initOptions.keys.forEach( function( key ) {
-				var value = options[ key ],
-					defaultValue = Child.defaults[ key ];
-				if ( typeof value === 'function' && typeof defaultValue === 'function' ) {
-					options[ key ] = wrapMethod( value, defaultValue );
-				}
-			} );
 			if ( child.beforeInit ) {
 				child.beforeInit( options );
 			}
 			initialise( child, options );
 		};
-	}( initOptions, wrapMethod, Ractive_initialise );
+	}( Ractive_initialise );
 
 	/* extend/_extend.js */
-	var Ractive_extend = function( create, defineProperty, getGuid, extendObject, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular ) {
+	var Ractive_extend = function( create, defineProperties, getGuid, config, extendObject, initChildInstance, circular, wrapMethod ) {
 
-		var Ractive;
+		var Ractive, blacklisted;
+		// would be nice to not have these here,
+		// they get added during initialise, so for now we have
+		// to make sure not to try and extend them.
+		// Possibly, we could re-order and not add till later
+		// in process.
+		blacklisted = {
+			'_parent': true,
+			'_component': true
+		};
 		circular.push( function() {
 			Ractive = circular.Ractive;
 		} );
 		return function extend( childProps ) {
 			var Parent = this,
-				Child, adaptor, i;
+				Child;
 			// if we're extending with another Ractive instance, inherit its
 			// prototype methods and default options as well
 			if ( childProps.prototype instanceof Ractive ) {
@@ -12306,73 +12780,86 @@
 			Child.prototype = create( Parent.prototype );
 			Child.prototype.constructor = Child;
 			Child.extend = extend;
-			// each component needs a guid, for managing CSS etc
-			defineProperty( Child, '_guid', {
-				value: getGuid()
-			} );
-			// Inherit options from parent
-			inheritFromParent( Child, Parent );
-			// Add new prototype methods and init options
-			inheritFromChildProps( Child, childProps );
-			// Special case - adaptors. Convert to function if possible
-			if ( Child.adaptors && ( i = Child.defaults.adapt.length ) ) {
-				while ( i-- ) {
-					adaptor = Child.defaults.adapt[ i ];
-					if ( typeof adaptor === 'string' ) {
-						Child.defaults.adapt[ i ] = Child.adaptors[ adaptor ] || adaptor;
-					}
+			defineProperties( Child, {
+				// each component needs a guid, for managing CSS etc
+				'_guid': {
+					value: getGuid()
+				},
+				// defaults for the Component
+				defaults: {
+					value: {}
 				}
-			}
-			// Parse template and any partials that need it
-			if ( childProps.template ) {
-				// ignore inherited templates!
-				conditionallyParseTemplate( Child );
-				extractInlinePartials( Child, childProps );
-				conditionallyParsePartials( Child );
-			}
+			} );
+			// extend configuration
+			config.extend( Parent, Child, childProps );
+			// and any other options...
+			extendNonOptions( Child, childProps );
 			return Child;
 		};
-	}( create, defineProperty, getGuid, extend, inheritFromParent, inheritFromChildProps, extractInlinePartials, conditionallyParseTemplate, conditionallyParsePartials, initChildInstance, circular );
+
+		function extendNonOptions( Child, options ) {
+			for ( var key in options ) {
+				if ( !config.keys[ key ] && !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
+					var member = options[ key ];
+					// if this is a method that overwrites a method, wrap it:
+					if ( typeof member === 'function' ) {
+						member = wrapMethod( member, Child.prototype[ key ] );
+					}
+					Child.prototype[ key ] = member;
+				}
+			}
+		}
+	}( create, defineProperties, getGuid, config, extend, initChildInstance, circular, wrapMethod );
 
 	/* Ractive.js */
-	var Ractive = function( initOptions, svg, defineProperties, proto, partialRegistry, adaptorRegistry, componentsRegistry, easingRegistry, interpolatorsRegistry, Promise, extend, parse, initialise, circular ) {
+	var Ractive = function( defaults, easing, interpolators, svg, defineProperties, proto, Promise, extend, parse, initialise, circular ) {
 
 		// Main Ractive required object
 		var Ractive = function( options ) {
 			initialise( this, options );
 		};
 		Ractive.prototype = proto;
-		// Read-only properties
+		// Ractive properties
 		defineProperties( Ractive, {
 			// Shared properties
-			partials: {
-				value: partialRegistry
+			// Default options
+			defaults: {
+				value: defaults
 			},
 			// Plugins
+			// Because these can be assigned functions to resolve at
+			// instantiation time, they are writable
 			adaptors: {
-				value: adaptorRegistry
-			},
-			easing: {
-				value: easingRegistry
-			},
-			transitions: {
-				value: {}
-			},
-			events: {
+				writable: true,
 				value: {}
 			},
 			components: {
-				value: componentsRegistry
+				writable: true,
+				value: {}
 			},
 			decorators: {
+				writable: true,
+				value: {}
+			},
+			easing: {
+				writable: true,
+				value: easing
+			},
+			events: {
+				writable: true,
 				value: {}
 			},
 			interpolators: {
-				value: interpolatorsRegistry
+				writable: true,
+				value: interpolators
 			},
-			// Default options
-			defaults: {
-				value: initOptions.defaults
+			partials: {
+				writable: true,
+				value: {}
+			},
+			transitions: {
+				writable: true,
+				value: {}
 			},
 			// Support
 			svg: {
@@ -12388,7 +12875,6 @@
 		// Static methods
 		Ractive.extend = extend;
 		Ractive.parse = parse;
-		circular.Ractive = Ractive;
 		// Certain modules have circular dependencies. If we were bundling a
 		// module loader, e.g. almond.js, this wouldn't be a problem, but we're
 		// not - we're using amdclean as part of the build process. Because of
@@ -12407,7 +12893,7 @@
 			throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
 		}
 		return Ractive;
-	}( initOptions, svg, defineProperties, prototype, partials, adaptors, components, easing, interpolators, Promise, Ractive_extend, parse, Ractive_initialise, circular );
+	}( options, easing, interpolators, svg, defineProperties, prototype, Promise, Ractive_extend, parse, Ractive_initialise, circular );
 
 
 	// export as Common JS module...
