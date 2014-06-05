@@ -1,6 +1,7 @@
 var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 	commentsPattern = /\/\*.*?\*\//g,
-	selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g;
+	selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
+	mediaQueryPattern = /^@media/;
 
 export default function transformCss( css, guid ) {
 	var transformed, addGuid;
@@ -44,6 +45,9 @@ export default function transformCss( css, guid ) {
 	.replace( commentsPattern, '' )
 	.replace( selectorsPattern, function ( match, $1 ) {
 		var selectors, transformed;
+
+		// don't transform media queries!
+		if ( mediaQueryPattern.test( $1 ) ) return match;
 
 		selectors = $1.split( ',' ).map( trim );
 		transformed = selectors.map( addGuid ).join( ', ' ) + ' ';

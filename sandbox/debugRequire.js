@@ -14,7 +14,7 @@
 		return actualRequire( deps, delay( callback ) );
 	};
 
-	Object.keys( actualRequire ).forEach( function ( key ) {
+	each( keys( actualRequire ), function ( key ) {
 		fakeRequire[ key ] = actualRequire[ key ];
 	});
 
@@ -28,6 +28,39 @@
 				fn.apply( self, args );
 			}, 0 );
 		};
+	}
+
+	// IE... sigh
+	function keys ( object ) {
+		var keys, key;
+
+		if ( typeof Object.keys === 'function' ) {
+			return Object.keys( object );
+		}
+
+		keys = [];
+		for ( key in object ) {
+			if ( object.hasOwnProperty( key ) ) {
+				keys.push( key );
+			}
+		}
+
+		return keys;
+	}
+
+	function each ( arr, iterator ) {
+		var i, len;
+
+		if ( typeof arr.forEach === 'function' ) {
+			return arr.forEach( iterator );
+		}
+
+		len = arr.length;
+		for ( i = 0; i < len; i += 1 ) {
+			if ( arr.hasOwnProperty( i ) ) {
+				iterator( arr[i], i, arr );
+			}
+		}
 	}
 
 }( window ));

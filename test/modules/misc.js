@@ -1240,6 +1240,38 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'Keypaths in ractive.set() can contain wildcards (#784)', function ( t ) {
+			var ractive = new Ractive({
+				data: {
+					array: [
+						{ active: true },
+						{ active: false },
+						{ active: true }
+					],
+					object: { foo: 1, bar: 2, baz: 3 }
+				}
+			});
+
+			ractive.set( 'array.*.active', false );
+			t.deepEqual( ractive.get( 'array' ), [{ active: false }, { active: false }, { active: false }]);
+
+			ractive.set( 'object.*', 42 );
+			t.deepEqual( ractive.get( 'object' ), { foo: 42, bar: 42, baz: 42 });
+		});
+
+		test( 'Wildcard keypaths do not affect array length', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{array.length}}',
+				data: {
+					array: [ 1, 2, 3 ]
+				}
+			});
+
+			ractive.set( 'array.*', 10 );
+			t.deepEqual( ractive.get( 'array.length' ), 3 );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
