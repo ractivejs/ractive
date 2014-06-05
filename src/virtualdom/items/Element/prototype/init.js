@@ -22,9 +22,6 @@ export default function Element$init ( options ) {
 	var parentFragment,
 		template,
 		namespace,
-		// width,
-		// height,
-		// loadHandler,
 		ractive,
 		binding,
 		bindings;
@@ -42,10 +39,8 @@ export default function Element$init ( options ) {
 
 	this.cssDetachQueue = [];
 
-
 	this.namespace = getElementNamespace( template, this.parent );
 	this.name = ( namespace !== namespaces.html ? enforceCase( template.e ) : template.e );
-
 
 	// Special case - <option> elements
 	if ( this.name === 'option' ) {
@@ -61,7 +56,6 @@ export default function Element$init ( options ) {
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
 
-
 	// append children, if there are any
 	if ( template.f ) {
 		this.fragment = new Fragment({
@@ -72,7 +66,6 @@ export default function Element$init ( options ) {
 		});
 	}
 
-
 	// create twoway binding
 	if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
 		this.binding = binding;
@@ -81,7 +74,6 @@ export default function Element$init ( options ) {
 		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
 		bindings.push( binding );
 	}
-
 
 	// create event proxies
 	if ( template.v ) {
@@ -105,23 +97,4 @@ export default function Element$init ( options ) {
 	if ( template.t2 ) {
 		this.outro = new Transition ( this, template.t2 );
 	}
-
-
-	/*
-	// if this is an <img>, and we're in a crap browser, we may need to prevent it
-	// from overriding width and height when it loads the src
-	if ( this.node.tagName === 'IMG' && ( ( width = this.attributes.width ) || ( height = this.attributes.height ) ) ) {
-		this.node.addEventListener( 'load', loadHandler = function () {
-			if ( width ) {
-				this.node.width = width.value;
-			}
-
-			if ( height ) {
-				this.node.height = height.value;
-			}
-
-			this.node.removeEventListener( 'load', loadHandler, false );
-		}, false );
-	}
-	*/
 }

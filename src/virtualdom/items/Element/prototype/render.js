@@ -6,6 +6,7 @@ import defineProperty from 'utils/defineProperty';
 import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
+import renderImage from 'virtualdom/items/Element/special/img/render';
 
 var updateCss, updateScript;
 
@@ -106,21 +107,11 @@ export default function Element$render () {
 		attributes.name.update();
 	}*/
 
-	// if this is an <img>, and we're in a crap browser, we may need to prevent it
-	// from overriding width and height when it loads the src
-	/*if ( this.node.tagName === 'IMG' && ( ( width = this.attributes.width ) || ( height = this.attributes.height ) ) ) {
-		this.node.addEventListener( 'load', loadHandler = function () {
-			if ( width ) {
-				this.node.width = width.value;
-			}
-
-			if ( height ) {
-				this.node.height = height.value;
-			}
-
-			this.node.removeEventListener( 'load', loadHandler, false );
-		}, false );
-	}*/
+	// Special case: if this is an <img>, and we're in a crap browser, we may
+	// need to prevent it from overriding width and height when it loads the src
+	if ( this.name === 'img' ) {
+		renderImage( this );
+	}
 
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
