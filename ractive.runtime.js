@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-05 - commit 59a80a0c 
+	2014-06-05 - commit d0531947 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7228,9 +7228,9 @@
 		var SelectBinding = Binding.extend( {
 			getInitialValue: function() {
 				var options = this.element.options,
-					i;
-				i = options.length;
-				if ( !i ) {
+					len, i;
+				i = len = options.length;
+				if ( !len ) {
 					return;
 				}
 				// take the final selected option...
@@ -7239,8 +7239,12 @@
 						return options[ i ].getAttribute( 'value' );
 					}
 				}
-				// or the first option, if none are selected
-				return options[ 0 ].getAttribute( 'value' );
+				// or the first non-disabled option, if none are selected
+				while ( i++ < len ) {
+					if ( !options[ i ].getAttribute( 'disabled' ) ) {
+						return options[ i ].getAttribute( 'value' );
+					}
+				}
 			},
 			render: function() {
 				this.element.node.addEventListener( 'change', handleDomEvent, false );
