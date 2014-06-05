@@ -305,7 +305,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'Disabled options have no implicit value (#786)', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '<p>{{selected}}</p><select value="{{selected}}"><option disabled>Select a letter</option>{{#letters}}<option>{{this}}</option>{{/letters}}</select>',
+				template: '<p>{{selected}}</p><select value="{{selected}}"><option selected disabled>Select a letter</option>{{#letters}}<option>{{this}}</option>{{/letters}}</select>',
 				data: {
 					letters: [ 'a', 'b', 'c' ]
 				}
@@ -313,6 +313,20 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( ractive.get( 'selected' ), undefined );
 			t.htmlEqual( fixture.innerHTML, '<p></p><select><option disabled>Select a letter</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>' );
+		});
+
+		test( 'Uninitialised <select> elements will use the first *non-disabled* option', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{selected}}</p><select value="{{selected}}"><option disabled>Select a letter</option>{{#letters}}<option>{{this}}</option>{{/letters}}</select>',
+				data: {
+					letters: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			t.equal( ractive.get( 'selected' ), 'a' );
+			t.htmlEqual( fixture.innerHTML, '<p>a</p><select><option disabled>Select a letter</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>' );
+			t.equal( ractive.find( 'select' ).value, 'a' );
 		});
 
 	};
