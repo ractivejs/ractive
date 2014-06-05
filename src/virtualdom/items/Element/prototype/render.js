@@ -43,8 +43,11 @@ export default function Element$render () {
 
 	// Is this a top-level node of a component? If so, we may need to add
 	// a data-rvcguid attribute, for CSS encapsulation
-	if ( root.css && this.parentFragment.getNode() === root.el ) {
-		this.node.setAttribute( 'data-rvcguid', root.constructor._guid || root._guid );
+	// NOTE: css no longer copied to instance, so we check constructor.css -
+	// we can enhance to handle instance, but this is more "correct" with current
+	// functionality
+	if ( root.constructor.css && this.parentFragment.getNode() === root.el ) {
+		this.node.setAttribute( 'data-rvcguid', root.constructor._guid /*|| root._guid*/ );
 	}
 
 	// Add _ractive property to the node - we use this object to store stuff

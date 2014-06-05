@@ -4,7 +4,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture, Foo;
+		var fixture;
 
 		module( 'Components' );
 
@@ -308,6 +308,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
+		// TODO: Is thie correct? Or should ractive.complete call this._super?
+		// Which is current requirement within the .extend chain
 		asyncTest( 'Component complete() methods are called', function ( t ) {
 			var ractive, Widget, counter, done;
 
@@ -318,6 +320,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Widget = Ractive.extend({
 				complete: function () {
+					//in component
 					t.ok( true );
 					done();
 				}
@@ -327,6 +330,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture,
 				template: '<widget/>',
 				complete: function () {
+					//in options
 					t.ok( true );
 					done();
 				},
@@ -407,7 +411,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set('world', 'venus');
 			t.htmlEqual( fixture.innerHTML, 'hello venus' );
 
-			/* This works, but is it risky to polute global for other tests? */
 			delete Ractive.components.widget
 			delete Ractive.components.grandwidget
 		});
@@ -954,8 +957,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Component, ractive;
 
 			Component = Ractive.extend({
-				template: function(template, options){
-					return options.data.useFoo ? '{{foo}}' : '{{fizz}}'
+				template: function( data, parser ){
+					return data.useFoo ? '{{foo}}' : '{{fizz}}'
 				}
 			});
 
@@ -1095,6 +1098,53 @@ define([ 'ractive' ], function ( Ractive ) {
 			]);
 
 			t.htmlEqual( fixture.innerHTML, '<p>0:</p><p>1:0</p><p>2:0</p>' );
+		});
+
+		test( 'Components found in view hierarchy', function ( t ) {
+			var FooComponent, BarComponent, ractive;
+
+			FooComponent = Ractive.extend({
+				template: 'foo'
+			});
+
+			BarComponent = Ractive.extend({
+				template: '<foo/>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<bar/>',
+				components: {
+					foo: FooComponent,
+					bar: BarComponent
+				}
+			});
+
+			t.equal( fixture.innerHTML, 'foo' );
+		});
+
+		test( 'Components not found in view hierarchy when isolated is true', function ( t ) {
+			var FooComponent, BarComponent, ractive;
+
+			FooComponent = Ractive.extend({
+				template: 'foo'
+			});
+
+			BarComponent = Ractive.extend({
+				template: '<foo/>',
+				isolated: true
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<bar/>',
+				components: {
+					foo: FooComponent,
+					bar: BarComponent
+				}
+			});
+
+			t.equal( fixture.innerHTML, '<foo></foo>' );
 		});
 	};
 

@@ -3,18 +3,13 @@ import runloop from 'global/runloop';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import Fragment from 'virtualdom/Fragment';
-import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
+import config from 'config/config';
 
-var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
+var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ];
 
 export default function Ractive$reset ( data, callback ) {
-	var self = this,
-		promise,
-		fulfilPromise,
-		wrapper,
-		changes,
-		rerender,
-		i;
+
+	var promise, fulfilPromise, wrapper, changes, i, rerender;
 
 	if ( typeof data === 'function' && !callback ) {
 		callback = data;
@@ -37,9 +32,8 @@ export default function Ractive$reset ( data, callback ) {
 		this.data = data;
 	}
 
-	this.initOptions.data = this.data;
-
-	changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, { updatesOnly: true } );
+	// reset config items and track if need to rerender
+	changes = config.reset( this );
 
 	i = changes.length;
 	while ( i-- ) {
@@ -52,8 +46,8 @@ export default function Ractive$reset ( data, callback ) {
 	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
 	if ( rerender ) {
-		clearCache( self, '' );
-		notifyDependants( self, '' );
+		clearCache( this, '' );
+		notifyDependants( this, '' );
 
 		this.unrender();
 

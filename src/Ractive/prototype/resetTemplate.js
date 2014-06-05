@@ -1,4 +1,4 @@
-import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
+import config from 'config/config';
 import Fragment from 'virtualdom/Fragment';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
@@ -7,37 +7,25 @@ import Fragment from 'virtualdom/Fragment';
 // conceptually be similar to resetPartial, which couldn't be async
 
 export default function Ractive$resetTemplate ( template ) {
-	var transitionsEnabled,
-		changes,
-		options = {
-			updatesOnly: true,
-			registries: [ 'template', 'partials' ]
-		};
+	var transitionsEnabled
 
-	if ( template ) {
-		options.newValues = {
-			template: template
-		};
-	}
+	config.template.init( null, this, { template: template } );
 
-	changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, options );
+	transitionsEnabled = this.transitionsEnabled;
+	this.transitionsEnabled = false;
 
-	if ( changes.length ) {
-		transitionsEnabled = this.transitionsEnabled;
-		this.transitionsEnabled = false;
+	this.unrender();
 
-		this.unrender();
+	// remove existing fragment and create new one
+	this.fragment.teardown();
+	this.fragment = new Fragment({
+		template: this.template,
+		root: this,
+		owner: this
+	});
 
-		// remove existing fragment and create new one
-		this.fragment.teardown();
-		this.fragment = new Fragment({
-			template: this.template,
-			root: this,
-			owner: this
-		});
+	this.render( this.el, this.anchor );
 
-		this.render( this.el, this.anchor );
+	this.transitionsEnabled = transitionsEnabled;
 
-		this.transitionsEnabled = transitionsEnabled;
-	}
 }

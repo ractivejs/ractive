@@ -4,9 +4,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture, Foo;
-
-		module( 'Miscellaneous' );
+		var fixture, Foo, fooAdaptor;
 
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
@@ -15,7 +13,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			this.content = content;
 		};
 
-		Ractive.adaptors.foo = {
+		fooAdaptor = {
 			filter: function ( object ) {
 				return object instanceof Foo;
 			},
@@ -30,6 +28,15 @@ define([ 'ractive' ], function ( Ractive ) {
 				};
 			}
 		};
+
+		module( 'Miscellaneous', {
+			setup: function(){
+				Ractive.adaptors.foo = fooAdaptor;
+			},
+			teardown: function(){
+				delete Ractive.adaptors.foo;
+			}
+		} );
 
 		test( 'Subclass instance data extends prototype data', function ( t ) {
 			var Subclass, instance;
@@ -835,7 +842,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, 'baz34' );
 
-			t.deepEqual( Subclass.data, {
+			t.deepEqual( Subclass.defaults.data, {
 				foo: 'bar',
 				obj: {
 					one: 1,
@@ -862,9 +869,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			};
 
 			Subclass = Ractive.extend({
-				data: new Model({
-					foo: 'bar'
-				})
+				data: function () {
+					return new Model({
+						foo: 'bar'
+					})
+				}
 			});
 
 			instance = new Subclass({
@@ -898,15 +907,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
-			var Subclass, instance;
-
-			Subclass = Ractive.extend({ adapt: 'Foo' });
-			instance = new Subclass();
-
-			t.deepEqual( instance.adapt, ['Foo'] );
-		});
-
 		test( 'Regression test for #393', function ( t ) {
 			var View, ractive;
 
@@ -930,10 +930,10 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":2} | ["a","b","c"]' );
 			ractive.set( 'foo.b', 3 );
-			t.deepEqual( View.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
+			t.deepEqual( View.defaults.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
 			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","b","c"]' );
 			ractive.set( 'bar[1]', 'd' );
-			t.deepEqual( View.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
+			t.deepEqual( View.defaults.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
 			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","d","c"]' );
 		});
 

@@ -1,6 +1,7 @@
 import circular from 'circular';
 import warn from 'utils/warn';
-import interpolators from 'registries/interpolators';
+import interpolators from 'config/defaults/interpolators';
+import config from 'config/config';
 
 var interpolate = function ( from, to, ractive, type ) {
 	if ( from === to ) {
@@ -8,8 +9,10 @@ var interpolate = function ( from, to, ractive, type ) {
 	}
 
 	if ( type ) {
-		if ( ractive.interpolators[ type ] ) {
-			return ractive.interpolators[ type ]( from, to ) || snap( to );
+
+		let interpol = config.registries.interpolators.find( ractive, type );
+		if ( interpol ) {
+			return interpol( from, to ) || snap( to );
 		}
 
 		warn( 'Missing "' + type + '" interpolator. You may need to download a plugin from [TODO]' );
