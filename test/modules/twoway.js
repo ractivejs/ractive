@@ -118,6 +118,39 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'Uninitialised values should be initialised with whatever the \'empty\' value is (#775)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}">'
+			});
+
+			t.equal( ractive.get( 'foo' ), '' );
+		});
+
+		test( 'Contenteditable elements can be bound via the value attribute', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div contenteditable="true" value="{{content}}"><strong>some content</strong></div>',
+			});
+
+			t.equal( ractive.get( 'content' ), '<strong>some content</strong>' );
+			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true"><strong>some content</strong></div>' );
+
+			ractive.set( 'content', '<p>some different content</p>' );
+			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true"><p>some different content</p></div>' );
+		});
+
+		test( 'Existing model data overrides contents of contenteditable elements', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div contenteditable="true" value="{{content}}"><strong>some content</strong></div>',
+				data: { content: 'overridden' }
+			});
+
+			t.equal( ractive.get( 'content' ), 'overridden' );
+			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">overridden</div>' );
+		});
+
 	};
 
 });

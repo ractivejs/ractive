@@ -6,6 +6,7 @@ import defineProperty from 'utils/defineProperty';
 import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
+import renderImage from 'virtualdom/items/Element/special/img/render';
 
 var updateCss, updateScript;
 
@@ -70,13 +71,18 @@ export default function Element$render () {
 		if ( this.name === 'script' ) {
 			this.bubble = updateScript;
 			this.node.text = this.fragment.toString( false ); // bypass warning initially
-			this.fragment.unrender = noop;
+			this.fragment.unrender = noop; // TODO this is a kludge
 		}
 
 		// Special case - <style> element
 		else if ( this.name === 'style' ) {
 			this.bubble = updateCss;
 			this.bubble();
+			this.fragment.unrender = noop;
+		}
+
+		// Special case - contenteditable
+		else if ( this.binding && this.getAttribute( 'contenteditable' ) ) {
 			this.fragment.unrender = noop;
 		}
 
@@ -90,41 +96,17 @@ export default function Element$render () {
 		this.eventHandlers.forEach( h => h.render() );
 	}
 
-
 	// deal with two-way bindings
 	if ( this.binding ) {
 		this.binding.render();
 		this.node._ractive.binding = this.binding;
-
-		// Special case - contenteditable
-		if ( this.node.getAttribute( 'contenteditable' ) && this.node._ractive.binding ) {
-			// We need to update the model
-			this.node._ractive.binding.update();
-		}
 	}
 
-	// name attributes are deferred, because they're a special case - if two-way
-	// binding is involved they need to update later. But if it turns out they're
-	// not two-way we can update them now
-	/*if ( attributes.name && !attributes.name.twoway ) {
-		attributes.name.update();
-	}*/
-
-	// if this is an <img>, and we're in a crap browser, we may need to prevent it
-	// from overriding width and height when it loads the src
-	/*if ( this.node.tagName === 'IMG' && ( ( width = this.attributes.width ) || ( height = this.attributes.height ) ) ) {
-		this.node.addEventListener( 'load', loadHandler = function () {
-			if ( width ) {
-				this.node.width = width.value;
-			}
-
-			if ( height ) {
-				this.node.height = height.value;
-			}
-
-			this.node.removeEventListener( 'load', loadHandler, false );
-		}, false );
-	}*/
+	// Special case: if this is an <img>, and we're in a crap browser, we may
+	// need to prevent it from overriding width and height when it loads the src
+	if ( this.name === 'img' ) {
+		renderImage( this );
+	}
 
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
@@ -151,7 +133,6 @@ export default function Element$render () {
 	}
 
 	updateLiveQueries( this );
-
 	return this.node;
 }
 

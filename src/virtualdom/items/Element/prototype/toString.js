@@ -34,30 +34,15 @@ export default function () {
 }
 
 function optionIsSelected ( element ) {
-	var optionValue, optionValueAttribute, optionValueInterpolator,
-		selectValueAttribute, selectValueInterpolator,
-		selectValue, i;
+	var optionValue, selectValue, i;
 
-	optionValueAttribute = element.attributes.value;
+	optionValue = element.getAttribute( 'value' );
 
-	if(optionValueAttribute.value){
-		optionValue = optionValueAttribute.value;
-	} else {
-		optionValueInterpolator = optionValueAttribute.interpolator;
-		if( !optionValueInterpolator ) {
-			return;
-		}
-		optionValue = element.root.get( optionValueInterpolator.keypath || optionValueInterpolator.ref );
+	if ( optionValue === undefined ) {
+		return false;
 	}
 
-	selectValueAttribute = element.select.attributes.value;
-	selectValueInterpolator = selectValueAttribute.interpolator;
-
-	if ( !selectValueInterpolator ) {
-		return;
-	}
-
-	selectValue = element.root.get( selectValueInterpolator.keypath || selectValueInterpolator.ref );
+	selectValue = element.select.getAttribute( 'value' );
 
 	if ( selectValue == optionValue ) {
 		return true;
