@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-03 - commit 376beff4 
+	2014-06-05 - commit a76faf09 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3169,11 +3169,11 @@
 		return Observer;
 	}( runloop, isEqual, get );
 
-	/* Ractive/prototype/observe/getPattern.js */
-	var Ractive$observe_getPattern = function( isArray ) {
+	/* shared/getMatchingKeypaths.js */
+	var getMatchingKeypaths = function( isArray ) {
 
-		return function getPattern( ractive, pattern ) {
-			var keys, key, values, matchingKeypaths;
+		return function getMatchingKeypaths( ractive, pattern ) {
+			var keys, key, matchingKeypaths;
 			keys = pattern.split( '.' );
 			matchingKeypaths = [ '' ];
 			while ( key = keys.shift() ) {
@@ -3189,11 +3189,7 @@
 					}
 				}
 			}
-			values = {};
-			matchingKeypaths.forEach( function( keypath ) {
-				values[ keypath ] = ractive.get( keypath );
-			} );
-			return values;
+			return matchingKeypaths;
 
 			function expand( matchingKeypaths, keypath ) {
 				var value, key, childKeypath;
@@ -3215,6 +3211,20 @@
 			}
 		};
 	}( isArray );
+
+	/* Ractive/prototype/observe/getPattern.js */
+	var Ractive$observe_getPattern = function( getMatchingKeypaths ) {
+
+		return function getPattern( ractive, pattern ) {
+			var matchingKeypaths, values;
+			matchingKeypaths = getMatchingKeypaths( ractive, pattern );
+			values = {};
+			matchingKeypaths.forEach( function( keypath ) {
+				values[ keypath ] = ractive.get( keypath );
+			} );
+			return values;
+		};
+	}( getMatchingKeypaths );
 
 	/* Ractive/prototype/observe/PatternObserver.js */
 	var Ractive$observe_PatternObserver = function( runloop, isEqual, isArray, get, getPattern ) {
@@ -10135,9 +10145,11 @@
 	}( initialiseRegistries, Fragment );
 
 	/* Ractive/prototype/set.js */
-	var Ractive$set = function( runloop, isObject, normaliseKeypath, Promise, set ) {
+	var Ractive$set = function( runloop, isObject, normaliseKeypath, Promise, set, getMatchingKeypaths ) {
 
+		var wildcard = /\*/;
 		return function Ractive$set( keypath, value, callback ) {
+			var this$0 = this;
 			var map, promise, fulfilPromise;
 			promise = new Promise( function( fulfil ) {
 				fulfilPromise = fulfil;
@@ -10156,7 +10168,13 @@
 				}
 			} else {
 				keypath = normaliseKeypath( keypath );
-				set( this, keypath, value );
+				if ( wildcard.test( keypath ) ) {
+					getMatchingKeypaths( this, keypath ).forEach( function( keypath ) {
+						set( this$0, keypath, value );
+					} );
+				} else {
+					set( this, keypath, value );
+				}
 			}
 			runloop.end();
 			if ( callback ) {
@@ -10164,7 +10182,7 @@
 			}
 			return promise;
 		};
-	}( runloop, isObject, normaliseKeypath, Promise, set );
+	}( runloop, isObject, normaliseKeypath, Promise, set, getMatchingKeypaths );
 
 	/* Ractive/prototype/subtract.js */
 	var Ractive$subtract = function( add ) {
