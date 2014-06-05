@@ -3,6 +3,9 @@ import isObject from 'utils/isObject';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import Promise from 'utils/Promise';
 import set from 'shared/set';
+import getMatchingKeypaths from 'shared/getMatchingKeypaths';
+
+var wildcard = /\*/;
 
 export default function Ractive$set ( keypath, value, callback ) {
 	var map,
@@ -30,7 +33,14 @@ export default function Ractive$set ( keypath, value, callback ) {
 	// Set a single keypath
 	else {
 		keypath = normaliseKeypath( keypath );
-		set( this, keypath, value );
+
+		if ( wildcard.test( keypath ) ) {
+			getMatchingKeypaths( this, keypath ).forEach( keypath => {
+				set( this, keypath, value );
+			});
+		} else {
+			set( this, keypath, value );
+		}
 	}
 
 	runloop.end();
