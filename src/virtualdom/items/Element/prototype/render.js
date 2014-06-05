@@ -93,19 +93,11 @@ export default function Element$render () {
 		this.eventHandlers.forEach( h => h.render() );
 	}
 
-
 	// deal with two-way bindings
 	if ( this.binding ) {
 		this.binding.render();
 		this.node._ractive.binding = this.binding;
 	}
-
-	// name attributes are deferred, because they're a special case - if two-way
-	// binding is involved they need to update later. But if it turns out they're
-	// not two-way we can update them now
-	/*if ( attributes.name && !attributes.name.twoway ) {
-		attributes.name.update();
-	}*/
 
 	// Special case: if this is an <img>, and we're in a crap browser, we may
 	// need to prevent it from overriding width and height when it loads the src
@@ -138,7 +130,6 @@ export default function Element$render () {
 	}
 
 	updateLiveQueries( this );
-
 	return this.node;
 }
 
