@@ -108,9 +108,7 @@ function fromFn ( child, parentFn ) {
 
 			if ( data ) {
 
-				keys = keys.filter( key => {
-					return !( key in data )
-				});
+				keys = keys.filter( key => !( key in data ) );
 			}
 		}
 

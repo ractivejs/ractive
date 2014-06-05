@@ -66,6 +66,8 @@ if ( !Object.keys ) {
 	}());
 }
 
+// TODO: use defineProperty to make these non-enumerable
+
 // Array extras
 if ( !Array.prototype.indexOf ) {
 	Array.prototype.indexOf = function ( needle, i ) {
@@ -177,6 +179,7 @@ if ( !Array.prototype.filter ) {
 	};
 }
 
+/*
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
 if (!Array.prototype.find) {
 	Array.prototype.find = function(predicate) {
@@ -202,6 +205,7 @@ if (!Array.prototype.find) {
 		return undefined;
 	}
 }
+*/
 
 if ( typeof Function.prototype.bind !== 'function' ) {
 	Function.prototype.bind = function ( context ) {

@@ -1,5 +1,6 @@
 import warn from 'utils/warn';
 import circular from 'circular';
+import config from 'config/config';
 
 var Fragment, getValueOptions, Decorator;
 
@@ -51,7 +52,7 @@ Decorator = function ( element, template ) {
 		};
 	}
 
-	decorator.fn = ractive.decorators[ name ];
+	decorator.fn = config.registries.decorators.find( ractive, name );
 
 	if ( !decorator.fn ) {
 		errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';

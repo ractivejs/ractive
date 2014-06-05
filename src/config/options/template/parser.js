@@ -19,10 +19,11 @@ TemplateParser.prototype = {
 	isParsed: isParsed
 }
 
-function fromId ( id ) {
+function fromId ( id, options ) {
 	var template;
 
 	if ( !isClient ) {
+		if ( options && options.noThrow ) { return; }
 		throw new Error('Cannot retieve template #' + id + 'as Ractive is not running in the client.');
 	}
 
@@ -31,8 +32,17 @@ function fromId ( id ) {
 	}
 
 	if ( !( template = document.getElementById( id ) )) {
+		if ( options && options.noThrow ) { return; }
 		throw new Error( 'Could not find template element with id #' + id );
 	}
+
+	// Do we want to turn this on?
+	/*
+	if ( template.tagName.toUpperCase() !== 'SCRIPT' )) {
+		if ( options && options.noThrow ) { return; }
+		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
+	}
+	*/
 
 	return template.innerHTML;
 

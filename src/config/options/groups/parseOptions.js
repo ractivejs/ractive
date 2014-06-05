@@ -12,8 +12,6 @@ keys = [
 	'handlebars'
 ];
 
-parseOptions = optionGroup( keys, key => {
-	return parseOption( key );
-});
+parseOptions = optionGroup( keys, key => parseOption( key ) );
 
 export default parseOptions;

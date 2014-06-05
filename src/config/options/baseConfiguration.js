@@ -1,4 +1,4 @@
-import defaults from 'config/options/defaults';
+import defaults from 'config/defaults/options';
 import extendObject from 'utils/extend';
 
 function BaseConfiguration ( config ) {

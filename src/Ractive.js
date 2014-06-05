@@ -1,6 +1,6 @@
-import defaults from 'config/options/defaults';
-import easingRegistry from 'registries/easing';
-import interpolatorsRegistry from 'registries/interpolators';
+import defaults from 'config/defaults/options';
+import easing from 'config/defaults/easing';
+import interpolators from 'config/defaults/interpolators';
 import svg from 'config/svg';
 import defineProperties from 'utils/defineProperties';
 import proto from 'Ractive/prototype';
@@ -17,7 +17,7 @@ var Ractive = function ( options ) {
 
 Ractive.prototype = proto;
 
-// Read-only properties
+// Ractive properties
 defineProperties( Ractive, {
 
 	// Shared properties
@@ -30,11 +30,10 @@ defineProperties( Ractive, {
 	// instantiation time, they are writable
 	adaptors:      { writable: true, value: {} },
 	components:    { writable: true, value: {} },
-	computed:      { writable: true, value: {} },
 	decorators:    { writable: true, value: {} },
-	easing:        { writable: true, value: easingRegistry },
+	easing:        { writable: true, value: easing },
 	events:        { writable: true, value: {} },
-	interpolators: { writable: true, value: interpolatorsRegistry },
+	interpolators: { writable: true, value: interpolators },
 	partials:      { writable: true, value: {} },
 	transitions:   { writable: true, value: {} },
 

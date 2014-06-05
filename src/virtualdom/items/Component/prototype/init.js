@@ -25,10 +25,10 @@ export default function Component$init ( options ) {
 	this.bindings = [];
 
 	// get the component constructor
-	Component = config.find( root, 'components', options.template.e );
+	Component = config.registries.components.find( root, this.name );
 
 	if ( !Component ) {
-		throw new Error( 'Component "' + options.template.e + '" not found' );
+		throw new Error( 'Component "' + this.name + '" not found' );
 	}
 
 	// First, we need to create a model for the component - e.g. if we

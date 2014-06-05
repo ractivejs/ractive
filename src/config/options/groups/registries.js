@@ -1,16 +1,13 @@
 import optionGroup from 'config/options/groups/optionGroup';
 import registry from 'config/options/registry';
 import adaptors from 'config/options/adaptors';
-import computed from 'config/options/computed';
 import events from 'config/options/events';
-import partials from 'config/options/partials';
 
 var keys, custom, registries;
 
 keys = [
 	'adaptors',
 	'components',
-	'computed',
 	'decorators',
 	'easing',
 	'events',
@@ -21,9 +18,7 @@ keys = [
 
 custom = {
 	adaptors:  adaptors,
-	computed:  computed,
-	events:    events,
-	partials:  partials
+	events:    events
 };
 
 registries = optionGroup( keys, key => {

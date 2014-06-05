@@ -1099,6 +1099,53 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '<p>0:</p><p>1:0</p><p>2:0</p>' );
 		});
+
+		test( 'Components found in view hierarchy', function ( t ) {
+			var FooComponent, BarComponent, ractive;
+
+			FooComponent = Ractive.extend({
+				template: 'foo'
+			});
+
+			BarComponent = Ractive.extend({
+				template: '<foo/>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<bar/>',
+				components: {
+					foo: FooComponent,
+					bar: BarComponent
+				}
+			});
+
+			t.equal( fixture.innerHTML, 'foo' );
+		});
+
+		test( 'Components not found in view hierarchy when isolated is true', function ( t ) {
+			var FooComponent, BarComponent, ractive;
+
+			FooComponent = Ractive.extend({
+				template: 'foo'
+			});
+
+			BarComponent = Ractive.extend({
+				template: '<foo/>',
+				isolated: true
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<bar/>',
+				components: {
+					foo: FooComponent,
+					bar: BarComponent
+				}
+			});
+
+			t.equal( fixture.innerHTML, '<foo></foo>' );
+		});
 	};
 
 });

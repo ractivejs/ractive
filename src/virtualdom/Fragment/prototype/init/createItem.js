@@ -19,7 +19,7 @@ export default function createItem ( options ) {
 		case types.SECTION:      return new Section( options );
 		case types.TRIPLE:       return new Triple( options );
 		case types.ELEMENT:
-			if ( config.find( options.parentFragment.root, 'components', options.template.e ) ) {
+			if ( config.registries.components.find( options.parentFragment.root, options.template.e ) ) {
 				return new Component( options );
 			}
 			return new Element( options );

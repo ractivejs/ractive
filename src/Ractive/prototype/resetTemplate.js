@@ -9,7 +9,7 @@ import Fragment from 'virtualdom/Fragment';
 export default function Ractive$resetTemplate ( template ) {
 	var transitionsEnabled
 
-	config.keys.template.init( null, this, { template: template } );
+	config.template.init( null, this, { template: template } );
 
 	transitionsEnabled = this.transitionsEnabled;
 	this.transitionsEnabled = false;

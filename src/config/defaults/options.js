@@ -1,4 +1,4 @@
-var defaults = {
+var defaultOptions = {
 
 	// render placement:
 	el:                 void 0,
@@ -37,4 +37,4 @@ var defaults = {
 	debug:              false
 };
 
-export default defaults;
+export default defaultOptions;

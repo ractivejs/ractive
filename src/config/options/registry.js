@@ -1,13 +1,18 @@
 import baseConfig from 'config/options/baseConfiguration';
 import match from 'utils/hashmapContentsMatch';
 import wrap from 'extend/wrapMethod';
+import extendObject from 'utils/extend';
 import 'legacy';
 
 export default function registryConfig ( config ) {
 
-	config.extendValue = extend;
-	config.initValue = init;
-	config.resetValue = reset;
+	config = extendObject( config, {
+		extendValue: extend,
+		initValue: init,
+		resetValue: reset,
+		find: find,
+		findInstance: findInstance
+	});
 
 	var base = baseConfig( config ),
 		assign = base.assign.bind( base );
@@ -19,6 +24,29 @@ export default function registryConfig ( config ) {
 	return base;
 }
 
+function find ( ractive, key ) {
+
+	return recurseFind( ractive, r => r[ this.name ][ key ] );
+}
+
+function findInstance ( ractive, key ) {
+
+	return recurseFind( ractive, r => r[ this.name ][ key ] ? r : void 0 );
+}
+
+function recurseFind( ractive, fn ) {
+
+	var find, parent;
+
+	if ( find = fn( ractive ) ) {
+		return find;
+	}
+
+	if ( !ractive.isolated && ( parent = ractive._parent ) ) {
+		return recurseFind( parent, fn );
+	}
+
+}
 
 function extend( target, parentValue, value ) {
 
@@ -148,10 +176,17 @@ function extendFn ( childFn, parent ) {
 
 	if( typeof parent !== 'function' ) {
 
-		// copy props to registry
-		parentFn = function ( registry ) {
-			copy ( parent, registry );
-		};
+		// don't bother with missing or {}
+		if ( parent && Object.keys( parent ).length ) {
+
+			// copy props to registry
+			parentFn = function ( registry ) {
+				copy ( parent, registry );
+			};
+		} else {
+			// no-op if childFn needs it
+			parentFn = () => {};
+		}
 
 	} else {
 

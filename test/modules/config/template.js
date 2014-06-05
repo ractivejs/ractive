@@ -146,22 +146,40 @@ function (
 
 			testTemplate1( ractive.template );
 
-			// t.ok( ractive.template._reset( { good: false} ) );
-			// testTemplate2( ractive.template );
-			// t.ok( !ractive.template._reset( { good: false} ) );
-			// testTemplate2( ractive.template );
+		});
+
+		module( 'Template Configuration', moduleSetup);
+
+		test( 'Template with partial', t => {
+
+			config.init( Ractive, ractive, {
+				template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->'
+			});
+
+			testTemplate1( ractive.template );
+			t.ok( ractive.partials.bar );
+			testTemplate2( ractive.partials.bar)
 
 		});
 
-/*
-		test( 'Reset on static template returns false', t => {
-			config.create( Ractive )._init( ractive, templateOpt1, { good: true } );
+		test( 'Template with partial added and takes precedence over option partials', t => {
 
-			testTemplate1( ractive.template );
-			ractive.template._reset( { good: false} );
-			testTemplate1( ractive.template );
+			ractive.partials = {
+				bar: '{{bop}}',
+				bizz: '{{buzz}}'
+			};
+
+			config.init( Ractive, ractive, {
+				template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->'
+			});
+
+			t.ok( ractive.partials.bar, 'has bar partial' );
+			t.ok( ractive.partials.bizz, 'has bizz partial' );
+			testTemplate2( ractive.partials.bar, 'has correct bar partial')
+
+			delete ractive.partials;
+
 		});
-		*/
 
 	}
 

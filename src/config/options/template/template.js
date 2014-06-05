@@ -1,10 +1,9 @@
 import baseConfig from 'config/options/baseConfiguration';
 import createParser from 'config/options/template/parser';
 import isObject from 'utils/isObject';
+import parseOptions from 'config/options/groups/parseOptions';
 
-var templateConfig, parseOptionKeys;
-
-templateConfig = baseConfig({
+var templateConfig = baseConfig({
 	name: 'template',
 	useDefaults: true,
 	defaultValue: '',
@@ -12,11 +11,9 @@ templateConfig = baseConfig({
 	postExtend: parseTemplate,
 	initValue: init,
 	postInit: parseTemplate,
-	resetValue: reset
+	resetValue: reset,
+	processCompound: processCompound
 });
-
-parseOptionKeys = [ 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters' ];
-
 
 function extend ( target, parentValue, value ) {
 
@@ -75,10 +72,11 @@ function getParseOptions ( target ) {
 
 	if ( !options ) { return; }
 
-	return parseOptionKeys.reduce( ( val, option ) => {
-		val[ option ] = options[ option ];
+	return parseOptions.reduce( ( val, option ) => {
+		val[ option.name ] = options[ option.name ];
 		return val;
-	}, {});
+	}, {} );
+
 }
 
 function parseTemplate ( target, template ) {
@@ -97,17 +95,7 @@ function parseTemplate ( target, template ) {
 		template = parser.parse( template );
 	}
 
-	// deal with compound template
-	if ( isObject( template ) ) {
-		let temp = template;
-		template = temp.main;
-
-		//todo: see if we can use config.partials.extend...
-		target._templatePartials = temp.partials;
-		// if( temp.partials && temp.partials.length ) {
-		// 	config.extend( target, target, temp.partials );
-		// }
-	}
+	template = processCompound( target, template );
 
 	// If the template was an array with a single string member, that means
 	// we can use innerHTML - we just need to unpack it
@@ -116,6 +104,19 @@ function parseTemplate ( target, template ) {
 	}
 
 	return template;
+}
+
+function processCompound( target, template ) {
+
+	if ( !isObject( template ) ) { return template; }
+
+	target.partials = target.partials || {};
+
+	for ( let key in template.partials ) {
+		target.partials[ key ] = template.partials[ key ];
+	}
+
+	return template.main
 }
 
 export default templateConfig;

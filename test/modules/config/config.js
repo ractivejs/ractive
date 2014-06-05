@@ -1,6 +1,6 @@
 define([
 	'ractive',
-	'config/options/defaults',
+	'config/defaults/options',
 	'config/config'
 ], function (
 	Ractive,
@@ -84,7 +84,7 @@ define([
 
 		module( 'Configure Instance', { setup: configureRactive } );
 
-		test( 'find configuration', t => {
+		test( 'find registry configuration', t => {
 
 			var parent = { parseOptions: {} },
 				ractive = { parseOptions: {} },
@@ -95,8 +95,8 @@ define([
 
 			ractive._parent = parent;
 
-			t.equal( config.find( ractive, 'adaptors', 'foo' ), adaptor1 );
-			t.equal( config.find( ractive, 'adaptors', 'bar' ), adaptor2 );
+			t.equal( config.registries.adaptors.find( ractive, 'foo' ), adaptor1 );
+			t.equal( config.registries.adaptors.find( ractive, 'bar' ), adaptor2 );
 
 		});
 

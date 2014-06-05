@@ -16,7 +16,7 @@ export default function adaptIfNecessary ( ractive, keypath, value, isExpression
 		// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
 		// we need to get the actual adaptor if that's the case
 		if ( typeof adaptor === 'string' ) {
-			let found = config.find( ractive, 'adaptors', adaptor );
+			let found = config.registries.adaptors.find( ractive, adaptor );
 
 			if ( !found ) {
 				throw new Error( 'Missing adaptor "' + adaptor + '"' );
