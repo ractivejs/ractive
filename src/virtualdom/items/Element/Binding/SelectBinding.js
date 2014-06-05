@@ -5,11 +5,11 @@ import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEve
 
 var SelectBinding = Binding.extend({
 	getInitialValue: function () {
-		var options = this.element.options, i;
+		var options = this.element.options, len, i;
 
-		i = options.length;
+		i = len = options.length;
 
-		if ( !i ) {
+		if ( !len ) {
 			return;
 		}
 
@@ -20,8 +20,12 @@ var SelectBinding = Binding.extend({
 			}
 		}
 
-		// or the first option, if none are selected
-		return options[0].getAttribute( 'value' );
+		// or the first non-disabled option, if none are selected
+		while ( i++ < len ) {
+			if ( !options[i].getAttribute( 'disabled' ) ) {
+				return options[i].getAttribute( 'value' );
+			}
+		}
 	},
 
 	render: function () {
