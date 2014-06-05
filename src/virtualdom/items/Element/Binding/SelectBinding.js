@@ -5,7 +5,7 @@ import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEve
 
 var SelectBinding = Binding.extend({
 	getInitialValue: function () {
-		var options = this.element.options, len, i, value;
+		var options = this.element.options, i;
 
 		i = options.length;
 

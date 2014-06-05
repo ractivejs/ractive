@@ -493,7 +493,7 @@ var renderTests = [
 		name: 'Two-way select bindings',
 		template: '<select value="{{foo}}"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
 		data: {},
-		result: '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		result: '<select><option value="a" selected>a</option><option value="b">b</option><option value="c">c</option></select>',
 		new_data: { foo: 'c' },
 		new_result: '<select><option value="a">a</option><option value="b">b</option><option value="c" selected>c</option></select>'
 	},

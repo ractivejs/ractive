@@ -67,13 +67,18 @@ export default function Element$render () {
 		if ( this.name === 'script' ) {
 			this.bubble = updateScript;
 			this.node.text = this.fragment.toString( false ); // bypass warning initially
-			this.fragment.unrender = noop;
+			this.fragment.unrender = noop; // TODO this is a kludge
 		}
 
 		// Special case - <style> element
 		else if ( this.name === 'style' ) {
 			this.bubble = updateCss;
 			this.bubble();
+			this.fragment.unrender = noop;
+		}
+
+		// Special case - contenteditable
+		else if ( this.binding && this.getAttribute( 'contenteditable' ) ) {
 			this.fragment.unrender = noop;
 		}
 
@@ -92,12 +97,6 @@ export default function Element$render () {
 	if ( this.binding ) {
 		this.binding.render();
 		this.node._ractive.binding = this.binding;
-
-		// Special case - contenteditable
-		if ( this.node.getAttribute( 'contenteditable' ) && this.node._ractive.binding ) {
-			// We need to update the model
-			this.node._ractive.binding.update();
-		}
 	}
 
 	// name attributes are deferred, because they're a special case - if two-way
