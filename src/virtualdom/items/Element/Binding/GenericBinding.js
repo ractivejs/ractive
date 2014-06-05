@@ -7,6 +7,8 @@ var GenericBinding, getOptions;
 getOptions = { evaluateWrapped: true };
 
 GenericBinding = Binding.extend({
+	getInitialValue: () => '',
+
 	render: function () {
 		var node = this.element.node;
 

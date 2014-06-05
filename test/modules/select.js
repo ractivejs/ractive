@@ -302,6 +302,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option></select>' );
 		});
 
+		test( 'Disabled options have no implicit value (#786)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<p>{{selected}}</p><select value="{{selected}}"><option disabled>Select a letter</option>{{#letters}}<option>{{this}}</option>{{/letters}}</select>',
+				data: {
+					letters: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			t.equal( ractive.get( 'selected' ), undefined );
+			t.htmlEqual( fixture.innerHTML, '<p></p><select><option disabled>Select a letter</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>' );
+		});
+
 	};
 
 });
