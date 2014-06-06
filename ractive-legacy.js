@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-05 - commit 5a6f69bf 
+	2014-06-06 - commit c7a566c8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10333,8 +10333,22 @@
 		}
 	}( get, Binding, handleDomEvent );
 
+	/* virtualdom/items/Element/Binding/NumericBinding.js */
+	var NumericBinding = function( GenericBinding ) {
+
+		return GenericBinding.extend( {
+			getInitialValue: function() {
+				return undefined;
+			},
+			getValue: function() {
+				var value = parseFloat( this.element.node.value );
+				return isNaN( value ) ? undefined : value;
+			}
+		} );
+	}( GenericBinding );
+
 	/* virtualdom/items/Element/prototype/init/createTwowayBinding.js */
-	var virtualdom_items_Element$init_createTwowayBinding = function( ContentEditableBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, SelectBinding, MultipleSelectBinding, FileListBinding, GenericBinding ) {
+	var virtualdom_items_Element$init_createTwowayBinding = function( ContentEditableBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding ) {
 
 		return function createTwowayBinding( element ) {
 			var attributes = element.attributes,
@@ -10361,7 +10375,7 @@
 				} else if ( type === 'file' && isBindable( attributes.value ) ) {
 					Binding = FileListBinding;
 				} else if ( isBindable( attributes.value ) ) {
-					Binding = GenericBinding;
+					Binding = type === 'number' || type === 'range' ? NumericBinding : GenericBinding;
 				}
 			} else if ( element.name === 'select' && isBindable( attributes.value ) ) {
 				Binding = element.getAttribute( 'multiple' ) ? MultipleSelectBinding : SelectBinding;
@@ -10376,7 +10390,7 @@
 		function isBindable( attribute ) {
 			return attribute && attribute.isBindable;
 		}
-	}( ContentEditableBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, SelectBinding, MultipleSelectBinding, FileListBinding, GenericBinding );
+	}( ContentEditableBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
 
 	/* virtualdom/items/Element/EventHandler/prototype/fire.js */
 	var virtualdom_items_Element_EventHandler$fire = function EventHandler$fire( event ) {
