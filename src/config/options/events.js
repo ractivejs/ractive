@@ -3,8 +3,8 @@ import warn from 'utils/warn';
 
 var config = registry( {
 	name: 'events',
-	preInit: deprecate,
-	postInit: deprecate
+	preExtend: deprecate,
+	preInit: deprecate
 });
 
 var message = 'ractive.eventDefinitions has been deprecated in favour of ractive.events. ';
