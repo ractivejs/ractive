@@ -151,6 +151,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">overridden</div>' );
 		});
 
+		test( 'Number and range input values are coerced', function ( t ) {
+			var ractive, inputs;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{a}}" type="number"><input value="{{b}}" type="number">{{a}}+{{b}}={{a+b}}'
+			});
+
+			t.equal( ractive.get( 'a' ), undefined );
+			t.equal( ractive.get( 'b' ), undefined );
+
+			inputs = ractive.findAll( 'input' );
+			inputs[0].value = '40';
+			inputs[1].value = '2';
+			ractive.updateModel();
+			t.htmlEqual( fixture.innerHTML, '<input type="number"><input type="number">40+2=42' );
+		});
+
 	};
 
 });
