@@ -78,7 +78,7 @@ function initialiseProperties ( ractive, options ) {
 
 		// storage for item configuration from instantiation to reset,
 		// like dynamic functions or original values
-		'_config': { value: {} },
+		_config: { value: {} },
 
 		// dependency graph
 		_deps: { value: [] },
@@ -101,9 +101,6 @@ function initialiseProperties ( ractive, options ) {
 
 		// nodes registry
 		nodes: { value: {} },
-
-		// property wrappers
-		_wrapped: { value: create( null ) },
 
 		// live queries
 		_liveQueries: { value: [] },

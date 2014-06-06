@@ -1,4 +1,5 @@
 import create from 'utils/create';
+import adapt from 'viewmodel/prototype/adapt';
 import clearCache from 'viewmodel/prototype/clearCache';
 import get from 'viewmodel/prototype/get';
 import register from 'viewmodel/prototype/register';
@@ -13,9 +14,12 @@ var Viewmodel = function ( ractive ) {
 
 	this.deps = [];
 	this.depsMap = create( null );
+
+	this.wrapped = create( null );
 };
 
 Viewmodel.prototype = {
+	adapt: adapt,
 	clearCache: clearCache,
 	get: get,
 	register: register,

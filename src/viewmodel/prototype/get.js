@@ -1,6 +1,5 @@
 import hasOwnProperty from 'utils/hasOwnProperty';
 import clone from 'utils/clone';
-import adaptIfNecessary from 'shared/adaptIfNecessary';
 import getFromParent from 'viewmodel/prototype/get/getFromParent';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
 
@@ -22,13 +21,13 @@ export default function Viewmodel$get ( keypath, options ) {
 		}
 
 		// Is this a wrapped property?
-		else if ( wrapped = ractive._wrapped[ keypath ] ) {
+		else if ( wrapped = ractive.viewmodel.wrapped[ keypath ] ) {
 			value = wrapped.value;
 		}
 
 		// Is it the root?
 		else if ( !keypath ) {
-			adaptIfNecessary( ractive, '', ractive.data );
+			ractive.viewmodel.adapt( '', ractive.data );
 			value = ractive.data;
 		}
 
@@ -65,7 +64,7 @@ export default function Viewmodel$get ( keypath, options ) {
 		}
 	}
 
-	if ( options && options.evaluateWrapped && ( wrapped = ractive._wrapped[ keypath ] ) ) {
+	if ( options && options.evaluateWrapped && ( wrapped = ractive.viewmodel.wrapped[ keypath ] ) ) {
 		value = wrapped.get();
 	}
 
@@ -81,7 +80,7 @@ function retrieve ( ractive, keypath ) {
 
 	parentValue = ractive.viewmodel.get( parentKeypath );
 
-	if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
+	if ( wrapped = ractive.viewmodel.wrapped[ parentKeypath ] ) {
 		parentValue = wrapped.get();
 	}
 
@@ -113,7 +112,7 @@ function retrieve ( ractive, keypath ) {
 	value = shouldClone ? clone( parentValue[ key ] ) : parentValue[ key ];
 
 	// Do we have an adaptor for this value?
-	value = adaptIfNecessary( ractive, keypath, value, false );
+	value = ractive.viewmodel.adapt( keypath, value, false );
 
 	// Update cache
 	ractive.viewmodel.cache[ keypath ] = value;

@@ -5,8 +5,8 @@ import magicArrayAdaptor from 'viewmodel/prototype/get/magicArrayAdaptor';
 
 var prefixers = {};
 
-export default function adaptIfNecessary ( ractive, keypath, value, isExpressionResult ) {
-	var len, i, adaptor, wrapped;
+export default function Viewmodel$adapt ( keypath, value, isExpressionResult ) {
+	var ractive = this.ractive, len, i, adaptor, wrapped;
 
 	// Do we have an adaptor for this value?
 	len = ractive.adapt.length;
@@ -26,7 +26,7 @@ export default function adaptIfNecessary ( ractive, keypath, value, isExpression
 		}
 
 		if ( adaptor.filter( value, keypath, ractive ) ) {
-			wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+			wrapped = ractive.viewmodel.wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 			wrapped.value = value;
 			return value;
 		}
@@ -36,16 +36,16 @@ export default function adaptIfNecessary ( ractive, keypath, value, isExpression
 
 		if ( ractive.magic ) {
 			if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
-				ractive._wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
+				ractive.viewmodel.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
 			}
 
 			else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-				ractive._wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
+				ractive.viewmodel.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
 			}
 		}
 
 		else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
-			ractive._wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
+			ractive.viewmodel.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 		}
 	}
 

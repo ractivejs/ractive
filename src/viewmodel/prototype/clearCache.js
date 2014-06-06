@@ -9,10 +9,10 @@ export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
 
 	if ( !dontTeardownWrapper ) {
 		// Is there a wrapped property at this keypath?
-		if ( wrapper = ractive._wrapped[ keypath ] ) {
+		if ( wrapper = ractive.viewmodel.wrapped[ keypath ] ) {
 			// Did we unwrap it?
 			if ( wrapper.teardown() !== false ) {
-				ractive._wrapped[ keypath ] = null;
+				ractive.viewmodel.wrapped[ keypath ] = null;
 			}
 		}
 	}

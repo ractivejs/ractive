@@ -10,7 +10,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 	}
 
 	computation = ractive._computations[ keypath ];
-	wrapper = ractive._wrapped[ keypath ];
+	wrapper = ractive.viewmodel.wrapped[ keypath ];
 	evaluator = ractive._evaluators[ keypath ];
 
 	if ( computation && !computation.setting ) {
@@ -41,7 +41,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 
 		parentKeypath = keys.join( '.' );
 
-		wrapper = ractive._wrapped[ parentKeypath ];
+		wrapper = ractive.viewmodel.wrapped[ parentKeypath ];
 
 		if ( wrapper && wrapper.set ) {
 			wrapper.set( lastKey, value );

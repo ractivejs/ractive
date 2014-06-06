@@ -22,7 +22,7 @@ try {
 
 			// If the parent value is a wrapper, other than a magic wrapper,
 			// we shouldn't wrap this property
-			if ( ( parentWrapper = ractive._wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
+			if ( ( parentWrapper = ractive.viewmodel.wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
 				return false;
 			}
 

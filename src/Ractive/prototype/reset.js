@@ -22,7 +22,7 @@ export default function Ractive$reset ( data, callback ) {
 	}
 
 	// If the root object is wrapped, try and use the wrapper's reset value
-	if ( ( wrapper = this._wrapped[ '' ] ) && wrapper.reset ) {
+	if ( ( wrapper = this.viewmodel.wrapped[ '' ] ) && wrapper.reset ) {
 		if ( wrapper.reset( data ) === false ) {
 			// reset was rejected, we need to replace the object
 			this.data = data;
