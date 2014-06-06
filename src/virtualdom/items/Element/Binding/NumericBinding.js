@@ -4,7 +4,7 @@ export default GenericBinding.extend({
 	getInitialValue: () => undefined,
 
 	getValue: function () {
-		var value = +this.element.node.value;
+		var value = parseFloat( this.element.node.value );
 		return isNaN( value ) ? undefined : value;
 	}
 });
