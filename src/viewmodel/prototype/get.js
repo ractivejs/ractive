@@ -1,12 +1,12 @@
-import circular from 'circular';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import clone from 'utils/clone';
 import adaptIfNecessary from 'shared/adaptIfNecessary';
-import getFromParent from 'shared/get/getFromParent';
-import FAILED_LOOKUP from 'shared/get/FAILED_LOOKUP';
+import getFromParent from 'viewmodel/prototype/get/getFromParent';
+import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
 
-function get ( ractive, keypath, options ) {
-	var cache = ractive._cache,
+export default function Viewmodel$get ( keypath, options ) {
+	var ractive = this.ractive,
+		cache = ractive._cache,
 		value,
 		firstKey,
 		firstKeyDoesNotExist,
@@ -56,7 +56,7 @@ function get ( ractive, keypath, options ) {
 		// of objects that are NOT missing could be optimistically
 		// bound to the wrong thing
 		firstKey = keypath.split( '.' )[0];
-		firstKeyDoesNotExist = ( firstKey === keypath ) || get( ractive, firstKey ) === undefined;
+		firstKeyDoesNotExist = ( firstKey === keypath ) || ractive.viewmodel.get( firstKey ) === undefined;
 
 		if ( ractive._parent && !ractive.isolated && firstKeyDoesNotExist ) {
 			value = getFromParent( ractive, keypath, options );
@@ -72,9 +72,6 @@ function get ( ractive, keypath, options ) {
 	return value;
 }
 
-circular.get = get;
-export default get;
-
 function retrieve ( ractive, keypath ) {
 	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
 
@@ -82,7 +79,7 @@ function retrieve ( ractive, keypath ) {
 	key = keys.pop();
 	parentKeypath = keys.join( '.' );
 
-	parentValue = get( ractive, parentKeypath );
+	parentValue = ractive.viewmodel.get( parentKeypath );
 
 	if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 		parentValue = wrapped.get();

@@ -1,6 +1,5 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
-import get from 'shared/get';
 
 var Observer = function ( ractive, keypath, callback, options ) {
 	this.root = ractive;
@@ -19,7 +18,7 @@ var Observer = function ( ractive, keypath, callback, options ) {
 
 Observer.prototype = {
 	init: function ( immediate ) {
-		this.value = get( this.root, this.keypath );
+		this.value = this.root.viewmodel.get( this.keypath );
 
 		if ( immediate !== false ) {
 			this.update();

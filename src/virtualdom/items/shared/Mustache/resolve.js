@@ -1,4 +1,3 @@
-import get from 'shared/get';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 
@@ -36,5 +35,5 @@ export default function Mustache$resolve ( keypath ) {
 	this.keypath = keypath;
 	registerDependant( this );
 
-	this.setValue( get( this.root, keypath ) );
+	this.setValue( this.root.viewmodel.get( keypath ) );
 }

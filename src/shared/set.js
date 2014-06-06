@@ -4,12 +4,6 @@ import createBranch from 'utils/createBranch';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 
-var get;
-
-circular.push( function () {
-	get = circular.get;
-});
-
 function set ( ractive, keypath, value, silent ) {
 	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
@@ -54,7 +48,7 @@ function set ( ractive, keypath, value, silent ) {
 		if ( wrapper && wrapper.set ) {
 			wrapper.set( lastKey, value );
 		} else {
-			parentValue = wrapper ? wrapper.get() : get( ractive, parentKeypath );
+			parentValue = wrapper ? wrapper.get() : ractive.viewmodel.get( parentKeypath );
 
 			if ( !parentValue ) {
 				parentValue = createBranch( lastKey );

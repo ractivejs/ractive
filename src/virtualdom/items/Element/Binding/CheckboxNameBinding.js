@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import removeFromArray from 'utils/removeFromArray';
 import set from 'shared/set';
-import get from 'shared/get';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
@@ -32,7 +31,7 @@ var CheckboxNameBinding = Binding.extend({
 			node.addEventListener( 'click', handleDomEvent, false );
 		}
 
-		valueFromModel = get( this.root, this.keypath );
+		valueFromModel = this.root.viewmodel.get( this.keypath );
 
 		// if the model already specifies this value, check/uncheck accordingly
 		if ( valueFromModel !== undefined ) {

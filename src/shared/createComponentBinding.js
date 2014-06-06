@@ -5,10 +5,9 @@ import isEqual from 'utils/isEqual';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
 
-var get, set;
+var set;
 
 circular.push( function () {
-	get = circular.get;
 	set = circular.set;
 });
 
@@ -22,7 +21,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 
 	registerDependant( this );
 
-	this.value = get( this.root, this.keypath );
+	this.value = this.root.viewmodel.get( this.keypath );
 };
 
 Binding.prototype = {

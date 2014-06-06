@@ -1,12 +1,6 @@
 import notifyPatternObservers from 'shared/notifyPatternObservers';
-import circular from 'circular';
 
-var get,
-	unwrap = { evaluateWrapped: true };
-
-circular.push( function () {
-	get = circular.get;
-});
+var unwrap = { evaluateWrapped: true };
 
 function notifyDependants ( ractive, keypath, onlyDirect ) {
 	var i;
@@ -54,8 +48,8 @@ function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
 	}
 
 	// update dependants of this keypath
-	value = get( ractive, keypath );
-	unwrapped = get( ractive, keypath, unwrap );
+	value = ractive.viewmodel.get( keypath );
+	unwrapped = ractive.viewmodel.get( keypath, unwrap );
 
 	updateAll( depsByKeypath[ keypath ], value, unwrapped );
 

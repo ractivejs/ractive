@@ -8,12 +8,10 @@ import notifyDependants from 'shared/notifyDependants';
 import makeTransitionManager from 'shared/makeTransitionManager';
 
 circular.push( function () {
-	get = circular.get;
 	set = circular.set;
 });
 
 var runloop,
-	get,
 	set,
 
 	dirty = false,
@@ -198,7 +196,7 @@ function flushChanges () {
 			changeHash = {};
 
 			while ( changedKeypath = thing._changes.pop() ) {
-				changeHash[ changedKeypath ] = get( thing, changedKeypath );
+				changeHash[ changedKeypath ] = thing.viewmodel.get( changedKeypath );
 			}
 
 			thing.fire( 'change', changeHash );

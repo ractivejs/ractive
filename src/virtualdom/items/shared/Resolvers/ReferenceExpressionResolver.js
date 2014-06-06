@@ -1,6 +1,5 @@
 import types from 'config/types';
 import removeFromArray from 'utils/removeFromArray';
-import get from 'shared/get';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
 import registerDependant from 'shared/registerDependant';
@@ -160,7 +159,7 @@ var KeypathObserver = function ( ractive, keypath, priority, resolver, index ) {
 
 	registerDependant( this );
 
-	this.setValue( get( ractive, keypath ) );
+	this.setValue( ractive.viewmodel.get( keypath ) );
 };
 
 KeypathObserver.prototype = {

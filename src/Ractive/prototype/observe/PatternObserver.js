@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
 import isArray from 'utils/isArray';
-import get from 'shared/get';
 import getPattern from 'Ractive/prototype/observe/getPattern';
 
 var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
@@ -64,7 +63,7 @@ PatternObserver.prototype = {
 		// special case - array mutation should not trigger `array.*`
 		// pattern observer with `array.length`
 		if ( keypath.substr( -7 ) === '.length' ) {
-			value = get( this.root, keypath.substr( 0, keypath.length - 7 ) );
+			value = this.root.viewmodel.get( keypath.substr( 0, keypath.length - 7 ) );
 
 			if ( isArray( value ) && value._ractive && value._ractive.setting ) {
 				return;
@@ -82,7 +81,7 @@ PatternObserver.prototype = {
 	reallyUpdate: function ( keypath ) {
 		var value, keys, args;
 
-		value = get( this.root, keypath );
+		value = this.root.viewmodel.get( keypath );
 
 		// Prevent infinite loops
 		if ( this.updating ) {

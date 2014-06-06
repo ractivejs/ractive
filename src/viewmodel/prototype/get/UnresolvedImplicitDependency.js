@@ -1,13 +1,8 @@
-import circular from 'circular';
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
 import notifyDependants from 'shared/notifyDependants';
 
-var get, empty = {};
-
-circular.push( function () {
-	get = circular.get;
-});
+var empty = {};
 
 var UnresolvedImplicitDependency = function ( ractive, keypath ) {
 	this.root = ractive;

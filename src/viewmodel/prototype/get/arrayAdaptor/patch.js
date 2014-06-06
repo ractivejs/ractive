@@ -1,8 +1,8 @@
 import runloop from 'global/runloop';
 import defineProperty from 'utils/defineProperty';
-import getSpliceEquivalent from 'shared/get/arrayAdaptor/getSpliceEquivalent';
-import summariseSpliceOperation from 'shared/get/arrayAdaptor/summariseSpliceOperation';
-import processWrapper from 'shared/get/arrayAdaptor/processWrapper';
+import getSpliceEquivalent from 'viewmodel/prototype/get/arrayAdaptor/getSpliceEquivalent';
+import summariseSpliceOperation from 'viewmodel/prototype/get/arrayAdaptor/summariseSpliceOperation';
+import processWrapper from 'viewmodel/prototype/get/arrayAdaptor/processWrapper';
 
 var patchedArrayProto = [],
 	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ],

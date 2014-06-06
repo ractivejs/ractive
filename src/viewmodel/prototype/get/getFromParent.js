@@ -1,12 +1,5 @@
-import circular from 'circular';
 import createComponentBinding from 'shared/createComponentBinding';
 import set from 'shared/set';
-
-var get;
-
-circular.push( function () {
-	get = circular.get;
-});
 
 export default function getFromParent ( child, keypath ) {
 	var parent, fragment, keypathToTest, value, index;
@@ -28,7 +21,7 @@ export default function getFromParent ( child, keypath ) {
 		}
 
 		keypathToTest = fragment.context + '.' + keypath;
-		value = get( parent, keypathToTest );
+		value = parent.viewmodel.get( keypathToTest );
 
 		if ( value !== undefined ) {
 			createLateComponentBinding( parent, child, keypathToTest, keypath, value );
@@ -36,7 +29,7 @@ export default function getFromParent ( child, keypath ) {
 		}
 	} while ( fragment = fragment.parent );
 
-	value = get( parent, keypath );
+	value = parent.viewmodel.get( keypath );
 	if ( value !== undefined ) {
 		createLateComponentBinding( parent, child, keypath, keypath, value );
 		return value;

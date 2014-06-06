@@ -1,6 +1,5 @@
 import normaliseKeypath from 'utils/normaliseKeypath';
-import get from 'shared/get';
-import UnresolvedImplicitDependency from 'shared/get/UnresolvedImplicitDependency';
+import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
 
 var options = { isTopLevel: true };
 
@@ -9,7 +8,7 @@ export default function Ractive$get ( keypath ) {
 
 	keypath = normaliseKeypath( keypath );
 
-	value = get( this, keypath, options );
+	value = this.viewmodel.get( keypath, options );
 
 	// capture the dependency, if we're inside an evaluator
 	if ( this._captured && ( this._captured[ keypath ] !== true ) ) {
