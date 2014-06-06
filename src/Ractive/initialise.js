@@ -80,17 +80,7 @@ function initialiseProperties ( ractive, options ) {
 		// like dynamic functions or original values
 		_config: { value: {} },
 
-		// dependency graph
-		_deps: { value: [] },
-		_depsMap: { value: create( null ) },
-
 		_patternObservers: { value: [] },
-
-		// Keep a list of used evaluators, so we don't duplicate them
-		_evaluators: { value: create( null ) },
-
-		// Computed properties
-		_computations: { value: create( null ) },
 
 		// two-way bindings
 		_twowayBindings: { value: create( null ) },
@@ -108,9 +98,6 @@ function initialiseProperties ( ractive, options ) {
 
 		// components to init at the end of a mutation
 		_childInitQueue: { value: [] },
-
-		// data changes
-		_changes: { value: [] },
 
 		// failed lookups, when we try to access data from ancestor scopes
 		_unresolvedImplicitDependencies: { value: [] },

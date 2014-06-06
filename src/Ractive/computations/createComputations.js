@@ -6,6 +6,6 @@ export default function createComputations ( ractive, computed ) {
 
 	for ( key in computed ) {
 		signature = getComputationSignature( computed[ key ] );
-		ractive._computations[ key ] = new Computation( ractive, key, signature );
+		ractive.viewmodel.computations[ key ] = new Computation( ractive, key, signature );
 	}
 }

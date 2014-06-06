@@ -94,13 +94,13 @@ ExpressionResolver.prototype = {
 	},
 
 	createEvaluator: function () {
-		var evaluator = this.root._evaluators[ this.keypath ];
+		var evaluator = this.root.viewmodel.evaluators[ this.keypath ];
 
 		// only if it doesn't exist yet!
 		if ( !evaluator ) {
 			evaluator = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.owner.priority );
 
-			this.root._evaluators[ this.keypath ] = evaluator;
+			this.root.viewmodel.evaluators[ this.keypath ] = evaluator;
 			evaluator.update();
 		}
 

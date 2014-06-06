@@ -5,7 +5,7 @@ export default function ( ractive, keypath, newIndices, lengthUnchanged ) {
 
 	var updateDependant;
 
-	ractive._changes.push( keypath );
+	ractive.viewmodel.changes.push( keypath );
 
 	updateDependant = function ( dependant ) {
 		// references need to get processed before mustaches

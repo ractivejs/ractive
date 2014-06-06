@@ -1,7 +1,6 @@
 export default function Viewmodel$register ( dependant ) {
-	var depsByKeypath, deps, ractive, keypath, priority, evaluator;
+	var depsByKeypath, deps, keypath, priority, evaluator;
 
-	ractive = this.ractive;
 	keypath = dependant.keypath;
 	priority = dependant.priority;
 
@@ -15,7 +14,7 @@ export default function Viewmodel$register ( dependant ) {
 		return;
 	}
 
-	if ( evaluator = ractive._evaluators[ keypath ] ) {
+	if ( evaluator = this.evaluators[ keypath ] ) {
 		if ( !evaluator.dependants ) {
 			evaluator.wake();
 		}

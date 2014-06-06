@@ -26,7 +26,7 @@ export default function Viewmodel$adapt ( keypath, value, isExpressionResult ) {
 		}
 
 		if ( adaptor.filter( value, keypath, ractive ) ) {
-			wrapped = ractive.viewmodel.wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+			wrapped = this.wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 			wrapped.value = value;
 			return value;
 		}
@@ -36,16 +36,16 @@ export default function Viewmodel$adapt ( keypath, value, isExpressionResult ) {
 
 		if ( ractive.magic ) {
 			if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
-				ractive.viewmodel.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
+				this.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
 			}
 
 			else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-				ractive.viewmodel.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
+				this.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
 			}
 		}
 
 		else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
-			ractive.viewmodel.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
+			this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 		}
 	}
 

@@ -16,29 +16,29 @@ export default function Viewmodel$get ( keypath, options ) {
 	if ( cache[ keypath ] === undefined ) {
 
 		// Is this a computed property?
-		if ( computation = ractive._computations[ keypath ] ) {
+		if ( computation = this.computations[ keypath ] ) {
 			value = computation.value;
 		}
 
 		// Is this a wrapped property?
-		else if ( wrapped = ractive.viewmodel.wrapped[ keypath ] ) {
+		else if ( wrapped = this.wrapped[ keypath ] ) {
 			value = wrapped.value;
 		}
 
 		// Is it the root?
 		else if ( !keypath ) {
-			ractive.viewmodel.adapt( '', ractive.data );
+			this.adapt( '', ractive.data );
 			value = ractive.data;
 		}
 
 		// Is this an uncached evaluator value?
-		else if ( evaluator = ractive._evaluators[ keypath ] ) {
+		else if ( evaluator = this.evaluators[ keypath ] ) {
 			value = evaluator.value;
 		}
 
 		// No? Then we need to retrieve the value one key at a time
 		else {
-			value = retrieve( ractive, keypath );
+			value = retrieve( this, keypath );
 		}
 
 		cache[ keypath ] = value;
@@ -55,7 +55,7 @@ export default function Viewmodel$get ( keypath, options ) {
 		// of objects that are NOT missing could be optimistically
 		// bound to the wrong thing
 		firstKey = keypath.split( '.' )[0];
-		firstKeyDoesNotExist = ( firstKey === keypath ) || ractive.viewmodel.get( firstKey ) === undefined;
+		firstKeyDoesNotExist = ( firstKey === keypath ) || this.get( firstKey ) === undefined;
 
 		if ( ractive._parent && !ractive.isolated && firstKeyDoesNotExist ) {
 			value = getFromParent( ractive, keypath, options );
@@ -64,23 +64,23 @@ export default function Viewmodel$get ( keypath, options ) {
 		}
 	}
 
-	if ( options && options.evaluateWrapped && ( wrapped = ractive.viewmodel.wrapped[ keypath ] ) ) {
+	if ( options && options.evaluateWrapped && ( wrapped = this.wrapped[ keypath ] ) ) {
 		value = wrapped.get();
 	}
 
 	return value;
 }
 
-function retrieve ( ractive, keypath ) {
+function retrieve ( viewmodel, keypath ) {
 	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
 
 	keys = keypath.split( '.' );
 	key = keys.pop();
 	parentKeypath = keys.join( '.' );
 
-	parentValue = ractive.viewmodel.get( parentKeypath );
+	parentValue = viewmodel.get( parentKeypath );
 
-	if ( wrapped = ractive.viewmodel.wrapped[ parentKeypath ] ) {
+	if ( wrapped = viewmodel.wrapped[ parentKeypath ] ) {
 		parentValue = wrapped.get();
 	}
 
@@ -89,8 +89,8 @@ function retrieve ( ractive, keypath ) {
 	}
 
 	// update cache map
-	if ( !( cacheMap = ractive.viewmodel.cacheMap[ parentKeypath ] ) ) {
-		ractive.viewmodel.cacheMap[ parentKeypath ] = [ keypath ];
+	if ( !( cacheMap = viewmodel.cacheMap[ parentKeypath ] ) ) {
+		viewmodel.cacheMap[ parentKeypath ] = [ keypath ];
 	} else {
 		if ( cacheMap.indexOf( keypath ) === -1 ) {
 			cacheMap.push( keypath );
@@ -100,7 +100,7 @@ function retrieve ( ractive, keypath ) {
 	// If this property doesn't exist, we return a sentinel value
 	// so that we know to query parent scope (if such there be)
 	if ( typeof parentValue === 'object' && !( key in parentValue ) ) {
-		return ractive.viewmodel.cache[ keypath ] = FAILED_LOOKUP;
+		return viewmodel.cache[ keypath ] = FAILED_LOOKUP;
 	}
 
 	// If this value actually lives on the prototype of this
@@ -112,9 +112,9 @@ function retrieve ( ractive, keypath ) {
 	value = shouldClone ? clone( parentValue[ key ] ) : parentValue[ key ];
 
 	// Do we have an adaptor for this value?
-	value = ractive.viewmodel.adapt( keypath, value, false );
+	value = viewmodel.adapt( keypath, value, false );
 
 	// Update cache
-	ractive.viewmodel.cache[ keypath ] = value;
+	viewmodel.cache[ keypath ] = value;
 	return value;
 }

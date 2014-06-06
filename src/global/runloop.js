@@ -138,8 +138,8 @@ function flushChanges () {
 	while ( i-- ) {
 		thing = instances[i];
 
-		if ( thing._changes.length ) {
-			upstreamChanges = getUpstreamChanges( thing._changes );
+		if ( thing.viewmodel.changes.length ) {
+			upstreamChanges = getUpstreamChanges( thing.viewmodel.changes );
 			notifyDependants.multiple( thing, upstreamChanges, true );
 		}
 	}
@@ -187,10 +187,10 @@ function flushChanges () {
 	while ( thing = instances.pop() ) {
 		instances[ thing._guid ] = false;
 
-		if ( thing._changes.length ) {
+		if ( thing.viewmodel.changes.length ) {
 			changeHash = {};
 
-			while ( changedKeypath = thing._changes.pop() ) {
+			while ( changedKeypath = thing.viewmodel.changes.pop() ) {
 				changeHash[ changedKeypath ] = thing.viewmodel.get( changedKeypath );
 			}
 

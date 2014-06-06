@@ -16,6 +16,12 @@ var Viewmodel = function ( ractive ) {
 	this.depsMap = create( null );
 
 	this.wrapped = create( null );
+
+	// TODO these are conceptually very similar. Can they be merged somehow?
+	this.evaluators = create( null );
+	this.computations = create( null );
+
+	this.changes = [];
 };
 
 Viewmodel.prototype = {

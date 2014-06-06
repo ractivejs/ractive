@@ -198,7 +198,7 @@ function createAccessors ( originalWrapper, value, template ) {
 		wrapper.updating = true;
 		runloop.start( ractive );
 
-		ractive._changes.push( keypath );
+		ractive.viewmodel.changes.push( keypath );
 		ractive.viewmodel.clearCache( keypath );
 		notifyDependants( ractive, keypath );
 

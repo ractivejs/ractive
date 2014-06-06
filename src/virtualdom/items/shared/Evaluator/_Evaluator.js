@@ -93,7 +93,7 @@ Evaluator.prototype = {
 		}
 
 		this.root.viewmodel.clearCache( this.keypath );
-		this.root._evaluators[ this.keypath ] = null;
+		this.root.viewmodel.evaluators[ this.keypath ] = null;
 	},
 
 	invalidate: function () {

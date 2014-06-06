@@ -8,7 +8,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	root = wrapper.root;
 	keypath = wrapper.keypath;
 
-	root._changes.push( keypath );
+	root.viewmodel.changes.push( keypath );
 
 	// If this is a sort or reverse, we just do root.set()...
 	// TODO use merge logic?

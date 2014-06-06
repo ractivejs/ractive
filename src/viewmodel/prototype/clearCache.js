@@ -17,7 +17,7 @@ export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
 		}
 	}
 
-	if ( computation = ractive._computations[ keypath ] ) {
+	if ( computation = this.computations[ keypath ] ) {
 		computation.compute();
 	}
 

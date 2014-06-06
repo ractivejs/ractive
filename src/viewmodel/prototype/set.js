@@ -3,15 +3,15 @@ import createBranch from 'utils/createBranch';
 import notifyDependants from 'shared/notifyDependants';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
-	var ractive = this.ractive, keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
+	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
 	if ( isEqual( this.cache[ keypath ], value ) ) {
 		return;
 	}
 
-	computation = ractive._computations[ keypath ];
-	wrapper = ractive.viewmodel.wrapped[ keypath ];
-	evaluator = ractive._evaluators[ keypath ];
+	computation = this.computations[ keypath ];
+	wrapper = this.wrapped[ keypath ];
+	evaluator = this.evaluators[ keypath ];
 
 	if ( computation && !computation.setting ) {
 		computation.set( value );
@@ -41,26 +41,26 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 
 		parentKeypath = keys.join( '.' );
 
-		wrapper = ractive.viewmodel.wrapped[ parentKeypath ];
+		wrapper = this.wrapped[ parentKeypath ];
 
 		if ( wrapper && wrapper.set ) {
 			wrapper.set( lastKey, value );
 		} else {
-			parentValue = wrapper ? wrapper.get() : ractive.viewmodel.get( parentKeypath );
+			parentValue = wrapper ? wrapper.get() : this.get( parentKeypath );
 
 			if ( !parentValue ) {
 				parentValue = createBranch( lastKey );
-				ractive.viewmodel.set( parentKeypath, parentValue, true );
+				this.set( parentKeypath, parentValue, true );
 			}
 
 			parentValue[ lastKey ] = value;
 		}
 	}
 
-	ractive.viewmodel.clearCache( keypath, dontTeardownWrapper );
+	this.clearCache( keypath, dontTeardownWrapper );
 
 	if ( !silent ) {
-		ractive._changes.push( keypath );
-		notifyDependants( ractive, keypath );
+		this.changes.push( keypath );
+		notifyDependants( this.ractive, keypath );
 	}
 }
