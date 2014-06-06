@@ -151,6 +151,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">overridden</div>' );
 		});
 
+		[ 'number', 'range' ].forEach( function ( type ) {
+			test( 'input type=' + type + ' values are coerced', function ( t ) {
+				var ractive, inputs;
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{a}}" type="' + type + '"><input value="{{b}}" type="' + type + '">{{a}}+{{b}}={{a+b}}'
+				});
+
+				t.equal( ractive.get( 'a' ), undefined );
+				t.equal( ractive.get( 'b' ), undefined );
+
+				inputs = ractive.findAll( 'input' );
+				inputs[0].value = '40';
+				inputs[1].value = '2';
+				ractive.updateModel();
+				t.htmlEqual( fixture.innerHTML, '<input type="' + type + '"><input type="' + type + '">40+2=42' );
+			});
+		});
+
 	};
 
 });
