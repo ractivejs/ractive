@@ -10,6 +10,9 @@ var Viewmodel = function ( ractive ) {
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
+
+	this.deps = [];
+	this.depsMap = create( null );
 };
 
 Viewmodel.prototype = {

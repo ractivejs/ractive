@@ -25,7 +25,7 @@ export default function notifyPatternObservers ( ractive, registeredKeypath, act
 	// any pattern observer dependants of keypaths below any of
 	// 'foo.bar', 'foo.*', '*.bar' or '*.*' (e.g. 'foo.bar.*' or 'foo.*.baz' )
 	cascade = function ( keypath ) {
-		if ( children = ractive._depsMap[ keypath ] ) {
+		if ( children = ractive.viewmodel.depsMap[ keypath ] ) {
 			i = children.length;
 			while ( i-- ) {
 				child = children[i]; // foo.*.baz
@@ -51,7 +51,7 @@ export default function notifyPatternObservers ( ractive, registeredKeypath, act
 // This function takes a keypath such as 'foo.bar.baz', and returns
 // all the variants of that keypath that include a wildcard in place
 // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
-// These are then checked against the dependants map (ractive._depsMap)
+// These are then checked against the dependants map (ractive.viewmodel.depsMap)
 // to see if any pattern observers are downstream of one or more of
 // these wildcard keypaths (e.g. 'foo.bar.*.status')
 function getPotentialWildcardMatches ( keypath ) {

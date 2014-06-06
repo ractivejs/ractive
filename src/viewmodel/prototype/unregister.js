@@ -5,7 +5,7 @@ export default function Viewmodel$unregister ( dependant ) {
 	keypath = dependant.keypath;
 	priority = dependant.priority;
 
-	deps = ractive._deps[ priority ][ keypath ];
+	deps = this.deps[ priority ][ keypath ];
 	index = deps.indexOf( dependant );
 
 	if ( index === -1 || !dependant.registered ) {
@@ -27,10 +27,10 @@ export default function Viewmodel$unregister ( dependant ) {
 		}
 	}
 
-	updateDependantsMap( ractive, keypath );
+	updateDependantsMap( this, keypath );
 }
 
-function updateDependantsMap ( ractive, keypath ) {
+function updateDependantsMap ( viewmodel, keypath ) {
 	var keys, parentKeypath, map;
 
 	// update dependants map
@@ -40,7 +40,7 @@ function updateDependantsMap ( ractive, keypath ) {
 		keys.pop();
 		parentKeypath = keys.join( '.' );
 
-		map = ractive._depsMap[ parentKeypath ];
+		map = viewmodel.depsMap[ parentKeypath ];
 
 		map[ keypath ] -= 1;
 

@@ -67,7 +67,7 @@ function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes
 	}
 
 	// cascade
-	childDeps = ractive._depsMap[ keypath ];
+	childDeps = ractive.viewmodel.depsMap[ keypath ];
 
 	if ( childDeps ) {
 		i = childDeps.length;

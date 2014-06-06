@@ -46,7 +46,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	};
 
 	// Go through all dependant priority levels, finding smart update targets
-	root._deps.forEach( function ( depsByKeypath ) {
+	root.viewmodel.deps.forEach( function ( depsByKeypath ) {
 		var dependants = depsByKeypath[ keypath ];
 
 		if ( dependants ) {
