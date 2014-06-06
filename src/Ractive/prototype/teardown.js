@@ -10,9 +10,7 @@ export default function Ractive$teardown ( callback ) {
 	this.fragment.teardown();
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
-	for ( keypath in this._cache ) {
-		this.viewmodel.clearCache( keypath );
-	}
+	this.viewmodel.clearCache();
 
 	// Teardown any failed lookups - we don't need them to resolve any more
 	while ( unresolvedImplicitDependency = this._unresolvedImplicitDependencies.pop() ) {

@@ -1,5 +1,11 @@
 export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
-	var ractive = this.ractive, cacheMap, wrapper, computation;
+	var ractive = this.ractive, clearAll, cacheMap, wrapper, computation;
+
+	if ( keypath === undefined ) {
+		// Clear everything
+		Object.keys( this.cache ).forEach( keypath => this.clearCache( keypath ) );
+		return;
+	}
 
 	if ( !dontTeardownWrapper ) {
 		// Is there a wrapped property at this keypath?
@@ -15,11 +21,11 @@ export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
 		computation.compute();
 	}
 
-	ractive._cache[ keypath ] = undefined;
+	this.cache[ keypath ] = undefined;
 
-	if ( cacheMap = ractive._cacheMap[ keypath ] ) {
+	if ( cacheMap = this.cacheMap[ keypath ] ) {
 		while ( cacheMap.length ) {
-			ractive.viewmodel.clearCache( cacheMap.pop() );
+			this.clearCache( cacheMap.pop() );
 		}
 	}
 }

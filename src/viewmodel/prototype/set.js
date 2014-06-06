@@ -5,7 +5,7 @@ import notifyDependants from 'shared/notifyDependants';
 export default function Viewmodel$set ( keypath, value, silent ) {
 	var ractive = this.ractive, keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
-	if ( isEqual( ractive._cache[ keypath ], value ) ) {
+	if ( isEqual( this.cache[ keypath ], value ) ) {
 		return;
 	}
 

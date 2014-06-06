@@ -6,7 +6,7 @@ import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
 
 export default function Viewmodel$get ( keypath, options ) {
 	var ractive = this.ractive,
-		cache = ractive._cache,
+		cache = this.cache,
 		value,
 		firstKey,
 		firstKeyDoesNotExist,
@@ -90,8 +90,8 @@ function retrieve ( ractive, keypath ) {
 	}
 
 	// update cache map
-	if ( !( cacheMap = ractive._cacheMap[ parentKeypath ] ) ) {
-		ractive._cacheMap[ parentKeypath ] = [ keypath ];
+	if ( !( cacheMap = ractive.viewmodel.cacheMap[ parentKeypath ] ) ) {
+		ractive.viewmodel.cacheMap[ parentKeypath ] = [ keypath ];
 	} else {
 		if ( cacheMap.indexOf( keypath ) === -1 ) {
 			cacheMap.push( keypath );
@@ -101,7 +101,7 @@ function retrieve ( ractive, keypath ) {
 	// If this property doesn't exist, we return a sentinel value
 	// so that we know to query parent scope (if such there be)
 	if ( typeof parentValue === 'object' && !( key in parentValue ) ) {
-		return ractive._cache[ keypath ] = FAILED_LOOKUP;
+		return ractive.viewmodel.cache[ keypath ] = FAILED_LOOKUP;
 	}
 
 	// If this value actually lives on the prototype of this
@@ -116,6 +116,6 @@ function retrieve ( ractive, keypath ) {
 	value = adaptIfNecessary( ractive, keypath, value, false );
 
 	// Update cache
-	ractive._cache[ keypath ] = value;
+	ractive.viewmodel.cache[ keypath ] = value;
 	return value;
 }
