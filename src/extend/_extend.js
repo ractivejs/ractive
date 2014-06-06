@@ -27,6 +27,8 @@ export default function extend ( childProps ) {
 
 	var Parent = this, Child;
 
+	childProps = childProps || {};
+
 	// if we're extending with another Ractive instance, inherit its
 	// prototype methods and default options as well
 	if ( childProps.prototype instanceof Ractive ) {

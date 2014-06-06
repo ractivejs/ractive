@@ -14,7 +14,7 @@ catch ( err ) {
 config = optionConfig( 'magic' );
 config.preExtend = config.preInit = validate;
 
-function validate( target, options ) {
+function validate( parent, target, options ) {
 
 	if ( options.magic && noMagic ) {
 		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
