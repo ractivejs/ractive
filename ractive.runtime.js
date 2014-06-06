@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-06 - commit 504432c1 
+	2014-06-06 - commit c6144061 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1396,7 +1396,7 @@
 				var parentValue, optionValue, result;
 				options = options || {};
 				if ( this.preExtend ) {
-					this.preExtend( Child, options );
+					this.preExtend( Parent, Child, options );
 				}
 				parentValue = this.getParentValue( Parent );
 				optionValue = this.getOptionValue( options );
@@ -1413,7 +1413,7 @@
 				var parentValue, optionValue, result;
 				options = options || {};
 				if ( this.preInit ) {
-					this.preInit( ractive, options );
+					this.preInit( Parent, ractive, options );
 				}
 				parentValue = this.getParentValue( Parent );
 				optionValue = this.getOptionValue( options );
@@ -1737,6 +1737,21 @@
 		}
 	}( baseConfiguration, create, wrapMethod );
 
+	/* config/options/debug.js */
+	var debug = function( optionConfig ) {
+
+		var config = optionConfig( 'debug' );
+		config.preExtend = config.preInit = copyFromConstructor;
+
+		function copyFromConstructor( parent, target, options ) {
+			if ( !options.hasOwnProperty( 'debug' ) && parent.hasOwnProperty( 'debug' ) ) {
+				options.debug = parent.debug;
+				delete parent.debug;
+			}
+		}
+		return config;
+	}( option );
+
 	/* config/options/complete.js */
 	var complete = function( baseConfig, wrapMethod ) {
 
@@ -1777,7 +1792,7 @@
 		config = optionConfig( 'magic' );
 		config.preExtend = config.preInit = validate;
 
-		function validate( target, options ) {
+		function validate( parent, target, options ) {
 			if ( options.magic && noMagic ) {
 				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 			}
@@ -2622,11 +2637,12 @@
 	}( optionGroup, registry, adaptors, events );
 
 	/* config/config.js */
-	var config = function( adapt, basicConfig, css, data, defaults, complete, magic, computed, template, parseOptions, registries ) {
+	var config = function( adapt, basicConfig, css, data, debug, defaults, complete, magic, computed, template, parseOptions, registries ) {
 
 		var custom, options, config;
 		custom = {
 			data: data,
+			debug: debug,
 			complete: complete,
 			computed: computed,
 			adapt: adapt,
@@ -2640,7 +2656,7 @@
 			return !registries[ key ] && !custom[ key ] && !parseOptions[ key ];
 		} ).map( basicConfig );
 		// this defines the order:
-		config = [].concat( custom.data, parseOptions, options, custom.adapt, custom.magic, custom.complete, custom.computed, registries, custom.template, custom.css );
+		config = [].concat( custom.debug, custom.data, parseOptions, options, custom.adapt, custom.magic, custom.complete, custom.computed, registries, custom.template, custom.css );
 		// for iteration
 		config.keys = config.map( function( config ) {
 			return config.name;
@@ -2660,6 +2676,11 @@
 		config.init = function( Parent, ractive, options ) {
 			config.forEach( function( c ) {
 				c.init( Parent, ractive, options );
+				// this is done soley for init( options )
+				options[ c.name ] = ractive[ c.name ];
+				if ( ractive._config ) {
+					ractive._config.options = options;
+				}
 			} );
 		};
 		config.reset = function( ractive ) {
@@ -2668,7 +2689,7 @@
 			} );
 		};
 		return config;
-	}( adapt, option, config_options_css_css, data, options, complete, magic, computed, template, parseOptions, registries );
+	}( adapt, option, config_options_css_css, data, debug, options, complete, magic, computed, template, parseOptions, registries );
 
 	/* shared/get/arrayAdaptor/getSpliceEquivalent.js */
 	var getSpliceEquivalent = function( array, methodName, args ) {
@@ -4763,10 +4784,7 @@
 
 		function init( instance ) {
 			if ( instance.init ) {
-				// options all get copied to instance
-				// which is same as this, but less breaking
-				// to continue to include...
-				instance.init( instance );
+				instance.init( instance._config.options );
 			}
 			instance._childInitQueue.splice( 0 ).forEach( init );
 		}
@@ -11392,6 +11410,7 @@
 		return function extend( childProps ) {
 			var Parent = this,
 				Child;
+			childProps = childProps || {};
 			// if we're extending with another Ractive instance, inherit its
 			// prototype methods and default options as well
 			if ( childProps.prototype instanceof Ractive ) {
