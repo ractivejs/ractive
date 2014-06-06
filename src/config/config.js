@@ -12,7 +12,15 @@ import registries from 'config/options/groups/registries';
 
 var custom, options, config;
 
-custom = { data, complete, computed, adapt, magic, template, css };
+custom = {
+	data: data,
+	complete: complete,
+	computed: computed,
+	adapt: adapt,
+	magic: magic,
+	template: template,
+	css: css
+};
 
 // fill in basicConfig for all default options not covered by
 // registries, parse options, and any custom configuration
