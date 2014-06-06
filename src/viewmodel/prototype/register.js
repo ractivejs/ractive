@@ -1,7 +1,7 @@
-export default function registerDependant ( dependant ) {
+export default function Viewmodel$register ( dependant ) {
 	var depsByKeypath, deps, ractive, keypath, priority, evaluator;
 
-	ractive = dependant.root;
+	ractive = this.ractive;
 	keypath = dependant.keypath;
 	priority = dependant.priority;
 

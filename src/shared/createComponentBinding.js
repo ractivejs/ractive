@@ -1,8 +1,6 @@
 import runloop from 'global/runloop';
 import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
 
 var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
 	this.root = ractive;
@@ -12,7 +10,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
-	registerDependant( this );
+	ractive.viewmodel.register( this );
 
 	this.value = this.root.viewmodel.get( this.keypath );
 };
@@ -46,18 +44,18 @@ Binding.prototype = {
 	},
 
 	rebind: function ( newKeypath ) {
-		unregisterDependant( this );
-		unregisterDependant( this.counterpart );
+		this.root.viewmodel.unregister( this );
+		this.counterpart.root.viewmodel.unregister( this.counterpart );
 
 		this.keypath = newKeypath;
 		this.counterpart.otherKeypath = newKeypath;
 
-		registerDependant( this );
-		registerDependant( this.counterpart );
+		this.root.viewmodel.register( this );
+		this.counterpart.root.viewmodel.register( this.counterpart );
 	},
 
 	teardown: function () {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 };
 

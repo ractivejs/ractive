@@ -1,31 +1,29 @@
 import types from 'config/types';
 import isEqual from 'utils/isEqual';
 import defineProperty from 'utils/defineProperty';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
 
 var Reference, thisPattern;
 thisPattern = /this/;
 
-Reference = function ( root, keypath, evaluator, argNum, priority ) {
+Reference = function ( ractive, keypath, evaluator, argNum, priority ) {
 	var value;
 
 	this.evaluator = evaluator;
 	this.keypath = keypath;
-	this.root = root;
+	this.root = ractive;
 	this.argNum = argNum;
 	this.type = types.REFERENCE;
 	this.priority = priority;
 
-	value = root.get( keypath );
+	value = ractive.get( keypath );
 
 	if ( typeof value === 'function' && !value._nowrap ) {
-		value = wrapFunction( value, root, evaluator );
+		value = wrapFunction( value, ractive, evaluator );
 	}
 
 	this.value = evaluator.values[ argNum ] = value;
 
-	registerDependant( this );
+	ractive.viewmodel.register( this );
 };
 
 Reference.prototype = {
@@ -47,7 +45,7 @@ Reference.prototype = {
 	},
 
 	teardown: function () {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 };
 

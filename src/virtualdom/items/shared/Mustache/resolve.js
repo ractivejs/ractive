@@ -1,6 +1,3 @@
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
-
 export default function Mustache$resolve ( keypath ) {
 	var rebindTarget;
 
@@ -13,7 +10,7 @@ export default function Mustache$resolve ( keypath ) {
 
 	// if we resolved previously, we need to unregister
 	if ( this.registered ) {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 
 		// need to rebind the element, if this belongs to one, for keypath changes
 		if ( this.parentFragment &&
@@ -33,7 +30,7 @@ export default function Mustache$resolve ( keypath ) {
 	}
 
 	this.keypath = keypath;
-	registerDependant( this );
+	this.root.viewmodel.register( this );
 
 	this.setValue( this.root.viewmodel.get( keypath ) );
 }

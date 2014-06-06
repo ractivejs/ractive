@@ -1,15 +1,13 @@
 import isEqual from 'utils/isEqual';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
 
-var SoftReference = function ( root, keypath, evaluator ) {
-	this.root = root;
+var SoftReference = function ( ractive, keypath, evaluator ) {
+	this.root = ractive;
 	this.keypath = keypath;
 	this.priority = evaluator.priority;
 
 	this.evaluator = evaluator;
 
-	registerDependant( this );
+	ractive.viewmodel.register( this );
 };
 
 SoftReference.prototype = {
@@ -21,7 +19,7 @@ SoftReference.prototype = {
 	},
 
 	teardown: function () {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 };
 

@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import unregisterDependant from 'shared/unregisterDependant';
 
 export default function ( thing ) {
 	if ( !thing.keypath ) {
@@ -7,6 +6,6 @@ export default function ( thing ) {
 		runloop.removeUnresolved( thing );
 	} else {
 		// this was registered as a dependant
-		unregisterDependant( thing );
+		thing.root.viewmodel.unregister( thing );
 	}
 }

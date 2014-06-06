@@ -1,7 +1,7 @@
-export default function unregisterDependant ( dependant ) {
+export default function Viewmodel$unregister ( dependant ) {
 	var deps, index, ractive, keypath, priority, evaluator;
 
-	ractive = dependant.root;
+	ractive = this.ractive;
 	keypath = dependant.keypath;
 	priority = dependant.priority;
 
