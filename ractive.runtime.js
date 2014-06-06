@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-06 - commit 324e8576 
+	2014-06-06 - commit 504432c1 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2576,8 +2576,8 @@
 
 		var config = registry( {
 			name: 'events',
-			preInit: deprecate,
-			postInit: deprecate
+			preExtend: deprecate,
+			preInit: deprecate
 		} );
 		var message = 'ractive.eventDefinitions has been deprecated in favour of ractive.events. ';
 
@@ -8725,7 +8725,7 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/render.js */
-	var virtualdom_items_Element_EventHandler$render = function( warn ) {
+	var virtualdom_items_Element_EventHandler$render = function( warn, config ) {
 
 		var alreadyWarned = {},
 			customHandlers = {};
@@ -8733,7 +8733,7 @@
 			var name = this.name,
 				definition;
 			this.node = this.element.node;
-			if ( definition = this.root.events[ name ] ) {
+			if ( definition = config.registries.events.find( this.root, name ) ) {
 				this.custom = definition( this.node, getCustomHandler( name ) );
 			} else {
 				// Looks like we're dealing with a standard DOM event... but let's check
@@ -8775,7 +8775,7 @@
 			}
 			return customHandlers[ name ];
 		}
-	}( warn );
+	}( warn, config );
 
 	/* virtualdom/items/Element/EventHandler/prototype/teardown.js */
 	var virtualdom_items_Element_EventHandler$teardown = function EventHandler$teardown() {
