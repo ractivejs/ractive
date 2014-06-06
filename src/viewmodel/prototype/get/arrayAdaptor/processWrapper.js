@@ -1,5 +1,4 @@
 import types from 'config/types';
-import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import notifyPatternObservers from 'shared/notifyPatternObservers';
 
@@ -27,7 +26,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	// ...otherwise we do a smart update whereby elements are added/removed
 	// in the right place. But we do need to clear the cache downstream
 	for ( i = spliceSummary.rangeStart; i < spliceSummary.clearEnd; i += 1 ) {
-		clearCache( root, keypath + '.' + i );
+		root.viewmodel.clearCache( keypath + '.' + i );
 	}
 
 	// Propagate changes. First, pattern observers
@@ -69,7 +68,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	// but doesn't) this needs to happen before other updates. But doing so causes
 	// other mental problems. not sure what's going on...
 	if ( spliceSummary.balance ) {
-		clearCache( root, keypath + '.length' );
+		root.viewmodel.clearCache( keypath + '.length' );
 		notifyDependants( root, keypath + '.length', true );
 	}
 }

@@ -1,6 +1,5 @@
 import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
-import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
@@ -58,7 +57,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 		}
 	}
 
-	clearCache( ractive, keypath, dontTeardownWrapper );
+	ractive.viewmodel.clearCache( keypath, dontTeardownWrapper );
 
 	if ( !silent ) {
 		ractive._changes.push( keypath );

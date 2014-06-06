@@ -1,5 +1,5 @@
-export default function clearCache ( ractive, keypath, dontTeardownWrapper ) {
-	var cacheMap, wrapper, computation;
+export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
+	var ractive = this.ractive, cacheMap, wrapper, computation;
 
 	if ( !dontTeardownWrapper ) {
 		// Is there a wrapped property at this keypath?
@@ -19,7 +19,7 @@ export default function clearCache ( ractive, keypath, dontTeardownWrapper ) {
 
 	if ( cacheMap = ractive._cacheMap[ keypath ] ) {
 		while ( cacheMap.length ) {
-			clearCache( ractive, cacheMap.pop() );
+			ractive.viewmodel.clearCache( cacheMap.pop() );
 		}
 	}
 }

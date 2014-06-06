@@ -1,5 +1,4 @@
 import Promise from 'utils/Promise';
-import clearCache from 'shared/clearCache';
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
@@ -12,7 +11,7 @@ export default function Ractive$teardown ( callback ) {
 
 	// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
 	for ( keypath in this._cache ) {
-		clearCache( this, keypath );
+		this.viewmodel.clearCache( keypath );
 	}
 
 	// Teardown any failed lookups - we don't need them to resolve any more
