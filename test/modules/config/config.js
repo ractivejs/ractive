@@ -12,7 +12,7 @@ define([
 
 	return function () {
 
-		var Child, ractive;
+		var Child, ractive, fixture = document.getElementById( 'qunit-fixture' );
 
 		function configureRactive () {
 			Child = void 0;
@@ -97,6 +97,27 @@ define([
 
 			t.equal( config.registries.adaptors.find( ractive, 'foo' ), adaptor1 );
 			t.equal( config.registries.adaptors.find( ractive, 'bar' ), adaptor2 );
+
+		});
+
+		module( 'options' );
+
+		test( 'are passed to init with correct values ', t => {
+
+			expect( 2 );
+
+			var Component = Ractive.extend({
+				init: function ( options ) {
+					t.equal( options.foo, 'bar' );
+					t.ok( options.magic );
+				}
+			});
+
+			var ractive = new Component({
+				el: fixture,
+				foo: 'bar',
+				magic: true
+			});
 
 		});
 

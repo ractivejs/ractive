@@ -14,7 +14,7 @@ BaseConfiguration.prototype = {
 		options = options || {};
 
 		if( this.preExtend ) {
-			this.preExtend( Child, options );
+			this.preExtend( Parent, Child, options );
 		}
 
 		parentValue = this.getParentValue( Parent );
@@ -39,7 +39,7 @@ BaseConfiguration.prototype = {
 		options = options || {};
 
 		if( this.preInit ) {
-			this.preInit( ractive, options );
+			this.preInit( Parent, ractive, options );
 		}
 
 		parentValue = this.getParentValue( Parent );

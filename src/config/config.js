@@ -2,6 +2,7 @@ import adapt from 'config/options/adapt';
 import basicConfig from 'config/options/option';
 import css from 'config/options/css/css';
 import data from 'config/options/data';
+import debug from 'config/options/debug';
 import defaults from 'config/defaults/options';
 import complete from 'config/options/complete';
 import magic from 'config/options/magic';
@@ -14,6 +15,7 @@ var custom, options, config;
 
 custom = {
 	data: data,
+	debug: debug,
 	complete: complete,
 	computed: computed,
 	adapt: adapt,
@@ -30,6 +32,7 @@ options = Object.keys( defaults )
 
 // this defines the order:
 config = [].concat(
+	custom.debug,
 	custom.data,
 	parseOptions,
 	options,
@@ -62,7 +65,15 @@ config.extend = function ( Parent, Child, options ) {
 
 config.init = function ( Parent, ractive, options ) {
 	config.forEach( c => {
+
 		c.init( Parent, ractive, options );
+
+		// this is done soley for init( options )
+		options[ c.name ] = ractive[ c.name ];
+		if ( ractive._config ) {
+			ractive._config.options = options;
+		}
+
 	});
 };
 
