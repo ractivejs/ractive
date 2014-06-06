@@ -1,6 +1,5 @@
 import warn from 'utils/warn';
 import runloop from 'global/runloop';
-import set from 'shared/set';
 import Watcher from 'Ractive/computations/Watcher';
 
 var Computation = function ( ractive, key, signature ) {
@@ -61,7 +60,7 @@ Computation.prototype = {
 	update: function () {
 		if ( this.compute() ) {
 			this.setting = true;
-			set( this.ractive, this.key, this.value );
+			this.ractive.viewmodel.set( this.key, this.value );
 			this.setting = false;
 		}
 

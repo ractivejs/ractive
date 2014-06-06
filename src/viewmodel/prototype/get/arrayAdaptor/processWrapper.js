@@ -2,7 +2,6 @@ import types from 'config/types';
 import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import notifyPatternObservers from 'shared/notifyPatternObservers';
-import set from 'shared/set';
 
 export default function ( wrapper, array, methodName, spliceSummary ) {
 	var root, keypath, updateDependant, i, childKeypath;
@@ -15,7 +14,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	// If this is a sort or reverse, we just do root.set()...
 	// TODO use merge logic?
 	if ( methodName === 'sort' || methodName === 'reverse' ) {
-		set( root, keypath, array );
+		root.viewmodel.set( keypath, array );
 		return;
 	}
 

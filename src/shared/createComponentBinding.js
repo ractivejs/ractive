@@ -1,15 +1,8 @@
-import circular from 'circular';
 import runloop from 'global/runloop';
 import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
 import registerDependant from 'shared/registerDependant';
 import unregisterDependant from 'shared/unregisterDependant';
-
-var set;
-
-circular.push( function () {
-	set = circular.set;
-});
 
 var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
 	this.root = ractive;
@@ -43,7 +36,7 @@ Binding.prototype = {
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
 			runloop.addInstance( this.otherInstance );
-			set( this.otherInstance, this.otherKeypath, value );
+			this.otherInstance.viewmodel.set( this.otherKeypath, value );
 			this.value = value;
 
 			// TODO will the counterpart update after this line, during

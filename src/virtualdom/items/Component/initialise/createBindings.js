@@ -1,5 +1,4 @@
 import createComponentBinding from 'shared/createComponentBinding';
-import set from 'shared/set';
 
 export default function createInitialComponentBindings ( component, toBind ) {
 	toBind.forEach( function createInitialComponentBinding ( pair ) {
@@ -11,7 +10,7 @@ export default function createInitialComponentBindings ( component, toBind ) {
 		parentValue = component.root.viewmodel.get( pair.parentKeypath );
 
 		if ( childValue !== undefined && parentValue === undefined ) {
-			set( component.root, pair.parentKeypath, childValue );
+			component.root.viewmodel.set( pair.parentKeypath, childValue );
 		}
 	});
 }

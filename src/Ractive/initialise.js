@@ -5,17 +5,16 @@ import getElement from 'utils/getElement';
 import getGuid from 'utils/getGuid';
 import Viewmodel from 'viewmodel/Viewmodel';
 import Fragment from 'virtualdom/Fragment';
-import set from 'shared/set';
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
+
+	// TEMPORARY. This is so we can implement Viewmodel gradually
+	ractive.viewmodel = new Viewmodel( ractive );
 
 	initialiseProperties( ractive, options );
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
-
-	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
 
 	// Render our *root fragment*
 	ractive.fragment = new Fragment({
@@ -144,7 +143,7 @@ function setCheckboxBindings ( ractive ) {
 
 	for ( let keypath in ractive._checkboxNameBindings ) {
 		if ( ractive.viewmodel.get( keypath ) === undefined ) {
-			set( ractive, keypath, ractive._checkboxNameBindings[ keypath ].reduce( ( array, b ) => {
+			ractive.viewmodel.set( keypath, ractive._checkboxNameBindings[ keypath ].reduce( ( array, b ) => {
 				if ( b.isChecked ) {
 					array.push( b.element.getAttribute( 'value' ) );
 				}

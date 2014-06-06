@@ -1,6 +1,5 @@
 import runloop from 'global/runloop';
 import removeFromArray from 'utils/removeFromArray';
-import set from 'shared/set';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
@@ -68,7 +67,7 @@ var CheckboxNameBinding = Binding.extend({
 		});
 
 		runloop.start( this.root );
-		set( this.root, this.keypath, value );
+		this.root.viewmodel.set( this.keypath, value );
 		runloop.end();
 	},
 

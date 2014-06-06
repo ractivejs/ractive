@@ -7,12 +7,7 @@ import getUpstreamChanges from 'shared/getUpstreamChanges';
 import notifyDependants from 'shared/notifyDependants';
 import makeTransitionManager from 'shared/makeTransitionManager';
 
-circular.push( function () {
-	set = circular.set;
-});
-
 var runloop,
-	set,
 
 	dirty = false,
 	flushing = false,
@@ -166,7 +161,7 @@ function flushChanges () {
 		}
 
 		while ( thing = checkboxBindings.pop() ) {
-			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+			thing.root.viewmodel.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			checkboxKeypaths[ thing.keypath ] = false;
 		}
 

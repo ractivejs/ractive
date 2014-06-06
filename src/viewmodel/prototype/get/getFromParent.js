@@ -1,5 +1,4 @@
 import createComponentBinding from 'shared/createComponentBinding';
-import set from 'shared/set';
 
 export default function getFromParent ( child, keypath ) {
 	var parent, fragment, keypathToTest, value, index;
@@ -37,6 +36,6 @@ export default function getFromParent ( child, keypath ) {
 }
 
 function createLateComponentBinding ( parent, child, parentKeypath, childKeypath, value ) {
-	set( child, childKeypath, value, true );
+	child.viewmodel.set( childKeypath, value, true );
 	createComponentBinding( child.component, parent, parentKeypath, childKeypath );
 }
