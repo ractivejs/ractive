@@ -34,6 +34,17 @@ define([
 
 		});
 
+		test( 'can be set on Ractive after extend', function ( t ) {
+			var Component, ractive;
+
+			Component = Ractive.extend();
+			Ractive.debug = true;
+			ractive = new Component();
+
+			t.ok( ractive.debug );
+
+		});
+
 	};
 
 
