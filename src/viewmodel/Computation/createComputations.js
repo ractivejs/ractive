@@ -1,5 +1,5 @@
-import getComputationSignature from 'Ractive/computations/getComputationSignature';
-import Computation from 'Ractive/computations/Computation';
+import getComputationSignature from 'viewmodel/Computation/getComputationSignature';
+import Computation from 'viewmodel/Computation/Computation';
 
 export default function createComputations ( ractive, computed ) {
 	var key, signature;

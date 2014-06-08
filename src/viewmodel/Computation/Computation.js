@@ -1,6 +1,6 @@
 import warn from 'utils/warn';
 import runloop from 'global/runloop';
-import Watcher from 'Ractive/computations/Watcher';
+import Watcher from 'viewmodel/Computation/Watcher';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
