@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-08 - commit 34605da6 
+	2014-06-08 - commit 6d9865eb 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1789,19 +1789,28 @@
 	}( baseConfiguration, create, wrapMethod );
 
 	/* config/options/debug.js */
-	var debug = function( optionConfig ) {
+	var debug = function( optionConfig, circular ) {
 
+		var Ractive;
+		circular.push( function() {
+			Ractive = circular.Ractive;
+		} );
 		var config = optionConfig( 'debug' );
 		config.preExtend = config.preInit = copyFromConstructor;
 
 		function copyFromConstructor( parent, target, options ) {
-			if ( !options.hasOwnProperty( 'debug' ) && parent.hasOwnProperty( 'debug' ) ) {
-				options.debug = parent.debug;
-				delete parent.debug;
+			// if not explicitly set on options
+			if ( !( 'debug' in options ) ) {
+				// ok to use Parent.defaults.debug
+				if ( 'debug' in parent ) {
+					options.debug = parent.debug;
+				} else if ( Ractive && ( Ractive.defaults && Ractive.defaults.debug || Ractive.debug ) ) {
+					options.debug = true;
+				}
 			}
 		}
 		return config;
-	}( option );
+	}( option, circular );
 
 	/* config/options/complete.js */
 	var complete = function( baseConfig, wrapMethod ) {
