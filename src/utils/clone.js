@@ -1,20 +1,27 @@
 import isArray from 'utils/isArray';
+import isBoolean from 'utils/isBoolean';
+import isDate from 'utils/isDate';
+import isNumber from 'utils/isNumber';
+import isRegExp from 'utils/isRegExp';
+import isString from 'utils/isString';
 
 export default function ( source ) {
 	var target, key;
 
-	if ( !source || typeof source !== 'object'
-				 // don't get punk'd by js "wat?" ;)
-				 || source instanceof Date
-				 || source instanceof Boolean
-				 || source instanceof Number
-				 || source instanceof String ) {
-
+	if ( !source || isBoolean( source ) || isNumber( source ) || isString( source ) ) {
 		return source;
 	}
 
 	if ( isArray( source ) ) {
 		return source.slice();
+	}
+
+	if ( isDate( source ) ) {
+		return new Date( source );
+	}
+
+	if ( isRegExp( source ) ) {
+		return new RegExp( source );
 	}
 
 	target = {};
