@@ -9,7 +9,7 @@ module.exports = function ( grunt) {
 		moduleTemplate = grunt.file.read( templateDir + 'module.html' )
 
 	function setLevels(filepath){
-    	var levels = path.relative( path.resolve( filepath ), path.resolve( testDir ) );
+    	var levels = path.relative( path.resolve( filepath ), path.resolve( testDir ) ).replace(/\\/g, '/');
 		levels = levels.substring( 0, levels.length-2 );
     	grunt.config( 'levels', levels );
 	}
@@ -41,6 +41,7 @@ module.exports = function ( grunt) {
 		        process: function(src, filepath) {
 		        	var module = path
 			        		.relative(moduleDir, filepath)
+							.replace(/\\/g, '/')
 							.replace(/\.js$/, ''),
 						all = grunt.config('allTestModules') || [];
 
