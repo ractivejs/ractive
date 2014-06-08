@@ -6,8 +6,9 @@ define([ 'utils/clone' ], function ( clone ) {
 
 		module( 'clone');
 
-		test( 'clone returns on new Primitive() objects', function ( t ) {
+		test( 'clone returns on functions and new Primitive() objects', function ( t ) {
 			var val;
+			t.equal( val = function () {}, clone ( val ) );
 			t.equal( val = new Boolean(true), clone( val ) );
 			t.equal( val = new Number(4), clone( val ) );
 			t.equal( val = new String('wat?'), clone( val ) );

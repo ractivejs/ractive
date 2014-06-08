@@ -8,7 +8,7 @@ import isString from 'utils/isString';
 export default function ( source ) {
 	var target, key;
 
-	if ( !source || isBoolean( source ) || isNumber( source ) || isString( source ) ) {
+	if ( !source || typeof source === 'function' || isBoolean( source ) || isNumber( source ) || isString( source ) ) {
 		return source;
 	}
 
