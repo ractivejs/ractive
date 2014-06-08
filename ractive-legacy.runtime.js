@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-08 - commit e41fe8f7 
+	2014-06-08 - commit 34605da6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1262,16 +1262,67 @@
 		return animations;
 	}( requestAnimationFrame, getTime, runloop );
 
+	/* utils/isBoolean.js */
+	var isBoolean = function() {
+
+		var toString = Object.prototype.toString;
+		return function( thing ) {
+			return typeof thing === 'boolean' || typeof thing === 'object' && toString.call( thing ) === '[object Boolean]';
+		};
+	}();
+
+	/* utils/isDate.js */
+	var isDate = function() {
+
+		var toString = Object.prototype.toString;
+		return function( thing ) {
+			return toString.call( thing ) === '[object Date]';
+		};
+	}();
+
+	/* utils/isNumber.js */
+	var isNumber = function() {
+
+		var toString = Object.prototype.toString;
+		return function( thing ) {
+			return typeof thing === 'number' || typeof thing === 'object' && toString.call( thing ) === '[object Number]';
+		};
+	}();
+
+	/* utils/isRegExp.js */
+	var isRegExp = function() {
+
+		var toString = Object.prototype.toString;
+		return function( thing ) {
+			return toString.call( thing ) === '[object RegExp]';
+		};
+	}();
+
+	/* utils/isString.js */
+	var isString = function() {
+
+		var toString = Object.prototype.toString;
+		return function( thing ) {
+			return typeof thing === 'string' || typeof thing === 'object' && toString.call( thing ) === '[object String]';
+		};
+	}();
+
 	/* utils/clone.js */
-	var clone = function( isArray ) {
+	var clone = function( isArray, isBoolean, isDate, isNumber, isRegExp, isString ) {
 
 		return function( source ) {
 			var target, key;
-			if ( !source || typeof source !== 'object' || source instanceof Date || source instanceof Boolean || source instanceof Number || source instanceof String ) {
+			if ( !source || typeof source === 'function' || isBoolean( source ) || isNumber( source ) || isString( source ) ) {
 				return source;
 			}
 			if ( isArray( source ) ) {
 				return source.slice();
+			}
+			if ( isDate( source ) ) {
+				return new Date( source );
+			}
+			if ( isRegExp( source ) ) {
+				return new RegExp( source );
 			}
 			target = {};
 			for ( key in source ) {
@@ -1281,7 +1332,7 @@
 			}
 			return target;
 		};
-	}( isArray );
+	}( isArray, isBoolean, isDate, isNumber, isRegExp, isString );
 
 	/* utils/warn.js */
 	var warn = function() {
