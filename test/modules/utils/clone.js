@@ -28,7 +28,11 @@ define([ 'utils/clone' ], function ( clone ) {
 				cVal = clone ( val );
 
 			t.equal( val.toString() , cVal.toString() );
-			t.notEqual( val, cVal );
+
+			// doesn't work in Phantom https://github.com/ariya/phantomjs/issues/11494
+			if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
+				t.notEqual( val, cVal );
+			}
 		});
 	};
 
