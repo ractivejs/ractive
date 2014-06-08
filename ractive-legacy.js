@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-06 - commit c6144061 
+	2014-06-08 - commit e41fe8f7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1267,7 +1267,7 @@
 
 		return function( source ) {
 			var target, key;
-			if ( !source || typeof source !== 'object' ) {
+			if ( !source || typeof source !== 'object' || source instanceof Date || source instanceof Boolean || source instanceof Number || source instanceof String ) {
 				return source;
 			}
 			if ( isArray( source ) ) {
