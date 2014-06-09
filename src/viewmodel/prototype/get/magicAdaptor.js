@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import createBranch from 'utils/createBranch';
 import isArray from 'utils/isArray';
-import notifyDependants from 'shared/notifyDependants';
 
 var magicAdaptor, MagicWrapper;
 
@@ -200,7 +199,7 @@ function createAccessors ( originalWrapper, value, template ) {
 
 		ractive.viewmodel.changes.push( keypath );
 		ractive.viewmodel.clearCache( keypath );
-		notifyDependants( ractive, keypath );
+		ractive.viewmodel.notifyDependants( keypath );
 
 		runloop.end();
 		wrapper.updating = false;

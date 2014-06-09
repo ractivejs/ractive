@@ -3,6 +3,7 @@ import adapt from 'viewmodel/prototype/adapt';
 import capture from 'viewmodel/prototype/capture';
 import clearCache from 'viewmodel/prototype/clearCache';
 import get from 'viewmodel/prototype/get';
+import notifyDependants from 'viewmodel/prototype/notifyDependants';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
@@ -17,6 +18,7 @@ var Viewmodel = function ( ractive ) {
 
 	this.deps = [];
 	this.depsMap = create( null );
+	this.patternObservers = [];
 
 	this.wrapped = create( null );
 
@@ -35,6 +37,7 @@ Viewmodel.prototype = {
 	capture: capture,
 	clearCache: clearCache,
 	get: get,
+	notifyDependants: notifyDependants,
 	register: register,
 	release: release,
 	set: set,

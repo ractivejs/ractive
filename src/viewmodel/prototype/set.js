@@ -1,6 +1,5 @@
 import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
-import notifyDependants from 'shared/notifyDependants';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
 	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
@@ -61,6 +60,6 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 
 	if ( !silent ) {
 		this.changes.push( keypath );
-		notifyDependants( this.ractive, keypath );
+		this.notifyDependants( keypath );
 	}
 }

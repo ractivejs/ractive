@@ -1,12 +1,21 @@
-import notifyPatternObservers from 'shared/notifyPatternObservers';
+import isArray from 'utils/isArray';
+import notifyPatternObservers from 'viewmodel/prototype/notifyDependants/notifyPatternObservers';
 
 var unwrap = { evaluateWrapped: true };
+
+export default function Viewmodel$notifyDependants ( keypath ) {
+	if ( isArray( keypath ) ) {
+		notifyUpstreamDependants( this.ractive, keypath )
+	} else {
+		notifyDependants( this.ractive, keypath );
+	}
+}
 
 function notifyDependants ( ractive, keypath, onlyDirect ) {
 	var i;
 
 	// Notify any pattern observers
-	if ( ractive._patternObservers.length ) {
+	if ( ractive.viewmodel.patternObservers.length ) {
 		notifyPatternObservers( ractive, keypath, keypath, onlyDirect, true );
 	}
 
@@ -15,16 +24,16 @@ function notifyDependants ( ractive, keypath, onlyDirect ) {
 	}
 }
 
-notifyDependants.multiple = function notifyMultipleDependants ( ractive, keypaths, onlyDirect ) {
+function notifyUpstreamDependants ( ractive, keypaths ) {
 	var i, j, len;
 
 	len = keypaths.length;
 
 	// Notify any pattern observers
-	if ( ractive._patternObservers.length ) {
+	if ( ractive.viewmodel.patternObservers.length ) {
 		i = len;
 		while ( i-- ) {
-			notifyPatternObservers( ractive, keypaths[i], keypaths[i], onlyDirect, true );
+			notifyPatternObservers( ractive, keypaths[i], keypaths[i], true, true );
 		}
 	}
 
@@ -32,13 +41,11 @@ notifyDependants.multiple = function notifyMultipleDependants ( ractive, keypath
 		if ( ractive.viewmodel.deps[i] ) {
 			j = len;
 			while ( j-- ) {
-				notifyDependantsAtPriority( ractive, keypaths[j], i, onlyDirect );
+				notifyDependantsAtPriority( ractive, keypaths[j], i, true );
 			}
 		}
 	}
-};
-
-export default notifyDependants;
+}
 
 function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
 	var depsByKeypath = ractive.viewmodel.deps[ priority ], value, unwrapped;

@@ -1,5 +1,4 @@
 import types from 'config/types';
-import notifyDependants from 'shared/notifyDependants';
 
 export default function ( ractive, keypath, newIndices, lengthUnchanged ) {
 
@@ -37,6 +36,6 @@ export default function ( ractive, keypath, newIndices, lengthUnchanged ) {
 	// but doesn't) this needs to happen before other updates. But doing so causes
 	// other mental problems. not sure what's going on...
 	if ( !lengthUnchanged ) {
-		notifyDependants( ractive, keypath + '.length', true );
+		ractive.viewmodel.notifyDependants( keypath + '.length', true );
 	}
 }

@@ -3,8 +3,7 @@ import css from 'global/css';
 import removeFromArray from 'utils/removeFromArray';
 import getValueFromCheckboxes from 'shared/getValueFromCheckboxes';
 import resolveRef from 'shared/resolveRef';
-import getUpstreamChanges from 'shared/getUpstreamChanges';
-import notifyDependants from 'shared/notifyDependants';
+import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
 import makeTransitionManager from 'shared/makeTransitionManager';
 
 var runloop,
@@ -138,9 +137,10 @@ function flushChanges () {
 	while ( i-- ) {
 		thing = instances[i];
 
+		// TODO this stuff doesn't belong to the runloop
 		if ( thing.viewmodel.changes.length ) {
 			upstreamChanges = getUpstreamChanges( thing.viewmodel.changes );
-			notifyDependants.multiple( thing, upstreamChanges, true );
+			thing.viewmodel.notifyDependants( upstreamChanges );
 		}
 	}
 

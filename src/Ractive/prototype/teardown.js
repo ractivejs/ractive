@@ -4,7 +4,7 @@ import Promise from 'utils/Promise';
 // and generally cleaning up after itself
 
 export default function Ractive$teardown ( callback ) {
-	var promise, unresolvedImplicitDependency;
+	var promise;
 
 	this.fire( 'teardown' );
 	this.fragment.teardown();

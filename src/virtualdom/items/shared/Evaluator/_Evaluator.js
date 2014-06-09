@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
-import notifyDependants from 'shared/notifyDependants';
 import Reference from 'virtualdom/items/shared/Evaluator/Reference';
 import SoftReference from 'virtualdom/items/shared/Evaluator/SoftReference';
 
@@ -80,7 +79,7 @@ Evaluator.prototype = {
 			this.root.viewmodel.clearCache( this.keypath );
 
 			this.root.viewmodel.adapt( this.keypath, value, true );
-			notifyDependants( this.root, this.keypath );
+			this.root.viewmodel.notifyDependants( this.keypath );
 		}
 
 		return this;

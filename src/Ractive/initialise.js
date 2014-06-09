@@ -80,8 +80,6 @@ function initialiseProperties ( ractive, options ) {
 		// like dynamic functions or original values
 		_config: { value: {} },
 
-		_patternObservers: { value: [] },
-
 		// two-way bindings
 		_twowayBindings: { value: create( null ) },
 		_checkboxNameBindings: { value: create( null ) },

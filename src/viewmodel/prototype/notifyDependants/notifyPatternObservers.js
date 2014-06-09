@@ -7,15 +7,11 @@ export default function notifyPatternObservers ( ractive, registeredKeypath, act
 
 	// First, observers that match patterns at the same level
 	// or higher in the tree
-	i = ractive.viewmodel.patternObservers.length;
-	while ( i-- ) {
-		patternObserver = ractive.viewmodel.patternObservers[i];
-
+	ractive.viewmodel.patternObservers.forEach( patternObserver => {
 		if ( patternObserver.regex.test( actualKeypath ) ) {
 			patternObserver.update( actualKeypath );
 		}
-	}
-
+	});
 
 	if ( isParentOfChangedKeypath ) {
 		return;

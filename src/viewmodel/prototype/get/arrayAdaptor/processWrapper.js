@@ -1,5 +1,4 @@
 import types from 'config/types';
-import notifyDependants from 'shared/notifyDependants';
 import notifyPatternObservers from 'shared/notifyPatternObservers';
 
 export default function ( wrapper, array, methodName, spliceSummary ) {
@@ -30,7 +29,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	}
 
 	// Propagate changes. First, pattern observers
-	if ( root._patternObservers.length ) {
+	if ( root.viewmodel.patternObservers.length ) {
 		for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
 			notifyPatternObservers( root, keypath + '.' + i, keypath + '.' + i, false, true );
 		}
@@ -58,7 +57,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	if ( spliceSummary.added && spliceSummary.removed ) {
 		for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
 			childKeypath = keypath + '.' + i;
-			notifyDependants( root, childKeypath );
+			root.viewmodel.notifyDependants( childKeypath );
 		}
 	}
 
@@ -69,6 +68,6 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	// other mental problems. not sure what's going on...
 	if ( spliceSummary.balance ) {
 		root.viewmodel.clearCache( keypath + '.length' );
-		notifyDependants( root, keypath + '.length', true );
+		root.viewmodel.notifyDependants( keypath + '.length', true );
 	}
 }

@@ -13,7 +13,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 	// pattern observers are treated differently
 	if ( wildcard.test( keypath ) ) {
 		observer = new PatternObserver( ractive, keypath, callback, options );
-		ractive._patternObservers.push( observer );
+		ractive.viewmodel.patternObservers.push( observer );
 		isPatternObserver = true;
 	} else {
 		observer = new Observer( ractive, keypath, callback, options );
@@ -30,10 +30,10 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 			var index;
 
 			if ( isPatternObserver ) {
-				index = ractive._patternObservers.indexOf( observer );
+				index = ractive.viewmodel.patternObservers.indexOf( observer );
 
 				if ( index !== -1 ) {
-					ractive._patternObservers.splice( index, 1 );
+					ractive.viewmodel.patternObservers.splice( index, 1 );
 				}
 			}
 
