@@ -33,11 +33,7 @@ Computation.prototype = {
 		var ractive, originalCaptured, errored;
 
 		ractive = this.ractive;
-		originalCaptured = ractive._captured;
-
-		if ( !originalCaptured ) {
-			ractive._captured = [];
-		}
+		ractive.viewmodel.capture();
 
 		try {
 			this.value = this.getter.call( ractive );
@@ -49,10 +45,7 @@ Computation.prototype = {
 			errored = true;
 		}
 
-		diff( this, this.watchers, ractive._captured );
-
-		// reset
-		ractive._captured = originalCaptured;
+		diff( this, this.watchers, ractive.viewmodel.release() );
 
 		return errored ? false : true;
 	},

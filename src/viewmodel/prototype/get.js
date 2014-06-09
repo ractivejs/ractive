@@ -2,8 +2,11 @@ import hasOwnProperty from 'utils/hasOwnProperty';
 import clone from 'utils/clone';
 import getFromParent from 'viewmodel/prototype/get/getFromParent';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
+import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
 
-export default function Viewmodel$get ( keypath, options ) {
+var empty = {};
+
+export default function Viewmodel$get ( keypath, options = empty ) {
 	var ractive = this.ractive,
 		cache = this.cache,
 		value,
@@ -64,8 +67,21 @@ export default function Viewmodel$get ( keypath, options ) {
 		}
 	}
 
-	if ( options && options.evaluateWrapped && ( wrapped = this.wrapped[ keypath ] ) ) {
+	if ( options.evaluateWrapped && ( wrapped = this.wrapped[ keypath ] ) ) {
 		value = wrapped.get();
+	}
+
+	// capture the keypath, if we're inside a computation or evaluator
+	if ( this.capturing && this.captured[ keypath ] !== true ) {
+		this.captured.push( keypath );
+		this.captured[ keypath ] = true;
+
+		// if we couldn't resolve the keypath, we need to make it as a failed
+		// lookup, so that the evaluator updates correctly once we CAN
+		// resolve the keypath
+		if ( value === undefined && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
+			new UnresolvedImplicitDependency( this, keypath );
+		}
 	}
 
 	return value;

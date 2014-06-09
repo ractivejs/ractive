@@ -99,9 +99,6 @@ function initialiseProperties ( ractive, options ) {
 		// components to init at the end of a mutation
 		_childInitQueue: { value: [] },
 
-		// failed lookups, when we try to access data from ancestor scopes
-		_unresolvedImplicitDependencies: { value: [] },
-
 		// instance parseOptions are stored here
 		parseOptions: { value: {} }
 	});

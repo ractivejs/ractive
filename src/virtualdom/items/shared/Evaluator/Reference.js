@@ -69,26 +69,19 @@ function wrapFunction ( fn, ractive, evaluator ) {
 		// ...we need to do some work
 		defineProperty( fn, '_' + ractive._guid, {
 			value: function () {
-				var originalCaptured, result, i, evaluator;
+				var capturedKeypaths, result, i, evaluator;
 
-				originalCaptured = ractive._captured;
-
-				if ( !originalCaptured ) {
-					ractive._captured = [];
-				}
-
+				ractive.viewmodel.capture();
 				result = fn.apply( ractive, arguments );
+				capturedKeypaths = ractive.viewmodel.release();
 
-				if ( ractive._captured.length ) {
+				if ( capturedKeypaths.length ) {
 					i = evaluators.length;
 					while ( i-- ) {
 						evaluator = evaluators[i];
-						evaluator.updateSoftDependencies( ractive._captured );
+						evaluator.updateSoftDependencies( capturedKeypaths );
 					}
 				}
-
-				// reset
-				ractive._captured = originalCaptured;
 
 				return result;
 			},

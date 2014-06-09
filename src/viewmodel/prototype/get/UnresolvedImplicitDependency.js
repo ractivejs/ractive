@@ -4,25 +4,25 @@ import notifyDependants from 'shared/notifyDependants';
 
 var empty = {};
 
-var UnresolvedImplicitDependency = function ( ractive, keypath ) {
-	this.root = ractive;
+var UnresolvedImplicitDependency = function ( viewmodel, keypath ) {
+	this.viewmodel = viewmodel;
+
+	this.root = viewmodel.ractive; // TODO eliminate this
 	this.ref = keypath;
 	this.parentFragment = empty;
 
-	ractive._unresolvedImplicitDependencies[ keypath ] = true;
-	ractive._unresolvedImplicitDependencies.push( this );
+	viewmodel.unresolvedImplicitDependencies[ keypath ] = true;
+	viewmodel.unresolvedImplicitDependencies.push( this );
 
 	runloop.addUnresolved( this );
 };
 
 UnresolvedImplicitDependency.prototype = {
 	resolve: function () {
-		var ractive = this.root;
+		notifyDependants( this.viewmodel.ractive, this.ref );
 
-		notifyDependants( ractive, this.ref );
-
-		ractive._unresolvedImplicitDependencies[ this.ref ] = false;
-		removeFromArray( ractive._unresolvedImplicitDependencies, this );
+		this.viewmodel.unresolvedImplicitDependencies[ this.ref ] = false;
+		removeFromArray( this.viewmodel.unresolvedImplicitDependencies, this );
 	},
 
 	teardown: function () {

@@ -1,27 +1,8 @@
 import normaliseKeypath from 'utils/normaliseKeypath';
-import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
 
-var options = { isTopLevel: true };
+var options = { capture: true }; // top-level calls should be intercepted
 
 export default function Ractive$get ( keypath ) {
-	var value;
-
 	keypath = normaliseKeypath( keypath );
-
-	value = this.viewmodel.get( keypath, options );
-
-	// capture the dependency, if we're inside an evaluator
-	if ( this._captured && ( this._captured[ keypath ] !== true ) ) {
-		this._captured.push( keypath );
-		this._captured[ keypath ] = true;
-
-		// if we couldn't resolve the keypath, we need to make it as a failed
-		// lookup, so that the evaluator updates correctly once we CAN
-		// resolve the keypath
-		if ( value === undefined && ( this._unresolvedImplicitDependencies[ keypath ] !== true ) ) {
-			new UnresolvedImplicitDependency( this, keypath );
-		}
-	}
-
-	return value;
+	return this.viewmodel.get( keypath, options );
 }
