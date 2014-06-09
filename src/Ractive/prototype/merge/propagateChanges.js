@@ -5,7 +5,7 @@ export default function ( ractive, keypath, newIndices, lengthUnchanged ) {
 
 	var updateDependant;
 
-	ractive._changes.push( keypath );
+	ractive.viewmodel.changes.push( keypath );
 
 	updateDependant = function ( dependant ) {
 		// references need to get processed before mustaches
@@ -23,7 +23,7 @@ export default function ( ractive, keypath, newIndices, lengthUnchanged ) {
 	};
 
 	// Go through all dependant priority levels, finding merge targets
-	ractive._deps.forEach( function ( depsByKeypath ) {
+	ractive.viewmodel.deps.forEach( function ( depsByKeypath ) {
 		var dependants = depsByKeypath[ keypath ];
 
 		if ( dependants ) {

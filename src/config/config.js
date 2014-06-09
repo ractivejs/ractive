@@ -22,7 +22,7 @@ custom = {
 	magic: magic,
 	template: template,
 	css: css
-}
+};
 
 // fill in basicConfig for all default options not covered by
 // registries, parse options, and any custom configuration

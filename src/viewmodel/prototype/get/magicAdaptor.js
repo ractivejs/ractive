@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import createBranch from 'utils/createBranch';
 import isArray from 'utils/isArray';
-import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 
 var magicAdaptor, MagicWrapper;
@@ -23,7 +22,7 @@ try {
 
 			// If the parent value is a wrapper, other than a magic wrapper,
 			// we shouldn't wrap this property
-			if ( ( parentWrapper = ractive._wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
+			if ( ( parentWrapper = ractive.viewmodel.wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
 				return false;
 			}
 
@@ -86,7 +85,7 @@ try {
 
 			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
-			clearCache( this.ractive, this.keypath );
+			this.ractive.viewmodel.clearCache( this.keypath );
 			this.updating = false;
 		},
 		set: function ( key, value ) {
@@ -199,8 +198,8 @@ function createAccessors ( originalWrapper, value, template ) {
 		wrapper.updating = true;
 		runloop.start( ractive );
 
-		ractive._changes.push( keypath );
-		clearCache( ractive, keypath );
+		ractive.viewmodel.changes.push( keypath );
+		ractive.viewmodel.clearCache( keypath );
 		notifyDependants( ractive, keypath );
 
 		runloop.end();

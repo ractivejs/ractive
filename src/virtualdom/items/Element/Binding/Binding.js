@@ -2,8 +2,6 @@ import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import create from 'utils/create';
 import extend from 'utils/extend';
-import get from 'shared/get';
-import set from 'shared/set';
 
 var Binding = function ( element ) {
 	var interpolator;
@@ -43,8 +41,8 @@ var Binding = function ( element ) {
 	// initialise value, if it's undefined
 	// TODO could we use a similar mechanism instead of the convoluted
 	// select/checkbox init logic?
-	if ( get( this.root, this.keypath ) === undefined && this.getInitialValue ) {
-		set( this.root, this.keypath, this.getInitialValue() );
+	if ( this.root.viewmodel.get( this.keypath ) === undefined && this.getInitialValue ) {
+		this.root.viewmodel.set( this.keypath, this.getInitialValue() );
 	}
 };
 
@@ -52,7 +50,7 @@ Binding.prototype = {
 	handleChange: function () {
 		runloop.lockAttribute( this.attribute );
 		runloop.start( this.root );
-		set( this.root, this.keypath, this.getValue() );
+		this.root.viewmodel.set( this.keypath, this.getValue() );
 		runloop.end();
 	},
 

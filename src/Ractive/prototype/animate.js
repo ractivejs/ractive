@@ -2,7 +2,6 @@ import isEqual from 'utils/isEqual';
 import Promise from 'utils/Promise';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import animations from 'shared/animations';
-import get from 'shared/get';
 import Animation from 'Ractive/prototype/animate/Animation';
 
 var noop = function () {}, noAnimation = {
@@ -138,7 +137,7 @@ function animate ( root, keypath, to, options ) {
 	}
 
 	if ( keypath !== null ) {
-		from = get( root, keypath );
+		from = root.viewmodel.get( keypath );
 	}
 
 	// cancel any existing animation

@@ -1,16 +1,6 @@
-import circular from 'circular';
 import runloop from 'global/runloop';
 import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
-
-var get, set;
-
-circular.push( function () {
-	get = circular.get;
-	set = circular.set;
-});
 
 var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
 	this.root = ractive;
@@ -20,9 +10,9 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
-	registerDependant( this );
+	ractive.viewmodel.register( this );
 
-	this.value = get( this.root, this.keypath );
+	this.value = this.root.viewmodel.get( this.keypath );
 };
 
 Binding.prototype = {
@@ -44,7 +34,7 @@ Binding.prototype = {
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
 			runloop.addInstance( this.otherInstance );
-			set( this.otherInstance, this.otherKeypath, value );
+			this.otherInstance.viewmodel.set( this.otherKeypath, value );
 			this.value = value;
 
 			// TODO will the counterpart update after this line, during
@@ -54,18 +44,18 @@ Binding.prototype = {
 	},
 
 	rebind: function ( newKeypath ) {
-		unregisterDependant( this );
-		unregisterDependant( this.counterpart );
+		this.root.viewmodel.unregister( this );
+		this.counterpart.root.viewmodel.unregister( this.counterpart );
 
 		this.keypath = newKeypath;
 		this.counterpart.otherKeypath = newKeypath;
 
-		registerDependant( this );
-		registerDependant( this.counterpart );
+		this.root.viewmodel.register( this );
+		this.counterpart.root.viewmodel.register( this.counterpart );
 	},
 
 	teardown: function () {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 };
 

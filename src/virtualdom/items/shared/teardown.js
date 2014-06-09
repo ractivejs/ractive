@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import unregisterDependant from 'shared/unregisterDependant';
 
 export default function teardown () {
 	if ( !this.keypath ) {
@@ -7,6 +6,6 @@ export default function teardown () {
 		runloop.removeUnresolved( this );
 	} else {
 		// this was registered as a dependant
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 }

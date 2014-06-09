@@ -1,7 +1,6 @@
 import warn from 'utils/warn';
 import runloop from 'global/runloop';
-import set from 'shared/set';
-import Watcher from 'Ractive/computations/Watcher';
+import Watcher from 'viewmodel/Computation/Watcher';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
@@ -34,11 +33,7 @@ Computation.prototype = {
 		var ractive, originalCaptured, errored;
 
 		ractive = this.ractive;
-		originalCaptured = ractive._captured;
-
-		if ( !originalCaptured ) {
-			ractive._captured = [];
-		}
+		ractive.viewmodel.capture();
 
 		try {
 			this.value = this.getter.call( ractive );
@@ -50,10 +45,7 @@ Computation.prototype = {
 			errored = true;
 		}
 
-		diff( this, this.watchers, ractive._captured );
-
-		// reset
-		ractive._captured = originalCaptured;
+		diff( this, this.watchers, ractive.viewmodel.release() );
 
 		return errored ? false : true;
 	},
@@ -61,7 +53,7 @@ Computation.prototype = {
 	update: function () {
 		if ( this.compute() ) {
 			this.setting = true;
-			set( this.ractive, this.key, this.value );
+			this.ractive.viewmodel.set( this.key, this.value );
 			this.setting = false;
 		}
 

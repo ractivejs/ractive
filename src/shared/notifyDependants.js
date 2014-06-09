@@ -1,12 +1,6 @@
 import notifyPatternObservers from 'shared/notifyPatternObservers';
-import circular from 'circular';
 
-var get,
-	unwrap = { evaluateWrapped: true };
-
-circular.push( function () {
-	get = circular.get;
-});
+var unwrap = { evaluateWrapped: true };
 
 function notifyDependants ( ractive, keypath, onlyDirect ) {
 	var i;
@@ -16,7 +10,7 @@ function notifyDependants ( ractive, keypath, onlyDirect ) {
 		notifyPatternObservers( ractive, keypath, keypath, onlyDirect, true );
 	}
 
-	for ( i=0; i<ractive._deps.length; i+=1 ) { // can't cache ractive._deps.length, it may change
+	for ( i=0; i<ractive.viewmodel.deps.length; i+=1 ) { // can't cache ractive.viewmodel.deps.length, it may change
 		notifyDependantsAtPriority( ractive, keypath, i, onlyDirect );
 	}
 }
@@ -34,8 +28,8 @@ notifyDependants.multiple = function notifyMultipleDependants ( ractive, keypath
 		}
 	}
 
-	for ( i=0; i<ractive._deps.length; i+=1 ) {
-		if ( ractive._deps[i] ) {
+	for ( i=0; i<ractive.viewmodel.deps.length; i+=1 ) {
+		if ( ractive.viewmodel.deps[i] ) {
 			j = len;
 			while ( j-- ) {
 				notifyDependantsAtPriority( ractive, keypaths[j], i, onlyDirect );
@@ -47,15 +41,15 @@ notifyDependants.multiple = function notifyMultipleDependants ( ractive, keypath
 export default notifyDependants;
 
 function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
-	var depsByKeypath = ractive._deps[ priority ], value, unwrapped;
+	var depsByKeypath = ractive.viewmodel.deps[ priority ], value, unwrapped;
 
 	if ( !depsByKeypath ) {
 		return;
 	}
 
 	// update dependants of this keypath
-	value = get( ractive, keypath );
-	unwrapped = get( ractive, keypath, unwrap );
+	value = ractive.viewmodel.get( keypath );
+	unwrapped = ractive.viewmodel.get( keypath, unwrap );
 
 	updateAll( depsByKeypath[ keypath ], value, unwrapped );
 
@@ -66,7 +60,7 @@ function notifyDependantsAtPriority ( ractive, keypath, priority, onlyDirect ) {
 	}
 
 	// otherwise, cascade
-	cascade( ractive._depsMap[ keypath ], ractive, priority );
+	cascade( ractive.viewmodel.depsMap[ keypath ], ractive, priority );
 }
 
 function updateAll ( dependants, value, unwrapped ) {

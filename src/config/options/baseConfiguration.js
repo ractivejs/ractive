@@ -73,7 +73,7 @@ BaseConfiguration.prototype = {
 
 	assign: function ( target, value ) {
 
-		if ( empty( value ) ) { return; }
+		if ( value == undefined ) { return; }
 
 		target[ this.name ] = value;
 	},
@@ -91,12 +91,6 @@ BaseConfiguration.prototype = {
 		if ( options ) { return options[ this.name ]; }
 	}
 };
-
-function empty ( value ) {
-
-	// allow '', 0, false, etc:
-	return typeof value === 'undefined' || value === null;
-}
 
 
 

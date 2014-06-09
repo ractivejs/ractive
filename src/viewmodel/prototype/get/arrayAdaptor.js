@@ -1,6 +1,6 @@
 import defineProperty from 'utils/defineProperty';
 import isArray from 'utils/isArray';
-import patch from 'shared/get/arrayAdaptor/patch';
+import patch from 'viewmodel/prototype/get/arrayAdaptor/patch';
 
 var arrayAdaptor,
 
@@ -66,7 +66,7 @@ ArrayWrapper.prototype = {
 		// a change that the array itself triggered, we can save ourselves the teardown
 		// and immediate setup
 		if ( storage.setting ) {
-			return false; // so that we don't remove it from this.root._wrapped
+			return false; // so that we don't remove it from this.root.viewmodel.wrapped
 		}
 
 		index = wrappers.indexOf( this );

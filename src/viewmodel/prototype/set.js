@@ -1,25 +1,17 @@
-import circular from 'circular';
 import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
-import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 
-var get;
-
-circular.push( function () {
-	get = circular.get;
-});
-
-function set ( ractive, keypath, value, silent ) {
+export default function Viewmodel$set ( keypath, value, silent ) {
 	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
-	if ( isEqual( ractive._cache[ keypath ], value ) ) {
+	if ( isEqual( this.cache[ keypath ], value ) ) {
 		return;
 	}
 
-	computation = ractive._computations[ keypath ];
-	wrapper = ractive._wrapped[ keypath ];
-	evaluator = ractive._evaluators[ keypath ];
+	computation = this.computations[ keypath ];
+	wrapper = this.wrapped[ keypath ];
+	evaluator = this.evaluators[ keypath ];
 
 	if ( computation && !computation.setting ) {
 		computation.set( value );
@@ -49,29 +41,26 @@ function set ( ractive, keypath, value, silent ) {
 
 		parentKeypath = keys.join( '.' );
 
-		wrapper = ractive._wrapped[ parentKeypath ];
+		wrapper = this.wrapped[ parentKeypath ];
 
 		if ( wrapper && wrapper.set ) {
 			wrapper.set( lastKey, value );
 		} else {
-			parentValue = wrapper ? wrapper.get() : get( ractive, parentKeypath );
+			parentValue = wrapper ? wrapper.get() : this.get( parentKeypath );
 
 			if ( !parentValue ) {
 				parentValue = createBranch( lastKey );
-				set( ractive, parentKeypath, parentValue, true );
+				this.set( parentKeypath, parentValue, true );
 			}
 
 			parentValue[ lastKey ] = value;
 		}
 	}
 
-	clearCache( ractive, keypath, dontTeardownWrapper );
+	this.clearCache( keypath, dontTeardownWrapper );
 
 	if ( !silent ) {
-		ractive._changes.push( keypath );
-		notifyDependants( ractive, keypath );
+		this.changes.push( keypath );
+		notifyDependants( this.ractive, keypath );
 	}
 }
-
-circular.set = set;
-export default set;

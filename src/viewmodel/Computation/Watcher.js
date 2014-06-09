@@ -1,6 +1,4 @@
 import isEqual from 'utils/isEqual';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
 
 var Watcher = function ( computation, keypath ) {
 	this.root = computation.ractive;
@@ -9,7 +7,7 @@ var Watcher = function ( computation, keypath ) {
 
 	this.computation = computation;
 
-	registerDependant( this );
+	this.root.viewmodel.register( this );
 };
 
 Watcher.prototype = {
@@ -21,7 +19,7 @@ Watcher.prototype = {
 	},
 
 	teardown: function () {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 };
 

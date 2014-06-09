@@ -7,14 +7,7 @@ import getUpstreamChanges from 'shared/getUpstreamChanges';
 import notifyDependants from 'shared/notifyDependants';
 import makeTransitionManager from 'shared/makeTransitionManager';
 
-circular.push( function () {
-	get = circular.get;
-	set = circular.set;
-});
-
 var runloop,
-	get,
-	set,
 
 	dirty = false,
 	flushing = false,
@@ -145,8 +138,8 @@ function flushChanges () {
 	while ( i-- ) {
 		thing = instances[i];
 
-		if ( thing._changes.length ) {
-			upstreamChanges = getUpstreamChanges( thing._changes );
+		if ( thing.viewmodel.changes.length ) {
+			upstreamChanges = getUpstreamChanges( thing.viewmodel.changes );
 			notifyDependants.multiple( thing, upstreamChanges, true );
 		}
 	}
@@ -168,7 +161,7 @@ function flushChanges () {
 		}
 
 		while ( thing = checkboxBindings.pop() ) {
-			set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
+			thing.root.viewmodel.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
 			checkboxKeypaths[ thing.keypath ] = false;
 		}
 
@@ -194,11 +187,11 @@ function flushChanges () {
 	while ( thing = instances.pop() ) {
 		instances[ thing._guid ] = false;
 
-		if ( thing._changes.length ) {
+		if ( thing.viewmodel.changes.length ) {
 			changeHash = {};
 
-			while ( changedKeypath = thing._changes.pop() ) {
-				changeHash[ changedKeypath ] = get( thing, changedKeypath );
+			while ( changedKeypath = thing.viewmodel.changes.pop() ) {
+				changeHash[ changedKeypath ] = thing.viewmodel.get( changedKeypath );
 			}
 
 			thing.fire( 'change', changeHash );

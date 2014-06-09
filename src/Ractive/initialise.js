@@ -3,14 +3,13 @@ import create from 'utils/create';
 import defineProperties from 'utils/defineProperties';
 import getElement from 'utils/getElement';
 import getGuid from 'utils/getGuid';
+import Viewmodel from 'viewmodel/Viewmodel';
 import Fragment from 'virtualdom/Fragment';
-import get from 'shared/get';
-import set from 'shared/set';
 
-export default function initialiseRactiveInstance ( ractive, options ) {
+export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
-	// Allow empty constructor
-	options = options || {};
+	// TEMPORARY. This is so we can implement Viewmodel gradually
+	ractive.viewmodel = new Viewmodel( ractive );
 
 	initialiseProperties( ractive, options );
 
@@ -77,25 +76,11 @@ function initialiseProperties ( ractive, options ) {
 		// events
 		_subs: { value: create( null ), configurable: true },
 
-		// cache
-		_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null
-		_cacheMap: { value: create( null ) },
-
 		// storage for item configuration from instantiation to reset,
 		// like dynamic functions or original values
-		'_config': { value: {} },
-
-		// dependency graph
-		_deps: { value: [] },
-		_depsMap: { value: create( null ) },
+		_config: { value: {} },
 
 		_patternObservers: { value: [] },
-
-		// Keep a list of used evaluators, so we don't duplicate them
-		_evaluators: { value: create( null ) },
-
-		// Computed properties
-		_computations: { value: create( null ) },
 
 		// two-way bindings
 		_twowayBindings: { value: create( null ) },
@@ -107,21 +92,12 @@ function initialiseProperties ( ractive, options ) {
 		// nodes registry
 		nodes: { value: {} },
 
-		// property wrappers
-		_wrapped: { value: create( null ) },
-
 		// live queries
 		_liveQueries: { value: [] },
 		_liveComponentQueries: { value: [] },
 
 		// components to init at the end of a mutation
 		_childInitQueue: { value: [] },
-
-		// data changes
-		_changes: { value: [] },
-
-		// failed lookups, when we try to access data from ancestor scopes
-		_unresolvedImplicitDependencies: { value: [] },
 
 		// instance parseOptions are stored here
 		parseOptions: { value: {} }
@@ -143,8 +119,8 @@ function initialiseProperties ( ractive, options ) {
 function setCheckboxBindings ( ractive ) {
 
 	for ( let keypath in ractive._checkboxNameBindings ) {
-		if ( get( ractive, keypath ) === undefined ) {
-			set( ractive, keypath, ractive._checkboxNameBindings[ keypath ].reduce( ( array, b ) => {
+		if ( ractive.viewmodel.get( keypath ) === undefined ) {
+			ractive.viewmodel.set( keypath, ractive._checkboxNameBindings[ keypath ].reduce( ( array, b ) => {
 				if ( b.isChecked ) {
 					array.push( b.element.getAttribute( 'value' ) );
 				}

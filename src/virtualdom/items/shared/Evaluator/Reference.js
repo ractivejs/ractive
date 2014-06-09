@@ -1,32 +1,29 @@
 import types from 'config/types';
 import isEqual from 'utils/isEqual';
 import defineProperty from 'utils/defineProperty';
-import get from 'shared/get';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
 
 var Reference, thisPattern;
 thisPattern = /this/;
 
-Reference = function ( root, keypath, evaluator, argNum, priority ) {
+Reference = function ( ractive, keypath, evaluator, argNum, priority ) {
 	var value;
 
 	this.evaluator = evaluator;
 	this.keypath = keypath;
-	this.root = root;
+	this.root = ractive;
 	this.argNum = argNum;
 	this.type = types.REFERENCE;
 	this.priority = priority;
 
-	value = root.get( keypath );
+	value = ractive.get( keypath );
 
 	if ( typeof value === 'function' && !value._nowrap ) {
-		value = wrapFunction( value, root, evaluator );
+		value = wrapFunction( value, ractive, evaluator );
 	}
 
 	this.value = evaluator.values[ argNum ] = value;
 
-	registerDependant( this );
+	ractive.viewmodel.register( this );
 };
 
 Reference.prototype = {
@@ -44,11 +41,11 @@ Reference.prototype = {
 	},
 
 	invalidate: function () {
-		this.setValue( get( this.root, this.keypath ) );
+		this.setValue( this.root.viewmodel.get( this.keypath ) );
 	},
 
 	teardown: function () {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 };
 
@@ -72,26 +69,19 @@ function wrapFunction ( fn, ractive, evaluator ) {
 		// ...we need to do some work
 		defineProperty( fn, '_' + ractive._guid, {
 			value: function () {
-				var originalCaptured, result, i, evaluator;
+				var capturedKeypaths, result, i, evaluator;
 
-				originalCaptured = ractive._captured;
-
-				if ( !originalCaptured ) {
-					ractive._captured = [];
-				}
-
+				ractive.viewmodel.capture();
 				result = fn.apply( ractive, arguments );
+				capturedKeypaths = ractive.viewmodel.release();
 
-				if ( ractive._captured.length ) {
+				if ( capturedKeypaths.length ) {
 					i = evaluators.length;
 					while ( i-- ) {
 						evaluator = evaluators[i];
-						evaluator.updateSoftDependencies( ractive._captured );
+						evaluator.updateSoftDependencies( capturedKeypaths );
 					}
 				}
-
-				// reset
-				ractive._captured = originalCaptured;
 
 				return result;
 			},

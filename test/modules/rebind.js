@@ -1,11 +1,13 @@
 define([
 	'ractive',
+	'viewmodel/Viewmodel',
 	'virtualdom/Fragment',
 	'virtualdom/items/Element/_Element',
 	'virtualdom/items/Triple/_Triple',
 	'config/types'
 ], function (
 	Ractive,
+	Viewmodel,
 	Fragment,
 	Element,
 	Triple,
@@ -25,33 +27,38 @@ define([
 
 		function contextUpdate(opt){
 			test( 'update context path: ' + opt.test, function ( t ) {
-				var resolved,
-					fragment = {
-						context: opt.target,
-						items: [],
-						root: {
-							'_liveQueries': [],
-							'_deps': [] ,
-							'_depsMap': [],
-							'_cache': [],
-							'_computations': [],
-							'_wrapped': [],
-							'_evaluators': [],
-							adapt: []
-						},
-						indexRefs: { i: opt.oldKeypath.replace('items.','')}
+				var resolved, fragment, el, triple;
+
+				fragment = {
+					context: opt.target,
+					items: [],
+					root: {
+						'_liveQueries': [],
+						'_deps': [] ,
+						'_depsMap': [],
+						'_cache': [],
+						'_computations': [],
+						'_wrapped': [],
+						'_evaluators': [],
+						adapt: []
 					},
-					el = new Element({
-						parentFragment: fragment,
-						template: { e: 'div' }
-					}),
-					triple = new Triple({
-						parentFragment: fragment,
-						template: {
-							t: types.TRIPLE,
-							r: '.'
-						}
-					});
+					indexRefs: { i: opt.oldKeypath.replace('items.','')}
+				};
+
+				fragment.root.viewmodel = new Viewmodel( fragment.root );
+
+				el = new Element({
+					parentFragment: fragment,
+					template: { e: 'div' }
+				});
+
+				triple = new Triple({
+					parentFragment: fragment,
+					template: {
+						t: types.TRIPLE,
+						r: '.'
+					}
+				});
 
 				triple.resolve = function(keypath){
 				 	resolved = keypath
