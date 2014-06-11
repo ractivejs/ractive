@@ -30,7 +30,7 @@ Computation.prototype = {
 
 	// returns `false` if the computation errors
 	compute: function () {
-		var ractive, originalCaptured, errored;
+		var ractive, errored;
 
 		ractive = this.ractive;
 		ractive.viewmodel.capture();

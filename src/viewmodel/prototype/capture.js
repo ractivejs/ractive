@@ -1,4 +1,4 @@
-export default function Viewmodel$capture ( keypath ) {
+export default function Viewmodel$capture ( ) {
 	this.capturing = true;
 	this.captured = [];
 }
