@@ -39,7 +39,11 @@ if ( typeof Promise === 'function' ) {
 		fulfil = makeResolver( FULFILLED );
 		reject = makeResolver( REJECTED );
 
-		callback( fulfil, reject );
+		try {
+			callback( fulfil, reject );
+		} catch ( err ) {
+			reject( err );
+		}
 
 		promise = {
 			// `then()` returns a Promise - 2.2.7

@@ -1,9 +1,7 @@
 import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
-import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
-import adaptIfNecessary from 'shared/adaptIfNecessary';
 import Reference from 'virtualdom/items/shared/Evaluator/Reference';
 import SoftReference from 'virtualdom/items/shared/Evaluator/SoftReference';
 
@@ -79,9 +77,9 @@ Evaluator.prototype = {
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
-			clearCache( this.root, this.keypath );
+			this.root.viewmodel.clearCache( this.keypath );
 
-			adaptIfNecessary( this.root, this.keypath, value, true );
+			this.root.viewmodel.adapt( this.keypath, value, true );
 			notifyDependants( this.root, this.keypath );
 		}
 
@@ -94,14 +92,14 @@ Evaluator.prototype = {
 			this.refs.pop().teardown();
 		}
 
-		clearCache( this.root, this.keypath );
-		this.root._evaluators[ this.keypath ] = null;
+		this.root.viewmodel.clearCache( this.keypath );
+		this.root.viewmodel.evaluators[ this.keypath ] = null;
 	},
 
 	invalidate: function () {
 		this.refs.forEach( ref => ref.invalidate() );
 
-		clearCache( this.root, this.keypath );
+		this.root.viewmodel.clearCache( this.keypath );
 		this.value = this.getValue();
 	},
 

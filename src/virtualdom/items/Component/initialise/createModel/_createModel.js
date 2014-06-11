@@ -1,7 +1,6 @@
 import types from 'config/types';
 import parseJSON from 'utils/parseJSON';
 import resolveRef from 'shared/resolveRef';
-import get from 'shared/get';
 import ComponentParameter from 'virtualdom/items/Component/initialise/createModel/ComponentParameter';
 
 export default function ( component, defaultData, attributes, toBind ) {
@@ -63,7 +62,7 @@ function getValue ( component, key, template, toBind ) {
 		// we can't do it yet because the child instance doesn't exist
 		// yet - so we make a note instead
 		toBind.push({ childKeypath: key, parentKeypath: keypath });
-		return get( parentInstance, keypath );
+		return parentInstance.viewmodel.get( keypath );
 	}
 
 	// We have a 'complex parameter' - we need to create a full-blown string

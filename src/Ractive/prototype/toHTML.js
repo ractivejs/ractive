@@ -1,3 +1,3 @@
-export default function () {
+export default function Ractive$toHTML () {
 	return this.fragment.toString( true );
 }

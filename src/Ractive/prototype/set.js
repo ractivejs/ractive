@@ -2,7 +2,9 @@ import runloop from 'global/runloop';
 import isObject from 'utils/isObject';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import Promise from 'utils/Promise';
-import set from 'shared/set';
+import getMatchingKeypaths from 'shared/getMatchingKeypaths';
+
+var wildcard = /\*/;
 
 export default function Ractive$set ( keypath, value, callback ) {
 	var map,
@@ -22,7 +24,7 @@ export default function Ractive$set ( keypath, value, callback ) {
 				value = map[ keypath ];
 				keypath = normaliseKeypath( keypath );
 
-				set( this, keypath, value );
+				this.viewmodel.set( keypath, value );
 			}
 		}
 	}
@@ -30,7 +32,14 @@ export default function Ractive$set ( keypath, value, callback ) {
 	// Set a single keypath
 	else {
 		keypath = normaliseKeypath( keypath );
-		set( this, keypath, value );
+
+		if ( wildcard.test( keypath ) ) {
+			getMatchingKeypaths( this, keypath ).forEach( keypath => {
+				this.viewmodel.set( keypath, value );
+			});
+		} else {
+			this.viewmodel.set( keypath, value );
+		}
 	}
 
 	runloop.end();

@@ -1,20 +1,14 @@
 import Promise from 'utils/Promise';
 import runloop from 'global/runloop';
-import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import Fragment from 'virtualdom/Fragment';
-import initialiseRegistries from 'Ractive/initialise/initialiseRegistries';
+import config from 'config/config';
 
-var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ].join();
+var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ];
 
-export default function ( data, callback ) {
-	var self = this,
-		promise,
-		fulfilPromise,
-		wrapper,
-		changes,
-		rerender,
-		i;
+export default function Ractive$reset ( data, callback ) {
+
+	var promise, fulfilPromise, wrapper, changes, i, rerender;
 
 	if ( typeof data === 'function' && !callback ) {
 		callback = data;
@@ -28,7 +22,7 @@ export default function ( data, callback ) {
 	}
 
 	// If the root object is wrapped, try and use the wrapper's reset value
-	if ( ( wrapper = this._wrapped[ '' ] ) && wrapper.reset ) {
+	if ( ( wrapper = this.viewmodel.wrapped[ '' ] ) && wrapper.reset ) {
 		if ( wrapper.reset( data ) === false ) {
 			// reset was rejected, we need to replace the object
 			this.data = data;
@@ -37,9 +31,8 @@ export default function ( data, callback ) {
 		this.data = data;
 	}
 
-	this.initOptions.data = this.data;
-
-	changes = initialiseRegistries( this, this.constructor.defaults, this.initOptions, { updatesOnly: true } );
+	// reset config items and track if need to rerender
+	changes = config.reset( this );
 
 	i = changes.length;
 	while ( i-- ) {
@@ -52,8 +45,8 @@ export default function ( data, callback ) {
 	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
 	if ( rerender ) {
-		clearCache( self, '' );
-		notifyDependants( self, '' );
+		this.viewmodel.clearCache( '' );
+		notifyDependants( this, '' );
 
 		this.unrender();
 
@@ -72,7 +65,7 @@ export default function ( data, callback ) {
 		this.render( this.el, this.anchor ).then( fulfilPromise );
 	} else {
 		runloop.start( this, fulfilPromise );
-		clearCache( this, '' );
+		this.viewmodel.clearCache( '' );
 		notifyDependants( this, '' );
 		runloop.end();
 	}

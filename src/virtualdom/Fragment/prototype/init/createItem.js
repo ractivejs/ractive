@@ -7,6 +7,7 @@ import Element from 'virtualdom/items/Element/_Element';
 import Partial from 'virtualdom/items/Partial/_Partial';
 import Component from 'virtualdom/items/Component/_Component';
 import Comment from 'virtualdom/items/Comment';
+import config from 'config/config';
 
 export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {
@@ -18,7 +19,7 @@ export default function createItem ( options ) {
 		case types.SECTION:      return new Section( options );
 		case types.TRIPLE:       return new Triple( options );
 		case types.ELEMENT:
-			if ( options.parentFragment.root.components[ options.template.e ] ) {
+			if ( config.registries.components.find( options.parentFragment.root, options.template.e ) ) {
 				return new Component( options );
 			}
 			return new Element( options );

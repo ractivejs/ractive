@@ -1,12 +1,9 @@
-import initOptions from 'config/initOptions';
+import defaults from 'config/defaults/options';
+import easing from 'config/defaults/easing';
+import interpolators from 'config/defaults/interpolators';
 import svg from 'config/svg';
 import defineProperties from 'utils/defineProperties';
 import proto from 'Ractive/prototype';
-import partialRegistry from 'registries/partials';
-import adaptorRegistry from 'registries/adaptors';
-import componentsRegistry from 'registries/components';
-import easingRegistry from 'registries/easing';
-import interpolatorsRegistry from 'registries/interpolators';
 import Promise from 'utils/Promise';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
@@ -20,23 +17,25 @@ var Ractive = function ( options ) {
 
 Ractive.prototype = proto;
 
-// Read-only properties
+// Ractive properties
 defineProperties( Ractive, {
 
 	// Shared properties
-	partials: { value: partialRegistry },
-
-	// Plugins
-	adaptors:      { value: adaptorRegistry },
-	easing:        { value: easingRegistry },
-	transitions:   { value: {} },
-	events:        { value: {} },
-	components:    { value: componentsRegistry },
-	decorators:    { value: {} },
-	interpolators: { value: interpolatorsRegistry },
 
 	// Default options
-	defaults:      { value: initOptions.defaults },
+	defaults:      { value: defaults },
+
+	// Plugins
+	// Because these can be assigned functions to resolve at
+	// instantiation time, they are writable
+	adaptors:      { writable: true, value: {} },
+	components:    { writable: true, value: {} },
+	decorators:    { writable: true, value: {} },
+	easing:        { writable: true, value: easing },
+	events:        { writable: true, value: {} },
+	interpolators: { writable: true, value: interpolators },
+	partials:      { writable: true, value: {} },
+	transitions:   { writable: true, value: {} },
 
 	// Support
 	svg:           { value: svg },
@@ -53,7 +52,6 @@ Ractive.Promise = Promise;
 Ractive.extend = extend;
 
 Ractive.parse = parse;
-circular.Ractive = Ractive;
 
 // Certain modules have circular dependencies. If we were bundling a
 // module loader, e.g. almond.js, this wouldn't be a problem, but we're

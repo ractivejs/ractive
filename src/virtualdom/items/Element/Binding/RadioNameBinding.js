@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import get from 'shared/get';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
@@ -21,7 +20,7 @@ var RadioNameBinding = Binding.extend({
 			node.addEventListener( 'click', handleDomEvent, false );
 		}
 
-		valueFromModel = get( this.root, this.keypath );
+		valueFromModel = this.root.viewmodel.get( this.keypath );
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel == node._ractive.value );
 		} else {

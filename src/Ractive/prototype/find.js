@@ -1,4 +1,4 @@
-export default function ( selector ) {
+export default function Ractive$find ( selector ) {
 	if ( !this.el ) {
 		return null;
 	}

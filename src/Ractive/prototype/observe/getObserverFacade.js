@@ -1,6 +1,4 @@
 import normaliseKeypath from 'utils/normaliseKeypath';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
 import Observer from 'Ractive/prototype/observe/Observer';
 import PatternObserver from 'Ractive/prototype/observe/PatternObserver';
 
@@ -21,7 +19,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 		observer = new Observer( ractive, keypath, callback, options );
 	}
 
-	registerDependant( observer );
+	ractive.viewmodel.register( observer );
 	observer.init( options.init );
 
 	// This flag allows observers to initialise even with undefined values
@@ -39,7 +37,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 				}
 			}
 
-			unregisterDependant( observer );
+			ractive.viewmodel.unregister( observer );
 		}
 	};
 }

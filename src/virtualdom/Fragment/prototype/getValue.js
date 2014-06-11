@@ -63,7 +63,7 @@ function processItems ( items, values, guid, counter ) {
 
 		placeholderId = guid + '-' + counter++;
 
-		if ( wrapped = item.root._wrapped[ item.keypath ] ) {
+		if ( wrapped = item.root.viewmodel.wrapped[ item.keypath ] ) {
 			value = wrapped.value;
 		} else {
 			value = item.value;

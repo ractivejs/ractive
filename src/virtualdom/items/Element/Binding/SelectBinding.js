@@ -1,9 +1,32 @@
 import runloop from 'global/runloop';
-import set from 'shared/set';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
 var SelectBinding = Binding.extend({
+	getInitialValue: function () {
+		var options = this.element.options, len, i;
+
+		i = len = options.length;
+
+		if ( !len ) {
+			return;
+		}
+
+		// take the final selected option...
+		while ( i-- ) {
+			if ( options[i].getAttribute( 'selected' ) ) {
+				return options[i].getAttribute( 'value' );
+			}
+		}
+
+		// or the first non-disabled option, if none are selected
+		while ( i++ < len ) {
+			if ( !options[i].getAttribute( 'disabled' ) ) {
+				return options[i].getAttribute( 'value' );
+			}
+		}
+	},
+
 	render: function () {
 		this.element.node.addEventListener( 'change', handleDomEvent, false );
 	},
@@ -13,7 +36,7 @@ var SelectBinding = Binding.extend({
 	},
 
 	setValue: function ( value ) {
-		set( this.root, this.keypath, value );
+		this.root.viewmodel.set( this.keypath, value );
 	},
 
 	getValue: function () {
@@ -32,17 +55,17 @@ var SelectBinding = Binding.extend({
 		}
 	},
 
-	updateModel: function () {
-		if ( this.attribute.value === undefined ) {
-			set( this.root, this.keypath, this.initialValue );
-		}
-	},
-
 	dirty: function () {
 		if ( !this._dirty ) {
 			this._dirty = true;
-			runloop.afterModelUpdate( () => this.updateModel() );
 
+			// If there was no initially selected value, we may be
+			// able to set one now
+			if ( this.attribute.value === undefined ) {
+				runloop.afterModelUpdate( () => {
+					this.root.viewmodel.set( this.keypath, this.getInitialValue() );
+				});
+			}
 		}
 	}
 });

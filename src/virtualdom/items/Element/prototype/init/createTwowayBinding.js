@@ -5,6 +5,7 @@ import CheckedBinding from 'virtualdom/items/Element/Binding/CheckedBinding';
 import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
 import MultipleSelectBinding from 'virtualdom/items/Element/Binding/MultipleSelectBinding';
 import FileListBinding from 'virtualdom/items/Element/Binding/FileListBinding';
+import NumericBinding from 'virtualdom/items/Element/Binding/NumericBinding';
 import GenericBinding from 'virtualdom/items/Element/Binding/GenericBinding';
 
 export default function createTwowayBinding ( element ) {
@@ -37,12 +38,12 @@ export default function createTwowayBinding ( element ) {
 			}
 		}
 
-		else if ( type === 'file' ) {
+		else if ( type === 'file' && isBindable( attributes.value ) ) {
 			Binding = FileListBinding;
 		}
 
 		else if ( isBindable( attributes.value ) ) {
-			Binding = GenericBinding;
+			Binding = ( type === 'number' || type === 'range' ) ? NumericBinding : GenericBinding;
 		}
 	}
 

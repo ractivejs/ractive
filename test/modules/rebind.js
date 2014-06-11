@@ -1,11 +1,13 @@
 define([
 	'ractive',
+	'viewmodel/Viewmodel',
 	'virtualdom/Fragment',
 	'virtualdom/items/Element/_Element',
 	'virtualdom/items/Triple/_Triple',
 	'config/types'
 ], function (
 	Ractive,
+	Viewmodel,
 	Fragment,
 	Element,
 	Triple,
@@ -25,33 +27,38 @@ define([
 
 		function contextUpdate(opt){
 			test( 'update context path: ' + opt.test, function ( t ) {
-				var resolved,
-					fragment = {
-						context: opt.target,
-						items: [],
-						root: {
-							'_liveQueries': [],
-							'_deps': [] ,
-							'_depsMap': [],
-							'_cache': [],
-							'_computations': [],
-							'_wrapped': [],
-							'_evaluators': [],
-							adapt: []
-						},
-						indexRefs: { i: opt.oldKeypath.replace('items.','')}
+				var resolved, fragment, el, triple;
+
+				fragment = {
+					context: opt.target,
+					items: [],
+					root: {
+						'_liveQueries': [],
+						'_deps': [] ,
+						'_depsMap': [],
+						'_cache': [],
+						'_computations': [],
+						'_wrapped': [],
+						'_evaluators': [],
+						adapt: []
 					},
-					el = new Element({
-						parentFragment: fragment,
-						template: { e: 'div' }
-					}),
-					triple = new Triple({
-						parentFragment: fragment,
-						template: {
-							t: types.TRIPLE,
-							r: '.'
-						}
-					});
+					indexRefs: { i: opt.oldKeypath.replace('items.','')}
+				};
+
+				fragment.root.viewmodel = new Viewmodel( fragment.root );
+
+				el = new Element({
+					parentFragment: fragment,
+					template: { e: 'div' }
+				});
+
+				triple = new Triple({
+					parentFragment: fragment,
+					template: {
+						t: types.TRIPLE,
+						r: '.'
+					}
+				});
 
 				triple.resolve = function(keypath){
 				 	resolved = keypath
@@ -356,6 +363,31 @@ define([
 			items.unshift({});
 
 			t.ok( true );
+		});
+
+		test( 'Regression test for #756 - fragment contexts are not rebound to undefined', function ( t ) {
+			var ractive, new_items;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#items}}
+						<div class="{{foo?'foo':''}}">
+							{{#test}}{{# .list.length === 1 }}[ {{list.0.thing}} ]{{/ .list.length }}{{/test}}
+						</div>
+					{{/items}}`,
+				data: { items:[{},{}] }
+			});
+
+			new_items = [{"test":{"list":[{"thing":"Z"},{"thing":"Z"}]},"foo":false},
+			             {"test":{"list":[{"thing":"Z"},{"thing":"Z"}]},"foo":false}]
+
+			ractive.set('items', new_items)
+
+			new_items[1].test = {"list":[{"thing":"Z"}]}
+			ractive.update();
+
+			t.htmlEqual( fixture.innerHTML, '<div class></div><div class>[ Z ]</div>' );
 		});
 
 	};

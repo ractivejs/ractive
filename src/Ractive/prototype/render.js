@@ -59,7 +59,7 @@ export default function Ractive$render ( target, anchor ) {
 
 function init ( instance ) {
 	if ( instance.init ) {
-		instance.init( instance.initOptions );
+		instance.init( instance._config.options );
 	}
 
 	instance._childInitQueue.splice( 0 ).forEach( init );

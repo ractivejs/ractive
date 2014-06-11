@@ -1,4 +1,5 @@
 import warn from 'utils/warn';
+import config from 'config/config';
 
 var alreadyWarned = {}, customHandlers = {};
 
@@ -7,7 +8,7 @@ export default function EventHandler$render () {
 
 	this.node = this.element.node;
 
-	if ( definition = this.root.events[ name ] ) {
+	if ( definition = config.registries.events.find( this.root, name ) ) {
 		this.custom = definition( this.node, getCustomHandler( name ) );
 	} else {
 		// Looks like we're dealing with a standard DOM event... but let's check

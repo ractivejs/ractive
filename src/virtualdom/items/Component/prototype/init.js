@@ -5,6 +5,7 @@ import createInstance from 'virtualdom/items/Component/initialise/createInstance
 import createBindings from 'virtualdom/items/Component/initialise/createBindings';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
+import config from 'config/config';
 
 export default function Component$init ( options ) {
 	var parentFragment,
@@ -24,10 +25,10 @@ export default function Component$init ( options ) {
 	this.bindings = [];
 
 	// get the component constructor
-	Component = root.components[ options.template.e ];
+	Component = config.registries.components.find( root, this.name );
 
 	if ( !Component ) {
-		throw new Error( 'Component "' + options.template.e + '" not found' );
+		throw new Error( 'Component "' + this.name + '" not found' );
 	}
 
 	// First, we need to create a model for the component - e.g. if we
@@ -37,7 +38,7 @@ export default function Component$init ( options ) {
 	// This may involve setting up some bindings, but we can't do it
 	// yet so we take some notes instead
 	toBind = [];
-	data = createModel( this, Component.data || {}, options.template.a, toBind );
+	data = createModel( this, Component.defaults.data || {}, options.template.a, toBind );
 
 	createInstance( this, Component, data, options.template.f );
 	createBindings( this, toBind );

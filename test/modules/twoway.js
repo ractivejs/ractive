@@ -108,6 +108,69 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		});
 
+		test( 'Two-way data binding is not attempted on elements with no mustache binding', function ( t ) {
+			expect(0);
+
+			// This will throw an error if the binding is attempted (Issue #750)
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input type="radio"><input type="checkbox"><input type="file"><select></select><textarea></textarea><div contenteditable="true"></div>'
+			});
+		});
+
+		test( 'Uninitialised values should be initialised with whatever the \'empty\' value is (#775)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}">'
+			});
+
+			t.equal( ractive.get( 'foo' ), '' );
+		});
+
+		test( 'Contenteditable elements can be bound via the value attribute', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div contenteditable="true" value="{{content}}"><strong>some content</strong></div>',
+			});
+
+			t.equal( ractive.get( 'content' ), '<strong>some content</strong>' );
+			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true"><strong>some content</strong></div>' );
+
+			ractive.set( 'content', '<p>some different content</p>' );
+			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true"><p>some different content</p></div>' );
+		});
+
+		test( 'Existing model data overrides contents of contenteditable elements', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div contenteditable="true" value="{{content}}"><strong>some content</strong></div>',
+				data: { content: 'overridden' }
+			});
+
+			t.equal( ractive.get( 'content' ), 'overridden' );
+			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">overridden</div>' );
+		});
+
+		[ 'number', 'range' ].forEach( function ( type ) {
+			test( 'input type=' + type + ' values are coerced', function ( t ) {
+				var ractive, inputs;
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{a}}" type="' + type + '"><input value="{{b}}" type="' + type + '">{{a}}+{{b}}={{a+b}}'
+				});
+
+				t.equal( ractive.get( 'a' ), undefined );
+				t.equal( ractive.get( 'b' ), undefined );
+
+				inputs = ractive.findAll( 'input' );
+				inputs[0].value = '40';
+				inputs[1].value = '2';
+				ractive.updateModel();
+				t.htmlEqual( fixture.innerHTML, '<input type="' + type + '"><input type="' + type + '">40+2=42' );
+			});
+		});
+
 	};
 
 });

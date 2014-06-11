@@ -61,7 +61,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		asyncTest( 'Dynamic template functions are recalled on reset', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: function(d, o, t){
+				template: function ( d ) {
 					return d.condition ? '{{foo}}' : '{{bar}}'
 				},
 				data: { foo: 'fizz', bar: 'bizz', condition: true }
@@ -78,7 +78,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		asyncTest( 'Callback and promise with dynamic template functions are recalled on reset', function ( t ) {
 			var ractive = new Ractive({
 					el: fixture,
-					template: function(d, o, t){
+					template: function ( d ) {
 						return d.condition ? '{{foo}}' : '{{bar}}'
 					},
 					data: { foo: 'fizz', bar: 'bizz', condition: true }
@@ -116,6 +116,9 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		// Removed this functionality for now as not apparent
+		// what purpose of calling resetTemplate() without rerender
+		/*
 		test( 'resetTemplate with no template change doesnt rerender', function ( t ) {
 			var p, ractive = new Ractive({
 				el: fixture,
@@ -132,6 +135,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>bar</p>' );
 			t.notEqual( ractive.find('p'), p);
 		});
+		*/
 
 		test( 'Reset retains parent default data (#572)', function ( t ) {
 			var ractive, Widget;

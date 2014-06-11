@@ -247,6 +247,15 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>baz</p>' );
 		});
 
+		test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
+			var Subclass, instance;
+
+			Subclass = Ractive.extend({ adapt: 'Foo' });
+			instance = new Subclass();
+
+			t.deepEqual( instance.adapt, ['Foo'] );
+		});
+
 	};
 
 });

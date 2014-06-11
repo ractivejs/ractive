@@ -1,4 +1,3 @@
-import get from 'shared/get';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
@@ -7,6 +6,8 @@ var GenericBinding, getOptions;
 getOptions = { evaluateWrapped: true };
 
 GenericBinding = Binding.extend({
+	getInitialValue: () => '',
+
 	render: function () {
 		var node = this.element.node;
 
@@ -25,12 +26,6 @@ GenericBinding = Binding.extend({
 
 	getValue: function () {
 		var value = this.element.node.value;
-
-		// if the value is numeric, treat it as a number. otherwise don't
-		if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {
-			value = +value;
-		}
-
 		return value;
 	},
 
@@ -52,6 +47,6 @@ function handleBlur () {
 
 	handleDomEvent.call( this );
 
-	value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
+	value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath, getOptions );
 	this.value = value == undefined ? '' : value;
 }

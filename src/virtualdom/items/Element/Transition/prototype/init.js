@@ -1,5 +1,5 @@
 import warn from 'utils/warn';
-
+import config from 'config/config';
 import circular from 'circular';
 
 var Fragment, getValueOptions = {}; // TODO what are the options?
@@ -46,7 +46,8 @@ export default function Transition$init ( element, template ) {
 		fragment.teardown();
 	}
 
-	t._fn = ractive.transitions[ name ];
+	t._fn = config.registries.transitions.find( ractive, name );
+
 	if ( !t._fn ) {
 		errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
 
