@@ -1272,6 +1272,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'array.length' ), 3 );
 		});
 
+		test( 'Regression test for #801', function ( t ) {
+			var ractive = new Ractive({
+				el: document.createElement( 'div' ),
+				template: '<div>{{#(foo !== "bar")}}not bar{{#(foo !== "baz")}}not baz{{/()}}{{/()}}</div>',
+				data: {
+					foo: 'baz'
+				}
+			});
+
+			ractive.set( 'foo', 'bar' );
+			t.ok( true );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
