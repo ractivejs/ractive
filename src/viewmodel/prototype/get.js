@@ -88,7 +88,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 }
 
 function retrieve ( viewmodel, keypath ) {
-	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
+	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone, descriptor;
 
 	keys = keypath.split( '.' );
 	key = keys.pop();
@@ -124,7 +124,16 @@ function retrieve ( viewmodel, keypath ) {
 	// clone it. Otherwise the instance could end up manipulating
 	// data that doesn't belong to it
 	// TODO shouldn't we be using prototypal inheritance instead?
-	shouldClone = !hasOwnProperty.call( parentValue, key );
+	shouldClone = !hasOwnProperty.call( parentValue, key )
+	
+	if (shouldClone) {
+		// Solves #798
+		descriptor = Object.getOwnPropertyDescriptor(parentValue.__proto__, key);
+		if (descriptor && (descriptor.get || descriptor.set) ) {
+			shouldClone = false;
+		}
+	}
+	
 	value = shouldClone ? clone( parentValue[ key ] ) : parentValue[ key ];
 
 	// Do we have an adaptor for this value?
