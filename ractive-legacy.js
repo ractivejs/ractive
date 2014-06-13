@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-11 - commit 306897b1 
+	2014-06-13 - commit 0d98c510 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1142,7 +1142,7 @@
 			// looping until the system is settled
 			while ( dirty ) {
 				dirty = false;
-				while ( thing = modelUpdates.pop() ) {
+				while ( thing = modelUpdates.shift() ) {
 					thing.update();
 					thing.dirty = false;
 				}
