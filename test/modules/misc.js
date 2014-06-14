@@ -816,41 +816,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
 		});
 
-		test( 'Instances of a subclass do not have access to the default model', function ( t ) {
-			var Subclass, instance;
-
-			Subclass = Ractive.extend({
-				data: {
-					foo: 'bar',
-					obj: {
-						one: 1,
-						two: 2
-					}
-				}
-			});
-
-			instance = new Subclass({
-				el: fixture,
-				template: '{{foo}}{{obj.one}}{{obj.two}}'
-			});
-
-			t.htmlEqual( fixture.innerHTML, 'bar12' );
-
-			instance.set( 'foo', 'baz' );
-			instance.set( 'obj.one', 3 );
-			instance.set( 'obj.two', 4 );
-
-			t.htmlEqual( fixture.innerHTML, 'baz34' );
-
-			t.deepEqual( Subclass.defaults.data, {
-				foo: 'bar',
-				obj: {
-					one: 1,
-					two: 2
-				}
-			});
-		});
-
 		test( 'Instances of subclasses with non-POJO default models have the correct prototype', function ( t ) {
 			var Model, Subclass, instance;
 
@@ -905,36 +870,6 @@ define([ 'ractive' ], function ( Ractive ) {
 					start();
 				}
 			});
-		});
-
-		test( 'Regression test for #393', function ( t ) {
-			var View, ractive;
-
-			View = Ractive.extend({
-				data: {
-					foo: {
-						a: 1,
-						b: 2
-					},
-
-					bar: [
-						'a', 'b', 'c'
-					]
-				}
-			});
-
-			ractive = new View({
-				el: fixture,
-				template: '{{ JSON.stringify(foo) }} | {{ JSON.stringify(bar) }}'
-			});
-
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":2} | ["a","b","c"]' );
-			ractive.set( 'foo.b', 3 );
-			t.deepEqual( View.defaults.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","b","c"]' );
-			ractive.set( 'bar[1]', 'd' );
-			t.deepEqual( View.defaults.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","d","c"]' );
 		});
 
 
@@ -1270,6 +1205,19 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set( 'array.*', 10 );
 			t.deepEqual( ractive.get( 'array.length' ), 3 );
+		});
+
+		test( 'Regression test for #801', function ( t ) {
+			var ractive = new Ractive({
+				el: document.createElement( 'div' ),
+				template: '<div>{{#(foo !== "bar")}}not bar{{#(foo !== "baz")}}not baz{{/()}}{{/()}}</div>',
+				data: {
+					foo: 'baz'
+				}
+			});
+
+			ractive.set( 'foo', 'bar' );
+			t.ok( true );
 		});
 
 

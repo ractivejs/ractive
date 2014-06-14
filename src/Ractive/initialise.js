@@ -8,11 +8,7 @@ import Fragment from 'virtualdom/Fragment';
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
-
 	initialiseProperties( ractive, options );
-
-	//var properties = {}
-
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually
 	ractive.viewmodel = new Viewmodel( ractive );
