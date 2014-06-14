@@ -1,4 +1,3 @@
-import runloop from 'global/runloop';
 import isArray from 'utils/isArray';
 import removeFromArray from 'utils/removeFromArray';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
@@ -85,10 +84,7 @@ CheckboxNameBinding = Binding.extend({
 
 	handleChange: function () {
 		this.isChecked = this.element.node.checked;
-
-		runloop.start( this.root );
-		this.root.viewmodel.set( this.keypath, this.getValue() );
-		runloop.end();
+		Binding.prototype.handleChange.call( this );
 	},
 
 	getValue: function () {
