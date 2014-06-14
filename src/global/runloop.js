@@ -151,7 +151,7 @@ function flushChanges () {
 	while ( dirty ) {
 		dirty = false;
 
-		while ( thing = modelUpdates.pop() ) {
+		while ( thing = modelUpdates.shift() ) {
 			thing.update();
 			thing.dirty = false;
 		}

@@ -1,5 +1,3 @@
-import hasOwnProperty from 'utils/hasOwnProperty';
-import clone from 'utils/clone';
 import getFromParent from 'viewmodel/prototype/get/getFromParent';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
 import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
@@ -88,7 +86,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 }
 
 function retrieve ( viewmodel, keypath ) {
-	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
+	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
 
 	keys = keypath.split( '.' );
 	key = keys.pop();
@@ -119,16 +117,10 @@ function retrieve ( viewmodel, keypath ) {
 		return viewmodel.cache[ keypath ] = FAILED_LOOKUP;
 	}
 
-	// If this value actually lives on the prototype of this
-	// instance's `data`, and not as an own property, we need to
-	// clone it. Otherwise the instance could end up manipulating
-	// data that doesn't belong to it
-	// TODO shouldn't we be using prototypal inheritance instead?
-	shouldClone = !hasOwnProperty.call( parentValue, key );
-	value = shouldClone ? clone( parentValue[ key ] ) : parentValue[ key ];
+	value = parentValue[ key ];
 
 	// Do we have an adaptor for this value?
-	value = viewmodel.adapt( keypath, value, false );
+	viewmodel.adapt( keypath, value, false );
 
 	// Update cache
 	viewmodel.cache[ keypath ] = value;
