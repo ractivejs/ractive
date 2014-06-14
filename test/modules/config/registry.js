@@ -19,7 +19,7 @@ define([
 
 			function create( name, defaultValue ) {
 
-				var options = { name: name, defaultValue: defaultValue },
+				var options = { name: name },
 					itemConfig = registryConfig( options );
 
 			    // use extend to bootstrap the defaults on our mock Ractive

@@ -6,8 +6,8 @@ var adaptorsConfig = registry( {
 	postInit: init
 });
 
-function extend ( Child, adaptors ) {
-	return convert( Child.defaults, adaptors );
+function extend ( properties, adaptors ) {
+	return convert( properties, adaptors );
 }
 
 function init ( ractive, adaptors ) {
@@ -17,6 +17,8 @@ function init ( ractive, adaptors ) {
 function convert ( target, adaptors ) {
 
 	var i, adapt = target.adapt;
+
+	if ( adapt ) { adapt = adapt.value; }
 
 	if ( !adapt || !adapt.length ) { return adaptors; }
 

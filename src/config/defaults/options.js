@@ -1,3 +1,5 @@
+import Registry from 'config/Registry';
+
 // These are both the values for Ractive.defaults
 // as well as the determination for whether an option
 // value will be placed on Component.defaults

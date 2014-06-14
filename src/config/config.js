@@ -70,11 +70,13 @@ config.init = function ( Parent, ractive, options ) {
 
 		// this is done soley for init( options )
 		options[ c.name ] = ractive[ c.name ];
-		if ( ractive._config ) {
-			ractive._config.options = options;
-		}
+
 
 	});
+
+	if ( ractive._config ) {
+		ractive._config.options = options;
+	}
 };
 
 config.reset = function ( ractive ) {

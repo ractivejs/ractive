@@ -1,10 +1,12 @@
 define([
 	'config/options/template/template',
-	'utils/isArray'
+	'utils/isArray',
+	'utils/create'
 ],
 function (
 	config,
-	isArray
+	isArray,
+	create
  ) {
 
 	'use strict';
@@ -19,22 +21,30 @@ function (
 			}},
 			moduleSetup = {
 				setup: function(){
-					Ractive = { defaults: {}, parseOptions: {} };
-					Component = { defaults: {} };
+					//Ractive = { defaults: {}, parseOptions: {} };
 					ractive = { _config: {} };
 
 					// use extend to bootstrap mock Ractive
+					Ractive = create( { template: [] } );
+					Ractive.defaults = Ractive.prototype;
 
-					config.extend( null, Ractive, { template: [] } );
+					Component = create( Ractive );
+					Component.defaults = Component.prototype;
 				}
 			};
+
+		function mockExtend( template ){
+			var options = {};
+			config.extend( Ractive, options, template);
+			Component = create( Ractive, options);
+			Component.defaults = Component;
+		}
 
 		module( 'Template Configuration', moduleSetup);
 
 		function testDefault( target ) {
 			var template = target.defaults.template;
 
-			ok( !target.template, 'not on root' );
 			ok( template, 'on defaults' );
 			ok( isArray(template), 'isArray' );
 			equal( template.length, 0, 'no items' );
@@ -55,23 +65,23 @@ function (
 
 
 		test( 'Empty extend inherits parent', t => {
-			config.extend( Ractive, Component );
+			mockExtend( Ractive, Component );
 			testDefault( Component )
 		});
 
 
 		test( 'Extend with template', t => {
-			config.extend( Ractive, Component, templateOpt1 );
+			mockExtend( templateOpt1 );
 			testTemplate1( Component.defaults.template );
 		});
 
 
 		test( 'Extend twice with different templates', t => {
-			var Parent = { defaults: {} };
-			config.extend( Ractive, Parent, templateOpt1 );
-			config.extend( Parent, Component, templateOpt2 );
+			config.extend( Ractive, Component.prototype, templateOpt1 );
+			var Child = create( Component );
+			config.extend( Component, Child.prototype, templateOpt2 );
 
-			testTemplate2( Component.defaults.template );
+			testTemplate2( Child.prototype.template );
 		});
 
 		test( 'Init template', t => {

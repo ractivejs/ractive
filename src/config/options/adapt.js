@@ -17,7 +17,7 @@ function extend ( Parent, Child, options ) {
 
 	result = combine( Parent.defaults.adapt, options.adapt );
 
-	Child.defaults.adapt = result || [];
+	Child.adapt = result || [];
 }
 
 function init ( Parent, ractive, options ) {

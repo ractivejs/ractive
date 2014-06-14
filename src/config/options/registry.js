@@ -2,13 +2,16 @@ import baseConfig from 'config/options/baseConfiguration';
 import match from 'utils/hashmapContentsMatch';
 import wrap from 'utils/wrapMethod';
 import extendObject from 'utils/extend';
+import create from 'utils/create'
 import 'legacy';
 
 export default function registryConfig ( config ) {
 
 	config = extendObject( config, {
-		extendValue: extend,
-		initValue: init,
+		preExtend: preExtend,
+		postExtend: () => {},
+		preInit: preInit,
+		postInit: config.postInit || ( function(){} ),
 		resetValue: reset,
 		find: find,
 		findInstance: findInstance
@@ -22,6 +25,49 @@ export default function registryConfig ( config ) {
 	}
 
 	return base;
+}
+
+
+
+function preExtend ( Parent, child, options ) {
+
+	var name = this.name, registry, option = options[ name ];
+
+	if( !this.useDefaults ) {
+		child = child.constructor;
+	} else {
+		Parent = Parent.defaults;
+	}
+
+	registry = create( Parent[name] );
+
+
+	for( let key in option ) {
+		child[ key ] = option[ key ];
+	}
+
+	child[ name ] = registry;
+
+}
+
+
+function preInit ( Parent, ractive, options ) {
+
+	var name = this.name, registry, option = options[ name ];
+
+	if( this.useDefaults ) {
+		Parent = Parent.defaults;
+	}
+
+	registry = create( Parent[name] );
+
+
+	for( let key in option ) {
+		registry[ key ] = option[ key ];
+	}
+
+	ractive[ name ] = registry;
+
 }
 
 function find ( ractive, key ) {
@@ -47,7 +93,7 @@ function recurseFind( ractive, fn ) {
 	}
 
 }
-
+/*
 function extend( target, parentValue, value ) {
 
 	parentValue = getAddedKeys( parentValue );
@@ -69,7 +115,7 @@ function init ( ractive, parentValue, value ) {
 
 	return result;
 }
-
+*/
 function reset ( ractive ) {
 
 	var initial, result,
@@ -77,15 +123,15 @@ function reset ( ractive ) {
 
 	if( !fn) { return; }
 
-	initial = ractive[ this.name ];
-	result = getDynamicValue ( ractive, fn )
+	// initial = ractive[ this.name ];
+	// result = getDynamicValue ( ractive, fn )
 
-	if ( !match( initial, result ) ) {
-		return result;
-	}
+	// if ( !match( initial, result ) ) {
+	// 	return result;
+	// }
 
 }
-
+/*
 function getDynamicValue ( ractive, fn ) {
 
 	var temp = {},
@@ -209,3 +255,4 @@ function extendFn ( childFn, parent ) {
 
 	return wrap( childFn, parentFn );
 }
+*/

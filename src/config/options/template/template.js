@@ -5,63 +5,34 @@ import parseOptions from 'config/options/groups/parseOptions';
 
 var templateConfig = baseConfig({
 	name: 'template',
-	useDefaults: true,
-	defaultValue: '',
-	extendValue: extend,
 	postExtend: parseTemplate,
-	initValue: init,
 	postInit: parseTemplate,
 	resetValue: reset,
 	processCompound: processCompound
 });
 
-function extend ( target, parentValue, value ) {
 
-	if ( typeof value === 'undefined' ) { value = parentValue; }
-
-	return value;
-}
-
-function init ( ractive, parentValue, value ) {
-
-	var result = extend( ractive, parentValue, value );
-
-	if ( typeof result === 'function' ) {
-
-		let fn = result;
-
-		result = getDynamicTemplate( ractive, fn );
-
-		// store fn and fn result for reset
-		ractive._config[ this.name ] = {
-			fn: fn,
-			result: result
-		};
-	}
-
-	return result;
-}
-
-function getDynamicTemplate ( ractive, fn ) {
-	var helper = parser.createHelper( getParseOptions( ractive ) );
-	return fn.call( ractive, ractive.data, helper );
-}
+// function getDynamicTemplate ( ractive, fn ) {
+// 	var helper = parser.createHelper( getParseOptions( ractive ) );
+// 	return fn.call( ractive, ractive.data, helper );
+// }
 
 function reset ( ractive ) {
 
-	var initial = ractive._config.template, result;
+	// var initial = ractive._config.template, result;
 
-	// is this dynamic template?
-	if( !initial || !initial.fn) { return; }
+	// // is this dynamic template?
+	// if( !initial || !initial.fn) { return; }
 
-	result = getDynamicTemplate ( ractive, initial.fn )
+	// result = getDynamicTemplate ( ractive, initial.fn )
 
-	// compare results of fn return, which is likely
-	// be string comparison ( not yet parsed )
-	if ( result !== initial.result ) {
-		initial.result = result;
-		return result;
-	}
+	// // compare results of fn return, which is likely
+	// // be string comparison ( not yet parsed )
+	// if ( result !== initial.result ) {
+	// 	initial.result = result;
+	// 	return result;
+	// }
+
 }
 
 function getParseOptions ( target ) {

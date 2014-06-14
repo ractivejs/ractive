@@ -9,13 +9,13 @@ var cssConfig = {
 	useDefaults: defaults.hasOwnProperty('css')
 };
 
-function extend ( Parent, Child, options ) {
+function extend ( Parent, properties, options ) {
 
 	var css;
 
-	if ( css = getCss( options.css, Child ) || getCss( Parent.css, Parent ) ) {
+	if ( css = getCss( options.css, options ) || getCss( Parent.css, Parent ) ) {
 
-		defineProperty( Child, 'css', { value: css } );
+		properties.css = { value: css, writable: true, enumerable: true };
 	}
 }
 
@@ -23,7 +23,7 @@ function getCss ( css, target ) {
 
 	if ( !css ) { return; }
 
-	return target.defaults.noCssTransform
+	return target.noCssTransform
 		? css
 		: transformCss( css, target._guid );
 

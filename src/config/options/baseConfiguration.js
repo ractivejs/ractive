@@ -1,5 +1,6 @@
 import defaults from 'config/defaults/options';
 import extendObject from 'utils/extend';
+import defineProperty from 'utils/defineProperty';
 
 function BaseConfiguration ( config ) {
 	extendObject( this, config );
@@ -8,50 +9,48 @@ function BaseConfiguration ( config ) {
 
 BaseConfiguration.prototype = {
 
-	extend: function ( Parent, Child, options ) {
-		var parentValue, optionValue, result;
-
-		options = options || {};
+	extend: function ( Parent, proto, options ) {
+		var option;
 
 		if( this.preExtend ) {
-			this.preExtend( Parent, Child, options );
+			options = options || {};
+			this.preExtend( Parent, proto, options );
 		}
 
-		parentValue = this.getParentValue( Parent );
-		optionValue = this.getOptionValue( options );
-
-		result = this.extendValue( Child, parentValue, optionValue );
+		if ( options && ( this.name in options ) ) {
+			option = options[ this.name ];
+		}
 
 		if ( this.postExtend ) {
-			result = this.postExtend( Child, result );
+			option = this.postExtend( proto, option );
 		}
 
-		if ( this.useDefaults ) {
-			Child = Child.defaults;
-		}
+		if ( !empty( option ) ) {
 
-		this.assign( Child, result );
+			proto[ this.name ] = option;
+		}
 	},
 
 	init: function ( Parent, ractive, options ) {
-		var parentValue, optionValue, result;
+		var option;
 
-		options = options || {};
 
 		if( this.preInit ) {
+			options = options || {};
 			this.preInit( Parent, ractive, options );
 		}
 
-		parentValue = this.getParentValue( Parent );
-		optionValue = this.getOptionValue( options );
-
-		result = this.initValue( ractive, parentValue, optionValue );
-
-		if( this.postInit ) {
-			result = this.postInit( ractive, result );
+		if ( options && ( this.name in options ) ) {
+			option = options[ this.name ];
 		}
 
-		this.assign ( ractive, result );
+		if( this.postInit ) {
+			option = this.postInit( ractive, option );
+		}
+
+		if ( !empty( option ) ) {
+			ractive [ this.name ] = option;
+		}
 	},
 
 	reset: function ( ractive ) {

@@ -14,6 +14,8 @@ export default function initialiseRactiveInstance ( ractive, options ) {
 
 	initialiseProperties( ractive, options );
 
+	//var properties = {}
+
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
 
