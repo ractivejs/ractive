@@ -1,4 +1,3 @@
-import baseConfig from 'config/options/baseConfiguration';
 import create from 'utils/create';
 import wrap from 'utils/wrapMethod';
 import defaults from 'config/defaults/options';

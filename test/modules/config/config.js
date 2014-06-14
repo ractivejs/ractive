@@ -27,10 +27,6 @@ define([
 					actual = target,
 					expected = compare.prototype;
 
-				if ( noTargetDefaults && config.parseOptions[ name ] ) {
-					actual = actual.parseOptions;
-				}
-
 				if ( expected && ( name in expected ) ) {
 					ok( name in actual, 'has ' + name);
 				}

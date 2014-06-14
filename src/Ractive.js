@@ -10,9 +10,8 @@ import extend from 'extend/_extend';
 import parse from 'parse/_parse';
 import initialise from 'Ractive/initialise';
 import circular from 'circular';
-import Registry from 'config/Registry';
 
-var Ractive, registries, properties;
+var Ractive, properties;
 
 // Main Ractive required object
 Ractive = function ( options ) {

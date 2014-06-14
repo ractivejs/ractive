@@ -6,7 +6,6 @@ import extendObject from 'utils/extend';
 import initChildInstance from 'extend/initChildInstance';
 import circular from 'circular';
 import wrapMethod from 'utils/wrapMethod';
-import Registry from 'config/Registry';
 
 var Ractive, blacklisted;
 

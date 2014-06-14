@@ -14,19 +14,19 @@ var templateConfig = baseConfig({
 
 function reset ( ractive ) {
 
-	// var initial = ractive._config.template, result;
+	var initial = ractive._config.template, result;
 
-	// // is this dynamic template?
-	// if( !initial || !initial.fn) { return; }
+	// is this dynamic template?
+	if( !initial || !initial.fn) { return; }
 
-	// result = getDynamicTemplate ( ractive, initial.fn )
+	result = getDynamicTemplate ( ractive, initial.fn )
 
-	// // compare results of fn return, which is likely
-	// // be string comparison ( not yet parsed )
-	// if ( result !== initial.result ) {
-	// 	initial.result = result;
-	// 	return result;
-	// }
+	// compare results of fn return, which is likely
+	// be string comparison ( not yet parsed )
+	if ( result !== initial.result ) {
+		initial.result = result;
+		return result;
+	}
 
 }
 
@@ -38,7 +38,7 @@ function preInit ( Parent, ractive, options ) {
 
 		let fn = result;
 
-		options[ this.name ] = getDynamicTemplate( ractive, fn );
+		result = getDynamicTemplate( ractive, fn );
 
 		// store fn and fn result for reset
 		ractive._config[ this.name ] = {
@@ -46,6 +46,8 @@ function preInit ( Parent, ractive, options ) {
 			result: result
 		};
 	}
+
+	options.template = result;
 
 }
 

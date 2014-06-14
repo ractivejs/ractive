@@ -1,6 +1,5 @@
 import defaults from 'config/defaults/options';
 import extendObject from 'utils/extend';
-import defineProperty from 'utils/defineProperty';
 
 function BaseConfiguration ( config ) {
 	extendObject( this, config );
