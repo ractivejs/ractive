@@ -1,34 +1,24 @@
-import getValueFromCheckboxes from 'shared/getValueFromCheckboxes';
 import arrayContentsMatch from 'utils/arrayContentsMatch';
 import isEqual from 'utils/isEqual';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
-	var values, deferredCheckboxes, i;
+	var values;
 
 	if ( typeof keypath !== 'string' ) {
 		keypath = '';
 		cascade = true;
 	}
 
-	consolidateChangedValues( this, keypath, values = {}, deferredCheckboxes = [], cascade );
-
-	if ( i = deferredCheckboxes.length ) {
-		while ( i-- ) {
-			keypath = deferredCheckboxes[i];
-			values[ keypath ] = getValueFromCheckboxes( this, keypath );
-		}
-	}
-
+	consolidateChangedValues( this, keypath, values = {}, cascade );
 	return this.set( values );
 }
 
-function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes, cascade ) {
-	var bindings, childDeps, i, binding, oldValue, newValue;
+function consolidateChangedValues ( ractive, keypath, values, cascade ) {
+	var bindings, childDeps, i, binding, oldValue, newValue, checkboxGroups = [];
 
 	bindings = ractive._twowayBindings[ keypath ];
 
-	if ( bindings ) {
-		i = bindings.length;
+	if ( bindings && ( i = bindings.length ) ) {
 		while ( i-- ) {
 			binding = bindings[i];
 
@@ -37,13 +27,12 @@ function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes
 				continue;
 			}
 
-			// special case - checkbox name bindings
+			// special case - checkbox name bindings come in groups, so
+			// we want to get the value once at most
 			if ( binding.checkboxName ) {
-				if ( binding.changed() && ( deferredCheckboxes[ keypath ] !== true ) ) {
-					// we will need to see which checkboxes with the same name are checked,
-					// but we only want to do so once
-					deferredCheckboxes[ keypath ] = true; // for quick lookup without indexOf
-					deferredCheckboxes.push( keypath );
+				if ( !checkboxGroups[ binding.keypath ] && !binding.changed() ) {
+					checkboxGroups.push( binding.keypath );
+					checkboxGroups[ binding.keypath ] = binding;
 				}
 
 				continue;
@@ -62,6 +51,21 @@ function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes
 		}
 	}
 
+	// Handle groups of `<input type='checkbox' name='{{foo}}' ...>`
+	if ( checkboxGroups.length ) {
+		checkboxGroups.forEach( keypath => {
+			var binding, oldValue, newValue;
+
+			binding = checkboxGroups[ keypath ]; // one to represent the entire group
+			oldValue = binding.attribute.value;
+			newValue = binding.getValue();
+
+			if ( !arrayContentsMatch( oldValue, newValue ) ) {
+				values[ keypath ] = newValue;
+			}
+		});
+	}
+
 	if ( !cascade ) {
 		return;
 	}
@@ -72,7 +76,7 @@ function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-			consolidateChangedValues( ractive, childDeps[i], values, deferredCheckboxes, cascade );
+			consolidateChangedValues( ractive, childDeps[i], values, cascade );
 		}
 	}
 }

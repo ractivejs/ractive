@@ -1,7 +1,6 @@
 import circular from 'circular';
 import css from 'global/css';
 import removeFromArray from 'utils/removeFromArray';
-import getValueFromCheckboxes from 'shared/getValueFromCheckboxes';
 import resolveRef from 'shared/resolveRef';
 import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
 import makeTransitionManager from 'shared/makeTransitionManager';
@@ -14,8 +13,6 @@ var runloop,
 
 	lockedAttributes = [],
 
-	checkboxKeypaths = {},
-	checkboxBindings = [],
 	unresolved = [],
 
 	modelUpdates = [],
@@ -93,15 +90,6 @@ runloop = {
 		}
 	},
 
-	// TODO this is wrong - inputs should be grouped by instance
-	addCheckboxBinding: function ( checkboxBinding ) {
-		if ( !checkboxKeypaths[ checkboxBinding.keypath ] ) {
-			dirty = true;
-			checkboxBindings.push( checkboxBinding );
-			checkboxKeypaths[ checkboxBinding.keypath ] = true;
-		}
-	},
-
 	addUnresolved: function ( thing ) {
 		dirty = true;
 		unresolved.push( thing );
@@ -158,11 +146,6 @@ function flushChanges () {
 
 		while ( thing = postModelUpdateTasks.pop() ) {
 			thing();
-		}
-
-		while ( thing = checkboxBindings.pop() ) {
-			thing.root.viewmodel.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
-			checkboxKeypaths[ thing.keypath ] = false;
 		}
 
 		attemptKeypathResolution();

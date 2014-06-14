@@ -1,17 +1,54 @@
-import runloop from 'global/runloop';
+import isArray from 'utils/isArray';
 import removeFromArray from 'utils/removeFromArray';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
-var CheckboxNameBinding = Binding.extend({
+var CheckboxNameBinding, groupsByInstance = {};
+
+CheckboxNameBinding = Binding.extend({
 	name: 'name',
 
-	init: function () {
-		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
-		this.isChecked = this.element.getAttribute( 'checked' );
+	getInitialValue: function () {
+		// This only gets called once per group (of inputs that
+		// share a name), because it only gets called if there
+		// isn't an initial value. By the same token, we can make
+		// a note of that fact that there was no initial value,
+		// and populate it using any `checked` attributes that
+		// exist (which users should avoid, but which we should
+		// support anyway to avoid breaking expectations)
+		this.noInitialValue = true;
+		return [];
+	},
 
-		this.siblings = this.root._checkboxNameBindings[ this.keypath ] || ( this.root._checkboxNameBindings[ this.keypath ] = [] );
+	init: function () {
+		var existingValue, bindingValue, noInitialValue;
+
+		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
+
+		// Each input has a reference to an array containing it and its
+		// siblings, as two-way binding depends on being able to ascertain
+		// the status of all inputs within the group
+		this.siblings = getSiblings( this );
 		this.siblings.push( this );
+
+		if ( this.noInitialValue ) {
+			this.siblings.noInitialValue = true;
+		}
+
+		noInitialValue = this.siblings.noInitialValue;
+
+		existingValue = this.root.viewmodel.get( this.keypath );
+		bindingValue = this.element.getAttribute( 'value' );
+
+		if ( noInitialValue ) {
+			this.isChecked = this.element.getAttribute( 'checked' );
+
+			if ( this.isChecked ) {
+				existingValue.push( bindingValue );
+			}
+		} else {
+			this.isChecked = ( isArray( existingValue ) ? existingValue.indexOf( bindingValue ) !== -1 : existingValue === bindingValue );
+		}
 	},
 
 	teardown: function () {
@@ -19,28 +56,16 @@ var CheckboxNameBinding = Binding.extend({
 	},
 
 	render: function () {
-		var node = this.element.node, valueFromModel, checked;
+		var node = this.element.node;
 
-		this.element.node.name = '{{' + this.keypath + '}}';
+		node.name = '{{' + this.keypath + '}}';
+		node.checked = this.isChecked;
 
 		node.addEventListener( 'change', handleDomEvent, false );
 
 		// in case of IE emergency, bind to click event as well
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', handleDomEvent, false );
-		}
-
-		valueFromModel = this.root.viewmodel.get( this.keypath );
-
-		// if the model already specifies this value, check/uncheck accordingly
-		if ( valueFromModel !== undefined ) {
-			checked = valueFromModel.indexOf( node._ractive.value ) !== -1;
-			node.checked = checked;
-		}
-
-		// otherwise make a note that we will need to update the model later
-		else {
-			runloop.addCheckboxBinding( this );
 		}
 	},
 
@@ -52,28 +77,36 @@ var CheckboxNameBinding = Binding.extend({
 	},
 
 	changed: function () {
-		return this.element.node.checked !== !!this.checked;
+		var wasChecked = !!this.isChecked;
+		this.isChecked = this.element.node.checked;
+		return this.isChecked === wasChecked;
 	},
 
 	handleChange: function () {
-		var value = [];
-
 		this.isChecked = this.element.node.checked;
-
-		this.siblings.forEach( s => {
-			if ( s.isChecked ) {
-				value.push( s.element.getAttribute( 'value' ) );
-			}
-		});
-
-		runloop.start( this.root );
-		this.root.viewmodel.set( this.keypath, value );
-		runloop.end();
+		Binding.prototype.handleChange.call( this );
 	},
 
 	getValue: function () {
-		throw new Error( 'This code should not execute!' );
+		return this.siblings.filter( isChecked ).map( getValue );
 	}
 });
+
+function isChecked ( binding ) {
+	return binding.isChecked;
+}
+
+function getValue ( binding ) {
+	return binding.element.getAttribute( 'value' );
+}
+
+function getSiblings ( binding ) {
+	var guid, groups;
+
+	guid = binding.root._guid;
+	groups = groupsByInstance[ guid ] || ( groupsByInstance[ guid ] = {} );
+
+	return groups[ binding.keypath ] || ( groups[ binding.keypath ] = [] );
+}
 
 export default CheckboxNameBinding;
