@@ -1,4 +1,3 @@
-import runloop from 'global/runloop';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
@@ -9,22 +8,22 @@ var RadioNameBinding = Binding.extend({
 		this.radioName = true; // so that ractive.updateModel() knows what to do with this
 	},
 
+	getInitialValue: function () {
+		if ( this.element.getAttribute( 'checked' ) ) {
+			return this.element.getAttribute( 'value' );
+		}
+	},
+
 	render: function () {
-		var node = this.element.node, valueFromModel;
+		var node = this.element.node;
 
 		node.name = '{{' + this.keypath + '}}';
+		node.checked = this.root.viewmodel.get( this.keypath ) == this.element.getAttribute( 'value' );
 
 		node.addEventListener( 'change', handleDomEvent, false );
 
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', handleDomEvent, false );
-		}
-
-		valueFromModel = this.root.viewmodel.get( this.keypath );
-		if ( valueFromModel !== undefined ) {
-			node.checked = ( valueFromModel == node._ractive.value );
-		} else {
-			runloop.afterModelUpdate( () => this.handleChange() );
 		}
 	},
 
@@ -41,11 +40,9 @@ var RadioNameBinding = Binding.extend({
 	},
 
 	handleChange: function () {
-		var node = this.element.node;
-
 		// If this <input> is the one that's checked, then the value of its
 		// `name` keypath gets set to its value
-		if ( node.checked ) {
+		if ( this.element.node.checked ) {
 			Binding.prototype.handleChange.call( this );
 		}
 	},
