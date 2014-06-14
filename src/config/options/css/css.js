@@ -9,23 +9,23 @@ var cssConfig = {
 	useDefaults: defaults.hasOwnProperty('css')
 };
 
-function extend ( Parent, properties, options ) {
+function extend ( Parent, proto, options ) {
 
-	var css;
+	var guid = proto.constructor._guid, css;
 
-	if ( css = getCss( options.css, options ) || getCss( Parent.css, Parent ) ) {
+	if ( css = getCss( options.css, options, guid ) || getCss( Parent.css, Parent, guid ) ) {
 
-		properties.css = { value: css, writable: true, enumerable: true };
+		proto.constructor.css = css;
 	}
 }
 
-function getCss ( css, target ) {
+function getCss ( css, target, guid ) {
 
 	if ( !css ) { return; }
 
 	return target.noCssTransform
 		? css
-		: transformCss( css, target._guid );
+		: transformCss( css, guid );
 
 }
 

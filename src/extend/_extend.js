@@ -45,6 +45,20 @@ export default function extend ( extendOptions ) {
 	var proto = create( Parent.prototype );
 	proto.constructor = Child;
 
+	var staticProperties = {
+
+		// each component needs a guid, for managing CSS etc
+		'_guid': { value: getGuid() },
+
+		//alias prototype as defaults
+		defaults: { value: proto },
+
+		//extendable
+		extend: { value: extend, writable: true, configurable: true }
+	}
+
+	defineProperties( Child, staticProperties );
+
 	// extend configuration
 	config.extend( Parent, proto, extendOptions );
 
@@ -53,20 +67,6 @@ export default function extend ( extendOptions ) {
 
 	Child.prototype = proto;
 
-
-	var staticProperties = {
-
-		// each component needs a guid, for managing CSS etc
-		'_guid': { value: getGuid() },
-
-		//alias prototype as defaults
-		defaults: { value: Child.prototype },
-
-		//extendable
-		extend: { value: extend, writable: true, configurable: true },
-	}
-
-	defineProperties( Child, staticProperties );
 
 	return Child;
 }

@@ -8,15 +8,20 @@ import Fragment from 'virtualdom/Fragment';
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
-	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
 
 	initialiseProperties( ractive, options );
 
 	//var properties = {}
 
+
+	// TEMPORARY. This is so we can implement Viewmodel gradually
+	ractive.viewmodel = new Viewmodel( ractive );
+
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
+
+	// hacky circular problem until we get this sorted out
+	ractive.viewmodel.compute();
 
 	// Render our *root fragment*
 	ractive.fragment = new Fragment({

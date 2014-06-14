@@ -1,14 +1,11 @@
 import getComputationSignature from 'viewmodel/Computation/getComputationSignature';
 import Computation from 'viewmodel/Computation/Computation';
 
-export default function createComputations ( viewmodel, computed ) {
+export default function createComputations ( ractive, computed ) {
+	var key, signature;
 
-	var computations = {};
-
-	for ( let key in computed ) {
-		let signature = getComputationSignature( computed[ key ] );
-		computations[ key ] = new Computation( viewmodel, key, signature );
+	for ( key in computed ) {
+		signature = getComputationSignature( computed[ key ] );
+		ractive.viewmodel.computations[ key ] = new Computation( ractive, key, signature );
 	}
-
-	return computations;
 }

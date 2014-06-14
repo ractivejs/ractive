@@ -2,8 +2,8 @@ import warn from 'utils/warn';
 import runloop from 'global/runloop';
 import Watcher from 'viewmodel/Computation/Watcher';
 
-var Computation = function ( viewmodel, key, signature ) {
-	this.viewmodel = viewmodel;
+var Computation = function ( ractive, key, signature ) {
+	this.ractive = ractive;
 	this.key = key;
 
 	this.getter = signature.get;
@@ -32,19 +32,20 @@ Computation.prototype = {
 	compute: function () {
 		var ractive, errored;
 
-		this.viewmodel.capture();
+		ractive = this.ractive;
+		ractive.viewmodel.capture();
 
 		try {
 			this.value = this.getter.call( ractive );
 		} catch ( err ) {
-			if ( this.debug ) {
+			if ( ractive.debug ) {
 				warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
 			}
 
 			errored = true;
 		}
 
-		diff( this, this.watchers, this.viewmodel.release() );
+		diff( this, this.watchers, ractive.viewmodel.release() );
 
 		return errored ? false : true;
 	},
@@ -52,7 +53,7 @@ Computation.prototype = {
 	update: function () {
 		if ( this.compute() ) {
 			this.setting = true;
-			this.viewmodel.set( this.key, this.value );
+			this.ractive.viewmodel.set( this.key, this.value );
 			this.setting = false;
 		}
 

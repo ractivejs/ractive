@@ -1,7 +1,7 @@
 import registry from 'config/options/registry';
 import createComputations from 'viewmodel/Computation/createComputations';
 
-// TODO this should be taken care of directly by the viewmodel
+// TODO this isn't pulling it's weight
 var computed = registry( {
 	name: 'computed'
 });

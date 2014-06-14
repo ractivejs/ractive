@@ -11,7 +11,7 @@ export default function registryConfig ( config ) {
 		preExtend: preExtend,
 		postExtend: () => {},
 		preInit: preInit,
-		postInit: config.postInit || ( function(){} ),
+		postInit: () => {},
 		resetValue: reset,
 		find: find,
 		findInstance: findInstance

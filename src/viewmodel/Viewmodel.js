@@ -11,11 +11,7 @@ import unregister from 'viewmodel/prototype/unregister';
 import createComputations from 'viewmodel/Computation/createComputations';
 
 var Viewmodel = function ( ractive ) {
-
-	// TODO eventually, we shouldn't need this reference
-	this.ractive = ractive;
-	// and these need to be resolved from elsewhere
-	this.debug = ractive.debug;
+	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
@@ -27,7 +23,7 @@ var Viewmodel = function ( ractive ) {
 
 	// TODO these are conceptually very similar. Can they be merged somehow?
 	this.evaluators = create( null );
-	this.computations = createComputations( this, ractive.computed );
+	this.computations = create( null );
 
 	this.captured = null;
 	this.unresolvedImplicitDependencies = [];
@@ -44,7 +40,13 @@ Viewmodel.prototype = {
 	release: release,
 	set: set,
 	teardown: teardown,
-	unregister: unregister
+	unregister: unregister,
+	// createComputations, in the computations, may call back through get or set
+	// of ractive. So, for now, we delay creation of computed from constructor.
+	// on option would be to have the Computed class be lazy about using .update()
+	compute: function () {
+		createComputations( this.ractive, this.ractive.computed );
+	}
 };
 
 export default Viewmodel;
