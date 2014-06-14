@@ -1,4 +1,4 @@
-import optionConfig from 'config/options/option';
+import optionConfig from 'config/options/baseConfiguration';
 import circular from 'circular';
 
 var Ractive;
@@ -7,7 +7,7 @@ circular.push( function () {
 	Ractive = circular.Ractive;
 });
 
-var config = optionConfig( 'debug' );
+var config = optionConfig( { name: 'debug' } );
 
 config.preExtend = config.preInit = copyFromConstructor;
 

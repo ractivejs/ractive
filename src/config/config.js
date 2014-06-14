@@ -1,5 +1,5 @@
 import adapt from 'config/options/adapt';
-import basicConfig from 'config/options/option';
+import basicConfig from 'config/options/baseConfiguration';
 import css from 'config/options/css/css';
 import data from 'config/options/data';
 import debug from 'config/options/debug';
@@ -29,7 +29,7 @@ custom = {
 // registries, parse options, and any custom configuration
 options = Object.keys( defaults )
 	.filter( key => !registries[ key ] && !custom[ key ] && !parseOptions[ key ] )
-	.map( basicConfig );
+	.map( key => basicConfig( { name: key } ) );
 
 // this defines the order:
 config = [].concat(

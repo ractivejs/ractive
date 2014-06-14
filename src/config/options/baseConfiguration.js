@@ -6,50 +6,51 @@ function BaseConfiguration ( config ) {
 	this.useDefaults = defaults.hasOwnProperty( config.name );
 }
 
+
+function configure ( Parent, ractive, options, name, pre, post ) {
+	var option;
+
+
+	if( pre ) {
+		options = options || {};
+		pre( Parent, ractive, options );
+	}
+
+	if ( options && ( name in options ) ) {
+		option = options[ name ];
+	}
+
+	if( post ) {
+		option = post( ractive, option );
+	}
+
+	if ( !empty( option ) ) {
+		ractive [ name ] = option;
+	}
+}
+
 BaseConfiguration.prototype = {
 
+
+
 	extend: function ( Parent, proto, options ) {
-		var option;
 
-		if( this.preExtend ) {
-			options = options || {};
-			this.preExtend( Parent, proto, options );
-		}
-
-		if ( options && ( this.name in options ) ) {
-			option = options[ this.name ];
-		}
-
-		if ( this.postExtend ) {
-			option = this.postExtend( proto, option );
-		}
-
-		if ( !empty( option ) ) {
-
-			proto[ this.name ] = option;
-		}
+		configure( Parent, proto, options,
+			// temp
+			this.name,
+			this.preExtend ? this.preExtend.bind(this) : void 0,
+			this.postExtend ? this.postExtend.bind(this) : void 0
+		);
 	},
 
 	init: function ( Parent, ractive, options ) {
-		var option;
 
-
-		if( this.preInit ) {
-			options = options || {};
-			this.preInit( Parent, ractive, options );
-		}
-
-		if ( options && ( this.name in options ) ) {
-			option = options[ this.name ];
-		}
-
-		if( this.postInit ) {
-			option = this.postInit( ractive, option );
-		}
-
-		if ( !empty( option ) ) {
-			ractive [ this.name ] = option;
-		}
+		configure( Parent, ractive, options,
+			// temp
+			this.name,
+			this.preInit ? this.preInit.bind(this) : void 0,
+			this.postInit ? this.postInit.bind(this) : void 0
+		);
 	},
 
 	reset: function ( ractive ) {

@@ -2,17 +2,9 @@ import registry from 'config/options/registry';
 
 var adaptorsConfig = registry( {
 	name: 'adaptors',
-	postExtend: extend,
-	postInit: init
+	postExtend: convert,
+	postInit: convert
 });
-
-function extend ( properties, adaptors ) {
-	return convert( properties, adaptors );
-}
-
-function init ( ractive, adaptors ) {
-	return convert( ractive, adaptors );
-}
 
 function convert ( target, adaptors ) {
 
