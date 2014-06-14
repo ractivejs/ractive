@@ -4,9 +4,17 @@ define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture, Foo;
+		var fixture, Foo,
+			defaultTemplate = Ractive.defaults.template,
+			defaultData = Ractive.defaults.data;
 
-		module( 'Initialisation' );
+		module( 'Initialisation', {
+			// make sure it gets put back, or will break other test modules!
+			teardown: () => {
+				Ractive.defaults.template = defaultTemplate;
+				Ractive.defaults.data = defaultData;
+			}
+		} );
 
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
@@ -22,8 +30,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			Ractive.defaults.data = function() { return data };
 			ractive = new Ractive();
 			t.equal( ractive.data, data );
-
-			delete Ractive.defaults.data;
 
 		});
 
@@ -61,8 +67,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.ok( ractive.data.foo );
 			t.ok( ractive.data.bizz );
-
-			delete Ractive.defaults.data;
 		});
 
 		test( 'Instance data function takes precendence over default data function', function ( t ) {
@@ -74,8 +78,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.ok( ractive.data.bar );
 			t.equal( ractive.data.bar, 'bizz' );
-
-			delete Ractive.defaults.data;
 		});
 
 		test( 'Instance data takes precedence over default data but includes unique properties', function ( t ) {
@@ -94,8 +96,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.data.format, 'has default data' );
 			t.ok( ractive.data.unique, 'has default data' );
 			t.equal( ractive.data.format(), 'foo' );
-
-			delete Ractive.defaults.data;
 
 		});
 
@@ -135,8 +135,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.data.componentOnly, 'has Component data' );
 			t.ok( ractive.data.defaultOnly, 'has Ractive.default data' );
 			t.equal( fixture.innerHTML, 'component' )
-
-			delete Ractive.defaults.data;
 
 		});
 
@@ -235,8 +233,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( fixture.innerHTML, 'bar' );
 
-			delete Ractive.defaults.template;
-
 		});
 
 		test( 'Ractive default template function called on initialize', function ( t ) {
@@ -252,8 +248,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, 'bar' );
-
-			delete Ractive.defaults.template;
 
 		});
 
@@ -277,8 +271,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, 'fizzbizz' );
-
-			delete Ractive.defaults.template;
 
 		});
 
@@ -313,7 +305,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( fixture.innerHTML, 'bar' )
 
-			delete Ractive.defaults.template;
 
 		});
 

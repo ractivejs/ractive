@@ -6,7 +6,7 @@ export default function parseConfig ( name ) {
 
 	//TODO: Remove
 	config.postInit = ( target, result ) => {
-		target.parseOptions[ name ] = target[ name ];
+		target.parseOptions[ name ] = result;
 	};
 
 	return config;

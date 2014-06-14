@@ -2,12 +2,14 @@ import errors from 'config/errors';
 import isClient from 'config/isClient';
 import parse from 'parse/_parse';
 import create from 'utils/create';
+import parseOptions from 'config/options/groups/parseOptions';
 
 var parser = {
 	parse: doParse,
 	fromId: fromId,
 	isHashedId: isHashedId,
 	isParsed: isParsed,
+	getParseOptions: getParseOptions,
 	createHelper: createHelper
 }
 
@@ -62,6 +64,15 @@ function isHashedId ( id ) {
 
 function isParsed ( template) {
 	return !( typeof template === 'string' );
+}
+
+function getParseOptions ( ractive ) {
+
+	return parseOptions.reduce( ( val, option ) => {
+		val[ option.name ] = ractive[ option.name ];
+		return val;
+	}, {} );
+
 }
 
 export default parser;

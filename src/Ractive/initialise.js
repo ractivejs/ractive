@@ -21,7 +21,7 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	// Render our *root fragment*
 	ractive.fragment = new Fragment({
-		template: ractive.template,
+		template: ractive.template || [], // hmm, does this mean we don't need to create the fragment?
 		root: ractive,
 		owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
 	});

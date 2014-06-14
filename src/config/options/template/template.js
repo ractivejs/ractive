@@ -1,21 +1,16 @@
 import baseConfig from 'config/options/baseConfiguration';
 import parser from 'config/options/template/parser';
 import isObject from 'utils/isObject';
-import parseOptions from 'config/options/groups/parseOptions';
 
 var templateConfig = baseConfig({
 	name: 'template',
 	postExtend: parseTemplate,
+	preInit: preInit,
 	postInit: parseTemplate,
 	resetValue: reset,
 	processCompound: processCompound
 });
 
-
-// function getDynamicTemplate ( ractive, fn ) {
-// 	var helper = parser.createHelper( getParseOptions( ractive ) );
-// 	return fn.call( ractive, ractive.data, helper );
-// }
 
 function reset ( ractive ) {
 
@@ -35,24 +30,34 @@ function reset ( ractive ) {
 
 }
 
-function getParseOptions ( target ) {
+function preInit ( Parent, ractive, options ) {
 
-	if ( target.parseOptions ) { return target.parseOptions; }
+	var result = options.template || Parent.prototype.template;
 
-	var options = target.defaults;
+	if ( typeof result === 'function' ) {
 
-	if ( !options ) { return; }
+		let fn = result;
 
-	return parseOptions.reduce( ( val, option ) => {
-		val[ option.name ] = options[ option.name ];
-		return val;
-	}, {} );
+		options[ this.name ] = getDynamicTemplate( ractive, fn );
+
+		// store fn and fn result for reset
+		ractive._config[ this.name ] = {
+			fn: fn,
+			result: result
+		};
+	}
 
 }
 
+function getDynamicTemplate ( ractive, fn ) {
+	var helper = parser.createHelper( parser.getParseOptions( ractive ) );
+	return fn.call( ractive, ractive.data, helper );
+}
+
+
 function parseTemplate ( target, template ) {
 
-	if ( !template ) { return template; }
+	if ( !template || typeof template === 'function' ) { return template; }
 
 	if ( !parser.isParsed( template ) ) {
 
@@ -61,7 +66,7 @@ function parseTemplate ( target, template ) {
 			template = parser.fromId( template );
 		}
 
-		template = parser.parse( template, getParseOptions( target ) );
+		template = parser.parse( template, parser.getParseOptions( target ) );
 	}
 
 	template = processCompound( target, template );

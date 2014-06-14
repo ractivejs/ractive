@@ -30,6 +30,9 @@ function (
 
 					Component = create( Ractive );
 					Component.defaults = Component.prototype;
+				},
+				teardown: function(){
+
 				}
 			};
 
@@ -124,13 +127,13 @@ function (
 			testTemplate1( ractive.template );
 		});
 
-		test( 'Overwrite before init', t => {
+		// test( 'Overwrite before init', t => {
 
-			Ractive.defaults.template = templateOpt1.template;
-			config.init( Ractive, ractive );
+		// 	Ractive.defaults.template = templateOpt1.template;
+		// 	config.init( Ractive, ractive );
 
-			testTemplate1( ractive.template );
-		});
+		// 	testTemplate1( ractive.template );
+		// });
 
 		test( 'Overwrite after extend before init', t => {
 

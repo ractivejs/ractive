@@ -86,11 +86,8 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 }
 
 function retrieve ( viewmodel, keypath ) {
-<<<<<<< HEAD:src/viewmodel/prototype/get.js
-	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
-=======
+
 	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
->>>>>>> origin/dev:src/viewmodel/prototype/get.js
 
 	keys = keypath.split( '.' );
 	key = keys.pop();
@@ -124,11 +121,7 @@ function retrieve ( viewmodel, keypath ) {
 	value = parentValue[ key ];
 
 	// Do we have an adaptor for this value?
-<<<<<<< HEAD:src/viewmodel/prototype/get.js
-	value = viewmodel.adapt( keypath, value, false );
-=======
 	viewmodel.adapt( keypath, value, false );
->>>>>>> origin/dev:src/viewmodel/prototype/get.js
 
 	// Update cache
 	viewmodel.cache[ keypath ] = value;

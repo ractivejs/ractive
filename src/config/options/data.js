@@ -1,39 +1,54 @@
 import baseConfig from 'config/options/baseConfiguration';
 import create from 'utils/create';
 import wrap from 'utils/wrapMethod';
+import defaults from 'config/defaults/options';
 
-var dataConfig = baseConfig( {
+var dataConfig = {
 	name: 'data',
-	extendValue: extend,
-	initValue: init,
-	resetValue: reset
-});
+	extend: extend,
+	init: init,
+	reset: reset,
+	useDefaults: defaults.hasOwnProperty('data')
+};
 
 export default dataConfig;
 
+function combine( Parent, target, options ) {
 
-function extend( target, parentValue, value ) {
-
-	parentValue = getAddedKeys( parentValue );
+	var value = options.data || {},
+		parentValue = getAddedKeys( Parent.prototype.data );
 
 	return dispatch( parentValue, value );
 }
 
-function init ( ractive, parentValue, value ) {
 
-	var result = this.extendValue( ractive, parentValue, value );
+function extend( Parent, proto, options ) {
+
+	proto.data = combine( Parent, proto, options );
+}
+
+function init ( Parent, ractive, options ) {
+
+	var value = options.data,
+		result = combine( Parent, ractive, options );
 
 	if ( typeof result === 'function' ) {
 
 		result = result.call( ractive, value ) || value;
 	}
 
-	return result || {};
+	return ractive.data = result || {};
 }
 
 function reset ( ractive ) {
 
-	return this.initValue( ractive, ractive.constructor.defaults.data, ractive.data );
+	var result = this.init( ractive.constructor, ractive, ractive );
+
+	if ( result ) {
+		ractive.data = result;
+		return true;
+	}
+
 }
 
 function getAddedKeys( parent ) {
