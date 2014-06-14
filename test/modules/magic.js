@@ -182,39 +182,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			foo.bar = 'qux';
 		});
 
-		test( 'Regression test for #393', function ( t ) {
-			var View, ractive;
-
-			View = Ractive.extend({
-				data: {
-					foo: {
-						a: 1,
-						b: 2
-					},
-
-					bar: [
-						'a', 'b', 'c'
-					]
-				}
-			});
-
-			ractive = new View({
-				el: fixture,
-				template: '{{ JSON.stringify(foo) }} | {{ JSON.stringify(bar) }}',
-				magic: true
-			});
-
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":2} | ["a","b","c"]' );
-
-			ractive.set( 'foo.b', 3 );
-			t.deepEqual( View.defaults.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","b","c"]' );
-
-			ractive.set( 'bar[1]', 'd' );
-			t.deepEqual( View.defaults.data, {foo:{a:1,b:2},bar:['a', 'b', 'c']});
-			t.htmlEqual( fixture.innerHTML, '{"a":1,"b":3} | ["a","d","c"]' );
-		});
-
 		test( 'A magic component is magic regardless of whether its parent is magic', function ( t ) {
 			var Magician, ractive;
 
