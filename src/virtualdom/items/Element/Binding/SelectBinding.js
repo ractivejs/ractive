@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import set from 'shared/set';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
@@ -37,7 +36,7 @@ var SelectBinding = Binding.extend({
 	},
 
 	setValue: function ( value ) {
-		set( this.root, this.keypath, value );
+		this.root.viewmodel.set( this.keypath, value );
 	},
 
 	getValue: function () {
@@ -64,7 +63,7 @@ var SelectBinding = Binding.extend({
 			// able to set one now
 			if ( this.attribute.value === undefined ) {
 				runloop.afterModelUpdate( () => {
-					set( this.root, this.keypath, this.getInitialValue() );
+					this.root.viewmodel.set( this.keypath, this.getInitialValue() );
 				});
 			}
 		}

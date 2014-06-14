@@ -5,9 +5,10 @@ import data from 'config/options/data';
 import debug from 'config/options/debug';
 import defaults from 'config/defaults/options';
 import complete from 'config/options/complete';
-import magic from 'config/options/magic';
 import computed from 'config/options/computed';
+import magic from 'config/options/magic';
 import template from 'config/options/template/template';
+
 import parseOptions from 'config/options/groups/parseOptions';
 import registries from 'config/options/groups/registries';
 
@@ -22,7 +23,7 @@ custom = {
 	magic: magic,
 	template: template,
 	css: css
-}
+};
 
 // fill in basicConfig for all default options not covered by
 // registries, parse options, and any custom configuration

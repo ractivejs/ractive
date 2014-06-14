@@ -1,16 +1,6 @@
 import types from 'config/types';
-import clearCache from 'shared/clearCache';
 import notifyDependants from 'shared/notifyDependants';
 import notifyPatternObservers from 'shared/notifyPatternObservers';
-import set from 'shared/set';
-
-import circular from 'circular';
-
-var get;
-
-circular.push( function () {
-	get = circular.get;
-});
 
 export default function ( wrapper, array, methodName, spliceSummary ) {
 	var root, keypath, updateDependant, i, childKeypath;
@@ -18,12 +8,12 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	root = wrapper.root;
 	keypath = wrapper.keypath;
 
-	root._changes.push( keypath );
+	root.viewmodel.changes.push( keypath );
 
 	// If this is a sort or reverse, we just do root.set()...
 	// TODO use merge logic?
 	if ( methodName === 'sort' || methodName === 'reverse' ) {
-		set( root, keypath, array );
+		root.viewmodel.set( keypath, array );
 		return;
 	}
 
@@ -36,7 +26,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	// ...otherwise we do a smart update whereby elements are added/removed
 	// in the right place. But we do need to clear the cache downstream
 	for ( i = spliceSummary.rangeStart; i < spliceSummary.clearEnd; i += 1 ) {
-		clearCache( root, keypath + '.' + i );
+		root.viewmodel.clearCache( keypath + '.' + i );
 	}
 
 	// Propagate changes. First, pattern observers
@@ -51,12 +41,12 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 		if ( dependant.keypath === keypath && dependant.type === types.SECTION && !dependant.inverted && dependant.docFrag ) {
 			dependant.splice( spliceSummary );
 		} else {
-			dependant.setValue( get( dependant.root, dependant.keypath ) );
+			dependant.setValue( dependant.root.viewmodel.get( dependant.keypath ) );
 		}
 	};
 
 	// Go through all dependant priority levels, finding smart update targets
-	root._deps.forEach( function ( depsByKeypath ) {
+	root.viewmodel.deps.forEach( function ( depsByKeypath ) {
 		var dependants = depsByKeypath[ keypath ];
 
 		if ( dependants ) {
@@ -78,7 +68,7 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 	// but doesn't) this needs to happen before other updates. But doing so causes
 	// other mental problems. not sure what's going on...
 	if ( spliceSummary.balance ) {
-		clearCache( root, keypath + '.length' );
+		root.viewmodel.clearCache( keypath + '.length' );
 		notifyDependants( root, keypath + '.length', true );
 	}
 }

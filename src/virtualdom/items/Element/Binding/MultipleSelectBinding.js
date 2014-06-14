@@ -1,5 +1,3 @@
-import get from 'shared/get';
-import set from 'shared/set';
 import arrayContentsMatch from 'utils/arrayContentsMatch';
 import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
@@ -16,7 +14,7 @@ var MultipleSelectBinding = SelectBinding.extend({
 
 		this.element.node.addEventListener( 'change', handleDomEvent, false );
 
-		valueFromModel = get( this.root, this.keypath );
+		valueFromModel = this.root.viewmodel.get( this.keypath );
 
 		if ( valueFromModel === undefined ) {
 			// get value from DOM, if possible
@@ -64,7 +62,7 @@ var MultipleSelectBinding = SelectBinding.extend({
 
 	updateModel: function () {
 		if ( this.attribute.value === undefined || !this.attribute.value.length ) {
-			set( this.root, this.keypath, this.initialValue );
+			this.root.viewmodel.set( this.keypath, this.initialValue );
 		}
 	}
 });

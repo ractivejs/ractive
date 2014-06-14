@@ -1,4 +1,3 @@
-import get from 'shared/get';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
@@ -48,6 +47,6 @@ function handleBlur () {
 
 	handleDomEvent.call( this );
 
-	value = get( this._ractive.root, this._ractive.binding.keypath, getOptions );
+	value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath, getOptions );
 	this.value = value == undefined ? '' : value;
 }

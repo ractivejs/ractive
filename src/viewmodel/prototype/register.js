@@ -1,11 +1,10 @@
-export default function registerDependant ( dependant ) {
-	var depsByKeypath, deps, ractive, keypath, priority, evaluator;
+export default function Viewmodel$register ( dependant ) {
+	var depsByKeypath, deps, keypath, priority, evaluator;
 
-	ractive = dependant.root;
 	keypath = dependant.keypath;
 	priority = dependant.priority;
 
-	depsByKeypath = ractive._deps[ priority ] || ( ractive._deps[ priority ] = {} );
+	depsByKeypath = this.deps[ priority ] || ( this.deps[ priority ] = {} );
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 	deps.push( dependant );
@@ -15,7 +14,7 @@ export default function registerDependant ( dependant ) {
 		return;
 	}
 
-	if ( evaluator = ractive._evaluators[ keypath ] ) {
+	if ( evaluator = this.evaluators[ keypath ] ) {
 		if ( !evaluator.dependants ) {
 			evaluator.wake();
 		}
@@ -23,10 +22,10 @@ export default function registerDependant ( dependant ) {
 		evaluator.dependants += 1;
 	}
 
-	updateDependantsMap( ractive, keypath );
+	updateDependantsMap( this, keypath );
 }
 
-function updateDependantsMap ( ractive, keypath ) {
+function updateDependantsMap ( viewmodel, keypath ) {
 	var keys, parentKeypath, map;
 
 	// update dependants map
@@ -36,7 +35,7 @@ function updateDependantsMap ( ractive, keypath ) {
 		keys.pop();
 		parentKeypath = keys.join( '.' );
 
-		map = ractive._depsMap[ parentKeypath ] || ( ractive._depsMap[ parentKeypath ] = [] );
+		map = viewmodel.depsMap[ parentKeypath ] || ( viewmodel.depsMap[ parentKeypath ] = [] );
 
 		if ( map[ keypath ] === undefined ) {
 			map[ keypath ] = 0;

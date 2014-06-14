@@ -43,7 +43,7 @@ function preExtend ( Parent, child, options ) {
 
 
 	for( let key in option ) {
-		child[ key ] = option[ key ];
+		registry[ key ] = option[ key ];
 	}
 
 	child[ name ] = registry;

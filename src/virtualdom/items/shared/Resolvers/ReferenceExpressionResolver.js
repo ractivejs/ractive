@@ -1,10 +1,7 @@
 import types from 'config/types';
 import removeFromArray from 'utils/removeFromArray';
-import get from 'shared/get';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
-import registerDependant from 'shared/registerDependant';
-import unregisterDependant from 'shared/unregisterDependant';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
@@ -158,9 +155,9 @@ var KeypathObserver = function ( ractive, keypath, priority, resolver, index ) {
 	this.resolver = resolver;
 	this.index = index;
 
-	registerDependant( this );
+	ractive.viewmodel.register( this );
 
-	this.setValue( get( ractive, keypath ) );
+	this.setValue( ractive.viewmodel.get( keypath ) );
 };
 
 KeypathObserver.prototype = {
@@ -172,7 +169,7 @@ KeypathObserver.prototype = {
 	},
 
 	teardown: function () {
-		unregisterDependant( this );
+		this.root.viewmodel.unregister( this );
 	}
 };
 

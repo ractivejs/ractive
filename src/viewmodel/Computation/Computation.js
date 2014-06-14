@@ -1,10 +1,9 @@
 import warn from 'utils/warn';
 import runloop from 'global/runloop';
-import set from 'shared/set';
-import Watcher from 'Ractive/computations/Watcher';
+import Watcher from 'viewmodel/Computation/Watcher';
 
-var Computation = function ( ractive, key, signature ) {
-	this.ractive = ractive;
+var Computation = function ( viewmodel, key, signature ) {
+	this.viewmodel = viewmodel;
 	this.key = key;
 
 	this.getter = signature.get;
@@ -31,29 +30,21 @@ Computation.prototype = {
 
 	// returns `false` if the computation errors
 	compute: function () {
-		var ractive, originalCaptured, errored;
+		var ractive, errored;
 
-		ractive = this.ractive;
-		originalCaptured = ractive._captured;
-
-		if ( !originalCaptured ) {
-			ractive._captured = [];
-		}
+		this.viewmodel.capture();
 
 		try {
 			this.value = this.getter.call( ractive );
 		} catch ( err ) {
-			if ( ractive.debug ) {
+			if ( this.debug ) {
 				warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
 			}
 
 			errored = true;
 		}
 
-		diff( this, this.watchers, ractive._captured );
-
-		// reset
-		ractive._captured = originalCaptured;
+		diff( this, this.watchers, this.viewmodel.release() );
 
 		return errored ? false : true;
 	},
@@ -61,7 +52,7 @@ Computation.prototype = {
 	update: function () {
 		if ( this.compute() ) {
 			this.setting = true;
-			set( this.ractive, this.key, this.value );
+			this.viewmodel.set( this.key, this.value );
 			this.setting = false;
 		}
 

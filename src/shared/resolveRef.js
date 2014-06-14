@@ -1,13 +1,8 @@
-import circular from 'circular';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import getInnerContext from 'shared/getInnerContext';
 
-var get, ancestorErrorMessage, getOptions;
-
-circular.push( function () {
-	get = circular.get;
-});
+var ancestorErrorMessage, getOptions;
 
 ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
@@ -35,7 +30,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 		}
 
 		hasContextChain = true;
-		parentValue = get( ractive, context, getOptions );
+		parentValue = ractive.viewmodel.get( context, getOptions );
 
 		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
 			return context + '.' + ref;
@@ -58,7 +53,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	}
 
 	// while the second deals with references like `foo.bar`
-	else if ( get( ractive, ref ) !== undefined ) {
+	else if ( ractive.viewmodel.get( ref ) !== undefined ) {
 		return ref;
 	}
 }

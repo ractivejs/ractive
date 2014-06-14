@@ -72,7 +72,7 @@ BaseConfiguration.prototype = {
 
 	assign: function ( target, value ) {
 
-		if ( empty( value ) ) { return; }
+		if ( value == undefined ) { return; }
 
 		target[ this.name ] = value;
 	},
@@ -96,8 +96,6 @@ function empty ( value ) {
 	// allow '', 0, false, etc:
 	return typeof value === 'undefined' || value === null;
 }
-
-
 
 export default function baseConfig ( config ) {
 	return new BaseConfiguration( config );

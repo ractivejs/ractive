@@ -2,7 +2,6 @@ import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isArray from 'utils/isArray';
 import Promise from 'utils/Promise';
-import set from 'shared/set';
 import mapOldToNewIndex from 'Ractive/prototype/merge/mapOldToNewIndex';
 import propagateChanges from 'Ractive/prototype/merge/propagateChanges';
 
@@ -67,7 +66,7 @@ export default function Ractive$merge ( keypath, array, options ) {
 
 	// Update the model
 	// TODO allow existing array to be updated in place, rather than replaced?
-	set( this, keypath, array, true );
+	this.viewmodel.set( keypath, array, true );
 	propagateChanges( this, keypath, newIndices, lengthUnchanged );
 	runloop.end();
 

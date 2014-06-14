@@ -1,7 +1,6 @@
 import warn from 'utils/warn';
 import runloop from 'global/runloop';
 import interpolate from 'shared/interpolate';
-import set from 'shared/set';
 
 var Animation = function ( options ) {
 	var key;
@@ -32,7 +31,7 @@ Animation.prototype = {
 			if ( elapsed >= this.duration ) {
 				if ( keypath !== null ) {
 					runloop.start( this.root );
-					set( this.root, keypath, this.to );
+					this.root.viewmodel.set( keypath, this.to );
 					runloop.end();
 				}
 
@@ -60,7 +59,7 @@ Animation.prototype = {
 			if ( keypath !== null ) {
 				value = this.interpolator( t );
 				runloop.start( this.root );
-				set( this.root, keypath, value );
+				this.root.viewmodel.set( keypath, value );
 				runloop.end();
 			}
 

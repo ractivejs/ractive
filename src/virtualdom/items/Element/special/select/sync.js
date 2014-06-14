@@ -1,6 +1,5 @@
 import toArray from 'utils/toArray';
 import runloop from 'global/runloop';
-import set from 'shared/set';
 
 export default function syncSelect ( selectElement ) {
 	var selectNode, selectValue, isMultiple, options, value, i, optionWasSelected;
@@ -39,7 +38,7 @@ export default function syncSelect ( selectElement ) {
 
 			if ( selectElement.binding ) {
 				selectValue = isMultiple ? [] : ( options[0] ? ( options[0]._ractive ? options[0]._ractive.value : options[0].value ) : undefined );
-				set( selectElement.root, selectElement.binding.keypath, selectValue );
+				selectElement.root.viewmodel.set( selectElement.binding.keypath, selectValue );
 			}
 		}
 	}
@@ -66,7 +65,7 @@ export default function syncSelect ( selectElement ) {
 		}
 
 		runloop.lockAttribute( selectElement.attributes.value );
-		set( selectElement.root, selectElement.binding.keypath );
+		selectElement.root.viewmodel.set( selectElement.binding.keypath );
 	}
 }
 
