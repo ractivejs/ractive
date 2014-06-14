@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-13 - commit 0d98c510 
+	2014-06-14 - commit ee15de2f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12234,78 +12234,6 @@
 		}
 	};
 
-	/* utils/isBoolean.js */
-	var isBoolean = function() {
-
-		var toString = Object.prototype.toString;
-		return function( thing ) {
-			return typeof thing === 'boolean' || typeof thing === 'object' && toString.call( thing ) === '[object Boolean]';
-		};
-	}();
-
-	/* utils/isDate.js */
-	var isDate = function() {
-
-		var toString = Object.prototype.toString;
-		return function( thing ) {
-			return toString.call( thing ) === '[object Date]';
-		};
-	}();
-
-	/* utils/isNumber.js */
-	var isNumber = function() {
-
-		var toString = Object.prototype.toString;
-		return function( thing ) {
-			return typeof thing === 'number' || typeof thing === 'object' && toString.call( thing ) === '[object Number]';
-		};
-	}();
-
-	/* utils/isRegExp.js */
-	var isRegExp = function() {
-
-		var toString = Object.prototype.toString;
-		return function( thing ) {
-			return toString.call( thing ) === '[object RegExp]';
-		};
-	}();
-
-	/* utils/isString.js */
-	var isString = function() {
-
-		var toString = Object.prototype.toString;
-		return function( thing ) {
-			return typeof thing === 'string' || typeof thing === 'object' && toString.call( thing ) === '[object String]';
-		};
-	}();
-
-	/* utils/clone.js */
-	var clone = function( isArray, isBoolean, isDate, isNumber, isRegExp, isString ) {
-
-		return function( source ) {
-			var target, key;
-			if ( !source || typeof source === 'function' || isBoolean( source ) || isNumber( source ) || isString( source ) ) {
-				return source;
-			}
-			if ( isArray( source ) ) {
-				return source.slice();
-			}
-			if ( isDate( source ) ) {
-				return new Date( source );
-			}
-			if ( isRegExp( source ) ) {
-				return new RegExp( source );
-			}
-			target = {};
-			for ( key in source ) {
-				if ( source.hasOwnProperty( key ) ) {
-					target[ key ] = source[ key ];
-				}
-			}
-			return target;
-		};
-	}( isArray, isBoolean, isDate, isNumber, isRegExp, isString );
-
 	/* viewmodel/prototype/get/getFromParent.js */
 	var viewmodel$get_getFromParent = function( createComponentBinding ) {
 
@@ -12376,7 +12304,7 @@
 	}( removeFromArray, runloop, notifyDependants );
 
 	/* viewmodel/prototype/get.js */
-	var viewmodel$get = function( hasOwnProperty, clone, getFromParent, FAILED_LOOKUP, UnresolvedImplicitDependency ) {
+	var viewmodel$get = function( getFromParent, FAILED_LOOKUP, UnresolvedImplicitDependency ) {
 
 		var empty = {};
 		return function Viewmodel$get( keypath ) {
@@ -12438,7 +12366,7 @@
 		};
 
 		function retrieve( viewmodel, keypath ) {
-			var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped, shouldClone;
+			var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
 			keys = keypath.split( '.' );
 			key = keys.pop();
 			parentKeypath = keys.join( '.' );
@@ -12462,20 +12390,14 @@
 			if ( typeof parentValue === 'object' && !( key in parentValue ) ) {
 				return viewmodel.cache[ keypath ] = FAILED_LOOKUP;
 			}
-			// If this value actually lives on the prototype of this
-			// instance's `data`, and not as an own property, we need to
-			// clone it. Otherwise the instance could end up manipulating
-			// data that doesn't belong to it
-			// TODO shouldn't we be using prototypal inheritance instead?
-			shouldClone = !hasOwnProperty.call( parentValue, key );
-			value = shouldClone ? clone( parentValue[ key ] ) : parentValue[ key ];
+			value = parentValue[ key ];
 			// Do we have an adaptor for this value?
-			value = viewmodel.adapt( keypath, value, false );
+			viewmodel.adapt( keypath, value, false );
 			// Update cache
 			viewmodel.cache[ keypath ] = value;
 			return value;
 		}
-	}( hasOwn, clone, viewmodel$get_getFromParent, viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
+	}( viewmodel$get_getFromParent, viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
 
 	/* viewmodel/prototype/register.js */
 	var viewmodel$register = function() {
