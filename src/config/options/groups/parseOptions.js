@@ -1,5 +1,5 @@
 import optionGroup from 'config/options/groups/optionGroup';
-import option from 'config/options/option';
+import option from 'config/options/baseConfiguration';
 
 var keys, parseOptions;
 
@@ -12,6 +12,6 @@ keys = [
 	'handlebars'
 ];
 
-parseOptions = optionGroup( keys, key => option( key ) );
+parseOptions = optionGroup( keys, key => option( { name: key } ) );
 
 export default parseOptions;

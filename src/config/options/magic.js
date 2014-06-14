@@ -1,4 +1,5 @@
-import optionConfig from 'config/options/option';
+import optionConfig from 'config/options/baseConfiguration';
+
 
 // TODO: fix our ES6 modules so we can have multiple exports
 // then this magic check can be reused by magicAdaptor
@@ -11,7 +12,7 @@ catch ( err ) {
 	noMagic = true; // no magic in this environment :(
 }
 
-config = optionConfig( 'magic' );
+config = optionConfig( { name: 'magic' } );
 config.preExtend = config.preInit = validate;
 
 function validate( parent, target, options ) {

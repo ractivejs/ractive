@@ -65,6 +65,11 @@ config.extend = function ( Parent, Child, options ) {
 };
 
 config.init = function ( Parent, ractive, options ) {
+
+	// for ( let key in option ) {
+	// 	ractive[ key ]
+	// }
+
 	config.forEach( c => {
 
 		c.init( Parent, ractive, options );

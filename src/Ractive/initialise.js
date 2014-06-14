@@ -25,16 +25,11 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 		owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
 	});
 
-	// Special case - checkbox name bindings
-	setCheckboxBindings ( ractive )
-
 	// render automatically ( if `el` is specified )
 	tryRender( ractive );
-
 }
 
 function tryRender ( ractive ) {
-
 	var el;
 
 	if ( el = getElement( ractive.el ) ) {
@@ -84,7 +79,6 @@ function initialiseProperties ( ractive, options ) {
 
 	// two-way bindings
 	ractive._twowayBindings = create( null );
-	ractive._checkboxNameBindings = create( null );
 
 	// animations (so we can stop any in progress at teardown)
 	ractive._animations = [];
@@ -107,20 +101,5 @@ function initialiseProperties ( ractive, options ) {
 
 		// And store a reference to the instance on the component
 		options._component.instance = ractive;
-	}
-
-}
-
-function setCheckboxBindings ( ractive ) {
-
-	for ( let keypath in ractive._checkboxNameBindings ) {
-		if ( ractive.viewmodel.get( keypath ) === undefined ) {
-			ractive.viewmodel.set( keypath, ractive._checkboxNameBindings[ keypath ].reduce( ( array, b ) => {
-				if ( b.isChecked ) {
-					array.push( b.element.getAttribute( 'value' ) );
-				}
-				return array;
-			}, [] ));
-		}
 	}
 }

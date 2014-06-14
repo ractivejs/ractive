@@ -1,4 +1,4 @@
-import optionConfig from 'config/options/option';
+import optionConfig from 'config/options/baseConfiguration';
 
 export default function parseConfig ( name ) {
 

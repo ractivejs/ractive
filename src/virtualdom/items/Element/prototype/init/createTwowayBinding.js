@@ -33,7 +33,7 @@ export default function createTwowayBinding ( element ) {
 				Binding = ( type === 'radio' ? RadioNameBinding : CheckboxNameBinding );
 			}
 
-			if ( isBindable( attributes.checked ) ) {
+			else if ( isBindable( attributes.checked ) ) {
 				Binding = CheckedBinding;
 			}
 		}
