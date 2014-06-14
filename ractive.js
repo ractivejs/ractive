@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-14 - commit ee15de2f 
+	2014-06-14 - commit 5c3d5018 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -689,26 +689,6 @@
 		return css;
 	}( circular, isClient, removeFromArray );
 
-	/* shared/getValueFromCheckboxes.js */
-	var getValueFromCheckboxes = function( ractive, keypath ) {
-		var value, checkboxes, checkbox, len, i, rootEl;
-		value = [];
-		// TODO in edge cases involving components with inputs bound to the same keypath, this
-		// could get messy
-		// if we're still in the initial render, we need to find the inputs from the as-yet off-DOM
-		// document fragment. otherwise, the root element
-		rootEl = ractive._rendering ? ractive.fragment.docFrag : ractive.el;
-		checkboxes = rootEl.querySelectorAll( 'input[type="checkbox"][name="{{' + keypath + '}}"]' );
-		len = checkboxes.length;
-		for ( i = 0; i < len; i += 1 ) {
-			checkbox = checkboxes[ i ];
-			if ( checkbox.hasAttribute( 'checked' ) || checkbox.checked ) {
-				value.push( checkbox._ractive.value );
-			}
-		}
-		return value;
-	};
-
 	/* shared/getInnerContext.js */
 	var getInnerContext = function( fragment ) {
 		do {
@@ -1026,13 +1006,11 @@
 	}( removeFromArray );
 
 	/* global/runloop.js */
-	var runloop = function( circular, css, removeFromArray, getValueFromCheckboxes, resolveRef, getUpstreamChanges, notifyDependants, makeTransitionManager ) {
+	var runloop = function( circular, css, removeFromArray, resolveRef, getUpstreamChanges, notifyDependants, makeTransitionManager ) {
 
 		var runloop, dirty = false,
 			flushing = false,
 			pendingCssChanges, lockedAttributes = [],
-			checkboxKeypaths = {},
-			checkboxBindings = [],
 			unresolved = [],
 			modelUpdates = [],
 			viewUpdates = [],
@@ -1096,14 +1074,6 @@
 					modelUpdates.push( thing );
 				}
 			},
-			// TODO this is wrong - inputs should be grouped by instance
-			addCheckboxBinding: function( checkboxBinding ) {
-				if ( !checkboxKeypaths[ checkboxBinding.keypath ] ) {
-					dirty = true;
-					checkboxBindings.push( checkboxBinding );
-					checkboxKeypaths[ checkboxBinding.keypath ] = true;
-				}
-			},
 			addUnresolved: function( thing ) {
 				dirty = true;
 				unresolved.push( thing );
@@ -1148,10 +1118,6 @@
 				}
 				while ( thing = postModelUpdateTasks.pop() ) {
 					thing();
-				}
-				while ( thing = checkboxBindings.pop() ) {
-					thing.root.viewmodel.set( thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
-					checkboxKeypaths[ thing.keypath ] = false;
 				}
 				attemptKeypathResolution();
 			}
@@ -1205,7 +1171,7 @@
 				}
 			}
 		}
-	}( circular, css, removeFromArray, getValueFromCheckboxes, resolveRef, getUpstreamChanges, notifyDependants, makeTransitionManager );
+	}( circular, css, removeFromArray, resolveRef, getUpstreamChanges, notifyDependants, makeTransitionManager );
 
 	/* shared/animations.js */
 	var animations = function( rAF, getTime, runloop ) {
@@ -8624,29 +8590,25 @@
 	}( Binding, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/RadioNameBinding.js */
-	var RadioNameBinding = function( runloop, Binding, handleDomEvent ) {
+	var RadioNameBinding = function( Binding, handleDomEvent ) {
 
 		var RadioNameBinding = Binding.extend( {
 			name: 'name',
 			init: function() {
 				this.radioName = true;
 			},
+			getInitialValue: function() {
+				if ( this.element.getAttribute( 'checked' ) ) {
+					return this.element.getAttribute( 'value' );
+				}
+			},
 			render: function() {
-				var this$0 = this;
-				var node = this.element.node,
-					valueFromModel;
+				var node = this.element.node;
 				node.name = '{{' + this.keypath + '}}';
+				node.checked = this.root.viewmodel.get( this.keypath ) == this.element.getAttribute( 'value' );
 				node.addEventListener( 'change', handleDomEvent, false );
 				if ( node.attachEvent ) {
 					node.addEventListener( 'click', handleDomEvent, false );
-				}
-				valueFromModel = this.root.viewmodel.get( this.keypath );
-				if ( valueFromModel !== undefined ) {
-					node.checked = valueFromModel == node._ractive.value;
-				} else {
-					runloop.afterModelUpdate( function() {
-						return this$0.handleChange();
-					} );
 				}
 			},
 			unrender: function() {
@@ -8659,10 +8621,9 @@
 				return node._ractive ? node._ractive.value : node.value;
 			},
 			handleChange: function() {
-				var node = this.element.node;
 				// If this <input> is the one that's checked, then the value of its
 				// `name` keypath gets set to its value
-				if ( node.checked ) {
+				if ( this.element.node.checked ) {
 					Binding.prototype.handleChange.call( this );
 				}
 			},
@@ -8672,39 +8633,60 @@
 			}
 		} );
 		return RadioNameBinding;
-	}( runloop, Binding, handleDomEvent );
+	}( Binding, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/CheckboxNameBinding.js */
-	var CheckboxNameBinding = function( runloop, removeFromArray, Binding, handleDomEvent ) {
+	var CheckboxNameBinding = function( isArray, removeFromArray, Binding, handleDomEvent ) {
 
-		var CheckboxNameBinding = Binding.extend( {
+		var CheckboxNameBinding, groupsByInstance = {};
+		CheckboxNameBinding = Binding.extend( {
 			name: 'name',
+			getInitialValue: function() {
+				// This only gets called once per group (of inputs that
+				// share a name), because it only gets called if there
+				// isn't an initial value. By the same token, we can make
+				// a note of that fact that there was no initial value,
+				// and populate it using any `checked` attributes that
+				// exist (which users should avoid, but which we should
+				// support anyway to avoid breaking expectations)
+				this.noInitialValue = true;
+				return [];
+			},
 			init: function() {
+				var existingValue, bindingValue, noInitialValue;
 				this.checkboxName = true;
 				// so that ractive.updateModel() knows what to do with this
-				this.isChecked = this.element.getAttribute( 'checked' );
-				this.siblings = this.root._checkboxNameBindings[ this.keypath ] || ( this.root._checkboxNameBindings[ this.keypath ] = [] );
+				// Each input has a reference to an array containing it and its
+				// siblings, as two-way binding depends on being able to ascertain
+				// the status of all inputs within the group
+				this.siblings = getSiblings( this );
 				this.siblings.push( this );
+				if ( this.noInitialValue ) {
+					this.siblings.noInitialValue = true;
+				}
+				noInitialValue = this.siblings.noInitialValue;
+				existingValue = this.root.viewmodel.get( this.keypath );
+				bindingValue = this.element.getAttribute( 'value' );
+				if ( noInitialValue ) {
+					this.isChecked = this.element.getAttribute( 'checked' );
+					if ( this.isChecked ) {
+						existingValue.push( bindingValue );
+					}
+				} else {
+					this.isChecked = isArray( existingValue ) ? existingValue.indexOf( bindingValue ) !== -1 : existingValue === bindingValue;
+				}
 			},
 			teardown: function() {
 				removeFromArray( this.siblings, this );
 			},
 			render: function() {
-				var node = this.element.node,
-					valueFromModel, checked;
-				this.element.node.name = '{{' + this.keypath + '}}';
+				var node = this.element.node;
+				node.name = '{{' + this.keypath + '}}';
+				node.checked = this.isChecked;
 				node.addEventListener( 'change', handleDomEvent, false );
 				// in case of IE emergency, bind to click event as well
 				if ( node.attachEvent ) {
 					node.addEventListener( 'click', handleDomEvent, false );
-				}
-				valueFromModel = this.root.viewmodel.get( this.keypath );
-				// if the model already specifies this value, check/uncheck accordingly
-				if ( valueFromModel !== undefined ) {
-					checked = valueFromModel.indexOf( node._ractive.value ) !== -1;
-					node.checked = checked;
-				} else {
-					runloop.addCheckboxBinding( this );
 				}
 			},
 			unrender: function() {
@@ -8713,26 +8695,35 @@
 				node.removeEventListener( 'click', handleDomEvent, false );
 			},
 			changed: function() {
-				return this.element.node.checked !== !!this.checked;
+				var wasChecked = !!this.isChecked;
+				this.isChecked = this.element.node.checked;
+				return this.isChecked === wasChecked;
 			},
 			handleChange: function() {
-				var value = [];
 				this.isChecked = this.element.node.checked;
-				this.siblings.forEach( function( s ) {
-					if ( s.isChecked ) {
-						value.push( s.element.getAttribute( 'value' ) );
-					}
-				} );
-				runloop.start( this.root );
-				this.root.viewmodel.set( this.keypath, value );
-				runloop.end();
+				Binding.prototype.handleChange.call( this );
 			},
 			getValue: function() {
-				throw new Error( 'This code should not execute!' );
+				return this.siblings.filter( isChecked ).map( getValue );
 			}
 		} );
+
+		function isChecked( binding ) {
+			return binding.isChecked;
+		}
+
+		function getValue( binding ) {
+			return binding.element.getAttribute( 'value' );
+		}
+
+		function getSiblings( binding ) {
+			var guid, groups;
+			guid = binding.root._guid;
+			groups = groupsByInstance[ guid ] || ( groupsByInstance[ guid ] = {} );
+			return groups[ binding.keypath ] || ( groups[ binding.keypath ] = [] );
+		}
 		return CheckboxNameBinding;
-	}( runloop, removeFromArray, Binding, handleDomEvent );
+	}( isArray, removeFromArray, Binding, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/CheckedBinding.js */
 	var CheckedBinding = function( Binding, handleDomEvent ) {
@@ -8993,8 +8984,7 @@
 					// we can either bind the name attribute, or the checked attribute - not both
 					if ( isBindable( attributes.name ) ) {
 						Binding = type === 'radio' ? RadioNameBinding : CheckboxNameBinding;
-					}
-					if ( isBindable( attributes.checked ) ) {
+					} else if ( isBindable( attributes.checked ) ) {
 						Binding = CheckedBinding;
 					}
 				} else if ( type === 'file' && isBindable( attributes.value ) ) {
@@ -11512,43 +11502,34 @@
 	}( runloop, Promise, notifyDependants );
 
 	/* Ractive/prototype/updateModel.js */
-	var Ractive$updateModel = function( getValueFromCheckboxes, arrayContentsMatch, isEqual ) {
+	var Ractive$updateModel = function( arrayContentsMatch, isEqual ) {
 
 		return function Ractive$updateModel( keypath, cascade ) {
-			var values, deferredCheckboxes, i;
+			var values;
 			if ( typeof keypath !== 'string' ) {
 				keypath = '';
 				cascade = true;
 			}
-			consolidateChangedValues( this, keypath, values = {}, deferredCheckboxes = [], cascade );
-			if ( i = deferredCheckboxes.length ) {
-				while ( i-- ) {
-					keypath = deferredCheckboxes[ i ];
-					values[ keypath ] = getValueFromCheckboxes( this, keypath );
-				}
-			}
+			consolidateChangedValues( this, keypath, values = {}, cascade );
 			return this.set( values );
 		};
 
-		function consolidateChangedValues( ractive, keypath, values, deferredCheckboxes, cascade ) {
-			var bindings, childDeps, i, binding, oldValue, newValue;
+		function consolidateChangedValues( ractive, keypath, values, cascade ) {
+			var bindings, childDeps, i, binding, oldValue, newValue, checkboxGroups = [];
 			bindings = ractive._twowayBindings[ keypath ];
-			if ( bindings ) {
-				i = bindings.length;
+			if ( bindings && ( i = bindings.length ) ) {
 				while ( i-- ) {
 					binding = bindings[ i ];
 					// special case - radio name bindings
 					if ( binding.radioName && !binding.element.node.checked ) {
 						continue;
 					}
-					// special case - checkbox name bindings
+					// special case - checkbox name bindings come in groups, so
+					// we want to get the value once at most
 					if ( binding.checkboxName ) {
-						if ( binding.changed() && deferredCheckboxes[ keypath ] !== true ) {
-							// we will need to see which checkboxes with the same name are checked,
-							// but we only want to do so once
-							deferredCheckboxes[ keypath ] = true;
-							// for quick lookup without indexOf
-							deferredCheckboxes.push( keypath );
+						if ( !checkboxGroups[ binding.keypath ] && !binding.changed() ) {
+							checkboxGroups.push( binding.keypath );
+							checkboxGroups[ binding.keypath ] = binding;
 						}
 						continue;
 					}
@@ -11562,6 +11543,19 @@
 					}
 				}
 			}
+			// Handle groups of `<input type='checkbox' name='{{foo}}' ...>`
+			if ( checkboxGroups.length ) {
+				checkboxGroups.forEach( function( keypath ) {
+					var binding, oldValue, newValue;
+					binding = checkboxGroups[ keypath ];
+					// one to represent the entire group
+					oldValue = binding.attribute.value;
+					newValue = binding.getValue();
+					if ( !arrayContentsMatch( oldValue, newValue ) ) {
+						values[ keypath ] = newValue;
+					}
+				} );
+			}
 			if ( !cascade ) {
 				return;
 			}
@@ -11570,11 +11564,11 @@
 			if ( childDeps ) {
 				i = childDeps.length;
 				while ( i-- ) {
-					consolidateChangedValues( ractive, childDeps[ i ], values, deferredCheckboxes, cascade );
+					consolidateChangedValues( ractive, childDeps[ i ], values, cascade );
 				}
 			}
 		}
-	}( getValueFromCheckboxes, arrayContentsMatch, isEqual );
+	}( arrayContentsMatch, isEqual );
 
 	/* Ractive/prototype.js */
 	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
@@ -12609,8 +12603,6 @@
 				root: ractive,
 				owner: ractive
 			} );
-			// Special case - checkbox name bindings
-			setCheckboxBindings( ractive );
 			// render automatically ( if `el` is specified )
 			tryRender( ractive );
 		};
@@ -12668,9 +12660,6 @@
 				_twowayBindings: {
 					value: create( null )
 				},
-				_checkboxNameBindings: {
-					value: create( null )
-				},
 				// animations (so we can stop any in progress at teardown)
 				_animations: {
 					value: []
@@ -12707,19 +12696,6 @@
 				} );
 				// And store a reference to the instance on the component
 				options._component.instance = ractive;
-			}
-		}
-
-		function setCheckboxBindings( ractive ) {
-			for ( var keypath in ractive._checkboxNameBindings ) {
-				if ( ractive.viewmodel.get( keypath ) === undefined ) {
-					ractive.viewmodel.set( keypath, ractive._checkboxNameBindings[ keypath ].reduce( function( array, b ) {
-						if ( b.isChecked ) {
-							array.push( b.element.getAttribute( 'value' ) );
-						}
-						return array;
-					}, [] ) );
-				}
 			}
 		}
 	}( config, create, defineProperties, getElement, getGuid, Viewmodel, Fragment );
