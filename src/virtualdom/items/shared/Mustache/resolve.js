@@ -30,7 +30,10 @@ export default function Mustache$resolve ( keypath ) {
 	}
 
 	this.keypath = keypath;
-	this.root.viewmodel.register( this );
+
+	if ( !this.isStatic ) {
+		this.root.viewmodel.register( this );
+	}
 
 	this.setValue( this.root.viewmodel.get( keypath ) );
 }
