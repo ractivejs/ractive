@@ -5,7 +5,7 @@ export default function Viewmodel$splice ( keypath, spliceSummary ) {
 
 	// TODO surely we don't need the block before AND after
 	for ( i = spliceSummary.rangeStart; i < spliceSummary.clearEnd; i += 1 ) {
-		viewmodel.clearCache( keypath + '.' + i );
+		viewmodel.mark( keypath + '.' + i );
 	}
 
 	if ( dependants = viewmodel.deps[ 'default' ][ keypath ] ) {
@@ -14,7 +14,7 @@ export default function Viewmodel$splice ( keypath, spliceSummary ) {
 
 	// if we're removing old items and adding new ones, simultaneously, we need to force an update
 	if ( spliceSummary.added && spliceSummary.removed ) {
-		for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
+		for ( i = spliceSummary.clearEnd; i < spliceSummary.rangeEnd; i += 1 ) {
 			childKeypath = keypath + '.' + i;
 			viewmodel.mark( childKeypath );
 		}
