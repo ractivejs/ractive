@@ -1,4 +1,3 @@
-import baseConfig from 'config/options/baseConfiguration';
 import extendObject from 'utils/extend';
 import create from 'utils/create'
 import 'legacy';

@@ -1,4 +1,3 @@
-import baseConfig from 'config/options/baseConfiguration';
 import parser from 'config/options/template/parser';
 import isObject from 'utils/isObject';
 
