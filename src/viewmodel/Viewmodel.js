@@ -5,6 +5,7 @@ import capture from 'viewmodel/prototype/capture';
 import clearCache from 'viewmodel/prototype/clearCache';
 import get from 'viewmodel/prototype/get';
 import mark from 'viewmodel/prototype/mark';
+import merge from 'viewmodel/prototype/merge';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
@@ -47,6 +48,7 @@ Viewmodel.prototype = {
 	clearCache: clearCache,
 	get: get,
 	mark: mark,
+	merge: merge,
 	register: register,
 	release: release,
 	set: set,
