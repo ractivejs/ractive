@@ -109,7 +109,8 @@ function flushChanges () {
 	var thing, upstreamChanges, i, changeHash, changedKeypath;
 
 	while ( thing = viewmodels.shift() ) {
-		thing.applyChanges();
+		changeHash = thing.applyChanges();
+		thing.ractive.fire( 'change', changeHash );
 	}
 
 	attemptKeypathResolution();

@@ -385,7 +385,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findAll( 'input' )[1], 'click' );
 			t.htmlEqual( ractive.find( '.result' ).innerHTML, '2' );
 
-			t.deepEqual( changes, { 'items.1.completed': true });
+			t.equal( changes[ 'items.1.completed' ], true );
 
 			simulant.fire( ractive.findAll( 'input' )[0], 'click' );
 			simulant.fire( ractive.findAll( 'input' )[1], 'click' );

@@ -11,7 +11,8 @@ export default function Viewmodel$applyChanges () {
 		allChanges = [],
 		computations,
 		addComputations,
-		cascade;
+		cascade,
+		hash = {};
 
 	if ( !this.changes.length ) {
 		// TODO we end up here on initial render. Perhaps we shouldn't?
@@ -67,6 +68,13 @@ export default function Viewmodel$applyChanges () {
 		upstreamChanges.forEach( keypath => notifyDependants( this, keypath, group, true ) );
 		allChanges.forEach( keypath => notifyDependants( this, keypath, group ) );
 	});
+
+	// Return a hash of keypaths to updated values
+	allChanges.forEach( keypath => {
+		hash[ keypath ] = this.get( keypath );
+	});
+
+	return hash;
 }
 
 function notifyDependants ( viewmodel, keypath, group, onlyDirect ) {
