@@ -9,22 +9,21 @@ var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true },
 export default getMustache;
 
 function getMustache ( parser ) {
+	var types;
 
-	return delimiterTypes.sort( function compare(a, b) {
-
-		// Sort in order of descending delimiter length, to protect
-		// against delimiters being substrings of each other
-
-		return parser[ b.delimiters ].length - parser[ a.delimiters ].length;
-
-	} ).find( function ( delimiterType ) {
-
-		// Find will return the first type that returns a non-null mustache, or undefined
-
-		return getMustacheOfType( parser, delimiterType );
-
+	types = delimiterTypes.slice().sort( function compare (a, b) {
+		// Sort in order of descending opening delimiter length (longer first),
+		// to protect against opening delimiters being substrings of each other
+		return parser[ b.delimiters ][ 0 ].length - parser[ a.delimiters ][ 0 ].length;
 	} );
 
+	return ( function r ( type ) {
+		if ( !type ) {
+			return null;
+		} else {
+			return getMustacheOfType( parser, type ) || r( types.shift() );
+		}
+	} ( types.shift() ) );
 }
 
 function getMustacheOfType ( parser, delimiterType ) {
