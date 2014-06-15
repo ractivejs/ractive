@@ -7,35 +7,35 @@ function BaseConfiguration ( config ) {
 }
 
 
-function configure ( Parent, ractive, options, name, pre, post ) {
-	var option;
 
-
-	if( pre ) {
-		options = options || {};
-		pre( Parent, ractive, options );
-	}
-
-	if ( options && ( name in options ) ) {
-		option = options[ name ];
-	}
-
-	if( post ) {
-		option = post( ractive, option );
-	}
-
-	if ( !empty( option ) ) {
-		ractive [ name ] = option;
-	}
-}
 
 BaseConfiguration.prototype = {
 
+	configure: function ( Parent, instance, options ) {
+		var option;
 
+
+		if( this.pre ) {
+			options = options || {};
+			this.pre( Parent, instance, options );
+		}
+
+		if ( options && ( this.name in options ) ) {
+			option = options[ this.name ];
+		}
+
+		if( this.post ) {
+			option = this.post( instance, option );
+		}
+
+		if ( !empty( option ) ) {
+			instance [ this.name ] = option;
+		}
+	},
 
 	extend: function ( Parent, proto, options ) {
 
-		configure( Parent, proto, options,
+		this.configure( Parent, proto, options,
 			// temp
 			this.name,
 			this.preExtend ? this.preExtend.bind(this) : void 0,
@@ -45,7 +45,7 @@ BaseConfiguration.prototype = {
 
 	init: function ( Parent, ractive, options ) {
 
-		configure( Parent, ractive, options,
+		this.configure( Parent, ractive, options,
 			// temp
 			this.name,
 			this.preInit ? this.preInit.bind(this) : void 0,

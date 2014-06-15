@@ -6,62 +6,46 @@ import 'legacy';
 export default function registryConfig ( config ) {
 
 	config = extendObject( config, {
-		preExtend: preExtend,
-		postExtend: () => {},
-		preInit: preInit,
-		postInit: () => {},
+		extend: extend,
+		init: init,
 		find: find,
 		findInstance: findInstance
 	});
 
-	var base = baseConfig( config ),
-		assign = base.assign.bind( base );
-
-	base.assign = function ( target, value ) {
-		assign( target, value || {} );
-	}
-
-	return base;
+	return config;
 }
 
 
+function extend ( Parent, proto, options ) {
 
-function preExtend ( Parent, child, options ) {
-
-	var name = this.name, registry, option = options[ name ];
-
-	if( !this.useDefaults ) {
-		child = child.constructor;
-	} else {
-		Parent = Parent.defaults;
-	}
-
-	registry = create( Parent[name] );
+	var name = this.name,
+		option = options[ name ],
+		Child = proto.constructor,
+		registry = create( Parent[name] );
 
 
 	for( let key in option ) {
 		registry[ key ] = option[ key ];
 	}
 
-	child[ name ] = registry;
+	if ( this.post ) { registry = this.post( proto, registry ); }
+
+	Child[ name ] = registry;
 
 }
 
+function init ( Parent, ractive, options ) {
 
-function preInit ( Parent, ractive, options ) {
-
-	var name = this.name, registry, option = options[ name ];
-
-	if( this.useDefaults ) {
-		Parent = Parent.defaults;
-	}
-
-	registry = create( Parent[name] );
+	var name = this.name,
+		option = options[ name ],
+		registry = create( Parent[name] );
 
 
 	for( let key in option ) {
 		registry[ key ] = option[ key ];
 	}
+
+	if ( this.post ) { registry = this.post( ractive, registry ); }
 
 	ractive[ name ] = registry;
 

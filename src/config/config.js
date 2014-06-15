@@ -12,6 +12,9 @@ import template from 'config/options/template/template';
 import parseOptions from 'config/options/groups/parseOptions';
 import registries from 'config/options/groups/registries';
 
+
+import warn from 'utils/warn';
+
 var custom, options, config;
 
 custom = {
@@ -58,13 +61,46 @@ config.keys.forEach( ( key, i ) => {
 config.parseOptions = parseOptions;
 config.registries = registries;
 
+
+var message = 'ractive.eventDefinitions has been deprecated in favour of ractive.events. ';
+function deprecateEventDefinitions ( options ) {
+
+	// TODO remove support
+	if ( options.eventDefinitions ) {
+
+		if( !options.events ) {
+
+			warn( message + ' Support will be removed in future versions.' );
+			options.events = options.eventDefinitions;
+
+		}
+		else {
+
+			throw new Error( message + ' You cannot specify both options, please use ractive.events.'  );
+
+		}
+
+	}
+}
+
+function deprecate ( options ) {
+
+	deprecateEventDefinitions( options );
+}
+
 config.extend = function ( Parent, Child, options ) {
+
+	deprecate( options );
+
 	config.forEach( c => {
 		c.extend( Parent, Child, options );
 	});
 };
 
 config.init = function ( Parent, ractive, options ) {
+
+	deprecate( options );
+
 
 	// for ( let key in option ) {
 	// 	ractive[ key ]

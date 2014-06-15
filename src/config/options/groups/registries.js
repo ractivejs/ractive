@@ -1,7 +1,6 @@
 import optionGroup from 'config/options/groups/optionGroup';
 import registry from 'config/options/registry';
 import adaptors from 'config/options/adaptors';
-import events from 'config/options/events';
 
 var keys, custom, registries;
 
@@ -18,7 +17,6 @@ keys = [
 
 custom = {
 	adaptors:  adaptors,
-	events:    events
 };
 
 registries = optionGroup( keys, key => {

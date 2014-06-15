@@ -2,37 +2,27 @@ import baseConfig from 'config/options/baseConfiguration';
 import parser from 'config/options/template/parser';
 import isObject from 'utils/isObject';
 
-var templateConfig = baseConfig({
+var templateConfig = {
 	name: 'template',
-	postExtend: parseTemplate,
-	preInit: preInit,
-	postInit: parseTemplate,
-	resetValue: reset,
+	extend: extend,
+	init: init,
+	reset: reset,
 	processCompound: processCompound
-});
+};
 
+function extend ( Parent, proto, options ) {
 
-function reset ( ractive ) {
-
-	var initial = ractive._config.template, result;
-
-	// is this dynamic template?
-	if( !initial || !initial.fn) { return; }
-
-	result = getDynamicTemplate ( ractive, initial.fn )
-
-	// compare results of fn return, which is likely
-	// be string comparison ( not yet parsed )
-	if ( result !== initial.result ) {
-		initial.result = result;
-		return result;
+	// only assign if exists
+	if ( options && 'template' in options ) {
+		proto.template = parseTemplate( proto, options.template );
 	}
-
 }
 
-function preInit ( Parent, ractive, options ) {
+function init ( Parent, ractive, options ) {
 
-	var result = options.template || Parent.prototype.template;
+	var result, option = options ? options.template : void 0;
+
+	result = parseTemplate( ractive, option || Parent.prototype.template );
 
 	if ( typeof result === 'function' ) {
 
@@ -45,9 +35,43 @@ function preInit ( Parent, ractive, options ) {
 			fn: fn,
 			result: result
 		};
+
+		result = parseTemplate( ractive, result );
 	}
 
-	options.template = result;
+	if ( result ) {
+		ractive.template = result;
+	}
+}
+
+function reset ( ractive ) {
+
+	var result = resetValue( ractive );
+
+	if ( result ) {
+		ractive.template = parseTemplate( ractive, result );
+		return true;
+	}
+
+}
+
+function resetValue ( ractive ) {
+
+	var initial = ractive._config.template, result;
+
+	// is this dynamic template?
+	if( !initial || !initial.fn) { return; }
+
+	result = getDynamicTemplate ( ractive, initial.fn );
+
+	result = parseTemplate( ractive, result );
+
+	// compare results of fn return, which is likely
+	// be string comparison ( not yet parsed )
+	if ( result !== initial.result ) {
+		initial.result = result;
+		return result;
+	}
 
 }
 

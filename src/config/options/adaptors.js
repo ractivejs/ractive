@@ -2,15 +2,14 @@ import registry from 'config/options/registry';
 
 var adaptorsConfig = registry( {
 	name: 'adaptors',
-	postExtend: convert,
-	postInit: convert
+	post: lookup
 });
 
-function convert ( target, adaptors ) {
+function lookup ( target, adaptors ) {
 
 	var i, adapt = target.adapt;
 
-	if ( adapt ) { adapt = adapt.value; }
+	// if ( adapt ) { adapt = adapt.value; }
 
 	if ( !adapt || !adapt.length ) { return adaptors; }
 

@@ -13,7 +13,7 @@ catch ( err ) {
 }
 
 config = optionConfig( { name: 'magic' } );
-config.preExtend = config.preInit = validate;
+config.pre = validate;
 
 function validate( parent, target, options ) {
 

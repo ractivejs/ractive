@@ -3,8 +3,7 @@ import wrapMethod from 'utils/wrapMethod';
 
 var config = baseConfig({
 	name: 'complete',
-	preInit: wrapIfNecessary,
-	preExtend: wrapIfNecessary
+	pre: wrapIfNecessary,
 });
 
 function wrapIfNecessary ( Parent, proto, options ) {

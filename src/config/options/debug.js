@@ -9,7 +9,7 @@ circular.push( function () {
 
 var config = optionConfig( { name: 'debug' } );
 
-config.preExtend = config.preInit = copyFromConstructor;
+config.pre = copyFromConstructor;
 
 function copyFromConstructor( parent, target, options ) {
 
