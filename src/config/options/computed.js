@@ -4,22 +4,16 @@ var computed = {
 	name: 'computed',
 	extend: function ( Parent, child, options ) {
 
-		var name = this.name, registry, option = options[ name ];
-
-		Parent = Parent.defaults;
-
-		registry = create( Parent[name] );
-
-
-		for( let key in option ) {
-			registry[ key ] = option[ key ];
-		}
-
-		child[ name ] = registry;
+		this.configure( Parent, child, options );
 
 	},
 	init: function ( Parent, ractive, options ) {
 
+		this.configure( Parent, ractive, options );
+	},
+
+	configure: function  ( Parent, instance, options ) {
+
 		var name = this.name, registry, option = options[ name ];
 
 		Parent = Parent.defaults;
@@ -31,8 +25,10 @@ var computed = {
 			registry[ key ] = option[ key ];
 		}
 
-		ractive[ name ] = registry;
+		instance[ name ] = registry;
 	}
+
 };
+
 
 export default computed;
