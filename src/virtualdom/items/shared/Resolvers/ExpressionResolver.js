@@ -1,7 +1,7 @@
 import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
-import Evaluator from 'virtualdom/items/shared/Evaluator/_Evaluator';
+import Evaluator from 'virtualdom/items/shared/Evaluator/Evaluator';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
 var ExpressionResolver = function ( owner, parentFragment, expression, callback ) {

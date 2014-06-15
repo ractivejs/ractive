@@ -1,6 +1,7 @@
 import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
+import defineProperty from 'utils/defineProperty';
 
 var Evaluator, cache = {};
 
@@ -30,7 +31,10 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 		evaluator.dependencies.push( keypath );
 		viewmodel.register( keypath, evaluator, 'computed' );
 
-		return () => viewmodel.get( keypath );
+		return function () {
+			var value = viewmodel.get( keypath );
+			return typeof value === 'function' ? wrap( value, root ) : value;
+		}
 	});
 };
 
@@ -105,4 +109,33 @@ function getFunctionFromString ( str, i ) {
 
 	cache[ str ] = fn;
 	return fn;
+}
+
+function wrap ( fn, ractive ) {
+	var wrapped, prop;
+
+	if ( fn._noWrap ) {
+		return fn;
+	}
+
+	prop = '__ractive_' + ractive._guid;
+	wrapped = fn[ prop ];
+
+	if ( wrapped ) {
+		return wrapped;
+	}
+
+	else if ( /this/.test( fn.toString() ) ) {
+		defineProperty( fn, prop, {
+			value: fn.bind( ractive )
+		});
+
+		return fn[ prop ];
+	}
+
+	defineProperty( fn, '__ractive_nowrap', {
+		value: fn
+	});
+
+	return fn.__ractive_nowrap;
 }
