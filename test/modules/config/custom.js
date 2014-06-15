@@ -51,7 +51,7 @@ define([
 
 		});
 
-		test( 'can be set on Ractive,defaults after extend', function ( t ) {
+		test( 'can be set on Ractive.defaults after extend', function ( t ) {
 			var Component, ractive, old = Ractive.defaults.debug;
 
 			Component = Ractive.extend();

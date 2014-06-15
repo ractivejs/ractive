@@ -58,14 +58,23 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		asyncTest( 'Missing transition functions do not cause errors', function ( t ) {
-			expect( 0 );
+		asyncTest( 'Missing transition functions do not cause errors, but do console.warn', function ( t ) {
 
-			var ractive = new Ractive({
+			var ractive, warn = console.warn;
+
+			expect( 1 );
+
+			console.warn = function( msg ) {
+				t.ok( msg );
+			}
+
+			ractive = new Ractive({
 				el: fixture,
 				template: '<div intro="foo"></div>',
 				complete: function () {
+					console.warn = warn;
 					QUnit.start();
+
 				}
 			});
 		})
