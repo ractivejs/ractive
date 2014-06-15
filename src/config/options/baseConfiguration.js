@@ -35,22 +35,12 @@ BaseConfiguration.prototype = {
 
 	extend: function ( Parent, proto, options ) {
 
-		this.configure( Parent, proto, options,
-			// temp
-			this.name,
-			this.preExtend ? this.preExtend.bind(this) : void 0,
-			this.postExtend ? this.postExtend.bind(this) : void 0
-		);
+		this.configure( Parent, proto, options );
 	},
 
 	init: function ( Parent, ractive, options ) {
 
-		this.configure( Parent, ractive, options,
-			// temp
-			this.name,
-			this.preInit ? this.preInit.bind(this) : void 0,
-			this.postInit ? this.postInit.bind(this) : void 0
-		);
+		this.configure( Parent, ractive, options );
 	},
 
 	reset: function ( ractive ) {

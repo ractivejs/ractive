@@ -7,6 +7,7 @@ export default function registryConfig ( config ) {
 	config = extendObject( config, {
 		extend: extend,
 		init: init,
+		configure: configure,
 		find: find,
 		findInstance: findInstance
 	});
@@ -17,24 +18,19 @@ export default function registryConfig ( config ) {
 
 function extend ( Parent, proto, options ) {
 
-	var name = this.name,
-		option = options[ name ],
-		Child = proto.constructor,
-		registry = create( Parent[name] );
-
-
-	for( let key in option ) {
-		registry[ key ] = option[ key ];
-	}
-
-	if ( this.post ) { registry = this.post( proto, registry ); }
-
-	Child[ name ] = registry;
+	this.configure( Parent, proto.constructor, options );
 
 }
 
 function init ( Parent, ractive, options ) {
 
+	this.configure( Parent, ractive, options );
+
+}
+
+
+function configure ( Parent, target, options ) {
+
 	var name = this.name,
 		option = options[ name ],
 		registry = create( Parent[name] );
@@ -44,9 +40,9 @@ function init ( Parent, ractive, options ) {
 		registry[ key ] = option[ key ];
 	}
 
-	if ( this.post ) { registry = this.post( ractive, registry ); }
+	if ( this.post ) { registry = this.post( target, registry ); }
 
-	ractive[ name ] = registry;
+	target[ name ] = registry;
 
 }
 
