@@ -1,4 +1,3 @@
-import adapt from 'config/options/adapt';
 import basicConfig from 'config/options/baseConfiguration';
 import css from 'config/options/css/css';
 import data from 'config/options/data';
@@ -6,7 +5,6 @@ import debug from 'config/options/debug';
 import defaults from 'config/defaults/options';
 import complete from 'config/options/complete';
 import computed from 'config/options/computed';
-import magic from 'config/options/magic';
 import template from 'config/options/template/template';
 
 import parseOptions from 'config/options/groups/parseOptions';
@@ -14,6 +12,7 @@ import registries from 'config/options/groups/registries';
 
 
 import warn from 'utils/warn';
+import isArray from 'utils/isArray';
 
 var custom, options, config;
 
@@ -22,8 +21,6 @@ custom = {
 	debug: debug,
 	complete: complete,
 	computed: computed,
-	adapt: adapt,
-	magic: magic,
 	template: template,
 	css: css
 };
@@ -40,8 +37,6 @@ config = [].concat(
 	custom.data,
 	parseOptions,
 	options,
-	custom.adapt,
-	custom.magic,
 	custom.complete,
 	custom.computed,
 	registries,
@@ -62,35 +57,59 @@ config.parseOptions = parseOptions;
 config.registries = registries;
 
 
-var message = 'ractive.eventDefinitions has been deprecated in favour of ractive.events. ';
-function deprecateEventDefinitions ( options ) {
+function getMessage( deprecated, isError ) {
+	return 'ractive.' + deprecated + ' has been deprecated in favour of ractive.events.' +
+		isError ? ' You cannot specify both options, please use ractive.events.' : '';
+}
+
+function deprecate ( options, deprecated, correct ) {
 
 	// TODO remove support
-	if ( options.eventDefinitions ) {
+	if ( deprecated in options ) {
 
-		if( !options.events ) {
+		if( !( correct in options ) ) {
 
-			warn( message + ' Support will be removed in future versions.' );
-			options.events = options.eventDefinitions;
+			warn( getMessage( deprecated ) );
+
+			options[ correct ] = options[ deprecated ];
 
 		}
 		else {
 
-			throw new Error( message + ' You cannot specify both options, please use ractive.events.'  );
+			throw new Error( getMessage( deprecated, true ) );
 
 		}
 
 	}
 }
 
-function deprecate ( options ) {
+function deprecateEventDefinitions ( options ) {
+
+	deprecate( options, 'eventDefinitions', 'events' );
+}
+
+function depricateAdaptors ( options ) {
+
+	// Using extend with Component instead of options,
+	// like Human.extend( Spider ) means adaptors as a registry
+	// gets copied to options. So we have to check if actually an array
+	if ( 'adaptors' in options && isArray( options.adaptors ) ) {
+
+		deprecate( options, 'adaptors', 'adapt' );
+
+	}
+
+}
+
+function deprecateOptions ( options ) {
 
 	deprecateEventDefinitions( options );
+	depricateAdaptors( options );
 }
 
 config.extend = function ( Parent, Child, options ) {
 
-	deprecate( options );
+	deprecateOptions( options );
 
 	config.forEach( c => {
 		c.extend( Parent, Child, options );

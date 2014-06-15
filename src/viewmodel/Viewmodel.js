@@ -10,17 +10,23 @@ import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
 import createComputations from 'viewmodel/Computation/createComputations';
 
-import warn from 'utils/warn';
-import isArray from 'utils/isArray';
+// TODO: fix our ES6 modules so we can have multiple exports
+// then this magic check can be reused by magicAdaptor
+var noMagic;
+
+try {
+	Object.defineProperty({}, 'test', { value: 0 });
+}
+catch ( err ) {
+	noMagic = true; // no magic in this environment :(
+}
 
 var Viewmodel = function ( ractive ) {
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
 
-	this.ractive.adapt = combine(
-		ractive.constructor.prototype.adapt,
-		ractive.adapt ) || [];
+	Viewmodel.extend( ractive.constructor, ractive );
 
-	this.ractive.data
+	//this.ractive.data
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
@@ -40,10 +46,38 @@ var Viewmodel = function ( ractive ) {
 	this.changes = [];
 };
 
-Viewmodel.extend = function ( Parent, proto ) {
-	proto.adapt = combine(
+Viewmodel.extend = function ( Parent, instance ) {
+
+	if ( instance.magic && noMagic ) {
+		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+	}
+
+	instance.adapt = combine(
 		Parent.prototype.adapt,
-		proto.adapt) || [];
+		instance.adapt) || [];
+
+	instance.adapt = lookup( instance, instance.adaptors );
+}
+
+function lookup ( target, adaptors ) {
+
+	var i, adapt = target.adapt;
+
+	if ( !adapt || !adapt.length ) { return adapt; }
+
+
+	if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
+		while ( i-- ) {
+			let adaptor = adapt[i];
+
+			if ( typeof adaptor === 'string' ) {
+				adapt[i] = adaptors[ adaptor ] || adaptor;
+			}
+		}
+	}
+
+	return adapt;
+
 }
 
 function combine ( parent, adapt ) {
@@ -68,23 +102,6 @@ function combine ( parent, adapt ) {
 	});
 
 	return adapt;
-}
-
-function depricate ( options ) {
-
-	var adaptors = options.adaptors;
-
-	// Using extend with Component instead of options,
-	// like Human.extend( Spider ) means adaptors as a registry
-	// gets copied to options. So we have to check if actually an array
-	if ( adaptors && isArray( adaptors ) ) {
-
-		warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`.' );
-
-		options.adapt = combine( options.adapt, adaptors );
-
-		delete options.adaptors;
-	}
 }
 
 function arrayIfString( adapt ) {

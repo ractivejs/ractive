@@ -1,13 +1,11 @@
 import create from 'utils/create';
 import wrap from 'utils/wrapMethod';
-import defaults from 'config/defaults/options';
 
 var dataConfig = {
 	name: 'data',
 	extend: extend,
 	init: init,
-	reset: reset,
-	useDefaults: defaults.hasOwnProperty('data')
+	reset: reset
 };
 
 export default dataConfig;
