@@ -20,6 +20,8 @@ blacklisted = {
 	'_component' : true
 }
 
+config.keys.forEach( key => { blacklisted[ key ] = true } )
+
 circular.push( function () {
 	Ractive = circular.Ractive;
 });
@@ -77,7 +79,7 @@ function extendNonOptions ( parent, properties, options ) {
 
 	for ( let key in options ) {
 
-		if ( !config.keys[ key ] && !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
+		if ( !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
 
 			let member = options[ key ]
 

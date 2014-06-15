@@ -71,8 +71,8 @@ function getParseOptions ( ractive ) {
 	// Could be Ractive or a Component
 	if ( ractive.defaults ) { ractive = ractive.defaults; }
 
-	return parseOptions.reduce( ( val, option ) => {
-		val[ option.name ] = ractive[ option.name ];
+	return parseOptions.reduce( ( val, key ) => {
+		val[ key ] = ractive[ key ];
 		return val;
 	}, {} );
 
