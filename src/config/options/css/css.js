@@ -1,5 +1,4 @@
 import transformCss from 'config/options/css/transform';
-import defineProperty from 'utils/defineProperty';
 import defaults from 'config/defaults/options';
 
 var cssConfig = {
@@ -9,23 +8,23 @@ var cssConfig = {
 	useDefaults: defaults.hasOwnProperty('css')
 };
 
-function extend ( Parent, Child, options ) {
+function extend ( Parent, proto, options ) {
 
-	var css;
+	var guid = proto.constructor._guid, css;
 
-	if ( css = getCss( options.css, Child ) || getCss( Parent.css, Parent ) ) {
+	if ( css = getCss( options.css, options, guid ) || getCss( Parent.css, Parent, guid ) ) {
 
-		defineProperty( Child, 'css', { value: css } );
+		proto.constructor.css = css;
 	}
 }
 
-function getCss ( css, target ) {
+function getCss ( css, target, guid ) {
 
 	if ( !css ) { return; }
 
-	return target.defaults.noCssTransform
+	return target.noCssTransform
 		? css
-		: transformCss( css, target._guid );
+		: transformCss( css, guid );
 
 }
 

@@ -8,50 +8,36 @@ function BaseConfiguration ( config ) {
 
 BaseConfiguration.prototype = {
 
-	extend: function ( Parent, Child, options ) {
-		var parentValue, optionValue, result;
+	configure: function ( Parent, instance, options ) {
+		var option;
 
-		options = options || {};
 
-		if( this.preExtend ) {
-			this.preExtend( Parent, Child, options );
+		if( this.pre ) {
+			options = options || {};
+			this.pre( Parent, instance, options );
 		}
 
-		parentValue = this.getParentValue( Parent );
-		optionValue = this.getOptionValue( options );
-
-		result = this.extendValue( Child, parentValue, optionValue );
-
-		if ( this.postExtend ) {
-			result = this.postExtend( Child, result );
+		if ( options && ( this.name in options ) ) {
+			option = options[ this.name ];
 		}
 
-		if ( this.useDefaults ) {
-			Child = Child.defaults;
+		if( this.post ) {
+			option = this.post( instance, option );
 		}
 
-		this.assign( Child, result );
+		if ( !empty( option ) ) {
+			instance [ this.name ] = option;
+		}
+	},
+
+	extend: function ( Parent, proto, options ) {
+
+		this.configure( Parent, proto, options );
 	},
 
 	init: function ( Parent, ractive, options ) {
-		var parentValue, optionValue, result;
 
-		options = options || {};
-
-		if( this.preInit ) {
-			this.preInit( Parent, ractive, options );
-		}
-
-		parentValue = this.getParentValue( Parent );
-		optionValue = this.getOptionValue( options );
-
-		result = this.initValue( ractive, parentValue, optionValue );
-
-		if( this.postInit ) {
-			result = this.postInit( ractive, result );
-		}
-
-		this.assign ( ractive, result );
+		this.configure( Parent, ractive, options );
 	},
 
 	reset: function ( ractive ) {
@@ -92,7 +78,11 @@ BaseConfiguration.prototype = {
 	}
 };
 
+function empty ( value ) {
 
+	// allow '', 0, false, etc:
+	return typeof value === 'undefined' || value === null;
+}
 
 export default function baseConfig ( config ) {
 	return new BaseConfiguration( config );

@@ -1,30 +1,27 @@
-import baseConfig from 'config/options/baseConfiguration';
 import parser from 'config/options/template/parser';
 import isObject from 'utils/isObject';
-import parseOptions from 'config/options/groups/parseOptions';
 
-var templateConfig = baseConfig({
+var templateConfig = {
 	name: 'template',
-	useDefaults: true,
-	defaultValue: '',
-	extendValue: extend,
-	postExtend: parseTemplate,
-	initValue: init,
-	postInit: parseTemplate,
-	resetValue: reset,
+	extend: extend,
+	init: init,
+	reset: reset,
 	processCompound: processCompound
-});
+};
 
-function extend ( target, parentValue, value ) {
+function extend ( Parent, proto, options ) {
 
-	if ( typeof value === 'undefined' ) { value = parentValue; }
-
-	return value;
+	// only assign if exists
+	if ( options && 'template' in options ) {
+		proto.template = parseTemplate( proto, options.template );
+	}
 }
 
-function init ( ractive, parentValue, value ) {
+function init ( Parent, ractive, options ) {
 
-	var result = extend( ractive, parentValue, value );
+	var result, option = options ? options.template : void 0;
+
+	result = parseTemplate( ractive, option || Parent.prototype.template );
 
 	if ( typeof result === 'function' ) {
 
@@ -37,24 +34,36 @@ function init ( ractive, parentValue, value ) {
 			fn: fn,
 			result: result
 		};
+
+		result = parseTemplate( ractive, result );
 	}
 
-	return result;
-}
-
-function getDynamicTemplate ( ractive, fn ) {
-	var helper = parser.createHelper( getParseOptions( ractive ) );
-	return fn.call( ractive, ractive.data, helper );
+	if ( result ) {
+		ractive.template = result;
+	}
 }
 
 function reset ( ractive ) {
+
+	var result = resetValue( ractive );
+
+	if ( result ) {
+		ractive.template = parseTemplate( ractive, result );
+		return true;
+	}
+
+}
+
+function resetValue ( ractive ) {
 
 	var initial = ractive._config.template, result;
 
 	// is this dynamic template?
 	if( !initial || !initial.fn) { return; }
 
-	result = getDynamicTemplate ( ractive, initial.fn )
+	result = getDynamicTemplate ( ractive, initial.fn );
+
+	result = parseTemplate( ractive, result );
 
 	// compare results of fn return, which is likely
 	// be string comparison ( not yet parsed )
@@ -62,26 +71,18 @@ function reset ( ractive ) {
 		initial.result = result;
 		return result;
 	}
-}
-
-function getParseOptions ( target ) {
-
-	if ( target.parseOptions ) { return target.parseOptions; }
-
-	var options = target.defaults;
-
-	if ( !options ) { return; }
-
-	return parseOptions.reduce( ( val, option ) => {
-		val[ option.name ] = options[ option.name ];
-		return val;
-	}, {} );
 
 }
+
+function getDynamicTemplate ( ractive, fn ) {
+	var helper = parser.createHelper( parser.getParseOptions( ractive ) );
+	return fn.call( ractive, ractive.data, helper );
+}
+
 
 function parseTemplate ( target, template ) {
 
-	if ( !template ) { return template; }
+	if ( !template || typeof template === 'function' ) { return template; }
 
 	if ( !parser.isParsed( template ) ) {
 
@@ -90,7 +91,7 @@ function parseTemplate ( target, template ) {
 			template = parser.fromId( template );
 		}
 
-		template = parser.parse( template, getParseOptions( target ) );
+		template = parser.parse( template, parser.getParseOptions( target ) );
 	}
 
 	template = processCompound( target, template );

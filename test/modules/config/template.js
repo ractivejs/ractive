@@ -1,10 +1,12 @@
 define([
 	'config/options/template/template',
-	'utils/isArray'
+	'utils/isArray',
+	'utils/create'
 ],
 function (
 	config,
-	isArray
+	isArray,
+	create
  ) {
 
 	'use strict';
@@ -19,22 +21,32 @@ function (
 			}},
 			moduleSetup = {
 				setup: function(){
-					Ractive = { defaults: {}, parseOptions: {} };
-					Component = { defaults: {} };
+					//Ractive = { defaults: {}, parseOptions: {} };
 					ractive = { _config: {} };
 
-					// use extend to bootstrap mock Ractive
+					// bootstrap mock Ractive
+					Ractive = function () {};
+					Ractive.prototype = { template: [] };
+					Ractive.defaults = Ractive.prototype;
 
-					config.extend( null, Ractive, { template: [] } );
+					Component = function() {};
+					Component.prototype = create( Ractive.prototype );
+					Component.defaults = Component.prototype;
+				},
+				teardown: function(){
+
 				}
 			};
 
+		function mockExtend( template ){
+
+			config.extend( Ractive, Component.prototype, template);
+		}
+
 		module( 'Template Configuration', moduleSetup);
 
-		function testDefault( target ) {
-			var template = target.defaults.template;
+		function testDefault( template ) {
 
-			ok( !target.template, 'not on root' );
 			ok( template, 'on defaults' );
 			ok( isArray(template), 'isArray' );
 			equal( template.length, 0, 'no items' );
@@ -50,28 +62,28 @@ function (
 		}
 
 		test( 'Default create', t => {
-			testDefault( Ractive );
+			testDefault( Ractive.defaults.template );
 		});
 
 
 		test( 'Empty extend inherits parent', t => {
-			config.extend( Ractive, Component );
-			testDefault( Component )
+			mockExtend();
+			testDefault( Component.defaults.template )
 		});
 
 
 		test( 'Extend with template', t => {
-			config.extend( Ractive, Component, templateOpt1 );
+			mockExtend( templateOpt1 );
 			testTemplate1( Component.defaults.template );
 		});
 
 
 		test( 'Extend twice with different templates', t => {
-			var Parent = { defaults: {} };
-			config.extend( Ractive, Parent, templateOpt1 );
-			config.extend( Parent, Component, templateOpt2 );
+			config.extend( Ractive, Component.prototype, templateOpt1 );
+			var Child = create( Component );
+			config.extend( Component, Child.prototype, templateOpt2 );
 
-			testTemplate2( Component.defaults.template );
+			testTemplate2( Child.prototype.template );
 		});
 
 		test( 'Init template', t => {
@@ -87,14 +99,14 @@ function (
 		});
 
 		test( 'Init take precedence over default', t => {
-			config.extend( Ractive, Component, templateOpt1 );
+			config.extend( Ractive, Component.prototype, templateOpt1 );
 			config.init( Component, ractive, templateOpt2 );
 
 			testTemplate2( ractive.template );
 		});
 
 		test( 'Extend with template function', t => {
-			config.extend( Ractive, Component, templateOpt1fn );
+			config.extend( Ractive, Component.prototype, templateOpt1fn );
 			config.init( Component, ractive );
 
 			testTemplate1( ractive.template );
@@ -103,7 +115,7 @@ function (
 		test( 'Extend uses child parse options', t => {
 			Component.defaults.delimiters = [ '<#', '#>' ];
 
-			config.extend( Ractive, Component, { template: '<#foo#>' } );
+			config.extend( Ractive, Component.prototype, { template: '<#foo#>' } );
 			config.init( Component, ractive );
 
 			testTemplate1( ractive.template );
@@ -114,17 +126,17 @@ function (
 			testTemplate1( ractive.template );
 		});
 
-		test( 'Overwrite before init', t => {
+		// test( 'Overwrite before init', t => {
 
-			Ractive.defaults.template = templateOpt1.template;
-			config.init( Ractive, ractive );
+		// 	Ractive.defaults.template = templateOpt1.template;
+		// 	config.init( Ractive, ractive );
 
-			testTemplate1( ractive.template );
-		});
+		// 	testTemplate1( ractive.template );
+		// });
 
 		test( 'Overwrite after extend before init', t => {
 
-			config.extend( Ractive, Component, templateOpt1 );
+			config.extend( Ractive, Component.prototype, templateOpt1 );
 			Component.defaults.template = templateOpt2.template;
 
 			config.init( Component, ractive );

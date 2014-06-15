@@ -1,10 +1,34 @@
-import registry from 'config/options/registry';
-import createComputations from 'viewmodel/Computation/createComputations';
+import create from 'utils/create';
 
-// TODO this should be taken care of directly by the viewmodel
-var computed = registry( {
+var computed = {
 	name: 'computed',
-	postInit: createComputations
-});
+	extend: function ( Parent, child, options ) {
+
+		this.configure( Parent, child, options );
+
+	},
+	init: function ( Parent, ractive, options ) {
+
+		this.configure( Parent, ractive, options );
+	},
+
+	configure: function  ( Parent, instance, options ) {
+
+		var name = this.name, registry, option = options[ name ];
+
+		Parent = Parent.defaults;
+
+		registry = create( Parent[name] );
+
+
+		for( let key in option ) {
+			registry[ key ] = option[ key ];
+		}
+
+		instance[ name ] = registry;
+	}
+
+};
+
 
 export default computed;
