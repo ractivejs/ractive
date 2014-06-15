@@ -1,4 +1,4 @@
-import create from 'utils/create';
+ import create from 'utils/create';
 import defineProperties from 'utils/defineProperties';
 import getGuid from 'utils/getGuid';
 import config from 'config/config';
@@ -6,6 +6,7 @@ import extendObject from 'utils/extend';
 import initChildInstance from 'extend/initChildInstance';
 import circular from 'circular';
 import wrapMethod from 'utils/wrapMethod';
+import Viewmodel from 'viewmodel/Viewmodel';
 
 var Ractive, blacklisted;
 
@@ -19,20 +20,22 @@ blacklisted = {
 	'_component' : true
 }
 
+config.keys.forEach( key => { blacklisted[ key ] = true } )
+
 circular.push( function () {
 	Ractive = circular.Ractive;
 });
 
-export default function extend ( childProps ) {
+export default function extend ( extendOptions ) {
 
 	var Parent = this, Child;
 
-	childProps = childProps || {};
+	extendOptions = extendOptions || {};
 
 	// if we're extending with another Ractive instance, inherit its
 	// prototype methods and default options as well
-	if ( childProps.prototype instanceof Ractive ) {
-		childProps = ( extendObject( {}, childProps, childProps.prototype, childProps.defaults ) );
+	if ( extendOptions.prototype instanceof Ractive ) {
+		extendOptions = ( extendObject( {}, extendOptions, extendOptions.prototype, extendOptions.defaults ) );
 	}
 
 	// create Child constructor
@@ -40,42 +43,52 @@ export default function extend ( childProps ) {
 		initChildInstance( this, Child, options || {});
 	};
 
-	Child.prototype = create( Parent.prototype );
-	Child.prototype.constructor = Child;
-	Child.extend = extend;
 
-	defineProperties( Child, {
+	var proto = create( Parent.prototype );
+	proto.constructor = Child;
+
+	var staticProperties = {
 
 		// each component needs a guid, for managing CSS etc
 		'_guid': { value: getGuid() },
 
-		// defaults for the Component
-		defaults: { value: {} }
-	});
+		//alias prototype as defaults
+		defaults: { value: proto },
+
+		//extendable
+		extend: { value: extend, writable: true, configurable: true }
+	}
+
+	defineProperties( Child, staticProperties );
 
 	// extend configuration
-	config.extend( Parent, Child, childProps );
+	config.extend( Parent, proto, extendOptions );
+
+	Viewmodel.extend( Parent, proto );
 
 	// and any other options...
-	extendNonOptions( Child, childProps );
+	extendNonOptions( Parent.prototype, proto, extendOptions );
+
+	Child.prototype = proto;
+
 
 	return Child;
 }
 
-function extendNonOptions ( Child, options ) {
+function extendNonOptions ( parent, properties, options ) {
 
 	for ( let key in options ) {
 
-		if ( !config.keys[ key ] && !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
+		if ( !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
 
 			let member = options[ key ]
 
 			// if this is a method that overwrites a method, wrap it:
 			if ( typeof member === 'function' ) {
-				member = wrapMethod( member, Child.prototype[ key ] );
+				member = wrapMethod( member, parent[ key ] );
 			}
 
-			Child.prototype[ key ] = member;
+			properties[ key ] = member;
 
 		}
 	}

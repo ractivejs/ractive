@@ -86,6 +86,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 }
 
 function retrieve ( viewmodel, keypath ) {
+
 	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
 
 	keys = keypath.split( '.' );

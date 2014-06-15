@@ -5,29 +5,37 @@ import svg from 'config/svg';
 import defineProperties from 'utils/defineProperties';
 import proto from 'Ractive/prototype';
 import Promise from 'utils/Promise';
+import extendObj from 'utils/extend';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
 import initialise from 'Ractive/initialise';
 import circular from 'circular';
 
+var Ractive, properties;
+
 // Main Ractive required object
-var Ractive = function ( options ) {
+Ractive = function ( options ) {
 	initialise( this, options );
 };
 
-Ractive.prototype = proto;
 
 // Ractive properties
-defineProperties( Ractive, {
+properties = {
 
-	// Shared properties
+	// static props and methods:
+	extend:        { value: extend },
+	parse:         { value: parse },
 
-	// Default options
-	defaults:      { value: defaults },
+	// Namespaced constructors
+	Promise:       { value: Promise },
+
+	// support
+	svg:           { value: svg },
+
+	// version
+	VERSION:       { value: '<%= pkg.version %>' },
 
 	// Plugins
-	// Because these can be assigned functions to resolve at
-	// instantiation time, they are writable
 	adaptors:      { writable: true, value: {} },
 	components:    { writable: true, value: {} },
 	decorators:    { writable: true, value: {} },
@@ -35,23 +43,21 @@ defineProperties( Ractive, {
 	events:        { writable: true, value: {} },
 	interpolators: { writable: true, value: interpolators },
 	partials:      { writable: true, value: {} },
-	transitions:   { writable: true, value: {} },
+	transitions:   { writable: true, value: {} }
+};
 
-	// Support
-	svg:           { value: svg },
 
-	VERSION:       { value: '<%= pkg.version %>' }
-});
+// Ractive properties
+defineProperties( Ractive, properties );
+
+Ractive.prototype = extendObj( proto, defaults );
 
 Ractive.prototype.constructor = Ractive;
 
-// Namespaced constructors
-Ractive.Promise = Promise;
+// alias prototype as defaults
+Ractive.defaults = Ractive.prototype;
 
-// Static methods
-Ractive.extend = extend;
 
-Ractive.parse = parse;
 
 // Certain modules have circular dependencies. If we were bundling a
 // module loader, e.g. almond.js, this wouldn't be a problem, but we're

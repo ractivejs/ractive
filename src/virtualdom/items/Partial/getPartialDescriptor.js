@@ -19,7 +19,7 @@ export default function getPartialDescriptor ( ractive, name ) {
 		partial = deIndent( partial );
 
 		// parse and register to this ractive instance
-		let parsed = parser.parse( partial, ractive.parseOptions );
+		let parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
 
 		// register (and return main partial if there are others in the template)
 		return ractive.partials[ name ] = config.template.processCompound( ractive, parsed );
@@ -54,7 +54,7 @@ function getPartialFromRegistry ( ractive, name ) {
 
 			// use the parseOptions of the ractive instance
 			// on which it was found
-			partial = parser.parse( partial, instance.parseOptions );
+			partial = parser.parse( partial, parser.getParseOptions( instance ) );
 
 			// may be a template with partials, which need to
 			// be registered and main template extracted

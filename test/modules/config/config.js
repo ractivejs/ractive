@@ -24,23 +24,20 @@ define([
 			config.forEach( itemConfig => {
 
 				var name = itemConfig.name,
-					useDefaults = itemConfig.useDefaults,
-					actual = useDefaults && !noTargetDefaults ? target.defaults : target,
-					expected = useDefaults && compare ? compare.defaults : compare;
+					actual = target,
+					expected = compare.prototype;
 
-				if ( noTargetDefaults && config.parseOptions[ name ] ) {
-					actual = actual.parseOptions;
-				}
-
-				if ( !expected[name] ) {
-					ok ( !actual[ name ], 'empty ' + name );
-				} else {
-					ok( actual.hasOwnProperty( name ), 'has ' + name);
+				if ( expected && ( name in expected ) ) {
+					ok( name in actual, 'has ' + name);
 				}
 
 				if ( expected ) {
+					if ( config.registries[ name ] ) {
 
-					deepEqual( actual[ name ], expected[ name ], 'compare ' + name );
+					}
+					else {
+						deepEqual( actual[ name ], expected[ name ], 'compare ' + name );
+					}
 				}
 
 			});
@@ -49,7 +46,12 @@ define([
 
 		test( 'base Ractive', t => {
 
-			t.deepEqual( Ractive.defaults, defaults, 'has defaults' );
+			t.deepEqual( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
+
+			for( let key in defaults ) {
+				t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key )
+			}
+
 
 		});
 
@@ -62,17 +64,16 @@ define([
 			}
 		} );
 
-		test( 'extended', t => {
+		// test( 'extended', t => {
 
-			testConfiguration( Child, Ractive );
+		// 	testConfiguration( Child, Ractive );
 
-		});
+		// });
 
 		module( 'Configure Instance', {
 			setup: function () {
 				configureRactive();
-				ractive = { parseOptions: {} };
-				config.init( Ractive, ractive, {} );
+				ractive = new Ractive();
 			}
 		} );
 
@@ -86,12 +87,9 @@ define([
 
 		test( 'find registry configuration', t => {
 
-			var parent = { parseOptions: {} },
-				ractive = { parseOptions: {} },
-				adaptor1 = {}, adaptor2 = {};
-
-			config.init( Ractive, parent, { adaptors: { foo: adaptor1 } } );
-			config.init( Ractive, ractive, { adaptors: { bar: adaptor2 } } );
+			var adaptor1 = {}, adaptor2 = {},
+				parent = new Ractive( { adaptors: { foo: adaptor1 } } ),
+				ractive = new Ractive( { adaptors: { bar: adaptor2 } } );
 
 			ractive._parent = parent;
 
