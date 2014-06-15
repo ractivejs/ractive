@@ -20,14 +20,15 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 	evaluator.dependencies = []; // created by `this.get()` within functions
 
 	evaluator.argumentGetters = args.map( arg => {
-		var keypath;
+		var keypath, index;
 
 		if ( !arg ) {
 			return () => undefined;
 		}
 
 		if ( arg.indexRef ) {
-			return () => arg.value;
+			index = arg.value;
+			return () => index;
 		}
 
 		keypath = arg.keypath;
@@ -78,8 +79,6 @@ Evaluator.prototype = {
 
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
-
-			this.root.viewmodel.adapt( this.keypath, value, true );
 			this.root.viewmodel.mark( this.keypath );
 		}
 
