@@ -6,6 +6,6 @@ export default function ( thing ) {
 		runloop.removeUnresolved( thing );
 	} else {
 		// this was registered as a dependant
-		thing.root.viewmodel.unregister( thing );
+		thing.root.viewmodel.unregister( thing.keypath, thing );
 	}
 }

@@ -19,7 +19,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 		observer = new Observer( ractive, keypath, callback, options );
 	}
 
-	ractive.viewmodel.register( observer );
+	ractive.viewmodel.register( keypath, observer );
 	observer.init( options.init );
 
 	// This flag allows observers to initialise even with undefined values
@@ -37,7 +37,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 				}
 			}
 
-			ractive.viewmodel.unregister( observer );
+			ractive.viewmodel.unregister( keypath, observer );
 		}
 	};
 }

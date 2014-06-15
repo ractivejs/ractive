@@ -70,7 +70,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 	}
 
 	// capture the keypath, if we're inside a computation or evaluator
-	if ( this.capturing && this.captured[ keypath ] !== true ) {
+	if ( options.capture && this.capturing && !this.captured[ keypath ] ) {
 		this.captured.push( keypath );
 		this.captured[ keypath ] = true;
 

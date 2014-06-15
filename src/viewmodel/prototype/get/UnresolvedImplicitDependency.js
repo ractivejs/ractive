@@ -18,7 +18,7 @@ var UnresolvedImplicitDependency = function ( viewmodel, keypath ) {
 
 UnresolvedImplicitDependency.prototype = {
 	resolve: function () {
-		this.viewmodel.notifyDependants( this.ref );
+		this.viewmodel.mark( this.ref );
 
 		this.viewmodel.unresolvedImplicitDependencies[ this.ref ] = false;
 		removeFromArray( this.viewmodel.unresolvedImplicitDependencies, this );

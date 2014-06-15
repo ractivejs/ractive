@@ -44,8 +44,7 @@ export default function Ractive$reset ( data, callback ) {
 	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
 	if ( rerender ) {
-		this.viewmodel.clearCache( '' );
-		this.viewmodel.notifyDependants( '' );
+		this.viewmodel.mark( '' );
 
 		this.unrender();
 
@@ -64,8 +63,7 @@ export default function Ractive$reset ( data, callback ) {
 		this.render( this.el, this.anchor ).then( fulfilPromise );
 	} else {
 		runloop.start( this, fulfilPromise );
-		this.viewmodel.clearCache( '' );
-		this.viewmodel.notifyDependants( '' );
+		this.viewmodel.mark( '' );
 		runloop.end();
 	}
 

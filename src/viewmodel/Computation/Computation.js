@@ -1,16 +1,16 @@
 import warn from 'utils/warn';
+import isEqual from 'utils/isEqual';
 import runloop from 'global/runloop';
-import Watcher from 'viewmodel/Computation/Watcher';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
+	this.viewmodel = ractive.viewmodel;
 	this.key = key;
 
 	this.getter = signature.get;
 	this.setter = signature.set;
 
-	this.watchers = [];
-
+	this.dependencies = [];
 	this.update();
 };
 
@@ -30,7 +30,7 @@ Computation.prototype = {
 
 	// returns `false` if the computation errors
 	compute: function () {
-		var ractive, errored;
+		var ractive, errored, newDependencies;
 
 		ractive = this.ractive;
 		ractive.viewmodel.capture();
@@ -45,46 +45,31 @@ Computation.prototype = {
 			errored = true;
 		}
 
-		diff( this, this.watchers, ractive.viewmodel.release() );
+		newDependencies = ractive.viewmodel.release();
+		diff( this, this.dependencies, newDependencies );
 
 		return errored ? false : true;
 	},
 
 	update: function () {
-		if ( this.compute() ) {
-			this.setting = true;
-			this.ractive.viewmodel.set( this.key, this.value );
-			this.setting = false;
-		}
+		var oldValue = this.value;
 
-		this.dirty = false;
-	},
-
-	bubble: function () {
-		if ( this.watchers.length <= 1 ) {
-			this.update();
-		}
-
-		else if ( !this.dirty ) {
-			runloop.modelUpdate( this );
-			this.dirty = true;
+		if ( this.compute() && !isEqual( this.value, oldValue ) ) {
+			this.ractive.viewmodel.mark( this.key );
 		}
 	}
 };
 
-function diff ( computation, watchers, newDependencies ) {
-	var i, watcher, keypath;
+function diff ( computation, dependencies, newDependencies ) {
+	var i, keypath;
 
 	// remove dependencies that are no longer used
-	i = watchers.length;
+	i = dependencies.length;
 	while ( i-- ) {
-		watcher = watchers[i];
+		keypath = dependencies[i];
 
-		if ( !newDependencies[ watcher.keypath ] ) {
-			watchers.splice( i, 1 );
-			watchers[ watcher.keypath ] = null;
-
-			watcher.teardown();
+		if ( newDependencies.indexOf( keypath ) === -1 ) {
+			computation.viewmodel.unregister( keypath, computation, 'computed' );
 		}
 	}
 
@@ -93,11 +78,12 @@ function diff ( computation, watchers, newDependencies ) {
 	while ( i-- ) {
 		keypath = newDependencies[i];
 
-		if ( !watchers[ keypath ] ) {
-			watcher = new Watcher( computation, keypath );
-			watchers.push( watchers[ keypath ] = watcher );
+		if ( dependencies.indexOf( keypath ) === -1 ) {
+			computation.viewmodel.register( keypath, computation, 'computed' );
 		}
 	}
+
+	computation.dependencies = newDependencies.slice();
 }
 
 export default Computation;

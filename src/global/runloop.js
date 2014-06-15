@@ -1,8 +1,7 @@
-import circular from 'circular';
+	import circular from 'circular';
 import css from 'global/css';
 import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
-import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
 import makeTransitionManager from 'shared/makeTransitionManager';
 
 var runloop,
@@ -15,17 +14,16 @@ var runloop,
 
 	unresolved = [],
 
-	modelUpdates = [],
 	viewUpdates = [],
 	postViewUpdateTasks = [],
 	postModelUpdateTasks = [],
 
-	instances = [],
+	viewmodels = [],
 	transitionManager;
 
 runloop = {
 	start: function ( instance, callback ) {
-		this.addInstance( instance );
+		this.addViewmodel( instance.viewmodel );
 
 		if ( !flushing ) {
 			// create a new transition manager
@@ -49,10 +47,9 @@ runloop = {
 		transitionManager = transitionManager._previous;
 	},
 
-	addInstance: function ( instance ) {
-		if ( instance && !instances[ instance._guid ] ) {
-			instances.push( instance );
-			instances[ instances._guid ] = true;
+	addViewmodel: function ( viewmodel ) {
+		if ( viewmodel && viewmodels.indexOf( viewmodel ) === -1 ) {
+			viewmodels.push( viewmodel );
 		}
 	},
 
@@ -77,16 +74,6 @@ runloop = {
 			css.update();
 		} else {
 			pendingCssChanges = true;
-		}
-	},
-
-	// changes that may cause additional changes...
-	modelUpdate: function ( thing, remove ) {
-		if ( remove ) {
-			removeFromArray( modelUpdates, thing );
-		} else {
-			dirty = true;
-			modelUpdates.push( thing );
 		}
 	},
 
@@ -121,15 +108,8 @@ export default runloop;
 function flushChanges () {
 	var thing, upstreamChanges, i, changeHash, changedKeypath;
 
-	i = instances.length;
-	while ( i-- ) {
-		thing = instances[i];
-
-		// TODO this stuff doesn't belong to the runloop
-		if ( thing.viewmodel.changes.length ) {
-			upstreamChanges = getUpstreamChanges( thing.viewmodel.changes );
-			thing.viewmodel.notifyDependants( upstreamChanges );
-		}
+	while ( thing = viewmodels.shift() ) {
+		thing.applyChanges();
 	}
 
 	attemptKeypathResolution();
@@ -138,11 +118,6 @@ function flushChanges () {
 	// looping until the system is settled
 	while ( dirty ) {
 		dirty = false;
-
-		while ( thing = modelUpdates.shift() ) {
-			thing.update();
-			thing.dirty = false;
-		}
 
 		while ( thing = postModelUpdateTasks.pop() ) {
 			thing();
@@ -166,25 +141,12 @@ function flushChanges () {
 		thing.locked = false;
 	}
 
-	// Change events are fired last
-	while ( thing = instances.pop() ) {
-		instances[ thing._guid ] = false;
-
-		if ( thing.viewmodel.changes.length ) {
-			changeHash = {};
-
-			while ( changedKeypath = thing.viewmodel.changes.pop() ) {
-				changeHash[ changedKeypath ] = thing.viewmodel.get( changedKeypath );
-			}
-
-			thing.fire( 'change', changeHash );
-		}
-	}
-
 	if ( pendingCssChanges ) {
 		css.update();
 		pendingCssChanges = false;
 	}
+
+	console.groupEnd();
 }
 
 function attemptKeypathResolution () {

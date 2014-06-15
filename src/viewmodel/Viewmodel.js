@@ -1,12 +1,14 @@
 import create from 'utils/create';
 import adapt from 'viewmodel/prototype/adapt';
+import applyChanges from 'viewmodel/prototype/applyChanges';
 import capture from 'viewmodel/prototype/capture';
 import clearCache from 'viewmodel/prototype/clearCache';
 import get from 'viewmodel/prototype/get';
-import notifyDependants from 'viewmodel/prototype/notifyDependants';
+import mark from 'viewmodel/prototype/mark';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
+import splice from 'viewmodel/prototype/splice';
 import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
 
@@ -16,8 +18,14 @@ var Viewmodel = function ( ractive ) {
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
 
-	this.deps = [];
-	this.depsMap = create( null );
+	this.deps = {
+		computed: {},
+		'default': {}
+	};
+	this.depsMap = {
+		computed: {},
+		'default': {}
+	};
 	this.patternObservers = [];
 
 	this.wrapped = create( null );
@@ -34,13 +42,15 @@ var Viewmodel = function ( ractive ) {
 
 Viewmodel.prototype = {
 	adapt: adapt,
+	applyChanges: applyChanges,
 	capture: capture,
 	clearCache: clearCache,
 	get: get,
-	notifyDependants: notifyDependants,
+	mark: mark,
 	register: register,
 	release: release,
 	set: set,
+	splice: splice,
 	teardown: teardown,
 	unregister: unregister
 };

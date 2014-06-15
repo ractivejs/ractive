@@ -1,10 +1,7 @@
-export default function Viewmodel$unregister ( dependant ) {
-	var deps, index, keypath, priority, evaluator;
+export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
+	var deps, index, evaluator;
 
-	keypath = dependant.keypath;
-	priority = dependant.priority;
-
-	deps = this.deps[ priority ][ keypath ];
+	deps = this.deps[ group ][ keypath ];
 	index = deps.indexOf( dependant );
 
 	if ( index === -1 || !dependant.registered ) {
@@ -26,11 +23,11 @@ export default function Viewmodel$unregister ( dependant ) {
 		}
 	}
 
-	updateDependantsMap( this, keypath );
+	updateDependantsMap( this, keypath, group );
 }
 
-function updateDependantsMap ( viewmodel, keypath ) {
-	var keys, parentKeypath, map;
+function updateDependantsMap ( viewmodel, keypath, group ) {
+	var keys, parentKeypath, map, parent;
 
 	// update dependants map
 	keys = keypath.split( '.' );
@@ -39,14 +36,15 @@ function updateDependantsMap ( viewmodel, keypath ) {
 		keys.pop();
 		parentKeypath = keys.join( '.' );
 
-		map = viewmodel.depsMap[ parentKeypath ];
+		map = viewmodel.depsMap[ group ];
+		parent = map[ parentKeypath ];
 
-		map[ keypath ] -= 1;
+		parent[ keypath ] -= 1;
 
-		if ( !map[ keypath ] ) {
+		if ( !parent[ keypath ] ) {
 			// remove from parent deps map
-			map.splice( map.indexOf( keypath ), 1 );
-			map[ keypath ] = undefined;
+			parent.splice( parent.indexOf( keypath ), 1 );
+			parent[ keypath ] = undefined;
 		}
 
 		keypath = parentKeypath;

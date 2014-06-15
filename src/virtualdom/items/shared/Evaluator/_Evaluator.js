@@ -1,13 +1,11 @@
 import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
-import Reference from 'virtualdom/items/shared/Evaluator/Reference';
-import SoftReference from 'virtualdom/items/shared/Evaluator/SoftReference';
 
 var Evaluator, cache = {};
 
 Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority ) {
-	var evaluator = this;
+	var evaluator = this, viewmodel = root.viewmodel;
 
 	evaluator.root = root;
 	evaluator.uniqueString = uniqueString;
@@ -15,24 +13,20 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 	evaluator.priority = priority;
 
 	evaluator.fn = getFunctionFromString( functionStr, args.length );
-	evaluator.values = [];
-	evaluator.refs = [];
+	evaluator.dependencies = [];
 
-	evaluator.dependants = 0;
-
-	args.forEach( function ( arg, i ) {
-		if ( !arg ) {
-			return;
-		}
+	evaluator.argumentGetters = args.map( arg => {
+		var keypath;
 
 		if ( arg.indexRef ) {
-			// this is an index ref... we don't need to register a dependant
-			evaluator.values[i] = arg.value;
+			return () => arg.value;
 		}
 
-		else {
-			evaluator.refs.push( new Reference( root, arg.keypath, evaluator, i, priority ) );
-		}
+		keypath = arg.keypath;
+		evaluator.dependencies.push( keypath );
+		viewmodel.register( keypath, evaluator, 'computed' );
+
+		return () => viewmodel.get( keypath );
 	});
 };
 
@@ -43,22 +37,15 @@ Evaluator.prototype = {
 
 	sleep: function () {
 		this.awake = false;
-		runloop.modelUpdate( this, true ); // cancel pending update, if there is one
-	},
-
-	bubble: function () {
-		if ( !this.dirty && this.awake ) {
-			// Re-evaluate once all changes have propagated
-			this.dirty = true;
-			runloop.modelUpdate( this );
-		}
 	},
 
 	getValue: function () {
-		var value;
+		var args, value;
+
+		args = this.argumentGetters.map( fn => fn() );
 
 		try {
-			value = this.fn.apply( null, this.values );
+			value = this.fn.apply( null, args );
 		} catch ( err ) {
 			if ( this.root.debug ) {
 				warn( 'Error evaluating "' + this.uniqueString + '": ' + err.message || err );
@@ -76,10 +63,8 @@ Evaluator.prototype = {
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
-			this.root.viewmodel.clearCache( this.keypath );
-
 			this.root.viewmodel.adapt( this.keypath, value, true );
-			this.root.viewmodel.notifyDependants( this.keypath );
+			this.root.viewmodel.mark( this.keypath );
 		}
 
 		return this;
@@ -87,49 +72,12 @@ Evaluator.prototype = {
 
 	// TODO should evaluators ever get torn down? At present, they don't...
 	teardown: function () {
-		while ( this.refs.length ) {
-			this.refs.pop().teardown();
-		}
-
-		this.root.viewmodel.clearCache( this.keypath );
+		this.dependencies.forEach( keypath => this.viewmodel.unregister( keypath, this, 'computed' ) );
 		this.root.viewmodel.evaluators[ this.keypath ] = null;
 	},
 
 	invalidate: function () {
-		this.refs.forEach( ref => ref.invalidate() );
-
-		this.root.viewmodel.clearCache( this.keypath );
-		this.value = this.getValue();
-	},
-
-	updateSoftDependencies: function ( softDeps ) {
-		var i, keypath, ref;
-
-		if ( !this.softRefs ) {
-			this.softRefs = [];
-		}
-
-		// teardown any references that are no longer relevant
-		i = this.softRefs.length;
-		while ( i-- ) {
-			ref = this.softRefs[i];
-			if ( !softDeps[ ref.keypath ] ) {
-				this.softRefs.splice( i, 1 );
-				this.softRefs[ ref.keypath ] = false;
-				ref.teardown();
-			}
-		}
-
-		// add references for any new soft dependencies
-		i = softDeps.length;
-		while ( i-- ) {
-			keypath = softDeps[i];
-			if ( !this.softRefs[ keypath ] ) {
-				ref = new SoftReference( this.root, keypath, this );
-				this.softRefs.push( ref );
-				this.softRefs[ keypath ] = true;
-			}
-		}
+		this.root.viewmodel.mark( this.keypath );
 	}
 };
 

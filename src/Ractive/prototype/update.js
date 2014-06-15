@@ -14,9 +14,7 @@ export default function Ractive$update ( keypath, callback ) {
 	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 	runloop.start( this, fulfilPromise );
 
-	this.viewmodel.clearCache( keypath );
-	this.viewmodel.notifyDependants( keypath );
-
+	this.viewmodel.mark( keypath );
 	runloop.end();
 
 	this.fire( 'update', keypath );

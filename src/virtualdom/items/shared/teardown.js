@@ -6,6 +6,6 @@ export default function teardown () {
 		runloop.removeUnresolved( this );
 	} else {
 		// this was registered as a dependant
-		this.root.viewmodel.unregister( this );
+		this.root.viewmodel.unregister( this.keypath, this );
 	}
 }

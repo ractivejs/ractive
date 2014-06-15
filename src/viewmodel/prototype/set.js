@@ -56,10 +56,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 		}
 	}
 
-	this.clearCache( keypath, dontTeardownWrapper );
-
 	if ( !silent ) {
-		this.changes.push( keypath );
-		this.notifyDependants( keypath );
+		this.mark( keypath );
 	}
 }

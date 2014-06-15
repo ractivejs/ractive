@@ -10,7 +10,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
-	ractive.viewmodel.register( this );
+	ractive.viewmodel.register( keypath, this );
 
 	this.value = this.root.viewmodel.get( this.keypath );
 };
@@ -33,7 +33,7 @@ Binding.prototype = {
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
-			runloop.addInstance( this.otherInstance );
+			//runloop.addViewmodel( this.otherInstance.viewmodel );
 			this.otherInstance.viewmodel.set( this.otherKeypath, value );
 			this.value = value;
 
@@ -44,18 +44,16 @@ Binding.prototype = {
 	},
 
 	rebind: function ( newKeypath ) {
-		this.root.viewmodel.unregister( this );
-		this.counterpart.root.viewmodel.unregister( this.counterpart );
+		this.root.viewmodel.unregister( this.keypath, this );
 
 		this.keypath = newKeypath;
 		this.counterpart.otherKeypath = newKeypath;
 
-		this.root.viewmodel.register( this );
-		this.counterpart.root.viewmodel.register( this.counterpart );
+		this.root.viewmodel.register( newKeypath, this );
 	},
 
 	teardown: function () {
-		this.root.viewmodel.unregister( this );
+		this.root.viewmodel.unregister( this.keypath, this );
 	}
 };
 

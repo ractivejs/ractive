@@ -155,7 +155,7 @@ var KeypathObserver = function ( ractive, keypath, priority, resolver, index ) {
 	this.resolver = resolver;
 	this.index = index;
 
-	ractive.viewmodel.register( this );
+	ractive.viewmodel.register( keypath, this );
 
 	this.setValue( ractive.viewmodel.get( keypath ) );
 };
@@ -169,7 +169,7 @@ KeypathObserver.prototype = {
 	},
 
 	teardown: function () {
-		this.root.viewmodel.unregister( this );
+		this.root.viewmodel.unregister( this.keypath, this );
 	}
 };
 
