@@ -33,13 +33,13 @@ Binding.prototype = {
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
-			//runloop.addViewmodel( this.otherInstance.viewmodel );
+			runloop.addViewmodel( this.otherInstance.viewmodel );
 			this.otherInstance.viewmodel.set( this.otherKeypath, value );
 			this.value = value;
 
 			// TODO will the counterpart update after this line, during
 			// the runloop end cycle? may be a problem...
-			this.updating = false;
+			runloop.afterModelUpdate( () => this.updating = false );
 		}
 	},
 
