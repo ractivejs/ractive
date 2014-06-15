@@ -54,6 +54,9 @@ StandardParser = Parser.extend({
 		this.delimiters = options.delimiters || [ '{{', '}}' ];
 		this.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
 
+		this.staticDelimiters = options.staticDelimiters || [ '[[', ']]' ];
+		this.staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
+
 		this.interpolate = {
 			script: !options.interpolate || options.interpolate.script !== false,
 			style: !options.interpolate || options.interpolate.style !== false
