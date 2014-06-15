@@ -132,17 +132,14 @@ function flushChanges () {
 		thing.update();
 	}
 
-	// If updating the view caused some model blowback - e.g. a triple
-	// containing <option> elements caused the binding on the <select>
-	// to update - then we start over
-	if ( viewmodels.length ) {
-		flushChanges();
-		return;
-	}
-
 	while ( thing = postViewUpdateTasks.pop() ) {
 		thing();
 	}
+
+	// If updating the view caused some model blowback - e.g. a triple
+	// containing <option> elements caused the binding on the <select>
+	// to update - then we start over
+	if ( viewmodels.length ) return flushChanges();
 
 	// Unlock attributes (twoway binding)
 	while ( thing = lockedAttributes.pop() ) {

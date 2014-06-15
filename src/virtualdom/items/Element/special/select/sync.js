@@ -65,6 +65,7 @@ export default function syncSelect ( selectElement ) {
 		}
 
 		runloop.lockAttribute( selectElement.attributes.value );
+		runloop.addViewmodel( selectElement.root.viewmodel );
 		selectElement.root.viewmodel.set( selectElement.binding.keypath );
 	}
 }
