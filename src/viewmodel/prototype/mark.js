@@ -1,8 +1,6 @@
 export default function Viewmodel$mark ( keypath ) {
-	if ( !this.changes[ keypath ] ) {
-		this.changes[ keypath ] = true;
+	if ( this.changes.indexOf( keypath ) === -1 ) {
 		this.changes.push( keypath );
-
 		this.clearCache( keypath );
 	}
 }
