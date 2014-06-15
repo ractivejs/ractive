@@ -18,6 +18,10 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 	evaluator.argumentGetters = args.map( arg => {
 		var keypath;
 
+		if ( !arg ) {
+			return () => undefined;
+		}
+
 		if ( arg.indexRef ) {
 			return () => arg.value;
 		}
