@@ -1,7 +1,6 @@
 import wrapPrototype from 'utils/wrapPrototypeMethod';
 import wrap from 'utils/wrapMethod';
 import config from 'config/config';
-import defaults from 'config/defaults/options';
 import circular from 'circular';
 
 var Ractive,
@@ -64,7 +63,7 @@ function toOptions ( Child ) {
 
 			if ( key === 'computed' ) { return; }
 
-			var value = Child.prototype[ key ], parent;
+			var value = Child.prototype[ key ];
 
 			if ( !( key in options ) ) {
 				options[ key ] = value._method ? value._method : value;

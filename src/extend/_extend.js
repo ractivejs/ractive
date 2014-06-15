@@ -2,7 +2,6 @@ import create from 'utils/create';
 import defineProperties from 'utils/defineProperties';
 import getGuid from 'utils/getGuid';
 import config from 'config/config';
-import extendObject from 'utils/extend';
 import initChildInstance from 'extend/initChildInstance';
 import Viewmodel from 'viewmodel/Viewmodel';
 import childOptions from 'extend/childOptions';

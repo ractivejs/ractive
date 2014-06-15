@@ -6,9 +6,6 @@ function BaseConfiguration ( config ) {
 	this.useDefaults = defaults.hasOwnProperty( config.name );
 }
 
-
-
-
 BaseConfiguration.prototype = {
 
 	configure: function ( Parent, instance, options ) {
