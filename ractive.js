@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-15 - commit e0d861c8 
+	2014-06-15 - commit 879b4654 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1541,12 +1541,10 @@
 				}
 			},
 			extend: function( Parent, proto, options ) {
-				this.configure( Parent, proto, options, // temp
-					this.name, this.preExtend ? this.preExtend.bind( this ) : void 0, this.postExtend ? this.postExtend.bind( this ) : void 0 );
+				this.configure( Parent, proto, options );
 			},
 			init: function( Parent, ractive, options ) {
-				this.configure( Parent, ractive, options, // temp
-					this.name, this.preInit ? this.preInit.bind( this ) : void 0, this.postInit ? this.postInit.bind( this ) : void 0 );
+				this.configure( Parent, ractive, options );
 			},
 			reset: function( ractive ) {
 				if ( !this.resetValue ) {
@@ -1617,45 +1615,18 @@
 		return config;
 	}( baseConfiguration, circular );
 
-	/* config/options/complete.js */
-	var complete = function( baseConfig, wrapMethod ) {
-
-		var config = baseConfig( {
-			name: 'complete',
-			pre: wrapIfNecessary
-		} );
-
-		function wrapIfNecessary( Parent, proto, options ) {
-			var name = this.name,
-				value = options[ name ],
-				parentValue;
-			if ( !value ) {
-				return;
-			}
-			parentValue = Parent.prototype[ name ];
-			if ( typeof value === 'function' && typeof parentValue === 'function' ) {
-				options[ name ] = wrapMethod( value, parentValue );
-			}
-		}
-		return config;
-	}( baseConfiguration, wrapMethod );
-
 	/* config/options/computed.js */
 	var computed = function( create ) {
 
 		var computed = {
 			name: 'computed',
 			extend: function( Parent, child, options ) {
-				var name = this.name,
-					registry, option = options[ name ];
-				Parent = Parent.defaults;
-				registry = create( Parent[ name ] );
-				for ( var key in option ) {
-					registry[ key ] = option[ key ];
-				}
-				child[ name ] = registry;
+				this.configure( Parent, child, options );
 			},
 			init: function( Parent, ractive, options ) {
+				this.configure( Parent, ractive, options );
+			},
+			configure: function( Parent, instance, options ) {
 				var name = this.name,
 					registry, option = options[ name ];
 				Parent = Parent.defaults;
@@ -1663,7 +1634,7 @@
 				for ( var key in option ) {
 					registry[ key ] = option[ key ];
 				}
-				ractive[ name ] = registry;
+				instance[ name ] = registry;
 			}
 		};
 		return computed;
@@ -4305,6 +4276,7 @@
 			config = extendObject( config, {
 				extend: extend,
 				init: init,
+				configure: configure,
 				find: find,
 				findInstance: findInstance
 			} );
@@ -4312,20 +4284,14 @@
 		};
 
 		function extend( Parent, proto, options ) {
-			var name = this.name,
-				option = options[ name ],
-				Child = proto.constructor,
-				registry = create( Parent[ name ] );
-			for ( var key in option ) {
-				registry[ key ] = option[ key ];
-			}
-			if ( this.post ) {
-				registry = this.post( proto, registry );
-			}
-			Child[ name ] = registry;
+			this.configure( Parent, proto.constructor, options );
 		}
 
 		function init( Parent, ractive, options ) {
+			this.configure( Parent, ractive, options );
+		}
+
+		function configure( Parent, target, options ) {
 			var name = this.name,
 				option = options[ name ],
 				registry = create( Parent[ name ] );
@@ -4333,9 +4299,9 @@
 				registry[ key ] = option[ key ];
 			}
 			if ( this.post ) {
-				registry = this.post( ractive, registry );
+				registry = this.post( target, registry );
 			}
-			ractive[ name ] = registry;
+			target[ name ] = registry;
 		}
 
 		function find( ractive, key ) {
@@ -4384,49 +4350,67 @@
 		return registries;
 	}( optionGroup, registry );
 
-	/* config/config.js */
-	var config = function( css, data, debug, defaults, complete, computed, template, parseOptions, registries, warn, isArray ) {
+	/* utils/wrapPrototypeMethod.js */
+	var wrapPrototypeMethod = function() {
 
-		var custom, options, config;
-		custom = {
-			data: data,
-			debug: debug,
-			complete: complete,
-			computed: computed,
-			template: template,
-			css: css
+		var noop = function() {};
+		return function wrap( instance, parent, name, method ) {
+			if ( !/_super/.test( method ) ) {
+				return method;
+			}
+			var wrapper = function wrapSuper() {
+				var superMethod = getSuperMethod( wrapper._parent, name ),
+					hasSuper = '_super' in instance,
+					oldSuper = instance._super,
+					result;
+				instance._super = superMethod;
+				result = method.apply( instance, arguments );
+				if ( hasSuper ) {
+					instance._super = oldSuper;
+				} else {
+					delete instance._super;
+				}
+				return result;
+			};
+			wrapper._parent = parent;
+			wrapper._method = method;
+			return wrapper;
 		};
-		// fill in basicConfig for all default options not covered by
-		// registries, parse options, and any custom configuration
-		options = Object.keys( defaults ).filter( function( key ) {
-			return !registries[ key ] && !custom[ key ] && !parseOptions[ key ];
-		} );
-		// this defines the order:
-		config = [].concat( custom.debug, custom.data, parseOptions, options, custom.complete, custom.computed, registries, custom.template, custom.css );
-		for ( var key in custom ) {
-			config[ key ] = custom[ key ];
-		}
-		// for iteration
-		config.keys = Object.keys( defaults ).concat( registries.map( function( r ) {
-			return r.name;
-		} ) ).concat( [ 'css' ] );
-		config.parseOptions = parseOptions;
-		config.registries = registries;
 
-		function getMessage( deprecated, isError ) {
-			return 'ractive.' + deprecated + ' has been deprecated in favour of ractive.events.' + isError ? ' You cannot specify both options, please use ractive.events.' : '';
+		function getSuperMethod( parent, name ) {
+			var method;
+			if ( name in parent ) {
+				var value = parent[ name ];
+				if ( typeof value === 'function' ) {
+					method = value;
+				} else {
+					method = function returnValue() {
+						return value;
+					};
+				}
+			} else {
+				method = noop;
+			}
+			return method;
 		}
+	}();
+
+	/* config/deprecate.js */
+	var deprecate = function( warn, isArray ) {
 
 		function deprecate( options, deprecated, correct ) {
-			// TODO remove support
 			if ( deprecated in options ) {
 				if ( !( correct in options ) ) {
-					warn( getMessage( deprecated ) );
+					warn( getMessage( deprecated, correct ) );
 					options[ correct ] = options[ deprecated ];
 				} else {
-					throw new Error( getMessage( deprecated, true ) );
+					throw new Error( getMessage( deprecated, correct, true ) );
 				}
 			}
+		}
+
+		function getMessage( deprecated, correct, isError ) {
+			return 'options.' + deprecated + ' has been deprecated in favour of options.' + correct + '.' + ( isError ? ' You cannot specify both options, please use options.' + correct + '.' : '' );
 		}
 
 		function deprecateEventDefinitions( options ) {
@@ -4437,15 +4421,43 @@
 			// Using extend with Component instead of options,
 			// like Human.extend( Spider ) means adaptors as a registry
 			// gets copied to options. So we have to check if actually an array
-			if ( 'adaptors' in options && isArray( options.adaptors ) ) {
+			if ( isArray( options.adaptors ) ) {
 				deprecate( options, 'adaptors', 'adapt' );
 			}
 		}
-
-		function deprecateOptions( options ) {
+		return function deprecateOptions( options ) {
 			deprecateEventDefinitions( options );
 			depricateAdaptors( options );
+		};
+	}( warn, isArray );
+
+	/* config/config.js */
+	var config = function( css, data, debug, defaults, computed, template, parseOptions, registries, wrap, deprecate ) {
+
+		var custom, options, config;
+		custom = {
+			data: data,
+			debug: debug,
+			computed: computed,
+			template: template,
+			css: css
+		};
+		// fill in basicConfig for all default options not covered by
+		// registries, parse options, and any custom configuration
+		options = Object.keys( defaults ).filter( function( key ) {
+			return !registries[ key ] && !custom[ key ] && !parseOptions[ key ];
+		} );
+		// this defines the order:
+		config = [].concat( custom.debug, custom.data, parseOptions, options, custom.computed, registries, custom.template, custom.css );
+		for ( var key in custom ) {
+			config[ key ] = custom[ key ];
 		}
+		// for iteration
+		config.keys = Object.keys( defaults ).concat( registries.map( function( r ) {
+			return r.name;
+		} ) ).concat( [ 'css' ] );
+		config.parseOptions = parseOptions;
+		config.registries = registries;
 
 		function customConfig( method, key, Parent, instance, options ) {
 			custom[ key ][ method ]( Parent, instance, options );
@@ -4458,15 +4470,10 @@
 			if ( ractive._config ) {
 				ractive._config.options = options;
 			}
-			// would be nice to not have to do this.
-			// currently for init method
-			config.keys.forEach( function( key ) {
-				options[ key ] = ractive[ key ];
-			} );
 		};
 
 		function configure( method, Parent, instance, options ) {
-			deprecateOptions( options );
+			deprecate( options );
 			customConfig( method, 'data', Parent, instance, options );
 			customConfig( method, 'debug', Parent, instance, options );
 			config.parseOptions.forEach( function( key ) {
@@ -4476,10 +4483,11 @@
 			} );
 			for ( var key in options ) {
 				if ( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
-					instance[ key ] = options[ key ];
+					var value = options[ key ];
+					instance[ key ] = typeof value === 'function' ? wrap( instance, Parent.prototype, key, value ) : value;
 				}
 			}
-			customConfig( method, 'complete', Parent, instance, options );
+			// customConfig( method, 'complete', Parent, instance, options );
 			customConfig( method, 'computed', Parent, instance, options );
 			config.registries.forEach( function( registry ) {
 				registry[ method ]( Parent, instance, options );
@@ -4493,7 +4501,7 @@
 			} );
 		};
 		return config;
-	}( config_options_css_css, data, debug, options, complete, computed, template, parseOptions, registries, warn, isArray );
+	}( config_options_css_css, data, debug, options, computed, template, parseOptions, registries, wrapPrototypeMethod, deprecate );
 
 	/* shared/interpolate.js */
 	var interpolate = function( circular, warn, interpolators, config ) {
@@ -12342,8 +12350,60 @@
 		};
 	}( getComputationSignature, Computation );
 
+	/* viewmodel/adaptConfig.js */
+	var adaptConfig = function() {
+
+		// should this be combined with prototype/adapt.js?
+		var configure = {
+			lookup: function( target, adaptors ) {
+				var i, adapt = target.adapt;
+				if ( !adapt || !adapt.length ) {
+					return adapt;
+				}
+				if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
+					while ( i-- ) {
+						var adaptor = adapt[ i ];
+						if ( typeof adaptor === 'string' ) {
+							adapt[ i ] = adaptors[ adaptor ] || adaptor;
+						}
+					}
+				}
+				return adapt;
+			},
+			combine: function( parent, adapt ) {
+				// normalize 'Foo' to [ 'Foo' ]
+				parent = arrayIfString( parent );
+				adapt = arrayIfString( adapt );
+				// no parent? return adapt
+				if ( !parent || !parent.length ) {
+					return adapt;
+				}
+				// no adapt? return 'copy' of parent
+				if ( !adapt || !adapt.length ) {
+					return parent.slice();
+				}
+				// add parent adaptors to options
+				parent.forEach( function( a ) {
+					// don't put in duplicates
+					if ( adapt.indexOf( a ) === -1 ) {
+						adapt.push( a );
+					}
+				} );
+				return adapt;
+			}
+		};
+
+		function arrayIfString( adapt ) {
+			if ( typeof adapt === 'string' ) {
+				adapt = [ adapt ];
+			}
+			return adapt;
+		}
+		return configure;
+	}();
+
 	/* viewmodel/Viewmodel.js */
-	var Viewmodel = function( create, adapt, capture, clearCache, get, register, release, set, teardown, unregister, createComputations ) {
+	var Viewmodel = function( create, adapt, capture, clearCache, get, register, release, set, teardown, unregister, createComputations, adaptConfig ) {
 
 		// TODO: fix our ES6 modules so we can have multiple exports
 		// then this magic check can be reused by magicAdaptor
@@ -12377,54 +12437,9 @@
 			if ( instance.magic && noMagic ) {
 				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 			}
-			instance.adapt = combine( Parent.prototype.adapt, instance.adapt ) || [];
-			instance.adapt = lookup( instance, instance.adaptors );
+			instance.adapt = adaptConfig.combine( Parent.prototype.adapt, instance.adapt ) || [];
+			instance.adapt = adaptConfig.lookup( instance, instance.adaptors );
 		};
-
-		function lookup( target, adaptors ) {
-			var i, adapt = target.adapt;
-			if ( !adapt || !adapt.length ) {
-				return adapt;
-			}
-			if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
-				while ( i-- ) {
-					var adaptor = adapt[ i ];
-					if ( typeof adaptor === 'string' ) {
-						adapt[ i ] = adaptors[ adaptor ] || adaptor;
-					}
-				}
-			}
-			return adapt;
-		}
-
-		function combine( parent, adapt ) {
-			// normalize 'Foo' to [ 'Foo' ]
-			parent = arrayIfString( parent );
-			adapt = arrayIfString( adapt );
-			// no parent? return adapt
-			if ( !parent || !parent.length ) {
-				return adapt;
-			}
-			// no adapt? return 'copy' of parent
-			if ( !adapt || !adapt.length ) {
-				return parent.slice();
-			}
-			// add parent adaptors to options
-			parent.forEach( function( a ) {
-				// don't put in duplicates
-				if ( adapt.indexOf( a ) === -1 ) {
-					adapt.push( a );
-				}
-			} );
-			return adapt;
-		}
-
-		function arrayIfString( adapt ) {
-			if ( typeof adapt === 'string' ) {
-				adapt = [ adapt ];
-			}
-			return adapt;
-		}
 		Viewmodel.prototype = {
 			adapt: adapt,
 			capture: capture,
@@ -12443,7 +12458,7 @@
 			}
 		};
 		return Viewmodel;
-	}( create, viewmodel$adapt, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$teardown, viewmodel$unregister, createComputations );
+	}( create, viewmodel$adapt, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$teardown, viewmodel$unregister, createComputations, adaptConfig );
 
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( config, create, getElement, getNextNumber, Viewmodel, Fragment ) {
@@ -12458,6 +12473,9 @@
 			// TEMPORARY. This is so we can implement Viewmodel gradually
 			ractive.viewmodel = new Viewmodel( ractive );
 			// hacky circular problem until we get this sorted out
+			// if viewmodel immediately processes computed properties,
+			// they may call ractive.get, which calls ractive.viewmodel,
+			// which hasn't been set till line above finishes.
 			ractive.viewmodel.compute();
 			// Render our *root fragment*
 			ractive.fragment = new Fragment( {
@@ -12541,34 +12559,114 @@
 		};
 	}( Ractive_initialise );
 
-	/* extend/_extend.js */
-	var Ractive_extend = function( create, defineProperties, getGuid, config, extendObject, initChildInstance, circular, wrapMethod, Viewmodel ) {
+	/* extend/childOptions.js */
+	var childOptions = function( wrapPrototype, wrap, config, circular ) {
 
-		var Ractive, blacklisted;
-		// would be nice to not have these here,
-		// they get added during initialise, so for now we have
-		// to make sure not to try and extend them.
-		// Possibly, we could re-order and not add till later
-		// in process.
-		blacklisted = {
-			'_parent': true,
-			'_component': true
-		};
+		var Ractive,
+			// would be nice to not have these here,
+			// they get added during initialise, so for now we have
+			// to make sure not to try and extend them.
+			// Possibly, we could re-order and not add till later
+			// in process.
+			blacklisted = {
+				'_parent': true,
+				'_component': true
+			},
+			childOptions = {
+				toPrototype: toPrototype,
+				toOptions: toOptions
+			},
+			registries = config.registries.map( function( r ) {
+				return r.name;
+			} );
 		config.keys.forEach( function( key ) {
-			blacklisted[ key ] = true;
+			return blacklisted[ key ] = true;
 		} );
 		circular.push( function() {
 			Ractive = circular.Ractive;
 		} );
-		return function extend( extendOptions ) {
+		return childOptions;
+
+		function toPrototype( parent, proto, options ) {
+			for ( var key in options ) {
+				if ( !( key in blacklisted ) && options.hasOwnProperty( key ) ) {
+					var member = options[ key ];
+					// if this is a method that overwrites a method, wrap it:
+					if ( typeof member === 'function' ) {
+						member = wrapPrototype( proto, parent, key, member );
+					}
+					proto[ key ] = member;
+				}
+			}
+		}
+
+		function toOptions( Child ) {
+			if ( !( Child.prototype instanceof Ractive ) ) {
+				return Child;
+			}
+			var options = {};
+			while ( Child ) {
+				registries.forEach( function( name ) {
+					addRegistry( Child, options, name );
+				} );
+				addRegistry( Child.prototype, options, 'computed' );
+				Object.keys( Child.prototype ).forEach( function( key ) {
+					if ( key === 'computed' ) {
+						return;
+					}
+					var value = Child.prototype[ key ];
+					if ( !( key in options ) ) {
+						options[ key ] = value._method ? value._method : value;
+					} else if ( typeof options[ key ] === 'function' && typeof value === 'function' && options[ key ]._method ) {
+						var result, needsSuper = value._method;
+						if ( needsSuper ) {
+							value = value._method;
+						}
+						// rewrap bound directly to parent fn
+						result = wrap( options[ key ]._method, value );
+						if ( needsSuper ) {
+							result._method = result;
+						}
+						options[ key ] = result;
+					}
+				} );
+				if ( Child._parent !== Ractive ) {
+					Child = Child._parent;
+				} else {
+					Child = false;
+				}
+			}
+			return options;
+		}
+
+		function addRegistry( target, options, name ) {
+			var registry, keys = Object.keys( target[ name ] );
+			if ( !keys.length ) {
+				return;
+			}
+			if ( !( registry = options[ name ] ) ) {
+				registry = options[ name ] = {};
+			}
+			keys.filter( function( key ) {
+				return !( key in registry );
+			} ).forEach( function( key ) {
+				return registry[ key ] = target[ name ][ key ];
+			} );
+		}
+	}( wrapPrototypeMethod, wrapMethod, config, circular );
+
+	/* extend/_extend.js */
+	var Ractive_extend = function( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, childOptions ) {
+
+		return function extend() {
+			var options = arguments[ 0 ];
+			if ( options === void 0 )
+				options = {};
 			var Parent = this,
 				Child;
-			extendOptions = extendOptions || {};
 			// if we're extending with another Ractive instance, inherit its
 			// prototype methods and default options as well
-			if ( extendOptions.prototype instanceof Ractive ) {
-				extendOptions = extendObject( {}, extendOptions, extendOptions.prototype, extendOptions.defaults );
-			}
+			options = childOptions.toOptions( options );
 			// create Child constructor
 			Child = function( options ) {
 				initChildInstance( this, Child, options || {} );
@@ -12577,7 +12675,7 @@
 			proto.constructor = Child;
 			var staticProperties = {
 				// each component needs a guid, for managing CSS etc
-				'_guid': {
+				_guid: {
 					value: getGuid()
 				},
 				//alias prototype as defaults
@@ -12589,31 +12687,22 @@
 					value: extend,
 					writable: true,
 					configurable: true
+				},
+				// Parent - for IE8, can't use Object.getPrototypeOf
+				_parent: {
+					value: Parent
 				}
 			};
 			defineProperties( Child, staticProperties );
 			// extend configuration
-			config.extend( Parent, proto, extendOptions );
+			config.extend( Parent, proto, options );
 			Viewmodel.extend( Parent, proto );
-			// and any other options...
-			extendNonOptions( Parent.prototype, proto, extendOptions );
+			// and any other properties or methods on options...
+			childOptions.toPrototype( Parent.prototype, proto, options );
 			Child.prototype = proto;
 			return Child;
 		};
-
-		function extendNonOptions( parent, properties, options ) {
-			for ( var key in options ) {
-				if ( !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
-					var member = options[ key ];
-					// if this is a method that overwrites a method, wrap it:
-					if ( typeof member === 'function' ) {
-						member = wrapMethod( member, parent[ key ] );
-					}
-					properties[ key ] = member;
-				}
-			}
-		}
-	}( create, defineProperties, getGuid, config, extend, initChildInstance, circular, wrapMethod, Viewmodel );
+	}( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, childOptions );
 
 	/* Ractive.js */
 	var Ractive = function( defaults, easing, interpolators, svg, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
