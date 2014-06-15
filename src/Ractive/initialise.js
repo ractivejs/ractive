@@ -1,7 +1,7 @@
 import config from 'config/config';
 import create from 'utils/create';
 import getElement from 'utils/getElement';
-import getGuid from 'utils/getGuid';
+import getNextNumber from 'utils/getNextNumber';
 import Viewmodel from 'viewmodel/Viewmodel';
 import Fragment from 'virtualdom/Fragment';
 
@@ -9,11 +9,13 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	initialiseProperties( ractive, options );
 
-	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
+
+	// TEMPORARY. This is so we can implement Viewmodel gradually
+	ractive.viewmodel = new Viewmodel( ractive );
+
 
 	// hacky circular problem until we get this sorted out
 	ractive.viewmodel.compute();
@@ -66,7 +68,7 @@ function initialiseProperties ( ractive, options ) {
 
 	// Generate a unique identifier, for places where you'd use a weak map if it
 	// existed
-	ractive._guid = getGuid();
+	ractive._guid = getNextNumber();
 
 	// events
 	ractive._subs = create( null );

@@ -6,6 +6,7 @@ import extendObject from 'utils/extend';
 import initChildInstance from 'extend/initChildInstance';
 import circular from 'circular';
 import wrapMethod from 'utils/wrapMethod';
+import Viewmodel from 'viewmodel/Viewmodel';
 
 var Ractive, blacklisted;
 
@@ -60,6 +61,8 @@ export default function extend ( extendOptions ) {
 
 	// extend configuration
 	config.extend( Parent, proto, extendOptions );
+
+	Viewmodel.extend( Parent, proto );
 
 	// and any other options...
 	extendNonOptions( Parent.prototype, proto, extendOptions );

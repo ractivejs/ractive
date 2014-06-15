@@ -9,22 +9,29 @@ var config = {
 	useDefaults: defaults.hasOwnProperty('adapt')
 };
 
-function extend ( Parent, Child, options ) {
+function extend ( Parent, proto, options ) {
 
 	var result;
 
 	depricate( options );
 
-	result = combine( Parent.defaults.adapt, options.adapt );
+	if ( options && 'adapt' in options ) {
+		proto.adapt = options.adapt
+	}
 
-	Child.adapt = result || [];
+	//result = combine( Parent.defaults.adapt, options.adapt );
+
+	//proto.adapt = result || [];
 }
 
 function init ( Parent, ractive, options ) {
 
 	depricate( options );
 
-	ractive.adapt = combine( Parent.defaults.adapt, options.adapt ) || [];
+	if ( options && 'adapt' in options ) {
+		ractive.adapt = options.adapt;
+	}
+
 }
 
 function combine ( parent, option ) {
