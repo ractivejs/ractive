@@ -97,9 +97,8 @@ export default function ( parser, delimiterType ) {
 		// reference. So we need to check that the mustache delimiters
 		// appear next, unless there's an index reference (i.e. a colon)
 		remaining = parser.remaining();
-		delimiter = delimiters[1];
 
-		if ( ( remaining.substr( 0, delimiter.length ) !== delimiter ) && ( remaining.charAt( 0 ) !== ':' ) ) {
+		if ( ( remaining.substr( 0, delimiters[1].length ) !== delimiters[1] ) && ( remaining.charAt( 0 ) !== ':' ) ) {
 			pos = parser.pos;
 			parser.pos = start;
 
