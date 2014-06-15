@@ -1,6 +1,8 @@
 import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
+import notifyPatternObservers from 'viewmodel/prototype/applyChanges/notifyPatternObservers';
 
-var unwrap = { evaluateWrapped: true };
+var unwrap = { evaluateWrapped: true },
+	dependantGroups = [ 'observers', 'default' ];
 
 export default function Viewmodel$applyChanges () {
 	var self = this,
@@ -55,20 +57,28 @@ export default function Viewmodel$applyChanges () {
 
 	upstreamChanges = getUpstreamChanges( allChanges );
 
-	upstreamChanges.forEach( keypath => notifyDependants( this.ractive, keypath, 'default', true ) );
-	allChanges.forEach( keypath => notifyDependants( this.ractive, keypath, 'default' ) );
+	// Pattern observers are a weird special case
+	if ( this.patternObservers.length ) {
+		upstreamChanges.forEach( keypath => notifyPatternObservers( this, keypath, true ) );
+		allChanges.forEach( keypath => notifyPatternObservers( this, keypath ) );
+	}
+
+	dependantGroups.forEach( group => {
+		upstreamChanges.forEach( keypath => notifyDependants( this, keypath, group, true ) );
+		allChanges.forEach( keypath => notifyDependants( this, keypath, group ) );
+	});
 }
 
-function notifyDependants ( ractive, keypath, group, onlyDirect ) {
-	var depsByKeypath = ractive.viewmodel.deps[ group ], value, unwrapped;
+function notifyDependants ( viewmodel, keypath, group, onlyDirect ) {
+	var depsByKeypath = viewmodel.deps[ group ], value, unwrapped;
 
 	if ( !depsByKeypath ) {
 		return;
 	}
 
 	// update dependants of this keypath
-	value = ractive.viewmodel.get( keypath );
-	unwrapped = ractive.viewmodel.get( keypath, unwrap );
+	value = viewmodel.get( keypath );
+	unwrapped = viewmodel.get( keypath, unwrap );
 
 	updateAll( depsByKeypath[ keypath ], value, unwrapped );
 
@@ -79,7 +89,7 @@ function notifyDependants ( ractive, keypath, group, onlyDirect ) {
 	}
 
 	// otherwise, cascade
-	cascade( ractive.viewmodel.depsMap[ group ][ keypath ], ractive, group );
+	cascade( viewmodel.depsMap[ group ][ keypath ], viewmodel, group );
 }
 
 function updateAll ( dependants, value, unwrapped ) {
@@ -88,13 +98,13 @@ function updateAll ( dependants, value, unwrapped ) {
 	}
 }
 
-function cascade ( childDeps, ractive, group, onlyDirect ) {
+function cascade ( childDeps, viewmodel, group ) {
 	var i;
 
 	if ( childDeps ) {
 		i = childDeps.length;
 		while ( i-- ) {
-			notifyDependants( ractive, childDeps[i], group, onlyDirect );
+			notifyDependants( viewmodel, childDeps[i], group );
 		}
 	}
 }

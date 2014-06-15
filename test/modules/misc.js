@@ -93,10 +93,8 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '3 3 3' );
 
-			t.equal( ractive.viewmodel.deps.length, 2 );
-			t.equal( ractive.viewmodel.deps[1].a.length, 1 );
-
-			t.equal( ractive.viewmodel.deps[1].b.length, 1 );
+			t.equal( ractive.viewmodel.deps[ 'computed' ].a.length, 1 );
+			t.equal( ractive.viewmodel.deps[ 'computed' ].b.length, 1 );
 		});
 
 		test( 'Boolean attributes work as expected', function ( t ) {
