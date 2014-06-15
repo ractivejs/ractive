@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-14 - commit 5c3d5018 
+	2014-06-15 - commit e0d861c8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -26,7 +26,7 @@
 			el: void 0,
 			append: false,
 			// template:
-			template: void 0,
+			template: [],
 			// parse:
 			preserveWhitespace: false,
 			sanitize: false,
@@ -1239,181 +1239,6 @@
 		return warn;
 	}();
 
-	/* config/options/adapt.js */
-	var adapt = function( warn, isArray, defaults ) {
-
-		var config = {
-			name: 'adapt',
-			extend: extend,
-			init: init,
-			useDefaults: defaults.hasOwnProperty( 'adapt' )
-		};
-
-		function extend( Parent, Child, options ) {
-			var result;
-			depricate( options );
-			result = combine( Parent.defaults.adapt, options.adapt );
-			Child.defaults.adapt = result || [];
-		}
-
-		function init( Parent, ractive, options ) {
-			depricate( options );
-			ractive.adapt = combine( Parent.defaults.adapt, options.adapt ) || [];
-		}
-
-		function combine( parent, option ) {
-			// normalize 'Foo' to [ 'Foo' ]
-			parent = arrayIfString( parent );
-			option = arrayIfString( option );
-			// no parent? return option
-			if ( !parent || !parent.length ) {
-				return option;
-			}
-			// no option? return 'copy' of parent
-			if ( !option || !option.length ) {
-				return parent.slice();
-			}
-			// add parent adaptors to options
-			parent.forEach( function( a ) {
-				// don't put in duplicates
-				if ( option.indexOf( a ) === -1 ) {
-					option.push( a );
-				}
-			} );
-			return option;
-		}
-
-		function depricate( options ) {
-			var adaptors = options.adaptors;
-			// Using extend with Component instead of options,
-			// like Human.extend( Spider ) means adaptors as a registry
-			// gets copied to options. So we have to check if actually an array
-			if ( adaptors && isArray( adaptors ) ) {
-				warn( 'The `adaptors` option, to indicate which adaptors should be used with a given Ractive instance, has been deprecated in favour of `adapt`.' );
-				options.adapt = combine( options.adapt, adaptors );
-				delete options.adaptors;
-			}
-		}
-
-		function arrayIfString( adapt ) {
-			if ( typeof adapt === 'string' ) {
-				adapt = [ adapt ];
-			}
-			return adapt;
-		}
-		return config;
-	}( warn, isArray, options );
-
-	/* utils/extend.js */
-	var extend = function( target ) {
-		var SLICE$0 = Array.prototype.slice;
-		var sources = SLICE$0.call( arguments, 1 );
-		var prop, source;
-		while ( source = sources.shift() ) {
-			for ( prop in source ) {
-				if ( source.hasOwnProperty( prop ) ) {
-					target[ prop ] = source[ prop ];
-				}
-			}
-		}
-		return target;
-	};
-
-	/* config/options/baseConfiguration.js */
-	var baseConfiguration = function( defaults, extendObject ) {
-
-		function BaseConfiguration( config ) {
-			extendObject( this, config );
-			this.useDefaults = defaults.hasOwnProperty( config.name );
-		}
-		BaseConfiguration.prototype = {
-			extend: function( Parent, Child, options ) {
-				var parentValue, optionValue, result;
-				options = options || {};
-				if ( this.preExtend ) {
-					this.preExtend( Parent, Child, options );
-				}
-				parentValue = this.getParentValue( Parent );
-				optionValue = this.getOptionValue( options );
-				result = this.extendValue( Child, parentValue, optionValue );
-				if ( this.postExtend ) {
-					result = this.postExtend( Child, result );
-				}
-				if ( this.useDefaults ) {
-					Child = Child.defaults;
-				}
-				this.assign( Child, result );
-			},
-			init: function( Parent, ractive, options ) {
-				var parentValue, optionValue, result;
-				options = options || {};
-				if ( this.preInit ) {
-					this.preInit( Parent, ractive, options );
-				}
-				parentValue = this.getParentValue( Parent );
-				optionValue = this.getOptionValue( options );
-				result = this.initValue( ractive, parentValue, optionValue );
-				if ( this.postInit ) {
-					result = this.postInit( ractive, result );
-				}
-				this.assign( ractive, result );
-			},
-			reset: function( ractive ) {
-				if ( !this.resetValue ) {
-					return;
-				}
-				var result = this.resetValue( ractive );
-				if ( result ) {
-					if ( this.postInit ) {
-						result = this.postInit( ractive, result );
-					}
-					ractive[ this.name ] = result;
-					return true;
-				}
-			},
-			assign: function( target, value ) {
-				if ( value == undefined ) {
-					return;
-				}
-				target[ this.name ] = value;
-			},
-			getParentValue: function( parent ) {
-				if ( parent ) {
-					if ( this.useDefaults ) {
-						parent = parent.defaults;
-					}
-					return parent[ this.name ];
-				}
-			},
-			getOptionValue: function( options ) {
-				if ( options ) {
-					return options[ this.name ];
-				}
-			}
-		};
-		return function baseConfig( config ) {
-			return new BaseConfiguration( config );
-		};
-	}( options, extend );
-
-	/* config/options/option.js */
-	var option = function( baseConfig ) {
-
-		function extend( target, parentValue, value ) {
-			if ( typeof value === 'undefined' ) {
-				value = parentValue;
-			}
-			return value;
-		}
-		return function optionConfig( name ) {
-			return baseConfig( {
-				name: name,
-				extendValue: extend,
-				initValue: extend
-			} );
-		};
-	}( baseConfiguration );
-
 	/* config/options/css/transform.js */
 	var transform = function() {
 
@@ -1474,7 +1299,7 @@
 	}();
 
 	/* config/options/css/css.js */
-	var config_options_css_css = function( transformCss, defineProperty, defaults ) {
+	var config_options_css_css = function( transformCss, defaults ) {
 
 		var cssConfig = {
 			name: 'css',
@@ -1483,23 +1308,22 @@
 			useDefaults: defaults.hasOwnProperty( 'css' )
 		};
 
-		function extend( Parent, Child, options ) {
-			var css;
-			if ( css = getCss( options.css, Child ) || getCss( Parent.css, Parent ) ) {
-				defineProperty( Child, 'css', {
-					value: css
-				} );
+		function extend( Parent, proto, options ) {
+			var guid = proto.constructor._guid,
+				css;
+			if ( css = getCss( options.css, options, guid ) || getCss( Parent.css, Parent, guid ) ) {
+				proto.constructor.css = css;
 			}
 		}
 
-		function getCss( css, target ) {
+		function getCss( css, target, guid ) {
 			if ( !css ) {
 				return;
 			}
-			return target.defaults.noCssTransform ? css : transformCss( css, target._guid );
+			return target.noCssTransform ? css : transformCss( css, guid );
 		}
 		return cssConfig;
-	}( transform, defineProperty, options );
+	}( transform, options );
 
 	/* utils/create.js */
 	var create = function() {
@@ -1549,31 +1373,41 @@
 	};
 
 	/* config/options/data.js */
-	var data = function( baseConfig, create, wrap ) {
+	var data = function( create, wrap ) {
 
-		var dataConfig = baseConfig( {
+		var dataConfig = {
 			name: 'data',
-			extendValue: extend,
-			initValue: init,
-			resetValue: reset
-		} );
+			extend: extend,
+			init: init,
+			reset: reset
+		};
 		return dataConfig;
 
-		function extend( target, parentValue, value ) {
-			parentValue = getAddedKeys( parentValue );
+		function combine( Parent, target, options ) {
+			var value = options.data || {},
+				parentValue = getAddedKeys( Parent.prototype.data );
 			return dispatch( parentValue, value );
 		}
 
-		function init( ractive, parentValue, value ) {
-			var result = this.extendValue( ractive, parentValue, value );
+		function extend( Parent, proto, options ) {
+			proto.data = combine( Parent, proto, options );
+		}
+
+		function init( Parent, ractive, options ) {
+			var value = options.data,
+				result = combine( Parent, ractive, options );
 			if ( typeof result === 'function' ) {
 				result = result.call( ractive, value ) || value;
 			}
-			return result || {};
+			return ractive.data = result || {};
 		}
 
 		function reset( ractive ) {
-			return this.initValue( ractive, ractive.constructor.defaults.data, ractive.data );
+			var result = this.init( ractive.constructor, ractive, ractive );
+			if ( result ) {
+				ractive.data = result;
+				return true;
+			}
 		}
 
 		function getAddedKeys( parent ) {
@@ -1665,7 +1499,97 @@
 			}
 			return wrap( childFn, parentFn );
 		}
-	}( baseConfiguration, create, wrapMethod );
+	}( create, wrapMethod );
+
+	/* utils/extend.js */
+	var extend = function( target ) {
+		var SLICE$0 = Array.prototype.slice;
+		var sources = SLICE$0.call( arguments, 1 );
+		var prop, source;
+		while ( source = sources.shift() ) {
+			for ( prop in source ) {
+				if ( source.hasOwnProperty( prop ) ) {
+					target[ prop ] = source[ prop ];
+				}
+			}
+		}
+		return target;
+	};
+
+	/* config/options/baseConfiguration.js */
+	var baseConfiguration = function( defaults, extendObject ) {
+
+		function BaseConfiguration( config ) {
+			extendObject( this, config );
+			this.useDefaults = defaults.hasOwnProperty( config.name );
+		}
+		BaseConfiguration.prototype = {
+			configure: function( Parent, instance, options ) {
+				var option;
+				if ( this.pre ) {
+					options = options || {};
+					this.pre( Parent, instance, options );
+				}
+				if ( options && this.name in options ) {
+					option = options[ this.name ];
+				}
+				if ( this.post ) {
+					option = this.post( instance, option );
+				}
+				if ( !empty( option ) ) {
+					instance[ this.name ] = option;
+				}
+			},
+			extend: function( Parent, proto, options ) {
+				this.configure( Parent, proto, options, // temp
+					this.name, this.preExtend ? this.preExtend.bind( this ) : void 0, this.postExtend ? this.postExtend.bind( this ) : void 0 );
+			},
+			init: function( Parent, ractive, options ) {
+				this.configure( Parent, ractive, options, // temp
+					this.name, this.preInit ? this.preInit.bind( this ) : void 0, this.postInit ? this.postInit.bind( this ) : void 0 );
+			},
+			reset: function( ractive ) {
+				if ( !this.resetValue ) {
+					return;
+				}
+				var result = this.resetValue( ractive );
+				if ( result ) {
+					if ( this.postInit ) {
+						result = this.postInit( ractive, result );
+					}
+					ractive[ this.name ] = result;
+					return true;
+				}
+			},
+			assign: function( target, value ) {
+				if ( value == undefined ) {
+					return;
+				}
+				target[ this.name ] = value;
+			},
+			getParentValue: function( parent ) {
+				if ( parent ) {
+					if ( this.useDefaults ) {
+						parent = parent.defaults;
+					}
+					return parent[ this.name ];
+				}
+			},
+			getOptionValue: function( options ) {
+				if ( options ) {
+					return options[ this.name ];
+				}
+			}
+		};
+
+		function empty( value ) {
+			// allow '', 0, false, etc:
+			return typeof value === 'undefined' || value === null;
+		}
+		return function baseConfig( config ) {
+			return new BaseConfiguration( config );
+		};
+	}( options, extend );
 
 	/* config/options/debug.js */
 	var debug = function( optionConfig, circular ) {
@@ -1674,8 +1598,10 @@
 		circular.push( function() {
 			Ractive = circular.Ractive;
 		} );
-		var config = optionConfig( 'debug' );
-		config.preExtend = config.preInit = copyFromConstructor;
+		var config = optionConfig( {
+			name: 'debug'
+		} );
+		config.pre = copyFromConstructor;
 
 		function copyFromConstructor( parent, target, options ) {
 			// if not explicitly set on options
@@ -1689,407 +1615,59 @@
 			}
 		}
 		return config;
-	}( option, circular );
+	}( baseConfiguration, circular );
 
 	/* config/options/complete.js */
 	var complete = function( baseConfig, wrapMethod ) {
 
 		var config = baseConfig( {
 			name: 'complete',
-			extendValue: wrapIfNecessary,
-			initValue: wrapIfNecessary
+			pre: wrapIfNecessary
 		} );
 
-		function wrapIfNecessary( target, parentValue, value ) {
-			if ( typeof value !== 'undefined' && value !== null ) {
-				if ( typeof parentValue === 'function' ) {
-					return wrapMethod( value, parentValue );
-				} else {
-					// Don't allow non-function values, but don't
-					// return parent value either
-					return typeof value === 'function' ? value : void 0;
-				}
+		function wrapIfNecessary( Parent, proto, options ) {
+			var name = this.name,
+				value = options[ name ],
+				parentValue;
+			if ( !value ) {
+				return;
 			}
-			return parentValue;
+			parentValue = Parent.prototype[ name ];
+			if ( typeof value === 'function' && typeof parentValue === 'function' ) {
+				options[ name ] = wrapMethod( value, parentValue );
+			}
 		}
 		return config;
 	}( baseConfiguration, wrapMethod );
 
-	/* config/options/magic.js */
-	var magic = function( optionConfig ) {
-
-		// TODO: fix our ES6 modules so we can have multiple exports
-		// then this magic check can be reused by magicAdaptor
-		var config, noMagic;
-		try {
-			Object.defineProperty( {}, 'test', {
-				value: 0
-			} );
-		} catch ( err ) {
-			noMagic = true;
-		}
-		config = optionConfig( 'magic' );
-		config.preExtend = config.preInit = validate;
-
-		function validate( parent, target, options ) {
-			if ( options.magic && noMagic ) {
-				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-			}
-		}
-		return config;
-	}( option );
-
-	/* utils/hashmapContentsMatch.js */
-	var hashmapContentsMatch = function( isObject ) {
-
-		return function hashmapContentsMatch( a, b ) {
-			var aKeys, bKeys;
-			if ( !isObject( a ) || !isObject( b ) ) {
-				return false;
-			}
-			if ( a === b ) {
-				return true;
-			}
-			aKeys = Object.keys( a );
-			bKeys = Object.keys( b );
-			if ( aKeys.length !== bKeys.length ) {
-				return false;
-			}
-			return aKeys.every( function( key ) {
-				return a[ key ] === b[ key ];
-			} );
-		};
-	}( isObject );
-
-	/* empty/legacy.js */
-	var legacy = null;
-
-	/* config/options/registry.js */
-	var registry = function( baseConfig, match, wrap, extendObject ) {
-
-		return function registryConfig( config ) {
-			config = extendObject( config, {
-				extendValue: extend,
-				initValue: init,
-				resetValue: reset,
-				find: find,
-				findInstance: findInstance
-			} );
-			var base = baseConfig( config ),
-				assign = base.assign.bind( base );
-			base.assign = function( target, value ) {
-				assign( target, value || {} );
-			};
-			return base;
-		};
-
-		function find( ractive, key ) {
-			var this$0 = this;
-			return recurseFind( ractive, function( r ) {
-				return r[ this$0.name ][ key ];
-			} );
-		}
-
-		function findInstance( ractive, key ) {
-			var this$0 = this;
-			return recurseFind( ractive, function( r ) {
-				return r[ this$0.name ][ key ] ? r : void 0;
-			} );
-		}
-
-		function recurseFind( ractive, fn ) {
-			var find, parent;
-			if ( find = fn( ractive ) ) {
-				return find;
-			}
-			if ( !ractive.isolated && ( parent = ractive._parent ) ) {
-				return recurseFind( parent, fn );
-			}
-		}
-
-		function extend( target, parentValue, value ) {
-			parentValue = getAddedKeys( parentValue );
-			return dispatch( parentValue, value );
-		}
-
-		function init( ractive, parentValue, value ) {
-			var result = extend( ractive, parentValue, value );
-			if ( typeof result === 'function' ) {
-				// store for reset
-				ractive._config[ this.name ] = result;
-				result = getDynamicValue( ractive, result );
-			}
-			return result;
-		}
-
-		function reset( ractive ) {
-			var initial, result, fn = ractive._config[ this.name ];
-			if ( !fn ) {
-				return;
-			}
-			initial = ractive[ this.name ];
-			result = getDynamicValue( ractive, fn );
-			if ( !match( initial, result ) ) {
-				return result;
-			}
-		}
-
-		function getDynamicValue( ractive, fn ) {
-			var temp = {},
-				result = fn.call( ractive, temp, ractive.data );
-			//normalize: returned result, keys added, or both
-			copy( result, temp );
-			return temp;
-		}
-
-		function getAddedKeys( parent ) {
-			// only for functions that had keys added
-			if ( typeof parent !== 'function' || !Object.keys( parent ).length ) {
-				return parent;
-			}
-			// copy the added keys to temp 'object', otherwise
-			// parent would be interpreted as 'function' by dispatch
-			var temp = {};
-			copy( parent, temp );
-			// roll in added keys
-			return dispatch( parent, temp );
-		}
-
-		function dispatch( parent, child ) {
-			if ( typeof child === 'function' ) {
-				return extendFn( child, parent );
-			} else if ( typeof parent === 'function' ) {
-				return fromFn( child, parent );
-			} else {
-				return fromProperties( child, parent );
-			}
-		}
-
-		function copy( from, to, fillOnly ) {
-			for ( var key in from ) {
-				if ( fillOnly && key in to ) {
-					continue;
-				}
-				to[ key ] = from[ key ];
-			}
-		}
-
-		function fill( from, to ) {
-			return copy( from, to, true );
-		}
-
-		function fromProperties( child, parent ) {
-			var result = {};
-			if ( child ) {
-				copy( child, result );
-			}
-			if ( parent ) {
-				fill( parent, result );
-			}
-			return result;
-		}
-
-		function fromFn( child, parentFn ) {
-			return function( registry ) {
-				// call the parent fn, use registry if no return value
-				var result = parentFn.apply( this, arguments ) || registry;
-				// extend with child
-				if ( child ) {
-					result = fromProperties( child, result );
-				}
-				return result;
-			};
-		}
-
-		function extendFn( childFn, parent ) {
-			var parentFn;
-			if ( typeof parent !== 'function' ) {
-				// don't bother with missing or {}
-				if ( parent && Object.keys( parent ).length ) {
-					// copy props to registry
-					parentFn = function( registry ) {
-						copy( parent, registry );
-					};
-				} else {
-					// no-op if childFn needs it
-					parentFn = function() {};
-				}
-			} else {
-				parentFn = function( registry ) {
-					// give parent function it's own this context
-					// otherwise this._super is from child and
-					// causes infinite loop
-					parent = wrap( parent, function() {}, true );
-					var result = parent.apply( this, arguments );
-					// if result returned, copy to registry
-					if ( result ) {
-						copy( result, registry );
-					}
-				};
-			}
-			return wrap( childFn, parentFn );
-		}
-	}( baseConfiguration, hashmapContentsMatch, wrapMethod, extend, legacy );
-
-	/* viewmodel/Computation/getComputationSignature.js */
-	var getComputationSignature = function() {
-
-		var pattern = /\$\{([^\}]+)\}/g;
-		return function( signature ) {
-			if ( typeof signature === 'function' ) {
-				return {
-					get: signature
-				};
-			}
-			if ( typeof signature === 'string' ) {
-				return {
-					get: createFunctionFromString( signature )
-				};
-			}
-			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
-				signature = {
-					get: createFunctionFromString( signature.get ),
-					set: signature.set
-				};
-			}
-			return signature;
-		};
-
-		function createFunctionFromString( signature ) {
-			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
-				return '__ractive.get("' + keypath + '")';
-			} ) + ')';
-			return new Function( functionBody );
-		}
-	}();
-
-	/* viewmodel/Computation/Watcher.js */
-	var Watcher = function( isEqual ) {
-
-		var Watcher = function( computation, keypath ) {
-			this.root = computation.ractive;
-			this.keypath = keypath;
-			this.priority = 0;
-			this.computation = computation;
-			this.root.viewmodel.register( this );
-		};
-		Watcher.prototype = {
-			setValue: function( value ) {
-				if ( !isEqual( value, this.value ) ) {
-					this.value = value;
-					this.computation.bubble();
-				}
-			},
-			teardown: function() {
-				this.root.viewmodel.unregister( this );
-			}
-		};
-		return Watcher;
-	}( isEqual );
-
-	/* viewmodel/Computation/Computation.js */
-	var Computation = function( warn, runloop, Watcher ) {
-
-		var Computation = function( ractive, key, signature ) {
-			this.ractive = ractive;
-			this.key = key;
-			this.getter = signature.get;
-			this.setter = signature.set;
-			this.watchers = [];
-			this.update();
-		};
-		Computation.prototype = {
-			set: function( value ) {
-				if ( this.setting ) {
-					this.value = value;
-					return;
-				}
-				if ( !this.setter ) {
-					throw new Error( 'Computed properties without setters are read-only in the current version' );
-				}
-				this.setter.call( this.ractive, value );
-			},
-			// returns `false` if the computation errors
-			compute: function() {
-				var ractive, errored;
-				ractive = this.ractive;
-				ractive.viewmodel.capture();
-				try {
-					this.value = this.getter.call( ractive );
-				} catch ( err ) {
-					if ( ractive.debug ) {
-						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
-					}
-					errored = true;
-				}
-				diff( this, this.watchers, ractive.viewmodel.release() );
-				return errored ? false : true;
-			},
-			update: function() {
-				if ( this.compute() ) {
-					this.setting = true;
-					this.ractive.viewmodel.set( this.key, this.value );
-					this.setting = false;
-				}
-				this.dirty = false;
-			},
-			bubble: function() {
-				if ( this.watchers.length <= 1 ) {
-					this.update();
-				} else if ( !this.dirty ) {
-					runloop.modelUpdate( this );
-					this.dirty = true;
-				}
-			}
-		};
-
-		function diff( computation, watchers, newDependencies ) {
-			var i, watcher, keypath;
-			// remove dependencies that are no longer used
-			i = watchers.length;
-			while ( i-- ) {
-				watcher = watchers[ i ];
-				if ( !newDependencies[ watcher.keypath ] ) {
-					watchers.splice( i, 1 );
-					watchers[ watcher.keypath ] = null;
-					watcher.teardown();
-				}
-			}
-			// create references for any new dependencies
-			i = newDependencies.length;
-			while ( i-- ) {
-				keypath = newDependencies[ i ];
-				if ( !watchers[ keypath ] ) {
-					watcher = new Watcher( computation, keypath );
-					watchers.push( watchers[ keypath ] = watcher );
-				}
-			}
-		}
-		return Computation;
-	}( warn, runloop, Watcher );
-
-	/* viewmodel/Computation/createComputations.js */
-	var createComputations = function( getComputationSignature, Computation ) {
-
-		return function createComputations( ractive, computed ) {
-			var key, signature;
-			for ( key in computed ) {
-				signature = getComputationSignature( computed[ key ] );
-				ractive.viewmodel.computations[ key ] = new Computation( ractive, key, signature );
-			}
-		};
-	}( getComputationSignature, Computation );
-
 	/* config/options/computed.js */
-	var computed = function( registry, createComputations ) {
+	var computed = function( create ) {
 
-		// TODO this should be taken care of directly by the viewmodel
-		var computed = registry( {
+		var computed = {
 			name: 'computed',
-			postInit: createComputations
-		} );
+			extend: function( Parent, child, options ) {
+				var name = this.name,
+					registry, option = options[ name ];
+				Parent = Parent.defaults;
+				registry = create( Parent[ name ] );
+				for ( var key in option ) {
+					registry[ key ] = option[ key ];
+				}
+				child[ name ] = registry;
+			},
+			init: function( Parent, ractive, options ) {
+				var name = this.name,
+					registry, option = options[ name ];
+				Parent = Parent.defaults;
+				registry = create( Parent[ name ] );
+				for ( var key in option ) {
+					registry[ key ] = option[ key ];
+				}
+				ractive[ name ] = registry;
+			}
+		};
 		return computed;
-	}( registry, createComputations );
+	}( create );
 
 	/* config/errors.js */
 	var errors = {
@@ -2099,14 +1677,42 @@
 	/* empty/parse.js */
 	var parse = null;
 
+	/* config/options/groups/optionGroup.js */
+	var optionGroup = function createOptionGroup( keys, config ) {
+		var group = keys.map( config );
+		keys.forEach( function( key, i ) {
+			group[ key ] = group[ i ];
+		} );
+		return group;
+	};
+
+	/* config/options/groups/parseOptions.js */
+	var parseOptions = function( optionGroup ) {
+
+		var keys, parseOptions;
+		keys = [
+			'preserveWhitespace',
+			'sanitize',
+			'stripComments',
+			'delimiters',
+			'tripleDelimiters',
+			'handlebars'
+		];
+		parseOptions = optionGroup( keys, function( key ) {
+			return key;
+		} );
+		return parseOptions;
+	}( optionGroup );
+
 	/* config/options/template/parser.js */
-	var parser = function( errors, isClient, parse, create ) {
+	var parser = function( errors, isClient, parse, create, parseOptions ) {
 
 		var parser = {
 			parse: doParse,
 			fromId: fromId,
 			isHashedId: isHashedId,
 			isParsed: isParsed,
+			getParseOptions: getParseOptions,
 			createHelper: createHelper
 		};
 
@@ -2159,72 +1765,41 @@
 		function isParsed( template ) {
 			return !( typeof template === 'string' );
 		}
+
+		function getParseOptions( ractive ) {
+			// Could be Ractive or a Component
+			if ( ractive.defaults ) {
+				ractive = ractive.defaults;
+			}
+			return parseOptions.reduce( function( val, key ) {
+				val[ key ] = ractive[ key ];
+				return val;
+			}, {} );
+		}
 		return parser;
-	}( errors, isClient, parse, create );
-
-	/* config/options/groups/optionGroup.js */
-	var optionGroup = function createOptionGroup( keys, config ) {
-		var group = keys.map( config );
-		keys.forEach( function( key, i ) {
-			group[ key ] = group[ i ];
-		} );
-		return group;
-	};
-
-	/* config/options/parseOption.js */
-	var parseOption = function( optionConfig ) {
-
-		return function parseConfig( name ) {
-			var config = optionConfig( name );
-			config.postInit = function( target, result ) {
-				target.parseOptions[ name ] = result;
-			};
-			return config;
-		};
-	}( option );
-
-	/* config/options/groups/parseOptions.js */
-	var parseOptions = function( optionGroup, parseOption ) {
-
-		var keys, parseOptions;
-		keys = [
-			'preserveWhitespace',
-			'sanitize',
-			'stripComments',
-			'delimiters',
-			'tripleDelimiters',
-			'handlebars'
-		];
-		parseOptions = optionGroup( keys, function( key ) {
-			return parseOption( key );
-		} );
-		return parseOptions;
-	}( optionGroup, parseOption );
+	}( errors, isClient, parse, create, parseOptions );
 
 	/* config/options/template/template.js */
-	var template = function( baseConfig, parser, isObject, parseOptions ) {
+	var template = function( parser, isObject ) {
 
-		var templateConfig = baseConfig( {
+		var templateConfig = {
 			name: 'template',
-			useDefaults: true,
-			defaultValue: '',
-			extendValue: extend,
-			postExtend: parseTemplate,
-			initValue: init,
-			postInit: parseTemplate,
-			resetValue: reset,
+			extend: extend,
+			init: init,
+			reset: reset,
 			processCompound: processCompound
-		} );
+		};
 
-		function extend( target, parentValue, value ) {
-			if ( typeof value === 'undefined' ) {
-				value = parentValue;
+		function extend( Parent, proto, options ) {
+			// only assign if exists
+			if ( options && 'template' in options ) {
+				proto.template = parseTemplate( proto, options.template );
 			}
-			return value;
 		}
 
-		function init( ractive, parentValue, value ) {
-			var result = extend( ractive, parentValue, value );
+		function init( Parent, ractive, options ) {
+			var result, option = options ? options.template : void 0;
+			result = parseTemplate( ractive, option || Parent.prototype.template );
 			if ( typeof result === 'function' ) {
 				var fn = result;
 				result = getDynamicTemplate( ractive, fn );
@@ -2233,16 +1808,22 @@
 					fn: fn,
 					result: result
 				};
+				result = parseTemplate( ractive, result );
 			}
-			return result;
-		}
-
-		function getDynamicTemplate( ractive, fn ) {
-			var helper = parser.createHelper( getParseOptions( ractive ) );
-			return fn.call( ractive, ractive.data, helper );
+			if ( result ) {
+				ractive.template = result;
+			}
 		}
 
 		function reset( ractive ) {
+			var result = resetValue( ractive );
+			if ( result ) {
+				ractive.template = parseTemplate( ractive, result );
+				return true;
+			}
+		}
+
+		function resetValue( ractive ) {
 			var initial = ractive._config.template,
 				result;
 			// is this dynamic template?
@@ -2250,6 +1831,7 @@
 				return;
 			}
 			result = getDynamicTemplate( ractive, initial.fn );
+			result = parseTemplate( ractive, result );
 			// compare results of fn return, which is likely
 			// be string comparison ( not yet parsed )
 			if ( result !== initial.result ) {
@@ -2258,22 +1840,13 @@
 			}
 		}
 
-		function getParseOptions( target ) {
-			if ( target.parseOptions ) {
-				return target.parseOptions;
-			}
-			var options = target.defaults;
-			if ( !options ) {
-				return;
-			}
-			return parseOptions.reduce( function( val, option ) {
-				val[ option.name ] = options[ option.name ];
-				return val;
-			}, {} );
+		function getDynamicTemplate( ractive, fn ) {
+			var helper = parser.createHelper( parser.getParseOptions( ractive ) );
+			return fn.call( ractive, ractive.data, helper );
 		}
 
 		function parseTemplate( target, template ) {
-			if ( !template ) {
+			if ( !template || typeof template === 'function' ) {
 				return template;
 			}
 			if ( !parser.isParsed( template ) ) {
@@ -2281,7 +1854,7 @@
 				if ( parser.isHashedId( template ) ) {
 					template = parser.fromId( template );
 				}
-				template = parser.parse( template, getParseOptions( target ) );
+				template = parser.parse( template, parser.getParseOptions( target ) );
 			}
 			template = processCompound( target, template );
 			// If the template was an array with a single string member, that means
@@ -2303,96 +1876,99 @@
 			return template.main;
 		}
 		return templateConfig;
-	}( baseConfiguration, parser, isObject, parseOptions );
+	}( parser, isObject );
 
-	/* config/options/adaptors.js */
-	var adaptors = function( registry ) {
+	/* empty/legacy.js */
+	var legacy = null;
 
-		var adaptorsConfig = registry( {
-			name: 'adaptors',
-			postExtend: extend,
-			postInit: init
-		} );
+	/* config/options/registry.js */
+	var registry = function( extendObject, create ) {
 
-		function extend( Child, adaptors ) {
-			return convert( Child.defaults, adaptors );
-		}
+		return function registryConfig( config ) {
+			config = extendObject( config, {
+				extend: extend,
+				init: init,
+				find: find,
+				findInstance: findInstance
+			} );
+			return config;
+		};
 
-		function init( ractive, adaptors ) {
-			return convert( ractive, adaptors );
-		}
-
-		function convert( target, adaptors ) {
-			var i, adapt = target.adapt;
-			if ( !adapt || !adapt.length ) {
-				return adaptors;
+		function extend( Parent, proto, options ) {
+			var name = this.name,
+				option = options[ name ],
+				Child = proto.constructor,
+				registry = create( Parent[ name ] );
+			for ( var key in option ) {
+				registry[ key ] = option[ key ];
 			}
-			if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
-				while ( i-- ) {
-					var adaptor = adapt[ i ];
-					if ( typeof adaptor === 'string' ) {
-						adapt[ i ] = adaptors[ adaptor ] || adaptor;
-					}
-				}
+			if ( this.post ) {
+				registry = this.post( proto, registry );
 			}
-			target.adapt = adapt;
-			return adaptors;
+			Child[ name ] = registry;
 		}
-		return adaptorsConfig;
-	}( registry );
 
-	/* config/options/events.js */
-	var events = function( registry, warn ) {
+		function init( Parent, ractive, options ) {
+			var name = this.name,
+				option = options[ name ],
+				registry = create( Parent[ name ] );
+			for ( var key in option ) {
+				registry[ key ] = option[ key ];
+			}
+			if ( this.post ) {
+				registry = this.post( ractive, registry );
+			}
+			ractive[ name ] = registry;
+		}
 
-		var config = registry( {
-			name: 'events',
-			preExtend: deprecate,
-			preInit: deprecate
-		} );
-		var message = 'ractive.eventDefinitions has been deprecated in favour of ractive.events. ';
+		function find( ractive, key ) {
+			var this$0 = this;
+			return recurseFind( ractive, function( r ) {
+				return r[ this$0.name ][ key ];
+			} );
+		}
 
-		function deprecate( target, options ) {
-			// TODO remove support
-			if ( options.eventDefinitions ) {
-				if ( !options.events ) {
-					warn( message + ' Support will be removed in future versions.' );
-					options.events = options.eventDefinitions;
-				} else {
-					throw new Error( message + ' You cannot specify both options, please use ractive.events.' );
-				}
+		function findInstance( ractive, key ) {
+			var this$0 = this;
+			return recurseFind( ractive, function( r ) {
+				return r[ this$0.name ][ key ] ? r : void 0;
+			} );
+		}
+
+		function recurseFind( ractive, fn ) {
+			var find, parent;
+			if ( find = fn( ractive ) ) {
+				return find;
+			}
+			if ( !ractive.isolated && ( parent = ractive._parent ) ) {
+				return recurseFind( parent, fn );
 			}
 		}
-		return config;
-	}( registry, warn );
+	}( extend, create, legacy );
 
 	/* config/options/groups/registries.js */
-	var registries = function( optionGroup, registry, adaptors, events ) {
+	var registries = function( optionGroup, registry ) {
 
-		var keys, custom, registries;
-		keys = [
-			'adaptors',
-			'components',
-			'decorators',
-			'easing',
-			'events',
-			'interpolators',
-			'partials',
-			'transitions'
-		];
-		custom = {
-			adaptors: adaptors,
-			events: events
-		};
-		registries = optionGroup( keys, function( key ) {
-			return custom[ key ] || registry( {
-				name: key
+		var keys = [
+				'adaptors',
+				'components',
+				'decorators',
+				'easing',
+				'events',
+				'interpolators',
+				'partials',
+				'transitions'
+			],
+			registries = optionGroup( keys, function( key ) {
+				return registry( {
+					name: key
+				} );
 			} );
-		} );
 		return registries;
-	}( optionGroup, registry, adaptors, events );
+	}( optionGroup, registry );
 
 	/* config/config.js */
-	var config = function( adapt, basicConfig, css, data, debug, defaults, complete, magic, computed, template, parseOptions, registries ) {
+	var config = function( css, data, debug, defaults, complete, computed, template, parseOptions, registries, warn, isArray ) {
 
 		var custom, options, config;
 		custom = {
@@ -2400,8 +1976,6 @@
 			debug: debug,
 			complete: complete,
 			computed: computed,
-			adapt: adapt,
-			magic: magic,
 			template: template,
 			css: css
 		};
@@ -2409,42 +1983,100 @@
 		// registries, parse options, and any custom configuration
 		options = Object.keys( defaults ).filter( function( key ) {
 			return !registries[ key ] && !custom[ key ] && !parseOptions[ key ];
-		} ).map( basicConfig );
+		} );
 		// this defines the order:
-		config = [].concat( custom.debug, custom.data, parseOptions, options, custom.adapt, custom.magic, custom.complete, custom.computed, registries, custom.template, custom.css );
+		config = [].concat( custom.debug, custom.data, parseOptions, options, custom.complete, custom.computed, registries, custom.template, custom.css );
+		for ( var key in custom ) {
+			config[ key ] = custom[ key ];
+		}
 		// for iteration
-		config.keys = config.map( function( config ) {
-			return config.name;
-		} );
-		// for lookup and blacklist test
-		config.keys.forEach( function( key, i ) {
-			config[ key ] = config[ i ];
-			config.keys[ key ] = true;
-		} );
+		config.keys = Object.keys( defaults ).concat( registries.map( function( r ) {
+			return r.name;
+		} ) ).concat( [ 'css' ] );
 		config.parseOptions = parseOptions;
 		config.registries = registries;
-		config.extend = function( Parent, Child, options ) {
-			config.forEach( function( c ) {
-				c.extend( Parent, Child, options );
-			} );
+
+		function getMessage( deprecated, isError ) {
+			return 'ractive.' + deprecated + ' has been deprecated in favour of ractive.events.' + isError ? ' You cannot specify both options, please use ractive.events.' : '';
+		}
+
+		function deprecate( options, deprecated, correct ) {
+			// TODO remove support
+			if ( deprecated in options ) {
+				if ( !( correct in options ) ) {
+					warn( getMessage( deprecated ) );
+					options[ correct ] = options[ deprecated ];
+				} else {
+					throw new Error( getMessage( deprecated, true ) );
+				}
+			}
+		}
+
+		function deprecateEventDefinitions( options ) {
+			deprecate( options, 'eventDefinitions', 'events' );
+		}
+
+		function depricateAdaptors( options ) {
+			// Using extend with Component instead of options,
+			// like Human.extend( Spider ) means adaptors as a registry
+			// gets copied to options. So we have to check if actually an array
+			if ( 'adaptors' in options && isArray( options.adaptors ) ) {
+				deprecate( options, 'adaptors', 'adapt' );
+			}
+		}
+
+		function deprecateOptions( options ) {
+			deprecateEventDefinitions( options );
+			depricateAdaptors( options );
+		}
+
+		function customConfig( method, key, Parent, instance, options ) {
+			custom[ key ][ method ]( Parent, instance, options );
+		}
+		config.extend = function( Parent, proto, options ) {
+			configure( 'extend', Parent, proto, options );
 		};
 		config.init = function( Parent, ractive, options ) {
-			config.forEach( function( c ) {
-				c.init( Parent, ractive, options );
-				// this is done soley for init( options )
-				options[ c.name ] = ractive[ c.name ];
-				if ( ractive._config ) {
-					ractive._config.options = options;
-				}
+			configure( 'init', Parent, ractive, options );
+			if ( ractive._config ) {
+				ractive._config.options = options;
+			}
+			// would be nice to not have to do this.
+			// currently for init method
+			config.keys.forEach( function( key ) {
+				options[ key ] = ractive[ key ];
 			} );
 		};
+
+		function configure( method, Parent, instance, options ) {
+			deprecateOptions( options );
+			customConfig( method, 'data', Parent, instance, options );
+			customConfig( method, 'debug', Parent, instance, options );
+			config.parseOptions.forEach( function( key ) {
+				if ( key in options ) {
+					instance[ key ] = options[ key ];
+				}
+			} );
+			for ( var key in options ) {
+				if ( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
+					instance[ key ] = options[ key ];
+				}
+			}
+			customConfig( method, 'complete', Parent, instance, options );
+			customConfig( method, 'computed', Parent, instance, options );
+			config.registries.forEach( function( registry ) {
+				registry[ method ]( Parent, instance, options );
+			} );
+			customConfig( method, 'template', Parent, instance, options );
+			customConfig( method, 'css', Parent, instance, options );
+		}
 		config.reset = function( ractive ) {
 			return config.filter( function( c ) {
 				return c.reset && c.reset( ractive );
 			} );
 		};
 		return config;
-	}( adapt, option, config_options_css_css, data, debug, options, complete, magic, computed, template, parseOptions, registries );
+	}( config_options_css_css, data, debug, options, complete, computed, template, parseOptions, registries, warn, isArray );
 
 	/* shared/interpolate.js */
 	var interpolate = function( circular, warn, interpolators, config ) {
@@ -9074,7 +8706,7 @@
 				// is this necessary?
 				partial = deIndent( partial );
 				// parse and register to this ractive instance
-				var parsed = parser.parse( partial, ractive.parseOptions );
+				var parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
 				// register (and return main partial if there are others in the template)
 				return ractive.partials[ name ] = config.template.processCompound( ractive, parsed );
 			}
@@ -9098,7 +8730,7 @@
 				if ( !parser.isParsed( partial ) ) {
 					// use the parseOptions of the ractive instance
 					// on which it was found
-					partial = parser.parse( partial, instance.parseOptions );
+					partial = parser.parse( partial, parser.getParseOptions( instance ) );
 					// may be a template with partials, which need to
 					// be registered and main template extracted
 					instance.partials[ name ] = partial = config.template.processCompound( instance, partial );
@@ -10222,6 +9854,15 @@
 		} );
 	};
 
+	/* utils/getNextNumber.js */
+	var getNextNumber = function() {
+
+		var i = 0;
+		return function() {
+			return 'r-' + i++;
+		};
+	}();
+
 	/* viewmodel/prototype/get/arrayAdaptor/getSpliceEquivalent.js */
 	var viewmodel$get_arrayAdaptor_getSpliceEquivalent = function( array, methodName, args ) {
 		switch ( methodName ) {
@@ -11162,12 +10803,173 @@
 		}
 	}();
 
-	/* viewmodel/Viewmodel.js */
-	var Viewmodel = function( create, adapt, capture, clearCache, get, register, release, set, teardown, unregister ) {
+	/* viewmodel/Computation/getComputationSignature.js */
+	var getComputationSignature = function() {
 
+		var pattern = /\$\{([^\}]+)\}/g;
+		return function( signature ) {
+			if ( typeof signature === 'function' ) {
+				return {
+					get: signature
+				};
+			}
+			if ( typeof signature === 'string' ) {
+				return {
+					get: createFunctionFromString( signature )
+				};
+			}
+			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
+				signature = {
+					get: createFunctionFromString( signature.get ),
+					set: signature.set
+				};
+			}
+			return signature;
+		};
+
+		function createFunctionFromString( signature ) {
+			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
+				return '__ractive.get("' + keypath + '")';
+			} ) + ')';
+			return new Function( functionBody );
+		}
+	}();
+
+	/* viewmodel/Computation/Watcher.js */
+	var Watcher = function( isEqual ) {
+
+		var Watcher = function( computation, keypath ) {
+			this.root = computation.ractive;
+			this.keypath = keypath;
+			this.priority = 0;
+			this.computation = computation;
+			this.root.viewmodel.register( this );
+		};
+		Watcher.prototype = {
+			setValue: function( value ) {
+				if ( !isEqual( value, this.value ) ) {
+					this.value = value;
+					this.computation.bubble();
+				}
+			},
+			teardown: function() {
+				this.root.viewmodel.unregister( this );
+			}
+		};
+		return Watcher;
+	}( isEqual );
+
+	/* viewmodel/Computation/Computation.js */
+	var Computation = function( warn, runloop, Watcher ) {
+
+		var Computation = function( ractive, key, signature ) {
+			this.ractive = ractive;
+			this.key = key;
+			this.getter = signature.get;
+			this.setter = signature.set;
+			this.watchers = [];
+			this.update();
+		};
+		Computation.prototype = {
+			set: function( value ) {
+				if ( this.setting ) {
+					this.value = value;
+					return;
+				}
+				if ( !this.setter ) {
+					throw new Error( 'Computed properties without setters are read-only in the current version' );
+				}
+				this.setter.call( this.ractive, value );
+			},
+			// returns `false` if the computation errors
+			compute: function() {
+				var ractive, errored;
+				ractive = this.ractive;
+				ractive.viewmodel.capture();
+				try {
+					this.value = this.getter.call( ractive );
+				} catch ( err ) {
+					if ( ractive.debug ) {
+						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
+					}
+					errored = true;
+				}
+				diff( this, this.watchers, ractive.viewmodel.release() );
+				return errored ? false : true;
+			},
+			update: function() {
+				if ( this.compute() ) {
+					this.setting = true;
+					this.ractive.viewmodel.set( this.key, this.value );
+					this.setting = false;
+				}
+				this.dirty = false;
+			},
+			bubble: function() {
+				if ( this.watchers.length <= 1 ) {
+					this.update();
+				} else if ( !this.dirty ) {
+					runloop.modelUpdate( this );
+					this.dirty = true;
+				}
+			}
+		};
+
+		function diff( computation, watchers, newDependencies ) {
+			var i, watcher, keypath;
+			// remove dependencies that are no longer used
+			i = watchers.length;
+			while ( i-- ) {
+				watcher = watchers[ i ];
+				if ( !newDependencies[ watcher.keypath ] ) {
+					watchers.splice( i, 1 );
+					watchers[ watcher.keypath ] = null;
+					watcher.teardown();
+				}
+			}
+			// create references for any new dependencies
+			i = newDependencies.length;
+			while ( i-- ) {
+				keypath = newDependencies[ i ];
+				if ( !watchers[ keypath ] ) {
+					watcher = new Watcher( computation, keypath );
+					watchers.push( watchers[ keypath ] = watcher );
+				}
+			}
+		}
+		return Computation;
+	}( warn, runloop, Watcher );
+
+	/* viewmodel/Computation/createComputations.js */
+	var createComputations = function( getComputationSignature, Computation ) {
+
+		return function createComputations( ractive, computed ) {
+			var key, signature;
+			for ( key in computed ) {
+				signature = getComputationSignature( computed[ key ] );
+				ractive.viewmodel.computations[ key ] = new Computation( ractive, key, signature );
+			}
+		};
+	}( getComputationSignature, Computation );
+
+	/* viewmodel/Viewmodel.js */
+	var Viewmodel = function( create, adapt, capture, clearCache, get, register, release, set, teardown, unregister, createComputations ) {
+
+		// TODO: fix our ES6 modules so we can have multiple exports
+		// then this magic check can be reused by magicAdaptor
+		var noMagic;
+		try {
+			Object.defineProperty( {}, 'test', {
+				value: 0
+			} );
+		} catch ( err ) {
+			noMagic = true;
+		}
 		var Viewmodel = function( ractive ) {
 			this.ractive = ractive;
 			// TODO eventually, we shouldn't need this reference
+			Viewmodel.extend( ractive.constructor, ractive );
+			//this.ractive.data
 			this.cache = {};
 			// we need to be able to use hasOwnProperty, so can't inherit from null
 			this.cacheMap = create( null );
@@ -11181,6 +10983,58 @@
 			this.unresolvedImplicitDependencies = [];
 			this.changes = [];
 		};
+		Viewmodel.extend = function( Parent, instance ) {
+			if ( instance.magic && noMagic ) {
+				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+			}
+			instance.adapt = combine( Parent.prototype.adapt, instance.adapt ) || [];
+			instance.adapt = lookup( instance, instance.adaptors );
+		};
+
+		function lookup( target, adaptors ) {
+			var i, adapt = target.adapt;
+			if ( !adapt || !adapt.length ) {
+				return adapt;
+			}
+			if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
+				while ( i-- ) {
+					var adaptor = adapt[ i ];
+					if ( typeof adaptor === 'string' ) {
+						adapt[ i ] = adaptors[ adaptor ] || adaptor;
+					}
+				}
+			}
+			return adapt;
+		}
+
+		function combine( parent, adapt ) {
+			// normalize 'Foo' to [ 'Foo' ]
+			parent = arrayIfString( parent );
+			adapt = arrayIfString( adapt );
+			// no parent? return adapt
+			if ( !parent || !parent.length ) {
+				return adapt;
+			}
+			// no adapt? return 'copy' of parent
+			if ( !adapt || !adapt.length ) {
+				return parent.slice();
+			}
+			// add parent adaptors to options
+			parent.forEach( function( a ) {
+				// don't put in duplicates
+				if ( adapt.indexOf( a ) === -1 ) {
+					adapt.push( a );
+				}
+			} );
+			return adapt;
+		}
+
+		function arrayIfString( adapt ) {
+			if ( typeof adapt === 'string' ) {
+				adapt = [ adapt ];
+			}
+			return adapt;
+		}
 		Viewmodel.prototype = {
 			adapt: adapt,
 			capture: capture,
@@ -11190,26 +11044,35 @@
 			release: release,
 			set: set,
 			teardown: teardown,
-			unregister: unregister
+			unregister: unregister,
+			// createComputations, in the computations, may call back through get or set
+			// of ractive. So, for now, we delay creation of computed from constructor.
+			// on option would be to have the Computed class be lazy about using .update()
+			compute: function() {
+				createComputations( this.ractive, this.ractive.computed );
+			}
 		};
 		return Viewmodel;
-	}( create, viewmodel$adapt, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$teardown, viewmodel$unregister );
+	}( create, viewmodel$adapt, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$teardown, viewmodel$unregister, createComputations );
 
 	/* Ractive/initialise.js */
-	var Ractive_initialise = function( config, create, defineProperties, getElement, getGuid, Viewmodel, Fragment ) {
+	var Ractive_initialise = function( config, create, getElement, getNextNumber, Viewmodel, Fragment ) {
 
 		return function initialiseRactiveInstance( ractive ) {
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = {};
-			// TEMPORARY. This is so we can implement Viewmodel gradually
-			ractive.viewmodel = new Viewmodel( ractive );
 			initialiseProperties( ractive, options );
 			// init config from Parent and options
 			config.init( ractive.constructor, ractive, options );
+			// TEMPORARY. This is so we can implement Viewmodel gradually
+			ractive.viewmodel = new Viewmodel( ractive );
+			// hacky circular problem until we get this sorted out
+			ractive.viewmodel.compute();
 			// Render our *root fragment*
 			ractive.fragment = new Fragment( {
-				template: ractive.template,
+				template: ractive.template || [],
+				// hmm, does this mean we don't need to create the fragment?
 				root: ractive,
 				owner: ractive
 			} );
@@ -11246,69 +11109,35 @@
 		}
 
 		function initialiseProperties( ractive, options ) {
-			// We use Object.defineProperties (where possible) as these should be read-only
-			defineProperties( ractive, {
-				// Generate a unique identifier, for places where you'd use a weak map if it
-				// existed
-				_guid: {
-					value: getGuid()
-				},
-				// events
-				_subs: {
-					value: create( null ),
-					configurable: true
-				},
-				// storage for item configuration from instantiation to reset,
-				// like dynamic functions or original values
-				_config: {
-					value: {}
-				},
-				_patternObservers: {
-					value: []
-				},
-				// two-way bindings
-				_twowayBindings: {
-					value: create( null )
-				},
-				// animations (so we can stop any in progress at teardown)
-				_animations: {
-					value: []
-				},
-				// nodes registry
-				nodes: {
-					value: {}
-				},
-				// live queries
-				_liveQueries: {
-					value: []
-				},
-				_liveComponentQueries: {
-					value: []
-				},
-				// components to init at the end of a mutation
-				_childInitQueue: {
-					value: []
-				},
-				// instance parseOptions are stored here
-				parseOptions: {
-					value: {}
-				}
-			} );
+			// Generate a unique identifier, for places where you'd use a weak map if it
+			// existed
+			ractive._guid = getNextNumber();
+			// events
+			ractive._subs = create( null );
+			// storage for item configuration from instantiation to reset,
+			// like dynamic functions or original values
+			ractive._config = {};
+			ractive._patternObservers = [];
+			// two-way bindings
+			ractive._twowayBindings = create( null );
+			// animations (so we can stop any in progress at teardown)
+			ractive._animations = [];
+			// nodes registry
+			ractive.nodes = {};
+			// live queries
+			ractive._liveQueries = [];
+			ractive._liveComponentQueries = [];
+			// components to init at the end of a mutation
+			ractive._childInitQueue = [];
 			// If this is a component, store a reference to the parent
 			if ( options._parent && options._component ) {
-				defineProperties( ractive, {
-					_parent: {
-						value: options._parent
-					},
-					component: {
-						value: options._component
-					}
-				} );
+				ractive._parent = options._parent;
+				ractive.component = options._component;
 				// And store a reference to the instance on the component
 				options._component.instance = ractive;
 			}
 		}
-	}( config, create, defineProperties, getElement, getGuid, Viewmodel, Fragment );
+	}( config, create, getElement, getNextNumber, Viewmodel, Fragment );
 
 	/* extend/initChildInstance.js */
 	var initChildInstance = function( initialise ) {
@@ -11323,7 +11152,7 @@
 	}( Ractive_initialise );
 
 	/* extend/_extend.js */
-	var Ractive_extend = function( create, defineProperties, getGuid, config, extendObject, initChildInstance, circular, wrapMethod ) {
+	var Ractive_extend = function( create, defineProperties, getGuid, config, extendObject, initChildInstance, circular, wrapMethod, Viewmodel ) {
 
 		var Ractive, blacklisted;
 		// would be nice to not have these here,
@@ -11335,74 +11164,97 @@
 			'_parent': true,
 			'_component': true
 		};
+		config.keys.forEach( function( key ) {
+			blacklisted[ key ] = true;
+		} );
 		circular.push( function() {
 			Ractive = circular.Ractive;
 		} );
-		return function extend( childProps ) {
+		return function extend( extendOptions ) {
 			var Parent = this,
 				Child;
-			childProps = childProps || {};
+			extendOptions = extendOptions || {};
 			// if we're extending with another Ractive instance, inherit its
 			// prototype methods and default options as well
-			if ( childProps.prototype instanceof Ractive ) {
-				childProps = extendObject( {}, childProps, childProps.prototype, childProps.defaults );
+			if ( extendOptions.prototype instanceof Ractive ) {
+				extendOptions = extendObject( {}, extendOptions, extendOptions.prototype, extendOptions.defaults );
 			}
 			// create Child constructor
 			Child = function( options ) {
 				initChildInstance( this, Child, options || {} );
 			};
-			Child.prototype = create( Parent.prototype );
-			Child.prototype.constructor = Child;
-			Child.extend = extend;
-			defineProperties( Child, {
+			var proto = create( Parent.prototype );
+			proto.constructor = Child;
+			var staticProperties = {
 				// each component needs a guid, for managing CSS etc
 				'_guid': {
 					value: getGuid()
 				},
-				// defaults for the Component
+				//alias prototype as defaults
 				defaults: {
-					value: {}
+					value: proto
+				},
+				//extendable
+				extend: {
+					value: extend,
+					writable: true,
+					configurable: true
 				}
-			} );
+			};
+			defineProperties( Child, staticProperties );
 			// extend configuration
-			config.extend( Parent, Child, childProps );
+			config.extend( Parent, proto, extendOptions );
+			Viewmodel.extend( Parent, proto );
 			// and any other options...
-			extendNonOptions( Child, childProps );
+			extendNonOptions( Parent.prototype, proto, extendOptions );
+			Child.prototype = proto;
 			return Child;
 		};
 
-		function extendNonOptions( Child, options ) {
+		function extendNonOptions( parent, properties, options ) {
 			for ( var key in options ) {
-				if ( !config.keys[ key ] && !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
+				if ( !blacklisted[ key ] && options.hasOwnProperty( key ) ) {
 					var member = options[ key ];
 					// if this is a method that overwrites a method, wrap it:
 					if ( typeof member === 'function' ) {
-						member = wrapMethod( member, Child.prototype[ key ] );
+						member = wrapMethod( member, parent[ key ] );
 					}
-					Child.prototype[ key ] = member;
+					properties[ key ] = member;
 				}
 			}
 		}
-	}( create, defineProperties, getGuid, config, extend, initChildInstance, circular, wrapMethod );
+	}( create, defineProperties, getGuid, config, extend, initChildInstance, circular, wrapMethod, Viewmodel );
 
 	/* Ractive.js */
-	var Ractive = function( defaults, easing, interpolators, svg, defineProperties, proto, Promise, extend, parse, initialise, circular ) {
+	var Ractive = function( defaults, easing, interpolators, svg, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
 
+		var Ractive, properties;
 		// Main Ractive required object
-		var Ractive = function( options ) {
+		Ractive = function( options ) {
 			initialise( this, options );
 		};
-		Ractive.prototype = proto;
 		// Ractive properties
-		defineProperties( Ractive, {
-			// Shared properties
-			// Default options
-			defaults: {
-				value: defaults
+		properties = {
+			// static props and methods:
+			extend: {
+				value: extend
+			},
+			parse: {
+				value: parse
+			},
+			// Namespaced constructors
+			Promise: {
+				value: Promise
+			},
+			// support
+			svg: {
+				value: svg
+			},
+			// version
+			VERSION: {
+				value: '0.4.0'
 			},
 			// Plugins
-			// Because these can be assigned functions to resolve at
-			// instantiation time, they are writable
 			adaptors: {
 				writable: true,
 				value: {}
@@ -11434,21 +11286,14 @@
 			transitions: {
 				writable: true,
 				value: {}
-			},
-			// Support
-			svg: {
-				value: svg
-			},
-			VERSION: {
-				value: '0.4.0'
 			}
-		} );
+		};
+		// Ractive properties
+		defineProperties( Ractive, properties );
+		Ractive.prototype = extendObj( proto, defaults );
 		Ractive.prototype.constructor = Ractive;
-		// Namespaced constructors
-		Ractive.Promise = Promise;
-		// Static methods
-		Ractive.extend = extend;
-		Ractive.parse = parse;
+		// alias prototype as defaults
+		Ractive.defaults = Ractive.prototype;
 		// Certain modules have circular dependencies. If we were bundling a
 		// module loader, e.g. almond.js, this wouldn't be a problem, but we're
 		// not - we're using amdclean as part of the build process. Because of
@@ -11467,7 +11312,7 @@
 			throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
 		}
 		return Ractive;
-	}( options, easing, interpolators, svg, defineProperties, prototype, Promise, Ractive_extend, parse, Ractive_initialise, circular );
+	}( options, easing, interpolators, svg, defineProperties, prototype, Promise, extend, Ractive_extend, parse, Ractive_initialise, circular );
 
 
 	// export as Common JS module...
