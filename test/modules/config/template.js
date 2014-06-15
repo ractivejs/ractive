@@ -101,9 +101,9 @@ function (
 		});
 
 		test( 'Extend uses child parse options', t => {
-			Component.defaults.delimiters = [ '[[', ']]' ];
+			Component.defaults.delimiters = [ '<#', '#>' ];
 
-			config.extend( Ractive, Component, { template: '[[foo]]' } );
+			config.extend( Ractive, Component, { template: '<#foo#>' } );
 			config.init( Component, ractive );
 
 			testTemplate1( ractive.template );
