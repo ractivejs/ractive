@@ -1,6 +1,5 @@
 import css from 'config/options/css/css';
 import data from 'config/options/data';
-import debug from 'config/options/debug';
 import defaults from 'config/defaults/options';
 import computed from 'config/options/computed';
 import template from 'config/options/template/template';
@@ -16,7 +15,6 @@ var custom, options, config;
 
 custom = {
 	data: data,
-	debug: debug,
 	computed: computed,
 	template: template,
 	css: css
@@ -31,7 +29,6 @@ options = Object.keys( defaults )
 
 // this defines the order:
 config = [].concat(
-	custom.debug,
 	custom.data,
 	parseOptions,
 	options,
@@ -68,11 +65,6 @@ config.init = function ( Parent, ractive, options ) {
 	if ( ractive._config ) {
 		ractive._config.options = options;
 	}
-
-	// Breaking change
-	// config.keys.forEach( key => {
-	// 	options[ key ] = ractive[ key ];
-	// });
 };
 
 function configure ( method, Parent, instance, options ) {
@@ -80,7 +72,6 @@ function configure ( method, Parent, instance, options ) {
 	deprecate( options );
 
 	customConfig( method, 'data', Parent, instance, options );
-	customConfig( method, 'debug', Parent, instance, options );
 
 	config.parseOptions.forEach( key => {
 

@@ -1,11 +1,11 @@
 import warn from 'utils/warn';
+import errors from 'config/errors';
 
 // TODO how should event arguments be handled? e.g.
 // <widget on-foo='bar:1,2,3'/>
 // The event 'bar' will be fired on the parent instance
 // when 'foo' fires on the child, but the 1,2,3 arguments
 // will be lost
-var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
 
 export default function ( component, eventsDescriptor ) {
 	var eventName;
@@ -19,10 +19,11 @@ export default function ( component, eventsDescriptor ) {
 
 function propagateEvent ( childInstance, parentInstance, eventName, proxyEventName ) {
 	if ( typeof proxyEventName !== 'string' ) {
-		if ( parentInstance.debug ) {
-			throw new Error( errorMessage );
+
+		if ( parentInstance.isDebug() ) {
+			throw new Error( errors.noComponentEventArguments );
 		} else {
-			warn( errorMessage );
+			warn( errors.noComponentEventArguments );
 			return;
 		}
 	}

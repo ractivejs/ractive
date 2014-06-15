@@ -8,6 +8,7 @@ import findComponent from 'Ractive/prototype/findComponent';
 import fire from 'Ractive/prototype/fire';
 import get from 'Ractive/prototype/get';
 import insert from 'Ractive/prototype/insert';
+import isDebug from 'Ractive/prototype/isDebug';
 import merge from 'Ractive/prototype/merge';
 import observe from 'Ractive/prototype/observe';
 import off from 'Ractive/prototype/off';
@@ -35,6 +36,7 @@ export default {
 	fire: fire,
 	get: get,
 	insert: insert,
+	isDebug: isDebug,
 	merge: merge,
 	observe: observe,
 	off: off,

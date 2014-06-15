@@ -1,4 +1,5 @@
 import runloop from 'global/runloop';
+import errors from 'config/errors';
 import warn from 'utils/warn';
 import isArray from 'utils/isArray';
 import Promise from 'utils/Promise';
@@ -40,10 +41,10 @@ export default function Ractive$merge ( keypath, array, options ) {
 			// to do more DOM manipulation than we thought...
 
 			// ...unless we're in debug mode of course
-			if ( this.debug ) {
+			if ( this.isDebug() ) {
 				throw err;
 			} else {
-				warn( 'Merge operation: comparison failed. Falling back to identity checking' );
+				warn( errors.mergeComparisonFail );
 			}
 
 			oldArray = currentArray;
