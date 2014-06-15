@@ -70,9 +70,8 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 	}
 
 	// capture the keypath, if we're inside a computation or evaluator
-	if ( options.capture && this.capturing && !this.captured[ keypath ] ) {
+	if ( options.capture && this.capturing && this.captured.indexOf( keypath ) === -1 ) {
 		this.captured.push( keypath );
-		this.captured[ keypath ] = true;
 
 		// if we couldn't resolve the keypath, we need to make it as a failed
 		// lookup, so that the evaluator updates correctly once we CAN

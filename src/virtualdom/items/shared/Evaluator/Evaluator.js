@@ -2,6 +2,7 @@ import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
 import defineProperty from 'utils/defineProperty';
+import diff from 'viewmodel/Computation/diff'; // TODO this is a red flag... should be treated the same?
 
 var Evaluator, cache = {};
 
@@ -9,12 +10,14 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 	var evaluator = this, viewmodel = root.viewmodel;
 
 	evaluator.root = root;
+	evaluator.viewmodel = viewmodel;
 	evaluator.uniqueString = uniqueString;
 	evaluator.keypath = keypath;
 	evaluator.priority = priority;
 
 	evaluator.fn = getFunctionFromString( functionStr, args.length );
-	evaluator.dependencies = [];
+	evaluator.explicitDependencies = [];
+	evaluator.dependencies = []; // created by `this.get()` within functions
 
 	evaluator.argumentGetters = args.map( arg => {
 		var keypath;
@@ -28,7 +31,7 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 		}
 
 		keypath = arg.keypath;
-		evaluator.dependencies.push( keypath );
+		evaluator.explicitDependencies.push( keypath );
 		viewmodel.register( keypath, evaluator, 'computed' );
 
 		return function () {
@@ -48,9 +51,11 @@ Evaluator.prototype = {
 	},
 
 	getValue: function () {
-		var args, value;
+		var args, value, newImplicitDependencies;
 
-		args = this.argumentGetters.map( fn => fn() );
+		args = this.argumentGetters.map( call );
+
+		this.viewmodel.capture();
 
 		try {
 			value = this.fn.apply( null, args );
@@ -61,6 +66,9 @@ Evaluator.prototype = {
 
 			value = undefined;
 		}
+
+		newImplicitDependencies = this.viewmodel.release();
+		diff( this, this.dependencies, newImplicitDependencies );
 
 		return value;
 	},
@@ -80,7 +88,7 @@ Evaluator.prototype = {
 
 	// TODO should evaluators ever get torn down? At present, they don't...
 	teardown: function () {
-		this.dependencies.forEach( keypath => this.viewmodel.unregister( keypath, this, 'computed' ) );
+		this.explicitDependencies.concat( this.dependencies ).forEach( keypath => this.viewmodel.unregister( keypath, this, 'computed' ) );
 		this.root.viewmodel.evaluators[ this.keypath ] = null;
 	},
 
@@ -138,4 +146,8 @@ function wrap ( fn, ractive ) {
 	});
 
 	return fn.__ractive_nowrap;
+}
+
+function call ( fn ) {
+	return fn();
 }
