@@ -132,6 +132,14 @@ function flushChanges () {
 		thing.update();
 	}
 
+	// If updating the view caused some model blowback - e.g. a triple
+	// containing <option> elements caused the binding on the <select>
+	// to update - then we start over
+	if ( viewmodels.length ) {
+		flushChanges();
+		return;
+	}
+
 	while ( thing = postViewUpdateTasks.pop() ) {
 		thing();
 	}
@@ -145,8 +153,6 @@ function flushChanges () {
 		css.update();
 		pendingCssChanges = false;
 	}
-
-	console.groupEnd();
 }
 
 function attemptKeypathResolution () {
