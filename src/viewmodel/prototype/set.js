@@ -58,5 +58,10 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 
 	if ( !silent ) {
 		this.mark( keypath );
+	} else {
+		// We're setting a parent of the original target keypath (i.e.
+		// creating a fresh branch) - we need to clear the cache, but
+		// not mark it as a change
+		this.clearCache( keypath );
 	}
 }
