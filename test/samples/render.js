@@ -144,6 +144,14 @@ var renderTests = [
 		new_result: '<div>before <em>italic</em> <strong>bold</strong> after</div>'
 	},
 	{
+		name: 'Static',
+		template: '<div>[[color]]</div>',
+		data: { color: 'purple' },
+		result: '<div>purple</div>',
+		new_data: { color: 'orange' },
+		new_result: '<div>purple</div>'
+	},
+	{
 		name: 'SVG',
 		template: '<svg><circle cx="{{x}}" cy="{{y}}" r="{{r}}"/></svg>',
 		data: { x: 50, y: 50, r: 50 },
