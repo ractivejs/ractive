@@ -32,7 +32,7 @@ Observer.prototype = {
 			if ( this.defer && this.ready ) {
 				runloop.afterViewUpdate( () => this.update() );
 			} else {
-				runloop.afterModelUpdate( () => this.update() );
+				this.update();
 			}
 		}
 	},

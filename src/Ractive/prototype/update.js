@@ -1,6 +1,5 @@
 import runloop from 'global/runloop';
 import Promise from 'utils/Promise';
-import notifyDependants from 'shared/notifyDependants';
 
 export default function Ractive$update ( keypath, callback ) {
 	var promise, fulfilPromise;
@@ -15,9 +14,7 @@ export default function Ractive$update ( keypath, callback ) {
 	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 	runloop.start( this, fulfilPromise );
 
-	this.viewmodel.clearCache( keypath );
-	notifyDependants( this, keypath );
-
+	this.viewmodel.mark( keypath );
 	runloop.end();
 
 	this.fire( 'update', keypath );

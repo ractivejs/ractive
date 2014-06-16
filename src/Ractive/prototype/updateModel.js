@@ -71,7 +71,7 @@ function consolidateChangedValues ( ractive, keypath, values, cascade ) {
 	}
 
 	// cascade
-	childDeps = ractive.viewmodel.depsMap[ keypath ];
+	childDeps = ractive.viewmodel.depsMap[ 'default' ][ keypath ];
 
 	if ( childDeps ) {
 		i = childDeps.length;

@@ -1,4 +1,4 @@
-export default function Viewmodel$capture ( ) {
+export default function Viewmodel$capture () {
 	this.capturing = true;
 	this.captured = [];
 }

@@ -1,6 +1,10 @@
-import runloop from 'global/runloop';
+import circular from 'circular';
 import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
+
+var runloop;
+
+circular.push( () => runloop = circular.runloop );
 
 var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
 	this.root = ractive;
@@ -10,7 +14,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
-	ractive.viewmodel.register( this );
+	ractive.viewmodel.register( keypath, this );
 
 	this.value = this.root.viewmodel.get( this.keypath );
 };
@@ -18,7 +22,8 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 Binding.prototype = {
 	setValue: function ( value ) {
 		// Only *you* can prevent infinite loops
-		if ( this.updating ) {
+		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+			this.value = value;
 			return;
 		}
 
@@ -33,34 +38,27 @@ Binding.prototype = {
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
-
-			// Only *you* can prevent infinite loops... again
-			if ( !( this.counterpart && this.counterpart.updating ) ) { 
-				runloop.addInstance( this.otherInstance );
-				this.otherInstance.viewmodel.set( this.otherKeypath, value );
-			}
-
+			runloop.addViewmodel( this.otherInstance.viewmodel );
+			this.otherInstance.viewmodel.set( this.otherKeypath, value );
 			this.value = value;
 
 			// TODO will the counterpart update after this line, during
 			// the runloop end cycle? may be a problem...
-			this.updating = false;
+			runloop.afterModelUpdate( () => this.updating = false );
 		}
 	},
 
 	rebind: function ( newKeypath ) {
-		this.root.viewmodel.unregister( this );
-		this.counterpart.root.viewmodel.unregister( this.counterpart );
+		this.root.viewmodel.unregister( this.keypath, this );
 
 		this.keypath = newKeypath;
 		this.counterpart.otherKeypath = newKeypath;
 
-		this.root.viewmodel.register( this );
-		this.counterpart.root.viewmodel.register( this.counterpart );
+		this.root.viewmodel.register( newKeypath, this );
 	},
 
 	teardown: function () {
-		this.root.viewmodel.unregister( this );
+		this.root.viewmodel.unregister( this.keypath, this );
 	}
 };
 

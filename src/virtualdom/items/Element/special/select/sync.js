@@ -2,7 +2,7 @@ import toArray from 'utils/toArray';
 import runloop from 'global/runloop';
 
 export default function syncSelect ( selectElement ) {
-	var selectNode, selectValue, isMultiple, options, value, i, optionWasSelected;
+	var selectNode, selectValue, isMultiple, options, i, optionWasSelected, result;
 
 	selectNode = selectElement.node;
 
@@ -37,8 +37,7 @@ export default function syncSelect ( selectElement ) {
 			}
 
 			if ( selectElement.binding ) {
-				selectValue = isMultiple ? [] : ( options[0] ? ( options[0]._ractive ? options[0]._ractive.value : options[0].value ) : undefined );
-				selectElement.root.viewmodel.set( selectElement.binding.keypath, selectValue );
+				result = isMultiple ? [] : ( options[0] ? ( options[0]._ractive ? options[0]._ractive.value : options[0].value ) : undefined );
 			}
 		}
 	}
@@ -47,7 +46,7 @@ export default function syncSelect ( selectElement ) {
 	// <option> element is selected, if twoway binding is in effect
 	else if ( selectElement.binding ) {
 		if ( isMultiple ) {
-			value = options.reduce( ( array, o ) => {
+			result = options.reduce( ( array, o ) => {
 				if ( o.selected ) {
 					array.push( o.value );
 				}
@@ -58,14 +57,17 @@ export default function syncSelect ( selectElement ) {
 			i = options.length;
 			while ( i-- ) {
 				if ( options[i].selected ) {
-					value = options[i].value;
+					result = options[i].value;
 					break;
 				}
 			}
 		}
+	}
 
+	if ( result !== undefined ) {
 		runloop.lockAttribute( selectElement.attributes.value );
-		selectElement.root.viewmodel.set( selectElement.binding.keypath );
+		runloop.addViewmodel( selectElement.root.viewmodel );
+		selectElement.root.viewmodel.set( selectElement.binding.keypath, result );
 	}
 }
 

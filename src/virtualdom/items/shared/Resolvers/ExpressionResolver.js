@@ -1,7 +1,7 @@
 import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
-import Evaluator from 'virtualdom/items/shared/Evaluator/_Evaluator';
+import Evaluator from 'virtualdom/items/shared/Evaluator/Evaluator';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
 var ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
@@ -99,14 +99,10 @@ ExpressionResolver.prototype = {
 		// only if it doesn't exist yet!
 		if ( !evaluator ) {
 			evaluator = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.owner.priority );
-
 			this.root.viewmodel.evaluators[ this.keypath ] = evaluator;
-			evaluator.update();
 		}
 
-		else {
-			evaluator.invalidate();
-		}
+		evaluator.update();
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -139,7 +135,11 @@ export default ExpressionResolver;
 function getUniqueString ( str, args ) {
 	// get string that is unique to this expression
 	return str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
-		return args[ $1 ] ? args[ $1 ].value || args[ $1 ].keypath : 'undefined';
+		var arg = args[ $1 ];
+
+		if ( !arg ) return 'undefined';
+		if ( arg.indexRef ) return arg.value;
+		return arg.keypath;
 	});
 }
 

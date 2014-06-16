@@ -2,7 +2,7 @@
 // getSpliceEquivalent()
 
 export default function ( array, args ) {
-	var rangeStart, rangeEnd, clearEnd, newLength, addedItems, removedItems, balance;
+	var rangeStart, rangeEnd, newLength, addedItems, removedItems, balance;
 
 	if ( !args ) {
 		return null;
@@ -23,25 +23,16 @@ export default function ( array, args ) {
 	balance = addedItems - removedItems;
 	newLength = array.length + balance;
 
-	// We need to find the end of the range affected by the splice, and the last
-	// item that could already be cached (and therefore needs clearing)
+	// We need to find the end of the range affected by the splice
 	if ( !balance ) {
-		// nice and easy
-		rangeEnd = clearEnd = rangeStart + addedItems;
+		rangeEnd = rangeStart + addedItems;
 	} else {
-		// bit more complicated. rangeEnd is the *greater* of the
-		// old length and the new length
 		rangeEnd = Math.max( array.length, newLength );
-
-		// clearEnd is the *lesser* of those two values (since the
-		// difference between them could not have previously been cached)
-		clearEnd = Math.max( array.length, newLength );
 	}
 
 	return {
 		rangeStart: rangeStart,
 		rangeEnd: rangeEnd,
-		clearEnd: clearEnd,
 		balance: balance,
 		added: addedItems,
 		removed: removedItems
