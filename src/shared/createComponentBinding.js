@@ -18,7 +18,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 Binding.prototype = {
 	setValue: function ( value ) {
 		// Only *you* can prevent infinite loops
-		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+		if ( this.updating ) {
 			return;
 		}
 
@@ -33,8 +33,13 @@ Binding.prototype = {
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
-			runloop.addInstance( this.otherInstance );
-			this.otherInstance.viewmodel.set( this.otherKeypath, value );
+
+			// Only *you* can prevent infinite loops... again
+			if ( !( this.counterpart && this.counterpart.updating ) ) { 
+				runloop.addInstance( this.otherInstance );
+				this.otherInstance.viewmodel.set( this.otherKeypath, value );
+			}
+
 			this.value = value;
 
 			// TODO will the counterpart update after this line, during

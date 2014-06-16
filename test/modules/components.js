@@ -1024,9 +1024,31 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set( 'but', 'maybe' );
 			t.htmlEqual( fixture.innerHTML, '<p>10</p><p>number: 42</p><p>I got 99 problems but type coercion ain\'t one</p><p>maybe</p>' );
-
 		});
 
+		// See issue #681
+		test( 'Inline component attributes update the value of bindings pointing to them even if they are old values', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{childdata}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{parentdata}} - <widget childdata="{{parentdata}}" />',
+				data: { parentdata: 'old' },
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'old - old' );
+
+			ractive.findComponent( 'widget' ).set( 'childdata', 'new' );
+			t.htmlEqual( fixture.innerHTML, 'new - new' );
+
+			ractive.set( 'parentdata', 'old' );
+			t.htmlEqual( fixture.innerHTML, 'old - old' );
+		});
 
 		asyncTest( 'Component render methods called in consistent order (gh #589)', function ( t ) {
 			var Simpson, ractive, order = { beforeInit: [], init: [], complete: [] },
