@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-16 - commit d4006a2c 
+	2014-06-16 - commit 620efdd3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1299,13 +1299,12 @@
 	}();
 
 	/* config/options/css/css.js */
-	var config_options_css_css = function( transformCss, defaults ) {
+	var config_options_css_css = function( transformCss ) {
 
 		var cssConfig = {
 			name: 'css',
 			extend: extend,
-			init: function() {},
-			useDefaults: defaults.hasOwnProperty( 'css' )
+			init: function() {}
 		};
 
 		function extend( Parent, proto, options ) {
@@ -1323,7 +1322,7 @@
 			return target.noCssTransform ? css : transformCss( css, guid );
 		}
 		return cssConfig;
-	}( transform, options );
+	}( transform );
 
 	/* utils/create.js */
 	var create = function() {
@@ -1501,148 +1500,11 @@
 		}
 	}( create, wrapMethod );
 
-	/* utils/extend.js */
-	var extend = function( target ) {
-		var SLICE$0 = Array.prototype.slice;
-		var sources = SLICE$0.call( arguments, 1 );
-		var prop, source;
-		while ( source = sources.shift() ) {
-			for ( prop in source ) {
-				if ( source.hasOwnProperty( prop ) ) {
-					target[ prop ] = source[ prop ];
-				}
-			}
-		}
-		return target;
-	};
-
-	/* config/options/baseConfiguration.js */
-	var baseConfiguration = function( defaults, extendObject ) {
-
-		function BaseConfiguration( config ) {
-			extendObject( this, config );
-			this.useDefaults = defaults.hasOwnProperty( config.name );
-		}
-		BaseConfiguration.prototype = {
-			configure: function( Parent, instance, options ) {
-				var option;
-				if ( this.pre ) {
-					options = options || {};
-					this.pre( Parent, instance, options );
-				}
-				if ( options && this.name in options ) {
-					option = options[ this.name ];
-				}
-				if ( this.post ) {
-					option = this.post( instance, option );
-				}
-				if ( !empty( option ) ) {
-					instance[ this.name ] = option;
-				}
-			},
-			extend: function( Parent, proto, options ) {
-				this.configure( Parent, proto, options );
-			},
-			init: function( Parent, ractive, options ) {
-				this.configure( Parent, ractive, options );
-			},
-			reset: function( ractive ) {
-				if ( !this.resetValue ) {
-					return;
-				}
-				var result = this.resetValue( ractive );
-				if ( result ) {
-					if ( this.postInit ) {
-						result = this.postInit( ractive, result );
-					}
-					ractive[ this.name ] = result;
-					return true;
-				}
-			},
-			assign: function( target, value ) {
-				if ( value == undefined ) {
-					return;
-				}
-				target[ this.name ] = value;
-			},
-			getParentValue: function( parent ) {
-				if ( parent ) {
-					if ( this.useDefaults ) {
-						parent = parent.defaults;
-					}
-					return parent[ this.name ];
-				}
-			},
-			getOptionValue: function( options ) {
-				if ( options ) {
-					return options[ this.name ];
-				}
-			}
-		};
-
-		function empty( value ) {
-			// allow '', 0, false, etc:
-			return typeof value === 'undefined' || value === null;
-		}
-		return function baseConfig( config ) {
-			return new BaseConfiguration( config );
-		};
-	}( options, extend );
-
-	/* config/options/debug.js */
-	var debug = function( optionConfig, circular ) {
-
-		var Ractive;
-		circular.push( function() {
-			Ractive = circular.Ractive;
-		} );
-		var config = optionConfig( {
-			name: 'debug'
-		} );
-		config.pre = copyFromConstructor;
-
-		function copyFromConstructor( parent, target, options ) {
-			// if not explicitly set on options
-			if ( !( 'debug' in options ) ) {
-				// ok to use Parent.defaults.debug
-				if ( 'debug' in parent ) {
-					options.debug = parent.debug;
-				} else if ( Ractive && ( Ractive.defaults && Ractive.defaults.debug || Ractive.debug ) ) {
-					options.debug = true;
-				}
-			}
-		}
-		return config;
-	}( baseConfiguration, circular );
-
-	/* config/options/computed.js */
-	var computed = function( create ) {
-
-		var computed = {
-			name: 'computed',
-			extend: function( Parent, child, options ) {
-				this.configure( Parent, child, options );
-			},
-			init: function( Parent, ractive, options ) {
-				this.configure( Parent, ractive, options );
-			},
-			configure: function( Parent, instance, options ) {
-				var name = this.name,
-					registry, option = options[ name ];
-				Parent = Parent.defaults;
-				registry = create( Parent[ name ] );
-				for ( var key in option ) {
-					registry[ key ] = option[ key ];
-				}
-				instance[ name ] = registry;
-			}
-		};
-		return computed;
-	}( create );
-
 	/* config/errors.js */
 	var errors = {
-		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser'
+		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser',
+		mergeComparisonFail: 'Merge operation: comparison failed. Falling back to identity checking',
+		noComponentEventArguments: 'Components currently only support simple events - you cannot include arguments. Sorry!'
 	};
 
 	/* empty/parse.js */
@@ -2197,54 +2059,44 @@
 		return exportedShims;
 	}();
 
-	/* config/options/registry.js */
-	var registry = function( extendObject, create ) {
+	/* config/options/Registry.js */
+	var Registry = function( create ) {
 
-		return function registryConfig( config ) {
-			config = extendObject( config, {
-				extend: extend,
-				init: init,
-				configure: configure,
-				find: find,
-				findInstance: findInstance
-			} );
-			return config;
-		};
-
-		function extend( Parent, proto, options ) {
-			this.configure( Parent, proto.constructor, options );
+		function Registry( name, useDefaults ) {
+			this.name = name;
+			this.useDefaults = useDefaults;
 		}
-
-		function init( Parent, ractive, options ) {
-			this.configure( Parent, ractive, options );
-		}
-
-		function configure( Parent, target, options ) {
-			var name = this.name,
-				option = options[ name ],
+		Registry.prototype = {
+			constructor: Registry,
+			extend: function( Parent, proto, options ) {
+				this.configure( this.useDefaults ? Parent.defaults : Parent, this.useDefaults ? proto : proto.constructor, options );
+			},
+			init: function( Parent, ractive, options ) {
+				this.configure( this.useDefaults ? Parent.defaults : Parent, ractive, options );
+			},
+			configure: function( Parent, target, options ) {
+				var name = this.name,
+					option = options[ name ],
+					registry;
 				registry = create( Parent[ name ] );
-			for ( var key in option ) {
-				registry[ key ] = option[ key ];
+				for ( var key in option ) {
+					registry[ key ] = option[ key ];
+				}
+				target[ name ] = registry;
+			},
+			find: function( ractive, key ) {
+				var this$0 = this;
+				return recurseFind( ractive, function( r ) {
+					return r[ this$0.name ][ key ];
+				} );
+			},
+			findInstance: function( ractive, key ) {
+				var this$0 = this;
+				return recurseFind( ractive, function( r ) {
+					return r[ this$0.name ][ key ] ? r : void 0;
+				} );
 			}
-			if ( this.post ) {
-				registry = this.post( target, registry );
-			}
-			target[ name ] = registry;
-		}
-
-		function find( ractive, key ) {
-			var this$0 = this;
-			return recurseFind( ractive, function( r ) {
-				return r[ this$0.name ][ key ];
-			} );
-		}
-
-		function findInstance( ractive, key ) {
-			var this$0 = this;
-			return recurseFind( ractive, function( r ) {
-				return r[ this$0.name ][ key ] ? r : void 0;
-			} );
-		}
+		};
 
 		function recurseFind( ractive, fn ) {
 			var find, parent;
@@ -2255,14 +2107,16 @@
 				return recurseFind( parent, fn );
 			}
 		}
-	}( extend, create, legacy );
+		return Registry;
+	}( create, legacy );
 
 	/* config/options/groups/registries.js */
-	var registries = function( optionGroup, registry ) {
+	var registries = function( optionGroup, Registry ) {
 
 		var keys = [
 				'adaptors',
 				'components',
+				'computed',
 				'decorators',
 				'easing',
 				'events',
@@ -2271,12 +2125,10 @@
 				'transitions'
 			],
 			registries = optionGroup( keys, function( key ) {
-				return registry( {
-					name: key
-				} );
+				return new Registry( key, key === 'computed' );
 			} );
 		return registries;
-	}( optionGroup, registry );
+	}( optionGroup, Registry );
 
 	/* utils/wrapPrototypeMethod.js */
 	var wrapPrototypeMethod = function() {
@@ -2360,23 +2212,19 @@
 	}( warn, isArray );
 
 	/* config/config.js */
-	var config = function( css, data, debug, defaults, computed, template, parseOptions, registries, wrap, deprecate ) {
+	var config = function( css, data, defaults, template, parseOptions, registries, wrap, deprecate ) {
 
 		var custom, options, config;
 		custom = {
 			data: data,
-			debug: debug,
-			computed: computed,
 			template: template,
 			css: css
 		};
-		// fill in basicConfig for all default options not covered by
-		// registries, parse options, and any custom configuration
 		options = Object.keys( defaults ).filter( function( key ) {
 			return !registries[ key ] && !custom[ key ] && !parseOptions[ key ];
 		} );
 		// this defines the order:
-		config = [].concat( custom.debug, custom.data, parseOptions, options, custom.computed, registries, custom.template, custom.css );
+		config = [].concat( custom.data, parseOptions, options, registries, custom.template, custom.css );
 		for ( var key in custom ) {
 			config[ key ] = custom[ key ];
 		}
@@ -2403,7 +2251,6 @@
 		function configure( method, Parent, instance, options ) {
 			deprecate( options );
 			customConfig( method, 'data', Parent, instance, options );
-			customConfig( method, 'debug', Parent, instance, options );
 			config.parseOptions.forEach( function( key ) {
 				if ( key in options ) {
 					instance[ key ] = options[ key ];
@@ -2415,8 +2262,6 @@
 					instance[ key ] = typeof value === 'function' ? wrap( instance, Parent.prototype, key, value ) : value;
 				}
 			}
-			// customConfig( method, 'complete', Parent, instance, options );
-			customConfig( method, 'computed', Parent, instance, options );
 			config.registries.forEach( function( registry ) {
 				registry[ method ]( Parent, instance, options );
 			} );
@@ -2429,7 +2274,7 @@
 			} );
 		};
 		return config;
-	}( config_options_css_css, data, debug, options, computed, template, parseOptions, registries, wrapPrototypeMethod, deprecate );
+	}( config_options_css_css, data, options, template, parseOptions, registries, wrapPrototypeMethod, deprecate );
 
 	/* shared/interpolate.js */
 	var interpolate = function( circular, warn, interpolators, config ) {
@@ -3067,6 +2912,21 @@
 		};
 	}( getElement );
 
+	/* Ractive/prototype/isDebug.js */
+	var Ractive$isDebug = function() {
+
+		return function isDebug() {
+			return this.debug || isStaticDebug( this.constructor );
+		};
+
+		function isStaticDebug( constructor ) {
+			if ( !constructor ) {
+				return false;
+			}
+			return constructor.debug || isStaticDebug( constructor._parent );
+		}
+	}();
+
 	/* Ractive/prototype/merge/mapOldToNewIndex.js */
 	var Ractive$merge_mapOldToNewIndex = function( oldArray, newArray ) {
 		var usedIndices, firstUnusedIndex, newIndices, changed;
@@ -3172,7 +3032,7 @@
 	}( types, notifyDependants );
 
 	/* Ractive/prototype/merge.js */
-	var Ractive$merge = function( runloop, warn, isArray, Promise, mapOldToNewIndex, propagateChanges ) {
+	var Ractive$merge = function( runloop, errors, warn, isArray, Promise, mapOldToNewIndex, propagateChanges ) {
 
 		var comparators = {};
 		return function Ractive$merge( keypath, array, options ) {
@@ -3193,10 +3053,10 @@
 					// fallback to an identity check - worst case scenario we have
 					// to do more DOM manipulation than we thought...
 					// ...unless we're in debug mode of course
-					if ( this.debug ) {
+					if ( this.isDebug() ) {
 						throw err;
 					} else {
-						warn( 'Merge operation: comparison failed. Falling back to identity checking' );
+						warn( errors.mergeComparisonFail );
 					}
 					oldArray = currentArray;
 					newArray = array;
@@ -3248,7 +3108,7 @@
 			}
 			throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
 		}
-	}( runloop, warn, isArray, Promise, Ractive$merge_mapOldToNewIndex, Ractive$merge_propagateChanges );
+	}( runloop, errors, warn, isArray, Promise, Ractive$merge_mapOldToNewIndex, Ractive$merge_propagateChanges );
 
 	/* Ractive/prototype/observe/Observer.js */
 	var Ractive$observe_Observer = function( runloop, isEqual ) {
@@ -3298,7 +3158,7 @@
 				try {
 					this.callback.call( this.context, this.value, this.oldValue, this.keypath );
 				} catch ( err ) {
-					if ( this.debug || this.root.debug ) {
+					if ( this.debug || this.root.isDebug() ) {
 						throw err;
 					}
 				}
@@ -3448,7 +3308,7 @@
 					try {
 						this.callback.apply( this.context, args );
 					} catch ( err ) {
-						if ( this.debug || this.root.debug ) {
+						if ( this.debug || this.root.isDebug() ) {
 							throw err;
 						}
 					}
@@ -5156,7 +5016,7 @@
 				try {
 					value = this.fn.apply( null, this.values );
 				} catch ( err ) {
-					if ( this.root.debug ) {
+					if ( this.root.isDebug() ) {
 						warn( 'Error evaluating "' + this.uniqueString + '": ' + err.message || err );
 					}
 					value = undefined;
@@ -7065,6 +6925,21 @@
 		};
 	}( Attribute );
 
+	/* utils/extend.js */
+	var extend = function( target ) {
+		var SLICE$0 = Array.prototype.slice;
+		var sources = SLICE$0.call( arguments, 1 );
+		var prop, source;
+		while ( source = sources.shift() ) {
+			for ( prop in source ) {
+				if ( source.hasOwnProperty( prop ) ) {
+					target[ prop ] = source[ prop ];
+				}
+			}
+		}
+		return target;
+	};
+
 	/* virtualdom/items/Element/Binding/Binding.js */
 	var Binding = function( runloop, warn, create, extend ) {
 
@@ -7818,7 +7693,7 @@
 			decorator.fn = config.registries.decorators.find( ractive, name );
 			if ( !decorator.fn ) {
 				errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
-				if ( ractive.debug ) {
+				if ( ractive.isDebug() ) {
 					throw new Error( errorMessage );
 				} else {
 					warn( errorMessage );
@@ -7901,7 +7776,7 @@
 			t._fn = config.registries.transitions.find( ractive, name );
 			if ( !t._fn ) {
 				errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
-				if ( ractive.debug ) {
+				if ( ractive.isDebug() ) {
 					throw new Error( errorMessage );
 				} else {
 					warn( errorMessage );
@@ -9065,7 +8940,7 @@
 			}
 			// No match? Return an empty array
 			errorMessage = 'Could not find template for partial "' + name + '"';
-			if ( ractive.debug ) {
+			if ( ractive.isDebug() ) {
 				throw new Error( errorMessage );
 			} else {
 				warn( errorMessage );
@@ -9447,14 +9322,13 @@
 	}( createComponentBinding );
 
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
-	var propagateEvents = function( warn ) {
+	var propagateEvents = function( warn, errors ) {
 
 		// TODO how should event arguments be handled? e.g.
 		// <widget on-foo='bar:1,2,3'/>
 		// The event 'bar' will be fired on the parent instance
 		// when 'foo' fires on the child, but the 1,2,3 arguments
 		// will be lost
-		var errorMessage = 'Components currently only support simple events - you cannot include arguments. Sorry!';
 		return function( component, eventsDescriptor ) {
 			var eventName;
 			for ( eventName in eventsDescriptor ) {
@@ -9466,10 +9340,10 @@
 
 		function propagateEvent( childInstance, parentInstance, eventName, proxyEventName ) {
 			if ( typeof proxyEventName !== 'string' ) {
-				if ( parentInstance.debug ) {
-					throw new Error( errorMessage );
+				if ( parentInstance.isDebug() ) {
+					throw new Error( errors.noComponentEventArguments );
 				} else {
-					warn( errorMessage );
+					warn( errors.noComponentEventArguments );
 					return;
 				}
 			}
@@ -9479,7 +9353,7 @@
 				parentInstance.fire.apply( parentInstance, args );
 			} );
 		}
-	}( warn );
+	}( warn, errors );
 
 	/* virtualdom/items/Component/initialise/updateLiveQueries.js */
 	var updateLiveQueries = function( component ) {
@@ -10013,7 +9887,7 @@
 	var Ractive$toggle = function Ractive$toggle( keypath, callback ) {
 		var value;
 		if ( typeof keypath !== 'string' ) {
-			if ( this.debug ) {
+			if ( this.isDebug() ) {
 				throw new Error( 'Bad arguments' );
 			}
 			return;
@@ -10169,7 +10043,7 @@
 	}( arrayContentsMatch, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, isDebug, merge, observe, off, on, render, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
 
 		return {
 			add: add,
@@ -10182,6 +10056,7 @@
 			fire: fire,
 			get: get,
 			insert: insert,
+			isDebug: isDebug,
 			merge: merge,
 			observe: observe,
 			off: off,
@@ -10198,7 +10073,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$isDebug, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
 
 	/* utils/getGuid.js */
 	var getGuid = function() {
@@ -11245,7 +11120,7 @@
 				try {
 					this.value = this.getter.call( ractive );
 				} catch ( err ) {
-					if ( ractive.debug ) {
+					if ( ractive.isDebug() ) {
 						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
 					}
 					errored = true;
@@ -11534,9 +11409,7 @@
 				toPrototype: toPrototype,
 				toOptions: toOptions
 			},
-			registries = config.registries.map( function( r ) {
-				return r.name;
-			} );
+			registries = config.registries;
 		config.keys.forEach( function( key ) {
 			return blacklisted[ key ] = true;
 		} );
@@ -11564,10 +11437,9 @@
 			}
 			var options = {};
 			while ( Child ) {
-				registries.forEach( function( name ) {
-					addRegistry( Child, options, name );
+				registries.forEach( function( r ) {
+					addRegistry( r.useDefaults ? Child.prototype : Child, options, r.name );
 				} );
-				addRegistry( Child.prototype, options, 'computed' );
 				Object.keys( Child.prototype ).forEach( function( key ) {
 					if ( key === 'computed' ) {
 						return;
@@ -11678,6 +11550,10 @@
 			},
 			parse: {
 				value: parse
+			},
+			debug: {
+				value: false,
+				writable: true
 			},
 			// Namespaced constructors
 			Promise: {
