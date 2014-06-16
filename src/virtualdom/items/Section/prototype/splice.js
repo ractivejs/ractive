@@ -17,13 +17,18 @@ export default function ( spliceSummary ) {
 		return;
 	}
 
+	// Register with the runloop, so we can (un)render with the
+	// next batch of DOM changes
+	runloop.addView( section );
+
 	start = spliceSummary.rangeStart;
 	section.length += balance;
 
 	// If more items were removed from the array than added, we tear down
 	// the excess fragments and remove them...
 	if ( balance < 0 ) {
-		section.fragments.splice( start, -balance ).forEach( unrenderAndTeardown );
+		section.fragmentsToRemove = section.fragments.splice( start, -balance );
+		section.fragmentsToRemove.forEach( teardown );
 
 		// Reassign fragments after the ones we've just removed
 		rebindFragments( section, start, section.length, balance );
@@ -49,8 +54,7 @@ export default function ( spliceSummary ) {
 	renderNewFragments( section, insertStart, insertEnd );
 }
 
-function unrenderAndTeardown ( fragment ) {
-	fragment.unrender( true );
+function teardown ( fragment ) {
 	fragment.teardown();
 }
 
@@ -70,14 +74,12 @@ function renderNewFragments ( section, start, end ) {
 		fragmentOptions.index = i;
 
 		fragment = new Fragment( fragmentOptions );
-		section.unrenderedFragments.push( section.fragments[i] = fragment );
+		section.fragmentsToAdd.push( section.fragments[i] = fragment );
 	}
 
 	// Figure out where these new nodes need to be inserted
 	// TODO something feels off about this?
 	section.insertionPoint = ( section.fragments[ end ] ? section.fragments[ end ].firstNode() : section.parentFragment.findNextNode( section ) );
-
-	runloop.addView( section );
 }
 
 function rebindFragments ( section, start, end, by ) {

@@ -115,7 +115,7 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 				}
 
 				fragment = new Fragment( fragmentOptions );
-				section.unrenderedFragments.push( section.fragments[i] = fragment );
+				section.fragmentsToAdd.push( section.fragments[i] = fragment );
 			}
 		}
 	}
@@ -158,7 +158,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 
 			fragment = new Fragment( fragmentOptions );
 
-			section.unrenderedFragments.push( fragment );
+			section.fragmentsToAdd.push( fragment );
 			section.fragments.push( fragment );
 			hasKey[ id ] = true;
 		}
@@ -181,7 +181,7 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 
 		fragment = new Fragment( fragmentOptions );
 
-		section.unrenderedFragments.push( section.fragments[0] = fragment );
+		section.fragmentsToAdd.push( section.fragments[0] = fragment );
 		section.length = 1;
 
 		return true;
@@ -205,7 +205,7 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 			fragmentOptions.index = 0;
 
 			fragment = new Fragment( fragmentOptions );
-			section.unrenderedFragments.push( section.fragments[0] = fragment );
+			section.fragmentsToAdd.push( section.fragments[0] = fragment );
 			section.length = 1;
 
 			return true;

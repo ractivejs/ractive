@@ -48,8 +48,6 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	if ( ractive._parent && !ractive.isolated ) {
 		fragment = ractive.component.parentFragment;
 
-		console.group( 'looking for "%s" in', ref, fragment );
-
 		// Special case - index refs
 		if ( fragment.indexRefs && ( index = fragment.indexRefs[ ref ] ) !== undefined ) {
 			// create an index ref binding, so that it can be rebound letter if necessary
@@ -65,8 +63,6 @@ export default function resolveRef ( ractive, ref, fragment ) {
 			ractive.viewmodel.set( ref, ractive._parent.viewmodel.get( keypath ), true );
 			createComponentBinding( ractive.component, ractive._parent, keypath, ref );
 		}
-
-		console.groupEnd();
 	}
 
 	// If there's no context chain, and the instance is either a) isolated or
