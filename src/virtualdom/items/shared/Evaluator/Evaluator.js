@@ -89,10 +89,6 @@ Evaluator.prototype = {
 	teardown: function () {
 		this.explicitDependencies.concat( this.dependencies ).forEach( keypath => this.viewmodel.unregister( keypath, this, 'computed' ) );
 		this.root.viewmodel.evaluators[ this.keypath ] = null;
-	},
-
-	invalidate: function () {
-		this.root.viewmodel.mark( this.keypath );
 	}
 };
 
