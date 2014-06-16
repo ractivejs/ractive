@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-15 - commit 879b4654 
+	2014-06-16 - commit d4006a2c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10418,7 +10418,7 @@
 		Binding.prototype = {
 			setValue: function( value ) {
 				// Only *you* can prevent infinite loops
-				if ( this.updating || this.counterpart && this.counterpart.updating ) {
+				if ( this.updating ) {
 					return;
 				}
 				// Is this a smart array update? If so, it'll update on its
@@ -10430,8 +10430,11 @@
 					this.updating = true;
 					// TODO maybe the case that `value === this.value` - should that result
 					// in an update rather than a set?
-					runloop.addInstance( this.otherInstance );
-					this.otherInstance.viewmodel.set( this.otherKeypath, value );
+					// Only *you* can prevent infinite loops... again
+					if ( !( this.counterpart && this.counterpart.updating ) ) {
+						runloop.addInstance( this.otherInstance );
+						this.otherInstance.viewmodel.set( this.otherKeypath, value );
+					}
 					this.value = value;
 					// TODO will the counterpart update after this line, during
 					// the runloop end cycle? may be a problem...
