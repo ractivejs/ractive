@@ -27,8 +27,8 @@ export default function ( spliceSummary ) {
 	// If more items were removed from the array than added, we tear down
 	// the excess fragments and remove them...
 	if ( balance < 0 ) {
-		section.fragmentsToRemove = section.fragments.splice( start, -balance );
-		section.fragmentsToRemove.forEach( teardown );
+		section.fragmentsToUnrender = section.fragments.splice( start, -balance );
+		section.fragmentsToUnrender.forEach( teardown );
 
 		// Reassign fragments after the ones we've just removed
 		rebindFragments( section, start, section.length, balance );
@@ -50,40 +50,25 @@ export default function ( spliceSummary ) {
 	// Reassign existing fragments at the end of the array
 	rebindFragments( section, insertEnd, section.length, balance );
 
-	// Create the new ones
-	renderNewFragments( section, insertStart, insertEnd );
+	// Schedule new fragments to be created
+	section.fragmentsToCreate = range( insertStart, insertEnd );
 }
 
 function teardown ( fragment ) {
 	fragment.teardown();
 }
 
-function renderNewFragments ( section, start, end ) {
-	var fragmentOptions, fragment, i;
-
-	fragmentOptions = {
-		template: section.template.f,
-		root:       section.root,
-		pElement:   section.pElement,
-		owner:      section,
-		indexRef:   section.template.i
-	};
+function range ( start, end ) {
+	var array = [], i;
 
 	for ( i = start; i < end; i += 1 ) {
-		fragmentOptions.context = section.keypath + '.' + i;
-		fragmentOptions.index = i;
-
-		fragment = new Fragment( fragmentOptions );
-		section.fragmentsToAdd.push( section.fragments[i] = fragment );
+		array.push( i );
 	}
 
-	// Figure out where these new nodes need to be inserted
-	// TODO something feels off about this?
-	section.insertionPoint = ( section.fragments[ end ] ? section.fragments[ end ].firstNode() : section.parentFragment.findNextNode( section ) );
+	return array;
 }
 
 function rebindFragments ( section, start, end, by ) {
-
 	var i, fragment, indexRef, oldKeypath, newKeypath;
 
 	indexRef = section.template.i;
@@ -99,4 +84,3 @@ function rebindFragments ( section, start, end, by ) {
 		fragment.rebind( indexRef, i, oldKeypath, newKeypath );
 	}
 }
-

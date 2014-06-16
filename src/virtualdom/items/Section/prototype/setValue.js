@@ -12,11 +12,36 @@ circular.push( function () {
 });
 
 export default function Section$setValue ( value ) {
-	var wrapper;
+	var wrapper, fragmentOptions;
 
 	// with sections, we need to get the fake value if we have a wrapped object
 	if ( wrapper = this.root.viewmodel.wrapped[ this.keypath ] ) {
 		value = wrapper.get();
+	}
+
+	// If any fragments are awaiting creation after a splice,
+	// this is the place to do it
+	if ( this.fragmentsToCreate.length ) {
+		fragmentOptions = {
+			template: this.template.f,
+			root:     this.root,
+			pElement: this.pElement,
+			owner:    this,
+			indexRef: this.template.i
+		};
+
+		this.fragmentsToCreate.forEach( index => {
+			var fragment;
+
+			fragmentOptions.context = this.keypath + '.' + index;
+			fragmentOptions.index = index;
+
+			fragment = new Fragment( fragmentOptions );
+			this.fragmentsToRender.push( this.fragments[ index ] = fragment );
+		});
+
+		this.fragmentsToCreate.length = 0;
+		return;
 	}
 
 	if ( reevaluateSection( this, value ) ) {
@@ -62,30 +87,31 @@ function reevaluateSection ( section, value ) {
 		}
 	}
 
-	// otherwise we need to work out what sort of section we're dealing with
+	// Otherwise we need to work out what sort of section we're dealing with
+	section.ordered = !!isArray( value );
 
-	// if value is an array, or an object with an index reference, iterate through
-	if ( isArray( value ) ) {
+	// Ordered list section
+	if ( section.ordered ) {
 		return reevaluateListSection( section, value, fragmentOptions );
 	}
 
-
-	// if value is a hash...
+	// Unordered list, or context
 	if ( isObject( value ) || typeof value === 'function' ) {
+		// Index reference indicates section should be treated as a list
 		if ( section.template.i ) {
 			return reevaluateListObjectSection( section, value, fragmentOptions );
 		}
 
+		// Otherwise, object provides context for contents
 		return reevaluateContextSection( section, fragmentOptions );
 	}
 
-
-	// otherwise render if value is truthy, unrender if falsy
+	// Conditional section
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 
 function reevaluateListSection ( section, value, fragmentOptions ) {
-	var i, length, fragment, fragmentsToRemove;
+	var i, length, fragment, fragmentsToUnrender;
 
 	length = value.length;
 
@@ -96,8 +122,8 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 
 	// if the array is shorter than it was previously, remove items
 	if ( length < section.length ) {
-		section.fragmentsToRemove = section.fragments.splice( length, section.length - length );
-		section.fragmentsToRemove.forEach( teardown );
+		section.fragmentsToUnrender = section.fragments.splice( length, section.length - length );
+		section.fragmentsToUnrender.forEach( teardown );
 	}
 
 	// otherwise...
@@ -115,7 +141,7 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 				}
 
 				fragment = new Fragment( fragmentOptions );
-				section.fragmentsToAdd.push( section.fragments[i] = fragment );
+				section.fragmentsToRender.push( section.fragments[i] = fragment );
 			}
 		}
 	}
@@ -138,7 +164,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 			changed = true;
 
 			fragment.teardown();
-			section.fragmentsToRemove.push( fragment );
+			section.fragmentsToUnrender.push( fragment );
 			section.fragments.splice( i, 1 );
 
 			hasKey[ fragment.index ] = false;
@@ -159,7 +185,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 
 			fragment = new Fragment( fragmentOptions );
 
-			section.fragmentsToAdd.push( fragment );
+			section.fragmentsToRender.push( fragment );
 			section.fragments.push( fragment );
 			hasKey[ id ] = true;
 		}
@@ -182,7 +208,7 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 
 		fragment = new Fragment( fragmentOptions );
 
-		section.fragmentsToAdd.push( section.fragments[0] = fragment );
+		section.fragmentsToRender.push( section.fragments[0] = fragment );
 		section.length = 1;
 
 		return true;
@@ -206,23 +232,23 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 			fragmentOptions.index = 0;
 
 			fragment = new Fragment( fragmentOptions );
-			section.fragmentsToAdd.push( section.fragments[0] = fragment );
+			section.fragmentsToRender.push( section.fragments[0] = fragment );
 			section.length = 1;
 
 			return true;
 		}
 
 		if ( section.length > 1 ) {
-			section.fragmentsToRemove = section.fragments.splice( 1 );
-			section.fragmentsToRemove.forEach( teardown );
+			section.fragmentsToUnrender = section.fragments.splice( 1 );
+			section.fragmentsToUnrender.forEach( teardown );
 
 			return true;
 		}
 	}
 
 	else if ( section.length ) {
-		section.fragmentsToRemove = section.fragments.splice( 0 );
-		section.fragmentsToRemove.forEach( teardown );
+		section.fragmentsToUnrender = section.fragments.splice( 0 );
+		section.fragmentsToUnrender.forEach( teardown );
 		section.length = 0;
 
 		return true;
