@@ -1,6 +1,5 @@
 import Promise from 'utils/Promise';
 import runloop from 'global/runloop';
-import notifyDependants from 'shared/notifyDependants';
 import Fragment from 'virtualdom/Fragment';
 import config from 'config/config';
 
@@ -45,8 +44,7 @@ export default function Ractive$reset ( data, callback ) {
 	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
 
 	if ( rerender ) {
-		this.viewmodel.clearCache( '' );
-		notifyDependants( this, '' );
+		this.viewmodel.mark( '' );
 
 		this.unrender();
 
@@ -65,8 +63,7 @@ export default function Ractive$reset ( data, callback ) {
 		this.render( this.el, this.anchor ).then( fulfilPromise );
 	} else {
 		runloop.start( this, fulfilPromise );
-		this.viewmodel.clearCache( '' );
-		notifyDependants( this, '' );
+		this.viewmodel.mark( '' );
 		runloop.end();
 	}
 

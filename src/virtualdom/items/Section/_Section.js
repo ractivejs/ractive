@@ -25,7 +25,9 @@ var Section = function ( options ) {
 	this.pElement = options.pElement;
 
 	this.fragments = [];
-	this.unrenderedFragments = [];
+	this.fragmentsToCreate = [];
+	this.fragmentsToRender = [];
+	this.fragmentsToUnrender = [];
 
 	this.length = 0; // number of times this section is rendered
 

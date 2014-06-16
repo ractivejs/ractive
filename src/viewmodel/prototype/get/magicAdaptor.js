@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import createBranch from 'utils/createBranch';
 import isArray from 'utils/isArray';
-import notifyDependants from 'shared/notifyDependants';
 
 var magicAdaptor, MagicWrapper;
 
@@ -85,7 +84,8 @@ try {
 
 			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
-			this.ractive.viewmodel.clearCache( this.keypath );
+			runloop.addViewmodel( this.ractive.viewmodel );
+			this.ractive.viewmodel.mark( this.keypath );
 			this.updating = false;
 		},
 		set: function ( key, value ) {
@@ -198,9 +198,7 @@ function createAccessors ( originalWrapper, value, template ) {
 		wrapper.updating = true;
 		runloop.start( ractive );
 
-		ractive.viewmodel.changes.push( keypath );
-		ractive.viewmodel.clearCache( keypath );
-		notifyDependants( ractive, keypath );
+		ractive.viewmodel.mark( keypath );
 
 		runloop.end();
 		wrapper.updating = false;

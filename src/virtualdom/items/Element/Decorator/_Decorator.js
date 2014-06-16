@@ -57,7 +57,7 @@ Decorator = function ( element, template ) {
 	if ( !decorator.fn ) {
 		errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
 
-		if ( ractive.debug ) {
+		if ( ractive.isDebug() ) {
 			throw new Error( errorMessage );
 		} else {
 			warn( errorMessage );

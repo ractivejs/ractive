@@ -36,6 +36,7 @@ var SelectBinding = Binding.extend({
 	},
 
 	setValue: function ( value ) {
+		runloop.addViewmodel( this.root.viewmodel );
 		this.root.viewmodel.set( this.keypath, value );
 	},
 

@@ -78,8 +78,6 @@ function initialiseProperties ( ractive, options ) {
 	// like dynamic functions or original values
 	ractive._config = {};
 
-	ractive._patternObservers = [];
-
 	// two-way bindings
 	ractive._twowayBindings = create( null );
 

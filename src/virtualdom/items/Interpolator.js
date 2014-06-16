@@ -49,7 +49,7 @@ Interpolator.prototype = {
 			this.parentFragment.bubble();
 
 			if ( this.node ) {
-				runloop.viewUpdate( this );
+				runloop.addView( this );
 			}
 		}
 	},

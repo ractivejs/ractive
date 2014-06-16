@@ -1,6 +1,5 @@
 import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
-import notifyDependants from 'shared/notifyDependants';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
 	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
@@ -57,10 +56,12 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 		}
 	}
 
-	this.clearCache( keypath, dontTeardownWrapper );
-
 	if ( !silent ) {
-		this.changes.push( keypath );
-		notifyDependants( this.ractive, keypath );
+		this.mark( keypath );
+	} else {
+		// We're setting a parent of the original target keypath (i.e.
+		// creating a fresh branch) - we need to clear the cache, but
+		// not mark it as a change
+		this.clearCache( keypath );
 	}
 }

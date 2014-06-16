@@ -1,14 +1,11 @@
-export default function Viewmodel$register ( dependant ) {
-	var depsByKeypath, deps, keypath, priority, evaluator;
+export default function Viewmodel$register ( keypath, dependant, group = 'default' ) {
+	var depsByKeypath, deps, evaluator;
 
 	if ( dependant.isStatic ) {
 		return;
 	}
 
-	keypath = dependant.keypath;
-	priority = dependant.priority;
-
-	depsByKeypath = this.deps[ priority ] || ( this.deps[ priority ] = {} );
+	depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 	deps.push( dependant );
@@ -26,11 +23,11 @@ export default function Viewmodel$register ( dependant ) {
 		evaluator.dependants += 1;
 	}
 
-	updateDependantsMap( this, keypath );
+	updateDependantsMap( this, keypath, group );
 }
 
-function updateDependantsMap ( viewmodel, keypath ) {
-	var keys, parentKeypath, map;
+function updateDependantsMap ( viewmodel, keypath, group ) {
+	var keys, parentKeypath, map, parent;
 
 	// update dependants map
 	keys = keypath.split( '.' );
@@ -39,14 +36,15 @@ function updateDependantsMap ( viewmodel, keypath ) {
 		keys.pop();
 		parentKeypath = keys.join( '.' );
 
-		map = viewmodel.depsMap[ parentKeypath ] || ( viewmodel.depsMap[ parentKeypath ] = [] );
+		map = viewmodel.depsMap[ group ] || ( viewmodel.depsMap[ group ] = {} );
+		parent = map[ parentKeypath ] || ( map[ parentKeypath ] = [] );
 
-		if ( map[ keypath ] === undefined ) {
-			map[ keypath ] = 0;
-			map[ map.length ] = keypath;
+		if ( parent[ keypath ] === undefined ) {
+			parent[ keypath ] = 0;
+			parent.push( keypath );
 		}
 
-		map[ keypath ] += 1;
+		parent[ keypath ] += 1;
 
 		keypath = parentKeypath;
 	}

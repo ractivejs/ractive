@@ -13,7 +13,7 @@ export default function Triple$setValue ( value ) {
 		this.parentFragment.bubble();
 
 		if ( this.rendered ) {
-			runloop.viewUpdate( this );
+			runloop.addView( this );
 		}
 	}
 }

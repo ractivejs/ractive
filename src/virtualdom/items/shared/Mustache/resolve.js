@@ -10,7 +10,7 @@ export default function Mustache$resolve ( keypath ) {
 
 	// if we resolved previously, we need to unregister
 	if ( this.registered ) {
-		this.root.viewmodel.unregister( this );
+		this.root.viewmodel.unregister( this.keypath, this );
 
 		// need to rebind the element, if this belongs to one, for keypath changes
 		if ( this.parentFragment &&
@@ -30,8 +30,7 @@ export default function Mustache$resolve ( keypath ) {
 	}
 
 	this.keypath = keypath;
-
-	this.root.viewmodel.register( this );
+	this.root.viewmodel.register( keypath, this );
 
 	this.setValue( this.root.viewmodel.get( keypath ) );
 }

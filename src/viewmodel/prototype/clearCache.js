@@ -12,7 +12,7 @@ export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
 	}
 
 	if ( computation = this.computations[ keypath ] ) {
-		computation.compute();
+		computation.compute(); // TODO this can't be right?
 	}
 
 	this.cache[ keypath ] = undefined;

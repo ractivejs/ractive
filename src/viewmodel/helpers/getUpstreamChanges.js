@@ -10,9 +10,8 @@ export default function getUpstreamChanges ( changes ) {
 			keys.pop();
 			upstreamKeypath = keys.join( '.' );
 
-			if ( upstreamChanges[ upstreamKeypath ] !== true ) {
+			if ( upstreamChanges.indexOf( upstreamKeypath ) === -1 ) {
 				upstreamChanges.push( upstreamKeypath );
-				upstreamChanges[ upstreamKeypath ] = true;
 			}
 		}
 	}

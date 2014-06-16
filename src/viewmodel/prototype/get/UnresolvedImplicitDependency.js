@@ -1,6 +1,5 @@
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
-import notifyDependants from 'shared/notifyDependants';
 
 var empty = {};
 
@@ -19,7 +18,7 @@ var UnresolvedImplicitDependency = function ( viewmodel, keypath ) {
 
 UnresolvedImplicitDependency.prototype = {
 	resolve: function () {
-		notifyDependants( this.viewmodel.ractive, this.ref );
+		this.viewmodel.mark( this.ref );
 
 		this.viewmodel.unresolvedImplicitDependencies[ this.ref ] = false;
 		removeFromArray( this.viewmodel.unresolvedImplicitDependencies, this );
