@@ -1,6 +1,10 @@
 export default function Viewmodel$register ( dependant ) {
 	var depsByKeypath, deps, keypath, priority, evaluator;
 
+	if ( dependant.isStatic ) {
+		return;
+	}
+
 	keypath = dependant.keypath;
 	priority = dependant.priority;
 
