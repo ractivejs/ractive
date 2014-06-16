@@ -23,12 +23,12 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 		var keypath, index;
 
 		if ( !arg ) {
-			return () => undefined;
+			return void 0;
 		}
 
 		if ( arg.indexRef ) {
 			index = arg.value;
-			return () => index;
+			return index;
 		}
 
 		keypath = arg.keypath;
@@ -147,6 +147,6 @@ function wrap ( fn, ractive ) {
 	return fn.__ractive_nowrap;
 }
 
-function call ( fn ) {
-	return fn();
+function call ( arg ) {
+	return typeof arg === 'function' ? arg() : arg;
 }
