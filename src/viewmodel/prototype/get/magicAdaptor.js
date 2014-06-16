@@ -84,7 +84,8 @@ try {
 
 			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
-			this.ractive.viewmodel.clearCache( this.keypath );
+			runloop.addViewmodel( this.ractive.viewmodel );
+			this.ractive.viewmodel.mark( this.keypath );
 			this.updating = false;
 		},
 		set: function ( key, value ) {
