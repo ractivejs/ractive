@@ -28,6 +28,8 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 		owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
 	});
 
+	ractive.viewmodel.applyChanges();
+
 	// render automatically ( if `el` is specified )
 	tryRender( ractive );
 }
