@@ -6,7 +6,7 @@ import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionReso
 
 export default function Mustache$init ( mustache, options ) {
 
-	var ref, indexRefs, index, parentFragment, template;
+	var ref, keypath, indexRefs, index, parentFragment, template;
 
 	parentFragment = options.parentFragment;
 	template = options.template;
@@ -21,22 +21,6 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.type = options.template.t;
 
-	function resolve ( keypath ) {
-		mustache.resolve( keypath );
-	}
-
-	function resolveWithRef ( ref ) {
-		var keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
-
-		if ( keypath !== undefined ) {
-			resolve( keypath );
-		} else {
-			mustache.ref = ref;
-			runloop.addUnresolved( mustache );
-		}
-	}
-
-
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( ref = template.r ) {
@@ -47,8 +31,13 @@ export default function Mustache$init ( mustache, options ) {
 			mustache.setValue( index );
 		}
 
+		else if ( keypath = resolveRef( mustache.root, ref, mustache.parentFragment ) ) {
+			resolve( keypath );
+		}
+
 		else {
-			resolveWithRef( ref );
+			mustache.ref = ref;
+			runloop.addUnresolved( mustache );
 		}
 	}
 
@@ -58,11 +47,15 @@ export default function Mustache$init ( mustache, options ) {
 	}
 
 	if ( options.template.rx ) {
-		mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolveWithRef );
+		mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolve );
 	}
 
 	// Special case - inverted sections
 	if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
+	}
+
+	function resolve ( keypath ) {
+		mustache.resolve( keypath );
 	}
 }

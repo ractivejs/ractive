@@ -5,94 +5,44 @@ import Unresolved from 'shared/Unresolved';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
-	var resolver = this, ractive, parentFragment, keypath, dynamic, members;
+	var resolver = this, ref, parentFragment, keypath;
 
-	ractive = mustache.root;
 	parentFragment = mustache.parentFragment;
 
-	this.ref = template.r;
 	this.root = mustache.root;
 	this.mustache = mustache;
 	this.priority = mustache.priority;
 
 	this.callback = callback;
 
-
-	this.pending = 0;
 	this.unresolved = [];
-	members = this.members = [];
+	this.members = [];
 	this.indexRefMembers = [];
 	this.keypathObservers = [];
-	this.expressionResolvers = [];
 
+	// Find base keypath
+	resolveBase( this, mustache.root, template.r, parentFragment );
+
+	// Find values for members, or mark them as unresolved
 	template.m.forEach( function ( member, i ) {
-		var ref, indexRefs, index, keypathObserver, unresolved, expressionResolver;
+		var ref;
 
 		if ( typeof member === 'string' ) {
 			resolver.members[i] = member;
-			return;
 		}
 
 		// simple reference?
-		if ( member.t === types.REFERENCE ) {
+		else if ( member.t === types.REFERENCE ) {
 			ref = member.n;
-
-			indexRefs = parentFragment.indexRefs;
-			if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
-				members[i] = index;
-
-				// make a note of it, in case of rebindings
-				resolver.indexRefMembers.push({
-					ref: ref,
-					index: i
-				});
-
-				return;
-			}
-
-			dynamic = true;
-
-			// Can we resolve the reference immediately?
-			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-				keypathObserver = new KeypathObserver( ractive, keypath, mustache.priority, resolver, i );
-				resolver.keypathObservers.push( keypathObserver );
-
-				return;
-			}
-
-			// Couldn't resolve yet
-			members[i] = undefined;
-			resolver.pending += 1;
-
-			unresolved = new Unresolved( ractive, ref, parentFragment, function ( keypath ) {
-				resolver.resolve( i, keypath );
-				removeFromArray( resolver.unresolved, unresolved );
-			});
-
-			resolver.unresolved.push( unresolved );
-
-			return null;
+			handleIndexReference( resolver, ref, i, parentFragment.indexRefs ) ||
+			handleReference( resolver, ref, i, parentFragment );
 		}
 
 		// Otherwise we have an expression in its own right
-		dynamic = true;
-
-		resolver.pending += 1;
-		expressionResolver = new ExpressionResolver( resolver, parentFragment, member, function ( keypath ) {
-			resolver.resolve( i, keypath );
-			removeFromArray( resolver.unresolved, expressionResolver );
-		});
-		resolver.unresolved.push( expressionResolver );
+		else {
+			handleExpression( resolver, member, i, parentFragment );
+		}
 	});
-
-	// Some keypath expressions (e.g. foo["bar"], or foo[i] where `i` is an
-	// index reference) won't change. So we don't need to register any watchers
-	if ( !dynamic ) {
-		keypath = this.getKeypath();
-		callback( keypath );
-
-		return;
-	}
 
 	this.ready = true;
 	this.bubble(); // trigger initial resolution if possible
@@ -100,11 +50,11 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 
 ReferenceExpressionResolver.prototype = {
 	getKeypath: function () {
-		return this.ref + '.' + this.members.join( '.' );
+		return this.base + '.' + this.members.join( '.' );
 	},
 
 	bubble: function () {
-		if ( !this.ready || this.pending ) {
+		if ( !this.ready || this.unresolved.length ) {
 			return;
 		}
 		this.callback( this.getKeypath() );
@@ -112,25 +62,29 @@ ReferenceExpressionResolver.prototype = {
 
 	resolve: function ( index, keypath ) {
 		var keypathObserver = new KeypathObserver( this.root, keypath, this.mustache.priority, this, index );
-
 		this.keypathObservers.push( keypathObserver );
 
-		// when all references have been resolved, we can flag the entire expression
-		// as having been resolved
-		this.resolved = !( --this.pending );
 		this.bubble();
 	},
 
 	teardown: function () {
-		var unresolved;
+		var thing;
 
-		while ( unresolved = this.unresolved.pop() ) {
-			unresolved.teardown();
+		while ( thing = this.unresolved.pop() ) {
+			thing.teardown();
+		}
+
+		while ( thing = this.keypathObservers.pop() ) {
+			thing.teardown();
 		}
 	},
 
 	rebind: function ( indexRef, newIndex ) {
 		var changed, i, member;
+
+		if ( !indexRef || !this.indexRefMembers.length ) {
+			return;
+		}
 
 		i = this.indexRefMembers.length;
 		while ( i-- ) {
@@ -144,6 +98,80 @@ ReferenceExpressionResolver.prototype = {
 		if ( changed ) {
 			this.bubble();
 		}
+	}
+};
+
+function handleIndexReference ( resolver, ref, i, indexRefs ) {
+	var index;
+
+	if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
+		resolver.members[i] = index;
+
+		// make a note of it, in case of rebindings
+		resolver.indexRefMembers.push({
+			ref: ref,
+			index: i
+		});
+
+		return true;
+	}
+}
+
+function handleReference ( resolver, ref, i, parentFragment ) {
+	var ractive, keypath, keypathObserver, unresolved;
+
+	ractive = resolver.root;
+
+	// Can we resolve the reference immediately?
+	if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
+		keypathObserver = new KeypathObserver( ractive, keypath, parentFragment.priority, resolver, i );
+		resolver.keypathObservers.push( keypathObserver );
+	}
+
+	else {
+		// Couldn't resolve yet
+		resolver.members[i] = undefined;
+
+		unresolved = new Unresolved( ractive, ref, parentFragment, function ( keypath ) {
+			removeFromArray( resolver.unresolved, unresolved );
+			resolver.resolve( i, keypath );
+		});
+
+		resolver.unresolved.push( unresolved );
+	}
+}
+
+function handleExpression ( resolver, member, i, parentFragment ) {
+	var expressionResolver, resolved, wasUnresolved;
+
+	expressionResolver = new ExpressionResolver( resolver, parentFragment, member, function ( keypath ) {
+		if ( wasUnresolved ) {
+			removeFromArray( resolver.unresolved, expressionResolver );
+		}
+
+		resolved = true;
+		resolver.resolve( i, keypath );
+	});
+
+	if ( !resolved ) {
+		wasUnresolved = true;
+		resolver.unresolved.push( expressionResolver );
+	}
+}
+
+function resolveBase ( resolver, ractive, ref, parentFragment ) {
+	var keypath, unresolved;
+
+	if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
+		resolver.base = keypath;
+	} else {
+		unresolved = new Unresolved( ractive, ref, parentFragment, function ( keypath ) {
+			resolver.base = keypath;
+			removeFromArray( resolver.unresolved, unresolved );
+			resolver.bubble();
+		});
+
+		resolver.unresolved.push( unresolved );
 	}
 };
 
