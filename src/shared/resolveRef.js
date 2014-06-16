@@ -50,8 +50,9 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 		// Special case - index refs
 		if ( fragment.indexRefs && ( index = fragment.indexRefs[ ref ] ) !== undefined ) {
-			// create an index ref binding, so that it can be rebound letter if necessary
-			ractive.component.indexRefBindings[ keypath ] = keypath;
+			// Create an index ref binding, so that it can be rebound letter if necessary.
+			// It doesn't have an alias since it's an implicit binding, hence `...[ ref ] = ref`
+			ractive.component.indexRefBindings[ ref ] = ref;
 			ractive.viewmodel.set( ref, index, true );
 			return;
 		}
