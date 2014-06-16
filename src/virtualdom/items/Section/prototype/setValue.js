@@ -96,8 +96,8 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 
 	// if the array is shorter than it was previously, remove items
 	if ( length < section.length ) {
-		fragmentsToRemove = section.fragments.splice( length, section.length - length );
-		fragmentsToRemove.forEach( unrenderAndTeardown );
+		section.fragmentsToRemove = section.fragments.splice( length, section.length - length );
+		section.fragmentsToRemove.forEach( teardown );
 	}
 
 	// otherwise...
@@ -137,7 +137,8 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 		if ( !( fragment.index in value ) ) {
 			changed = true;
 
-			unrenderAndTeardown( section.fragments[i] );
+			fragment.teardown();
+			section.fragmentsToRemove.push( fragment );
 			section.fragments.splice( i, 1 );
 
 			hasKey[ fragment.index ] = false;
@@ -212,27 +213,22 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 		}
 
 		if ( section.length > 1 ) {
-			section.fragments.splice( 1 ).forEach( unrenderAndTeardown );
+			section.fragmentsToRemove = section.fragments.splice( 1 );
+			section.fragmentsToRemove.forEach( teardown );
 
 			return true;
 		}
 	}
 
 	else if ( section.length ) {
-		section.fragments.splice( 0 ).forEach( unrenderAndTeardown );
+		section.fragmentsToRemove = section.fragments.splice( 0 );
+		section.fragmentsToRemove.forEach( teardown );
 		section.length = 0;
 
 		return true;
 	}
 }
 
-function unrenderAndTeardown ( fragment ) {
-	// TODO in future, we shouldn't need to do this check as
-	// changes will fully propagate before the virtual DOM
-	// is updated
-	if ( fragment.rendered ) {
-		fragment.unrender( true );
-	}
-
+function teardown ( fragment ) {
 	fragment.teardown();
 }
