@@ -23,7 +23,7 @@ export default function Section$setValue ( value ) {
 		this.bubble();
 
 		if ( this.rendered ) {
-			runloop.viewUpdate( this );
+			runloop.addView( this );
 		}
 	}
 

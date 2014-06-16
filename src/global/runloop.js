@@ -14,7 +14,7 @@ var runloop,
 
 	unresolved = [],
 
-	viewUpdates = [],
+	views = [],
 	postViewUpdateTasks = [],
 	postModelUpdateTasks = [],
 
@@ -33,6 +33,7 @@ runloop = {
 
 	end: function () {
 		if ( flushing ) {
+			// TODO is this still necessary? probably not
 			attemptKeypathResolution();
 			return;
 		}
@@ -58,9 +59,8 @@ runloop = {
 		transitionManager.push( transition );
 	},
 
-	viewUpdate: function ( thing ) {
-		dirty = true;
-		viewUpdates.push( thing );
+	addView: function ( view ) {
+		views.push( view );
 	},
 
 	lockAttribute: function ( attribute ) {
@@ -129,7 +129,7 @@ function flushChanges () {
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	while ( thing = viewUpdates.pop() ) {
+	while ( thing = views.pop() ) {
 		thing.update();
 	}
 
