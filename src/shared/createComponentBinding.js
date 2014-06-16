@@ -1,6 +1,10 @@
-import runloop from 'global/runloop';
+import circular from 'circular';
 import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
+
+var runloop;
+
+circular.push( () => runloop = circular.runloop );
 
 var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
 	this.root = ractive;

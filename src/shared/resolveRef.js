@@ -1,6 +1,7 @@
 import normaliseKeypath from 'utils/normaliseKeypath';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import getInnerContext from 'shared/getInnerContext';
+import createComponentBinding from 'shared/createComponentBinding';
 
 var ancestorErrorMessage, getOptions;
 
@@ -9,7 +10,7 @@ ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 getOptions = { evaluateWrapped: true };
 
 export default function resolveRef ( ractive, ref, fragment ) {
-	var context, key, parentValue, hasContextChain;
+	var context, key, index, keypath, parentValue, hasContextChain;
 
 	ref = normaliseKeypath( ref );
 
@@ -37,23 +38,40 @@ export default function resolveRef ( ractive, ref, fragment ) {
 		}
 	} while ( fragment = fragment.parent );
 
-
-	// Still no keypath?
-
-	// If there's no context chain, and the instance is either a) isolated or
-	// b) an orphan, then we know that the keypath is identical to the reference
-	if ( !hasContextChain && ( !ractive._parent || ractive.isolated ) ) {
-		return ref;
-	}
-
-	// We need both of these - the first enables components to treat data contexts
-	// like lexical scopes in JavaScript functions...
+	// Root property?
 	if ( hasOwnProperty.call( ractive.data, key ) ) {
 		return ref;
 	}
 
-	// while the second deals with references like `foo.bar`
-	else if ( ractive.viewmodel.get( ref ) !== undefined ) {
+	// If this is an inline component, and it's not isolated, we
+	// can try going up the scope chain
+	if ( ractive._parent && !ractive.isolated ) {
+		fragment = ractive.component.parentFragment;
+
+		// Special case - index refs
+		if ( fragment.indexRefs && ( index = fragment.indexRefs[ keypath ] ) !== undefined ) {
+			// create an index ref binding, so that it can be rebound letter if necessary
+			ractive.component.indexRefBindings[ keypath ] = keypath;
+			console.warn( 'TODO' );
+			return;
+		}
+
+		keypath = resolveRef( ractive._parent, ref, fragment );
+
+		if ( keypath ) {
+			// Need to create an inter-component binding
+			ractive.viewmodel.set( ref, ractive._parent.viewmodel.get( keypath ), true );
+			createComponentBinding( ractive.component, ractive._parent, keypath, ref );
+		}
+	}
+
+	// If there's no context chain, and the instance is either a) isolated or
+	// b) an orphan, then we know that the keypath is identical to the reference
+	if ( !hasContextChain ) {
+		return ref;
+	}
+
+	if ( ractive.viewmodel.get( ref ) !== undefined ) {
 		return ref;
 	}
 }
