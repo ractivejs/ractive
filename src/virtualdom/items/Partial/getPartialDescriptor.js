@@ -29,7 +29,7 @@ export default function getPartialDescriptor ( ractive, name ) {
 	// No match? Return an empty array
 	errorMessage = 'Could not find template for partial "' + name + '"';
 
-	if ( ractive.debug ) {
+	if ( ractive.isDebug() ) {
 		throw new Error( errorMessage );
 	} else {
 		warn( errorMessage );

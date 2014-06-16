@@ -100,7 +100,7 @@ PatternObserver.prototype = {
 			try {
 				this.callback.apply( this.context, args );
 			} catch ( err ) {
-				if ( this.debug || this.root.debug ) {
+				if ( this.debug || this.root.isDebug() ) {
 					throw err;
 				}
 			}

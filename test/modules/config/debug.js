@@ -21,7 +21,7 @@ define([
 
 			ractive = new Ractive();
 
-			t.ok( ractive.debug );
+			t.ok( ractive.isDebug() );
 
 			Ractive.debug = old;
 
@@ -34,7 +34,7 @@ define([
 			Component.debug = true;
 			ractive = new Component();
 
-			t.ok( ractive.debug );
+			t.ok( ractive.isDebug() );
 
 		});
 
@@ -45,7 +45,7 @@ define([
 			Ractive.debug = true;
 			ractive = new Component();
 
-			t.ok( ractive.debug );
+			t.ok( ractive.isDebug() );
 
 			Ractive.debug = old;
 
@@ -58,7 +58,7 @@ define([
 			Ractive.defaults.debug = true;
 			ractive = new Component();
 
-			t.ok( ractive.debug );
+			t.ok( ractive.isDebug() );
 
 			Ractive.defaults.debug = old;
 

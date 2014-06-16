@@ -17,7 +17,7 @@ var Ractive,
 		toPrototype: toPrototype,
 		toOptions: toOptions
 	},
-	registries = config.registries.map( r => r.name );
+	registries = config.registries;
 
 config.keys.forEach( key => blacklisted[ key ] = true )
 
@@ -54,10 +54,11 @@ function toOptions ( Child ) {
 
 	while ( Child ) {
 
-		registries.forEach( name => {
-			addRegistry( Child, options, name );
+		registries.forEach( r => {
+			addRegistry(
+				r.useDefaults ? Child.prototype : Child,
+				options, r.name );
 		});
-		addRegistry( Child.prototype, options, 'computed' );
 
 		Object.keys( Child.prototype ).forEach( key => {
 

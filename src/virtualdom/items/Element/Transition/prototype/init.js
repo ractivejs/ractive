@@ -51,7 +51,7 @@ export default function Transition$init ( element, template ) {
 	if ( !t._fn ) {
 		errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
 
-		if ( ractive.debug ) {
+		if ( ractive.isDebug() ) {
 			throw new Error( errorMessage );
 		} else {
 			warn( errorMessage );

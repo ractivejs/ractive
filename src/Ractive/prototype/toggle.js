@@ -2,7 +2,7 @@ export default function Ractive$toggle ( keypath, callback ) {
 	var value;
 
 	if ( typeof keypath !== 'string' ) {
-		if ( this.debug ) {
+		if ( this.isDebug() ) {
 			throw new Error( 'Bad arguments' );
 		}
 		return;

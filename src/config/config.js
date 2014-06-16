@@ -1,8 +1,6 @@
 import css from 'config/options/css/css';
 import data from 'config/options/data';
-import debug from 'config/options/debug';
 import defaults from 'config/defaults/options';
-import computed from 'config/options/computed';
 import template from 'config/options/template/template';
 
 import parseOptions from 'config/options/groups/parseOptions';
@@ -16,26 +14,18 @@ var custom, options, config;
 
 custom = {
 	data: data,
-	debug: debug,
-	computed: computed,
 	template: template,
 	css: css
 };
-
-
-// fill in basicConfig for all default options not covered by
-// registries, parse options, and any custom configuration
 
 options = Object.keys( defaults )
 	.filter( key => !registries[ key ] && !custom[ key ] && !parseOptions[ key ] );
 
 // this defines the order:
 config = [].concat(
-	custom.debug,
 	custom.data,
 	parseOptions,
 	options,
-	custom.computed,
 	registries,
 	custom.template,
 	custom.css
@@ -68,11 +58,6 @@ config.init = function ( Parent, ractive, options ) {
 	if ( ractive._config ) {
 		ractive._config.options = options;
 	}
-
-	// Breaking change
-	// config.keys.forEach( key => {
-	// 	options[ key ] = ractive[ key ];
-	// });
 };
 
 function configure ( method, Parent, instance, options ) {
@@ -80,7 +65,6 @@ function configure ( method, Parent, instance, options ) {
 	deprecate( options );
 
 	customConfig( method, 'data', Parent, instance, options );
-	customConfig( method, 'debug', Parent, instance, options );
 
 	config.parseOptions.forEach( key => {
 
@@ -98,9 +82,6 @@ function configure ( method, Parent, instance, options ) {
 				: value;
 		}
 	}
-
-	// customConfig( method, 'complete', Parent, instance, options );
-	customConfig( method, 'computed', Parent, instance, options );
 
 	config.registries.forEach( registry => {
 		registry[ method ]( Parent, instance, options );

@@ -61,7 +61,7 @@ Evaluator.prototype = {
 		try {
 			value = this.fn.apply( null, this.values );
 		} catch ( err ) {
-			if ( this.root.debug ) {
+			if ( this.root.isDebug() ) {
 				warn( 'Error evaluating "' + this.uniqueString + '": ' + err.message || err );
 			}
 

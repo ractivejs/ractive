@@ -25,6 +25,7 @@ properties = {
 	// static props and methods:
 	extend:        { value: extend },
 	parse:         { value: parse },
+	debug:         { value: false, writable: true },
 
 	// Namespaced constructors
 	Promise:       { value: Promise },
