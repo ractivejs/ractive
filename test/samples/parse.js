@@ -20,6 +20,16 @@ var parseTests = [
 		parsed: [{t:3,r:"mustache"}]
 	},
 	{
+		name: "Static Interpolator",
+		template: "[[mustache]]",
+		parsed: [{t:2,r:"mustache",s:true}]
+	},
+	{
+		name: "Static Triple",
+		template: "[[[mustache]]]",
+		parsed: [{t:3,r:"mustache",s:true}]
+	},
+	{
 		name: "Empty section",
 		template: "{{#mustache}}{{/mustache}}",
 		parsed: [{t:4,r:"mustache"}]

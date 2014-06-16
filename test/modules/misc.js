@@ -146,14 +146,14 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'Passing in alternative delimiters', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '[[ greeting ]], [[recipient]]! [[[ triple ]]]',
+				template: '/~ greeting ~/, /~recipient~/! /~~ triple ~~/',
 				data: {
 					greeting: 'Hello',
 					recipient: 'world',
 					triple: '<p>here is some HTML</p>'
 				},
-				delimiters: [ '[[', ']]' ],
-				tripleDelimiters: [ '[[[', ']]]' ]
+				delimiters: [ '/~', '~/' ],
+				tripleDelimiters: [ '/~~', '~~/' ]
 			});
 
 			t.htmlEqual( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
@@ -162,7 +162,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'Using alternative delimiters in template', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{=[[ ]]=}} {{{=[[[ ]]]=}}} [[ greeting ]], [[recipient]]! [[[ triple ]]]',
+				template: '{{=/~ ~/=}} {{{=/~~ ~~/=}}} /~ greeting ~/, /~recipient~/! /~~ triple ~~/',
 				data: {
 					greeting: 'Hello',
 					recipient: 'world',
@@ -275,12 +275,12 @@ define([ 'ractive' ], function ( Ractive ) {
 			oldDelimiters = Ractive.defaults.delimiters;
 			oldTripledDelimiters = Ractive.defaults.tripleDelimiters;
 
-			Ractive.defaults.delimiters = [ '[[', ']]' ];
-			Ractive.defaults.tripleDelimiters = [ '[[[', ']]]' ];
+			Ractive.defaults.delimiters = [ '/~', '~/' ];
+			Ractive.defaults.tripleDelimiters = [ '/~~', '~~/' ];
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '[[foo]] [[[bar]]]',
+				template: '/~foo~/ /~~bar~~/',
 				data: { foo: 'text', bar: '<strong>html</strong>' }
 			});
 
@@ -890,11 +890,11 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'Custom delimiters apply to partials (#601)', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '[[#items:i]][[>foo]][[/items]]',
-				partials: { foo: '[[a]]' },
+				template: '([#items:i])([>foo])([/items])',
+				partials: { foo: '([a])' },
 				data: { items: [{a:0},{a:1}] },
-				delimiters: [ '[[', ']]' ],
-				tripleDelimiters: [ '[[[', ']]]' ]
+				delimiters: [ '([', '])' ],
+				tripleDelimiters: [ '([[', ']])' ]
 			});
 
 			t.htmlEqual( fixture.innerHTML, '01')

@@ -16,15 +16,22 @@ handlebarsTypes = {
 
 legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
 
-export default function ( parser, isTriple ) {
-	var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiter, referenceExpression;
+export default function ( parser, delimiterType ) {
+	var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiters, referenceExpression;
 
 	start = parser.pos;
 
 	mustache = {};
 
+	delimiters = parser[ delimiterType.delimiters ];
+
+
+	if ( delimiterType.isStatic ) {
+		mustache.s = true;
+	}
+
 	// Determine mustache type
-	if ( isTriple ) {
+	if ( delimiterType.isTriple ) {
 		mustache.t = types.TRIPLE;
 	} else {
 		// We need to test for expressions before we test for mustache type, because
@@ -35,9 +42,9 @@ export default function ( parser, isTriple ) {
 			// Was it actually an expression, or a comment block in disguise?
 			parser.allowWhitespace();
 
-			if ( parser.matchString( parser.delimiters[1] ) ) {
+			if ( parser.matchString( delimiters[1] ) ) {
 				// expression
-				parser.pos -= parser.delimiters[1].length;
+				parser.pos -= delimiters[1].length;
 			} else {
 				// comment block
 				parser.pos = start;
@@ -66,7 +73,7 @@ export default function ( parser, isTriple ) {
 			// if it's a comment or a section closer, allow any contents except '}}'
 			else if ( type === types.COMMENT || type === types.CLOSING ) {
 				remaining = parser.remaining();
-				index = remaining.indexOf( parser.delimiters[1] );
+				index = remaining.indexOf( delimiters[1] );
 
 				if ( index !== -1 ) {
 					mustache.r = remaining.substr( 0, index );
@@ -90,14 +97,13 @@ export default function ( parser, isTriple ) {
 		// reference. So we need to check that the mustache delimiters
 		// appear next, unless there's an index reference (i.e. a colon)
 		remaining = parser.remaining();
-		delimiter = isTriple ? parser.tripleDelimiters[1] : parser.delimiters[1];
 
-		if ( ( remaining.substr( 0, delimiter.length ) !== delimiter ) && ( remaining.charAt( 0 ) !== ':' ) ) {
+		if ( ( remaining.substr( 0, delimiters[1].length ) !== delimiters[1] ) && ( remaining.charAt( 0 ) !== ':' ) ) {
 			pos = parser.pos;
 			parser.pos = start;
 
 			remaining = parser.remaining();
-			index = remaining.indexOf( parser.delimiters[1] );
+			index = remaining.indexOf( delimiters[1] );
 
 			if ( index !== -1 ) {
 				mustache.r = remaining.substr( 0, index ).trim();

@@ -1,5 +1,6 @@
 import types from 'config/types';
 import delimiterChange from 'parse/converters/mustache/delimiterChange';
+import delimiterTypes from 'parse/converters/mustache/delimiterTypes';
 import mustacheContent from 'parse/converters/mustache/content';
 
 var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true },
@@ -8,21 +9,30 @@ var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true },
 export default getMustache;
 
 function getMustache ( parser ) {
-	// if the triple delimiter (e.g. '{{{') is longer than the regular mustache
-	// delimiter (e.g. '{{') then we need to try and find a triple first. Otherwise
-	// we will get a false positive if the mustache delimiter is a substring of the
-	// triple delimiter, as in the default case
-	var seekTripleFirst = ( parser.tripleDelimiters[0].length > parser.delimiters[0].length );
-	return getMustacheOrTriple( parser, seekTripleFirst ) || getMustacheOrTriple( parser, !seekTripleFirst );
+	var types;
+
+	types = delimiterTypes.slice().sort( function compare (a, b) {
+		// Sort in order of descending opening delimiter length (longer first),
+		// to protect against opening delimiters being substrings of each other
+		return parser[ b.delimiters ][ 0 ].length - parser[ a.delimiters ][ 0 ].length;
+	} );
+
+	return ( function r ( type ) {
+		if ( !type ) {
+			return null;
+		} else {
+			return getMustacheOfType( parser, type ) || r( types.shift() );
+		}
+	} ( types.shift() ) );
 }
 
-function getMustacheOrTriple ( parser, seekTriple ) {
+function getMustacheOfType ( parser, delimiterType ) {
 	var start, startPos, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
 
 	start = parser.pos;
 	startPos = parser.getLinePos();
 
-	delimiters = ( seekTriple ? parser.tripleDelimiters : parser.delimiters );
+	delimiters = parser[ delimiterType.delimiters ];
 
 	if ( !parser.matchString( delimiters[0] ) ) {
 		return null;
@@ -36,13 +46,13 @@ function getMustacheOrTriple ( parser, seekTriple ) {
 		}
 
 		// ...then make the switch
-		parser[ seekTriple ? 'tripleDelimiters' : 'delimiters' ] = mustache;
+		parser[ delimiterType.delimiters ] = mustache;
 		return delimiterChangeToken;
 	}
 
 	parser.allowWhitespace();
 
-	mustache = mustacheContent( parser, seekTriple );
+	mustache = mustacheContent( parser, delimiterType );
 
 	if ( mustache === null ) {
 		parser.pos = start;
@@ -65,7 +75,7 @@ function getMustacheOrTriple ( parser, seekTriple ) {
 		children = [];
 		currentChildren = children;
 
-		if (parser.options.strict || parser.handlebars) {
+		if ( parser.options.strict || parser.handlebars ) {
 			switch ( mustache.n ) {
 				case types.SECTION_IF:
 					expectedClose = 'if';

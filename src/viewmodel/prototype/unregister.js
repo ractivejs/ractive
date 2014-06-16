@@ -1,6 +1,10 @@
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
 	var deps, index, evaluator;
 
+	if ( dependant.isStatic ) {
+		return;
+	}
+
 	deps = this.deps[ group ][ keypath ];
 	index = deps.indexOf( dependant );
 
