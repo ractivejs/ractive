@@ -38,7 +38,7 @@ Computation.prototype = {
 		try {
 			this.value = this.getter.call( ractive );
 		} catch ( err ) {
-			if ( ractive.debug ) {
+			if ( ractive.isDebug() ) {
 				warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
 			}
 

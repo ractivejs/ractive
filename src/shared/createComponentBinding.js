@@ -23,6 +23,7 @@ Binding.prototype = {
 	setValue: function ( value ) {
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+			this.value = value;
 			return;
 		}
 

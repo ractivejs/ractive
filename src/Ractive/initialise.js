@@ -9,15 +9,16 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	initialiseProperties( ractive, options );
 
-
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually
 	ractive.viewmodel = new Viewmodel( ractive );
 
-
 	// hacky circular problem until we get this sorted out
+	// if viewmodel immediately processes computed properties,
+	// they may call ractive.get, which calls ractive.viewmodel,
+	// which hasn't been set till line above finishes.
 	ractive.viewmodel.compute();
 
 	// Render our *root fragment*

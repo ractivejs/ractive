@@ -1,9 +1,10 @@
 import optionGroup from 'config/options/groups/optionGroup';
-import registry from 'config/options/registry';
+import Registry from 'config/options/Registry';
 
 var keys = [
 		'adaptors',
 		'components',
+		'computed',
 		'decorators',
 		'easing',
 		'events',
@@ -11,6 +12,6 @@ var keys = [
 		'partials',
 		'transitions'
 	],
-	registries = optionGroup( keys, key => registry( { name: key } ) );
+	registries = optionGroup( keys, key => new Registry( key, key === 'computed' ) );
 
 export default registries;

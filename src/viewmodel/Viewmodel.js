@@ -13,6 +13,7 @@ import splice from 'viewmodel/prototype/splice';
 import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
 import createComputations from 'viewmodel/Computation/createComputations';
+import adaptConfig from 'viewmodel/adaptConfig';
 
 // TODO: fix our ES6 modules so we can have multiple exports
 // then this magic check can be reused by magicAdaptor
@@ -63,67 +64,12 @@ Viewmodel.extend = function ( Parent, instance ) {
 		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 	}
 
-	instance.adapt = combine(
+	instance.adapt = adaptConfig.combine(
 		Parent.prototype.adapt,
 		instance.adapt) || [];
 
-	instance.adapt = lookup( instance, instance.adaptors );
+	instance.adapt = adaptConfig.lookup( instance, instance.adaptors );
 }
-
-function lookup ( target, adaptors ) {
-
-	var i, adapt = target.adapt;
-
-	if ( !adapt || !adapt.length ) { return adapt; }
-
-
-	if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
-		while ( i-- ) {
-			let adaptor = adapt[i];
-
-			if ( typeof adaptor === 'string' ) {
-				adapt[i] = adaptors[ adaptor ] || adaptor;
-			}
-		}
-	}
-
-	return adapt;
-
-}
-
-function combine ( parent, adapt ) {
-
-	// normalize 'Foo' to [ 'Foo' ]
-	parent = arrayIfString( parent );
-	adapt = arrayIfString( adapt );
-
-	// no parent? return adapt
-	if ( !parent || !parent.length) { return adapt; }
-
-	// no adapt? return 'copy' of parent
-	if ( !adapt || !adapt.length ) { return parent.slice() }
-
-	// add parent adaptors to options
-	parent.forEach( a => {
-
-		// don't put in duplicates
-		if ( adapt.indexOf( a ) === -1 ) {
-			adapt.push( a )
-		}
-	});
-
-	return adapt;
-}
-
-function arrayIfString( adapt ) {
-
-	if ( typeof adapt === 'string' ) {
-		adapt = [ adapt ];
-	}
-
-	return adapt;
-}
-
 
 Viewmodel.prototype = {
 	adapt: adapt,

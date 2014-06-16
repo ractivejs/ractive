@@ -50,7 +50,7 @@ Observer.prototype = {
 		try {
 			this.callback.call( this.context, this.value, this.oldValue, this.keypath );
 		} catch ( err ) {
-			if ( this.debug || this.root.debug ) {
+			if ( this.debug || this.root.isDebug() ) {
 				throw err;
 			}
 		}
