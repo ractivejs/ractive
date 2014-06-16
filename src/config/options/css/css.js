@@ -4,8 +4,7 @@ import defaults from 'config/defaults/options';
 var cssConfig = {
 	name: 'css',
 	extend: extend,
-	init: () => {},
-	useDefaults: defaults.hasOwnProperty('css')
+	init: () => {}
 };
 
 function extend ( Parent, proto, options ) {

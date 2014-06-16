@@ -16,7 +16,8 @@ define([
 			var ractive, foo = {};
 
 			registries.forEach( r => {
-				Ractive[ r.name ].foo = foo;
+				var target = r.useDefaults ? Ractive.defaults : Ractive;
+				target[ r.name ].foo = foo;
 			});
 
 			ractive = new Ractive({});
@@ -26,7 +27,8 @@ define([
 			});
 
 			registries.forEach( r => {
-				delete Ractive[ r.name ] .foo;
+				var target = r.useDefaults ? Ractive.defaults : Ractive;
+				delete target[ r.name ] .foo;
 			});
 		});
 

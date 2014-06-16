@@ -1,7 +1,6 @@
 import css from 'config/options/css/css';
 import data from 'config/options/data';
 import defaults from 'config/defaults/options';
-import computed from 'config/options/computed';
 import template from 'config/options/template/template';
 
 import parseOptions from 'config/options/groups/parseOptions';
@@ -15,14 +14,9 @@ var custom, options, config;
 
 custom = {
 	data: data,
-	computed: computed,
 	template: template,
 	css: css
 };
-
-
-// fill in basicConfig for all default options not covered by
-// registries, parse options, and any custom configuration
 
 options = Object.keys( defaults )
 	.filter( key => !registries[ key ] && !custom[ key ] && !parseOptions[ key ] );
@@ -32,7 +26,6 @@ config = [].concat(
 	custom.data,
 	parseOptions,
 	options,
-	custom.computed,
 	registries,
 	custom.template,
 	custom.css
@@ -89,9 +82,6 @@ function configure ( method, Parent, instance, options ) {
 				: value;
 		}
 	}
-
-	// customConfig( method, 'complete', Parent, instance, options );
-	customConfig( method, 'computed', Parent, instance, options );
 
 	config.registries.forEach( registry => {
 		registry[ method ]( Parent, instance, options );

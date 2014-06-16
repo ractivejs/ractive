@@ -1,59 +1,52 @@
-import extendObject from 'utils/extend';
 import create from 'utils/create'
 import 'legacy';
 
-export default function registryConfig ( config ) {
-
-	config = extendObject( config, {
-		extend: extend,
-		init: init,
-		configure: configure,
-		find: find,
-		findInstance: findInstance
-	});
-
-	return config;
+function Registry ( name, useDefaults ) {
+	this.name = name;
+	this.useDefaults = useDefaults;
 }
 
+Registry.prototype = {
 
-function extend ( Parent, proto, options ) {
+	constructor: Registry,
 
-	this.configure( Parent, proto.constructor, options );
+ 	extend: function ( Parent, proto, options ) {
+		this.configure(
+			this.useDefaults ? Parent.defaults : Parent,
+			this.useDefaults ? proto : proto.constructor,
+			options );
+	},
 
-}
+	init: function ( Parent, ractive, options ) {
+		this.configure(
+			this.useDefaults ? Parent.defaults : Parent,
+			ractive,
+			options );
+	},
 
-function init ( Parent, ractive, options ) {
+	configure: function ( Parent, target, options ) {
 
-	this.configure( Parent, ractive, options );
+		var name = this.name, option = options[ name ], registry;
 
-}
-
-
-function configure ( Parent, target, options ) {
-
-	var name = this.name,
-		option = options[ name ],
 		registry = create( Parent[name] );
 
+		for( let key in option ) {
+			registry[ key ] = option[ key ];
+		}
 
-	for( let key in option ) {
-		registry[ key ] = option[ key ];
+		target[ name ] = registry;
+
+	},
+
+	find: function ( ractive, key ) {
+
+		return recurseFind( ractive, r => r[ this.name ][ key ] );
+	},
+
+	findInstance: function ( ractive, key ) {
+
+		return recurseFind( ractive, r => r[ this.name ][ key ] ? r : void 0 );
 	}
-
-	if ( this.post ) { registry = this.post( target, registry ); }
-
-	target[ name ] = registry;
-
-}
-
-function find ( ractive, key ) {
-
-	return recurseFind( ractive, r => r[ this.name ][ key ] );
-}
-
-function findInstance ( ractive, key ) {
-
-	return recurseFind( ractive, r => r[ this.name ][ key ] ? r : void 0 );
 }
 
 function recurseFind( ractive, fn ) {
@@ -69,3 +62,5 @@ function recurseFind( ractive, fn ) {
 	}
 
 }
+
+export default Registry;
