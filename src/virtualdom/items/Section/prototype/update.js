@@ -1,5 +1,5 @@
 export default function Section$update () {
-	var fragment, rendered, index, nextFragment, anchor, target;
+	var fragment, rendered, nextFragment, anchor, target;
 
 	while ( fragment = this.fragmentsToUnrender.pop() ) {
 		fragment.unrender( true );

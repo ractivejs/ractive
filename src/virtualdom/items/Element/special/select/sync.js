@@ -2,7 +2,7 @@ import toArray from 'utils/toArray';
 import runloop from 'global/runloop';
 
 export default function syncSelect ( selectElement ) {
-	var selectNode, selectValue, isMultiple, options, value, i, optionWasSelected, result;
+	var selectNode, selectValue, isMultiple, options, i, optionWasSelected, result;
 
 	selectNode = selectElement.node;
 

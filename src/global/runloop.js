@@ -106,7 +106,7 @@ circular.runloop = runloop;
 export default runloop;
 
 function flushChanges () {
-	var thing, upstreamChanges, i, changeHash, changedKeypath;
+	var thing, changeHash;
 
 	while ( thing = viewmodels.shift() ) {
 		changeHash = thing.applyChanges();

@@ -111,7 +111,7 @@ function reevaluateSection ( section, value ) {
 }
 
 function reevaluateListSection ( section, value, fragmentOptions ) {
-	var i, length, fragment, fragmentsToUnrender;
+	var i, length, fragment;
 
 	length = value.length;
 
@@ -128,10 +128,9 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 
 	// otherwise...
 	else {
-
 		if ( length > section.length ) {
 			// add any new ones
-			for ( i=section.length; i<length; i+=1 ) {
+			for ( i = section.length; i < length; i += 1 ) {
 				// append list item to context stack
 				fragmentOptions.context = section.keypath + '.' + i;
 				fragmentOptions.index = i;

@@ -5,23 +5,23 @@ import Unresolved from 'shared/Unresolved';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
-	var resolver = this, ref, parentFragment, keypath;
+	var resolver = this, parentFragment;
 
 	parentFragment = mustache.parentFragment;
 
-	this.root = mustache.root;
-	this.mustache = mustache;
-	this.priority = mustache.priority;
+	resolver.root = mustache.root;
+	resolver.mustache = mustache;
+	resolver.priority = mustache.priority;
 
-	this.callback = callback;
+	resolver.callback = callback;
 
-	this.unresolved = [];
-	this.members = [];
-	this.indexRefMembers = [];
-	this.keypathObservers = [];
+	resolver.unresolved = [];
+	resolver.members = [];
+	resolver.indexRefMembers = [];
+	resolver.keypathObservers = [];
 
 	// Find base keypath
-	resolveBase( this, mustache.root, template.r, parentFragment );
+	resolveBase( resolver, mustache.root, template.r, parentFragment );
 
 	// Find values for members, or mark them as unresolved
 	template.m.forEach( function ( member, i ) {
@@ -44,8 +44,8 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 		}
 	});
 
-	this.ready = true;
-	this.bubble(); // trigger initial resolution if possible
+	resolver.ready = true;
+	resolver.bubble(); // trigger initial resolution if possible
 };
 
 ReferenceExpressionResolver.prototype = {
@@ -173,7 +173,7 @@ function resolveBase ( resolver, ractive, ref, parentFragment ) {
 
 		resolver.unresolved.push( unresolved );
 	}
-};
+}
 
 var KeypathObserver = function ( ractive, keypath, priority, resolver, index ) {
 	this.root = ractive;

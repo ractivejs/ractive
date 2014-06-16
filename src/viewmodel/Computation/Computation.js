@@ -1,6 +1,5 @@
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
-import runloop from 'global/runloop';
 import diff from 'viewmodel/Computation/diff';
 
 var Computation = function ( ractive, key, signature ) {

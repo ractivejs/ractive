@@ -3,16 +3,9 @@ import isArray from 'utils/isArray';
 import Promise from 'utils/Promise';
 import normaliseKeypath from 'utils/normaliseKeypath';
 
-var comparators = {};
-
 export default function Ractive$merge ( keypath, array, options ) {
 
 	var currentArray,
-		oldArray,
-		newArray,
-		comparator,
-		lengthUnchanged,
-		newIndices,
 		promise,
 		fulfilPromise;
 

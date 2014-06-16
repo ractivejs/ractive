@@ -1,6 +1,3 @@
-import types from 'config/types';
-import notifyPatternObservers from 'shared/notifyPatternObservers';
-
 export default function ( wrapper, array, methodName, spliceSummary ) {
 	var root, keypath;
 

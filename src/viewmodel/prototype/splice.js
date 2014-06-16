@@ -1,7 +1,7 @@
 import types from 'config/types';
 
 export default function Viewmodel$splice ( keypath, spliceSummary ) {
-	var viewmodel = this, i, dependants, updateDependant, childKeypath;
+	var viewmodel = this, i, dependants;
 
 	// Mark changed keypaths
 	for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {

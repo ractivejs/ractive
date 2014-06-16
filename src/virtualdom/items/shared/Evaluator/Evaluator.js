@@ -1,4 +1,3 @@
-import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import isEqual from 'utils/isEqual';
 import defineProperty from 'utils/defineProperty';

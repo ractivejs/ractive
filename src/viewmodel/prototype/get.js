@@ -7,8 +7,6 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 	var ractive = this.ractive,
 		cache = this.cache,
 		value,
-		firstKey,
-		firstKeyDoesNotExist,
 		computation,
 		wrapped,
 		evaluator;
