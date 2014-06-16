@@ -53,7 +53,7 @@ export default function Viewmodel$applyChanges () {
 
 		changes.forEach( cascade );
 
-		computations.forEach( computation => computation.update() );
+		computations.forEach( updateComputation );
 	} while ( this.changes.length );
 
 	upstreamChanges = getUpstreamChanges( allChanges );
@@ -75,6 +75,10 @@ export default function Viewmodel$applyChanges () {
 	});
 
 	return hash;
+}
+
+function updateComputation ( computation ) {
+	computation.update();
 }
 
 function notifyDependants ( viewmodel, keypath, group, onlyDirect ) {

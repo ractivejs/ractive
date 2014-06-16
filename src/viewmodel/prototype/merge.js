@@ -41,9 +41,16 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 	// find new indices for members of oldArray
 	newIndices = mapOldToNewIndex( oldArray, newArray );
 
+	// Indices that are being removed should be marked as dirty
+	newIndices.forEach( ( newIndex, oldIndex ) => {
+		if ( newIndex === -1 ) {
+			this.mark( keypath + '.' + oldIndex, true );
+		}
+	});
+
 	// Update the model
 	// TODO allow existing array to be updated in place, rather than replaced?
-	this.set( keypath, array );
+	this.set( keypath, array, true );
 
 	if ( dependants = this.deps[ 'default' ][ keypath ] ) {
 		dependants.filter( canMerge ).forEach( dependant => dependant.merge( newIndices ) );

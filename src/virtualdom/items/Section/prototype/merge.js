@@ -1,3 +1,4 @@
+import runloop from 'global/runloop';
 import circular from 'circular';
 
 var Fragment;
@@ -38,7 +39,7 @@ export default function Section$merge ( newIndices ) {
 
 		// does this fragment need to be torn down?
 		if ( newIndex === -1 ) {
-			fragment.unrender( true );
+			section.fragmentsToUnrender.push( fragment );
 			fragment.teardown();
 			return;
 		}
@@ -65,6 +66,8 @@ export default function Section$merge ( newIndices ) {
 		return;
 	}
 
+	runloop.addView( this );
+
 	// Prepare new fragment options
 	fragmentOptions = {
 		template: this.template.f,
@@ -86,11 +89,9 @@ export default function Section$merge ( newIndices ) {
 		}
 
 		else {
-			fragmentOptions.context = this.keypath + '.' + i;
-			fragmentOptions.index = i;
-
-			fragment = new Fragment( fragmentOptions );
-			this.docFrag.appendChild( fragment.render() );
+			// Fragment will be created when changes are applied
+			// by the runloop
+			this.fragmentsToCreate.push( i );
 		}
 
 		this.fragments[i] = fragment;
