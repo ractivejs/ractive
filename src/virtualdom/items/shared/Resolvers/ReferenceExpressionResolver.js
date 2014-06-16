@@ -2,6 +2,7 @@ import types from 'config/types';
 import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
+import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
@@ -79,20 +80,24 @@ ReferenceExpressionResolver.prototype = {
 		}
 	},
 
-	rebind: function ( indexRef, newIndex ) {
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		var changed, i, member;
 
-		if ( !indexRef || !this.indexRefMembers.length ) {
-			return;
+		if ( indexRef && this.indexRefMembers.length ) {
+			this.indexRefMembers.forEach( member => {
+				if ( member.ref === indexRef ) {
+					changed = true;
+					this.members[ member.index ] = newIndex;
+				}
+			});
 		}
 
-		i = this.indexRefMembers.length;
-		while ( i-- ) {
-			member = this.indexRefMembers[i];
-			if ( member.ref === indexRef ) {
-				changed = true;
-				this.members[ member.index ] = newIndex;
-			}
+		if ( this.keypathObservers.length ) {
+			this.keypathObservers.forEach( observer => {
+				if ( observer.rebind( oldKeypath, newKeypath ) ) {
+					changed = true;
+				}
+			});
 		}
 
 		if ( changed ) {
@@ -183,12 +188,28 @@ var KeypathObserver = function ( ractive, keypath, priority, resolver, index ) {
 	this.resolver = resolver;
 	this.index = index;
 
-	ractive.viewmodel.register( keypath, this );
+	this.bind();
 
 	this.setValue( ractive.viewmodel.get( keypath ) );
 };
 
 KeypathObserver.prototype = {
+	bind: function () {
+		this.root.viewmodel.register( this.keypath, this );
+	},
+
+	rebind: function ( oldKeypath, newKeypath ) {
+		var keypath;
+
+		if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
+			this.teardown();
+			this.keypath = keypath;
+			this.bind();
+
+			return true;
+		}
+	},
+
 	setValue: function ( value ) {
 		var resolver = this.resolver;
 
