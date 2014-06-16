@@ -48,7 +48,7 @@ function optionIsSelected ( element ) {
 		return true;
 	}
 
-	if ( element.select.attributes.multiple && isArray( selectValue ) ) {
+	if ( element.select.getAttribute( 'multiple' ) && isArray( selectValue ) ) {
 		i = selectValue.length;
 		while ( i-- ) {
 			if ( selectValue[i] == optionValue ) {

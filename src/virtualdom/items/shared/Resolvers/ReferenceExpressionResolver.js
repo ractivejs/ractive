@@ -81,7 +81,7 @@ ReferenceExpressionResolver.prototype = {
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		var changed, i, member;
+		var changed;
 
 		if ( indexRef && this.indexRefMembers.length ) {
 			this.indexRefMembers.forEach( member => {
