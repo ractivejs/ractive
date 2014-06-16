@@ -1,5 +1,4 @@
 import transformCss from 'config/options/css/transform';
-import defaults from 'config/defaults/options';
 
 var cssConfig = {
 	name: 'css',
