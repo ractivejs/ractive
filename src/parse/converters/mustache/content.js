@@ -1,23 +1,16 @@
 import types from 'config/types';
 import mustacheType from 'parse/converters/mustache/type';
+import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	arrayMemberPattern = /^[0-9][1-9]*$/,
-	handlebarsTypePattern = /(if|unless|with|each|try)\b/,
-	handlebarsTypes,
+	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 	legalReference;
-
-handlebarsTypes = {
-	'if': types.SECTION_IF,
-	'unless': types.SECTION_UNLESS,
-	'with': types.SECTION_WITH,
-	'each': types.SECTION_EACH
-};
 
 legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
 
 export default function ( parser, delimiterType ) {
-	var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiters, referenceExpression;
+	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, referenceExpression;
 
 	start = parser.pos;
 
@@ -57,17 +50,13 @@ export default function ( parser, delimiterType ) {
 
 			mustache.t = type || types.INTERPOLATOR; // default
 
-			// In Handlebars mode, see if there's a section type e.g. {{#with}}...{{/with}}
-			if ( type === types.SECTION && parser.handlebars ) {
-				handlebarsType = parser.matchPattern( handlebarsTypePattern );
-
-				if ( handlebarsType && handlebarsTypes[handlebarsType] ) {
-					mustache.n = handlebarsTypes[handlebarsType];
-					parser.allowWhitespace();
+			// See if there's an explicit section type e.g. {{#with}}...{{/with}}
+			if ( type === types.SECTION ) {
+				if ( block = parser.matchPattern( handlebarsBlockPattern ) ) {
+					mustache.n = block;
 				}
-			} else if ( type === types.INVERTED ) { // {{^foo}}...{{/foo}}
-				mustache.t = types.SECTION;
-				mustache.n = types.SECTION_UNLESS;
+
+				parser.allowWhitespace();
 			}
 
 			// if it's a comment or a section closer, allow any contents except '}}'

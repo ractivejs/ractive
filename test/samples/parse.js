@@ -431,14 +431,6 @@ var parseTests = [
 			'       ^----'
 	},
 
-	// Commented out as I don't think this is illegal...?
-
-	// {
-	// 	name: 'Illegal closing comment',
-	// 	template: 'ok -->',
-	// 	error:
-	// 		'Illegal HTML - unexpected closing comment sequence (\'-->\')'
-	// },
 	{
 		name: 'Expected property name',
 		template: '{{property.}}',
@@ -455,50 +447,9 @@ var parseTests = [
 			'{{foo[234}}\n' +
 			'         ^----'
 	},
-//	{
-//		name: 'Illegal closing section for {{#foo}}',
-//		template: '{{#foo}}wew{{/wee}}',
-//		options: { strict:true },
-//		error:
-//			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 1:12:\n' +
-//			'{{#foo}}wew{{/wee}}\n' +
-//			'           ^----'
-//	},
-//	{
-//		name: 'Multiline illegal closing section for {{#foo}}',
-//		template: 'hi{{name}}\nblah\n     {{#foo}}wew{{/wee}}',
-//		options: { strict:true },
-//		error:
-//			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
-//			'     {{#foo}}wew{{/wee}}\n' +
-//			'                ^----'
-//	},
-//	{
-//		name: 'Multiline illegal closing section for {{#foo}} #2',
-//		template:
-//			'hi{{name}}\n' +
-//			'blah\n' +
-//			'     {{#foo}}wew{{/wee}}\n' +
-//			'foo',
-//		options: { strict:true },
-//		error:
-//			'Could not parse template: Illegal closing section for {{#foo}}: {{/wee}}. Expected {{/foo}} on line 3:17:\n' +
-//			'     {{#foo}}wew{{/wee}}\n' +
-//			'                ^----'
-//	},
-//	{
-//		name: 'Illegal closing section for {{##(foo*5)}}',
-//		template: '{{#(foo*5)}}foo{{/garbage}}',
-//		options: { strict:true },
-//		error:
-//			'Could not parse template: Illegal closing section for {{#(foo*5)}}: {{/garbage}}. Expected {{/()}} on line 1:16:\n' +
-//			'{{#(foo*5)}}foo{{/garbage}}\n' +
-//			'               ^----'
-//	},
 	{
 		name: 'If syntax',
 		template: '{{#if foo}}foo{{/if}}',
-		options: {handlebars:true},
 		parsed: [
 			{ t: 4, n: 50, r: 'foo', f: ['foo'] }
 		]
@@ -506,7 +457,6 @@ var parseTests = [
 	{
 		name: 'If syntax',
 		template: '{{#if (foo*5 < 20)}}foo{{/if}}',
-		options: {handlebars:true},
 		parsed: [
 			{ t: 4, n: 50,
 				x: { r: [ 'foo' ], s: '${0}*5<20' },
@@ -516,14 +466,12 @@ var parseTests = [
 	{
 		name: 'Illegal closing section for {{#if}}',
 		template: '{{#if (foo*5 < 20)}}foo{{/wrong}}',
-		options: {handlebars:true},
 		error:
 			'Expected {{/if}} at line 1 character 34:\n{{#if (foo*5 < 20)}}foo{{/wrong}}\n                                 ^----'
 	},
 	{
 		name: 'Unless syntax',
 		template: '{{#unless foo}}foo{{/unless}}',
-		options: {handlebars:true},
 		parsed: [
 			{ t: 4, n: 51,
 				r: 'foo',
@@ -533,7 +481,6 @@ var parseTests = [
 	{
 		name: 'Unless syntax',
 		template: '{{#unless (foo*5 < 20)}}foo{{/unless}}',
-		options: {handlebars:true},
 		parsed: [
 			{ t: 4, n: 51,
 				x: { r: [ 'foo' ], s: '${0}*5<20' },
@@ -544,7 +491,6 @@ var parseTests = [
 	{
 		name: 'If else syntax',
 		template: '{{#if foo}}foo{{else}}not foo{{/if}}',
-		options: {handlebars:true},
 		parsed:
 			[ { t: 4, n: 50,
 			    r: 'foo',
@@ -567,7 +513,6 @@ var parseTests = [
 			'{{else}}' +
 			'	bar' +
 			'{{/if}}',
-		options: {handlebars:true},
 		parsed: [
 			{
 				t: 4,
@@ -589,7 +534,6 @@ var parseTests = [
 	{
 		name: 'Each else syntax',
 		template: '{{#each foo:i}}foo #{{i+1}}{{else}}no foos{{/each}}',
-		options: {handlebars:true},
 		parsed: [
 			{
 				t: 4,
@@ -612,14 +556,12 @@ var parseTests = [
 	{
 		name: 'Else not allowed in #unless',
 		template: '{{#unless foo}}not foo {{else}}foo?{{/unless}}',
-		options: {handlebars:true},
 		error:
 			'{{else}} not allowed in {{#unless}} at line 1 character 32:\n{{#unless foo}}not foo {{else}}foo?{{/unless}}\n                               ^----'
 	},
 	{
 		name: 'Else not allowed in #with',
 		template: '{{#with foo}}with foo {{else}}no foo?{{/with}}',
-		options: {handlebars:true},
 		error:
 			'{{else}} not allowed in {{#with}} at line 1 character 31:\n{{#with foo}}with foo {{else}}no foo?{{/with}}\n                              ^----'
 	},
@@ -646,6 +588,11 @@ var parseTests = [
 				 [ 'not foo ',
 				   { t: 2, r: 'else' },
 				   'no foo?' ] } ]
+	},
+	{
+		name: 'Mixed Handlebars-style and regular syntax',
+		template: '{{#foo}}normal{{/foo}}{{#if foo}}handlebars{{/if}}',
+		parsed: [{t:4,r:'foo',f:['normal']},{t:4,r:'foo',n:50,f:['handlebars']}]
 	},
 	{
 		name: 'Expression close syntax',

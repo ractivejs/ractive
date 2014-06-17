@@ -18,7 +18,6 @@ var defaultOptions = {
 	stripComments:      true,
 	delimiters:         [ '{{', '}}' ],
 	tripleDelimiters:   [ '{{{', '}}}' ],
-	handlebars:			false,
 
 	// data & binding:
 	data:               {},
