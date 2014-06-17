@@ -1,10 +1,10 @@
-import warn from 'utils/warn';
+import log from 'utils/log';
 import config from 'config/config';
 import parser from 'config/options/template/parser';
 import deIndent from 'virtualdom/items/Partial/deIndent';
 
 export default function getPartialDescriptor ( ractive, name ) {
-	var partial, errorMessage;
+	var partial;
 
 	// If the partial was specified on this instance, great
 	if ( partial = getPartialFromRegistry( ractive, name ) ) {
@@ -26,15 +26,13 @@ export default function getPartialDescriptor ( ractive, name ) {
 
 	}
 
+	log.error({
+		debug: ractive.debug,
+		message: 'noTemplateForPartial',
+		args: { name: name }
+	});
+
 	// No match? Return an empty array
-	errorMessage = 'Could not find template for partial "' + name + '"';
-
-	if ( ractive.isDebug() ) {
-		throw new Error( errorMessage );
-	} else {
-		warn( errorMessage );
-	}
-
 	return [];
 
 }

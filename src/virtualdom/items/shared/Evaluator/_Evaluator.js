@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import warn from 'utils/warn';
+import log from 'utils/log';
 import isEqual from 'utils/isEqual';
 import notifyDependants from 'shared/notifyDependants';
 import Reference from 'virtualdom/items/shared/Evaluator/Reference';
@@ -61,9 +61,15 @@ Evaluator.prototype = {
 		try {
 			value = this.fn.apply( null, this.values );
 		} catch ( err ) {
-			if ( this.root.isDebug() ) {
-				warn( 'Error evaluating "' + this.uniqueString + '": ' + err.message || err );
-			}
+
+			log.warn({
+				debug: this.root.debug,
+				message: 'evaluationError',
+				args: {
+					uniqueString: this.uniqueString,
+					err: err.message || err
+				}
+			});
 
 			value = undefined;
 		}

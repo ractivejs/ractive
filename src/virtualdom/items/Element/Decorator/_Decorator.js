@@ -1,4 +1,4 @@
-import warn from 'utils/warn';
+import log from 'utils/log';
 import circular from 'circular';
 import config from 'config/config';
 
@@ -11,7 +11,7 @@ circular.push( function () {
 getValueOptions = { args: true };
 
 Decorator = function ( element, template ) {
-	var decorator = this, ractive, name, fragment, errorMessage;
+	var decorator = this, ractive, name, fragment;
 
 	decorator.element = element;
 	decorator.root = ractive = element.root;
@@ -55,13 +55,15 @@ Decorator = function ( element, template ) {
 	decorator.fn = config.registries.decorators.find( ractive, name );
 
 	if ( !decorator.fn ) {
-		errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
 
-		if ( ractive.isDebug() ) {
-			throw new Error( errorMessage );
-		} else {
-			warn( errorMessage );
-		}
+		log.error({
+			debug: ractive.debug,
+			message: 'missingPlugin',
+			args: {
+				plugin: 'decorator',
+				name: name
+			}
+		})
 	}
 };
 

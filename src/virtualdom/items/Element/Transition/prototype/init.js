@@ -1,4 +1,4 @@
-import warn from 'utils/warn';
+import log from 'utils/log';
 import config from 'config/config';
 import circular from 'circular';
 
@@ -9,7 +9,7 @@ circular.push( function () {
 });
 
 export default function Transition$init ( element, template ) {
-	var t = this, ractive, name, fragment, errorMessage;
+	var t = this, ractive, name, fragment;
 
 	t.element = element;
 	t.root = ractive = element.root;
@@ -49,13 +49,15 @@ export default function Transition$init ( element, template ) {
 	t._fn = config.registries.transitions.find( ractive, name );
 
 	if ( !t._fn ) {
-		errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
 
-		if ( ractive.isDebug() ) {
-			throw new Error( errorMessage );
-		} else {
-			warn( errorMessage );
-		}
+		log.error({
+			debug: ractive.debug,
+			message: 'missingPlugin',
+			args: {
+				plugin: 'transition',
+				name: name
+			}
+		})
 
 		return;
 	}
