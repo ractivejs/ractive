@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-17 - commit 13f772f9 
+	2014-06-17 - commit 875aabbf 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3301,6 +3301,12 @@
 						return null;
 					}
 					result = {};
+					parser.allowWhitespace();
+					if ( parser.matchString( '}' ) ) {
+						return {
+							v: result
+						};
+					}
 					while ( pair = getKeyValuePair( parser ) ) {
 						result[ pair.key ] = pair.value;
 						parser.allowWhitespace();
@@ -3322,6 +3328,11 @@
 					}
 					result = [];
 					parser.allowWhitespace();
+					if ( parser.matchString( ']' ) ) {
+						return {
+							v: result
+						};
+					}
 					while ( valueToken = parser.read() ) {
 						result.push( valueToken.v );
 						parser.allowWhitespace();
@@ -3416,7 +3427,7 @@
 				};
 				if ( directiveArgs.length === 1 && typeof directiveArgs[ 0 ] === 'string' ) {
 					parsed = parseJSON( '[' + directiveArgs[ 0 ] + ']' );
-					result.a = parsed ? parsed.value : directiveArgs[ 0 ];
+					result.a = parsed ? parsed.value : directiveArgs[ 0 ].trim();
 				} else {
 					result.d = directiveArgs;
 				}
