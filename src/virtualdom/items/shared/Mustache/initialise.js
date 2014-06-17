@@ -30,9 +30,11 @@ export default function Mustache$init ( mustache, options ) {
 		if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
 			mustache.indexRef = ref;
 			mustache.setValue( index );
+			return;
 		}
 
-		else if ( keypath = resolveRef( mustache.root, ref, mustache.parentFragment ) ) {
+		keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
+		if ( keypath !== undefined ) {
 			resolve( keypath );
 		}
 
