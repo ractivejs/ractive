@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-17 - commit fa7a504d 
+	2014-06-17 - commit 066fc6ca 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1380,7 +1380,12 @@
 	var errors = {
 		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser',
 		mergeComparisonFail: 'Merge operation: comparison failed. Falling back to identity checking',
-		noComponentEventArguments: 'Components currently only support simple events - you cannot include arguments. Sorry!'
+		noComponentEventArguments: 'Components currently only support simple events - you cannot include arguments. Sorry!',
+		noTemplateForPartial: 'Could not find template for partial "{name}"',
+		evaluationError: 'Error evaluating "{uniqueString}": {err}',
+		badArguments: 'Bad arguments "{arguments}". I\'m not allowed to argue unless you\'ve paid.',
+		failedComputation: 'Failed to compute "{key}": {err}',
+		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s'
 	};
 
 	/* empty/parse.js */
@@ -2788,21 +2793,6 @@
 		};
 	}( getElement );
 
-	/* Ractive/prototype/isDebug.js */
-	var Ractive$isDebug = function() {
-
-		return function isDebug() {
-			return this.debug || isStaticDebug( this.constructor );
-		};
-
-		function isStaticDebug( constructor ) {
-			if ( !constructor ) {
-				return false;
-			}
-			return constructor.debug || isStaticDebug( constructor._parent );
-		}
-	}();
-
 	/* Ractive/prototype/merge.js */
 	var Ractive$merge = function( runloop, isArray, Promise, normaliseKeypath ) {
 
@@ -2830,8 +2820,53 @@
 		};
 	}( runloop, isArray, Promise, normaliseKeypath );
 
+	/* utils/log.js */
+	var log = function( consolewarn, errors ) {
+
+		var log = {
+			warn: function( options, passthru ) {
+				if ( !options.debug && !passthru ) {
+					return;
+				}
+				this.logger( getMessage( options ), options.allowDuplicates );
+			},
+			error: function( options ) {
+				this.errorOnly( options );
+				if ( !options.debug ) {
+					this.warn( options, true );
+				}
+			},
+			errorOnly: function( options ) {
+				if ( options.debug ) {
+					this.critical( options );
+				}
+			},
+			critical: function( options ) {
+				var err = options.err || new Error( getMessage( options ) );
+				this.thrower( err );
+			},
+			logger: consolewarn,
+			thrower: function( err ) {
+				throw err;
+			}
+		};
+
+		function getMessage( options ) {
+			var message = errors[ options.message ] || options.message || '';
+			return interpolate( message, options.args );
+		}
+		// simple interpolation. probably quicker (and better) out there,
+		// but log is not in golden path of execution, only exceptions
+		function interpolate( message, args ) {
+			return message.replace( /{([^{}]*)}/g, function( a, b ) {
+				return args[ b ];
+			} );
+		}
+		return log;
+	}( warn, errors );
+
 	/* Ractive/prototype/observe/Observer.js */
-	var Ractive$observe_Observer = function( runloop, isEqual ) {
+	var Ractive$observe_Observer = function( runloop, isEqual, log ) {
 
 		var Observer = function( ractive, keypath, callback, options ) {
 			this.root = ractive;
@@ -2876,16 +2911,17 @@
 				try {
 					this.callback.call( this.context, this.value, this.oldValue, this.keypath );
 				} catch ( err ) {
-					if ( this.debug || this.root.isDebug() ) {
-						throw err;
-					}
+					log.errorOnly( {
+						debug: this.debug || this.root.debug,
+						err: err
+					} );
 				}
 				this.oldValue = this.value;
 				this.updating = false;
 			}
 		};
 		return Observer;
-	}( runloop, isEqual );
+	}( runloop, isEqual, log );
 
 	/* shared/getMatchingKeypaths.js */
 	var getMatchingKeypaths = function( isArray ) {
@@ -2945,7 +2981,7 @@
 	}( getMatchingKeypaths );
 
 	/* Ractive/prototype/observe/PatternObserver.js */
-	var Ractive$observe_PatternObserver = function( runloop, isEqual, isArray, getPattern ) {
+	var Ractive$observe_PatternObserver = function( runloop, isEqual, isArray, getPattern, log ) {
 
 		var PatternObserver, wildcard = /\*/,
 			slice = Array.prototype.slice;
@@ -3026,9 +3062,10 @@
 					try {
 						this.callback.apply( this.context, args );
 					} catch ( err ) {
-						if ( this.debug || this.root.isDebug() ) {
-							throw err;
-						}
+						log.errorOnly( {
+							debug: this.debug || this.root.debug,
+							err: err
+						} );
 					}
 					this.values[ keypath ] = value;
 				}
@@ -3047,7 +3084,7 @@
 			}
 		};
 		return PatternObserver;
-	}( runloop, isEqual, isArray, Ractive$observe_getPattern );
+	}( runloop, isEqual, isArray, Ractive$observe_getPattern, log );
 
 	/* Ractive/prototype/observe/getObserverFacade.js */
 	var Ractive$observe_getObserverFacade = function( normaliseKeypath, Observer, PatternObserver ) {
@@ -7400,7 +7437,7 @@
 	}( EventHandler );
 
 	/* virtualdom/items/Element/Decorator/_Decorator.js */
-	var Decorator = function( warn, circular, config ) {
+	var Decorator = function( log, circular, config ) {
 
 		var Fragment, getValueOptions, Decorator;
 		circular.push( function() {
@@ -7411,7 +7448,7 @@
 		};
 		Decorator = function( element, template ) {
 			var decorator = this,
-				ractive, name, fragment, errorMessage;
+				ractive, name, fragment;
 			decorator.element = element;
 			decorator.root = ractive = element.root;
 			name = template.n || template;
@@ -7443,12 +7480,14 @@
 			}
 			decorator.fn = config.registries.decorators.find( ractive, name );
 			if ( !decorator.fn ) {
-				errorMessage = 'Missing "' + name + '" decorator. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#decorators';
-				if ( ractive.isDebug() ) {
-					throw new Error( errorMessage );
-				} else {
-					warn( errorMessage );
-				}
+				log.error( {
+					debug: ractive.debug,
+					message: 'missingPlugin',
+					args: {
+						plugin: 'decorator',
+						name: name
+					}
+				} );
 			}
 		};
 		Decorator.prototype = {
@@ -7485,10 +7524,10 @@
 			}
 		};
 		return Decorator;
-	}( warn, circular, config );
+	}( log, circular, config );
 
 	/* virtualdom/items/Element/Transition/prototype/init.js */
-	var virtualdom_items_Element_Transition$init = function( warn, config, circular ) {
+	var virtualdom_items_Element_Transition$init = function( log, config, circular ) {
 
 		var Fragment, getValueOptions = {};
 		// TODO what are the options?
@@ -7497,7 +7536,7 @@
 		} );
 		return function Transition$init( element, template ) {
 			var t = this,
-				ractive, name, fragment, errorMessage;
+				ractive, name, fragment;
 			t.element = element;
 			t.root = ractive = element.root;
 			name = template.n || template;
@@ -7526,16 +7565,18 @@
 			}
 			t._fn = config.registries.transitions.find( ractive, name );
 			if ( !t._fn ) {
-				errorMessage = 'Missing "' + name + '" transition. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#transitions';
-				if ( ractive.isDebug() ) {
-					throw new Error( errorMessage );
-				} else {
-					warn( errorMessage );
-				}
+				log.error( {
+					debug: ractive.debug,
+					message: 'missingPlugin',
+					args: {
+						plugin: 'transition',
+						name: name
+					}
+				} );
 				return;
 			}
 		};
-	}( warn, config, circular );
+	}( log, config, circular );
 
 	/* virtualdom/items/Element/Transition/helpers/prefix.js */
 	var prefix = function( isClient, vendors, createElement ) {
@@ -8671,10 +8712,10 @@
 	}();
 
 	/* virtualdom/items/Partial/getPartialDescriptor.js */
-	var getPartialDescriptor = function( warn, config, parser, deIndent ) {
+	var getPartialDescriptor = function( log, config, parser, deIndent ) {
 
 		return function getPartialDescriptor( ractive, name ) {
-			var partial, errorMessage;
+			var partial;
 			// If the partial was specified on this instance, great
 			if ( partial = getPartialFromRegistry( ractive, name ) ) {
 				return partial;
@@ -8691,13 +8732,14 @@
 				// register (and return main partial if there are others in the template)
 				return ractive.partials[ name ] = config.template.processCompound( ractive, parsed );
 			}
+			log.error( {
+				debug: ractive.debug,
+				message: 'noTemplateForPartial',
+				args: {
+					name: name
+				}
+			} );
 			// No match? Return an empty array
-			errorMessage = 'Could not find template for partial "' + name + '"';
-			if ( ractive.isDebug() ) {
-				throw new Error( errorMessage );
-			} else {
-				warn( errorMessage );
-			}
 			return [];
 		};
 
@@ -8719,7 +8761,7 @@
 				return partial;
 			}
 		}
-	}( warn, config, parser, deIndent );
+	}( log, config, parser, deIndent );
 
 	/* virtualdom/items/Partial/applyIndent.js */
 	var applyIndent = function( string, indent ) {
@@ -9003,7 +9045,7 @@
 	}( createComponentBinding );
 
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
-	var propagateEvents = function( warn, errors ) {
+	var propagateEvents = function( log ) {
 
 		// TODO how should event arguments be handled? e.g.
 		// <widget on-foo='bar:1,2,3'/>
@@ -9021,12 +9063,10 @@
 
 		function propagateEvent( childInstance, parentInstance, eventName, proxyEventName ) {
 			if ( typeof proxyEventName !== 'string' ) {
-				if ( parentInstance.isDebug() ) {
-					throw new Error( errors.noComponentEventArguments );
-				} else {
-					warn( errors.noComponentEventArguments );
-					return;
-				}
+				log.error( {
+					debug: parentInstance.debug,
+					message: 'noComponentEventArguments'
+				} );
 			}
 			childInstance.on( eventName, function() {
 				var args = Array.prototype.slice.call( arguments );
@@ -9034,7 +9074,7 @@
 				parentInstance.fire.apply( parentInstance, args );
 			} );
 		}
-	}( warn, errors );
+	}( log );
 
 	/* virtualdom/items/Component/initialise/updateLiveQueries.js */
 	var updateLiveQueries = function( component ) {
@@ -9563,17 +9603,23 @@
 	};
 
 	/* Ractive/prototype/toggle.js */
-	var Ractive$toggle = function Ractive$toggle( keypath, callback ) {
-		var value;
-		if ( typeof keypath !== 'string' ) {
-			if ( this.isDebug() ) {
-				throw new Error( 'Bad arguments' );
+	var Ractive$toggle = function( log ) {
+
+		return function Ractive$toggle( keypath, callback ) {
+			var value;
+			if ( typeof keypath !== 'string' ) {
+				log.errorOnly( {
+					debug: this.debug,
+					messsage: 'badArguments',
+					arg: {
+						arguments: keypath
+					}
+				} );
 			}
-			return;
-		}
-		value = this.get( keypath );
-		return this.set( keypath, !value, callback );
-	};
+			value = this.get( keypath );
+			return this.set( keypath, !value, callback );
+		};
+	}( log );
 
 	/* Ractive/prototype/unrender.js */
 	var Ractive$unrender = function( types, Promise, removeFromArray, runloop, css ) {
@@ -9721,7 +9767,7 @@
 	}( arrayContentsMatch, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, isDebug, merge, observe, off, on, render, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
 
 		return {
 			add: add,
@@ -9734,7 +9780,6 @@
 			fire: fire,
 			get: get,
 			insert: insert,
-			isDebug: isDebug,
 			merge: merge,
 			observe: observe,
 			off: off,
@@ -9751,7 +9796,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$isDebug, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
 
 	/* utils/getGuid.js */
 	var getGuid = function() {
@@ -11030,7 +11075,7 @@
 	}();
 
 	/* viewmodel/Computation/Computation.js */
-	var Computation = function( warn, isEqual, diff ) {
+	var Computation = function( log, isEqual, diff ) {
 
 		var Computation = function( ractive, key, signature ) {
 			this.ractive = ractive;
@@ -11060,9 +11105,14 @@
 				try {
 					this.value = this.getter.call( ractive );
 				} catch ( err ) {
-					if ( ractive.isDebug() ) {
-						warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
-					}
+					log.warn( {
+						debug: ractive.debug,
+						message: 'failedComputation',
+						args: {
+							key: this.key,
+							err: err.message || err
+						}
+					} );
 					errored = true;
 				}
 				newDependencies = ractive.viewmodel.release();
@@ -11077,7 +11127,7 @@
 			}
 		};
 		return Computation;
-	}( warn, isEqual, diff );
+	}( log, isEqual, diff );
 
 	/* viewmodel/Computation/createComputations.js */
 	var createComputations = function( getComputationSignature, Computation ) {
