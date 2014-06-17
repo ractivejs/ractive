@@ -176,6 +176,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+		test( 'Unnecessary whitespace is trimmed (#810)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<pre decorator="show: blue is the moon   "/><pre decorator="show:\' blue is the moon   \'"/>',
+				decorators: {
+					show: function ( node, arg ) {
+						node.innerHTML = typeof arg === 'string'
+							? '>>' + arg + '<<'
+							: JSON.stringify(arg)
+
+						return { teardown: Function.prototype }
+					}
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<pre>&gt;&gt;blue is the moon&lt;&lt;</pre><pre>&gt;&gt; blue is the moon   &lt;&lt;</pre>' );
+		});
+
 	};
 
 });

@@ -90,6 +90,12 @@ JsonParser = Parser.extend({
 
 			result = {};
 
+			parser.allowWhitespace();
+
+			if ( parser.matchString( '}' ) ) {
+				return { v: result };
+			}
+
 			while ( pair = getKeyValuePair( parser ) ) {
 				result[ pair.key ] = pair.value;
 
@@ -117,6 +123,10 @@ JsonParser = Parser.extend({
 			result = [];
 
 			parser.allowWhitespace();
+
+			if ( parser.matchString( ']' ) ) {
+				return { v: result };
+			}
 
 			while ( valueToken = parser.read() ) {
 				result.push( valueToken.v );

@@ -51,6 +51,16 @@ define([ 'utils/parseJSON' ], function ( parseJSON ) {
 			t.equal( parsed.value, '0' );
 		});
 
+		test( 'Empty array (#810)', function ( t ) {
+			var parsed = parseJSON( '[]' );
+			t.deepEqual( parsed.value, [] );
+		});
+
+		test( 'Empty object (#810)', function ( t ) {
+			var parsed = parseJSON( '{}' );
+			t.deepEqual( parsed.value, {} );
+		});
+
 	};
 
 });

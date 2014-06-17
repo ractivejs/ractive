@@ -58,7 +58,7 @@ export default function ( tokens ) {
 
 		if ( directiveArgs.length === 1 && typeof directiveArgs[0] === 'string' ) {
 			parsed = parseJSON( '[' + directiveArgs[0] + ']' );
-			result.a = parsed ? parsed.value : directiveArgs[0];
+			result.a = parsed ? parsed.value : directiveArgs[0].trim();
 		}
 
 		else {
