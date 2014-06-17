@@ -2,6 +2,7 @@ import types from 'config/types';
 import delimiterChange from 'parse/converters/mustache/delimiterChange';
 import delimiterTypes from 'parse/converters/mustache/delimiterTypes';
 import mustacheContent from 'parse/converters/mustache/content';
+import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
 
 var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true },
 	handlebarsIndexRefPattern = /^@(?:index|key)$/;
@@ -71,47 +72,33 @@ function getMustacheOfType ( parser, delimiterType ) {
 	}
 
 	// section children
-	if ( mustache.t === types.SECTION ) {
+	if ( isSection( mustache ) ) {
 		children = [];
 		currentChildren = children;
 
-		if ( parser.options.strict || parser.handlebars ) {
-			switch ( mustache.n ) {
-				case types.SECTION_IF:
-					expectedClose = 'if';
-					break;
-				case types.SECTION_EACH:
-					expectedClose = 'each';
-					break;
-				case types.SECTION_UNLESS:
-					expectedClose = 'unless';
-					break;
-				case types.SECTION_WITH:
-					expectedClose = 'with';
-					break;
-			}
-		}
+		expectedClose = mustache.n;
 
 		while ( child = parser.read() ) {
 			if ( child.t === types.CLOSING ) {
-				if (expectedClose && child.r !== expectedClose) {
+				if ( expectedClose && child.r !== expectedClose ) {
 					parser.error( 'Expected {{/' + expectedClose + '}}' );
 				}
 				break;
 			}
 
-			if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else' ) {
+			// {{else}} tags require special treatment
+			if ( child.t === types.INTERPOLATOR && child.r === 'else' ) {
 				switch ( mustache.n ) {
-					case types.SECTION_IF:
-					case types.SECTION_EACH:
+					case 'if':
+					case 'each':
 						currentChildren = elseChildren = [];
 						continue; // don't add this item to children
 
-					case types.SECTION_UNLESS:
+					case 'unless':
 						parser.error( '{{else}} not allowed in {{#unless}}' );
 						break;
 
-					case types.SECTION_WITH:
+					case 'with':
 						parser.error( '{{else}} not allowed in {{#with}}' );
 						break;
 				}
@@ -125,7 +112,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 			// If this is an 'each' section, and it contains an {{@index}} or {{@key}},
 			// we need to set the index reference accordingly
-			if ( !mustache.i && mustache.n === types.SECTION_EACH && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
+			if ( !mustache.i && mustache.n === 'each' && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
 				mustache.i = indexRef;
 			}
 		}
@@ -137,6 +124,14 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 	if ( parser.includeLinePositions ) {
 		mustache.p = startPos.toJSON();
+	}
+
+	// Replace block name with code
+	if ( mustache.n ) {
+		mustache.n = handlebarsBlockCodes[ mustache.n ];
+	} else if ( mustache.t === types.INVERTED ) {
+		mustache.t = types.SECTION;
+		mustache.n = types.SECTION_UNLESS;
 	}
 
 	return mustache;
@@ -200,4 +195,8 @@ function indexRefContainedInReferenceExpression ( referenceExpression ) {
 			return member.n;
 		}
 	}
+}
+
+function isSection ( mustache ) {
+	return mustache.t === types.SECTION || mustache.t === types.INVERTED;
 }

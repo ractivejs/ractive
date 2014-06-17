@@ -73,7 +73,6 @@ StandardParser = Parser.extend({
 		this.sanitizeElements = options.sanitize && options.sanitize.elements;
 		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 		this.includeLinePositions = options.includeLinePositions;
-		this.handlebars = options.handlebars;
 	},
 
 	postProcess: function ( items, options ) {
