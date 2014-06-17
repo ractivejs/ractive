@@ -1,4 +1,4 @@
-import warn from 'utils/warn';
+import log from 'utils/log';
 import isEqual from 'utils/isEqual';
 import diff from 'viewmodel/Computation/diff';
 
@@ -38,9 +38,15 @@ Computation.prototype = {
 		try {
 			this.value = this.getter.call( ractive );
 		} catch ( err ) {
-			if ( ractive.isDebug() ) {
-				warn( 'Failed to compute "' + this.key + '": ' + err.message || err );
-			}
+
+			log.warn({
+				debug: ractive.debug,
+				message: 'failedComputation',
+				args: {
+					key: this.key,
+					err: err.message || err
+				}
+			})
 
 			errored = true;
 		}

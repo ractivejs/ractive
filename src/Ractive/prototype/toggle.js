@@ -1,11 +1,15 @@
+import log from 'utils/log';
+
 export default function Ractive$toggle ( keypath, callback ) {
 	var value;
 
 	if ( typeof keypath !== 'string' ) {
-		if ( this.isDebug() ) {
-			throw new Error( 'Bad arguments' );
-		}
-		return;
+
+		log.errorOnly({
+			debug: this.debug,
+			messsage: 'badArguments',
+			arg: { arguments: keypath }
+		});
 	}
 
 	value = this.get( keypath );

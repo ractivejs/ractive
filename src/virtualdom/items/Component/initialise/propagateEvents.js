@@ -1,5 +1,4 @@
-import warn from 'utils/warn';
-import errors from 'config/errors';
+import log from 'utils/log';
 
 // TODO how should event arguments be handled? e.g.
 // <widget on-foo='bar:1,2,3'/>
@@ -18,14 +17,13 @@ export default function ( component, eventsDescriptor ) {
 }
 
 function propagateEvent ( childInstance, parentInstance, eventName, proxyEventName ) {
+
 	if ( typeof proxyEventName !== 'string' ) {
 
-		if ( parentInstance.isDebug() ) {
-			throw new Error( errors.noComponentEventArguments );
-		} else {
-			warn( errors.noComponentEventArguments );
-			return;
-		}
+		log.error({
+			debug: parentInstance.debug,
+			message: 'noComponentEventArguments'
+		})
 	}
 
 	childInstance.on( eventName, function () {

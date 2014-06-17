@@ -1,5 +1,6 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
+import log from 'utils/log';
 
 var Observer = function ( ractive, keypath, callback, options ) {
 	this.root = ractive;
@@ -50,9 +51,12 @@ Observer.prototype = {
 		try {
 			this.callback.call( this.context, this.value, this.oldValue, this.keypath );
 		} catch ( err ) {
-			if ( this.debug || this.root.isDebug() ) {
-				throw err;
-			}
+
+			log.errorOnly({
+				debug: this.debug || this.root.debug,
+				err: err
+			});
+
 		}
 
 		this.oldValue = this.value;
