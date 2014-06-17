@@ -206,10 +206,13 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 				if ( rewriteElse ) {
 					unlessBlock = {
 						t: 4,
-						r: item.r,
 						n: types.SECTION_UNLESS,
 						f: item.l
 					};
+					// copy the conditional based on its type
+					if( item.r  ) { unlessBlock.r  = item.r;  }
+					if( item.x  ) { unlessBlock.x  = item.x;  }
+					if( item.rx ) { unlessBlock.rx = item.rx; }
 
 					items.splice( i + 1, 0, unlessBlock );
 					delete item.l;

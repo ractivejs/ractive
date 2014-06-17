@@ -644,6 +644,46 @@ var renderTests = [
 		new_result: '<p>no items!</p>'
 	},
 	{
+		name: '#if/else with true static expression',
+		handlebars: true,
+		template: '{{#if true}}yes{{else}}no{{/if}}',
+		result: 'yes'
+	},
+	{
+		name: '#if/else with false static expression',
+		handlebars: true,
+		template: '{{#if false}}yes{{else}}no{{/if}}',
+		result: 'no'
+	},
+	{
+		name: '#if/else with true keypath expression',
+		handlebars: true,
+		template: '{{#if foo[bar]}}yes{{else}}no{{/if}}',
+		data: { foo: { a: true, b: false }, bar: 'a' },
+		result: 'yes'
+	},
+	{
+		name: '#if/else with false keypath expression',
+		handlebars: true,
+		template: '{{#if foo[bar]}}yes{{else}}no{{/if}}',
+		data: { foo: { a: true, b: false }, bar: 'b' },
+		result: 'no'
+	},
+	{
+		name: '#if/else with true reference expression',
+		handlebars: true,
+		template: '{{#if (foo+1<12)}}yes{{else}}no{{/if}}',
+		data: { foo: 6 },
+		result: 'yes'
+	},
+	{
+		name: '#if/else with false reference expression',
+		handlebars: true,
+		template: '{{#if (foo+1<12)}}yes{{else}}no{{/if}}',
+		data: { foo: 16 },
+		result: 'no'
+	},
+	{
 		name: 'Restricting references with `this`',
 		template: '{{#foo}}{{this.bar}}{{/foo}}',
 		data: { foo: {}, bar: 'fail' },
