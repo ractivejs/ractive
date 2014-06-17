@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-17 - commit 066fc6ca 
+	2014-06-17 - commit 36f1c7b5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -39,7 +39,6 @@
 				'{{{',
 				'}}}'
 			],
-			handlebars: false,
 			// data & binding:
 			data: {},
 			computed: {},
@@ -2339,22 +2338,27 @@
 		};
 	}( types );
 
-	/* parse/converters/mustache/content.js */
-	var content = function( types, mustacheType ) {
+	/* parse/converters/mustache/handlebarsBlockCodes.js */
+	var handlebarsBlockCodes = function( types ) {
 
-		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-			arrayMemberPattern = /^[0-9][1-9]*$/,
-			handlebarsTypePattern = /(if|unless|with|each|try)\b/,
-			handlebarsTypes, legalReference;
-		handlebarsTypes = {
+		return {
 			'if': types.SECTION_IF,
 			'unless': types.SECTION_UNLESS,
 			'with': types.SECTION_WITH,
 			'each': types.SECTION_EACH
 		};
+	}( types );
+
+	/* parse/converters/mustache/content.js */
+	var content = function( types, mustacheType, handlebarsBlockCodes ) {
+
+		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+			arrayMemberPattern = /^[0-9][1-9]*$/,
+			handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
+			legalReference;
 		legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
 		return function( parser, delimiterType ) {
-			var start, pos, mustache, type, handlebarsType, expression, i, remaining, index, delimiters, referenceExpression;
+			var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, referenceExpression;
 			start = parser.pos;
 			mustache = {};
 			delimiters = parser[ delimiterType.delimiters ];
@@ -2384,17 +2388,12 @@
 					type = mustacheType( parser );
 					mustache.t = type || types.INTERPOLATOR;
 					// default
-					// In Handlebars mode, see if there's a section type e.g. {{#with}}...{{/with}}
-					if ( type === types.SECTION && parser.handlebars ) {
-						handlebarsType = parser.matchPattern( handlebarsTypePattern );
-						if ( handlebarsType && handlebarsTypes[ handlebarsType ] ) {
-							mustache.n = handlebarsTypes[ handlebarsType ];
-							parser.allowWhitespace();
+					// See if there's an explicit section type e.g. {{#with}}...{{/with}}
+					if ( type === types.SECTION ) {
+						if ( block = parser.matchPattern( handlebarsBlockPattern ) ) {
+							mustache.n = block;
 						}
-					} else if ( type === types.INVERTED ) {
-						// {{^foo}}...{{/foo}}
-						mustache.t = types.SECTION;
-						mustache.n = types.SECTION_UNLESS;
+						parser.allowWhitespace();
 					} else if ( type === types.COMMENT || type === types.CLOSING ) {
 						remaining = parser.remaining();
 						index = remaining.indexOf( delimiters[ 1 ] );
@@ -2483,10 +2482,10 @@
 				m: members
 			};
 		}
-	}( types, type );
+	}( types, type, handlebarsBlockCodes );
 
 	/* parse/converters/mustache.js */
-	var mustache = function( types, delimiterChange, delimiterTypes, mustacheContent ) {
+	var mustache = function( types, delimiterChange, delimiterTypes, mustacheContent, handlebarsBlockCodes ) {
 
 		var delimiterChangeToken = {
 				t: types.DELIMCHANGE,
@@ -2544,25 +2543,10 @@
 				mustache.exclude = true;
 			}
 			// section children
-			if ( mustache.t === types.SECTION ) {
+			if ( isSection( mustache ) ) {
 				children = [];
 				currentChildren = children;
-				if ( parser.options.strict || parser.handlebars ) {
-					switch ( mustache.n ) {
-						case types.SECTION_IF:
-							expectedClose = 'if';
-							break;
-						case types.SECTION_EACH:
-							expectedClose = 'each';
-							break;
-						case types.SECTION_UNLESS:
-							expectedClose = 'unless';
-							break;
-						case types.SECTION_WITH:
-							expectedClose = 'with';
-							break;
-					}
-				}
+				expectedClose = mustache.n;
 				while ( child = parser.read() ) {
 					if ( child.t === types.CLOSING ) {
 						if ( expectedClose && child.r !== expectedClose ) {
@@ -2570,17 +2554,18 @@
 						}
 						break;
 					}
-					if ( parser.handlebars && child.t === types.INTERPOLATOR && child.r === 'else' ) {
+					// {{else}} tags require special treatment
+					if ( child.t === types.INTERPOLATOR && child.r === 'else' ) {
 						switch ( mustache.n ) {
-							case types.SECTION_IF:
-							case types.SECTION_EACH:
+							case 'if':
+							case 'each':
 								currentChildren = elseChildren = [];
 								continue;
 								// don't add this item to children
-							case types.SECTION_UNLESS:
+							case 'unless':
 								parser.error( '{{else}} not allowed in {{#unless}}' );
 								break;
-							case types.SECTION_WITH:
+							case 'with':
 								parser.error( '{{else}} not allowed in {{#with}}' );
 								break;
 						}
@@ -2591,7 +2576,7 @@
 					mustache.f = children;
 					// If this is an 'each' section, and it contains an {{@index}} or {{@key}},
 					// we need to set the index reference accordingly
-					if ( !mustache.i && mustache.n === types.SECTION_EACH && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
+					if ( !mustache.i && mustache.n === 'each' && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
 						mustache.i = indexRef;
 					}
 				}
@@ -2601,6 +2586,13 @@
 			}
 			if ( parser.includeLinePositions ) {
 				mustache.p = startPos.toJSON();
+			}
+			// Replace block name with code
+			if ( mustache.n ) {
+				mustache.n = handlebarsBlockCodes[ mustache.n ];
+			} else if ( mustache.t === types.INVERTED ) {
+				mustache.t = types.SECTION;
+				mustache.n = types.SECTION_UNLESS;
 			}
 			return mustache;
 		}
@@ -2655,7 +2647,11 @@
 				}
 			}
 		}
-	}( types, delimiterChange, delimiterTypes, content );
+
+		function isSection( mustache ) {
+			return mustache.t === types.SECTION || mustache.t === types.INVERTED;
+		}
+	}( types, delimiterChange, delimiterTypes, content, handlebarsBlockCodes );
 
 	/* parse/converters/comment.js */
 	var comment = function( types ) {
@@ -3728,7 +3724,6 @@
 				this.sanitizeElements = options.sanitize && options.sanitize.elements;
 				this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 				this.includeLinePositions = options.includeLinePositions;
-				this.handlebars = options.handlebars;
 			},
 			postProcess: function( items, options ) {
 				cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
@@ -3883,8 +3878,7 @@
 			'sanitize',
 			'stripComments',
 			'delimiters',
-			'tripleDelimiters',
-			'handlebars'
+			'tripleDelimiters'
 		];
 		parseOptions = optionGroup( keys, function( key ) {
 			return key;

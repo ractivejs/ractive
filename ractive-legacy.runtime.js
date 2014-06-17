@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-17 - commit 066fc6ca 
+	2014-06-17 - commit 36f1c7b5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -39,7 +39,6 @@
 				'{{{',
 				'}}}'
 			],
-			handlebars: false,
 			// data & binding:
 			data: {},
 			computed: {},
@@ -1409,8 +1408,7 @@
 			'sanitize',
 			'stripComments',
 			'delimiters',
-			'tripleDelimiters',
-			'handlebars'
+			'tripleDelimiters'
 		];
 		parseOptions = optionGroup( keys, function( key ) {
 			return key;
