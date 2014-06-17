@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-17 - commit 875aabbf 
+	2014-06-17 - commit fa7a504d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3814,10 +3814,19 @@
 						if ( rewriteElse ) {
 							unlessBlock = {
 								t: 4,
-								r: item.r,
 								n: types.SECTION_UNLESS,
 								f: item.l
 							};
+							// copy the conditional based on its type
+							if ( item.r ) {
+								unlessBlock.r = item.r;
+							}
+							if ( item.x ) {
+								unlessBlock.x = item.x;
+							}
+							if ( item.rx ) {
+								unlessBlock.rx = item.rx;
+							}
 							items.splice( i + 1, 0, unlessBlock );
 							delete item.l;
 						}
