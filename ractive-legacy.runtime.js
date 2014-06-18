@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-18 - commit 31d46479 
+	2014-06-18 - commit ab131b93 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6520,6 +6520,40 @@
 		node.checked = value == node._ractive.value;
 	};
 
+	/* virtualdom/items/Element/Attribute/prototype/update/updateRadioValue.js */
+	var virtualdom_items_Element_Attribute$update_updateRadioValue = function( runloop ) {
+
+		return function Attribute$updateRadioValue() {
+			var wasChecked, node = this.node,
+				binding, bindings, i;
+			wasChecked = node.checked;
+			node.value = this.element.getAttribute( 'value' );
+			node.checked = this.element.getAttribute( 'value' ) === this.element.getAttribute( 'name' );
+			// This is a special case - if the input was checked, and the value
+			// changed so that it's no longer checked, the twoway binding is
+			// most likely out of date. To fix it we have to jump through some
+			// hoops... this is a little kludgy but it works
+			if ( wasChecked && !node.checked && this.element.binding ) {
+				bindings = this.element.binding.siblings;
+				i = bindings.length;
+				while ( i-- ) {
+					binding = bindings[ i ];
+					if ( !binding.element.node ) {
+						// this is the initial render, siblings are still rendering!
+						// we'll come back later...
+						return;
+					}
+					if ( binding.element.node.checked ) {
+						runloop.addViewmodel( binding.root.viewmodel );
+						return binding.handleChange();
+					}
+				}
+				runloop.addViewmodel( binding.root.viewmodel );
+				this.root.viewmodel.set( binding.keypath, undefined );
+			}
+		};
+	}( runloop );
+
 	/* virtualdom/items/Element/Attribute/prototype/update/updateCheckboxName.js */
 	var virtualdom_items_Element_Attribute$update_updateCheckboxName = function( isArray ) {
 
@@ -6618,45 +6652,56 @@
 	};
 
 	/* virtualdom/items/Element/Attribute/prototype/update.js */
-	var virtualdom_items_Element_Attribute$update = function( namespaces, noop, updateSelectValue, updateMultipleSelectValue, updateRadioName, updateCheckboxName, updateClassName, updateIdAttribute, updateIEStyleAttribute, updateContentEditableValue, updateValue, updateBoolean, updateEverythingElse ) {
+	var virtualdom_items_Element_Attribute$update = function( namespaces, noop, updateSelectValue, updateMultipleSelectValue, updateRadioName, updateRadioValue, updateCheckboxName, updateClassName, updateIdAttribute, updateIEStyleAttribute, updateContentEditableValue, updateValue, updateBoolean, updateEverythingElse ) {
 
 		// There are a few special cases when it comes to updating attributes. For this reason,
-		// the prototype .update() method points to updateAttribute, which waits until the
+		// the prototype .update() method points to this method, which waits until the
 		// attribute has finished initialising, then replaces the prototype method with a more
 		// suitable one. That way, we save ourselves doing a bunch of tests on each call
 		return function Attribute$update() {
-			var name, element, node;
+			var name, element, node, type, updateMethod;
 			name = this.name;
 			element = this.element;
 			node = this.node;
 			if ( name === 'id' ) {
-				this.update = updateIdAttribute;
-			} else if ( element.name === 'select' && name === 'value' ) {
-				this.update = node.multiple ? updateMultipleSelectValue : updateSelectValue;
-			} else if ( element.name === 'input' && node.type === 'file' && name === 'value' ) {
-				this.update = noop;
+				updateMethod = updateIdAttribute;
+			} else if ( name === 'value' ) {
+				// special case - selects
+				if ( element.name === 'select' && name === 'value' ) {
+					updateMethod = node.multiple ? updateMultipleSelectValue : updateSelectValue;
+				} else if ( node.getAttribute( 'contenteditable' ) ) {
+					updateMethod = updateContentEditableValue;
+				} else if ( element.name === 'input' ) {
+					type = element.getAttribute( 'type' );
+					// type='file' value='{{fileList}}'>
+					if ( type === 'file' ) {
+						updateMethod = noop;
+					} else if ( type === 'radio' && element.binding.name === 'name' ) {
+						updateMethod = updateRadioValue;
+					} else {
+						updateMethod = updateValue;
+					}
+				}
 			} else if ( this.twoway && name === 'name' ) {
 				if ( node.type === 'radio' ) {
-					this.update = updateRadioName;
+					updateMethod = updateRadioName;
 				} else if ( node.type === 'checkbox' ) {
-					this.update = updateCheckboxName;
+					updateMethod = updateCheckboxName;
 				}
 			} else if ( name === 'style' && node.style.setAttribute ) {
-				this.update = updateIEStyleAttribute;
+				updateMethod = updateIEStyleAttribute;
 			} else if ( name === 'class' && ( !node.namespaceURI || node.namespaceURI === namespaces.html ) ) {
-				this.update = updateClassName;
-			} else if ( node.getAttribute( 'contenteditable' ) && this.name === 'value' ) {
-				this.update = updateContentEditableValue;
-			} else if ( name === 'value' ) {
-				this.update = updateValue;
+				updateMethod = updateClassName;
 			} else if ( this.useProperty ) {
-				this.update = updateBoolean;
-			} else {
-				this.update = updateEverythingElse;
+				updateMethod = updateBoolean;
 			}
+			if ( !updateMethod ) {
+				updateMethod = updateEverythingElse;
+			}
+			this.update = updateMethod;
 			this.update();
 		};
-	}( namespaces, noop, virtualdom_items_Element_Attribute$update_updateSelectValue, virtualdom_items_Element_Attribute$update_updateMultipleSelectValue, virtualdom_items_Element_Attribute$update_updateRadioName, virtualdom_items_Element_Attribute$update_updateCheckboxName, virtualdom_items_Element_Attribute$update_updateClassName, virtualdom_items_Element_Attribute$update_updateIdAttribute, virtualdom_items_Element_Attribute$update_updateIEStyleAttribute, virtualdom_items_Element_Attribute$update_updateContentEditableValue, virtualdom_items_Element_Attribute$update_updateValue, virtualdom_items_Element_Attribute$update_updateBoolean, virtualdom_items_Element_Attribute$update_updateEverythingElse );
+	}( namespaces, noop, virtualdom_items_Element_Attribute$update_updateSelectValue, virtualdom_items_Element_Attribute$update_updateMultipleSelectValue, virtualdom_items_Element_Attribute$update_updateRadioName, virtualdom_items_Element_Attribute$update_updateRadioValue, virtualdom_items_Element_Attribute$update_updateCheckboxName, virtualdom_items_Element_Attribute$update_updateClassName, virtualdom_items_Element_Attribute$update_updateIdAttribute, virtualdom_items_Element_Attribute$update_updateIEStyleAttribute, virtualdom_items_Element_Attribute$update_updateContentEditableValue, virtualdom_items_Element_Attribute$update_updateValue, virtualdom_items_Element_Attribute$update_updateBoolean, virtualdom_items_Element_Attribute$update_updateEverythingElse );
 
 	/* virtualdom/items/Element/Attribute/prototype/updateBindings.js */
 	var virtualdom_items_Element_Attribute$updateBindings = function Attribute$updateBindings() {
@@ -6837,13 +6882,62 @@
 		return ContentEditableBinding;
 	}( Binding, handleDomEvent );
 
+	/* virtualdom/items/Element/Binding/shared/getSiblings.js */
+	var getSiblings = function() {
+
+		var sets = {};
+		return function getSiblings( id, group, keypath ) {
+			var hash = id + group + keypath;
+			return sets[ hash ] || ( sets[ hash ] = [] );
+		};
+	}();
+
+	/* virtualdom/items/Element/Binding/RadioBinding.js */
+	var RadioBinding = function( runloop, Binding, getSiblings, handleDomEvent ) {
+
+		var RadioBinding = Binding.extend( {
+			name: 'checked',
+			init: function() {
+				this.siblings = getSiblings( this.root._guid, 'radio', this.element.getAttribute( 'name' ) );
+				this.siblings.push( this );
+			},
+			render: function() {
+				var node = this.element.node;
+				node.addEventListener( 'change', handleDomEvent, false );
+				if ( node.attachEvent ) {
+					node.addEventListener( 'click', handleDomEvent, false );
+				}
+			},
+			unrender: function() {
+				var node = this.element.node;
+				node.removeEventListener( 'change', handleDomEvent, false );
+				node.removeEventListener( 'click', handleDomEvent, false );
+			},
+			handleChange: function() {
+				runloop.start( this.root );
+				this.siblings.forEach( function( binding ) {
+					binding.root.viewmodel.set( binding.keypath, binding.getValue() );
+				} );
+				runloop.end();
+			},
+			getValue: function() {
+				return this.element.node.checked;
+			}
+		} );
+		return RadioBinding;
+	}( runloop, Binding, getSiblings, handleDomEvent );
+
 	/* virtualdom/items/Element/Binding/RadioNameBinding.js */
-	var RadioNameBinding = function( Binding, handleDomEvent ) {
+	var RadioNameBinding = function( Binding, handleDomEvent, getSiblings ) {
 
 		var RadioNameBinding = Binding.extend( {
 			name: 'name',
 			init: function() {
+				this.siblings = getSiblings( this.root._guid, 'radioname', this.keypath );
+				this.siblings.push( this );
 				this.radioName = true;
+				// so that ractive.updateModel() knows what to do with this
+				this.attribute.twoway = true;
 			},
 			getInitialValue: function() {
 				if ( this.element.getAttribute( 'checked' ) ) {
@@ -6881,13 +6975,12 @@
 			}
 		} );
 		return RadioNameBinding;
-	}( Binding, handleDomEvent );
+	}( Binding, handleDomEvent, getSiblings );
 
 	/* virtualdom/items/Element/Binding/CheckboxNameBinding.js */
-	var CheckboxNameBinding = function( isArray, removeFromArray, Binding, handleDomEvent ) {
+	var CheckboxNameBinding = function( isArray, removeFromArray, Binding, getSiblings, handleDomEvent ) {
 
-		var CheckboxNameBinding, groupsByInstance = {};
-		CheckboxNameBinding = Binding.extend( {
+		var CheckboxNameBinding = Binding.extend( {
 			name: 'name',
 			getInitialValue: function() {
 				// This only gets called once per group (of inputs that
@@ -6907,7 +7000,7 @@
 				// Each input has a reference to an array containing it and its
 				// siblings, as two-way binding depends on being able to ascertain
 				// the status of all inputs within the group
-				this.siblings = getSiblings( this );
+				this.siblings = getSiblings( this.root._guid, 'checkboxes', this.keypath );
 				this.siblings.push( this );
 				if ( this.noInitialValue ) {
 					this.siblings.noInitialValue = true;
@@ -6963,20 +7056,13 @@
 		function getValue( binding ) {
 			return binding.element.getAttribute( 'value' );
 		}
-
-		function getSiblings( binding ) {
-			var guid, groups;
-			guid = binding.root._guid;
-			groups = groupsByInstance[ guid ] || ( groupsByInstance[ guid ] = {} );
-			return groups[ binding.keypath ] || ( groups[ binding.keypath ] = [] );
-		}
 		return CheckboxNameBinding;
-	}( isArray, removeFromArray, Binding, handleDomEvent );
+	}( isArray, removeFromArray, Binding, getSiblings, handleDomEvent );
 
-	/* virtualdom/items/Element/Binding/CheckedBinding.js */
-	var CheckedBinding = function( Binding, handleDomEvent ) {
+	/* virtualdom/items/Element/Binding/CheckboxBinding.js */
+	var CheckboxBinding = function( Binding, handleDomEvent ) {
 
-		var CheckedBinding = Binding.extend( {
+		var CheckboxBinding = Binding.extend( {
 			name: 'checked',
 			render: function() {
 				var node = this.element.node;
@@ -6994,7 +7080,7 @@
 				return this.element.node.checked;
 			}
 		} );
-		return CheckedBinding;
+		return CheckboxBinding;
 	}( Binding, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/SelectBinding.js */
@@ -7213,7 +7299,7 @@
 	}( GenericBinding );
 
 	/* virtualdom/items/Element/prototype/init/createTwowayBinding.js */
-	var virtualdom_items_Element$init_createTwowayBinding = function( ContentEditableBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding ) {
+	var virtualdom_items_Element$init_createTwowayBinding = function( ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding ) {
 
 		return function createTwowayBinding( element ) {
 			var attributes = element.attributes,
@@ -7234,7 +7320,7 @@
 					if ( isBindable( attributes.name ) ) {
 						Binding = type === 'radio' ? RadioNameBinding : CheckboxNameBinding;
 					} else if ( isBindable( attributes.checked ) ) {
-						Binding = CheckedBinding;
+						Binding = type === 'radio' ? RadioBinding : CheckboxBinding;
 					}
 				} else if ( type === 'file' && isBindable( attributes.value ) ) {
 					Binding = FileListBinding;
@@ -7254,7 +7340,7 @@
 		function isBindable( attribute ) {
 			return attribute && attribute.isBindable;
 		}
-	}( ContentEditableBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
+	}( ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
 
 	/* virtualdom/items/Element/EventHandler/prototype/fire.js */
 	var virtualdom_items_Element_EventHandler$fire = function EventHandler$fire( event ) {
