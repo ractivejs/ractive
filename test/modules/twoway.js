@@ -342,12 +342,12 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '{{#items}}<input type="radio" name="plan" value="{{key}}" checked="{{ checked }}"/>{{/items}}',
+				template: '{{#items}}<input type="radio" name="plan" checked="{{ checked }}"/>{{/items}}',
 				data: {
 					items: [
-						{key: 'a', checked: true},
-						{key: 'b', checked: false},
-						{key: 'c', checked: false}
+						{ key: 'a', checked: true  },
+						{ key: 'b', checked: false },
+						{ key: 'c', checked: false }
 					]
 				}
 			});
@@ -359,6 +359,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( inputs[1], 'change' );
 			t.equal( ractive.get( 'items[0].checked' ), false );
 			t.equal( ractive.get( 'items[1].checked' ), true );
+		});
+
+		test( 'Radio name inputs respond to model changes (regression, see #783)', function ( t ) {
+			var ractive, inputs;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<input type="radio" name="{{foo}}" value="{{this}}"/>{{/items}}',
+				data: {
+					items: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			inputs = ractive.findAll( 'input' );
+			t.equal( ractive.get( 'foo' ), undefined );
+
+			ractive.set( 'foo', 'b' );
+			t.ok( inputs[1].checked );
+
+			ractive.set( 'items', [ 'd', 'e', 'f' ]);
+
+			t.equal( ractive.get( 'foo' ), undefined );
+			t.ok( !inputs[1].checked );
 		});
 
 	};
