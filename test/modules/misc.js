@@ -684,6 +684,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( instance.data instanceof Model );
 		});
 
+		test( 'Regression test for #798', function ( t ) {
+			var ClassA, ClassB, ractive;
+
+			ClassB = function () {};
+			ClassA = function () {};
+			ClassA.prototype.resources = new ClassB();
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget attr="{{item.resources}}"/>',
+				data: { item: new ClassA() },
+				components: {
+					widget: Ractive.extend({})
+				}
+			});
+
+			t.ok( ractive.findComponent('widget').data.attr instanceof ClassB );
+		});
+
 		asyncTest( 'Subclass instance complete() handlers can call _super', function ( t ) {
 			var Subclass, instance;
 
