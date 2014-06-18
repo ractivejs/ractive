@@ -1,7 +1,8 @@
 import ContentEditableBinding from 'virtualdom/items/Element/Binding/ContentEditableBinding';
+import RadioBinding from 'virtualdom/items/Element/Binding/RadioBinding';
 import RadioNameBinding from 'virtualdom/items/Element/Binding/RadioNameBinding';
 import CheckboxNameBinding from 'virtualdom/items/Element/Binding/CheckboxNameBinding';
-import CheckedBinding from 'virtualdom/items/Element/Binding/CheckedBinding';
+import CheckboxBinding from 'virtualdom/items/Element/Binding/CheckboxBinding';
 import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
 import MultipleSelectBinding from 'virtualdom/items/Element/Binding/MultipleSelectBinding';
 import FileListBinding from 'virtualdom/items/Element/Binding/FileListBinding';
@@ -34,7 +35,7 @@ export default function createTwowayBinding ( element ) {
 			}
 
 			else if ( isBindable( attributes.checked ) ) {
-				Binding = CheckedBinding;
+				Binding = ( type === 'radio' ? RadioBinding : CheckboxBinding );
 			}
 		}
 

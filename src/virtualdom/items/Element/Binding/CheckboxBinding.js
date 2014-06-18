@@ -1,7 +1,7 @@
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
-var CheckedBinding = Binding.extend({
+var CheckboxBinding = Binding.extend({
 	name: 'checked',
 
 	render: function () {
@@ -26,4 +26,4 @@ var CheckedBinding = Binding.extend({
 	}
 });
 
-export default CheckedBinding;
+export default CheckboxBinding;

@@ -337,6 +337,30 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'colour' ), 'green' );
 		});
 
+		test( 'Radio inputs will update the model if another input in their group is checked', function ( t ) {
+			var ractive, inputs;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<input type="radio" name="plan" value="{{key}}" checked="{{ checked }}"/>{{/items}}',
+				data: {
+					items: [
+						{key: 'a', checked: true},
+						{key: 'b', checked: false},
+						{key: 'c', checked: false}
+					]
+				}
+			});
+
+			inputs = ractive.findAll( 'input' );
+			t.equal( inputs[0].checked, true );
+
+			inputs[1].checked = true;
+			simulant.fire( inputs[1], 'change' );
+			t.equal( ractive.get( 'items[0].checked' ), false );
+			t.equal( ractive.get( 'items[1].checked' ), true );
+		});
+
 	};
 
 });
