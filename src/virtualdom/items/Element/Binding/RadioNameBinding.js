@@ -1,11 +1,16 @@
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
+import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
 
 var RadioNameBinding = Binding.extend({
 	name: 'name',
 
 	init: function () {
+		this.siblings = getSiblings( this.root._guid, 'radioname', this.keypath );
+		this.siblings.push( this );
+
 		this.radioName = true; // so that ractive.updateModel() knows what to do with this
+		this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
 	},
 
 	getInitialValue: function () {

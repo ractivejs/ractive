@@ -1,11 +1,10 @@
 import isArray from 'utils/isArray';
 import removeFromArray from 'utils/removeFromArray';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
+import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
-var CheckboxNameBinding, groupsByInstance = {};
-
-CheckboxNameBinding = Binding.extend({
+var CheckboxNameBinding = Binding.extend({
 	name: 'name',
 
 	getInitialValue: function () {
@@ -28,7 +27,7 @@ CheckboxNameBinding = Binding.extend({
 		// Each input has a reference to an array containing it and its
 		// siblings, as two-way binding depends on being able to ascertain
 		// the status of all inputs within the group
-		this.siblings = getSiblings( this );
+		this.siblings = getSiblings( this.root._guid, 'checkboxes', this.keypath );
 		this.siblings.push( this );
 
 		if ( this.noInitialValue ) {
@@ -98,15 +97,6 @@ function isChecked ( binding ) {
 
 function getValue ( binding ) {
 	return binding.element.getAttribute( 'value' );
-}
-
-function getSiblings ( binding ) {
-	var guid, groups;
-
-	guid = binding.root._guid;
-	groups = groupsByInstance[ guid ] || ( groupsByInstance[ guid ] = {} );
-
-	return groups[ binding.keypath ] || ( groups[ binding.keypath ] = [] );
 }
 
 export default CheckboxNameBinding;
