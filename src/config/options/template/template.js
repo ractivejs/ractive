@@ -13,7 +13,7 @@ function extend ( Parent, proto, options ) {
 
 	// only assign if exists
 	if ( options && 'template' in options ) {
-		proto.template = parseTemplate( proto, options.template );
+		proto.template = parseTemplate( proto, options.template, true );
 	}
 }
 
@@ -80,7 +80,7 @@ function getDynamicTemplate ( ractive, fn ) {
 }
 
 
-function parseTemplate ( target, template ) {
+function parseTemplate ( target, template, isExtend ) {
 
 	if ( !template || typeof template === 'function' ) { return template; }
 
@@ -94,7 +94,7 @@ function parseTemplate ( target, template ) {
 		template = parser.parse( template, parser.getParseOptions( target ) );
 	}
 
-	template = processCompound( target, template );
+	template = processCompound( target, template, isExtend );
 
 	// If the template was an array with a single string member, that means
 	// we can use innerHTML - we just need to unpack it
@@ -105,11 +105,13 @@ function parseTemplate ( target, template ) {
 	return template;
 }
 
-function processCompound( target, template ) {
+function processCompound( target, template, isExtend ) {
 
 	if ( !isObject( template ) ) { return template; }
 
-	target.partials = target.partials || {};
+	if( isExtend ) { target = target.constructor; }
+
+	//target.partials = target.partials || {};
 
 	for ( let key in template.partials ) {
 		target.partials[ key ] = template.partials[ key ];
