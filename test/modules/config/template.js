@@ -31,6 +31,7 @@ function (
 
 					Component = function() {};
 					Component.prototype = create( Ractive.prototype );
+					Component.prototype.constructor = Component;
 					Component.defaults = Component.prototype;
 				},
 				teardown: function(){
@@ -164,6 +165,8 @@ function (
 
 		test( 'Template with partial', t => {
 
+			ractive.partials = {};
+
 			config.init( Ractive, ractive, {
 				template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->'
 			});
@@ -171,6 +174,19 @@ function (
 			testTemplate1( ractive.template );
 			t.ok( ractive.partials.bar );
 			testTemplate2( ractive.partials.bar)
+
+		});
+
+		test( 'Template with partial extended', t => {
+
+			var options = { template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->' };
+
+			Component.partials = {};
+			config.extend( Ractive, Component.prototype, options );
+
+			testTemplate1( Component.defaults.template );
+			t.ok( Component.partials.bar );
+			testTemplate2( Component.partials.bar );
 
 		});
 
