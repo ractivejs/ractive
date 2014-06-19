@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-18 - commit ab131b93 
+	2014-06-19 - commit 88ce4453 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3975,7 +3975,7 @@
 		function extend( Parent, proto, options ) {
 			// only assign if exists
 			if ( options && 'template' in options ) {
-				proto.template = parseTemplate( proto, options.template );
+				proto.template = parseTemplate( proto, options.template, true );
 			}
 		}
 
@@ -4027,7 +4027,7 @@
 			return fn.call( ractive, ractive.data, helper );
 		}
 
-		function parseTemplate( target, template ) {
+		function parseTemplate( target, template, isExtend ) {
 			if ( !template || typeof template === 'function' ) {
 				return template;
 			}
@@ -4038,7 +4038,7 @@
 				}
 				template = parser.parse( template, parser.getParseOptions( target ) );
 			}
-			template = processCompound( target, template );
+			template = processCompound( target, template, isExtend );
 			// If the template was an array with a single string member, that means
 			// we can use innerHTML - we just need to unpack it
 			if ( template && template.length === 1 && typeof template[ 0 ] === 'string' ) {
@@ -4047,11 +4047,14 @@
 			return template;
 		}
 
-		function processCompound( target, template ) {
+		function processCompound( target, template, isExtend ) {
 			if ( !isObject( template ) ) {
 				return template;
 			}
-			target.partials = target.partials || {};
+			if ( isExtend ) {
+				target = target.constructor;
+			}
+			//target.partials = target.partials || {};
 			for ( var key in template.partials ) {
 				target.partials[ key ] = template.partials[ key ];
 			}
