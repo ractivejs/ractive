@@ -65,8 +65,9 @@ export default function syncSelect ( selectElement ) {
 	}
 
 	if ( result !== undefined ) {
-		runloop.lockAttribute( selectElement.attributes.value );
+		selectElement.attributes.value.locked = true;
 		runloop.addViewmodel( selectElement.root.viewmodel );
+		runloop.afterViewUpdate( () => selectElement.attributes.value.locked = false );
 		selectElement.root.viewmodel.set( selectElement.binding.keypath, result );
 	}
 }

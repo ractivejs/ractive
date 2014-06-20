@@ -4,73 +4,52 @@ import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
 import makeTransitionManager from 'shared/makeTransitionManager';
 
-var runloop,
-
-	dirty = false,
-	flushing = false,
+var batch,
+	runloop,
 	pendingCssChanges,
-
-	lockedAttributes = [],
-
-	unresolved = [],
-
-	views = [],
-	postViewUpdateTasks = [],
-	postModelUpdateTasks = [],
-
-	viewmodels = [],
-	transitionManager;
+	unresolved = [];
 
 runloop = {
 	start: function ( instance, callback ) {
-		this.addViewmodel( instance.viewmodel );
-
-		if ( !flushing ) {
-			// create a new transition manager
-			transitionManager = makeTransitionManager( callback, transitionManager );
-		}
+		batch = {
+			previousBatch: batch,
+			transitionManager: makeTransitionManager( callback, batch && batch.transitionManager ),
+			views: [],
+			postViewUpdateTasks: [],
+			postModelUpdateTasks: [],
+			viewmodels: [ instance.viewmodel ]
+		};
 	},
 
 	end: function () {
-		if ( flushing ) {
-			// TODO is this still necessary? probably not
-			attemptKeypathResolution();
-			return;
-		}
+		flushChanges();
 
-		flushing = true;
-		do {
-			flushChanges();
-		} while ( dirty );
-		flushing = false;
-
-		transitionManager.init();
-		transitionManager = transitionManager._previous;
+		batch.transitionManager.init();
+		batch = batch.previousBatch;
 	},
 
 	addViewmodel: function ( viewmodel ) {
-		if ( viewmodel && viewmodels.indexOf( viewmodel ) === -1 ) {
-			viewmodels.push( viewmodel );
+		if ( batch ) {
+			if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
+				batch.viewmodels.push( viewmodel );
+			}
+		} else {
+			viewmodel.applyChanges();
 		}
 	},
 
 	registerTransition: function ( transition ) {
-		transition._manager = transitionManager;
-		transitionManager.push( transition );
+		transition._manager = batch.transitionManager;
+		batch.transitionManager.push( transition );
 	},
 
 	addView: function ( view ) {
-		views.push( view );
-	},
-
-	lockAttribute: function ( attribute ) {
-		attribute.locked = true;
-		lockedAttributes.push( attribute );
+		batch.views.push( view );
 	},
 
 	scheduleCssUpdate: function () {
 		// if runloop isn't currently active, we need to trigger change immediately
-		if ( !flushing ) {
+		if ( !batch ) {
 			css.update();
 		} else {
 			pendingCssChanges = true;
@@ -78,7 +57,6 @@ runloop = {
 	},
 
 	addUnresolved: function ( thing ) {
-		dirty = true;
 		unresolved.push( thing );
 	},
 
@@ -88,17 +66,17 @@ runloop = {
 
 	// synchronise node detachments with transition ends
 	detachWhenReady: function ( thing ) {
-		transitionManager.detachQueue.push( thing );
+		batch.transitionManager.detachQueue.push( thing );
 	},
 
+	// TODO is this necessary?
 	afterModelUpdate: function ( task ) {
-		dirty = true;
-		postModelUpdateTasks.push( task );
+		console.warn( 'TODO' );
+		batch && batch.postModelUpdateTasks.push( task );
 	},
 
 	afterViewUpdate: function ( task ) {
-		dirty = true;
-		postViewUpdateTasks.push( task );
+		batch.postViewUpdateTasks.push( task );
 	}
 };
 
@@ -108,7 +86,7 @@ export default runloop;
 function flushChanges () {
 	var thing, changeHash;
 
-	while ( thing = viewmodels.shift() ) {
+	while ( thing = batch.viewmodels.shift() ) {
 		changeHash = thing.applyChanges();
 
 		if ( changeHash ) {
@@ -118,37 +96,26 @@ function flushChanges () {
 
 	attemptKeypathResolution();
 
-	// These changes may have knock-on effects, so we need to keep
-	// looping until the system is settled
-	while ( dirty ) {
-		dirty = false;
-
-		while ( thing = postModelUpdateTasks.pop() ) {
-			thing();
-		}
-
-		attemptKeypathResolution();
+	while ( thing = batch.postModelUpdateTasks.pop() ) {
+		thing();
 	}
+
+	attemptKeypathResolution();
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	while ( thing = views.pop() ) {
+	while ( thing = batch.views.pop() ) {
 		thing.update();
 	}
 
-	while ( thing = postViewUpdateTasks.pop() ) {
+	while ( thing = batch.postViewUpdateTasks.pop() ) {
 		thing();
 	}
 
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( viewmodels.length ) return flushChanges();
-
-	// Unlock attributes (twoway binding)
-	while ( thing = lockedAttributes.pop() ) {
-		thing.locked = false;
-	}
+	if ( batch.viewmodels.length ) return flushChanges();
 
 	if ( pendingCssChanges ) {
 		css.update();
