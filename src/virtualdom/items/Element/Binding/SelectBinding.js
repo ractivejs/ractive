@@ -35,6 +35,7 @@ var SelectBinding = Binding.extend({
 		this.element.node.removeEventListener( 'change', handleDomEvent, false );
 	},
 
+	// TODO this method is an anomaly... is it necessary?
 	setValue: function ( value ) {
 		runloop.addViewmodel( this.root.viewmodel );
 		this.root.viewmodel.set( this.keypath, value );
@@ -56,17 +57,14 @@ var SelectBinding = Binding.extend({
 		}
 	},
 
-	dirty: function () {
-		if ( !this._dirty ) {
-			this._dirty = true;
+	forceUpdate: function () {
+		var value = this.getValue();
 
-			// If there was no initially selected value, we may be
-			// able to set one now
-			if ( this.attribute.value === undefined ) {
-				runloop.afterModelUpdate( () => {
-					this.root.viewmodel.set( this.keypath, this.getInitialValue() );
-				});
-			}
+		if ( value !== undefined ) {
+			this.attribute.locked = true;
+			runloop.addViewmodel( this.root.viewmodel );
+			runloop.afterViewUpdate( () => this.attribute.locked = false );
+			this.root.viewmodel.set( this.keypath, value );
 		}
 	}
 });

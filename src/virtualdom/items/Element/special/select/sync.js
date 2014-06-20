@@ -37,7 +37,7 @@ export default function syncSelect ( selectElement ) {
 			}
 
 			if ( selectElement.binding ) {
-				result = isMultiple ? [] : ( options[0] ? ( options[0]._ractive ? options[0]._ractive.value : options[0].value ) : undefined );
+				selectElement.binding.forceUpdate();
 			}
 		}
 	}
@@ -45,30 +45,7 @@ export default function syncSelect ( selectElement ) {
 	// Otherwise the value should be initialised according to which
 	// <option> element is selected, if twoway binding is in effect
 	else if ( selectElement.binding ) {
-		if ( isMultiple ) {
-			result = options.reduce( ( array, o ) => {
-				if ( o.selected ) {
-					array.push( o.value );
-				}
-
-				return array;
-			}, [] );
-		} else {
-			i = options.length;
-			while ( i-- ) {
-				if ( options[i].selected ) {
-					result = options[i].value;
-					break;
-				}
-			}
-		}
-	}
-
-	if ( result !== undefined ) {
-		selectElement.attributes.value.locked = true;
-		runloop.addViewmodel( selectElement.root.viewmodel );
-		runloop.afterViewUpdate( () => selectElement.attributes.value.locked = false );
-		selectElement.root.viewmodel.set( selectElement.binding.keypath, result );
+		selectElement.binding.forceUpdate();
 	}
 }
 

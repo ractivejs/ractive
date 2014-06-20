@@ -4,12 +4,6 @@ export default function initOption ( option, template ) {
 	option.select = findParentSelect( option.parent );
 	option.select.options.push( option );
 
-	// If the <select> was previously rendered, we may still
-	// need to initialise it
-	if ( option.select.binding ) {
-		option.select.binding.dirty();
-	}
-
 	// If the value attribute is missing, use the element's content
 	if ( !template.a ) {
 		template.a = {};

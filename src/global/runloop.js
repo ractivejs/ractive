@@ -1,4 +1,4 @@
-	import circular from 'circular';
+import circular from 'circular';
 import css from 'global/css';
 import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
@@ -16,7 +16,6 @@ runloop = {
 			transitionManager: makeTransitionManager( callback, batch && batch.transitionManager ),
 			views: [],
 			postViewUpdateTasks: [],
-			postModelUpdateTasks: [],
 			viewmodels: [ instance.viewmodel ]
 		};
 	},
@@ -69,14 +68,12 @@ runloop = {
 		batch.transitionManager.detachQueue.push( thing );
 	},
 
-	// TODO is this necessary?
-	afterModelUpdate: function ( task ) {
-		console.warn( 'TODO' );
-		batch && batch.postModelUpdateTasks.push( task );
-	},
-
 	afterViewUpdate: function ( task ) {
-		batch.postViewUpdateTasks.push( task );
+		if ( !batch ) {
+			task();
+		} else {
+			batch.postViewUpdateTasks.push( task );
+		}
 	}
 };
 
@@ -84,33 +81,31 @@ circular.runloop = runloop;
 export default runloop;
 
 function flushChanges () {
-	var thing, changeHash;
+	var i, thing, changeHash;
 
-	while ( thing = batch.viewmodels.shift() ) {
+	for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
+		thing = batch.viewmodels[i];
 		changeHash = thing.applyChanges();
 
 		if ( changeHash ) {
 			thing.ractive.fire( 'change', changeHash );
 		}
 	}
-
-	attemptKeypathResolution();
-
-	while ( thing = batch.postModelUpdateTasks.pop() ) {
-		thing();
-	}
+	batch.viewmodels.length = 0;
 
 	attemptKeypathResolution();
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	while ( thing = batch.views.pop() ) {
-		thing.update();
+	for ( i = 0; i < batch.views.length; i += 1 ) {
+		batch.views[i].update();
 	}
+	batch.views.length = 0;
 
-	while ( thing = batch.postViewUpdateTasks.pop() ) {
-		thing();
+	for ( i = 0; i < batch.postViewUpdateTasks.length; i += 1 ) {
+		batch.postViewUpdateTasks[i]();
 	}
+	batch.postViewUpdateTasks.length = 0;
 
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>

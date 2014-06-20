@@ -44,7 +44,7 @@ Binding.prototype = {
 
 			// TODO will the counterpart update after this line, during
 			// the runloop end cycle? may be a problem...
-			runloop.afterModelUpdate( () => this.updating = false );
+			runloop.afterViewUpdate( () => this.updating = false );
 		}
 	},
 

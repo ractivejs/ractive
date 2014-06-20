@@ -1,3 +1,4 @@
+import runloop from 'global/runloop';
 import arrayContentsMatch from 'utils/arrayContentsMatch';
 import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
@@ -58,6 +59,17 @@ var MultipleSelectBinding = SelectBinding.extend({
 		}
 
 		return this;
+	},
+
+	forceUpdate: function () {
+		var value = this.getValue();
+
+		if ( value !== undefined ) {
+			this.attribute.locked = true;
+			runloop.addViewmodel( this.root.viewmodel );
+			runloop.afterViewUpdate( () => this.attribute.locked = false );
+			this.root.viewmodel.set( this.keypath, value );
+		}
 	},
 
 	updateModel: function () {
