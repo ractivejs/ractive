@@ -110,7 +110,7 @@ export default function Element$render () {
 
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
-		runloop.afterViewUpdate( () => {
+		runloop.scheduleTask( () => {
 			this.decorator.init();
 		});
 	}
@@ -118,7 +118,7 @@ export default function Element$render () {
 	// trigger intro transition
 	if ( intro = this.intro ) {
 		runloop.registerTransition( intro );
-		runloop.afterViewUpdate( () => intro.start( true ) )
+		runloop.scheduleTask( () => intro.start( true ) )
 	}
 
 	if ( this.name === 'option' ) {
@@ -129,7 +129,7 @@ export default function Element$render () {
 		// Special case. Some browsers (*cough* Firefix *cough*) have a problem
 		// with dynamically-generated elements having autofocus, and they won't
 		// allow you to programmatically focus the element until it's in the DOM
-		runloop.afterViewUpdate( () => this.node.focus() );
+		runloop.scheduleTask( () => this.node.focus() );
 	}
 
 	updateLiveQueries( this );

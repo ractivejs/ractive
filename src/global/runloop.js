@@ -15,7 +15,7 @@ runloop = {
 			previousBatch: batch,
 			transitionManager: makeTransitionManager( callback, batch && batch.transitionManager ),
 			views: [],
-			postViewUpdateTasks: [],
+			tasks: [],
 			viewmodels: [ instance.viewmodel ]
 		};
 	},
@@ -68,11 +68,11 @@ runloop = {
 		batch.transitionManager.detachQueue.push( thing );
 	},
 
-	afterViewUpdate: function ( task ) {
+	scheduleTask: function ( task ) {
 		if ( !batch ) {
 			task();
 		} else {
-			batch.postViewUpdateTasks.push( task );
+			batch.tasks.push( task );
 		}
 	}
 };
@@ -102,10 +102,10 @@ function flushChanges () {
 	}
 	batch.views.length = 0;
 
-	for ( i = 0; i < batch.postViewUpdateTasks.length; i += 1 ) {
-		batch.postViewUpdateTasks[i]();
+	for ( i = 0; i < batch.tasks.length; i += 1 ) {
+		batch.tasks[i]();
 	}
-	batch.postViewUpdateTasks.length = 0;
+	batch.tasks.length = 0;
 
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>

@@ -51,7 +51,7 @@ Binding.prototype = {
 		runloop.start( this.root );
 		this.attribute.locked = true;
 		this.root.viewmodel.set( this.keypath, this.getValue() );
-		runloop.afterViewUpdate( () => this.attribute.locked = false );
+		runloop.scheduleTask( () => this.attribute.locked = false );
 		runloop.end();
 	},
 

@@ -6,7 +6,7 @@ export default function () {
 
 		// Once the DOM has been updated, ensure the query
 		// is correctly ordered
-		runloop.afterViewUpdate( () => {
+		runloop.scheduleTask( () => {
 			this._sort();
 		});
 	}

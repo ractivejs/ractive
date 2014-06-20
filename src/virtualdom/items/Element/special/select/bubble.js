@@ -5,7 +5,7 @@ export default function bubbleSelect () {
 	if ( !this.dirty ) {
 		this.dirty = true;
 
-		runloop.afterViewUpdate( () => {
+		runloop.scheduleTask( () => {
 			syncSelect( this );
 			this.dirty = false;
 		});

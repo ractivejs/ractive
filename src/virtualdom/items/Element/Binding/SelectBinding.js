@@ -63,7 +63,7 @@ var SelectBinding = Binding.extend({
 		if ( value !== undefined ) {
 			this.attribute.locked = true;
 			runloop.addViewmodel( this.root.viewmodel );
-			runloop.afterViewUpdate( () => this.attribute.locked = false );
+			runloop.scheduleTask( () => this.attribute.locked = false );
 			this.root.viewmodel.set( this.keypath, value );
 		}
 	}
