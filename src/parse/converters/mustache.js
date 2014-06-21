@@ -71,9 +71,13 @@ function getMustacheOfType ( parser, delimiterType ) {
 		mustache.exclude = true;
 	}
 
-	if ( mustache.t === types.CLOSING && parser.sectionDepth <= 0 ) {
-		parser.pos = start;
-		parser.error( 'Attempted to close a section that wasn\'t open' );
+	if ( mustache.t === types.CLOSING ) {
+		parser.sectionDepth -= 1;
+
+		if ( parser.sectionDepth < 0 ) {
+			parser.pos = start;
+			parser.error( 'Attempted to close a section that wasn\'t open' );
+		}
 	}
 
 	// section children
