@@ -1073,6 +1073,22 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+		test( 'Regression test for #832', function ( t ) {
+			var ractive = new Ractive({
+				el: document.createElement( 'div' ),
+				template: '{{#if obj[foo].length}}{{#each obj[foo]}}{{this}}{{/each}}{{/if}}',
+				data: {
+					obj: {
+						a: ['x']
+					},
+					foo: 'a'
+				}
+			});
+
+			ractive.set( 'foo', 'b' );
+			t.ok( true );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
