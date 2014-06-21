@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-21 - commit f957ebe7 
+	2014-06-21 - commit c84ba782 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -709,7 +709,7 @@
 	}( circular, isArray, isEqual );
 
 	/* shared/resolveRef.js */
-	var resolveRef = function( normaliseKeypath, hasOwnProperty, getInnerContext, createComponentBinding ) {
+	var resolveRef = function( normaliseKeypath, getInnerContext, createComponentBinding ) {
 
 		var ancestorErrorMessage, getOptions;
 		ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
@@ -738,7 +738,7 @@
 				}
 			} while ( fragment = fragment.parent );
 			// Root property?
-			if ( hasOwnProperty.call( ractive.data, key ) ) {
+			if ( key in ractive.data ) {
 				return ref;
 			}
 			// If this is an inline component, and it's not isolated, we
@@ -794,7 +794,7 @@
 			}
 			return baseContext + ref.replace( /^\.\//, '.' );
 		}
-	}( normaliseKeypath, hasOwn, getInnerContext, createComponentBinding );
+	}( normaliseKeypath, getInnerContext, createComponentBinding );
 
 	/* shared/makeTransitionManager.js */
 	var makeTransitionManager = function( removeFromArray ) {
