@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-21 - commit 7e6cf2c5 
+	2014-06-21 - commit f957ebe7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4668,7 +4668,7 @@
 	};
 
 	/* virtualdom/items/shared/Evaluator/Evaluator.js */
-	var Evaluator = function( warn, isEqual, defineProperty, diff ) {
+	var Evaluator = function( log, isEqual, defineProperty, diff ) {
 
 		// TODO this is a red flag... should be treated the same?
 		var Evaluator, cache = {};
@@ -4717,7 +4717,14 @@
 					value = this.fn.apply( null, args );
 				} catch ( err ) {
 					if ( this.root.debug ) {
-						warn( 'Error evaluating "' + this.uniqueString + '": ' + err.message || err );
+						log.warn( {
+							debug: this.root.debug,
+							message: 'evaluationError',
+							args: {
+								uniqueString: this.uniqueString,
+								err: err.message || err
+							}
+						} );
 					}
 					value = undefined;
 				}
@@ -4783,7 +4790,7 @@
 		function call( arg ) {
 			return typeof arg === 'function' ? arg() : arg;
 		}
-	}( warn, isEqual, defineProperty, diff );
+	}( log, isEqual, defineProperty, diff );
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
 	var ExpressionResolver = function( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath ) {
