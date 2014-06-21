@@ -380,6 +380,46 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.get( 'foo' ).push( bar );
 		});
 
+		asyncTest( 'Promises from set() operations inside observers resolve (#765)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{foo}}',
+				data: {
+					bar: 1
+				}
+			});
+
+			expect( 1 );
+
+			ractive.observe( 'bar', function ( bar ) {
+				ractive.set( 'foo', 'works' ).then( function () {
+					t.ok( true );
+					QUnit.start();
+				});
+			}, { init: false });
+
+			ractive.set( 'bar', true );
+		});
+
+		test( 'set() operations inside observers affect the DOM immediately (related to #765)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{foo}}',
+				data: {
+					bar: 1
+				}
+			});
+
+			expect( 1 );
+
+			ractive.observe( 'bar', function ( bar ) {
+				ractive.set( 'foo', 'works' );
+				t.htmlEqual( fixture.innerHTML, 'works' );
+			}, { init: false });
+
+			ractive.set( 'bar', true );
+		});
+
 
 
 	};
