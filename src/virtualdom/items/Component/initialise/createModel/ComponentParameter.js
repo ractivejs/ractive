@@ -28,19 +28,18 @@ ComponentParameter.prototype = {
 	bubble: function () {
 		if ( !this.dirty ) {
 			this.dirty = true;
-
-			runloop.afterModelUpdate( () => {
-				this.update();
-				this.dirty = false;
-			});
+			runloop.addView( this );
 		}
 	},
 
 	update: function () {
 		var value = this.fragment.getValue( getValueOptions );
 
-		this.component.instance.set( this.key, value );
+		this.component.instance.viewmodel.set( this.key, value );
+		runloop.addViewmodel( this.component.instance.viewmodel );
 		this.value = value;
+
+		this.dirty = false;
 	},
 
 	teardown: function () {

@@ -48,9 +48,10 @@ var Binding = function ( element ) {
 
 Binding.prototype = {
 	handleChange: function () {
-		runloop.lockAttribute( this.attribute );
 		runloop.start( this.root );
+		this.attribute.locked = true;
 		this.root.viewmodel.set( this.keypath, this.getValue() );
+		runloop.scheduleTask( () => this.attribute.locked = false );
 		runloop.end();
 	},
 

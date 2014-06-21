@@ -31,7 +31,7 @@ Observer.prototype = {
 			this.value = value;
 
 			if ( this.defer && this.ready ) {
-				runloop.afterViewUpdate( () => this.update() );
+				runloop.scheduleTask( () => this.update() );
 			} else {
 				this.update();
 			}

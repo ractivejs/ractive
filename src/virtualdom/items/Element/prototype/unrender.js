@@ -35,7 +35,7 @@ export default function Element$unrender ( shouldDestroy ) {
 	// Outro, if necessary
 	if ( outro = this.outro ) {
 		runloop.registerTransition( outro );
-		runloop.afterViewUpdate( () => outro.start( false ) );
+		runloop.scheduleTask( () => outro.start( false ) );
 	}
 
 	// Remove this node from any live queries
