@@ -179,6 +179,11 @@ var parseTests = [
 		parsed: [{r:"todos.0.content",t:2}]
 	},
 	{
+		name: "Mustache references that aren't valid expressions can have uppercase",
+		template: "{{00.Content}}",
+		parsed: [{r:"00.Content",t:2}]
+	},
+	{
 		name: "Expression with keypath like foo.0.bar",
 		template: "{{( process( foo.0.bar ) )}}",
 		parsed: [{t:2,"x":{r:["process","foo.0.bar"],"s":"${0}(${1})"}}]
