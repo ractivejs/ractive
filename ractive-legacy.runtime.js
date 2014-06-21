@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-21 - commit 51f52d12 
+	2014-06-21 - commit 00aeecb6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -623,71 +623,6 @@
 		}
 	};
 
-	/* global/css.js */
-	var css = function( circular, isClient, removeFromArray ) {
-
-		var css, runloop, styleElement, head, styleSheet, inDom, prefix = '/* Ractive.js component styles */\n',
-			componentsInPage = {},
-			styles = [];
-		if ( !isClient ) {
-			css = null;
-		} else {
-			circular.push( function() {
-				runloop = circular.runloop;
-			} );
-			styleElement = document.createElement( 'style' );
-			styleElement.type = 'text/css';
-			head = document.getElementsByTagName( 'head' )[ 0 ];
-			inDom = false;
-			// Internet Exploder won't let you use styleSheet.innerHTML - we have to
-			// use styleSheet.cssText instead
-			styleSheet = styleElement.styleSheet;
-			css = {
-				add: function( Component ) {
-					if ( !Component.css ) {
-						return;
-					}
-					if ( !componentsInPage[ Component._guid ] ) {
-						// we create this counter so that we can in/decrement it as
-						// instances are added and removed. When all components are
-						// removed, the style is too
-						componentsInPage[ Component._guid ] = 0;
-						styles.push( Component.css );
-						runloop.scheduleCssUpdate();
-					}
-					componentsInPage[ Component._guid ] += 1;
-				},
-				remove: function( Component ) {
-					if ( !Component.css ) {
-						return;
-					}
-					componentsInPage[ Component._guid ] -= 1;
-					if ( !componentsInPage[ Component._guid ] ) {
-						removeFromArray( styles, Component.css );
-						runloop.scheduleCssUpdate();
-					}
-				},
-				update: function() {
-					var css;
-					if ( styles.length ) {
-						css = prefix + styles.join( ' ' );
-						if ( styleSheet ) {
-							styleSheet.cssText = css;
-						} else {
-							styleElement.innerHTML = css;
-						}
-						if ( !inDom ) {
-							head.appendChild( styleElement );
-						}
-					} else if ( inDom ) {
-						head.removeChild( styleElement );
-					}
-				}
-			};
-		}
-		return css;
-	}( circular, isClient, removeFromArray );
-
 	/* shared/getInnerContext.js */
 	var getInnerContext = function( fragment ) {
 		do {
@@ -736,7 +671,7 @@
 					this.value = value;
 					// TODO will the counterpart update after this line, during
 					// the runloop end cycle? may be a problem...
-					runloop.afterModelUpdate( function() {
+					runloop.scheduleTask( function() {
 						return this$0.updating = false;
 					} );
 				}
@@ -904,65 +839,41 @@
 	}( removeFromArray );
 
 	/* global/runloop.js */
-	var runloop = function( circular, css, removeFromArray, resolveRef, makeTransitionManager ) {
+	var runloop = function( circular, removeFromArray, resolveRef, makeTransitionManager ) {
 
-		var runloop, dirty = false,
-			flushing = false,
-			pendingCssChanges, lockedAttributes = [],
-			unresolved = [],
-			views = [],
-			postViewUpdateTasks = [],
-			postModelUpdateTasks = [],
-			viewmodels = [],
-			transitionManager;
+		var batch, runloop, unresolved = [];
 		runloop = {
 			start: function( instance, callback ) {
-				this.addViewmodel( instance.viewmodel );
-				if ( !flushing ) {
-					// create a new transition manager
-					transitionManager = makeTransitionManager( callback, transitionManager );
-				}
+				batch = {
+					previousBatch: batch,
+					transitionManager: makeTransitionManager( callback, batch && batch.transitionManager ),
+					views: [],
+					tasks: [],
+					viewmodels: [ instance.viewmodel ]
+				};
 			},
 			end: function() {
-				if ( flushing ) {
-					// TODO is this still necessary? probably not
-					attemptKeypathResolution();
-					return;
-				}
-				flushing = true;
-				do {
-					flushChanges();
-				} while ( dirty );
-				flushing = false;
-				transitionManager.init();
-				transitionManager = transitionManager._previous;
+				flushChanges();
+				batch.transitionManager.init();
+				batch = batch.previousBatch;
 			},
 			addViewmodel: function( viewmodel ) {
-				if ( viewmodel && viewmodels.indexOf( viewmodel ) === -1 ) {
-					viewmodels.push( viewmodel );
+				if ( batch ) {
+					if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
+						batch.viewmodels.push( viewmodel );
+					}
+				} else {
+					viewmodel.applyChanges();
 				}
 			},
 			registerTransition: function( transition ) {
-				transition._manager = transitionManager;
-				transitionManager.push( transition );
+				transition._manager = batch.transitionManager;
+				batch.transitionManager.push( transition );
 			},
 			addView: function( view ) {
-				views.push( view );
-			},
-			lockAttribute: function( attribute ) {
-				attribute.locked = true;
-				lockedAttributes.push( attribute );
-			},
-			scheduleCssUpdate: function() {
-				// if runloop isn't currently active, we need to trigger change immediately
-				if ( !flushing ) {
-					css.update();
-				} else {
-					pendingCssChanges = true;
-				}
+				batch.views.push( view );
 			},
 			addUnresolved: function( thing ) {
-				dirty = true;
 				unresolved.push( thing );
 			},
 			removeUnresolved: function( thing ) {
@@ -970,59 +881,45 @@
 			},
 			// synchronise node detachments with transition ends
 			detachWhenReady: function( thing ) {
-				transitionManager.detachQueue.push( thing );
+				batch.transitionManager.detachQueue.push( thing );
 			},
-			afterModelUpdate: function( task ) {
-				dirty = true;
-				postModelUpdateTasks.push( task );
-			},
-			afterViewUpdate: function( task ) {
-				dirty = true;
-				postViewUpdateTasks.push( task );
+			scheduleTask: function( task ) {
+				if ( !batch ) {
+					task();
+				} else {
+					batch.tasks.push( task );
+				}
 			}
 		};
 		circular.runloop = runloop;
 		return runloop;
 
 		function flushChanges() {
-			var thing, changeHash;
-			while ( thing = viewmodels.shift() ) {
+			var i, thing, changeHash;
+			for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
+				thing = batch.viewmodels[ i ];
 				changeHash = thing.applyChanges();
 				if ( changeHash ) {
 					thing.ractive.fire( 'change', changeHash );
 				}
 			}
+			batch.viewmodels.length = 0;
 			attemptKeypathResolution();
-			// These changes may have knock-on effects, so we need to keep
-			// looping until the system is settled
-			while ( dirty ) {
-				dirty = false;
-				while ( thing = postModelUpdateTasks.pop() ) {
-					thing();
-				}
-				attemptKeypathResolution();
-			}
 			// Now that changes have been fully propagated, we can update the DOM
 			// and complete other tasks
-			while ( thing = views.pop() ) {
-				thing.update();
+			for ( i = 0; i < batch.views.length; i += 1 ) {
+				batch.views[ i ].update();
 			}
-			while ( thing = postViewUpdateTasks.pop() ) {
-				thing();
+			batch.views.length = 0;
+			for ( i = 0; i < batch.tasks.length; i += 1 ) {
+				batch.tasks[ i ]();
 			}
+			batch.tasks.length = 0;
 			// If updating the view caused some model blowback - e.g. a triple
 			// containing <option> elements caused the binding on the <select>
 			// to update - then we start over
-			if ( viewmodels.length )
+			if ( batch.viewmodels.length )
 				return flushChanges();
-			// Unlock attributes (twoway binding)
-			while ( thing = lockedAttributes.pop() ) {
-				thing.locked = false;
-			}
-			if ( pendingCssChanges ) {
-				css.update();
-				pendingCssChanges = false;
-			}
 		}
 
 		function attemptKeypathResolution() {
@@ -1046,7 +943,7 @@
 				}
 			}
 		}
-	}( circular, css, removeFromArray, resolveRef, makeTransitionManager );
+	}( circular, removeFromArray, resolveRef, makeTransitionManager );
 
 	/* shared/animations.js */
 	var animations = function( rAF, getTime, runloop ) {
@@ -1174,7 +1071,7 @@
 	}();
 
 	/* config/options/css/css.js */
-	var config_options_css_css = function( transformCss ) {
+	var css = function( transformCss ) {
 
 		var cssConfig = {
 			name: 'css',
@@ -2156,7 +2053,7 @@
 			} );
 		};
 		return config;
-	}( config_options_css_css, data, options, template, parseOptions, registries, wrapPrototypeMethod, deprecate );
+	}( css, data, options, template, parseOptions, registries, wrapPrototypeMethod, deprecate );
 
 	/* shared/interpolate.js */
 	var interpolate = function( circular, warn, interpolators, config ) {
@@ -2597,7 +2494,7 @@
 				this._dirty = true;
 				// Once the DOM has been updated, ensure the query
 				// is correctly ordered
-				runloop.afterViewUpdate( function() {
+				runloop.scheduleTask( function() {
 					this$0._sort();
 				} );
 			}
@@ -2893,7 +2790,7 @@
 				if ( !isEqual( value, this.oldValue ) ) {
 					this.value = value;
 					if ( this.defer && this.ready ) {
-						runloop.afterViewUpdate( function() {
+						runloop.scheduleTask( function() {
 							return this$0.update();
 						} );
 					} else {
@@ -3265,6 +3162,71 @@
 		};
 	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
 
+	/* global/css.js */
+	var global_css = function( circular, isClient, removeFromArray ) {
+
+		var css, update, runloop, styleElement, head, styleSheet, inDom, prefix = '/* Ractive.js component styles */\n',
+			componentsInPage = {},
+			styles = [];
+		if ( !isClient ) {
+			css = null;
+		} else {
+			circular.push( function() {
+				runloop = circular.runloop;
+			} );
+			styleElement = document.createElement( 'style' );
+			styleElement.type = 'text/css';
+			head = document.getElementsByTagName( 'head' )[ 0 ];
+			inDom = false;
+			// Internet Exploder won't let you use styleSheet.innerHTML - we have to
+			// use styleSheet.cssText instead
+			styleSheet = styleElement.styleSheet;
+			update = function() {
+				var css;
+				if ( styles.length ) {
+					css = prefix + styles.join( ' ' );
+					if ( styleSheet ) {
+						styleSheet.cssText = css;
+					} else {
+						styleElement.innerHTML = css;
+					}
+					if ( !inDom ) {
+						head.appendChild( styleElement );
+					}
+				} else if ( inDom ) {
+					head.removeChild( styleElement );
+				}
+			};
+			css = {
+				add: function( Component ) {
+					if ( !Component.css ) {
+						return;
+					}
+					if ( !componentsInPage[ Component._guid ] ) {
+						// we create this counter so that we can in/decrement it as
+						// instances are added and removed. When all components are
+						// removed, the style is too
+						componentsInPage[ Component._guid ] = 0;
+						styles.push( Component.css );
+						runloop.scheduleTask( update );
+					}
+					componentsInPage[ Component._guid ] += 1;
+				},
+				remove: function( Component ) {
+					if ( !Component.css ) {
+						return;
+					}
+					componentsInPage[ Component._guid ] -= 1;
+					if ( !componentsInPage[ Component._guid ] ) {
+						removeFromArray( styles, Component.css );
+						runloop.scheduleTask( update );
+					}
+				}
+			};
+		}
+		return css;
+	}( circular, isClient, removeFromArray );
+
 	/* Ractive/prototype/render.js */
 	var Ractive$render = function( runloop, css, Promise, getElement ) {
 
@@ -3317,7 +3279,7 @@
 			}
 			instance._childInitQueue.splice( 0 ).forEach( init );
 		}
-	}( runloop, css, Promise, getElement );
+	}( runloop, global_css, Promise, getElement );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
@@ -6119,7 +6081,7 @@
 				runloop.end();
 			}
 		};
-	}( runloop, css );
+	}( runloop, global_css );
 
 	/* virtualdom/items/Element/prototype/find.js */
 	var virtualdom_items_Element$find = function( matches ) {
@@ -6814,9 +6776,13 @@
 		};
 		Binding.prototype = {
 			handleChange: function() {
-				runloop.lockAttribute( this.attribute );
+				var this$0 = this;
 				runloop.start( this.root );
+				this.attribute.locked = true;
 				this.root.viewmodel.set( this.keypath, this.getValue() );
+				runloop.scheduleTask( function() {
+					return this$0.attribute.locked = false;
+				} );
 				runloop.end();
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -7116,6 +7082,7 @@
 			unrender: function() {
 				this.element.node.removeEventListener( 'change', handleDomEvent, false );
 			},
+			// TODO this method is an anomaly... is it necessary?
 			setValue: function( value ) {
 				runloop.addViewmodel( this.root.viewmodel );
 				this.root.viewmodel.set( this.keypath, value );
@@ -7132,17 +7099,16 @@
 					}
 				}
 			},
-			dirty: function() {
+			forceUpdate: function() {
 				var this$0 = this;
-				if ( !this._dirty ) {
-					this._dirty = true;
-					// If there was no initially selected value, we may be
-					// able to set one now
-					if ( this.attribute.value === undefined ) {
-						runloop.afterModelUpdate( function() {
-							this$0.root.viewmodel.set( this$0.keypath, this$0.getInitialValue() );
-						} );
-					}
+				var value = this.getValue();
+				if ( value !== undefined ) {
+					this.attribute.locked = true;
+					runloop.addViewmodel( this.root.viewmodel );
+					runloop.scheduleTask( function() {
+						return this$0.attribute.locked = false;
+					} );
+					this.root.viewmodel.set( this.keypath, value );
 				}
 			}
 		} );
@@ -7171,7 +7137,7 @@
 	}( isArray );
 
 	/* virtualdom/items/Element/Binding/MultipleSelectBinding.js */
-	var MultipleSelectBinding = function( arrayContentsMatch, SelectBinding, handleDomEvent ) {
+	var MultipleSelectBinding = function( runloop, arrayContentsMatch, SelectBinding, handleDomEvent ) {
 
 		var MultipleSelectBinding = SelectBinding.extend( {
 			getInitialValue: function() {
@@ -7217,6 +7183,18 @@
 				}
 				return this;
 			},
+			forceUpdate: function() {
+				var this$0 = this;
+				var value = this.getValue();
+				if ( value !== undefined ) {
+					this.attribute.locked = true;
+					runloop.addViewmodel( this.root.viewmodel );
+					runloop.scheduleTask( function() {
+						return this$0.attribute.locked = false;
+					} );
+					this.root.viewmodel.set( this.keypath, value );
+				}
+			},
 			updateModel: function() {
 				if ( this.attribute.value === undefined || !this.attribute.value.length ) {
 					this.root.viewmodel.set( this.keypath, this.initialValue );
@@ -7224,7 +7202,7 @@
 			}
 		} );
 		return MultipleSelectBinding;
-	}( arrayContentsMatch, SelectBinding, handleDomEvent );
+	}( runloop, arrayContentsMatch, SelectBinding, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/FileListBinding.js */
 	var FileListBinding = function( Binding, handleDomEvent ) {
@@ -8185,10 +8163,10 @@
 	};
 
 	/* virtualdom/items/Element/special/select/sync.js */
-	var sync = function( toArray, runloop ) {
+	var sync = function( toArray ) {
 
 		return function syncSelect( selectElement ) {
-			var selectNode, selectValue, isMultiple, options, i, optionWasSelected, result;
+			var selectNode, selectValue, isMultiple, options, optionWasSelected;
 			selectNode = selectElement.node;
 			if ( !selectNode ) {
 				return;
@@ -8213,31 +8191,11 @@
 						options[ 0 ].selected = true;
 					}
 					if ( selectElement.binding ) {
-						result = isMultiple ? [] : options[ 0 ] ? options[ 0 ]._ractive ? options[ 0 ]._ractive.value : options[ 0 ].value : undefined;
+						selectElement.binding.forceUpdate();
 					}
 				}
 			} else if ( selectElement.binding ) {
-				if ( isMultiple ) {
-					result = options.reduce( function( array, o ) {
-						if ( o.selected ) {
-							array.push( o.value );
-						}
-						return array;
-					}, [] );
-				} else {
-					i = options.length;
-					while ( i-- ) {
-						if ( options[ i ].selected ) {
-							result = options[ i ].value;
-							break;
-						}
-					}
-				}
-			}
-			if ( result !== undefined ) {
-				runloop.lockAttribute( selectElement.attributes.value );
-				runloop.addViewmodel( selectElement.root.viewmodel );
-				selectElement.root.viewmodel.set( selectElement.binding.keypath, result );
+				selectElement.binding.forceUpdate();
 			}
 		};
 
@@ -8249,7 +8207,7 @@
 				}
 			}
 		}
-	}( toArray, runloop );
+	}( toArray );
 
 	/* virtualdom/items/Element/special/select/bubble.js */
 	var bubble = function( runloop, syncSelect ) {
@@ -8258,7 +8216,7 @@
 			var this$0 = this;
 			if ( !this.dirty ) {
 				this.dirty = true;
-				runloop.afterViewUpdate( function() {
+				runloop.scheduleTask( function() {
 					syncSelect( this$0 );
 					this$0.dirty = false;
 				} );
@@ -8282,11 +8240,6 @@
 		return function initOption( option, template ) {
 			option.select = findParentSelect( option.parent );
 			option.select.options.push( option );
-			// If the <select> was previously rendered, we may still
-			// need to initialise it
-			if ( option.select.binding ) {
-				option.select.binding.dirty();
-			}
 			// If the value attribute is missing, use the element's content
 			if ( !template.a ) {
 				template.a = {};
@@ -8534,14 +8487,14 @@
 			}
 			// apply decorator(s)
 			if ( this.decorator && this.decorator.fn ) {
-				runloop.afterViewUpdate( function() {
+				runloop.scheduleTask( function() {
 					this$0.decorator.init();
 				} );
 			}
 			// trigger intro transition
 			if ( intro = this.intro ) {
 				runloop.registerTransition( intro );
-				runloop.afterViewUpdate( function() {
+				runloop.scheduleTask( function() {
 					return intro.start( true );
 				} );
 			}
@@ -8552,7 +8505,7 @@
 				// Special case. Some browsers (*cough* Firefix *cough*) have a problem
 				// with dynamically-generated elements having autofocus, and they won't
 				// allow you to programmatically focus the element until it's in the DOM
-				runloop.afterViewUpdate( function() {
+				runloop.scheduleTask( function() {
 					return this$0.node.focus();
 				} );
 			}
@@ -8716,7 +8669,7 @@
 			// Outro, if necessary
 			if ( outro = this.outro ) {
 				runloop.registerTransition( outro );
-				runloop.afterViewUpdate( function() {
+				runloop.scheduleTask( function() {
 					return outro.start( false );
 				} );
 			}
@@ -9008,19 +8961,17 @@
 		};
 		ComponentParameter.prototype = {
 			bubble: function() {
-				var this$0 = this;
 				if ( !this.dirty ) {
 					this.dirty = true;
-					runloop.afterModelUpdate( function() {
-						this$0.update();
-						this$0.dirty = false;
-					} );
+					runloop.addView( this );
 				}
 			},
 			update: function() {
 				var value = this.fragment.getValue( getValueOptions );
-				this.component.instance.set( this.key, value );
+				this.component.instance.viewmodel.set( this.key, value );
+				runloop.addViewmodel( this.component.instance.viewmodel );
 				this.value = value;
+				this.dirty = false;
 			},
 			teardown: function() {
 				this.fragment.teardown();
@@ -9757,7 +9708,7 @@
 			runloop.end();
 			return promise;
 		};
-	}( types, Promise, removeFromArray, runloop, css );
+	}( types, Promise, removeFromArray, runloop, global_css );
 
 	/* Ractive/prototype/update.js */
 	var Ractive$update = function( runloop, Promise ) {
