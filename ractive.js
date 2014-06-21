@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-21 - commit 00aeecb6 
+	2014-06-21 - commit 7e6cf2c5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2439,8 +2439,16 @@
 			if ( mustache.t === types.COMMENT ) {
 				mustache.exclude = true;
 			}
+			if ( mustache.t === types.CLOSING ) {
+				parser.sectionDepth -= 1;
+				if ( parser.sectionDepth < 0 ) {
+					parser.pos = start;
+					parser.error( 'Attempted to close a section that wasn\'t open' );
+				}
+			}
 			// section children
 			if ( isSection( mustache ) ) {
+				parser.sectionDepth += 1;
 				children = [];
 				currentChildren = children;
 				expectedClose = mustache.n;
@@ -3607,6 +3615,7 @@
 					'[[[',
 					']]]'
 				];
+				this.sectionDepth = 0;
 				this.interpolate = {
 					script: !options.interpolate || options.interpolate.script !== false,
 					style: !options.interpolate || options.interpolate.style !== false
