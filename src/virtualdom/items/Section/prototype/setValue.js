@@ -41,10 +41,9 @@ export default function Section$setValue ( value ) {
 		});
 
 		this.fragmentsToCreate.length = 0;
-		return;
 	}
 
-	if ( reevaluateSection( this, value ) ) {
+	else if ( reevaluateSection( this, value ) ) {
 		this.bubble();
 
 		if ( this.rendered ) {
