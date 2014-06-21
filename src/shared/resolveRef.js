@@ -1,5 +1,4 @@
 import normaliseKeypath from 'utils/normaliseKeypath';
-import hasOwnProperty from 'utils/hasOwnProperty';
 import getInnerContext from 'shared/getInnerContext';
 import createComponentBinding from 'shared/createComponentBinding';
 
@@ -39,7 +38,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	} while ( fragment = fragment.parent );
 
 	// Root property?
-	if ( hasOwnProperty.call( ractive.data, key ) ) {
+	if ( key in ractive.data ) {
 		return ref;
 	}
 
