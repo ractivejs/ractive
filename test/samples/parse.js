@@ -775,6 +775,11 @@ var parseTests = [
 		name: '`this.foo` becomes `./foo`',
 		template: '{{this.foo}}',
 		parsed: [{t:2,r:'./foo'}]
+	},
+	{
+		name: 'Closing an unopened section',
+		template: '{{foo}}{{/foo}}',
+		error: 'Attempted to close a section that wasn\'t open at line 1 character 8:\n{{foo}}{{/foo}}\n       ^----'
 	}
 ];
 
