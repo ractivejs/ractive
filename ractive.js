@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-21 - commit 8a8a4523 
+	2014-06-21 - commit 45ee3994 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2258,7 +2258,7 @@
 			arrayMemberPattern = /^[0-9][1-9]*$/,
 			handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 			legalReference;
-		legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
+		legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 		return function( parser, delimiterType ) {
 			var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, referenceExpression;
 			start = parser.pos;
