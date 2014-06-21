@@ -3,6 +3,7 @@ import isClient from 'config/isClient';
 import removeFromArray from 'utils/removeFromArray';
 
 var css,
+	update,
 	runloop,
 	styleElement,
 	head,
@@ -30,6 +31,28 @@ if ( !isClient ) {
 	// use styleSheet.cssText instead
 	styleSheet = styleElement.styleSheet;
 
+	update = function () {
+		var css;
+
+		if ( styles.length ) {
+			css = prefix + styles.join( ' ' );
+
+			if ( styleSheet ) {
+				styleSheet.cssText = css;
+			} else {
+				styleElement.innerHTML = css;
+			}
+
+			if ( !inDom ) {
+				head.appendChild( styleElement );
+			}
+		}
+
+		else if ( inDom ) {
+			head.removeChild( styleElement );
+		}
+	};
+
 	css = {
 		add: function ( Component ) {
 			if ( !Component.css ) {
@@ -43,7 +66,7 @@ if ( !isClient ) {
 				componentsInPage[ Component._guid ] = 0;
 				styles.push( Component.css );
 
-				runloop.scheduleCssUpdate();
+				runloop.scheduleTask( update );
 			}
 
 			componentsInPage[ Component._guid ] += 1;
@@ -59,29 +82,7 @@ if ( !isClient ) {
 			if ( !componentsInPage[ Component._guid ] ) {
 				removeFromArray( styles, Component.css );
 
-				runloop.scheduleCssUpdate();
-			}
-		},
-
-		update: function () {
-			var css;
-
-			if ( styles.length ) {
-				css = prefix + styles.join( ' ' );
-
-				if ( styleSheet ) {
-					styleSheet.cssText = css;
-				} else {
-					styleElement.innerHTML = css;
-				}
-
-				if ( !inDom ) {
-					head.appendChild( styleElement );
-				}
-			}
-
-			else if ( inDom ) {
-				head.removeChild( styleElement );
+				runloop.scheduleTask( update );
 			}
 		}
 	};

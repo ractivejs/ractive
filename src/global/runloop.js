@@ -1,13 +1,9 @@
 import circular from 'circular';
-import css from 'global/css';
 import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
 import makeTransitionManager from 'shared/makeTransitionManager';
 
-var batch,
-	runloop,
-	pendingCssChanges,
-	unresolved = [];
+var batch, runloop, unresolved = [];
 
 runloop = {
 	start: function ( instance, callback ) {
@@ -44,15 +40,6 @@ runloop = {
 
 	addView: function ( view ) {
 		batch.views.push( view );
-	},
-
-	scheduleCssUpdate: function () {
-		// if runloop isn't currently active, we need to trigger change immediately
-		if ( !batch ) {
-			css.update();
-		} else {
-			pendingCssChanges = true;
-		}
 	},
 
 	addUnresolved: function ( thing ) {
@@ -111,11 +98,6 @@ function flushChanges () {
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
 	if ( batch.viewmodels.length ) return flushChanges();
-
-	if ( pendingCssChanges ) {
-		css.update();
-		pendingCssChanges = false;
-	}
 }
 
 function attemptKeypathResolution () {
