@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-21 - commit c84ba782 
+	2014-06-21 - commit 32f08219 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6555,9 +6555,7 @@
 					this$0.fragmentsToRender.push( this$0.fragments[ index ] = fragment );
 				} );
 				this.fragmentsToCreate.length = 0;
-				return;
-			}
-			if ( reevaluateSection( this, value ) ) {
+			} else if ( reevaluateSection( this, value ) ) {
 				this.bubble();
 				if ( this.rendered ) {
 					runloop.addView( this );
@@ -6804,6 +6802,7 @@
 		return function Section$teardown() {
 			this.fragments.forEach( teardownFragment );
 			teardown.call( this );
+			this.length = 0;
 		};
 
 		function teardownFragment( fragment ) {
