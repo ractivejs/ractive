@@ -78,7 +78,7 @@ function configure ( method, Parent, instance, options ) {
 		if( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
 			let value = options[ key ];
 			instance[ key ] = typeof value === 'function'
-				? wrap( instance, Parent.prototype, key, value )
+				? wrap( Parent.prototype, key, value )
 				: value;
 		}
 	}

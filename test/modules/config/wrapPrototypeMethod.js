@@ -23,7 +23,28 @@ define([
 			var parent = { talk: () => t.ok( true ) },
 				instance = create( parent );
 
-			instance.talk = wrap( instance, parent, 'talk', callSuper );
+			instance.talk = wrap( parent, 'talk', callSuper );
+
+			instance.talk();
+		});
+
+		test( '"this" in methods refers to correct instance', function ( t ) {
+
+			expect(2);
+
+			// no fat arrows! that would bind "this" to test method or module!
+
+			var parent = {
+					talk: function () {
+						t.equal( this, instance, '_super method has correct "this"' );
+					}
+				},
+				instance = create( parent );
+
+			instance.talk = wrap( parent, 'talk', function () {
+				t.equal( this, instance, 'instance method has correct "this"' );
+				this._super();
+			});
 
 			instance.talk();
 		});
@@ -36,7 +57,7 @@ define([
 				parent = create( grandparent ),
 				instance = create( parent );
 
-			instance.talk = wrap( instance, parent, 'talk', callSuper );
+			instance.talk = wrap( parent, 'talk', callSuper );
 
 			instance.talk();
 		});
@@ -47,7 +68,7 @@ define([
 
 			var parent = {}, instance = create( parent );
 
-			instance.talk = wrap( instance, parent, 'talk', function () {
+			instance.talk = wrap( parent, 'talk', function () {
 				this._super()
 				t.ok( true )
 			} );
@@ -62,7 +83,7 @@ define([
 			var parent = {},
 				instance = create( parent );
 
-			instance.talk = wrap( instance, parent, 'talk', callSuper );
+			instance.talk = wrap( parent, 'talk', callSuper );
 
 			parent.talk = () => t.ok( true );
 
@@ -77,7 +98,7 @@ define([
 				instance = create( parent ),
 				method = function () {};
 
-			t.equal( wrap( instance, parent, 'talk', method), method );
+			t.equal( wrap( parent, 'talk', method), method );
 
 		});
 
@@ -90,7 +111,7 @@ define([
 				instance = create( parent ),
 				method = function () { return this._super(); };
 
-			instance.talk = wrap( instance, parent, 'talk', method );
+			instance.talk = wrap( parent, 'talk', method );
 
 			t.equal( instance.talk() , data );
 
@@ -104,7 +125,7 @@ define([
 				newParent = { talk: () => t.ok( true ) },
 				instance = create( parent );
 
-			instance.talk = wrap( instance, parent, 'talk', callSuper );
+			instance.talk = wrap( parent, 'talk', callSuper );
 			t.equal( instance.talk._parent, parent );
 			instance.talk._parent = newParent;
 
@@ -115,7 +136,7 @@ define([
 		test( 'can access original via _method', function ( t ) {
 
 			var instance = {},
-				method = wrap( instance, parent, 'talk', callSuper );
+				method = wrap( parent, 'talk', callSuper );
 
 			t.equal( method._method, callSuper );
 

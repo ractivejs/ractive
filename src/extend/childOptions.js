@@ -37,7 +37,7 @@ function toPrototype ( parent, proto, options ) {
 
 			// if this is a method that overwrites a method, wrap it:
 			if ( typeof member === 'function' ) {
-				member = wrapPrototype( proto, parent, key, member );
+				member = wrapPrototype( parent, key, member );
 			}
 
 			proto[ key ] = member;

@@ -19,12 +19,12 @@ define([ 'ractive' ], function ( Ractive ) {
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
 
-		test( 'Ractive initialize with no options ok', function ( t ) {
+		test( 'Ractive initialize with no options ok', t => {
 			var ractive = new Ractive();
 			t.ok( ractive );
 		});
 
-		test( 'Ractive default data function called on initialize', function ( t ) {
+		test( 'Ractive default data function called on initialize', t => {
 			var ractive, data = { foo: 'bar' } ;
 
 			Ractive.defaults.data = function() { return data };
@@ -33,7 +33,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Instance data function called on initialize', function ( t ) {
+		test( 'Instance data function called on initialize', t => {
 			var ractive, data = { foo: 'bar' } ;
 
 			ractive = new Ractive({
@@ -46,7 +46,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		/* Not currently true. There are number of issues that need to resolved
 		   before we could make this happen */
 		/*
-		test( 'Ractive instance data is used as data object', function ( t ) {
+		test( 'Ractive instance data is used as data object', t => {
 			var ractive, data = { foo: 'bar' } ;
 
 			Ractive.defaults.data = { bar: 'bizz' };
@@ -58,7 +58,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 		*/
 
-		test( 'Default data function with no return uses existing data instance', function ( t ) {
+		test( 'Default data function with no return uses existing data instance', t => {
 			var ractive;
 
 			Ractive.defaults.data = function(d) { d.bizz = 'bop' };
@@ -69,7 +69,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.data.bizz );
 		});
 
-		test( 'Instance data function takes precendence over default data function', function ( t ) {
+		test( 'Instance data function takes precendence over default data function', t => {
 			var ractive;
 
 			Ractive.defaults.data = function() { return { foo: 'fizz' } };
@@ -80,7 +80,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.data.bar, 'bizz' );
 		});
 
-		test( 'Instance data takes precedence over default data but includes unique properties', function ( t ) {
+		test( 'Instance data takes precedence over default data but includes unique properties', t => {
 			var ractive, data = { foo: 'bar' } ;
 
 			Ractive.defaults.data = {
@@ -99,7 +99,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Instantiated .extend() component with data function called on initialize', function ( t ) {
+		test( 'Instantiated .extend() component with data function called on initialize', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({
@@ -110,7 +110,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.data, data );
 		});
 
-		test( 'Extend data option includes Ractive defaults.data', function ( t ) {
+		test( 'Extend data option includes Ractive defaults.data', t => {
 			var Component, ractive;
 
 			Ractive.defaults.data = {
@@ -138,7 +138,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Return from data function replaces data instance', function ( t ) {
+		test( 'Return from data function replaces data instance', t => {
 
 			var Component, ractive;
 
@@ -184,7 +184,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'barbizz' );
 		});
 
-		test( 'Instantiated .extend() with data uses existing data instance', function ( t ) {
+		test( 'Instantiated .extend() with data uses existing data instance', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({
@@ -196,7 +196,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.data.bizz );
 		});
 
-		test( 'Template with hash is retrieved from element Id', function ( t ) {
+		test( 'Template with hash is retrieved from element Id', t => {
 			var ractive;
 
 			fixture.innerHTML = '{{foo}}';
@@ -210,7 +210,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'Template with non-existant element Id throws', function ( t ) {
+		test( 'Template with non-existant element Id throws', t => {
 			var ractive;
 
 			throws(function(){
@@ -221,7 +221,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			})
 		});
 
-		test( 'Ractive default template used on initialize', function ( t ) {
+		test( 'Ractive default template used on initialize', t => {
 			var ractive;
 
 			Ractive.defaults.template = '{{foo}}';
@@ -235,7 +235,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Ractive default template function called on initialize', function ( t ) {
+		test( 'Ractive default template function called on initialize', t => {
 			var ractive;
 
 			Ractive.defaults.template = function() {
@@ -251,7 +251,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Template function has helper object', function ( t ) {
+		test( 'Template function has helper object', t => {
 			var ractive, assert = t;
 
 			fixture.innerHTML = '{{foo}}';
@@ -274,7 +274,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Instantiated .extend() with template function called on initialize', function ( t ) {
+		test( 'Instantiated .extend() with template function called on initialize', t => {
 			var Component, ractive;
 
 			Component = Ractive.extend({
@@ -289,7 +289,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'Extend template replaces Ractive defaults.template', function ( t ) {
+		test( 'Extend template replaces Ractive defaults.template', t => {
 			var Component, ractive;
 
 			Ractive.defaults.template = function() { return '{{fizz}}'; };
@@ -308,8 +308,38 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( '"this" refers to ractive instance in init method with _super (gh-840)', t => {
+			var C, D, cThis, dThis, ractive;
+
+			expect(4);
+
+			C = Ractive.extend({
+			    init: function () {
+			        t.ok( this instanceof Ractive );
+			        cThis = this;
+			    }
+			})
+
+			D = C.extend({
+			    init: function () {
+			        t.ok( this instanceof Ractive );
+			        dThis = this;
+			        this._super();
+			    }
+			})
+
+			ractive = new D({
+			    el: fixture
+			})
+
+			t.equal( cThis, ractive );
+			t.equal( dThis, ractive );
+
+
+		});
+
 		/* Not supported, do we need it?
-		test( 'Instantiated component with template function plus instantiation template', function ( t ) {
+		test( 'Instantiated component with template function plus instantiation template', t => {
 			var Component, ractive;
 
 			Component = Ractive.extend({
@@ -326,7 +356,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'Instantiated component with no-return template function with instantiation options', function ( t ) {
+		test( 'Instantiated component with no-return template function with instantiation options', t => {
 			var Component, ractive;
 
 			Component = Ractive.extend({
@@ -343,7 +373,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'Instantiated component with data-based template selection function', function ( t ) {
+		test( 'Instantiated component with data-based template selection function', t => {
 			var Component, ractive;
 
 			Component = Ractive.extend({

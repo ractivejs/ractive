@@ -1,25 +1,25 @@
 
 var noop = () => {};
 
-export default function wrap ( instance, parent, name, method ) {
+export default function wrap ( parent, name, method ) {
 
 	if ( !( /_super/.test( method ) ) ) { return method; }
 
 	var wrapper = function wrapSuper () {
 
 		var superMethod = getSuperMethod( wrapper._parent, name ),
-			hasSuper = ( '_super' in instance ),
-			oldSuper = instance._super,
+			hasSuper = ( '_super' in this ),
+			oldSuper = this._super,
 			result;
 
-		instance._super = superMethod;
+		this._super = superMethod;
 
-		result = method.apply( instance, arguments)
+		result = method.apply( this, arguments)
 
 		if ( hasSuper ) {
-			instance._super = oldSuper;
+			this._super = oldSuper;
 		} else {
-			delete instance._super
+			delete this._super
 		}
 
 		return result;
