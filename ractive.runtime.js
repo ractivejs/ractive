@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-19 - commit 88ce4453 
+	2014-06-21 - commit 51f52d12 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1671,21 +1671,21 @@
 	var wrapPrototypeMethod = function() {
 
 		var noop = function() {};
-		return function wrap( instance, parent, name, method ) {
+		return function wrap( parent, name, method ) {
 			if ( !/_super/.test( method ) ) {
 				return method;
 			}
 			var wrapper = function wrapSuper() {
 				var superMethod = getSuperMethod( wrapper._parent, name ),
-					hasSuper = '_super' in instance,
-					oldSuper = instance._super,
+					hasSuper = '_super' in this,
+					oldSuper = this._super,
 					result;
-				instance._super = superMethod;
-				result = method.apply( instance, arguments );
+				this._super = superMethod;
+				result = method.apply( this, arguments );
 				if ( hasSuper ) {
-					instance._super = oldSuper;
+					this._super = oldSuper;
 				} else {
-					delete instance._super;
+					delete this._super;
 				}
 				return result;
 			};
@@ -1796,7 +1796,7 @@
 			for ( var key in options ) {
 				if ( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
 					var value = options[ key ];
-					instance[ key ] = typeof value === 'function' ? wrap( instance, Parent.prototype, key, value ) : value;
+					instance[ key ] = typeof value === 'function' ? wrap( Parent.prototype, key, value ) : value;
 				}
 			}
 			config.registries.forEach( function( registry ) {
@@ -11135,7 +11135,7 @@
 					var member = options[ key ];
 					// if this is a method that overwrites a method, wrap it:
 					if ( typeof member === 'function' ) {
-						member = wrapPrototype( proto, parent, key, member );
+						member = wrapPrototype( parent, key, member );
 					}
 					proto[ key ] = member;
 				}
