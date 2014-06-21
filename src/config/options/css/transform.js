@@ -1,7 +1,8 @@
 var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 	commentsPattern = /\/\*.*?\*\//g,
 	selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
-	mediaQueryPattern = /^@media/;
+	mediaQueryPattern = /^@media/,
+	dataRvcGuidPattern = /\[data-rvcguid="[a-z0-9-]+"]/g;
 
 export default function transformCss( css, guid ) {
 	var transformed, addGuid;
@@ -41,19 +42,23 @@ export default function transformCss( css, guid ) {
 		return transformed.join( ', ' );
 	};
 
-	transformed = css
-	.replace( commentsPattern, '' )
-	.replace( selectorsPattern, function ( match, $1 ) {
-		var selectors, transformed;
+	if ( dataRvcGuidPattern.test( css ) ) {
+		transformed = css.replace( dataRvcGuidPattern, '[data-rvcguid="' + guid +'"]' );
+	} else {
+		transformed = css
+		.replace( commentsPattern, '' )
+		.replace( selectorsPattern, function ( match, $1 ) {
+			var selectors, transformed;
 
-		// don't transform media queries!
-		if ( mediaQueryPattern.test( $1 ) ) return match;
+			// don't transform media queries!
+			if ( mediaQueryPattern.test( $1 ) ) return match;
 
-		selectors = $1.split( ',' ).map( trim );
-		transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
+			selectors = $1.split( ',' ).map( trim );
+			transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
 
-		return match.replace( $1, transformed );
-	});
+			return match.replace( $1, transformed );
+		});
+	}
 
 	return transformed;
 }

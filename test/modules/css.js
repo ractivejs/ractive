@@ -176,6 +176,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( getComputedStyle( paragraphs[1] ).color, colors.red );
 		});
 
+		test( 'Multiple inheritance doesn\'t break css', function ( t ) {
+			var C, D, d, paragraph;
+
+			C = Ractive.extend({
+				css: 'p { color: red; }',
+				template: '<p>Hi!</p>'
+			});
+
+			D = C.extend({});
+
+			d = new D({
+				el: fixture
+			});
+
+			paragraph = d.findAll( 'p' )[0];
+
+			t.equal( getComputedStyle( paragraph ).color, colors.red );
+		});
+
 	};
 
 });
