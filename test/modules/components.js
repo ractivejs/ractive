@@ -1053,34 +1053,34 @@ define([ 'ractive' ], function ( Ractive ) {
 				simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
 
 			Simpson = Ractive.extend({
-			    template: "{{simpson}}",
-			    beforeInit: function(o) {
-			    	order.beforeInit.push( o.data.simpson );
-			    },
-			    init: function() {
-			    	order.init.push( this.get("simpson") );
-			    },
-			    complete: function() {
-			    	order.complete.push( this.get("simpson") );
-			    }
+				template: "{{simpson}}",
+				beforeInit: function(o) {
+					order.beforeInit.push( o.data.simpson );
+				},
+				init: function() {
+					order.init.push( this.get("simpson") );
+				},
+				complete: function() {
+					order.complete.push( this.get("simpson") );
+				}
 			});
 
 			ractive = new Ractive({
-			    el: fixture,
-			    template: '{{#simpsons}}<simpson simpson="{{this}}"/>{{/}}',
-			    data: {
-			        simpsons: simpsons
-			    },
-			    components: {
-			    	simpson: Simpson
-			    },
-			    complete: function(){
+				el: fixture,
+				template: '{{#simpsons}}<simpson simpson="{{this}}"/>{{/}}',
+				data: {
+					simpsons: simpsons
+				},
+				components: {
+					simpson: Simpson
+				},
+				complete: function(){
 					// TODO this doesn't work in PhantomJS, presumably because
 					// promises aren't guaranteed to fulfil in a particular order
 					// since they use setTimeout (perhaps they shouldn't?)
 					//t.deepEqual( order.complete, simpsons, 'complete order' );
 					start();
-			    }
+				}
 			});
 
 			t.equal( fixture.innerHTML, simpsons.join('') );
@@ -1165,6 +1165,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, '<foo></foo>' );
+		});
+
+		test( 'Evaluator in against in component more than once (gh-844)', function ( t ) {
+			var Component, BarComponent, ractive;
+
+
+			Component = Ractive.extend({
+				template: '{{getLabels(foo)}}{{getLabels(boo)}}',
+				data: {
+					getLabels: function (x) { return x; },
+					foo: 'foo',
+					boo: 'boo'
+				}
+			});
+
+			var r = new Ractive({
+				el: fixture,
+				components: { c: Component },
+				template: '<c>'
+			});
+
+			t.equal( fixture.innerHTML, 'fooboo' );
 		});
 	};
 
