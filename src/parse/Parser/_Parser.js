@@ -9,7 +9,11 @@ var Parser, ParseError, leadingWhitespace = /^\s+/;
 ParseError = function ( message ) {
 	this.name = 'ParseError';
 	this.message = message;
-	this.stack = new Error(message).stack;
+	try {
+		throw new Error(message);
+	} catch (e) {
+		this.stack = e.stack;
+	}
 };
 
 ParseError.prototype = Error.prototype;
