@@ -54,7 +54,7 @@ export default function Attribute$update () {
 			}
 
 			// type='radio' name='{{twoway}}'
-			else if ( type === 'radio' && element.binding.name === 'name' ) {
+			else if ( type === 'radio' && element.binding && element.binding.name === 'name' ) {
 				updateMethod = updateRadioValue;
 			}
 
