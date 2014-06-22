@@ -51,7 +51,7 @@ export default function Ractive$reset ( data, callback ) {
 		// If the template changed, we need to destroy the parallel DOM
 		// TODO if we're here, presumably it did?
 		if ( this.fragment.template !== this.template ) {
-			this.fragment.teardown();
+			this.fragment.unbind();
 
 			this.fragment = new Fragment({
 				template: this.template,

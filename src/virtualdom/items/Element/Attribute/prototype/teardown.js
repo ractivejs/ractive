@@ -11,6 +11,6 @@ export default function Attribute$teardown () {
 
 	// ignore non-dynamic attributes
 	if ( this.fragment ) {
-		this.fragment.teardown();
+		this.fragment.unbind();
 	}
 }

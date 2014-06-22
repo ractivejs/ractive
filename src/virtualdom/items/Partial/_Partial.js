@@ -57,7 +57,7 @@ Partial.prototype = {
 	},
 
 	teardown: function () {
-		this.fragment.teardown();
+		this.fragment.unbind();
 	},
 
 	toString: function ( toString ) {

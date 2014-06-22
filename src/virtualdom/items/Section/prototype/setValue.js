@@ -122,7 +122,7 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 	// if the array is shorter than it was previously, remove items
 	if ( length < section.length ) {
 		section.fragmentsToUnrender = section.fragments.splice( length, section.length - length );
-		section.fragmentsToUnrender.forEach( teardown );
+		section.fragmentsToUnrender.forEach( unbind );
 	}
 
 	// otherwise...
@@ -161,7 +161,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 		if ( !( fragment.index in value ) ) {
 			changed = true;
 
-			fragment.teardown();
+			fragment.unbind();
 			section.fragmentsToUnrender.push( fragment );
 			section.fragments.splice( i, 1 );
 
@@ -238,7 +238,7 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 
 		if ( section.length > 1 ) {
 			section.fragmentsToUnrender = section.fragments.splice( 1 );
-			section.fragmentsToUnrender.forEach( teardown );
+			section.fragmentsToUnrender.forEach( unbind );
 
 			return true;
 		}
@@ -246,13 +246,13 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 
 	else if ( section.length ) {
 		section.fragmentsToUnrender = section.fragments.splice( 0 );
-		section.fragmentsToUnrender.forEach( teardown );
+		section.fragmentsToUnrender.forEach( unbind );
 		section.length = 0;
 
 		return true;
 	}
 }
 
-function teardown ( fragment ) {
-	fragment.teardown();
+function unbind ( fragment ) {
+	fragment.unbind();
 }

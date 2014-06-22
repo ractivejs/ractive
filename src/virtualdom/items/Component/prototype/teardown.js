@@ -12,7 +12,7 @@ export default function Component$teardown () {
 	// Add this flag so that we don't unnecessarily destroy the component's nodes
 	// TODO rethink the semantics of init/teardown/render/unrender?
 	this.shouldDestroy = false;
-	this.instance.fragment.teardown();
+	this.instance.fragment.unbind();
 }
 
 function removeFromLiveComponentQueries ( component ) {

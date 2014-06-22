@@ -11,8 +11,8 @@ import getValue from 'virtualdom/Fragment/prototype/getValue';
 import init from 'virtualdom/Fragment/prototype/init';
 import rebind from 'virtualdom/Fragment/prototype/rebind';
 import render from 'virtualdom/Fragment/prototype/render';
-import teardown from 'virtualdom/Fragment/prototype/teardown';
 import toString from 'virtualdom/Fragment/prototype/toString';
+import unbind from 'virtualdom/Fragment/prototype/unbind';
 import unrender from 'virtualdom/Fragment/prototype/unrender';
 
 import circular from 'circular';
@@ -35,8 +35,8 @@ Fragment.prototype = {
 	init: init,
 	rebind: rebind,
 	render: render,
-	teardown: teardown,
 	toString: toString,
+	unbind: unbind,
 	unrender: unrender
 };
 

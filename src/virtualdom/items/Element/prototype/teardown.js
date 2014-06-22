@@ -1,6 +1,6 @@
 export default function Element$teardown () {
 	if ( this.fragment ) {
-		this.fragment.teardown();
+		this.fragment.unbind();
 	}
 
 	while ( this.attributes.length ) {
