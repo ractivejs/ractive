@@ -2,7 +2,7 @@
 
 	'use strict';
 
-	var testDiv = document.createElement( 'div' );
+	var testDiv = document.createElement( 'div' ), svgns = 'http://www.w3.org/2000/svg';
 
 	QUnit.assert.htmlEqual = function ( actual, expected, message ) {
 		if ( !message ) {
@@ -34,7 +34,7 @@
 	}
 
 	function stubNode ( node ) {
-		var stub, i, attr;
+		var stub, i, attributes, hasAttributes, attr;
 
 		if ( node.nodeType === 3 ) {
 			return node.data;
@@ -55,13 +55,20 @@
 			}
 
 			if ( i = node.attributes.length ) {
-				stub.attributes = {};
+				attributes = {};
 			}
 
 			i = node.attributes.length;
 			while ( i-- ) {
 				attr = node.attributes[i];
-				stub.attributes[ attr.name ] = attr.value;
+				if ( attr.value !== '' && attr.value !== svgns ) { // IE...
+					attributes[ attr.name ] = attr.value;
+					hasAttributes = true;
+				}
+			}
+
+			if ( hasAttributes ) {
+				stub.attributes = attributes;
 			}
 
 			return stub;
