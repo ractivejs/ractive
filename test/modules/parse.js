@@ -19,8 +19,11 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 					} catch (e) {
 						error = e;
 					}
+					
+					if (error.name !== 'ParseError') {
+						throw error;
+					}
 
-					t.equal( error.name, 'ParseError' )
 					t.ok( error.stack );
 					t.equal( error.message, theTest.error );
 				} else {
