@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 
-export default function teardown () {
+export default function unbind () {
 	if ( !this.keypath ) {
 		// this was on the 'unresolved' list, we need to remove it
 		runloop.removeUnresolved( this );

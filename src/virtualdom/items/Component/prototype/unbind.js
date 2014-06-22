@@ -1,4 +1,4 @@
-export default function Component$teardown () {
+export default function Component$unbind () {
 	while ( this.complexParameters.length ) {
 		this.complexParameters.pop().teardown();
 	}

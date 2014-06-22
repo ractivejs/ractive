@@ -22,8 +22,6 @@ Comment.prototype = {
 		return this.node;
 	},
 
-	teardown: noop,
-
 	toString: function () {
 		return '<!--' + this.value + '-->';
 	},

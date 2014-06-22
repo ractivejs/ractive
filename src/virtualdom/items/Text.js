@@ -23,8 +23,6 @@ Text.prototype = {
 		return this.node;
 	},
 
-	teardown: noop,
-
 	toString: function ( escape ) {
 		return escape ? escapeHtml( this.text ) : this.text;
 	},

@@ -1,4 +1,4 @@
-export default function Element$teardown () {
+export default function Element$unbind () {
 	if ( this.fragment ) {
 		this.fragment.unbind();
 	}
