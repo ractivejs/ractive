@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-22 - commit a6f382f0 
+	2014-06-22 - commit 63971163 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8117,7 +8117,7 @@
 					// type='file' value='{{fileList}}'>
 					if ( type === 'file' ) {
 						updateMethod = noop;
-					} else if ( type === 'radio' && element.binding.name === 'name' ) {
+					} else if ( type === 'radio' && element.binding && element.binding.name === 'name' ) {
 						updateMethod = updateRadioValue;
 					} else {
 						updateMethod = updateValue;
