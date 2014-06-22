@@ -18,7 +18,7 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 						if (error.name !== 'ParseError') {
 							throw error;
 						}
-						t.equal( error.message, theTest.error, 'Unexpected error message' );
+						t.equal( error.message, theTest.error );
 						return true;
 					}, 'Expected ParseError');
 				} else {

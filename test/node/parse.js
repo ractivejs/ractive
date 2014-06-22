@@ -12,7 +12,7 @@ parseTests.forEach( function ( theTest ) {
 				if (error.name !== 'ParseError') {
 					throw error;
 				}
-				test.equal( error.message, theTest.error, 'Unexpected error message' );
+				test.equal( error.message, theTest.error );
 				return true;
 			}, 'Expected ParseError');
 		} else {
