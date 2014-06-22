@@ -1,18 +1,16 @@
 import types from 'config/types';
-import Promise from 'utils/Promise';
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
 import css from 'global/css';
 
 export default function Ractive$unrender () {
-	var promise, fulfilPromise, shouldDestroy, fragment, nearestDetachingElement;
+	var promise, shouldDestroy, fragment, nearestDetachingElement;
 
 	if ( !this.rendered ) {
 		throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
 	}
 
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-	runloop.start( this, fulfilPromise );
+	promise = runloop.start( this, true );
 
 	// If this is a component, and the component isn't marked for destruction,
 	// don't detach nodes from the DOM unnecessarily

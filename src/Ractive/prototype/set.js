@@ -1,18 +1,14 @@
 import runloop from 'global/runloop';
 import isObject from 'utils/isObject';
 import normaliseKeypath from 'utils/normaliseKeypath';
-import Promise from 'utils/Promise';
 import getMatchingKeypaths from 'shared/getMatchingKeypaths';
 
 var wildcard = /\*/;
 
 export default function Ractive$set ( keypath, value, callback ) {
-	var map,
-		promise,
-		fulfilPromise;
+	var map, promise;
 
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-	runloop.start( this, fulfilPromise );
+	promise = runloop.start( this, true );
 
 	// Set multiple keypaths in one go
 	if ( isObject( keypath ) ) {
