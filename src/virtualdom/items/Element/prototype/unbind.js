@@ -3,7 +3,9 @@ export default function Element$unbind () {
 		this.fragment.unbind();
 	}
 
-	while ( this.attributes.length ) {
-		this.attributes.pop().teardown();
-	}
+	this.attributes.forEach( unbindAttribute );
+}
+
+function unbindAttribute ( attribute ) {
+	attribute.unbind();
 }
