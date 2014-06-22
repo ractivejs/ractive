@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-22 - commit 5f2b50ac 
+	2014-06-22 - commit a6f382f0 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4941,7 +4941,7 @@
 			},
 			setValue: function( value ) {
 				var this$0 = this;
-				if ( !isEqual( value, this.oldValue ) ) {
+				if ( !isEqual( value, this.value ) ) {
 					this.value = value;
 					if ( this.defer && this.ready ) {
 						runloop.scheduleTask( function() {
