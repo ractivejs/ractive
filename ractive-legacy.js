@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-22 - commit a64afec7 
+	2014-06-22 - commit f20c2813 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -655,7 +655,7 @@
 			this.priority = priority;
 			this.otherInstance = otherInstance;
 			this.otherKeypath = otherKeypath;
-			ractive.viewmodel.register( keypath, this );
+			this.bind();
 			this.value = this.root.viewmodel.get( this.keypath );
 		};
 		Binding.prototype = {
@@ -685,13 +685,16 @@
 					} );
 				}
 			},
+			bind: function() {
+				this.root.viewmodel.register( this.keypath, this );
+			},
 			rebind: function( newKeypath ) {
-				this.root.viewmodel.unregister( this.keypath, this );
+				this.unbind();
 				this.keypath = newKeypath;
 				this.counterpart.otherKeypath = newKeypath;
-				this.root.viewmodel.register( newKeypath, this );
+				this.bind();
 			},
-			teardown: function() {
+			unbind: function() {
 				this.root.viewmodel.unregister( this.keypath, this );
 			}
 		};
@@ -6115,9 +6118,6 @@
 		};
 	}();
 
-	/* utils/noop.js */
-	var noop = function() {};
-
 	/* utils/detachNode.js */
 	var detachNode = function detachNode( node ) {
 		if ( node && node.parentNode ) {
@@ -6135,7 +6135,7 @@
 	}( detachNode );
 
 	/* virtualdom/items/Text.js */
-	var Text = function( types, escapeHtml, noop, detach ) {
+	var Text = function( types, escapeHtml, detach ) {
 
 		var Text = function( options ) {
 			this.type = types.TEXT;
@@ -6152,7 +6152,6 @@
 				}
 				return this.node;
 			},
-			teardown: noop,
 			toString: function( escape ) {
 				return escape ? escapeHtml( this.text ) : this.text;
 			},
@@ -6163,12 +6162,12 @@
 			}
 		};
 		return Text;
-	}( types, escapeHtml, noop, detach );
+	}( types, escapeHtml, detach );
 
-	/* virtualdom/items/shared/teardown.js */
-	var teardown = function( runloop ) {
+	/* virtualdom/items/shared/unbind.js */
+	var unbind = function( runloop ) {
 
-		return function teardown() {
+		return function unbind() {
 			if ( !this.keypath ) {
 				// this was on the 'unresolved' list, we need to remove it
 				runloop.removeUnresolved( this );
@@ -6781,7 +6780,7 @@
 	}( initialise, resolve, rebind );
 
 	/* virtualdom/items/Interpolator.js */
-	var Interpolator = function( types, runloop, escapeHtml, detachNode, teardown, Mustache, detach ) {
+	var Interpolator = function( types, runloop, escapeHtml, detachNode, unbind, Mustache, detach ) {
 
 		var Interpolator = function( options ) {
 			this.type = types.INTERPOLATOR;
@@ -6794,7 +6793,7 @@
 			resolve: Mustache.resolve,
 			rebind: Mustache.rebind,
 			detach: detach,
-			teardown: teardown,
+			unbind: unbind,
 			render: function() {
 				if ( !this.node ) {
 					this.node = document.createTextNode( this.value != undefined ? this.value : '' );
@@ -6830,7 +6829,7 @@
 			}
 		};
 		return Interpolator;
-	}( types, runloop, escapeHtml, detachNode, teardown, Mustache, detach );
+	}( types, runloop, escapeHtml, detachNode, unbind, Mustache, detach );
 
 	/* virtualdom/items/Section/prototype/bubble.js */
 	var virtualdom_items_Section$bubble = function Section$bubble() {
@@ -6934,7 +6933,7 @@
 				// does this fragment need to be torn down?
 				if ( newIndex === -1 ) {
 					section.fragmentsToUnrender.push( fragment );
-					fragment.teardown();
+					fragment.unbind();
 					return;
 				}
 				// Otherwise, it needs to be rebound to a new index
@@ -7086,7 +7085,7 @@
 			// if the array is shorter than it was previously, remove items
 			if ( length < section.length ) {
 				section.fragmentsToUnrender = section.fragments.splice( length, section.length - length );
-				section.fragmentsToUnrender.forEach( teardown );
+				section.fragmentsToUnrender.forEach( unbind );
 			} else {
 				if ( length > section.length ) {
 					// add any new ones
@@ -7115,7 +7114,7 @@
 				fragment = section.fragments[ i ];
 				if ( !( fragment.index in value ) ) {
 					changed = true;
-					fragment.teardown();
+					fragment.unbind();
 					section.fragmentsToUnrender.push( fragment );
 					section.fragments.splice( i, 1 );
 					hasKey[ fragment.index ] = false;
@@ -7175,19 +7174,19 @@
 				}
 				if ( section.length > 1 ) {
 					section.fragmentsToUnrender = section.fragments.splice( 1 );
-					section.fragmentsToUnrender.forEach( teardown );
+					section.fragmentsToUnrender.forEach( unbind );
 					return true;
 				}
 			} else if ( section.length ) {
 				section.fragmentsToUnrender = section.fragments.splice( 0 );
-				section.fragmentsToUnrender.forEach( teardown );
+				section.fragmentsToUnrender.forEach( unbind );
 				section.length = 0;
 				return true;
 			}
 		}
 
-		function teardown( fragment ) {
-			fragment.teardown();
+		function unbind( fragment ) {
+			fragment.unbind();
 		}
 	}( types, isArray, isObject, runloop, circular );
 
@@ -7215,7 +7214,7 @@
 			// the excess fragments and remove them...
 			if ( balance < 0 ) {
 				section.fragmentsToUnrender = section.fragments.splice( start, -balance );
-				section.fragmentsToUnrender.forEach( teardown );
+				section.fragmentsToUnrender.forEach( unbind );
 				// Reassign fragments after the ones we've just removed
 				rebindFragments( section, start, section.length, balance );
 				// Nothing more to do
@@ -7238,8 +7237,8 @@
 			section.fragmentsToCreate = range( insertStart, insertEnd );
 		};
 
-		function teardown( fragment ) {
-			fragment.teardown();
+		function unbind( fragment ) {
+			fragment.unbind();
 		}
 
 		function range( start, end ) {
@@ -7265,20 +7264,6 @@
 		}
 	}( runloop, circular );
 
-	/* virtualdom/items/Section/prototype/teardown.js */
-	var virtualdom_items_Section$teardown = function( teardown ) {
-
-		return function Section$teardown() {
-			this.fragments.forEach( teardownFragment );
-			teardown.call( this );
-			this.length = 0;
-		};
-
-		function teardownFragment( fragment ) {
-			fragment.teardown();
-		}
-	}( teardown );
-
 	/* virtualdom/items/Section/prototype/toString.js */
 	var virtualdom_items_Section$toString = function Section$toString( escape ) {
 		var str, i, len;
@@ -7290,6 +7275,20 @@
 		}
 		return str;
 	};
+
+	/* virtualdom/items/Section/prototype/unbind.js */
+	var virtualdom_items_Section$unbind = function( unbind ) {
+
+		return function Section$unbind() {
+			this.fragments.forEach( unbindFragment );
+			unbind.call( this );
+			this.length = 0;
+		};
+
+		function unbindFragment( fragment ) {
+			fragment.unbind();
+		}
+	}( unbind );
 
 	/* virtualdom/items/Section/prototype/unrender.js */
 	var virtualdom_items_Section$unrender = function() {
@@ -7343,7 +7342,7 @@
 	};
 
 	/* virtualdom/items/Section/_Section.js */
-	var Section = function( types, Mustache, bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, merge, render, setValue, splice, teardown, toString, unrender, update ) {
+	var Section = function( types, Mustache, bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, merge, render, setValue, splice, toString, unbind, unrender, update ) {
 
 		var Section = function( options ) {
 			this.type = types.SECTION;
@@ -7372,13 +7371,13 @@
 			resolve: Mustache.resolve,
 			setValue: setValue,
 			splice: splice,
-			teardown: teardown,
 			toString: toString,
+			unbind: unbind,
 			unrender: unrender,
 			update: update
 		};
 		return Section;
-	}( types, Mustache, virtualdom_items_Section$bubble, virtualdom_items_Section$detach, virtualdom_items_Section$find, virtualdom_items_Section$findAll, virtualdom_items_Section$findAllComponents, virtualdom_items_Section$findComponent, virtualdom_items_Section$findNextNode, virtualdom_items_Section$firstNode, virtualdom_items_Section$merge, virtualdom_items_Section$render, virtualdom_items_Section$setValue, virtualdom_items_Section$splice, virtualdom_items_Section$teardown, virtualdom_items_Section$toString, virtualdom_items_Section$unrender, virtualdom_items_Section$update );
+	}( types, Mustache, virtualdom_items_Section$bubble, virtualdom_items_Section$detach, virtualdom_items_Section$find, virtualdom_items_Section$findAll, virtualdom_items_Section$findAllComponents, virtualdom_items_Section$findComponent, virtualdom_items_Section$findNextNode, virtualdom_items_Section$firstNode, virtualdom_items_Section$merge, virtualdom_items_Section$render, virtualdom_items_Section$setValue, virtualdom_items_Section$splice, virtualdom_items_Section$toString, virtualdom_items_Section$unbind, virtualdom_items_Section$unrender, virtualdom_items_Section$update );
 
 	/* virtualdom/items/Triple/prototype/detach.js */
 	var virtualdom_items_Triple$detach = function Triple$detach() {
@@ -7607,7 +7606,7 @@
 	}( insertHtml, updateSelect );
 
 	/* virtualdom/items/Triple/_Triple.js */
-	var Triple = function( types, Mustache, detach, find, findAll, firstNode, render, setValue, toString, unrender, update, teardown ) {
+	var Triple = function( types, Mustache, detach, find, findAll, firstNode, render, setValue, toString, unrender, update, unbind ) {
 
 		var Triple = function( options ) {
 			this.type = types.TRIPLE;
@@ -7622,13 +7621,13 @@
 			render: render,
 			resolve: Mustache.resolve,
 			setValue: setValue,
-			teardown: teardown,
 			toString: toString,
+			unbind: unbind,
 			unrender: unrender,
 			update: update
 		};
 		return Triple;
-	}( types, Mustache, virtualdom_items_Triple$detach, virtualdom_items_Triple$find, virtualdom_items_Triple$findAll, virtualdom_items_Triple$firstNode, virtualdom_items_Triple$render, virtualdom_items_Triple$setValue, virtualdom_items_Triple$toString, virtualdom_items_Triple$unrender, virtualdom_items_Triple$update, teardown );
+	}( types, Mustache, virtualdom_items_Triple$detach, virtualdom_items_Triple$find, virtualdom_items_Triple$findAll, virtualdom_items_Triple$firstNode, virtualdom_items_Triple$render, virtualdom_items_Triple$setValue, virtualdom_items_Triple$toString, virtualdom_items_Triple$unrender, virtualdom_items_Triple$update, unbind );
 
 	/* virtualdom/items/Element/prototype/bubble.js */
 	var virtualdom_items_Element$bubble = function() {
@@ -7960,21 +7959,6 @@
 		};
 	}( namespaces );
 
-	/* virtualdom/items/Element/Attribute/prototype/teardown.js */
-	var virtualdom_items_Element_Attribute$teardown = function Attribute$teardown() {
-		var i;
-		if ( this.boundEvents ) {
-			i = this.boundEvents.length;
-			while ( i-- ) {
-				this.node.removeEventListener( this.boundEvents[ i ], this.updateModel, false );
-			}
-		}
-		// ignore non-dynamic attributes
-		if ( this.fragment ) {
-			this.fragment.teardown();
-		}
-	};
-
 	/* virtualdom/items/Element/Attribute/prototype/toString.js */
 	var virtualdom_items_Element_Attribute$toString = function() {
 
@@ -8013,6 +7997,17 @@
 			return string.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 		}
 	}();
+
+	/* virtualdom/items/Element/Attribute/prototype/unbind.js */
+	var virtualdom_items_Element_Attribute$unbind = function Attribute$unbind() {
+		// ignore non-dynamic attributes
+		if ( this.fragment ) {
+			this.fragment.unbind();
+		}
+	};
+
+	/* utils/noop.js */
+	var noop = function() {};
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateSelectValue.js */
 	var virtualdom_items_Element_Attribute$update_updateSelectValue = function Attribute$updateSelect() {
@@ -8262,7 +8257,7 @@
 	};
 
 	/* virtualdom/items/Element/Attribute/_Attribute.js */
-	var Attribute = function( bubble, init, rebind, render, teardown, toString, update, updateBindings ) {
+	var Attribute = function( bubble, init, rebind, render, toString, unbind, update, updateBindings ) {
 
 		var Attribute = function( options ) {
 			this.init( options );
@@ -8272,13 +8267,13 @@
 			init: init,
 			rebind: rebind,
 			render: render,
-			teardown: teardown,
 			toString: toString,
+			unbind: unbind,
 			update: update,
 			updateBindings: updateBindings
 		};
 		return Attribute;
-	}( virtualdom_items_Element_Attribute$bubble, virtualdom_items_Element_Attribute$init, virtualdom_items_Element_Attribute$rebind, virtualdom_items_Element_Attribute$render, virtualdom_items_Element_Attribute$teardown, virtualdom_items_Element_Attribute$toString, virtualdom_items_Element_Attribute$update, virtualdom_items_Element_Attribute$updateBindings );
+	}( virtualdom_items_Element_Attribute$bubble, virtualdom_items_Element_Attribute$init, virtualdom_items_Element_Attribute$rebind, virtualdom_items_Element_Attribute$render, virtualdom_items_Element_Attribute$toString, virtualdom_items_Element_Attribute$unbind, virtualdom_items_Element_Attribute$update, virtualdom_items_Element_Attribute$updateBindings );
 
 	/* virtualdom/items/Element/prototype/init/createAttributes.js */
 	var virtualdom_items_Element$init_createAttributes = function( Attribute ) {
@@ -9111,7 +9106,7 @@
 					owner: element
 				} );
 				name = fragment.toString();
-				fragment.teardown();
+				fragment.unbind();
 			}
 			if ( template.a ) {
 				decorator.params = template.a;
@@ -9171,7 +9166,7 @@
 			teardown: function( updating ) {
 				this.actual.teardown();
 				if ( !updating && this.fragment ) {
-					this.fragment.teardown();
+					this.fragment.unbind();
 				}
 			}
 		};
@@ -9199,7 +9194,7 @@
 					owner: element
 				} );
 				name = fragment.toString();
-				fragment.teardown();
+				fragment.unbind();
 			}
 			t.name = name;
 			if ( template.a ) {
@@ -9213,7 +9208,7 @@
 					owner: element
 				} );
 				t.params = fragment.getValue( getValueOptions );
-				fragment.teardown();
+				fragment.unbind();
 			}
 			t._fn = config.registries.transitions.find( ractive, name );
 			if ( !t._fn ) {
@@ -10139,16 +10134,6 @@
 		}
 	}( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render );
 
-	/* virtualdom/items/Element/prototype/teardown.js */
-	var virtualdom_items_Element$teardown = function Element$teardown() {
-		if ( this.fragment ) {
-			this.fragment.teardown();
-		}
-		while ( this.attributes.length ) {
-			this.attributes.pop().teardown();
-		}
-	};
-
 	/* virtualdom/items/Element/prototype/toString.js */
 	var virtualdom_items_Element$toString = function( voidElementNames, isArray ) {
 
@@ -10216,6 +10201,21 @@
 		}
 	}( voidElementNames, isArray );
 
+	/* virtualdom/items/Element/prototype/unbind.js */
+	var virtualdom_items_Element$unbind = function() {
+
+		return function Element$unbind() {
+			if ( this.fragment ) {
+				this.fragment.unbind();
+			}
+			this.attributes.forEach( unbindAttribute );
+		};
+
+		function unbindAttribute( attribute ) {
+			attribute.unbind();
+		}
+	}();
+
 	/* virtualdom/items/Element/prototype/unrender.js */
 	var virtualdom_items_Element$unrender = function( runloop ) {
 
@@ -10271,7 +10271,7 @@
 	}( runloop );
 
 	/* virtualdom/items/Element/_Element.js */
-	var Element = function( bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, getAttribute, init, rebind, render, teardown, toString, unrender ) {
+	var Element = function( bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, getAttribute, init, rebind, render, toString, unbind, unrender ) {
 
 		var Element = function( options ) {
 			this.init( options );
@@ -10289,12 +10289,12 @@
 			init: init,
 			rebind: rebind,
 			render: render,
-			teardown: teardown,
 			toString: toString,
+			unbind: unbind,
 			unrender: unrender
 		};
 		return Element;
-	}( virtualdom_items_Element$bubble, virtualdom_items_Element$detach, virtualdom_items_Element$find, virtualdom_items_Element$findAll, virtualdom_items_Element$findAllComponents, virtualdom_items_Element$findComponent, virtualdom_items_Element$findNextNode, virtualdom_items_Element$firstNode, virtualdom_items_Element$getAttribute, virtualdom_items_Element$init, virtualdom_items_Element$rebind, virtualdom_items_Element$render, virtualdom_items_Element$teardown, virtualdom_items_Element$toString, virtualdom_items_Element$unrender );
+	}( virtualdom_items_Element$bubble, virtualdom_items_Element$detach, virtualdom_items_Element$find, virtualdom_items_Element$findAll, virtualdom_items_Element$findAllComponents, virtualdom_items_Element$findComponent, virtualdom_items_Element$findNextNode, virtualdom_items_Element$firstNode, virtualdom_items_Element$getAttribute, virtualdom_items_Element$init, virtualdom_items_Element$rebind, virtualdom_items_Element$render, virtualdom_items_Element$toString, virtualdom_items_Element$unbind, virtualdom_items_Element$unrender );
 
 	/* virtualdom/items/Partial/deIndent.js */
 	var deIndent = function() {
@@ -10439,8 +10439,8 @@
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				return this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			},
-			teardown: function() {
-				this.fragment.teardown();
+			unbind: function() {
+				this.fragment.unbind();
 			},
 			toString: function( toString ) {
 				var string, previousItem, lastLine, match;
@@ -10553,8 +10553,8 @@
 				this.value = value;
 				this.dirty = false;
 			},
-			teardown: function() {
-				this.fragment.teardown();
+			unbind: function() {
+				this.fragment.unbind();
 			}
 		};
 		return ComponentParameter;
@@ -10785,22 +10785,24 @@
 		return instance.detach();
 	};
 
-	/* virtualdom/items/Component/prototype/teardown.js */
-	var virtualdom_items_Component$teardown = function() {
+	/* virtualdom/items/Component/prototype/toString.js */
+	var virtualdom_items_Component$toString = function Component$toString() {
+		return this.instance.fragment.toString();
+	};
 
-		return function Component$teardown() {
-			while ( this.complexParameters.length ) {
-				this.complexParameters.pop().teardown();
-			}
-			while ( this.bindings.length ) {
-				this.bindings.pop().teardown();
-			}
+	/* virtualdom/items/Component/prototype/unbind.js */
+	var virtualdom_items_Component$unbind = function() {
+
+		return function Component$unbind() {
+			this.complexParameters.forEach( unbind );
+			this.bindings.forEach( unbind );
 			removeFromLiveComponentQueries( this );
-			// Add this flag so that we don't unnecessarily destroy the component's nodes
-			// TODO rethink the semantics of init/teardown/render/unrender?
-			this.shouldDestroy = false;
-			this.instance.fragment.teardown();
+			this.instance.fragment.unbind();
 		};
+
+		function unbind( thing ) {
+			thing.unbind();
+		}
 
 		function removeFromLiveComponentQueries( component ) {
 			var instance, query;
@@ -10813,19 +10815,15 @@
 		}
 	}();
 
-	/* virtualdom/items/Component/prototype/toString.js */
-	var virtualdom_items_Component$toString = function Component$toString() {
-		return this.instance.fragment.toString();
-	};
-
 	/* virtualdom/items/Component/prototype/unrender.js */
 	var virtualdom_items_Component$unrender = function Component$unrender( shouldDestroy ) {
+		this.instance.fire( 'teardown' );
 		this.shouldDestroy = shouldDestroy;
 		this.instance.unrender();
 	};
 
 	/* virtualdom/items/Component/_Component.js */
-	var Component = function( detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, init, rebind, render, teardown, toString, unrender ) {
+	var Component = function( detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, init, rebind, render, toString, unbind, unrender ) {
 
 		var Component = function( options ) {
 			this.init( options );
@@ -10841,15 +10839,15 @@
 			init: init,
 			rebind: rebind,
 			render: render,
-			teardown: teardown,
 			toString: toString,
+			unbind: unbind,
 			unrender: unrender
 		};
 		return Component;
-	}( virtualdom_items_Component$detach, virtualdom_items_Component$find, virtualdom_items_Component$findAll, virtualdom_items_Component$findAllComponents, virtualdom_items_Component$findComponent, virtualdom_items_Component$findNextNode, virtualdom_items_Component$firstNode, virtualdom_items_Component$init, virtualdom_items_Component$rebind, virtualdom_items_Component$render, virtualdom_items_Component$teardown, virtualdom_items_Component$toString, virtualdom_items_Component$unrender );
+	}( virtualdom_items_Component$detach, virtualdom_items_Component$find, virtualdom_items_Component$findAll, virtualdom_items_Component$findAllComponents, virtualdom_items_Component$findComponent, virtualdom_items_Component$findNextNode, virtualdom_items_Component$firstNode, virtualdom_items_Component$init, virtualdom_items_Component$rebind, virtualdom_items_Component$render, virtualdom_items_Component$toString, virtualdom_items_Component$unbind, virtualdom_items_Component$unrender );
 
 	/* virtualdom/items/Comment.js */
-	var Comment = function( types, noop, detach ) {
+	var Comment = function( types, detach ) {
 
 		var Comment = function( options ) {
 			this.type = types.COMMENT;
@@ -10866,7 +10864,6 @@
 				}
 				return this.node;
 			},
-			teardown: noop,
 			toString: function() {
 				return '<!--' + this.value + '-->';
 			},
@@ -10877,7 +10874,7 @@
 			}
 		};
 		return Comment;
-	}( types, noop, detach );
+	}( types, detach );
 
 	/* virtualdom/Fragment/prototype/init/createItem.js */
 	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, config ) {
@@ -10997,13 +10994,6 @@
 		return result;
 	};
 
-	/* virtualdom/Fragment/prototype/teardown.js */
-	var virtualdom_Fragment$teardown = function Fragment$teardown() {
-		this.items.forEach( function( i ) {
-			return i.teardown();
-		} );
-	};
-
 	/* virtualdom/Fragment/prototype/toString.js */
 	var virtualdom_Fragment$toString = function Fragment$toString( escape ) {
 		if ( !this.items ) {
@@ -11013,6 +11003,20 @@
 			return item.toString( escape );
 		} ).join( '' );
 	};
+
+	/* virtualdom/Fragment/prototype/unbind.js */
+	var virtualdom_Fragment$unbind = function() {
+
+		return function Fragment$unbind() {
+			this.items.forEach( unbindItem );
+		};
+
+		function unbindItem( item ) {
+			if ( item.unbind ) {
+				item.unbind();
+			}
+		}
+	}();
 
 	/* virtualdom/Fragment/prototype/unrender.js */
 	var virtualdom_Fragment$unrender = function Fragment$unrender( shouldDestroy ) {
@@ -11025,7 +11029,7 @@
 	};
 
 	/* virtualdom/Fragment.js */
-	var Fragment = function( bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, getNode, getValue, init, rebind, render, teardown, toString, unrender, circular ) {
+	var Fragment = function( bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, getNode, getValue, init, rebind, render, toString, unbind, unrender, circular ) {
 
 		var Fragment = function( options ) {
 			this.init( options );
@@ -11044,13 +11048,13 @@
 			init: init,
 			rebind: rebind,
 			render: render,
-			teardown: teardown,
 			toString: toString,
+			unbind: unbind,
 			unrender: unrender
 		};
 		circular.Fragment = Fragment;
 		return Fragment;
-	}( virtualdom_Fragment$bubble, virtualdom_Fragment$detach, virtualdom_Fragment$find, virtualdom_Fragment$findAll, virtualdom_Fragment$findAllComponents, virtualdom_Fragment$findComponent, virtualdom_Fragment$findNextNode, virtualdom_Fragment$firstNode, virtualdom_Fragment$getNode, virtualdom_Fragment$getValue, virtualdom_Fragment$init, virtualdom_Fragment$rebind, virtualdom_Fragment$render, virtualdom_Fragment$teardown, virtualdom_Fragment$toString, virtualdom_Fragment$unrender, circular );
+	}( virtualdom_Fragment$bubble, virtualdom_Fragment$detach, virtualdom_Fragment$find, virtualdom_Fragment$findAll, virtualdom_Fragment$findAllComponents, virtualdom_Fragment$findComponent, virtualdom_Fragment$findNextNode, virtualdom_Fragment$firstNode, virtualdom_Fragment$getNode, virtualdom_Fragment$getValue, virtualdom_Fragment$init, virtualdom_Fragment$rebind, virtualdom_Fragment$render, virtualdom_Fragment$toString, virtualdom_Fragment$unbind, virtualdom_Fragment$unrender, circular );
 
 	/* Ractive/prototype/reset.js */
 	var Ractive$reset = function( runloop, Fragment, config ) {
@@ -11097,7 +11101,7 @@
 				// If the template changed, we need to destroy the parallel DOM
 				// TODO if we're here, presumably it did?
 				if ( this.fragment.template !== this.template ) {
-					this.fragment.teardown();
+					this.fragment.unbind();
 					this.fragment = new Fragment( {
 						template: this.template,
 						root: this,
@@ -11134,7 +11138,7 @@
 			this.transitionsEnabled = false;
 			this.unrender();
 			// remove existing fragment and create new one
-			this.fragment.teardown();
+			this.fragment.unbind();
 			this.fragment = new Fragment( {
 				template: this.template,
 				root: this,
@@ -11222,7 +11226,7 @@
 		return function Ractive$teardown( callback ) {
 			var promise;
 			this.fire( 'teardown' );
-			this.fragment.teardown();
+			this.fragment.unbind();
 			this.viewmodel.teardown();
 			promise = this.rendered ? this.unrender() : Promise.resolve();
 			if ( callback ) {
