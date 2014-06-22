@@ -16,7 +16,7 @@ runloop = {
 
 		batch = {
 			previousBatch: batch,
-			transitionManager: new TransitionManager( callback, batch && batch.transitionManager ),
+			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 			views: [],
 			tasks: [],
 			viewmodels: [ instance.viewmodel ]
