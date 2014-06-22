@@ -1,6 +1,5 @@
 import types from 'config/types';
 import escapeHtml from 'utils/escapeHtml';
-import noop from 'utils/noop';
 import detach from 'virtualdom/items/shared/detach';
 
 var Text = function ( options ) {
