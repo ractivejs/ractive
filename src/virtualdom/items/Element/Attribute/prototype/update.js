@@ -35,6 +35,10 @@ export default function Attribute$update () {
 			updateMethod = node.multiple ? updateMultipleSelectValue : updateSelectValue;
 		}
 
+		else if ( element.name === 'textarea' ) {
+			updateMethod = updateValue;
+		}
+
 		// special case - contenteditable
 		else if ( node.getAttribute( 'contenteditable' ) ) {
 			updateMethod = updateContentEditableValue;
