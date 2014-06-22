@@ -1,18 +1,14 @@
 export default function Component$unbind () {
-	while ( this.complexParameters.length ) {
-		this.complexParameters.pop().teardown();
-	}
-
-	while ( this.bindings.length ) {
-		this.bindings.pop().teardown();
-	}
+	this.complexParameters.forEach( unbind );
+	this.bindings.forEach( unbind );
 
 	removeFromLiveComponentQueries( this );
 
-	// Add this flag so that we don't unnecessarily destroy the component's nodes
-	// TODO rethink the semantics of init/teardown/render/unrender?
-	this.shouldDestroy = false;
 	this.instance.fragment.unbind();
+}
+
+function unbind ( thing ) {
+	thing.unbind();
 }
 
 function removeFromLiveComponentQueries ( component ) {

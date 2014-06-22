@@ -42,7 +42,7 @@ ComponentParameter.prototype = {
 		this.dirty = false;
 	},
 
-	teardown: function () {
+	unbind: function () {
 		this.fragment.unbind();
 	}
 };
