@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-22 - commit 953abb63 
+	2014-06-22 - commit 5f2b50ac 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -546,14 +546,23 @@
 		}
 	}();
 
-	/* utils/normaliseKeypath.js */
-	var normaliseKeypath = function() {
+	/* utils/normaliseRef.js */
+	var normaliseRef = function() {
 
 		var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-		return function normaliseKeypath( keypath ) {
-			return ( keypath || '' ).replace( regex, '.$1' );
+		return function normaliseRef( ref ) {
+			return ( ref || '' ).replace( regex, '.$1' );
 		};
 	}();
+
+	/* utils/normaliseKeypath.js */
+	var normaliseKeypath = function( normaliseRef ) {
+
+		var leadingDot = /^\.+/;
+		return function normaliseKeypath( keypath ) {
+			return normaliseRef( keypath ).replace( leadingDot, '' );
+		};
+	}( normaliseRef );
 
 	/* config/vendors.js */
 	var vendors = [
@@ -709,7 +718,7 @@
 	}( circular, isArray, isEqual );
 
 	/* shared/resolveRef.js */
-	var resolveRef = function( normaliseKeypath, getInnerContext, createComponentBinding ) {
+	var resolveRef = function( normaliseRef, getInnerContext, createComponentBinding ) {
 
 		var ancestorErrorMessage, getOptions;
 		ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
@@ -718,7 +727,7 @@
 		};
 		return function resolveRef( ractive, ref, fragment ) {
 			var context, key, index, keypath, parentValue, hasContextChain;
-			ref = normaliseKeypath( ref );
+			ref = normaliseRef( ref );
 			// If a reference begins with '.', it's either a restricted reference or
 			// an ancestor reference...
 			if ( ref.charAt( 0 ) === '.' ) {
@@ -794,7 +803,7 @@
 			}
 			return baseContext + ref.replace( /^\.\//, '.' );
 		}
-	}( normaliseKeypath, getInnerContext, createComponentBinding );
+	}( normaliseRef, getInnerContext, createComponentBinding );
 
 	/* shared/makeTransitionManager.js */
 	var makeTransitionManager = function( removeFromArray ) {
