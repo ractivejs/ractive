@@ -27,7 +27,7 @@ Observer.prototype = {
 	},
 
 	setValue: function ( value ) {
-		if ( !isEqual( value, this.oldValue ) ) {
+		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
 			if ( this.defer && this.ready ) {
