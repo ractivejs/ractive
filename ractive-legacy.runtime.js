@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-21 - commit 45ee3994 
+	2014-06-22 - commit 09f58151 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4200,6 +4200,11 @@
 		ParseError = function( message ) {
 			this.name = 'ParseError';
 			this.message = message;
+			try {
+				throw new Error( message );
+			} catch ( e ) {
+				this.stack = e.stack;
+			}
 		};
 		ParseError.prototype = Error.prototype;
 		Parser = function( str, options ) {
