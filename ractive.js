@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-22 - commit 63971163 
+	2014-06-22 - commit a64afec7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -848,18 +848,25 @@
 	}( removeFromArray );
 
 	/* global/runloop.js */
-	var runloop = function( circular, removeFromArray, resolveRef, makeTransitionManager ) {
+	var runloop = function( circular, removeFromArray, Promise, resolveRef, makeTransitionManager ) {
 
 		var batch, runloop, unresolved = [];
 		runloop = {
-			start: function( instance, callback ) {
+			start: function( instance, returnPromise ) {
+				var promise, fulfilPromise;
+				if ( returnPromise ) {
+					promise = new Promise( function( f ) {
+						return fulfilPromise = f;
+					} );
+				}
 				batch = {
 					previousBatch: batch,
-					transitionManager: makeTransitionManager( callback, batch && batch.transitionManager ),
+					transitionManager: makeTransitionManager( fulfilPromise, batch && batch.transitionManager ),
 					views: [],
 					tasks: [],
 					viewmodels: [ instance.viewmodel ]
 				};
+				return promise;
 			},
 			end: function() {
 				flushChanges();
@@ -952,7 +959,7 @@
 				}
 			}
 		}
-	}( circular, removeFromArray, resolveRef, makeTransitionManager );
+	}( circular, removeFromArray, Promise, resolveRef, makeTransitionManager );
 
 	/* shared/animations.js */
 	var animations = function( rAF, getTime, runloop ) {
@@ -4846,10 +4853,10 @@
 	}( getElement );
 
 	/* Ractive/prototype/merge.js */
-	var Ractive$merge = function( runloop, isArray, Promise, normaliseKeypath ) {
+	var Ractive$merge = function( runloop, isArray, normaliseKeypath ) {
 
 		return function Ractive$merge( keypath, array, options ) {
-			var currentArray, promise, fulfilPromise;
+			var currentArray, promise;
 			keypath = normaliseKeypath( keypath );
 			currentArray = this.viewmodel.get( keypath );
 			// If either the existing value or the new value isn't an
@@ -4858,10 +4865,7 @@
 				return this.set( keypath, array, options && options.complete );
 			}
 			// Manage transitions
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
-			runloop.start( this, fulfilPromise );
+			promise = runloop.start( this, true );
 			this.viewmodel.merge( keypath, currentArray, array, options );
 			runloop.end();
 			// attach callback as fulfilment handler, if specified
@@ -4870,7 +4874,7 @@
 			}
 			return promise;
 		};
-	}( runloop, isArray, Promise, normaliseKeypath );
+	}( runloop, isArray, normaliseKeypath );
 
 	/* utils/log.js */
 	var log = function( consolewarn, errors ) {
@@ -5316,6 +5320,109 @@
 		};
 	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
 
+	/* shared/getSpliceEquivalent.js */
+	var getSpliceEquivalent = function( array, methodName, args ) {
+		switch ( methodName ) {
+			case 'splice':
+				return args;
+			case 'sort':
+			case 'reverse':
+				return null;
+			case 'pop':
+				if ( array.length ) {
+					return [ -1 ];
+				}
+				return null;
+			case 'push':
+				return [
+					array.length,
+					0
+				].concat( args );
+			case 'shift':
+				return [
+					0,
+					1
+				];
+			case 'unshift':
+				return [
+					0,
+					0
+				].concat( args );
+		}
+	};
+
+	/* shared/summariseSpliceOperation.js */
+	var summariseSpliceOperation = function( array, args ) {
+		var rangeStart, rangeEnd, newLength, addedItems, removedItems, balance;
+		if ( !args ) {
+			return null;
+		}
+		// figure out where the changes started...
+		rangeStart = +( args[ 0 ] < 0 ? array.length + args[ 0 ] : args[ 0 ] );
+		// ...and how many items were added to or removed from the array
+		addedItems = Math.max( 0, args.length - 2 );
+		removedItems = args[ 1 ] !== undefined ? args[ 1 ] : array.length - rangeStart;
+		// It's possible to do e.g. [ 1, 2, 3 ].splice( 2, 2 ) - i.e. the second argument
+		// means removing more items from the end of the array than there are. In these
+		// cases we need to curb JavaScript's enthusiasm or we'll get out of sync
+		removedItems = Math.min( removedItems, array.length - rangeStart );
+		balance = addedItems - removedItems;
+		newLength = array.length + balance;
+		// We need to find the end of the range affected by the splice
+		if ( !balance ) {
+			rangeEnd = rangeStart + addedItems;
+		} else {
+			rangeEnd = Math.max( array.length, newLength );
+		}
+		return {
+			rangeStart: rangeStart,
+			rangeEnd: rangeEnd,
+			balance: balance,
+			added: addedItems,
+			removed: removedItems
+		};
+	};
+
+	/* Ractive/prototype/shared/makeArrayMethod.js */
+	var Ractive$shared_makeArrayMethod = function( isArray, runloop, getSpliceEquivalent, summariseSpliceOperation ) {
+
+		var arrayProto = Array.prototype;
+		return function( methodName ) {
+			return function( keypath ) {
+				var SLICE$0 = Array.prototype.slice;
+				var args = SLICE$0.call( arguments, 1 );
+				var array, spliceEquivalent, spliceSummary, promise;
+				array = this.get( keypath );
+				if ( !isArray( array ) ) {
+					throw new Error( 'Called ractive.' + methodName + '(\'' + keypath + '\'), but \'' + keypath + '\' does not refer to an array' );
+				}
+				spliceEquivalent = getSpliceEquivalent( array, methodName, args );
+				spliceSummary = summariseSpliceOperation( array, spliceEquivalent );
+				arrayProto[ methodName ].apply( array, args );
+				promise = runloop.start( this, true );
+				if ( spliceSummary ) {
+					this.viewmodel.splice( keypath, spliceSummary );
+				} else {
+					this.viewmodel.mark( keypath );
+				}
+				runloop.end();
+				return promise;
+			};
+		};
+	}( isArray, runloop, getSpliceEquivalent, summariseSpliceOperation );
+
+	/* Ractive/prototype/pop.js */
+	var Ractive$pop = function( makeArrayMethod ) {
+
+		return makeArrayMethod( 'pop' );
+	}( Ractive$shared_makeArrayMethod );
+
+	/* Ractive/prototype/push.js */
+	var Ractive$push = function( makeArrayMethod ) {
+
+		return makeArrayMethod( 'push' );
+	}( Ractive$shared_makeArrayMethod );
+
 	/* global/css.js */
 	var global_css = function( circular, isClient, removeFromArray ) {
 
@@ -5382,15 +5489,12 @@
 	}( circular, isClient, removeFromArray );
 
 	/* Ractive/prototype/render.js */
-	var Ractive$render = function( runloop, css, Promise, getElement ) {
+	var Ractive$render = function( runloop, css, getElement ) {
 
 		return function Ractive$render( target, anchor ) {
-			var promise, fulfilPromise, instances;
+			var promise, instances;
 			this._rendering = true;
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
-			runloop.start( this, fulfilPromise );
+			promise = runloop.start( this, true );
 			if ( this.rendered ) {
 				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 			}
@@ -5433,7 +5537,7 @@
 			}
 			instance._childInitQueue.splice( 0 ).forEach( init );
 		}
-	}( runloop, global_css, Promise, getElement );
+	}( runloop, global_css, getElement );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
@@ -10604,7 +10708,7 @@
 	}( virtualdom_Fragment$bubble, virtualdom_Fragment$detach, virtualdom_Fragment$find, virtualdom_Fragment$findAll, virtualdom_Fragment$findAllComponents, virtualdom_Fragment$findComponent, virtualdom_Fragment$findNextNode, virtualdom_Fragment$firstNode, virtualdom_Fragment$getNode, virtualdom_Fragment$getValue, virtualdom_Fragment$init, virtualdom_Fragment$rebind, virtualdom_Fragment$render, virtualdom_Fragment$teardown, virtualdom_Fragment$toString, virtualdom_Fragment$unrender, circular );
 
 	/* Ractive/prototype/reset.js */
-	var Ractive$reset = function( Promise, runloop, Fragment, config ) {
+	var Ractive$reset = function( runloop, Fragment, config ) {
 
 		var shouldRerender = [
 			'template',
@@ -10614,7 +10718,7 @@
 			'events'
 		];
 		return function Ractive$reset( data, callback ) {
-			var promise, fulfilPromise, wrapper, changes, i, rerender;
+			var promise, wrapper, changes, i, rerender;
 			if ( typeof data === 'function' && !callback ) {
 				callback = data;
 				data = {};
@@ -10642,9 +10746,6 @@
 					break;
 				}
 			}
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
 			if ( rerender ) {
 				this.viewmodel.mark( '' );
 				this.unrender();
@@ -10658,9 +10759,9 @@
 						owner: this
 					} );
 				}
-				this.render( this.el, this.anchor ).then( fulfilPromise );
+				promise = this.render( this.el, this.anchor );
 			} else {
-				runloop.start( this, fulfilPromise );
+				promise = runloop.start( this, true );
 				this.viewmodel.mark( '' );
 				runloop.end();
 			}
@@ -10670,7 +10771,7 @@
 			}
 			return promise;
 		};
-	}( Promise, runloop, Fragment, config );
+	}( runloop, Fragment, config );
 
 	/* Ractive/prototype/resetTemplate.js */
 	var Ractive$resetTemplate = function( config, Fragment ) {
@@ -10699,17 +10800,20 @@
 		};
 	}( config, Fragment );
 
+	/* Ractive/prototype/reverse.js */
+	var Ractive$reverse = function( makeArrayMethod ) {
+
+		return makeArrayMethod( 'reverse' );
+	}( Ractive$shared_makeArrayMethod );
+
 	/* Ractive/prototype/set.js */
-	var Ractive$set = function( runloop, isObject, normaliseKeypath, Promise, getMatchingKeypaths ) {
+	var Ractive$set = function( runloop, isObject, normaliseKeypath, getMatchingKeypaths ) {
 
 		var wildcard = /\*/;
 		return function Ractive$set( keypath, value, callback ) {
 			var this$0 = this;
-			var map, promise, fulfilPromise;
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
-			runloop.start( this, fulfilPromise );
+			var map, promise;
+			promise = runloop.start( this, true );
 			// Set multiple keypaths in one go
 			if ( isObject( keypath ) ) {
 				map = keypath;
@@ -10737,7 +10841,25 @@
 			}
 			return promise;
 		};
-	}( runloop, isObject, normaliseKeypath, Promise, getMatchingKeypaths );
+	}( runloop, isObject, normaliseKeypath, getMatchingKeypaths );
+
+	/* Ractive/prototype/shift.js */
+	var Ractive$shift = function( makeArrayMethod ) {
+
+		return makeArrayMethod( 'shift' );
+	}( Ractive$shared_makeArrayMethod );
+
+	/* Ractive/prototype/sort.js */
+	var Ractive$sort = function( makeArrayMethod ) {
+
+		return makeArrayMethod( 'sort' );
+	}( Ractive$shared_makeArrayMethod );
+
+	/* Ractive/prototype/splice.js */
+	var Ractive$splice = function( makeArrayMethod ) {
+
+		return makeArrayMethod( 'splice' );
+	}( Ractive$shared_makeArrayMethod );
 
 	/* Ractive/prototype/subtract.js */
 	var Ractive$subtract = function( add ) {
@@ -10766,11 +10888,6 @@
 		};
 	}( Promise );
 
-	/* Ractive/prototype/toHTML.js */
-	var Ractive$toHTML = function Ractive$toHTML() {
-		return this.fragment.toString( true );
-	};
-
 	/* Ractive/prototype/toggle.js */
 	var Ractive$toggle = function( log ) {
 
@@ -10790,19 +10907,21 @@
 		};
 	}( log );
 
+	/* Ractive/prototype/toHTML.js */
+	var Ractive$toHTML = function Ractive$toHTML() {
+		return this.fragment.toString( true );
+	};
+
 	/* Ractive/prototype/unrender.js */
-	var Ractive$unrender = function( types, Promise, removeFromArray, runloop, css ) {
+	var Ractive$unrender = function( types, removeFromArray, runloop, css ) {
 
 		return function Ractive$unrender() {
 			var this$0 = this;
-			var promise, fulfilPromise, shouldDestroy, fragment, nearestDetachingElement;
+			var promise, shouldDestroy, fragment, nearestDetachingElement;
 			if ( !this.rendered ) {
 				throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
 			}
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
-			runloop.start( this, fulfilPromise );
+			promise = runloop.start( this, true );
 			// If this is a component, and the component isn't marked for destruction,
 			// don't detach nodes from the DOM unnecessarily
 			shouldDestroy = !this.component || this.component.shouldDestroy;
@@ -10839,23 +10958,26 @@
 			runloop.end();
 			return promise;
 		};
-	}( types, Promise, removeFromArray, runloop, global_css );
+	}( types, removeFromArray, runloop, global_css );
+
+	/* Ractive/prototype/unshift.js */
+	var Ractive$unshift = function( makeArrayMethod ) {
+
+		return makeArrayMethod( 'unshift' );
+	}( Ractive$shared_makeArrayMethod );
 
 	/* Ractive/prototype/update.js */
-	var Ractive$update = function( runloop, Promise ) {
+	var Ractive$update = function( runloop ) {
 
 		return function Ractive$update( keypath, callback ) {
-			var promise, fulfilPromise;
+			var promise;
 			if ( typeof keypath === 'function' ) {
 				callback = keypath;
 				keypath = '';
 			} else {
 				keypath = keypath || '';
 			}
-			promise = new Promise( function( fulfil ) {
-				fulfilPromise = fulfil;
-			} );
-			runloop.start( this, fulfilPromise );
+			promise = runloop.start( this, true );
 			this.viewmodel.mark( keypath );
 			runloop.end();
 			this.fire( 'update', keypath );
@@ -10864,7 +10986,7 @@
 			}
 			return promise;
 		};
-	}( runloop, Promise );
+	}( runloop );
 
 	/* Ractive/prototype/updateModel.js */
 	var Ractive$updateModel = function( arrayContentsMatch, isEqual ) {
@@ -10936,7 +11058,7 @@
 	}( arrayContentsMatch, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, render, reset, resetTemplate, set, subtract, teardown, toHTML, toggle, unrender, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
 
 		return {
 			add: add,
@@ -10953,19 +11075,26 @@
 			observe: observe,
 			off: off,
 			on: on,
+			pop: pop,
+			push: push,
 			render: render,
 			reset: reset,
 			resetTemplate: resetTemplate,
+			reverse: reverse,
 			set: set,
+			shift: shift,
+			sort: sort,
+			splice: splice,
 			subtract: subtract,
 			teardown: teardown,
-			toHTML: toHTML,
 			toggle: toggle,
+			toHTML: toHTML,
 			unrender: unrender,
+			unshift: unshift,
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$set, Ractive$subtract, Ractive$teardown, Ractive$toHTML, Ractive$toggle, Ractive$unrender, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
 
 	/* utils/getGuid.js */
 	var getGuid = function() {
@@ -10985,69 +11114,6 @@
 			return 'r-' + i++;
 		};
 	}();
-
-	/* viewmodel/prototype/get/arrayAdaptor/getSpliceEquivalent.js */
-	var viewmodel$get_arrayAdaptor_getSpliceEquivalent = function( array, methodName, args ) {
-		switch ( methodName ) {
-			case 'splice':
-				return args;
-			case 'sort':
-			case 'reverse':
-				return null;
-			case 'pop':
-				if ( array.length ) {
-					return [ -1 ];
-				}
-				return null;
-			case 'push':
-				return [
-					array.length,
-					0
-				].concat( args );
-			case 'shift':
-				return [
-					0,
-					1
-				];
-			case 'unshift':
-				return [
-					0,
-					0
-				].concat( args );
-		}
-	};
-
-	/* viewmodel/prototype/get/arrayAdaptor/summariseSpliceOperation.js */
-	var viewmodel$get_arrayAdaptor_summariseSpliceOperation = function( array, args ) {
-		var rangeStart, rangeEnd, newLength, addedItems, removedItems, balance;
-		if ( !args ) {
-			return null;
-		}
-		// figure out where the changes started...
-		rangeStart = +( args[ 0 ] < 0 ? array.length + args[ 0 ] : args[ 0 ] );
-		// ...and how many items were added to or removed from the array
-		addedItems = Math.max( 0, args.length - 2 );
-		removedItems = args[ 1 ] !== undefined ? args[ 1 ] : array.length - rangeStart;
-		// It's possible to do e.g. [ 1, 2, 3 ].splice( 2, 2 ) - i.e. the second argument
-		// means removing more items from the end of the array than there are. In these
-		// cases we need to curb JavaScript's enthusiasm or we'll get out of sync
-		removedItems = Math.min( removedItems, array.length - rangeStart );
-		balance = addedItems - removedItems;
-		newLength = array.length + balance;
-		// We need to find the end of the range affected by the splice
-		if ( !balance ) {
-			rangeEnd = rangeStart + addedItems;
-		} else {
-			rangeEnd = Math.max( array.length, newLength );
-		}
-		return {
-			rangeStart: rangeStart,
-			rangeEnd: rangeEnd,
-			balance: balance,
-			added: addedItems,
-			removed: removedItems
-		};
-	};
 
 	/* viewmodel/prototype/get/arrayAdaptor/processWrapper.js */
 	var viewmodel$get_arrayAdaptor_processWrapper = function( wrapper, array, methodName, spliceSummary ) {
@@ -11141,7 +11207,7 @@
 		}
 		patchArrayMethods.unpatch = unpatchArrayMethods;
 		return patchArrayMethods;
-	}( runloop, defineProperty, viewmodel$get_arrayAdaptor_getSpliceEquivalent, viewmodel$get_arrayAdaptor_summariseSpliceOperation, viewmodel$get_arrayAdaptor_processWrapper );
+	}( runloop, defineProperty, getSpliceEquivalent, summariseSpliceOperation, viewmodel$get_arrayAdaptor_processWrapper );
 
 	/* viewmodel/prototype/get/arrayAdaptor.js */
 	var viewmodel$get_arrayAdaptor = function( defineProperty, isArray, patch ) {
