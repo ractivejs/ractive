@@ -13,8 +13,8 @@ import merge from 'virtualdom/items/Section/prototype/merge';
 import render from 'virtualdom/items/Section/prototype/render';
 import setValue from 'virtualdom/items/Section/prototype/setValue';
 import splice from 'virtualdom/items/Section/prototype/splice';
-import teardown from 'virtualdom/items/Section/prototype/teardown';
 import toString from 'virtualdom/items/Section/prototype/toString';
+import unbind from 'virtualdom/items/Section/prototype/unbind';
 import unrender from 'virtualdom/items/Section/prototype/unrender';
 import update from 'virtualdom/items/Section/prototype/update';
 
@@ -49,8 +49,8 @@ Section.prototype = {
 	resolve: Mustache.resolve,
 	setValue: setValue,
 	splice: splice,
-	teardown: teardown,
 	toString: toString,
+	unbind: unbind,
 	unrender: unrender,
 	update: update
 };

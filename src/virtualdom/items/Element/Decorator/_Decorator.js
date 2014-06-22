@@ -26,7 +26,7 @@ Decorator = function ( element, template ) {
 		});
 
 		name = fragment.toString();
-		fragment.teardown();
+		fragment.unbind();
 	}
 
 	if ( template.a ) {
@@ -104,7 +104,7 @@ Decorator.prototype = {
 		this.actual.teardown();
 
 		if ( !updating && this.fragment ) {
-			this.fragment.teardown();
+			this.fragment.unbind();
 		}
 	}
 };

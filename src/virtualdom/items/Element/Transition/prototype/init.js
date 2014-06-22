@@ -24,7 +24,7 @@ export default function Transition$init ( element, template ) {
 		});
 
 		name = fragment.toString();
-		fragment.teardown();
+		fragment.unbind();
 	}
 
 	t.name = name;
@@ -43,7 +43,7 @@ export default function Transition$init ( element, template ) {
 		});
 
 		t.params = fragment.getValue( getValueOptions );
-		fragment.teardown();
+		fragment.unbind();
 	}
 
 	t._fn = config.registries.transitions.find( ractive, name );

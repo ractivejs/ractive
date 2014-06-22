@@ -17,7 +17,7 @@ export default function Ractive$resetTemplate ( template ) {
 	this.unrender();
 
 	// remove existing fragment and create new one
-	this.fragment.teardown();
+	this.fragment.unbind();
 	this.fragment = new Fragment({
 		template: this.template,
 		root: this,

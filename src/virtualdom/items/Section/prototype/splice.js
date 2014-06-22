@@ -28,7 +28,7 @@ export default function ( spliceSummary ) {
 	// the excess fragments and remove them...
 	if ( balance < 0 ) {
 		section.fragmentsToUnrender = section.fragments.splice( start, -balance );
-		section.fragmentsToUnrender.forEach( teardown );
+		section.fragmentsToUnrender.forEach( unbind );
 
 		// Reassign fragments after the ones we've just removed
 		rebindFragments( section, start, section.length, balance );
@@ -54,8 +54,8 @@ export default function ( spliceSummary ) {
 	section.fragmentsToCreate = range( insertStart, insertEnd );
 }
 
-function teardown ( fragment ) {
-	fragment.teardown();
+function unbind ( fragment ) {
+	fragment.unbind();
 }
 
 function range ( start, end ) {

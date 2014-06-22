@@ -8,8 +8,8 @@ import firstNode from 'virtualdom/items/Component/prototype/firstNode';
 import init from 'virtualdom/items/Component/prototype/init';
 import rebind from 'virtualdom/items/Component/prototype/rebind';
 import render from 'virtualdom/items/Component/prototype/render';
-import teardown from 'virtualdom/items/Component/prototype/teardown';
 import toString from 'virtualdom/items/Component/prototype/toString';
+import unbind from 'virtualdom/items/Component/prototype/unbind';
 import unrender from 'virtualdom/items/Component/prototype/unrender';
 
 var Component = function ( options ) {
@@ -27,8 +27,8 @@ Component.prototype = {
 	init: init,
 	rebind: rebind,
 	render: render,
-	teardown: teardown,
 	toString: toString,
+	unbind: unbind,
 	unrender: unrender
 };
 

@@ -14,7 +14,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
-	ractive.viewmodel.register( keypath, this );
+	this.bind();
 
 	this.value = this.root.viewmodel.get( this.keypath );
 };
@@ -48,16 +48,20 @@ Binding.prototype = {
 		}
 	},
 
+	bind: function () {
+		this.root.viewmodel.register( this.keypath, this );
+	},
+
 	rebind: function ( newKeypath ) {
-		this.root.viewmodel.unregister( this.keypath, this );
+		this.unbind();
 
 		this.keypath = newKeypath;
 		this.counterpart.otherKeypath = newKeypath;
 
-		this.root.viewmodel.register( newKeypath, this );
+		this.bind();
 	},
 
-	teardown: function () {
+	unbind: function () {
 		this.root.viewmodel.unregister( this.keypath, this );
 	}
 };
