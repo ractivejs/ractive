@@ -1,5 +1,4 @@
 import types from 'config/types';
-import noop from 'utils/noop';
 import detach from 'virtualdom/items/shared/detach';
 
 var Comment = function ( options ) {
@@ -21,8 +20,6 @@ Comment.prototype = {
 
 		return this.node;
 	},
-
-	teardown: noop,
 
 	toString: function () {
 		return '<!--' + this.value + '-->';

@@ -10,8 +10,8 @@ import getAttribute from 'virtualdom/items/Element/prototype/getAttribute';
 import init from 'virtualdom/items/Element/prototype/init';
 import rebind from 'virtualdom/items/Element/prototype/rebind';
 import render from 'virtualdom/items/Element/prototype/render';
-import teardown from 'virtualdom/items/Element/prototype/teardown';
 import toString from 'virtualdom/items/Element/prototype/toString';
+import unbind from 'virtualdom/items/Element/prototype/unbind';
 import unrender from 'virtualdom/items/Element/prototype/unrender';
 
 var Element = function ( options ) {
@@ -31,8 +31,8 @@ Element.prototype = {
 	init: init,
 	rebind: rebind,
 	render: render,
-	teardown: teardown,
 	toString: toString,
+	unbind: unbind,
 	unrender: unrender
 };
 

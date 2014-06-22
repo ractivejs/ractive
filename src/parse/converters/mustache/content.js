@@ -7,7 +7,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 	legalReference;
 
-legalReference = /^[a-zA_Z$_0-9]+(?:(\.[a-zA_Z$_0-9]+)|(\[[a-zA_Z$_0-9]+\]))*$/;
+legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 
 export default function ( parser, delimiterType ) {
 	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, referenceExpression;

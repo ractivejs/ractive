@@ -11,7 +11,7 @@ import toString from 'virtualdom/items/Triple/prototype/toString';
 import unrender from 'virtualdom/items/Triple/prototype/unrender';
 import update from 'virtualdom/items/Triple/prototype/update';
 
-import teardown from 'virtualdom/items/shared/teardown';
+import unbind from 'virtualdom/items/shared/unbind';
 
 var Triple = function ( options ) {
 	this.type = types.TRIPLE;
@@ -27,8 +27,8 @@ Triple.prototype = {
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,
-	teardown: teardown,
 	toString: toString,
+	unbind: unbind,
 	unrender: unrender,
 	update: update
 };

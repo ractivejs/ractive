@@ -1089,6 +1089,27 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+		test( 'Regression test for #857', function ( t ) {
+			var ractive = new Ractive({
+				el: document.createElement( 'div' ),
+				template: '<textarea value="{{foo}}"></textarea>',
+				data: {
+					foo: 'works'
+				}
+			});
+
+			t.equal( ractive.find( 'textarea' ).value, 'works' );
+		});
+
+		test( 'Radio input can have name/checked attributes without two-way binding (#783)', function ( t ) {
+			expect( 0 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input type="radio" name="a" value="a" checked>'
+			});
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

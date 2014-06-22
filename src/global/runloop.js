@@ -1,12 +1,19 @@
 import circular from 'circular';
 import removeFromArray from 'utils/removeFromArray';
+import Promise from 'utils/Promise';
 import resolveRef from 'shared/resolveRef';
 import TransitionManager from 'global/TransitionManager';
 
 var batch, runloop, unresolved = [];
 
 runloop = {
-	start: function ( instance, callback ) {
+	start: function ( instance, returnPromise ) {
+		var promise, fulfilPromise;
+
+		if ( returnPromise ) {
+			promise = new Promise( f => ( fulfilPromise = f ) );
+		}
+
 		batch = {
 			previousBatch: batch,
 			transitionManager: new TransitionManager( callback, batch && batch.transitionManager ),
@@ -14,6 +21,8 @@ runloop = {
 			tasks: [],
 			viewmodels: [ instance.viewmodel ]
 		};
+
+		return promise;
 	},
 
 	end: function () {

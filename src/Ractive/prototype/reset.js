@@ -1,4 +1,3 @@
-import Promise from 'utils/Promise';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
 import config from 'config/config';
@@ -7,7 +6,7 @@ var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'even
 
 export default function Ractive$reset ( data, callback ) {
 
-	var promise, fulfilPromise, wrapper, changes, i, rerender;
+	var promise, wrapper, changes, i, rerender;
 
 	if ( typeof data === 'function' && !callback ) {
 		callback = data;
@@ -41,8 +40,6 @@ export default function Ractive$reset ( data, callback ) {
 		}
 	}
 
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-
 	if ( rerender ) {
 		this.viewmodel.mark( '' );
 
@@ -51,7 +48,7 @@ export default function Ractive$reset ( data, callback ) {
 		// If the template changed, we need to destroy the parallel DOM
 		// TODO if we're here, presumably it did?
 		if ( this.fragment.template !== this.template ) {
-			this.fragment.teardown();
+			this.fragment.unbind();
 
 			this.fragment = new Fragment({
 				template: this.template,
@@ -60,9 +57,9 @@ export default function Ractive$reset ( data, callback ) {
 			});
 		}
 
-		this.render( this.el, this.anchor ).then( fulfilPromise );
+		promise = this.render( this.el, this.anchor );
 	} else {
-		runloop.start( this, fulfilPromise );
+		promise = runloop.start( this, true );
 		this.viewmodel.mark( '' );
 		runloop.end();
 	}

@@ -21,6 +21,8 @@ export default {
 		'Failed to compute "{key}": {err}',
 
 	missingPlugin:
-		'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s'
+		'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
 
+	badRadioInputBinding:
+		'A radio input can have two-way binding on its name attribute, or its checked attribute - not both'
 };

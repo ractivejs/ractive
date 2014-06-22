@@ -1,3 +1,4 @@
+import log from 'utils/log';
 import ContentEditableBinding from 'virtualdom/items/Element/Binding/ContentEditableBinding';
 import RadioBinding from 'virtualdom/items/Element/Binding/RadioBinding';
 import RadioNameBinding from 'virtualdom/items/Element/Binding/RadioNameBinding';
@@ -10,7 +11,7 @@ import NumericBinding from 'virtualdom/items/Element/Binding/NumericBinding';
 import GenericBinding from 'virtualdom/items/Element/Binding/GenericBinding';
 
 export default function createTwowayBinding ( element ) {
-	var attributes = element.attributes, type, Binding;
+	var attributes = element.attributes, type, Binding, bindName, bindChecked;
 
 	// if this is a late binding, and there's already one, it
 	// needs to be torn down
@@ -29,12 +30,19 @@ export default function createTwowayBinding ( element ) {
 		type = element.getAttribute( 'type' );
 
 		if ( type === 'radio' || type === 'checkbox' ) {
+			bindName = isBindable( attributes.name );
+			bindChecked = isBindable( attributes.checked );
+
 			// we can either bind the name attribute, or the checked attribute - not both
-			if ( isBindable( attributes.name ) ) {
+			if ( bindName && bindChecked ) {
+				log.error({ message: 'badRadioInputBinding' });
+			}
+
+			if ( bindName ) {
 				Binding = ( type === 'radio' ? RadioNameBinding : CheckboxNameBinding );
 			}
 
-			else if ( isBindable( attributes.checked ) ) {
+			else if ( bindChecked ) {
 				Binding = ( type === 'radio' ? RadioBinding : CheckboxBinding );
 			}
 		}

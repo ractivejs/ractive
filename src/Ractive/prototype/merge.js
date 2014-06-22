@@ -1,13 +1,11 @@
 import runloop from 'global/runloop';
 import isArray from 'utils/isArray';
-import Promise from 'utils/Promise';
 import normaliseKeypath from 'utils/normaliseKeypath';
 
 export default function Ractive$merge ( keypath, array, options ) {
 
 	var currentArray,
-		promise,
-		fulfilPromise;
+		promise;
 
 	keypath = normaliseKeypath( keypath );
 	currentArray = this.viewmodel.get( keypath );
@@ -19,9 +17,7 @@ export default function Ractive$merge ( keypath, array, options ) {
 	}
 
 	// Manage transitions
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-
-	runloop.start( this, fulfilPromise );
+	promise = runloop.start( this, true );
 	this.viewmodel.merge( keypath, currentArray, array, options );
 	runloop.end();
 

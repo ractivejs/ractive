@@ -1188,6 +1188,29 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( fixture.innerHTML, 'fooboo' );
 		});
+
+		test( 'Removing inline components causes teardown events to fire (#853)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if foo}}<widget/>{{/if}}',
+				data: {
+					foo: true
+				},
+				components: {
+					widget: Ractive.extend({
+						template: 'widget',
+						init: function () {
+							this.on( 'teardown', function () {
+								t.ok( true );
+							})
+						}
+					})
+				}
+			});
+
+			expect( 1 );
+			ractive.toggle( 'foo' );
+		});
 	};
 
 });

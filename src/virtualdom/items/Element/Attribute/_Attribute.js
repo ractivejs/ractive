@@ -2,8 +2,8 @@ import bubble from 'virtualdom/items/Element/Attribute/prototype/bubble';
 import init from 'virtualdom/items/Element/Attribute/prototype/init';
 import rebind from 'virtualdom/items/Element/Attribute/prototype/rebind';
 import render from 'virtualdom/items/Element/Attribute/prototype/render';
-import teardown from 'virtualdom/items/Element/Attribute/prototype/teardown';
 import toString from 'virtualdom/items/Element/Attribute/prototype/toString';
+import unbind from 'virtualdom/items/Element/Attribute/prototype/unbind';
 import update from 'virtualdom/items/Element/Attribute/prototype/update';
 import updateBindings from 'virtualdom/items/Element/Attribute/prototype/updateBindings';
 
@@ -16,8 +16,8 @@ Attribute.prototype = {
 	init: init,
 	rebind: rebind,
 	render: render,
-	teardown: teardown,
 	toString: toString,
+	unbind: unbind,
 	update: update,
 	updateBindings: updateBindings
 };

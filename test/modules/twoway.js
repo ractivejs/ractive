@@ -384,6 +384,38 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( !inputs[1].checked );
 		});
 
+		test( 'Post-blur validation works (#771)', function ( t ) {
+			var ractive, input;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}">{{foo}}'
+			});
+
+			ractive.observe( 'foo', function ( foo ) {
+				this.set( 'foo', foo.toUpperCase() );
+			});
+
+			input = ractive.find( 'input' );
+			input.value = 'bar';
+			simulant.fire( input, 'change' );
+
+			t.equal( input.value, 'bar' );
+			t.equal( ractive.get( 'foo' ), 'BAR' );
+			t.htmlEqual( fixture.innerHTML, '<input>BAR' );
+
+			simulant.fire( input, 'change' );
+			try {
+				simulant.fire( input, 'blur' );
+
+				t.equal( input.value, 'BAR' );
+				t.equal( ractive.get( 'foo' ), 'BAR' );
+				t.htmlEqual( fixture.innerHTML, '<input>BAR' );
+			} catch ( err ) {
+				// Oh PhantomJS. You are so very WTF
+			}
+		});
+
 	};
 
 });

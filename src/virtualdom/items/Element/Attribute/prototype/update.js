@@ -35,6 +35,10 @@ export default function Attribute$update () {
 			updateMethod = node.multiple ? updateMultipleSelectValue : updateSelectValue;
 		}
 
+		else if ( element.name === 'textarea' ) {
+			updateMethod = updateValue;
+		}
+
 		// special case - contenteditable
 		else if ( node.getAttribute( 'contenteditable' ) ) {
 			updateMethod = updateContentEditableValue;
@@ -50,7 +54,7 @@ export default function Attribute$update () {
 			}
 
 			// type='radio' name='{{twoway}}'
-			else if ( type === 'radio' && element.binding.name === 'name' ) {
+			else if ( type === 'radio' && element.binding && element.binding.name === 'name' ) {
 				updateMethod = updateRadioValue;
 			}
 

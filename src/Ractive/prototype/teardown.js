@@ -7,7 +7,7 @@ export default function Ractive$teardown ( callback ) {
 	var promise;
 
 	this.fire( 'teardown' );
-	this.fragment.teardown();
+	this.fragment.unbind();
 	this.viewmodel.teardown();
 
 	promise = ( this.rendered ? this.unrender() : Promise.resolve() );

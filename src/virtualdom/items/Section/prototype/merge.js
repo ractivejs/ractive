@@ -40,7 +40,7 @@ export default function Section$merge ( newIndices ) {
 		// does this fragment need to be torn down?
 		if ( newIndex === -1 ) {
 			section.fragmentsToUnrender.push( fragment );
-			fragment.teardown();
+			fragment.unbind();
 			return;
 		}
 

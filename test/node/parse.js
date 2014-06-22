@@ -6,13 +6,15 @@ parseTests = require( '../samples/parse' );
 parseTests.forEach( function ( theTest ) {
 	exports[ theTest.name ] = function ( test ) {
 		if (theTest.error) {
-			var error = "<No error thrown>";
-			try {
-				Ractive.parse(theTest.template, theTest.options);
-			} catch (e) {
-				error = String(e.message || e);
-			}
-			test.deepEqual(error, theTest.error);
+			test.throws( function () {
+				Ractive.parse( theTest.template, theTest.options );
+			}, function ( error ) {
+				if (error.name !== 'ParseError') {
+					throw error;
+				}
+				test.equal( error.message, theTest.error );
+				return true;
+			}, 'Expected ParseError');
 		} else {
 			var parsed = Ractive.parse(theTest.template, theTest.options);
 

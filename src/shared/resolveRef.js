@@ -1,4 +1,4 @@
-import normaliseKeypath from 'utils/normaliseKeypath';
+import normaliseRef from 'utils/normaliseRef';
 import getInnerContext from 'shared/getInnerContext';
 import createComponentBinding from 'shared/createComponentBinding';
 
@@ -11,7 +11,7 @@ getOptions = { evaluateWrapped: true };
 export default function resolveRef ( ractive, ref, fragment ) {
 	var context, key, index, keypath, parentValue, hasContextChain;
 
-	ref = normaliseKeypath( ref );
+	ref = normaliseRef( ref );
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
