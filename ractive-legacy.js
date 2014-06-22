@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-22 - commit fcee1f6b 
+	2014-06-22 - commit 953abb63 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1286,7 +1286,8 @@
 		evaluationError: 'Error evaluating "{uniqueString}": {err}',
 		badArguments: 'Bad arguments "{arguments}". I\'m not allowed to argue unless you\'ve paid.',
 		failedComputation: 'Failed to compute "{key}": {err}',
-		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s'
+		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
+		badRadioInputBinding: 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both'
 	};
 
 	/* config/types.js */
@@ -8746,11 +8747,11 @@
 	}( GenericBinding );
 
 	/* virtualdom/items/Element/prototype/init/createTwowayBinding.js */
-	var virtualdom_items_Element$init_createTwowayBinding = function( ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding ) {
+	var virtualdom_items_Element$init_createTwowayBinding = function( log, ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding ) {
 
 		return function createTwowayBinding( element ) {
 			var attributes = element.attributes,
-				type, Binding;
+				type, Binding, bindName, bindChecked;
 			// if this is a late binding, and there's already one, it
 			// needs to be torn down
 			if ( element.binding ) {
@@ -8763,10 +8764,17 @@
 			} else if ( element.name === 'input' ) {
 				type = element.getAttribute( 'type' );
 				if ( type === 'radio' || type === 'checkbox' ) {
+					bindName = isBindable( attributes.name );
+					bindChecked = isBindable( attributes.checked );
 					// we can either bind the name attribute, or the checked attribute - not both
-					if ( isBindable( attributes.name ) ) {
+					if ( bindName && bindChecked ) {
+						log.error( {
+							message: 'badRadioInputBinding'
+						} );
+					}
+					if ( bindName ) {
 						Binding = type === 'radio' ? RadioNameBinding : CheckboxNameBinding;
-					} else if ( isBindable( attributes.checked ) ) {
+					} else if ( bindChecked ) {
 						Binding = type === 'radio' ? RadioBinding : CheckboxBinding;
 					}
 				} else if ( type === 'file' && isBindable( attributes.value ) ) {
@@ -8787,7 +8795,7 @@
 		function isBindable( attribute ) {
 			return attribute && attribute.isBindable;
 		}
-	}( ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
+	}( log, ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
 
 	/* virtualdom/items/Element/EventHandler/prototype/fire.js */
 	var virtualdom_items_Element_EventHandler$fire = function EventHandler$fire( event ) {
