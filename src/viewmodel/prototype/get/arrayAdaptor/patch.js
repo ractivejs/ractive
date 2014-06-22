@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
 import defineProperty from 'utils/defineProperty';
-import getSpliceEquivalent from 'viewmodel/prototype/get/arrayAdaptor/getSpliceEquivalent';
-import summariseSpliceOperation from 'viewmodel/prototype/get/arrayAdaptor/summariseSpliceOperation';
+import getSpliceEquivalent from 'shared/getSpliceEquivalent';
+import summariseSpliceOperation from 'shared/summariseSpliceOperation';
 import processWrapper from 'viewmodel/prototype/get/arrayAdaptor/processWrapper';
 
 var patchedArrayProto = [],

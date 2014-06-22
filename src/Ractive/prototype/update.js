@@ -1,8 +1,7 @@
 import runloop from 'global/runloop';
-import Promise from 'utils/Promise';
 
 export default function Ractive$update ( keypath, callback ) {
-	var promise, fulfilPromise;
+	var promise;
 
 	if ( typeof keypath === 'function' ) {
 		callback = keypath;
@@ -11,8 +10,7 @@ export default function Ractive$update ( keypath, callback ) {
 		keypath = keypath || '';
 	}
 
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-	runloop.start( this, fulfilPromise );
+	promise = runloop.start( this, true );
 
 	this.viewmodel.mark( keypath );
 	runloop.end();

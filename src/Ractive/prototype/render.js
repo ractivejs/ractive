@@ -1,16 +1,14 @@
 import runloop from 'global/runloop';
 import css from 'global/css';
-import Promise from 'utils/Promise';
 import getElement from 'utils/getElement';
 
 export default function Ractive$render ( target, anchor ) {
 
-	var promise, fulfilPromise, instances;
+	var promise, instances;
 
 	this._rendering = true;
 
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-	runloop.start( this, fulfilPromise );
+	promise = runloop.start( this, true );
 
 	if ( this.rendered ) {
 		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
