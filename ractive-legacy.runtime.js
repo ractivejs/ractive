@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-22 - commit f20c2813 
+	2014-06-23 - commit c3dab54c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8760,12 +8760,24 @@
 		}
 	}( voidElementNames, isArray );
 
+	/* virtualdom/items/Element/special/option/unbind.js */
+	var virtualdom_items_Element_special_option_unbind = function( removeFromArray ) {
+
+		return function unbindOption( option ) {
+			removeFromArray( option.select.options, option );
+		};
+	}( removeFromArray );
+
 	/* virtualdom/items/Element/prototype/unbind.js */
-	var virtualdom_items_Element$unbind = function() {
+	var virtualdom_items_Element$unbind = function( unbindOption ) {
 
 		return function Element$unbind() {
 			if ( this.fragment ) {
 				this.fragment.unbind();
+			}
+			// Special case - <option>
+			if ( this.name === 'option' ) {
+				unbindOption( this );
 			}
 			this.attributes.forEach( unbindAttribute );
 		};
@@ -8773,7 +8785,7 @@
 		function unbindAttribute( attribute ) {
 			attribute.unbind();
 		}
-	}();
+	}( virtualdom_items_Element_special_option_unbind );
 
 	/* virtualdom/items/Element/prototype/unrender.js */
 	var virtualdom_items_Element$unrender = function( runloop ) {
@@ -8781,7 +8793,12 @@
 		return function Element$unrender( shouldDestroy ) {
 			var binding, bindings, outro;
 			// Detach as soon as we can
-			if ( shouldDestroy ) {
+			if ( this.name === 'option' ) {
+				// <option> elements detach immediately, so that
+				// their parent <select> element syncs correctly, and
+				// since option elements can't have transitions anyway
+				this.detach();
+			} else if ( shouldDestroy ) {
 				this.willDetach = true;
 				runloop.detachWhenReady( this );
 			}
