@@ -52,6 +52,10 @@ export default function Ractive$render ( target, anchor ) {
 
 	this.rendered = true;
 
+	if ( this.complete ) {
+		promise.then( () => this.complete.call( this ) );
+	}
+
 	return promise;
 }
 

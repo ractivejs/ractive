@@ -1110,6 +1110,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		asyncTest( 'Complete handlers are called for lazily-rendered instances (#749)', function ( t ) {
+			expect( 1 );
+
+			var ractive = new Ractive({
+				template: '<p>foo</p>',
+				complete: function () {
+					t.ok( true );
+					ractive.teardown();
+					QUnit.start();
+				}
+			});
+
+			ractive.render( fixture );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
