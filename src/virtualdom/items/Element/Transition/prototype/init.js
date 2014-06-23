@@ -57,7 +57,7 @@ export default function Transition$init ( element, template ) {
 				plugin: 'transition',
 				name: name
 			}
-		})
+		});
 
 		return;
 	}

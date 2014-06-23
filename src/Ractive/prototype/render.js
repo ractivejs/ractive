@@ -2,11 +2,12 @@ import runloop from 'global/runloop';
 import css from 'global/css';
 import getElement from 'utils/getElement';
 
-export default function Ractive$render ( target, anchor ) {
+var queues = {}, rendering = {};
 
+export default function Ractive$render ( target, anchor ) {
 	var promise, instances;
 
-	this._rendering = true;
+	rendering[ this._guid ] = true;
 
 	promise = runloop.start( this, true );
 
@@ -41,13 +42,13 @@ export default function Ractive$render ( target, anchor ) {
 
 	// If this is *isn't* a child of a component that's in the process of rendering,
 	// it should call any `init()` methods at this point
-	if ( !this._parent || !this._parent._rendering ) {
+	if ( !this._parent || !rendering[ this._parent._guid ] ) {
 		init( this );
 	} else {
-		this._parent._childInitQueue.push( this );
+		getChildInitQueue( this._parent ).push( this );
 	}
 
-	delete this._rendering;
+	rendering[ this._guid ] = false;
 	runloop.end();
 
 	this.rendered = true;
@@ -60,5 +61,10 @@ function init ( instance ) {
 		instance.init( instance._config.options );
 	}
 
-	instance._childInitQueue.splice( 0 ).forEach( init );
+	getChildInitQueue( instance ).forEach( init );
+	queues[ instance._guid ] = null;
+}
+
+function getChildInitQueue ( instance ) {
+	return queues[ instance._guid ] || ( queues[ instance._guid ] = [] );
 }

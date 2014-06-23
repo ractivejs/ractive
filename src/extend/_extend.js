@@ -7,8 +7,7 @@ import Viewmodel from 'viewmodel/Viewmodel';
 import childOptions from 'extend/childOptions';
 
 export default function extend ( options = {} ) {
-
-	var Parent = this, Child;
+	var Parent = this, Child, proto, staticProperties;
 
 	// if we're extending with another Ractive instance, inherit its
 	// prototype methods and default options as well
@@ -16,27 +15,25 @@ export default function extend ( options = {} ) {
 
 	// create Child constructor
 	Child = function ( options ) {
-		initChildInstance( this, Child, options || {});
+		initChildInstance( this, Child, options );
 	};
 
-
-	var proto = create( Parent.prototype );
+	proto = create( Parent.prototype );
 	proto.constructor = Child;
 
-	var staticProperties = {
-
+	staticProperties = {
 		// each component needs a guid, for managing CSS etc
 		_guid: { value: getGuid() },
 
-		//alias prototype as defaults
+		// alias prototype as defaults
 		defaults: { value: proto },
 
-		//extendable
+		// extendable
 		extend: { value: extend, writable: true, configurable: true },
 
 		// Parent - for IE8, can't use Object.getPrototypeOf
 		_parent: { value: Parent }
-	}
+	};
 
 	defineProperties( Child, staticProperties );
 
@@ -49,7 +46,6 @@ export default function extend ( options = {} ) {
 	childOptions.toPrototype( Parent.prototype, proto, options );
 
 	Child.prototype = proto;
-
 
 	return Child;
 }

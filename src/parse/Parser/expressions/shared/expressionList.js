@@ -21,7 +21,7 @@ export default function getExpressionList ( parser ) {
 	if ( parser.matchString( ',' ) ) {
 		next = getExpressionList( parser );
 		if ( next === null ) {
-			parser.error( errors.expectedExpression )
+			parser.error( errors.expectedExpression );
 		}
 
 		next.forEach( append );

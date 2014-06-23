@@ -37,7 +37,7 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 		return function () {
 			var value = viewmodel.get( keypath );
 			return typeof value === 'function' ? wrap( value, root ) : value;
-		}
+		};
 	});
 };
 

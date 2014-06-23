@@ -117,7 +117,7 @@ function processCompound( target, template, isExtend ) {
 		target.partials[ key ] = template.partials[ key ];
 	}
 
-	return template.main
+	return template.main;
 }
 
 export default templateConfig;

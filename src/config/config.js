@@ -47,12 +47,10 @@ function customConfig ( method, key, Parent, instance, options ) {
 }
 
 config.extend = function ( Parent, proto, options ) {
-
 	configure ( 'extend', Parent, proto, options );
 };
 
 config.init = function ( Parent, ractive, options ) {
-
 	configure ( 'init', Parent, ractive, options );
 
 	if ( ractive._config ) {
@@ -61,21 +59,18 @@ config.init = function ( Parent, ractive, options ) {
 };
 
 function configure ( method, Parent, instance, options ) {
-
 	deprecate( options );
 
 	customConfig( method, 'data', Parent, instance, options );
 
 	config.parseOptions.forEach( key => {
-
-		if( key in options ) {
+		if ( key in options ) {
 			instance[ key ] = options[ key ];
 		}
-
-	})
+	});
 
 	for ( let key in options ) {
-		if( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
+		if ( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
 			let value = options[ key ];
 			instance[ key ] = typeof value === 'function'
 				? wrap( Parent.prototype, key, value )
@@ -89,7 +84,6 @@ function configure ( method, Parent, instance, options ) {
 
 	customConfig( method, 'template', Parent, instance, options );
 	customConfig( method, 'css', Parent, instance, options );
-
 }
 
 config.reset = function ( ractive ) {
@@ -98,10 +92,4 @@ config.reset = function ( ractive ) {
 	});
 };
 
-
-
 export default config;
-
-
-
-

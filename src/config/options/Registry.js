@@ -1,4 +1,4 @@
-import create from 'utils/create'
+import create from 'utils/create';
 import 'legacy';
 
 function Registry ( name, useDefaults ) {
@@ -47,9 +47,9 @@ Registry.prototype = {
 
 		return recurseFind( ractive, r => r[ this.name ][ key ] ? r : void 0 );
 	}
-}
+};
 
-function recurseFind( ractive, fn ) {
+function recurseFind ( ractive, fn ) {
 
 	var find, parent;
 

@@ -1,10 +1,12 @@
-define([ 'ractive' ], function ( Ractive ) {
+define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 	'use strict';
 
 	return function () {
 
-		var fixture, colorTester, normaliseColor, colors;
+		var fixture, colorTester, normaliseColor, colors, getComputedStyle;
+
+		getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
 		module( 'CSS encapsulation' );
 

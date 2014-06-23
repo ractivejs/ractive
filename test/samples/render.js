@@ -492,7 +492,8 @@ var renderTests = [
 	{
 		name: 'style tags in svg',
 		template: '<svg><style>text { font-size: 40px }</style></svg>',
-		result: '<svg><style>text { font-size: 40px }</style></svg>'
+		result: '<svg><style>text { font-size: 40px }</style></svg>',
+		svg: true
 	},
 
 	// Elements with two-way bindings should render correctly with .toHTML() - #446

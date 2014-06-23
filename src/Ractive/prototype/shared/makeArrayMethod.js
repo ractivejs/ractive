@@ -29,5 +29,5 @@ export default function ( methodName ) {
 		runloop.end();
 
 		return promise;
-	}
+	};
 }

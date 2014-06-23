@@ -7,7 +7,7 @@ import Fragment from 'virtualdom/Fragment';
 // conceptually be similar to resetPartial, which couldn't be async
 
 export default function Ractive$resetTemplate ( template ) {
-	var transitionsEnabled
+	var transitionsEnabled;
 
 	config.template.init( null, this, { template: template } );
 
@@ -27,5 +27,4 @@ export default function Ractive$resetTemplate ( template ) {
 	this.render( this.el, this.anchor );
 
 	this.transitionsEnabled = transitionsEnabled;
-
 }
