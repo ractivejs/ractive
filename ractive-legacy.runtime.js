@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-23 - commit 9883cf1b 
+	2014-06-23 - commit 26fced1c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -236,139 +236,12 @@
 		return svg;
 	}();
 
-	/* config/namespaces.js */
-	var namespaces = {
-		html: 'http://www.w3.org/1999/xhtml',
-		mathml: 'http://www.w3.org/1998/Math/MathML',
-		svg: 'http://www.w3.org/2000/svg',
-		xlink: 'http://www.w3.org/1999/xlink',
-		xml: 'http://www.w3.org/XML/1998/namespace',
-		xmlns: 'http://www.w3.org/2000/xmlns/'
-	};
-
-	/* utils/createElement.js */
-	var createElement = function( svg, namespaces ) {
-
-		var createElement;
-		// Test for SVG support
-		if ( !svg ) {
-			createElement = function( type, ns ) {
-				if ( ns && ns !== namespaces.html ) {
-					throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
-				}
-				return document.createElement( type );
-			};
-		} else {
-			createElement = function( type, ns ) {
-				if ( !ns || ns === namespaces.html ) {
-					return document.createElement( type );
-				}
-				return document.createElementNS( ns, type );
-			};
+	/* utils/removeFromArray.js */
+	var removeFromArray = function( array, member ) {
+		var index = array.indexOf( member );
+		if ( index !== -1 ) {
+			array.splice( index, 1 );
 		}
-		return createElement;
-	}( svg, namespaces );
-
-	/* config/isClient.js */
-	var isClient = function() {
-
-		var isClient = typeof document === 'object';
-		return isClient;
-	}();
-
-	/* utils/defineProperty.js */
-	var defineProperty = function( isClient ) {
-
-		var defineProperty;
-		try {
-			Object.defineProperty( {}, 'test', {
-				value: 0
-			} );
-			if ( isClient ) {
-				Object.defineProperty( document.createElement( 'div' ), 'test', {
-					value: 0
-				} );
-			}
-			defineProperty = Object.defineProperty;
-		} catch ( err ) {
-			// Object.defineProperty doesn't exist, or we're in IE8 where you can
-			// only use it with DOM objects (what the fuck were you smoking, MSFT?)
-			defineProperty = function( obj, prop, desc ) {
-				obj[ prop ] = desc.value;
-			};
-		}
-		return defineProperty;
-	}( isClient );
-
-	/* utils/defineProperties.js */
-	var defineProperties = function( createElement, defineProperty, isClient ) {
-
-		var defineProperties;
-		try {
-			try {
-				Object.defineProperties( {}, {
-					test: {
-						value: 0
-					}
-				} );
-			} catch ( err ) {
-				// TODO how do we account for this? noMagic = true;
-				throw err;
-			}
-			if ( isClient ) {
-				Object.defineProperties( createElement( 'div' ), {
-					test: {
-						value: 0
-					}
-				} );
-			}
-			defineProperties = Object.defineProperties;
-		} catch ( err ) {
-			defineProperties = function( obj, props ) {
-				var prop;
-				for ( prop in props ) {
-					if ( props.hasOwnProperty( prop ) ) {
-						defineProperty( obj, prop, props[ prop ] );
-					}
-				}
-			};
-		}
-		return defineProperties;
-	}( createElement, defineProperty, isClient );
-
-	/* Ractive/prototype/shared/add.js */
-	var Ractive$shared_add = function( isNumeric ) {
-
-		return function add( root, keypath, d ) {
-			var value;
-			if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
-				throw new Error( 'Bad arguments' );
-			}
-			value = +root.get( keypath ) || 0;
-			if ( !isNumeric( value ) ) {
-				throw new Error( 'Cannot add to a non-numeric value' );
-			}
-			return root.set( keypath, value + d );
-		};
-	}( isNumeric );
-
-	/* Ractive/prototype/add.js */
-	var Ractive$add = function( add ) {
-
-		return function Ractive$add( keypath, d ) {
-			return add( this, keypath, d === undefined ? 1 : +d );
-		};
-	}( Ractive$shared_add );
-
-	/* utils/isEqual.js */
-	var isEqual = function( a, b ) {
-		if ( a === null && b === null ) {
-			return true;
-		}
-		if ( typeof a === 'object' || typeof b === 'object' ) {
-			return false;
-		}
-		return a === b;
 	};
 
 	/* utils/Promise.js */
@@ -555,83 +428,6 @@
 		};
 	}();
 
-	/* utils/normaliseKeypath.js */
-	var normaliseKeypath = function( normaliseRef ) {
-
-		var leadingDot = /^\.+/;
-		return function normaliseKeypath( keypath ) {
-			return normaliseRef( keypath ).replace( leadingDot, '' );
-		};
-	}( normaliseRef );
-
-	/* config/vendors.js */
-	var vendors = [
-		'o',
-		'ms',
-		'moz',
-		'webkit'
-	];
-
-	/* utils/requestAnimationFrame.js */
-	var requestAnimationFrame = function( vendors ) {
-
-		var requestAnimationFrame;
-		// If window doesn't exist, we don't need requestAnimationFrame
-		if ( typeof window === 'undefined' ) {
-			requestAnimationFrame = null;
-		} else {
-			// https://gist.github.com/paulirish/1579671
-			( function( vendors, lastTime, window ) {
-				var x, setTimeout;
-				if ( window.requestAnimationFrame ) {
-					return;
-				}
-				for ( x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
-					window.requestAnimationFrame = window[ vendors[ x ] + 'RequestAnimationFrame' ];
-				}
-				if ( !window.requestAnimationFrame ) {
-					setTimeout = window.setTimeout;
-					window.requestAnimationFrame = function( callback ) {
-						var currTime, timeToCall, id;
-						currTime = Date.now();
-						timeToCall = Math.max( 0, 16 - ( currTime - lastTime ) );
-						id = setTimeout( function() {
-							callback( currTime + timeToCall );
-						}, timeToCall );
-						lastTime = currTime + timeToCall;
-						return id;
-					};
-				}
-			}( vendors, 0, window ) );
-			requestAnimationFrame = window.requestAnimationFrame;
-		}
-		return requestAnimationFrame;
-	}( vendors );
-
-	/* utils/getTime.js */
-	var getTime = function() {
-
-		var getTime;
-		if ( typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function' ) {
-			getTime = function() {
-				return window.performance.now();
-			};
-		} else {
-			getTime = function() {
-				return Date.now();
-			};
-		}
-		return getTime;
-	}();
-
-	/* utils/removeFromArray.js */
-	var removeFromArray = function( array, member ) {
-		var index = array.indexOf( member );
-		if ( index !== -1 ) {
-			array.splice( index, 1 );
-		}
-	};
-
 	/* shared/getInnerContext.js */
 	var getInnerContext = function( fragment ) {
 		do {
@@ -640,6 +436,17 @@
 			}
 		} while ( fragment = fragment.parent );
 		return '';
+	};
+
+	/* utils/isEqual.js */
+	var isEqual = function( a, b ) {
+		if ( a === null && b === null ) {
+			return true;
+		}
+		if ( typeof a === 'object' || typeof b === 'object' ) {
+			return false;
+		}
+		return a === b;
 	};
 
 	/* shared/createComponentBinding.js */
@@ -867,8 +674,11 @@
 					transitionManager: makeTransitionManager( fulfilPromise, batch && batch.transitionManager ),
 					views: [],
 					tasks: [],
-					viewmodels: [ instance.viewmodel ]
+					viewmodels: []
 				};
+				if ( instance ) {
+					batch.viewmodels.push( instance.viewmodel );
+				}
 				return promise;
 			},
 			end: function() {
@@ -963,6 +773,386 @@
 			}
 		}
 	}( circular, removeFromArray, Promise, resolveRef, makeTransitionManager );
+
+	/* utils/createBranch.js */
+	var createBranch = function() {
+
+		var numeric = /^\s*[0-9]+\s*$/;
+		return function( key ) {
+			return numeric.test( key ) ? [] : {};
+		};
+	}();
+
+	/* viewmodel/prototype/get/magicAdaptor.js */
+	var viewmodel$get_magicAdaptor = function( runloop, createBranch, isArray ) {
+
+		var magicAdaptor, MagicWrapper;
+		try {
+			Object.defineProperty( {}, 'test', {
+				value: 0
+			} );
+			magicAdaptor = {
+				filter: function( object, keypath, ractive ) {
+					var keys, key, parentKeypath, parentWrapper, parentValue;
+					if ( !keypath ) {
+						return false;
+					}
+					keys = keypath.split( '.' );
+					key = keys.pop();
+					parentKeypath = keys.join( '.' );
+					// If the parent value is a wrapper, other than a magic wrapper,
+					// we shouldn't wrap this property
+					if ( ( parentWrapper = ractive.viewmodel.wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
+						return false;
+					}
+					parentValue = ractive.get( parentKeypath );
+					// if parentValue is an array that doesn't include this member,
+					// we should return false otherwise lengths will get messed up
+					if ( isArray( parentValue ) && /^[0-9]+$/.test( key ) ) {
+						return false;
+					}
+					return parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' );
+				},
+				wrap: function( ractive, property, keypath ) {
+					return new MagicWrapper( ractive, property, keypath );
+				}
+			};
+			MagicWrapper = function( ractive, value, keypath ) {
+				var keys, objKeypath, template, siblings;
+				this.magic = true;
+				this.ractive = ractive;
+				this.keypath = keypath;
+				this.value = value;
+				keys = keypath.split( '.' );
+				this.prop = keys.pop();
+				objKeypath = keys.join( '.' );
+				this.obj = objKeypath ? ractive.get( objKeypath ) : ractive.data;
+				template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+				// Has this property already been wrapped?
+				if ( template && template.set && ( siblings = template.set._ractiveWrappers ) ) {
+					// Yes. Register this wrapper to this property, if it hasn't been already
+					if ( siblings.indexOf( this ) === -1 ) {
+						siblings.push( this );
+					}
+					return;
+				}
+				// No, it hasn't been wrapped
+				createAccessors( this, value, template );
+			};
+			MagicWrapper.prototype = {
+				get: function() {
+					return this.value;
+				},
+				reset: function( value ) {
+					if ( this.updating ) {
+						return;
+					}
+					this.updating = true;
+					this.obj[ this.prop ] = value;
+					// trigger set() accessor
+					runloop.addViewmodel( this.ractive.viewmodel );
+					this.ractive.viewmodel.mark( this.keypath );
+					this.updating = false;
+				},
+				set: function( key, value ) {
+					if ( this.updating ) {
+						return;
+					}
+					if ( !this.obj[ this.prop ] ) {
+						this.updating = true;
+						this.obj[ this.prop ] = createBranch( key );
+						this.updating = false;
+					}
+					this.obj[ this.prop ][ key ] = value;
+				},
+				teardown: function() {
+					var template, set, value, wrappers, index;
+					// If this method was called because the cache was being cleared as a
+					// result of a set()/update() call made by this wrapper, we return false
+					// so that it doesn't get torn down
+					if ( this.updating ) {
+						return false;
+					}
+					template = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+					set = template && template.set;
+					if ( !set ) {
+						// most likely, this was an array member that was spliced out
+						return;
+					}
+					wrappers = set._ractiveWrappers;
+					index = wrappers.indexOf( this );
+					if ( index !== -1 ) {
+						wrappers.splice( index, 1 );
+					}
+					// Last one out, turn off the lights
+					if ( !wrappers.length ) {
+						value = this.obj[ this.prop ];
+						Object.defineProperty( this.obj, this.prop, this.originalDescriptor || {
+							writable: true,
+							enumerable: true,
+							configurable: true
+						} );
+						this.obj[ this.prop ] = value;
+					}
+				}
+			};
+		} catch ( err ) {
+			magicAdaptor = false;
+		}
+		return magicAdaptor;
+
+		function createAccessors( originalWrapper, value, template ) {
+			var object, property, oldGet, oldSet, get, set;
+			object = originalWrapper.obj;
+			property = originalWrapper.prop;
+			// Is this template configurable?
+			if ( template && !template.configurable ) {
+				// Special case - array length
+				if ( property === 'length' ) {
+					return;
+				}
+				throw new Error( 'Cannot use magic mode with property "' + property + '" - object is not configurable' );
+			}
+			// Time to wrap this property
+			if ( template ) {
+				oldGet = template.get;
+				oldSet = template.set;
+			}
+			get = oldGet || function() {
+				return value;
+			};
+			set = function( v ) {
+				if ( oldSet ) {
+					oldSet( v );
+				}
+				value = oldGet ? oldGet() : v;
+				set._ractiveWrappers.forEach( updateWrapper );
+			};
+
+			function updateWrapper( wrapper ) {
+				var keypath, ractive;
+				wrapper.value = value;
+				if ( wrapper.updating ) {
+					return;
+				}
+				ractive = wrapper.ractive;
+				keypath = wrapper.keypath;
+				wrapper.updating = true;
+				runloop.start( ractive );
+				ractive.viewmodel.mark( keypath );
+				runloop.end();
+				wrapper.updating = false;
+			}
+			// Create an array of wrappers, in case other keypaths/ractives depend on this property.
+			// Handily, we can store them as a property of the set function. Yay JavaScript.
+			set._ractiveWrappers = [ originalWrapper ];
+			Object.defineProperty( object, property, {
+				get: get,
+				set: set,
+				enumerable: true,
+				configurable: true
+			} );
+		}
+	}( runloop, createBranch, isArray );
+
+	/* config/magic.js */
+	var magic = function( magicAdaptor ) {
+
+		return !!magicAdaptor;
+	}( viewmodel$get_magicAdaptor );
+
+	/* config/namespaces.js */
+	var namespaces = {
+		html: 'http://www.w3.org/1999/xhtml',
+		mathml: 'http://www.w3.org/1998/Math/MathML',
+		svg: 'http://www.w3.org/2000/svg',
+		xlink: 'http://www.w3.org/1999/xlink',
+		xml: 'http://www.w3.org/XML/1998/namespace',
+		xmlns: 'http://www.w3.org/2000/xmlns/'
+	};
+
+	/* utils/createElement.js */
+	var createElement = function( svg, namespaces ) {
+
+		var createElement;
+		// Test for SVG support
+		if ( !svg ) {
+			createElement = function( type, ns ) {
+				if ( ns && ns !== namespaces.html ) {
+					throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
+				}
+				return document.createElement( type );
+			};
+		} else {
+			createElement = function( type, ns ) {
+				if ( !ns || ns === namespaces.html ) {
+					return document.createElement( type );
+				}
+				return document.createElementNS( ns, type );
+			};
+		}
+		return createElement;
+	}( svg, namespaces );
+
+	/* config/isClient.js */
+	var isClient = function() {
+
+		var isClient = typeof document === 'object';
+		return isClient;
+	}();
+
+	/* utils/defineProperty.js */
+	var defineProperty = function( isClient ) {
+
+		var defineProperty;
+		try {
+			Object.defineProperty( {}, 'test', {
+				value: 0
+			} );
+			if ( isClient ) {
+				Object.defineProperty( document.createElement( 'div' ), 'test', {
+					value: 0
+				} );
+			}
+			defineProperty = Object.defineProperty;
+		} catch ( err ) {
+			// Object.defineProperty doesn't exist, or we're in IE8 where you can
+			// only use it with DOM objects (what the fuck were you smoking, MSFT?)
+			defineProperty = function( obj, prop, desc ) {
+				obj[ prop ] = desc.value;
+			};
+		}
+		return defineProperty;
+	}( isClient );
+
+	/* utils/defineProperties.js */
+	var defineProperties = function( createElement, defineProperty, isClient ) {
+
+		var defineProperties;
+		try {
+			try {
+				Object.defineProperties( {}, {
+					test: {
+						value: 0
+					}
+				} );
+			} catch ( err ) {
+				// TODO how do we account for this? noMagic = true;
+				throw err;
+			}
+			if ( isClient ) {
+				Object.defineProperties( createElement( 'div' ), {
+					test: {
+						value: 0
+					}
+				} );
+			}
+			defineProperties = Object.defineProperties;
+		} catch ( err ) {
+			defineProperties = function( obj, props ) {
+				var prop;
+				for ( prop in props ) {
+					if ( props.hasOwnProperty( prop ) ) {
+						defineProperty( obj, prop, props[ prop ] );
+					}
+				}
+			};
+		}
+		return defineProperties;
+	}( createElement, defineProperty, isClient );
+
+	/* Ractive/prototype/shared/add.js */
+	var Ractive$shared_add = function( isNumeric ) {
+
+		return function add( root, keypath, d ) {
+			var value;
+			if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
+				throw new Error( 'Bad arguments' );
+			}
+			value = +root.get( keypath ) || 0;
+			if ( !isNumeric( value ) ) {
+				throw new Error( 'Cannot add to a non-numeric value' );
+			}
+			return root.set( keypath, value + d );
+		};
+	}( isNumeric );
+
+	/* Ractive/prototype/add.js */
+	var Ractive$add = function( add ) {
+
+		return function Ractive$add( keypath, d ) {
+			return add( this, keypath, d === undefined ? 1 : +d );
+		};
+	}( Ractive$shared_add );
+
+	/* utils/normaliseKeypath.js */
+	var normaliseKeypath = function( normaliseRef ) {
+
+		var leadingDot = /^\.+/;
+		return function normaliseKeypath( keypath ) {
+			return normaliseRef( keypath ).replace( leadingDot, '' );
+		};
+	}( normaliseRef );
+
+	/* config/vendors.js */
+	var vendors = [
+		'o',
+		'ms',
+		'moz',
+		'webkit'
+	];
+
+	/* utils/requestAnimationFrame.js */
+	var requestAnimationFrame = function( vendors ) {
+
+		var requestAnimationFrame;
+		// If window doesn't exist, we don't need requestAnimationFrame
+		if ( typeof window === 'undefined' ) {
+			requestAnimationFrame = null;
+		} else {
+			// https://gist.github.com/paulirish/1579671
+			( function( vendors, lastTime, window ) {
+				var x, setTimeout;
+				if ( window.requestAnimationFrame ) {
+					return;
+				}
+				for ( x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
+					window.requestAnimationFrame = window[ vendors[ x ] + 'RequestAnimationFrame' ];
+				}
+				if ( !window.requestAnimationFrame ) {
+					setTimeout = window.setTimeout;
+					window.requestAnimationFrame = function( callback ) {
+						var currTime, timeToCall, id;
+						currTime = Date.now();
+						timeToCall = Math.max( 0, 16 - ( currTime - lastTime ) );
+						id = setTimeout( function() {
+							callback( currTime + timeToCall );
+						}, timeToCall );
+						lastTime = currTime + timeToCall;
+						return id;
+					};
+				}
+			}( vendors, 0, window ) );
+			requestAnimationFrame = window.requestAnimationFrame;
+		}
+		return requestAnimationFrame;
+	}( vendors );
+
+	/* utils/getTime.js */
+	var getTime = function() {
+
+		var getTime;
+		if ( typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function' ) {
+			getTime = function() {
+				return window.performance.now();
+			};
+		} else {
+			getTime = function() {
+				return Date.now();
+			};
+		}
+		return getTime;
+	}();
 
 	/* shared/animations.js */
 	var animations = function( rAF, getTime, runloop ) {
@@ -1312,209 +1502,6 @@
 	/* empty/parse.js */
 	var parse = null;
 
-	/* config/options/groups/optionGroup.js */
-	var optionGroup = function createOptionGroup( keys, config ) {
-		var group = keys.map( config );
-		keys.forEach( function( key, i ) {
-			group[ key ] = group[ i ];
-		} );
-		return group;
-	};
-
-	/* config/options/groups/parseOptions.js */
-	var parseOptions = function( optionGroup ) {
-
-		var keys, parseOptions;
-		keys = [
-			'preserveWhitespace',
-			'sanitize',
-			'stripComments',
-			'delimiters',
-			'tripleDelimiters'
-		];
-		parseOptions = optionGroup( keys, function( key ) {
-			return key;
-		} );
-		return parseOptions;
-	}( optionGroup );
-
-	/* config/options/template/parser.js */
-	var parser = function( errors, isClient, parse, create, parseOptions ) {
-
-		var parser = {
-			parse: doParse,
-			fromId: fromId,
-			isHashedId: isHashedId,
-			isParsed: isParsed,
-			getParseOptions: getParseOptions,
-			createHelper: createHelper
-		};
-
-		function createHelper( parseOptions ) {
-			var helper = create( parser );
-			helper.parse = function( template, options ) {
-				return doParse( template, options || parseOptions );
-			};
-			return helper;
-		}
-
-		function doParse( template, parseOptions ) {
-			if ( !parse ) {
-				throw new Error( errors.missingParser );
-			}
-			return parse( template, parseOptions || this.options );
-		}
-
-		function fromId( id, options ) {
-			var template;
-			if ( !isClient ) {
-				if ( options && options.noThrow ) {
-					return;
-				}
-				throw new Error( 'Cannot retieve template #' + id + 'as Ractive is not running in the client.' );
-			}
-			if ( isHashedId( id ) ) {
-				id = id.substring( 1 );
-			}
-			if ( !( template = document.getElementById( id ) ) ) {
-				if ( options && options.noThrow ) {
-					return;
-				}
-				throw new Error( 'Could not find template element with id #' + id );
-			}
-			// Do we want to turn this on?
-			/*
-            	if ( template.tagName.toUpperCase() !== 'SCRIPT' )) {
-            		if ( options && options.noThrow ) { return; }
-            		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
-            	}
-            	*/
-			return template.innerHTML;
-		}
-
-		function isHashedId( id ) {
-			return id.charAt( 0 ) === '#';
-		}
-
-		function isParsed( template ) {
-			return !( typeof template === 'string' );
-		}
-
-		function getParseOptions( ractive ) {
-			// Could be Ractive or a Component
-			if ( ractive.defaults ) {
-				ractive = ractive.defaults;
-			}
-			return parseOptions.reduce( function( val, key ) {
-				val[ key ] = ractive[ key ];
-				return val;
-			}, {} );
-		}
-		return parser;
-	}( errors, isClient, parse, create, parseOptions );
-
-	/* config/options/template/template.js */
-	var template = function( parser, isObject ) {
-
-		var templateConfig = {
-			name: 'template',
-			extend: extend,
-			init: init,
-			reset: reset,
-			processCompound: processCompound
-		};
-
-		function extend( Parent, proto, options ) {
-			// only assign if exists
-			if ( options && 'template' in options ) {
-				proto.template = parseTemplate( proto, options.template, true );
-			}
-		}
-
-		function init( Parent, ractive, options ) {
-			var result, option = options ? options.template : void 0;
-			result = parseTemplate( ractive, option || Parent.prototype.template );
-			if ( typeof result === 'function' ) {
-				var fn = result;
-				result = getDynamicTemplate( ractive, fn );
-				// store fn and fn result for reset
-				ractive._config[ this.name ] = {
-					fn: fn,
-					result: result
-				};
-				result = parseTemplate( ractive, result );
-			}
-			if ( result ) {
-				ractive.template = result;
-			}
-		}
-
-		function reset( ractive ) {
-			var result = resetValue( ractive );
-			if ( result ) {
-				ractive.template = parseTemplate( ractive, result );
-				return true;
-			}
-		}
-
-		function resetValue( ractive ) {
-			var initial = ractive._config.template,
-				result;
-			// is this dynamic template?
-			if ( !initial || !initial.fn ) {
-				return;
-			}
-			result = getDynamicTemplate( ractive, initial.fn );
-			result = parseTemplate( ractive, result );
-			// compare results of fn return, which is likely
-			// be string comparison ( not yet parsed )
-			if ( result !== initial.result ) {
-				initial.result = result;
-				return result;
-			}
-		}
-
-		function getDynamicTemplate( ractive, fn ) {
-			var helper = parser.createHelper( parser.getParseOptions( ractive ) );
-			return fn.call( ractive, ractive.data, helper );
-		}
-
-		function parseTemplate( target, template, isExtend ) {
-			if ( !template || typeof template === 'function' ) {
-				return template;
-			}
-			if ( !parser.isParsed( template ) ) {
-				// Assume this is an ID of a <script type='text/ractive'> tag
-				if ( parser.isHashedId( template ) ) {
-					template = parser.fromId( template );
-				}
-				template = parser.parse( template, parser.getParseOptions( target ) );
-			}
-			template = processCompound( target, template, isExtend );
-			// If the template was an array with a single string member, that means
-			// we can use innerHTML - we just need to unpack it
-			if ( template && template.length === 1 && typeof template[ 0 ] === 'string' ) {
-				template = template[ 0 ];
-			}
-			return template;
-		}
-
-		function processCompound( target, template, isExtend ) {
-			if ( !isObject( template ) ) {
-				return template;
-			}
-			if ( isExtend ) {
-				target = target.constructor;
-			}
-			//target.partials = target.partials || {};
-			for ( var key in template.partials ) {
-				target.partials[ key ] = template.partials[ key ];
-			}
-			return template.main;
-		}
-		return templateConfig;
-	}( parser, isObject );
-
 	/* legacy.js */
 	var legacy = function() {
 
@@ -1668,6 +1655,25 @@
 					}
 				}
 				return filtered;
+			};
+		}
+		if ( !Array.prototype.every ) {
+			Array.prototype.every = function( iterator, context ) {
+				var t, len, i;
+				if ( this == null ) {
+					throw new TypeError();
+				}
+				t = Object( this );
+				len = t.length >>> 0;
+				if ( typeof iterator !== 'function' ) {
+					throw new TypeError();
+				}
+				for ( i = 0; i < len; i += 1 ) {
+					if ( i in t && !iterator.call( context, t[ i ], i, t ) ) {
+						return false;
+					}
+				}
+				return true;
 			};
 		}
 		/*
@@ -1863,6 +1869,212 @@
 		return exportedShims;
 	}();
 
+	/* config/options/groups/optionGroup.js */
+	var optionGroup = function() {
+
+		return function createOptionGroup( keys, config ) {
+			var group = keys.map( config );
+			keys.forEach( function( key, i ) {
+				group[ key ] = group[ i ];
+			} );
+			return group;
+		};
+	}( legacy );
+
+	/* config/options/groups/parseOptions.js */
+	var parseOptions = function( optionGroup ) {
+
+		var keys, parseOptions;
+		keys = [
+			'preserveWhitespace',
+			'sanitize',
+			'stripComments',
+			'delimiters',
+			'tripleDelimiters'
+		];
+		parseOptions = optionGroup( keys, function( key ) {
+			return key;
+		} );
+		return parseOptions;
+	}( optionGroup );
+
+	/* config/options/template/parser.js */
+	var parser = function( errors, isClient, parse, create, parseOptions ) {
+
+		var parser = {
+			parse: doParse,
+			fromId: fromId,
+			isHashedId: isHashedId,
+			isParsed: isParsed,
+			getParseOptions: getParseOptions,
+			createHelper: createHelper
+		};
+
+		function createHelper( parseOptions ) {
+			var helper = create( parser );
+			helper.parse = function( template, options ) {
+				return doParse( template, options || parseOptions );
+			};
+			return helper;
+		}
+
+		function doParse( template, parseOptions ) {
+			if ( !parse ) {
+				throw new Error( errors.missingParser );
+			}
+			return parse( template, parseOptions || this.options );
+		}
+
+		function fromId( id, options ) {
+			var template;
+			if ( !isClient ) {
+				if ( options && options.noThrow ) {
+					return;
+				}
+				throw new Error( 'Cannot retieve template #' + id + 'as Ractive is not running in the client.' );
+			}
+			if ( isHashedId( id ) ) {
+				id = id.substring( 1 );
+			}
+			if ( !( template = document.getElementById( id ) ) ) {
+				if ( options && options.noThrow ) {
+					return;
+				}
+				throw new Error( 'Could not find template element with id #' + id );
+			}
+			// Do we want to turn this on?
+			/*
+            	if ( template.tagName.toUpperCase() !== 'SCRIPT' )) {
+            		if ( options && options.noThrow ) { return; }
+            		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
+            	}
+            	*/
+			return template.innerHTML;
+		}
+
+		function isHashedId( id ) {
+			return id.charAt( 0 ) === '#';
+		}
+
+		function isParsed( template ) {
+			return !( typeof template === 'string' );
+		}
+
+		function getParseOptions( ractive ) {
+			// Could be Ractive or a Component
+			if ( ractive.defaults ) {
+				ractive = ractive.defaults;
+			}
+			return parseOptions.reduce( function( val, key ) {
+				val[ key ] = ractive[ key ];
+				return val;
+			}, {} );
+		}
+		return parser;
+	}( errors, isClient, parse, create, parseOptions );
+
+	/* config/options/template/template.js */
+	var template = function( parser, isObject ) {
+
+		var templateConfig = {
+			name: 'template',
+			extend: extend,
+			init: init,
+			reset: reset,
+			processCompound: processCompound
+		};
+
+		function extend( Parent, proto, options ) {
+			// only assign if exists
+			if ( options && 'template' in options ) {
+				proto.template = parseTemplate( proto, options.template, true );
+			}
+		}
+
+		function init( Parent, ractive, options ) {
+			var result, option = options ? options.template : void 0;
+			result = parseTemplate( ractive, option || Parent.prototype.template );
+			if ( typeof result === 'function' ) {
+				var fn = result;
+				result = getDynamicTemplate( ractive, fn );
+				// store fn and fn result for reset
+				ractive._config[ this.name ] = {
+					fn: fn,
+					result: result
+				};
+				result = parseTemplate( ractive, result );
+			}
+			if ( result ) {
+				ractive.template = result;
+			}
+		}
+
+		function reset( ractive ) {
+			var result = resetValue( ractive );
+			if ( result ) {
+				ractive.template = parseTemplate( ractive, result );
+				return true;
+			}
+		}
+
+		function resetValue( ractive ) {
+			var initial = ractive._config.template,
+				result;
+			// is this dynamic template?
+			if ( !initial || !initial.fn ) {
+				return;
+			}
+			result = getDynamicTemplate( ractive, initial.fn );
+			result = parseTemplate( ractive, result );
+			// compare results of fn return, which is likely
+			// be string comparison ( not yet parsed )
+			if ( result !== initial.result ) {
+				initial.result = result;
+				return result;
+			}
+		}
+
+		function getDynamicTemplate( ractive, fn ) {
+			var helper = parser.createHelper( parser.getParseOptions( ractive ) );
+			return fn.call( ractive, ractive.data, helper );
+		}
+
+		function parseTemplate( target, template, isExtend ) {
+			if ( !template || typeof template === 'function' ) {
+				return template;
+			}
+			if ( !parser.isParsed( template ) ) {
+				// Assume this is an ID of a <script type='text/ractive'> tag
+				if ( parser.isHashedId( template ) ) {
+					template = parser.fromId( template );
+				}
+				template = parser.parse( template, parser.getParseOptions( target ) );
+			}
+			template = processCompound( target, template, isExtend );
+			// If the template was an array with a single string member, that means
+			// we can use innerHTML - we just need to unpack it
+			if ( template && template.length === 1 && typeof template[ 0 ] === 'string' ) {
+				template = template[ 0 ];
+			}
+			return template;
+		}
+
+		function processCompound( target, template, isExtend ) {
+			if ( !isObject( template ) ) {
+				return template;
+			}
+			if ( isExtend ) {
+				target = target.constructor;
+			}
+			//target.partials = target.partials || {};
+			for ( var key in template.partials ) {
+				target.partials[ key ] = template.partials[ key ];
+			}
+			return template.main;
+		}
+		return templateConfig;
+	}( parser, isObject );
+
 	/* config/options/Registry.js */
 	var Registry = function( create ) {
 
@@ -1934,10 +2146,12 @@
 		return registries;
 	}( optionGroup, Registry );
 
-	/* utils/wrapPrototypeMethod.js */
-	var wrapPrototypeMethod = function() {
+	/* utils/noop.js */
+	var noop = function() {};
 
-		var noop = function() {};
+	/* utils/wrapPrototypeMethod.js */
+	var wrapPrototypeMethod = function( noop ) {
+
 		return function wrap( parent, name, method ) {
 			if ( !/_super/.test( method ) ) {
 				return method;
@@ -1977,7 +2191,7 @@
 			}
 			return method;
 		}
-	}();
+	}( noop );
 
 	/* config/deprecate.js */
 	var deprecate = function( warn, isArray ) {
@@ -3355,10 +3569,12 @@
 	/* Ractive/prototype/render.js */
 	var Ractive$render = function( runloop, css, getElement ) {
 
+		var queues = {},
+			rendering = {};
 		return function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances;
-			this._rendering = true;
+			rendering[ this._guid ] = true;
 			promise = runloop.start( this, true );
 			if ( this.rendered ) {
 				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
@@ -3385,12 +3601,12 @@
 			}
 			// If this is *isn't* a child of a component that's in the process of rendering,
 			// it should call any `init()` methods at this point
-			if ( !this._parent || !this._parent._rendering ) {
+			if ( !this._parent || !rendering[ this._parent._guid ] ) {
 				init( this );
 			} else {
-				this._parent._childInitQueue.push( this );
+				getChildInitQueue( this._parent ).push( this );
 			}
-			delete this._rendering;
+			rendering[ this._guid ] = false;
 			runloop.end();
 			this.rendered = true;
 			if ( this.complete ) {
@@ -3405,7 +3621,12 @@
 			if ( instance.init ) {
 				instance.init( instance._config.options );
 			}
-			instance._childInitQueue.splice( 0 ).forEach( init );
+			getChildInitQueue( instance ).forEach( init );
+			queues[ instance._guid ] = null;
+		}
+
+		function getChildInitQueue( instance ) {
+			return queues[ instance._guid ] || ( queues[ instance._guid ] = [] );
 		}
 	}( runloop, global_css, getElement );
 
@@ -5736,7 +5957,7 @@
 					return true;
 				}
 			} else if ( section.length ) {
-				section.fragmentsToUnrender = section.fragments.splice( 0 );
+				section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length );
 				section.fragmentsToUnrender.forEach( unbind );
 				section.length = 0;
 				return true;
@@ -5888,7 +6109,7 @@
 				// If the next fragment is already rendered, use it as an anchor...
 				nextFragment = this.fragments[ fragment.index + 1 ];
 				if ( nextFragment && nextFragment.rendered ) {
-					target.insertBefore( this.docFrag, nextFragment.firstNode() );
+					target.insertBefore( this.docFrag, nextFragment.firstNode() || null );
 				}
 			}
 		}
@@ -6563,9 +6784,6 @@
 			this.fragment.unbind();
 		}
 	};
-
-	/* utils/noop.js */
-	var noop = function() {};
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateSelectValue.js */
 	var virtualdom_items_Element_Attribute$update_updateSelectValue = function Attribute$updateSelect() {
@@ -10219,187 +10437,6 @@
 		return arrayAdaptor;
 	}( defineProperty, isArray, viewmodel$get_arrayAdaptor_patch );
 
-	/* utils/createBranch.js */
-	var createBranch = function() {
-
-		var numeric = /^\s*[0-9]+\s*$/;
-		return function( key ) {
-			return numeric.test( key ) ? [] : {};
-		};
-	}();
-
-	/* viewmodel/prototype/get/magicAdaptor.js */
-	var viewmodel$get_magicAdaptor = function( runloop, createBranch, isArray ) {
-
-		var magicAdaptor, MagicWrapper;
-		try {
-			Object.defineProperty( {}, 'test', {
-				value: 0
-			} );
-			magicAdaptor = {
-				filter: function( object, keypath, ractive ) {
-					var keys, key, parentKeypath, parentWrapper, parentValue;
-					if ( !keypath ) {
-						return false;
-					}
-					keys = keypath.split( '.' );
-					key = keys.pop();
-					parentKeypath = keys.join( '.' );
-					// If the parent value is a wrapper, other than a magic wrapper,
-					// we shouldn't wrap this property
-					if ( ( parentWrapper = ractive.viewmodel.wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
-						return false;
-					}
-					parentValue = ractive.get( parentKeypath );
-					// if parentValue is an array that doesn't include this member,
-					// we should return false otherwise lengths will get messed up
-					if ( isArray( parentValue ) && /^[0-9]+$/.test( key ) ) {
-						return false;
-					}
-					return parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' );
-				},
-				wrap: function( ractive, property, keypath ) {
-					return new MagicWrapper( ractive, property, keypath );
-				}
-			};
-			MagicWrapper = function( ractive, value, keypath ) {
-				var keys, objKeypath, template, siblings;
-				this.magic = true;
-				this.ractive = ractive;
-				this.keypath = keypath;
-				this.value = value;
-				keys = keypath.split( '.' );
-				this.prop = keys.pop();
-				objKeypath = keys.join( '.' );
-				this.obj = objKeypath ? ractive.get( objKeypath ) : ractive.data;
-				template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
-				// Has this property already been wrapped?
-				if ( template && template.set && ( siblings = template.set._ractiveWrappers ) ) {
-					// Yes. Register this wrapper to this property, if it hasn't been already
-					if ( siblings.indexOf( this ) === -1 ) {
-						siblings.push( this );
-					}
-					return;
-				}
-				// No, it hasn't been wrapped
-				createAccessors( this, value, template );
-			};
-			MagicWrapper.prototype = {
-				get: function() {
-					return this.value;
-				},
-				reset: function( value ) {
-					if ( this.updating ) {
-						return;
-					}
-					this.updating = true;
-					this.obj[ this.prop ] = value;
-					// trigger set() accessor
-					runloop.addViewmodel( this.ractive.viewmodel );
-					this.ractive.viewmodel.mark( this.keypath );
-					this.updating = false;
-				},
-				set: function( key, value ) {
-					if ( this.updating ) {
-						return;
-					}
-					if ( !this.obj[ this.prop ] ) {
-						this.updating = true;
-						this.obj[ this.prop ] = createBranch( key );
-						this.updating = false;
-					}
-					this.obj[ this.prop ][ key ] = value;
-				},
-				teardown: function() {
-					var template, set, value, wrappers, index;
-					// If this method was called because the cache was being cleared as a
-					// result of a set()/update() call made by this wrapper, we return false
-					// so that it doesn't get torn down
-					if ( this.updating ) {
-						return false;
-					}
-					template = Object.getOwnPropertyDescriptor( this.obj, this.prop );
-					set = template && template.set;
-					if ( !set ) {
-						// most likely, this was an array member that was spliced out
-						return;
-					}
-					wrappers = set._ractiveWrappers;
-					index = wrappers.indexOf( this );
-					if ( index !== -1 ) {
-						wrappers.splice( index, 1 );
-					}
-					// Last one out, turn off the lights
-					if ( !wrappers.length ) {
-						value = this.obj[ this.prop ];
-						Object.defineProperty( this.obj, this.prop, this.originalDescriptor || {
-							writable: true,
-							enumerable: true,
-							configurable: true
-						} );
-						this.obj[ this.prop ] = value;
-					}
-				}
-			};
-		} catch ( err ) {
-			magicAdaptor = false;
-		}
-		return magicAdaptor;
-
-		function createAccessors( originalWrapper, value, template ) {
-			var object, property, oldGet, oldSet, get, set;
-			object = originalWrapper.obj;
-			property = originalWrapper.prop;
-			// Is this template configurable?
-			if ( template && !template.configurable ) {
-				// Special case - array length
-				if ( property === 'length' ) {
-					return;
-				}
-				throw new Error( 'Cannot use magic mode with property "' + property + '" - object is not configurable' );
-			}
-			// Time to wrap this property
-			if ( template ) {
-				oldGet = template.get;
-				oldSet = template.set;
-			}
-			get = oldGet || function() {
-				return value;
-			};
-			set = function( v ) {
-				if ( oldSet ) {
-					oldSet( v );
-				}
-				value = oldGet ? oldGet() : v;
-				set._ractiveWrappers.forEach( updateWrapper );
-			};
-
-			function updateWrapper( wrapper ) {
-				var keypath, ractive;
-				wrapper.value = value;
-				if ( wrapper.updating ) {
-					return;
-				}
-				ractive = wrapper.ractive;
-				keypath = wrapper.keypath;
-				wrapper.updating = true;
-				runloop.start( ractive );
-				ractive.viewmodel.mark( keypath );
-				runloop.end();
-				wrapper.updating = false;
-			}
-			// Create an array of wrappers, in case other keypaths/ractives depend on this property.
-			// Handily, we can store them as a property of the set function. Yay JavaScript.
-			set._ractiveWrappers = [ originalWrapper ];
-			Object.defineProperty( object, property, {
-				get: get,
-				set: set,
-				enumerable: true,
-				configurable: true
-			} );
-		}
-	}( runloop, createBranch, isArray );
-
 	/* viewmodel/prototype/get/magicArrayAdaptor.js */
 	var viewmodel$get_magicArrayAdaptor = function( magicAdaptor, arrayAdaptor ) {
 
@@ -11464,9 +11501,11 @@
 				if ( el && !ractive.append ) {
 					// Tear down any existing instances on this element
 					if ( el.__ractive_instances__ ) {
-						el.__ractive_instances__.splice( 0 ).forEach( function( r ) {
-							return r.teardown();
-						} );
+						try {
+							el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( function( r ) {
+								return r.teardown();
+							} );
+						} catch ( err ) {}
 					}
 					el.innerHTML = '';
 				}
@@ -11494,8 +11533,6 @@
 			// live queries
 			ractive._liveQueries = [];
 			ractive._liveComponentQueries = [];
-			// components to init at the end of a mutation
-			ractive._childInitQueue = [];
 			// If this is a component, store a reference to the parent
 			if ( options._parent && options._component ) {
 				ractive._parent = options._parent;
@@ -11619,26 +11656,26 @@
 			if ( options === void 0 )
 				options = {};
 			var Parent = this,
-				Child;
+				Child, proto, staticProperties;
 			// if we're extending with another Ractive instance, inherit its
 			// prototype methods and default options as well
 			options = childOptions.toOptions( options );
 			// create Child constructor
 			Child = function( options ) {
-				initChildInstance( this, Child, options || {} );
+				initChildInstance( this, Child, options );
 			};
-			var proto = create( Parent.prototype );
+			proto = create( Parent.prototype );
 			proto.constructor = Child;
-			var staticProperties = {
+			staticProperties = {
 				// each component needs a guid, for managing CSS etc
 				_guid: {
 					value: getGuid()
 				},
-				//alias prototype as defaults
+				// alias prototype as defaults
 				defaults: {
 					value: proto
 				},
-				//extendable
+				// extendable
 				extend: {
 					value: extend,
 					writable: true,
@@ -11661,7 +11698,7 @@
 	}( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, childOptions );
 
 	/* Ractive.js */
-	var Ractive = function( defaults, easing, interpolators, svg, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
+	var Ractive = function( defaults, easing, interpolators, svg, magic, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
 
 		var Ractive, properties;
 		// Main Ractive required object
@@ -11688,6 +11725,9 @@
 			// support
 			svg: {
 				value: svg
+			},
+			magic: {
+				value: magic
 			},
 			// version
 			VERSION: {
@@ -11751,7 +11791,7 @@
 			throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
 		}
 		return Ractive;
-	}( options, easing, interpolators, svg, defineProperties, prototype, Promise, extend, Ractive_extend, parse, Ractive_initialise, circular );
+	}( options, easing, interpolators, svg, magic, defineProperties, prototype, Promise, extend, Ractive_extend, parse, Ractive_initialise, circular );
 
 
 	// export as Common JS module...
