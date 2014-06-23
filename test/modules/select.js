@@ -329,6 +329,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'select' ).value, 'a' );
 		});
 
+		test( 'Removing selected options from a list causes the select element\'s binding to update (#776)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{value}}">{{#each options}}<option>{{this}}</option>{{/each}}<option selected>999</option>{{{lol}}}</select>',
+				data: {
+					options: [1,2,3,4],
+					lol: '<option>lol</option>'
+				}
+			});
+
+			ractive.set( 'value', 1 );
+			ractive.set( 'options', [] );
+			t.equal( ractive.get( 'value' ), '999' );
+		});
+
 	};
 
 });

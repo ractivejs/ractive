@@ -4,7 +4,12 @@ export default function Element$unrender ( shouldDestroy ) {
 	var binding, bindings, outro;
 
 	// Detach as soon as we can
-	if ( shouldDestroy ) {
+	if ( this.name === 'option' ) {
+		// <option> elements detach immediately, so that
+		// their parent <select> element syncs correctly, and
+		// since option elements can't have transitions anyway
+		this.detach();
+	} else if ( shouldDestroy ) {
 		this.willDetach = true;
 		runloop.detachWhenReady( this );
 	}
