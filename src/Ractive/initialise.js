@@ -56,11 +56,7 @@ function tryRender ( ractive ) {
 			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 		}
 
-		ractive.render( el, ractive.append ).then( function () {
-			if ( ractive.complete ) {
-				ractive.complete.call( ractive );
-			}
-		});
+		ractive.render( el, ractive.append );
 
 		// reset transitionsEnabled
 		ractive.transitionsEnabled = wasEnabled;
