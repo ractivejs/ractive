@@ -179,6 +179,31 @@ if ( !Array.prototype.filter ) {
 	};
 }
 
+if ( !Array.prototype.every ) {
+	Array.prototype.every = function ( iterator, context ) {
+		var t, len, i;
+
+		if ( this == null ) {
+			throw new TypeError();
+		}
+
+		t = Object( this );
+		len = t.length >>> 0;
+
+		if ( typeof iterator !== 'function' ) {
+			throw new TypeError();
+		}
+
+		for ( i = 0; i < len; i += 1 ) {
+			if ( i in t && !iterator.call( context, t[i], i, t) ) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+}
+
 /*
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
 if (!Array.prototype.find) {

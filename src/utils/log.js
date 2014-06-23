@@ -26,12 +26,11 @@ var log = {
 	thrower: function ( err ) {
 		throw err;
 	}
-
-}
+};
 
 function getMessage ( options ) {
 	var message = errors[options.message] || options.message || '';
-	return interpolate( message, options.args )
+	return interpolate( message, options.args );
 }
 
 // simple interpolation. probably quicker (and better) out there,

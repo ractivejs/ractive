@@ -10,7 +10,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		fixture = document.getElementById( 'qunit-fixture' );
 		setup = {
 			setup: function () {
-				var target = document.createElement('div'), 
+				var target = document.createElement('div'),
 					child = document.createElement('div');
 
 				child.innerHTML = 'bar';
@@ -21,7 +21,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				equal( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
 
 				placement = { target: target, child: child };
-			}	
+			}
 		};
 
 		module( 'Element Selector', setup );
@@ -34,7 +34,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Element by id (hashless)', function ( t ) {
@@ -45,7 +45,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Element by query selector', function ( t ) {
@@ -56,7 +56,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Element by node', function ( t ) {
@@ -67,7 +67,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Element by nodelist', function ( t ) {
@@ -78,7 +78,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Element by any array-like', function ( t ) {
@@ -89,7 +89,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 
@@ -103,7 +103,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Default replaces content', function ( t ) {
@@ -114,7 +114,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<div>foo</div>'
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Append false (normal default) replaces content', function ( t ) {
@@ -126,7 +126,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				append: false
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 		});
 
 		test( 'Append true option inserts as last child node', function ( t ) {
@@ -138,7 +138,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				append: true
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>bar</div><div>foo</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div><div>foo</div></div>' );
 		});
 
 
@@ -151,12 +151,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				append: placement.child
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
 		});
-
-
 	};
-
-
-
 });

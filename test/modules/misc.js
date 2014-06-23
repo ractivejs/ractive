@@ -892,19 +892,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
-		test( 'Triples work inside SVG elements', function ( t ) {
-			var text, ractive = new Ractive({
-				el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
-				template: '{{{code}}}',
-				data: {
-					code: '<text>works</text>'
-				}
-			});
+		if ( Ractive.svg ) {
+			test( 'Triples work inside SVG elements', function ( t ) {
+				var text, ractive = new Ractive({
+					el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
+					template: '{{{code}}}',
+					data: {
+						code: '<text>works</text>'
+					}
+				});
 
-			text = ractive.find( 'text' );
-			t.ok( !!text );
-			t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
-		});
+				text = ractive.find( 'text' );
+				t.ok( !!text );
+				t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
+			});
+		}
 
 		test( 'Custom delimiters apply to partials (#601)', function ( t ) {
 			var ractive = new Ractive({
@@ -941,15 +943,17 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
-			var ractive = new Ractive({
-				el: fixture,
-				template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
-			});
+		if ( Ractive.svg ) {
+			test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
+				});
 
-			t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
-			t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
-		});
+				t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+				t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+			});
+		}
 
 		// This test fails since #816, because evaluators are treated as computed properties.
 		// Kept here in case we come up with a smart way to have the best of both worlds

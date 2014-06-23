@@ -1,6 +1,7 @@
 import types from 'config/types';
 import mustacheType from 'parse/converters/mustache/type';
 import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
+import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	arrayMemberPattern = /^[0-9][1-9]*$/,
@@ -17,7 +18,6 @@ export default function ( parser, delimiterType ) {
 	mustache = {};
 
 	delimiters = parser[ delimiterType.delimiters ];
-
 
 	if ( delimiterType.isStatic ) {
 		mustache.s = true;

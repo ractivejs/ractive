@@ -11,13 +11,13 @@ var parser = {
 	isParsed: isParsed,
 	getParseOptions: getParseOptions,
 	createHelper: createHelper
-}
+};
 
 function createHelper ( parseOptions ) {
 	var helper = create( parser );
-	helper.parse = function( template, options ){
+	helper.parse = function ( template, options ){
 		return doParse( template, options || parseOptions );
-	}
+	};
 	return helper;
 }
 

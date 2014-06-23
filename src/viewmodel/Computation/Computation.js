@@ -46,7 +46,7 @@ Computation.prototype = {
 					key: this.key,
 					err: err.message || err
 				}
-			})
+			});
 
 			errored = true;
 		}

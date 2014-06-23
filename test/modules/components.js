@@ -413,53 +413,87 @@ define([ 'ractive' ], function ( Ractive ) {
 			delete Ractive.components.grandwidget
 		});
 
-		asyncTest( 'Data passed into component updates inside component in magic mode', function ( t ) {
-			var ractive, Widget;
+		if ( Ractive.magic ) {
+			asyncTest( 'Data passed into component updates inside component in magic mode', function ( t ) {
+				var ractive, Widget;
 
-			expect( 1 );
+				expect( 1 );
 
-			Widget = Ractive.extend({
-				template: '{{world}}',
-				magic: true,
-				complete: function(){
-					this.data.world = 'venus'
-					t.htmlEqual( fixture.innerHTML, 'venusvenus' );
-					start();
-				}
+				Widget = Ractive.extend({
+					template: '{{world}}',
+					magic: true,
+					complete: function(){
+						this.data.world = 'venus'
+						t.htmlEqual( fixture.innerHTML, 'venusvenus' );
+						start();
+					}
+				});
+
+				var data = { world: 'mars' }
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{world}}<widget world="{{world}}"/>',
+					magic: true,
+					components: { widget: Widget },
+					data: data
+				});
 			});
 
-			var data = { world: 'mars' }
+			test( 'Data passed into component updates from outside component in magic mode', function ( t ) {
+				var ractive, Widget;
 
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{world}}<widget world="{{world}}"/>',
-				magic: true,
-				components: { widget: Widget },
-				data: data
-			});
-		});
+				Widget = Ractive.extend({
+					template: '{{world}}',
+					magic: true
+				});
 
-		test( 'Data passed into component updates from outside component in magic mode', function ( t ) {
-			var ractive, Widget;
+				var data = { world: 'mars' }
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{world}}<widget world="{{world}}"/>',
+					magic: true,
+					components: { widget: Widget },
+					data: data
+				});
 
-			Widget = Ractive.extend({
-				template: '{{world}}',
-				magic: true
-			});
+				data.world = 'venus'
 
-			var data = { world: 'mars' }
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{world}}<widget world="{{world}}"/>',
-				magic: true,
-				components: { widget: Widget },
-				data: data
+				t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 			});
 
-			data.world = 'venus'
+			test( 'Indirect changes propagate across components in magic mode (#480)', function ( t ) {
+				var Blocker, ractive, blocker;
 
-			t.htmlEqual( fixture.innerHTML, 'venusvenus' );
-		});
+				Blocker = Ractive.extend({
+					template: '{{foo.bar.baz}}'
+				});
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo.bar.baz}}"><blocker foo="{{foo}}"/>',
+					data: { foo: { bar: { baz: 50 } } },
+					magic: true,
+					components: { blocker: Blocker }
+				});
+
+				ractive.set( 'foo.bar.baz', 42 );
+				t.equal( ractive.get( 'foo.bar.baz' ), 42 );
+
+				ractive.data.foo.bar.baz = 1337;
+				t.equal( ractive.data.foo.bar.baz, 1337 );
+				t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
+
+				blocker = ractive.findComponent( 'blocker' );
+
+				blocker.set( 'foo.bar.baz', 42 );
+				t.equal( blocker.get( 'foo.bar.baz' ), 42 );
+
+				blocker.data.foo.bar.baz = 1337;
+				t.equal( blocker.data.foo.bar.baz, 1337 );
+				t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
+			});
+		}
 
 		test( 'Component data passed but non-existent on parent data', function ( t ) {
 			var ractive, Widget;
@@ -674,38 +708,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( findAll.length, 1);
 		});
 
-		test( 'Indirect changes propagate across components in magic mode (#480)', function ( t ) {
-			var Blocker, ractive, blocker;
-
-			Blocker = Ractive.extend({
-				template: '{{foo.bar.baz}}'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo.bar.baz}}"><blocker foo="{{foo}}"/>',
-				data: { foo: { bar: { baz: 50 } } },
-				magic: true,
-				components: { blocker: Blocker }
-			});
-
-			ractive.set( 'foo.bar.baz', 42 );
-			t.equal( ractive.get( 'foo.bar.baz' ), 42 );
-
-			ractive.data.foo.bar.baz = 1337;
-			t.equal( ractive.data.foo.bar.baz, 1337 );
-			t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
-
-			blocker = ractive.findComponent( 'blocker' );
-
-			blocker.set( 'foo.bar.baz', 42 );
-			t.equal( blocker.get( 'foo.bar.baz' ), 42 );
-
-			blocker.data.foo.bar.baz = 1337;
-			t.equal( blocker.data.foo.bar.baz, 1337 );
-			t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
-		});
-
 		test( 'Correct value is given to node._ractive.keypath when a component is torn down and re-rendered (#470)', function ( t ) {
 			var ractive;
 
@@ -890,7 +892,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			t.equal( fixture.innerHTML, '<div class="map"></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div class="map"></div>' );
 		});
 
 		test( 'Component in template has data function called on initialize', function ( t ) {

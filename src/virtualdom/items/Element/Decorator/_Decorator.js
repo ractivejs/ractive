@@ -63,7 +63,7 @@ Decorator = function ( element, template ) {
 				plugin: 'decorator',
 				name: name
 			}
-		})
+		});
 	}
 };
 

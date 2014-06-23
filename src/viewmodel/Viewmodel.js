@@ -69,7 +69,7 @@ Viewmodel.extend = function ( Parent, instance ) {
 		instance.adapt) || [];
 
 	instance.adapt = adaptConfig.lookup( instance, instance.adaptors );
-}
+};
 
 Viewmodel.prototype = {
 	adapt: adapt,

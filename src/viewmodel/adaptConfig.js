@@ -33,23 +33,21 @@ var configure = {
 		if ( !parent || !parent.length) { return adapt; }
 
 		// no adapt? return 'copy' of parent
-		if ( !adapt || !adapt.length ) { return parent.slice() }
+		if ( !adapt || !adapt.length ) { return parent.slice(); }
 
 		// add parent adaptors to options
 		parent.forEach( a => {
-
 			// don't put in duplicates
 			if ( adapt.indexOf( a ) === -1 ) {
-				adapt.push( a )
+				adapt.push( a );
 			}
 		});
 
 		return adapt;
 	}
-}
+};
 
-function arrayIfString( adapt ) {
-
+function arrayIfString ( adapt ) {
 	if ( typeof adapt === 'string' ) {
 		adapt = [ adapt ];
 	}

@@ -118,7 +118,7 @@ export default function Element$render () {
 	// trigger intro transition
 	if ( intro = this.intro ) {
 		runloop.registerTransition( intro );
-		runloop.scheduleTask( () => intro.start( true ) )
+		runloop.scheduleTask( () => intro.start( true ) );
 	}
 
 	if ( this.name === 'option' ) {

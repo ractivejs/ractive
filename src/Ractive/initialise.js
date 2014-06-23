@@ -38,7 +38,6 @@ function tryRender ( ractive ) {
 	var el;
 
 	if ( el = getElement( ractive.el ) ) {
-
 		let wasEnabled = ractive.transitionsEnabled;
 
 		// Temporarily disable transitions, if `noIntro` flag is set
@@ -50,7 +49,14 @@ function tryRender ( ractive ) {
 		if ( el && !ractive.append ) {
 			// Tear down any existing instances on this element
 			if ( el.__ractive_instances__ ) {
-				el.__ractive_instances__.splice( 0 ).forEach( r => r.teardown() );
+				try {
+					el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( r => r.teardown() );
+				} catch ( err ) {
+					// this can happen with IE8, because it is unbelievably shit. Somehow, in
+					// certain very specific situations, trying to access node.parentNode (which
+					// we need to do in order to detach elements) causes an 'Invalid argument'
+					// error to be thrown. I don't even.
+				}
 			}
 
 			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
@@ -64,7 +70,6 @@ function tryRender ( ractive ) {
 }
 
 function initialiseProperties ( ractive, options ) {
-
 	// Generate a unique identifier, for places where you'd use a weak map if it
 	// existed
 	ractive._guid = getNextNumber();
@@ -88,9 +93,6 @@ function initialiseProperties ( ractive, options ) {
 	// live queries
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
-
-	// components to init at the end of a mutation
-	ractive._childInitQueue = [];
 
 	// If this is a component, store a reference to the parent
 	if ( options._parent && options._component ) {
