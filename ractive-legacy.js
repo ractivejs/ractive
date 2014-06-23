@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-23 - commit c3dab54c 
+	2014-06-23 - commit 9883cf1b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5840,6 +5840,7 @@
 	var Ractive$render = function( runloop, css, getElement ) {
 
 		return function Ractive$render( target, anchor ) {
+			var this$0 = this;
 			var promise, instances;
 			this._rendering = true;
 			promise = runloop.start( this, true );
@@ -5876,6 +5877,11 @@
 			delete this._rendering;
 			runloop.end();
 			this.rendered = true;
+			if ( this.complete ) {
+				promise.then( function() {
+					return this$0.complete();
+				} );
+			}
 			return promise;
 		};
 
@@ -10792,12 +10798,7 @@
 	/* virtualdom/items/Component/prototype/render.js */
 	var virtualdom_items_Component$render = function Component$render() {
 		var instance = this.instance;
-		instance.render( this.parentFragment.getNode() ).then( function() {
-			var complete;
-			if ( complete = instance.complete ) {
-				complete.call( instance );
-			}
-		} );
+		instance.render( this.parentFragment.getNode() );
 		this.rendered = true;
 		return instance.detach();
 	};
@@ -12910,11 +12911,7 @@
 					}
 					el.innerHTML = '';
 				}
-				ractive.render( el, ractive.append ).then( function() {
-					if ( ractive.complete ) {
-						ractive.complete.call( ractive );
-					}
-				} );
+				ractive.render( el, ractive.append );
 				// reset transitionsEnabled
 				ractive.transitionsEnabled = wasEnabled;
 			}
