@@ -19,8 +19,12 @@ runloop = {
 			transitionManager: makeTransitionManager( fulfilPromise, batch && batch.transitionManager ),
 			views: [],
 			tasks: [],
-			viewmodels: [ instance.viewmodel ]
+			viewmodels: []
 		};
+
+		if ( instance ) {
+			batch.viewmodels.push( instance.viewmodel );
+		}
 
 		return promise;
 	},
