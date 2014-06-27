@@ -3,6 +3,8 @@ import runloop from 'global/runloop';
 export default function Attribute$bubble () {
 	var value = this.fragment.getValue();
 
+	// TODO this can register the attribute multiple times (see render test
+	// 'Attribute with nested mustaches')
 	if ( value !== this.value ) {
 		this.value = value;
 

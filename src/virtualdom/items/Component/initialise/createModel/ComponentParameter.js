@@ -16,9 +16,9 @@ ComponentParameter = function ( component, key, value ) {
 	this.key = key;
 
 	this.fragment = new Fragment({
-		template:   value,
-		root:         component.root,
-		owner:        this
+		template: value,
+		root:     component.root,
+		owner:    this
 	});
 
 	this.value = this.fragment.getValue( getValueOptions );
@@ -40,6 +40,10 @@ ComponentParameter.prototype = {
 		this.value = value;
 
 		this.dirty = false;
+	},
+
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
 	unbind: function () {
