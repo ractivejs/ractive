@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-27 - commit d18adbd6 
+	2014-06-27 - commit 6cb49895 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7987,6 +7987,8 @@
 
 		return function Attribute$bubble() {
 			var value = this.fragment.getValue();
+			// TODO this can register the attribute multiple times (see render test
+			// 'Attribute with nested mustaches')
 			if ( value !== this.value ) {
 				this.value = value;
 				if ( this.name === 'value' && this.node ) {
@@ -10794,6 +10796,9 @@
 				this.value = value;
 				this.dirty = false;
 			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			},
 			unbind: function() {
 				this.fragment.unbind();
 			}
@@ -10986,7 +10991,7 @@
 	}( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries, config );
 
 	/* virtualdom/items/Component/prototype/rebind.js */
-	var virtualdom_items_Component$rebind = function( getNewKeypath ) {
+	var virtualdom_items_Component$rebind = function( runloop, getNewKeypath ) {
 
 		return function Component$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
 			var childInstance = this.instance,
@@ -10997,21 +11002,22 @@
 				if ( binding.root !== parentInstance ) {
 					return;
 				}
-				if ( binding.keypath === indexRef ) {
-					childInstance.set( binding.otherKeypath, newIndex );
-				}
 				if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
 					binding.rebind( updated );
 				}
 			} );
+			this.complexParameters.forEach( function( parameter ) {
+				parameter.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			} );
 			if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
-				childInstance.set( indexRefAlias, newIndex );
+				runloop.addViewmodel( childInstance.viewmodel );
+				childInstance.viewmodel.set( indexRefAlias, newIndex );
 			}
 			if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
 				query._makeDirty();
 			}
 		};
-	}( getNewKeypath );
+	}( runloop, getNewKeypath );
 
 	/* virtualdom/items/Component/prototype/render.js */
 	var virtualdom_items_Component$render = function Component$render() {
@@ -12159,12 +12165,13 @@
 				} );
 			}
 			dependantGroups.forEach( function( group ) {
+				if ( !this$0.deps[ group ] ) {
+					return;
+				}
 				upstreamChanges.forEach( function( keypath ) {
-					return notifyDependants( this$0, keypath, group, true );
+					return notifyUpstreamDependants( this$0, keypath, group );
 				} );
-				allChanges.forEach( function( keypath ) {
-					return notifyDependants( this$0, keypath, group );
-				} );
+				notifyAllDependants( this$0, allChanges, group );
 			} );
 			// Return a hash of keypaths to updated values
 			allChanges.forEach( function( keypath ) {
@@ -12177,41 +12184,54 @@
 			computation.update();
 		}
 
-		function notifyDependants( viewmodel, keypath, group, onlyDirect ) {
-			var depsByKeypath = viewmodel.deps[ group ],
-				value, unwrapped;
-			if ( !depsByKeypath ) {
-				return;
-			}
-			// update dependants of this keypath
-			value = viewmodel.get( keypath );
-			unwrapped = viewmodel.get( keypath, unwrap );
-			updateAll( depsByKeypath[ keypath ], value, unwrapped );
-			// If we're only notifying direct dependants, not dependants
-			// of downstream keypaths, then YOU SHALL NOT PASS
-			if ( onlyDirect ) {
-				return;
-			}
-			// otherwise, cascade
-			cascade( viewmodel.depsMap[ group ][ keypath ], viewmodel, group );
-		}
-
-		function updateAll( dependants, value, unwrapped ) {
-			if ( dependants ) {
+		function notifyUpstreamDependants( viewmodel, keypath, groupName ) {
+			var dependants, value;
+			if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
+				value = viewmodel.get( keypath, unwrap );
 				dependants.forEach( function( d ) {
-					return d.setValue( value, unwrapped );
+					return d.setValue( value );
 				} );
 			}
 		}
 
-		function cascade( childDeps, viewmodel, group ) {
-			var i;
-			if ( childDeps ) {
-				i = childDeps.length;
-				while ( i-- ) {
-					notifyDependants( viewmodel, childDeps[ i ], group );
+		function notifyAllDependants( viewmodel, keypaths, groupName ) {
+			var queue = [];
+			addKeypaths( keypaths );
+			queue.forEach( dispatch );
+
+			function addKeypaths( keypaths ) {
+				keypaths.forEach( addKeypath );
+				keypaths.forEach( cascade );
+			}
+
+			function addKeypath( keypath ) {
+				var deps = findDependants( viewmodel, keypath, groupName );
+				if ( deps ) {
+					queue.push( {
+						keypath: keypath,
+						deps: deps
+					} );
 				}
 			}
+
+			function cascade( keypath ) {
+				var childDeps;
+				if ( childDeps = viewmodel.depsMap[ groupName ][ keypath ] ) {
+					addKeypaths( childDeps );
+				}
+			}
+
+			function dispatch( set ) {
+				var value = viewmodel.get( set.keypath, unwrap );
+				set.deps.forEach( function( d ) {
+					return d.setValue( value );
+				} );
+			}
+		}
+
+		function findDependants( viewmodel, keypath, groupName ) {
+			var group = viewmodel.deps[ groupName ];
+			return group ? group[ keypath ] : null;
 		}
 
 		function addNewItems( arr, items ) {
