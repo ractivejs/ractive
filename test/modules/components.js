@@ -1213,6 +1213,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			expect( 1 );
 			ractive.toggle( 'foo' );
 		});
+
+		test( 'Regression test for #871', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<p>outside component: {{i}}-{{uppercase(.)}}</p><widget text="{{uppercase(.)}}" />{{/items}}',
+				data: {
+					items: [ 'a', 'b', 'c' ],
+					uppercase: function ( letter ) {
+						return letter.toUpperCase();
+					}
+				},
+				components: {
+					widget: Ractive.extend({
+						template: '<p>inside component: {{i}}-{{text}}</p>'
+					})
+				}
+			});
+
+			ractive.splice( 'items', 1, 1 );
+
+			t.htmlEqual( fixture.innerHTML, '<p>outside component: 0-A</p><p>inside component: 0-A</p><p>outside component: 1-C</p><p>inside component: 1-C</p>' );
+		});
 	};
 
 });
