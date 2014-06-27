@@ -1129,6 +1129,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.render( fixture );
 		});
 
+		test( 'Doctype declarations are handled, and the tag name is uppercased (#877)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{{title}}</title></head><body>{{hello}} World!</body></html>',
+				data: { title: 'hi', hello: 'Hello' }
+			});
+
+			t.equal( ractive.toHTML(), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>hi</title></head><body>Hello World!</body></html>' );
+		})
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

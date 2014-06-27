@@ -4,7 +4,7 @@ import isArray from 'utils/isArray';
 export default function () {
 	var str, escape;
 
-	str = '<' + ( this.template.y ? '!doctype' : this.template.e );
+	str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
 
 	str += this.attributes.map( stringifyAttribute ).join( '' );
 
