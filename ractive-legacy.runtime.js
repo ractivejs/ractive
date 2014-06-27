@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-06-23 - commit 26fced1c 
+	2014-06-27 - commit 72d43b30 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6741,39 +6741,32 @@
 	/* virtualdom/items/Element/Attribute/prototype/toString.js */
 	var virtualdom_items_Element_Attribute$toString = function() {
 
-		// via https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
-		var booleanAttributes = /allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|spellcheck|translate|trueSpeed|typeMustMatch|visible/;
 		return function Attribute$toString() {
-			var escaped, interpolator;
-			if ( this.value === null ) {
-				return this.name;
-			}
+			var name, value, interpolator;
+			name = this.name;
+			value = this.value;
 			// Special case - select values (should not be stringified)
-			if ( this.name === 'value' && this.element.name === 'select' ) {
+			if ( name === 'value' && this.element.name === 'select' ) {
 				return;
 			}
 			// Special case - radio names
-			if ( this.name === 'name' && this.element.name === 'input' && ( interpolator = this.interpolator ) ) {
+			if ( name === 'name' && this.element.name === 'input' && ( interpolator = this.interpolator ) ) {
 				return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 			}
-			// Special case - boolean attributes
-			if ( booleanAttributes.test( this.name ) ) {
-				if ( this.fragment ) {
-					return this.fragment.getValue() ? this.name : null;
-				} else {
-					return this.value ? this.name : null;
-				}
+			// Numbers
+			if ( typeof value === 'number' ) {
+				return name + '="' + value + '"';
 			}
-			if ( this.fragment ) {
-				escaped = escape( this.fragment.toString() );
-			} else {
-				escaped = escape( this.value );
+			// Strings
+			if ( typeof value === 'string' ) {
+				return name + '="' + escape( value ) + '"';
 			}
-			return this.name + ( escaped ? '="' + escaped + '"' : '' );
+			// Everything else
+			return value ? name : '';
 		};
 
-		function escape( string ) {
-			return string.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
+		function escape( value ) {
+			return value.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 		}
 	}();
 
@@ -6955,13 +6948,20 @@
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateEverythingElse.js */
 	var virtualdom_items_Element_Attribute$update_updateEverythingElse = function Attribute$updateEverythingElse() {
-		var node, value;
+		var node, name, value;
 		node = this.node;
+		name = this.name;
 		value = this.value;
 		if ( this.namespace ) {
-			node.setAttributeNS( this.namespace, this.name, value );
+			node.setAttributeNS( this.namespace, name, value );
+		} else if ( typeof value === 'string' || typeof value === 'number' ) {
+			node.setAttribute( name, value );
 		} else {
-			node.setAttribute( this.name, value );
+			if ( value ) {
+				node.setAttribute( name, '' );
+			} else {
+				node.removeAttribute( name );
+			}
 		}
 	};
 
