@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-27 - commit 72d43b30 
+	2014-06-27 - commit d18adbd6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8558,7 +8558,7 @@
 
 		return function() {
 			var str, escape;
-			str = '<' + ( this.template.y ? '!doctype' : this.template.e );
+			str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
 			str += this.attributes.map( stringifyAttribute ).join( '' );
 			// Special case - selected options
 			if ( this.name === 'option' && optionIsSelected( this ) ) {
