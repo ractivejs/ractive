@@ -45,10 +45,9 @@
 
 			if ( ( node.childNodes.length === 1 ) && ( node.childNodes[0].nodeType === 3 ) ) {
 				stub.text = node.childNodes[0].data;
-			} else {
+			} else if ( i = node.childNodes.length ) {
 				stub.children = [];
 
-				i = node.childNodes.length;
 				while ( i-- ) {
 					stub.children[i] = stubNode( node.childNodes[i] );
 				}
@@ -61,8 +60,8 @@
 			i = node.attributes.length;
 			while ( i-- ) {
 				attr = node.attributes[i];
-				if ( attr.value !== '' && attr.value !== svgns ) { // IE...
-					attributes[ attr.name ] = attr.value;
+				if ( attr.value !== svgns ) { // IE...
+					attributes[ attr.name ] = attr.value === '' ? true : attr.value;
 					hasAttributes = true;
 				}
 			}

@@ -715,6 +715,16 @@ var renderTests = [
 		result: 'one',
 		new_data: { foo: { bar: { prop: 'one' }, baz: { prop: 'two' } }, letter: 'z' },
 		new_result: 'two'
+	},
+	{
+		name: 'Empty non-boolean attributes (#878)',
+		template: '<div data-attr></div>',
+		result: '<div data-attr></div>'
+	},
+	{
+		name: 'Falsy boolean attributes',
+		template: '<video autoplay="{{foo}}"></video>',
+		result: '<video></video>'
 	}
 ];
 
