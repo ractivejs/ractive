@@ -44,7 +44,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 	// Indices that are being removed should be marked as dirty
 	newIndices.forEach( ( newIndex, oldIndex ) => {
 		if ( newIndex === -1 ) {
-			this.mark( keypath + '.' + oldIndex, true );
+			this.mark( keypath + '.' + oldIndex );
 		}
 	});
 

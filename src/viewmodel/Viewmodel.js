@@ -56,6 +56,7 @@ var Viewmodel = function ( ractive ) {
 	this.unresolvedImplicitDependencies = [];
 
 	this.changes = [];
+	this.implicitChanges = {};
 };
 
 Viewmodel.extend = function ( Parent, instance ) {

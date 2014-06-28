@@ -9,7 +9,7 @@ export default function Viewmodel$splice ( keypath, spliceSummary ) {
 	}
 
 	if ( spliceSummary.balance ) {
-		viewmodel.mark( keypath + '.length' );
+		viewmodel.mark( keypath + '.length', true );
 	}
 
 	// Trigger splice operations
