@@ -44,8 +44,13 @@ function getPartialFromRegistry ( ractive, name ) {
 
 	if ( instance ) {
 
-		let partial = instance.partials[ name ];
+		let partial = instance.partials[ name ], fn;
 
+		if ( typeof partial === 'function' ) {
+			fn = partial;
+			fn.isOwner = instance.partials.hasOwnProperty(name);
+			partial = partial( ractive.data );
+		}
 		// If this was added manually to the registry,
 		// but hasn't been parsed, parse it now
 		if ( !parser.isParsed( partial ) ) {
@@ -58,7 +63,10 @@ function getPartialFromRegistry ( ractive, name ) {
 			// be registered and main template extracted
 			instance.partials[ name ] = partial = config.template.processCompound( instance, partial );
 		}
+		if ( fn ) {
+			partial._fn = fn;
 
+		}
 		return partial;
 	}
 }
