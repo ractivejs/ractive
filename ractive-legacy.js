@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-27 - commit 6cb49895 
+	2014-06-28 - commit a9d02c0c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5647,7 +5647,7 @@
 				}
 				// special case - array mutation should not trigger `array.*`
 				// pattern observer with `array.length`
-				if ( keypath.substr( -7 ) === '.length' ) {
+				if ( keypath.substr( keypath.length - 7, keypath.length ) === '.length' ) {
 					value = this.root.viewmodel.get( keypath.substr( 0, keypath.length - 7 ) );
 					if ( isArray( value ) && value._ractive && value._ractive.setting ) {
 						return;
@@ -7706,12 +7706,15 @@
 		}
 		return function( html, node, docFrag ) {
 			var container, nodes = [],
-				wrapper;
+				wrapper, selectedOption, child, i;
 			if ( html ) {
 				if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
 					container = element( 'DIV' );
 					container.innerHTML = wrapper[ 0 ] + html + wrapper[ 1 ];
 					container = container.querySelector( '.x' );
+					if ( container.tagName === 'SELECT' ) {
+						selectedOption = container.options[ container.selectedIndex ];
+					}
 				} else if ( node.namespaceURI === namespaces.svg ) {
 					container = element( 'DIV' );
 					container.innerHTML = '<svg class="x">' + html + '</svg>';
@@ -7720,9 +7723,21 @@
 					container = element( node.tagName );
 					container.innerHTML = html;
 				}
-				while ( container.firstChild ) {
-					nodes.push( container.firstChild );
-					docFrag.appendChild( container.firstChild );
+				while ( child = container.firstChild ) {
+					nodes.push( child );
+					docFrag.appendChild( child );
+				}
+				// This is really annoying. Extracting <option> nodes from the
+				// temporary container <select> causes the remaining ones to
+				// become selected. So now we have to deselect them. IE8, you
+				// amaze me. You really do
+				if ( ieBug && node.tagName === 'SELECT' ) {
+					i = nodes.length;
+					while ( i-- ) {
+						if ( nodes[ i ] !== selectedOption ) {
+							nodes[ i ].selected = false;
+						}
+					}
 				}
 			}
 			return nodes;
@@ -7733,23 +7748,32 @@
 		}
 	}( namespaces, createElement );
 
-	/* virtualdom/items/Triple/helpers/updateSelect.js */
-	var updateSelect = function() {
+	/* utils/toArray.js */
+	var toArray = function toArray( arrayLike ) {
+		var array = [],
+			i = arrayLike.length;
+		while ( i-- ) {
+			array[ i ] = arrayLike[ i ];
+		}
+		return array;
+	};
 
-		var selector = 'option[selected]';
+	/* virtualdom/items/Triple/helpers/updateSelect.js */
+	var updateSelect = function( toArray ) {
+
 		return function updateSelect( parentElement ) {
-			var options, option, value;
+			var selectedOptions, option, value;
 			if ( !parentElement || parentElement.name !== 'select' || !parentElement.binding ) {
 				return;
 			}
+			selectedOptions = toArray( parentElement.node.options ).filter( isSelected );
 			// If one of them had a `selected` attribute, we need to sync
 			// the model to the view
 			if ( parentElement.getAttribute( 'multiple' ) ) {
-				options = parentElement.findAll( selector );
-				value = options.map( function( o ) {
+				value = selectedOptions.map( function( o ) {
 					return o.value;
 				} );
-			} else if ( option = parentElement.find( selector ) ) {
+			} else if ( option = selectedOptions[ 0 ] ) {
 				value = option.value;
 			}
 			if ( value !== undefined ) {
@@ -7757,7 +7781,11 @@
 			}
 			parentElement.bubble();
 		};
-	}();
+
+		function isSelected( option ) {
+			return option.selected;
+		}
+	}( toArray );
 
 	/* virtualdom/items/Triple/prototype/render.js */
 	var virtualdom_items_Triple$render = function( insertHtml, updateSelect ) {
@@ -9959,16 +9987,6 @@
 		};
 		return Transition;
 	}( virtualdom_items_Element_Transition$init, virtualdom_items_Element_Transition$getStyle, virtualdom_items_Element_Transition$setStyle, virtualdom_items_Element_Transition$animateStyle__animateStyle, virtualdom_items_Element_Transition$processParams, virtualdom_items_Element_Transition$start, circular );
-
-	/* utils/toArray.js */
-	var toArray = function toArray( arrayLike ) {
-		var array = [],
-			i = arrayLike.length;
-		while ( i-- ) {
-			array[ i ] = arrayLike[ i ];
-		}
-		return array;
-	};
 
 	/* virtualdom/items/Element/special/select/sync.js */
 	var sync = function( toArray ) {
