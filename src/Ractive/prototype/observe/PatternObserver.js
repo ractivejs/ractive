@@ -63,7 +63,7 @@ PatternObserver.prototype = {
 
 		// special case - array mutation should not trigger `array.*`
 		// pattern observer with `array.length`
-		if ( keypath.substr( -7 ) === '.length' ) {
+		if ( keypath.substr( keypath.length - 7, keypath.length ) === '.length' ) {
 			value = this.root.viewmodel.get( keypath.substr( 0, keypath.length - 7 ) );
 
 			if ( isArray( value ) && value._ractive && value._ractive.setting ) {

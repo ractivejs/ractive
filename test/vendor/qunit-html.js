@@ -4,20 +4,12 @@
 
 	var testDiv = document.createElement( 'div' ), svgns = 'http://www.w3.org/2000/svg';
 
-	QUnit.assert.htmlEqual = function ( actual, expected, message ) {
+	QUnit.assert.htmlEqual = window.htmlEqual = function ( actual, expected, message ) {
 		if ( !message ) {
 			message = 'HTML should be equal';
 		}
 
 		this.deepEqual( normalize( actual ), normalize( expected ), message );
-	};
-
-	QUnit.assert.notHtmlEqual = function ( actual, expected, message ) {
-		if ( !message ) {
-			message = 'HTML should be equal';
-		}
-
-		this.notDeepEqual( normalize( actual ), normalize( expected ), message );
 	};
 
 	function normalize ( html ) {
@@ -34,9 +26,15 @@
 	}
 
 	function stubNode ( node ) {
-		var stub, i, attributes, hasAttributes, attr;
+		var stub, i, len, children, childStub, attributes, hasAttributes, attr;
 
 		if ( node.nodeType === 3 ) {
+			// exclude whitespace. This is for the benefit of IE, which
+			// mangles innerHTML horrifically
+			if ( /^\s+$/.test( node.data ) ) {
+				return null;
+			}
+
 			return node.data;
 		}
 
@@ -45,11 +43,17 @@
 
 			if ( ( node.childNodes.length === 1 ) && ( node.childNodes[0].nodeType === 3 ) ) {
 				stub.text = node.childNodes[0].data;
-			} else if ( i = node.childNodes.length ) {
-				stub.children = [];
+			} else if ( len = node.childNodes.length ) {
+				children = [];
 
-				while ( i-- ) {
-					stub.children[i] = stubNode( node.childNodes[i] );
+				for ( i = 0; i < len; i += 1 ) {
+					if ( childStub = stubNode( node.childNodes[i] ) ) {
+						children.push( childStub );
+					}
+				}
+
+				if ( children.length ) {
+					stub.children = children;
 				}
 			}
 
@@ -60,8 +64,13 @@
 			i = node.attributes.length;
 			while ( i-- ) {
 				attr = node.attributes[i];
-				if ( attr.value !== svgns ) { // IE...
-					attributes[ attr.name ] = attr.value === '' ? true : attr.value;
+				if ( attr.value && ( attr.name !== 'value' && attr.value !== svgns ) ) { // last bit for IE...
+					if ( typeof node[ attr.name ] === 'boolean' ) {
+						attributes[ attr.name ] = true;
+					} else {
+						attributes[ attr.name ] = attr.value;
+					}
+
 					hasAttributes = true;
 				}
 			}

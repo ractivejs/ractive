@@ -18,13 +18,17 @@ try {
 }
 
 export default function ( html, node, docFrag ) {
-	var container, nodes = [], wrapper;
+	var container, nodes = [], wrapper, selectedOption, child, i;
 
 	if ( html ) {
 		if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
 			container = element( 'DIV' );
 			container.innerHTML = wrapper[0] + html + wrapper[1];
 			container = container.querySelector( '.x' );
+
+			if ( container.tagName === 'SELECT' ) {
+				selectedOption = container.options[ container.selectedIndex ];
+			}
 		}
 
 		else if ( node.namespaceURI === namespaces.svg ) {
@@ -38,9 +42,22 @@ export default function ( html, node, docFrag ) {
 			container.innerHTML = html;
 		}
 
-		while ( container.firstChild ) {
-			nodes.push( container.firstChild );
-			docFrag.appendChild( container.firstChild );
+		while ( child = container.firstChild ) {
+			nodes.push( child );
+			docFrag.appendChild( child );
+		}
+
+		// This is really annoying. Extracting <option> nodes from the
+		// temporary container <select> causes the remaining ones to
+		// become selected. So now we have to deselect them. IE8, you
+		// amaze me. You really do
+		if ( ieBug && node.tagName === 'SELECT' ) {
+			i = nodes.length;
+			while ( i-- ) {
+				if ( nodes[i] !== selectedOption ) {
+					nodes[i].selected = false;
+				}
+			}
 		}
 	}
 

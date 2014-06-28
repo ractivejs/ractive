@@ -169,7 +169,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			target.appendChild( anchor );
 			fixture.appendChild( target );
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
 
 			ractive = new Ractive({
 				el: target,
@@ -178,9 +178,9 @@ define([ 'ractive' ], function ( Ractive ) {
 				data: { what: 'fizz' }
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>' );
 			ractive.reset( { what: 'foo' } );
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
 
 
 		});

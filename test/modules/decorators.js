@@ -185,7 +185,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				decorators: {
 					show: function ( node, arg ) {
 						node.innerHTML = typeof arg === 'string'
-							? '>>' + arg + '<<'
+							? '|' + arg + '|'
 							: JSON.stringify(arg)
 
 						return { teardown: Function.prototype }
@@ -193,7 +193,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			t.htmlEqual( fixture.innerHTML, '<pre>&gt;&gt;blue is the moon&lt;&lt;</pre><pre>&gt;&gt; blue is the moon   &lt;&lt;</pre>' );
+			t.htmlEqual( fixture.innerHTML, '<pre>|blue is the moon|</pre><pre>| blue is the moon   |</pre>' );
 		});
 
 	};
