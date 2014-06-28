@@ -78,6 +78,8 @@ export default function Viewmodel$applyChanges () {
 		hash[ keypath ] = this.get( keypath );
 	});
 
+	this.implicitChanges = {};
+
 	return hash;
 }
 
