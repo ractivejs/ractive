@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-28 - commit 2245b29b 
+	2014-06-28 - commit c22df96d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4583,6 +4583,22 @@
 					registry[ key ] = option[ key ];
 				}
 				target[ name ] = registry;
+			},
+			reset: function( ractive ) {
+				var registry = ractive[ this.name ];
+				var changed = false;
+				Object.keys( registry ).forEach( function( key ) {
+					var item = registry[ key ];
+					if ( item._fn ) {
+						if ( item._fn.isOwner ) {
+							registry[ key ] = item._fn;
+						} else {
+							delete registry[ key ];
+						}
+						changed = true;
+					}
+				} );
+				return changed;
 			},
 			find: function( ractive, key ) {
 				var this$0 = this;
@@ -10625,7 +10641,13 @@
 			// get the ractive instance on which the partial is found
 			var instance = config.registries.partials.findInstance( ractive, name );
 			if ( instance ) {
-				var partial = instance.partials[ name ];
+				var partial = instance.partials[ name ],
+					fn;
+				if ( typeof partial === 'function' ) {
+					fn = partial;
+					fn.isOwner = instance.partials.hasOwnProperty( name );
+					partial = partial( ractive.data );
+				}
 				// If this was added manually to the registry,
 				// but hasn't been parsed, parse it now
 				if ( !parser.isParsed( partial ) ) {
@@ -10635,6 +10657,9 @@
 					// may be a template with partials, which need to
 					// be registered and main template extracted
 					instance.partials[ name ] = partial = config.template.processCompound( instance, partial );
+				}
+				if ( fn ) {
+					partial._fn = fn;
 				}
 				return partial;
 			}
