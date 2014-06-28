@@ -29,7 +29,7 @@ export default function ( parser, delimiterType ) {
 	} else {
 		// We need to test for expressions before we test for mustache type, because
 		// an expression that begins '!' looks a lot like a comment
-		if ( expression = parser.readExpression() ) {
+		if ( parser.remaining()[0] === '!' && ( expression = parser.readExpression() ) ) {
 			mustache.t = types.INTERPOLATOR;
 
 			// Was it actually an expression, or a comment block in disguise?

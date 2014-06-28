@@ -53,7 +53,7 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 };
 
 // create all infix sequence matchers, and return getLogicalOr
-((function() {
+(function() {
 	var i, len, matcher, infixOperators, fallthrough;
 
 	// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
@@ -64,13 +64,13 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 
 	// A typeof operator is higher precedence than multiplication
 	fallthrough = getTypeof;
-	for ( i=0, len=infixOperators.length; i<len; i+=1 ) {
+	for ( i = 0, len = infixOperators.length; i < len; i += 1 ) {
 		matcher = makeInfixSequenceMatcher( infixOperators[i], fallthrough );
 		fallthrough = matcher;
 	}
 
 	// Logical OR is the fallthrough for the conditional matcher
 	getLogicalOr = fallthrough;
-})());
+}());
 
 export default getLogicalOr;

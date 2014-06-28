@@ -725,6 +725,12 @@ var renderTests = [
 		name: 'Falsy boolean attributes',
 		template: '<video autoplay="{{foo}}"></video>',
 		result: '<video></video>'
+	},
+	{
+		name: 'Root-level reference',
+		template: '{{#a}}{{#b}}{{#c}}{{~/foo}}{{/c}}{{/b}}{{/a}}',
+		data: { foo: 'top', a: { b: { c: { foo: 'c' }, foo: 'b' }, foo: 'a' } },
+		result: 'top'
 	}
 ];
 
