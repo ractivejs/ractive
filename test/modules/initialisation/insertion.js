@@ -18,7 +18,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				target.appendChild( child );
 				fixture.appendChild( target );
 
-				equal( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
+				QUnit.assert.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
 
 				placement = { target: target, child: child };
 			}

@@ -10,7 +10,7 @@
 	<link rel='stylesheet' href='../_sandbox.css'>
 
 	<!--[if lte IE 8]>
-		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<script src="../html5.js"></script>
 	<![endif]-->
 </head>
 
@@ -39,7 +39,7 @@
 	<script>
 		var ractive, fixture;
 
-		fixture = document.querySelector( 'main' ); // so we can copy and paste into test suite more easily
+		fixture = document.getElementsByTagName( 'main' )[0]; // so we can copy and paste into test suite more easily
 
 		// Configure RequireJS to load Ractive from the src/ folder
 		require.config({ baseUrl: '../../src/' });

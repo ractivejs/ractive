@@ -120,8 +120,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-
-
 		asyncTest( 'Array method proxies return a promise that resolves on transition complete', function ( t ) {
 			var items, ractive;
 
@@ -145,7 +143,6 @@ define([ 'ractive' ], function ( Ractive ) {
 				QUnit.start();
 			});
 		});
-
 	};
 
 });

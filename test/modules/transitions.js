@@ -1,4 +1,4 @@
-define([ 'ractive' ], function ( Ractive ) {
+define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 
 	'use strict';
 
@@ -58,27 +58,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		asyncTest( 'Missing transition functions do not cause errors, but do console.warn', function ( t ) {
+		if ( console && console.warn ) {
+			asyncTest( 'Missing transition functions do not cause errors, but do console.warn', function ( t ) {
+				var ractive, warn = console.warn;
 
-			var ractive, warn = console.warn;
+				expect( 1 );
 
-			expect( 1 );
-
-			console.warn = function( msg ) {
-				t.ok( msg );
-			}
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<div intro="foo"></div>',
-				complete: function () {
-					console.warn = warn;
-					QUnit.start();
-
+				console.warn = function( msg ) {
+					t.ok( msg );
 				}
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<div intro="foo"></div>',
+					complete: function () {
+						console.warn = warn;
+						QUnit.start();
+
+					}
+				});
 			});
-		})
-
+		}
 	};
-
 });
