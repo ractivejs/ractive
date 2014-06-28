@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-28 - commit a9d02c0c 
+	2014-06-28 - commit 2245b29b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2751,7 +2751,7 @@
 	}( getMatchingKeypaths );
 
 	/* Ractive/prototype/observe/PatternObserver.js */
-	var Ractive$observe_PatternObserver = function( runloop, isEqual, isArray, getPattern, log ) {
+	var Ractive$observe_PatternObserver = function( runloop, isEqual, getPattern, log ) {
 
 		var PatternObserver, wildcard = /\*/,
 			slice = Array.prototype.slice;
@@ -2787,7 +2787,7 @@
 				}
 			},
 			update: function( keypath ) {
-				var values, value;
+				var values;
 				if ( wildcard.test( keypath ) ) {
 					values = getPattern( this.root, keypath );
 					for ( keypath in values ) {
@@ -2799,11 +2799,8 @@
 				}
 				// special case - array mutation should not trigger `array.*`
 				// pattern observer with `array.length`
-				if ( keypath.substr( keypath.length - 7, keypath.length ) === '.length' ) {
-					value = this.root.viewmodel.get( keypath.substr( 0, keypath.length - 7 ) );
-					if ( isArray( value ) && value._ractive && value._ractive.setting ) {
-						return;
-					}
+				if ( this.root.viewmodel.implicitChanges[ keypath ] ) {
+					return;
 				}
 				if ( this.defer && this.ready ) {
 					runloop.addObserver( this.getProxy( keypath ) );
@@ -2854,7 +2851,7 @@
 			}
 		};
 		return PatternObserver;
-	}( runloop, isEqual, isArray, Ractive$observe_getPattern, log );
+	}( runloop, isEqual, Ractive$observe_getPattern, log );
 
 	/* Ractive/prototype/observe/getObserverFacade.js */
 	var Ractive$observe_getObserverFacade = function( normaliseKeypath, Observer, PatternObserver ) {
@@ -10390,6 +10387,7 @@
 			allChanges.forEach( function( keypath ) {
 				hash[ keypath ] = this$0.get( keypath );
 			} );
+			this.implicitChanges = {};
 			return hash;
 		};
 
@@ -10597,7 +10595,12 @@
 	}( viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
 
 	/* viewmodel/prototype/mark.js */
-	var viewmodel$mark = function Viewmodel$mark( keypath ) {
+	var viewmodel$mark = function Viewmodel$mark( keypath, isImplicitChange ) {
+		// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
+		// should not be picked up by pattern observers
+		if ( isImplicitChange ) {
+			this.implicitChanges[ keypath ] = true;
+		}
 		if ( this.changes.indexOf( keypath ) === -1 ) {
 			this.changes.push( keypath );
 			this.clearCache( keypath );
@@ -10669,7 +10672,7 @@
 			// Indices that are being removed should be marked as dirty
 			newIndices.forEach( function( newIndex, oldIndex ) {
 				if ( newIndex === -1 ) {
-					this$0.mark( keypath + '.' + oldIndex, true );
+					this$0.mark( keypath + '.' + oldIndex );
 				}
 			} );
 			// Update the model
@@ -10834,7 +10837,7 @@
 				viewmodel.mark( keypath + '.' + i );
 			}
 			if ( spliceSummary.balance ) {
-				viewmodel.mark( keypath + '.length' );
+				viewmodel.mark( keypath + '.length', true );
 			}
 			// Trigger splice operations
 			if ( dependants = viewmodel.deps[ 'default' ][ keypath ] ) {
@@ -11102,6 +11105,7 @@
 			this.captured = null;
 			this.unresolvedImplicitDependencies = [];
 			this.changes = [];
+			this.implicitChanges = {};
 		};
 		Viewmodel.extend = function( Parent, instance ) {
 			if ( instance.magic && noMagic ) {
