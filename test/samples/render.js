@@ -725,6 +725,14 @@ var renderTests = [
 		name: 'Falsy boolean attributes',
 		template: '<video autoplay="{{foo}}"></video>',
 		result: '<video></video>'
+	},
+	{
+		name: 'else in non-Handlebars blocks',
+		template: '{{#foo}}yes{{else}}no{{/foo}}',
+		data: { foo: true },
+		result: 'yes',
+		new_data: { foo: false },
+		new_result: 'no'
 	}
 ];
 
