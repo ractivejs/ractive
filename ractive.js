@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-29 - commit 8d5f55e3 
+	2014-06-29 - commit a727e65d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5470,25 +5470,26 @@
 				for ( eventName in this._subs ) {
 					delete this._subs[ eventName ];
 				}
-				return;
-			}
-			// Handle multiple space-separated event names
-			eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
-			eventNames.forEach( function( eventName ) {
-				var subscribers, index;
-				// If we have subscribers for this event...
-				if ( subscribers = this$0._subs[ eventName ] ) {
-					// ...if a callback was specified, only remove that
-					if ( callback ) {
-						index = subscribers.indexOf( callback );
-						if ( index !== -1 ) {
-							subscribers.splice( index, 1 );
+			} else {
+				// Handle multiple space-separated event names
+				eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
+				eventNames.forEach( function( eventName ) {
+					var subscribers, index;
+					// If we have subscribers for this event...
+					if ( subscribers = this$0._subs[ eventName ] ) {
+						// ...if a callback was specified, only remove that
+						if ( callback ) {
+							index = subscribers.indexOf( callback );
+							if ( index !== -1 ) {
+								subscribers.splice( index, 1 );
+							}
+						} else {
+							this$0._subs[ eventName ] = [];
 						}
-					} else {
-						this$0._subs[ eventName ] = [];
 					}
-				}
-			} );
+				} );
+			}
+			return this;
 		};
 	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
 
