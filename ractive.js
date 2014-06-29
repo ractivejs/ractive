@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-06-28 - commit c22df96d 
+	2014-06-29 - commit 8d5f55e3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2685,17 +2685,15 @@
 					// {{else}} tags require special treatment
 					if ( child.t === types.INTERPOLATOR && child.r === 'else' ) {
 						switch ( mustache.n ) {
-							case 'if':
-							case 'each':
-								currentChildren = elseChildren = [];
-								continue;
-								// don't add this item to children
 							case 'unless':
 								parser.error( '{{else}} not allowed in {{#unless}}' );
 								break;
 							case 'with':
 								parser.error( '{{else}} not allowed in {{#with}}' );
 								break;
+							default:
+								currentChildren = elseChildren = [];
+								continue;
 						}
 					}
 					currentChildren.push( child );
