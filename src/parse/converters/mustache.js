@@ -99,11 +99,6 @@ function getMustacheOfType ( parser, delimiterType ) {
 			// {{else}} tags require special treatment
 			if ( child.t === types.INTERPOLATOR && child.r === 'else' ) {
 				switch ( mustache.n ) {
-					case 'if':
-					case 'each':
-						currentChildren = elseChildren = [];
-						continue; // don't add this item to children
-
 					case 'unless':
 						parser.error( '{{else}} not allowed in {{#unless}}' );
 						break;
@@ -111,6 +106,9 @@ function getMustacheOfType ( parser, delimiterType ) {
 					case 'with':
 						parser.error( '{{else}} not allowed in {{#with}}' );
 						break;
+
+					default:
+						currentChildren = elseChildren = [];
 				}
 			}
 
