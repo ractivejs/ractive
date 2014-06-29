@@ -109,6 +109,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 					default:
 						currentChildren = elseChildren = [];
+						continue;
 				}
 			}
 

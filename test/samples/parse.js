@@ -571,30 +571,6 @@ var parseTests = [
 			'{{else}} not allowed in {{#with}} at line 1 character 31:\n{{#with foo}}with foo {{else}}no foo?{{/with}}\n                              ^----'
 	},
 	{
-		name: 'Else is just a regular interpolator in {{#}}',
-		template: '{{#foo}}with foo {{else}}no foo?{{/foo}}',
-		parsed:
-			[ { t: 4,
-			    r: 'foo',
-			    f:
-			     [ 'with foo ',
-			       { t: 2, r: 'else' },
-			       'no foo?' ] } ]
-
-	},
-	{
-		name: 'Else is just a regular interpolator in {{^}}',
-		template: '{{^foo}}not foo {{else}}no foo?{{/foo}}',
-		parsed:
-			[ { t: 4,
-				r: 'foo',
-				n: 51,
-				f:
-				 [ 'not foo ',
-				   { t: 2, r: 'else' },
-				   'no foo?' ] } ]
-	},
-	{
 		name: 'Mixed Handlebars-style and regular syntax',
 		template: '{{#foo}}normal{{/foo}}{{#if foo}}handlebars{{/if}}',
 		parsed: [{t:4,r:'foo',f:['normal']},{t:4,r:'foo',n:50,f:['handlebars']}]
