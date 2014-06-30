@@ -733,6 +733,21 @@ var renderTests = [
 		result: 'yes',
 		new_data: { foo: false },
 		new_result: 'no'
+	},
+	{
+		name: 'Double-rendering bug (#748) is prevented',
+		template: '{{#foo}}{{#f(this)}}{{this}}{{/f}}{{/foo}}',
+		data: {
+			foo: [
+				[ 2, 1, 4, 3 ]
+			],
+			f: function (x) {
+				return x.sort(function (a, b) { // ... or this (sort) and it will work
+					return a < b;
+				});
+			}
+		},
+		result: '4321'
 	}
 ];
 
