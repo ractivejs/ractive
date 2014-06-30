@@ -55,6 +55,13 @@ Evaluator.prototype = {
 
 		args = this.argumentGetters.map( call );
 
+		if ( this.updating ) {
+			// Prevent infinite loops caused by e.g. in-place array mutations
+			return;
+		}
+
+		this.updating = true;
+
 		this.viewmodel.capture();
 
 		try {
@@ -76,6 +83,8 @@ Evaluator.prototype = {
 
 		newImplicitDependencies = this.viewmodel.release();
 		diff( this, this.dependencies, newImplicitDependencies );
+
+		this.updating = false;
 
 		return value;
 	},
