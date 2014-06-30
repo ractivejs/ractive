@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-29 - commit a727e65d 
+	2014-06-30 - commit cf83b3da 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4712,6 +4712,11 @@
 			getValue: function() {
 				var args, value, newImplicitDependencies;
 				args = this.argumentGetters.map( call );
+				if ( this.updating ) {
+					// Prevent infinite loops caused by e.g. in-place array mutations
+					return;
+				}
+				this.updating = true;
 				this.viewmodel.capture();
 				try {
 					value = this.fn.apply( null, args );
@@ -4730,6 +4735,7 @@
 				}
 				newImplicitDependencies = this.viewmodel.release();
 				diff( this, this.dependencies, newImplicitDependencies );
+				this.updating = false;
 				return value;
 			},
 			update: function() {
@@ -5430,6 +5436,14 @@
 		return function Section$setValue( value ) {
 			var this$0 = this;
 			var wrapper, fragmentOptions;
+			if ( this.updating ) {
+				// If a child of this section causes a re-evaluation - for example, an
+				// expression refers to a function that mutates the array that this
+				// section depends on - we'll end up with a double rendering bug (see
+				// https://github.com/ractivejs/ractive/issues/748). This prevents it.
+				return;
+			}
+			this.updating = true;
 			// with sections, we need to get the fake value if we have a wrapped object
 			if ( wrapper = this.root.viewmodel.wrapped[ this.keypath ] ) {
 				value = wrapper.get();
@@ -5459,6 +5473,7 @@
 				}
 			}
 			this.value = value;
+			this.updating = false;
 		};
 
 		function reevaluateSection( section, value ) {
@@ -9944,9 +9959,8 @@
 
 	/* viewmodel/prototype/get/arrayAdaptor/processWrapper.js */
 	var viewmodel$get_arrayAdaptor_processWrapper = function( wrapper, array, methodName, spliceSummary ) {
-		var root, keypath;
-		root = wrapper.root;
-		keypath = wrapper.keypath;
+		var root = wrapper.root,
+			keypath = wrapper.keypath;
 		// If this is a sort or reverse, we just do root.set()...
 		// TODO use merge logic?
 		if ( methodName === 'sort' || methodName === 'reverse' ) {
