@@ -743,7 +743,7 @@ var renderTests = [
 			],
 			f: function (x) {
 				return x.sort(function (a, b) { // ... or this (sort) and it will work
-					return a < b;
+					return b - a;
 				});
 			}
 		},
