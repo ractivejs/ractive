@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-30 - commit cf83b3da 
+	2014-06-30 - commit ff022a59 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3556,17 +3556,25 @@
 	var text = function( getLowestIndex, decodeCharacterReferences ) {
 
 		return function( parser ) {
-			var index, remaining, barrier;
+			var index, remaining, disallowed, barrier;
 			remaining = parser.remaining();
 			barrier = parser.inside ? '</' + parser.inside : '<';
 			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
 				index = remaining.indexOf( barrier );
 			} else {
-				index = getLowestIndex( remaining, [
+				disallowed = [
 					barrier,
 					parser.delimiters[ 0 ],
 					parser.tripleDelimiters[ 0 ]
-				] );
+				];
+				// http://developers.whatwg.org/syntax.html#syntax-attributes
+				if ( parser.inAttribute === true ) {
+					// we're inside an unquoted attribute value
+					disallowed.push( '"', '\'', '=', '>', '`' );
+				} else if ( parser.inAttribute ) {
+					disallowed.push( parser.inAttribute );
+				}
+				index = getLowestIndex( remaining, disallowed );
 			}
 			if ( !index ) {
 				return null;
@@ -3626,7 +3634,7 @@
 		}
 
 		function getAttributeValue( parser ) {
-			var start, value;
+			var start, valueStart, startDepth, value;
 			start = parser.pos;
 			parser.allowWhitespace();
 			if ( !parser.matchString( '=' ) ) {
@@ -3634,7 +3642,13 @@
 				return null;
 			}
 			parser.allowWhitespace();
+			valueStart = parser.pos;
+			startDepth = parser.sectionDepth;
 			value = getQuotedAttributeValue( parser, '\'' ) || getQuotedAttributeValue( parser, '"' ) || getUnquotedAttributeValue( parser );
+			if ( parser.sectionDepth !== startDepth ) {
+				parser.pos = valueStart;
+				parser.error( 'An attribute value must contain as many opening section tags as closing section tags' );
+			}
 			if ( value === null ) {
 				parser.pos = start;
 				return null;
@@ -3661,6 +3675,7 @@
 
 		function getUnquotedAttributeValue( parser ) {
 			var tokens, token;
+			parser.inAttribute = true;
 			tokens = [];
 			token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
 			while ( token !== null ) {
@@ -3670,6 +3685,7 @@
 			if ( !tokens.length ) {
 				return null;
 			}
+			parser.inAttribute = false;
 			return tokens;
 		}
 
@@ -3679,6 +3695,7 @@
 			if ( !parser.matchString( quoteMark ) ) {
 				return null;
 			}
+			parser.inAttribute = quoteMark;
 			tokens = [];
 			token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
 			while ( token !== null ) {
@@ -3689,6 +3706,7 @@
 				parser.pos = start;
 				return null;
 			}
+			parser.inAttribute = false;
 			return tokens;
 		}
 
