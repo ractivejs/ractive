@@ -58,6 +58,54 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			});
 		});
 
+		asyncTest( 'noIntro option prevents intro transition', function ( t ) {
+			var ractive, transitioned;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div intro="test"></div>',
+				noIntro: true,
+				beforeComplete: function(){
+					transitioned = true;
+				},
+				complete: function(){
+					t.ok( !transitioned, 'transition happened');
+					start()
+				}
+			});
+		});
+
+		asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function ( t ) {
+
+			var ractive, Component, transitioned;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: '{{#foo}}<div intro-outro="test"></div>{{/foo}}',
+				beforeInit: function ( options ) {
+					this._super( options );
+					this.transitionsEnabled = false;
+				},
+				beforeComplete: function(){
+					transitioned = true;
+				}
+			});
+
+			ractive = new Component({
+				el: fixture,
+				data: { foo: true },
+				complete: function () {
+					this.set( 'foo', false ).then( function(){
+						t.ok( !transitioned, 'outro transition happened');
+						start()
+					});
+				}
+			});
+		});
+
 		if ( console && console.warn ) {
 			asyncTest( 'Missing transition functions do not cause errors, but do console.warn', function ( t ) {
 				var ractive, warn = console.warn;
