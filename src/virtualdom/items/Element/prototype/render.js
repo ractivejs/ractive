@@ -7,6 +7,7 @@ import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
 import renderImage from 'virtualdom/items/Element/special/img/render';
+import Transition from 'virtualdom/items/Element/Transition/_Transition';
 
 var updateCss, updateScript;
 
@@ -116,9 +117,10 @@ export default function Element$render () {
 	}
 
 	// trigger intro transition
-	if ( intro = this.intro ) {
-		runloop.registerTransition( intro );
-		runloop.scheduleTask( () => intro.start( true ) );
+	if ( root.transitionsEnabled && this.intro ) {
+		let transition = new Transition ( this, this.intro )
+		runloop.registerTransition( transition );
+		runloop.scheduleTask( () => transition.start( true ) );
 	}
 
 	if ( this.name === 'option' ) {

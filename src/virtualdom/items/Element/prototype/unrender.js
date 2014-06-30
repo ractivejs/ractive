@@ -1,7 +1,8 @@
 import runloop from 'global/runloop';
+import Transition from 'virtualdom/items/Element/Transition/_Transition';
 
 export default function Element$unrender ( shouldDestroy ) {
-	var binding, bindings, outro;
+	var binding, bindings;
 
 	// Detach as soon as we can
 	if ( this.name === 'option' ) {
@@ -37,10 +38,11 @@ export default function Element$unrender ( shouldDestroy ) {
 		this.decorator.teardown();
 	}
 
-	// Outro, if necessary
-	if ( outro = this.outro ) {
-		runloop.registerTransition( outro );
-		runloop.scheduleTask( () => outro.start( false ) );
+	// trigger outro transition if necessary
+	if ( this.root.transitionsEnabled && this.outro ) {
+		let transition = new Transition ( this, this.outro )
+		runloop.registerTransition( transition );
+		runloop.scheduleTask( () => transition.start( false ) );
 	}
 
 	// Remove this node from any live queries
