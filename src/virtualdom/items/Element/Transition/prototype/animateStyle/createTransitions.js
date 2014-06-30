@@ -47,16 +47,17 @@ if ( !isClient ) {
 		TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
 	}
 
-	createTransitions = function ( t, to, options, changedProperties, transitionEndHandler, resolve ) {
+	createTransitions = function ( t, to, options, changedProperties, resolve ) {
 
 		// Wait a beat (otherwise the target styles will be applied immediately)
 		// TODO use a fastdom-style mechanism?
 		setTimeout( function () {
 
-			var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete;
+			var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete, transitionEndHandler;
 
 			checkComplete = function () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
+					t.root.fire( t.name + ':end', t.node, t.isIntro );
 					resolve();
 				}
 			};
@@ -81,8 +82,6 @@ if ( !isClient ) {
 					// still transitioning...
 					return;
 				}
-
-				t.root.fire(t.name + ':end');
 
 				t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
