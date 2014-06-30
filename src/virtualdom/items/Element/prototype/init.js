@@ -85,6 +85,6 @@ export default function Element$init ( options ) {
 	}
 
 	// create transitions
-	this.intro = template.t0 ||template.t1;
-	this.outro = template.t2;
+	this.intro = template.t0 || template.t1;
+	this.outro = template.t0 || template.t2;
 }
