@@ -127,7 +127,6 @@ function getQuotedAttributeValue ( parser, quoteMark ) {
 
 	if ( !parser.matchString( quoteMark ) ) {
 		parser.pos = start;
-		console.groupEnd();
 		return null;
 	}
 

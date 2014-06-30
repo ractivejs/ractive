@@ -18,7 +18,7 @@ export default function ( parser ) {
 			// we're inside an unquoted attribute value
 			disallowed.push( '"', "'", '=', '>', '`' );
 		} else if ( parser.inAttribute ) {
-			disallowed.push( parser.inAttribute )
+			disallowed.push( parser.inAttribute );
 		}
 
 		index = getLowestIndex( remaining, disallowed );
