@@ -38,7 +38,7 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, node, intro;
+	var root = this.root, node;
 
 	node = this.node = createElement( this.name, this.namespace );
 
@@ -118,7 +118,7 @@ export default function Element$render () {
 
 	// trigger intro transition
 	if ( root.transitionsEnabled && this.intro ) {
-		let transition = new Transition ( this, this.intro )
+		let transition = new Transition ( this, this.intro );
 		runloop.registerTransition( transition );
 		runloop.scheduleTask( () => transition.start( true ) );
 	}
