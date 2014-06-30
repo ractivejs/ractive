@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-06-30 - commit ff022a59 
+	2014-06-30 - commit 71c5ac27 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7644,6 +7644,238 @@
 		return Decorator;
 	}( log, circular, config );
 
+	/* virtualdom/items/Element/special/select/sync.js */
+	var sync = function( toArray ) {
+
+		return function syncSelect( selectElement ) {
+			var selectNode, selectValue, isMultiple, options, optionWasSelected;
+			selectNode = selectElement.node;
+			if ( !selectNode ) {
+				return;
+			}
+			options = toArray( selectNode.options );
+			selectValue = selectElement.getAttribute( 'value' );
+			isMultiple = selectElement.getAttribute( 'multiple' );
+			// If the <select> has a specified value, that should override
+			// these options
+			if ( selectValue !== undefined ) {
+				options.forEach( function( o ) {
+					var optionValue, shouldSelect;
+					optionValue = o._ractive ? o._ractive.value : o.value;
+					shouldSelect = isMultiple ? valueContains( selectValue, optionValue ) : selectValue == optionValue;
+					if ( shouldSelect ) {
+						optionWasSelected = true;
+					}
+					o.selected = shouldSelect;
+				} );
+				if ( !optionWasSelected ) {
+					if ( options[ 0 ] ) {
+						options[ 0 ].selected = true;
+					}
+					if ( selectElement.binding ) {
+						selectElement.binding.forceUpdate();
+					}
+				}
+			} else if ( selectElement.binding ) {
+				selectElement.binding.forceUpdate();
+			}
+		};
+
+		function valueContains( selectValue, optionValue ) {
+			var i = selectValue.length;
+			while ( i-- ) {
+				if ( selectValue[ i ] == optionValue ) {
+					return true;
+				}
+			}
+		}
+	}( toArray );
+
+	/* virtualdom/items/Element/special/select/bubble.js */
+	var bubble = function( runloop, syncSelect ) {
+
+		return function bubbleSelect() {
+			var this$0 = this;
+			if ( !this.dirty ) {
+				this.dirty = true;
+				runloop.scheduleTask( function() {
+					syncSelect( this$0 );
+					this$0.dirty = false;
+				} );
+			}
+			this.parentFragment.bubble();
+		};
+	}( runloop, sync );
+
+	/* virtualdom/items/Element/special/option/findParentSelect.js */
+	var findParentSelect = function findParentSelect( element ) {
+		do {
+			if ( element.name === 'select' ) {
+				return element;
+			}
+		} while ( element = element.parent );
+	};
+
+	/* virtualdom/items/Element/special/option/init.js */
+	var init = function( findParentSelect ) {
+
+		return function initOption( option, template ) {
+			option.select = findParentSelect( option.parent );
+			option.select.options.push( option );
+			// If the value attribute is missing, use the element's content
+			if ( !template.a ) {
+				template.a = {};
+			}
+			// ...as long as it isn't disabled
+			if ( !template.a.value && !template.a.hasOwnProperty( 'disabled' ) ) {
+				template.a.value = template.f;
+			}
+			// If there is a `selected` attribute, but the <select>
+			// already has a value, delete it
+			if ( 'selected' in template.a && option.select.getAttribute( 'value' ) !== undefined ) {
+				delete template.a.selected;
+			}
+		};
+	}( findParentSelect );
+
+	/* virtualdom/items/Element/prototype/init.js */
+	var virtualdom_items_Element$init = function( types, namespaces, enforceCase, getElementNamespace, createAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
+
+		var Fragment;
+		circular.push( function() {
+			Fragment = circular.Fragment;
+		} );
+		return function Element$init( options ) {
+			var parentFragment, template, namespace, ractive, binding, bindings;
+			this.type = types.ELEMENT;
+			// stuff we'll need later
+			parentFragment = this.parentFragment = options.parentFragment;
+			template = this.template = options.template;
+			this.parent = options.pElement || parentFragment.pElement;
+			this.root = ractive = parentFragment.root;
+			this.index = options.index;
+			this.cssDetachQueue = [];
+			this.namespace = getElementNamespace( template, this.parent );
+			this.name = namespace !== namespaces.html ? enforceCase( template.e ) : template.e;
+			// Special case - <option> elements
+			if ( this.name === 'option' ) {
+				initOption( this, template );
+			}
+			// Special case - <select> elements
+			if ( this.name === 'select' ) {
+				this.options = [];
+				this.bubble = bubbleSelect;
+			}
+			// create attributes
+			this.attributes = createAttributes( this, template.a );
+			// append children, if there are any
+			if ( template.f ) {
+				this.fragment = new Fragment( {
+					template: template.f,
+					root: ractive,
+					owner: this,
+					pElement: this
+				} );
+			}
+			// create twoway binding
+			if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
+				this.binding = binding;
+				// register this with the root, so that we can do ractive.updateModel()
+				bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
+				bindings.push( binding );
+			}
+			// create event proxies
+			if ( template.v ) {
+				this.eventHandlers = createEventHandlers( this, template.v );
+			}
+			// create decorator
+			if ( template.o ) {
+				this.decorator = new Decorator( this, template.o );
+			}
+			// create transitions
+			this.intro = template.t0 || template.t1;
+			this.outro = template.t0 || template.t2;
+		};
+	}( types, namespaces, enforceCase, virtualdom_items_Element$init_getElementNamespace, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
+
+	/* virtualdom/items/shared/utils/startsWith.js */
+	var startsWith = function( startsWithKeypath ) {
+
+		return function startsWith( target, keypath ) {
+			return target === keypath || startsWithKeypath( target, keypath );
+		};
+	}( startsWithKeypath );
+
+	/* virtualdom/items/shared/utils/assignNewKeypath.js */
+	var assignNewKeypath = function( startsWith, getNewKeypath ) {
+
+		return function assignNewKeypath( target, property, oldKeypath, newKeypath ) {
+			var existingKeypath = target[ property ];
+			if ( !existingKeypath || startsWith( existingKeypath, newKeypath ) || !startsWith( existingKeypath, oldKeypath ) ) {
+				return;
+			}
+			target[ property ] = getNewKeypath( existingKeypath, oldKeypath, newKeypath );
+		};
+	}( startsWith, getNewKeypath );
+
+	/* virtualdom/items/Element/prototype/rebind.js */
+	var virtualdom_items_Element$rebind = function( assignNewKeypath ) {
+
+		return function Element$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+			var i, storage, liveQueries, ractive;
+			if ( this.attributes ) {
+				this.attributes.forEach( rebind );
+			}
+			if ( this.eventHandlers ) {
+				this.eventHandlers.forEach( rebind );
+			}
+			if ( this.binding ) {
+				rebind( this.binding );
+			}
+			// rebind children
+			if ( this.fragment ) {
+				rebind( this.fragment );
+			}
+			// Update live queries, if necessary
+			if ( liveQueries = this.liveQueries ) {
+				ractive = this.root;
+				i = liveQueries.length;
+				while ( i-- ) {
+					liveQueries[ i ]._makeDirty();
+				}
+			}
+			if ( this.node && ( storage = this.node._ractive ) ) {
+				// adjust keypath if needed
+				assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
+				if ( indexRef != undefined ) {
+					storage.index[ indexRef ] = newIndex;
+				}
+			}
+
+			function rebind( thing ) {
+				thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			}
+		};
+	}( assignNewKeypath );
+
+	/* virtualdom/items/Element/special/img/render.js */
+	var render = function renderImage( img ) {
+		var width, height, loadHandler;
+		// if this is an <img>, and we're in a crap browser, we may need to prevent it
+		// from overriding width and height when it loads the src
+		if ( ( width = img.getAttribute( 'width' ) ) || ( height = img.getAttribute( 'height' ) ) ) {
+			img.node.addEventListener( 'load', loadHandler = function() {
+				if ( width ) {
+					img.node.width = width.value;
+				}
+				if ( height ) {
+					img.node.height = height.value;
+				}
+				img.node.removeEventListener( 'load', loadHandler, false );
+			}, false );
+		}
+	};
+
 	/* virtualdom/items/Element/Transition/prototype/init.js */
 	var virtualdom_items_Element_Transition$init = function( log, config, circular ) {
 
@@ -8205,247 +8437,8 @@
 		return Transition;
 	}( virtualdom_items_Element_Transition$init, virtualdom_items_Element_Transition$getStyle, virtualdom_items_Element_Transition$setStyle, virtualdom_items_Element_Transition$animateStyle__animateStyle, virtualdom_items_Element_Transition$processParams, virtualdom_items_Element_Transition$start, circular );
 
-	/* virtualdom/items/Element/special/select/sync.js */
-	var sync = function( toArray ) {
-
-		return function syncSelect( selectElement ) {
-			var selectNode, selectValue, isMultiple, options, optionWasSelected;
-			selectNode = selectElement.node;
-			if ( !selectNode ) {
-				return;
-			}
-			options = toArray( selectNode.options );
-			selectValue = selectElement.getAttribute( 'value' );
-			isMultiple = selectElement.getAttribute( 'multiple' );
-			// If the <select> has a specified value, that should override
-			// these options
-			if ( selectValue !== undefined ) {
-				options.forEach( function( o ) {
-					var optionValue, shouldSelect;
-					optionValue = o._ractive ? o._ractive.value : o.value;
-					shouldSelect = isMultiple ? valueContains( selectValue, optionValue ) : selectValue == optionValue;
-					if ( shouldSelect ) {
-						optionWasSelected = true;
-					}
-					o.selected = shouldSelect;
-				} );
-				if ( !optionWasSelected ) {
-					if ( options[ 0 ] ) {
-						options[ 0 ].selected = true;
-					}
-					if ( selectElement.binding ) {
-						selectElement.binding.forceUpdate();
-					}
-				}
-			} else if ( selectElement.binding ) {
-				selectElement.binding.forceUpdate();
-			}
-		};
-
-		function valueContains( selectValue, optionValue ) {
-			var i = selectValue.length;
-			while ( i-- ) {
-				if ( selectValue[ i ] == optionValue ) {
-					return true;
-				}
-			}
-		}
-	}( toArray );
-
-	/* virtualdom/items/Element/special/select/bubble.js */
-	var bubble = function( runloop, syncSelect ) {
-
-		return function bubbleSelect() {
-			var this$0 = this;
-			if ( !this.dirty ) {
-				this.dirty = true;
-				runloop.scheduleTask( function() {
-					syncSelect( this$0 );
-					this$0.dirty = false;
-				} );
-			}
-			this.parentFragment.bubble();
-		};
-	}( runloop, sync );
-
-	/* virtualdom/items/Element/special/option/findParentSelect.js */
-	var findParentSelect = function findParentSelect( element ) {
-		do {
-			if ( element.name === 'select' ) {
-				return element;
-			}
-		} while ( element = element.parent );
-	};
-
-	/* virtualdom/items/Element/special/option/init.js */
-	var init = function( findParentSelect ) {
-
-		return function initOption( option, template ) {
-			option.select = findParentSelect( option.parent );
-			option.select.options.push( option );
-			// If the value attribute is missing, use the element's content
-			if ( !template.a ) {
-				template.a = {};
-			}
-			// ...as long as it isn't disabled
-			if ( !template.a.value && !template.a.hasOwnProperty( 'disabled' ) ) {
-				template.a.value = template.f;
-			}
-			// If there is a `selected` attribute, but the <select>
-			// already has a value, delete it
-			if ( 'selected' in template.a && option.select.getAttribute( 'value' ) !== undefined ) {
-				delete template.a.selected;
-			}
-		};
-	}( findParentSelect );
-
-	/* virtualdom/items/Element/prototype/init.js */
-	var virtualdom_items_Element$init = function( types, namespaces, enforceCase, getElementNamespace, createAttributes, createTwowayBinding, createEventHandlers, Decorator, Transition, bubbleSelect, initOption, circular ) {
-
-		var Fragment;
-		circular.push( function() {
-			Fragment = circular.Fragment;
-		} );
-		return function Element$init( options ) {
-			var parentFragment, template, namespace, ractive, binding, bindings;
-			this.type = types.ELEMENT;
-			// stuff we'll need later
-			parentFragment = this.parentFragment = options.parentFragment;
-			template = this.template = options.template;
-			this.parent = options.pElement || parentFragment.pElement;
-			this.root = ractive = parentFragment.root;
-			this.index = options.index;
-			this.cssDetachQueue = [];
-			this.namespace = getElementNamespace( template, this.parent );
-			this.name = namespace !== namespaces.html ? enforceCase( template.e ) : template.e;
-			// Special case - <option> elements
-			if ( this.name === 'option' ) {
-				initOption( this, template );
-			}
-			// Special case - <select> elements
-			if ( this.name === 'select' ) {
-				this.options = [];
-				this.bubble = bubbleSelect;
-			}
-			// create attributes
-			this.attributes = createAttributes( this, template.a );
-			// append children, if there are any
-			if ( template.f ) {
-				this.fragment = new Fragment( {
-					template: template.f,
-					root: ractive,
-					owner: this,
-					pElement: this
-				} );
-			}
-			// create twoway binding
-			if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
-				this.binding = binding;
-				// register this with the root, so that we can do ractive.updateModel()
-				bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
-				bindings.push( binding );
-			}
-			// create event proxies
-			if ( template.v ) {
-				this.eventHandlers = createEventHandlers( this, template.v );
-			}
-			// create decorator
-			if ( template.o ) {
-				this.decorator = new Decorator( this, template.o );
-			}
-			// create transitions
-			if ( template.t0 ) {
-				this.intro = this.outro = new Transition( this, template.t0 );
-			}
-			if ( template.t1 ) {
-				this.intro = new Transition( this, template.t1 );
-			}
-			if ( template.t2 ) {
-				this.outro = new Transition( this, template.t2 );
-			}
-		};
-	}( types, namespaces, enforceCase, virtualdom_items_Element$init_getElementNamespace, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, Transition, bubble, init, circular );
-
-	/* virtualdom/items/shared/utils/startsWith.js */
-	var startsWith = function( startsWithKeypath ) {
-
-		return function startsWith( target, keypath ) {
-			return target === keypath || startsWithKeypath( target, keypath );
-		};
-	}( startsWithKeypath );
-
-	/* virtualdom/items/shared/utils/assignNewKeypath.js */
-	var assignNewKeypath = function( startsWith, getNewKeypath ) {
-
-		return function assignNewKeypath( target, property, oldKeypath, newKeypath ) {
-			var existingKeypath = target[ property ];
-			if ( !existingKeypath || startsWith( existingKeypath, newKeypath ) || !startsWith( existingKeypath, oldKeypath ) ) {
-				return;
-			}
-			target[ property ] = getNewKeypath( existingKeypath, oldKeypath, newKeypath );
-		};
-	}( startsWith, getNewKeypath );
-
-	/* virtualdom/items/Element/prototype/rebind.js */
-	var virtualdom_items_Element$rebind = function( assignNewKeypath ) {
-
-		return function Element$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var i, storage, liveQueries, ractive;
-			if ( this.attributes ) {
-				this.attributes.forEach( rebind );
-			}
-			if ( this.eventHandlers ) {
-				this.eventHandlers.forEach( rebind );
-			}
-			if ( this.binding ) {
-				rebind( this.binding );
-			}
-			// rebind children
-			if ( this.fragment ) {
-				rebind( this.fragment );
-			}
-			// Update live queries, if necessary
-			if ( liveQueries = this.liveQueries ) {
-				ractive = this.root;
-				i = liveQueries.length;
-				while ( i-- ) {
-					liveQueries[ i ]._makeDirty();
-				}
-			}
-			if ( this.node && ( storage = this.node._ractive ) ) {
-				// adjust keypath if needed
-				assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
-				if ( indexRef != undefined ) {
-					storage.index[ indexRef ] = newIndex;
-				}
-			}
-
-			function rebind( thing ) {
-				thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-		};
-	}( assignNewKeypath );
-
-	/* virtualdom/items/Element/special/img/render.js */
-	var render = function renderImage( img ) {
-		var width, height, loadHandler;
-		// if this is an <img>, and we're in a crap browser, we may need to prevent it
-		// from overriding width and height when it loads the src
-		if ( ( width = img.getAttribute( 'width' ) ) || ( height = img.getAttribute( 'height' ) ) ) {
-			img.node.addEventListener( 'load', loadHandler = function() {
-				if ( width ) {
-					img.node.width = width.value;
-				}
-				if ( height ) {
-					img.node.height = height.value;
-				}
-				img.node.removeEventListener( 'load', loadHandler, false );
-			}, false );
-		}
-	};
-
 	/* virtualdom/items/Element/prototype/render.js */
-	var virtualdom_items_Element$render = function( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage ) {
+	var virtualdom_items_Element$render = function( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage, Transition ) {
 
 		var updateCss, updateScript;
 		updateCss = function() {
@@ -8469,7 +8462,7 @@
 		return function Element$render() {
 			var this$0 = this;
 			var root = this.root,
-				node, intro;
+				node;
 			node = this.node = createElement( this.name, this.namespace );
 			// Is this a top-level node of a component? If so, we may need to add
 			// a data-rvcguid attribute, for CSS encapsulation
@@ -8535,10 +8528,11 @@
 				} );
 			}
 			// trigger intro transition
-			if ( intro = this.intro ) {
-				runloop.registerTransition( intro );
+			if ( root.transitionsEnabled && this.intro ) {
+				var transition = new Transition( this, this.intro );
+				runloop.registerTransition( transition );
 				runloop.scheduleTask( function() {
-					return intro.start( true );
+					return transition.start( true );
 				} );
 			}
 			if ( this.name === 'option' ) {
@@ -8593,7 +8587,7 @@
 				}
 			} while ( instance = instance._parent );
 		}
-	}( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render );
+	}( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, Transition );
 
 	/* config/voidElementNames.js */
 	var voidElementNames = function() {
@@ -8697,10 +8691,10 @@
 	}( virtualdom_items_Element_special_option_unbind );
 
 	/* virtualdom/items/Element/prototype/unrender.js */
-	var virtualdom_items_Element$unrender = function( runloop ) {
+	var virtualdom_items_Element$unrender = function( runloop, Transition ) {
 
 		return function Element$unrender( shouldDestroy ) {
-			var binding, bindings, outro;
+			var binding, bindings;
 			// Detach as soon as we can
 			if ( this.name === 'option' ) {
 				// <option> elements detach immediately, so that
@@ -8731,11 +8725,12 @@
 			if ( this.decorator ) {
 				this.decorator.teardown();
 			}
-			// Outro, if necessary
-			if ( outro = this.outro ) {
-				runloop.registerTransition( outro );
+			// trigger outro transition if necessary
+			if ( this.root.transitionsEnabled && this.outro ) {
+				var transition = new Transition( this, this.outro );
+				runloop.registerTransition( transition );
 				runloop.scheduleTask( function() {
-					return outro.start( false );
+					return transition.start( false );
 				} );
 			}
 			// Remove this node from any live queries
@@ -8753,7 +8748,7 @@
 				query._remove( element.node );
 			}
 		}
-	}( runloop );
+	}( runloop, Transition );
 
 	/* virtualdom/items/Element/_Element.js */
 	var Element = function( bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, getAttribute, init, rebind, render, toString, unbind, unrender ) {
