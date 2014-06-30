@@ -2,7 +2,7 @@ import getLowestIndex from 'parse/converters/utils/getLowestIndex';
 import decodeCharacterReferences from 'parse/converters/utils/decodeCharacterReferences';
 
 export default function ( parser ) {
-	var index, remaining, barrier;
+	var index, remaining, disallowed, barrier;
 
 	remaining = parser.remaining();
 
@@ -11,7 +11,17 @@ export default function ( parser ) {
 	if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
 		index = remaining.indexOf( barrier );
 	} else {
-		index = getLowestIndex( remaining, [ barrier, parser.delimiters[0], parser.tripleDelimiters[0] ] );
+		disallowed = [ barrier, parser.delimiters[0], parser.tripleDelimiters[0] ];
+
+		// http://developers.whatwg.org/syntax.html#syntax-attributes
+		if ( parser.inAttribute === true ) {
+			// we're inside an unquoted attribute value
+			disallowed.push( '"', "'", '=', '>', '`' );
+		} else if ( parser.inAttribute ) {
+			disallowed.push( parser.inAttribute )
+		}
+
+		index = getLowestIndex( remaining, disallowed );
 	}
 
 	if ( !index ) {

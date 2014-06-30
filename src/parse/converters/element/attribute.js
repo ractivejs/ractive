@@ -29,7 +29,7 @@ function getAttribute ( parser ) {
 }
 
 function getAttributeValue ( parser ) {
-	var start, value;
+	var start, valueStart, startDepth, value;
 
 	start = parser.pos;
 
@@ -42,9 +42,17 @@ function getAttributeValue ( parser ) {
 
 	parser.allowWhitespace();
 
+	valueStart = parser.pos;
+	startDepth = parser.sectionDepth;
+
 	value = getQuotedAttributeValue( parser, "'" ) ||
 			getQuotedAttributeValue( parser, '"' ) ||
 			getUnquotedAttributeValue( parser );
+
+	if ( parser.sectionDepth !== startDepth ) {
+		parser.pos = valueStart;
+		parser.error( 'An attribute value must contain as many opening section tags as closing section tags' );
+	}
 
 	if ( value === null ) {
 		parser.pos = start;
@@ -80,6 +88,8 @@ function getUnquotedAttributeValueToken ( parser ) {
 function getUnquotedAttributeValue ( parser ) {
 	var tokens, token;
 
+	parser.inAttribute = true;
+
 	tokens = [];
 
 	token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
@@ -92,6 +102,7 @@ function getUnquotedAttributeValue ( parser ) {
 		return null;
 	}
 
+	parser.inAttribute = false;
 	return tokens;
 }
 
@@ -104,6 +115,8 @@ function getQuotedAttributeValue ( parser, quoteMark ) {
 		return null;
 	}
 
+	parser.inAttribute = quoteMark;
+
 	tokens = [];
 
 	token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
@@ -114,8 +127,11 @@ function getQuotedAttributeValue ( parser, quoteMark ) {
 
 	if ( !parser.matchString( quoteMark ) ) {
 		parser.pos = start;
+		console.groupEnd();
 		return null;
 	}
+
+	parser.inAttribute = false;
 
 	return tokens;
 }
