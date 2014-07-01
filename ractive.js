@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-07-01 - commit 593453fb 
+	2014-07-01 - commit f87bbf9e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -538,6 +538,10 @@
 		return function resolveRef( ractive, ref, fragment ) {
 			var context, key, index, keypath, parentValue, hasContextChain;
 			ref = normaliseRef( ref );
+			// If a reference begins '~/', it's a top-level reference
+			if ( ref.substr( 0, 2 ) === '~/' ) {
+				return ref.substring( 2 );
+			}
 			// If a reference begins with '.', it's either a restricted reference or
 			// an ancestor reference...
 			if ( ref.charAt( 0 ) === '.' ) {
@@ -1847,7 +1851,7 @@
 	/* parse/Parser/expressions/primary/reference.js */
 	var reference = function( types, patterns ) {
 
-		var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals;
+		var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals, keywords;
 		dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
 		getArrayRefinement = function( parser ) {
 			var num = parser.matchPattern( arrayMemberPattern );
@@ -1859,19 +1863,31 @@
 		arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
 		// if a reference is a browser global, we don't deference it later, so it needs special treatment
 		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+		// keywords are not valid references, with the exception of `this`
+		keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 		return function( parser ) {
 			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
 			startPos = parser.pos;
-			// we might have ancestor refs...
-			ancestor = '';
-			while ( parser.matchString( '../' ) ) {
-				ancestor += '../';
+			// we might have a root-level reference
+			if ( parser.matchString( '~/' ) ) {
+				ancestor = '~/';
+			} else {
+				// we might have ancestor refs...
+				ancestor = '';
+				while ( parser.matchString( '../' ) ) {
+					ancestor += '../';
+				}
 			}
 			if ( !ancestor ) {
 				// we might have an implicit iterator or a restricted reference
 				dot = parser.matchString( '.' ) || '';
 			}
 			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+			// bug out if it's a keyword
+			if ( keywords.test( name ) ) {
+				parser.pos = startPos;
+				return null;
+			}
 			// if this is a browser global, stop here
 			if ( !ancestor && !dot && globals.test( name ) ) {
 				return {
@@ -2022,8 +2038,11 @@
 		makePrefixSequenceMatcher = function( symbol, fallthrough ) {
 			return function( parser ) {
 				var expression;
+				if ( expression = fallthrough( parser ) ) {
+					return expression;
+				}
 				if ( !parser.matchString( symbol ) ) {
-					return fallthrough( parser );
+					return null;
 				}
 				parser.allowWhitespace();
 				expression = parser.readExpression();
@@ -2491,7 +2510,7 @@
 			} else {
 				// We need to test for expressions before we test for mustache type, because
 				// an expression that begins '!' looks a lot like a comment
-				if ( expression = parser.readExpression() ) {
+				if ( parser.remaining()[ 0 ] === '!' && ( expression = parser.readExpression() ) ) {
 					mustache.t = types.INTERPOLATOR;
 					// Was it actually an expression, or a comment block in disguise?
 					parser.allowWhitespace();
