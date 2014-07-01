@@ -5,6 +5,10 @@ export default function Element$unbind () {
 		this.fragment.unbind();
 	}
 
+	if ( this.binding ) {
+		this.binding.unbind();
+	}
+
 	// Special case - <option>
 	if ( this.name === 'option' ) {
 		unbindOption( this );

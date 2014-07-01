@@ -8,6 +8,10 @@ getOptions = { evaluateWrapped: true };
 GenericBinding = Binding.extend({
 	getInitialValue: () => '',
 
+	getValue: function () {
+		return this.element.node.value;
+	},
+
 	render: function () {
 		var node = this.element.node;
 
@@ -22,11 +26,6 @@ GenericBinding = Binding.extend({
 		}
 
 		node.addEventListener( 'blur', handleBlur, false );
-	},
-
-	getValue: function () {
-		var value = this.element.node.value;
-		return value;
 	},
 
 	unrender: function () {

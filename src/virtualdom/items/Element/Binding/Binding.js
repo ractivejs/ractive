@@ -71,6 +71,11 @@ Binding.prototype = {
 			bindings = this.root._twowayBindings[ this.keypath ] || ( this.root._twowayBindings[ this.keypath ] = [] );
 			bindings.push( this );
 		}
+	},
+
+	unbind: function () {
+		// this is called when the element is unbound.
+		// Specialised bindings can override it
 	}
 };
 
