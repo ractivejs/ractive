@@ -64,7 +64,7 @@ if ( !isClient ) {
 
 			// this is used to keep track of which elements can use CSS to animate
 			// which properties
-			hashPrefix = t.node.namespaceURI + t.node.tagName;
+			hashPrefix = ( t.node.namespaceURI || '' ) + t.node.tagName;
 
 			t.node.style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
 			t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
@@ -98,7 +98,7 @@ if ( !isClient ) {
 					prop = changedProperties[i];
 					hash = hashPrefix + prop;
 
-					if ( canUseCssTransitions[ hash ] ) {
+					if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] ) {
 						// We can definitely use CSS transitions, because
 						// we've already tried it and it worked
 						t.node.style[ prefix( prop ) ] = to[ prop ];
@@ -107,11 +107,9 @@ if ( !isClient ) {
 						originalValue = t.getStyle( prop ); // TODO don't we already have this value?
 					}
 
-
-					if ( canUseCssTransitions[ hash ] === undefined ) {
+					if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] === undefined ) {
 						// We're not yet sure if we can use CSS transitions -
 						// let's find out
-						t.node.style[ prefix( prop ) ] = to[ prop ];
 
 						// if this property is transitionable in this browser,
 						// the current style will be different from the target style
@@ -120,7 +118,7 @@ if ( !isClient ) {
 					}
 
 
-					if ( cannotUseCssTransitions[ hash ] ) {
+					if ( !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 						// we need to fall back to timer-based stuff
 
 						// need to remove this from changedProperties, otherwise transitionEndHandler

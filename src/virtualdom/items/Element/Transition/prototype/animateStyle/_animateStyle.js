@@ -62,7 +62,7 @@ if ( !isClient ) {
 			changedProperties = [];
 
 			// Store the current styles
-			computedStyle = window.getComputedStyle( t.node );
+			computedStyle = getComputedStyle( t.node );
 
 			from = {};
 			i = propertyNames.length;
