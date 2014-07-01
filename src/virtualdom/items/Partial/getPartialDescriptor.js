@@ -6,7 +6,7 @@ import deIndent from 'virtualdom/items/Partial/deIndent';
 export default function getPartialDescriptor ( ractive, name ) {
 	var partial;
 
-	// If the partial was specified on this instance, great
+	// If the partial in instance or view heirarchy instances, great
 	if ( partial = getPartialFromRegistry( ractive, name ) ) {
 		return partial;
 	}
@@ -39,34 +39,46 @@ export default function getPartialDescriptor ( ractive, name ) {
 
 function getPartialFromRegistry ( ractive, name ) {
 
-	// get the ractive instance on which the partial is found
+	// find first instance in the view hierarchy that has this partial
 	var instance = config.registries.partials.findInstance( ractive, name );
 
-	if ( instance ) {
+	if ( !instance ) { return; }
 
-		let partial = instance.partials[ name ], fn;
+	let partial = instance.partials[ name ], fn;
 
-		if ( typeof partial === 'function' ) {
-			fn = partial;
-			fn.isOwner = instance.partials.hasOwnProperty(name);
-			partial = partial( ractive.data );
-		}
-		// If this was added manually to the registry,
-		// but hasn't been parsed, parse it now
-		if ( !parser.isParsed( partial ) ) {
-
-			// use the parseOptions of the ractive instance
-			// on which it was found
-			partial = parser.parse( partial, parser.getParseOptions( instance ) );
-
-			// may be a template with partials, which need to
-			// be registered and main template extracted
-			instance.partials[ name ] = partial = config.template.processCompound( instance, partial );
-		}
-		if ( fn ) {
-			partial._fn = fn;
-
-		}
-		return partial;
+	if ( typeof partial === 'function' ) {
+		fn = partial;
+		fn.isOwner = instance.partials.hasOwnProperty(name);
+		partial = partial( instance.data );
 	}
+	// If this was added manually to the registry,
+	// but hasn't been parsed, parse it now
+	if ( !parser.isParsed( partial ) ) {
+
+		// use the parseOptions of the ractive instance on which it was found
+		partial = parser.parse( partial, parser.getParseOptions( instance ) );
+
+		// if fn, use ractive to store result, otherwise needs to go on
+		// instance in the correct point in prototype chain
+		let target = fn ? instance : findOwner( instance, name );
+
+		// may be a template with partials, which need to be registered and main template extracted
+		target.partials[ name ] = partial = config.template.processCompound( target, partial );
+	}
+	if ( fn ) {
+		partial._fn = fn;
+	}
+	return partial;
+
+}
+
+function findOwner ( instance, name ) {
+	return ( instance.partials.hasOwnProperty( name ) )
+		? instance : findParent( instance.constructor, name);
+}
+
+function findParent ( constructor, name ) {
+	if ( !constructor ) { return; }
+	return ( constructor.partials.hasOwnProperty( name ) )
+		? constructor : findParent( constructor._parent, name);
 }
