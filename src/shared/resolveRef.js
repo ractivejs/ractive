@@ -13,6 +13,11 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 	ref = normaliseRef( ref );
 
+	// If a reference begins '~/', it's a top-level reference
+	if ( ref.substr( 0, 2 ) === '~/' ) {
+		return ref.substring( 2 );
+	}
+
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
 	if ( ref.charAt( 0 ) === '.' ) {

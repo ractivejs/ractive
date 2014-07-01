@@ -727,6 +727,12 @@ var renderTests = [
 		result: '<video></video>'
 	},
 	{
+		name: 'Root-level reference',
+		template: '{{#a}}{{#b}}{{#c}}{{~/foo}}{{/c}}{{/b}}{{/a}}',
+		data: { foo: 'top', a: { b: { c: { foo: 'c' }, foo: 'b' }, foo: 'a' } },
+		result: 'top'
+	},
+	{
 		name: 'else in non-Handlebars blocks',
 		template: '{{#foo}}yes{{else}}no{{/foo}}',
 		data: { foo: true },
