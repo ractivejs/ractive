@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-07-01 - commit f87bbf9e 
+	2014-07-01 - commit 3f6e4ae0 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10747,7 +10747,7 @@
 
 		return function getPartialDescriptor( ractive, name ) {
 			var partial;
-			// If the partial was specified on this instance, great
+			// If the partial in instance or view heirarchy instances, great
 			if ( partial = getPartialFromRegistry( ractive, name ) ) {
 				return partial;
 			}
@@ -10775,31 +10775,46 @@
 		};
 
 		function getPartialFromRegistry( ractive, name ) {
-			// get the ractive instance on which the partial is found
+			// find first instance in the ractive or view hierarchy that has this partial
 			var instance = config.registries.partials.findInstance( ractive, name );
-			if ( instance ) {
-				var partial = instance.partials[ name ],
-					fn;
-				if ( typeof partial === 'function' ) {
-					fn = partial;
-					fn.isOwner = instance.partials.hasOwnProperty( name );
-					partial = partial( ractive.data );
-				}
-				// If this was added manually to the registry,
-				// but hasn't been parsed, parse it now
-				if ( !parser.isParsed( partial ) ) {
-					// use the parseOptions of the ractive instance
-					// on which it was found
-					partial = parser.parse( partial, parser.getParseOptions( instance ) );
-					// may be a template with partials, which need to
-					// be registered and main template extracted
-					instance.partials[ name ] = partial = config.template.processCompound( instance, partial );
-				}
-				if ( fn ) {
-					partial._fn = fn;
-				}
-				return partial;
+			if ( !instance ) {
+				return;
 			}
+			var partial = instance.partials[ name ],
+				fn;
+			// partial is a function?
+			if ( typeof partial === 'function' ) {
+				fn = partial;
+				fn.isOwner = instance.partials.hasOwnProperty( name );
+				partial = partial( instance.data );
+			}
+			// If this was added manually to the registry,
+			// but hasn't been parsed, parse it now
+			if ( !parser.isParsed( partial ) ) {
+				// use the parseOptions of the ractive instance on which it was found
+				partial = parser.parse( partial, parser.getParseOptions( instance ) );
+				// if fn, use instance to store result, otherwise needs to go
+				// in the correct point in prototype chain on constructor
+				var target = fn ? instance : findOwner( instance, name );
+				// may be a template with partials, which need to be registered and main template extracted
+				target.partials[ name ] = partial = config.template.processCompound( target, partial );
+			}
+			// store for reset
+			if ( fn ) {
+				partial._fn = fn;
+			}
+			return partial;
+		}
+
+		function findOwner( instance, name ) {
+			return instance.partials.hasOwnProperty( name ) ? instance : findParent( instance.constructor, name );
+		}
+
+		function findParent( constructor, name ) {
+			if ( !constructor ) {
+				return;
+			}
+			return constructor.partials.hasOwnProperty( name ) ? constructor : findParent( constructor._parent, name );
 		}
 	}( log, config, parser, deIndent );
 
