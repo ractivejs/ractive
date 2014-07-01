@@ -50,7 +50,7 @@ var CheckboxNameBinding = Binding.extend({
 		}
 	},
 
-	teardown: function () {
+	unbind: function () {
 		removeFromArray( this.siblings, this );
 	},
 

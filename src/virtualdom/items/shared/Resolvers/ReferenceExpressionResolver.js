@@ -76,7 +76,7 @@ ReferenceExpressionResolver.prototype = {
 		}
 
 		while ( thing = this.keypathObservers.pop() ) {
-			thing.teardown();
+			thing.unbind();
 		}
 	},
 
@@ -202,8 +202,13 @@ KeypathObserver.prototype = {
 		var keypath;
 
 		if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
-			this.teardown();
+			this.unbind();
 			this.keypath = keypath;
+
+			// TODO would it be better if this had a toString() method, and we did away
+			// with the `members` mechanism?
+			this.resolver.members[ this.index ] = this.root.viewmodel.get( keypath );
+
 			this.bind();
 
 			return true;
@@ -217,7 +222,7 @@ KeypathObserver.prototype = {
 		resolver.bubble();
 	},
 
-	teardown: function () {
+	unbind: function () {
 		this.root.viewmodel.unregister( this.keypath, this );
 	}
 };

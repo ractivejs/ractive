@@ -1,4 +1,5 @@
 import runloop from 'global/runloop';
+import removeFromArray from 'utils/removeFromArray';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
@@ -40,6 +41,10 @@ var RadioBinding = Binding.extend({
 
 	getValue: function () {
 		return this.element.node.checked;
+	},
+
+	unbind: function () {
+		removeFromArray( this.siblings, this );
 	}
 });
 

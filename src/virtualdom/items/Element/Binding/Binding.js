@@ -2,9 +2,10 @@ import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import create from 'utils/create';
 import extend from 'utils/extend';
+import removeFromArray from 'utils/removeFromArray';
 
 var Binding = function ( element ) {
-	var interpolator;
+	var interpolator, keypath, value;
 
 	this.element = element;
 	this.root = element.root;
@@ -36,13 +37,17 @@ var Binding = function ( element ) {
 		interpolator.resolve( interpolator.ref );
 	}
 
-	this.keypath = this.attribute.interpolator.keypath;
+	this.keypath = keypath = this.attribute.interpolator.keypath;
 
 	// initialise value, if it's undefined
 	// TODO could we use a similar mechanism instead of the convoluted
 	// select/checkbox init logic?
-	if ( this.root.viewmodel.get( this.keypath ) === undefined && this.getInitialValue ) {
-		this.root.viewmodel.set( this.keypath, this.getInitialValue() );
+	if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
+		value = this.getInitialValue();
+
+		if ( value !== undefined ) {
+			this.root.viewmodel.set( keypath, value );
+		}
 	}
 };
 
@@ -55,22 +60,28 @@ Binding.prototype = {
 		runloop.end();
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		var bindings;
+	rebind: function () {
+		var bindings, oldKeypath, newKeypath;
 
-		if ( this.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-			bindings = this.root._twowayBindings[ this.keypath ];
+		oldKeypath = this.keypath;
+		newKeypath = this.attribute.interpolator.keypath;
 
-			// remove binding reference for old keypath
-			bindings.splice( bindings.indexOf( this ), 1 );
-
-			// update keypath
-			this.keypath = this.keypath.replace( oldKeypath, newKeypath );
-
-			// add binding reference for new keypath
-			bindings = this.root._twowayBindings[ this.keypath ] || ( this.root._twowayBindings[ this.keypath ] = [] );
-			bindings.push( this );
+		// The attribute this binding is linked to has already done the work
+		if ( oldKeypath === newKeypath ) {
+			return;
 		}
+
+		removeFromArray( this.root._twowayBindings[ oldKeypath ] );
+
+		this.keypath = newKeypath;
+
+		bindings = this.root._twowayBindings[ newKeypath ] || ( this.root._twowayBindings[ newKeypath ] = [] );
+		bindings.push( this );
+	},
+
+	unbind: function () {
+		// this is called when the element is unbound.
+		// Specialised bindings can override it
 	}
 };
 

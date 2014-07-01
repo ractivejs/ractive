@@ -7,7 +7,7 @@ export default function Fragment$rebind ( indexRef, newIndex, oldKeypath, newKey
 
 	if ( this.indexRefs
 		&& this.indexRefs[ indexRef ] !== undefined
-		&& this.indexRefs[ indexRef ] !== newIndex) {
+		&& this.indexRefs[ indexRef ] !== newIndex) { // TODO surely this is unnecessary?
 		this.indexRefs[ indexRef ] = newIndex;
 	}
 

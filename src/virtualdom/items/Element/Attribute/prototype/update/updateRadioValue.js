@@ -15,23 +15,24 @@ export default function Attribute$updateRadioValue () {
 	if ( wasChecked && !node.checked && this.element.binding ) {
 		bindings = this.element.binding.siblings;
 
-		i = bindings.length;
-		while ( i-- ) {
-			binding = bindings[i];
+		if ( i = bindings.length ) {
+			while ( i-- ) {
+				binding = bindings[i];
 
-			if ( !binding.element.node ) {
-				// this is the initial render, siblings are still rendering!
-				// we'll come back later...
-				return;
+				if ( !binding.element.node ) {
+					// this is the initial render, siblings are still rendering!
+					// we'll come back later...
+					return;
+				}
+
+				if ( binding.element.node.checked ) {
+					runloop.addViewmodel( binding.root.viewmodel );
+					return binding.handleChange();
+				}
 			}
 
-			if ( binding.element.node.checked ) {
-				runloop.addViewmodel( binding.root.viewmodel );
-				return binding.handleChange();
-			}
+			runloop.addViewmodel( binding.root.viewmodel );
+			this.root.viewmodel.set( binding.keypath, undefined );
 		}
-
-		runloop.addViewmodel( binding.root.viewmodel );
-		this.root.viewmodel.set( binding.keypath, undefined );
 	}
 }
