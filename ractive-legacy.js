@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-06-30 - commit 71c5ac27 
+	2014-07-01 - commit 593453fb 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2761,14 +2761,38 @@
 		// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
 		if ( !win.getComputedStyle ) {
 			exportedShims.getComputedStyle = function() {
+				var borderSizes = {};
+
 				function getPixelSize( element, style, property, fontSize ) {
 					var sizeWithSuffix = style[ property ],
 						size = parseFloat( sizeWithSuffix ),
 						suffix = sizeWithSuffix.split( /\d/ )[ 0 ],
 						rootSize;
+					if ( isNaN( size ) ) {
+						if ( /^thin|medium|thick$/.test( sizeWithSuffix ) ) {
+							size = getBorderPixelSize( sizeWithSuffix );
+							suffix = '';
+						} else {}
+					}
 					fontSize = fontSize != null ? fontSize : /%|em/.test( suffix ) && element.parentElement ? getPixelSize( element.parentElement, element.parentElement.currentStyle, 'fontSize', null ) : 16;
 					rootSize = property == 'fontSize' ? fontSize : /width/i.test( property ) ? element.clientWidth : element.clientHeight;
 					return suffix == 'em' ? size * fontSize : suffix == 'in' ? size * 96 : suffix == 'pt' ? size * 96 / 72 : suffix == '%' ? size / 100 * rootSize : size;
+				}
+
+				function getBorderPixelSize( size ) {
+					var div, bcr;
+					// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
+					if ( !borderSizes[ size ] ) {
+						div = document.createElement( 'div' );
+						div.style.display = 'block';
+						div.style.position = 'fixed';
+						div.style.width = div.style.height = '0';
+						div.style.borderRight = size + ' solid black';
+						document.getElementsByTagName( 'body' )[ 0 ].appendChild( div );
+						bcr = div.getBoundingClientRect();
+						borderSizes[ size ] = bcr.right - bcr.left;
+					}
+					return borderSizes[ size ];
 				}
 
 				function setShortStyleProperty( style, property ) {
@@ -2797,9 +2821,19 @@
 					currentStyle = element.currentStyle;
 					style = this;
 					fontSize = getPixelSize( element, currentStyle, 'fontSize', null );
+					// TODO tidy this up, test it, send PR to jonathantneal!
 					for ( property in currentStyle ) {
-						if ( /width|height|margin.|padding.|border.+W/.test( property ) && style[ property ] !== 'auto' ) {
-							style[ property ] = getPixelSize( element, currentStyle, property, fontSize ) + 'px';
+						if ( /width|height|margin.|padding.|border.+W/.test( property ) ) {
+							if ( currentStyle[ property ] === 'auto' ) {
+								if ( /^width|height/.test( property ) ) {
+									// just use clientWidth/clientHeight...
+									style[ property ] = ( property === 'width' ? element.clientWidth : element.clientHeight ) + 'px';
+								} else if ( /(?:padding)?Top|Bottom$/.test( property ) ) {
+									style[ property ] = '0px';
+								}
+							} else {
+								style[ property ] = getPixelSize( element, currentStyle, property, fontSize ) + 'px';
+							}
 						} else if ( property === 'styleFloat' ) {
 							style.float = currentStyle[ property ];
 						} else {
@@ -9799,7 +9833,7 @@
 			getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 			getStyle = function( props ) {
 				var computedStyle, styles, i, prop, value;
-				computedStyle = window.getComputedStyle( this.node );
+				computedStyle = getComputedStyle( this.node );
 				if ( typeof props === 'string' ) {
 					value = computedStyle[ prefix( props ) ];
 					if ( value === '0px' ) {
@@ -9808,7 +9842,7 @@
 					return value;
 				}
 				if ( !isArray( props ) ) {
-					throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
+					throw new Error( 'Transition$getStyle must be passed a string, or an array of strings representing CSS properties' );
 				}
 				styles = {};
 				i = props.length;
@@ -9971,19 +10005,20 @@
 				TRANSITION_PROPERTY = TRANSITION + 'Property';
 				TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
 			}
-			createTransitions = function( t, to, options, changedProperties, transitionEndHandler, resolve ) {
+			createTransitions = function( t, to, options, changedProperties, resolve ) {
 				// Wait a beat (otherwise the target styles will be applied immediately)
 				// TODO use a fastdom-style mechanism?
 				setTimeout( function() {
-					var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete;
+					var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete, transitionEndHandler;
 					checkComplete = function() {
 						if ( jsTransitionsComplete && cssTransitionsComplete ) {
+							t.root.fire( t.name + ':end', t.node, t.isIntro );
 							resolve();
 						}
 					};
 					// this is used to keep track of which elements can use CSS to animate
 					// which properties
-					hashPrefix = t.node.namespaceURI + t.node.tagName;
+					hashPrefix = ( t.node.namespaceURI || '' ) + t.node.tagName;
 					t.node.style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
 					t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
 					t.node.style[ TRANSITION_DURATION ] = options.duration / 1000 + 's';
@@ -9997,7 +10032,6 @@
 							// still transitioning...
 							return;
 						}
-						t.root.fire( t.name + ':end' );
 						t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 						cssTransitionsComplete = true;
 						checkComplete();
@@ -10010,7 +10044,7 @@
 						while ( i-- ) {
 							prop = changedProperties[ i ];
 							hash = hashPrefix + prop;
-							if ( canUseCssTransitions[ hash ] ) {
+							if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] ) {
 								// We can definitely use CSS transitions, because
 								// we've already tried it and it worked
 								t.node.style[ prefix( prop ) ] = to[ prop ];
@@ -10018,16 +10052,15 @@
 								// one way or another, we'll need this
 								originalValue = t.getStyle( prop );
 							}
-							if ( canUseCssTransitions[ hash ] === undefined ) {
+							if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] === undefined ) {
 								// We're not yet sure if we can use CSS transitions -
 								// let's find out
-								t.node.style[ prefix( prop ) ] = to[ prop ];
 								// if this property is transitionable in this browser,
 								// the current style will be different from the target style
 								canUseCssTransitions[ hash ] = t.getStyle( prop ) != to[ prop ];
 								cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
 							}
-							if ( cannotUseCssTransitions[ hash ] ) {
+							if ( !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 								// we need to fall back to timer-based stuff
 								// need to remove this from changedProperties, otherwise transitionEndHandler
 								// will get confused
@@ -10083,10 +10116,62 @@
 		return createTransitions;
 	}( isClient, warn, createElement, camelCase, interpolate, Ticker, prefix, unprefix, hyphenate );
 
-	/* virtualdom/items/Element/Transition/prototype/animateStyle/_animateStyle.js */
-	var virtualdom_items_Element_Transition$animateStyle__animateStyle = function( legacy, isClient, warn, Promise, prefix, createTransitions ) {
+	/* virtualdom/items/Element/Transition/prototype/animateStyle/visibility.js */
+	var virtualdom_items_Element_Transition$animateStyle_visibility = function( vendors ) {
 
-		var animateStyle, getComputedStyle;
+		var hidden, vendor, prefix, i, visibility;
+		if ( typeof document !== 'undefined' ) {
+			hidden = 'hidden';
+			visibility = {};
+			if ( hidden in document ) {
+				prefix = '';
+			} else {
+				i = vendors.length;
+				while ( i-- ) {
+					vendor = vendors[ i ];
+					hidden = vendor + 'Hidden';
+					if ( hidden in document ) {
+						prefix = vendor;
+					}
+				}
+			}
+			if ( prefix !== undefined ) {
+				document.addEventListener( prefix + 'visibilitychange', onChange );
+				// initialise
+				onChange();
+			} else {
+				// gah, we're in an old browser
+				if ( 'onfocusout' in document ) {
+					document.addEventListener( 'focusout', onHide );
+					document.addEventListener( 'focusin', onShow );
+				} else {
+					window.addEventListener( 'pagehide', onHide );
+					window.addEventListener( 'blur', onHide );
+					window.addEventListener( 'pageshow', onShow );
+					window.addEventListener( 'focus', onShow );
+				}
+				visibility.hidden = false;
+			}
+		}
+
+		function onChange() {
+			visibility.hidden = document[ hidden ];
+		}
+
+		function onHide() {
+			visibility.hidden = true;
+		}
+
+		function onShow() {
+			visibility.hidden = false;
+		}
+		return visibility;
+	}( vendors );
+
+	/* virtualdom/items/Element/Transition/prototype/animateStyle/_animateStyle.js */
+	var virtualdom_items_Element_Transition$animateStyle__animateStyle = function( legacy, isClient, warn, Promise, prefix, createTransitions, visibility ) {
+
+		var animateStyle, getComputedStyle, resolved;
 		if ( !isClient ) {
 			animateStyle = null;
 		} else {
@@ -10094,6 +10179,12 @@
 			animateStyle = function( style, value, options, complete ) {
 				var t = this,
 					to;
+				// Special case - page isn't visible. Don't animate anything, because
+				// that way you'll never get CSS transitionend events
+				if ( visibility.hidden ) {
+					this.setStyle( style, value );
+					return resolved || ( resolved = Promise.resolve() );
+				}
 				if ( typeof style === 'string' ) {
 					to = {};
 					to[ style ] = value;
@@ -10113,7 +10204,7 @@
 					complete = t.complete;
 				}
 				var promise = new Promise( function( resolve ) {
-					var propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+					var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 					// Edge case - if duration is zero, set style synchronously and complete
 					if ( !options.duration ) {
 						t.setStyle( to );
@@ -10124,7 +10215,7 @@
 					propertyNames = Object.keys( to );
 					changedProperties = [];
 					// Store the current styles
-					computedStyle = window.getComputedStyle( t.node );
+					computedStyle = getComputedStyle( t.node );
 					from = {};
 					i = propertyNames.length;
 					while ( i-- ) {
@@ -10148,7 +10239,7 @@
 						resolve();
 						return;
 					}
-					createTransitions( t, to, options, changedProperties, transitionEndHandler, resolve );
+					createTransitions( t, to, options, changedProperties, resolve );
 				} );
 				// If a callback was supplied, do the honours
 				// TODO remove this check in future
@@ -10160,7 +10251,7 @@
 			};
 		}
 		return animateStyle;
-	}( legacy, isClient, warn, Promise, prefix, virtualdom_items_Element_Transition$animateStyle_createTransitions );
+	}( legacy, isClient, warn, Promise, prefix, virtualdom_items_Element_Transition$animateStyle_createTransitions, virtualdom_items_Element_Transition$animateStyle_visibility );
 
 	/* utils/fillGaps.js */
 	var fillGaps = function( target, source ) {
