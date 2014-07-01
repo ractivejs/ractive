@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-07-01 - commit b3ff79cb 
+	2014-07-01 - commit f6dffe5b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5405,7 +5405,7 @@
 					thing.teardown();
 				}
 				while ( thing = this.keypathObservers.pop() ) {
-					thing.teardown();
+					thing.unbind();
 				}
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -5507,8 +5507,11 @@
 			rebind: function( oldKeypath, newKeypath ) {
 				var keypath;
 				if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
-					this.teardown();
+					this.unbind();
 					this.keypath = keypath;
+					// TODO would it be better if this had a toString() method, and we did away
+					// with the `members` mechanism?
+					this.resolver.members[ this.index ] = this.root.viewmodel.get( keypath );
 					this.bind();
 					return true;
 				}
@@ -5518,7 +5521,7 @@
 				resolver.members[ this.index ] = value;
 				resolver.bubble();
 			},
-			teardown: function() {
+			unbind: function() {
 				this.root.viewmodel.unregister( this.keypath, this );
 			}
 		};
@@ -6806,9 +6809,6 @@
 	var virtualdom_items_Element_Attribute$rebind = function Attribute$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
 		if ( this.fragment ) {
 			this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			if ( this.twoway ) {
-				this.updateBindings();
-			}
 		}
 	};
 
@@ -6966,21 +6966,22 @@
 			// hoops... this is a little kludgy but it works
 			if ( wasChecked && !node.checked && this.element.binding ) {
 				bindings = this.element.binding.siblings;
-				i = bindings.length;
-				while ( i-- ) {
-					binding = bindings[ i ];
-					if ( !binding.element.node ) {
-						// this is the initial render, siblings are still rendering!
-						// we'll come back later...
-						return;
+				if ( i = bindings.length ) {
+					while ( i-- ) {
+						binding = bindings[ i ];
+						if ( !binding.element.node ) {
+							// this is the initial render, siblings are still rendering!
+							// we'll come back later...
+							return;
+						}
+						if ( binding.element.node.checked ) {
+							runloop.addViewmodel( binding.root.viewmodel );
+							return binding.handleChange();
+						}
 					}
-					if ( binding.element.node.checked ) {
-						runloop.addViewmodel( binding.root.viewmodel );
-						return binding.handleChange();
-					}
+					runloop.addViewmodel( binding.root.viewmodel );
+					this.root.viewmodel.set( binding.keypath, undefined );
 				}
-				runloop.addViewmodel( binding.root.viewmodel );
-				this.root.viewmodel.set( binding.keypath, undefined );
 			}
 		};
 	}( runloop );
@@ -7143,21 +7144,8 @@
 		};
 	}( namespaces, noop, virtualdom_items_Element_Attribute$update_updateSelectValue, virtualdom_items_Element_Attribute$update_updateMultipleSelectValue, virtualdom_items_Element_Attribute$update_updateRadioName, virtualdom_items_Element_Attribute$update_updateRadioValue, virtualdom_items_Element_Attribute$update_updateCheckboxName, virtualdom_items_Element_Attribute$update_updateClassName, virtualdom_items_Element_Attribute$update_updateIdAttribute, virtualdom_items_Element_Attribute$update_updateIEStyleAttribute, virtualdom_items_Element_Attribute$update_updateContentEditableValue, virtualdom_items_Element_Attribute$update_updateValue, virtualdom_items_Element_Attribute$update_updateBoolean, virtualdom_items_Element_Attribute$update_updateEverythingElse );
 
-	/* virtualdom/items/Element/Attribute/prototype/updateBindings.js */
-	var virtualdom_items_Element_Attribute$updateBindings = function Attribute$updateBindings() {
-		// if the fragment this attribute belongs to gets rebound (as a result of
-		// as section being updated via an array shift, unshift or splice), this
-		// attribute needs to recognise that its keypath has changed
-		this.keypath = this.interpolator.keypath || this.interpolator.ref;
-		// if we encounter the special case described above, update the name attribute
-		if ( this.propertyName === 'name' ) {
-			// replace actual name attribute
-			this.node.name = '{{' + this.keypath + '}}';
-		}
-	};
-
 	/* virtualdom/items/Element/Attribute/_Attribute.js */
-	var Attribute = function( bubble, init, rebind, render, toString, unbind, update, updateBindings ) {
+	var Attribute = function( bubble, init, rebind, render, toString, unbind, update ) {
 
 		var Attribute = function( options ) {
 			this.init( options );
@@ -7169,11 +7157,10 @@
 			render: render,
 			toString: toString,
 			unbind: unbind,
-			update: update,
-			updateBindings: updateBindings
+			update: update
 		};
 		return Attribute;
-	}( virtualdom_items_Element_Attribute$bubble, virtualdom_items_Element_Attribute$init, virtualdom_items_Element_Attribute$rebind, virtualdom_items_Element_Attribute$render, virtualdom_items_Element_Attribute$toString, virtualdom_items_Element_Attribute$unbind, virtualdom_items_Element_Attribute$update, virtualdom_items_Element_Attribute$updateBindings );
+	}( virtualdom_items_Element_Attribute$bubble, virtualdom_items_Element_Attribute$init, virtualdom_items_Element_Attribute$rebind, virtualdom_items_Element_Attribute$render, virtualdom_items_Element_Attribute$toString, virtualdom_items_Element_Attribute$unbind, virtualdom_items_Element_Attribute$update );
 
 	/* virtualdom/items/Element/prototype/init/createAttributes.js */
 	var virtualdom_items_Element$init_createAttributes = function( Attribute ) {
@@ -7211,10 +7198,10 @@
 	};
 
 	/* virtualdom/items/Element/Binding/Binding.js */
-	var Binding = function( runloop, warn, create, extend ) {
+	var Binding = function( runloop, warn, create, extend, removeFromArray ) {
 
 		var Binding = function( element ) {
-			var interpolator;
+			var interpolator, keypath, value;
 			this.element = element;
 			this.root = element.root;
 			this.attribute = element.attributes[ this.name || 'value' ];
@@ -7241,12 +7228,15 @@
 				// TODO: What about rx?
 				interpolator.resolve( interpolator.ref );
 			}
-			this.keypath = this.attribute.interpolator.keypath;
+			this.keypath = keypath = this.attribute.interpolator.keypath;
 			// initialise value, if it's undefined
 			// TODO could we use a similar mechanism instead of the convoluted
 			// select/checkbox init logic?
-			if ( this.root.viewmodel.get( this.keypath ) === undefined && this.getInitialValue ) {
-				this.root.viewmodel.set( this.keypath, this.getInitialValue() );
+			if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
+				value = this.getInitialValue();
+				if ( value !== undefined ) {
+					this.root.viewmodel.set( keypath, value );
+				}
 			}
 		};
 		Binding.prototype = {
@@ -7260,19 +7250,20 @@
 				} );
 				runloop.end();
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var bindings;
-				if ( this.keypath.substr( 0, oldKeypath.length ) === oldKeypath ) {
-					bindings = this.root._twowayBindings[ this.keypath ];
-					// remove binding reference for old keypath
-					bindings.splice( bindings.indexOf( this ), 1 );
-					// update keypath
-					this.keypath = this.keypath.replace( oldKeypath, newKeypath );
-					// add binding reference for new keypath
-					bindings = this.root._twowayBindings[ this.keypath ] || ( this.root._twowayBindings[ this.keypath ] = [] );
-					bindings.push( this );
+			rebind: function() {
+				var bindings, oldKeypath, newKeypath;
+				oldKeypath = this.keypath;
+				newKeypath = this.attribute.interpolator.keypath;
+				// The attribute this binding is linked to has already done the work
+				if ( oldKeypath === newKeypath ) {
+					return;
 				}
-			}
+				removeFromArray( this.root._twowayBindings[ oldKeypath ] );
+				this.keypath = newKeypath;
+				bindings = this.root._twowayBindings[ newKeypath ] || ( this.root._twowayBindings[ newKeypath ] = [] );
+				bindings.push( this );
+			},
+			unbind: function() {}
 		};
 		Binding.extend = function( properties ) {
 			var Parent = this,
@@ -7289,7 +7280,7 @@
 			return SpecialisedBinding;
 		};
 		return Binding;
-	}( runloop, warn, create, extend );
+	}( runloop, warn, create, extend, removeFromArray );
 
 	/* virtualdom/items/Element/Binding/shared/handleDomEvent.js */
 	var handleDomEvent = function handleChange() {
@@ -7337,7 +7328,7 @@
 	}();
 
 	/* virtualdom/items/Element/Binding/RadioBinding.js */
-	var RadioBinding = function( runloop, Binding, getSiblings, handleDomEvent ) {
+	var RadioBinding = function( runloop, removeFromArray, Binding, getSiblings, handleDomEvent ) {
 
 		var RadioBinding = Binding.extend( {
 			name: 'checked',
@@ -7366,13 +7357,16 @@
 			},
 			getValue: function() {
 				return this.element.node.checked;
+			},
+			unbind: function() {
+				removeFromArray( this.siblings, this );
 			}
 		} );
 		return RadioBinding;
-	}( runloop, Binding, getSiblings, handleDomEvent );
+	}( runloop, removeFromArray, Binding, getSiblings, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/RadioNameBinding.js */
-	var RadioNameBinding = function( Binding, handleDomEvent, getSiblings ) {
+	var RadioNameBinding = function( removeFromArray, Binding, handleDomEvent, getSiblings ) {
 
 		var RadioNameBinding = Binding.extend( {
 			name: 'name',
@@ -7416,10 +7410,13 @@
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				Binding.prototype.rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
 				this.element.node.name = '{{' + this.keypath + '}}';
+			},
+			unbind: function() {
+				removeFromArray( this.siblings, this );
 			}
 		} );
 		return RadioNameBinding;
-	}( Binding, handleDomEvent, getSiblings );
+	}( removeFromArray, Binding, handleDomEvent, getSiblings );
 
 	/* virtualdom/items/Element/Binding/CheckboxNameBinding.js */
 	var CheckboxNameBinding = function( isArray, removeFromArray, Binding, getSiblings, handleDomEvent ) {
@@ -7461,7 +7458,7 @@
 					this.isChecked = isArray( existingValue ) ? existingValue.indexOf( bindingValue ) !== -1 : existingValue === bindingValue;
 				}
 			},
-			teardown: function() {
+			unbind: function() {
 				removeFromArray( this.siblings, this );
 			},
 			render: function() {
@@ -7631,6 +7628,9 @@
 					this.handleChange();
 				}
 			},
+			unrender: function() {
+				this.element.node.removeEventListener( 'change', handleDomEvent, false );
+			},
 			setValue: function() {
 				throw new Error( 'TODO not implemented yet' );
 			},
@@ -7707,6 +7707,9 @@
 			getInitialValue: function() {
 				return '';
 			},
+			getValue: function() {
+				return this.element.node.value;
+			},
 			render: function() {
 				var node = this.element.node;
 				node.addEventListener( 'change', handleDomEvent, false );
@@ -7717,10 +7720,6 @@
 					}
 				}
 				node.addEventListener( 'blur', handleBlur, false );
-			},
-			getValue: function() {
-				var value = this.element.node.value;
-				return value;
 			},
 			unrender: function() {
 				var node = this.element.node;
@@ -8252,6 +8251,8 @@
 
 		return function Element$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
 			var i, storage, liveQueries, ractive;
+			// This needs to happen before two-way bindings are rebound, as
+			// it may update an attribute's keypath
 			if ( this.attributes ) {
 				this.attributes.forEach( rebind );
 			}
@@ -9164,6 +9165,9 @@
 			if ( this.fragment ) {
 				this.fragment.unbind();
 			}
+			if ( this.binding ) {
+				this.binding.unbind();
+			}
 			// Special case - <option>
 			if ( this.name === 'option' ) {
 				unbindOption( this );
@@ -9977,6 +9981,7 @@
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined && this.indexRefs[ indexRef ] !== newIndex ) {
+				// TODO surely this is unnecessary?
 				this.indexRefs[ indexRef ] = newIndex;
 			}
 			this.items.forEach( function( item ) {
