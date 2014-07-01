@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-07-01 - commit e348a100 
+	2014-07-01 - commit b3ff79cb 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4270,6 +4270,15 @@
 					}
 				} );
 				return changed;
+			},
+			findOwner: function( ractive, key ) {
+				return ractive[ this.name ].hasOwnProperty( key ) ? ractive : this.findConstructor( ractive.constructor, key );
+			},
+			findConstructor: function( constructor, key ) {
+				if ( !constructor ) {
+					return;
+				}
+				return constructor[ this.name ].hasOwnProperty( key ) ? constructor : this.findConstructor( constructor._parent, key );
 			},
 			find: function( ractive, key ) {
 				var this$0 = this;
@@ -10380,8 +10389,9 @@
 		};
 
 		function getPartialFromRegistry( ractive, name ) {
+			var partials = config.registries.partials;
 			// find first instance in the ractive or view hierarchy that has this partial
-			var instance = config.registries.partials.findInstance( ractive, name );
+			var instance = partials.findInstance( ractive, name );
 			if ( !instance ) {
 				return;
 			}
@@ -10399,8 +10409,8 @@
 				// use the parseOptions of the ractive instance on which it was found
 				partial = parser.parse( partial, parser.getParseOptions( instance ) );
 				// if fn, use instance to store result, otherwise needs to go
-				// in the correct point in prototype chain on constructor
-				var target = fn ? instance : findOwner( instance, name );
+				// in the correct point in prototype chain on instance or constructor
+				var target = fn ? instance : partials.findOwner( instance, name );
 				// may be a template with partials, which need to be registered and main template extracted
 				target.partials[ name ] = partial = config.template.processCompound( target, partial );
 			}
@@ -10409,17 +10419,6 @@
 				partial._fn = fn;
 			}
 			return partial;
-		}
-
-		function findOwner( instance, name ) {
-			return instance.partials.hasOwnProperty( name ) ? instance : findParent( instance.constructor, name );
-		}
-
-		function findParent( constructor, name ) {
-			if ( !constructor ) {
-				return;
-			}
-			return constructor.partials.hasOwnProperty( name ) ? constructor : findParent( constructor._parent, name );
 		}
 	}( log, config, parser, deIndent );
 
@@ -10510,6 +10509,36 @@
 		};
 		return Partial;
 	}( types, getPartialDescriptor, applyIndent, circular );
+
+	/* virtualdom/items/Component/getComponent.js */
+	var getComponent = function( config, circular ) {
+
+		var Ractive;
+		circular.push( function() {
+			Ractive = circular.Ractive;
+		} );
+		// finds the component constructor in the registry or view hierarchy registries
+		return function getComponent( ractive, name ) {
+			var component, instance = config.registries.components.findInstance( ractive, name );
+			if ( instance ) {
+				component = instance.components[ name ];
+				// best test we have for not Ractive.extend
+				if ( !component._parent ) {
+					// function option. execute and store for reset
+					var fn = component;
+					fn.isOwner = instance.components.hasOwnProperty( name );
+					component = fn( instance.data );
+					if ( typeof component === 'string' ) {
+						//allow string lookup
+						component = getComponent( ractive, component );
+					}
+					component._fn = fn;
+					instance.components[ name ] = component;
+				}
+			}
+			return component;
+		};
+	}( config, circular );
 
 	/* virtualdom/items/Component/prototype/detach.js */
 	var virtualdom_items_Component$detach = function Component$detach() {
@@ -10751,10 +10780,10 @@
 	};
 
 	/* virtualdom/items/Component/prototype/init.js */
-	var virtualdom_items_Component$init = function( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries, config ) {
+	var virtualdom_items_Component$init = function( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries ) {
 
-		return function Component$init( options ) {
-			var parentFragment, root, Component, data, toBind;
+		return function Component$init( options, Component ) {
+			var parentFragment, root, data, toBind;
 			parentFragment = this.parentFragment = options.parentFragment;
 			root = parentFragment.root;
 			this.root = root;
@@ -10763,8 +10792,6 @@
 			this.index = options.index;
 			this.indexRefBindings = {};
 			this.bindings = [];
-			// get the component constructor
-			Component = config.registries.components.find( root, this.name );
 			if ( !Component ) {
 				throw new Error( 'Component "' + this.name + '" not found' );
 			}
@@ -10785,7 +10812,7 @@
 			}
 			updateLiveQueries( this );
 		};
-	}( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries, config );
+	}( types, warn, createModel, createInstance, createBindings, propagateEvents, updateLiveQueries );
 
 	/* virtualdom/items/Component/prototype/rebind.js */
 	var virtualdom_items_Component$rebind = function( runloop, getNewKeypath ) {
@@ -10864,8 +10891,8 @@
 	/* virtualdom/items/Component/_Component.js */
 	var Component = function( detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, init, rebind, render, toString, unbind, unrender ) {
 
-		var Component = function( options ) {
-			this.init( options );
+		var Component = function( options, Constructor ) {
+			this.init( options, Constructor );
 		};
 		Component.prototype = {
 			detach: detach,
@@ -10916,7 +10943,7 @@
 	}( types, detach );
 
 	/* virtualdom/Fragment/prototype/init/createItem.js */
-	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, config ) {
+	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment ) {
 
 		return function createItem( options ) {
 			if ( typeof options.template === 'string' ) {
@@ -10930,8 +10957,9 @@
 				case types.TRIPLE:
 					return new Triple( options );
 				case types.ELEMENT:
-					if ( config.registries.components.find( options.parentFragment.root, options.template.e ) ) {
-						return new Component( options );
+					var constructor;
+					if ( constructor = getComponent( options.parentFragment.root, options.template.e ) ) {
+						return new Component( options, constructor );
 					}
 					return new Element( options );
 				case types.PARTIAL:
@@ -10942,7 +10970,7 @@
 					throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 			}
 		};
-	}( types, Text, Interpolator, Section, Triple, Element, Partial, Component, Comment, config );
+	}( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment );
 
 	/* virtualdom/Fragment/prototype/init.js */
 	var virtualdom_Fragment$init = function( types, create, createItem ) {
