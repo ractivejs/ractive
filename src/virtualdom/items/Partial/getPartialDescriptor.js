@@ -39,13 +39,14 @@ export default function getPartialDescriptor ( ractive, name ) {
 
 function getPartialFromRegistry ( ractive, name ) {
 
-	// find first instance in the view hierarchy that has this partial
+	// find first instance in the ractive or view hierarchy that has this partial
 	var instance = config.registries.partials.findInstance( ractive, name );
 
 	if ( !instance ) { return; }
 
 	let partial = instance.partials[ name ], fn;
 
+	// partial is a function?
 	if ( typeof partial === 'function' ) {
 		fn = partial;
 		fn.isOwner = instance.partials.hasOwnProperty(name);
@@ -58,16 +59,19 @@ function getPartialFromRegistry ( ractive, name ) {
 		// use the parseOptions of the ractive instance on which it was found
 		partial = parser.parse( partial, parser.getParseOptions( instance ) );
 
-		// if fn, use ractive to store result, otherwise needs to go on
-		// instance in the correct point in prototype chain
+		// if fn, use instance to store result, otherwise needs to go
+		// in the correct point in prototype chain on constructor
 		let target = fn ? instance : findOwner( instance, name );
 
 		// may be a template with partials, which need to be registered and main template extracted
 		target.partials[ name ] = partial = config.template.processCompound( target, partial );
 	}
+
+	// store for reset
 	if ( fn ) {
 		partial._fn = fn;
 	}
+
 	return partial;
 
 }
