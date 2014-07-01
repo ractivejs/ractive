@@ -20,8 +20,13 @@ export default function getComponent ( ractive, name ) {
 			// function option. execute and store for reset
 			let fn = component;
 			fn.isOwner = instance.components.hasOwnProperty( name );
-			instance.components[ name ] = component = fn( instance.data );
+			component = fn( instance.data );
+			if ( typeof component === 'string' ) {
+				//allow string lookup
+				component = getComponent ( ractive, component );
+			}
 			component._fn = fn;
+			instance.components[ name ] = component;
 		}
 	}
 

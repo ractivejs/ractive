@@ -1264,6 +1264,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.reset( ractive.data );
 			t.htmlEqual( fixture.innerHTML, 'widget2widget2' );
 		});
+
+		test( 'Specify component by function as string', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({ template: 'foo' });
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: {
+					widget: function( data ) {
+						return 'widget1';
+					},
+					widget1: Widget
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+		});
+
 	};
 
 });
