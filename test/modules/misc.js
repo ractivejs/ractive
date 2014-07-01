@@ -1137,7 +1137,31 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( ractive.toHTML(), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>hi</title></head><body>Hello World!</body></html>' );
-		})
+		});
+
+		test( 'Resolvers are torn down (#884)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#if foo}}
+						{{# steps[currentStep] }}
+							argh
+						{{/}}
+
+						<!-- comment -->
+					{{/if}}`,
+				data: {
+					currentStep: 0,
+					steps: [{}, {}]
+				}
+			});
+
+			expect( 0 );
+
+			ractive.set( 'foo', true );
+			ractive.set( 'foo', false );
+			ractive.set( 'currentStep', 1 );
+		});
 
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
