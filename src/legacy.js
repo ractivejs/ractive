@@ -349,6 +349,8 @@ if ( !win.addEventListener ) {
 // https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
 if ( !win.getComputedStyle ) {
 	exportedShims.getComputedStyle = (function () {
+		var borderSizes = {};
+
 		function getPixelSize(element, style, property, fontSize) {
 			var
 			sizeWithSuffix = style[property],
@@ -356,10 +358,41 @@ if ( !win.getComputedStyle ) {
 			suffix = sizeWithSuffix.split(/\d/)[0],
 			rootSize;
 
+			if ( isNaN( size ) ) {
+				if ( /^thin|medium|thick$/.test( sizeWithSuffix ) ) {
+					size = getBorderPixelSize( sizeWithSuffix );
+					suffix = '';
+				}
+
+				else {
+					// TODO...
+				}
+			}
+
 			fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
 			rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
 
 			return (suffix == 'em') ? size * fontSize : (suffix == 'in') ? size * 96 : (suffix == 'pt') ? size * 96 / 72 : (suffix == '%') ? size / 100 * rootSize : size;
+		}
+
+		function getBorderPixelSize ( size ) {
+			var div, bcr;
+
+			// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
+			if ( !borderSizes[ size ] ) {
+				div = document.createElement( 'div' );
+				div.style.display = 'block';
+				div.style.position = 'fixed';
+				div.style.width = div.style.height = '0';
+				div.style.borderRight = size + ' solid black';
+
+				document.getElementsByTagName( 'body' )[0].appendChild( div );
+				bcr = div.getBoundingClientRect();
+
+				borderSizes[ size ] = bcr.right - bcr.left;
+			}
+
+			return borderSizes[ size ];
 		}
 
 		function setShortStyleProperty(style, property) {
@@ -383,9 +416,23 @@ if ( !win.getComputedStyle ) {
 			style = this;
 			fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
 
+			// TODO tidy this up, test it, send PR to jonathantneal!
 			for (property in currentStyle) {
-				if (/width|height|margin.|padding.|border.+W/.test(property) && style[property] !== 'auto') {
-					style[property] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
+				if ( /width|height|margin.|padding.|border.+W/.test(property) ) {
+					if ( currentStyle[ property ] === 'auto' ) {
+						if ( /^width|height/.test( property ) ) {
+							// just use clientWidth/clientHeight...
+							style[ property ] = ( property === 'width' ? element.clientWidth : element.clientHeight ) + 'px';
+						}
+
+						else if ( /(?:padding)?Top|Bottom$/.test( property ) ) {
+							style[ property ] = '0px';
+						}
+					}
+
+					else {
+						style[ property ] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
+					}
 				} else if (property === 'styleFloat') {
 					style.float = currentStyle[property];
 				} else {

@@ -467,6 +467,15 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( count, 4 );
 		});
 
+		test( 'ractive.off() is chainable (#677)', t => {
+			var ractive, returnedValue;
+
+			ractive = new Ractive();
+			returnedValue = ractive.off('foo');
+
+			t.equal( returnedValue, ractive );
+		});
+
 	};
 
 });

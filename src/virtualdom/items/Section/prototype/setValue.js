@@ -14,6 +14,16 @@ circular.push( function () {
 export default function Section$setValue ( value ) {
 	var wrapper, fragmentOptions;
 
+	if ( this.updating ) {
+		// If a child of this section causes a re-evaluation - for example, an
+		// expression refers to a function that mutates the array that this
+		// section depends on - we'll end up with a double rendering bug (see
+		// https://github.com/ractivejs/ractive/issues/748). This prevents it.
+		return;
+	}
+
+	this.updating = true;
+
 	// with sections, we need to get the fake value if we have a wrapped object
 	if ( wrapper = this.root.viewmodel.wrapped[ this.keypath ] ) {
 		value = wrapper.get();
@@ -52,6 +62,7 @@ export default function Section$setValue ( value ) {
 	}
 
 	this.value = value;
+	this.updating = false;
 }
 
 

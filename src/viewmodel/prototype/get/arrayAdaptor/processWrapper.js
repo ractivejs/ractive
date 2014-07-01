@@ -1,8 +1,5 @@
 export default function ( wrapper, array, methodName, spliceSummary ) {
-	var root, keypath;
-
-	root = wrapper.root;
-	keypath = wrapper.keypath;
+	var { root, keypath } = wrapper;
 
 	// If this is a sort or reverse, we just do root.set()...
 	// TODO use merge logic?

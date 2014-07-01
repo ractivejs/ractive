@@ -13,7 +13,7 @@ if ( !isClient ) {
 	getStyle = function ( props ) {
 		var computedStyle, styles, i, prop, value;
 
-		computedStyle = window.getComputedStyle( this.node );
+		computedStyle = getComputedStyle( this.node );
 
 		if ( typeof props === 'string' ) {
 			value = computedStyle[ prefix( props ) ];
@@ -24,7 +24,7 @@ if ( !isClient ) {
 		}
 
 		if ( !isArray( props ) ) {
-			throw new Error( 'Transition#getStyle must be passed a string, or an array of strings representing CSS properties' );
+			throw new Error( 'Transition$getStyle must be passed a string, or an array of strings representing CSS properties' );
 		}
 
 		styles = {};

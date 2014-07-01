@@ -571,30 +571,6 @@ var parseTests = [
 			'{{else}} not allowed in {{#with}} at line 1 character 31:\n{{#with foo}}with foo {{else}}no foo?{{/with}}\n                              ^----'
 	},
 	{
-		name: 'Else is just a regular interpolator in {{#}}',
-		template: '{{#foo}}with foo {{else}}no foo?{{/foo}}',
-		parsed:
-			[ { t: 4,
-			    r: 'foo',
-			    f:
-			     [ 'with foo ',
-			       { t: 2, r: 'else' },
-			       'no foo?' ] } ]
-
-	},
-	{
-		name: 'Else is just a regular interpolator in {{^}}',
-		template: '{{^foo}}not foo {{else}}no foo?{{/foo}}',
-		parsed:
-			[ { t: 4,
-				r: 'foo',
-				n: 51,
-				f:
-				 [ 'not foo ',
-				   { t: 2, r: 'else' },
-				   'no foo?' ] } ]
-	},
-	{
 		name: 'Mixed Handlebars-style and regular syntax',
 		template: '{{#foo}}normal{{/foo}}{{#if foo}}handlebars{{/if}}',
 		parsed: [{t:4,r:'foo',f:['normal']},{t:4,r:'foo',n:50,f:['handlebars']}]
@@ -785,6 +761,11 @@ var parseTests = [
 		name: 'Closing an unopened section',
 		template: '{{foo}}{{/foo}}',
 		error: 'Attempted to close a section that wasn\'t open at line 1 character 8:\n{{foo}}{{/foo}}\n       ^----'
+	},
+	{
+		name: 'Unclosed section in attribute',
+		template: '<p class="{{#foo}}yo{{#foo}}"></p>',
+		error: 'An attribute value must contain as many opening section tags as closing section tags at line 1 character 10:\n<p class=\"{{#foo}}yo{{#foo}}\"></p>\n         ^----'
 	}
 ];
 

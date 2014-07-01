@@ -731,6 +731,29 @@ var renderTests = [
 		template: '{{#a}}{{#b}}{{#c}}{{~/foo}}{{/c}}{{/b}}{{/a}}',
 		data: { foo: 'top', a: { b: { c: { foo: 'c' }, foo: 'b' }, foo: 'a' } },
 		result: 'top'
+	},
+	{
+		name: 'else in non-Handlebars blocks',
+		template: '{{#foo}}yes{{else}}no{{/foo}}',
+		data: { foo: true },
+		result: 'yes',
+		new_data: { foo: false },
+		new_result: 'no'
+	},
+	{
+		name: 'Double-rendering bug (#748) is prevented',
+		template: '{{#foo}}{{#f(this)}}{{this}}{{/f}}{{/foo}}',
+		data: {
+			foo: [
+				[ 2, 1, 4, 3 ]
+			],
+			f: function (x) {
+				return x.sort(function (a, b) { // ... or this (sort) and it will work
+					return b - a;
+				});
+			}
+		},
+		result: '4321'
 	}
 ];
 

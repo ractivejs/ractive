@@ -37,6 +37,23 @@ Registry.prototype = {
 		target[ name ] = registry;
 
 	},
+	reset: function ( ractive ) {
+
+		var registry = ractive[ this.name ];
+		var changed = false;
+		Object.keys( registry ).forEach( key => {
+			var item = registry[key];
+			if ( item._fn ) {
+				if ( item._fn.isOwner ) {
+					registry[key] = item._fn;
+				} else {
+					delete registry[key];
+				}
+				changed = true;
+			}
+		});
+		return changed;
+	},
 
 	find: function ( ractive, key ) {
 
