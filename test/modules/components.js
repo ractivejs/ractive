@@ -1235,6 +1235,55 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '<p>outside component: 0-A</p><p>inside component: 0-A</p><p>outside component: 1-C</p><p>inside component: 1-C</p>' );
 		});
+
+		test( 'Specify component by function', function ( t ) {
+			var Widget1, Widget2, ractive;
+
+			Widget1 = Ractive.extend({ template: 'widget1' });
+			Widget2 = Ractive.extend({ template: 'widget2' });
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<widget/>{{/items}}',
+				components: {
+					widget: function( data ) {
+						return data.foo ? Widget1 : Widget2;
+					}
+				},
+				data: {
+					foo: true,
+					items: [1]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'widget1' );
+			ractive.set( 'foo', false );
+			ractive.push( 'items', 2);
+			t.htmlEqual( fixture.innerHTML, 'widget1widget1', 'Component pinned until reset' );
+
+			ractive.reset( ractive.data );
+			t.htmlEqual( fixture.innerHTML, 'widget2widget2' );
+		});
+
+		test( 'Specify component by function as string', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({ template: 'foo' });
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: {
+					widget: function( data ) {
+						return 'widget1';
+					},
+					widget1: Widget
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+		});
+
 	};
 
 });
