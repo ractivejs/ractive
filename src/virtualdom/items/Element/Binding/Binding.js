@@ -64,7 +64,7 @@ Binding.prototype = {
 		var bindings, oldKeypath, newKeypath;
 
 		oldKeypath = this.keypath;
-		newKeypath = this.attribute.keypath;
+		newKeypath = this.attribute.interpolator.keypath;
 
 		// The attribute this binding is linked to has already done the work
 		if ( oldKeypath === newKeypath ) {
