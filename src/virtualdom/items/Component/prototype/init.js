@@ -5,12 +5,10 @@ import createInstance from 'virtualdom/items/Component/initialise/createInstance
 import createBindings from 'virtualdom/items/Component/initialise/createBindings';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
-import config from 'config/config';
 
-export default function Component$init ( options ) {
+export default function Component$init ( options, Component ) {
 	var parentFragment,
 		root,
-		Component,
 		data,
 		toBind;
 
@@ -23,9 +21,6 @@ export default function Component$init ( options ) {
 	this.index = options.index;
 	this.indexRefBindings = {};
 	this.bindings = [];
-
-	// get the component constructor
-	Component = config.registries.components.find( root, this.name );
 
 	if ( !Component ) {
 		throw new Error( 'Component "' + this.name + '" not found' );

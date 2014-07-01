@@ -5,9 +5,9 @@ import Section from 'virtualdom/items/Section/_Section';
 import Triple from 'virtualdom/items/Triple/_Triple';
 import Element from 'virtualdom/items/Element/_Element';
 import Partial from 'virtualdom/items/Partial/_Partial';
+import getComponent from 'virtualdom/items/Component/getComponent';
 import Component from 'virtualdom/items/Component/_Component';
 import Comment from 'virtualdom/items/Comment';
-import config from 'config/config';
 
 export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {
@@ -19,8 +19,9 @@ export default function createItem ( options ) {
 		case types.SECTION:      return new Section( options );
 		case types.TRIPLE:       return new Triple( options );
 		case types.ELEMENT:
-			if ( config.registries.components.find( options.parentFragment.root, options.template.e ) ) {
-				return new Component( options );
+			let constructor;
+			if ( constructor = getComponent( options.parentFragment.root, options.template.e ) ) {
+				return new Component( options, constructor );
 			}
 			return new Element( options );
 		case types.PARTIAL:      return new Partial( options );

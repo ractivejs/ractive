@@ -55,6 +55,19 @@ Registry.prototype = {
 		return changed;
 	},
 
+	findOwner: function ( ractive, key ) {
+		return ractive[ this.name ].hasOwnProperty( key )
+			? ractive
+			: this.findConstructor( ractive.constructor, key);
+	},
+
+	findConstructor: function ( constructor, key ) {
+		if ( !constructor ) { return; }
+		return constructor[ this.name ].hasOwnProperty( key )
+			? constructor
+			: this.findConstructor( constructor._parent, key );
+	},
+
 	find: function ( ractive, key ) {
 
 		return recurseFind( ractive, r => r[ this.name ][ key ] );
