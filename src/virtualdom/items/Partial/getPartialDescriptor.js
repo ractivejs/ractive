@@ -50,10 +50,20 @@ function getPartialFromRegistry ( ractive, name ) {
 
 	// partial is a function?
 	if ( typeof partial === 'function' ) {
-		fn = partial;
+		fn = partial.bind( instance );
 		fn.isOwner = instance.partials.hasOwnProperty(name);
-		partial = partial( instance.data );
+		partial = fn( instance.data );
 	}
+
+	if ( !partial ) {
+		log.warn({
+			debug: ractive.debug,
+			message: 'noRegistryFunctionReturn',
+			args: { registry: 'partial', name: name }
+		});
+		return;
+	}
+
 	// If this was added manually to the registry,
 	// but hasn't been parsed, parse it now
 	if ( !parser.isParsed( partial ) ) {

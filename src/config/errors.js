@@ -24,5 +24,8 @@ export default {
 		'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
 
 	badRadioInputBinding:
-		'A radio input can have two-way binding on its name attribute, or its checked attribute - not both'
+		'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
+
+	noRegistryFunctionReturn:
+		'A function was specified for "{name}" {registry}, but no {registry} was returned'
 };

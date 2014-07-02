@@ -29,6 +29,68 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 		});
 
+		if ( console && console.warn ) {
+
+			test( 'no return of partial warns in debug', function ( t ) {
+
+				var ractive, warn = console.warn;
+
+				expect( 2 ); //throws counts as an assertion
+
+				console.warn = function( msg ) {
+					t.ok( msg );
+				}
+
+				// will throw on no-partial found
+				throws( () => {
+					ractive = new Ractive({
+						el: fixture,
+						template: '{{>foo}}',
+						data: { foo: true },
+						debug: true,
+						partials: {
+							foo: function ( data ) {
+								// where's my partial?
+							}
+						}
+					});
+				});
+
+				console.warn = warn;
+
+			});
+		}
+
+		test( '`this` in function refers to ractive instance', function ( t ) {
+
+			var thisForFoo, thisForBar, ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{>foo}}<widget/>',
+				data: { foo: true },
+				components: {
+					widget: Ractive.extend({
+						template: '{{>bar}}'
+					})
+				},
+				partials: {
+					foo: function ( ) {
+						thisForFoo = this;
+						return 'foo';
+					},
+					bar: function ( ) {
+						thisForBar = this;
+						return 'bar';
+					}
+				}
+			});
+
+			t.equal( thisForFoo, ractive );
+			t.equal( thisForBar, ractive );
+
+		});
+
 		test( 'partial functions belong to instance, not Component', function ( t ) {
 
 			var Component, ractive1, ractive2;

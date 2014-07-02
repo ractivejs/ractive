@@ -1284,6 +1284,64 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'foo' );
 		});
 
+		if ( console && console.warn ) {
+
+			test( 'no return of component warns in debug', function ( t ) {
+
+				var ractive, warn = console.warn;
+
+				expect( 1 );
+
+				console.warn = function( msg ) {
+					t.ok( msg );
+				}
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<widget/>',
+					debug: true,
+					components: {
+						widget: function( data ) {
+							// where's my component?
+						}
+					}
+				});
+
+				console.warn = warn;
+
+			});
+		}
+
+		test( '`this` in function refers to ractive instance', function ( t ) {
+
+			var thisForFoo, thisForBar, ractive, Component;
+
+			Component = Ractive.extend({})
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<foo/><widget/>',
+				data: { foo: true },
+				components: {
+					widget: Ractive.extend({
+						template: '<bar/>'
+					}),
+					foo: function ( ) {
+						thisForFoo = this;
+						return Component;
+					},
+					bar: function ( ) {
+						thisForBar = this;
+						return Component;
+					}
+				}
+			});
+
+			t.equal( thisForFoo, ractive );
+			t.equal( thisForBar, ractive );
+
+		});
+
 	};
 
 });
