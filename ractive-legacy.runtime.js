@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-07-02 - commit 52f45898 
+	2014-07-02 - commit bb55599e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3713,75 +3713,34 @@
 	};
 
 	/* virtualdom/Fragment/prototype/find.js */
-	var virtualdom_Fragment$find = function( matches ) {
-
-		return function Fragment$find( selector ) {
-			var i, len, item, node, queryResult;
-			if ( this.nodes ) {
-				len = this.nodes.length;
-				for ( i = 0; i < len; i += 1 ) {
-					node = this.nodes[ i ];
-					// we only care about elements
-					if ( node.nodeType !== 1 ) {
-						continue;
-					}
-					if ( matches( node, selector ) ) {
-						return node;
-					}
-					if ( queryResult = node.querySelector( selector ) ) {
-						return queryResult;
-					}
+	var virtualdom_Fragment$find = function Fragment$find( selector ) {
+		var i, len, item, queryResult;
+		if ( this.items ) {
+			len = this.items.length;
+			for ( i = 0; i < len; i += 1 ) {
+				item = this.items[ i ];
+				if ( item.find && ( queryResult = item.find( selector ) ) ) {
+					return queryResult;
 				}
-				return null;
 			}
-			if ( this.items ) {
-				len = this.items.length;
-				for ( i = 0; i < len; i += 1 ) {
-					item = this.items[ i ];
-					if ( item.find && ( queryResult = item.find( selector ) ) ) {
-						return queryResult;
-					}
-				}
-				return null;
-			}
-		};
-	}( matches );
+			return null;
+		}
+	};
 
 	/* virtualdom/Fragment/prototype/findAll.js */
-	var virtualdom_Fragment$findAll = function( matches ) {
-
-		return function Fragment$findAll( selector, query ) {
-			var i, len, item, node, queryAllResult, numNodes, j;
-			if ( this.nodes ) {
-				len = this.nodes.length;
-				for ( i = 0; i < len; i += 1 ) {
-					node = this.nodes[ i ];
-					// we only care about elements
-					if ( node.nodeType !== 1 ) {
-						continue;
-					}
-					if ( matches( node, selector ) ) {
-						query.push( node );
-					}
-					if ( queryAllResult = node.querySelectorAll( selector ) ) {
-						numNodes = queryAllResult.length;
-						for ( j = 0; j < numNodes; j += 1 ) {
-							query.push( queryAllResult[ j ] );
-						}
-					}
-				}
-			} else if ( this.items ) {
-				len = this.items.length;
-				for ( i = 0; i < len; i += 1 ) {
-					item = this.items[ i ];
-					if ( item.findAll ) {
-						item.findAll( selector, query );
-					}
+	var virtualdom_Fragment$findAll = function Fragment$findAll( selector, query ) {
+		var i, len, item;
+		if ( this.items ) {
+			len = this.items.length;
+			for ( i = 0; i < len; i += 1 ) {
+				item = this.items[ i ];
+				if ( item.findAll ) {
+					item.findAll( selector, query );
 				}
 			}
-			return query;
-		};
-	}( matches );
+		}
+		return query;
+	};
 
 	/* virtualdom/Fragment/prototype/findAllComponents.js */
 	var virtualdom_Fragment$findAllComponents = function Fragment$findAllComponents( selector, query ) {
@@ -3815,28 +3774,28 @@
 
 	/* virtualdom/Fragment/prototype/findNextNode.js */
 	var virtualdom_Fragment$findNextNode = function Fragment$findNextNode( item ) {
-		var index = item.index;
+		var index = item.index,
+			node;
 		if ( this.items[ index + 1 ] ) {
-			return this.items[ index + 1 ].firstNode();
-		}
-		// if this is the root fragment, and there are no more items,
-		// it means we're at the end...
-		if ( this.owner === this.root ) {
+			node = this.items[ index + 1 ].firstNode();
+		} else if ( this.owner === this.root ) {
 			if ( !this.owner.component ) {
-				return null;
+				// TODO but something else could have been appended to
+				// this.root.el, no?
+				node = null;
+			} else {
+				node = this.owner.component.findNextNode();
 			}
-			// ...unless this is a component
-			return this.owner.component.findNextNode();
+		} else {
+			node = this.owner.findNextNode( this );
 		}
-		return this.owner.findNextNode( this );
+		return node;
 	};
 
 	/* virtualdom/Fragment/prototype/firstNode.js */
 	var virtualdom_Fragment$firstNode = function Fragment$firstNode() {
 		if ( this.items && this.items[ 0 ] ) {
 			return this.items[ 0 ].firstNode();
-		} else if ( this.nodes ) {
-			return this.nodes[ 0 ] || null;
 		}
 		return null;
 	};
@@ -5759,8 +5718,13 @@
 
 	/* virtualdom/items/Section/prototype/firstNode.js */
 	var virtualdom_items_Section$firstNode = function Section$firstNode() {
-		if ( this.fragments[ 0 ] ) {
-			return this.fragments[ 0 ].firstNode();
+		var len, i, node;
+		if ( len = this.fragments.length ) {
+			for ( i = 0; i < len; i += 1 ) {
+				if ( node = this.fragments[ i ].firstNode() ) {
+					return node;
+				}
+			}
 		}
 		return this.parentFragment.findNextNode( this );
 	};
@@ -6203,7 +6167,6 @@
 		}
 		if ( this.rendered && this.docFrag.childNodes.length ) {
 			anchor = this.parentFragment.findNextNode( this );
-			target = this.parentFragment.getNode();
 			target.insertBefore( this.docFrag, anchor );
 		}
 	};
@@ -9971,8 +9934,7 @@
 		return function Fragment$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
-			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined && this.indexRefs[ indexRef ] !== newIndex ) {
-				// TODO surely this is unnecessary?
+			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined ) {
 				this.indexRefs[ indexRef ] = newIndex;
 			}
 			this.items.forEach( function( item ) {
