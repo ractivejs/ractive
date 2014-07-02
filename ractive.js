@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-07-02 - commit 665537a1 
+	2014-07-02 - commit 88abef20 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1500,7 +1500,8 @@
 		badArguments: 'Bad arguments "{arguments}". I\'m not allowed to argue unless you\'ve paid.',
 		failedComputation: 'Failed to compute "{key}": {err}',
 		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
-		badRadioInputBinding: 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both'
+		badRadioInputBinding: 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
+		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned'
 	};
 
 	/* config/types.js */
@@ -10357,9 +10358,20 @@
 				fn;
 			// partial is a function?
 			if ( typeof partial === 'function' ) {
-				fn = partial;
+				fn = partial.bind( instance );
 				fn.isOwner = instance.partials.hasOwnProperty( name );
-				partial = partial( instance.data );
+				partial = fn( instance.data );
+			}
+			if ( !partial ) {
+				log.warn( {
+					debug: ractive.debug,
+					message: 'noRegistryFunctionReturn',
+					args: {
+						registry: 'partial',
+						name: name
+					}
+				} );
+				return;
 			}
 			// If this was added manually to the registry,
 			// but hasn't been parsed, parse it now
@@ -10469,7 +10481,7 @@
 	}( types, getPartialDescriptor, applyIndent, circular );
 
 	/* virtualdom/items/Component/getComponent.js */
-	var getComponent = function( config, circular ) {
+	var getComponent = function( config, log, circular ) {
 
 		var Ractive;
 		circular.push( function() {
@@ -10482,10 +10494,21 @@
 				component = instance.components[ name ];
 				// best test we have for not Ractive.extend
 				if ( !component._parent ) {
-					// function option. execute and store for reset
-					var fn = component;
+					// function option, execute and store for reset
+					var fn = component.bind( instance );
 					fn.isOwner = instance.components.hasOwnProperty( name );
 					component = fn( instance.data );
+					if ( !component ) {
+						log.warn( {
+							debug: ractive.debug,
+							message: 'noRegistryFunctionReturn',
+							args: {
+								registry: 'component',
+								name: name
+							}
+						} );
+						return;
+					}
 					if ( typeof component === 'string' ) {
 						//allow string lookup
 						component = getComponent( ractive, component );
@@ -10496,7 +10519,7 @@
 			}
 			return component;
 		};
-	}( config, circular );
+	}( config, log, circular );
 
 	/* virtualdom/items/Component/prototype/detach.js */
 	var virtualdom_items_Component$detach = function Component$detach() {
