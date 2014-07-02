@@ -1221,6 +1221,33 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>1: one</p>' );
 		});
 
+		test( 'Content renders to correct place when subsequent sections have no nodes (#910)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{ >partial}} <!-- foo -->',
+				partials: {
+					partial: `
+						{{# steps[currentStep] }}
+							before
+						{{/}}
+						{{#if currentStep !== 1 }}
+							after
+						{{else}}
+							after
+						{{/if}}`
+				},
+				data: {
+					currentStep: 0,
+					steps: [ true, true ]
+				}
+			});
+
+			ractive.set( 'currentStep', null );
+			ractive.set( 'currentStep', 1 );
+
+			t.htmlEqual( fixture.innerHTML, 'before after' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
