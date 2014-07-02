@@ -436,6 +436,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'selected' ), { one: 'a', two: 'b' });
 		});
 
+		test( 'Ambiguous reference expressions in two-way bindings attach to the root (#900)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					<p>foo[{{bar}}]: {{foo[bar]}}</p>
+					{{#with whatever}}
+						<input value='{{foo[bar]}}'>
+					{{/with}}`,
+				data: {
+					bar: 0
+				}
+			});
+
+			ractive.find( 'input' ).value = 'test';
+			ractive.updateModel();
+
+			t.deepEqual( ractive.get( 'foo' ), [ 'test' ] );
+			t.htmlEqual( fixture.innerHTML, '<p>foo[0]: test</p><input>' );
+		});
+
 	};
 
 });

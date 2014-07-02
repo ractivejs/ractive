@@ -17,7 +17,7 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 
 	// Simple reference?
 	else if ( template.t === types.REFERENCE ) {
-		ref = template.n;
+		ref = member.ref = template.n;
 
 		// If it's an index reference, our job is simple
 		if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
@@ -46,8 +46,7 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 
 	// Otherwise we have an expression in its own right
 	else {
-		member.unresolved = new ExpressionResolver( resolver, parentFragment, template, function ( keypath ) {
-			member.unresolved = null;
+		new ExpressionResolver( resolver, parentFragment, template, function ( keypath ) {
 			member.resolve( keypath );
 		});
 	}
@@ -105,6 +104,18 @@ MemberResolver.prototype = {
 
 		if ( this.unresolved ) {
 			this.unresolved.teardown();
+		}
+	},
+
+	forceResolution: function () {
+		if ( this.unresolved ) {
+			this.unresolved.teardown();
+			this.unresolved = null;
+
+			this.keypath = this.ref;
+			this.value = this.viewmodel.get( this.ref );
+
+			this.bind();
 		}
 	}
 };

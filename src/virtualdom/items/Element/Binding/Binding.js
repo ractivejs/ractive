@@ -33,11 +33,18 @@ var Binding = function ( element ) {
 	// be explicit when using two-way data-binding about what keypath you're
 	// updating. Using it in lists is probably a recipe for confusion...
 	if ( !interpolator.keypath ) {
-		// TODO: What about rx?
-		interpolator.resolve( interpolator.ref );
+		if ( interpolator.ref ) {
+			interpolator.resolve( interpolator.ref );
+		}
+
+		// If we have a reference expression resolver, we have to force
+		// members to attach themselves to the root
+		if ( interpolator.resolver ) {
+			interpolator.resolver.forceResolution();
+		}
 	}
 
-	this.keypath = keypath = this.attribute.interpolator.keypath;
+	this.keypath = keypath = interpolator.keypath;
 
 	// initialise value, if it's undefined
 	// TODO could we use a similar mechanism instead of the convoluted
