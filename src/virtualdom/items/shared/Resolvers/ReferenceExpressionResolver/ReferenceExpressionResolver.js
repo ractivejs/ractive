@@ -1,5 +1,3 @@
-import types from 'config/types';
-import removeFromArray from 'utils/removeFromArray';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
 import MemberResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver';
@@ -81,23 +79,9 @@ ReferenceExpressionResolver.prototype = {
 		}
 
 		this.members.forEach( m => m.forceResolution() );
-		this.bubble()
+		this.bubble();
 	}
 };
-
-function resolveBase ( resolver, ractive, ref, parentFragment ) {
-	var keypath;
-
-	if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-		resolver.base = keypath;
-	} else {
-		resolver.baseResolver = new Unresolved( ractive, ref, parentFragment, function ( keypath ) {
-			resolver.base = keypath;
-			resolver.baseResolver = null;
-			resolver.bubble();
-		});
-	}
-}
 
 function getValue ( member ) {
 	return member.value;
