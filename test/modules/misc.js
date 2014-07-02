@@ -1163,6 +1163,38 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'currentStep', 1 );
 		});
 
+		test( 'Regression test for #844', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{# steps[currentStep] }}
+						{{#if bool}}
+							some text
+							<!-- this is needed! -->
+						{{/if}}
+					{{/}}
+					{{#if currentStep < steps.length - 1 }}
+						<a on-click='toggleStep'>toggle step: 1</a>
+					{{else}}
+						<a on-click='toggleStep'>toggle step: 0</a>
+					{{/if}}`,
+				data: {
+					currentStep: 0,
+					stepsQuantity: 2,
+					steps: [{}, {}],
+					bool: true
+				}
+			});
+
+			ractive.set( 'currentStep', null );
+			ractive.set( 'currentStep', 1 );
+
+			t.htmlEqual( fixture.innerHTML, 'some text  <a>toggle step: 0</a>' );
+
+			ractive.set( 'currentStep', 0 );
+			t.htmlEqual( fixture.innerHTML, 'some text  <a>toggle step: 1</a>' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

@@ -1,7 +1,7 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
-import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver';
+import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 export default function Mustache$init ( mustache, options ) {
