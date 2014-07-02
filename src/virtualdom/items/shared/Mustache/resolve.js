@@ -32,9 +32,11 @@ export default function Mustache$resolve ( keypath ) {
 	}
 
 	this.keypath = keypath;
-	this.setValue( this.root.viewmodel.get( keypath ) );
 
 	if ( keypath !== undefined ) {
+		this.setValue( this.root.viewmodel.get( keypath ) );
 		this.root.viewmodel.register( keypath, this );
+	} else {
+		this.setValue( undefined );
 	}
 }

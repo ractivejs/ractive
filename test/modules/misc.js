@@ -1195,6 +1195,32 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'some text  <a>toggle step: 1</a>' );
 		});
 
+		test( 'Mustaches that re-resolve to undefined behave correctly (#908)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{# steps[currentStep] }}
+						<p>{{currentStep}}: {{name}}</p>
+					{{/}}`,
+				data: {
+					currentStep: 0,
+					steps: [
+						{
+							name: 'zero'
+						},
+						{
+							name: 'one'
+						}
+					]
+				}
+			});
+
+			ractive.set( 'currentStep', null );
+			ractive.set( 'currentStep', 1 );
+
+			t.htmlEqual( fixture.innerHTML, '<p>1: one</p>' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
