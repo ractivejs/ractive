@@ -8,12 +8,11 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 	deps = this.deps[ group ][ keypath ];
 	index = deps.indexOf( dependant );
 
-	if ( index === -1 || !dependant.registered ) {
+	if ( index === -1 ) {
 		throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
 	}
 
 	deps.splice( index, 1 );
-	dependant.registered = false;
 
 	if ( !keypath ) {
 		return;

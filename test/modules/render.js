@@ -106,7 +106,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			});
 		}
 
-		test('Nested keypath expression updates when array index member changes', function(t){
+		test('Nested reference expression updates when array index member changes', function(t){
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#item}}{{foo[bar]}}{{/}}',
@@ -119,7 +119,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		});
 
-		test('Conditional section with keypath expression updates when keypath changes', function(t){
+		test('Conditional section with reference expression updates when keypath changes', function(t){
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#foo[bar]}}buzz{{/}}',
@@ -135,7 +135,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		});
 
-		test('Input with keypath expression updates target when keypath changes', function(t){
+		test('Input with reference expression updates target when keypath changes', function(t){
 			var ractive = new Ractive({
 				el: fixture,
 				template: '<input value="{{foo[bar]}}"/>',

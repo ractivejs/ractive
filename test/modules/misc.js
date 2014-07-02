@@ -1248,6 +1248,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'before after' );
 		});
 
+		test( 'Dependants can register more than once without error (#838)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if foo}}<p>{{fn(foo)}}</p>{{/if}}',
+				data: {
+					fn: function ( foo ) {
+						foo.bar;
+						this.get( 'foo' );
+						this.get( 'bar' );
+					}
+				}
+			});
+
+			expect( 0 );
+
+			ractive.set( 'foo', {} );
+			ractive.set( 'foo', null );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

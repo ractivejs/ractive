@@ -3,18 +3,12 @@ import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
 export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var i, storage, liveQueries, ractive;
 
-	// This needs to happen before two-way bindings are rebound, as
-	// it may update an attribute's keypath
 	if ( this.attributes ) {
 		this.attributes.forEach( rebind );
 	}
 
 	if ( this.eventHandlers ) {
 		this.eventHandlers.forEach( rebind );
-	}
-
-	if ( this.binding ) {
-		rebind( this.binding );
 	}
 
 	// rebind children

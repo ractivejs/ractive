@@ -1,7 +1,7 @@
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
 export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
-	var updated;
+	var keypath;
 
 	// Children first
 	if ( this.fragments ) {
@@ -15,12 +15,10 @@ export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKey
 
 	// Normal keypath mustache or reference expression?
 	if ( this.keypath ) {
-		updated = getNewKeypath( this.keypath, oldKeypath, newKeypath );
-
 		// was a new keypath created?
-		if ( updated ) {
+		if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
 			// resolve it
-			this.resolve( updated );
+			this.resolve( keypath );
 		}
 	}
 

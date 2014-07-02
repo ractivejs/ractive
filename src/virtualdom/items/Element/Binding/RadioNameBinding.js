@@ -53,9 +53,18 @@ var RadioNameBinding = Binding.extend({
 		}
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		Binding.prototype.rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
-		this.element.node.name = '{{' + this.keypath + '}}';
+	rebound: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		var node;
+
+		Binding.prototype.rebound.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+
+		if ( node = this.element.node ) {
+			node.name = '{{' + this.keypath + '}}';
+		}
+
+		else {
+			throw new Error( 'err what gives?' );
+		}
 	},
 
 	unbind: function () {
