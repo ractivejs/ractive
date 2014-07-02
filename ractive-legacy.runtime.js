@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-07-01 - commit f6dffe5b 
+	2014-07-02 - commit acfe5b04 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5352,10 +5352,92 @@
 		}
 	}( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath );
 
-	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver.js */
-	var ReferenceExpressionResolver = function( types, removeFromArray, resolveRef, Unresolved, getNewKeypath, ExpressionResolver ) {
+	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
+	var MemberResolver = function( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver ) {
+
+		var MemberResolver = function( template, resolver, parentFragment ) {
+			var member = this,
+				ref, indexRefs, index, ractive, keypath;
+			member.resolver = resolver;
+			member.root = resolver.root;
+			member.viewmodel = resolver.root.viewmodel;
+			if ( typeof template === 'string' ) {
+				member.value = template;
+			} else if ( template.t === types.REFERENCE ) {
+				ref = template.n;
+				// If it's an index reference, our job is simple
+				if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
+					member.indexRef = ref;
+					member.value = index;
+				} else {
+					ractive = resolver.root;
+					// Can we resolve the reference immediately?
+					if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
+						member.resolve( keypath );
+					} else {
+						// Couldn't resolve yet
+						member.unresolved = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
+							member.unresolved = null;
+							member.resolve( keypath );
+						} );
+					}
+				}
+			} else {
+				member.unresolved = new ExpressionResolver( resolver, parentFragment, template, function( keypath ) {
+					member.unresolved = null;
+					member.resolve( keypath );
+				} );
+			}
+		};
+		MemberResolver.prototype = {
+			resolve: function( keypath ) {
+				this.keypath = keypath;
+				this.value = this.viewmodel.get( keypath );
+				this.bind();
+				this.resolver.bubble();
+			},
+			bind: function() {
+				this.viewmodel.register( this.keypath, this );
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				var keypath;
+				if ( indexRef && this.indexRef === indexRef ) {
+					if ( newIndex !== this.value ) {
+						this.value = newIndex;
+						return true;
+					}
+				} else if ( this.keypath && ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) ) {
+					this.unbind();
+					this.keypath = keypath;
+					this.value = this.root.viewmodel.get( keypath );
+					this.bind();
+					return true;
+				}
+			},
+			setValue: function( value ) {
+				this.value = value;
+				this.resolver.bubble();
+			},
+			unbind: function() {
+				if ( this.keypath ) {
+					this.root.viewmodel.unregister( this.keypath, this );
+				}
+			},
+			teardown: function() {
+				this.unbind();
+				if ( this.unresolved ) {
+					this.unresolved.teardown();
+				}
+			}
+		};
+		return MemberResolver;
+	}( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver );
+
+	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js */
+	var ReferenceExpressionResolver = function( removeFromArray, resolveRef, Unresolved, MemberResolver ) {
 
 		var ReferenceExpressionResolver = function( mustache, template, callback ) {
+			var this$0 = this;
 			var resolver = this,
 				parentFragment;
 			parentFragment = mustache.parentFragment;
@@ -5364,29 +5446,22 @@
 			resolver.priority = mustache.priority;
 			resolver.callback = callback;
 			resolver.unresolved = [];
-			resolver.members = [];
-			resolver.indexRefMembers = [];
-			resolver.keypathObservers = [];
-			// Find base keypath
+			// Find base keypath. TODO treat the base as just another member?
 			resolveBase( resolver, mustache.root, template.r, parentFragment );
 			// Find values for members, or mark them as unresolved
-			template.m.forEach( function( member, i ) {
-				var ref;
-				if ( typeof member === 'string' ) {
-					resolver.members[ i ] = member;
-				} else if ( member.t === types.REFERENCE ) {
-					ref = member.n;
-					handleIndexReference( resolver, ref, i, parentFragment.indexRefs ) || handleReference( resolver, ref, i, parentFragment );
-				} else {
-					handleExpression( resolver, member, i, parentFragment );
-				}
+			resolver.members = template.m.map( function( template ) {
+				return new MemberResolver( template, this$0, parentFragment );
 			} );
 			resolver.ready = true;
 			resolver.bubble();
 		};
 		ReferenceExpressionResolver.prototype = {
 			getKeypath: function() {
-				return this.base + '.' + this.members.join( '.' );
+				var values = this.members.map( getValue );
+				if ( !values.every( isDefined ) ) {
+					return;
+				}
+				return this.base + '.' + values.join( '.' );
 			},
 			bubble: function() {
 				if ( !this.ready || this.unresolved.length ) {
@@ -5394,89 +5469,21 @@
 				}
 				this.callback( this.getKeypath() );
 			},
-			resolve: function( index, keypath ) {
-				var keypathObserver = new KeypathObserver( this.root, keypath, this.mustache.priority, this, index );
-				this.keypathObservers.push( keypathObserver );
-				this.bubble();
-			},
 			teardown: function() {
-				var thing;
-				while ( thing = this.unresolved.pop() ) {
-					thing.teardown();
-				}
-				while ( thing = this.keypathObservers.pop() ) {
-					thing.unbind();
-				}
+				this.members.forEach( unbind );
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var this$0 = this;
 				var changed;
-				if ( indexRef && this.indexRefMembers.length ) {
-					this.indexRefMembers.forEach( function( member ) {
-						if ( member.ref === indexRef ) {
-							changed = true;
-							this$0.members[ member.index ] = newIndex;
-						}
-					} );
-				}
-				if ( this.keypathObservers.length ) {
-					this.keypathObservers.forEach( function( observer ) {
-						if ( observer.rebind( oldKeypath, newKeypath ) ) {
-							changed = true;
-						}
-					} );
-				}
+				this.members.forEach( function( members ) {
+					if ( members.rebind( indexRef, newIndex, oldKeypath, newKeypath ) ) {
+						changed = true;
+					}
+				} );
 				if ( changed ) {
 					this.bubble();
 				}
 			}
 		};
-
-		function handleIndexReference( resolver, ref, i, indexRefs ) {
-			var index;
-			if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
-				resolver.members[ i ] = index;
-				// make a note of it, in case of rebindings
-				resolver.indexRefMembers.push( {
-					ref: ref,
-					index: i
-				} );
-				return true;
-			}
-		}
-
-		function handleReference( resolver, ref, i, parentFragment ) {
-			var ractive, keypath, keypathObserver, unresolved;
-			ractive = resolver.root;
-			// Can we resolve the reference immediately?
-			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-				keypathObserver = new KeypathObserver( ractive, keypath, parentFragment.priority, resolver, i );
-				resolver.keypathObservers.push( keypathObserver );
-			} else {
-				// Couldn't resolve yet
-				resolver.members[ i ] = undefined;
-				unresolved = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
-					removeFromArray( resolver.unresolved, unresolved );
-					resolver.resolve( i, keypath );
-				} );
-				resolver.unresolved.push( unresolved );
-			}
-		}
-
-		function handleExpression( resolver, member, i, parentFragment ) {
-			var expressionResolver, resolved, wasUnresolved;
-			expressionResolver = new ExpressionResolver( resolver, parentFragment, member, function( keypath ) {
-				if ( wasUnresolved ) {
-					removeFromArray( resolver.unresolved, expressionResolver );
-				}
-				resolved = true;
-				resolver.resolve( i, keypath );
-			} );
-			if ( !resolved ) {
-				wasUnresolved = true;
-				resolver.unresolved.push( expressionResolver );
-			}
-		}
 
 		function resolveBase( resolver, ractive, ref, parentFragment ) {
 			var keypath, unresolved;
@@ -5491,42 +5498,20 @@
 				resolver.unresolved.push( unresolved );
 			}
 		}
-		var KeypathObserver = function( ractive, keypath, priority, resolver, index ) {
-			this.root = ractive;
-			this.keypath = keypath;
-			this.priority = priority;
-			this.resolver = resolver;
-			this.index = index;
-			this.bind();
-			this.setValue( ractive.viewmodel.get( keypath ) );
-		};
-		KeypathObserver.prototype = {
-			bind: function() {
-				this.root.viewmodel.register( this.keypath, this );
-			},
-			rebind: function( oldKeypath, newKeypath ) {
-				var keypath;
-				if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
-					this.unbind();
-					this.keypath = keypath;
-					// TODO would it be better if this had a toString() method, and we did away
-					// with the `members` mechanism?
-					this.resolver.members[ this.index ] = this.root.viewmodel.get( keypath );
-					this.bind();
-					return true;
-				}
-			},
-			setValue: function( value ) {
-				var resolver = this.resolver;
-				resolver.members[ this.index ] = value;
-				resolver.bubble();
-			},
-			unbind: function() {
-				this.root.viewmodel.unregister( this.keypath, this );
-			}
-		};
+
+		function getValue( member ) {
+			return member.value;
+		}
+
+		function isDefined( value ) {
+			return value != undefined;
+		}
+
+		function unbind( member ) {
+			member.unbind();
+		}
 		return ReferenceExpressionResolver;
-	}( types, removeFromArray, resolveRef, Unresolved, getNewKeypath, ExpressionResolver );
+	}( removeFromArray, resolveRef, Unresolved, MemberResolver );
 
 	/* virtualdom/items/shared/Mustache/initialise.js */
 	var initialise = function( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver ) {
@@ -5591,20 +5576,24 @@
 		if ( this.registered ) {
 			this.root.viewmodel.unregister( this.keypath, this );
 			// need to rebind the element, if this belongs to one, for keypath changes
-			if ( this.parentFragment && this.parentFragment.owner && this.parentFragment.owner.element ) {
-				rebindTarget = this.parentFragment.owner.element;
-			} else {
-				rebindTarget = this;
-			}
-			rebindTarget.rebind( null, null, this.keypath, keypath );
-			// if we already updated due to rebinding, we can exit
-			if ( keypath === this.keypath ) {
-				return;
+			if ( keypath !== undefined ) {
+				if ( this.parentFragment && this.parentFragment.owner && this.parentFragment.owner.element ) {
+					rebindTarget = this.parentFragment.owner.element;
+				} else {
+					rebindTarget = this;
+				}
+				rebindTarget.rebind( null, null, this.keypath, keypath );
+				// if we already updated due to rebinding, we can exit
+				if ( keypath === this.keypath ) {
+					return;
+				}
 			}
 		}
 		this.keypath = keypath;
-		this.root.viewmodel.register( keypath, this );
 		this.setValue( this.root.viewmodel.get( keypath ) );
+		if ( keypath !== undefined ) {
+			this.root.viewmodel.register( keypath, this );
+		}
 	};
 
 	/* virtualdom/items/shared/Mustache/rebind.js */
