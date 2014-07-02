@@ -13,24 +13,28 @@ export default function Mustache$resolve ( keypath ) {
 		this.root.viewmodel.unregister( this.keypath, this );
 
 		// need to rebind the element, if this belongs to one, for keypath changes
-		if ( this.parentFragment &&
-			this.parentFragment.owner &&
-			this.parentFragment.owner.element ) {
-			rebindTarget = this.parentFragment.owner.element;
-		} else {
-			rebindTarget = this;
-		}
+		if ( keypath !== undefined ) {
+			if ( this.parentFragment &&
+				this.parentFragment.owner &&
+				this.parentFragment.owner.element ) {
+				rebindTarget = this.parentFragment.owner.element;
+			} else {
+				rebindTarget = this;
+			}
 
-		rebindTarget.rebind( null, null, this.keypath, keypath );
+			rebindTarget.rebind( null, null, this.keypath, keypath );
 
-		// if we already updated due to rebinding, we can exit
-		if ( keypath === this.keypath ) {
-			return;
+			// if we already updated due to rebinding, we can exit
+			if ( keypath === this.keypath ) {
+				return;
+			}
 		}
 	}
 
 	this.keypath = keypath;
-	this.root.viewmodel.register( keypath, this );
-
 	this.setValue( this.root.viewmodel.get( keypath ) );
+
+	if ( keypath !== undefined ) {
+		this.root.viewmodel.register( keypath, this );
+	}
 }

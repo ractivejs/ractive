@@ -15,10 +15,8 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	resolver.callback = callback;
 
 	resolver.unresolved = [];
-	resolver.indexRefMembers = [];
-	resolver.keypathObservers = [];
 
-	// Find base keypath
+	// Find base keypath. TODO treat the base as just another member?
 	resolveBase( resolver, mustache.root, template.r, parentFragment );
 
 	// Find values for members, or mark them as unresolved
@@ -30,9 +28,7 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 
 ReferenceExpressionResolver.prototype = {
 	getKeypath: function () {
-		var values;
-
-		values = this.members.map( getValue );
+		var values = this.members.map( getValue );
 
 		if ( !values.every( isDefined ) ) {
 			return;
@@ -88,7 +84,7 @@ function getValue ( member ) {
 }
 
 function isDefined ( value ) {
-	return value !== undefined;
+	return value != undefined;
 }
 
 function unbind ( member ) {
