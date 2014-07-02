@@ -39,15 +39,21 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		asyncTest( 'Callback and promise with reset', function ( t ) {
-			var ractive = new Ractive({
-					el: fixture,
-					template: '{{one}}{{two}}{{three}}',
-					data: { one: 1, two: 2, three: 3 }
-				}),
-				callback = function(){
-					ok(true);
-					start();
-				}
+			var ractive, callback, counter, done;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{one}}{{two}}{{three}}',
+				data: { one: 1, two: 2, three: 3 }
+			});
+
+			counter = 2;
+			done = function () { --counter || start(); };
+
+			callback = function(){
+				t.ok(true);
+				done()
+			};
 
 			expect(6)
 			ractive.reset({ two: 4 }, callback);
@@ -76,20 +82,23 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		asyncTest( 'Callback and promise with dynamic template functions are recalled on reset', function ( t ) {
-			var ractive = new Ractive({
-					el: fixture,
-					template: function ( d ) {
-						return d.condition ? '{{foo}}' : '{{bar}}'
-					},
-					data: { foo: 'fizz', bar: 'bizz', condition: true }
-				}),
-				callback = function(){
-					t.ok(true);
-					if ( !--remaining ) {
-						start();
-					}
+			var ractive, callback, counter, done;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: function ( d ) {
+					return d.condition ? '{{foo}}' : '{{bar}}'
 				},
-				remaining = 2;
+				data: { foo: 'fizz', bar: 'bizz', condition: true }
+			});
+
+			counter = 2;
+			done = function () { --counter || start(); };
+
+			callback = function(){
+				t.ok(true);
+				done()
+			};
 
 			expect(5);
 
