@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-07-02 - commit 88abef20 
+	2014-07-02 - commit fb47efd1 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5324,7 +5324,7 @@
 			if ( typeof template === 'string' ) {
 				member.value = template;
 			} else if ( template.t === types.REFERENCE ) {
-				ref = template.n;
+				ref = member.ref = template.n;
 				// If it's an index reference, our job is simple
 				if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
 					member.indexRef = ref;
@@ -5343,8 +5343,7 @@
 					}
 				}
 			} else {
-				member.unresolved = new ExpressionResolver( resolver, parentFragment, template, function( keypath ) {
-					member.unresolved = null;
+				new ExpressionResolver( resolver, parentFragment, template, function( keypath ) {
 					member.resolve( keypath );
 				} );
 			}
@@ -5388,26 +5387,44 @@
 				if ( this.unresolved ) {
 					this.unresolved.teardown();
 				}
+			},
+			forceResolution: function() {
+				if ( this.unresolved ) {
+					this.unresolved.teardown();
+					this.unresolved = null;
+					this.keypath = this.ref;
+					this.value = this.viewmodel.get( this.ref );
+					this.bind();
+				}
 			}
 		};
 		return MemberResolver;
 	}( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js */
-	var ReferenceExpressionResolver = function( removeFromArray, resolveRef, Unresolved, MemberResolver ) {
+	var ReferenceExpressionResolver = function( resolveRef, Unresolved, MemberResolver ) {
 
 		var ReferenceExpressionResolver = function( mustache, template, callback ) {
 			var this$0 = this;
 			var resolver = this,
-				parentFragment;
+				ractive, ref, keypath, parentFragment;
 			parentFragment = mustache.parentFragment;
-			resolver.root = mustache.root;
+			resolver.root = ractive = mustache.root;
 			resolver.mustache = mustache;
 			resolver.priority = mustache.priority;
+			resolver.ref = ref = template.r;
 			resolver.callback = callback;
 			resolver.unresolved = [];
-			// Find base keypath. TODO treat the base as just another member?
-			resolveBase( resolver, mustache.root, template.r, parentFragment );
+			// Find base keypath
+			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
+				resolver.base = keypath;
+			} else {
+				resolver.baseResolver = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
+					resolver.base = keypath;
+					resolver.baseResolver = null;
+					resolver.bubble();
+				} );
+			}
 			// Find values for members, or mark them as unresolved
 			resolver.members = template.m.map( function( template ) {
 				return new MemberResolver( template, this$0, parentFragment );
@@ -5418,13 +5435,13 @@
 		ReferenceExpressionResolver.prototype = {
 			getKeypath: function() {
 				var values = this.members.map( getValue );
-				if ( !values.every( isDefined ) ) {
+				if ( !values.every( isDefined ) || this.baseResolver ) {
 					return;
 				}
 				return this.base + '.' + values.join( '.' );
 			},
 			bubble: function() {
-				if ( !this.ready || this.unresolved.length ) {
+				if ( !this.ready || this.baseResolver ) {
 					return;
 				}
 				this.callback( this.getKeypath() );
@@ -5442,22 +5459,19 @@
 				if ( changed ) {
 					this.bubble();
 				}
+			},
+			forceResolution: function() {
+				if ( this.baseResolver ) {
+					this.base = this.ref;
+					this.baseResolver.teardown();
+					this.baseResolver = null;
+				}
+				this.members.forEach( function( m ) {
+					return m.forceResolution();
+				} );
+				this.bubble();
 			}
 		};
-
-		function resolveBase( resolver, ractive, ref, parentFragment ) {
-			var keypath, unresolved;
-			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-				resolver.base = keypath;
-			} else {
-				unresolved = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
-					resolver.base = keypath;
-					removeFromArray( resolver.unresolved, unresolved );
-					resolver.bubble();
-				} );
-				resolver.unresolved.push( unresolved );
-			}
-		}
 
 		function getValue( member ) {
 			return member.value;
@@ -5471,7 +5485,7 @@
 			member.unbind();
 		}
 		return ReferenceExpressionResolver;
-	}( removeFromArray, resolveRef, Unresolved, MemberResolver );
+	}( resolveRef, Unresolved, MemberResolver );
 
 	/* virtualdom/items/shared/Mustache/initialise.js */
 	var initialise = function( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver ) {
@@ -6666,16 +6680,13 @@
 	var getInterpolator = function( types ) {
 
 		return function getInterpolator( attribute ) {
-			var items, item;
-			items = attribute.fragment.items;
+			var items = attribute.fragment.items;
 			if ( items.length !== 1 ) {
 				return;
 			}
-			item = items[ 0 ];
-			if ( item.type !== types.INTERPOLATOR || !item.keypath && !item.ref ) {
-				return;
+			if ( items[ 0 ].type === types.INTERPOLATOR ) {
+				return items[ 0 ];
 			}
-			return item;
 		};
 	}( types );
 
@@ -7180,10 +7191,16 @@
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
 			if ( !interpolator.keypath ) {
-				// TODO: What about rx?
-				interpolator.resolve( interpolator.ref );
+				if ( interpolator.ref ) {
+					interpolator.resolve( interpolator.ref );
+				}
+				// If we have a reference expression resolver, we have to force
+				// members to attach themselves to the root
+				if ( interpolator.resolver ) {
+					interpolator.resolver.forceResolution();
+				}
 			}
-			this.keypath = keypath = this.attribute.interpolator.keypath;
+			this.keypath = keypath = interpolator.keypath;
 			// initialise value, if it's undefined
 			// TODO could we use a similar mechanism instead of the convoluted
 			// select/checkbox init logic?
