@@ -37,8 +37,6 @@ export default function Section$update () {
 
 	if ( this.rendered && this.docFrag.childNodes.length ) {
 		anchor = this.parentFragment.findNextNode( this );
-		target = this.parentFragment.getNode();
-
 		target.insertBefore( this.docFrag, anchor );
 	}
 }
