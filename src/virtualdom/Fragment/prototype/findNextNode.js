@@ -1,20 +1,28 @@
 export default function Fragment$findNextNode ( item ) {
-	var index = item.index;
+	var index = item.index, node;
 
 	if ( this.items[ index + 1 ] ) {
-		return this.items[ index + 1 ].firstNode();
+		node = this.items[ index + 1 ].firstNode();
 	}
 
 	// if this is the root fragment, and there are no more items,
 	// it means we're at the end...
-	if ( this.owner === this.root ) {
+	else if ( this.owner === this.root ) {
 		if ( !this.owner.component ) {
-			return null;
+			// TODO but something else could have been appended to
+			// this.root.el, no?
+			node = null;
 		}
 
 		// ...unless this is a component
-		return this.owner.component.findNextNode();
+		else {
+			node = this.owner.component.findNextNode();
+		}
 	}
 
-	return this.owner.findNextNode( this );
+	else {
+		node = this.owner.findNextNode( this );
+	}
+
+	return node;
 }
