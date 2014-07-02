@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-07-02 - commit fb47efd1 
+	2014-07-02 - commit fcfdaebc 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5513,7 +5513,7 @@
 				}
 				keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
 				if ( keypath !== undefined ) {
-					resolve( keypath );
+					mustache.resolve( keypath );
 				} else {
 					mustache.ref = ref;
 					runloop.addUnresolved( mustache );
@@ -5521,54 +5521,51 @@
 			}
 			// if it's an expression, we have a bit more work to do
 			if ( options.template.x ) {
-				mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.template.x, resolve );
+				mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.template.x, resolveAndRebindChildren );
 			}
 			if ( options.template.rx ) {
-				mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolve );
+				mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolveAndRebindChildren );
 			}
 			// Special case - inverted sections
 			if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 				mustache.setValue( undefined );
 			}
 
-			function resolve( keypath ) {
-				mustache.resolve( keypath );
+			function resolveAndRebindChildren( newKeypath ) {
+				var oldKeypath = mustache.keypath;
+				if ( newKeypath !== oldKeypath ) {
+					mustache.resolve( newKeypath );
+					if ( oldKeypath !== undefined ) {
+						mustache.fragments && mustache.fragments.forEach( function( f ) {
+							f.rebind( null, null, oldKeypath, newKeypath );
+						} );
+					}
+				}
 			}
 		};
 	}( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver );
 
 	/* virtualdom/items/shared/Mustache/resolve.js */
 	var resolve = function Mustache$resolve( keypath ) {
-		var rebindTarget;
-		// In some cases, we may resolve to the same keypath (if this is
-		// an expression mustache that was rebound due to an ancestor's
-		// keypath) - in which case, this is a no-op
-		if ( keypath === this.keypath ) {
-			return;
-		}
-		// if we resolved previously, we need to unregister
-		if ( this.registered ) {
+		var wasResolved, value, twowayBinding;
+		// If we resolved previously, we need to unregister
+		if ( this.keypath !== undefined ) {
 			this.root.viewmodel.unregister( this.keypath, this );
-			// need to rebind the element, if this belongs to one, for keypath changes
-			if ( keypath !== undefined ) {
-				if ( this.parentFragment && this.parentFragment.owner && this.parentFragment.owner.element ) {
-					rebindTarget = this.parentFragment.owner.element;
-				} else {
-					rebindTarget = this;
-				}
-				rebindTarget.rebind( null, null, this.keypath, keypath );
-				// if we already updated due to rebinding, we can exit
-				if ( keypath === this.keypath ) {
-					return;
-				}
-			}
+			wasResolved = true;
 		}
 		this.keypath = keypath;
+		// If the new keypath exists, we need to register
+		// with the viewmodel
 		if ( keypath !== undefined ) {
-			this.setValue( this.root.viewmodel.get( keypath ) );
+			value = this.root.viewmodel.get( keypath );
 			this.root.viewmodel.register( keypath, this );
-		} else {
-			this.setValue( undefined );
+		}
+		// Either way we need to queue up a render (`value`
+		// will be `undefined` if there's no keypath)
+		this.setValue( value );
+		// Two-way bindings need to point to their new target keypath
+		if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
+			twowayBinding.rebound();
 		}
 	};
 
@@ -5576,7 +5573,7 @@
 	var rebind = function( getNewKeypath ) {
 
 		return function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var updated;
+			var keypath;
 			// Children first
 			if ( this.fragments ) {
 				this.fragments.forEach( function( f ) {
@@ -5589,11 +5586,10 @@
 			}
 			// Normal keypath mustache or reference expression?
 			if ( this.keypath ) {
-				updated = getNewKeypath( this.keypath, oldKeypath, newKeypath );
 				// was a new keypath created?
-				if ( updated ) {
+				if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
 					// resolve it
-					this.resolve( updated );
+					this.resolve( keypath );
 				}
 			} else if ( indexRef !== undefined && this.indexRef === indexRef ) {
 				this.setValue( newIndex );
@@ -6911,9 +6907,8 @@
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateRadioName.js */
 	var virtualdom_items_Element_Attribute$update_updateRadioName = function Attribute$updateRadioName() {
-		var node, value;
-		node = this.node;
-		value = this.value;
+		var node = ( value = this ).node,
+			value = value.value;
 		node.checked = value == node._ractive.value;
 	};
 
@@ -7172,6 +7167,7 @@
 			this.root = element.root;
 			this.attribute = element.attributes[ this.name || 'value' ];
 			interpolator = this.attribute.interpolator;
+			interpolator.twowayBinding = this;
 			if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
 				warn( 'Two-way binding does not work with expressions: ' + interpolator.keypath );
 				return false;
@@ -7222,7 +7218,7 @@
 				} );
 				runloop.end();
 			},
-			rebind: function() {
+			rebound: function() {
 				var bindings, oldKeypath, newKeypath;
 				oldKeypath = this.keypath;
 				newKeypath = this.attribute.interpolator.keypath;
@@ -7230,7 +7226,7 @@
 				if ( oldKeypath === newKeypath ) {
 					return;
 				}
-				removeFromArray( this.root._twowayBindings[ oldKeypath ] );
+				removeFromArray( this.root._twowayBindings[ oldKeypath ], this );
 				this.keypath = newKeypath;
 				bindings = this.root._twowayBindings[ newKeypath ] || ( this.root._twowayBindings[ newKeypath ] = [] );
 				bindings.push( this );
@@ -7379,9 +7375,14 @@
 					Binding.prototype.handleChange.call( this );
 				}
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				Binding.prototype.rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
-				this.element.node.name = '{{' + this.keypath + '}}';
+			rebound: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				var node;
+				Binding.prototype.rebound.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+				if ( node = this.element.node ) {
+					node.name = '{{' + this.keypath + '}}';
+				} else {
+					throw new Error( 'err what gives?' );
+				}
 			},
 			unbind: function() {
 				removeFromArray( this.siblings, this );
@@ -8223,16 +8224,11 @@
 
 		return function Element$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
 			var i, storage, liveQueries, ractive;
-			// This needs to happen before two-way bindings are rebound, as
-			// it may update an attribute's keypath
 			if ( this.attributes ) {
 				this.attributes.forEach( rebind );
 			}
 			if ( this.eventHandlers ) {
 				this.eventHandlers.forEach( rebind );
-			}
-			if ( this.binding ) {
-				rebind( this.binding );
 			}
 			// rebind children
 			if ( this.fragment ) {
@@ -11285,7 +11281,6 @@
 			depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );
 			deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 			deps.push( dependant );
-			dependant.registered = true;
 			if ( !keypath ) {
 				return;
 			}
@@ -11433,11 +11428,10 @@
 			}
 			deps = this.deps[ group ][ keypath ];
 			index = deps.indexOf( dependant );
-			if ( index === -1 || !dependant.registered ) {
+			if ( index === -1 ) {
 				throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
 			}
 			deps.splice( index, 1 );
-			dependant.registered = false;
 			if ( !keypath ) {
 				return;
 			}
