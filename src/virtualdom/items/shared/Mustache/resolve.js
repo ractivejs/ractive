@@ -1,5 +1,5 @@
 export default function Mustache$resolve ( keypath ) {
-	var rebindTarget;
+	var wasResolved, twowayBinding;
 
 	// In some cases, we may resolve to the same keypath (if this is
 	// an expression mustache that was rebound due to an ancestor's
@@ -9,26 +9,9 @@ export default function Mustache$resolve ( keypath ) {
 	}
 
 	// if we resolved previously, we need to unregister
-	if ( this.registered ) {
+	if ( this.keypath !== undefined ) {
 		this.root.viewmodel.unregister( this.keypath, this );
-
-		// need to rebind the element, if this belongs to one, for keypath changes
-		if ( keypath !== undefined ) {
-			if ( this.parentFragment &&
-				this.parentFragment.owner &&
-				this.parentFragment.owner.element ) {
-				rebindTarget = this.parentFragment.owner.element;
-			} else {
-				rebindTarget = this;
-			}
-
-			rebindTarget.rebind( null, null, this.keypath, keypath );
-
-			// if we already updated due to rebinding, we can exit
-			if ( keypath === this.keypath ) {
-				return;
-			}
-		}
+		wasResolved = true;
 	}
 
 	this.keypath = keypath;
@@ -38,5 +21,9 @@ export default function Mustache$resolve ( keypath ) {
 		this.root.viewmodel.register( keypath, this );
 	} else {
 		this.setValue( undefined );
+	}
+
+	if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
+		twowayBinding.rebound();
 	}
 }

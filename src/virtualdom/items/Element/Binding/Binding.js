@@ -12,6 +12,7 @@ var Binding = function ( element ) {
 	this.attribute = element.attributes[ this.name || 'value' ];
 
 	interpolator = this.attribute.interpolator;
+	interpolator.twowayBinding = this;
 
 	if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
 		warn( 'Two-way binding does not work with expressions: ' + interpolator.keypath );
@@ -67,7 +68,7 @@ Binding.prototype = {
 		runloop.end();
 	},
 
-	rebind: function () {
+	rebound: function () {
 		var bindings, oldKeypath, newKeypath;
 
 		oldKeypath = this.keypath;
@@ -78,7 +79,7 @@ Binding.prototype = {
 			return;
 		}
 
-		removeFromArray( this.root._twowayBindings[ oldKeypath ] );
+		removeFromArray( this.root._twowayBindings[ oldKeypath ], this );
 
 		this.keypath = newKeypath;
 
