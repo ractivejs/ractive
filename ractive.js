@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-07-02 - commit acfe5b04 
+	2014-07-02 - commit 52f45898 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6656,9 +6656,11 @@
 			}
 		}
 		this.keypath = keypath;
-		this.setValue( this.root.viewmodel.get( keypath ) );
 		if ( keypath !== undefined ) {
+			this.setValue( this.root.viewmodel.get( keypath ) );
 			this.root.viewmodel.register( keypath, this );
+		} else {
+			this.setValue( undefined );
 		}
 	};
 
