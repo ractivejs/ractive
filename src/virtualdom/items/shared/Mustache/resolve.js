@@ -1,14 +1,7 @@
 export default function Mustache$resolve ( keypath ) {
-	var wasResolved, twowayBinding;
+	var wasResolved, value, twowayBinding;
 
-	// In some cases, we may resolve to the same keypath (if this is
-	// an expression mustache that was rebound due to an ancestor's
-	// keypath) - in which case, this is a no-op
-	if ( keypath === this.keypath ) {
-		return;
-	}
-
-	// if we resolved previously, we need to unregister
+	// If we resolved previously, we need to unregister
 	if ( this.keypath !== undefined ) {
 		this.root.viewmodel.unregister( this.keypath, this );
 		wasResolved = true;
@@ -16,13 +9,18 @@ export default function Mustache$resolve ( keypath ) {
 
 	this.keypath = keypath;
 
+	// If the new keypath exists, we need to register
+	// with the viewmodel
 	if ( keypath !== undefined ) {
-		this.setValue( this.root.viewmodel.get( keypath ) );
+		value = this.root.viewmodel.get( keypath );
 		this.root.viewmodel.register( keypath, this );
-	} else {
-		this.setValue( undefined );
 	}
 
+	// Either way we need to queue up a render (`value`
+	// will be `undefined` if there's no keypath)
+	this.setValue( value );
+
+	// Two-way bindings need to point to their new target keypath
 	if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
 		twowayBinding.rebound();
 	}

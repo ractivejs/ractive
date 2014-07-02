@@ -35,7 +35,7 @@ export default function Mustache$init ( mustache, options ) {
 
 		keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
 		if ( keypath !== undefined ) {
-			resolve( keypath );
+			mustache.resolve( keypath );
 		}
 
 		else {
@@ -46,11 +46,11 @@ export default function Mustache$init ( mustache, options ) {
 
 	// if it's an expression, we have a bit more work to do
 	if ( options.template.x ) {
-		mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.template.x, resolve );
+		mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.template.x, resolveAndRebindChildren );
 	}
 
 	if ( options.template.rx ) {
-		mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolve );
+		mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolveAndRebindChildren );
 	}
 
 	// Special case - inverted sections
@@ -58,7 +58,17 @@ export default function Mustache$init ( mustache, options ) {
 		mustache.setValue( undefined );
 	}
 
-	function resolve ( keypath ) {
-		mustache.resolve( keypath );
+	function resolveAndRebindChildren ( newKeypath ) {
+		var oldKeypath = mustache.keypath;
+
+		if ( newKeypath !== oldKeypath ) {
+			mustache.resolve( newKeypath );
+
+			if ( oldKeypath !== undefined ) {
+				mustache.fragments && mustache.fragments.forEach( f => {
+					f.rebind( null, null, oldKeypath, newKeypath );
+				});
+			}
+		}
 	}
 }
