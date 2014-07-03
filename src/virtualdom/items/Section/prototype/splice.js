@@ -7,7 +7,7 @@ circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-export default function ( spliceSummary ) {
+export default function Section$splice ( spliceSummary ) {
 	var section = this, balance, start, insertStart, insertEnd, spliceArgs;
 
 	balance = spliceSummary.balance;
@@ -47,7 +47,7 @@ export default function ( spliceSummary ) {
 	spliceArgs.length += balance;
 	section.fragments.splice.apply( section.fragments, spliceArgs );
 
-	// Reassign existing fragments at the end of the array
+	// Rebind existing fragments at the end of the array
 	rebindFragments( section, insertEnd, section.length, balance );
 
 	// Schedule new fragments to be created
