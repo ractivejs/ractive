@@ -61,10 +61,6 @@ var RadioNameBinding = Binding.extend({
 		if ( node = this.element.node ) {
 			node.name = '{{' + this.keypath + '}}';
 		}
-
-		else {
-			throw new Error( 'err what gives?' );
-		}
 	},
 
 	unbind: function () {
