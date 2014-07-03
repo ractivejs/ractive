@@ -193,6 +193,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.get( 'foo' ), 1 );
 		});
 
+		test( 'Regression test for #836', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{# foo <= bar }}yes{{/}}',
+				computed: { foo: '[]' },
+				init: function () {
+					this.set({ bar: 10 });
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget>',
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+		});
+
 	};
 
 });
