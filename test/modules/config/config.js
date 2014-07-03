@@ -59,12 +59,6 @@ define([
 			}
 		} );
 
-		// test( 'extended', t => {
-
-		// 	testConfiguration( Child, Ractive );
-
-		// });
-
 		module( 'Configure Instance', {
 			setup: function () {
 				configureRactive();
