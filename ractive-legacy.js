@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-07-03 - commit fcdc1153 
+	2014-07-03 - commit 9915a7ee 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10041,6 +10041,10 @@
 								// the current style will be different from the target style
 								canUseCssTransitions[ hash ] = t.getStyle( prop ) != to[ prop ];
 								cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
+								// We can use CSS transitions? Great, here we go
+								if ( canUseCssTransitions[ hash ] ) {
+									t.node.style[ prefix( prop ) ] = to[ prop ];
+								}
 							}
 							if ( !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 								// we need to fall back to timer-based stuff
