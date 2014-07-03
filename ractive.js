@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-07-03 - commit 37e71a57 
+	2014-07-03 - commit 35aa20fe 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1314,55 +1314,34 @@
 		return cssConfig;
 	}( transform );
 
-	/* utils/create.js */
-	var create = function() {
+	/* utils/wrapMethod.js */
+	var wrapMethod = function() {
 
-		var create;
-		try {
-			Object.create( null );
-			create = Object.create;
-		} catch ( err ) {
-			// sigh
-			create = function() {
-				var F = function() {};
-				return function( proto, props ) {
-					var obj;
-					if ( proto === null ) {
-						return {};
+		return function( method, superMethod, force ) {
+			if ( force || needsSuper( method, superMethod ) ) {
+				return function() {
+					var hasSuper = '_super' in this,
+						_super = this._super,
+						result;
+					this._super = superMethod;
+					result = method.apply( this, arguments );
+					if ( hasSuper ) {
+						this._super = _super;
 					}
-					F.prototype = proto;
-					obj = new F();
-					if ( props ) {
-						Object.defineProperties( obj, props );
-					}
-					return obj;
+					return result;
 				};
-			}();
+			} else {
+				return method;
+			}
+		};
+
+		function needsSuper( method, superMethod ) {
+			return typeof superMethod === 'function' && /_super/.test( method );
 		}
-		return create;
 	}();
 
-	/* utils/wrapMethod.js */
-	var wrapMethod = function( method, superMethod ) {
-		if ( superMethod && typeof superMethod === 'function' && /_super/.test( method ) ) {
-			return function() {
-				var hasSuper = '_super' in this,
-					_super = this._super,
-					result;
-				this._super = superMethod;
-				result = method.apply( this, arguments );
-				if ( hasSuper ) {
-					this._super = _super;
-				}
-				return result;
-			};
-		} else {
-			return method;
-		}
-	};
-
 	/* config/options/data.js */
-	var data = function( create, wrap ) {
+	var data = function( wrap ) {
 
 		var dataConfig = {
 			name: 'data',
@@ -1433,13 +1412,10 @@
 
 		function fromProperties( child, parent ) {
 			child = child || {};
-			if ( parent && Object.keys( parent ).length ) {
-				// this is same as current ractive behavior
-				// would like to revisit...
-				parent = create( parent );
-				copy( child, parent );
-				child = parent;
+			if ( !parent ) {
+				return child;
 			}
+			copy( parent, child, true );
 			return child;
 		}
 
@@ -1449,17 +1425,19 @@
 				if ( child ) {
 					// Track the keys that our on the child,
 					// but not on the data. We'll need to apply these
-					// after the parent function returns
-					keys = Object.keys( child );
-					if ( data ) {
-						keys = keys.filter( function( key ) {
-							return !( key in data );
-						} );
+					// after the parent function returns.
+					keys = [];
+					for ( var key in child ) {
+						if ( !data || !( key in data ) ) {
+							keys.push( key );
+						}
 					}
 				}
 				// call the parent fn, use data if no return value
 				data = parentFn.call( this, data ) || data;
-				// copy child keys back onto data
+				// Copy child keys back onto data. The child keys
+				// should take precedence over whatever the
+				// parent did with the data.
 				if ( keys && keys.length ) {
 					data = data || {};
 					keys.forEach( function( key ) {
@@ -1488,7 +1466,7 @@
 			}
 			return wrap( childFn, parentFn );
 		}
-	}( create, wrapMethod );
+	}( wrapMethod );
 
 	/* config/errors.js */
 	var errors = {
@@ -1541,6 +1519,34 @@
 		SECTION_EACH: 52,
 		SECTION_WITH: 53
 	};
+
+	/* utils/create.js */
+	var create = function() {
+
+		var create;
+		try {
+			Object.create( null );
+			create = Object.create;
+		} catch ( err ) {
+			// sigh
+			create = function() {
+				var F = function() {};
+				return function( proto, props ) {
+					var obj;
+					if ( proto === null ) {
+						return {};
+					}
+					F.prototype = proto;
+					obj = new F();
+					if ( props ) {
+						Object.defineProperties( obj, props );
+					}
+					return obj;
+				};
+			}();
+		}
+		return create;
+	}();
 
 	/* parse/Parser/expressions/shared/errors.js */
 	var parse_Parser_expressions_shared_errors = {
