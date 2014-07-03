@@ -1,6 +1,5 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
-import log from 'utils/log';
 
 var Observer = function ( ractive, keypath, callback, options ) {
 	this.root = ractive;
@@ -46,20 +45,9 @@ Observer.prototype = {
 
 		this.updating = true;
 
-		// wrap the callback in a try-catch block, and only throw error in
-		// debug mode
-		try {
-			this.callback.call( this.context, this.value, this.oldValue, this.keypath );
-		} catch ( err ) {
-
-			log.errorOnly({
-				debug: this.debug || this.root.debug,
-				err: err
-			});
-
-		}
-
+		this.callback.call( this.context, this.value, this.oldValue, this.keypath );
 		this.oldValue = this.value;
+
 		this.updating = false;
 	}
 };
