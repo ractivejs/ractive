@@ -11,6 +11,8 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 		newIndices,
 		dependants;
 
+	this.mark( keypath );
+
 	if ( options && options.compare ) {
 
 		comparator = getComparatorFunction( options.compare );
