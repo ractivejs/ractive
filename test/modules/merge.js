@@ -263,6 +263,20 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( baz !== ractive.nodes.baz );
 		});
 
+		test( 'Merging will trigger upstream updates regardless of whether items are being added/removed', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{items}} {{JSON.stringify(items)}}',
+				data: {
+					items: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.merge( 'items', [ 'b', 'a', 'c' ]);
+
+			t.htmlEqual( fixture.innerHTML, 'b,a,c ["b","a","c"]' );
+		});
+
 	};
 
 	function isOrphan ( node ) {
