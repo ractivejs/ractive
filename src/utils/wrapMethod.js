@@ -1,7 +1,6 @@
-export default function ( method, superMethod ) {
+export default function ( method, superMethod, force ) {
 
-
-	if ( superMethod && typeof superMethod === 'function' && /_super/.test( method ) ) {
+	if ( force || needsSuper( method, superMethod ) )  {
 
 		return function () {
 
@@ -22,4 +21,8 @@ export default function ( method, superMethod ) {
 	else {
 		return method;
 	}
+}
+
+function needsSuper ( method, superMethod ) {
+	return typeof superMethod === 'function' && /_super/.test( method );
 }

@@ -43,10 +43,36 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		/* Not currently true. There are number of issues that need to resolved
-		   before we could make this happen */
-		/*
+		test( 'data is inherited from grand parent extend (gh-923)', t => {
+			var Child, Grandchild, child, grandchild;
+
+			Child = Ractive.extend({
+				append: true,
+			    template: 'title:{{format(title)}}',
+			    data: {
+			        format: function(title){
+			            return title.toUpperCase();
+			        }
+			    }
+			});
+
+			Grandchild = Child.extend();
+
+			child = new Child({
+			    el: fixture,
+			    data: { title: 'child' }
+			});
+
+			grandchild = new Grandchild({
+			el: fixture,
+			    data: { title: 'grandchild' }
+			});
+
+			t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD');
+		})
+
 		test( 'Ractive instance data is used as data object', t => {
+
 			var ractive, data = { foo: 'bar' } ;
 
 			Ractive.defaults.data = { bar: 'bizz' };
@@ -56,7 +82,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			delete Ractive.defaults.data;
 		});
-		*/
 
 		test( 'Default data function with no return uses existing data instance', t => {
 			var ractive;
