@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-07-03 - commit 401917b2 
+	2014-07-03 - commit fcdc1153 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10823,6 +10823,9 @@
 			} );
 		};
 		Partial.prototype = {
+			bubble: function() {
+				this.parentFragment.bubble();
+			},
 			firstNode: function() {
 				return this.fragment.firstNode();
 			},
