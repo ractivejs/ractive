@@ -26,7 +26,6 @@ if ( !isClient ) {
 
 	// determine some facts about our environment
 	(function() {
-
 		if ( testStyle.transition !== undefined ) {
 			TRANSITION = 'transition';
 			TRANSITIONEND = 'transitionend';
@@ -38,7 +37,6 @@ if ( !isClient ) {
 		} else {
 			CSS_TRANSITIONS_ENABLED = false;
 		}
-
 	}());
 
 	if ( TRANSITION ) {
@@ -115,6 +113,11 @@ if ( !isClient ) {
 						// the current style will be different from the target style
 						canUseCssTransitions[ hash ] = ( t.getStyle( prop ) != to[ prop ] );
 						cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
+
+						// We can use CSS transitions? Great, here we go
+						if ( canUseCssTransitions[ hash ] ) {
+							t.node.style[ prefix( prop ) ] = to[ prop ];
+						}
 					}
 
 
