@@ -194,9 +194,24 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.ok( !ractive.partials.hasOwnProperty( 'foo' ) );
 			t.deepEqual( Component.partials.foo, [{"t":7,"e":"p","f":[{"t":2,"r":"foo"}]}] );
-
-
 		});
+
+		test( 'Partials work in attributes (#917)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div style="{{>boxAttr}}"/>',
+				partials: {
+					boxAttr: 'height: {{height}}px;'
+				},
+				data: {
+					height: 100
+				}
+			});
+
+			ractive.set( 'height', 200 );
+
+			t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
+		})
 	};
 
 });
