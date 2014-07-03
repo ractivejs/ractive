@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-07-03 - commit 9915a7ee 
+	2014-07-03 - commit 450afbb4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6964,8 +6964,6 @@
 				Binding.prototype.rebound.call( this, indexRef, newIndex, oldKeypath, newKeypath );
 				if ( node = this.element.node ) {
 					node.name = '{{' + this.keypath + '}}';
-				} else {
-					throw new Error( 'err what gives?' );
 				}
 			},
 			unbind: function() {
@@ -7910,8 +7908,15 @@
 		};
 	}( log, config, circular );
 
+	/* utils/camelCase.js */
+	var camelCase = function( hyphenatedStr ) {
+		return hyphenatedStr.replace( /-([a-zA-Z])/g, function( match, $1 ) {
+			return $1.toUpperCase();
+		} );
+	};
+
 	/* virtualdom/items/Element/Transition/helpers/prefix.js */
-	var prefix = function( isClient, vendors, createElement ) {
+	var prefix = function( isClient, vendors, createElement, camelCase ) {
 
 		var prefix, prefixCache, testStyle;
 		if ( !isClient ) {
@@ -7921,6 +7926,7 @@
 			testStyle = createElement( 'div' ).style;
 			prefix = function( prop ) {
 				var i, vendor, capped;
+				prop = camelCase( prop );
 				if ( !prefixCache[ prop ] ) {
 					if ( testStyle[ prop ] !== undefined ) {
 						prefixCache[ prop ] = prop;
@@ -7941,7 +7947,7 @@
 			};
 		}
 		return prefix;
-	}( isClient, vendors, createElement );
+	}( isClient, vendors, createElement, camelCase );
 
 	/* virtualdom/items/Element/Transition/prototype/getStyle.js */
 	var virtualdom_items_Element_Transition$getStyle = function( legacy, isClient, isArray, prefix ) {
@@ -7997,13 +8003,6 @@
 			return this;
 		};
 	}( prefix );
-
-	/* utils/camelCase.js */
-	var camelCase = function( hyphenatedStr ) {
-		return hyphenatedStr.replace( /-([a-zA-Z])/g, function( match, $1 ) {
-			return $1.toUpperCase();
-		} );
-	};
 
 	/* shared/Ticker.js */
 	var Ticker = function( warn, getTime, animations ) {
@@ -8160,32 +8159,31 @@
 					setTimeout( function() {
 						var i = changedProperties.length,
 							hash, originalValue, index, propertiesToTransitionInJs = [],
-							prop;
+							prop, suffix;
 						while ( i-- ) {
 							prop = changedProperties[ i ];
 							hash = hashPrefix + prop;
-							if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] ) {
-								// We can definitely use CSS transitions, because
-								// we've already tried it and it worked
+							if ( CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
 								t.node.style[ prefix( prop ) ] = to[ prop ];
-							} else {
-								// one way or another, we'll need this
-								originalValue = t.getStyle( prop );
-							}
-							if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] === undefined ) {
-								// We're not yet sure if we can use CSS transitions -
-								// let's find out
-								// if this property is transitionable in this browser,
-								// the current style will be different from the target style
-								canUseCssTransitions[ hash ] = t.getStyle( prop ) != to[ prop ];
-								cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
-								// We can use CSS transitions? Great, here we go
-								if ( canUseCssTransitions[ hash ] ) {
-									t.node.style[ prefix( prop ) ] = to[ prop ];
+								// If we're not sure if CSS transitions are supported for
+								// this tag/property combo, find out now
+								if ( !canUseCssTransitions[ hash ] ) {
+									originalValue = t.getStyle( prop );
+									// if this property is transitionable in this browser,
+									// the current style will be different from the target style
+									canUseCssTransitions[ hash ] = t.getStyle( prop ) != to[ prop ];
+									cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
+									// Reset, if we're going to use timers after all
+									if ( cannotUseCssTransitions[ hash ] ) {
+										t.node.style[ prefix( prop ) ] = originalValue;
+									}
 								}
 							}
 							if ( !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 								// we need to fall back to timer-based stuff
+								if ( originalValue === undefined ) {
+									originalValue = t.getStyle( prop );
+								}
 								// need to remove this from changedProperties, otherwise transitionEndHandler
 								// will get confused
 								index = changedProperties.indexOf( prop );
@@ -8195,12 +8193,12 @@
 									changedProperties.splice( index, 1 );
 								}
 								// TODO Determine whether this property is animatable at all
-								// for now assume it is. First, we need to set the value to what it was...
-								t.node.style[ prefix( prop ) ] = originalValue;
+								suffix = /[^\d]*$/.exec( to[ prop ] )[ 0 ];
 								// ...then kick off a timer-based transition
 								propertiesToTransitionInJs.push( {
 									name: prefix( prop ),
-									interpolator: interpolate( originalValue, to[ prop ] )
+									interpolator: interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) ),
+									suffix: suffix
 								} );
 							}
 						}
@@ -8209,13 +8207,13 @@
 							new Ticker( {
 								root: t.root,
 								duration: options.duration,
-								easing: camelCase( options.easing ),
+								easing: camelCase( options.easing || '' ),
 								step: function( pos ) {
 									var prop, i;
 									i = propertiesToTransitionInJs.length;
 									while ( i-- ) {
 										prop = propertiesToTransitionInJs[ i ];
-										t.node.style[ prop.name ] = prop.interpolator( pos );
+										t.node.style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
 									}
 								},
 								complete: function() {
