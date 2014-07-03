@@ -5,7 +5,7 @@ import magicArrayAdaptor from 'viewmodel/prototype/get/magicArrayAdaptor';
 
 var prefixers = {};
 
-export default function Viewmodel$adapt ( keypath, value, isExpressionResult ) {
+export default function Viewmodel$adapt ( keypath, value ) {
 	var ractive = this.ractive, len, i, adaptor, wrapped;
 
 	// Do we have an adaptor for this value?
@@ -32,21 +32,18 @@ export default function Viewmodel$adapt ( keypath, value, isExpressionResult ) {
 		}
 	}
 
-	if ( !isExpressionResult ) {
-
-		if ( ractive.magic ) {
-			if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
-				this.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
-			}
-
-			else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-				this.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
-			}
+	if ( ractive.magic ) {
+		if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
+			this.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
 		}
 
-		else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
-			this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
+		else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
+			this.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
 		}
+	}
+
+	else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
+		this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 	}
 
 	return value;
