@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
 import getPattern from 'Ractive/prototype/observe/getPattern';
-import log from 'utils/log';
 
 var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
 
@@ -91,17 +90,7 @@ PatternObserver.prototype = {
 			keys = slice.call( this.regex.exec( keypath ), 1 );
 			args = [ value, this.values[ keypath ], keypath ].concat( keys );
 
-			// wrap the callback in a try-catch block, and only throw error in
-			// debug mode
-			try {
-				this.callback.apply( this.context, args );
-			} catch ( err ) {
-
-				log.errorOnly({
-					debug: this.debug || this.root.debug,
-					err: err
-				});
-			}
+			this.callback.apply( this.context, args );
 
 			this.values[ keypath ] = value;
 		}

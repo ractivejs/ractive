@@ -420,7 +420,31 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'bar', true );
 		});
 
+		test( 'Errors inside observers are not caught', function ( t ) {
+			var ractive = new Ractive({
+				data: {
+					bar: [ 1, 2, 3 ]
+				}
+			});
 
+			expect( 2 );
+
+			try {
+				ractive.observe( 'foo', function () {
+					throw new Error( 'test' );
+				});
+			} catch ( err ) {
+				t.equal( err.message, 'test' );
+			}
+
+			try {
+				ractive.observe( 'bar.*', function () {
+					throw new Error( 'test' );
+				});
+			} catch ( err ) {
+				t.equal( err.message, 'test' );
+			}
+		});
 
 	};
 
