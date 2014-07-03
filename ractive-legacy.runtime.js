@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-07-03 - commit af13cf70 
+	2014-07-03 - commit 401917b2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11177,6 +11177,7 @@
 		return function Viewmodel$merge( keypath, currentArray, array, options ) {
 			var this$0 = this;
 			var oldArray, newArray, comparator, newIndices, dependants;
+			this.mark( keypath );
 			if ( options && options.compare ) {
 				comparator = getComparatorFunction( options.compare );
 				try {
