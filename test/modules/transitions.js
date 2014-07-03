@@ -29,6 +29,19 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 						t.complete();
 					}, delay );
 				};
+
+				Ractive.transitions.fade = function ( t ) {
+					var targetOpacity;
+
+					if ( t.isIntro ) {
+						targetOpacity = t.getStyle( 'opacity' );
+						t.setStyle( 'opacity', 0 );
+					} else {
+						targetOpacity = 0;
+					}
+
+					t.animateStyle( 'opacity', targetOpacity, { duration: 50 } ).then( t.complete );
+				};
 			},
 			teardown: function () {
 				Ractive = Ractive_original;
@@ -132,5 +145,22 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				});
 			});
 		}
+
+		asyncTest( 'Transitions work the first time (#916)', function ( t ) {
+			var ractive, div;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div intro="fade"></div>',
+				complete: function () {
+					t.equal( div.style.opacity, '' );
+					QUnit.start();
+				}
+			});
+
+			div = ractive.find( 'div' );
+
+			t.equal( div.style.opacity, 0 );
+		});
 	};
 });
