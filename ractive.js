@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.4.0
-	2014-07-03 - commit 2065077e 
+	2014-07-03 - commit 37e71a57 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11728,7 +11728,7 @@
 	var viewmodel$adapt = function( config, arrayAdaptor, magicAdaptor, magicArrayAdaptor ) {
 
 		var prefixers = {};
-		return function Viewmodel$adapt( keypath, value, isExpressionResult ) {
+		return function Viewmodel$adapt( keypath, value ) {
 			var ractive = this.ractive,
 				len, i, adaptor, wrapped;
 			// Do we have an adaptor for this value?
@@ -11750,16 +11750,14 @@
 					return value;
 				}
 			}
-			if ( !isExpressionResult ) {
-				if ( ractive.magic ) {
-					if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
-						this.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
-					} else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-						this.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
-					}
-				} else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
-					this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
+			if ( ractive.magic ) {
+				if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
+					this.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
+				} else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
+					this.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
 				}
+			} else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
+				this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 			}
 			return value;
 		};
