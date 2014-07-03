@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-07-02 - commit fcfdaebc 
+	2014-07-03 - commit af13cf70 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2620,53 +2620,8 @@
 		};
 	}( runloop, isArray, normaliseKeypath );
 
-	/* utils/log.js */
-	var log = function( consolewarn, errors ) {
-
-		var log = {
-			warn: function( options, passthru ) {
-				if ( !options.debug && !passthru ) {
-					return;
-				}
-				this.logger( getMessage( options ), options.allowDuplicates );
-			},
-			error: function( options ) {
-				this.errorOnly( options );
-				if ( !options.debug ) {
-					this.warn( options, true );
-				}
-			},
-			errorOnly: function( options ) {
-				if ( options.debug ) {
-					this.critical( options );
-				}
-			},
-			critical: function( options ) {
-				var err = options.err || new Error( getMessage( options ) );
-				this.thrower( err );
-			},
-			logger: consolewarn,
-			thrower: function( err ) {
-				throw err;
-			}
-		};
-
-		function getMessage( options ) {
-			var message = errors[ options.message ] || options.message || '';
-			return interpolate( message, options.args );
-		}
-		// simple interpolation. probably quicker (and better) out there,
-		// but log is not in golden path of execution, only exceptions
-		function interpolate( message, args ) {
-			return message.replace( /{([^{}]*)}/g, function( a, b ) {
-				return args[ b ];
-			} );
-		}
-		return log;
-	}( warn, errors );
-
 	/* Ractive/prototype/observe/Observer.js */
-	var Ractive$observe_Observer = function( runloop, isEqual, log ) {
+	var Ractive$observe_Observer = function( runloop, isEqual ) {
 
 		var Observer = function( ractive, keypath, callback, options ) {
 			this.root = ractive;
@@ -2706,22 +2661,13 @@
 					return;
 				}
 				this.updating = true;
-				// wrap the callback in a try-catch block, and only throw error in
-				// debug mode
-				try {
-					this.callback.call( this.context, this.value, this.oldValue, this.keypath );
-				} catch ( err ) {
-					log.errorOnly( {
-						debug: this.debug || this.root.debug,
-						err: err
-					} );
-				}
+				this.callback.call( this.context, this.value, this.oldValue, this.keypath );
 				this.oldValue = this.value;
 				this.updating = false;
 			}
 		};
 		return Observer;
-	}( runloop, isEqual, log );
+	}( runloop, isEqual );
 
 	/* shared/getMatchingKeypaths.js */
 	var getMatchingKeypaths = function( isArray ) {
@@ -2781,7 +2727,7 @@
 	}( getMatchingKeypaths );
 
 	/* Ractive/prototype/observe/PatternObserver.js */
-	var Ractive$observe_PatternObserver = function( runloop, isEqual, getPattern, log ) {
+	var Ractive$observe_PatternObserver = function( runloop, isEqual, getPattern ) {
 
 		var PatternObserver, wildcard = /\*/,
 			slice = Array.prototype.slice;
@@ -2854,16 +2800,7 @@
 						this.values[ keypath ],
 						keypath
 					].concat( keys );
-					// wrap the callback in a try-catch block, and only throw error in
-					// debug mode
-					try {
-						this.callback.apply( this.context, args );
-					} catch ( err ) {
-						log.errorOnly( {
-							debug: this.debug || this.root.debug,
-							err: err
-						} );
-					}
+					this.callback.apply( this.context, args );
 					this.values[ keypath ] = value;
 				}
 				this.updating = false;
@@ -2881,7 +2818,7 @@
 			}
 		};
 		return PatternObserver;
-	}( runloop, isEqual, Ractive$observe_getPattern, log );
+	}( runloop, isEqual, Ractive$observe_getPattern );
 
 	/* Ractive/prototype/observe/getObserverFacade.js */
 	var Ractive$observe_getObserverFacade = function( normaliseKeypath, Observer, PatternObserver ) {
@@ -4635,6 +4572,51 @@
 			}
 		};
 	}( startsWithKeypath );
+
+	/* utils/log.js */
+	var log = function( consolewarn, errors ) {
+
+		var log = {
+			warn: function( options, passthru ) {
+				if ( !options.debug && !passthru ) {
+					return;
+				}
+				this.logger( getMessage( options ), options.allowDuplicates );
+			},
+			error: function( options ) {
+				this.errorOnly( options );
+				if ( !options.debug ) {
+					this.warn( options, true );
+				}
+			},
+			errorOnly: function( options ) {
+				if ( options.debug ) {
+					this.critical( options );
+				}
+			},
+			critical: function( options ) {
+				var err = options.err || new Error( getMessage( options ) );
+				this.thrower( err );
+			},
+			logger: consolewarn,
+			thrower: function( err ) {
+				throw err;
+			}
+		};
+
+		function getMessage( options ) {
+			var message = errors[ options.message ] || options.message || '';
+			return interpolate( message, options.args );
+		}
+		// simple interpolation. probably quicker (and better) out there,
+		// but log is not in golden path of execution, only exceptions
+		function interpolate( message, args ) {
+			return message.replace( /{([^{}]*)}/g, function( a, b ) {
+				return args[ b ];
+			} );
+		}
+		return log;
+	}( warn, errors );
 
 	/* viewmodel/Computation/diff.js */
 	var diff = function diff( computation, dependencies, newDependencies ) {
