@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-07-03 - commit a274a4a2 
+	2014-07-03 - commit b8cc652f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -560,8 +560,8 @@
 					return context + '.' + ref;
 				}
 			} while ( fragment = fragment.parent );
-			// Root property?
-			if ( key in ractive.data ) {
+			// Root/computed property?
+			if ( key in ractive.data || key in ractive.viewmodel.computations ) {
 				return ref;
 			}
 			// If this is an inline component, and it's not isolated, we
@@ -11109,7 +11109,7 @@
 					return;
 				}
 				if ( !this.setter ) {
-					throw new Error( 'Computed properties without setters are read-only in the current version' );
+					throw new Error( 'Computed properties without setters are read-only. (This may change in a future version of Ractive!)' );
 				}
 				this.setter.call( this.ractive, value );
 			},
