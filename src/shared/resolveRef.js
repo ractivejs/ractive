@@ -42,8 +42,8 @@ export default function resolveRef ( ractive, ref, fragment ) {
 		}
 	} while ( fragment = fragment.parent );
 
-	// Root property?
-	if ( key in ractive.data ) {
+	// Root/computed property?
+	if ( key in ractive.data || key in ractive.viewmodel.computations ) {
 		return ref;
 	}
 

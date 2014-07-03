@@ -22,7 +22,7 @@ Computation.prototype = {
 		}
 
 		if ( !this.setter ) {
-			throw new Error( 'Computed properties without setters are read-only in the current version' );
+			throw new Error( 'Computed properties without setters are read-only. (This may change in a future version of Ractive!)' );
 		}
 
 		this.setter.call( this.ractive, value );
