@@ -90,39 +90,37 @@ if ( !isClient ) {
 			t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
 
 			setTimeout( function () {
-				var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop;
+				var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop, suffix;
 
 				while ( i-- ) {
 					prop = changedProperties[i];
 					hash = hashPrefix + prop;
 
-					if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] ) {
-						// We can definitely use CSS transitions, because
-						// we've already tried it and it worked
+					if ( CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
 						t.node.style[ prefix( prop ) ] = to[ prop ];
-					} else {
-						// one way or another, we'll need this
-						originalValue = t.getStyle( prop ); // TODO don't we already have this value?
-					}
 
-					if ( CSS_TRANSITIONS_ENABLED && canUseCssTransitions[ hash ] === undefined ) {
-						// We're not yet sure if we can use CSS transitions -
-						// let's find out
+						// If we're not sure if CSS transitions are supported for
+						// this tag/property combo, find out now
+						if ( !canUseCssTransitions[ hash ] ) {
+							originalValue = t.getStyle( prop );
 
-						// if this property is transitionable in this browser,
-						// the current style will be different from the target style
-						canUseCssTransitions[ hash ] = ( t.getStyle( prop ) != to[ prop ] );
-						cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
+							// if this property is transitionable in this browser,
+							// the current style will be different from the target style
+							canUseCssTransitions[ hash ] = ( t.getStyle( prop ) != to[ prop ] );
+							cannotUseCssTransitions[ hash ] = !canUseCssTransitions[ hash ];
 
-						// We can use CSS transitions? Great, here we go
-						if ( canUseCssTransitions[ hash ] ) {
-							t.node.style[ prefix( prop ) ] = to[ prop ];
+							// Reset, if we're going to use timers after all
+							if ( cannotUseCssTransitions[ hash ] ) {
+								t.node.style[ prefix( prop ) ] = originalValue;
+							}
 						}
 					}
 
-
 					if ( !CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[ hash ] ) {
 						// we need to fall back to timer-based stuff
+						if ( originalValue === undefined ) {
+							originalValue = t.getStyle( prop );
+						}
 
 						// need to remove this from changedProperties, otherwise transitionEndHandler
 						// will get confused
@@ -133,16 +131,15 @@ if ( !isClient ) {
 							changedProperties.splice( index, 1 );
 						}
 
-
 						// TODO Determine whether this property is animatable at all
 
-						// for now assume it is. First, we need to set the value to what it was...
-						t.node.style[ prefix( prop ) ] = originalValue;
+						suffix = /[^\d]*$/.exec( to[ prop ] )[0];
 
 						// ...then kick off a timer-based transition
 						propertiesToTransitionInJs.push({
 							name: prefix( prop ),
-							interpolator: interpolate( originalValue, to[ prop ] )
+							interpolator: interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) ),
+							suffix: suffix
 						});
 					}
 				}
@@ -153,14 +150,14 @@ if ( !isClient ) {
 					new Ticker({
 						root: t.root,
 						duration: options.duration,
-						easing: camelCase( options.easing ),
+						easing: camelCase( options.easing || '' ),
 						step: function ( pos ) {
 							var prop, i;
 
 							i = propertiesToTransitionInJs.length;
 							while ( i-- ) {
 								prop = propertiesToTransitionInJs[i];
-								t.node.style[ prop.name ] = prop.interpolator( pos );
+								t.node.style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
 							}
 						},
 						complete: function () {
