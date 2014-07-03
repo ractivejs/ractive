@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-07-03 - commit 35aa20fe 
+	2014-07-03 - commit a274a4a2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7491,7 +7491,7 @@
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function( spliceSummary ) {
+		return function Section$splice( spliceSummary ) {
 			var section = this,
 				balance, start, insertStart, insertEnd, spliceArgs;
 			balance = spliceSummary.balance;
@@ -7525,7 +7525,7 @@
 			];
 			spliceArgs.length += balance;
 			section.fragments.splice.apply( section.fragments, spliceArgs );
-			// Reassign existing fragments at the end of the array
+			// Rebind existing fragments at the end of the array
 			rebindFragments( section, insertEnd, section.length, balance );
 			// Schedule new fragments to be created
 			section.fragmentsToCreate = range( insertStart, insertEnd );
@@ -7639,7 +7639,7 @@
 
 		var Section = function( options ) {
 			this.type = types.SECTION;
-			this.inverted = !!options.template.n;
+			this.inverted = options.template.n === types.SECTION_UNLESS;
 			this.pElement = options.pElement;
 			this.fragments = [];
 			this.fragmentsToCreate = [];
