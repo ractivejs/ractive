@@ -45,11 +45,13 @@ if ( !isClient ) {
 
 			if ( !inDom ) {
 				head.appendChild( styleElement );
+				inDom = true;
 			}
 		}
 
 		else if ( inDom ) {
 			head.removeChild( styleElement );
+			inDom = false;
 		}
 	};
 
@@ -81,7 +83,6 @@ if ( !isClient ) {
 
 			if ( !componentsInPage[ Component._guid ] ) {
 				removeFromArray( styles, Component.css );
-
 				runloop.scheduleTask( update );
 			}
 		}

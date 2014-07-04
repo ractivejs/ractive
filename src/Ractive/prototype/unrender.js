@@ -17,29 +17,9 @@ export default function Ractive$unrender () {
 	shouldDestroy = !this.component || this.component.shouldDestroy;
 
 	if ( this.constructor.css ) {
-		// We need to find the nearest detaching element. When it gets removed
-		// from the DOM, it's safe to remove our CSS
-		if ( shouldDestroy ) {
-			promise.then( () => css.remove( this.constructor ) );
-		} else {
-			fragment = this.component.parentFragment;
-
-			do {
-				if ( fragment.owner.type !== types.ELEMENT ) {
-					continue;
-				}
-
-				if ( fragment.owner.willDetach ) {
-					nearestDetachingElement = fragment.owner;
-				}
-			} while ( !nearestDetachingElement && ( fragment = fragment.parent ) );
-
-			if ( !nearestDetachingElement ) {
-				throw new Error( 'A component is being torn down but doesn\'t have a nearest detaching element... this shouldn\'t happen!' );
-			}
-
-			nearestDetachingElement.cssDetachQueue.push( this.constructor );
-		}
+		promise.then( () => {
+			css.remove( this.constructor );
+		});
 	}
 
 	// Cancel any animations in progress
