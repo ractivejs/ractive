@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.4.0
-	2014-07-04 - commit 4c1a37e7 
+	2014-07-04 - commit ad9cd724 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -619,50 +619,93 @@
 		}
 	}( normaliseRef, getInnerContext, createComponentBinding );
 
-	/* shared/makeTransitionManager.js */
-	var makeTransitionManager = function( removeFromArray ) {
+	/* global/TransitionManager.js */
+	var TransitionManager = function( removeFromArray ) {
 
-		var makeTransitionManager, checkComplete, remove, init;
-		makeTransitionManager = function( callback, previous ) {
-			var transitionManager = [];
-			transitionManager.detachQueue = [];
-			transitionManager.remove = remove;
-			transitionManager.init = init;
-			transitionManager._check = checkComplete;
-			transitionManager._callback = callback;
-			transitionManager._previous = previous;
-			if ( previous ) {
-				previous.push( transitionManager );
-			}
-			return transitionManager;
-		};
-		checkComplete = function() {
-			var element;
-			if ( this._ready && !this.length ) {
-				while ( element = this.detachQueue.pop() ) {
-					element.detach();
-				}
-				if ( typeof this._callback === 'function' ) {
-					this._callback();
-				}
-				if ( this._previous ) {
-					this._previous.remove( this );
-				}
+		var TransitionManager = function( callback, parent ) {
+			this.callback = callback;
+			this.parent = parent;
+			this.intros = [];
+			this.outros = [];
+			this.children = [];
+			this.totalChildren = this.outroChildren = 0;
+			this.detachQueue = [];
+			this.outrosComplete = false;
+			if ( parent ) {
+				parent.addChild( this );
 			}
 		};
-		remove = function( transition ) {
-			removeFromArray( this, transition );
-			this._check();
+		TransitionManager.prototype = {
+			addChild: function( child ) {
+				this.children.push( child );
+				this.totalChildren += 1;
+				this.outroChildren += 1;
+			},
+			decrementOutros: function() {
+				this.outroChildren -= 1;
+				check( this );
+			},
+			decrementTotal: function() {
+				this.totalChildren -= 1;
+				check( this );
+			},
+			add: function( transition ) {
+				var list = transition.isIntro ? this.intros : this.outros;
+				list.push( transition );
+			},
+			remove: function( transition ) {
+				var list = transition.isIntro ? this.intros : this.outros;
+				removeFromArray( list, transition );
+				check( this );
+			},
+			init: function() {
+				this.ready = true;
+				check( this );
+			},
+			detachNodes: function() {
+				this.detachQueue.forEach( detach );
+				this.children.forEach( detachNodes );
+			}
 		};
-		init = function() {
-			this._ready = true;
-			this._check();
-		};
-		return makeTransitionManager;
+
+		function detach( element ) {
+			element.detach();
+		}
+
+		function detachNodes( tm ) {
+			tm.detachNodes();
+		}
+
+		function check( tm ) {
+			if ( !tm.ready || tm.outros.length || tm.outroChildren )
+				return;
+			// If all outros are complete, and we haven't already done this,
+			// we notify the parent if there is one, otherwise
+			// start detaching nodes
+			if ( !tm.outrosComplete ) {
+				if ( tm.parent ) {
+					tm.parent.decrementOutros( tm );
+				} else {
+					tm.detachNodes();
+				}
+				tm.outrosComplete = true;
+			}
+			// Once everything is done, we can notify parent transition
+			// manager and call the callback
+			if ( !tm.intros.length && !tm.totalChildren ) {
+				if ( typeof tm.callback === 'function' ) {
+					tm.callback();
+				}
+				if ( tm.parent ) {
+					tm.parent.decrementTotal();
+				}
+			}
+		}
+		return TransitionManager;
 	}( removeFromArray );
 
 	/* global/runloop.js */
-	var runloop = function( circular, removeFromArray, Promise, resolveRef, makeTransitionManager ) {
+	var runloop = function( circular, removeFromArray, Promise, resolveRef, TransitionManager ) {
 
 		var batch, runloop, unresolved = [];
 		runloop = {
@@ -675,7 +718,7 @@
 				}
 				batch = {
 					previousBatch: batch,
-					transitionManager: makeTransitionManager( fulfilPromise, batch && batch.transitionManager ),
+					transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 					views: [],
 					tasks: [],
 					viewmodels: []
@@ -701,7 +744,7 @@
 			},
 			registerTransition: function( transition ) {
 				transition._manager = batch.transitionManager;
-				batch.transitionManager.push( transition );
+				batch.transitionManager.add( transition );
 			},
 			addView: function( view ) {
 				batch.views.push( view );
@@ -776,7 +819,7 @@
 				}
 			}
 		}
-	}( circular, removeFromArray, Promise, resolveRef, makeTransitionManager );
+	}( circular, removeFromArray, Promise, resolveRef, TransitionManager );
 
 	/* utils/createBranch.js */
 	var createBranch = function() {
@@ -8257,11 +8300,12 @@
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Transition$init( element, template ) {
+		return function Transition$init( element, template, isIntro ) {
 			var t = this,
 				ractive, name, fragment;
 			t.element = element;
 			t.root = ractive = element.root;
+			t.isIntro = isIntro;
 			name = template.n || template;
 			if ( typeof name !== 'string' ) {
 				fragment = new Fragment( {
@@ -8811,12 +8855,11 @@
 	/* virtualdom/items/Element/Transition/prototype/start.js */
 	var virtualdom_items_Element_Transition$start = function() {
 
-		return function Transition$start( isIntro ) {
+		return function Transition$start() {
 			var t = this,
 				node, originalStyle;
 			node = t.node = t.element.node;
 			originalStyle = node.getAttribute( 'style' );
-			t.isIntro = !!isIntro;
 			// create t.complete() - we don't want this on the prototype,
 			// because we don't want `this` silliness when passing it as
 			// an argument
@@ -8857,8 +8900,8 @@
 		getValueOptions = {
 			args: true
 		};
-		Transition = function( owner, template ) {
-			this.init( owner, template );
+		Transition = function( owner, template, isIntro ) {
+			this.init( owner, template, isIntro );
 		};
 		Transition.prototype = {
 			init: init,
@@ -8963,10 +9006,10 @@
 			}
 			// trigger intro transition
 			if ( root.transitionsEnabled && this.intro ) {
-				var transition = new Transition( this, this.intro );
+				var transition = new Transition( this, this.intro, true );
 				runloop.registerTransition( transition );
 				runloop.scheduleTask( function() {
-					return transition.start( true );
+					return transition.start();
 				} );
 			}
 			if ( this.name === 'option' ) {
@@ -9164,10 +9207,10 @@
 			}
 			// trigger outro transition if necessary
 			if ( this.root.transitionsEnabled && this.outro ) {
-				var transition = new Transition( this, this.outro );
+				var transition = new Transition( this, this.outro, false );
 				runloop.registerTransition( transition );
 				runloop.scheduleTask( function() {
-					return transition.start( false );
+					return transition.start();
 				} );
 			}
 			// Remove this node from any live queries
