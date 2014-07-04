@@ -11,6 +11,7 @@ var TransitionManager = function ( callback, parent ) {
 	this.totalChildren = this.outroChildren = 0;
 
 	this.detachQueue = [];
+	this.outrosComplete = false;
 
 	if ( parent ) {
 		parent.addChild( this );
@@ -23,11 +24,6 @@ TransitionManager.prototype = {
 
 		this.totalChildren += 1;
 		this.outroChildren += 1;
-	},
-
-	removeChild: function ( child ) {
-		removeFromArray( this.children, child );
-		check( this );
 	},
 
 	decrementOutros: function () {
@@ -76,11 +72,15 @@ function check ( tm ) {
 	// If all outros are complete, we notify the parent if there
 	// is one, otherwise start detaching nodes
 	if ( !tm.outros.length && !tm.outroChildren ) {
-		if ( tm.parent ) {
-			tm.parent.decrementOutros( tm );
-		} else {
-			tm.detachNodes();
+		if ( !tm.outrosComplete ) {
+			if ( tm.parent ) {
+				tm.parent.decrementOutros( tm );
+			} else {
+				tm.detachNodes();
+			}
 		}
+
+		tm.outrosComplete = true;
 	}
 
 	else {
