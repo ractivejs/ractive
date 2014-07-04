@@ -1,10 +1,8 @@
-export default function Transition$start ( isIntro ) {
+export default function Transition$start () {
 	var t = this, node, originalStyle;
 
 	node = t.node = t.element.node;
 	originalStyle = node.getAttribute( 'style' );
-
-	t.isIntro = !!isIntro;
 
 	// create t.complete() - we don't want this on the prototype,
 	// because we don't want `this` silliness when passing it as

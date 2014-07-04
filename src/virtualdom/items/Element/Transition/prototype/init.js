@@ -8,11 +8,12 @@ circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-export default function Transition$init ( element, template ) {
+export default function Transition$init ( element, template, isIntro ) {
 	var t = this, ractive, name, fragment;
 
 	t.element = element;
 	t.root = ractive = element.root;
+	t.isIntro = isIntro;
 
 	name = template.n || template;
 

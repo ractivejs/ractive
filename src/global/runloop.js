@@ -2,7 +2,7 @@ import circular from 'circular';
 import removeFromArray from 'utils/removeFromArray';
 import Promise from 'utils/Promise';
 import resolveRef from 'shared/resolveRef';
-import makeTransitionManager from 'shared/makeTransitionManager';
+import TransitionManager from 'global/TransitionManager';
 
 var batch, runloop, unresolved = [];
 
@@ -16,7 +16,7 @@ runloop = {
 
 		batch = {
 			previousBatch: batch,
-			transitionManager: makeTransitionManager( fulfilPromise, batch && batch.transitionManager ),
+			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 			views: [],
 			tasks: [],
 			viewmodels: []
@@ -48,7 +48,7 @@ runloop = {
 
 	registerTransition: function ( transition ) {
 		transition._manager = batch.transitionManager;
-		batch.transitionManager.push( transition );
+		batch.transitionManager.add( transition );
 	},
 
 	addView: function ( view ) {

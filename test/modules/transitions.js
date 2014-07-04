@@ -162,5 +162,20 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 
 			t.equal( div.style.opacity, 0 );
 		});
+
+		test( 'Nodes are detached synchronously if there are no outro transitions (#856)', function ( t ) {
+			var ractive, target;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#if foo}}<div intro="test">intro</div>{{else}}<div class="target">no outro</div>{{/if}}'
+			});
+
+			target = ractive.find( '.target' );
+			t.ok( fixture.contains( target ) );
+
+			ractive.set( 'foo', true );
+			t.ok( !fixture.contains( target ) );
+		});
 	};
 });

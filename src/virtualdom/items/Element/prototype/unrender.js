@@ -40,9 +40,9 @@ export default function Element$unrender ( shouldDestroy ) {
 
 	// trigger outro transition if necessary
 	if ( this.root.transitionsEnabled && this.outro ) {
-		let transition = new Transition ( this, this.outro );
+		let transition = new Transition ( this, this.outro, false );
 		runloop.registerTransition( transition );
-		runloop.scheduleTask( () => transition.start( false ) );
+		runloop.scheduleTask( () => transition.start() );
 	}
 
 	// Remove this node from any live queries
