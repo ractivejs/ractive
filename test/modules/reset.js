@@ -151,9 +151,9 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Widget = Ractive.extend({
 			  data: {
-			    uppercase: function ( str ) {
-			      return str.toUpperCase();
-			    }
+				uppercase: function ( str ) {
+				  return str.toUpperCase();
+				}
 			  }
 			});
 
@@ -190,8 +190,31 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>' );
 			ractive.reset( { what: 'foo' } );
 			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
+		});
 
+		test( 'resetTemplate removes an inline component from the DOM (#928)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget type="{{type}}"/>',
+				data: {
+					type: 1
+				},
+				components: {
+					widget: Ractive.extend({
+						template: function ( data ) {
+							return data.type === 1 ? 'ONE' : 'TWO';
+						},
+						init: function () {
+							this.observe( 'type', function ( type ) {
+								this.resetTemplate( type === 1 ? 'ONE' : 'TWO' );
+							}, { init: false });
+						}
+					})
+				}
+			});
 
+			ractive.set( 'type', 2 );
+			t.htmlEqual( fixture.innerHTML, 'TWO' );
 		});
 	};
 
