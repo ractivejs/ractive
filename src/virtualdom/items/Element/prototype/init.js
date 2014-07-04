@@ -6,7 +6,6 @@ import createAttributes from 'virtualdom/items/Element/prototype/init/createAttr
 import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
 import createEventHandlers from 'virtualdom/items/Element/prototype/init/createEventHandlers';
 import Decorator from 'virtualdom/items/Element/Decorator/_Decorator';
-import Transition from 'virtualdom/items/Element/Transition/_Transition';
 import bubbleSelect from 'virtualdom/items/Element/special/select/bubble';
 import initOption from 'virtualdom/items/Element/special/option/init';
 
@@ -36,8 +35,6 @@ export default function Element$init ( options ) {
 
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
-
-	this.cssDetachQueue = [];
 
 	this.namespace = getElementNamespace( template, this.parent );
 	this.name = ( namespace !== namespaces.html ? enforceCase( template.e ) : template.e );
@@ -86,15 +83,6 @@ export default function Element$init ( options ) {
 	}
 
 	// create transitions
-	if ( template.t0 ) {
-		this.intro = this.outro = new Transition( this, template.t0 );
-	}
-
-	if ( template.t1 ) {
-		this.intro = new Transition ( this, template.t1 );
-	}
-
-	if ( template.t2 ) {
-		this.outro = new Transition ( this, template.t2 );
-	}
+	this.intro = template.t0 || template.t1;
+	this.outro = template.t0 || template.t2;
 }

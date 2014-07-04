@@ -120,8 +120,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-
-
 		asyncTest( 'Array method proxies return a promise that resolves on transition complete', function ( t ) {
 			var items, ractive;
 
@@ -144,6 +142,38 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>' );
 				QUnit.start();
 			});
+		});
+
+		test( 'Pattern observers on arrays fire correctly after mutations (mirror of test in observe.js)', function ( t ) {
+			var ractive, lastKeypath, lastValue, observedLengthChange;
+
+			ractive = new Ractive({
+				data: {
+					items: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.observe( 'items.*', function ( n, o, k ) {
+				lastKeypath = k;
+				lastValue = n;
+
+				if ( k === 'items.length' ) {
+					observedLengthChange = true;
+				}
+			}, { init: false });
+
+			ractive.push( 'items', 'd' );
+			t.equal( lastKeypath, 'items.3' );
+			t.equal( lastValue, 'd' );
+
+			ractive.pop( 'items' );
+			t.equal( lastKeypath, 'items.3' );
+			t.equal( lastValue, undefined );
+
+			t.ok( !observedLengthChange );
+
+			ractive.set( 'items.length', 4 );
+			t.ok( observedLengthChange );
 		});
 
 	};

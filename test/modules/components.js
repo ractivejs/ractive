@@ -308,8 +308,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
-		// TODO: Is thie correct? Or should ractive.complete call this._super?
-		// Which is current requirement within the .extend chain
 		asyncTest( 'Component complete() methods are called', function ( t ) {
 			var ractive, Widget, counter, done;
 
@@ -413,53 +411,87 @@ define([ 'ractive' ], function ( Ractive ) {
 			delete Ractive.components.grandwidget
 		});
 
-		asyncTest( 'Data passed into component updates inside component in magic mode', function ( t ) {
-			var ractive, Widget;
+		if ( Ractive.magic ) {
+			asyncTest( 'Data passed into component updates inside component in magic mode', function ( t ) {
+				var ractive, Widget;
 
-			expect( 1 );
+				expect( 1 );
 
-			Widget = Ractive.extend({
-				template: '{{world}}',
-				magic: true,
-				complete: function(){
-					this.data.world = 'venus'
-					t.htmlEqual( fixture.innerHTML, 'venusvenus' );
-					start();
-				}
+				Widget = Ractive.extend({
+					template: '{{world}}',
+					magic: true,
+					complete: function(){
+						this.data.world = 'venus'
+						t.htmlEqual( fixture.innerHTML, 'venusvenus' );
+						start();
+					}
+				});
+
+				var data = { world: 'mars' }
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{world}}<widget world="{{world}}"/>',
+					magic: true,
+					components: { widget: Widget },
+					data: data
+				});
 			});
 
-			var data = { world: 'mars' }
+			test( 'Data passed into component updates from outside component in magic mode', function ( t ) {
+				var ractive, Widget;
 
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{world}}<widget world="{{world}}"/>',
-				magic: true,
-				components: { widget: Widget },
-				data: data
-			});
-		});
+				Widget = Ractive.extend({
+					template: '{{world}}',
+					magic: true
+				});
 
-		test( 'Data passed into component updates from outside component in magic mode', function ( t ) {
-			var ractive, Widget;
+				var data = { world: 'mars' }
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{world}}<widget world="{{world}}"/>',
+					magic: true,
+					components: { widget: Widget },
+					data: data
+				});
 
-			Widget = Ractive.extend({
-				template: '{{world}}',
-				magic: true
-			});
+				data.world = 'venus'
 
-			var data = { world: 'mars' }
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{world}}<widget world="{{world}}"/>',
-				magic: true,
-				components: { widget: Widget },
-				data: data
+				t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 			});
 
-			data.world = 'venus'
+			test( 'Indirect changes propagate across components in magic mode (#480)', function ( t ) {
+				var Blocker, ractive, blocker;
 
-			t.htmlEqual( fixture.innerHTML, 'venusvenus' );
-		});
+				Blocker = Ractive.extend({
+					template: '{{foo.bar.baz}}'
+				});
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo.bar.baz}}"><blocker foo="{{foo}}"/>',
+					data: { foo: { bar: { baz: 50 } } },
+					magic: true,
+					components: { blocker: Blocker }
+				});
+
+				ractive.set( 'foo.bar.baz', 42 );
+				t.equal( ractive.get( 'foo.bar.baz' ), 42 );
+
+				ractive.data.foo.bar.baz = 1337;
+				t.equal( ractive.data.foo.bar.baz, 1337 );
+				t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
+
+				blocker = ractive.findComponent( 'blocker' );
+
+				blocker.set( 'foo.bar.baz', 42 );
+				t.equal( blocker.get( 'foo.bar.baz' ), 42 );
+
+				blocker.data.foo.bar.baz = 1337;
+				t.equal( blocker.data.foo.bar.baz, 1337 );
+				t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
+			});
+		}
 
 		test( 'Component data passed but non-existent on parent data', function ( t ) {
 			var ractive, Widget;
@@ -674,38 +706,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( findAll.length, 1);
 		});
 
-		test( 'Indirect changes propagate across components in magic mode (#480)', function ( t ) {
-			var Blocker, ractive, blocker;
-
-			Blocker = Ractive.extend({
-				template: '{{foo.bar.baz}}'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo.bar.baz}}"><blocker foo="{{foo}}"/>',
-				data: { foo: { bar: { baz: 50 } } },
-				magic: true,
-				components: { blocker: Blocker }
-			});
-
-			ractive.set( 'foo.bar.baz', 42 );
-			t.equal( ractive.get( 'foo.bar.baz' ), 42 );
-
-			ractive.data.foo.bar.baz = 1337;
-			t.equal( ractive.data.foo.bar.baz, 1337 );
-			t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
-
-			blocker = ractive.findComponent( 'blocker' );
-
-			blocker.set( 'foo.bar.baz', 42 );
-			t.equal( blocker.get( 'foo.bar.baz' ), 42 );
-
-			blocker.data.foo.bar.baz = 1337;
-			t.equal( blocker.data.foo.bar.baz, 1337 );
-			t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
-		});
-
 		test( 'Correct value is given to node._ractive.keypath when a component is torn down and re-rendered (#470)', function ( t ) {
 			var ractive;
 
@@ -890,7 +890,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			t.equal( fixture.innerHTML, '<div class="map"></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div class="map"></div>' );
 		});
 
 		test( 'Component in template has data function called on initialize', function ( t ) {
@@ -1211,6 +1211,135 @@ define([ 'ractive' ], function ( Ractive ) {
 			expect( 1 );
 			ractive.toggle( 'foo' );
 		});
+
+		test( 'Regression test for #871', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<p>outside component: {{i}}-{{uppercase(.)}}</p><widget text="{{uppercase(.)}}" />{{/items}}',
+				data: {
+					items: [ 'a', 'b', 'c' ],
+					uppercase: function ( letter ) {
+						return letter.toUpperCase();
+					}
+				},
+				components: {
+					widget: Ractive.extend({
+						template: '<p>inside component: {{i}}-{{text}}</p>'
+					})
+				}
+			});
+
+			ractive.splice( 'items', 1, 1 );
+
+			t.htmlEqual( fixture.innerHTML, '<p>outside component: 0-A</p><p>inside component: 0-A</p><p>outside component: 1-C</p><p>inside component: 1-C</p>' );
+		});
+
+		test( 'Specify component by function', function ( t ) {
+			var Widget1, Widget2, ractive;
+
+			Widget1 = Ractive.extend({ template: 'widget1' });
+			Widget2 = Ractive.extend({ template: 'widget2' });
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}<widget/>{{/items}}',
+				components: {
+					widget: function( data ) {
+						return data.foo ? Widget1 : Widget2;
+					}
+				},
+				data: {
+					foo: true,
+					items: [1]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'widget1' );
+			ractive.set( 'foo', false );
+			ractive.push( 'items', 2);
+			t.htmlEqual( fixture.innerHTML, 'widget1widget1', 'Component pinned until reset' );
+
+			ractive.reset( ractive.data );
+			t.htmlEqual( fixture.innerHTML, 'widget2widget2' );
+		});
+
+		test( 'Specify component by function as string', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({ template: 'foo' });
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: {
+					widget: function( data ) {
+						return 'widget1';
+					},
+					widget1: Widget
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+		});
+
+		if ( console && console.warn ) {
+
+			test( 'no return of component warns in debug', function ( t ) {
+
+				var ractive, warn = console.warn;
+
+				expect( 1 );
+
+				console.warn = function( msg ) {
+					t.ok( msg );
+				}
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<widget/>',
+					debug: true,
+					components: {
+						widget: function( data ) {
+							// where's my component?
+						}
+					}
+				});
+
+				console.warn = warn;
+
+			});
+		}
+
+		test( '`this` in function refers to ractive instance', function ( t ) {
+
+			var thisForFoo, thisForBar, ractive, Component;
+
+			Component = Ractive.extend({})
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<foo/><widget/>',
+				data: { foo: true },
+				components: {
+					widget: Ractive.extend({
+						template: '<bar/>'
+					}),
+					foo: function ( ) {
+						thisForFoo = this;
+						return Component;
+					},
+					bar: function ( ) {
+						thisForBar = this;
+						return Component;
+					}
+				}
+			});
+
+			t.equal( thisForFoo, ractive );
+			t.equal( thisForBar, ractive );
+
+		});
+
 	};
 
 });

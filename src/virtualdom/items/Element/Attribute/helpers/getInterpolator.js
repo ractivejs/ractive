@@ -1,19 +1,13 @@
 import types from 'config/types';
 
 export default function getInterpolator ( attribute ) {
-	var items, item;
-
-	items = attribute.fragment.items;
+	var items = attribute.fragment.items;
 
 	if ( items.length !== 1 ) {
 		return;
 	}
 
-	item = items[0];
-
-	if ( item.type !== types.INTERPOLATOR || ( !item.keypath && !item.ref ) ) {
-		return;
+	if ( items[0].type === types.INTERPOLATOR ) {
+		return items[0];
 	}
-
-	return item;
 }

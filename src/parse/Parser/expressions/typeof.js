@@ -8,8 +8,12 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
 		var expression;
 
+		if ( expression = fallthrough( parser ) ) {
+			return expression;
+		}
+
 		if ( !parser.matchString( symbol ) ) {
-			return fallthrough( parser );
+			return null;
 		}
 
 		parser.allowWhitespace();
@@ -28,13 +32,13 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 };
 
 // create all prefix sequence matchers, return getTypeof
-((function() {
+(function() {
 	var i, len, matcher, prefixOperators, fallthrough;
 
 	prefixOperators = '! ~ + - typeof'.split( ' ' );
 
 	fallthrough = getMemberOrInvocation;
-	for ( i=0, len=prefixOperators.length; i<len; i+=1 ) {
+	for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
 		matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
 		fallthrough = matcher;
 	}
@@ -43,6 +47,6 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	// fallthrough for the multiplication sequence matcher we're about to create
 	// (we're skipping void and delete)
 	getTypeof = fallthrough;
-})());
+}());
 
 export default getTypeof;

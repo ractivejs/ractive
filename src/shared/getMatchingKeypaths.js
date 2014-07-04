@@ -41,6 +41,6 @@ export default function getMatchingKeypaths ( ractive, pattern ) {
 	function concatenate ( key ) {
 		return function ( keypath ) {
 			return keypath ? keypath + '.' + key : key;
-		}
+		};
 	}
 }

@@ -65,14 +65,20 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	dependantGroups.forEach( group => {
-		upstreamChanges.forEach( keypath => notifyDependants( this, keypath, group, true ) );
-		allChanges.forEach( keypath => notifyDependants( this, keypath, group ) );
+		if ( !this.deps[ group ] ) {
+			return;
+		}
+
+		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, group ) );
+		notifyAllDependants( this, allChanges, group );
 	});
 
 	// Return a hash of keypaths to updated values
 	allChanges.forEach( keypath => {
 		hash[ keypath ] = this.get( keypath );
 	});
+
+	this.implicitChanges = {};
 
 	return hash;
 }
@@ -81,44 +87,54 @@ function updateComputation ( computation ) {
 	computation.update();
 }
 
-function notifyDependants ( viewmodel, keypath, group, onlyDirect ) {
-	var depsByKeypath = viewmodel.deps[ group ], value, unwrapped;
+function notifyUpstreamDependants ( viewmodel, keypath, groupName ) {
+	var dependants, value;
 
-	if ( !depsByKeypath ) {
-		return;
-	}
-
-	// update dependants of this keypath
-	value = viewmodel.get( keypath );
-	unwrapped = viewmodel.get( keypath, unwrap );
-
-	updateAll( depsByKeypath[ keypath ], value, unwrapped );
-
-	// If we're only notifying direct dependants, not dependants
-	// of downstream keypaths, then YOU SHALL NOT PASS
-	if ( onlyDirect ) {
-		return;
-	}
-
-	// otherwise, cascade
-	cascade( viewmodel.depsMap[ group ][ keypath ], viewmodel, group );
-}
-
-function updateAll ( dependants, value, unwrapped ) {
-	if ( dependants ) {
-		dependants.forEach( d => d.setValue( value, unwrapped ) );
+	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
+		value = viewmodel.get( keypath, unwrap );
+		dependants.forEach( d => d.setValue( value ) );
 	}
 }
 
-function cascade ( childDeps, viewmodel, group ) {
-	var i;
+function notifyAllDependants ( viewmodel, keypaths, groupName ) {
+	var queue = [];
 
-	if ( childDeps ) {
-		i = childDeps.length;
-		while ( i-- ) {
-			notifyDependants( viewmodel, childDeps[i], group );
+	addKeypaths( keypaths );
+	queue.forEach( dispatch );
+
+	function addKeypaths ( keypaths ) {
+		keypaths.forEach( addKeypath );
+		keypaths.forEach( cascade );
+	}
+
+	function addKeypath ( keypath ) {
+		var deps = findDependants( viewmodel, keypath, groupName );
+
+		if ( deps ) {
+			queue.push({
+				keypath: keypath,
+				deps: deps
+			});
 		}
 	}
+
+	function cascade ( keypath ) {
+		var childDeps;
+
+		if ( childDeps = viewmodel.depsMap[ groupName ][ keypath ] ) {
+			addKeypaths( childDeps );
+		}
+	}
+
+	function dispatch ( set ) {
+		var value = viewmodel.get( set.keypath, unwrap );
+		set.deps.forEach( d => d.setValue( value ) );
+	}
+}
+
+function findDependants ( viewmodel, keypath, groupName ) {
+	var group = viewmodel.deps[ groupName ];
+	return group ?  group[ keypath ] : null;
 }
 
 function addNewItems ( arr, items ) {

@@ -39,20 +39,15 @@ define([
 						deepEqual( actual[ name ], expected[ name ], 'compare ' + name );
 					}
 				}
-
 			});
-
 		}
 
 		test( 'base Ractive', t => {
-
 			t.deepEqual( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
 
 			for( let key in defaults ) {
 				t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key )
 			}
-
-
 		});
 
 		module( 'Extend Ractive', {
@@ -64,12 +59,6 @@ define([
 			}
 		} );
 
-		// test( 'extended', t => {
-
-		// 	testConfiguration( Child, Ractive );
-
-		// });
-
 		module( 'Configure Instance', {
 			setup: function () {
 				configureRactive();
@@ -78,15 +67,12 @@ define([
 		} );
 
 		test( 'ractive instance', t => {
-
 			testConfiguration( ractive, Ractive, true );
-
 		});
 
 		module( 'Configure Instance', { setup: configureRactive } );
 
 		test( 'find registry configuration', t => {
-
 			var adaptor1 = {}, adaptor2 = {},
 				parent = new Ractive( { adaptors: { foo: adaptor1 } } ),
 				ractive = new Ractive( { adaptors: { bar: adaptor2 } } );
@@ -95,35 +81,27 @@ define([
 
 			t.equal( config.registries.adaptors.find( ractive, 'foo' ), adaptor1 );
 			t.equal( config.registries.adaptors.find( ractive, 'bar' ), adaptor2 );
-
 		});
 
 		module( 'options' );
 
-		test( 'are passed to init with correct values ', t => {
+		if ( Ractive.magic ) {
+			test( 'are passed to init with correct values ', t => {
+				expect( 2 );
 
-			expect( 2 );
+				var Component = Ractive.extend({
+					init: function ( options ) {
+						t.equal( options.foo, 'bar' );
+						t.ok( options.magic );
+					}
+				});
 
-			var Component = Ractive.extend({
-				init: function ( options ) {
-					t.equal( options.foo, 'bar' );
-					t.ok( options.magic );
-				}
+				var ractive = new Component({
+					el: fixture,
+					foo: 'bar',
+					magic: true
+				});
 			});
-
-			var ractive = new Component({
-				el: fixture,
-				foo: 'bar',
-				magic: true
-			});
-
-		});
-
-
-
-
+		}
 	};
-
-
-
 });

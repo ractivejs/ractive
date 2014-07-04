@@ -11,15 +11,15 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'option element with custom selected logic works without error and correctly', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: 
+				template:
 					'<select>' +
 					'{{#options}}' +
 					'<option value="{{.}}" selected="{{.===selected}}">{{.}}</option>' +
 					'{{/options}}' +
 					'</select>',
-				data: { 
+				data: {
 					selected: 2,
-					options: [1,2,3] 
+					options: [1,2,3]
 				}
 			});
 
@@ -35,10 +35,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.find('input').value = 'bar';
 			ractive.updateModel();
-			t.equal( fixture.innerHTML, '<input>bar' );
-
+			t.htmlEqual( fixture.innerHTML, '<input>bar' );
 		});
-
 	};
-
 });

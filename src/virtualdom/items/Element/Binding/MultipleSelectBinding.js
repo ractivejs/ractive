@@ -23,6 +23,10 @@ var MultipleSelectBinding = SelectBinding.extend({
 		}
 	},
 
+	unrender: function () {
+		this.element.node.removeEventListener( 'change', handleDomEvent, false );
+	},
+
 	setValue: function () {
 		throw new Error( 'TODO not implemented yet' );
 	},

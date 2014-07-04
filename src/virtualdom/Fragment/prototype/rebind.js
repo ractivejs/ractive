@@ -5,9 +5,7 @@ export default function Fragment$rebind ( indexRef, newIndex, oldKeypath, newKey
 	// assign new context keypath if needed
 	assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 
-	if ( this.indexRefs
-		&& this.indexRefs[ indexRef ] !== undefined
-		&& this.indexRefs[ indexRef ] !== newIndex) {
+	if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined ) {
 		this.indexRefs[ indexRef ] = newIndex;
 	}
 

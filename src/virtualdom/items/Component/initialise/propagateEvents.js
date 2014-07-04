@@ -23,7 +23,7 @@ function propagateEvent ( childInstance, parentInstance, eventName, proxyEventNa
 		log.error({
 			debug: parentInstance.debug,
 			message: 'noComponentEventArguments'
-		})
+		});
 	}
 
 	childInstance.on( eventName, function () {

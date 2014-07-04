@@ -20,7 +20,7 @@ import update from 'virtualdom/items/Section/prototype/update';
 
 var Section = function ( options ) {
 	this.type = types.SECTION;
-	this.inverted = !!options.template.n;
+	this.inverted = options.template.n === types.SECTION_UNLESS;
 
 	this.pElement = options.pElement;
 

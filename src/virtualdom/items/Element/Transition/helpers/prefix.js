@@ -1,6 +1,7 @@
 import isClient from 'config/isClient';
 import vendors from 'config/vendors';
 import createElement from 'utils/createElement';
+import camelCase from 'utils/camelCase';
 
 var prefix, prefixCache, testStyle;
 
@@ -12,6 +13,8 @@ if ( !isClient ) {
 
 	prefix = function ( prop ) {
 		var i, vendor, capped;
+
+		prop = camelCase( prop );
 
 		if ( !prefixCache[ prop ] ) {
 			if ( testStyle[ prop ] !== undefined ) {

@@ -39,15 +39,21 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		asyncTest( 'Callback and promise with reset', function ( t ) {
-			var ractive = new Ractive({
-					el: fixture,
-					template: '{{one}}{{two}}{{three}}',
-					data: { one: 1, two: 2, three: 3 }
-				}),
-				callback = function(){
-					ok(true);
-					start();
-				}
+			var ractive, callback, counter, done;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{one}}{{two}}{{three}}',
+				data: { one: 1, two: 2, three: 3 }
+			});
+
+			counter = 2;
+			done = function () { --counter || start(); };
+
+			callback = function(){
+				t.ok(true);
+				done()
+			};
 
 			expect(6)
 			ractive.reset({ two: 4 }, callback);
@@ -76,20 +82,23 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		asyncTest( 'Callback and promise with dynamic template functions are recalled on reset', function ( t ) {
-			var ractive = new Ractive({
-					el: fixture,
-					template: function ( d ) {
-						return d.condition ? '{{foo}}' : '{{bar}}'
-					},
-					data: { foo: 'fizz', bar: 'bizz', condition: true }
-				}),
-				callback = function(){
-					t.ok(true);
-					if ( !--remaining ) {
-						start();
-					}
+			var ractive, callback, counter, done;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: function ( d ) {
+					return d.condition ? '{{foo}}' : '{{bar}}'
 				},
-				remaining = 2;
+				data: { foo: 'fizz', bar: 'bizz', condition: true }
+			});
+
+			counter = 2;
+			done = function () { --counter || start(); };
+
+			callback = function(){
+				t.ok(true);
+				done()
+			};
 
 			expect(5);
 
@@ -142,9 +151,9 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Widget = Ractive.extend({
 			  data: {
-			    uppercase: function ( str ) {
-			      return str.toUpperCase();
-			    }
+				uppercase: function ( str ) {
+				  return str.toUpperCase();
+				}
 			  }
 			});
 
@@ -169,7 +178,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			target.appendChild( anchor );
 			fixture.appendChild( target );
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
 
 			ractive = new Ractive({
 				el: target,
@@ -178,11 +187,34 @@ define([ 'ractive' ], function ( Ractive ) {
 				data: { what: 'fizz' }
 			});
 
-			t.equal( fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>' );
 			ractive.reset( { what: 'foo' } );
-			t.equal( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
+			t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
+		});
 
+		test( 'resetTemplate removes an inline component from the DOM (#928)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget type="{{type}}"/>',
+				data: {
+					type: 1
+				},
+				components: {
+					widget: Ractive.extend({
+						template: function ( data ) {
+							return data.type === 1 ? 'ONE' : 'TWO';
+						},
+						init: function () {
+							this.observe( 'type', function ( type ) {
+								this.resetTemplate( type === 1 ? 'ONE' : 'TWO' );
+							}, { init: false });
+						}
+					})
+				}
+			});
 
+			ractive.set( 'type', 2 );
+			t.htmlEqual( fixture.innerHTML, 'TWO' );
 		});
 	};
 

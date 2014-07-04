@@ -4,8 +4,9 @@ import warn from 'utils/warn';
 import Promise from 'utils/Promise';
 import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
 import createTransitions from 'virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions';
+import visibility from 'virtualdom/items/Element/Transition/prototype/animateStyle/visibility';
 
-var animateStyle, getComputedStyle;
+var animateStyle, getComputedStyle, resolved;
 
 if ( !isClient ) {
 	animateStyle = null;
@@ -15,6 +16,13 @@ if ( !isClient ) {
 	animateStyle = function ( style, value, options, complete ) {
 
 		var t = this, to;
+
+		// Special case - page isn't visible. Don't animate anything, because
+		// that way you'll never get CSS transitionend events
+		if ( visibility.hidden ) {
+			this.setStyle( style, value );
+			return resolved || ( resolved = Promise.resolve() );
+		}
 
 		if ( typeof style === 'string' ) {
 			to = {};
@@ -40,7 +48,7 @@ if ( !isClient ) {
 		}
 
 		var promise = new Promise( function ( resolve ) {
-			var propertyNames, changedProperties, computedStyle, current, from, transitionEndHandler, i, prop;
+			var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 
 			// Edge case - if duration is zero, set style synchronously and complete
 			if ( !options.duration ) {
@@ -54,7 +62,7 @@ if ( !isClient ) {
 			changedProperties = [];
 
 			// Store the current styles
-			computedStyle = window.getComputedStyle( t.node );
+			computedStyle = getComputedStyle( t.node );
 
 			from = {};
 			i = propertyNames.length;
@@ -83,7 +91,7 @@ if ( !isClient ) {
 				return;
 			}
 
-			createTransitions( t, to, options, changedProperties, transitionEndHandler, resolve );
+			createTransitions( t, to, options, changedProperties, resolve );
 		});
 
 		// If a callback was supplied, do the honours

@@ -27,7 +27,7 @@ export default function Section$update () {
 			// If the next fragment is already rendered, use it as an anchor...
 			nextFragment = this.fragments[ fragment.index + 1 ];
 			if ( nextFragment && nextFragment.rendered ) {
-				target.insertBefore( this.docFrag, nextFragment.firstNode() );
+				target.insertBefore( this.docFrag, nextFragment.firstNode() || null );
 			}
 
 			// ...otherwise continue appending to the document fragment for
@@ -37,8 +37,6 @@ export default function Section$update () {
 
 	if ( this.rendered && this.docFrag.childNodes.length ) {
 		anchor = this.parentFragment.findNextNode( this );
-		target = this.parentFragment.getNode();
-
 		target.insertBefore( this.docFrag, anchor );
 	}
 }

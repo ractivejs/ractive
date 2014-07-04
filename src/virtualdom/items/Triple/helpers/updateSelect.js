@@ -1,18 +1,19 @@
-var selector = 'option[selected]';
+import toArray from 'utils/toArray';
 
 export default function updateSelect ( parentElement ) {
-	var options, option, value;
+	var selectedOptions, option, value;
 
 	if ( !parentElement || parentElement.name !== 'select' || !parentElement.binding ) {
 		return;
 	}
 
+	selectedOptions = toArray( parentElement.node.options ).filter( isSelected );
+
 	// If one of them had a `selected` attribute, we need to sync
 	// the model to the view
 	if ( parentElement.getAttribute( 'multiple' ) ) {
-		options = parentElement.findAll( selector );
-		value = options.map( o => o.value );
-	} else if ( option = parentElement.find( selector ) ) {
+		value = selectedOptions.map( o => o.value );
+	} else if ( option = selectedOptions[0] ) {
 		value = option.value;
 	}
 
@@ -21,4 +22,8 @@ export default function updateSelect ( parentElement ) {
 	}
 
 	parentElement.bubble();
+}
+
+function isSelected ( option ) {
+	return option.selected;
 }

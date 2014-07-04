@@ -56,6 +56,7 @@ var Viewmodel = function ( ractive ) {
 	this.unresolvedImplicitDependencies = [];
 
 	this.changes = [];
+	this.implicitChanges = {};
 };
 
 Viewmodel.extend = function ( Parent, instance ) {
@@ -69,7 +70,7 @@ Viewmodel.extend = function ( Parent, instance ) {
 		instance.adapt) || [];
 
 	instance.adapt = adaptConfig.lookup( instance, instance.adaptors );
-}
+};
 
 Viewmodel.prototype = {
 	adapt: adapt,

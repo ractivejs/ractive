@@ -1,4 +1,3 @@
-import create from 'utils/create';
 import wrap from 'utils/wrapMethod';
 
 var dataConfig = {
@@ -92,14 +91,9 @@ function fromProperties ( child, parent ) {
 
 	child = child || {};
 
-	if ( parent && Object.keys( parent ).length ) {
+	if ( !parent ) { return child; }
 
-		// this is same as current ractive behavior
-		// would like to revisit...
-		parent = create( parent );
-		copy( child, parent );
-		child = parent;
-	}
+	copy( parent, child, true );
 
 	return child;
 }
@@ -115,19 +109,22 @@ function fromFn ( child, parentFn ) {
 
 			// Track the keys that our on the child,
 			// but not on the data. We'll need to apply these
-			// after the parent function returns
-			keys = Object.keys( child );
+			// after the parent function returns.
+			keys = [];
 
-			if ( data ) {
-
-				keys = keys.filter( key => !( key in data ) );
+			for ( let key in child ) {
+				if ( !data || !( key in data ) ) {
+					keys.push( key );
+				}
 			}
 		}
 
 		// call the parent fn, use data if no return value
 		data = parentFn.call( this, data ) || data;
 
-		// copy child keys back onto data
+		// Copy child keys back onto data. The child keys
+		// should take precedence over whatever the
+		// parent did with the data.
 		if ( keys && keys.length ) {
 
 			data = data || {};

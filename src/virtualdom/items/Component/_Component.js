@@ -12,8 +12,8 @@ import toString from 'virtualdom/items/Component/prototype/toString';
 import unbind from 'virtualdom/items/Component/prototype/unbind';
 import unrender from 'virtualdom/items/Component/prototype/unrender';
 
-var Component = function ( options ) {
-	this.init( options );
+var Component = function ( options, Constructor ) {
+	this.init( options, Constructor );
 };
 
 Component.prototype = {

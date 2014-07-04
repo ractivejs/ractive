@@ -1,6 +1,7 @@
 import types from 'config/types';
 import mustacheType from 'parse/converters/mustache/type';
 import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
+import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	arrayMemberPattern = /^[0-9][1-9]*$/,
@@ -18,7 +19,6 @@ export default function ( parser, delimiterType ) {
 
 	delimiters = parser[ delimiterType.delimiters ];
 
-
 	if ( delimiterType.isStatic ) {
 		mustache.s = true;
 	}
@@ -29,7 +29,7 @@ export default function ( parser, delimiterType ) {
 	} else {
 		// We need to test for expressions before we test for mustache type, because
 		// an expression that begins '!' looks a lot like a comment
-		if ( expression = parser.readExpression() ) {
+		if ( parser.remaining()[0] === '!' && ( expression = parser.readExpression() ) ) {
 			mustache.t = types.INTERPOLATOR;
 
 			// Was it actually an expression, or a comment block in disguise?

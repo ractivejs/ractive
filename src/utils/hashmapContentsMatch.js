@@ -1,4 +1,5 @@
 import isObject from 'utils/isObject';
+import 'legacy';
 
 export default function hashmapContentsMatch ( a, b ) {
 	var aKeys, bKeys;
@@ -21,7 +22,4 @@ export default function hashmapContentsMatch ( a, b ) {
 	return aKeys.every( function ( key ) {
 		return a[ key ] === b[ key ];
 	});
-
 }
-
-

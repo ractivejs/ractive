@@ -14,7 +14,7 @@ export default function ( parser ) {
 
 	expr = parser.readExpression();
 	if ( !expr ) {
-		parser.error( errors.expectedExpression )
+		parser.error( errors.expectedExpression );
 	}
 
 	parser.allowWhitespace();

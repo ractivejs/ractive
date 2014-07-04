@@ -1,3 +1,4 @@
+import runloop from 'global/runloop';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
 export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -5,15 +6,11 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 		parentInstance = childInstance._parent,
 		indexRefAlias, query;
 
-	this.bindings.forEach( function ( binding ) {
+	this.bindings.forEach( binding => {
 		var updated;
 
 		if ( binding.root !== parentInstance ) {
 			return; // we only want parent -> child bindings for this
-		}
-
-		if ( binding.keypath === indexRef ) {
-			childInstance.set( binding.otherKeypath, newIndex );
 		}
 
 		if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
@@ -21,8 +18,13 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 		}
 	});
 
+	this.complexParameters.forEach( parameter => {
+		parameter.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+	});
+
 	if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
-		childInstance.set( indexRefAlias, newIndex );
+		runloop.addViewmodel( childInstance.viewmodel );
+		childInstance.viewmodel.set( indexRefAlias, newIndex );
 	}
 
 	if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {

@@ -155,7 +155,7 @@ define([
 						items: [
 							{ foo: { name: 'bob' } },
 							{ foo: { name: 'bill' } },
-							{ foo: { name: 'betty' } },
+							{ foo: { name: 'betty' } }
 						]
 					}
 				});

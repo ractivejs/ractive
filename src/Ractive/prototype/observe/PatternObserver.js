@@ -1,8 +1,6 @@
 import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
-import isArray from 'utils/isArray';
 import getPattern from 'Ractive/prototype/observe/getPattern';
-import log from 'utils/log';
 
 var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
 
@@ -47,7 +45,7 @@ PatternObserver.prototype = {
 	},
 
 	update: function ( keypath ) {
-		var values, value;
+		var values;
 
 		if ( wildcard.test( keypath ) ) {
 			values = getPattern( this.root, keypath );
@@ -63,12 +61,8 @@ PatternObserver.prototype = {
 
 		// special case - array mutation should not trigger `array.*`
 		// pattern observer with `array.length`
-		if ( keypath.substr( -7 ) === '.length' ) {
-			value = this.root.viewmodel.get( keypath.substr( 0, keypath.length - 7 ) );
-
-			if ( isArray( value ) && value._ractive && value._ractive.setting ) {
-				return;
-			}
+		if ( this.root.viewmodel.implicitChanges[ keypath ] ) {
+			return;
 		}
 
 		if ( this.defer && this.ready ) {
@@ -96,17 +90,7 @@ PatternObserver.prototype = {
 			keys = slice.call( this.regex.exec( keypath ), 1 );
 			args = [ value, this.values[ keypath ], keypath ].concat( keys );
 
-			// wrap the callback in a try-catch block, and only throw error in
-			// debug mode
-			try {
-				this.callback.apply( this.context, args );
-			} catch ( err ) {
-
-				log.errorOnly({
-					debug: this.debug || this.root.debug,
-					err: err
-				});
-			}
+			this.callback.apply( this.context, args );
 
 			this.values[ keypath ] = value;
 		}

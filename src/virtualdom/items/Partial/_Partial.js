@@ -32,6 +32,10 @@ Partial = function ( options ) {
 };
 
 Partial.prototype = {
+	bubble: function () {
+		this.parentFragment.bubble();
+	},
+
 	firstNode: function () {
 		return this.fragment.firstNode();
 	},

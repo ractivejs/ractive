@@ -8,4 +8,8 @@ export default function unbind () {
 		// this was registered as a dependant
 		this.root.viewmodel.unregister( this.keypath, this );
 	}
+
+	if ( this.resolver ) {
+		this.resolver.teardown();
+	}
 }

@@ -1,36 +1,27 @@
 export default function Mustache$resolve ( keypath ) {
-	var rebindTarget;
+	var wasResolved, value, twowayBinding;
 
-	// In some cases, we may resolve to the same keypath (if this is
-	// an expression mustache that was rebound due to an ancestor's
-	// keypath) - in which case, this is a no-op
-	if ( keypath === this.keypath ) {
-		return;
-	}
-
-	// if we resolved previously, we need to unregister
-	if ( this.registered ) {
+	// If we resolved previously, we need to unregister
+	if ( this.keypath !== undefined ) {
 		this.root.viewmodel.unregister( this.keypath, this );
-
-		// need to rebind the element, if this belongs to one, for keypath changes
-		if ( this.parentFragment &&
-			this.parentFragment.owner &&
-			this.parentFragment.owner.element ) {
-			rebindTarget = this.parentFragment.owner.element;
-		} else {
-			rebindTarget = this;
-		}
-
-		rebindTarget.rebind( null, null, this.keypath, keypath );
-
-		// if we already updated due to rebinding, we can exit
-		if ( keypath === this.keypath ) {
-			return;
-		}
+		wasResolved = true;
 	}
 
 	this.keypath = keypath;
-	this.root.viewmodel.register( keypath, this );
 
-	this.setValue( this.root.viewmodel.get( keypath ) );
+	// If the new keypath exists, we need to register
+	// with the viewmodel
+	if ( keypath !== undefined ) {
+		value = this.root.viewmodel.get( keypath );
+		this.root.viewmodel.register( keypath, this );
+	}
+
+	// Either way we need to queue up a render (`value`
+	// will be `undefined` if there's no keypath)
+	this.setValue( value );
+
+	// Two-way bindings need to point to their new target keypath
+	if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
+		twowayBinding.rebound();
+	}
 }

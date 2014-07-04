@@ -9,7 +9,6 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
 	deps.push( dependant );
-	dependant.registered = true;
 
 	if ( !keypath ) {
 		return;

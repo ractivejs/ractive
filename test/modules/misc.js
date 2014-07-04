@@ -892,19 +892,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
-		test( 'Triples work inside SVG elements', function ( t ) {
-			var text, ractive = new Ractive({
-				el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
-				template: '{{{code}}}',
-				data: {
-					code: '<text>works</text>'
-				}
-			});
+		if ( Ractive.svg ) {
+			test( 'Triples work inside SVG elements', function ( t ) {
+				var text, ractive = new Ractive({
+					el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
+					template: '{{{code}}}',
+					data: {
+						code: '<text>works</text>'
+					}
+				});
 
-			text = ractive.find( 'text' );
-			t.ok( !!text );
-			t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
-		});
+				text = ractive.find( 'text' );
+				t.ok( !!text );
+				t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
+			});
+		}
 
 		test( 'Custom delimiters apply to partials (#601)', function ( t ) {
 			var ractive = new Ractive({
@@ -941,15 +943,17 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
-			var ractive = new Ractive({
-				el: fixture,
-				template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
-			});
+		if ( Ractive.svg ) {
+			test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
+				});
 
-			t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
-			t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
-		});
+				t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+				t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+			});
+		}
 
 		// This test fails since #816, because evaluators are treated as computed properties.
 		// Kept here in case we come up with a smart way to have the best of both worlds
@@ -1108,6 +1112,159 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture,
 				template: '<input type="radio" name="a" value="a" checked>'
 			});
+		});
+
+		asyncTest( 'Complete handlers are called for lazily-rendered instances (#749)', function ( t ) {
+			expect( 1 );
+
+			var ractive = new Ractive({
+				template: '<p>foo</p>',
+				complete: function () {
+					t.ok( true );
+					ractive.teardown();
+					QUnit.start();
+				}
+			});
+
+			ractive.render( fixture );
+		});
+
+		test( 'Doctype declarations are handled, and the tag name is uppercased (#877)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{{title}}</title></head><body>{{hello}} World!</body></html>',
+				data: { title: 'hi', hello: 'Hello' }
+			});
+
+			t.equal( ractive.toHTML(), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>hi</title></head><body>Hello World!</body></html>' );
+		});
+
+		test( 'Resolvers are torn down (#884)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#if foo}}
+						{{# steps[currentStep] }}
+							argh
+						{{/}}
+
+						<!-- comment -->
+					{{/if}}`,
+				data: {
+					currentStep: 0,
+					steps: [{}, {}]
+				}
+			});
+
+			expect( 0 );
+
+			ractive.set( 'foo', true );
+			ractive.set( 'foo', false );
+			ractive.set( 'currentStep', 1 );
+		});
+
+		test( 'Regression test for #844', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{# steps[currentStep] }}
+						{{#if bool}}
+							some text
+							<!-- this is needed! -->
+						{{/if}}
+					{{/}}
+					{{#if currentStep < steps.length - 1 }}
+						<a on-click='toggleStep'>toggle step: 1</a>
+					{{else}}
+						<a on-click='toggleStep'>toggle step: 0</a>
+					{{/if}}`,
+				data: {
+					currentStep: 0,
+					stepsQuantity: 2,
+					steps: [{}, {}],
+					bool: true
+				}
+			});
+
+			ractive.set( 'currentStep', null );
+			ractive.set( 'currentStep', 1 );
+
+			t.htmlEqual( fixture.innerHTML, 'some text  <a>toggle step: 0</a>' );
+
+			ractive.set( 'currentStep', 0 );
+			t.htmlEqual( fixture.innerHTML, 'some text  <a>toggle step: 1</a>' );
+		});
+
+		test( 'Mustaches that re-resolve to undefined behave correctly (#908)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{# steps[currentStep] }}
+						<p>{{currentStep}}: {{name}}</p>
+					{{/}}`,
+				data: {
+					currentStep: 0,
+					steps: [
+						{
+							name: 'zero'
+						},
+						{
+							name: 'one'
+						}
+					]
+				}
+			});
+
+			ractive.set( 'currentStep', null );
+			ractive.set( 'currentStep', 1 );
+
+			t.htmlEqual( fixture.innerHTML, '<p>1: one</p>' );
+		});
+
+		test( 'Content renders to correct place when subsequent sections have no nodes (#910)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{ >partial}} <!-- foo -->',
+				partials: {
+					partial: `
+						{{# steps[currentStep] }}
+							before
+						{{/}}
+						{{#if currentStep !== 1 }}
+							after
+						{{else}}
+							after
+						{{/if}}`
+				},
+				data: {
+					currentStep: 0,
+					steps: [ true, true ]
+				}
+			});
+
+			ractive.set( 'currentStep', null );
+			ractive.set( 'currentStep', 1 );
+
+			t.htmlEqual( fixture.innerHTML, 'before after' );
+		});
+
+		test( 'Dependants can register more than once without error (#838)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if foo}}<p>{{fn(foo)}}</p>{{/if}}',
+				data: {
+					fn: function ( foo ) {
+						foo.bar;
+						this.get( 'foo' );
+						this.get( 'bar' );
+					}
+				}
+			});
+
+			expect( 0 );
+
+			ractive.set( 'foo', {} );
+			ractive.set( 'foo', null );
 		});
 
 

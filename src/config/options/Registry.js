@@ -1,4 +1,4 @@
-import create from 'utils/create'
+import create from 'utils/create';
 import 'legacy';
 
 function Registry ( name, useDefaults ) {
@@ -37,6 +37,36 @@ Registry.prototype = {
 		target[ name ] = registry;
 
 	},
+	reset: function ( ractive ) {
+
+		var registry = ractive[ this.name ];
+		var changed = false;
+		Object.keys( registry ).forEach( key => {
+			var item = registry[key];
+			if ( item._fn ) {
+				if ( item._fn.isOwner ) {
+					registry[key] = item._fn;
+				} else {
+					delete registry[key];
+				}
+				changed = true;
+			}
+		});
+		return changed;
+	},
+
+	findOwner: function ( ractive, key ) {
+		return ractive[ this.name ].hasOwnProperty( key )
+			? ractive
+			: this.findConstructor( ractive.constructor, key);
+	},
+
+	findConstructor: function ( constructor, key ) {
+		if ( !constructor ) { return; }
+		return constructor[ this.name ].hasOwnProperty( key )
+			? constructor
+			: this.findConstructor( constructor._parent, key );
+	},
 
 	find: function ( ractive, key ) {
 
@@ -47,9 +77,9 @@ Registry.prototype = {
 
 		return recurseFind( ractive, r => r[ this.name ][ key ] ? r : void 0 );
 	}
-}
+};
 
-function recurseFind( ractive, fn ) {
+function recurseFind ( ractive, fn ) {
 
 	var find, parent;
 

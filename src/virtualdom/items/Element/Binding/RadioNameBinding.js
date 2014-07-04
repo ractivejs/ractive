@@ -1,3 +1,4 @@
+import removeFromArray from 'utils/removeFromArray';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
@@ -52,9 +53,18 @@ var RadioNameBinding = Binding.extend({
 		}
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		Binding.prototype.rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
-		this.element.node.name = '{{' + this.keypath + '}}';
+	rebound: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		var node;
+
+		Binding.prototype.rebound.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+
+		if ( node = this.element.node ) {
+			node.name = '{{' + this.keypath + '}}';
+		}
+	},
+
+	unbind: function () {
+		removeFromArray( this.siblings, this );
 	}
 });
 

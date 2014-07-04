@@ -37,7 +37,7 @@ Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority 
 		return function () {
 			var value = viewmodel.get( keypath );
 			return typeof value === 'function' ? wrap( value, root ) : value;
-		}
+		};
 	});
 };
 
@@ -54,6 +54,13 @@ Evaluator.prototype = {
 		var args, value, newImplicitDependencies;
 
 		args = this.argumentGetters.map( call );
+
+		if ( this.updating ) {
+			// Prevent infinite loops caused by e.g. in-place array mutations
+			return;
+		}
+
+		this.updating = true;
 
 		this.viewmodel.capture();
 
@@ -76,6 +83,8 @@ Evaluator.prototype = {
 
 		newImplicitDependencies = this.viewmodel.release();
 		diff( this, this.dependencies, newImplicitDependencies );
+
+		this.updating = false;
 
 		return value;
 	},
