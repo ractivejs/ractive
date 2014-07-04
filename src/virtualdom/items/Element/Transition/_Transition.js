@@ -15,8 +15,8 @@ circular.push( function () {
 
 getValueOptions = { args: true };
 
-Transition = function ( owner, template ) {
-	this.init( owner, template );
+Transition = function ( owner, template, isIntro ) {
+	this.init( owner, template, isIntro );
 };
 
 Transition.prototype = {

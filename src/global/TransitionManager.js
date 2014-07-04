@@ -1,51 +1,103 @@
 import removeFromArray from 'utils/removeFromArray';
 
-var TransitionManager = function ( callback, previous ) {
+var TransitionManager = function ( callback, parent ) {
 	this.callback = callback;
-	this.previous = previous;
+	this.parent = parent;
 
-	this.list = [];
+	this.intros = [];
+	this.outros = [];
+
+	this.children = [];
+	this.totalChildren = this.outroChildren = 0;
+
 	this.detachQueue = [];
 
-	if ( previous ) {
-		previous.add( this );
+	if ( parent ) {
+		parent.addChild( this );
 	}
 };
 
 TransitionManager.prototype = {
+	addChild: function ( child ) {
+		this.children.push( child );
+
+		this.totalChildren += 1;
+		this.outroChildren += 1;
+	},
+
+	removeChild: function ( child ) {
+		removeFromArray( this.children, child );
+		check( this );
+	},
+
+	decrementOutros: function () {
+		this.outroChildren -= 1;
+		check( this );
+	},
+
+	decrementTotal: function () {
+		this.totalChildren -= 1;
+		check( this );
+	},
+
 	add: function ( transition ) {
-		this.list.push( transition );
+		var list = transition.isIntro ? this.intros : this.outros;
+		list.push( transition );
 	},
 
 	remove: function ( transition ) {
-		removeFromArray( this.list, transition );
+		var list = transition.isIntro ? this.intros : this.outros;
+		removeFromArray( list, transition );
 		check( this );
 	},
 
 	init: function () {
 		this.ready = true;
 		check( this );
+	},
+
+	detachNodes: function () {
+		this.detachQueue.forEach( detach );
+		this.children.forEach( detachNodes );
 	}
 };
 
-function check ( transitionManager ) {
-	if ( !transitionManager.ready ) return;
-
-	if ( !transitionManager.list.length ) {
-		transitionManager.detachQueue.forEach( detach );
-
-		if ( typeof transitionManager.callback === 'function' ) {
-			transitionManager.callback();
-		}
-
-		if ( transitionManager.previous ) {
-			transitionManager.previous.remove( transitionManager );
-		}
-	}
-}
-
 function detach ( element ) {
 	element.detach();
+}
+
+function detachNodes ( tm ) {
+	tm.detachNodes();
+}
+
+function check ( tm ) {
+	if ( !tm.ready ) return;
+
+	// If all outros are complete, we notify the parent if there
+	// is one, otherwise start detaching nodes
+	if ( !tm.outros.length && !tm.outroChildren ) {
+		if ( tm.parent ) {
+			tm.parent.decrementOutros( tm );
+		} else {
+			tm.detachNodes();
+		}
+	}
+
+	else {
+		return;
+	}
+
+	// Once everything is done, we can notify parent transition
+	// manager and call the callback
+	if ( !tm.intros.length && !tm.totalChildren ) {
+		if ( typeof tm.callback === 'function' ) {
+			tm.callback();
+		}
+
+		if ( tm.parent ) {
+			tm.parent.decrementTotal();
+		}
+	}
 }
 
 export default TransitionManager;
