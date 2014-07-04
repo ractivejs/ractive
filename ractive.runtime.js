@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.4.0
-	2014-07-03 - commit b8cc652f 
+	2014-07-04 - commit 4c1a37e7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3138,9 +3138,11 @@
 					}
 					if ( !inDom ) {
 						head.appendChild( styleElement );
+						inDom = true;
 					}
 				} else if ( inDom ) {
 					head.removeChild( styleElement );
+					inDom = false;
 				}
 			};
 			css = {
@@ -6094,30 +6096,18 @@
 	};
 
 	/* virtualdom/items/Element/prototype/detach.js */
-	var virtualdom_items_Element$detach = function( runloop, css ) {
-
-		return function Element$detach() {
-			var Component;
-			if ( this.node ) {
-				// need to check for parent node - DOM may have been altered
-				// by something other than Ractive! e.g. jQuery UI...
-				if ( this.node.parentNode ) {
-					this.node.parentNode.removeChild( this.node );
-				}
-				return this.node;
+	var virtualdom_items_Element$detach = function Element$detach() {
+		var node = this.node,
+			parentNode;
+		if ( node ) {
+			// need to check for parent node - DOM may have been altered
+			// by something other than Ractive! e.g. jQuery UI...
+			if ( parentNode = node.parentNode ) {
+				parentNode.removeChild( node );
 			}
-			// If this element has child components with their own CSS, that CSS needs to
-			// be removed now
-			// TODO optimise this
-			if ( this.cssDetachQueue.length ) {
-				runloop.start();
-				while ( Component === this.cssDetachQueue.pop() ) {
-					css.remove( Component );
-				}
-				runloop.end();
-			}
-		};
-	}( runloop, global_css );
+			return node;
+		}
+	};
 
 	/* virtualdom/items/Element/prototype/find.js */
 	var virtualdom_items_Element$find = function( matches ) {
@@ -7743,7 +7733,6 @@
 			this.parent = options.pElement || parentFragment.pElement;
 			this.root = ractive = parentFragment.root;
 			this.index = options.index;
-			this.cssDetachQueue = [];
 			this.namespace = getElementNamespace( template, this.parent );
 			this.name = namespace !== namespaces.html ? enforceCase( template.e ) : template.e;
 			// Special case - <option> elements
@@ -9727,13 +9716,23 @@
 		// could be achieved with unrender-resetTemplate-render. Also, it should
 		// conceptually be similar to resetPartial, which couldn't be async
 		return function Ractive$resetTemplate( template ) {
-			var transitionsEnabled;
+			var transitionsEnabled, component;
 			config.template.init( null, this, {
 				template: template
 			} );
 			transitionsEnabled = this.transitionsEnabled;
 			this.transitionsEnabled = false;
+			// Is this is a component, we need to set the `shouldDestroy`
+			// flag, otherwise it will assume by default that a parent node
+			// will be detached, and therefore it doesn't need to bother
+			// detaching its own nodes
+			if ( component = this.component ) {
+				component.shouldDestroy = true;
+			}
 			this.unrender();
+			if ( component ) {
+				component.shouldDestroy = false;
+			}
 			// remove existing fragment and create new one
 			this.fragment.unbind();
 			this.fragment = new Fragment( {
@@ -9859,11 +9858,11 @@
 	};
 
 	/* Ractive/prototype/unrender.js */
-	var Ractive$unrender = function( types, removeFromArray, runloop, css ) {
+	var Ractive$unrender = function( removeFromArray, runloop, css ) {
 
 		return function Ractive$unrender() {
 			var this$0 = this;
-			var promise, shouldDestroy, fragment, nearestDetachingElement;
+			var promise, shouldDestroy;
 			if ( !this.rendered ) {
 				throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
 			}
@@ -9872,27 +9871,9 @@
 			// don't detach nodes from the DOM unnecessarily
 			shouldDestroy = !this.component || this.component.shouldDestroy;
 			if ( this.constructor.css ) {
-				// We need to find the nearest detaching element. When it gets removed
-				// from the DOM, it's safe to remove our CSS
-				if ( shouldDestroy ) {
-					promise.then( function() {
-						return css.remove( this$0.constructor );
-					} );
-				} else {
-					fragment = this.component.parentFragment;
-					do {
-						if ( fragment.owner.type !== types.ELEMENT ) {
-							continue;
-						}
-						if ( fragment.owner.willDetach ) {
-							nearestDetachingElement = fragment.owner;
-						}
-					} while ( !nearestDetachingElement && ( fragment = fragment.parent ) );
-					if ( !nearestDetachingElement ) {
-						throw new Error( 'A component is being torn down but doesn\'t have a nearest detaching element... this shouldn\'t happen!' );
-					}
-					nearestDetachingElement.cssDetachQueue.push( this.constructor );
-				}
+				promise.then( function() {
+					css.remove( this$0.constructor );
+				} );
 			}
 			// Cancel any animations in progress
 			while ( this._animations[ 0 ] ) {
@@ -9904,7 +9885,7 @@
 			runloop.end();
 			return promise;
 		};
-	}( types, removeFromArray, runloop, global_css );
+	}( removeFromArray, runloop, global_css );
 
 	/* Ractive/prototype/unshift.js */
 	var Ractive$unshift = function( makeArrayMethod ) {
