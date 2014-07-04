@@ -36,8 +36,6 @@ export default function Element$init ( options ) {
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
 
-	this.cssDetachQueue = [];
-
 	this.namespace = getElementNamespace( template, this.parent );
 	this.name = ( namespace !== namespaces.html ? enforceCase( template.e ) : template.e );
 

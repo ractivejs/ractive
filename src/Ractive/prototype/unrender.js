@@ -1,10 +1,9 @@
-import types from 'config/types';
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
 import css from 'global/css';
 
 export default function Ractive$unrender () {
-	var promise, shouldDestroy, fragment, nearestDetachingElement;
+	var promise, shouldDestroy;
 
 	if ( !this.rendered ) {
 		throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
