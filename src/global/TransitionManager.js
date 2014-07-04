@@ -67,24 +67,19 @@ function detachNodes ( tm ) {
 }
 
 function check ( tm ) {
-	if ( !tm.ready ) return;
+	if ( !tm.ready || tm.outros.length || tm.outroChildren ) return;
 
-	// If all outros are complete, we notify the parent if there
-	// is one, otherwise start detaching nodes
-	if ( !tm.outros.length && !tm.outroChildren ) {
-		if ( !tm.outrosComplete ) {
-			if ( tm.parent ) {
-				tm.parent.decrementOutros( tm );
-			} else {
-				tm.detachNodes();
-			}
+	// If all outros are complete, and we haven't already done this,
+	// we notify the parent if there is one, otherwise
+	// start detaching nodes
+	if ( !tm.outrosComplete ) {
+		if ( tm.parent ) {
+			tm.parent.decrementOutros( tm );
+		} else {
+			tm.detachNodes();
 		}
 
 		tm.outrosComplete = true;
-	}
-
-	else {
-		return;
 	}
 
 	// Once everything is done, we can notify parent transition
