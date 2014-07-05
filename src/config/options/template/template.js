@@ -1,77 +1,86 @@
 import parser from 'config/options/template/parser';
-import isObject from 'utils/isObject';
+import parse from 'parse/_parse';
 
 var templateConfig = {
 	name: 'template',
-	extend: extend,
-	init: init,
-	reset: reset,
-	processCompound: processCompound
+
+	extend: function extend ( Parent, proto, options ) {
+		var template;
+
+		// only assign if exists
+		if ( 'template' in options ) {
+			template = options.template;
+
+			if ( typeof template === 'function' ) {
+				proto.template = template;
+			} else {
+				proto.template = parse( template, parser.getParseOptions( proto ) );
+			}
+		}
+	},
+
+	init: function init ( Parent, ractive, options ) {
+		var template, fn;
+
+		// TODO because of prototypal inheritance, we might just be able to use
+		// ractive.template, and not bother passing through the Parent object.
+		// At present that breaks the test mocks' expectations
+		template = 'template' in options ? options.template : Parent.prototype.template;
+
+		if ( typeof template === 'function' ) {
+			fn = template;
+			template = getDynamicTemplate( ractive, fn );
+
+			ractive._config.template = {
+				fn: fn,
+				result: template
+			};
+		}
+
+		template = parseIfString( template, ractive );
+
+		// TODO the naming of this is confusing - ractive.template refers to [...],
+		// but Component.prototype.template refers to {v:1,t:[],p:[]}...
+		// it's unnecessary, because the developer never needs to access
+		// ractive.template
+		ractive.template = template.t;
+
+		if ( template.p ) {
+			extendPartials( ractive.partials, template.p );
+		}
+	},
+
+	reset: function ( ractive ) {
+		var result = resetValue( ractive ), parsed;
+
+		if ( result ) {
+			parsed = parseIfString( result, ractive );
+
+			ractive.template = parsed.t;
+			extendPartials( ractive.partials, parsed.p, true );
+
+			return true;
+		}
+	}
 };
 
-function extend ( Parent, proto, options ) {
-
-	// only assign if exists
-	if ( options && 'template' in options ) {
-		proto.template = parseTemplate( proto, options.template, true );
-	}
-}
-
-function init ( Parent, ractive, options ) {
-
-	var result, option = options ? options.template : void 0;
-
-	result = parseTemplate( ractive, option || Parent.prototype.template );
-
-	if ( typeof result === 'function' ) {
-
-		let fn = result;
-
-		result = getDynamicTemplate( ractive, fn );
-
-		// store fn and fn result for reset
-		ractive._config[ this.name ] = {
-			fn: fn,
-			result: result
-		};
-
-		result = parseTemplate( ractive, result );
-	}
-
-	if ( result ) {
-		ractive.template = result;
-	}
-}
-
-function reset ( ractive ) {
-
-	var result = resetValue( ractive );
-
-	if ( result ) {
-		ractive.template = parseTemplate( ractive, result );
-		return true;
-	}
-
-}
-
 function resetValue ( ractive ) {
-
 	var initial = ractive._config.template, result;
 
-	// is this dynamic template?
-	if( !initial || !initial.fn) { return; }
+	// If this isn't a dynamic template, there's nothing to do
+	if ( !initial || !initial.fn ) {
+		return;
+	}
 
-	result = getDynamicTemplate ( ractive, initial.fn );
+	result = getDynamicTemplate( ractive, initial.fn );
+	result = parseIfString( result, ractive );
 
-	result = parseTemplate( ractive, result );
-
-	// compare results of fn return, which is likely
-	// be string comparison ( not yet parsed )
+	// TODO deep equality check to prevent unnecessary re-rendering
+	// in the case of already-parsed templates
 	if ( result !== initial.result ) {
 		initial.result = result;
 		return result;
 	}
-
 }
 
 function getDynamicTemplate ( ractive, fn ) {
@@ -79,45 +88,30 @@ function getDynamicTemplate ( ractive, fn ) {
 	return fn.call( ractive, ractive.data, helper );
 }
 
-
-function parseTemplate ( target, template, isExtend ) {
-
-	if ( !template || typeof template === 'function' ) { return template; }
-
-	if ( !parser.isParsed( template ) ) {
-
-		// Assume this is an ID of a <script type='text/ractive'> tag
-		if ( parser.isHashedId( template ) ) {
+function parseIfString ( template, ractive ) {
+	if ( typeof template === 'string' ) {
+		// ID of an element containing the template?
+		if ( template[0] === '#' ) {
 			template = parser.fromId( template );
 		}
 
-		template = parser.parse( template, parser.getParseOptions( target ) );
-	}
-
-	template = processCompound( target, template, isExtend );
-
-	// If the template was an array with a single string member, that means
-	// we can use innerHTML - we just need to unpack it
-	if ( template && ( template.length === 1 ) && ( typeof template[0] === 'string' ) ) {
-		template = template[0];
+		template = parse( template, parser.getParseOptions( ractive ) );
 	}
 
 	return template;
 }
 
-function processCompound( target, template, isExtend ) {
+function extendPartials ( existingPartials, newPartials, overwrite ) {
+	if ( !newPartials ) return;
 
-	if ( !isObject( template ) ) { return template; }
+	// TODO there's an ambiguity here - we need to overwrite in the `reset()`
+	// case, but not initially...
 
-	if( isExtend ) { target = target.constructor; }
-
-	//target.partials = target.partials || {};
-
-	for ( let key in template.partials ) {
-		target.partials[ key ] = template.partials[ key ];
+	for ( let key in newPartials ) {
+		if ( overwrite || !existingPartials.hasOwnProperty( key ) ) {
+			existingPartials[ key ] = newPartials[ key ];
+		}
 	}
-
-	return template.main;
 }
 
 export default templateConfig;

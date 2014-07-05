@@ -1,7 +1,5 @@
-
 import warn from 'utils/warn';
 import isArray from 'utils/isArray';
-
 
 function deprecate ( options, deprecated, correct ) {
 
@@ -34,7 +32,7 @@ function deprecateEventDefinitions ( options ) {
 	deprecate( options, 'eventDefinitions', 'events' );
 }
 
-function depricateAdaptors ( options ) {
+function deprecateAdaptors ( options ) {
 
 	// Using extend with Component instead of options,
 	// like Human.extend( Spider ) means adaptors as a registry
@@ -49,5 +47,5 @@ function depricateAdaptors ( options ) {
 
 export default function deprecateOptions ( options ) {
 	deprecateEventDefinitions( options );
-	depricateAdaptors( options );
+	deprecateAdaptors( options );
 }

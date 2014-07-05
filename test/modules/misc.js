@@ -250,25 +250,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'foo', foo );
 		});
 
-		test( 'Partials can contain inline partials', function ( t ) {
-			var partialStr, ractive;
-
-			partialStr = '<ul>{{#items}}{{>item}}{{/items}}</ul> <!-- {{>item}} --><li>{{.}}</li><!-- {{/item}} -->';
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{>list}}',
-				partials: {
-					list: partialStr
-				},
-				data: {
-					items: [ 'a', 'b', 'c' ]
-				}
-			});
-
-			t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
-		});
-
 		test( 'Delimiters can be reset globally', function ( t ) {
 			var oldDelimiters, oldTripledDelimiters, ractive;
 

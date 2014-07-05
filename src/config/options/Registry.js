@@ -25,18 +25,17 @@ Registry.prototype = {
 	},
 
 	configure: function ( Parent, target, options ) {
-
 		var name = this.name, option = options[ name ], registry;
 
 		registry = create( Parent[name] );
 
-		for( let key in option ) {
+		for ( let key in option ) {
 			registry[ key ] = option[ key ];
 		}
 
 		target[ name ] = registry;
-
 	},
+
 	reset: function ( ractive ) {
 
 		var registry = ractive[ this.name ];

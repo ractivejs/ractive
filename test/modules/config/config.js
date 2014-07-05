@@ -21,9 +21,11 @@ define([
 
 		function testConfiguration ( target, compare, noTargetDefaults ) {
 
+			console.log( 'config', config );
+
 			config.forEach( itemConfig => {
 
-				var name = itemConfig.name,
+				var name = itemConfig.name || itemConfig,
 					actual = target,
 					expected = compare.prototype;
 
@@ -32,10 +34,7 @@ define([
 				}
 
 				if ( expected ) {
-					if ( config.registries[ name ] ) {
-
-					}
-					else {
+					if ( !config.registries[ name ] && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
 						deepEqual( actual[ name ], expected[ name ], 'compare ' + name );
 					}
 				}
@@ -67,7 +66,11 @@ define([
 		} );
 
 		test( 'ractive instance', t => {
+			console.group( 'here' );
+			console.dir( ractive );
+			console.dir( Ractive );
 			testConfiguration( ractive, Ractive, true );
+			console.groupEnd();
 		});
 
 		module( 'Configure Instance', { setup: configureRactive } );

@@ -22,11 +22,13 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	ractive.viewmodel.compute();
 
 	// Render our *root fragment*
-	ractive.fragment = new Fragment({
-		template: ractive.template || [], // hmm, does this mean we don't need to create the fragment?
-		root: ractive,
-		owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
-	});
+	if ( ractive.template ) {
+		ractive.fragment = new Fragment({
+			template: ractive.template,
+			root: ractive,
+			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+		});
+	}
 
 	ractive.viewmodel.applyChanges();
 
