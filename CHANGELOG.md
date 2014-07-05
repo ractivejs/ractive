@@ -1,6 +1,100 @@
 Changelog
 ---------
 
+* 0.5.0
+	* Code organisation
+		* Codebase is now structured as ES6 modules, which can use new ES6 features such as arrow functions
+		* Simpler, more efficient runloop
+		* Encapsulated viewmodel logic
+
+	* Breaking changes:
+		* errors in observers and evaluators are no longer caught
+		* Nodes are detached as soon as any outro transitions are complete (if any), rather than when *all* transitions are complete
+		* The options argument of `init: function(options)` is now strictly what was passed into the constructor, use `this.option` to access configured value.
+		* `data` with properties on prototype are no longer cloned when accessed. `data` from "baseClass" is no longer deconstructed and copied.
+		* Use of a `<script>` tag for specifying inline templates is not enforced.
+		* Options specified on component constructors will not be picked up as defaults. `debug` now on `defaults`, not constructor
+		* Select bindings follow general browser rules for choosing options. Disabled options have no value.
+		* Input values are not coerced to numbers, unless input type is `number` or `range`
+		* `{{this.foo}}` in templates now means same thing as `{{.foo}}`
+		* Rendering to an element already render by Ractive causes that element to be torn down (unless appending).
+		* Illegal javascript no longer allowed by parser in expressions and will throw
+		* Parsed template format changed to specify template spec version.
+			* Proxy-event representation
+			* Non-dynamic (bound) fragments of html are no longer stored as single string
+			* See https://github.com/ractivejs/template-spec for current spec.
+		* Arrays being observed via `array.*` no longer send `item.length` event on mutation changes
+		* Reserved event names in templates ('change', 'reset', 'teardown', 'update') will cause the parser to throw an error
+		* `{{else}}` support in both handlebars-style blocks and regular mustache conditional blocks, but is now a restricted keyword that cannot be used as a regular reference
+		* Child components are created in data order
+		* Keypath expressions resolve left to right and follow same logic as regular mustache references (bind to root, not context, if left-most part is unresolved).
+		* Improved attribute parsing and handling:
+			* character escaping and whitespace handling in attribute directive arguments
+			* boolean and empty string attributes
+
+	* Other new features
+		* Better errors and debugging info
+			* Duplicate, repetitive console.warn messages are not repeated.
+			* Improved error handling and line numbers for parsing
+			* Warn on bad two-way radio bindings
+	    * Support for handlebars style blocks: `#if`, `#with`, `#each`, `#unless` and corresponding `@index` and `@key`
+		* Array mutation methods are now also available as methods on `Ractive.prototype` - e.g. `ractive.push('items', newItem)`. The return value is a Promise that fulfils when any transitions complete
+		* Support for static mustache delimiters that do one-time binding
+		* `{{./foo}}` added as alias for `{{.foo}}`
+		* Leading `~/` keypath specifier, eg `{{~/foo}}`, for accessing root data context in keypaths
+		* Observers with wildcards now receive actual wildcard values as additional arguments
+		* The following plugins: adaptors, components, decorators, easing, events, interpolators, partials, transitions, when used in components will be looked up in the view hierarchy if they cannot be found in the inheritance chain.
+		* `ractive.set` supports pattern observers, eg `ractive.set('foo.*.bar')`
+		* Support for specifying multiple events in single `on`, eg `ractive.on( 'foo bar baz', handleFooBarOrBaz )`
+		* Unnecessary leading and trailing whitespace in templates is removed
+		* Better support for post-init render/insert
+		* Computed properties can be updated with `ractive.update(property)`
+		* `updateModel` returns a `Promise`
+		* Media queries work correctly in encapsulated component CSS
+		* `Component.extend` is writable (can be extended)
+		* `append` option can now take a target element, behavior same as `ractive.insert`
+		* All configuration options, except plugin registries, can be specified on `Ractive.defaults` and `Component.defaults`
+		* Any configuration option except registries and computed properties can be specfied using a function that returns a value
+		* `ractive.reset()` will re-render if template or partial specified by a function changes its value
+		* New `ractive.resetTemplate()` method that re-renders with new template
+		* Value of key/value pair for partials and components can be specified using a function
+		* `ractive.off()` returns instance making it chainable
+		* Improved support for extending Components with Components
+
+	* Bug fixes:
+	    * Component names not restricted by array method name conflicts
+	    * Ensure all change operations update DOM synchronously
+	    * Unrooted and unresolved keypath expression work correctly
+	    * Uppercase tag names bind correctly
+	    * Falsey values in directives (`0`,`''`, `false`, etc)
+	    * IE8 fixes and working test suite
+	    * Keypath expressions in binding attributes
+	    * Edge case for keypath expression that include regular expression
+	    * Input blur correctly updates model AND view
+	    * Component parameters data correctly sync with parents
+	    * Correct components.json format
+	    * Variety of edge cases with rebindings caused by array mutations
+	    * Partials aware of parent context
+	    * `foreignObject` correctly defaults to HTML namespace
+	    * Edge cases with bind, rebind, unrender in Triples
+	    * Sections (blocks) in attributes
+	    * Remove unncessary evaluator function calls
+	    * Incorrect "Computed properties without setters are read-only in the current version" error
+	    * Handle emulated touch events for nodes that are defined on `window` in the browser
+	    * Never initialiased decorators being torndown
+	    * File inputs without mustache refs are not bound
+	    * Pattern observers with empty array
+	    * Callbacks that throw cause promise reject
+	    * Clean-up `input` and `option` binding edge cases
+	    * Using `this._super` safe if baseclass or it's method doesn't actually exist.
+	    * Leading `.` on keypaths do not throw errors and are removed for purposes of processing
+	    * Post-blur validation via observer works correctly
+	    * Radio buttons with static attributes work correctly
+	    * DOCTYPE declarations are uppercased
+	    * Transitioned elements not detaching if window is not active
+	    * CSS transitions apply correctly
+	    * wildcard `*` can be used as first part of observer keypath
+
 * 0.4.0
 	* BREAKING: Filenames are now lowercase. May affect you if you use Browserify etc.
 	* BREAKING: `set()`, `update()`, `teardown()`, `animate()`, `merge()`, `add()`, `subtract()`, and `toggle()` methods return a Promise that fulfils asynchronously when any resulting transitions have completed
