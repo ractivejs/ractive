@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.1
-	2014-07-05 - commit 0287dd69 
+	2014-07-05 - commit d05d0126 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2078,7 +2078,7 @@
 					if ( typeof template === 'function' ) {
 						proto.template = template;
 					} else {
-						proto.template = parse( template, parser.getParseOptions( proto ) );
+						proto.template = parseIfString( template, proto );
 					}
 				}
 			},
