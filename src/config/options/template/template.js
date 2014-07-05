@@ -14,7 +14,7 @@ var templateConfig = {
 			if ( typeof template === 'function' ) {
 				proto.template = template;
 			} else {
-				proto.template = parse( template, parser.getParseOptions( proto ) );
+				proto.template = parseIfString( template, proto );
 			}
 		}
 	},

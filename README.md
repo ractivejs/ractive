@@ -21,7 +21,7 @@ To get a feel for how it will make your life as a web developer easier, visit [r
 Get help
 --------
 
-If you don't find what you're looking for in the [docs](http://docs.ractivejs.org/latest), ask a question on Stack Overflow with the `ractive` tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS).
+If you don't find what you're looking for in the [docs](http://docs.ractivejs.org/latest), ask a question in [Google Groups](https://groups.google.com/forum/#!forum/ractive-js) forum, Stack Overflow with the [`ractivejs`](http://stackoverflow.com/questions/tagged/ractivejs) tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS).
 
 
 Building
