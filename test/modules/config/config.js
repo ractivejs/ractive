@@ -21,8 +21,6 @@ define([
 
 		function testConfiguration ( target, compare, noTargetDefaults ) {
 
-			console.log( 'config', config );
-
 			config.forEach( itemConfig => {
 
 				var name = itemConfig.name || itemConfig,
@@ -66,11 +64,7 @@ define([
 		} );
 
 		test( 'ractive instance', t => {
-			console.group( 'here' );
-			console.dir( ractive );
-			console.dir( Ractive );
 			testConfiguration( ractive, Ractive, true );
-			console.groupEnd();
 		});
 
 		module( 'Configure Instance', { setup: configureRactive } );
